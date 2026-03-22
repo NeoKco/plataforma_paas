@@ -212,6 +212,15 @@ Resultado real:
 - `completed`: provisioning terminado correctamente
 - `failed`: agoto intentos y necesita intervencion explicita
 
+## Qué se ve en frontend despues del ajuste
+
+En entorno de desarrollo, la pantalla `Provisioning` ahora muestra ademas un bloque fijo con:
+
+- usuario bootstrap: `admin@<tenant_slug>.local`
+- password bootstrap: `TenantAdmin123!`
+
+Eso existe para facilitar onboarding y pruebas manuales del `tenant_portal` sin exponer secretos dinamicos reales.
+
 ## Qué aprendimos de esta prueba
 
 - crear tenant genera job automatico

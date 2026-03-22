@@ -43,6 +43,7 @@ type PendingConfirmation = {
 };
 
 export function ProvisioningPage() {
+  const showDevelopmentBootstrapHelp = import.meta.env.DEV;
   const { session } = useAuth();
   const [jobs, setJobs] = useState<ProvisioningJob[]>([]);
   const [metrics, setMetrics] = useState<ProvisioningJobMetricsResponse | null>(null);
@@ -317,6 +318,27 @@ export function ProvisioningPage() {
         <MetricCard label="Alertas activas" value={overview.activeAlerts} />
         <MetricCard label="Filas DLQ" value={overview.dlqJobs} />
       </div>
+
+      {showDevelopmentBootstrapHelp ? (
+        <PanelCard
+          title="Credenciales bootstrap de desarrollo"
+          subtitle="Ayuda visible solo en entorno local para validar rápido el acceso al portal tenant después del provisioning."
+        >
+          <div className="text-secondary">
+            Usuario bootstrap tenant:
+            {" "}
+            <code>admin@{"<tenant_slug>"}.local</code>
+          </div>
+          <div className="text-secondary">
+            Contraseña bootstrap tenant:
+            {" "}
+            <code>TenantAdmin123!</code>
+          </div>
+          <div className="tenant-inline-note">
+            Usa esta referencia solo para pruebas de desarrollo. No representa una política válida de producción.
+          </div>
+        </PanelCard>
+      ) : null}
 
       {jobsError ? (
         <ErrorState
