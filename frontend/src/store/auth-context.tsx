@@ -1,4 +1,5 @@
 import {
+  useCallback,
   createContext,
   useContext,
   useEffect,
@@ -13,11 +14,13 @@ import type { PlatformSession } from "../types";
 import {
   buildPlatformSession,
   clearStoredSession,
+  getSessionIdleRemainingMs,
   hasSessionExpired,
   isSessionIdle,
   persistSession,
   readStoredSession,
   SESSION_ACTIVITY_THROTTLE_MS,
+  SESSION_EXPIRY_WARNING_MS,
   SESSION_IDLE_TIMEOUT_MS,
   shouldRefreshSession,
   updateSessionActivity,
@@ -30,9 +33,11 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   isHydrated: boolean;
   hadStoredSession: boolean;
+  isExpiryWarningOpen: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
+  continueSession: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -41,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<PlatformSession | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [hadStoredSession, setHadStoredSession] = useState(false);
+  const [isExpiryWarningOpen, setIsExpiryWarningOpen] = useState(false);
   const refreshInFlightRef = useRef(false);
 
   useEffect(() => {
@@ -69,9 +75,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  async function login(email: string, password: string) {
+  const login = useCallback(async (email: string, password: string) => {
     const response = await loginPlatform(email, password);
     setHadStoredSession(true);
+    setIsExpiryWarningOpen(false);
     setSession(
       buildPlatformSession({
         accessToken: response.access_token,
@@ -82,9 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fullName: response.full_name,
       })
     );
-  }
+  }, []);
 
-  async function logout() {
+  const logout = useCallback(async () => {
     const activeSession = session;
     if (activeSession?.accessToken) {
       try {
@@ -94,13 +101,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     clearStoredSession(SESSION_STORAGE_KEY);
+    setIsExpiryWarningOpen(false);
     setSession(null);
-  }
+  }, [session]);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     const activeSession = session;
     if (!activeSession?.refreshToken) {
       clearStoredSession(SESSION_STORAGE_KEY);
+      setIsExpiryWarningOpen(false);
       setSession(null);
       return;
     }
@@ -115,7 +124,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fullName: response.full_name,
       })
     );
-  }
+  }, [session]);
+
+  const continueSession = useCallback(async () => {
+    setSession((current) => (current ? updateSessionActivity(current) : current));
+    setIsExpiryWarningOpen(false);
+
+    if (session && shouldRefreshSession(session)) {
+      await refresh();
+    }
+  }, [refresh, session]);
 
   useEffect(() => {
     if (!session) {
@@ -133,6 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return current;
         }
 
+        setIsExpiryWarningOpen(false);
         return updateSessionActivity(current);
       });
     }
@@ -162,10 +181,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const intervalId = window.setInterval(() => {
+      const idleRemainingMs = getSessionIdleRemainingMs(session);
+
       if (hasSessionExpired(session) || isSessionIdle(session)) {
         void logout();
+        return;
       }
-    }, 30_000);
+
+      setIsExpiryWarningOpen(idleRemainingMs > 0 && idleRemainingMs <= SESSION_EXPIRY_WARNING_MS);
+    }, 15_000);
 
     return () => window.clearInterval(intervalId);
   }, [logout, session]);
@@ -196,11 +220,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: Boolean(session?.accessToken),
       isHydrated,
       hadStoredSession,
+      isExpiryWarningOpen,
       login,
       logout,
       refresh,
+      continueSession,
     }),
-    [hadStoredSession, isHydrated, login, logout, refresh, session]
+    [
+      continueSession,
+      hadStoredSession,
+      isExpiryWarningOpen,
+      isHydrated,
+      login,
+      logout,
+      refresh,
+      session,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
