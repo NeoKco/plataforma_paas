@@ -45,6 +45,7 @@ En este momento la documentacion creada formalmente dentro del repositorio comie
 - [Onboarding de developers](./runbooks/developer-onboarding.md)
 - [Demo data y seeds de desarrollo](./runbooks/demo-data.md)
 - [Prueba guiada de provisioning](./runbooks/provisioning-guided-test.md)
+- [Prueba guiada de billing](./runbooks/billing-guided-test.md)
 - [Higiene del repositorio para GitHub](./runbooks/github-repository-hygiene.md)
 - [Migraciones backend](./runbooks/backend-migrations.md)
 - [Hardening de seguridad](./runbooks/security-hardening.md)

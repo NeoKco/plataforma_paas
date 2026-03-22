@@ -13,6 +13,8 @@ Ademas, dejar una regla operativa de documentacion continua:
 
 - toda prueba manual relevante que descubra comportamiento, fallo o fix debe terminar convertida en runbook o ampliacion de la documentacion existente
 - la documentacion no se deja para el final; se actualiza junto con el aprendizaje real
+- si la prueba ya tiene capturas guardadas en el repo, esas imagenes deben usarse en la documentacion
+- si la prueba genero capturas nuevas utiles, conviene guardarlas en `docs/assets/app-visual-manual/` y enlazarlas desde el runbook correspondiente
 
 ## Requisito
 

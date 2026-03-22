@@ -133,6 +133,10 @@ Aqui ves:
 - workspace por tenant
 - reconcile
 
+Para entenderla con un caso real ya ejecutado, revisa:
+
+- [Prueba guiada de billing](../runbooks/billing-guided-test.md)
+
 ### `Configuracion`
 
 Es una pantalla de soporte y lectura tecnica.

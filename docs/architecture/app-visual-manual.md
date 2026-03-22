@@ -251,6 +251,10 @@ Lectura recomendada:
 - trabajar un tenant concreto
 - lanzar reconcile individual o por lote
 
+Si quieres ver el flujo completo ya explicado con pasos, estado tenant y reconcile real, revisa:
+
+- [Prueba guiada de billing](../runbooks/billing-guided-test.md)
+
 ### 8. Configuracion de plataforma
 
 #### Sesion y contexto
