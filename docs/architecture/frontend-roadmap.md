@@ -150,6 +150,14 @@ Avance actual:
 - `Tenants` ya permite abrir `Tenant Portal` con el tenant seleccionado precargado
 - `Tenants` ya pide confirmacion previa para acciones administrativas sensibles
 
+Pendientes finos conocidos:
+
+- revisar el tono final de varias ayudas `?` para que suenen menos tecnicas
+- decidir si todas las ayudas `?` actuales aportan o si algunas deben simplificarse o salir
+- mostrar labels mas amigables para valores internos como `write_block`, `full_block` o `past_due`
+- exponer desde backend catalogos mas ricos para planes y estados, de forma que la UI no dependa de codigos internos
+- revisar mensajes de exito para que se lean mas operativos y menos cercanos a respuesta de API
+
 ## Etapa F5. Provisioning y Operacion
 
 Estado: `En progreso`

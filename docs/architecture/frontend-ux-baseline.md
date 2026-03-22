@@ -137,6 +137,16 @@ Sigue pendiente extenderla a:
 - requeue masivo
 - reconcile masivo
 
+### 7. Refinamiento final de `Tenants`
+
+La pantalla `Tenants` ya es usable y no bloquea avanzar a otras vistas, pero quedan pendientes de cierre fino:
+
+- simplificar el tono de algunas ayudas contextuales
+- revisar si todas las burbujas `?` son necesarias
+- traducir o etiquetar mejor codigos internos visibles del backend
+- mejorar textos de exito para que suenen operativos
+- evaluar si `plans`, `billing statuses` y `maintenance modes` necesitan nombres visibles separados del codigo tecnico
+
 ## Patrones visuales que ya conviene congelar
 
 Antes de abrir mas pantallas, conviene dar por estables estos patrones:
@@ -184,6 +194,7 @@ La semantica de color ya debe mantenerse estable por familia:
 3. vocabulario final compartido
 4. estados vacios y errores operativos
 5. confirmaciones de acciones peligrosas
+6. refinamiento final de `Tenants`
 
 ## Regla de trabajo para lo que sigue
 
