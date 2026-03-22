@@ -1,0 +1,10 @@
+[Unit]
+Description=Run tenant restore drills weekly
+
+[Timer]
+OnCalendar=Sun *-*-* 06:00:00
+Persistent=true
+Unit=platform-paas-tenant-restore-drill.service
+
+[Install]
+WantedBy=timers.target

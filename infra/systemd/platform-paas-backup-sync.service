@@ -1,0 +1,11 @@
+[Unit]
+Description=Sync Platform PaaS backups to external storage
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=platform
+Group=platform
+EnvironmentFile=/opt/platform_paas/infra/env/backup.external.env
+ExecStart=/opt/platform_paas/infra/postgres/backups/sync_backup_archives.sh

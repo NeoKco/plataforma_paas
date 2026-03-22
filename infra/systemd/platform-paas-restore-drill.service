@@ -1,0 +1,11 @@
+[Unit]
+Description=Run platform_control restore drill
+After=postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=oneshot
+User=platform
+Group=platform
+EnvironmentFile=/opt/platform_paas/infra/env/restore.drill.env
+ExecStart=/bin/bash -lc 'LATEST_BACKUP=$(ls -1t /var/backups/platform_paas/platform_control_*.sql.gz | head -n 1); /opt/platform_paas/infra/postgres/backups/restore_drill_platform_control.sh "$LATEST_BACKUP"'

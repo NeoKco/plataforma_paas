@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pydantic-settings
+passlib[bcrypt]
+email-validator
+python-jose[cryptography]
+python-multipart
+PyJWT==2.10.1
+redis>=7.3.0

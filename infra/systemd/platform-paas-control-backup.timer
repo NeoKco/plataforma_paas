@@ -1,0 +1,10 @@
+[Unit]
+Description=Run platform_control backup daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+Unit=platform-paas-control-backup.service
+
+[Install]
+WantedBy=timers.target

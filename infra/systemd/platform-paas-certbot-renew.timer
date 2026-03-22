@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Let's Encrypt renewal twice daily
+
+[Timer]
+OnCalendar=*-*-* 03,15:00:00
+Persistent=true
+Unit=platform-paas-certbot-renew.service
+
+[Install]
+WantedBy=timers.target

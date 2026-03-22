@@ -1,0 +1,1044 @@
+from contextlib import contextmanager
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.orm import Session
+
+from app.apps.platform_control.schemas import (
+    PlatformBillingAlertsResponse,
+    PlatformBillingAlertHistoryResponse,
+    PlatformBillingAlertHistoryEntryResponse,
+    PlatformBillingSyncSummaryResponse,
+    TenantAccessPolicyResponse,
+    TenantBillingReconcileBatchResponse,
+    TenantBillingResponse,
+    TenantBillingReconcileResponse,
+    TenantBillingIdentityUpdateRequest,
+    TenantBillingSyncApplyResponse,
+    TenantBillingSyncEventRequest,
+    TenantBillingSyncEventResponse,
+    TenantBillingSyncHistoryResponse,
+    TenantBillingSyncSummaryResponse,
+    TenantBillingUpdateRequest,
+    TenantPolicyChangeHistoryResponse,
+    TenantMaintenanceResponse,
+    TenantMaintenanceUpdateRequest,
+    TenantFinanceUsageDataResponse,
+    TenantFinanceUsageResponse,
+    TenantModuleUsageItemResponse,
+    TenantModuleUsageSummaryResponse,
+    TenantModuleLimitsResponse,
+    TenantModuleLimitsUpdateRequest,
+    TenantCreateRequest,
+    TenantListResponse,
+    TenantPlanResponse,
+    TenantPlanUpdateRequest,
+    TenantRateLimitResponse,
+    TenantRateLimitUpdateRequest,
+    TenantStatusResponse,
+    TenantStatusUpdateRequest,
+    TenantResponse,
+    TenantSchemaSyncResponse,
+)
+from app.apps.platform_control.services.billing_alert_service import (
+    BillingAlertService,
+)
+from app.apps.tenant_modules.core.services.tenant_connection_service import (
+    TenantConnectionService,
+)
+from app.apps.tenant_modules.core.services.module_usage_service import (
+    TenantModuleUsageService,
+)
+from app.apps.tenant_modules.finance.services.finance_service import FinanceService
+from app.apps.platform_control.services.tenant_billing_sync_service import (
+    TenantBillingSyncService,
+)
+from app.apps.platform_control.services.tenant_policy_event_service import (
+    TenantPolicyEventService,
+)
+from app.apps.platform_control.services.tenant_service import TenantService
+from app.common.auth.role_dependencies import require_role
+from app.common.db.session_manager import get_control_db
+
+router = APIRouter(prefix="/platform/tenants", tags=["platform-tenants"])
+tenant_service = TenantService()
+tenant_policy_event_service = TenantPolicyEventService()
+tenant_billing_sync_service = TenantBillingSyncService(
+    tenant_service=tenant_service,
+    tenant_policy_event_service=tenant_policy_event_service,
+)
+billing_alert_service = BillingAlertService(
+    tenant_billing_sync_service=tenant_billing_sync_service
+)
+tenant_connection_service = TenantConnectionService()
+finance_service = FinanceService()
+tenant_module_usage_service = TenantModuleUsageService(finance_service=finance_service)
+
+
+def _raise_tenant_schema_http_error(exc: Exception) -> None:
+    detail = str(exc).lower()
+
+    if "finance_entries" in detail or "tenant_info" in detail or "users" in detail:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Tenant schema is incomplete. Run tenant schema sync or tenant migrations "
+                "before requesting module usage."
+            ),
+        ) from exc
+
+    if "no such table" in detail or "undefinedtable" in detail:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Tenant schema is incomplete. Run tenant schema sync or tenant migrations "
+                "before requesting module usage."
+            ),
+        ) from exc
+
+    raise exc
+
+
+def _build_tenant_response(tenant) -> TenantResponse:
+    return TenantResponse(
+        id=tenant.id,
+        name=tenant.name,
+        slug=tenant.slug,
+        tenant_type=tenant.tenant_type,
+        plan_code=tenant.plan_code,
+        billing_provider=tenant.billing_provider,
+        billing_provider_customer_id=tenant.billing_provider_customer_id,
+        billing_provider_subscription_id=tenant.billing_provider_subscription_id,
+        plan_enabled_modules=tenant_service.tenant_plan_policy_service.get_enabled_modules(
+            tenant.plan_code
+        ),
+        plan_module_limits=tenant_service.tenant_plan_policy_service.get_module_limits(
+            tenant.plan_code
+        ),
+        module_limits=tenant_service.get_tenant_module_limits(tenant),
+        billing_status=tenant.billing_status,
+        billing_status_reason=tenant.billing_status_reason,
+        billing_current_period_ends_at=tenant.billing_current_period_ends_at,
+        billing_grace_until=tenant.billing_grace_until,
+        status=tenant.status,
+        status_reason=tenant.status_reason,
+        maintenance_mode=tenant.maintenance_mode,
+        maintenance_starts_at=tenant.maintenance_starts_at,
+        maintenance_ends_at=tenant.maintenance_ends_at,
+        maintenance_reason=tenant.maintenance_reason,
+        maintenance_scopes=(
+            tenant_service.get_tenant_maintenance_scopes(tenant)
+            if tenant.maintenance_scopes is not None
+            else None
+        ),
+        maintenance_access_mode=tenant.maintenance_access_mode,
+        api_read_requests_per_minute=tenant.api_read_requests_per_minute,
+        api_write_requests_per_minute=tenant.api_write_requests_per_minute,
+    )
+
+
+def _capture_tenant_snapshot(db: Session, tenant_id: int) -> dict | None:
+    tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+    if not tenant:
+        return None
+    return tenant_policy_event_service.build_snapshot(tenant)
+
+
+def _record_tenant_policy_event(
+    db: Session,
+    *,
+    tenant,
+    event_type: str,
+    previous_state: dict | None,
+    actor_context: dict,
+) -> None:
+    if previous_state is None:
+        return
+    tenant_policy_event_service.record_change(
+        db,
+        tenant=tenant,
+        event_type=event_type,
+        previous_state=previous_state,
+        new_state=tenant_policy_event_service.build_snapshot(tenant),
+        actor_context=actor_context,
+    )
+
+
+@contextmanager
+def _open_platform_tenant_db(tenant):
+    tenant_db = None
+    try:
+        tenant_session_factory = tenant_connection_service.get_tenant_session(tenant)
+        tenant_db = tenant_session_factory()
+        yield tenant_db
+    finally:
+        if tenant_db is not None:
+            tenant_db.close()
+
+
+@router.get(
+    "/billing/events/summary",
+    response_model=PlatformBillingSyncSummaryResponse,
+)
+def get_platform_billing_events_summary(
+    provider: str | None = None,
+    event_type: str | None = None,
+    processing_result: str | None = None,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> PlatformBillingSyncSummaryResponse:
+    rows = tenant_billing_sync_service.summarize_all_recent_events(
+        db,
+        provider=provider,
+        event_type=event_type,
+        processing_result=processing_result,
+    )
+
+    return PlatformBillingSyncSummaryResponse(
+        success=True,
+        message="Resumen global de eventos de billing recuperado correctamente",
+        provider=provider,
+        event_type=event_type,
+        processing_result=processing_result,
+        total_rows=len(rows),
+        data=rows,
+    )
+
+
+@router.get(
+    "/billing/events/alerts",
+    response_model=PlatformBillingAlertsResponse,
+)
+def get_platform_billing_event_alerts(
+    provider: str | None = None,
+    event_type: str | None = None,
+    persist_history: bool = False,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> PlatformBillingAlertsResponse:
+    alerts = billing_alert_service.list_active_alerts(
+        db,
+        provider=provider,
+        event_type=event_type,
+    )
+    if persist_history and alerts:
+        billing_alert_service.save_alert_history(
+            db,
+            alerts=alerts,
+        )
+
+    return PlatformBillingAlertsResponse(
+        success=True,
+        message="Alertas operativas de billing recuperadas correctamente",
+        provider=provider,
+        event_type=event_type,
+        total_alerts=len(alerts),
+        data=alerts,
+    )
+
+
+@router.get(
+    "/billing/events/alerts/history",
+    response_model=PlatformBillingAlertHistoryResponse,
+)
+def get_platform_billing_event_alert_history(
+    limit: int = 100,
+    provider: str | None = None,
+    event_type: str | None = None,
+    processing_result: str | None = None,
+    alert_code: str | None = None,
+    severity: str | None = None,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> PlatformBillingAlertHistoryResponse:
+    alerts = billing_alert_service.list_recent_alert_history(
+        db,
+        limit=limit,
+        provider=provider,
+        event_type=event_type,
+        processing_result=processing_result,
+        alert_code=alert_code,
+        severity=severity,
+    )
+    return PlatformBillingAlertHistoryResponse(
+        success=True,
+        message="Historial de alertas operativas de billing recuperado correctamente",
+        total_alerts=len(alerts),
+        data=[
+            PlatformBillingAlertHistoryEntryResponse(**item)
+            for item in alerts
+        ],
+    )
+
+
+@router.post("/", response_model=TenantResponse)
+def create_tenant(
+    payload: TenantCreateRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantResponse:
+    try:
+        tenant = tenant_service.create_tenant(
+            db=db,
+            name=payload.name,
+            slug=payload.slug,
+            tenant_type=payload.tenant_type,
+            plan_code=payload.plan_code,
+        )
+        return _build_tenant_response(tenant)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/", response_model=TenantListResponse)
+def list_tenants(
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantListResponse:
+    tenants = tenant_service.tenant_repository.list_all(db)
+    return TenantListResponse(
+        success=True,
+        message="Tenants recuperados correctamente",
+        total_tenants=len(tenants),
+        data=[_build_tenant_response(tenant) for tenant in tenants],
+    )
+
+
+@router.get(
+    "/{tenant_id}",
+    response_model=TenantResponse,
+)
+def get_tenant(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantResponse:
+    tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    return _build_tenant_response(tenant)
+
+
+@router.get(
+    "/{tenant_id}/finance/usage",
+    response_model=TenantFinanceUsageResponse,
+)
+def get_tenant_finance_usage(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantFinanceUsageResponse:
+    tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    effective_module_limits = tenant_service.get_effective_module_limits(tenant)
+    effective_module_limit_sources = tenant_service.get_effective_module_limit_sources(
+        tenant
+    )
+    billing_grace_policy = tenant_service.tenant_billing_grace_policy_service.get_policy()
+    access_policy = tenant_service.get_tenant_access_policy(tenant)
+
+    try:
+        with _open_platform_tenant_db(tenant) as tenant_db:
+            usage = finance_service.get_usage(
+                tenant_db,
+                max_entries=(effective_module_limits or {}).get(
+                    FinanceService.MODULE_LIMIT_KEY
+                ),
+            )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        _raise_tenant_schema_http_error(exc)
+
+    return TenantFinanceUsageResponse(
+        success=True,
+        message="Uso de finance recuperado correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        tenant_plan_code=tenant.plan_code,
+        billing_in_grace=access_policy.billing_in_grace,
+        tenant_plan_module_limits=tenant_service.tenant_plan_policy_service.get_module_limits(
+            tenant.plan_code
+        ),
+        tenant_module_limits=tenant_service.get_tenant_module_limits(tenant),
+        billing_grace_module_limits=(
+            None
+            if not access_policy.billing_in_grace or billing_grace_policy is None
+            else billing_grace_policy.module_limits
+        ),
+        effective_module_limit=(effective_module_limits or {}).get(
+            FinanceService.MODULE_LIMIT_KEY
+        ),
+        effective_module_limit_source=(effective_module_limit_sources or {}).get(
+            FinanceService.MODULE_LIMIT_KEY
+        ),
+        data=TenantFinanceUsageDataResponse(**usage),
+    )
+
+
+@router.get(
+    "/{tenant_id}/module-usage",
+    response_model=TenantModuleUsageSummaryResponse,
+)
+def get_tenant_module_usage(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantModuleUsageSummaryResponse:
+    tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    access_policy = tenant_service.get_tenant_access_policy(tenant)
+    effective_module_limits = tenant_service.get_effective_module_limits(tenant)
+    effective_module_limit_sources = tenant_service.get_effective_module_limit_sources(
+        tenant
+    )
+
+    try:
+        with _open_platform_tenant_db(tenant) as tenant_db:
+            usage_rows = tenant_module_usage_service.list_usage(
+                tenant_db,
+                effective_module_limits=effective_module_limits,
+                effective_module_limit_sources=effective_module_limit_sources,
+            )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        _raise_tenant_schema_http_error(exc)
+
+    return TenantModuleUsageSummaryResponse(
+        success=True,
+        message="Uso de modulos tenant recuperado correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        tenant_plan_code=tenant.plan_code,
+        billing_in_grace=access_policy.billing_in_grace,
+        total_modules=len(usage_rows),
+        data=[TenantModuleUsageItemResponse(**item) for item in usage_rows],
+    )
+
+
+@router.post("/{tenant_id}/sync-schema", response_model=TenantSchemaSyncResponse)
+def sync_tenant_schema(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantSchemaSyncResponse:
+    try:
+        tenant = tenant_service.sync_tenant_schema(db=db, tenant_id=tenant_id)
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    return TenantSchemaSyncResponse(
+        success=True,
+        message="Tenant schema synchronized successfully",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+    )
+
+
+@router.patch(
+    "/{tenant_id}/maintenance",
+    response_model=TenantMaintenanceResponse,
+)
+def update_tenant_maintenance_mode(
+    tenant_id: int,
+    payload: TenantMaintenanceUpdateRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantMaintenanceResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        tenant = tenant_service.set_maintenance_mode(
+            db=db,
+            tenant_id=tenant_id,
+            maintenance_mode=payload.maintenance_mode,
+            maintenance_starts_at=payload.maintenance_starts_at,
+            maintenance_ends_at=payload.maintenance_ends_at,
+            maintenance_reason=payload.maintenance_reason,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="maintenance",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+
+    action = "actualizada"
+    return TenantMaintenanceResponse(
+        success=True,
+        message=f"Politica de mantenimiento {action} correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        maintenance_mode=tenant.maintenance_mode,
+        maintenance_starts_at=tenant.maintenance_starts_at,
+        maintenance_ends_at=tenant.maintenance_ends_at,
+        maintenance_reason=tenant.maintenance_reason,
+        maintenance_scopes=tenant_service.get_tenant_maintenance_scopes(tenant),
+        maintenance_access_mode=tenant.maintenance_access_mode,
+        maintenance_active_now=tenant_service.is_tenant_under_maintenance(tenant),
+    )
+
+
+@router.patch(
+    "/{tenant_id}/rate-limit",
+    response_model=TenantRateLimitResponse,
+)
+def update_tenant_rate_limits(
+    tenant_id: int,
+    payload: TenantRateLimitUpdateRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantRateLimitResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        tenant = tenant_service.set_api_rate_limits(
+            db=db,
+            tenant_id=tenant_id,
+            api_read_requests_per_minute=payload.api_read_requests_per_minute,
+            api_write_requests_per_minute=payload.api_write_requests_per_minute,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="rate_limit",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+
+    return TenantRateLimitResponse(
+        success=True,
+        message="Politica de rate limit tenant actualizada correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        tenant_plan_code=tenant.plan_code,
+        api_read_requests_per_minute=tenant.api_read_requests_per_minute,
+        api_write_requests_per_minute=tenant.api_write_requests_per_minute,
+    )
+
+
+@router.patch(
+    "/{tenant_id}/module-limits",
+    response_model=TenantModuleLimitsResponse,
+)
+def update_tenant_module_limits(
+    tenant_id: int,
+    payload: TenantModuleLimitsUpdateRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantModuleLimitsResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        tenant = tenant_service.set_module_limits(
+            db=db,
+            tenant_id=tenant_id,
+            module_limits=payload.module_limits,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="module_limits",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+
+    return TenantModuleLimitsResponse(
+        success=True,
+        message="Politica de limites por modulo actualizada correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        tenant_plan_code=tenant.plan_code,
+        tenant_plan_module_limits=tenant_service.tenant_plan_policy_service.get_module_limits(
+            tenant.plan_code
+        ),
+        module_limits=tenant_service.get_tenant_module_limits(tenant),
+    )
+
+
+@router.patch(
+    "/{tenant_id}/plan",
+    response_model=TenantPlanResponse,
+)
+def update_tenant_plan(
+    tenant_id: int,
+    payload: TenantPlanUpdateRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantPlanResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        tenant = tenant_service.set_plan(
+            db=db,
+            tenant_id=tenant_id,
+            plan_code=payload.plan_code,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="plan",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+
+    return TenantPlanResponse(
+        success=True,
+        message="Plan de tenant actualizado correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        tenant_plan_code=tenant.plan_code,
+        tenant_plan_enabled_modules=tenant_service.tenant_plan_policy_service.get_enabled_modules(
+            tenant.plan_code
+        ),
+        tenant_plan_module_limits=tenant_service.tenant_plan_policy_service.get_module_limits(
+            tenant.plan_code
+        ),
+    )
+
+
+@router.patch(
+    "/{tenant_id}/billing-identity",
+    response_model=TenantBillingResponse,
+)
+def update_tenant_billing_identity(
+    tenant_id: int,
+    payload: TenantBillingIdentityUpdateRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantBillingResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        tenant = tenant_service.set_billing_identity(
+            db=db,
+            tenant_id=tenant_id,
+            billing_provider=payload.billing_provider,
+            billing_provider_customer_id=payload.billing_provider_customer_id,
+            billing_provider_subscription_id=payload.billing_provider_subscription_id,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="billing_identity",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+
+    return TenantBillingResponse(
+        success=True,
+        message="Identidad externa de billing actualizada correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        billing_provider=tenant.billing_provider,
+        billing_provider_customer_id=tenant.billing_provider_customer_id,
+        billing_provider_subscription_id=tenant.billing_provider_subscription_id,
+        billing_status=tenant.billing_status,
+        billing_status_reason=tenant.billing_status_reason,
+        billing_current_period_ends_at=tenant.billing_current_period_ends_at,
+        billing_grace_until=tenant.billing_grace_until,
+    )
+
+
+@router.patch(
+    "/{tenant_id}/billing",
+    response_model=TenantBillingResponse,
+)
+def update_tenant_billing(
+    tenant_id: int,
+    payload: TenantBillingUpdateRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantBillingResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        tenant = tenant_service.set_billing_state(
+            db=db,
+            tenant_id=tenant_id,
+            billing_status=payload.billing_status,
+            billing_status_reason=payload.billing_status_reason,
+            billing_current_period_ends_at=payload.billing_current_period_ends_at,
+            billing_grace_until=payload.billing_grace_until,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="billing",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+
+    return TenantBillingResponse(
+        success=True,
+        message="Estado de billing tenant actualizado correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        billing_provider=tenant.billing_provider,
+        billing_provider_customer_id=tenant.billing_provider_customer_id,
+        billing_provider_subscription_id=tenant.billing_provider_subscription_id,
+        billing_status=tenant.billing_status,
+        billing_status_reason=tenant.billing_status_reason,
+        billing_current_period_ends_at=tenant.billing_current_period_ends_at,
+        billing_grace_until=tenant.billing_grace_until,
+    )
+
+
+@router.post(
+    "/{tenant_id}/billing/sync-event",
+    response_model=TenantBillingSyncApplyResponse,
+)
+def sync_tenant_billing_event(
+    tenant_id: int,
+    payload: TenantBillingSyncEventRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantBillingSyncApplyResponse:
+    try:
+        result = tenant_billing_sync_service.apply_sync_event(
+            db=db,
+            tenant_id=tenant_id,
+            provider=payload.provider,
+            provider_event_id=payload.provider_event_id,
+            event_type=payload.event_type,
+            billing_status=payload.billing_status,
+            billing_status_reason=payload.billing_status_reason,
+            billing_current_period_ends_at=payload.billing_current_period_ends_at,
+            billing_grace_until=payload.billing_grace_until,
+            provider_customer_id=payload.provider_customer_id,
+            provider_subscription_id=payload.provider_subscription_id,
+            raw_payload=payload.raw_payload,
+            actor_context=_token,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    sync_event = tenant_billing_sync_service._serialize_event(result.sync_event)
+    return TenantBillingSyncApplyResponse(
+        success=True,
+        message=(
+            "Evento de billing ignorado sin cambios operativos"
+            if getattr(result, "was_ignored", False)
+            else "Evento de billing sincronizado sin cambios"
+            if result.was_duplicate
+            else "Evento de billing sincronizado correctamente"
+        ),
+        tenant_id=result.tenant.id,
+        tenant_slug=result.tenant.slug,
+        tenant_status=result.tenant.status,
+        billing_status=result.tenant.billing_status,
+        billing_status_reason=result.tenant.billing_status_reason,
+        billing_current_period_ends_at=result.tenant.billing_current_period_ends_at,
+        billing_grace_until=result.tenant.billing_grace_until,
+        was_duplicate=result.was_duplicate,
+        sync_event=sync_event,
+    )
+
+
+@router.get(
+    "/{tenant_id}/billing/events",
+    response_model=TenantBillingSyncHistoryResponse,
+)
+def get_tenant_billing_events(
+    tenant_id: int,
+    provider: str | None = None,
+    event_type: str | None = None,
+    processing_result: str | None = None,
+    limit: int = 50,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantBillingSyncHistoryResponse:
+    tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    events = tenant_billing_sync_service.list_recent_events(
+        db,
+        tenant_id=tenant_id,
+        provider=provider,
+        event_type=event_type,
+        processing_result=processing_result,
+        limit=limit,
+    )
+
+    return TenantBillingSyncHistoryResponse(
+        success=True,
+        message="Eventos de billing tenant recuperados correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        provider=provider,
+        event_type=event_type,
+        processing_result=processing_result,
+        total_events=len(events),
+        data=events,
+    )
+
+
+@router.get(
+    "/{tenant_id}/billing/events/summary",
+    response_model=TenantBillingSyncSummaryResponse,
+)
+def get_tenant_billing_events_summary(
+    tenant_id: int,
+    provider: str | None = None,
+    event_type: str | None = None,
+    processing_result: str | None = None,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantBillingSyncSummaryResponse:
+    tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    rows = tenant_billing_sync_service.summarize_recent_events(
+        db,
+        tenant_id=tenant_id,
+        provider=provider,
+        event_type=event_type,
+        processing_result=processing_result,
+    )
+
+    return TenantBillingSyncSummaryResponse(
+        success=True,
+        message="Resumen de eventos de billing tenant recuperado correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        provider=provider,
+        event_type=event_type,
+        processing_result=processing_result,
+        total_rows=len(rows),
+        data=rows,
+    )
+
+
+@router.post(
+    "/{tenant_id}/billing/events/reconcile",
+    response_model=TenantBillingReconcileBatchResponse,
+)
+def reconcile_tenant_billing_events_batch(
+    tenant_id: int,
+    provider: str | None = None,
+    event_type: str | None = None,
+    processing_result: str | None = None,
+    limit: int = 20,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantBillingReconcileBatchResponse:
+    tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    try:
+        results = tenant_billing_sync_service.reconcile_recent_events(
+            db,
+            tenant_id=tenant_id,
+            provider=provider,
+            event_type=event_type,
+            processing_result=processing_result,
+            limit=limit,
+            actor_context=_token,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return TenantBillingReconcileBatchResponse(
+        success=True,
+        message="Eventos de billing reconciliados correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        provider=provider,
+        event_type=event_type,
+        processing_result=processing_result,
+        total_events=len(results),
+        data=[
+            TenantBillingSyncEventResponse(
+                **tenant_billing_sync_service._serialize_event(result.sync_event)
+            )
+            for result in results
+        ],
+    )
+
+
+@router.post(
+    "/{tenant_id}/billing/events/{sync_event_id}/reconcile",
+    response_model=TenantBillingReconcileResponse,
+)
+def reconcile_tenant_billing_from_event(
+    tenant_id: int,
+    sync_event_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantBillingReconcileResponse:
+    try:
+        result = tenant_billing_sync_service.reconcile_from_stored_event(
+            db=db,
+            tenant_id=tenant_id,
+            sync_event_id=sync_event_id,
+            actor_context=_token,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = (
+            404
+            if detail in {"Tenant not found", "Billing sync event not found"}
+            else 400
+        )
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    sync_event = tenant_billing_sync_service._serialize_event(result.sync_event)
+    return TenantBillingReconcileResponse(
+        success=True,
+        message="Estado de billing reconciliado correctamente desde evento persistido",
+        tenant_id=result.tenant.id,
+        tenant_slug=result.tenant.slug,
+        tenant_status=result.tenant.status,
+        billing_status=result.tenant.billing_status,
+        billing_status_reason=result.tenant.billing_status_reason,
+        billing_current_period_ends_at=result.tenant.billing_current_period_ends_at,
+        billing_grace_until=result.tenant.billing_grace_until,
+        sync_event=sync_event,
+    )
+
+
+@router.get(
+    "/{tenant_id}/access-policy",
+    response_model=TenantAccessPolicyResponse,
+)
+def get_tenant_access_policy(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantAccessPolicyResponse:
+    tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    access_policy = tenant_service.get_tenant_access_policy(tenant)
+
+    return TenantAccessPolicyResponse(
+        success=True,
+        message="Politica efectiva de acceso tenant recuperada correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        tenant_status_reason=tenant.status_reason,
+        billing_status=tenant.billing_status,
+        billing_status_reason=tenant.billing_status_reason,
+        billing_current_period_ends_at=tenant.billing_current_period_ends_at,
+        billing_grace_until=tenant.billing_grace_until,
+        billing_in_grace=access_policy.billing_in_grace,
+        access_allowed=access_policy.allowed,
+        access_blocking_source=access_policy.blocking_source,
+        access_status_code=access_policy.status_code,
+        access_detail=access_policy.detail,
+    )
+
+
+@router.patch(
+    "/{tenant_id}/status",
+    response_model=TenantStatusResponse,
+)
+def update_tenant_status(
+    tenant_id: int,
+    payload: TenantStatusUpdateRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantStatusResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        tenant = tenant_service.set_status(
+            db=db,
+            tenant_id=tenant_id,
+            status=payload.status,
+            status_reason=payload.status_reason,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="status",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+
+    return TenantStatusResponse(
+        success=True,
+        message="Estado de tenant actualizado correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        tenant_status_reason=tenant.status_reason,
+    )
+
+
+@router.get(
+    "/{tenant_id}/policy-history",
+    response_model=TenantPolicyChangeHistoryResponse,
+)
+def get_tenant_policy_history(
+    tenant_id: int,
+    event_type: str | None = None,
+    limit: int = 50,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantPolicyChangeHistoryResponse:
+    tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    history = tenant_policy_event_service.list_recent_history(
+        db,
+        tenant_id=tenant_id,
+        event_type=event_type,
+        limit=limit,
+    )
+
+    return TenantPolicyChangeHistoryResponse(
+        success=True,
+        message="Historial de cambios tenant recuperado correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        event_type=event_type,
+        total_events=len(history),
+        data=history,
+    )

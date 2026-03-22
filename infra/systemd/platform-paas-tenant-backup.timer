@@ -1,0 +1,10 @@
+[Unit]
+Description=Run tenant backups daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+Unit=platform-paas-tenant-backup.service
+
+[Install]
+WantedBy=timers.target

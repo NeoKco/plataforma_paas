@@ -1,0 +1,12 @@
+[Unit]
+Description=Platform PaaS tenant backups
+After=postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=oneshot
+User=platform
+Group=platform
+WorkingDirectory=/opt/platform_paas/backend
+EnvironmentFile=/opt/platform_paas/.env
+ExecStart=/opt/platform_paas/platform_paas_venv/bin/python app/scripts/run_tenant_backups.py --backup-dir /var/backups/platform_paas/tenants --retention-days 7

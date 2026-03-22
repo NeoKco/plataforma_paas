@@ -1,0 +1,46 @@
+# Secrets and local installation state
+.env
+.env.*
+!.env.example
+!.github/
+.platform_installed
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# Virtual environments
+.venv/
+venv/
+env/
+platform_paas_venv/
+
+# Node / frontend build
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+coverage/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local generated outputs
+generated/
+tmp/
+*.log
+

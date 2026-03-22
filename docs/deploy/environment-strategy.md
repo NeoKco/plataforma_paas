@@ -1,0 +1,99 @@
+# Estrategia de Entornos
+
+Esta guia deja una base minima para separar `development`, `staging` y `production` sin depender de un unico `.env`.
+
+## Objetivo
+
+- evitar configuracion mezclada entre entornos
+- dejar plantillas claras para developers y operacion
+- reducir errores de despliegue por variables incorrectas
+
+## Archivos Base
+
+- `infra/env/backend.development.example.env`
+- `infra/env/backend.staging.example.env`
+- `infra/env/backend.production.example.env`
+- `infra/env/pgtest.example.env`
+
+## Regla Recomendada
+
+Usar un archivo por entorno real:
+
+- desarrollo local: `.env`
+- staging: `/opt/platform_paas/.env.staging`
+- produccion: `/opt/platform_paas/.env`
+
+Y mantener los ejemplos del repo solo como plantillas.
+
+## Diferencia Esperada por Entorno
+
+### Development
+
+- `APP_ENV=development`
+- `DEBUG=true`
+- puede trabajar con valores menos estrictos
+- pensado para instalacion local y pruebas manuales
+
+### Staging
+
+- `APP_ENV=staging`
+- `DEBUG=false`
+- credenciales separadas de produccion
+- replica el flujo operativo sin tocar datos reales
+
+### Production
+
+- `APP_ENV=production`
+- `DEBUG=false`
+- secretos fuertes
+- certificados, backups y timers reales
+
+## Uso Local
+
+Para desarrollo:
+
+```bash
+cp infra/env/backend.development.example.env .env
+```
+
+Para staging o produccion en servidor, copiar y adaptar fuera del repo:
+
+```bash
+cp infra/env/backend.staging.example.env /opt/platform_paas/.env.staging
+cp infra/env/backend.production.example.env /opt/platform_paas/.env
+```
+
+## Recomendacion Operativa
+
+- no editar los archivos `*.example.env` para guardar secretos reales
+- no compartir el mismo `CONTROL_DB_*` entre `staging` y `production`
+- no reutilizar el mismo `JWT_SECRET_KEY` entre entornos
+- usar nombres de DB y backups separados por entorno
+
+## Relacion con Deploy
+
+La plantilla `systemd` actual usa:
+
+- `/opt/platform_paas/.env`
+
+Si staging vive en la misma maquina, conviene duplicar la unidad `systemd` con:
+
+- nombre de servicio distinto
+- `EnvironmentFile` distinto
+- puerto backend distinto
+- `server_name` y `nginx` separados
+
+Wrappers incluidos para reducir errores manuales:
+
+- `deploy/deploy_backend_staging.sh`
+- `deploy/deploy_backend_production.sh`
+
+Validador previo de entorno:
+
+- `deploy/validate_backend_env.sh`
+
+## Siguiente Evolucion Natural
+
+- secretos fuera de archivos `.env`
+- despliegue por entorno automatizado
+- validacion previa de variables obligatorias

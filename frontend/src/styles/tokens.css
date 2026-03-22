@@ -1,0 +1,17 @@
+:root {
+  --color-bg-app: #f2f4f7;
+  --color-bg-surface: #ffffff;
+  --color-bg-elevated: #fbfcfe;
+  --color-border-subtle: #d7dce5;
+  --color-text-primary: #17202f;
+  --color-text-secondary: #556173;
+  --color-primary: #1256cc;
+  --color-info: #177d92;
+  --color-success: #24704f;
+  --color-warning: #9a6700;
+  --color-danger: #a12837;
+  --radius-card: 18px;
+  --shadow-card: 0 12px 32px rgba(17, 24, 39, 0.08);
+  --sidebar-width: 272px;
+  --topbar-height: 82px;
+}

@@ -1,0 +1,24 @@
+body {
+  background: var(--color-bg-app);
+  color: var(--color-text-primary);
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #0f48ab;
+  border-color: #0f48ab;
+}
+
+.form-control,
+.form-select {
+  border-color: var(--color-border-subtle);
+}
+
+.table > :not(caption) > * > * {
+  padding: 0.9rem 1rem;
+}

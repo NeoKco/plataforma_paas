@@ -1,0 +1,56 @@
+name: Backend Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      git_ref:
+        description: "Git ref to deploy"
+        required: true
+        default: "main"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Register deploy host
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Run remote deploy
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PROJECT_ROOT: ${{ secrets.DEPLOY_PROJECT_ROOT }}
+          TARGET_ENV: ${{ inputs.environment }}
+          TARGET_REF: ${{ inputs.git_ref }}
+        run: |
+          ssh "${DEPLOY_USER}@${DEPLOY_HOST}" <<EOF
+          set -euo pipefail
+          cd "${DEPLOY_PROJECT_ROOT}"
+          git fetch --all --tags --prune
+          git checkout "${TARGET_REF}"
+
+          if [ "${TARGET_ENV}" = "staging" ]; then
+            bash deploy/deploy_backend_staging.sh
+          else
+            bash deploy/deploy_backend_production.sh
+          fi
+          EOF

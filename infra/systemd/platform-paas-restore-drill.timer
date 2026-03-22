@@ -1,0 +1,10 @@
+[Unit]
+Description=Run platform_control restore drill weekly
+
+[Timer]
+OnCalendar=Sun *-*-* 05:00:00
+Persistent=true
+Unit=platform-paas-restore-drill.service
+
+[Install]
+WantedBy=timers.target
