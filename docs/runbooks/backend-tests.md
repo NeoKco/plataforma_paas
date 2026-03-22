@@ -9,6 +9,11 @@ Dejar una forma repetible de validar los dos contextos principales de la platafo
 - flujo tenant
 - flujo platform
 
+Ademas, dejar una regla operativa de documentacion continua:
+
+- toda prueba manual relevante que descubra comportamiento, fallo o fix debe terminar convertida en runbook o ampliacion de la documentacion existente
+- la documentacion no se deja para el final; se actualiza junto con el aprendizaje real
+
 ## Requisito
 
 Usar el interprete del virtualenv del proyecto:

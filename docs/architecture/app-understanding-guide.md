@@ -278,6 +278,10 @@ Ese es el ejercicio mas pedagogico para entender como se conecta:
 - `Provisioning`
 - la DB tenant real
 
+Prueba guiada real recomendada:
+
+- [Prueba guiada de provisioning](../runbooks/provisioning-guided-test.md)
+
 ## 9. Entorno demo recomendado para aprender
 
 Hoy el baseline de demo deja tres casos utiles:
@@ -355,3 +359,4 @@ Si quieres complementar esta guia:
 - [Guia rapida de la app](./app-quick-guide.md)
 - [Guia de comprension de la app](./app-functional-walkthrough.md)
 - [Demo data y seeds de desarrollo](../runbooks/demo-data.md)
+- [Prueba guiada de provisioning](../runbooks/provisioning-guided-test.md)
