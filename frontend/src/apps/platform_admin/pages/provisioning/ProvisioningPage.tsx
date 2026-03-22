@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import { ConfirmDialog } from "../../../../components/common/ConfirmDialog";
 import { MetricCard } from "../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
@@ -7,6 +8,7 @@ import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
+import { getApiErrorDisplayMessage } from "../../../../services/api";
 import {
   getProvisioningAlerts,
   getProvisioningBrokerDlq,
@@ -32,6 +34,14 @@ type ActionFeedback = {
   message: string;
 };
 
+type PendingConfirmation = {
+  title: string;
+  description: string;
+  details: string[];
+  confirmLabel: string;
+  action: () => Promise<unknown>;
+};
+
 export function ProvisioningPage() {
   const { session } = useAuth();
   const [jobs, setJobs] = useState<ProvisioningJob[]>([]);
@@ -49,6 +59,8 @@ export function ProvisioningPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
+  const [pendingConfirmation, setPendingConfirmation] =
+    useState<PendingConfirmation | null>(null);
 
   const [dlqLimit, setDlqLimit] = useState("25");
   const [dlqJobType, setDlqJobType] = useState("");
@@ -81,6 +93,17 @@ export function ProvisioningPage() {
     dlq?.data.forEach((row) => keys.add(row.job_type));
     return Array.from(keys).sort();
   }, [dlq?.data, jobs, metricsByJobType?.data]);
+
+  const tenantSlugById = useMemo(() => {
+    const entries = new Map<number, string>();
+    metrics?.data.forEach((row) => entries.set(row.tenant_id, row.tenant_slug));
+    metricsByJobType?.data.forEach((row) => {
+      if (!entries.has(row.tenant_id)) {
+        entries.set(row.tenant_id, row.tenant_slug);
+      }
+    });
+    return entries;
+  }, [metrics?.data, metricsByJobType?.data]);
 
   async function loadProvisioningWorkspace() {
     if (!session?.accessToken) {
@@ -181,7 +204,7 @@ export function ProvisioningPage() {
       setActionFeedback({
         scope,
         type: "error",
-        message: typedError.payload?.detail || typedError.message,
+        message: getApiErrorDisplayMessage(typedError),
       });
     } finally {
       setIsActionSubmitting(false);
@@ -203,17 +226,29 @@ export function ProvisioningPage() {
       return;
     }
 
-    void runAction("dlq-batch-requeue", () =>
-      requeueProvisioningBrokerDlq(session.accessToken, {
-        limit: parsePositiveInteger(dlqLimit, 25),
-        job_type: normalizeNullableString(dlqJobType),
-        tenant_slug: normalizeNullableString(dlqTenantSlug),
-        error_code: normalizeNullableString(dlqErrorCode),
-        error_contains: normalizeNullableString(dlqErrorContains),
-        reset_attempts: dlqResetAttempts,
-        delay_seconds: parseNonNegativeInteger(dlqDelaySeconds, 0),
-      })
-    );
+    setPendingConfirmation({
+      title: "Reencolar filas DLQ filtradas",
+      description:
+        "Esta acción vuelve a poner en cola el subconjunto actual del DLQ usando los filtros visibles en pantalla.",
+      details: [
+        `Filas candidatas: ${dlq?.total_jobs || 0}`,
+        `Tipo de job: ${normalizeNullableString(dlqJobType) || "todos"}`,
+        `Tenant: ${normalizeNullableString(dlqTenantSlug) || "todos"}`,
+        `Resetear intentos: ${dlqResetAttempts ? "sí" : "no"}`,
+        `Demora antes de reencolar: ${parseNonNegativeInteger(dlqDelaySeconds, 0)} s`,
+      ],
+      confirmLabel: "Reencolar lote",
+      action: () =>
+        requeueProvisioningBrokerDlq(session.accessToken, {
+          limit: parsePositiveInteger(dlqLimit, 25),
+          job_type: normalizeNullableString(dlqJobType),
+          tenant_slug: normalizeNullableString(dlqTenantSlug),
+          error_code: normalizeNullableString(dlqErrorCode),
+          error_contains: normalizeNullableString(dlqErrorContains),
+          reset_attempts: dlqResetAttempts,
+          delay_seconds: parseNonNegativeInteger(dlqDelaySeconds, 0),
+        }),
+    });
   }
 
   function handleSingleRequeue(jobId: number) {
@@ -221,7 +256,7 @@ export function ProvisioningPage() {
       return;
     }
 
-    void runAction(`requeue-${jobId}`, () =>
+    void runAction(`Reencolar job #${jobId}`, () =>
       requeueProvisioningJob(session.accessToken, jobId, {
         resetAttempts: dlqResetAttempts,
         delaySeconds: parseNonNegativeInteger(dlqDelaySeconds, 0),
@@ -245,6 +280,24 @@ export function ProvisioningPage() {
             Actualizar
           </button>
         }
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(pendingConfirmation)}
+        title={pendingConfirmation?.title || ""}
+        description={pendingConfirmation?.description || ""}
+        details={pendingConfirmation?.details || []}
+        confirmLabel={pendingConfirmation?.confirmLabel || "Confirmar"}
+        onConfirm={() => {
+          if (!pendingConfirmation) {
+            return;
+          }
+          const currentAction = pendingConfirmation;
+          setPendingConfirmation(null);
+          void runAction("Reencolado DLQ", currentAction.action);
+        }}
+        onCancel={() => setPendingConfirmation(null)}
+        isSubmitting={isActionSubmitting}
       />
 
       {actionFeedback ? (
@@ -286,12 +339,19 @@ export function ProvisioningPage() {
             {
               key: "tenant_id",
               header: "Tenant",
-              render: (row) => row.tenant_id,
+              render: (row) => (
+                <code>{tenantSlugById.get(row.tenant_id) || `tenant-${row.tenant_id}`}</code>
+              ),
             },
             {
               key: "job_type",
               header: "Tipo de job",
-              render: (row) => <code>{row.job_type}</code>,
+              render: (row) => (
+                <ProvisioningCodeCell
+                  label={formatProvisioningJobType(row.job_type)}
+                  code={row.job_type}
+                />
+              ),
             },
             {
               key: "status",
@@ -306,7 +366,15 @@ export function ProvisioningPage() {
             {
               key: "error_code",
               header: "Código de error",
-              render: (row) => row.error_code || "—",
+              render: (row) =>
+                row.error_code ? (
+                  <ProvisioningCodeCell
+                    label={formatProvisioningCodeLabel(row.error_code)}
+                    code={row.error_code}
+                  />
+                ) : (
+                  "—"
+                ),
             },
             {
               key: "next_retry_at",
@@ -398,13 +466,18 @@ export function ProvisioningPage() {
                 {
                   key: "tenant_slug",
                   header: "Tenant",
-                  render: (row) => <code>{row.tenant_slug}</code>,
-                },
-                {
-                  key: "job_type",
-                  header: "Tipo de job",
-                  render: (row) => <code>{row.job_type}</code>,
-                },
+                render: (row) => <code>{row.tenant_slug}</code>,
+              },
+              {
+                key: "job_type",
+                header: "Tipo de job",
+                render: (row) => (
+                  <ProvisioningCodeCell
+                    label={formatProvisioningJobType(row.job_type)}
+                    code={row.job_type}
+                  />
+                ),
+              },
                 {
                   key: "total_jobs",
                   header: "Total",
@@ -448,7 +521,12 @@ export function ProvisioningPage() {
               {
                 key: "alert_code",
                 header: "Alerta",
-                render: (row) => <code>{row.alert_code}</code>,
+                render: (row) => (
+                  <ProvisioningCodeCell
+                    label={formatProvisioningAlertCode(row.alert_code)}
+                    code={row.alert_code}
+                  />
+                ),
               },
               {
                 key: "tenant_slug",
@@ -493,7 +571,10 @@ export function ProvisioningPage() {
             <h3 className="tenant-action-form__title">Filtros DLQ</h3>
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Límite</label>
+                <FieldHelpLabel
+                  label="Límite"
+                  help="Máximo de filas DLQ que quieres inspeccionar en la consulta actual."
+                />
                 <input
                   className="form-control"
                   type="number"
@@ -503,7 +584,10 @@ export function ProvisioningPage() {
                 />
               </div>
               <div>
-                <label className="form-label">Tipo de job</label>
+                <FieldHelpLabel
+                  label="Tipo de job"
+                  help="Filtra por operación interna de provisioning, por ejemplo crear base tenant o sincronizar esquema."
+                />
                 <input
                   className="form-control"
                   list="provisioning-job-type-options"
@@ -517,7 +601,10 @@ export function ProvisioningPage() {
                 </datalist>
               </div>
               <div>
-                <label className="form-label">Slug tenant</label>
+                <FieldHelpLabel
+                  label="Slug tenant"
+                  help="Código técnico del tenant sobre el que quieres revisar filas DLQ."
+                />
                 <input
                   className="form-control"
                   value={dlqTenantSlug}
@@ -525,7 +612,10 @@ export function ProvisioningPage() {
                 />
               </div>
               <div>
-                <label className="form-label">Código de error</label>
+                <FieldHelpLabel
+                  label="Código de error"
+                  help="Usa el código interno cuando quieras acotar una familia específica de fallos."
+                />
                 <input
                   className="form-control"
                   value={dlqErrorCode}
@@ -533,7 +623,10 @@ export function ProvisioningPage() {
                 />
               </div>
             </div>
-            <label className="form-label mt-3">Error contiene</label>
+            <FieldHelpLabel
+              label="Error contiene"
+              help="Busca un texto dentro del mensaje de error para aislar casos similares."
+            />
             <input
               className="form-control"
               value={dlqErrorContains}
@@ -552,7 +645,11 @@ export function ProvisioningPage() {
             <h3 className="tenant-action-form__title">Reencolado en lote</h3>
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Límite</label>
+                <FieldHelpLabel
+                  label="Límite"
+                  help="Cantidad máxima de filas filtradas que se van a devolver a la cola."
+                  placement="left"
+                />
                 <input
                   className="form-control"
                   type="number"
@@ -562,7 +659,11 @@ export function ProvisioningPage() {
                 />
               </div>
               <div>
-                <label className="form-label">Segundos de demora</label>
+                <FieldHelpLabel
+                  label="Segundos de demora"
+                  help="Espera opcional antes de volver a entregar el job al worker."
+                  placement="left"
+                />
                 <input
                   className="form-control"
                   type="number"
@@ -621,7 +722,12 @@ export function ProvisioningPage() {
               {
                 key: "job_type",
                 header: "Tipo de job",
-                render: (row) => <code>{row.job_type}</code>,
+                render: (row) => (
+                  <ProvisioningCodeCell
+                    label={formatProvisioningJobType(row.job_type)}
+                    code={row.job_type}
+                  />
+                ),
               },
               {
                 key: "status",
@@ -636,7 +742,15 @@ export function ProvisioningPage() {
               {
                 key: "error_code",
                 header: "Código de error",
-                render: (row) => row.error_code || "—",
+                render: (row) =>
+                  row.error_code ? (
+                    <ProvisioningCodeCell
+                      label={formatProvisioningCodeLabel(row.error_code)}
+                      code={row.error_code}
+                    />
+                  ) : (
+                    "—"
+                  ),
               },
               {
                 key: "error_message",
@@ -680,6 +794,41 @@ export function ProvisioningPage() {
   );
 }
 
+function FieldHelpLabel({
+  label,
+  help,
+  placement = "right",
+}: {
+  label: string;
+  help: string;
+  placement?: "right" | "left";
+}) {
+  return (
+    <div className={`inline-help inline-help--${placement}`}>
+      <span className="form-label mb-0">{label}</span>
+      <button className="inline-help__trigger" type="button" aria-label={`Ayuda sobre ${label}`}>
+        ?
+      </button>
+      <div className="inline-help__bubble">{help}</div>
+    </div>
+  );
+}
+
+function ProvisioningCodeCell({
+  label,
+  code,
+}: {
+  label: string;
+  code: string;
+}) {
+  return (
+    <div>
+      <div>{label}</div>
+      <code>{code}</code>
+    </div>
+  );
+}
+
 function SeverityBadge({ value }: { value: string }) {
   const normalized = value.trim().toLowerCase();
   const className =
@@ -689,6 +838,35 @@ function SeverityBadge({ value }: { value: string }) {
         ? "status-badge status-badge--warning"
         : "status-badge status-badge--info";
   return <span className={className}>{normalized}</span>;
+}
+
+function formatProvisioningJobType(value: string): string {
+  const knownLabels: Record<string, string> = {
+    create_tenant_database: "Crear base del tenant",
+    sync_tenant_schema: "Sincronizar esquema tenant",
+    repair_tenant_schema: "Reparar esquema tenant",
+  };
+
+  return knownLabels[value] || formatProvisioningCodeLabel(value);
+}
+
+function formatProvisioningAlertCode(value: string): string {
+  const knownLabels: Record<string, string> = {
+    tenant_failed_jobs_threshold_exceeded: "Tenant con jobs fallidos sobre el umbral",
+    worker_cycle_duration_threshold_exceeded: "Worker con ciclo sobre el umbral",
+    billing_provider_event_volume_threshold_exceeded:
+      "Volumen de eventos billing sobre el umbral",
+    billing_duplicate_events_threshold_exceeded:
+      "Eventos billing duplicados sobre el umbral",
+  };
+
+  return knownLabels[value] || formatProvisioningCodeLabel(value);
+}
+
+function formatProvisioningCodeLabel(value: string): string {
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 function normalizeNullableString(value: string): string | null {

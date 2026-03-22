@@ -181,6 +181,9 @@ Avance actual:
 - `Provisioning` ya muestra metricas por `job_type`
 - `Provisioning` ya muestra alertas activas
 - `Provisioning` ya permite inspeccionar DLQ y hacer requeue individual o batch
+- `Provisioning` ya muestra mensajes de error por accion con el detalle real del backend
+- `Provisioning` ya pide confirmacion previa antes del reencolado batch de DLQ
+- `Provisioning` ya traduce mejor `job_type`, `alert_code` y `error_code` sin perder el codigo tecnico
 
 ## Etapa F6. Billing Operativo
 

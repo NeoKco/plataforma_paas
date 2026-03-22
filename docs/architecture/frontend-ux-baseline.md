@@ -134,7 +134,6 @@ Ya cubre:
 
 Sigue pendiente extenderla a:
 
-- requeue masivo
 - reconcile masivo
 
 ### 7. Refinamiento final de `Tenants`
@@ -146,6 +145,21 @@ La pantalla `Tenants` ya es usable y no bloquea avanzar a otras vistas, pero que
 - traducir o etiquetar mejor codigos internos visibles del backend
 - mejorar textos de exito para que suenen operativos
 - evaluar si `plans`, `billing statuses` y `maintenance modes` necesitan nombres visibles separados del codigo tecnico
+
+### 8. Refinamiento inicial de `Provisioning`
+
+La pantalla `Provisioning` ya recibio una primera pasada util de UX:
+
+- errores por accion con detalle real del backend
+- confirmacion previa para requeue batch
+- labels mas legibles para `job_type`, alertas y codigos de error
+
+Queda pendiente revisar con mas calma:
+
+- si todas las ayudas del bloque DLQ son necesarias o si algunas sobran
+- si el requeue individual tambien deberia pedir confirmacion
+- si el catalogo de jobs debe venir enriquecido desde backend con nombres visibles
+- si la tabla principal necesita exponer mejor el tenant visible en vez de depender del `tenant_id`
 
 ## Patrones visuales que ya conviene congelar
 
