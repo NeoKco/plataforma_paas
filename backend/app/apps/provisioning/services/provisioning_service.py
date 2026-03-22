@@ -152,7 +152,7 @@ class ProvisioningService:
                 f"{self.tenant_secret_service.mask_secret(db_password)}"
             )
             print("Tenant admin email: admin@{0}.local".format(tenant.slug))
-            print("Tenant admin password: bootstrap default configured for development")
+            print("Tenant admin password: TenantAdmin123! (bootstrap de desarrollo)")
             print("===========================")
 
             return job

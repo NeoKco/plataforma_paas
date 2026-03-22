@@ -200,6 +200,9 @@ Resultado real:
 - se creo `user_empresa_provisioning_demo`
 - se guardo `TENANT_DB_PASSWORD__EMPRESA_PROVISIONING_DEMO` en `/.env`
 - el job paso a `completed`
+- el login tenant bootstrap quedo disponible con:
+  - `admin@empresa-provisioning-demo.local`
+  - `TenantAdmin123!`
 
 ## Qué significa cada estado en Provisioning
 
