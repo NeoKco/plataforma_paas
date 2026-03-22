@@ -118,6 +118,19 @@ Esto no es todavia un sistema completo de sesiones multi-dispositivo, pero ya ev
 - reuso indefinido de refresh tokens antiguos
 - uso continuado de access tokens marcados como revocados
 
+Baseline actual recomendado:
+
+- `ACCESS_TOKEN_EXPIRE_MINUTES=15`
+- `REFRESH_TOKEN_EXPIRE_MINUTES=480`
+
+Y en frontend:
+
+- la sesion se guarda en `sessionStorage`
+- la sesion se cierra automaticamente por inactividad
+- el refresh solo ocurre mientras exista continuidad real de uso
+
+Eso reduce el riesgo de dejar sesiones largas abiertas en un navegador compartido o desatendido.
+
 Archivos principales:
 
 - `backend/app/apps/platform_control/models/auth_token.py`
@@ -180,6 +193,5 @@ Lo que aun falta para considerar esta etapa cerrada:
 
 - secret manager real fuera de `.env`
 - rotacion de secretos tenant
-- politica de sesiones mas fuerte
 - cierre global de sesiones por dispositivo o familia
 - ampliar auditoria hacia middleware, operaciones administrativas y eventos funcionales

@@ -60,6 +60,16 @@ Por eso ya empezamos a mover cosas como:
 
 La direccion correcta ya esta tomada, aunque todavia falten refinamientos.
 
+### 7. La sesion no debe quedar abierta indefinidamente
+
+La plataforma ya asume este baseline:
+
+- sesion almacenada en `sessionStorage`
+- cierre automatico por inactividad
+- refresh solo si sigue existiendo uso real
+
+Eso queda como criterio de seguridad base tanto para `platform_admin` como para `tenant_portal`.
+
 ## Decisiones pendientes antes de mas frontend
 
 ### 1. Flujo visual de instalador

@@ -5,6 +5,9 @@ export type PlatformSession = {
   email: string;
   role: string;
   fullName?: string | null;
+  accessTokenExpiresAt: number;
+  refreshTokenExpiresAt: number;
+  lastActivityAt: number;
 };
 
 export type TenantSession = {
@@ -16,6 +19,9 @@ export type TenantSession = {
   email: string;
   role: string;
   fullName?: string | null;
+  accessTokenExpiresAt: number;
+  refreshTokenExpiresAt: number;
+  lastActivityAt: number;
 };
 
 export type ApiErrorPayload = {

@@ -59,6 +59,17 @@ Impacto:
 - auth `tenant`
 - refresh y logout
 
+Baseline recomendado para partir seguro:
+
+- `ACCESS_TOKEN_EXPIRE_MINUTES=15`
+- `REFRESH_TOKEN_EXPIRE_MINUTES=480`
+
+Con ese baseline:
+
+- el access token vive poco
+- el refresh token permite continuidad solo dentro de una jornada acotada
+- el frontend puede refrescar mientras exista actividad real del usuario
+
 ## 5. Bases tenant
 
 - `TENANT_DB_POOL_SIZE`
