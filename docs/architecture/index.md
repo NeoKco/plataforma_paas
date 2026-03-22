@@ -10,6 +10,7 @@ Esta seccion agrupa la documentacion de arquitectura del proyecto: estructura de
 - [Matriz de politicas y precedencias del backend](./backend-policy-precedence-matrix.md): orden efectivo de lifecycle, billing, maintenance, modulos y cuotas.
 - [Roadmap de frontend](./frontend-roadmap.md): orden recomendado para construir la app `platform` y luego el portal tenant.
 - [Baseline de UX para frontend](./frontend-ux-baseline.md): decisiones ya cerradas, huecos UX pendientes y orden sugerido para estabilizar la base visual.
+- [Guia unica para entender la app](./app-understanding-guide.md): documento recomendado para comprender el producto, el flujo tenant y el sentido de `Provisioning` sin leer codigo primero.
 - [Guia rapida de la app](./app-quick-guide.md): lectura corta para entender la plataforma en pocos minutos antes de entrar al detalle.
 - [Guia de comprension de la app](./app-functional-walkthrough.md): recorrido funcional de la plataforma, estados reales y diferencia entre lo que ya existe y lo que aun falta.
 - [Manual visual de la app](./app-visual-manual.md): recorrido por pantallas y set recomendado de capturas para entender el producto visualmente.

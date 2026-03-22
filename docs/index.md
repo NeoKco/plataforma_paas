@@ -24,6 +24,7 @@ En este momento la documentacion creada formalmente dentro del repositorio comie
 - [Mapa de permisos](./architecture/permission-map.md)
 - [Roadmap de frontend](./architecture/frontend-roadmap.md)
 - [Baseline de UX para frontend](./architecture/frontend-ux-baseline.md)
+- [Guia unica para entender la app](./architecture/app-understanding-guide.md)
 - [Guia rapida de la app](./architecture/app-quick-guide.md)
 - [Guia de comprension de la app](./architecture/app-functional-walkthrough.md)
 - [Manual visual de la app](./architecture/app-visual-manual.md)
