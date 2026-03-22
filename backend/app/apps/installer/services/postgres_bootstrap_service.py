@@ -51,10 +51,13 @@ class PostgresBootstrapService:
             return result.scalar() is not None
 
     def create_role_if_not_exists(self, role_name: str, role_password: str) -> None:
+        engine = self._get_engine()
         if self.role_exists(role_name):
+            sql = text(f'ALTER ROLE "{role_name}" WITH LOGIN PASSWORD :role_password')
+            with engine.connect() as conn:
+                conn.execute(sql, {"role_password": role_password})
             return
 
-        engine = self._get_engine()
         sql = text(f'CREATE ROLE "{role_name}" WITH LOGIN PASSWORD :role_password')
         with engine.connect() as conn:
             conn.execute(sql, {"role_password": role_password})
