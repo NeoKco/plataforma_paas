@@ -8,6 +8,7 @@ import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
+import { getApiErrorDisplayMessage } from "../../../../services/api";
 import {
   getPlatformCapabilities,
   getPlatformTenant,
@@ -364,7 +365,7 @@ export function TenantsPage() {
       setActionFeedback({
         scope,
         type: "error",
-        message: typedError.payload?.detail || typedError.message,
+        message: getApiErrorDisplayMessage(typedError),
       });
     } finally {
       setIsActionSubmitting(false);

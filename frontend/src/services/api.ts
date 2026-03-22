@@ -24,6 +24,25 @@ type RequestOptions = {
   token?: string | null;
 };
 
+export function getApiErrorDisplayMessage(error: ApiError): string {
+  const detail = error.payload?.detail?.trim();
+  const requestId = error.payload?.request_id?.trim();
+
+  if (detail && requestId) {
+    return `${detail} (request_id: ${requestId})`;
+  }
+
+  if (detail) {
+    return detail;
+  }
+
+  if (error.status) {
+    return `La solicitud fallo con estado ${error.status}.`;
+  }
+
+  return error.message;
+}
+
 export async function apiRequest<T>(
   path: string,
   options: RequestOptions = {}
