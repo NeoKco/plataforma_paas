@@ -1,3 +1,5 @@
+import { displayPlatformCode } from "../../utils/platform-labels";
+
 const STATUS_CLASS_MAP: Record<string, string> = {
   active: "status-badge status-badge--success",
   allowed: "status-badge status-badge--success",
@@ -25,5 +27,5 @@ export function StatusBadge({ value }: { value: string }) {
   const normalized = value.trim().toLowerCase();
   const className =
     STATUS_CLASS_MAP[normalized] || "status-badge status-badge--neutral";
-  return <span className={className}>{normalized}</span>;
+  return <span className={className}>{displayPlatformCode(normalized)}</span>;
 }

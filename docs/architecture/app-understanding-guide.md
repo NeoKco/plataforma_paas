@@ -106,6 +106,12 @@ Desde aqui puedes ver o mutar:
 
 Si un tenant no funciona, normalmente empiezas aqui.
 
+Nota importante de lectura:
+
+- la UI ya traduce varios codigos internos del backend a labels mas naturales
+- por ejemplo, `past_due` se muestra como `con deuda`
+- eso hace mas facil operar sin perder la logica real del sistema
+
 ### `Provisioning`
 
 Es la pantalla que explica por que un tenant nuevo no quedo listo.
@@ -137,6 +143,12 @@ Para entenderla con un caso real ya ejecutado, revisa:
 
 - [Prueba guiada de billing](../runbooks/billing-guided-test.md)
 
+En la UI actual, los resultados tambien ya se leen con mejor lenguaje:
+
+- `applied`
+- `reconciled`
+- y los estados del tenant se muestran con etiquetas mas cercanas a negocio
+
 ### `Configuracion`
 
 Es una pantalla de soporte y lectura tecnica.
@@ -161,6 +173,12 @@ Pantallas principales hoy:
 Para ver ese flujo con un caso real ya ejecutado, revisa:
 
 - [Prueba guiada de tenant portal](../runbooks/tenant-portal-guided-test.md)
+
+Tambien ya se redujo bastante la jerga tecnica visible:
+
+- roles mas legibles
+- estados de uso por modulo mas claros
+- mensajes de bloqueo explicados por cupo o plan
 
 ## 6. Como leer el estado real de un tenant
 

@@ -29,6 +29,7 @@ import type {
   TenantBillingSyncHistoryResponse,
   TenantBillingSyncSummaryResponse,
 } from "../../../../types";
+import { displayPlatformCode } from "../../../../utils/platform-labels";
 
 type ActionFeedback = {
   scope: string;
@@ -411,7 +412,7 @@ export function BillingPage() {
               <option value="">todos</option>
               {(capabilities?.billing_sync_processing_results || []).map((value) => (
                 <option key={value} value={value}>
-                  {value}
+                  {displayPlatformCode(value)}
                 </option>
               ))}
             </select>
@@ -523,7 +524,10 @@ export function BillingPage() {
                   {
                     key: "processing_result",
                     header: "Resultado",
-                    render: (row) => row.processing_result || "—",
+                    render: (row) =>
+                      row.processing_result
+                        ? displayPlatformCode(row.processing_result)
+                        : "—",
                   },
                   {
                     key: "total_tenants",
@@ -578,9 +582,12 @@ export function BillingPage() {
                 render: (row) => row.provider,
               },
               {
-                key: "processing_result",
-                header: "Resultado",
-                render: (row) => row.processing_result || "—",
+                    key: "processing_result",
+                    header: "Resultado",
+                    render: (row) =>
+                      row.processing_result
+                        ? displayPlatformCode(row.processing_result)
+                        : "—",
               },
               {
                 key: "message",
@@ -711,7 +718,8 @@ export function BillingPage() {
                   {
                     key: "billing_status",
                     header: "Estado billing",
-                    render: (row) => row.billing_status || "—",
+                    render: (row) =>
+                      row.billing_status ? displayPlatformCode(row.billing_status) : "—",
                   },
                   {
                     key: "actions",

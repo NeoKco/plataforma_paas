@@ -60,6 +60,18 @@ Por eso ya empezamos a mover cosas como:
 
 La direccion correcta ya esta tomada, aunque todavia falten refinamientos.
 
+### 6.1. Los codigos internos visibles deben traducirse cuando existe un equivalente natural
+
+Esto ya empezo a estabilizarse con una capa comun de labels para:
+
+- estados de facturacion
+- resultados de procesamiento
+- modos de mantenimiento
+- fuentes de bloqueo
+- roles y tipos visibles en `tenant_portal`
+
+La regla correcta ya no es mostrar el codigo crudo primero, sino el label entendible y dejar el codigo tecnico solo cuando de verdad aporta.
+
 ### 7. La sesion no debe quedar abierta indefinidamente
 
 La plataforma ya asume este baseline:
@@ -152,9 +164,14 @@ La pantalla `Tenants` ya es usable y no bloquea avanzar a otras vistas, pero que
 
 - simplificar el tono de algunas ayudas contextuales
 - revisar si todas las burbujas `?` son necesarias
-- traducir o etiquetar mejor codigos internos visibles del backend
 - mejorar textos de exito para que suenen operativos
 - evaluar si `plans`, `billing statuses` y `maintenance modes` necesitan nombres visibles separados del codigo tecnico
+
+Avance ya cerrado en esta area:
+
+- estados como `past_due`, `retry_pending`, `reconciled` y `trialing` ya se muestran con labels legibles
+- `write_block` y `full_block` ya se presentan como modos de acceso entendibles
+- la fuente de bloqueo ya no depende del codigo crudo cuando existe una explicacion visible razonable
 
 ### 8. Refinamiento inicial de `Provisioning`
 
@@ -170,6 +187,14 @@ Queda pendiente revisar con mas calma:
 - si el requeue individual tambien deberia pedir confirmacion
 - si el catalogo de jobs debe venir enriquecido desde backend con nombres visibles
 - si la tabla principal necesita exponer mejor el tenant visible en vez de depender del `tenant_id`
+
+### 9. Consistencia de lenguaje entre `platform_admin` y `tenant_portal`
+
+Esto ya mejoro y conviene mantenerlo como regla:
+
+- `Billing` y `Tenants` usan labels de negocio mas comprensibles para estados y resultados
+- `tenant_portal` ya refleja ese mismo tono en uso por modulo, roles y mensajes de bloqueo
+- los mensajes de enforcement ya deben explicar el motivo con lenguaje de cupo o plan, no con claves tecnicas
 
 ## Patrones visuales que ya conviene congelar
 

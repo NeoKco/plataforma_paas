@@ -14,6 +14,7 @@ import {
 } from "../../../../services/tenant-api";
 import { getApiErrorDisplayMessage } from "../../../../services/api";
 import { useTenantAuth } from "../../../../store/tenant-auth-context";
+import { displayPlatformCode } from "../../../../utils/platform-labels";
 import type { ApiError, TenantUsersItem, TenantUsersResponse } from "../../../../types";
 
 type ActionFeedback = {
@@ -23,6 +24,10 @@ type ActionFeedback = {
 };
 
 const ROLE_OPTIONS = ["admin", "manager", "operator"];
+
+function displayUserRole(value: string): string {
+  return displayPlatformCode(value);
+}
 
 function formatTenantUserActionError(scope: string, error: ApiError): string {
   const message = getApiErrorDisplayMessage(error);
@@ -261,7 +266,7 @@ export function TenantUsersPage() {
                 >
                   {ROLE_OPTIONS.map((value) => (
                     <option key={value} value={value}>
-                      {value}
+                      {displayUserRole(value)}
                     </option>
                   ))}
                 </select>
@@ -295,7 +300,10 @@ export function TenantUsersPage() {
           <div className="tenant-detail-grid">
             <DetailField label="Tenant" value={session?.tenantSlug || "n/a"} />
             <DetailField label="Email" value={session?.email || "n/a"} />
-            <DetailField label="Rol" value={session?.role || "n/a"} />
+            <DetailField
+              label="Rol"
+              value={session?.role ? displayUserRole(session.role) : "n/a"}
+            />
             <DetailField label="ID usuario" value={session?.userId || "n/a"} />
           </div>
         </PanelCard>
@@ -319,7 +327,7 @@ export function TenantUsersPage() {
             {
               key: "role",
               header: "Rol",
-              render: (row) => row.role,
+              render: (row) => displayUserRole(row.role),
             },
             {
               key: "is_active",

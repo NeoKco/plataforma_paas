@@ -8,6 +8,7 @@ import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { getTenantInfo, getTenantModuleUsage } from "../../../../services/tenant-api";
 import { useTenantAuth } from "../../../../store/tenant-auth-context";
+import { displayPlatformCode } from "../../../../utils/platform-labels";
 import type { ApiError, TenantInfoResponse, TenantModuleUsageResponse } from "../../../../types";
 
 export function TenantOverviewPage() {
@@ -128,7 +129,10 @@ export function TenantOverviewPage() {
           >
             <div className="tenant-detail-grid">
               <DetailField label="Slug" value={<code>{tenant.tenant_slug}</code>} />
-              <DetailField label="Tipo de tenant" value={tenant.tenant_type || "n/a"} />
+              <DetailField
+                label="Tipo de tenant"
+                value={tenant.tenant_type ? displayPlatformCode(tenant.tenant_type) : "n/a"}
+              />
               <DetailField
                 label="Ciclo de vida"
                 value={<StatusBadge value={tenant.tenant_status || "unknown"} />}
@@ -137,7 +141,7 @@ export function TenantOverviewPage() {
                 label="Facturación"
                 value={<StatusBadge value={tenant.billing_status || "unknown"} />}
               />
-              <DetailField label="Plan" value={tenant.plan_code || "n/a"} />
+              <DetailField label="Plan" value={tenant.plan_code || "sin plan"} />
               <DetailField
                 label="Acceso"
                 value={tenant.access_allowed ? "permitido" : "bloqueado"}
@@ -162,7 +166,7 @@ export function TenantOverviewPage() {
                 {(tenant.effective_enabled_modules || []).length > 0 ? (
                   tenant.effective_enabled_modules?.map((value) => (
                     <span key={value} className="tenant-chip">
-                      {value}
+                      {displayPlatformCode(value)}
                     </span>
                   ))
                 ) : (
@@ -174,7 +178,12 @@ export function TenantOverviewPage() {
             <PanelCard title="Usuario actual">
               <div className="tenant-detail-grid">
                 <DetailField label="Email" value={tenantInfo?.user.email || "n/a"} />
-                <DetailField label="Rol" value={tenantInfo?.user.role || "n/a"} />
+                <DetailField
+                  label="Rol"
+                  value={
+                    tenantInfo?.user.role ? displayPlatformCode(tenantInfo.user.role) : "n/a"
+                  }
+                />
                 <DetailField label="ID usuario" value={tenantInfo?.user.id || "n/a"} />
                 <DetailField label="Alcance del token" value={tenantInfo?.token_scope || "n/a"} />
               </div>
@@ -218,14 +227,15 @@ export function TenantOverviewPage() {
                 {
                   key: "limit_source",
                   header: "Fuente",
-                  render: (row) => row.limit_source || "ninguna",
+                  render: (row) =>
+                    row.limit_source ? displayPlatformCode(row.limit_source) : "ninguna",
                 },
                 {
                   key: "at_limit",
                   header: "Estado",
                   render: (row) =>
                     row.at_limit ? (
-                      <span className="status-badge status-badge--warning">al_límite</span>
+                      <span className="status-badge status-badge--warning">al límite</span>
                     ) : (
                       <span className="status-badge status-badge--success">ok</span>
                     ),

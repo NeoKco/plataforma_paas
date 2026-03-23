@@ -7,6 +7,7 @@ import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
+import { getApiErrorDisplayMessage } from "../../../../services/api";
 import {
   createTenantFinanceEntry,
   getTenantFinanceEntries,
@@ -14,6 +15,7 @@ import {
   getTenantFinanceUsage,
 } from "../../../../services/tenant-api";
 import { useTenantAuth } from "../../../../store/tenant-auth-context";
+import { displayPlatformCode } from "../../../../utils/platform-labels";
 import type {
   ApiError,
   TenantFinanceEntriesResponse,
@@ -28,6 +30,13 @@ type ActionFeedback = {
 };
 
 const MOVEMENT_TYPES = ["income", "expense"];
+
+function getActionFeedbackLabel(scope: string): string {
+  if (scope === "create-entry") {
+    return "Crear movimiento";
+  }
+  return scope;
+}
 
 export function TenantFinancePage() {
   const { session } = useTenantAuth();
@@ -137,7 +146,7 @@ export function TenantFinancePage() {
       setActionFeedback({
         scope,
         type: "error",
-        message: typedError.payload?.detail || typedError.message,
+        message: getApiErrorDisplayMessage(typedError),
       });
     } finally {
       setIsActionSubmitting(false);
@@ -181,7 +190,8 @@ export function TenantFinancePage() {
         <div
           className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
         >
-          <strong>{actionFeedback.scope}:</strong> {actionFeedback.message}
+          <strong>{getActionFeedbackLabel(actionFeedback.scope)}:</strong>{" "}
+          {actionFeedback.message}
         </div>
       ) : null}
 
@@ -288,13 +298,13 @@ export function TenantFinancePage() {
               />
               <DetailField
                 label="Fuente"
-                value={usage.limit_source || "ninguna"}
+                value={usage.limit_source ? displayPlatformCode(usage.limit_source) : "ninguna"}
               />
               <DetailField
                 label="Estado"
                 value={
                   usage.at_limit ? (
-                    <span className="status-badge status-badge--warning">al_límite</span>
+                    <span className="status-badge status-badge--warning">al límite</span>
                   ) : (
                     <span className="status-badge status-badge--success">ok</span>
                   )

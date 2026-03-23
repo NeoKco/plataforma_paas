@@ -635,12 +635,73 @@ code {
   margin-bottom: 1.25rem;
 }
 
+.install-card__status-strip {
+  background: linear-gradient(135deg, rgba(18, 86, 204, 0.08), rgba(18, 86, 204, 0.03));
+  border: 1px solid rgba(18, 86, 204, 0.12);
+  border-radius: 18px;
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.05rem;
+}
+
+.install-card__status-pill {
+  color: #1256cc;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.install-card__status-copy {
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
 .install-card__intro-item {
   background: rgba(18, 86, 204, 0.05);
   border: 1px solid rgba(18, 86, 204, 0.1);
   border-radius: 14px;
   color: var(--color-text-secondary);
+  display: grid;
+  gap: 0.35rem;
   padding: 0.8rem 0.9rem;
+}
+
+.install-card__intro-item strong {
+  color: var(--color-text-primary);
+}
+
+.install-card__intro-item span {
+  font-size: 0.95rem;
+}
+
+.install-card__support-grid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  margin-bottom: 1.25rem;
+}
+
+.install-card__support-box {
+  background: rgba(247, 249, 253, 0.88);
+  border: 1px solid rgba(23, 32, 47, 0.08);
+  border-radius: 16px;
+  padding: 0.95rem 1rem;
+}
+
+.install-card__support-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 0.55rem;
+}
+
+.install-card__support-list {
+  color: var(--color-text-secondary);
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1.05rem;
 }
 
 .install-card__section {
@@ -656,8 +717,36 @@ code {
   margin-bottom: 0.9rem;
 }
 
+.install-card__section-copy {
+  color: var(--color-text-secondary);
+  font-size: 0.94rem;
+  margin: -0.2rem 0 0.9rem;
+}
+
 .install-card__success-note {
   color: var(--color-text-secondary);
+}
+
+.install-card__field-help {
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  margin: -0.2rem 0 0.45rem;
+}
+
+.install-card__required {
+  color: var(--color-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  text-transform: uppercase;
+}
+
+.install-card__validation {
+  background: rgba(180, 35, 24, 0.08);
+  border: 1px solid rgba(180, 35, 24, 0.14);
+  border-radius: 14px;
+  color: #8d281c;
+  padding: 0.85rem 0.95rem;
 }
 
 .login-card__eyebrow {

@@ -154,9 +154,16 @@ Pendientes finos conocidos:
 
 - revisar el tono final de varias ayudas `?` para que suenen menos tecnicas
 - decidir si todas las ayudas `?` actuales aportan o si algunas deben simplificarse o salir
-- mostrar labels mas amigables para valores internos como `write_block`, `full_block` o `past_due`
+- seguir refinando labels visibles para que conceptos de negocio y operacion suenen mas naturales segun contexto, aunque ya no dependemos de codigos crudos para casos comunes
 - exponer desde backend catalogos mas ricos para planes y estados, de forma que la UI no dependa de codigos internos
 - revisar mensajes de exito para que se lean mas operativos y menos cercanos a respuesta de API
+
+Avance reciente de lenguaje y labels:
+
+- `Tenants` ya traduce estados internos frecuentes como `past_due`, `retry_pending`, `canceled` o `trialing`
+- `Tenants` ya muestra nombres mas legibles para fuentes de bloqueo y modos de mantenimiento
+- `Billing` ya presenta `processing_result` y `billing_status` con labels mas comprensibles
+- `tenant_portal` ya muestra roles, tipos, fuentes y estados de uso por modulo con etiquetas menos tecnicas
 
 ## Etapa F5. Provisioning y Operacion
 
@@ -208,6 +215,7 @@ Avance actual:
 - `Billing` ya permite seleccionar tenant y leer su historial de eventos
 - `Billing` ya permite reconciliacion individual por evento persistido
 - `Billing` ya permite reconciliacion batch sobre el filtro activo del tenant
+- `Billing` ya traduce mejor estados de facturacion y resultados de procesamiento para lectura operativa
 
 ## Etapa F7. Dashboard Platform
 

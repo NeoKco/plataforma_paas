@@ -10,6 +10,11 @@ import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../services/api";
 import {
+  displayAccessBlockingSource,
+  displayMaintenanceAccessMode,
+  displayPlatformCode,
+} from "../../../../utils/platform-labels";
+import {
   getPlatformCapabilities,
   getPlatformTenant,
   getPlatformTenantAccessPolicy,
@@ -673,7 +678,7 @@ export function TenantsPage() {
                     </div>
                     <div className="tenant-list__chips">
                       <span className="tenant-chip">
-                        billing: {tenant.billing_status || "ninguno"}
+                        billing: {displayPlatformCode(tenant.billing_status || "none")}
                       </span>
                       <span className="tenant-chip">
                         plan: {tenant.plan_code || "ninguno"}
@@ -762,17 +767,17 @@ export function TenantsPage() {
 
                 {selectedTenantSummary.status_reason ? (
                   <div className="tenant-inline-note">
-                    status_reason: {selectedTenantSummary.status_reason}
+                    Motivo de estado: {selectedTenantSummary.status_reason}
                   </div>
                 ) : null}
                 {selectedTenantSummary.billing_status_reason ? (
                   <div className="tenant-inline-note">
-                    billing_reason: {selectedTenantSummary.billing_status_reason}
+                    Motivo de facturación: {selectedTenantSummary.billing_status_reason}
                   </div>
                 ) : null}
                 {selectedTenantSummary.maintenance_reason ? (
                   <div className="tenant-inline-note">
-                    maintenance_reason: {selectedTenantSummary.maintenance_reason}
+                    Motivo de mantenimiento: {selectedTenantSummary.maintenance_reason}
                   </div>
                 ) : null}
               </PanelCard>
@@ -799,7 +804,7 @@ export function TenantsPage() {
                     />
                     <DetailField
                       label="Fuente de bloqueo"
-                      value={accessPolicy.access_blocking_source || "ninguna"}
+                      value={displayAccessBlockingSource(accessPolicy.access_blocking_source)}
                     />
                     <DetailField
                       label="Código de estado"
@@ -842,7 +847,7 @@ export function TenantsPage() {
                     >
                       {(capabilities?.tenant_statuses || []).map((value) => (
                         <option key={value} value={value}>
-                          {value}
+                          {displayPlatformCode(value)}
                         </option>
                       ))}
                     </select>
@@ -895,7 +900,7 @@ export function TenantsPage() {
                     >
                       {(capabilities?.maintenance_access_modes || []).map((value) => (
                         <option key={value} value={value}>
-                          {value}
+                          {displayMaintenanceAccessMode(value)}
                         </option>
                       ))}
                     </select>
@@ -1026,7 +1031,7 @@ export function TenantsPage() {
                       <option value="">ninguno</option>
                       {(capabilities?.tenant_billing_statuses || []).map((value) => (
                         <option key={value} value={value}>
-                          {value}
+                          {displayPlatformCode(value)}
                         </option>
                       ))}
                     </select>
