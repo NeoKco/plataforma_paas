@@ -177,7 +177,7 @@ Qué se valida:
 - el backend no deja crear un admin adicional cuando no queda cupo
 - el frontend muestra un mensaje claro
 - el mensaje esperado para usuario ya no depende del codigo tecnico:
-  - `No puedes crear otro administrador porque tu plan ya alcanzó el límite de administradores.`
+  - `No puedes crear otro administrador porque tu plan permite solo 1 administrador activo y ese cupo ya está en uso.`
 
 Caso de borde corregido despues de esta prueba:
 
@@ -185,7 +185,7 @@ Caso de borde corregido despues de esta prueba:
 - tampoco debe poder reactivarse otro usuario `admin` que estuviera inactivo
 - ese hueco quedo cerrado en backend para que el cupo no pueda saltarse por cambio de estado
 - y en ese caso la UI debe mostrar un texto equivalente a:
-  - `No puedes habilitar otro administrador porque tu plan ya alcanzó el límite de administradores.`
+  - `No puedes habilitar otro administrador porque tu plan permite solo 1 administrador activo y ese cupo ya está en uso.`
 
 Secuencia visual del caso de borde:
 

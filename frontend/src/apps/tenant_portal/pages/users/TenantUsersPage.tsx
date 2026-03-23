@@ -29,10 +29,10 @@ function formatTenantUserActionError(scope: string, error: ApiError): string {
 
   if (message.includes("core.users.admin")) {
     if (scope.startsWith("user-status-")) {
-      return "No puedes habilitar otro administrador porque tu plan ya alcanzó el límite de administradores.";
+      return "No puedes habilitar otro administrador porque tu plan permite solo 1 administrador activo y ese cupo ya está en uso.";
     }
     if (scope === "create-user") {
-      return "No puedes crear otro administrador porque tu plan ya alcanzó el límite de administradores.";
+      return "No puedes crear otro administrador porque tu plan permite solo 1 administrador activo y ese cupo ya está en uso.";
     }
     return "Tu plan ya alcanzó el límite de administradores.";
   }
@@ -56,6 +56,16 @@ function formatTenantUserActionError(scope: string, error: ApiError): string {
   }
 
   return message;
+}
+
+function getActionFeedbackLabel(scope: string): string {
+  if (scope.startsWith("user-status-")) {
+    return "Estado del usuario";
+  }
+  if (scope === "create-user") {
+    return "Crear usuario";
+  }
+  return scope;
 }
 
 export function TenantUsersPage() {
@@ -184,7 +194,8 @@ export function TenantUsersPage() {
         <div
           className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
         >
-          <strong>{actionFeedback.scope}:</strong> {actionFeedback.message}
+          <strong>{getActionFeedbackLabel(actionFeedback.scope)}:</strong>{" "}
+          {actionFeedback.message}
         </div>
       ) : null}
 
