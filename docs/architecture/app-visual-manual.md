@@ -77,6 +77,8 @@ Con esta convencion:
 - `11b-tenant-users-form-list.png`
 - `11c-tenant-users-created-success.png`
 - `11d-tenant-users-admin-limit-blocked.png`
+- `11e-tenant-users-admin-reactivation-attempt.png`
+- `11f-tenant-users-admin-reactivation-blocked.png`
 - `12a-tenant-finance-overview-form.png`
 - `12b-tenant-finance-entry-created.png`
 - `12c-tenant-finance-usage-before-limit-override.png`
@@ -122,6 +124,8 @@ Este bloque sirve para ir completando el manual de forma iterativa.
 | `11b-tenant-users-form-list.png` | usuarios tenant: alta y listado | listo |
 | `11c-tenant-users-created-success.png` | usuarios tenant: alta con exito | listo |
 | `11d-tenant-users-admin-limit-blocked.png` | usuarios tenant: bloqueo por limite admin | listo |
+| `11e-tenant-users-admin-reactivation-attempt.png` | usuarios tenant: intento de reactivacion admin | listo |
+| `11f-tenant-users-admin-reactivation-blocked.png` | usuarios tenant: reactivacion admin bloqueada | listo |
 | `12a-tenant-finance-overview-form.png` | finanzas tenant: resumen, uso y alta | listo |
 | `12b-tenant-finance-entry-created.png` | finanzas tenant: movimiento creado | listo |
 | `12c-tenant-finance-usage-before-limit-override.png` | finanzas tenant: uso antes del override | listo |
@@ -164,11 +168,13 @@ Para aprender la app en una secuencia razonable, conviene hacerlo asi:
 30. `11b-tenant-users-form-list.png`
 31. `11c-tenant-users-created-success.png`
 32. `11d-tenant-users-admin-limit-blocked.png`
-33. `12a-tenant-finance-overview-form.png`
-34. `12b-tenant-finance-entry-created.png`
-35. `12c-tenant-finance-usage-before-limit-override.png`
-36. `12d-tenant-finance-at-limit-override.png`
-37. `12e-tenant-finance-limit-blocked-message.png`
+33. `11e-tenant-users-admin-reactivation-attempt.png`
+34. `11f-tenant-users-admin-reactivation-blocked.png`
+35. `12a-tenant-finance-overview-form.png`
+36. `12b-tenant-finance-entry-created.png`
+37. `12c-tenant-finance-usage-before-limit-override.png`
+38. `12d-tenant-finance-at-limit-override.png`
+39. `12e-tenant-finance-limit-blocked-message.png`
 
 Con este set ya queda explicado casi todo el producto visible actual.
 
@@ -464,6 +470,14 @@ Esta captura deja una lectura mas fuerte:
 
 ![Usuarios tenant: bloqueo por limite admin](../assets/app-visual-manual/11d-tenant-users-admin-limit-blocked.png)
 
+#### Intento de reactivacion de admin
+
+![Usuarios tenant: intento de reactivacion admin](../assets/app-visual-manual/11e-tenant-users-admin-reactivation-attempt.png)
+
+#### Reactivacion bloqueada por limite admin
+
+![Usuarios tenant: reactivacion admin bloqueada](../assets/app-visual-manual/11f-tenant-users-admin-reactivation-blocked.png)
+
 La pantalla `Usuarios` ya es una slice funcional real. Permite:
 
 - ver metricas rapidas
@@ -477,6 +491,12 @@ Y con `11d` tambien queda validado algo importante:
 - el limite `core.users.admin` no es solo decorativo
 - cuando el tenant intenta crear otro admin sin cupo disponible
 - el backend bloquea la accion y el frontend lo comunica de forma clara
+
+La secuencia `11e -> 11f` agrega el caso de borde que faltaba:
+
+- si ya existe un admin activo y el cupo sigue en `1`
+- tampoco se puede reactivar otro admin que estuviera inactivo
+- el mensaje visible ya no muestra el codigo crudo, sino una explicacion operativa facil de entender
 
 ### 12. Finanzas del tenant
 

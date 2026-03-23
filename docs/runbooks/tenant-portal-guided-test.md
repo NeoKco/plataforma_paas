@@ -183,6 +183,12 @@ Caso de borde corregido despues de esta prueba:
 - y en ese caso la UI debe mostrar un texto equivalente a:
   - `No puedes habilitar otro administrador porque tu plan ya alcanzó el límite de administradores.`
 
+Secuencia visual del caso de borde:
+
+![Usuarios tenant: intento de reactivacion admin](../assets/app-visual-manual/11e-tenant-users-admin-reactivation-attempt.png)
+
+![Usuarios tenant: reactivacion admin bloqueada](../assets/app-visual-manual/11f-tenant-users-admin-reactivation-blocked.png)
+
 ## Qué aprendimos de esta prueba
 
 - `Provisioning` deja al tenant listo
