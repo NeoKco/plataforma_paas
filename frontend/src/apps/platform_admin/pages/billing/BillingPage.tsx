@@ -20,6 +20,10 @@ import {
   reconcileTenantBillingEventsBatch,
 } from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
+import {
+  getPlatformActionFeedbackLabel,
+  getPlatformActionSuccessMessage,
+} from "../../../../utils/action-feedback";
 import type {
   ApiError,
   PlatformBillingAlertHistoryResponse,
@@ -283,7 +287,10 @@ export function BillingPage() {
       setActionFeedback({
         scope,
         type: "success",
-        message: result.message || "La acción de facturación se completó correctamente.",
+        message: getPlatformActionSuccessMessage(
+          scope,
+          result.message || "La acción de facturación se completó correctamente."
+        ),
       });
     } catch (rawError) {
       const typedError = rawError as ApiError;
@@ -341,7 +348,7 @@ export function BillingPage() {
             onClick={() => void refreshAll()}
             disabled={isLoading || isActionSubmitting}
           >
-            Actualizar
+            Recargar datos
           </button>
         }
       />
@@ -350,7 +357,8 @@ export function BillingPage() {
         <div
           className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
         >
-          <strong>{actionFeedback.scope}:</strong> {actionFeedback.message}
+          <strong>{getPlatformActionFeedbackLabel(actionFeedback.scope)}:</strong>{" "}
+          {actionFeedback.message}
         </div>
       ) : null}
 

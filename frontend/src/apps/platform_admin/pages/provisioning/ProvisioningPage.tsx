@@ -11,6 +11,10 @@ import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../services/api";
 import {
+  getPlatformActionFeedbackLabel,
+  getPlatformActionSuccessMessage,
+} from "../../../../utils/action-feedback";
+import {
   getProvisioningAlerts,
   getProvisioningBrokerDlq,
   getProvisioningMetrics,
@@ -199,7 +203,10 @@ export function ProvisioningPage() {
       setActionFeedback({
         scope,
         type: "success",
-        message: message || "La acción de provisioning se completó correctamente.",
+        message: getPlatformActionSuccessMessage(
+          scope,
+          message || "La acción de provisioning se completó correctamente."
+        ),
       });
     } catch (rawError) {
       const typedError = rawError as ApiError;
@@ -279,7 +286,7 @@ export function ProvisioningPage() {
             onClick={handleRefresh}
             disabled={isLoading || isActionSubmitting}
           >
-            Actualizar
+            Recargar datos
           </button>
         }
       />
@@ -306,7 +313,8 @@ export function ProvisioningPage() {
         <div
           className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
         >
-          <strong>{actionFeedback.scope}:</strong> {actionFeedback.message}
+          <strong>{getPlatformActionFeedbackLabel(actionFeedback.scope)}:</strong>{" "}
+          {actionFeedback.message}
         </div>
       ) : null}
 

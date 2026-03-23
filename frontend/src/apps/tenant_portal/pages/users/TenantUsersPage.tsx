@@ -14,6 +14,7 @@ import {
 } from "../../../../services/tenant-api";
 import { getApiErrorDisplayMessage } from "../../../../services/api";
 import { useTenantAuth } from "../../../../store/tenant-auth-context";
+import { getTenantPortalActionSuccessMessage } from "../../../../utils/action-feedback";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
 import type { ApiError, TenantUsersItem, TenantUsersResponse } from "../../../../types";
 
@@ -134,7 +135,7 @@ export function TenantUsersPage() {
       setActionFeedback({
         scope,
         type: "success",
-        message: result.message,
+        message: getTenantPortalActionSuccessMessage(scope, result.message),
       });
     } catch (rawError) {
       const typedError = rawError as ApiError;

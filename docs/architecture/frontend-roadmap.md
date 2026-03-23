@@ -156,7 +156,7 @@ Pendientes finos conocidos:
 - decidir si todas las ayudas `?` actuales aportan o si algunas deben simplificarse o salir
 - seguir refinando labels visibles para que conceptos de negocio y operacion suenen mas naturales segun contexto, aunque ya no dependemos de codigos crudos para casos comunes
 - exponer desde backend catalogos mas ricos para planes y estados, de forma que la UI no dependa de codigos internos
-- revisar mensajes de exito para que se lean mas operativos y menos cercanos a respuesta de API
+- seguir puliendo mensajes de exito y CTA segun contexto, aunque ya existe una primera capa comun menos cercana a respuesta cruda de API
 
 Avance reciente de lenguaje y labels:
 
@@ -164,6 +164,7 @@ Avance reciente de lenguaje y labels:
 - `Tenants` ya muestra nombres mas legibles para fuentes de bloqueo y modos de mantenimiento
 - `Billing` ya presenta `processing_result` y `billing_status` con labels mas comprensibles
 - `tenant_portal` ya muestra roles, tipos, fuentes y estados de uso por modulo con etiquetas menos tecnicas
+- `Tenants`, `Billing`, `Provisioning` y `tenant_portal` ya muestran mensajes de exito y encabezados de accion mas cercanos a lenguaje operativo
 
 ## Etapa F5. Provisioning y Operacion
 
