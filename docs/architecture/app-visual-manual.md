@@ -78,6 +78,7 @@ Con esta convencion:
 - `12b-tenant-finance-entry-created.png`
 - `12c-tenant-finance-usage-before-limit-override.png`
 - `12d-tenant-finance-at-limit-override.png`
+- `12e-tenant-finance-limit-blocked-message.png`
 
 ## Estado de capturas
 
@@ -119,6 +120,7 @@ Este bloque sirve para ir completando el manual de forma iterativa.
 | `12b-tenant-finance-entry-created.png` | finanzas tenant: movimiento creado | listo |
 | `12c-tenant-finance-usage-before-limit-override.png` | finanzas tenant: uso antes del override | listo |
 | `12d-tenant-finance-at-limit-override.png` | finanzas tenant: modulo al limite por override | listo |
+| `12e-tenant-finance-limit-blocked-message.png` | finanzas tenant: bloqueo por limite alcanzado | listo |
 
 ## Orden recomendado para capturar
 
@@ -157,6 +159,7 @@ Para aprender la app en una secuencia razonable, conviene hacerlo asi:
 31. `12b-tenant-finance-entry-created.png`
 32. `12c-tenant-finance-usage-before-limit-override.png`
 33. `12d-tenant-finance-at-limit-override.png`
+34. `12e-tenant-finance-limit-blocked-message.png`
 
 Con este set ya queda explicado casi todo el producto visible actual.
 
@@ -448,6 +451,8 @@ La pantalla `Usuarios` ya es una slice funcional real. Permite:
 
 ![Finanzas tenant: al limite por override](../assets/app-visual-manual/12d-tenant-finance-at-limit-override.png)
 
+![Finanzas tenant: bloqueo por limite alcanzado](../assets/app-visual-manual/12e-tenant-finance-limit-blocked-message.png)
+
 La pantalla `Finanzas` muestra una segunda slice funcional del tenant portal. Hoy permite:
 
 - ver resumen de ingresos, egresos y balance
@@ -462,6 +467,12 @@ La secuencia `12c -> 12d` tambien deja ver algo importante: el `tenant_portal` r
   - `usados = 1`
   - `restante = 0`
   - `estado = al_límite`
+
+Y la captura `12e` completa el flujo:
+
+- cuando el usuario tenant intenta seguir operando
+- el backend bloquea la accion por cuota alcanzada
+- y el frontend muestra un mensaje claro en vez de dejar una falla silenciosa
 
 Si quieres ver el flujo completo del portal tenant ya explicado con login, resumen, usuarios y finanzas, revisa:
 

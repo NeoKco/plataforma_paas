@@ -38,6 +38,7 @@ Nombres sugeridos:
 - `12b-tenant-finance-entry-created.png`
 - `12c-tenant-finance-usage-before-limit-override.png`
 - `12d-tenant-finance-at-limit-override.png`
+- `12e-tenant-finance-limit-blocked-message.png`
 
 Nombres de pruebas guiadas recientes:
 
@@ -49,5 +50,6 @@ Nombres de pruebas guiadas recientes:
 - `05f-tenant-module-limits-finance-override.png`: ajuste central del limite `finance.entries`
 - `12c-tenant-finance-usage-before-limit-override.png`: lectura normal de uso antes del override
 - `12d-tenant-finance-at-limit-override.png`: modulo `finance.entries` en `al_límite` despues del override
+- `12e-tenant-finance-limit-blocked-message.png`: intento bloqueado cuando el modulo ya esta al limite
 
 Este directorio existe para que el manual visual tenga una ubicacion estable y no queden imagenes sueltas por el repositorio.

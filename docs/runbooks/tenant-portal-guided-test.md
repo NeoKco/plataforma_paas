@@ -128,6 +128,25 @@ Qué se valida:
 - `Fuente = tenant_override`
 - `Estado = al_límite`
 
+## Paso 6. Intentar operar estando al limite
+
+Con el modulo ya en `al-límite`, se intento crear otro movimiento desde `tenant_portal > Finanzas`.
+
+Resultado real:
+
+![Finanzas tenant: bloqueo por limite alcanzado](../assets/app-visual-manual/12e-tenant-finance-limit-blocked-message.png)
+
+Qué se valida:
+
+- el backend no deja crear el movimiento extra
+- el frontend muestra mensaje claro
+- el texto visible fue:
+  - `El plan actual alcanzó el límite de finance.entries`
+
+Esto confirma que el enforcement no solo se ve en los indicadores:
+
+- tambien bloquea la operacion real cuando se intenta exceder la cuota
+
 ## Qué aprendimos de esta prueba
 
 - `Provisioning` deja al tenant listo
@@ -136,6 +155,7 @@ Qué se valida:
 - `Usuarios` y `Finanzas` impactan el uso por modulo en tiempo real
 - los overrides hechos en `Tenants` se reflejan en el `tenant_portal`
 - el enforcement por modulo ya es visible para el operador tenant
+- cuando el modulo llega al limite, el backend bloquea la accion y el frontend lo comunica con un mensaje entendible
 
 ## Relación con las otras pruebas guiadas
 
