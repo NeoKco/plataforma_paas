@@ -33,9 +33,12 @@ Esto ya debe asumirse como baseline.
 
 ### 3. `Platform Admin` es la puerta de entrada principal
 
-Hoy el recorrido real empieza por `platform_admin`.
+Hoy el recorrido real empieza por:
 
-El instalador visual sigue pendiente, asi que no conviene diseñar el producto como si el primer contacto fuera `tenant_portal`.
+- `/install` cuando la plataforma aun no esta instalada
+- `platform_admin` cuando la instalacion ya fue completada
+
+No conviene diseñar el producto como si el primer contacto fuera `tenant_portal`.
 
 ### 4. El frontend es backend-driven
 
@@ -84,19 +87,23 @@ Eso queda como criterio de seguridad base tanto para `platform_admin` como para 
 
 ## Decisiones pendientes antes de mas frontend
 
-### 1. Flujo visual de instalador
+### 1. Refinamiento final de instalador
 
-Sigue faltando definir:
+El instalador visual ya existe y ya cubre:
 
-- cuando aparece
-- que pasos incluye
-- como redirige al login cuando termina
+- redireccion a `/install` cuando `installed=false`
+- formulario unico de primera instalacion
+- exito, error y redireccion posterior al login
 
-Referencia ya cerrada a nivel de especificacion:
+Queda pendiente cerrar solo su refinamiento final:
+
+- validar el tono final de textos de primer arranque
+- decidir si necesita una captura visual final para onboarding
+- revisar si el post-instalacion requiere mas guia operativa o ya basta con el CTA al login
+
+Referencia:
 
 - [Flujo visual del instalador](../install/installer-visual-flow.md)
-
-Sin eso, el producto todavia arranca “como sistema ya instalado”.
 
 ### 2. UX final del login de `tenant_portal`
 
@@ -238,7 +245,7 @@ La semantica de color ya debe mantenerse estable por familia:
 
 ## Orden recomendado para cerrar pendientes UX
 
-1. flujo visual de instalador
+1. refinamiento final de instalador
 2. UX final del login tenant
 3. vocabulario final compartido
 4. estados vacios y errores operativos

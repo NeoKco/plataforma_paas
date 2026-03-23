@@ -1,6 +1,6 @@
 # Flujo Visual del Instalador
 
-Este documento define como deberia verse y comportarse el instalador visual de primera ejecucion.
+Este documento deja el comportamiento esperado del instalador visual de primera ejecucion y refleja la primera version ya implementada.
 
 No es una idea abstracta: esta basado en lo que el backend ya soporta hoy.
 
@@ -81,7 +81,7 @@ Contenido recomendado:
 - lista corta de lo que va a hacer el instalador
 - boton `Comenzar instalacion`
 
-No deberia pedir todavia todos los datos en esta primera vista.
+La version implementada hoy resolvio esto en una sola pantalla guiada en vez de separar una bienvenida y un formulario en pasos distintos.
 
 ### 3. Formulario de instalacion
 
@@ -146,6 +146,19 @@ Campos:
 Texto de ayuda:
 
 - inicialmente puede venir precargado con defaults
+
+## Estado actual implementado
+
+La UI actual ya incluye:
+
+- una franja superior de contexto de primer arranque
+- tres tarjetas cortas explicando que hara la instalacion
+- dos bloques de apoyo:
+  - que necesitas antes de continuar
+  - que no hace esta pantalla
+- ayudas breves por campo
+- validacion previa de campos obligatorios
+- estado de exito con proximo paso sugerido
 
 ## Defaults visibles recomendados
 
@@ -252,9 +265,9 @@ Para la primera version del instalador visual no conviene:
 
 La razon es que el backend actual todavia no expone ese nivel de granularidad.
 
-## Primera version recomendada
+## Primera version aplicada
 
-La version mas pragmatica del instalador visual seria:
+La version mas pragmatica del instalador visual quedo asi:
 
 1. pantalla unica
 2. tres bloques de formulario
@@ -263,9 +276,9 @@ La version mas pragmatica del instalador visual seria:
 5. exito o error
 6. redireccion al login
 
-## Dependencias para implementarlo
+## Dependencias aplicadas
 
-Antes de construir esta pantalla en frontend, conviene asumir estas reglas:
+La implementacion actual asume estas reglas:
 
 - usar `GET /health` como fuente inicial de `installed`
 - consumir `GET /install/` solo como verificacion secundaria o diagnostico
@@ -273,7 +286,7 @@ Antes de construir esta pantalla en frontend, conviene asumir estas reglas:
 
 ## Resultado esperado
 
-Cuando este flujo exista, el producto se entendera mucho mejor desde el primer arranque porque:
+Con este flujo ya implementado, el producto se entiende mejor desde el primer arranque porque:
 
 - no arrancara directo en login cuando aun no esta instalado
 - el onboarding inicial dejara de depender de consola
