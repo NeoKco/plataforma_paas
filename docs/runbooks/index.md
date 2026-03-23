@@ -14,6 +14,7 @@ Esta seccion agrupa procedimientos operativos y pasos repetibles para trabajar c
 - [Demo data y seeds de desarrollo](./demo-data.md): carga reproducible de tenants y datos de ejemplo para demos y validacion manual.
 - [Prueba guiada de provisioning](./provisioning-guided-test.md): ejercicio real de `pending -> retry_pending -> completed` para entender y validar el worker.
 - [Prueba guiada de billing](./billing-guided-test.md): ejercicio real de `applied -> reconciled` para entender el workspace de billing y la reimposicion del estado tenant.
+- [Prueba guiada de tenant portal](./tenant-portal-guided-test.md): recorrido real de login, resumen, usuarios y finanzas sobre un tenant ya provisionado.
 - [Higiene del repositorio para GitHub](./github-repository-hygiene.md): que debe versionarse, que debe ignorarse y que revisar antes de publicar.
 - [Migraciones backend](./backend-migrations.md): mecanismo actual de migraciones versionadas para control DB y tenant DB.
 - [Hardening de seguridad](./security-hardening.md): validaciones de runtime, manejo de secretos tenant y reduccion de exposicion de credenciales.

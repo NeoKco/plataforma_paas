@@ -158,6 +158,10 @@ Pantallas principales hoy:
 - `Usuarios`
 - `Finanzas`
 
+Para ver ese flujo con un caso real ya ejecutado, revisa:
+
+- [Prueba guiada de tenant portal](../runbooks/tenant-portal-guided-test.md)
+
 ## 6. Como leer el estado real de un tenant
 
 En la practica hay tres estados importantes.

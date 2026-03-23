@@ -53,6 +53,8 @@ Con esta convencion:
 - `05b-tenant-active-usage.png`
 - `05c-tenant-billing-past-due-summary.png`
 - `05d-tenant-billing-controls-identity.png`
+- `05e-tenant-billing-controls-identity-detail.png`
+- `05f-tenant-module-limits-finance-override.png`
 - `06a-provisioning-jobs-overview.png`
 - `06b-provisioning-metrics-alerts.png`
 - `06c-provisioning-dlq.png`
@@ -67,9 +69,15 @@ Con esta convencion:
 - `10-tenant-portal-overview.png`
 - `10b-tenant-portal-posture-current-user.png`
 - `10c-tenant-portal-module-usage.png`
+- `10d-tenant-portal-overview-billing-posture.png`
+- `10e-tenant-portal-module-usage-live.png`
 - `11a-tenant-users-overview.png`
 - `11b-tenant-users-form-list.png`
+- `11c-tenant-users-created-success.png`
 - `12a-tenant-finance-overview-form.png`
+- `12b-tenant-finance-entry-created.png`
+- `12c-tenant-finance-usage-before-limit-override.png`
+- `12d-tenant-finance-at-limit-override.png`
 
 ## Estado de capturas
 
@@ -86,6 +94,8 @@ Este bloque sirve para ir completando el manual de forma iterativa.
 | `05b-tenant-active-usage.png` | tenant operativo: uso por modulo | listo |
 | `05c-tenant-billing-past-due-summary.png` | tenant operativo: billing en deuda con gracia | listo |
 | `05d-tenant-billing-controls-identity.png` | tenant operativo: controles billing e identidad | listo |
+| `05e-tenant-billing-controls-identity-detail.png` | tenant operativo: detalle de billing e identidad | listo |
+| `05f-tenant-module-limits-finance-override.png` | tenant operativo: override de limite financiero | listo |
 | `06a-provisioning-jobs-overview.png` | provisioning: jobs y resumen | listo |
 | `06b-provisioning-metrics-alerts.png` | provisioning: metricas y alertas | listo |
 | `06c-provisioning-dlq.png` | provisioning: DLQ y recuperacion | listo |
@@ -100,9 +110,15 @@ Este bloque sirve para ir completando el manual de forma iterativa.
 | `10-tenant-portal-overview.png` | overview tenant | listo |
 | `10b-tenant-portal-posture-current-user.png` | overview tenant: postura y usuario actual | listo |
 | `10c-tenant-portal-module-usage.png` | overview tenant: uso por modulo | listo |
+| `10d-tenant-portal-overview-billing-posture.png` | overview tenant: postura con billing visible | listo |
+| `10e-tenant-portal-module-usage-live.png` | overview tenant: uso vivo por modulo | listo |
 | `11a-tenant-users-overview.png` | usuarios tenant: resumen y contexto | listo |
 | `11b-tenant-users-form-list.png` | usuarios tenant: alta y listado | listo |
+| `11c-tenant-users-created-success.png` | usuarios tenant: alta con exito | listo |
 | `12a-tenant-finance-overview-form.png` | finanzas tenant: resumen, uso y alta | listo |
+| `12b-tenant-finance-entry-created.png` | finanzas tenant: movimiento creado | listo |
+| `12c-tenant-finance-usage-before-limit-override.png` | finanzas tenant: uso antes del override | listo |
+| `12d-tenant-finance-at-limit-override.png` | finanzas tenant: modulo al limite por override | listo |
 
 ## Orden recomendado para capturar
 
@@ -116,23 +132,31 @@ Para aprender la app en una secuencia razonable, conviene hacerlo asi:
 6. `05b-tenant-active-usage.png`
 7. `05c-tenant-billing-past-due-summary.png`
 8. `05d-tenant-billing-controls-identity.png`
-9. `06a-provisioning-jobs-overview.png`
-10. `06b-provisioning-metrics-alerts.png`
-11. `06c-provisioning-dlq.png`
-12. `07a-billing-overview-filters.png`
-13. `07b-billing-summary-alerts-workspace.png`
-14. `07c-billing-tenant-events-reconcile.png`
-15. `07d-billing-reconciled-workspace.png`
-16. `08a-platform-settings-overview.png`
-17. `08b-platform-settings-capabilities.png`
-18. `08c-platform-settings-enums-scope.png`
-19. `09-tenant-portal-login.png`
-20. `10-tenant-portal-overview.png`
-21. `10b-tenant-portal-posture-current-user.png`
-22. `10c-tenant-portal-module-usage.png`
-23. `11a-tenant-users-overview.png`
-24. `11b-tenant-users-form-list.png`
-25. `12a-tenant-finance-overview-form.png`
+9. `05e-tenant-billing-controls-identity-detail.png`
+10. `05f-tenant-module-limits-finance-override.png`
+11. `06a-provisioning-jobs-overview.png`
+12. `06b-provisioning-metrics-alerts.png`
+13. `06c-provisioning-dlq.png`
+14. `07a-billing-overview-filters.png`
+15. `07b-billing-summary-alerts-workspace.png`
+16. `07c-billing-tenant-events-reconcile.png`
+17. `07d-billing-reconciled-workspace.png`
+18. `08a-platform-settings-overview.png`
+19. `08b-platform-settings-capabilities.png`
+20. `08c-platform-settings-enums-scope.png`
+21. `09-tenant-portal-login.png`
+22. `10-tenant-portal-overview.png`
+23. `10b-tenant-portal-posture-current-user.png`
+24. `10c-tenant-portal-module-usage.png`
+25. `10d-tenant-portal-overview-billing-posture.png`
+26. `10e-tenant-portal-module-usage-live.png`
+27. `11a-tenant-users-overview.png`
+28. `11b-tenant-users-form-list.png`
+29. `11c-tenant-users-created-success.png`
+30. `12a-tenant-finance-overview-form.png`
+31. `12b-tenant-finance-entry-created.png`
+32. `12c-tenant-finance-usage-before-limit-override.png`
+33. `12d-tenant-finance-at-limit-override.png`
 
 Con este set ya queda explicado casi todo el producto visible actual.
 
@@ -235,6 +259,23 @@ Esta vista sirve para entender donde se opera el billing manual desde `Tenants`:
 - fechas
 - plan
 - identidad de billing (`provider`, `customer_id`, `subscription_id`)
+
+#### Detalle ampliado de billing e identidad
+
+![Tenant activo: detalle billing e identidad](../assets/app-visual-manual/05e-tenant-billing-controls-identity-detail.png)
+
+Esta variante mas cerrada sirve para ver con mas nitidez:
+
+- fechas de fin de periodo y gracia
+- proveedor de billing
+- `customer_id`
+- `subscription_id`
+
+#### Override de limite por modulo
+
+![Tenant activo: override de limite financiero](../assets/app-visual-manual/05f-tenant-module-limits-finance-override.png)
+
+Esta captura muestra desde `Tenants` el punto donde un operador central puede imponer un limite manual por modulo. En la prueba se uso para bajar `finance.entries` a `1`.
 
 ### 6. Provisioning
 
@@ -355,6 +396,26 @@ Aqui se ve:
 
 Este bloque traduce al lenguaje del tenant algo que en `Platform Admin` se ve desde operacion central: uso real por modulo y su estado efectivo.
 
+#### Postura con billing visible
+
+![Tenant portal overview con billing](../assets/app-visual-manual/10d-tenant-portal-overview-billing-posture.png)
+
+Esta captura muestra un caso importante:
+
+- el tenant entra correctamente al portal
+- pero su `billing_status` visible sigue siendo `past_due`
+- aun asi el acceso puede seguir permitido por la gracia vigente
+
+#### Uso por modulo despues de operar
+
+![Tenant module usage vivo](../assets/app-visual-manual/10e-tenant-portal-module-usage-live.png)
+
+Aqui ya se ven efectos reales de uso:
+
+- `core.users` sube al crear cuentas
+- `finance.entries` sube al registrar movimientos
+- algunos limites pueden acercarse a `al_límite`
+
 ### 11. Usuarios del tenant
 
 #### Resumen y contexto
@@ -364,6 +425,10 @@ Este bloque traduce al lenguaje del tenant algo que en `Platform Admin` se ve de
 #### Alta y listado
 
 ![Usuarios tenant: alta y listado](../assets/app-visual-manual/11b-tenant-users-form-list.png)
+
+#### Alta con exito
+
+![Usuarios tenant: alta exitosa](../assets/app-visual-manual/11c-tenant-users-created-success.png)
 
 La pantalla `Usuarios` ya es una slice funcional real. Permite:
 
@@ -377,12 +442,30 @@ La pantalla `Usuarios` ya es una slice funcional real. Permite:
 
 ![Finanzas tenant](../assets/app-visual-manual/12a-tenant-finance-overview-form.png)
 
+![Finanzas tenant: movimiento creado](../assets/app-visual-manual/12b-tenant-finance-entry-created.png)
+
+![Finanzas tenant: uso antes del override](../assets/app-visual-manual/12c-tenant-finance-usage-before-limit-override.png)
+
+![Finanzas tenant: al limite por override](../assets/app-visual-manual/12d-tenant-finance-at-limit-override.png)
+
 La pantalla `Finanzas` muestra una segunda slice funcional del tenant portal. Hoy permite:
 
 - ver resumen de ingresos, egresos y balance
 - consultar uso efectivo del modulo financiero
 - crear movimientos
 - listar movimientos cuando existan
+
+La secuencia `12c -> 12d` tambien deja ver algo importante: el `tenant_portal` refleja de inmediato los overrides hechos desde `Tenants`. En este caso:
+
+- antes del cambio, `finance.entries` tenia limite amplio y estado `ok`
+- despues del override central a `1`, el mismo modulo quedo con:
+  - `usados = 1`
+  - `restante = 0`
+  - `estado = al_límite`
+
+Si quieres ver el flujo completo del portal tenant ya explicado con login, resumen, usuarios y finanzas, revisa:
+
+- [Prueba guiada de tenant portal](../runbooks/tenant-portal-guided-test.md)
 
 ## Como leer el producto con este manual
 
