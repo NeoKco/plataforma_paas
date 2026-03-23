@@ -17,6 +17,10 @@ En este momento la documentacion creada formalmente dentro del repositorio comie
 
 ## Documento Inicial Recomendado
 
+- [Guia unica para entender la app](./architecture/app-understanding-guide.md)
+- [Onboarding de developers](./runbooks/developer-onboarding.md)
+- [Flujo visual del instalador](./install/installer-visual-flow.md)
+- [Demo data y seeds de desarrollo](./runbooks/demo-data.md)
 - [Estructura raiz del proyecto](./architecture/project-structure.md)
 - [Flujo actual del backend](./architecture/backend-current-flow.md)
 - [Cierre del backend base](./architecture/backend-closure-status.md)
@@ -24,7 +28,6 @@ En este momento la documentacion creada formalmente dentro del repositorio comie
 - [Mapa de permisos](./architecture/permission-map.md)
 - [Roadmap de frontend](./architecture/frontend-roadmap.md)
 - [Baseline de UX para frontend](./architecture/frontend-ux-baseline.md)
-- [Guia unica para entender la app](./architecture/app-understanding-guide.md)
 - [Guia rapida de la app](./architecture/app-quick-guide.md)
 - [Guia de comprension de la app](./architecture/app-functional-walkthrough.md)
 - [Manual visual de la app](./architecture/app-visual-manual.md)

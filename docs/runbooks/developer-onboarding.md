@@ -6,6 +6,7 @@ Este runbook resume como levantar `platform_paas` localmente, donde mirar primer
 
 Antes de tocar codigo, parte por estos documentos:
 
+- `docs/architecture/app-understanding-guide.md`
 - `docs/architecture/backend-closure-status.md`
 - `docs/architecture/frontend-roadmap.md`
 - `docs/architecture/project-structure.md`
@@ -27,6 +28,13 @@ Frontend:
 - npm 10+
 
 ## 3. Backend Local
+
+Secuencia minima recomendada:
+
+1. preparar `.env`
+2. ejecutar migraciones de `platform_control`
+3. levantar backend
+4. comprobar `GET /health`
 
 ### Variables de entorno
 
@@ -60,6 +68,12 @@ La referencia funcional minima es:
 
 - `GET /health`
 - `POST /platform/auth/login`
+
+Si `GET /health` responde `installed=false`, el flujo correcto ya no es ir directo a login:
+
+- abre el frontend
+- completa `/install`
+- luego vuelve al login de `Platform Admin`
 
 ## 4. Tests del Backend
 
@@ -109,6 +123,11 @@ npm install
 npm run dev
 ```
 
+Flujo esperado al abrir el navegador:
+
+- si la plataforma no esta instalada: `/install`
+- si ya esta instalada: `/login`
+
 ## 6. Datos Minimos para Desarrollo
 
 Para una demo local minima necesitas:
@@ -120,8 +139,8 @@ Para una demo local minima necesitas:
 Flujo minimo:
 
 1. instalar o inicializar `platform_control`
-2. hacer login platform
-3. crear un tenant desde API `POST /platform/tenants/`
+2. entrar a `Platform Admin`
+3. crear o sembrar tenants demo
 4. dejar correr provisioning o ejecutar el worker
 5. volver a consultar el tenant ya aprovisionado
 
@@ -164,6 +183,14 @@ Si quieres un entorno mas rico para demos y frontend:
 ```bash
 cd /home/felipe/platform_paas/backend
 python app/scripts/seed_demo_data.py
+```
+
+Si quieres un baseline mas estable para frontend y pruebas guiadas:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m app.scripts.seed_frontend_demo_baseline
 ```
 
 ## 7. Donde Agregar Cambios

@@ -18,8 +18,26 @@ Hoy el proyecto ya incluye:
 Guia rapida:
 
 - [Guia rapida de la app](./docs/architecture/app-quick-guide.md)
-- [Guia de comprension de la app](./docs/architecture/app-functional-walkthrough.md)
+- [Guia unica para entender la app](./docs/architecture/app-understanding-guide.md)
 - [Manual visual de la app](./docs/architecture/app-visual-manual.md)
+- [Onboarding de developers](./docs/runbooks/developer-onboarding.md)
+
+## Empieza aqui
+
+Si es tu primera vez con este repo, usa este orden:
+
+1. [Guia unica para entender la app](./docs/architecture/app-understanding-guide.md)
+2. [Onboarding de developers](./docs/runbooks/developer-onboarding.md)
+3. [Flujo visual del instalador](./docs/install/installer-visual-flow.md)
+4. [Demo data y seeds de desarrollo](./docs/runbooks/demo-data.md)
+
+Si solo quieres levantarlo rapido:
+
+1. backend
+2. frontend
+3. abrir `http://127.0.0.1:4173`
+4. si el sistema no esta instalado, completar `/install`
+5. entrar a `Platform Admin`
 
 ## Stack
 
@@ -39,7 +57,13 @@ Guia rapida:
 
 ### 1. Backend
 
-Usa [`.env.example`](./.env.example) e inicializa la base de control.
+Usa [`.env.example`](./.env.example) como base y ajusta al menos:
+
+- `CONTROL_DB_PASSWORD`
+- `POSTGRES_ADMIN_PASSWORD`
+- `BACKEND_CORS_ALLOW_ORIGINS`
+
+Luego inicializa la base de control.
 
 Migraciones:
 
@@ -73,6 +97,22 @@ npm install
 npm run dev -- --host 0.0.0.0 --port 4173
 ```
 
+### 3. Primer arranque visual
+
+Si `GET /health` responde `installed=false`, el frontend redirige a:
+
+- `http://127.0.0.1:4173/install`
+
+Desde ahi puedes:
+
+- configurar PostgreSQL
+- crear la base `platform_control`
+- dejar la plataforma lista para login
+
+Referencia:
+
+- [Flujo visual del instalador](./docs/install/installer-visual-flow.md)
+
 ## Credenciales de desarrollo
 
 Platform:
@@ -83,6 +123,11 @@ Platform:
 Tenant demo:
 
 - `admin@condominio-demo.local`
+- `TenantAdmin123!`
+
+Tenant provisionado nuevo:
+
+- `admin@<tenant_slug>.local`
 - `TenantAdmin123!`
 
 ## Datos demo y baseline
@@ -101,6 +146,8 @@ Referencia:
 
 ## Documentacion recomendada
 
+- [Indice general de docs](./docs/index.md)
+- [Guia unica para entender la app](./docs/architecture/app-understanding-guide.md)
 - [Onboarding de developers](./docs/runbooks/developer-onboarding.md)
 - [Catalogo de variables backend](./docs/runbooks/backend-env-catalog.md)
 - [Implementacion backend platform](./docs/runbooks/platform-backend-implementation.md)
