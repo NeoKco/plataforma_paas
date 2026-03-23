@@ -4,6 +4,7 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
+import { EmptyState } from "../../../../components/feedback/EmptyState";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { getTenantInfo, getTenantModuleUsage } from "../../../../services/tenant-api";
@@ -170,7 +171,10 @@ export function TenantOverviewPage() {
                     </span>
                   ))
                 ) : (
-                  <span className="text-secondary">No hay módulos habilitados.</span>
+                  <EmptyState
+                    title="Todavía no hay módulos habilitados"
+                    detail="Este tenant aún no tiene módulos efectivos para operar desde el portal."
+                  />
                 )}
               </div>
             </PanelCard>
@@ -246,9 +250,10 @@ export function TenantOverviewPage() {
         </>
       ) : !isLoading ? (
         <PanelCard title="Resumen del tenant">
-          <div className="text-secondary">
-            La información del tenant no está disponible para la sesión actual.
-          </div>
+          <EmptyState
+            title="No se pudo armar el resumen del tenant"
+            detail="La sesión actual no devolvió información suficiente para mostrar el contexto operativo del espacio."
+          />
         </PanelCard>
       ) : null}
     </div>

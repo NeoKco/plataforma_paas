@@ -131,7 +131,15 @@ Hoy ya hay una direccion razonable, pero no esta cerrada formalmente.
 
 ### 4. Patron final de estados vacios
 
-Hay que decidir una regla estable para:
+Ya existe una primera base comun y ahora conviene consolidarla, no inventarla desde cero.
+
+La regla ya encaminada es:
+
+- usar un bloque visual dedicado cuando no hay datos
+- distinguir vacio operativo de error real
+- evitar texto suelto perdido dentro de tarjetas
+
+Todavia conviene seguir afinando los subcasos:
 
 - vacio sin datos
 - vacio esperando primera carga real
@@ -140,12 +148,18 @@ Hay que decidir una regla estable para:
 
 ### 5. Patron final de errores operativos
 
-Conviene fijar de forma consistente:
+Conviene terminar de fijar de forma consistente:
 
 - mensaje corto
 - detalle tecnico
 - `request_id`
 - cuando mostrar CTA de recuperacion
+
+Avance ya visible:
+
+- `ErrorState` ya se usa de forma bastante consistente en `platform_admin` y `tenant_portal`
+- los vacios mas visibles ya empezaron a usar un bloque comun en vez de texto suelto
+- el objetivo ahora es cerrar el mismo tono entre vacio, warning y error recuperable
 
 ### 6. Confirmaciones de acciones peligrosas
 
@@ -248,7 +262,7 @@ La semantica de color ya debe mantenerse estable por familia:
 1. refinamiento final de instalador
 2. UX final del login tenant
 3. vocabulario final compartido
-4. estados vacios y errores operativos
+4. refinamiento final de estados vacios y errores operativos
 5. confirmaciones de acciones peligrosas
 6. refinamiento final de `Tenants`
 

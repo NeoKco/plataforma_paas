@@ -534,6 +534,35 @@ code {
   color: var(--color-danger);
 }
 
+.empty-state {
+  background:
+    radial-gradient(circle at top right, rgba(18, 86, 204, 0.08), transparent 38%),
+    linear-gradient(180deg, rgba(247, 249, 253, 0.92), rgba(255, 255, 255, 0.96));
+  border: 1px dashed rgba(23, 32, 47, 0.14);
+  border-radius: 18px;
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 1.05rem;
+}
+
+.empty-state__eyebrow {
+  color: var(--color-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.empty-state__title {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.empty-state__detail {
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
 .tenant-detail__label {
   color: var(--color-text-secondary);
   font-size: 0.76rem;

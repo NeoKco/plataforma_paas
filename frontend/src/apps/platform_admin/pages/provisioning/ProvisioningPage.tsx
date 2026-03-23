@@ -6,6 +6,7 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
+import { EmptyState } from "../../../../components/feedback/EmptyState";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../services/api";
@@ -427,9 +428,10 @@ export function ProvisioningPage() {
           title="Jobs de provisioning"
           subtitle="El backend no devolvió jobs en el catálogo actual."
         >
-          <div className="text-secondary">
-            Aún no se registran jobs de provisioning.
-          </div>
+          <EmptyState
+            title="Todavía no hay jobs de provisioning"
+            detail="Esto suele pasar cuando aún no se crean tenants nuevos o cuando no hubo automatizaciones pendientes en este entorno."
+          />
         </PanelCard>
       ) : null}
 
@@ -577,9 +579,10 @@ export function ProvisioningPage() {
             title="Alertas activas"
             subtitle="No se reportaron alertas activas de provisioning en la última lectura."
           >
-            <div className="text-secondary">
-              Provisioning está tranquilo desde la perspectiva de alertamiento backend.
-            </div>
+            <EmptyState
+              title="No hay alertas activas de provisioning"
+              detail="La operación está estable y no hay señales abiertas de backlog, fallos o degradación."
+            />
           </PanelCard>
         )
       ) : null}
@@ -805,10 +808,10 @@ export function ProvisioningPage() {
             title="Filas DLQ"
             subtitle="Ninguna fila dead-letter del broker coincide con el set actual de filtros."
           >
-            <div className="text-secondary">
-              Esto es esperable cuando el broker está tranquilo o cuando los filtros
-              actuales son muy estrechos.
-            </div>
+            <EmptyState
+              title="No hay filas DLQ para este filtro"
+              detail="Esto es esperable cuando el broker está estable o cuando el filtro actual es muy específico."
+            />
           </PanelCard>
         )
       ) : null}

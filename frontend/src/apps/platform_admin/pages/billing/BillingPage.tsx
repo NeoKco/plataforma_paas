@@ -5,6 +5,7 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
+import { EmptyState } from "../../../../components/feedback/EmptyState";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import {
@@ -546,9 +547,10 @@ export function BillingPage() {
                 title="Alertas activas de facturación"
                 subtitle="No hay alertas activas de facturación que coincidan con el set actual de filtros."
               >
-                <div className="text-secondary">
-                  Billing sync está tranquilo desde la perspectiva de alertamiento.
-                </div>
+                <EmptyState
+                  title="No hay alertas activas para este filtro"
+                  detail="La sincronización de billing está tranquila y no hay señales operativas abiertas en este momento."
+                />
               </PanelCard>
             )
           ) : null}
@@ -742,9 +744,10 @@ export function BillingPage() {
                 title="Eventos billing tenant"
                 subtitle="Ningún evento persistido coincide con el set actual de filtros del tenant."
               >
-                <div className="text-secondary">
-                  Este tenant no tiene historial de billing sync para los filtros actuales.
-                </div>
+                <EmptyState
+                  title="No hay eventos para este tenant con el filtro actual"
+                  detail="Puedes ampliar el período o limpiar filtros para recuperar más historial de billing sync."
+                />
               </PanelCard>
             )
           ) : null}
@@ -754,9 +757,10 @@ export function BillingPage() {
           title="Espacio tenant de billing"
           subtitle="Selecciona un tenant desde la barra de filtros para inspeccionar historial de sync y ejecutar acciones de reconcile."
         >
-          <div className="text-secondary">
-            Las tarjetas globales de billing siguen funcionando sin un tenant seleccionado.
-          </div>
+          <EmptyState
+            title="Todavía no elegiste un tenant"
+            detail="Las tarjetas globales siguen visibles, pero el detalle de eventos y reconcile necesita un tenant seleccionado."
+          />
         </PanelCard>
       )}
     </div>
