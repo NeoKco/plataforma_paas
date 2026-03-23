@@ -33,12 +33,14 @@ Nombres sugeridos:
 - `10d-tenant-portal-overview-billing-posture.png`
 - `10e-tenant-portal-module-usage-live.png`
 - `10f-tenant-portal-module-usage-multi-limit.png`
+- `10g-tenant-portal-module-usage-active-users-limit.png`
 - `11a-tenant-users-overview.png`
 - `11b-tenant-users-form-list.png`
 - `11c-tenant-users-created-success.png`
 - `11d-tenant-users-admin-limit-blocked.png`
 - `11e-tenant-users-admin-reactivation-attempt.png`
 - `11f-tenant-users-admin-reactivation-blocked.png`
+- `11g-tenant-users-active-limit-blocked.png`
 - `12a-tenant-finance-overview-form.png`
 - `12b-tenant-finance-entry-created.png`
 - `12c-tenant-finance-usage-before-limit-override.png`
@@ -58,8 +60,10 @@ Nombres de pruebas guiadas recientes:
 - `12d-tenant-finance-at-limit-override.png`: modulo `finance.entries` en `al_límite` despues del override
 - `12e-tenant-finance-limit-blocked-message.png`: intento bloqueado cuando el modulo ya esta al limite
 - `10f-tenant-portal-module-usage-multi-limit.png`: uso por modulo con `finance.entries` y `core.users.admin` ya tensionados
+- `10g-tenant-portal-module-usage-active-users-limit.png`: overview con `core.users.active` ya en `al_límite`
 - `11d-tenant-users-admin-limit-blocked.png`: intento bloqueado al crear un segundo admin sin cupo
 - `11e-tenant-users-admin-reactivation-attempt.png`: estado previo a reactivar un admin cuando ya existe uno activo
 - `11f-tenant-users-admin-reactivation-blocked.png`: reactivacion bloqueada con mensaje claro de limite admin
+- `11g-tenant-users-active-limit-blocked.png`: intento bloqueado al activar otro usuario cuando ya no quedan cupos activos
 
 Este directorio existe para que el manual visual tenga una ubicacion estable y no queden imagenes sueltas por el repositorio.

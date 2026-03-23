@@ -57,6 +57,10 @@ Uso por modulo con multiples cuotas ya tensionadas:
 
 ![Uso por modulo con multiples limites](../assets/app-visual-manual/10f-tenant-portal-module-usage-multi-limit.png)
 
+Uso por modulo con el cupo de usuarios activos agotado:
+
+![Uso por modulo con limite de usuarios activos](../assets/app-visual-manual/10g-tenant-portal-module-usage-active-users-limit.png)
+
 Qué se valida aqui:
 
 - el tenant entra correctamente al portal
@@ -189,6 +193,30 @@ Secuencia visual del caso de borde:
 
 ![Usuarios tenant: reactivacion admin bloqueada](../assets/app-visual-manual/11f-tenant-users-admin-reactivation-blocked.png)
 
+## Paso 8. Probar enforcement del limite de usuarios activos
+
+Desde `Tenants`, tambien se aplico un override central sobre:
+
+- `core.users.active = 2`
+
+En el overview del `tenant_portal`, eso queda visible asi:
+
+![Uso por modulo con limite de usuarios activos](../assets/app-visual-manual/10g-tenant-portal-module-usage-active-users-limit.png)
+
+Luego, en `tenant_portal > Usuarios`, se intento activar otro usuario que estaba `inactive`.
+
+Resultado real:
+
+![Usuarios tenant: bloqueo por limite de usuarios activos](../assets/app-visual-manual/11g-tenant-users-active-limit-blocked.png)
+
+Qué se valida:
+
+- el limite `core.users.active` ya se refleja en el portal tenant
+- el backend no deja habilitar otro usuario cuando no queda cupo activo
+- el frontend muestra un mensaje claro
+- el texto visible fue equivalente a:
+  - `No puedes habilitar otro usuario porque tu plan ya alcanzó el límite de usuarios activos.`
+
 ## Qué aprendimos de esta prueba
 
 - `Provisioning` deja al tenant listo
@@ -199,6 +227,7 @@ Secuencia visual del caso de borde:
 - el enforcement por modulo ya es visible para el operador tenant
 - cuando el modulo llega al limite, el backend bloquea la accion y el frontend lo comunica con un mensaje entendible
 - ese enforcement ya fue validado tanto para `finance.entries` como para `core.users.admin`
+- y tambien para `core.users.active` al intentar reactivar un usuario sin cupo disponible
 
 ## Relación con las otras pruebas guiadas
 

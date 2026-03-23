@@ -73,12 +73,14 @@ Con esta convencion:
 - `10d-tenant-portal-overview-billing-posture.png`
 - `10e-tenant-portal-module-usage-live.png`
 - `10f-tenant-portal-module-usage-multi-limit.png`
+- `10g-tenant-portal-module-usage-active-users-limit.png`
 - `11a-tenant-users-overview.png`
 - `11b-tenant-users-form-list.png`
 - `11c-tenant-users-created-success.png`
 - `11d-tenant-users-admin-limit-blocked.png`
 - `11e-tenant-users-admin-reactivation-attempt.png`
 - `11f-tenant-users-admin-reactivation-blocked.png`
+- `11g-tenant-users-active-limit-blocked.png`
 - `12a-tenant-finance-overview-form.png`
 - `12b-tenant-finance-entry-created.png`
 - `12c-tenant-finance-usage-before-limit-override.png`
@@ -120,12 +122,14 @@ Este bloque sirve para ir completando el manual de forma iterativa.
 | `10d-tenant-portal-overview-billing-posture.png` | overview tenant: postura con billing visible | listo |
 | `10e-tenant-portal-module-usage-live.png` | overview tenant: uso vivo por modulo | listo |
 | `10f-tenant-portal-module-usage-multi-limit.png` | overview tenant: multiples limites visibles | listo |
+| `10g-tenant-portal-module-usage-active-users-limit.png` | overview tenant: limite de usuarios activos | listo |
 | `11a-tenant-users-overview.png` | usuarios tenant: resumen y contexto | listo |
 | `11b-tenant-users-form-list.png` | usuarios tenant: alta y listado | listo |
 | `11c-tenant-users-created-success.png` | usuarios tenant: alta con exito | listo |
 | `11d-tenant-users-admin-limit-blocked.png` | usuarios tenant: bloqueo por limite admin | listo |
 | `11e-tenant-users-admin-reactivation-attempt.png` | usuarios tenant: intento de reactivacion admin | listo |
 | `11f-tenant-users-admin-reactivation-blocked.png` | usuarios tenant: reactivacion admin bloqueada | listo |
+| `11g-tenant-users-active-limit-blocked.png` | usuarios tenant: bloqueo por limite de usuarios activos | listo |
 | `12a-tenant-finance-overview-form.png` | finanzas tenant: resumen, uso y alta | listo |
 | `12b-tenant-finance-entry-created.png` | finanzas tenant: movimiento creado | listo |
 | `12c-tenant-finance-usage-before-limit-override.png` | finanzas tenant: uso antes del override | listo |
@@ -164,17 +168,19 @@ Para aprender la app en una secuencia razonable, conviene hacerlo asi:
 26. `10d-tenant-portal-overview-billing-posture.png`
 27. `10e-tenant-portal-module-usage-live.png`
 28. `10f-tenant-portal-module-usage-multi-limit.png`
-29. `11a-tenant-users-overview.png`
-30. `11b-tenant-users-form-list.png`
-31. `11c-tenant-users-created-success.png`
-32. `11d-tenant-users-admin-limit-blocked.png`
-33. `11e-tenant-users-admin-reactivation-attempt.png`
-34. `11f-tenant-users-admin-reactivation-blocked.png`
-35. `12a-tenant-finance-overview-form.png`
-36. `12b-tenant-finance-entry-created.png`
-37. `12c-tenant-finance-usage-before-limit-override.png`
-38. `12d-tenant-finance-at-limit-override.png`
-39. `12e-tenant-finance-limit-blocked-message.png`
+29. `10g-tenant-portal-module-usage-active-users-limit.png`
+30. `11a-tenant-users-overview.png`
+31. `11b-tenant-users-form-list.png`
+32. `11c-tenant-users-created-success.png`
+33. `11d-tenant-users-admin-limit-blocked.png`
+34. `11e-tenant-users-admin-reactivation-attempt.png`
+35. `11f-tenant-users-admin-reactivation-blocked.png`
+36. `11g-tenant-users-active-limit-blocked.png`
+37. `12a-tenant-finance-overview-form.png`
+38. `12b-tenant-finance-entry-created.png`
+39. `12c-tenant-finance-usage-before-limit-override.png`
+40. `12d-tenant-finance-at-limit-override.png`
+41. `12e-tenant-finance-limit-blocked-message.png`
 
 Con este set ya queda explicado casi todo el producto visible actual.
 
@@ -452,6 +458,16 @@ Esta captura deja una lectura mas fuerte:
 - `core.users.admin` tambien entra en zona de cuota alcanzada
 - el overview tenant ya comunica no solo actividad, sino restricciones reales vigentes
 
+#### Uso por modulo con limite de usuarios activos
+
+![Tenant module usage con limite de usuarios activos](../assets/app-visual-manual/10g-tenant-portal-module-usage-active-users-limit.png)
+
+Aqui se ve otro caso importante:
+
+- `core.users.active` queda en `2/2`
+- la fuente es `tenant_override`
+- el portal ya avisa que no queda cupo para habilitar mas usuarios activos
+
 ### 11. Usuarios del tenant
 
 #### Resumen y contexto
@@ -478,6 +494,10 @@ Esta captura deja una lectura mas fuerte:
 
 ![Usuarios tenant: reactivacion admin bloqueada](../assets/app-visual-manual/11f-tenant-users-admin-reactivation-blocked.png)
 
+#### Bloqueo por limite de usuarios activos
+
+![Usuarios tenant: bloqueo por limite de usuarios activos](../assets/app-visual-manual/11g-tenant-users-active-limit-blocked.png)
+
 La pantalla `Usuarios` ya es una slice funcional real. Permite:
 
 - ver metricas rapidas
@@ -497,6 +517,12 @@ La secuencia `11e -> 11f` agrega el caso de borde que faltaba:
 - si ya existe un admin activo y el cupo sigue en `1`
 - tampoco se puede reactivar otro admin que estuviera inactivo
 - el mensaje visible ya no muestra el codigo crudo, sino una explicacion operativa facil de entender
+
+Y `11g` valida el otro enforcement paralelo:
+
+- si el limite `core.users.active` ya esta en `2/2`
+- tampoco se puede habilitar otro usuario inactivo
+- la UI devuelve un mensaje claro sobre el limite de usuarios activos
 
 ### 12. Finanzas del tenant
 
