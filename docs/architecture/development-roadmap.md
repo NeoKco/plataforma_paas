@@ -442,6 +442,16 @@ Entregables esperados:
 - limites y protecciones
 - politicas de mantenimiento tenant
 
+## Prioridades inmediatas
+
+Mirando el estado real del proyecto, lo mas conveniente ahora es:
+
+1. seguir cerrando `finance` y los contratos visibles ya existentes antes de abrir otro modulo grande
+2. consolidar frontend y documentacion como capa operativa estable, no como prototipo temporal
+3. endurecer calidad tecnica y automatizacion para depender menos de prueba manual repetitiva
+4. mejorar catalogos y labels expuestos por backend para que frontend deje de traducir tantos codigos internos por su cuenta
+5. dejar instalador, onboarding y flujo diario suficientemente claros para que el arranque del proyecto no requiera reconstruir contexto
+
 Resultado actual:
 
 - existe configuracion base de pool para `platform_control` y DBs tenant

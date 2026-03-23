@@ -373,3 +373,13 @@ Hoy la lectura correcta es esta:
 
 - refinar todavia mas el login de `tenant_portal` para hacerlo menos tecnico y mas evidente para usuario final, manteniendo el acceso rapido desde `Tenants` para superadmin
 - seguir cerrando dashboard y settings para que se lean con el mismo nivel de claridad que `Tenants`, `Billing` y `tenant_portal`
+
+## Prioridades inmediatas
+
+Lo mas rentable para las proximas sesiones es esto:
+
+1. cerrar `Dashboard` y `Settings` con el mismo nivel de lenguaje y claridad ya logrado en `Tenants`, `Billing` y `tenant_portal`
+2. seguir endureciendo bordes reales solo cuando aparezcan durante cambios funcionales, evitando volver a modo de prueba manual pesada por defecto
+3. pedir al backend catalogos mas ricos para planes, estados y ayudas visibles donde todavia asomen codigos internos
+4. seguir puliendo el `tenant_portal` como experiencia final de usuario, no solo como consola tecnica
+5. documentar de inmediato cada validacion importante y cada captura util para no tener que reconstruir contexto despues
