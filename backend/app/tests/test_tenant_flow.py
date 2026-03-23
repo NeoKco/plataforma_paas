@@ -1173,6 +1173,66 @@ class TenantServicesTestCase(unittest.TestCase):
 
         self.assertIn("core.users.active", str(exc.exception))
 
+    def test_tenant_data_service_update_user_status_rejects_activation_when_admin_role_limit_reached(self) -> None:
+        user = SimpleNamespace(id=2, is_active=False, role="admin")
+
+        class FakeUserRepository:
+            def get_by_id(self, tenant_db, user_id):
+                return user
+
+            def count_active(self, tenant_db):
+                return 1
+
+            def count_active_by_role(self, tenant_db, role, exclude_user_id=None):
+                return 1
+
+        service = TenantDataService(
+            tenant_info_repository=SimpleNamespace(),
+            user_repository=FakeUserRepository(),
+        )
+
+        with self.assertRaises(TenantUserLimitExceededError) as exc:
+            service.update_user_status(
+                tenant_db=object(),
+                user_id=2,
+                is_active=True,
+                max_active_users=5,
+                role_module_limits={"core.users.admin": 1},
+            )
+
+        self.assertIn("core.users.admin", str(exc.exception))
+
+    def test_tenant_data_service_update_user_status_allows_activation_of_only_inactive_admin(self) -> None:
+        user = SimpleNamespace(id=2, is_active=False, role="admin")
+
+        class FakeUserRepository:
+            def get_by_id(self, tenant_db, user_id):
+                return user
+
+            def count_active(self, tenant_db):
+                return 0
+
+            def count_active_by_role(self, tenant_db, role, exclude_user_id=None):
+                return 0
+
+            def save(self, tenant_db, saved_user):
+                return saved_user
+
+        service = TenantDataService(
+            tenant_info_repository=SimpleNamespace(),
+            user_repository=FakeUserRepository(),
+        )
+
+        updated_user = service.update_user_status(
+            tenant_db=object(),
+            user_id=2,
+            is_active=True,
+            max_active_users=5,
+            role_module_limits={"core.users.admin": 1},
+        )
+
+        self.assertTrue(updated_user.is_active)
+
     def test_tenant_data_service_update_user_rejects_when_role_limit_reached(self) -> None:
         user = SimpleNamespace(
             id=2,
@@ -1802,6 +1862,38 @@ class TenantRoutesTestCase(unittest.TestCase):
                 )
 
         self.assertEqual(exc.exception.status_code, 403)
+
+    def test_tenant_update_user_status_passes_role_module_limits(self) -> None:
+        user = build_tenant_user_stub(
+            user_id=2,
+            full_name="Admin Dos",
+            email="admin2@empresa-bootstrap.local",
+            role="admin",
+            is_active=False,
+        )
+
+        with patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.update_user_status",
+            return_value=user,
+        ) as update_user_status_mock:
+            request = self._request()
+            request.state.tenant_effective_module_limits = {
+                "core.users.active": 5,
+                "core.users.admin": 1,
+            }
+            tenant_update_user_status(
+                request=request,
+                user_id=2,
+                payload=TenantUserStatusUpdateRequest(is_active=True),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(
+            update_user_status_mock.call_args.kwargs["role_module_limits"],
+            {"core.users.active": 5, "core.users.admin": 1},
+        )
 
     def test_tenant_update_user_returns_updated_user(self) -> None:
         user = build_tenant_user_stub(

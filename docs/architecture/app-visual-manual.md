@@ -55,6 +55,7 @@ Con esta convencion:
 - `05d-tenant-billing-controls-identity.png`
 - `05e-tenant-billing-controls-identity-detail.png`
 - `05f-tenant-module-limits-finance-override.png`
+- `05g-tenant-module-limits-users-admin-override.png`
 - `06a-provisioning-jobs-overview.png`
 - `06b-provisioning-metrics-alerts.png`
 - `06c-provisioning-dlq.png`
@@ -71,9 +72,11 @@ Con esta convencion:
 - `10c-tenant-portal-module-usage.png`
 - `10d-tenant-portal-overview-billing-posture.png`
 - `10e-tenant-portal-module-usage-live.png`
+- `10f-tenant-portal-module-usage-multi-limit.png`
 - `11a-tenant-users-overview.png`
 - `11b-tenant-users-form-list.png`
 - `11c-tenant-users-created-success.png`
+- `11d-tenant-users-admin-limit-blocked.png`
 - `12a-tenant-finance-overview-form.png`
 - `12b-tenant-finance-entry-created.png`
 - `12c-tenant-finance-usage-before-limit-override.png`
@@ -97,6 +100,7 @@ Este bloque sirve para ir completando el manual de forma iterativa.
 | `05d-tenant-billing-controls-identity.png` | tenant operativo: controles billing e identidad | listo |
 | `05e-tenant-billing-controls-identity-detail.png` | tenant operativo: detalle de billing e identidad | listo |
 | `05f-tenant-module-limits-finance-override.png` | tenant operativo: override de limite financiero | listo |
+| `05g-tenant-module-limits-users-admin-override.png` | tenant operativo: override de limite admin | listo |
 | `06a-provisioning-jobs-overview.png` | provisioning: jobs y resumen | listo |
 | `06b-provisioning-metrics-alerts.png` | provisioning: metricas y alertas | listo |
 | `06c-provisioning-dlq.png` | provisioning: DLQ y recuperacion | listo |
@@ -113,9 +117,11 @@ Este bloque sirve para ir completando el manual de forma iterativa.
 | `10c-tenant-portal-module-usage.png` | overview tenant: uso por modulo | listo |
 | `10d-tenant-portal-overview-billing-posture.png` | overview tenant: postura con billing visible | listo |
 | `10e-tenant-portal-module-usage-live.png` | overview tenant: uso vivo por modulo | listo |
+| `10f-tenant-portal-module-usage-multi-limit.png` | overview tenant: multiples limites visibles | listo |
 | `11a-tenant-users-overview.png` | usuarios tenant: resumen y contexto | listo |
 | `11b-tenant-users-form-list.png` | usuarios tenant: alta y listado | listo |
 | `11c-tenant-users-created-success.png` | usuarios tenant: alta con exito | listo |
+| `11d-tenant-users-admin-limit-blocked.png` | usuarios tenant: bloqueo por limite admin | listo |
 | `12a-tenant-finance-overview-form.png` | finanzas tenant: resumen, uso y alta | listo |
 | `12b-tenant-finance-entry-created.png` | finanzas tenant: movimiento creado | listo |
 | `12c-tenant-finance-usage-before-limit-override.png` | finanzas tenant: uso antes del override | listo |
@@ -136,30 +142,33 @@ Para aprender la app en una secuencia razonable, conviene hacerlo asi:
 8. `05d-tenant-billing-controls-identity.png`
 9. `05e-tenant-billing-controls-identity-detail.png`
 10. `05f-tenant-module-limits-finance-override.png`
-11. `06a-provisioning-jobs-overview.png`
-12. `06b-provisioning-metrics-alerts.png`
-13. `06c-provisioning-dlq.png`
-14. `07a-billing-overview-filters.png`
-15. `07b-billing-summary-alerts-workspace.png`
-16. `07c-billing-tenant-events-reconcile.png`
-17. `07d-billing-reconciled-workspace.png`
-18. `08a-platform-settings-overview.png`
-19. `08b-platform-settings-capabilities.png`
-20. `08c-platform-settings-enums-scope.png`
-21. `09-tenant-portal-login.png`
-22. `10-tenant-portal-overview.png`
-23. `10b-tenant-portal-posture-current-user.png`
-24. `10c-tenant-portal-module-usage.png`
-25. `10d-tenant-portal-overview-billing-posture.png`
-26. `10e-tenant-portal-module-usage-live.png`
-27. `11a-tenant-users-overview.png`
-28. `11b-tenant-users-form-list.png`
-29. `11c-tenant-users-created-success.png`
-30. `12a-tenant-finance-overview-form.png`
-31. `12b-tenant-finance-entry-created.png`
-32. `12c-tenant-finance-usage-before-limit-override.png`
-33. `12d-tenant-finance-at-limit-override.png`
-34. `12e-tenant-finance-limit-blocked-message.png`
+11. `05g-tenant-module-limits-users-admin-override.png`
+12. `06a-provisioning-jobs-overview.png`
+13. `06b-provisioning-metrics-alerts.png`
+14. `06c-provisioning-dlq.png`
+15. `07a-billing-overview-filters.png`
+16. `07b-billing-summary-alerts-workspace.png`
+17. `07c-billing-tenant-events-reconcile.png`
+18. `07d-billing-reconciled-workspace.png`
+19. `08a-platform-settings-overview.png`
+20. `08b-platform-settings-capabilities.png`
+21. `08c-platform-settings-enums-scope.png`
+22. `09-tenant-portal-login.png`
+23. `10-tenant-portal-overview.png`
+24. `10b-tenant-portal-posture-current-user.png`
+25. `10c-tenant-portal-module-usage.png`
+26. `10d-tenant-portal-overview-billing-posture.png`
+27. `10e-tenant-portal-module-usage-live.png`
+28. `10f-tenant-portal-module-usage-multi-limit.png`
+29. `11a-tenant-users-overview.png`
+30. `11b-tenant-users-form-list.png`
+31. `11c-tenant-users-created-success.png`
+32. `11d-tenant-users-admin-limit-blocked.png`
+33. `12a-tenant-finance-overview-form.png`
+34. `12b-tenant-finance-entry-created.png`
+35. `12c-tenant-finance-usage-before-limit-override.png`
+36. `12d-tenant-finance-at-limit-override.png`
+37. `12e-tenant-finance-limit-blocked-message.png`
 
 Con este set ya queda explicado casi todo el producto visible actual.
 
@@ -279,6 +288,14 @@ Esta variante mas cerrada sirve para ver con mas nitidez:
 ![Tenant activo: override de limite financiero](../assets/app-visual-manual/05f-tenant-module-limits-finance-override.png)
 
 Esta captura muestra desde `Tenants` el punto donde un operador central puede imponer un limite manual por modulo. En la prueba se uso para bajar `finance.entries` a `1`.
+
+![Tenant activo: override del limite admin](../assets/app-visual-manual/05g-tenant-module-limits-users-admin-override.png)
+
+Esta variante muestra el mismo patron aplicado a `core.users.admin`:
+
+- el operador central fuerza un cupo menor de admins
+- el ajuste queda visible en `Tenants`
+- luego ese override se refleja en el `tenant_portal` y en el bloqueo real
 
 ### 6. Provisioning
 
@@ -419,6 +436,16 @@ Aqui ya se ven efectos reales de uso:
 - `finance.entries` sube al registrar movimientos
 - algunos limites pueden acercarse a `al_límite`
 
+#### Uso por modulo con multiples limites
+
+![Tenant module usage con multiples limites](../assets/app-visual-manual/10f-tenant-portal-module-usage-multi-limit.png)
+
+Esta captura deja una lectura mas fuerte:
+
+- `finance.entries` ya aparece al limite por override
+- `core.users.admin` tambien entra en zona de cuota alcanzada
+- el overview tenant ya comunica no solo actividad, sino restricciones reales vigentes
+
 ### 11. Usuarios del tenant
 
 #### Resumen y contexto
@@ -433,6 +460,10 @@ Aqui ya se ven efectos reales de uso:
 
 ![Usuarios tenant: alta exitosa](../assets/app-visual-manual/11c-tenant-users-created-success.png)
 
+#### Bloqueo por limite de admins
+
+![Usuarios tenant: bloqueo por limite admin](../assets/app-visual-manual/11d-tenant-users-admin-limit-blocked.png)
+
 La pantalla `Usuarios` ya es una slice funcional real. Permite:
 
 - ver metricas rapidas
@@ -440,6 +471,12 @@ La pantalla `Usuarios` ya es una slice funcional real. Permite:
 - crear usuarios
 - listar usuarios del tenant
 - activar o desactivar cuentas
+
+Y con `11d` tambien queda validado algo importante:
+
+- el limite `core.users.admin` no es solo decorativo
+- cuando el tenant intenta crear otro admin sin cupo disponible
+- el backend bloquea la accion y el frontend lo comunica de forma clara
 
 ### 12. Finanzas del tenant
 

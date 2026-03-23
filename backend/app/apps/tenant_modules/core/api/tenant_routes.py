@@ -547,6 +547,14 @@ def tenant_update_user_status(
                 )
                 or {}
             ).get(TenantDataService.ACTIVE_MODULE_LIMIT_KEY),
+            role_module_limits=(
+                getattr(
+                    request.state,
+                    "tenant_effective_module_limits",
+                    {},
+                )
+                or {}
+            ),
         )
     except TenantUserLimitExceededError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc

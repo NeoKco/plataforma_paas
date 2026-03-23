@@ -273,6 +273,7 @@ class TenantDataService:
         is_active: bool,
         actor_user_id: int | None = None,
         max_active_users: int | None = None,
+        role_module_limits: dict[str, int] | None = None,
     ) -> User:
         user = self.user_repository.get_by_id(tenant_db, user_id)
         if not user:
@@ -292,6 +293,24 @@ class TenantDataService:
                 raise TenantUserLimitExceededError(
                     "El plan actual alcanzo el limite de core.users.active"
                 )
+
+        if is_active and not user.is_active:
+            role_limit_key = self.ROLE_LIMIT_KEYS.get(user.role.strip().lower())
+            role_limit = (
+                None
+                if role_module_limits is None or role_limit_key is None
+                else role_module_limits.get(role_limit_key)
+            )
+            if role_limit is not None and role_limit > 0:
+                current_active_role_users = self.user_repository.count_active_by_role(
+                    tenant_db,
+                    user.role,
+                    exclude_user_id=user.id,
+                )
+                if current_active_role_users >= role_limit:
+                    raise TenantUserLimitExceededError(
+                        f"El plan actual alcanzo el limite de {role_limit_key}"
+                    )
 
         user.is_active = is_active
         return self.user_repository.save(tenant_db, user)

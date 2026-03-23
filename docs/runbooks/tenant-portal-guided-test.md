@@ -53,6 +53,10 @@ Uso por modulo despues de operar:
 
 ![Uso por modulo vivo](../assets/app-visual-manual/10e-tenant-portal-module-usage-live.png)
 
+Uso por modulo con multiples cuotas ya tensionadas:
+
+![Uso por modulo con multiples limites](../assets/app-visual-manual/10f-tenant-portal-module-usage-multi-limit.png)
+
 Qué se valida aqui:
 
 - el tenant entra correctamente al portal
@@ -147,6 +151,38 @@ Esto confirma que el enforcement no solo se ve en los indicadores:
 
 - tambien bloquea la operacion real cuando se intenta exceder la cuota
 
+## Paso 7. Probar enforcement del limite de admins
+
+Desde `Tenants`, tambien se aplico un override central sobre:
+
+- `core.users.admin = 1`
+
+Captura del ajuste central:
+
+![Tenants: override de core.users.admin](../assets/app-visual-manual/05g-tenant-module-limits-users-admin-override.png)
+
+Despues, en `tenant_portal > Usuarios`, se intento crear otro usuario con rol `admin`.
+
+Resultado real:
+
+![Usuarios tenant: bloqueo por limite admin](../assets/app-visual-manual/11d-tenant-users-admin-limit-blocked.png)
+
+Qué se valida:
+
+- el limite de admins ya se refleja en el portal tenant
+- el backend no deja crear un admin adicional cuando no queda cupo
+- el frontend muestra un mensaje claro
+- el mensaje esperado para usuario ya no depende del codigo tecnico:
+  - `No puedes crear otro administrador porque tu plan ya alcanzó el límite de administradores.`
+
+Caso de borde corregido despues de esta prueba:
+
+- si ya existe un admin activo y el tenant esta en el limite `core.users.admin`
+- tampoco debe poder reactivarse otro usuario `admin` que estuviera inactivo
+- ese hueco quedo cerrado en backend para que el cupo no pueda saltarse por cambio de estado
+- y en ese caso la UI debe mostrar un texto equivalente a:
+  - `No puedes habilitar otro administrador porque tu plan ya alcanzó el límite de administradores.`
+
 ## Qué aprendimos de esta prueba
 
 - `Provisioning` deja al tenant listo
@@ -156,6 +192,7 @@ Esto confirma que el enforcement no solo se ve en los indicadores:
 - los overrides hechos en `Tenants` se reflejan en el `tenant_portal`
 - el enforcement por modulo ya es visible para el operador tenant
 - cuando el modulo llega al limite, el backend bloquea la accion y el frontend lo comunica con un mensaje entendible
+- ese enforcement ya fue validado tanto para `finance.entries` como para `core.users.admin`
 
 ## Relación con las otras pruebas guiadas
 

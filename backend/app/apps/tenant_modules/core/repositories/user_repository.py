@@ -36,6 +36,21 @@ class UserRepository:
             .count()
         )
 
+    def count_active_by_role(
+        self,
+        tenant_db: Session,
+        role: str,
+        *,
+        exclude_user_id: int | None = None,
+    ) -> int:
+        query = tenant_db.query(User).filter(
+            User.role == role.strip().lower(),
+            User.is_active.is_(True),
+        )
+        if exclude_user_id is not None:
+            query = query.filter(User.id != exclude_user_id)
+        return query.count()
+
     def count_created_since(self, tenant_db: Session, created_since: datetime) -> int:
         return (
             tenant_db.query(User)

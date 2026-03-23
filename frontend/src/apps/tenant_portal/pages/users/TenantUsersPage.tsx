@@ -12,6 +12,7 @@ import {
   getTenantUsers,
   updateTenantUserStatus,
 } from "../../../../services/tenant-api";
+import { getApiErrorDisplayMessage } from "../../../../services/api";
 import { useTenantAuth } from "../../../../store/tenant-auth-context";
 import type { ApiError, TenantUsersItem, TenantUsersResponse } from "../../../../types";
 
@@ -22,6 +23,40 @@ type ActionFeedback = {
 };
 
 const ROLE_OPTIONS = ["admin", "manager", "operator"];
+
+function formatTenantUserActionError(scope: string, error: ApiError): string {
+  const message = getApiErrorDisplayMessage(error);
+
+  if (message.includes("core.users.admin")) {
+    if (scope.startsWith("user-status-")) {
+      return "No puedes habilitar otro administrador porque tu plan ya alcanzó el límite de administradores.";
+    }
+    if (scope === "create-user") {
+      return "No puedes crear otro administrador porque tu plan ya alcanzó el límite de administradores.";
+    }
+    return "Tu plan ya alcanzó el límite de administradores.";
+  }
+
+  if (message.includes("core.users.active")) {
+    if (scope.startsWith("user-status-")) {
+      return "No puedes habilitar otro usuario porque tu plan ya alcanzó el límite de usuarios activos.";
+    }
+    if (scope === "create-user") {
+      return "No puedes crear otro usuario activo porque tu plan ya alcanzó el límite de usuarios activos.";
+    }
+    return "Tu plan ya alcanzó el límite de usuarios activos.";
+  }
+
+  if (message.includes("core.users.monthly")) {
+    return "Tu plan ya alcanzó el límite mensual de creación de usuarios.";
+  }
+
+  if (message.includes("core.users")) {
+    return "Tu plan ya alcanzó el límite total de usuarios.";
+  }
+
+  return message;
+}
 
 export function TenantUsersPage() {
   const { session } = useTenantAuth();
@@ -91,7 +126,7 @@ export function TenantUsersPage() {
       setActionFeedback({
         scope,
         type: "error",
-        message: typedError.payload?.detail || typedError.message,
+        message: formatTenantUserActionError(scope, typedError),
       });
     } finally {
       setIsActionSubmitting(false);
