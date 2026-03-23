@@ -8,12 +8,14 @@ type Column<T> = {
 
 type DataTableCardProps<T> = {
   title: string;
+  subtitle?: string;
   rows: T[];
   columns: Array<Column<T>>;
 };
 
 export function DataTableCard<T>({
   title,
+  subtitle,
   rows,
   columns,
 }: DataTableCardProps<T>) {
@@ -21,7 +23,10 @@ export function DataTableCard<T>({
     <div className="panel-card data-table-card">
       <div className="panel-card__header">
         <div className="data-table-card__header">
-          <h2 className="panel-card__title">{title}</h2>
+          <div>
+            <h2 className="panel-card__title">{title}</h2>
+            {subtitle ? <p className="panel-card__subtitle mb-0">{subtitle}</p> : null}
+          </div>
           <span className="data-table-card__meta">
             {rows.length} {rows.length === 1 ? "fila" : "filas"}
           </span>

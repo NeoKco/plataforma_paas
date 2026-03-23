@@ -156,7 +156,8 @@ Es una pantalla de soporte y lectura tecnica.
 Sirve para ver:
 
 - sesion actual
-- `API base URL`
+- `API configurada`
+- `API esperada en esta red`
 - capacidades backend
 - enums y alcance actual del frontend
 

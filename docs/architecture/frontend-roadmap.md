@@ -277,16 +277,17 @@ Avance actual:
 - `Dashboard` ya destaca tenants con atencion operativa inmediata
 - `Dashboard` ya muestra focos de provisioning y billing para soporte
 - `Dashboard` ya incluye accesos rapidos hacia `Tenants`, `Provisioning` y `Billing`
-- `Settings` ya expone sesion actual, `API base URL`, catalogo backend y alcance de la UI
+- `Dashboard` ya usa un lenguaje mas ejecutivo y menos tecnico en cards, focos y tablas
+- `Settings` ya expone sesion actual, `API configurada`, `API esperada en esta red`, catalogo backend y alcance de la UI
 
 Pendiente fino conocido:
 
-- la lectura visible de `API base URL` en `Settings` debe alinearse mejor con el host efectivo cuando el frontend se consume desde otra IP del mismo host local
+- sigue pendiente alinear de forma definitiva la configuracion real del frontend con el host efectivo, aunque `Settings` ya hace visible la diferencia entre URL configurada y URL esperada en la red actual
 
 Lectura practica:
 
 - dashboard y settings ya existen y sirven
-- esta etapa sigue abierta por cierre visual y consistencia final
+- esta etapa sigue abierta por cierre visual y consistencia final, no por falta de funcionalidad base
 
 ## Etapa F8. Portal Tenant
 
@@ -372,13 +373,13 @@ Hoy la lectura correcta es esta:
 ## Pendientes de UX
 
 - refinar todavia mas el login de `tenant_portal` para hacerlo menos tecnico y mas evidente para usuario final, manteniendo el acceso rapido desde `Tenants` para superadmin
-- seguir cerrando dashboard y settings para que se lean con el mismo nivel de claridad que `Tenants`, `Billing` y `tenant_portal`
+- seguir cerrando dashboard y settings hasta dejarlos con el mismo nivel de claridad ya alcanzado por `Tenants`, `Billing` y `tenant_portal`
 
 ## Prioridades inmediatas
 
 Lo mas rentable para las proximas sesiones es esto:
 
-1. cerrar `Dashboard` y `Settings` con el mismo nivel de lenguaje y claridad ya logrado en `Tenants`, `Billing` y `tenant_portal`
+1. rematar `Dashboard` y `Settings`, que ya mejoraron su lenguaje y lectura operativa pero todavia pueden ganar consistencia final
 2. seguir endureciendo bordes reales solo cuando aparezcan durante cambios funcionales, evitando volver a modo de prueba manual pesada por defecto
 3. pedir al backend catalogos mas ricos para planes, estados y ayudas visibles donde todavia asomen codigos internos
 4. seguir puliendo el `tenant_portal` como experiencia final de usuario, no solo como consola tecnica

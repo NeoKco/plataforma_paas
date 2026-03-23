@@ -7,6 +7,7 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { MetricCard } from "../../../../components/common/MetricCard";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
+import { displayPlatformCode } from "../../../../utils/platform-labels";
 import { useAuth } from "../../../../store/auth-context";
 import {
   getPlatformBillingAlerts,
@@ -179,7 +180,7 @@ export function DashboardPage() {
       <PageHeader
         eyebrow="Plataforma"
         title="Resumen operativo"
-        description="Lectura ejecutiva sobre salud de tenants, presión de provisioning y anomalías de facturación usando los mismos contratos backend-driven consumidos en las pantallas de detalle."
+        description="Vista rápida de salud operativa: tenants que requieren atención, presión de provisioning y señales de facturación que ya justifican una revisión."
       />
 
       {isLoading ? <LoadingBlock label="Cargando operación de plataforma..." /> : null}
@@ -193,28 +194,47 @@ export function DashboardPage() {
       {!isLoading ? (
         <>
           <div className="dashboard-overview-grid">
-            <MetricCard label="Tenants totales" value={kpis.totalTenants} />
-            <MetricCard label="Tenants suspendidos" value={kpis.suspendedTenants} />
-            <MetricCard label="Tenants en mantenimiento" value={kpis.maintenanceTenants} />
-            <MetricCard label="Tenants con deuda" value={kpis.tenantsPastDue} />
+            <MetricCard
+              label="Tenants totales"
+              value={kpis.totalTenants}
+              hint="Catálogo actual de tenants visibles desde plataforma."
+            />
+            <MetricCard
+              label="Tenants suspendidos"
+              value={kpis.suspendedTenants}
+              hint="Tenants detenidos por estado operativo."
+            />
+            <MetricCard
+              label="Tenants en mantenimiento"
+              value={kpis.maintenanceTenants}
+              hint="Tenants con ventana manual de mantenimiento activa."
+            />
+            <MetricCard
+              label="Tenants con deuda"
+              value={kpis.tenantsPastDue}
+              hint="Tenants en estado de facturación con deuda."
+            />
             <MetricCard
               label="Tenants con provisioning fallido"
               value={kpis.provisioningFailedTenants}
+              hint="Tenants con jobs fallidos en la última lectura."
             />
             <MetricCard
               label="Alertas activas de provisioning"
               value={kpis.activeProvisioningAlerts}
+              hint="Señales operativas abiertas en la cola técnica."
             />
             <MetricCard
               label="Alertas activas de facturación"
               value={kpis.activeBillingAlerts}
+              hint="Alertas abiertas en sincronización y reconcile de billing."
             />
           </div>
 
           <div className="dashboard-section-grid">
             <PanelCard
               title="Foco operativo"
-              subtitle="Puntos de atención inmediatos sobre lifecycle tenant y facturación."
+              subtitle="Tenants que hoy requieren revisión por estado, mantenimiento o facturación."
             >
               {tenantAttentionRows.length > 0 ? (
                 <div className="dashboard-spotlight-list">
@@ -238,14 +258,14 @@ export function DashboardPage() {
                 </div>
               ) : (
                 <div className="text-secondary">
-                  No se detectaron focos críticos de lifecycle tenant en la lectura actual.
+                  No hay tenants con atención inmediata en esta lectura.
                 </div>
               )}
             </PanelCard>
 
             <PanelCard
               title="Acciones rápidas"
-              subtitle="Salta directo a las pantallas que ya tienen controles operativos."
+              subtitle="Entra directo a la pantalla adecuada según el tipo de problema."
             >
               <div className="dashboard-quick-actions">
                 <Link className="btn btn-primary" to="/tenants">
@@ -259,9 +279,9 @@ export function DashboardPage() {
                 </Link>
               </div>
               <div className="dashboard-quick-hints">
-                <div>Usa `Tenants` para lifecycle, plan, billing y límites por módulo.</div>
-                <div>Usa `Provisioning` para backlog, alertas y recuperación por DLQ.</div>
-                <div>Usa `Billing` para resumen de eventos, alertas y flujos de reconcile.</div>
+                <div>`Tenants`: estado del tenant, plan, mantenimiento, límites y acceso.</div>
+                <div>`Provisioning`: jobs pendientes, fallos, reintentos y recuperación técnica.</div>
+                <div>`Facturación`: eventos persistidos, alertas y reconcile por tenant.</div>
               </div>
             </PanelCard>
           </div>
@@ -269,6 +289,7 @@ export function DashboardPage() {
           {provisioningAttentionRows.length > 0 ? (
             <DataTableCard
               title="Presión de provisioning por tenant"
+              subtitle="Solo tenants con jobs fallidos, en reintento o ejecutándose ahora."
               rows={provisioningAttentionRows}
               columns={[
                 {
@@ -303,6 +324,7 @@ export function DashboardPage() {
           {billingAttentionRows.length > 0 ? (
             <DataTableCard
               title="Anomalías de facturación por resultado"
+              subtitle="Eventos que no terminaron como flujo limpio y merecen seguimiento."
               rows={billingAttentionRows}
               columns={[
                 {
@@ -337,12 +359,17 @@ export function DashboardPage() {
           {capabilities ? (
             <DataTableCard
               title="Capacidades de límites por módulo"
+              subtitle="Catálogo vivo de claves de límite que el backend expone hoy a la consola."
               rows={capabilities.module_limit_capabilities}
               columns={[
                 { key: "key", header: "Clave", render: (row) => <code>{row.key}</code> },
                 { key: "module", header: "Módulo", render: (row) => row.module_name },
                 { key: "resource", header: "Recurso", render: (row) => row.resource_name },
-                { key: "period", header: "Período", render: (row) => row.period },
+                {
+                  key: "period",
+                  header: "Período",
+                  render: (row) => displayPlatformCode(row.period || "none"),
+                },
                 {
                   key: "segment",
                   header: "Segmento",

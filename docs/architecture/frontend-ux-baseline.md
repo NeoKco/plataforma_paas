@@ -216,6 +216,7 @@ Esto ya mejoro y conviene mantenerlo como regla:
 - `Billing` y `Tenants` usan labels de negocio mas comprensibles para estados y resultados
 - `tenant_portal` ya refleja ese mismo tono en uso por modulo, roles y mensajes de bloqueo
 - los mensajes de enforcement ya deben explicar el motivo con lenguaje de cupo o plan, no con claves tecnicas
+- `Dashboard` y `Settings` ya empezaron a usar un tono mas ejecutivo y operativo, menos cercano a catalogo tecnico crudo
 
 ## Patrones visuales que ya conviene congelar
 
