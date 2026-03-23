@@ -10,6 +10,7 @@ Esta seccion agrupa procedimientos operativos y pasos repetibles para trabajar c
 - [Implementacion modulo finance](./finance-module-implementation.md): primer modulo tenant funcional usando permisos, servicio, repositorio y DB tenant.
 - [Reglas backend y guia de cambios](./backend-rules-and-change-guidelines.md): donde vive cada tipo de regla, que puede operarse manualmente y cuando hace falta programar.
 - [Onboarding de developers](./developer-onboarding.md): secuencia minima para levantar backend y frontend localmente, correr tests y ubicarse en el repo.
+- [Flujo diario de trabajo](./daily-workflow.md): rutina corta para arrancar, validar cambios, decidir pruebas manuales y cerrar el dia sin perder orden.
 - [Catalogo de variables de entorno backend](./backend-env-catalog.md): resumen por categoria de las variables de runtime y operacion del backend.
 - [Demo data y seeds de desarrollo](./demo-data.md): carga reproducible de tenants y datos de ejemplo para demos y validacion manual.
 - [Prueba guiada de provisioning](./provisioning-guided-test.md): ejercicio real de `pending -> retry_pending -> completed` para entender y validar el worker.

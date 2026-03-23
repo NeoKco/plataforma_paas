@@ -21,6 +21,7 @@ En este momento la documentacion creada formalmente dentro del repositorio comie
 - [Onboarding de developers](./runbooks/developer-onboarding.md)
 - [Flujo visual del instalador](./install/installer-visual-flow.md)
 - [Demo data y seeds de desarrollo](./runbooks/demo-data.md)
+- [Flujo diario de trabajo](./runbooks/daily-workflow.md)
 - [Estructura raiz del proyecto](./architecture/project-structure.md)
 - [Flujo actual del backend](./architecture/backend-current-flow.md)
 - [Cierre del backend base](./architecture/backend-closure-status.md)

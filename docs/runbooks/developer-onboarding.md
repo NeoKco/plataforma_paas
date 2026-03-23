@@ -2,6 +2,10 @@
 
 Este runbook resume como levantar `platform_paas` localmente, donde mirar primero y cual es la secuencia minima para trabajar sin perder tiempo.
 
+Si ya conoces el proyecto y solo quieres una rutina operativa corta, revisa:
+
+- `docs/runbooks/daily-workflow.md`
+
 ## 1. Leer Primero
 
 Antes de tocar codigo, parte por estos documentos:
