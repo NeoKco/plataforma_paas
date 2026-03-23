@@ -1322,6 +1322,61 @@ class PlatformServicesTestCase(unittest.TestCase):
 
         self.assertEqual(result, (423, "invoice overdue"))
 
+    def test_tenant_service_billing_error_allows_canceled_inside_current_period(self) -> None:
+        current_period_ends_at = datetime.now(timezone.utc) + timedelta(days=1)
+        tenant = build_tenant_record_stub(
+            status="active",
+            billing_status="canceled",
+            billing_status_reason="subscription canceled by customer",
+            billing_current_period_ends_at=current_period_ends_at,
+        )
+        service = TenantService(tenant_repository=SimpleNamespace())
+
+        self.assertIsNone(service.get_tenant_billing_error(tenant))
+
+    def test_tenant_service_billing_error_blocks_canceled_after_current_period(self) -> None:
+        current_period_ends_at = datetime.now(timezone.utc) - timedelta(days=1)
+        tenant = build_tenant_record_stub(
+            status="active",
+            billing_status="canceled",
+            billing_status_reason="subscription canceled by customer",
+            billing_current_period_ends_at=current_period_ends_at,
+        )
+        service = TenantService(tenant_repository=SimpleNamespace())
+
+        result = service.get_tenant_billing_error(tenant)
+
+        self.assertEqual(result, (403, "subscription canceled by customer"))
+
+    def test_tenant_service_access_policy_allows_canceled_inside_current_period(self) -> None:
+        tenant = build_tenant_record_stub(
+            status="active",
+            billing_status="canceled",
+            billing_current_period_ends_at=datetime.now(timezone.utc) + timedelta(days=1),
+        )
+        service = TenantService(tenant_repository=SimpleNamespace())
+
+        policy = service.get_tenant_access_policy(tenant)
+
+        self.assertTrue(policy.allowed)
+        self.assertEqual(policy.blocking_source, None)
+
+    def test_tenant_service_access_policy_blocks_canceled_after_current_period(self) -> None:
+        tenant = build_tenant_record_stub(
+            status="active",
+            billing_status="canceled",
+            billing_status_reason="subscription canceled by customer",
+            billing_current_period_ends_at=datetime.now(timezone.utc) - timedelta(days=1),
+        )
+        service = TenantService(tenant_repository=SimpleNamespace())
+
+        policy = service.get_tenant_access_policy(tenant)
+
+        self.assertFalse(policy.allowed)
+        self.assertEqual(policy.blocking_source, "billing")
+        self.assertEqual(policy.status_code, 403)
+        self.assertEqual(policy.detail, "subscription canceled by customer")
+
     def test_tenant_service_access_policy_prefers_status_blocking_source(self) -> None:
         tenant = build_tenant_record_stub(
             status="suspended",
