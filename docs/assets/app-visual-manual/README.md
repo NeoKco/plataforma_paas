@@ -11,12 +11,15 @@ Nombres sugeridos:
 - `04-tenant-pending.png`
 - `05a-tenant-active-header.png`
 - `05b-tenant-active-usage.png`
+- `05c-tenant-billing-past-due-summary.png`
+- `05d-tenant-billing-controls-identity.png`
 - `06a-provisioning-jobs-overview.png`
 - `06b-provisioning-metrics-alerts.png`
 - `06c-provisioning-dlq.png`
 - `07a-billing-overview-filters.png`
 - `07b-billing-summary-alerts-workspace.png`
 - `07c-billing-tenant-events-reconcile.png`
+- `07d-billing-reconciled-workspace.png`
 - `08a-platform-settings-overview.png`
 - `08b-platform-settings-capabilities.png`
 - `08c-platform-settings-enums-scope.png`

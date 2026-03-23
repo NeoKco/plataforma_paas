@@ -151,12 +151,12 @@ Esta es la lectura correcta:
 - el tenant entro a deuda
 - como sigue dentro de gracia, la politica de acceso aun lo deja operar
 
-![Tenant con billing aplicado](../assets/app-visual-manual/07b-billing-summary-alerts-workspace.png)
+![Tenant con billing aplicado](../assets/app-visual-manual/05c-tenant-billing-past-due-summary.png)
 
 Nota:
 
-- la captura del manual visual ya muestra el workspace de billing y su lectura general
-- durante esta prueba se validó ademas el mismo estado desde `Tenants`, con `past_due`, razon y fechas ya reflejadas
+- la captura ya muestra el estado real del tenant en `Tenants`
+- ahi se ven `past_due`, razon, fechas y gracia aplicadas por el evento
 
 ## Paso 3. Leer la pantalla `Billing`
 
@@ -171,6 +171,10 @@ Nota:
 ### Eventos tenant y reconcile
 
 ![Billing: eventos tenant y reconcile](../assets/app-visual-manual/07c-billing-tenant-events-reconcile.png)
+
+### Workspace reconciliado
+
+![Billing: workspace reconciliado](../assets/app-visual-manual/07d-billing-reconciled-workspace.png)
 
 Despues del evento, la pantalla debe mostrar:
 
@@ -211,6 +215,10 @@ Resultado esperado:
 - el tenant vuelve a `past_due`
 - reaparecen razon y fechas del evento
 - el resultado del evento cambia a `reconciled`
+
+Despues de reconciliar, tambien se puede revisar en `Tenants`:
+
+![Tenant despues de reconcile](../assets/app-visual-manual/05d-tenant-billing-controls-identity.png)
 
 ## Resultado real observado
 

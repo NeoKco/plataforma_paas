@@ -51,12 +51,15 @@ Con esta convencion:
 - `04-tenant-pending.png`
 - `05a-tenant-active-header.png`
 - `05b-tenant-active-usage.png`
+- `05c-tenant-billing-past-due-summary.png`
+- `05d-tenant-billing-controls-identity.png`
 - `06a-provisioning-jobs-overview.png`
 - `06b-provisioning-metrics-alerts.png`
 - `06c-provisioning-dlq.png`
 - `07a-billing-overview-filters.png`
 - `07b-billing-summary-alerts-workspace.png`
 - `07c-billing-tenant-events-reconcile.png`
+- `07d-billing-reconciled-workspace.png`
 - `08a-platform-settings-overview.png`
 - `08b-platform-settings-capabilities.png`
 - `08c-platform-settings-enums-scope.png`
@@ -81,12 +84,15 @@ Este bloque sirve para ir completando el manual de forma iterativa.
 | `04-tenant-pending.png` | tenant incompleto | pendiente |
 | `05a-tenant-active-header.png` | tenant operativo: contexto | listo |
 | `05b-tenant-active-usage.png` | tenant operativo: uso por modulo | listo |
+| `05c-tenant-billing-past-due-summary.png` | tenant operativo: billing en deuda con gracia | listo |
+| `05d-tenant-billing-controls-identity.png` | tenant operativo: controles billing e identidad | listo |
 | `06a-provisioning-jobs-overview.png` | provisioning: jobs y resumen | listo |
 | `06b-provisioning-metrics-alerts.png` | provisioning: metricas y alertas | listo |
 | `06c-provisioning-dlq.png` | provisioning: DLQ y recuperacion | listo |
 | `07a-billing-overview-filters.png` | billing: resumen y filtros | listo |
 | `07b-billing-summary-alerts-workspace.png` | billing: resumen, alertas y workspace tenant | listo |
 | `07c-billing-tenant-events-reconcile.png` | billing: eventos tenant y reconcile | listo |
+| `07d-billing-reconciled-workspace.png` | billing: workspace reconciliado | listo |
 | `08a-platform-settings-overview.png` | configuracion: sesion y resumen | listo |
 | `08b-platform-settings-capabilities.png` | configuracion: catalogo de capacidades | listo |
 | `08c-platform-settings-enums-scope.png` | configuracion: enumeraciones y alcance | listo |
@@ -108,22 +114,25 @@ Para aprender la app en una secuencia razonable, conviene hacerlo asi:
 4. `04-tenant-pending.png`
 5. `05a-tenant-active-header.png`
 6. `05b-tenant-active-usage.png`
-7. `06a-provisioning-jobs-overview.png`
-8. `06b-provisioning-metrics-alerts.png`
-9. `06c-provisioning-dlq.png`
-10. `07a-billing-overview-filters.png`
-11. `07b-billing-summary-alerts-workspace.png`
-12. `07c-billing-tenant-events-reconcile.png`
-13. `08a-platform-settings-overview.png`
-14. `08b-platform-settings-capabilities.png`
-15. `08c-platform-settings-enums-scope.png`
-16. `09-tenant-portal-login.png`
-17. `10-tenant-portal-overview.png`
-18. `10b-tenant-portal-posture-current-user.png`
-19. `10c-tenant-portal-module-usage.png`
-20. `11a-tenant-users-overview.png`
-21. `11b-tenant-users-form-list.png`
-22. `12a-tenant-finance-overview-form.png`
+7. `05c-tenant-billing-past-due-summary.png`
+8. `05d-tenant-billing-controls-identity.png`
+9. `06a-provisioning-jobs-overview.png`
+10. `06b-provisioning-metrics-alerts.png`
+11. `06c-provisioning-dlq.png`
+12. `07a-billing-overview-filters.png`
+13. `07b-billing-summary-alerts-workspace.png`
+14. `07c-billing-tenant-events-reconcile.png`
+15. `07d-billing-reconciled-workspace.png`
+16. `08a-platform-settings-overview.png`
+17. `08b-platform-settings-capabilities.png`
+18. `08c-platform-settings-enums-scope.png`
+19. `09-tenant-portal-login.png`
+20. `10-tenant-portal-overview.png`
+21. `10b-tenant-portal-posture-current-user.png`
+22. `10c-tenant-portal-module-usage.png`
+23. `11a-tenant-users-overview.png`
+24. `11b-tenant-users-form-list.png`
+25. `12a-tenant-finance-overview-form.png`
 
 Con este set ya queda explicado casi todo el producto visible actual.
 
@@ -202,6 +211,31 @@ La segunda captura confirma que el tenant ya no esta solo “activo” en lifecy
 - el secreto de conexion esta resuelto
 - las migraciones tenant estan aplicadas
 
+#### Billing en deuda con gracia
+
+![Tenant activo: billing past_due con gracia](../assets/app-visual-manual/05c-tenant-billing-past-due-summary.png)
+
+Esta captura agrega un caso importante: un tenant puede seguir `active` y `permitido`, pero quedar en `past_due` si entro a deuda y aun esta dentro de la ventana de gracia.
+
+Aqui conviene mirar:
+
+- `Facturación = past_due`
+- `Billing en gracia = si`
+- fechas de fin de periodo y gracia
+- razon operativa del cambio
+
+#### Controles billing e identidad
+
+![Tenant activo: controles billing e identidad](../assets/app-visual-manual/05d-tenant-billing-controls-identity.png)
+
+Esta vista sirve para entender donde se opera el billing manual desde `Tenants`:
+
+- estado billing
+- razon
+- fechas
+- plan
+- identidad de billing (`provider`, `customer_id`, `subscription_id`)
+
 ### 6. Provisioning
 
 #### Jobs y resumen
@@ -243,6 +277,10 @@ Lectura recomendada:
 
 ![Billing: eventos y reconcile](../assets/app-visual-manual/07c-billing-tenant-events-reconcile.png)
 
+#### Workspace reconciliado
+
+![Billing: workspace reconciliado](../assets/app-visual-manual/07d-billing-reconciled-workspace.png)
+
 `Facturacion` es una consola operativa, no una simple vista contable. Sirve para:
 
 - leer eventos de billing
@@ -250,6 +288,12 @@ Lectura recomendada:
 - mirar historial
 - trabajar un tenant concreto
 - lanzar reconcile individual o por lote
+
+Con la captura `07d` ya puede verse tambien el paso siguiente del flujo:
+
+- un evento ya aplicado
+- luego reconciliado
+- y el workspace actualizado con el resultado `reconciled`
 
 Si quieres ver el flujo completo ya explicado con pasos, estado tenant y reconcile real, revisa:
 
