@@ -315,7 +315,7 @@ Falta para cerrarlo:
 
 ## Etapa 13. Frontend de Plataforma y Tenant
 
-Estado: `Pendiente`
+Estado: `En progreso`
 
 Objetivo:
 
@@ -327,9 +327,22 @@ Frentes principales:
 - panel de plataforma
 - portal tenant
 
+Resultado actual:
+
+- existe instalador visual funcional
+- existe `platform_admin` usable con `Dashboard`, `Tenants`, `Provisioning`, `Billing` y `Settings`
+- existe `tenant_portal` usable con login, resumen, usuarios y finanzas
+- ya existe una capa comun de manejo de errores, sesion, labels y estados vacios para no depender de respuestas crudas de API
+
+Falta para cerrarlo:
+
+- refinamiento final de UX y labels
+- catalogos mas ricos desde backend para reducir codigos internos visibles
+- automatizacion y cobertura final de algunos bordes operativos
+
 ## Etapa 14. Modulos de Negocio Reales
 
-Estado: `Pendiente`
+Estado: `En progreso`
 
 Objetivo:
 
@@ -346,6 +359,16 @@ La razon de este orden es simple:
 - `finance` es pequeno y transversal
 - `condos` agrega casos de negocio mas visibles
 - `iot` sube bastante la complejidad tecnica
+
+Resultado actual:
+
+- `finance` ya no es solo una idea: existe modulo backend funcional, migraciones, enforcement de limites, vistas tenant y visibilidad operativa desde plataforma
+- ya existen pruebas manuales y runbooks guiados sobre `finance`, billing y efectos de limites en el portal tenant
+
+Falta para cerrarlo:
+
+- cerrar mejor casos de negocio de `finance`
+- decidir el siguiente modulo real despues de `finance`
 
 ## Etapa 15. Registro y Activacion de Modulos
 

@@ -1,22 +1,40 @@
 # Roadmap de Frontend
 
-Este documento deja un plan especifico para construir el frontend de `platform_paas` sobre el backend ya cerrado como base.
+Este documento ya no describe solo un plan de construccion. Tambien deja el estado real del frontend despues de las iteraciones ya implementadas sobre `platform_admin`, `tenant_portal` e instalador.
 
 La idea es evitar dos errores comunes:
 
 - empezar el frontend sin un orden claro
 - abrir muchas pantallas antes de estabilizar auth, layout y contratos base
 
+## Estado actual resumido
+
+Hoy el frontend ya es operable de punta a punta para los flujos visibles principales:
+
+- existe instalador visual para primer arranque
+- existe `platform_admin` con login, sesion, dashboard, `Tenants`, `Provisioning`, `Billing` y `Settings`
+- existe `tenant_portal` con login, resumen, usuarios y finanzas
+- ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
+
+Lo que queda pendiente ya no es abrir el frontend desde cero.
+
+Lo pendiente es sobre todo:
+
+- refinamiento de UX
+- labels y catalogos mas ricos desde backend
+- endurecimiento de bordes y automatizacion
+- cierre visual y operativo de algunos detalles
+
 ## Objetivo del frontend en esta etapa
 
-El objetivo inmediato no es construir todo el producto visual de una vez.
+El objetivo actual ya no es construir la base del frontend.
 
-El objetivo es este:
+El objetivo ahora es este:
 
-- dejar una app `platform` usable sin `curl`
-- consumir las capacidades reales del backend
-- validar los contratos ya construidos
-- preparar la base para despues abrir el portal tenant
+- cerrar experiencia operativa y consistencia visual
+- seguir consumiendo backend como fuente de verdad
+- endurecer mensajes, estados y catalogos visibles
+- dejar el frontend listo para crecer sin retrabajo grande
 
 ## Principio rector
 
@@ -30,7 +48,7 @@ Eso implica:
 
 ## Etapa F1. Auth y Shell Base
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -55,10 +73,13 @@ Avance actual:
 - `platform_admin` con login inicial, sesion persistida y logout
 - shell base con `SidebarNav`, `Topbar` y rutas protegidas
 - cliente HTTP simple sobre `fetch`
+- manejo comun de `401` con expulsion correcta por scope
+- expiracion por inactividad y warning previo de sesion
+- persistencia de sesion en `sessionStorage`
 
 ## Etapa F2. Catalogo de Capacidades
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -84,10 +105,11 @@ Avance actual:
 - dashboard inicial leyendo `GET /platform/capabilities`
 - tabla base de `module_limit_capabilities`
 - metric cards simples basadas en el catalogo expuesto por backend
+- `Billing`, `Tenants` y `tenant_portal` ya consumen labels y capacidades sin depender de tanto hardcodeo visual
 
 ## Etapa F3. Tenants List y Detalle
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -115,6 +137,7 @@ Avance actual:
 - listado base de tenants ya montado en `platform_admin`
 - seleccion de tenant y panel de detalle inicial
 - lectura de `access-policy` y `module-usage` desde backend
+- lectura operativa de billing, mantenimiento, politica de acceso y uso por modulo ya integrada
 
 ## Etapa F4. Acciones Administrativas de Tenant
 
@@ -158,6 +181,11 @@ Pendientes finos conocidos:
 - exponer desde backend catalogos mas ricos para planes y estados, de forma que la UI no dependa de codigos internos
 - seguir puliendo mensajes de exito y CTA segun contexto, aunque ya existe una primera capa comun menos cercana a respuesta cruda de API
 
+Lectura practica:
+
+- la operacion central del tenant ya esta implementada
+- esta etapa sigue abierta solo por refinamiento de UX, labels y catalogos
+
 Avance reciente de lenguaje y labels:
 
 - `Tenants` ya traduce estados internos frecuentes como `past_due`, `retry_pending`, `canceled` o `trialing`
@@ -193,6 +221,11 @@ Avance actual:
 - `Provisioning` ya pide confirmacion previa antes del reencolado batch de DLQ
 - `Provisioning` ya traduce mejor `job_type`, `alert_code` y `error_code` sin perder el codigo tecnico
 
+Lectura practica:
+
+- la pantalla ya es funcional
+- lo pendiente es enriquecer la comprension operativa y cerrar mejor algunos casos de recuperacion
+
 ## Etapa F6. Billing Operativo
 
 Estado: `En progreso`
@@ -217,6 +250,11 @@ Avance actual:
 - `Billing` ya permite reconciliacion individual por evento persistido
 - `Billing` ya permite reconciliacion batch sobre el filtro activo del tenant
 - `Billing` ya traduce mejor estados de facturacion y resultados de procesamiento para lectura operativa
+
+Lectura practica:
+
+- la operacion de billing ya esta visible y usable
+- sigue abierta por refinamiento de estados de negocio, textos y mas casos de borde
 
 ## Etapa F7. Dashboard Platform
 
@@ -245,6 +283,11 @@ Pendiente fino conocido:
 
 - la lectura visible de `API base URL` en `Settings` debe alinearse mejor con el host efectivo cuando el frontend se consume desde otra IP del mismo host local
 
+Lectura practica:
+
+- dashboard y settings ya existen y sirven
+- esta etapa sigue abierta por cierre visual y consistencia final
+
 ## Etapa F8. Portal Tenant
 
 Estado: `En progreso`
@@ -269,6 +312,13 @@ Avance actual:
 - la primera pantalla ya consume `GET /tenant/module-usage`
 - `Users` ya tiene listado, alta basica y cambio de estado
 - `Finance` ya tiene resumen, uso efectivo, listado y alta basica de movimientos
+- el portal ya refleja enforcement real de billing y limites por modulo
+- el portal ya traduce mejor roles, fuentes y estados visibles
+
+Lectura practica:
+
+- el portal tenant ya es funcional para los flujos base
+- sigue abierto por refinamiento de UX, onboarding y mensajes
 
 ## Que frontend NO conviene abrir aun
 
@@ -293,6 +343,11 @@ El frontend base de plataforma puede considerarse cerrado cuando:
 - provisioning y billing tienen vistas operativas minimas
 - el cliente consume capacidades backend sin hardcodear politicas principales
 
+Estado real frente a este criterio:
+
+- ese frontend base ya puede considerarse conseguido
+- lo que sigue es cierre de producto, no apertura de base
+
 ## Orden recomendado
 
 1. Auth y shell base
@@ -306,14 +361,15 @@ El frontend base de plataforma puede considerarse cerrado cuando:
 
 ## Resumen ejecutivo
 
-El frontend deberia empezar por `platform`, no por el portal tenant.
+El frontend ya dejo de ser una iniciativa temprana.
 
-La razon es simple:
+Hoy la lectura correcta es esta:
 
-- hoy el backend ya esta mas maduro en esa mitad
-- `platform` valida primero la operacion real
-- despues el portal tenant puede construirse sobre una base mejor probada
+- `platform_admin`, instalador y `tenant_portal` ya existen
+- los flujos principales ya son usables
+- el roadmap sigue abierto sobre todo por refinamiento, labels, catalogos y endurecimiento de bordes
 
 ## Pendientes de UX
 
 - refinar todavia mas el login de `tenant_portal` para hacerlo menos tecnico y mas evidente para usuario final, manteniendo el acceso rapido desde `Tenants` para superadmin
+- seguir cerrando dashboard y settings para que se lean con el mismo nivel de claridad que `Tenants`, `Billing` y `tenant_portal`
