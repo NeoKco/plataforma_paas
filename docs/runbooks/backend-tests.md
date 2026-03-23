@@ -370,6 +370,7 @@ Cobertura actual:
 - ping a DB control
 - create tenant
 - provisioning jobs
+- politica de acceso tenant por `billing`, incluyendo `past_due` con y sin gracia, y `canceled` dentro o fuera del periodo vigente
 
 Ejecucion:
 
@@ -496,3 +497,13 @@ Despues de estas suites, lo ideal es agregar:
 - pruebas HTTP de integracion mas profundas sobre endpoints clave
 - incorporar estas suites PostgreSQL al flujo normal de CI o pre-release
 - mas smoke tests sobre flujos autenticados completos
+
+## Bordes recientes ya congelados
+
+Estos casos ya quedaron cubiertos y no deberian volver a depender solo de prueba manual:
+
+- mantenimiento con datetimes `naive` y `aware`
+- rotacion de password para roles PostgreSQL tenant ya existentes durante retries de provisioning
+- bloqueo por `core.users.admin` al crear, cambiar rol o reactivar admins fuera de cupo
+- bloqueo por `core.users.active` al reactivar usuarios fuera de cupo
+- acceso tenant permitido o bloqueado por `billing` en estados `past_due` y `canceled`

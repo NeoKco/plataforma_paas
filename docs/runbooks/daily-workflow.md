@@ -100,6 +100,15 @@ cd /home/felipe/platform_paas/backend
 python app/scripts/run_backend_tests.py --skip-http-smoke
 ```
 
+Si el cambio cae sobre billing, provisioning o enforcement tenant, conviene correr al menos la suite puntual:
+
+```bash
+cd /home/felipe/platform_paas/backend
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest \
+  app.tests.test_platform_flow \
+  app.tests.test_tenant_flow
+```
+
 ### Cambio que afecta ambos lados
 
 Mínimo:
@@ -107,6 +116,10 @@ Mínimo:
 1. `npm run build`
 2. `python -m compileall app`
 3. prueba funcional corta del flujo afectado
+
+Si el cambio además toca reglas visibles de negocio:
+
+4. correr `app.tests.test_platform_flow` y/o `app.tests.test_tenant_flow` segun corresponda
 
 ## 6. Cuándo hacer prueba manual
 
