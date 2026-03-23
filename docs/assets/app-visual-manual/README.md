@@ -16,6 +16,7 @@ Nombres sugeridos:
 - `05e-tenant-billing-controls-identity-detail.png`
 - `05f-tenant-module-limits-finance-override.png`
 - `05g-tenant-module-limits-users-admin-override.png`
+- `05h-tenant-billing-blocked-no-grace.png`
 - `06a-provisioning-jobs-overview.png`
 - `06b-provisioning-metrics-alerts.png`
 - `06c-provisioning-dlq.png`
@@ -27,6 +28,7 @@ Nombres sugeridos:
 - `08b-platform-settings-capabilities.png`
 - `08c-platform-settings-enums-scope.png`
 - `09-tenant-portal-login.png`
+- `09b-tenant-portal-login-billing-blocked.png`
 - `10-tenant-portal-overview.png`
 - `10b-tenant-portal-posture-current-user.png`
 - `10c-tenant-portal-module-usage.png`
@@ -56,6 +58,7 @@ Nombres de pruebas guiadas recientes:
 - `12b-tenant-finance-entry-created.png`: movimiento financiero ya creado con KPIs actualizados
 - `05f-tenant-module-limits-finance-override.png`: ajuste central del limite `finance.entries`
 - `05g-tenant-module-limits-users-admin-override.png`: ajuste central del limite `core.users.admin`
+- `05h-tenant-billing-blocked-no-grace.png`: tenant bloqueado por `billing` al quedar `past_due` sin gracia
 - `12c-tenant-finance-usage-before-limit-override.png`: lectura normal de uso antes del override
 - `12d-tenant-finance-at-limit-override.png`: modulo `finance.entries` en `al_límite` despues del override
 - `12e-tenant-finance-limit-blocked-message.png`: intento bloqueado cuando el modulo ya esta al limite
@@ -65,5 +68,6 @@ Nombres de pruebas guiadas recientes:
 - `11e-tenant-users-admin-reactivation-attempt.png`: estado previo a reactivar un admin cuando ya existe uno activo
 - `11f-tenant-users-admin-reactivation-blocked.png`: reactivacion bloqueada con mensaje claro de limite admin
 - `11g-tenant-users-active-limit-blocked.png`: intento bloqueado al activar otro usuario cuando ya no quedan cupos activos
+- `09b-tenant-portal-login-billing-blocked.png`: login tenant rechazado por `billing` sin gracia vigente
 
 Este directorio existe para que el manual visual tenga una ubicacion estable y no queden imagenes sueltas por el repositorio.

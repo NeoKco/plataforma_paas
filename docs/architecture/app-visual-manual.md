@@ -56,6 +56,7 @@ Con esta convencion:
 - `05e-tenant-billing-controls-identity-detail.png`
 - `05f-tenant-module-limits-finance-override.png`
 - `05g-tenant-module-limits-users-admin-override.png`
+- `05h-tenant-billing-blocked-no-grace.png`
 - `06a-provisioning-jobs-overview.png`
 - `06b-provisioning-metrics-alerts.png`
 - `06c-provisioning-dlq.png`
@@ -67,6 +68,7 @@ Con esta convencion:
 - `08b-platform-settings-capabilities.png`
 - `08c-platform-settings-enums-scope.png`
 - `09-tenant-portal-login.png`
+- `09b-tenant-portal-login-billing-blocked.png`
 - `10-tenant-portal-overview.png`
 - `10b-tenant-portal-posture-current-user.png`
 - `10c-tenant-portal-module-usage.png`
@@ -105,6 +107,7 @@ Este bloque sirve para ir completando el manual de forma iterativa.
 | `05e-tenant-billing-controls-identity-detail.png` | tenant operativo: detalle de billing e identidad | listo |
 | `05f-tenant-module-limits-finance-override.png` | tenant operativo: override de limite financiero | listo |
 | `05g-tenant-module-limits-users-admin-override.png` | tenant operativo: override de limite admin | listo |
+| `05h-tenant-billing-blocked-no-grace.png` | tenant operativo: billing vencido sin gracia y acceso bloqueado | listo |
 | `06a-provisioning-jobs-overview.png` | provisioning: jobs y resumen | listo |
 | `06b-provisioning-metrics-alerts.png` | provisioning: metricas y alertas | listo |
 | `06c-provisioning-dlq.png` | provisioning: DLQ y recuperacion | listo |
@@ -116,6 +119,7 @@ Este bloque sirve para ir completando el manual de forma iterativa.
 | `08b-platform-settings-capabilities.png` | configuracion: catalogo de capacidades | listo |
 | `08c-platform-settings-enums-scope.png` | configuracion: enumeraciones y alcance | listo |
 | `09-tenant-portal-login.png` | login tenant | listo |
+| `09b-tenant-portal-login-billing-blocked.png` | login tenant bloqueado por billing sin gracia | listo |
 | `10-tenant-portal-overview.png` | overview tenant | listo |
 | `10b-tenant-portal-posture-current-user.png` | overview tenant: postura y usuario actual | listo |
 | `10c-tenant-portal-module-usage.png` | overview tenant: uso por modulo | listo |
@@ -151,33 +155,35 @@ Para aprender la app en una secuencia razonable, conviene hacerlo asi:
 9. `05e-tenant-billing-controls-identity-detail.png`
 10. `05f-tenant-module-limits-finance-override.png`
 11. `05g-tenant-module-limits-users-admin-override.png`
-12. `06a-provisioning-jobs-overview.png`
-13. `06b-provisioning-metrics-alerts.png`
-14. `06c-provisioning-dlq.png`
-15. `07a-billing-overview-filters.png`
-16. `07b-billing-summary-alerts-workspace.png`
-17. `07c-billing-tenant-events-reconcile.png`
-18. `07d-billing-reconciled-workspace.png`
-19. `08a-platform-settings-overview.png`
-20. `08b-platform-settings-capabilities.png`
-21. `08c-platform-settings-enums-scope.png`
-22. `09-tenant-portal-login.png`
-23. `10-tenant-portal-overview.png`
-24. `10b-tenant-portal-posture-current-user.png`
-25. `10c-tenant-portal-module-usage.png`
-26. `10d-tenant-portal-overview-billing-posture.png`
-27. `10e-tenant-portal-module-usage-live.png`
-28. `10f-tenant-portal-module-usage-multi-limit.png`
-29. `10g-tenant-portal-module-usage-active-users-limit.png`
-30. `11a-tenant-users-overview.png`
-31. `11b-tenant-users-form-list.png`
-32. `11c-tenant-users-created-success.png`
-33. `11d-tenant-users-admin-limit-blocked.png`
-34. `11e-tenant-users-admin-reactivation-attempt.png`
-35. `11f-tenant-users-admin-reactivation-blocked.png`
-36. `11g-tenant-users-active-limit-blocked.png`
-37. `12a-tenant-finance-overview-form.png`
-38. `12b-tenant-finance-entry-created.png`
+12. `05h-tenant-billing-blocked-no-grace.png`
+13. `06a-provisioning-jobs-overview.png`
+14. `06b-provisioning-metrics-alerts.png`
+15. `06c-provisioning-dlq.png`
+16. `07a-billing-overview-filters.png`
+17. `07b-billing-summary-alerts-workspace.png`
+18. `07c-billing-tenant-events-reconcile.png`
+19. `07d-billing-reconciled-workspace.png`
+20. `08a-platform-settings-overview.png`
+21. `08b-platform-settings-capabilities.png`
+22. `08c-platform-settings-enums-scope.png`
+23. `09-tenant-portal-login.png`
+24. `09b-tenant-portal-login-billing-blocked.png`
+25. `10-tenant-portal-overview.png`
+26. `10b-tenant-portal-posture-current-user.png`
+27. `10c-tenant-portal-module-usage.png`
+28. `10d-tenant-portal-overview-billing-posture.png`
+29. `10e-tenant-portal-module-usage-live.png`
+30. `10f-tenant-portal-module-usage-multi-limit.png`
+31. `10g-tenant-portal-module-usage-active-users-limit.png`
+32. `11a-tenant-users-overview.png`
+33. `11b-tenant-users-form-list.png`
+34. `11c-tenant-users-created-success.png`
+35. `11d-tenant-users-admin-limit-blocked.png`
+36. `11e-tenant-users-admin-reactivation-attempt.png`
+37. `11f-tenant-users-admin-reactivation-blocked.png`
+38. `11g-tenant-users-active-limit-blocked.png`
+39. `12a-tenant-finance-overview-form.png`
+40. `12b-tenant-finance-entry-created.png`
 39. `12c-tenant-finance-usage-before-limit-override.png`
 40. `12d-tenant-finance-at-limit-override.png`
 41. `12e-tenant-finance-limit-blocked-message.png`
@@ -309,6 +315,20 @@ Esta variante muestra el mismo patron aplicado a `core.users.admin`:
 - el ajuste queda visible en `Tenants`
 - luego ese override se refleja en el `tenant_portal` y en el bloqueo real
 
+#### Billing vencido sin gracia
+
+![Tenant activo: billing bloqueado sin gracia](../assets/app-visual-manual/05h-tenant-billing-blocked-no-grace.png)
+
+Esta captura muestra un borde operativo importante:
+
+- el tenant sigue con `lifecycle = active`
+- pero `billing = past_due`
+- la gracia ya expiro
+- la politica de acceso pasa a `bloqueado`
+- la fuente de bloqueo se vuelve `billing`
+
+Esto deja claro que un tenant puede estar sano tecnicamente y aun asi quedar bloqueado por politica comercial.
+
 ### 6. Provisioning
 
 #### Jobs y resumen
@@ -403,6 +423,16 @@ El login tenant ya es util, aunque su UX todavia tiene refinamientos pendientes.
 - el acceso de `Platform Admin`
 
 Tambien expone una ayuda contextual ligera para los campos menos obvios.
+
+#### Login bloqueado por billing
+
+![Login tenant bloqueado por billing](../assets/app-visual-manual/09b-tenant-portal-login-billing-blocked.png)
+
+Cuando el tenant queda `past_due` y ya no tiene gracia vigente:
+
+- el login deja de permitir acceso
+- el mensaje visible refleja el motivo de `billing`
+- el bloqueo ya no es solo teorico en `Tenants`; impacta el acceso real del tenant
 
 ### 10. Overview del tenant
 

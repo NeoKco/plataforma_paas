@@ -233,11 +233,52 @@ Eso valida que `Billing` no solo lee eventos:
 
 - tambien puede reimponer el estado persistido de un tenant
 
+## Paso 6. Forzar `past_due` sin gracia
+
+Despues del flujo anterior, se hizo una segunda prueba manual desde `Tenants`:
+
+- `billing_status = past_due`
+- `billing_grace_until` con fecha ya vencida
+- `billing_reason = Pago rechazado en prueba guiada`
+
+Resultado esperado:
+
+- el tenant sigue con `lifecycle = active`
+- pero la politica de acceso pasa a `bloqueado`
+- la fuente de bloqueo cambia a `billing`
+- `billing_in_grace` deja de aplicar
+
+Resultado real observado:
+
+![Tenant bloqueado por billing sin gracia](../assets/app-visual-manual/05h-tenant-billing-blocked-no-grace.png)
+
+Que se valida aqui:
+
+- `past_due` no siempre significa acceso permitido
+- cuando ya no hay gracia vigente, `Tenants` muestra el bloqueo correctamente
+- el bloqueo comercial se expresa aunque el tenant siga tecnicamente provisionado y en `active`
+
+## Paso 7. Ver el rechazo en `tenant_portal`
+
+Con el tenant ya fuera de gracia, se intento entrar otra vez al `tenant_portal`.
+
+Resultado real observado:
+
+![Login tenant bloqueado por billing](../assets/app-visual-manual/09b-tenant-portal-login-billing-blocked.png)
+
+Que se valida:
+
+- el bloqueo por billing no se queda solo en la consola `Tenants`
+- tambien impacta el acceso real del usuario tenant
+- el mensaje visible en login refleja el `billing_reason` aplicado al tenant
+
 ## Qué aprendimos de esta prueba
 
 - `Billing` trabaja sobre eventos sync persistidos
 - `past_due` no significa automaticamente bloqueo
 - si existe `gracia`, el tenant puede seguir `permitido`
+- cuando la gracia expira, el acceso pasa a `bloqueado` con fuente `billing`
+- ese bloqueo tambien se refleja en el login real del `tenant_portal`
 - `applied` significa primer impacto del evento
 - `reconciled` significa re-aplicacion de un evento ya guardado
 - el workspace por tenant sirve para leer el estado actual y compararlo con su stream de eventos
