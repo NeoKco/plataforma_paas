@@ -1,5 +1,6 @@
 import { Navigate, createBrowserRouter, RouterProvider } from "react-router-dom";
 import { LoginPage } from "../pages/auth/LoginPage";
+import { PlatformRootRecoveryPage } from "../pages/auth/PlatformRootRecoveryPage";
 import { DashboardPage } from "../pages/dashboard/DashboardPage";
 import { PlatformActivityPage } from "../pages/activity/PlatformActivityPage";
 import { TenantsPage } from "../pages/tenants/TenantsPage";
@@ -36,6 +37,14 @@ const router = createBrowserRouter([
     element: (
       <RequireInstalled>
         <LoginPage />
+      </RequireInstalled>
+    ),
+  },
+  {
+    path: "/login/root-recovery",
+    element: (
+      <RequireInstalled>
+        <PlatformRootRecoveryPage />
       </RequireInstalled>
     ),
   },

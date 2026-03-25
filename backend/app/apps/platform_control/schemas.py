@@ -20,6 +20,28 @@ class LoginResponse(BaseModel):
     role: str | None = None
 
 
+class PlatformRootRecoveryStatusResponse(BaseModel):
+    success: bool
+    message: str
+    recovery_configured: bool
+    has_active_superadmin: bool
+    recovery_available: bool
+
+
+class PlatformRootRecoveryRequest(BaseModel):
+    recovery_key: str
+    full_name: str
+    email: str
+    password: str
+
+
+class PlatformRootRecoveryResponse(BaseModel):
+    success: bool
+    message: str
+    full_name: str
+    email: str
+
+
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
 

@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     CONTROL_DB_POOL_RECYCLE_SECONDS: int = 1800
 
     POSTGRES_ADMIN_PASSWORD: str = ""
+    PLATFORM_ROOT_RECOVERY_KEY_HASH: str = ""
 
     JWT_SECRET_KEY: str = "change_this_secret_in_production"
     JWT_ALGORITHM: str = "HS256"

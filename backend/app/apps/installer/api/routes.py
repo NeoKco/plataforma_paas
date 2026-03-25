@@ -28,10 +28,12 @@ def run_installation(payload: InstallRequest) -> InstallResponse:
 
     try:
         service = InstallerService()
-        service.run_installation(payload)
+        result = service.run_installation(payload)
         return InstallResponse(
             success=True,
             message="Platform installed successfully",
+            initial_superadmin_email=result["initial_superadmin_email"],
+            recovery_key=result["recovery_key"],
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc

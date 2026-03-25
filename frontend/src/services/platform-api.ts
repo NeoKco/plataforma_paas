@@ -2,6 +2,9 @@ import type {
   PlatformCapabilities,
   PlatformLoginResponse,
   PlatformAuthAuditEventListResponse,
+  PlatformRootRecoveryRequest,
+  PlatformRootRecoveryResponse,
+  PlatformRootRecoveryStatusResponse,
   PlatformTenant,
   PlatformTenantAccessPolicy,
   PlatformTenantBillingResponse,
@@ -50,6 +53,19 @@ export function refreshPlatformSession(refreshToken: string) {
   return apiRequest<PlatformLoginResponse>("/platform/auth/refresh", {
     method: "POST",
     body: { refresh_token: refreshToken },
+  });
+}
+
+export function getPlatformRootRecoveryStatus() {
+  return apiRequest<PlatformRootRecoveryStatusResponse>(
+    "/platform/auth/root-recovery/status"
+  );
+}
+
+export function recoverPlatformRootAccount(payload: PlatformRootRecoveryRequest) {
+  return apiRequest<PlatformRootRecoveryResponse>("/platform/auth/root-recovery", {
+    method: "POST",
+    body: payload,
   });
 }
 

@@ -5,7 +5,11 @@ import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { runInstallerSetup } from "../../../../services/install-api";
 import { useInstall } from "../../../../store/install-context";
-import type { ApiError, InstallSetupRequest } from "../../../../types";
+import type {
+  ApiError,
+  InstallSetupRequest,
+  InstallSetupResponse,
+} from "../../../../types";
 
 const DEFAULT_FORM: InstallSetupRequest = {
   admin_db_host: "127.0.0.1",
@@ -18,6 +22,9 @@ const DEFAULT_FORM: InstallSetupRequest = {
   control_db_password: "",
   app_name: "Platform Backend",
   app_version: "0.1.0",
+  initial_superadmin_full_name: "",
+  initial_superadmin_email: "",
+  initial_superadmin_password: "",
 };
 
 export function InstallPage() {
@@ -28,6 +35,7 @@ export function InstallPage() {
   const [submitError, setSubmitError] = useState<ApiError | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const [completedSetup, setCompletedSetup] = useState<InstallSetupResponse | null>(null);
 
   const helperCards = useMemo(
     () => [
@@ -58,6 +66,15 @@ export function InstallPage() {
     }
     if (!form.control_db_password.trim()) {
       missing.push("contraseña propietaria de la base de control");
+    }
+    if (!form.initial_superadmin_full_name.trim()) {
+      missing.push("nombre del superadministrador inicial");
+    }
+    if (!form.initial_superadmin_email.trim()) {
+      missing.push("correo del superadministrador inicial");
+    }
+    if (!form.initial_superadmin_password.trim()) {
+      missing.push("contraseña del superadministrador inicial");
     }
 
     return missing;
@@ -103,11 +120,13 @@ export function InstallPage() {
     setIsSubmitting(true);
     setSubmitError(null);
     setSubmitMessage(null);
+    setCompletedSetup(null);
 
     try {
       const response = await runInstallerSetup(form);
       setIsCompleted(true);
       setSubmitMessage(response.message);
+      setCompletedSetup(response);
       await reload();
     } catch (rawError) {
       setSubmitError(rawError as ApiError);
@@ -289,6 +308,47 @@ export function InstallPage() {
                 </div>
               </section>
 
+              <section className="install-card__section">
+                <div className="install-card__section-title">Cuenta raíz de plataforma</div>
+                <p className="install-card__section-copy">
+                  Esta será la única cuenta `superadmin` inicial. No depende de seeds ni de credenciales por defecto.
+                </p>
+                <div className="tenant-inline-form-grid">
+                  <Field
+                    label="Nombre completo"
+                    helpText="Identidad visible del superadministrador inicial."
+                    placeholder="Administrador raíz"
+                    required
+                    value={form.initial_superadmin_full_name}
+                    onChange={(value) =>
+                      updateField("initial_superadmin_full_name", value)
+                    }
+                  />
+                  <Field
+                    label="Correo raíz"
+                    helpText="Será el correo de acceso al login de plataforma."
+                    placeholder="admin@tu-plataforma.local"
+                    required
+                    value={form.initial_superadmin_email}
+                    onChange={(value) =>
+                      updateField("initial_superadmin_email", value)
+                    }
+                  />
+                </div>
+                <Field
+                  label="Contraseña inicial"
+                  helpText="Define aquí la contraseña real del superadministrador inicial."
+                  placeholder="Contraseña inicial del superadministrador"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={form.initial_superadmin_password}
+                  onChange={(value) =>
+                    updateField("initial_superadmin_password", value)
+                  }
+                />
+              </section>
+
               {requiredMissing.length ? (
                 <div className="install-card__validation">
                   <strong>Faltan datos obligatorios:</strong> {requiredMissing.join(", ")}.
@@ -311,9 +371,28 @@ export function InstallPage() {
               <ul className="install-card__support-list">
                 <li>si el backend ya estaba levantado, reinícialo una vez</li>
                 <li>abre el login de `Platform Admin`</li>
-                <li>crea o verifica el superadmin y luego empieza con tenants</li>
+                <li>entra con el correo raíz que definiste en esta instalación</li>
               </ul>
             </div>
+            {completedSetup?.initial_superadmin_email ? (
+              <div className="install-card__support-box">
+                <div className="install-card__support-title">Credenciales raíz iniciales</div>
+                <ul className="install-card__support-list">
+                  <li>correo: {completedSetup.initial_superadmin_email}</li>
+                  <li>contraseña: la definida en esta instalación</li>
+                </ul>
+              </div>
+            ) : null}
+            {completedSetup?.recovery_key ? (
+              <div className="install-card__support-box">
+                <div className="install-card__support-title">Clave de recuperación</div>
+                <ul className="install-card__support-list">
+                  <li>guárdala fuera de la plataforma</li>
+                  <li>solo sirve si alguna vez no queda ningún `superadmin` activo</li>
+                  <li>valor emitido ahora: {completedSetup.recovery_key}</li>
+                </ul>
+              </div>
+            ) : null}
             <div className="install-card__success-note">
               Si el backend fue levantado antes de instalar, puede requerir reinicio para
               exponer las rutas normales de plataforma.

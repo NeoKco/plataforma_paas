@@ -9,8 +9,8 @@ export function LoginPage() {
   const { isAuthenticated, login } = useAuth();
   const { language } = useLanguage();
   const location = useLocation();
-  const [email, setEmail] = useState("admin@platform.local");
-  const [password, setPassword] = useState("AdminTemporal123!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,14 +50,21 @@ export function LoginPage() {
             : "Sign in to operate tenants, provisioning and billing flows."}
         </p>
         <div className="login-card__portal-switch">
-          <span>
-            {language === "es"
-              ? "¿Necesitas entrar al espacio tenant?"
-              : "Need the tenant workspace instead?"}
-          </span>
-          <Link className="btn btn-outline-secondary btn-sm" to="/tenant-portal/login">
-            {language === "es" ? "Abrir Portal Tenant" : "Open Tenant Portal"}
-          </Link>
+          <div className="d-grid gap-2">
+            <span>
+              {language === "es"
+                ? "¿Necesitas entrar al espacio tenant?"
+                : "Need the tenant workspace instead?"}
+            </span>
+            <div className="d-flex flex-wrap gap-2">
+              <Link className="btn btn-outline-secondary btn-sm" to="/tenant-portal/login">
+                {language === "es" ? "Abrir Portal Tenant" : "Open Tenant Portal"}
+              </Link>
+              <Link className="btn btn-outline-secondary btn-sm" to="/login/root-recovery">
+                {language === "es" ? "Recuperar cuenta raíz" : "Recover root account"}
+              </Link>
+            </div>
+          </div>
         </div>
         {location.state && typeof location.state === "object" && "message" in location.state ? (
           <div className="alert alert-warning">{String(location.state.message)}</div>

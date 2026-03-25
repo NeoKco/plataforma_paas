@@ -5,10 +5,16 @@ from app.apps.platform_control.schemas import (
     LoginRequest,
     LoginResponse,
     LogoutResponse,
+    PlatformRootRecoveryRequest,
+    PlatformRootRecoveryResponse,
+    PlatformRootRecoveryStatusResponse,
     RefreshTokenRequest,
 )
 from app.apps.platform_control.services.auth_audit_service import AuthAuditService
 from app.apps.platform_control.services.auth_service import PlatformAuthService
+from app.apps.platform_control.services.platform_root_account_service import (
+    PlatformRootAccountService,
+)
 from app.common.auth.auth_token_service import AuthTokenService
 from app.common.auth.dependencies import get_current_token_payload
 from app.common.config.settings import settings
@@ -18,6 +24,7 @@ router = APIRouter(prefix="/platform/auth", tags=["platform-auth"])
 platform_auth_service = PlatformAuthService()
 auth_token_service = AuthTokenService()
 auth_audit_service = AuthAuditService()
+platform_root_account_service = PlatformRootAccountService()
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -75,6 +82,63 @@ def login(
         full_name=user.full_name,
         email=user.email,
         role=user.role,
+    )
+
+
+@router.get("/root-recovery/status", response_model=PlatformRootRecoveryStatusResponse)
+def get_platform_root_recovery_status(
+    db: Session = Depends(get_control_db),
+) -> PlatformRootRecoveryStatusResponse:
+    status = platform_root_account_service.get_recovery_status(
+        db,
+        recovery_key_hash=settings.PLATFORM_ROOT_RECOVERY_KEY_HASH,
+    )
+    return PlatformRootRecoveryStatusResponse(
+        success=True,
+        message="Estado de recuperacion raiz recuperado correctamente",
+        **status,
+    )
+
+
+@router.post("/root-recovery", response_model=PlatformRootRecoveryResponse)
+def recover_platform_root_account(
+    payload: PlatformRootRecoveryRequest,
+    db: Session = Depends(get_control_db),
+) -> PlatformRootRecoveryResponse:
+    try:
+        user = platform_root_account_service.recover_root_account(
+            db,
+            recovery_key_hash=settings.PLATFORM_ROOT_RECOVERY_KEY_HASH,
+            recovery_key=payload.recovery_key,
+            full_name=payload.full_name,
+            email=payload.email,
+            password=payload.password,
+        )
+    except ValueError as exc:
+        auth_audit_service.log_event(
+            db,
+            event_type="platform.root_recovery",
+            subject_scope="platform",
+            outcome="failed",
+            email=payload.email,
+            detail=str(exc),
+        )
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.root_recovery",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=user.id,
+        email=user.email,
+        detail="Platform root account recovered successfully",
+    )
+    return PlatformRootRecoveryResponse(
+        success=True,
+        message="La cuenta raiz de plataforma fue recuperada correctamente.",
+        full_name=user.full_name,
+        email=user.email,
     )
 
 

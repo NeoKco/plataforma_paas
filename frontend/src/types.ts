@@ -60,11 +60,38 @@ export type InstallSetupRequest = {
   control_db_password: string;
   app_name: string;
   app_version: string;
+  initial_superadmin_full_name: string;
+  initial_superadmin_email: string;
+  initial_superadmin_password: string;
 };
 
 export type InstallSetupResponse = {
   success: boolean;
   message: string;
+  initial_superadmin_email?: string | null;
+  recovery_key?: string | null;
+};
+
+export type PlatformRootRecoveryStatusResponse = {
+  success: boolean;
+  message: string;
+  recovery_configured: boolean;
+  has_active_superadmin: boolean;
+  recovery_available: boolean;
+};
+
+export type PlatformRootRecoveryRequest = {
+  recovery_key: string;
+  full_name: string;
+  email: string;
+  password: string;
+};
+
+export type PlatformRootRecoveryResponse = {
+  success: boolean;
+  message: string;
+  full_name: string;
+  email: string;
 };
 
 export type PlatformModuleLimitCapability = {

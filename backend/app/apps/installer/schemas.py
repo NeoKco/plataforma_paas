@@ -15,7 +15,13 @@ class InstallRequest(BaseModel):
     app_name: str = Field(default="Platform Backend")
     app_version: str = Field(default="0.1.0")
 
+    initial_superadmin_full_name: str
+    initial_superadmin_email: str
+    initial_superadmin_password: str
+
 
 class InstallResponse(BaseModel):
     success: bool
     message: str
+    initial_superadmin_email: str | None = None
+    recovery_key: str | None = None
