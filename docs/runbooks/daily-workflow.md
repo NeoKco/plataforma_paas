@@ -40,6 +40,8 @@ npm run dev -- --host 0.0.0.0 --port 4173
 Si `installed=false`, el flujo correcto es:
 
 - completar `/install`
+- definir la cuenta raiz inicial
+- guardar la clave de recuperacion
 - volver a `Platform Admin`
 
 ## 3. Baseline de demo recomendado

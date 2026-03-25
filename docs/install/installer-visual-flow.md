@@ -13,10 +13,12 @@ Backend ya soporta:
 - bloqueo de rutas normales mientras la plataforma no este instalada
 - `GET /health` con campo `installed`
 
-Frontend todavia no soporta:
+Frontend ya soporta:
 
 - pantalla visual de instalacion
 - redireccion automatica a instalador cuando `installed=false`
+- definicion de cuenta raiz inicial
+- emision visual de clave de recuperacion al completar la instalacion
 
 ## Que decide si la plataforma esta instalada
 
@@ -108,6 +110,12 @@ Campos que hoy soporta `POST /install/setup`:
 - `app_name`
 - `app_version`
 
+#### Cuenta raiz de plataforma
+
+- `initial_superadmin_full_name`
+- `initial_superadmin_email`
+- `initial_superadmin_password`
+
 ## Propuesta de agrupacion visual
 
 ### Bloque 1. Servidor PostgreSQL
@@ -146,6 +154,20 @@ Campos:
 Texto de ayuda:
 
 - inicialmente puede venir precargado con defaults
+
+### Bloque 4. Cuenta raiz de plataforma
+
+Campos:
+
+- nombre completo
+- correo raiz
+- contraseña inicial
+
+Texto de ayuda:
+
+- esta cuenta sera el unico `superadmin` inicial
+- no depende de seeds ni de credenciales por defecto
+- al completar la instalacion se emite una clave de recuperacion de una sola vez
 
 ## Estado actual implementado
 
@@ -196,6 +218,8 @@ Si `POST /install/setup` responde éxito:
 
 - mostrar mensaje claro de instalacion completada
 - explicar que la plataforma ya puede usarse
+- mostrar el correo raiz inicial
+- mostrar la clave de recuperacion emitida una sola vez
 - ofrecer boton `Ir al login`
 
 La redireccion ideal es:
@@ -236,6 +260,8 @@ Mientras se decide si `installed` es `true` o `false`:
 ### Instalacion exitosa
 
 - panel de confirmacion
+- credencial raiz visible
+- clave de recuperacion visible una sola vez
 - CTA al login
 
 ### Instalacion fallida
@@ -253,6 +279,22 @@ Mientras `installed=false`:
 Cuando `installed=true`:
 
 - `/install` deberia redirigir a `/login`
+
+## Politica actual de cuenta raiz
+
+La instalacion ya no depende de:
+
+- `admin@platform.local`
+- `AdminTemporal123!`
+- `seed_platform_control.py`
+
+Esas referencias quedan solo para entornos demo o baseline de desarrollo.
+
+En una instalacion nueva:
+
+- el `superadmin` inicial sale del formulario del instalador
+- la conservacion de esa cuenta se gobierna desde `Usuarios de plataforma`
+- la recuperacion futura depende de una clave emitida durante la instalacion
 
 ## Lo que no conviene meter todavia
 

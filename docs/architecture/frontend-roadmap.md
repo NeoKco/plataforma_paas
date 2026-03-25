@@ -217,6 +217,8 @@ Bloque basico ya cerrado en paralelo:
 - ya existe un rol `admin` intermedio para gobernar usuarios `support` sin tocar la cuenta raiz
 - `Actividad` ya existe como flujo visible para `superadmin` y `admin`
 - `support` ya no ve `Actividad` ni los bloques exclusivos de `superadmin`, evitando rutas visibles que terminen en `403`
+- el instalador ya define la cuenta raiz inicial y emite una clave de recuperacion de una sola vez
+- el login ya expone un flujo formal de `Recuperar cuenta raíz` en vez de depender de seeds o credenciales por defecto
 
 Avance reciente de lenguaje y labels:
 

@@ -35,6 +35,7 @@ La politica actual queda asi:
 
 - roles visibles: `superadmin`, `admin`, `support`
 - `superadmin` es la cuenta raiz unica
+- esa cuenta raiz inicial nace en `/install`
 - `admin` gobierna usuarios operativos sin tocar la cuenta raiz
 - `support` queda como perfil operativo y hoy entra a este bloque en modo principalmente de lectura
 - la plataforma debe operar con un solo `superadmin` activo
@@ -49,6 +50,10 @@ Eso implica:
 - no puede cambiarse el ultimo `superadmin` activo a otro rol
 - no puede borrarse un usuario `superadmin`
 - no puede borrarse la propia cuenta desde la consola
+
+Referencia complementaria:
+
+- [Ciclo de vida de la cuenta raiz](./platform-root-account-lifecycle.md)
 
 Politica de gestion por rol:
 

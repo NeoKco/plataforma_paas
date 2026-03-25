@@ -98,6 +98,8 @@ Resultado actual:
 - la politica vigente ya endurece `platform_users` para operar con un solo `superadmin` activo
 - existe ya un rol `admin` intermedio para crear y gobernar usuarios `support` sin tocar la cuenta `superadmin`
 - la consola ya diferencia mejor que puede ver cada rol: `superadmin` todo, `admin` usuarios y actividad, `support` alcance mas acotado
+- el instalador ya crea la primera cuenta `superadmin` dentro de `platform_users`
+- la recuperacion raiz ya no depende de seeds ni de acceso tecnico a base de datos, sino de una clave emitida al instalar
 
 Nota de cierre practico:
 

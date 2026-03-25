@@ -115,10 +115,17 @@ Referencia:
 
 ## Credenciales de desarrollo
 
-Platform:
+Estas credenciales aplican al baseline demo y no a una instalacion nueva hecha desde `/install`.
+
+Platform demo:
 
 - `admin@platform.local`
 - `AdminTemporal123!`
+
+Instalacion nueva:
+
+- la cuenta raiz sale del instalador
+- la clave de recuperacion se emite una sola vez al instalar
 
 Tenant demo:
 

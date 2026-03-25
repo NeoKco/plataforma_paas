@@ -77,6 +77,8 @@ Si `GET /health` responde `installed=false`, el flujo correcto ya no es ir direc
 
 - abre el frontend
 - completa `/install`
+- define ahi el `superadmin` inicial
+- guarda la clave de recuperacion emitida una sola vez
 - luego vuelve al login de `Platform Admin`
 
 ## 4. Tests del Backend

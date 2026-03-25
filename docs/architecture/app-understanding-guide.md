@@ -170,10 +170,13 @@ Tambien aplica esta regla:
 
 - la cuenta `superadmin` no se crea ni se borra desde el flujo normal de usuarios
 - si existen `superadmin` heredados extra, solo otro `superadmin` puede degradarlos o desactivarlos manteniendo siempre uno activo
+- el `superadmin` inicial de una instalacion nueva nace en `/install`
+- si alguna vez no queda ningun `superadmin` activo, la recuperacion correcta es `Recuperar cuenta raíz`
 
 Para leerlo de forma aislada, revisa:
 
 - [Ciclo basico de usuarios de plataforma](../runbooks/platform-users-cycle.md)
+- [Ciclo de vida de la cuenta raiz](../runbooks/platform-root-account-lifecycle.md)
 
 Politica corta de acceso por bloque:
 
@@ -421,7 +424,7 @@ Hoy el baseline de demo deja tres casos utiles:
   - tenant `active`
   - sirve como segundo caso sano
 
-Credenciales utiles:
+Credenciales utiles para el baseline demo:
 
 ### Plataforma
 
