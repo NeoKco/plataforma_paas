@@ -85,6 +85,12 @@ Prioridad actual del producto:
   - `archive` como baja operativa correcta
   - `delete` fisico fuera de UI por ahora
   - `restore` solo como flujo explicito, no como cambio improvisado de estado
+- dentro de esa base tenant ya se consideran practicamente cerrados estos bordes:
+  - limites totales de usuarios
+  - limites de usuarios activos
+  - limites mensuales de alta de usuarios
+  - limites por rol critico como `admin`
+  - bloqueo de acceso por lifecycle y billing con lectura mas clara en UI
 
 ## 5. Que hace cada pantalla principal
 

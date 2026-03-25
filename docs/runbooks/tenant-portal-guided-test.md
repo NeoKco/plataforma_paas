@@ -17,6 +17,11 @@ Tambien queda como referencia operativa que el login tenant ya traduce mejor est
 - tenant archivado
 - tenant bloqueado por deuda vencida o por politica de billing
 
+Tambien queda cerrado como borde base de usuarios:
+
+- si el tenant alcanza `core.users.monthly`, ya no puede seguir creando usuarios en ese mes
+- ese bloqueo ya existe en backend y la UI tenant lo traduce como `Tu plan ya alcanzó el límite mensual de creación de usuarios.`
+
 ## Objetivo
 
 Entender en la practica que el tenant ya no solo existe y esta provisionado, sino que tambien puede operar su espacio.

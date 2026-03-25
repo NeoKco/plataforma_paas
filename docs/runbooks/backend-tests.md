@@ -553,3 +553,5 @@ Estos casos ya quedaron cubiertos y no deberian volver a depender solo de prueba
 - bloqueo por `core.users.active` al reactivar usuarios fuera de cupo
 - acceso tenant permitido o bloqueado por `billing` en estados `past_due`, `canceled` y `suspended`
 - login tenant rechazado cuando `billing_status=suspended`
+- creacion de usuarios tenant bloqueada por `core.users.monthly`
+- paso correcto de `core.users.monthly` desde middleware/ruta tenant hacia el servicio de usuarios

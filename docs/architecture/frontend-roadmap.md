@@ -235,6 +235,7 @@ Avance reciente de lenguaje y labels:
 - `tenant_portal` ya muestra roles, tipos, fuentes y estados de uso por modulo con etiquetas menos tecnicas
 - el login tenant y la lectura de `access_detail` ya traducen mejor bloqueos comunes de lifecycle y billing
 - `Tenants`, `Billing`, `Provisioning` y `tenant_portal` ya muestran mensajes de exito y encabezados de accion mas cercanos a lenguaje operativo
+- el bloque base de usuarios tenant ya cubre lectura clara de `core.users`, `core.users.active`, `core.users.monthly` y limites por rol sin dejar mensajes crudos de error
 
 ## Etapa F5. Provisioning y Operacion
 
