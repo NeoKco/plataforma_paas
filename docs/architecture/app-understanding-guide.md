@@ -202,6 +202,9 @@ Aqui ves:
 - alertas
 - DLQ
 - reencolado
+- ejecucion directa de jobs pendientes o en retry
+- familias de fallo por `error_code`
+- ciclos recientes del worker
 
 No es una pantalla de negocio. Es una pantalla operativa de automatizacion.
 
@@ -218,6 +221,24 @@ Aqui ves:
 
 - eventos `platform`
 - eventos `tenant`
+- cambios administrativos recientes sobre tenants
+
+### `Configuración`
+
+Es la pantalla de referencia corta del entorno visible.
+
+Sirve para revisar:
+
+- con qué sesión estás operando
+- a qué API está apuntando realmente el frontend
+- qué catálogos y enums está publicando backend
+- si la plataforma conserva un `superadmin` activo
+- si la clave de recuperación raíz está configurada
+- si la recuperación raíz está disponible en ese momento
+
+No es una pantalla para mutar datos críticos.
+
+Su valor está en hacer visibles estados que antes obligaban a revisar documentación o recordar decisiones de instalación.
 - accesos correctos
 - accesos fallidos
 - accesos denegados

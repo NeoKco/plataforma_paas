@@ -419,6 +419,16 @@ export type PlatformTenantPolicyHistoryResponse = {
   data: PlatformTenantPolicyChangeEvent[];
 };
 
+export type PlatformTenantPolicyActivityResponse = {
+  success: boolean;
+  message: string;
+  event_type: string | null;
+  tenant_slug: string | null;
+  actor_email: string | null;
+  total_events: number;
+  data: PlatformTenantPolicyChangeEvent[];
+};
+
 export type ProvisioningJob = {
   id: number;
   tenant_id: number;
@@ -468,6 +478,51 @@ export type ProvisioningJobDetailedMetricsResponse = {
   message: string;
   total_rows: number;
   data: ProvisioningJobTenantJobTypeSummary[];
+};
+
+export type ProvisioningJobTenantErrorCodeSummary = {
+  tenant_id: number;
+  tenant_slug: string;
+  error_code: string;
+  total_jobs: number;
+  pending_jobs: number;
+  retry_pending_jobs: number;
+  running_jobs: number;
+  completed_jobs: number;
+  failed_jobs: number;
+  max_attempts_seen: number;
+};
+
+export type ProvisioningJobErrorCodeMetricsResponse = {
+  success: boolean;
+  message: string;
+  total_rows: number;
+  data: ProvisioningJobTenantErrorCodeSummary[];
+};
+
+export type ProvisioningWorkerCycleTrace = {
+  id: number;
+  capture_key: string;
+  worker_profile: string | null;
+  selection_strategy: string;
+  eligible_jobs: number;
+  aged_eligible_jobs: number;
+  queued_jobs: number;
+  processed_count: number;
+  failed_count: number;
+  stopped_due_to_failure_limit: boolean;
+  duration_ms: number;
+  priority_order_json: string;
+  tenant_type_priority_order_json: string;
+  top_eligible_job_scores_json: string;
+  captured_at: string;
+};
+
+export type ProvisioningWorkerCycleTraceHistoryResponse = {
+  success: boolean;
+  message: string;
+  total_traces: number;
+  data: ProvisioningWorkerCycleTrace[];
 };
 
 export type ProvisioningOperationalAlert = {

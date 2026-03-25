@@ -599,6 +599,16 @@ class TenantPolicyChangeHistoryResponse(BaseModel):
     data: list[TenantPolicyChangeEventResponse]
 
 
+class PlatformTenantPolicyChangeHistoryResponse(BaseModel):
+    success: bool
+    message: str
+    event_type: str | None = None
+    tenant_slug: str | None = None
+    actor_email: str | None = None
+    total_events: int
+    data: list[TenantPolicyChangeEventResponse]
+
+
 class ProvisioningJobResponse(BaseModel):
     id: int
     tenant_id: int

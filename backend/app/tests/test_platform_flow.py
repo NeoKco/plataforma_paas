@@ -21,8 +21,10 @@ from app.tests.fixtures import (  # noqa: E402
 set_test_environment()
 
 from app.apps.platform_control.api.auth_routes import (  # noqa: E402
+    get_platform_root_recovery_status,
     login,
     logout,
+    recover_platform_root_account,
     refresh_login,
 )
 from app.apps.platform_control.api.auth_audit_routes import (  # noqa: E402
@@ -87,6 +89,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
 )
 from app.apps.platform_control.schemas import (  # noqa: E402
     LoginRequest,
+    PlatformRootRecoveryRequest,
     PlatformUserCreateRequest,
     PlatformUserPasswordResetRequest,
     PlatformUserStatusUpdateRequest,
@@ -3099,6 +3102,74 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.total_events, 1)
         self.assertEqual(response.data[0].event_type, "platform.login")
+
+    def test_get_platform_root_recovery_status_returns_schema(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.auth_routes."
+            "platform_root_account_service.get_recovery_status",
+            return_value={
+                "has_active_superadmin": False,
+                "recovery_configured": True,
+                "recovery_available": True,
+            },
+        ):
+            response = get_platform_root_recovery_status(db=object())
+
+        self.assertTrue(response.success)
+        self.assertTrue(response.recovery_configured)
+        self.assertTrue(response.recovery_available)
+
+    def test_recover_platform_root_account_returns_schema(self) -> None:
+        user = build_platform_user_stub(
+            user_id=1,
+            full_name="Recovered Root",
+            email="root@platform.dev",
+            role="superadmin",
+            is_active=True,
+        )
+
+        with patch(
+            "app.apps.platform_control.api.auth_routes."
+            "platform_root_account_service.recover_root_account",
+            return_value=user,
+        ), patch(
+            "app.apps.platform_control.api.auth_routes."
+            "auth_audit_service.log_event",
+        ):
+            response = recover_platform_root_account(
+                payload=PlatformRootRecoveryRequest(
+                    recovery_key="key-123",
+                    full_name="Recovered Root",
+                    email="root@platform.dev",
+                    password="Secret123!",
+                ),
+                db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.email, "root@platform.dev")
+
+    def test_recover_platform_root_account_raises_http_400_on_invalid_key(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.auth_routes."
+            "platform_root_account_service.recover_root_account",
+            side_effect=ValueError("Invalid recovery key"),
+        ), patch(
+            "app.apps.platform_control.api.auth_routes."
+            "auth_audit_service.log_event",
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                recover_platform_root_account(
+                    payload=PlatformRootRecoveryRequest(
+                        recovery_key="bad-key",
+                        full_name="Recovered Root",
+                        email="root@platform.dev",
+                        password="Secret123!",
+                    ),
+                    db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
 
     def test_create_platform_user_returns_schema(self) -> None:
         user = build_platform_user_stub(

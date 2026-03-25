@@ -9,6 +9,7 @@ La idea es dar una vista corta y util de auditoria de accesos recientes sin depe
 Desde `platform_admin` ya se puede:
 
 - listar eventos recientes de autenticacion
+- listar cambios administrativos recientes sobre tenants
 - filtrar por `scope`
 - filtrar por resultado
 - buscar por email, tenant, detalle o tipo de evento
@@ -27,6 +28,12 @@ Antes de este bloque, la trazabilidad de accesos existia en backend, pero no hab
 - sobre que tenant ocurrio el acceso
 
 Con este bloque ya no hace falta partir por logs para responder esas preguntas.
+
+Ahora tambien ayuda a responder:
+
+- quien cambio billing, estado, mantenimiento, plan o limites de un tenant
+- sobre que tenant se hizo ese cambio
+- que campos fueron tocados recientemente
 
 ## 3. Politica vigente
 
@@ -51,7 +58,9 @@ La pantalla entrega:
 - ingresos fallidos
 - accesos denegados
 - cantidad de eventos `tenant`
+- cantidad de cambios administrativos tenant
 - tabla de actividad reciente
+- tabla de cambios administrativos recientes
 
 Cada fila muestra:
 
@@ -68,6 +77,7 @@ Cada fila muestra:
 Backend actual:
 
 - `GET /platform/auth-audit/`
+- `GET /platform/tenants/policy-history/recent`
 
 Filtros soportados hoy:
 
@@ -88,6 +98,7 @@ La validacion minima recomendada del bloque es esta:
 6. filtrar por `correctos`, `fallidos` o `denegados`
 7. buscar por un correo o slug tenant conocido
 8. confirmar que un usuario `support` no ve el item en el menu y no queda navegando a este bloque
+9. confirmar que tambien aparecen cambios administrativos recientes sobre tenants
 
 ## 7. Cobertura automatizada actual
 

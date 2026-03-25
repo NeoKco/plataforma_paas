@@ -111,3 +111,41 @@ No conviene:
 - editar la base manualmente
 - revivir seeds sobre una base viva
 - crear mas de una cuenta `superadmin` para operacion diaria
+
+## Donde se ve ahora en la consola
+
+La consola ya hace visible este bloque en dos lugares:
+
+- `Usuarios de plataforma`: conservacion y gobierno normal de operadores
+- `Configuración`: estado visible de cuenta raiz y recuperacion
+
+`Configuración` ya expone al menos:
+
+- si la plataforma conserva un `superadmin` activo
+- si la clave de recuperacion esta configurada
+- si la recuperacion raiz esta disponible en ese momento
+
+Eso evita depender solo del login o de la documentacion para saber si la cuenta raiz sigue protegida.
+
+## Validacion funcional corta
+
+Sin desmontar una instalacion viva, la validacion minima recomendada es:
+
+1. revisar el instalador y confirmar que ahora pide:
+   - nombre del `superadmin`
+   - correo raiz
+   - contraseña inicial
+2. confirmar que el login de plataforma ya no viene precargado con credenciales seed
+3. confirmar que el login ya expone el acceso `Recuperar cuenta raíz`
+4. validar que `GET /platform/auth/root-recovery/status` responde estado consistente
+5. validar que `POST /platform/auth/root-recovery`:
+   - bloquea cuando aun existe un `superadmin` activo
+   - bloquea con clave invalida
+   - solo recupera cuando no queda ningun `superadmin` activo
+
+## Cobertura automatizada actual
+
+Las suites recomendadas para congelar este bloque son:
+
+- `backend.app.tests.test_installer_root_lifecycle`
+- `backend.app.tests.test_platform_flow`

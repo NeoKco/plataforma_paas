@@ -22,6 +22,7 @@ import type {
   PlatformTenantSchemaSyncResponse,
   PlatformTenantModuleUsageSummary,
   PlatformTenantPolicyHistoryResponse,
+  PlatformTenantPolicyActivityResponse,
   PlatformTenantPlanResponse,
   PlatformTenantRateLimitResponse,
   PlatformTenantRestoreResponse,
@@ -31,10 +32,12 @@ import type {
   PlatformBillingSyncSummaryResponse,
   ProvisioningBrokerDeadLetterResponse,
   ProvisioningBrokerRequeueResponse,
+  ProvisioningJobErrorCodeMetricsResponse,
   ProvisioningJob,
   ProvisioningJobDetailedMetricsResponse,
   ProvisioningJobMetricsResponse,
   ProvisioningOperationalAlertsResponse,
+  ProvisioningWorkerCycleTraceHistoryResponse,
   TenantBillingReconcileBatchResponse,
   TenantBillingReconcileResponse,
   TenantBillingSyncHistoryResponse,
@@ -435,6 +438,42 @@ export function getPlatformTenantPolicyHistory(
   );
 }
 
+export function getPlatformTenantPolicyActivity(
+  accessToken: string,
+  options: {
+    eventType?: string | null;
+    tenantSlug?: string | null;
+    actorEmail?: string | null;
+    search?: string | null;
+    limit?: number;
+  } = {}
+) {
+  const params = new URLSearchParams();
+  if (options.eventType) {
+    params.set("event_type", options.eventType);
+  }
+  if (options.tenantSlug) {
+    params.set("tenant_slug", options.tenantSlug);
+  }
+  if (options.actorEmail) {
+    params.set("actor_email", options.actorEmail);
+  }
+  if (options.search) {
+    params.set("search", options.search);
+  }
+  if (options.limit !== undefined) {
+    params.set("limit", String(options.limit));
+  }
+  const query = params.toString();
+
+  return apiRequest<PlatformTenantPolicyActivityResponse>(
+    `/platform/tenants/policy-history/recent${query ? `?${query}` : ""}`,
+    {
+      token: accessToken,
+    }
+  );
+}
+
 export function listProvisioningJobs(accessToken: string) {
   return apiRequest<ProvisioningJob[]>("/platform/provisioning-jobs/", {
     token: accessToken,
@@ -453,6 +492,39 @@ export function getProvisioningMetrics(accessToken: string) {
 export function getProvisioningMetricsByJobType(accessToken: string) {
   return apiRequest<ProvisioningJobDetailedMetricsResponse>(
     "/platform/provisioning-jobs/metrics/by-job-type",
+    {
+      token: accessToken,
+    }
+  );
+}
+
+export function getProvisioningMetricsByErrorCode(accessToken: string) {
+  return apiRequest<ProvisioningJobErrorCodeMetricsResponse>(
+    "/platform/provisioning-jobs/metrics/by-error-code",
+    {
+      token: accessToken,
+    }
+  );
+}
+
+export function getProvisioningCycleHistory(
+  accessToken: string,
+  options: {
+    limit?: number;
+    workerProfile?: string | null;
+  } = {}
+) {
+  const params = new URLSearchParams();
+  if (options.limit !== undefined) {
+    params.set("limit", String(options.limit));
+  }
+  if (options.workerProfile) {
+    params.set("worker_profile", options.workerProfile);
+  }
+  const query = params.toString();
+
+  return apiRequest<ProvisioningWorkerCycleTraceHistoryResponse>(
+    `/platform/provisioning-jobs/metrics/cycle-history${query ? `?${query}` : ""}`,
     {
       token: accessToken,
     }

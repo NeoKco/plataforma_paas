@@ -23,6 +23,7 @@ from app.apps.platform_control.schemas import (
     TenantIdentityUpdateRequest,
     TenantBillingUpdateRequest,
     TenantPolicyChangeHistoryResponse,
+    PlatformTenantPolicyChangeHistoryResponse,
     TenantMaintenanceResponse,
     TenantMaintenanceUpdateRequest,
     TenantFinanceUsageDataResponse,
@@ -1122,6 +1123,39 @@ def get_tenant_policy_history(
         tenant_id=tenant.id,
         tenant_slug=tenant.slug,
         event_type=event_type,
+        total_events=len(history),
+        data=history,
+    )
+
+
+@router.get(
+    "/policy-history/recent",
+    response_model=PlatformTenantPolicyChangeHistoryResponse,
+)
+def get_platform_tenant_policy_history(
+    event_type: str | None = None,
+    tenant_slug: str | None = None,
+    actor_email: str | None = None,
+    search: str | None = None,
+    limit: int = 50,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin", "admin")),
+) -> PlatformTenantPolicyChangeHistoryResponse:
+    history = tenant_policy_event_service.list_global_recent_history(
+        db,
+        event_type=event_type,
+        tenant_slug=tenant_slug,
+        actor_email=actor_email,
+        search=search,
+        limit=limit,
+    )
+
+    return PlatformTenantPolicyChangeHistoryResponse(
+        success=True,
+        message="Historial reciente de cambios administrativos tenant recuperado correctamente",
+        event_type=event_type,
+        tenant_slug=tenant_slug,
+        actor_email=actor_email,
         total_events=len(history),
         data=history,
     )

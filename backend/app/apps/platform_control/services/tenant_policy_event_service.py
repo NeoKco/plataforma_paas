@@ -104,6 +104,26 @@ class TenantPolicyEventService:
         )
         return [self._serialize_event(row) for row in rows]
 
+    def list_global_recent_history(
+        self,
+        db: Session,
+        *,
+        event_type: str | None = None,
+        tenant_slug: str | None = None,
+        actor_email: str | None = None,
+        search: str | None = None,
+        limit: int = 50,
+    ) -> list[dict]:
+        rows = self.tenant_policy_change_event_repository.list_global_recent(
+            db,
+            event_type=event_type,
+            tenant_slug=tenant_slug,
+            actor_email=actor_email,
+            search=search,
+            limit=limit,
+        )
+        return [self._serialize_event(row) for row in rows]
+
     def _serialize_event(self, row) -> dict:
         return {
             "id": row.id,

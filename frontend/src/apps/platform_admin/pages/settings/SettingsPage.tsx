@@ -1,14 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { MetricCard } from "../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
-import { getPlatformCapabilities } from "../../../../services/platform-api";
+import {
+  getPlatformCapabilities,
+  getPlatformRootRecoveryStatus,
+} from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
-import type { ApiError, PlatformCapabilities } from "../../../../types";
+import type {
+  ApiError,
+  PlatformCapabilities,
+  PlatformRootRecoveryStatusResponse,
+} from "../../../../types";
 
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() ||
@@ -17,6 +25,8 @@ const API_BASE_URL =
 export function SettingsPage() {
   const { session } = useAuth();
   const [capabilities, setCapabilities] = useState<PlatformCapabilities | null>(null);
+  const [rootRecoveryStatus, setRootRecoveryStatus] =
+    useState<PlatformRootRecoveryStatusResponse | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -52,14 +62,19 @@ export function SettingsPage() {
       setError(null);
 
       try {
-        const response = await getPlatformCapabilities(session.accessToken);
+        const [capabilitiesResponse, rootRecoveryResponse] = await Promise.all([
+          getPlatformCapabilities(session.accessToken),
+          getPlatformRootRecoveryStatus(),
+        ]);
         if (isMounted) {
-          setCapabilities(response);
+          setCapabilities(capabilitiesResponse);
+          setRootRecoveryStatus(rootRecoveryResponse);
         }
       } catch (rawError) {
         if (isMounted) {
           setError(rawError as ApiError);
           setCapabilities(null);
+          setRootRecoveryStatus(null);
         }
       } finally {
         if (isMounted) {
@@ -160,6 +175,35 @@ export function SettingsPage() {
             <div>Usa `GET /platform/capabilities` como fuente de verdad para catálogos y opciones visibles.</div>
             <div>Deja la lógica de negocio en servicios y políticas backend; en React solo resuelve presentación y flujo.</div>
             <div>Antes de abrir otra pantalla, revisa si `Tenants`, `Provisioning`, `Billing` o `tenant_portal` ya cubren el caso.</div>
+          </div>
+        </PanelCard>
+
+        <PanelCard
+          title="Instalación y cuenta raíz"
+          subtitle="Resumen operativo del ciclo de vida de la cuenta superadministradora y de la recuperación raíz."
+        >
+          <div className="tenant-detail-grid">
+            <DetailField
+              label="Plataforma instalada"
+              value="sí"
+            />
+            <DetailField
+              label="Superadministrador activo"
+              value={rootRecoveryStatus?.has_active_superadmin ? "sí" : "no"}
+            />
+            <DetailField
+              label="Clave de recuperación"
+              value={rootRecoveryStatus?.recovery_configured ? "configurada" : "no configurada"}
+            />
+            <DetailField
+              label="Recuperación disponible ahora"
+              value={rootRecoveryStatus?.recovery_available ? "sí" : "no"}
+            />
+          </div>
+          <div className="dashboard-quick-hints mt-0">
+            <div>La política vigente exige una sola cuenta `superadmin` activa para operar la plataforma.</div>
+            <div>Si la recuperación aparece disponible, normalmente significa que ya no queda ningún `superadmin` activo y debes usar <Link to="/login/root-recovery">Recuperar cuenta raíz</Link>.</div>
+            <div>La gobernanza normal de operadores se hace desde <Link to="/users">Usuarios de plataforma</Link>, no desde el flujo de recuperación.</div>
           </div>
         </PanelCard>
       </div>

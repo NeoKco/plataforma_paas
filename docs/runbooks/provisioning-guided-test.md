@@ -35,6 +35,8 @@ Hoy ese ciclo se ve repartido asi:
 - `Tenants` ya muestra el ultimo job de provisioning del tenant seleccionado
 - `Provisioning` muestra la cola global, reintentos, alertas y recuperacion
 - el worker ejecuta el trabajo tecnico real
+- `Provisioning` ya deja tambien ejecutar un job pendiente o en retry desde la misma consola
+- `Provisioning` ya muestra familias de fallo por `error_code` y ciclos recientes del worker
 
 ## Cuándo usar esta prueba
 

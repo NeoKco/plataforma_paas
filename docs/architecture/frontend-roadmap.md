@@ -14,6 +14,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - existe instalador visual para primer arranque
 - existe `platform_admin` con login, sesion, dashboard, `Usuarios de plataforma`, `Tenants`, `Provisioning`, `Billing` y `Settings`
 - existe tambien `Actividad` de plataforma para auditoria breve de accesos recientes
+- `Actividad` ya no solo muestra accesos: ahora tambien expone cambios administrativos recientes sobre tenants
 - existe `tenant_portal` con login, resumen, usuarios y finanzas
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
 
@@ -254,11 +255,14 @@ Avance actual:
 - `Provisioning` ya muestra mensajes de error por accion con el detalle real del backend
 - `Provisioning` ya pide confirmacion previa antes del reencolado batch de DLQ
 - `Provisioning` ya traduce mejor `job_type`, `alert_code` y `error_code` sin perder el codigo tecnico
+- `Provisioning` ya permite ejecutar desde la consola un job `pending` o `retry_pending`
+- `Provisioning` ya muestra fallos agregados por `error_code`
+- `Provisioning` ya muestra ciclos recientes del worker para distinguir backlog de ejecucion
 
 Lectura practica:
 
-- la pantalla ya es funcional
-- lo pendiente es enriquecer la comprension operativa y cerrar mejor algunos casos de recuperacion
+- la pantalla ya es funcional y mas explicita
+- lo pendiente queda mas cerca de endurecimiento del worker que de falta de controles basicos en la UI
 
 ## Etapa F6. Billing Operativo
 
@@ -313,6 +317,7 @@ Avance actual:
 - `Dashboard` ya incluye accesos rapidos hacia `Tenants`, `Provisioning` y `Billing`
 - `Dashboard` ya usa un lenguaje mas ejecutivo y menos tecnico en cards, focos y tablas
 - `Settings` ya expone sesion actual, `API configurada`, `API esperada en esta red`, catalogo backend y alcance de la UI
+- `Settings` ya expone tambien estado visible de cuenta raiz y recuperacion, para no depender solo del instalador o del login de recuperacion
 
 Pendiente fino conocido:
 

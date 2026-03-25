@@ -4,11 +4,19 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
+import { EmptyState } from "../../../../components/feedback/EmptyState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
-import { getPlatformAuthAudit } from "../../../../services/platform-api";
+import {
+  getPlatformAuthAudit,
+  getPlatformTenantPolicyActivity,
+} from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
-import type { ApiError, PlatformAuthAuditEvent } from "../../../../types";
+import type {
+  ApiError,
+  PlatformAuthAuditEvent,
+  PlatformTenantPolicyChangeEvent,
+} from "../../../../types";
 
 function formatAuditOutcome(value: string): string {
   if (value === "success") {
@@ -45,6 +53,7 @@ function formatDateTime(value: string | null): string {
 export function PlatformActivityPage() {
   const { session } = useAuth();
   const [events, setEvents] = useState<PlatformAuthAuditEvent[]>([]);
+  const [tenantChanges, setTenantChanges] = useState<PlatformTenantPolicyChangeEvent[]>([]);
   const [search, setSearch] = useState("");
   const [scopeFilter, setScopeFilter] = useState("");
   const [outcomeFilter, setOutcomeFilter] = useState("");
@@ -57,14 +66,16 @@ export function PlatformActivityPage() {
     const failedCount = events.filter((item) => item.outcome === "failed").length;
     const deniedCount = events.filter((item) => item.outcome === "denied").length;
     const tenantScopeCount = events.filter((item) => item.subject_scope === "tenant").length;
+    const tenantChangeCount = tenantChanges.length;
     return {
       total: events.length,
       successCount,
       failedCount,
       deniedCount,
       tenantScopeCount,
+      tenantChangeCount,
     };
-  }, [events]);
+  }, [events, tenantChanges]);
 
   useEffect(() => {
     if (!session?.accessToken) {
@@ -83,16 +94,24 @@ export function PlatformActivityPage() {
     setError(null);
 
     try {
-      const response = await getPlatformAuthAudit(session.accessToken, {
-        limit,
-        subject_scope: scopeFilter || undefined,
-        outcome: outcomeFilter || undefined,
-        search: search.trim() || undefined,
-      });
-      setEvents(response.data);
+      const [auditResponse, tenantPolicyResponse] = await Promise.all([
+        getPlatformAuthAudit(session.accessToken, {
+          limit,
+          subject_scope: scopeFilter || undefined,
+          outcome: outcomeFilter || undefined,
+          search: search.trim() || undefined,
+        }),
+        getPlatformTenantPolicyActivity(session.accessToken, {
+          search: search.trim() || undefined,
+          limit,
+        }),
+      ]);
+      setEvents(auditResponse.data);
+      setTenantChanges(tenantPolicyResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
       setEvents([]);
+      setTenantChanges([]);
     } finally {
       setIsLoading(false);
     }
@@ -126,6 +145,11 @@ export function PlatformActivityPage() {
               label="Eventos tenant"
               value={overview.tenantScopeCount}
               hint="Incluye logins y refresh del portal tenant."
+            />
+            <MetricCard
+              label="Cambios tenant"
+              value={overview.tenantChangeCount}
+              hint="Mutaciones recientes de estado, billing, límites o mantenimiento."
             />
           </div>
 
@@ -213,6 +237,45 @@ export function PlatformActivityPage() {
                         <td>{item.email || "n/a"}</td>
                         <td>{item.tenant_slug || "n/a"}</td>
                         <td>{item.detail || "n/a"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </PanelCard>
+
+          <PanelCard
+            title="Cambios administrativos recientes"
+            subtitle="Historial corto de mutaciones sobre tenants para no depender de entrar a cada detalle por separado."
+          >
+            {tenantChanges.length === 0 ? (
+              <EmptyState
+                title="No hay cambios administrativos recientes"
+                detail="Con el filtro actual no aparecen mutaciones recientes sobre tenants."
+              />
+            ) : (
+              <div className="table-responsive">
+                <table className="table align-middle">
+                  <thead>
+                    <tr>
+                      <th>Registrado</th>
+                      <th>Tenant</th>
+                      <th>Evento</th>
+                      <th>Actor</th>
+                      <th>Rol</th>
+                      <th>Campos</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tenantChanges.map((item) => (
+                      <tr key={item.id}>
+                        <td>{formatDateTime(item.recorded_at)}</td>
+                        <td>{item.tenant_slug}</td>
+                        <td>{displayPlatformCode(item.event_type)}</td>
+                        <td>{item.actor_email || "n/a"}</td>
+                        <td>{item.actor_role ? displayPlatformCode(item.actor_role) : "n/a"}</td>
+                        <td>{item.changed_fields.length > 0 ? item.changed_fields.join(", ") : "n/a"}</td>
                       </tr>
                     ))}
                   </tbody>

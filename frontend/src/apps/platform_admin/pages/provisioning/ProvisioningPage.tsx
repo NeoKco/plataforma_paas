@@ -15,22 +15,27 @@ import {
   getPlatformActionSuccessMessage,
 } from "../../../../utils/action-feedback";
 import {
+  getProvisioningCycleHistory,
   getProvisioningAlerts,
   getProvisioningBrokerDlq,
+  getProvisioningMetricsByErrorCode,
   getProvisioningMetrics,
   getProvisioningMetricsByJobType,
   listProvisioningJobs,
   requeueProvisioningBrokerDlq,
   requeueProvisioningJob,
+  runProvisioningJob,
 } from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
 import type {
   ApiError,
   ProvisioningBrokerDeadLetterResponse,
+  ProvisioningJobErrorCodeMetricsResponse,
   ProvisioningJob,
   ProvisioningJobDetailedMetricsResponse,
   ProvisioningJobMetricsResponse,
   ProvisioningOperationalAlertsResponse,
+  ProvisioningWorkerCycleTraceHistoryResponse,
 } from "../../../../types";
 
 type ActionFeedback = {
@@ -54,6 +59,10 @@ export function ProvisioningPage() {
   const [metrics, setMetrics] = useState<ProvisioningJobMetricsResponse | null>(null);
   const [metricsByJobType, setMetricsByJobType] =
     useState<ProvisioningJobDetailedMetricsResponse | null>(null);
+  const [metricsByErrorCode, setMetricsByErrorCode] =
+    useState<ProvisioningJobErrorCodeMetricsResponse | null>(null);
+  const [cycleHistory, setCycleHistory] =
+    useState<ProvisioningWorkerCycleTraceHistoryResponse | null>(null);
   const [alerts, setAlerts] = useState<ProvisioningOperationalAlertsResponse | null>(
     null
   );
@@ -130,11 +139,21 @@ export function ProvisioningPage() {
       listProvisioningJobs(session.accessToken),
       getProvisioningMetrics(session.accessToken),
       getProvisioningMetricsByJobType(session.accessToken),
+      getProvisioningMetricsByErrorCode(session.accessToken),
+      getProvisioningCycleHistory(session.accessToken, { limit: 10 }),
       getProvisioningAlerts(session.accessToken),
       getProvisioningBrokerDlq(session.accessToken, dlqOptions),
     ]);
 
-    const [jobsResult, metricsResult, jobTypeResult, alertsResult, dlqResult] = results;
+    const [
+      jobsResult,
+      metricsResult,
+      jobTypeResult,
+      errorCodeResult,
+      cycleHistoryResult,
+      alertsResult,
+      dlqResult,
+    ] = results;
 
     if (jobsResult.status === "fulfilled") {
       setJobs(jobsResult.value);
@@ -158,6 +177,22 @@ export function ProvisioningPage() {
     } else {
       setMetricsByJobType(null);
       setMetricsError(jobTypeResult.reason as ApiError);
+    }
+
+    if (errorCodeResult.status === "fulfilled") {
+      setMetricsByErrorCode(errorCodeResult.value);
+      setMetricsError(null);
+    } else {
+      setMetricsByErrorCode(null);
+      setMetricsError(errorCodeResult.reason as ApiError);
+    }
+
+    if (cycleHistoryResult.status === "fulfilled") {
+      setCycleHistory(cycleHistoryResult.value);
+      setMetricsError(null);
+    } else {
+      setCycleHistory(null);
+      setMetricsError(cycleHistoryResult.reason as ApiError);
     }
 
     if (alertsResult.status === "fulfilled") {
@@ -273,6 +308,26 @@ export function ProvisioningPage() {
     );
   }
 
+  function handleRunNow(job: ProvisioningJob) {
+    if (!session?.accessToken) {
+      return;
+    }
+
+    setPendingConfirmation({
+      title: `Ejecutar ahora el job #${job.id}`,
+      description:
+        "Esta acción intenta procesar inmediatamente el job seleccionado, sin esperar al siguiente ciclo del worker.",
+      details: [
+        `Tenant: ${tenantSlugById.get(job.tenant_id) || `tenant-${job.tenant_id}`}`,
+        `Operación: ${formatProvisioningJobType(job.job_type)}`,
+        `Estado actual: ${formatProvisioningCodeLabel(job.status)}`,
+        `Intentos usados: ${job.attempts}/${job.max_attempts}`,
+      ],
+      confirmLabel: "Ejecutar ahora",
+      action: () => runProvisioningJob(session.accessToken, job.id),
+    });
+  }
+
   return (
     <div className="d-grid gap-4">
       <PageHeader
@@ -319,6 +374,17 @@ export function ProvisioningPage() {
       ) : null}
 
       {isLoading ? <LoadingBlock label="Cargando operación de provisioning..." /> : null}
+
+      <PanelCard
+        title="Qué hace provisioning"
+        subtitle="Referencia corta para no confundir el alta en catálogo con la preparación técnica real del tenant."
+      >
+        <div className="dashboard-quick-hints mt-0">
+          <div>`Crear tenant` da de alta la entidad en `platform_control` y dispara el job inicial.</div>
+          <div>`Provisionar` prepara la DB tenant, el usuario técnico, el esquema y el admin bootstrap.</div>
+          <div>`Pending` espera worker, `retry_pending` volverá a intentarse, `failed` requiere intervención y `completed` deja el tenant listo.</div>
+        </div>
+      </PanelCard>
 
       <div className="provisioning-overview-grid">
         <MetricCard label="Jobs en catálogo" value={overview.totalJobs} />
@@ -412,24 +478,33 @@ export function ProvisioningPage() {
               header: "Próximo reintento",
               render: (row) => formatDateTime(row.next_retry_at),
             },
-            {
-              key: "actions",
-              header: "Acciones",
-              render: (row) =>
-                row.status === "failed" ? (
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() => handleSingleRequeue(row.id)}
-                    disabled={isActionSubmitting}
-                  >
-                    Reencolar
-                  </button>
-                ) : (
-                  "—"
-                ),
-            },
-          ]}
+              {
+                key: "actions",
+                header: "Acciones",
+                render: (row) =>
+                  row.status === "failed" ? (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => handleSingleRequeue(row.id)}
+                      disabled={isActionSubmitting}
+                    >
+                      Reencolar
+                    </button>
+                  ) : row.status === "pending" || row.status === "retry_pending" ? (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => handleRunNow(row)}
+                      disabled={isActionSubmitting}
+                    >
+                      Ejecutar ahora
+                    </button>
+                  ) : (
+                    "—"
+                  ),
+              },
+            ]}
         />
       ) : !jobsError && !isLoading ? (
         <PanelCard
@@ -519,6 +594,46 @@ export function ProvisioningPage() {
                   key: "running_jobs",
                   header: "En ejecución",
                   render: (row) => row.running_jobs,
+                },
+                {
+                  key: "failed_jobs",
+                  header: "Fallidos",
+                  render: (row) => row.failed_jobs,
+                },
+              ]}
+            />
+          ) : null}
+
+          {metricsByErrorCode ? (
+            <DataTableCard
+              title="Fallos por código"
+              subtitle="Agrupa familias de error para no depender solo del texto libre del último intento."
+              rows={metricsByErrorCode.data}
+              columns={[
+                {
+                  key: "tenant_slug",
+                  header: "Tenant",
+                  render: (row) => <code>{row.tenant_slug}</code>,
+                },
+                {
+                  key: "error_code",
+                  header: "Código de error",
+                  render: (row) => (
+                    <ProvisioningCodeCell
+                      label={formatProvisioningCodeLabel(row.error_code)}
+                      code={row.error_code}
+                    />
+                  ),
+                },
+                {
+                  key: "total_jobs",
+                  header: "Total",
+                  render: (row) => row.total_jobs,
+                },
+                {
+                  key: "retry_pending_jobs",
+                  header: "Reintento",
+                  render: (row) => row.retry_pending_jobs,
                 },
                 {
                   key: "failed_jobs",
@@ -819,6 +934,58 @@ export function ProvisioningPage() {
             <EmptyState
               title="No hay filas DLQ para este filtro"
               detail="Esto es esperable cuando el broker está estable o cuando el filtro actual es muy específico."
+            />
+          </PanelCard>
+        )
+      ) : null}
+
+      {!metricsError && cycleHistory ? (
+        cycleHistory.data.length > 0 ? (
+          <DataTableCard
+            title="Ciclos recientes del worker"
+            subtitle="Resumen corto de las últimas corridas para distinguir si el problema es de backlog o de ejecución."
+            rows={cycleHistory.data}
+            columns={[
+              {
+                key: "captured_at",
+                header: "Capturado en",
+                render: (row) => formatDateTime(row.captured_at),
+              },
+              {
+                key: "worker_profile",
+                header: "Worker",
+                render: (row) => row.worker_profile || "default",
+              },
+              {
+                key: "eligible_jobs",
+                header: "Elegibles",
+                render: (row) => row.eligible_jobs,
+              },
+              {
+                key: "processed_count",
+                header: "Procesados",
+                render: (row) => row.processed_count,
+              },
+              {
+                key: "failed_count",
+                header: "Fallidos",
+                render: (row) => row.failed_count,
+              },
+              {
+                key: "duration_ms",
+                header: "Duración",
+                render: (row) => `${row.duration_ms} ms`,
+              },
+            ]}
+          />
+        ) : (
+          <PanelCard
+            title="Ciclos recientes del worker"
+            subtitle="Todavía no hay trazas persistidas de ciclos en este entorno."
+          >
+            <EmptyState
+              title="No hay historial reciente del worker"
+              detail="Esto suele pasar cuando todavía no se ejecutó el worker con persistencia de trazas o el entorno es nuevo."
             />
           </PanelCard>
         )
