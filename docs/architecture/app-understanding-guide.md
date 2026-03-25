@@ -146,6 +146,7 @@ Lectura importante:
 - el alta dispara provisioning
 - el detalle del tenant ya muestra un bloque `Provisioning` con el ultimo job y su estado
 - desde ahi puedes entender si el tenant sigue `pending`, si necesita retry o si ya quedo listo
+- el acceso rapido al `tenant_portal` solo corresponde cuando el tenant ya esta `active`, con provisioning completado y configuracion DB tenant valida
 
 ### `Usuarios de plataforma`
 
@@ -183,6 +184,7 @@ Politica corta de acceso por bloque:
 - `superadmin` ve toda la consola
 - `admin` hoy opera `Usuarios de plataforma` y `Actividad`
 - `support` hoy queda concentrado en `Usuarios de plataforma` con alcance mas acotado
+- `Configuracion` ya resume tambien la gobernanza visible del entorno para verificar si sigue existiendo exactamente un `superadmin` activo y como esta repartido el acceso operativo
 
 Nota importante de lectura:
 

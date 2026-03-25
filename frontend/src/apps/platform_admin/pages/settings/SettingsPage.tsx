@@ -9,6 +9,7 @@ import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import {
   getPlatformCapabilities,
   getPlatformRootRecoveryStatus,
+  listPlatformUsers,
 } from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
@@ -16,6 +17,7 @@ import type {
   ApiError,
   PlatformCapabilities,
   PlatformRootRecoveryStatusResponse,
+  PlatformUser,
 } from "../../../../types";
 
 const API_BASE_URL =
@@ -25,6 +27,7 @@ const API_BASE_URL =
 export function SettingsPage() {
   const { session } = useAuth();
   const [capabilities, setCapabilities] = useState<PlatformCapabilities | null>(null);
+  const [platformUsers, setPlatformUsers] = useState<PlatformUser[]>([]);
   const [rootRecoveryStatus, setRootRecoveryStatus] =
     useState<PlatformRootRecoveryStatusResponse | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -40,6 +43,18 @@ export function SettingsPage() {
       dispatchBackends: capabilities?.provisioning_dispatch_backends.length || 0,
     };
   }, [capabilities]);
+
+  const governance = useMemo(() => {
+    const activeUsers = platformUsers.filter((user) => user.is_active);
+
+    return {
+      totalUsers: platformUsers.length,
+      inactiveUsers: platformUsers.filter((user) => !user.is_active).length,
+      activeSuperadmins: activeUsers.filter((user) => user.role === "superadmin").length,
+      activeAdmins: activeUsers.filter((user) => user.role === "admin").length,
+      activeSupport: activeUsers.filter((user) => user.role === "support").length,
+    };
+  }, [platformUsers]);
 
   const runtimeApiUrl = useMemo(() => {
     if (typeof window === "undefined") {
@@ -62,19 +77,23 @@ export function SettingsPage() {
       setError(null);
 
       try {
-        const [capabilitiesResponse, rootRecoveryResponse] = await Promise.all([
+        const [capabilitiesResponse, rootRecoveryResponse, platformUsersResponse] =
+          await Promise.all([
           getPlatformCapabilities(session.accessToken),
           getPlatformRootRecoveryStatus(),
+          listPlatformUsers(session.accessToken),
         ]);
         if (isMounted) {
           setCapabilities(capabilitiesResponse);
           setRootRecoveryStatus(rootRecoveryResponse);
+          setPlatformUsers(platformUsersResponse.data);
         }
       } catch (rawError) {
         if (isMounted) {
           setError(rawError as ApiError);
           setCapabilities(null);
           setRootRecoveryStatus(null);
+          setPlatformUsers([]);
         }
       } finally {
         if (isMounted) {
@@ -204,6 +223,36 @@ export function SettingsPage() {
             <div>La política vigente exige una sola cuenta `superadmin` activa para operar la plataforma.</div>
             <div>Si la recuperación aparece disponible, normalmente significa que ya no queda ningún `superadmin` activo y debes usar <Link to="/login/root-recovery">Recuperar cuenta raíz</Link>.</div>
             <div>La gobernanza normal de operadores se hace desde <Link to="/users">Usuarios de plataforma</Link>, no desde el flujo de recuperación.</div>
+          </div>
+        </PanelCard>
+
+        <PanelCard
+          title="Gobernanza de acceso"
+          subtitle="Resumen corto de operadores de plataforma visibles hoy desde la consola."
+        >
+          <div className="tenant-detail-grid">
+            <DetailField label="Usuarios totales" value={governance.totalUsers} />
+            <DetailField label="Usuarios inactivos" value={governance.inactiveUsers} />
+            <DetailField
+              label="Superadministradores activos"
+              value={governance.activeSuperadmins}
+            />
+            <DetailField label="Admins activos" value={governance.activeAdmins} />
+            <DetailField label="Support activos" value={governance.activeSupport} />
+          </div>
+          {governance.activeSuperadmins !== 1 ? (
+            <div className="alert alert-warning mt-3 mb-0">
+              La política vigente espera exactamente un `superadmin` activo. Revisa
+              <Link className="ms-1" to="/users">
+                Usuarios de plataforma
+              </Link>
+              para normalizar el acceso.
+            </div>
+          ) : null}
+          <div className="dashboard-quick-hints mt-3">
+            <div>`superadmin` debe ser único y queda reservado para administración raíz.</div>
+            <div>`admin` gobierna usuarios `support` y puede revisar `Actividad`.</div>
+            <div>`support` debe mantenerse como operador acotado, no como cuenta raíz.</div>
           </div>
         </PanelCard>
       </div>

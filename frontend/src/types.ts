@@ -225,6 +225,7 @@ export type PlatformTenant = {
   name: string;
   slug: string;
   tenant_type: string;
+  db_configured: boolean;
   plan_code: string | null;
   billing_provider: string | null;
   billing_provider_customer_id: string | null;

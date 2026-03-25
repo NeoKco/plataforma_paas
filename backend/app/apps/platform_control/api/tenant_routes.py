@@ -109,6 +109,9 @@ def _build_tenant_response(tenant) -> TenantResponse:
         name=tenant.name,
         slug=tenant.slug,
         tenant_type=tenant.tenant_type,
+        db_configured=bool(
+            tenant.db_name and tenant.db_user and tenant.db_host and tenant.db_port
+        ),
         plan_code=tenant.plan_code,
         billing_provider=tenant.billing_provider,
         billing_provider_customer_id=tenant.billing_provider_customer_id,

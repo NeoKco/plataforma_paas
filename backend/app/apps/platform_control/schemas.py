@@ -177,6 +177,7 @@ class TenantResponse(BaseModel):
     name: str
     slug: str
     tenant_type: str
+    db_configured: bool = False
     plan_code: str | None = None
     billing_provider: str | None = None
     billing_provider_customer_id: str | None = None

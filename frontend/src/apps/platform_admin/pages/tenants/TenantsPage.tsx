@@ -225,6 +225,29 @@ export function TenantsPage() {
     return `/tenant-portal/login?${searchParams.toString()}`;
   }, [selectedTenantSummary]);
 
+  const canOpenTenantPortal = useMemo(() => {
+    if (!selectedTenantSummary) {
+      return false;
+    }
+
+    if (selectedTenantSummary.status !== "active") {
+      return false;
+    }
+
+    if (!selectedTenantSummary.db_configured) {
+      return false;
+    }
+
+    if (
+      selectedProvisioningJob &&
+      selectedProvisioningJob.status !== "completed"
+    ) {
+      return false;
+    }
+
+    return true;
+  }, [selectedProvisioningJob, selectedTenantSummary]);
+
   async function loadCapabilities() {
     if (!session?.accessToken) {
       return;
@@ -1142,10 +1165,16 @@ export function TenantsPage() {
                         con un lifecycle explícito.
                       </div>
                     )}
-                    {tenantPortalHref ? (
+                    {tenantPortalHref && canOpenTenantPortal ? (
                       <Link className="btn btn-outline-primary btn-sm" to={tenantPortalHref}>
                         Abrir portal tenant
                       </Link>
+                    ) : tenantPortalHref ? (
+                      <div className="tenant-help-text">
+                        El portal tenant solo queda disponible cuando el tenant está activo, su
+                        provisioning ya terminó correctamente y la configuración DB tenant quedó
+                        completa.
+                      </div>
                     ) : null}
                   </div>
                 </div>

@@ -318,6 +318,7 @@ Avance actual:
 - `Dashboard` ya usa un lenguaje mas ejecutivo y menos tecnico en cards, focos y tablas
 - `Settings` ya expone sesion actual, `API configurada`, `API esperada en esta red`, catalogo backend y alcance de la UI
 - `Settings` ya expone tambien estado visible de cuenta raiz y recuperacion, para no depender solo del instalador o del login de recuperacion
+- `Settings` ya resume tambien la gobernanza visible de acceso de plataforma para detectar rapido si quedaron multiples `superadmin`, cuantos `admin` activos existen y cuanto soporte operativo esta habilitado
 
 Pendiente fino conocido:
 

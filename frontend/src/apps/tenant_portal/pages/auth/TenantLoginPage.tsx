@@ -39,7 +39,7 @@ export function TenantLoginPage() {
       await login(tenantSlug, email, password);
     } catch (rawError) {
       const typedError = rawError as ApiError;
-      setError(typedError.payload?.detail || typedError.message);
+      setError(formatTenantLoginError(typedError));
     } finally {
       setIsSubmitting(false);
     }
@@ -145,6 +145,16 @@ export function TenantLoginPage() {
 function normalizeQueryValue(value: string | null) {
   const normalized = value?.trim();
   return normalized ? normalized : "";
+}
+
+function formatTenantLoginError(error: ApiError) {
+  const detail = (error.payload?.detail || error.message || "").trim();
+
+  if (detail === "Tenant database configuration is incomplete") {
+    return "Este tenant todavía no está provisionado. Completa el provisioning desde Platform Admin antes de intentar entrar al portal tenant.";
+  }
+
+  return detail || "No se pudo iniciar sesión en el portal tenant.";
 }
 
 type FieldHelpLabelProps = {

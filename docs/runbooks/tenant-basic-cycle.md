@@ -13,6 +13,7 @@ Desde `Tenants` hoy ya puedes:
 - filtrar tenants por estado, billing y tipo
 - editar identidad basica del tenant
 - archivar tenant como baja operativa segura
+- abrir el portal tenant solo cuando el tenant ya esta realmente listo
 - operar estado, mantenimiento, billing, plan, limites y sincronizacion de esquema
 
 ## 1. Crear tenant
@@ -36,6 +37,7 @@ Lectura practica:
 - significa que entro al catalogo central y quedo listo para provisioning
 - el detalle del tenant ya muestra un bloque `Provisioning` con el ultimo job visible para ese tenant
 - desde ese bloque ya puede abrirse la pantalla global de `Provisioning` o ejecutar/reintentar el job segun su estado
+- el acceso rapido a `tenant_portal` ya debe reservarse para tenants `active` con provisioning completado
 
 ![Formulario de alta y catalogo tenant](../assets/app-visual-manual/04a-tenants-create-form-catalog.png)
 
@@ -165,6 +167,7 @@ Motivo:
 - no cambia `slug`
 - no elimina historial
 - no equivale a editar el lifecycle archivado de forma improvisada
+- el acceso rapido al portal tenant no debe presentarse como accion util para tenants `pending`, `archived` o con provisioning incompleto
 
 ## 6. Que no conviene hacer todavia
 
