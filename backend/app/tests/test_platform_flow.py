@@ -2829,8 +2829,14 @@ class PlatformServicesTestCase(unittest.TestCase):
 
 
 class PlatformRoutesTestCase(unittest.TestCase):
-    def _token_payload(self) -> dict:
-        return build_platform_context()
+    def _token_payload(
+        self,
+        *,
+        role: str = "superadmin",
+        user_id: int = 1,
+        email: str = "admin@platform.local",
+    ) -> dict:
+        return build_platform_context(role=role, user_id=user_id, email=email)
 
     def test_platform_login_returns_platform_token(self) -> None:
         user = build_platform_user_stub()

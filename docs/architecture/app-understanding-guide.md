@@ -154,8 +154,15 @@ Desde aqui se puede:
 
 Politica actual:
 
-- solo `superadmin` opera este bloque
+- `superadmin` gobierna la cuenta raiz y puede crear `admin` y `support`
+- `admin` ya puede crear y gobernar usuarios `support`
+- `support` hoy queda principalmente en lectura dentro de este bloque
 - la plataforma debe operar con un solo `superadmin` activo
+
+Tambien aplica esta regla:
+
+- la cuenta `superadmin` no se crea ni se borra desde el flujo normal de usuarios
+- si existen `superadmin` heredados extra, solo otro `superadmin` puede degradarlos o desactivarlos manteniendo siempre uno activo
 
 Para leerlo de forma aislada, revisa:
 

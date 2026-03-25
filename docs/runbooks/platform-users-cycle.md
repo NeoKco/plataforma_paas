@@ -13,6 +13,7 @@ Desde `platform_admin` ya se puede:
 - editar nombre visible y rol
 - activar o desactivar acceso
 - reemplazar la contraseña inicial por una nueva clave controlada
+- eliminar usuarios no criticos de plataforma
 
 Todo esto se hace sobre `platform_users` en `platform_control`.
 
@@ -32,17 +33,32 @@ Con este bloque ya queda cubierta esa parte basica.
 
 La politica actual queda asi:
 
-- roles visibles: `superadmin`, `support`
-- solo `superadmin` puede operar este bloque
+- roles visibles: `superadmin`, `admin`, `support`
+- `superadmin` es la cuenta raiz unica
+- `admin` gobierna usuarios operativos sin tocar la cuenta raiz
+- `support` queda como perfil operativo y hoy entra a este bloque en modo principalmente de lectura
 - la plataforma debe operar con un solo `superadmin` activo
 
 Eso implica:
 
+- no se crea ni se asigna `superadmin` desde este flujo normal
 - no puede crearse otro `superadmin` activo si ya existe uno
-- no puede promoverse un usuario `support` a `superadmin` si ya existe uno activo
+- no puede promoverse un usuario `support` o `admin` a `superadmin` desde este flujo
 - no puede reactivarse un `superadmin` inactivo si ya existe otro activo
 - no puede desactivarse el ultimo `superadmin` activo
-- no puede cambiarse el ultimo `superadmin` activo a `support`
+- no puede cambiarse el ultimo `superadmin` activo a otro rol
+- no puede borrarse un usuario `superadmin`
+- no puede borrarse la propia cuenta desde la consola
+
+Politica de gestion por rol:
+
+- `superadmin` puede crear `admin` y `support`
+- `superadmin` puede editar, activar, desactivar y resetear contraseñas de `admin` y `support`
+- `superadmin` tambien puede degradar o desactivar `superadmin` heredados extra si sigue quedando uno activo
+- `admin` puede crear usuarios `support`
+- `admin` puede editar, activar, desactivar, resetear contraseña y borrar usuarios `support`
+- `admin` no puede tocar cuentas `superadmin`
+- `admin` tampoco puede crear mas `admin`
 
 ## 4. Flujos cubiertos
 
@@ -88,6 +104,19 @@ Hoy se puede:
 
 Esto no depende de recordar la contraseña anterior.
 
+### Borrado seguro
+
+Hoy se puede:
+
+- borrar usuarios `support`
+- borrar usuarios `admin` cuando la accion la ejecuta `superadmin`
+
+Hoy no se puede:
+
+- borrar cuentas `superadmin`
+- borrar la propia cuenta desde la UI
+- usar `admin` para borrar cuentas `admin` o `superadmin`
+
 ## 5. Endpoints actuales
 
 Backend actual:
@@ -97,20 +126,24 @@ Backend actual:
 - `PATCH /platform/users/{user_id}`
 - `PATCH /platform/users/{user_id}/status`
 - `POST /platform/users/{user_id}/reset-password`
+- `DELETE /platform/users/{user_id}`
 
 ## 6. Validacion funcional corta
 
 La validacion minima recomendada del bloque es esta:
 
 1. entrar a `Usuarios de plataforma`
-2. crear un usuario `support` activo
+2. crear un usuario `admin` o `support` desde `superadmin`
 3. confirmar que aparece en el catalogo
-4. editar su nombre o rol y verificar persistencia
-5. desactivarlo y confirmar que cambia a `inactive`
-6. volver a activarlo
-7. actualizar su contraseña
-8. intentar desactivar o degradar al ultimo `superadmin` activo y confirmar que el backend lo bloquea
-9. intentar crear o promover otro `superadmin` activo y confirmar que el backend lo bloquea
+4. entrar con un `admin` y verificar que puede crear un `support`
+5. verificar que un `admin` no puede crear otro `admin`
+6. editar nombre o rol segun el alcance del actor y verificar persistencia
+7. desactivar y reactivar un `support`
+8. actualizar su contraseña
+9. borrar un `support`
+10. intentar desactivar o degradar al ultimo `superadmin` activo y confirmar que el backend lo bloquea
+11. intentar crear o promover otro `superadmin` activo y confirmar que el backend lo bloquea
+12. intentar borrar un `superadmin` y confirmar que el backend lo bloquea
 
 ## 7. Cobertura automatizada actual
 
@@ -123,19 +156,30 @@ Casos ya cubiertos:
 - alta de usuario de plataforma
 - rechazo por email duplicado
 - rechazo al intentar crear un segundo `superadmin` activo
-- rechazo al intentar promover un `support` a `superadmin` cuando ya existe uno activo
+- rechazo al intentar promover un usuario no `superadmin` a `superadmin` desde este flujo
 - rechazo al intentar reactivar un `superadmin` inactivo cuando ya existe otro activo
 - bloqueo al intentar desactivar el ultimo `superadmin` activo
 - bloqueo al intentar cambiar el rol del ultimo `superadmin` activo
-- respuestas base de las rutas de listado, alta, edicion, cambio de estado y reset de contraseña
+- alta de `admin` desde `superadmin`
+- alta de `support` desde `admin`
+- bloqueo de `admin` al intentar crear otro `admin`
+- bloqueo al intentar borrar un `superadmin`
+- bloqueo al intentar borrar la propia cuenta
+- borrado permitido de `support` por `admin`
+- respuestas base de las rutas de listado, alta, edicion, cambio de estado, reset de contraseña y borrado
 
 ## 8. Pendientes deliberados
 
 Este bloque aun no abre:
 
-- borrado fisico de usuarios de plataforma
 - cambio de email
 - recuperacion de contraseña por correo
-- permisos mas finos por rol dentro de `platform_admin`
+- permisos mas finos sobre otros bloques de `platform_admin` para `admin` y `support`
+
+Nota importante:
+
+- hoy el rol `admin` queda cerrado sobre `Usuarios de plataforma`
+- el resto de la consola sigue pensado principalmente para `superadmin`
+- si despues se quiere abrir mas superficie para `admin`, eso debe definirse como politica explicita por bloque
 
 Eso queda fuera por ahora para no mezclar el cierre del bloque basico con una politica de identidades mas compleja.

@@ -209,8 +209,9 @@ Lectura practica:
 Bloque basico ya cerrado en paralelo:
 
 - `Usuarios de plataforma` ya existe como flujo visible en `platform_admin`
-- hoy ya permite listar operadores, crear usuarios, editar nombre y rol, activar o desactivar acceso y resetear contraseña inicial
-- la politica ya bloquea crear o promover mas de un `superadmin` activo y tambien protege que siempre quede uno activo
+- hoy ya permite listar operadores, crear usuarios, editar nombre y rol, activar o desactivar acceso, resetear contraseña inicial y borrar usuarios no criticos
+- la politica ya bloquea crear o promover mas de un `superadmin` activo, protege que siempre quede uno activo y deja `superadmin` fuera del borrado
+- ya existe un rol `admin` intermedio para gobernar usuarios `support` sin tocar la cuenta raiz
 
 Avance reciente de lenguaje y labels:
 

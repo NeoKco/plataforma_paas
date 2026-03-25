@@ -163,9 +163,9 @@ export function PlatformUsersPage() {
       (currentPlatformRole === "admin" && selectedUser?.role === "support"));
   const canDeleteSelectedUser =
     Boolean(selectedUser) &&
-    selectedUser.role !== "superadmin" &&
+    selectedUser?.role !== "superadmin" &&
     canManageSelectedUser(selectedUser) &&
-    selectedUser.id !== currentUserId;
+    selectedUser?.id !== currentUserId;
 
   useEffect(() => {
     if (!selectedUser) {

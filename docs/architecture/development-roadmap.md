@@ -92,8 +92,9 @@ Resultado actual:
 - existe login de plataforma
 - existe creacion de tenants
 - existen `provisioning_jobs`
-- `platform_admin` ya permite listar usuarios de plataforma, darlos de alta, editar nombre y rol, activar o desactivar acceso y resetear contraseña inicial
+- `platform_admin` ya permite listar usuarios de plataforma, darlos de alta, editar nombre y rol, activar o desactivar acceso, resetear contraseña inicial y borrar usuarios no criticos
 - la politica vigente ya endurece `platform_users` para operar con un solo `superadmin` activo
+- existe ya un rol `admin` intermedio para crear y gobernar usuarios `support` sin tocar la cuenta `superadmin`
 
 Nota de cierre practico:
 
