@@ -10,6 +10,13 @@ La idea es simple:
 - crear un movimiento financiero
 - confirmar que cambian los KPIs y el uso por modulo
 
+Tambien queda como referencia operativa que el login tenant ya traduce mejor estos bloqueos comunes:
+
+- tenant no provisionado
+- tenant suspendido
+- tenant archivado
+- tenant bloqueado por deuda vencida o por politica de billing
+
 ## Objetivo
 
 Entender en la practica que el tenant ya no solo existe y esta provisionado, sino que tambien puede operar su espacio.

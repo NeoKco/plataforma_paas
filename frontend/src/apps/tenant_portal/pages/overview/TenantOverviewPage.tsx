@@ -9,7 +9,10 @@ import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { getTenantInfo, getTenantModuleUsage } from "../../../../services/tenant-api";
 import { useTenantAuth } from "../../../../store/tenant-auth-context";
-import { displayPlatformCode } from "../../../../utils/platform-labels";
+import {
+  displayPlatformCode,
+  displayTenantAccessDetail,
+} from "../../../../utils/platform-labels";
 import type { ApiError, TenantInfoResponse, TenantModuleUsageResponse } from "../../../../types";
 
 export function TenantOverviewPage() {
@@ -157,7 +160,9 @@ export function TenantOverviewPage() {
               />
             </div>
             {tenant.access_detail ? (
-              <div className="tenant-inline-note">{tenant.access_detail}</div>
+              <div className="tenant-inline-note">
+                {displayTenantAccessDetail(tenant.access_detail)}
+              </div>
             ) : null}
           </PanelCard>
 

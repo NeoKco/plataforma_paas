@@ -154,6 +154,42 @@ function formatTenantLoginError(error: ApiError) {
     return "Este tenant todavía no está provisionado. Completa el provisioning desde Platform Admin antes de intentar entrar al portal tenant.";
   }
 
+  if (detail === "Invalid credentials") {
+    return "Las credenciales no son válidas para este tenant.";
+  }
+
+  if (detail === "Tenant not found or inactive") {
+    return "No se encontró un tenant operativo con ese código.";
+  }
+
+  if (detail === "Tenant provisioning pending") {
+    return "Este tenant todavía está en provisioning. Termina ese proceso desde Platform Admin antes de entrar al portal.";
+  }
+
+  if (detail === "Tenant suspended") {
+    return "Este tenant está suspendido y no admite acceso hasta que se reactive desde Platform Admin.";
+  }
+
+  if (detail === "Tenant archived") {
+    return "Este tenant está archivado y no admite acceso hasta que se restaure formalmente desde Platform Admin.";
+  }
+
+  if (detail === "Tenant unavailable due to operational error") {
+    return "Este tenant no está disponible por un problema operativo. Revísalo desde Platform Admin.";
+  }
+
+  if (detail === "Tenant suspended due to overdue billing" || detail === "invoice overdue") {
+    return "Este tenant quedó suspendido por deuda vencida y el acceso está bloqueado hasta regularizar la facturación.";
+  }
+
+  if (detail === "Tenant suspended by billing policy") {
+    return "Este tenant está suspendido por política de facturación y el acceso está bloqueado.";
+  }
+
+  if (detail === "Tenant subscription canceled" || detail.includes("subscription canceled")) {
+    return "La suscripción de este tenant está cancelada y el acceso ya no está disponible.";
+  }
+
   return detail || "No se pudo iniciar sesión en el portal tenant.";
 }
 

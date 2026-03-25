@@ -179,6 +179,7 @@ Motivo:
 - no equivale a editar el lifecycle archivado de forma improvisada
 - el acceso rapido al portal tenant no debe presentarse como accion util para tenants `pending`, `archived` o con provisioning incompleto
 - si el tenant esta `active` pero `db_configured=false`, la consola debe seguir ocultando `Abrir portal tenant` y ofrecer `Reprovisionar tenant`
+- si el tenant queda bloqueado por lifecycle o billing, `Tenants` y `tenant_portal` deben mostrar una explicacion operativa clara en vez de dejar el detalle crudo del backend
 
 ## 6. Que no conviene hacer todavia
 

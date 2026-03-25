@@ -77,6 +77,7 @@ El flujo correcto del producto es este:
 Prioridad actual del producto:
 
 - antes de abrir mas modulos de negocio, conviene cerrar bien la base de plataforma
+- la prioridad vigente es cerrar completamente el bloque basico del tenant antes de abrir modulos nuevos
 - eso incluye que `platform_admin` pueda manejar de forma clara el ciclo basico del tenant como entidad central
 - hoy esa base ya cubre alta, edicion basica y archivo operativo desde `Tenants`
 - la politica vigente ya es:
@@ -148,6 +149,7 @@ Lectura importante:
 - desde ahi puedes entender si el tenant sigue `pending`, si necesita retry o si ya quedo listo
 - si un tenant quedo `active` pero sin configuracion DB tenant completa, la consola ya no ofrece entrar al portal y expone `Reprovisionar tenant`
 - el acceso rapido al `tenant_portal` solo corresponde cuando el tenant ya esta `active`, con provisioning completado y configuracion DB tenant valida
+- si un tenant queda bloqueado por lifecycle o billing, `Tenants` y el login tenant ya intentan explicarlo con lenguaje operativo en vez de depender del detalle crudo del backend
 
 ### `Usuarios de plataforma`
 

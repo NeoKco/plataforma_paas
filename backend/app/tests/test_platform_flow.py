@@ -2022,6 +2022,33 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertEqual(policy.status_code, 403)
         self.assertEqual(policy.detail, "subscription canceled by customer")
 
+    def test_tenant_service_billing_error_blocks_suspended_billing(self) -> None:
+        tenant = build_tenant_record_stub(
+            status="active",
+            billing_status="suspended",
+            billing_status_reason="billing policy suspended this tenant",
+        )
+        service = TenantService(tenant_repository=SimpleNamespace())
+
+        result = service.get_tenant_billing_error(tenant)
+
+        self.assertEqual(result, (423, "billing policy suspended this tenant"))
+
+    def test_tenant_service_access_policy_blocks_suspended_billing(self) -> None:
+        tenant = build_tenant_record_stub(
+            status="active",
+            billing_status="suspended",
+            billing_status_reason="billing policy suspended this tenant",
+        )
+        service = TenantService(tenant_repository=SimpleNamespace())
+
+        policy = service.get_tenant_access_policy(tenant)
+
+        self.assertFalse(policy.allowed)
+        self.assertEqual(policy.blocking_source, "billing")
+        self.assertEqual(policy.status_code, 423)
+        self.assertEqual(policy.detail, "billing policy suspended this tenant")
+
     def test_tenant_service_access_policy_prefers_status_blocking_source(self) -> None:
         tenant = build_tenant_record_stub(
             status="suspended",

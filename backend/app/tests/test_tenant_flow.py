@@ -336,6 +336,33 @@ class TenantMiddlewareMaintenanceTestCase(unittest.TestCase):
 
         self.assertEqual(exc.exception.status_code, 423)
 
+    def test_apply_tenant_runtime_state_blocks_billing_suspended(self) -> None:
+        request = SimpleNamespace(
+            method="GET",
+            url=SimpleNamespace(path="/tenant/info"),
+            state=SimpleNamespace(tenant_slug="empresa-bootstrap"),
+        )
+        middleware = self._middleware()
+        middleware._load_tenant = lambda tenant_slug: build_tenant_record_stub(  # type: ignore[attr-defined]
+            status="active",
+            billing_status="suspended",
+            billing_status_reason="billing policy suspended this tenant",
+        )
+        middleware.tenant_service.get_tenant_access_policy = lambda tenant: (  # type: ignore[attr-defined]
+            SimpleNamespace(
+                allowed=False,
+                status_code=423,
+                detail="billing policy suspended this tenant",
+                blocking_source="billing",
+                billing_in_grace=False,
+            )
+        )
+
+        with self.assertRaises(HTTPException) as exc:
+            middleware._apply_tenant_runtime_state(request)  # type: ignore[arg-type]
+
+        self.assertEqual(exc.exception.status_code, 423)
+
     def test_apply_tenant_api_rate_limit_blocks_when_limit_is_exceeded(self) -> None:
         request = SimpleNamespace(
             method="GET",
@@ -1606,6 +1633,40 @@ class TenantRoutesTestCase(unittest.TestCase):
         ), patch(
             "app.apps.tenant_modules.core.api.auth_routes.tenant_service.get_tenant_status_error",
             return_value=(423, "invoice overdue"),
+        ), patch(
+            "app.apps.tenant_modules.core.api.auth_routes.auth_audit_service.log_event",
+            return_value=None,
+        ) as audit_log:
+            with self.assertRaises(HTTPException) as exc:
+                tenant_login(
+                    payload=TenantLoginRequest(
+                        tenant_slug="empresa-bootstrap",
+                        email="admin@empresa-bootstrap.local",
+                        password="TenantAdmin123!",
+                    ),
+                    control_db=control_db,
+                )
+
+        self.assertEqual(exc.exception.status_code, 423)
+        audit_log.assert_called_once()
+
+    def test_tenant_login_rejects_suspended_billing_tenant(self) -> None:
+        control_db = object()
+        tenant = build_tenant_record_stub(
+            status="active",
+            billing_status="suspended",
+            billing_status_reason="billing policy suspended this tenant",
+        )
+        fake_connection_service = SimpleNamespace(
+            get_tenant_by_slug=lambda db, slug: tenant,
+        )
+
+        with patch(
+            "app.apps.tenant_modules.core.api.auth_routes.TenantConnectionService",
+            return_value=fake_connection_service,
+        ), patch(
+            "app.apps.tenant_modules.core.api.auth_routes.tenant_service.get_tenant_status_error",
+            return_value=(423, "billing policy suspended this tenant"),
         ), patch(
             "app.apps.tenant_modules.core.api.auth_routes.auth_audit_service.log_event",
             return_value=None,

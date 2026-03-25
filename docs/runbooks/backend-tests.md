@@ -286,6 +286,7 @@ Casos importantes ya congelados aqui:
 - `past_due` con gracia
 - `past_due` sin gracia
 - `canceled` dentro y fuera de periodo
+- `suspended` por billing con bloqueo `423`
 - mantenimiento con fechas naive/aware
 - retries de provisioning con password rotada
 - alta y edicion basica de tenant
@@ -414,7 +415,7 @@ Cobertura actual:
 - ping a DB control
 - create tenant
 - provisioning jobs
-- politica de acceso tenant por `billing`, incluyendo `past_due` con y sin gracia, y `canceled` dentro o fuera del periodo vigente
+- politica de acceso tenant por `billing`, incluyendo `past_due` con y sin gracia, `canceled` dentro o fuera del periodo vigente y `suspended`
 
 Ejecucion:
 
@@ -550,4 +551,5 @@ Estos casos ya quedaron cubiertos y no deberian volver a depender solo de prueba
 - rotacion de password para roles PostgreSQL tenant ya existentes durante retries de provisioning
 - bloqueo por `core.users.admin` al crear, cambiar rol o reactivar admins fuera de cupo
 - bloqueo por `core.users.active` al reactivar usuarios fuera de cupo
-- acceso tenant permitido o bloqueado por `billing` en estados `past_due` y `canceled`
+- acceso tenant permitido o bloqueado por `billing` en estados `past_due`, `canceled` y `suspended`
+- login tenant rechazado cuando `billing_status=suspended`

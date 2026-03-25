@@ -39,6 +39,21 @@ Antes de abrir mas modulos de negocio, conviene dejar cerrada la base de platafo
 - gobernar su estado, billing, mantenimiento y limites desde una sola consola
 - gobernar operadores de plataforma y leer actividad reciente sin depender solo de logs
 
+La prioridad vigente del proyecto queda asi:
+
+- primero cerrar completamente el bloque basico del tenant
+- despues endurecerlo con regresion y validaciones operativas
+- solo cuando ese ciclo quede robusto pasar a nuevos modulos de negocio
+
+En este contexto, "bloque basico del tenant" significa:
+
+- lifecycle completo: crear, editar, archivar, restaurar y borrar de forma segura
+- provisioning entendible y recuperable
+- acceso al `tenant_portal` solo cuando el tenant este realmente listo
+- billing y politica de acceso consistentes
+- usuarios tenant y limites base funcionando sin huecos de borde visibles
+- auditoria y trazabilidad suficientes para soporte
+
 La recomendacion actual es esta:
 
 - no abrir `delete` fisico de tenants todavia
@@ -542,6 +557,7 @@ Resultado actual:
 - existe ya una primera resolucion de limites de uso por modulo desde `plan_code`, con enforcement inicial sobre `finance.entries`, `finance.entries.monthly`, cuotas segmentadas por tipo de movimiento, `core.users`, `core.users.active`, `core.users.monthly` y cuotas por rol
 - existe ya un estado minimo de billing por tenant con efecto automatico sobre login, refresh y runtime
 - existe ya una politica efectiva de acceso tenant que consolida `status` manual y billing en una sola salida operativa
+- el login tenant ya traduce mejor bloqueos comunes de lifecycle y billing para no depender de mensajes crudos del backend
 - billing grace ya puede degradar automaticamente cuotas y modulos mientras el tenant siga operativo
 - existe ya historial persistido de cambios de politica tenant para trazabilidad operativa
 - existe ya una base de sincronizacion idempotente de eventos de billing por tenant

@@ -23,7 +23,7 @@ Lo que queda pendiente ya no es abrir el frontend desde cero.
 
 Lo pendiente es sobre todo:
 
-- cerrar el ciclo basico de tenants y operadores de plataforma desde UI
+- cerrar completamente el ciclo basico del tenant y de los operadores de plataforma desde UI
 - cerrar la politica visible por rol dentro de `platform_admin`
 - refinamiento de UX
 - labels y catalogos mas ricos desde backend
@@ -42,10 +42,10 @@ El objetivo actual ya no es construir la base del frontend.
 
 El objetivo ahora es este:
 
-- cerrar experiencia operativa y consistencia visual
+- cerrar experiencia operativa y consistencia visual del bloque basico tenant
 - seguir consumiendo backend como fuente de verdad
 - endurecer mensajes, estados y catalogos visibles
-- dejar el frontend listo para crecer sin retrabajo grande
+- dejar el frontend listo para crecer sin retrabajo grande antes de abrir nuevos modulos
 
 ## Principio rector
 
@@ -233,6 +233,7 @@ Avance reciente de lenguaje y labels:
 - `Tenants` ya muestra nombres mas legibles para fuentes de bloqueo y modos de mantenimiento
 - `Billing` ya presenta `processing_result` y `billing_status` con labels mas comprensibles
 - `tenant_portal` ya muestra roles, tipos, fuentes y estados de uso por modulo con etiquetas menos tecnicas
+- el login tenant y la lectura de `access_detail` ya traducen mejor bloqueos comunes de lifecycle y billing
 - `Tenants`, `Billing`, `Provisioning` y `tenant_portal` ya muestran mensajes de exito y encabezados de accion mas cercanos a lenguaje operativo
 
 ## Etapa F5. Provisioning y Operacion

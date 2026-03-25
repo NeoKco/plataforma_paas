@@ -17,6 +17,7 @@ import {
   displayAccessBlockingSource,
   displayMaintenanceAccessMode,
   displayPlatformCode,
+  displayTenantAccessDetail,
 } from "../../../../utils/platform-labels";
 import {
   createPlatformTenant,
@@ -1347,7 +1348,9 @@ export function TenantsPage() {
                     />
                   </div>
                   {accessPolicy.access_detail ? (
-                    <div className="tenant-inline-note">{accessPolicy.access_detail}</div>
+                    <div className="tenant-inline-note">
+                      {displayTenantAccessDetail(accessPolicy.access_detail)}
+                    </div>
                   ) : null}
                 </PanelCard>
               ) : null}
