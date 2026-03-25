@@ -226,6 +226,8 @@ Aqui ves:
 - eventos `platform`
 - eventos `tenant`
 - cambios administrativos recientes sobre tenants
+- una lectura corta de `Que revisar ahora` para distinguir fallos de login, accesos denegados, cambios tenant recientes o uso del flujo de recuperacion raiz
+- filtros especificos para cambios tenant por tipo de evento y por actor
 
 ### `Configuración`
 

@@ -123,6 +123,20 @@ Si el cambio además toca reglas visibles de negocio:
 
 4. correr `app.tests.test_platform_flow` y/o `app.tests.test_tenant_flow` segun corresponda
 
+Si el cambio cae sobre `Billing` o `Provisioning` como consola operativa:
+
+5. verificar que siga siendo claro:
+   - que acciones requieren confirmacion
+   - que feedback muestra cada accion
+   - que la pantalla permita distinguir deuda operativa real de ruido historico
+
+Si el cambio cae sobre `Actividad`:
+
+5. verificar que siga siendo claro:
+   - que `Que revisar ahora` siga siendo breve y accionable
+   - que los filtros de cambios tenant por tipo y actor no rompan la lectura general
+   - que `support` siga fuera de este bloque tanto en menu como por URL directa
+
 Si el cambio toca especificamente el ciclo basico del tenant:
 
 5. correr `app.tests.test_platform_flow`

@@ -15,6 +15,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - existe `platform_admin` con login, sesion, dashboard, `Usuarios de plataforma`, `Tenants`, `Provisioning`, `Billing` y `Settings`
 - existe tambien `Actividad` de plataforma para auditoria breve de accesos recientes
 - `Actividad` ya no solo muestra accesos: ahora tambien expone cambios administrativos recientes sobre tenants
+- `Actividad` ya permite leer senales operativas breves y filtrar cambios tenant por tipo de evento y actor
 - existe `tenant_portal` con login, resumen, usuarios y finanzas
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
 
@@ -220,6 +221,8 @@ Bloque basico ya cerrado en paralelo:
 - la politica ya bloquea crear o promover mas de un `superadmin` activo, protege que siempre quede uno activo y deja `superadmin` fuera del borrado
 - ya existe un rol `admin` intermedio para gobernar usuarios `support` sin tocar la cuenta raiz
 - `Actividad` ya existe como flujo visible para `superadmin` y `admin`
+- `Actividad` ya deja separar mejor ruido normal de una senal operativa con el bloque `Que revisar ahora`
+- `Actividad` ya puede filtrar cambios tenant por `event_type` y por correo del actor sin depender de buscar a mano dentro de toda la tabla
 - `support` ya no ve `Actividad` ni los bloques exclusivos de `superadmin`, evitando rutas visibles que terminen en `403`
 - el instalador ya define la cuenta raiz inicial y emite una clave de recuperacion de una sola vez
 - el login ya expone un flujo formal de `Recuperar cuenta raíz` en vez de depender de seeds o credenciales por defecto
@@ -293,6 +296,8 @@ Avance actual:
 - `Billing` ya permite reconciliacion individual por evento persistido
 - `Billing` ya permite reconciliacion batch sobre el filtro activo del tenant
 - `Billing` ya traduce mejor estados de facturacion y resultados de procesamiento para lectura operativa
+- `Billing` ya muestra un bloque corto de `Que revisar ahora` para separar alertas vivas, historial estabilizado y necesidad real de reconcile
+- `Billing` ya pide confirmacion previa antes de reconciliar un evento individual o un lote filtrado
 
 Lectura practica:
 

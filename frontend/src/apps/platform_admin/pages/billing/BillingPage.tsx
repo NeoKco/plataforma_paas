@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import { ConfirmDialog } from "../../../../components/common/ConfirmDialog";
 import { MetricCard } from "../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
@@ -42,6 +43,15 @@ type ActionFeedback = {
   message: string;
 };
 
+type PendingConfirmation = {
+  scope: string;
+  title: string;
+  description: string;
+  details: string[];
+  confirmLabel: string;
+  action: () => Promise<{ message?: string }>;
+};
+
 export function BillingPage() {
   const { session } = useAuth();
   const [capabilities, setCapabilities] = useState<PlatformCapabilities | null>(null);
@@ -63,6 +73,8 @@ export function BillingPage() {
   const [isTenantLoading, setIsTenantLoading] = useState(false);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
+  const [pendingConfirmation, setPendingConfirmation] =
+    useState<PendingConfirmation | null>(null);
 
   const [platformError, setPlatformError] = useState<ApiError | null>(null);
   const [tenantError, setTenantError] = useState<ApiError | null>(null);
@@ -103,6 +115,61 @@ export function BillingPage() {
     platformSummary?.total_rows,
     tenantEvents?.total_events,
     tenantSummary?.total_rows,
+  ]);
+
+  const operationalSignals = useMemo(() => {
+    const signals: Array<{
+      key: string;
+      title: string;
+      detail: string;
+    }> = [];
+
+    if ((platformAlerts?.total_alerts || 0) > 0) {
+      signals.push({
+        key: "active-alerts",
+        title: `${platformAlerts?.total_alerts || 0} alertas activas de billing`,
+        detail:
+          "Revisa primero severidad, proveedor y resultado de procesamiento para separar un ruido puntual de una desalineación más amplia.",
+      });
+    }
+
+    if ((tenantEvents?.total_events || 0) > 0 && selectedTenant) {
+      const lastEvent = tenantEvents?.data[0] || null;
+      if (lastEvent?.processing_result === "applied") {
+        signals.push({
+          key: "tenant-applied",
+          title: `El tenant ${selectedTenant.slug} tiene eventos aplicados`,
+          detail:
+            "Esto indica que el stream persistido ya mutó el tenant. Si alguien cambia el billing manualmente después, usa reconcile para reimponer el estado del último evento.",
+        });
+      }
+      if (lastEvent?.processing_result === "reconciled") {
+        signals.push({
+          key: "tenant-reconciled",
+          title: `El tenant ${selectedTenant.slug} ya tuvo reconcile reciente`,
+          detail:
+            "Esto suele indicar que el estado del tenant fue corregido usando el historial persistido, no por un evento nuevo del proveedor.",
+        });
+      }
+    }
+
+    const alertHistoryRows = platformAlertHistory?.total_alerts || 0;
+    if (alertHistoryRows > 0 && (platformAlerts?.total_alerts || 0) === 0) {
+      signals.push({
+        key: "history-without-active-alerts",
+        title: `${alertHistoryRows} alertas en historial, pero ninguna activa`,
+        detail:
+          "La sincronización se ve estable ahora, pero hubo presión operativa reciente. Úsalo para explicar incidentes sin asumir que siguen abiertos.",
+      });
+    }
+
+    return signals;
+  }, [
+    platformAlertHistory?.total_alerts,
+    platformAlerts?.total_alerts,
+    selectedTenant,
+    tenantEvents?.data,
+    tenantEvents?.total_events,
   ]);
 
   async function loadStaticContext() {
@@ -314,9 +381,20 @@ export function BillingPage() {
       return;
     }
 
-    void runAction(`reconcile-${syncEventId}`, () =>
-      reconcileTenantBillingEvent(session.accessToken, selectedTenantId, syncEventId)
-    );
+    setPendingConfirmation({
+      scope: `reconcile-${syncEventId}`,
+      title: `Reconciliar evento #${syncEventId}`,
+      description:
+        "Esta acción vuelve a aplicar sobre el tenant el estado persistido en ese evento de billing.",
+      details: [
+        `Tenant: ${selectedTenant?.slug || `tenant-${selectedTenantId}`}`,
+        `Evento: #${syncEventId}`,
+        `Proveedor: ${normalizeNullableString(providerFilter) || "según fila seleccionada"}`,
+      ],
+      confirmLabel: "Reconciliar evento",
+      action: () =>
+        reconcileTenantBillingEvent(session.accessToken, selectedTenantId, syncEventId),
+    });
   }
 
   function handleBatchReconcile(event: FormEvent<HTMLFormElement>) {
@@ -325,14 +403,27 @@ export function BillingPage() {
       return;
     }
 
-    void runAction("reconcile-batch", () =>
-      reconcileTenantBillingEventsBatch(session.accessToken, selectedTenantId, {
-        provider: normalizeNullableString(providerFilter),
-        eventType: normalizeNullableString(eventTypeFilter),
-        processingResult: normalizeNullableString(processingResultFilter),
-        limit: parsePositiveInteger(batchLimit, 10),
-      })
-    );
+    setPendingConfirmation({
+      scope: "reconcile-batch",
+      title: "Reconciliar eventos filtrados",
+      description:
+        "Esta acción vuelve a aplicar sobre el tenant los eventos de billing que hoy coinciden con el filtro visible.",
+      details: [
+        `Tenant: ${selectedTenant?.slug || `tenant-${selectedTenantId}`}`,
+        `Proveedor: ${normalizeNullableString(providerFilter) || "todos"}`,
+        `Tipo de evento: ${normalizeNullableString(eventTypeFilter) || "todos"}`,
+        `Resultado actual: ${normalizeNullableString(processingResultFilter) || "todos"}`,
+        `Límite: ${parsePositiveInteger(batchLimit, 10)}`,
+      ],
+      confirmLabel: "Reconciliar lote",
+      action: () =>
+        reconcileTenantBillingEventsBatch(session.accessToken, selectedTenantId, {
+          provider: normalizeNullableString(providerFilter),
+          eventType: normalizeNullableString(eventTypeFilter),
+          processingResult: normalizeNullableString(processingResultFilter),
+          limit: parsePositiveInteger(batchLimit, 10),
+        }),
+    });
   }
 
   return (
@@ -353,6 +444,24 @@ export function BillingPage() {
         }
       />
 
+      <ConfirmDialog
+        isOpen={Boolean(pendingConfirmation)}
+        title={pendingConfirmation?.title || ""}
+        description={pendingConfirmation?.description || ""}
+        details={pendingConfirmation?.details || []}
+        confirmLabel={pendingConfirmation?.confirmLabel || "Confirmar"}
+        onConfirm={() => {
+          if (!pendingConfirmation) {
+            return;
+          }
+          const currentAction = pendingConfirmation;
+          setPendingConfirmation(null);
+          void runAction(currentAction.scope, currentAction.action);
+        }}
+        onCancel={() => setPendingConfirmation(null)}
+        isSubmitting={isActionSubmitting}
+      />
+
       {actionFeedback ? (
         <div
           className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
@@ -371,6 +480,26 @@ export function BillingPage() {
         <MetricCard label="Eventos tenant" value={overview.totalTenantEvents} />
         <MetricCard label="Filas resumen tenant" value={overview.totalTenantSummaryRows} />
       </div>
+
+      <PanelCard
+        title="Qué revisar ahora"
+        subtitle="Lectura operativa breve para distinguir ruido puntual de una desalineación comercial real."
+      >
+        {operationalSignals.length === 0 ? (
+          <EmptyState
+            title="No hay señales operativas abiertas en billing"
+            detail="No existen alertas activas ni indicios inmediatos de reconcile pendiente. El stream de facturación se ve estable."
+          />
+        ) : (
+          <div className="dashboard-quick-hints mt-0">
+            {operationalSignals.map((signal) => (
+              <div key={signal.key}>
+                <strong>{signal.title}.</strong> {signal.detail}
+              </div>
+            ))}
+          </div>
+        )}
+      </PanelCard>
 
       <PanelCard
         title="Filtros de facturación"

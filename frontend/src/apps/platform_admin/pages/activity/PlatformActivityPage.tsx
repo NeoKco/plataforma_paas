@@ -57,6 +57,8 @@ export function PlatformActivityPage() {
   const [search, setSearch] = useState("");
   const [scopeFilter, setScopeFilter] = useState("");
   const [outcomeFilter, setOutcomeFilter] = useState("");
+  const [tenantChangeTypeFilter, setTenantChangeTypeFilter] = useState("");
+  const [actorEmailFilter, setActorEmailFilter] = useState("");
   const [limit, setLimit] = useState(25);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
@@ -76,6 +78,55 @@ export function PlatformActivityPage() {
       tenantChangeCount,
     };
   }, [events, tenantChanges]);
+
+  const operationalSignals = useMemo(() => {
+    const signals: Array<{
+      key: string;
+      title: string;
+      detail: string;
+    }> = [];
+
+    if (overview.failedCount > 0) {
+      signals.push({
+        key: "failed-logins",
+        title: `${overview.failedCount} ingresos fallidos visibles`,
+        detail:
+          "Revisa si se concentran en un mismo correo, tenant o flujo de acceso. Puede ser un problema de credenciales, sesión vencida o fricción en UX.",
+      });
+    }
+
+    if (overview.deniedCount > 0) {
+      signals.push({
+        key: "denied-access",
+        title: `${overview.deniedCount} accesos denegados`,
+        detail:
+          "Esto suele apuntar a permisos, guards de ruta o intentos de navegar fuera del rol permitido. Conviene revisar el detalle del evento.",
+      });
+    }
+
+    const latestTenantChange = tenantChanges[0];
+    if (latestTenantChange) {
+      signals.push({
+        key: "tenant-change",
+        title: `Último cambio tenant: ${displayPlatformCode(latestTenantChange.event_type)}`,
+        detail: `Se registró sobre ${latestTenantChange.tenant_slug} por ${latestTenantChange.actor_email || "actor no identificado"}. Úsalo para correlacionar soporte con mutaciones recientes.`,
+      });
+    }
+
+    const rootRecoveryEvents = events.filter(
+      (item) => item.event_type === "platform.root_recovery"
+    );
+    if (rootRecoveryEvents.length > 0) {
+      signals.push({
+        key: "root-recovery",
+        title: `${rootRecoveryEvents.length} eventos de recuperación raíz visibles`,
+        detail:
+          "Esto no es tráfico normal de operación. Si aparece, revisa resultado y contexto de la cuenta raíz antes de seguir con otras hipótesis.",
+      });
+    }
+
+    return signals;
+  }, [events, overview.deniedCount, overview.failedCount, tenantChanges]);
 
   useEffect(() => {
     if (!session?.accessToken) {
@@ -102,6 +153,8 @@ export function PlatformActivityPage() {
           search: search.trim() || undefined,
         }),
         getPlatformTenantPolicyActivity(session.accessToken, {
+          eventType: tenantChangeTypeFilter || undefined,
+          actorEmail: actorEmailFilter.trim() || undefined,
           search: search.trim() || undefined,
           limit,
         }),
@@ -154,6 +207,26 @@ export function PlatformActivityPage() {
           </div>
 
           <PanelCard
+            title="Qué revisar ahora"
+            subtitle="Lectura operativa breve para separar ruido normal de una señal que ya requiere intervención."
+          >
+            {operationalSignals.length === 0 ? (
+              <EmptyState
+                title="No hay señales operativas abiertas"
+                detail="No se ven fallos, denegaciones ni cambios tenant recientes que requieran seguimiento inmediato."
+              />
+            ) : (
+              <div className="dashboard-quick-hints mt-0">
+                {operationalSignals.map((signal) => (
+                  <div key={signal.key}>
+                    <strong>{signal.title}.</strong> {signal.detail}
+                  </div>
+                ))}
+              </div>
+            )}
+          </PanelCard>
+
+          <PanelCard
             title="Filtros de actividad"
             subtitle="Mira accesos recientes, rechazos y eventos tenant o platform con el mismo set de filtros."
           >
@@ -184,6 +257,20 @@ export function PlatformActivityPage() {
                   <option value="failed">fallidos</option>
                   <option value="denied">denegados</option>
                 </select>
+              </div>
+              <div className="tenant-inline-form-grid">
+                <input
+                  className="form-control"
+                  value={tenantChangeTypeFilter}
+                  onChange={(event) => setTenantChangeTypeFilter(event.target.value)}
+                  placeholder="Tipo de cambio tenant (status, billing, restore...)"
+                />
+                <input
+                  className="form-control"
+                  value={actorEmailFilter}
+                  onChange={(event) => setActorEmailFilter(event.target.value)}
+                  placeholder="Actor de cambio tenant"
+                />
               </div>
               <div className="tenant-inline-form-grid">
                 <input

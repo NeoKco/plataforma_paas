@@ -25,6 +25,7 @@ Sirve para:
 - leer el workspace de un tenant
 - revisar alertas
 - reimponer el estado de un tenant usando `Reconciliar`
+- decidir rapido si lo urgente es mirar alertas activas, un reconcile puntual o una desalineacion manual del tenant
 
 ## Cuándo usar esta prueba
 
@@ -189,6 +190,8 @@ Lectura correcta:
 - `Resumen global de facturación` dice que existe un evento de ese tipo y proveedor
 - `Resumen billing tenant` resume el stream del tenant seleccionado
 - `Eventos billing tenant` muestra la fila concreta que podra reconciliarse despues
+- `Qué revisar ahora` da una lectura corta para separar alertas vivas de un historial ya estabilizado
+- `Reconciliar` y `Reconciliar lote` ya pasan por confirmacion previa para evitar reimponer estados por error
 
 ## Paso 4. Desalinear manualmente el tenant
 
