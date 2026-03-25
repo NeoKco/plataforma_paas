@@ -6,6 +6,9 @@ from app.apps.platform_control.api.auth_routes import router as platform_auth_ro
 from app.apps.platform_control.api.billing_webhook_routes import (
     router as billing_webhook_router,
 )
+from app.apps.platform_control.api.platform_user_routes import (
+    router as platform_user_router,
+)
 from app.apps.platform_control.api.provisioning_job_routes import (
     router as provisioning_job_router,
 )
@@ -92,6 +95,7 @@ def register_installed_routes(app: FastAPI) -> None:
     app.include_router(platform_auth_router)
     app.include_router(billing_webhook_router)
     app.include_router(tenant_router)
+    app.include_router(platform_user_router)
     app.include_router(provisioning_job_router)
 
     # Tenant auth routes

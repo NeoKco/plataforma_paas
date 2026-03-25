@@ -92,12 +92,15 @@ Resultado actual:
 - existe login de plataforma
 - existe creacion de tenants
 - existen `provisioning_jobs`
+- `platform_admin` ya permite listar usuarios de plataforma, darlos de alta, editar nombre y rol, activar o desactivar acceso y resetear contraseña inicial
+- la politica vigente ya endurece `platform_users` para operar con un solo `superadmin` activo
 
 Nota de cierre practico:
 
 - la base backend de control central ya esta
 - el frontend ya cubre alta, edicion basica, archivo operativo y filtrado de tenants
 - el frontend ya cubre tambien restauracion formal de tenants archivados con estado destino explicito
+- el frontend ya cubre el ciclo basico de operadores de plataforma sobre `platform_users`
 - la politica vigente ya deja `slug` estable, `archive` como baja operativa, `restore` explicito y `delete` fisico fuera del alcance actual
 
 ## Etapa 3. Provisionamiento Multi-Tenant

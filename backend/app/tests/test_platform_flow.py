@@ -28,6 +28,14 @@ from app.apps.platform_control.api.auth_routes import (  # noqa: E402
 from app.apps.platform_control.api.billing_webhook_routes import (  # noqa: E402
     sync_stripe_billing_webhook,
 )
+from app.apps.platform_control.api.platform_user_routes import (  # noqa: E402
+    create_platform_user,
+    delete_platform_user,
+    list_platform_users,
+    reset_platform_user_password,
+    update_platform_user,
+    update_platform_user_status,
+)
 from app.apps.platform_control.api.provisioning_job_routes import (  # noqa: E402
     list_provisioning_jobs,
     provisioning_broker_dead_letter_jobs,
@@ -76,6 +84,10 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
 )
 from app.apps.platform_control.schemas import (  # noqa: E402
     LoginRequest,
+    PlatformUserCreateRequest,
+    PlatformUserPasswordResetRequest,
+    PlatformUserStatusUpdateRequest,
+    PlatformUserUpdateRequest,
     ProvisioningBrokerRequeueRequest,
     RefreshTokenRequest,
     TenantBillingIdentityUpdateRequest,
@@ -91,6 +103,9 @@ from app.apps.platform_control.schemas import (  # noqa: E402
     TenantStatusUpdateRequest,
 )
 from app.apps.platform_control.services.auth_service import PlatformAuthService  # noqa: E402
+from app.apps.platform_control.services.platform_user_service import (  # noqa: E402
+    PlatformUserService,
+)
 from app.apps.platform_control.services.provisioning_job_service import (  # noqa: E402
     ProvisioningJobService,
 )
@@ -251,6 +266,309 @@ class PlatformServicesTestCase(unittest.TestCase):
             result = service.login(object(), "admin@platform.local", "secret")
 
         self.assertIs(result, user)
+
+    def test_platform_user_service_creates_user_with_normalized_email(self) -> None:
+        saved_users = []
+
+        class FakePlatformUserRepository:
+            def get_by_email(self, db, email):
+                return None
+
+            def save(self, db, user):
+                user.id = 11
+                saved_users.append(user)
+                return user
+
+        service = PlatformUserService(
+            platform_user_repository=FakePlatformUserRepository()
+        )
+
+        with patch(
+            "app.apps.platform_control.services.platform_user_service.hash_password",
+            return_value="hashed-password",
+        ):
+            result = service.create_user(
+                db=object(),
+                full_name="  Support User  ",
+                email="  SUPPORT@Platform.dev  ",
+                role="support",
+                password="Support123!",
+                is_active=True,
+            )
+
+        self.assertEqual(result.id, 11)
+        self.assertEqual(result.full_name, "Support User")
+        self.assertEqual(result.email, "support@platform.dev")
+        self.assertEqual(result.role, "support")
+        self.assertEqual(result.password_hash, "hashed-password")
+        self.assertTrue(saved_users[0].is_active)
+
+    def test_platform_user_service_rejects_duplicate_email(self) -> None:
+        existing_user = build_platform_user_stub(email="support@platform.dev")
+        service = PlatformUserService(
+            platform_user_repository=SimpleNamespace(
+                get_by_email=lambda db, email: existing_user
+            )
+        )
+
+        with self.assertRaises(ValueError):
+            service.create_user(
+                db=object(),
+                full_name="Support User",
+                email="support@platform.dev",
+                role="support",
+                password="Support123!",
+            )
+
+    def test_platform_user_service_prevents_last_active_superadmin_deactivation(self) -> None:
+        user = build_platform_user_stub(role="superadmin", is_active=True)
+
+        class FakePlatformUserRepository:
+            def get_by_id(self, db, user_id):
+                return user
+
+            def count_active_by_role(self, db, role):
+                return 1
+
+        service = PlatformUserService(
+            platform_user_repository=FakePlatformUserRepository()
+        )
+
+        with self.assertRaises(ValueError):
+            service.set_user_status(
+                db=object(),
+                user_id=1,
+                is_active=False,
+            )
+
+    def test_platform_user_service_prevents_last_active_superadmin_role_change(self) -> None:
+        user = build_platform_user_stub(role="superadmin", is_active=True)
+
+        class FakePlatformUserRepository:
+            def get_by_id(self, db, user_id):
+                return user
+
+            def count_active_by_role(self, db, role):
+                return 1
+
+        service = PlatformUserService(
+            platform_user_repository=FakePlatformUserRepository()
+        )
+
+        with self.assertRaises(ValueError):
+            service.update_user(
+                db=object(),
+                user_id=1,
+                full_name="Platform Admin",
+                role="support",
+            )
+
+    def test_platform_user_service_prevents_second_active_superadmin_creation(self) -> None:
+        class FakePlatformUserRepository:
+            def get_by_email(self, db, email):
+                return None
+
+            def count_active_by_role(self, db, role):
+                return 1
+
+        service = PlatformUserService(
+            platform_user_repository=FakePlatformUserRepository()
+        )
+
+        with self.assertRaises(ValueError):
+            service.create_user(
+                db=object(),
+                full_name="Otro Admin",
+                email="otro-admin@platform.dev",
+                role="superadmin",
+                password="Admin123!",
+                is_active=True,
+            )
+
+    def test_platform_user_service_prevents_support_promotion_when_active_superadmin_exists(self) -> None:
+        user = build_platform_user_stub(role="support", is_active=True)
+
+        class FakePlatformUserRepository:
+            def get_by_id(self, db, user_id):
+                return user
+
+            def count_active_by_role(self, db, role):
+                return 1
+
+        service = PlatformUserService(
+            platform_user_repository=FakePlatformUserRepository()
+        )
+
+        with self.assertRaises(ValueError):
+            service.update_user(
+                db=object(),
+                user_id=1,
+                full_name="Support User",
+                role="superadmin",
+            )
+
+    def test_platform_user_service_prevents_archived_superadmin_reactivation_when_another_exists(self) -> None:
+        user = build_platform_user_stub(role="superadmin", is_active=False)
+
+        class FakePlatformUserRepository:
+            def get_by_id(self, db, user_id):
+                return user
+
+            def count_active_by_role(self, db, role):
+                return 1
+
+        service = PlatformUserService(
+            platform_user_repository=FakePlatformUserRepository()
+        )
+
+        with self.assertRaises(ValueError):
+            service.set_user_status(
+                db=object(),
+                user_id=1,
+                is_active=True,
+            )
+
+    def test_platform_user_service_allows_superadmin_to_create_admin(self) -> None:
+        saved_users = []
+
+        class FakePlatformUserRepository:
+            def get_by_email(self, db, email):
+                return None
+
+            def save(self, db, user):
+                user.id = 12
+                saved_users.append(user)
+                return user
+
+        service = PlatformUserService(
+            platform_user_repository=FakePlatformUserRepository()
+        )
+
+        with patch(
+            "app.apps.platform_control.services.platform_user_service.hash_password",
+            return_value="hashed-password",
+        ):
+            result = service.create_user(
+                db=object(),
+                full_name="Admin Operativo",
+                email="admin-operativo@platform.dev",
+                role="admin",
+                password="Admin123!",
+                actor_role="superadmin",
+            )
+
+        self.assertEqual(result.role, "admin")
+        self.assertEqual(saved_users[0].role, "admin")
+
+    def test_platform_user_service_allows_admin_to_create_support(self) -> None:
+        class FakePlatformUserRepository:
+            def get_by_email(self, db, email):
+                return None
+
+            def save(self, db, user):
+                user.id = 13
+                return user
+
+        service = PlatformUserService(
+            platform_user_repository=FakePlatformUserRepository()
+        )
+
+        with patch(
+            "app.apps.platform_control.services.platform_user_service.hash_password",
+            return_value="hashed-password",
+        ):
+            result = service.create_user(
+                db=object(),
+                full_name="Mesa Soporte",
+                email="mesa@platform.dev",
+                role="support",
+                password="Support123!",
+                actor_role="admin",
+            )
+
+        self.assertEqual(result.role, "support")
+
+    def test_platform_user_service_blocks_admin_from_creating_admin(self) -> None:
+        class FakePlatformUserRepository:
+            def get_by_email(self, db, email):
+                return None
+
+        service = PlatformUserService(
+            platform_user_repository=FakePlatformUserRepository()
+        )
+
+        with self.assertRaises(ValueError):
+            service.create_user(
+                db=object(),
+                full_name="Nuevo Admin",
+                email="nuevo-admin@platform.dev",
+                role="admin",
+                password="Admin123!",
+                actor_role="admin",
+            )
+
+    def test_platform_user_service_blocks_superadmin_deletion(self) -> None:
+        user = build_platform_user_stub(role="superadmin", is_active=True)
+
+        class FakePlatformUserRepository:
+            def get_by_id(self, db, user_id):
+                return user
+
+        service = PlatformUserService(
+            platform_user_repository=FakePlatformUserRepository()
+        )
+
+        with self.assertRaises(ValueError):
+            service.delete_user(
+                db=object(),
+                user_id=1,
+                actor_role="superadmin",
+                actor_user_id=99,
+            )
+
+    def test_platform_user_service_allows_admin_to_delete_support(self) -> None:
+        deleted = []
+        user = build_platform_user_stub(user_id=7, role="support", is_active=True)
+
+        class FakePlatformUserRepository:
+            def get_by_id(self, db, user_id):
+                return user
+
+            def delete(self, db, target):
+                deleted.append(target.id)
+
+        service = PlatformUserService(
+            platform_user_repository=FakePlatformUserRepository()
+        )
+
+        result = service.delete_user(
+            db=object(),
+            user_id=7,
+            actor_role="admin",
+            actor_user_id=1,
+        )
+
+        self.assertEqual(result.id, 7)
+        self.assertEqual(deleted, [7])
+
+    def test_platform_user_service_blocks_self_deletion(self) -> None:
+        user = build_platform_user_stub(user_id=7, role="support", is_active=True)
+
+        class FakePlatformUserRepository:
+            def get_by_id(self, db, user_id):
+                return user
+
+        service = PlatformUserService(
+            platform_user_repository=FakePlatformUserRepository()
+        )
+
+        with self.assertRaises(ValueError):
+            service.delete_user(
+                db=object(),
+                user_id=7,
+                actor_role="admin",
+                actor_user_id=7,
+            )
 
     def test_tenant_service_creates_tenant_and_provisioning_job(self) -> None:
         saved_tenant = build_tenant_record_stub()
@@ -2668,6 +2986,181 @@ class PlatformRoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(response.billing_providers, ["stripe"])
         self.assertIn("broker", response.provisioning_dispatch_backends)
+
+    def test_list_platform_users_returns_catalog(self) -> None:
+        users = [
+            build_platform_user_stub(
+                user_id=1,
+                full_name="Platform Admin",
+                email="admin@platform.local",
+                role="superadmin",
+                is_active=True,
+            ),
+            build_platform_user_stub(
+                user_id=2,
+                full_name="Support User",
+                email="support@platform.dev",
+                role="support",
+                is_active=False,
+            ),
+        ]
+
+        with patch(
+            "app.apps.platform_control.api.platform_user_routes."
+            "platform_user_service.list_users",
+            return_value=users,
+        ):
+            response = list_platform_users(
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.total_users, 2)
+        self.assertEqual(response.data[0].email, "admin@platform.local")
+
+    def test_list_platform_users_accepts_admin_token(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.platform_user_routes."
+            "platform_user_service.list_users",
+            return_value=[],
+        ):
+            response = list_platform_users(
+                db=object(),
+                _token=self._token_payload(role="admin"),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.total_users, 0)
+
+    def test_create_platform_user_returns_schema(self) -> None:
+        user = build_platform_user_stub(
+            user_id=7,
+            full_name="Support User",
+            email="support@platform.dev",
+            role="support",
+            is_active=True,
+        )
+
+        with patch(
+            "app.apps.platform_control.api.platform_user_routes."
+            "platform_user_service.create_user",
+            return_value=user,
+        ):
+            response = create_platform_user(
+                payload=PlatformUserCreateRequest(
+                    full_name="Support User",
+                    email="support@platform.dev",
+                    role="support",
+                    password="Support123!",
+                    is_active=True,
+                ),
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.user_id, 7)
+        self.assertEqual(response.role, "support")
+
+    def test_update_platform_user_returns_schema(self) -> None:
+        user = build_platform_user_stub(
+            user_id=7,
+            full_name="Mesa Operativa",
+            email="support@platform.dev",
+            role="support",
+            is_active=True,
+        )
+
+        with patch(
+            "app.apps.platform_control.api.platform_user_routes."
+            "platform_user_service.update_user",
+            return_value=user,
+        ):
+            response = update_platform_user(
+                user_id=7,
+                payload=PlatformUserUpdateRequest(
+                    full_name="Mesa Operativa",
+                    role="support",
+                ),
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.full_name, "Mesa Operativa")
+
+    def test_update_platform_user_status_returns_schema(self) -> None:
+        user = build_platform_user_stub(
+            user_id=7,
+            full_name="Support User",
+            email="support@platform.dev",
+            role="support",
+            is_active=False,
+        )
+
+        with patch(
+            "app.apps.platform_control.api.platform_user_routes."
+            "platform_user_service.set_user_status",
+            return_value=user,
+        ):
+            response = update_platform_user_status(
+                user_id=7,
+                payload=PlatformUserStatusUpdateRequest(is_active=False),
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertFalse(response.is_active)
+
+    def test_reset_platform_user_password_returns_schema(self) -> None:
+        user = build_platform_user_stub(
+            user_id=7,
+            full_name="Support User",
+            email="support@platform.dev",
+            role="support",
+            is_active=True,
+        )
+
+        with patch(
+            "app.apps.platform_control.api.platform_user_routes."
+            "platform_user_service.reset_password",
+            return_value=user,
+        ):
+            response = reset_platform_user_password(
+                user_id=7,
+                payload=PlatformUserPasswordResetRequest(new_password="NewPass123!"),
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.user_id, 7)
+
+    def test_delete_platform_user_returns_schema(self) -> None:
+        user = build_platform_user_stub(
+            user_id=7,
+            full_name="Support User",
+            email="support@platform.dev",
+            role="support",
+            is_active=True,
+        )
+
+        with patch(
+            "app.apps.platform_control.api.platform_user_routes."
+            "platform_user_service.delete_user",
+            return_value=user,
+        ):
+            response = delete_platform_user(
+                user_id=7,
+                db=object(),
+                _token=self._token_payload(role="admin", user_id=2, email="admin@platform.dev"),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.user_id, 7)
+        self.assertEqual(response.role, "support")
 
     def test_create_tenant_returns_schema(self) -> None:
         tenant = build_tenant_record_stub(plan_code="pro")

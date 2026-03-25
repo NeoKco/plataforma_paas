@@ -30,6 +30,65 @@ class LogoutResponse(BaseModel):
     revoked_refresh_tokens: int = 0
 
 
+class PlatformUserResponse(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    role: str
+    is_active: bool
+    created_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class PlatformUserListResponse(BaseModel):
+    success: bool
+    message: str
+    total_users: int
+    data: list[PlatformUserResponse]
+
+
+class PlatformUserCreateRequest(BaseModel):
+    full_name: str
+    email: str
+    role: str
+    password: str
+    is_active: bool = True
+
+
+class PlatformUserUpdateRequest(BaseModel):
+    full_name: str
+    role: str
+
+
+class PlatformUserStatusUpdateRequest(BaseModel):
+    is_active: bool
+
+
+class PlatformUserPasswordResetRequest(BaseModel):
+    new_password: str
+
+
+class PlatformUserWriteResponse(BaseModel):
+    success: bool
+    message: str
+    user_id: int
+    full_name: str
+    email: str
+    role: str
+    is_active: bool
+
+
+class PlatformUserDeleteResponse(BaseModel):
+    success: bool
+    message: str
+    user_id: int
+    full_name: str
+    email: str
+    role: str
+
+
 class PlatformModuleLimitCapabilityResponse(BaseModel):
     key: str
     module_name: str

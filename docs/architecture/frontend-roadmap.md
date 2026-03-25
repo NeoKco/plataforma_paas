@@ -12,7 +12,7 @@ La idea es evitar dos errores comunes:
 Hoy el frontend ya es operable de punta a punta para los flujos visibles principales:
 
 - existe instalador visual para primer arranque
-- existe `platform_admin` con login, sesion, dashboard, `Tenants`, `Provisioning`, `Billing` y `Settings`
+- existe `platform_admin` con login, sesion, dashboard, `Usuarios de plataforma`, `Tenants`, `Provisioning`, `Billing` y `Settings`
 - existe `tenant_portal` con login, resumen, usuarios y finanzas
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
 
@@ -20,7 +20,7 @@ Lo que queda pendiente ya no es abrir el frontend desde cero.
 
 Lo pendiente es sobre todo:
 
-- cerrar el ciclo basico de tenants desde UI
+- cerrar el ciclo basico de tenants y operadores de plataforma desde UI
 - refinamiento de UX
 - labels y catalogos mas ricos desde backend
 - endurecimiento de bordes y automatizacion
@@ -205,6 +205,12 @@ Lectura practica:
 - la operacion sobre tenants ya esta avanzada
 - el CRUD basico seguro ya esta muy cerca de cierre
 - lo que sigue abierto aqui es sobre todo politica de producto: confirmar `slug` estable y seguir sin `delete` fisico por ahora
+
+Bloque basico ya cerrado en paralelo:
+
+- `Usuarios de plataforma` ya existe como flujo visible en `platform_admin`
+- hoy ya permite listar operadores, crear usuarios, editar nombre y rol, activar o desactivar acceso y resetear contraseña inicial
+- la politica ya bloquea crear o promover mas de un `superadmin` activo y tambien protege que siempre quede uno activo
 
 Avance reciente de lenguaje y labels:
 

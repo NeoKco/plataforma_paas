@@ -14,6 +14,7 @@ Si solo vas a leer un documento para ubicarte, deberia ser este.
 La forma mas simple de pensarlo es esta:
 
 - `platform_admin` gobierna y corrige tenants
+- `platform_admin` tambien gobierna sus propios operadores
 - `tenant_portal` usa el espacio ya preparado de un tenant
 
 La plataforma no funciona como una sola base con todo mezclado.
@@ -138,6 +139,27 @@ Politica operativa vigente:
 - `archive` como salida basica
 - `delete` duro fuera del alcance actual
 - `restore` ya existe como accion formal solo para tenants archivados
+
+### `Usuarios de plataforma`
+
+Es el bloque que gobierna quienes pueden entrar a la consola central.
+
+Desde aqui se puede:
+
+- listar operadores de plataforma
+- crear usuarios de plataforma
+- editar nombre visible y rol
+- activar o desactivar acceso
+- reemplazar contraseñas iniciales
+
+Politica actual:
+
+- solo `superadmin` opera este bloque
+- la plataforma debe operar con un solo `superadmin` activo
+
+Para leerlo de forma aislada, revisa:
+
+- [Ciclo basico de usuarios de plataforma](../runbooks/platform-users-cycle.md)
 
 Nota importante de lectura:
 

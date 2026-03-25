@@ -4,6 +4,12 @@ import type {
   PlatformTenant,
   PlatformTenantAccessPolicy,
   PlatformTenantBillingResponse,
+  PlatformUserCreateRequest,
+  PlatformUserDeleteResponse,
+  PlatformUserListResponse,
+  PlatformUserPasswordResetRequest,
+  PlatformUserUpdateRequest,
+  PlatformUserWriteResponse,
   PlatformTenantCreateRequest,
   PlatformTenantIdentityResponse,
   PlatformTenantListResponse,
@@ -58,6 +64,72 @@ export function logoutPlatform(accessToken: string) {
 
 export function getPlatformCapabilities(accessToken: string) {
   return apiRequest<PlatformCapabilities>("/platform/capabilities", {
+    token: accessToken,
+  });
+}
+
+export function listPlatformUsers(accessToken: string) {
+  return apiRequest<PlatformUserListResponse>("/platform/users/", {
+    token: accessToken,
+  });
+}
+
+export function createPlatformUser(
+  accessToken: string,
+  payload: PlatformUserCreateRequest
+) {
+  return apiRequest<PlatformUserWriteResponse>("/platform/users/", {
+    method: "POST",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function updatePlatformUser(
+  accessToken: string,
+  userId: number,
+  payload: PlatformUserUpdateRequest
+) {
+  return apiRequest<PlatformUserWriteResponse>(`/platform/users/${userId}`, {
+    method: "PATCH",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function updatePlatformUserStatus(
+  accessToken: string,
+  userId: number,
+  payload: { is_active: boolean }
+) {
+  return apiRequest<PlatformUserWriteResponse>(
+    `/platform/users/${userId}/status`,
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function resetPlatformUserPassword(
+  accessToken: string,
+  userId: number,
+  payload: PlatformUserPasswordResetRequest
+) {
+  return apiRequest<PlatformUserWriteResponse>(
+    `/platform/users/${userId}/reset-password`,
+    {
+      method: "POST",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function deletePlatformUser(accessToken: string, userId: number) {
+  return apiRequest<PlatformUserDeleteResponse>(`/platform/users/${userId}`, {
+    method: "DELETE",
     token: accessToken,
   });
 }

@@ -104,6 +104,62 @@ export type PlatformLoginResponse = {
   full_name?: string | null;
 };
 
+export type PlatformUser = {
+  id: number;
+  full_name: string;
+  email: string;
+  role: string;
+  is_active: boolean;
+  created_at: string | null;
+};
+
+export type PlatformUserListResponse = {
+  success: boolean;
+  message: string;
+  total_users: number;
+  data: PlatformUser[];
+};
+
+export type PlatformUserCreateRequest = {
+  full_name: string;
+  email: string;
+  role: string;
+  password: string;
+  is_active: boolean;
+};
+
+export type PlatformUserUpdateRequest = {
+  full_name: string;
+  role: string;
+};
+
+export type PlatformUserStatusUpdateRequest = {
+  is_active: boolean;
+};
+
+export type PlatformUserPasswordResetRequest = {
+  new_password: string;
+};
+
+export type PlatformUserWriteResponse = {
+  success: boolean;
+  message: string;
+  user_id: number;
+  full_name: string;
+  email: string;
+  role: string;
+  is_active: boolean;
+};
+
+export type PlatformUserDeleteResponse = {
+  success: boolean;
+  message: string;
+  user_id: number;
+  full_name: string;
+  email: string;
+  role: string;
+};
+
 export type TenantLoginResponse = {
   success: boolean;
   message: string;

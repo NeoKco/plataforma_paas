@@ -25,6 +25,9 @@ const CODE_LABELS: Record<string, string> = {
   billing: "facturación",
   write_block: "bloquear escrituras",
   full_block: "bloquear todo el acceso",
+  superadmin: "superadministrador",
+  admin: "administrador",
+  support: "soporte",
 };
 
 export function displayPlatformCode(value: string | null | undefined): string {
