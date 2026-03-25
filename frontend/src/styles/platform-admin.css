@@ -512,6 +512,11 @@ code {
   justify-content: flex-end;
 }
 
+.tenant-context-actions--compact {
+  align-items: flex-start;
+  margin-top: 1rem;
+}
+
 .tenant-module-limit-grid {
   display: grid;
   gap: 0.9rem;

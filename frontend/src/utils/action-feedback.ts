@@ -24,6 +24,8 @@ export function getPlatformActionFeedbackLabel(scope: string): string {
     "billing-identity": "Identidad de facturación",
     "module-limits": "Límites por módulo",
     "sync-schema": "Esquema tenant",
+    "run-provisioning-job": "Ejecución de provisioning",
+    "requeue-provisioning-job": "Reintento de provisioning",
     "reconcile-batch": "Reconcile en lote",
     "Reencolado DLQ": "Reencolado DLQ",
   };
@@ -60,6 +62,9 @@ export function getPlatformActionSuccessMessage(
     "billing-identity": "La identidad de facturación fue actualizada correctamente.",
     "module-limits": "Los límites por módulo fueron actualizados correctamente.",
     "sync-schema": "La sincronización del esquema tenant fue lanzada correctamente.",
+    "run-provisioning-job": "El job de provisioning fue ejecutado correctamente.",
+    "requeue-provisioning-job":
+      "El job de provisioning volvió a cola para un nuevo intento.",
     "reconcile-batch": "Los eventos filtrados fueron reconciliados correctamente.",
     "Reencolado DLQ": "Las filas DLQ volvieron a cola para nuevo procesamiento.",
   };

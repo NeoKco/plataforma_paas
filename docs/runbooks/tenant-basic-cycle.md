@@ -34,6 +34,8 @@ Lectura practica:
 
 - crear tenant no significa que ya este listo para usar
 - significa que entro al catalogo central y quedo listo para provisioning
+- el detalle del tenant ya muestra un bloque `Provisioning` con el ultimo job visible para ese tenant
+- desde ese bloque ya puede abrirse la pantalla global de `Provisioning` o ejecutar/reintentar el job segun su estado
 
 ![Formulario de alta y catalogo tenant](../assets/app-visual-manual/04a-tenants-create-form-catalog.png)
 
@@ -49,6 +51,12 @@ El catalogo ya permite:
 Eso deja la vista usable para operacion diaria sin depender de una lista larga sin contexto.
 
 Despues del alta, el tenant nuevo entra al catalogo con `status=pending` y queda listo para seguirse desde `Provisioning`.
+
+Lectura practica importante:
+
+- `crear tenant` = alta en catalogo central
+- `provisionar tenant` = materializar DB tenant, rol tecnico, esquema y bootstrap
+- esas dos cosas son parte del mismo ciclo, pero no son la misma accion
 
 ![Tenant nuevo en estado pending](../assets/app-visual-manual/04b-tenants-created-pending-detail.png)
 

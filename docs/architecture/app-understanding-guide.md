@@ -140,6 +140,13 @@ Politica operativa vigente:
 - `delete` duro fuera del alcance actual
 - `restore` ya existe como accion formal solo para tenants archivados
 
+Lectura importante:
+
+- crear un tenant desde esta pantalla no significa dejarlo operativo de inmediato
+- el alta dispara provisioning
+- el detalle del tenant ya muestra un bloque `Provisioning` con el ultimo job y su estado
+- desde ahi puedes entender si el tenant sigue `pending`, si necesita retry o si ya quedo listo
+
 ### `Usuarios de plataforma`
 
 Es el bloque que gobierna quienes pueden entrar a la consola central.
@@ -194,6 +201,11 @@ Aqui ves:
 - reencolado
 
 No es una pantalla de negocio. Es una pantalla operativa de automatizacion.
+
+La idea correcta es leerla junto con `Tenants`:
+
+- `Tenants` te dice que tenant existe y cual es su estado de negocio/operacion
+- `Provisioning` te dice si la base tecnica del tenant ya fue preparada o por que fallo
 
 ### `Actividad`
 

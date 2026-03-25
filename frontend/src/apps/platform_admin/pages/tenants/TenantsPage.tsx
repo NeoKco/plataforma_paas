@@ -25,6 +25,9 @@ import {
   getPlatformTenantAccessPolicy,
   getPlatformTenantModuleUsage,
   getPlatformTenantPolicyHistory,
+  listProvisioningJobs,
+  requeueProvisioningJob,
+  runProvisioningJob,
   listPlatformTenants,
   syncPlatformTenantSchema,
   restorePlatformTenant,
@@ -41,6 +44,7 @@ import { useAuth } from "../../../../store/auth-context";
 import type {
   ApiError,
   PlatformCapabilities,
+  ProvisioningJob,
   PlatformTenant,
   PlatformTenantAccessPolicy,
   PlatformTenantPolicyChangeEvent,
@@ -82,6 +86,7 @@ export function TenantsPage() {
   const [detailError, setDetailError] = useState<ApiError | null>(null);
   const [moduleUsageError, setModuleUsageError] = useState<ApiError | null>(null);
   const [policyHistoryError, setPolicyHistoryError] = useState<ApiError | null>(null);
+  const [provisioningJobError, setProvisioningJobError] = useState<ApiError | null>(null);
   const [isListLoading, setIsListLoading] = useState(true);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
@@ -124,6 +129,9 @@ export function TenantsPage() {
   const [identityTenantType, setIdentityTenantType] = useState("empresa");
   const [restoreTargetStatus, setRestoreTargetStatus] = useState("active");
   const [restoreReason, setRestoreReason] = useState("");
+  const [selectedProvisioningJob, setSelectedProvisioningJob] = useState<ProvisioningJob | null>(
+    null
+  );
 
   const selectedTenantSummary =
     tenants.find((tenant) => tenant.id === selectedTenantId) || selectedTenant;
@@ -261,10 +269,13 @@ export function TenantsPage() {
     setModuleUsageError(null);
     setModuleUsageNotice(null);
     setPolicyHistoryError(null);
+    setProvisioningJobError(null);
     setSelectedTenant(null);
     setAccessPolicy(null);
     setModuleUsage(null);
     setPolicyHistory([]);
+    setSelectedProvisioningJob(null);
+    let tenantStatus: string | null = null;
 
     try {
       const [tenantResponse, accessPolicyResponse] = await Promise.all([
@@ -273,24 +284,30 @@ export function TenantsPage() {
       ]);
       setSelectedTenant(tenantResponse);
       setAccessPolicy(accessPolicyResponse);
+      tenantStatus = tenantResponse.status;
 
       if (tenantResponse.status !== "active") {
         setModuleUsage(null);
         setModuleUsageNotice(
           "El uso por módulo estará disponible cuando el tenant esté activo y su base tenant quede provisionada."
         );
-        return;
       }
     } catch (rawError) {
       setDetailError(rawError as ApiError);
+      setIsDetailLoading(false);
+      return;
     }
 
     try {
-      const usageResponse = await getPlatformTenantModuleUsage(
-        session.accessToken,
-        tenantId
-      );
-      setModuleUsage(usageResponse);
+      if (tenantStatus !== "active") {
+        setModuleUsage(null);
+      } else {
+        const usageResponse = await getPlatformTenantModuleUsage(
+          session.accessToken,
+          tenantId
+        );
+        setModuleUsage(usageResponse);
+      }
     } catch (rawError) {
       const typedError = rawError as ApiError;
       setModuleUsage(null);
@@ -322,9 +339,17 @@ export function TenantsPage() {
     } catch (rawError) {
       setPolicyHistory([]);
       setPolicyHistoryError(rawError as ApiError);
-    } finally {
-      setIsDetailLoading(false);
     }
+
+    try {
+      const provisioningJobs = await listProvisioningJobs(session.accessToken);
+      setSelectedProvisioningJob(selectLatestProvisioningJob(provisioningJobs, tenantId));
+    } catch (rawError) {
+      setSelectedProvisioningJob(null);
+      setProvisioningJobError(rawError as ApiError);
+    }
+
+    setIsDetailLoading(false);
   }
 
   async function reloadSelectedTenantWorkspace() {
@@ -738,6 +763,54 @@ export function TenantsPage() {
       ],
       confirmLabel: "Sincronizar esquema",
       action: () => syncPlatformTenantSchema(session.accessToken, selectedTenantId),
+    });
+  }
+
+  function handleRunProvisioningJob() {
+    if (!session?.accessToken || !selectedProvisioningJob) {
+      return;
+    }
+
+    requestConfirmation({
+      scope: "run-provisioning-job",
+      title: "Confirmar ejecución del provisioning",
+      description:
+        "Esta acción intenta procesar ahora mismo el job de provisioning visible para este tenant.",
+      details: [
+        `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
+        `Job: #${selectedProvisioningJob.id}`,
+        `Tipo: ${formatProvisioningJobType(selectedProvisioningJob.job_type)}`,
+        `Estado actual: ${displayPlatformCode(selectedProvisioningJob.status)}`,
+      ],
+      confirmLabel: "Ejecutar ahora",
+      action: async () => {
+        await runProvisioningJob(session.accessToken, selectedProvisioningJob.id);
+        return { message: "El worker procesó el job seleccionado." };
+      },
+    });
+  }
+
+  function handleRequeueProvisioningJob() {
+    if (!session?.accessToken || !selectedProvisioningJob) {
+      return;
+    }
+
+    requestConfirmation({
+      scope: "requeue-provisioning-job",
+      title: "Confirmar nuevo intento de provisioning",
+      description:
+        "Esta acción vuelve a poner el job en cola para que pueda ejecutarse otra vez.",
+      details: [
+        `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
+        `Job: #${selectedProvisioningJob.id}`,
+        `Estado actual: ${displayPlatformCode(selectedProvisioningJob.status)}`,
+        `Intentos usados: ${selectedProvisioningJob.attempts}/${selectedProvisioningJob.max_attempts}`,
+      ],
+      confirmLabel: "Reencolar job",
+      action: async () => {
+        await requeueProvisioningJob(session.accessToken, selectedProvisioningJob.id);
+        return { message: "El job quedó reencolado para un nuevo intento." };
+      },
     });
   }
 
@@ -1170,6 +1243,100 @@ export function TenantsPage() {
                   ) : null}
                 </PanelCard>
               ) : null}
+
+              <PanelCard
+                title="Provisioning"
+                subtitle="Estado del job técnico que prepara la base tenant y deja el acceso bootstrap listo."
+              >
+                {provisioningJobError ? (
+                  <ErrorState
+                    title="Falló la lectura de provisioning"
+                    detail={
+                      provisioningJobError.payload?.detail || provisioningJobError.message
+                    }
+                    requestId={provisioningJobError.payload?.request_id}
+                  />
+                ) : selectedProvisioningJob ? (
+                  <>
+                    <div className="tenant-detail-grid">
+                      <DetailField
+                        label="Último job"
+                        value={`#${selectedProvisioningJob.id}`}
+                      />
+                      <DetailField
+                        label="Operación"
+                        value={formatProvisioningJobType(selectedProvisioningJob.job_type)}
+                      />
+                      <DetailField
+                        label="Estado"
+                        value={<StatusBadge value={selectedProvisioningJob.status} />}
+                      />
+                      <DetailField
+                        label="Intentos"
+                        value={`${selectedProvisioningJob.attempts}/${selectedProvisioningJob.max_attempts}`}
+                      />
+                      <DetailField
+                        label="Próximo reintento"
+                        value={formatDateTime(selectedProvisioningJob.next_retry_at)}
+                      />
+                      <DetailField
+                        label="Lectura rápida"
+                        value={getProvisioningStatusExplanation(selectedProvisioningJob.status)}
+                      />
+                    </div>
+
+                    {selectedProvisioningJob.error_code ? (
+                      <div className="tenant-inline-note">
+                        Error técnico: {displayPlatformCode(selectedProvisioningJob.error_code)}
+                      </div>
+                    ) : null}
+                    {selectedProvisioningJob.error_message ? (
+                      <div className="tenant-inline-note">
+                        Detalle último error: {selectedProvisioningJob.error_message}
+                      </div>
+                    ) : null}
+
+                    <div className="tenant-context-actions tenant-context-actions--compact">
+                      <div className="tenant-help-text">
+                        Crear tenant dispara provisioning automáticamente. Aquí puedes ver si la
+                        base tenant quedó lista o si el job necesita intervención.
+                      </div>
+                      <div className="tenant-context-actions__buttons">
+                        <Link className="btn btn-outline-primary btn-sm" to="/provisioning">
+                          Abrir provisioning
+                        </Link>
+                        {(selectedProvisioningJob.status === "pending" ||
+                          selectedProvisioningJob.status === "retry_pending") && (
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            type="button"
+                            onClick={handleRunProvisioningJob}
+                            disabled={isActionSubmitting}
+                          >
+                            Ejecutar ahora
+                          </button>
+                        )}
+                        {selectedProvisioningJob.status === "failed" && (
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            type="button"
+                            onClick={handleRequeueProvisioningJob}
+                            disabled={isActionSubmitting}
+                          >
+                            Reintentar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-secondary">
+                    Este tenant todavía no tiene jobs visibles de provisioning. Si acaba de ser
+                    creado, recarga el catálogo o abre la consola de provisioning para revisar la
+                    cola global.
+                  </div>
+                )}
+              </PanelCard>
 
               <PanelCard
                 title="Acciones administrativas"
@@ -1997,6 +2164,37 @@ function formatDateTime(value: string | null): string {
     return value;
   }
   return parsed.toLocaleString();
+}
+
+function selectLatestProvisioningJob(
+  jobs: ProvisioningJob[],
+  tenantId: number
+): ProvisioningJob | null {
+  const tenantJobs = jobs
+    .filter((job) => job.tenant_id === tenantId)
+    .sort((left, right) => right.id - left.id);
+  return tenantJobs[0] || null;
+}
+
+function formatProvisioningJobType(value: string): string {
+  const knownLabels: Record<string, string> = {
+    create_tenant_database: "Crear base del tenant",
+    sync_tenant_schema: "Sincronizar esquema tenant",
+  };
+
+  return knownLabels[value] || displayPlatformCode(value);
+}
+
+function getProvisioningStatusExplanation(status: string): string {
+  const knownMessages: Record<string, string> = {
+    pending: "El job está en cola y todavía no lo toma el worker.",
+    running: "El worker está procesando este job ahora mismo.",
+    retry_pending: "Falló un intento, pero el job volverá a intentarse.",
+    completed: "La base tenant y su bootstrap técnico quedaron listos.",
+    failed: "El job agotó sus intentos y ya requiere intervención explícita.",
+  };
+
+  return knownMessages[status] || "Estado operativo de provisioning.";
 }
 
 function toggleScope(currentScopes: string[], scope: string): string[] {

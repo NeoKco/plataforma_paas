@@ -524,6 +524,13 @@ export function requeueProvisioningJob(
   );
 }
 
+export function runProvisioningJob(accessToken: string, jobId: number) {
+  return apiRequest<ProvisioningJob>(`/platform/provisioning-jobs/${jobId}/run`, {
+    method: "POST",
+    token: accessToken,
+  });
+}
+
 export function requeueProvisioningBrokerDlq(
   accessToken: string,
   payload: {

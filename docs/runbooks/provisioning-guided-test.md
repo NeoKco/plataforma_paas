@@ -24,6 +24,18 @@ Provisionar significa dejar lista su infraestructura minima:
 - secreto tecnico en `/.env`
 - admin bootstrap del tenant
 
+Lectura corta para no confundir conceptos:
+
+- `crear tenant` = darlo de alta en `platform_control`
+- `provisionar tenant` = preparar su infraestructura tecnica real
+
+Hoy ese ciclo se ve repartido asi:
+
+- `Tenants` crea el tenant y dispara el job
+- `Tenants` ya muestra el ultimo job de provisioning del tenant seleccionado
+- `Provisioning` muestra la cola global, reintentos, alertas y recuperacion
+- el worker ejecuta el trabajo tecnico real
+
 ## Cuándo usar esta prueba
 
 Usa esta guia cuando necesites:

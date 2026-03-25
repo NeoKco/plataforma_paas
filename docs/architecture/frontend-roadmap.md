@@ -180,6 +180,7 @@ Avance actual:
 - `Tenants` ya permite editar identidad basica del tenant para `name` y `tenant_type`
 - `Tenants` ya expone `archivar tenant` como baja operativa segura usando el lifecycle existente
 - `Tenants` ya expone `restaurar tenant` como flujo formal solo para tenants archivados, con estado destino explicito
+- `Tenants` ya muestra el ultimo job de provisioning del tenant seleccionado con acceso rapido a la consola global y acciones directas segun estado
 - `Tenants` ya permite operar `status`
 - `Tenants` ya permite operar `maintenance`
 - `Tenants` ya permite operar `billing`
