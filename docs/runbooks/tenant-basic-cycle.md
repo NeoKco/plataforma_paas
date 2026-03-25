@@ -35,6 +35,8 @@ Lectura practica:
 - crear tenant no significa que ya este listo para usar
 - significa que entro al catalogo central y quedo listo para provisioning
 
+![Formulario de alta y catalogo tenant](../assets/app-visual-manual/04a-tenants-create-form-catalog.png)
+
 ## 2. Catalogo y filtros
 
 El catalogo ya permite:
@@ -45,6 +47,10 @@ El catalogo ya permite:
 - filtrar por `tenant_type`
 
 Eso deja la vista usable para operacion diaria sin depender de una lista larga sin contexto.
+
+Despues del alta, el tenant nuevo entra al catalogo con `status=pending` y queda listo para seguirse desde `Provisioning`.
+
+![Tenant nuevo en estado pending](../assets/app-visual-manual/04b-tenants-created-pending-detail.png)
 
 ## 3. Editar identidad basica
 
@@ -62,6 +68,8 @@ Criterio actual:
 - el `slug` se trata como identificador estable
 - cambiarlo sin una politica formal puede romper portal tenant, bootstrap, credenciales esperadas y referencias operativas
 
+![Edicion basica de identidad tenant](../assets/app-visual-manual/04c-tenants-basic-identity-edit.png)
+
 ## 4. Archivar tenant
 
 `Archivar tenant` es hoy la baja operativa correcta.
@@ -78,6 +86,8 @@ Si hace:
 - mover el tenant a `status=archived`
 - dejarlo fuera de la operacion normal
 - conservar trazabilidad y capacidad de auditoria
+
+![Tenant archivado desde consola](../assets/app-visual-manual/04d-tenants-archived-result.png)
 
 ## 5. Que no conviene hacer todavia
 
