@@ -183,6 +183,8 @@ Avance actual:
 - `Tenants` ya expone `restaurar tenant` como flujo formal solo para tenants archivados, con estado destino explicito
 - `Tenants` ya expone `eliminar tenant` como borrado seguro solo para tenants archivados sin DB tenant materializada ni historial comercial
 - `Tenants` ya muestra el ultimo job de provisioning del tenant seleccionado con acceso rapido a la consola global y acciones directas segun estado
+- `Tenants` ya expone `Reprovisionar tenant` para estados inconsistentes donde existe historial `completed`, pero la DB tenant sigue incompleta
+- pendiente futuro: decidir si vale la pena abrir un `reprovisionado profundo` separado para tenants ya materializados, con controles mucho mas estrictos
 - `Tenants` ya permite operar `status`
 - `Tenants` ya permite operar `maintenance`
 - `Tenants` ya permite operar `billing`

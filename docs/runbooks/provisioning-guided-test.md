@@ -37,6 +37,7 @@ Hoy ese ciclo se ve repartido asi:
 - el worker ejecuta el trabajo tecnico real
 - `Provisioning` ya deja tambien ejecutar un job pendiente o en retry desde la misma consola
 - `Provisioning` ya muestra familias de fallo por `error_code` y ciclos recientes del worker
+- `Tenants` ya deja `Reprovisionar tenant` cuando el historial previo quedo `completed`, pero la configuracion DB sigue incompleta
 
 ## Cuándo usar esta prueba
 
@@ -225,6 +226,23 @@ Resultado real:
 - `retry_pending`: fallo, pero aun quedan intentos
 - `completed`: provisioning terminado correctamente
 - `failed`: agoto intentos y necesita intervencion explicita
+
+## Caso operativo adicional: `completed` historico pero DB incompleta
+
+Puede ocurrir que un tenant muestre un job historico `completed`, pero aun asi no tenga:
+
+- `db_name`
+- `db_user`
+- `db_host`
+- `db_port`
+
+En ese caso:
+
+- el acceso rapido al `tenant_portal` debe seguir bloqueado
+- la consola ya no intenta ejecutar el job historico completado
+- el camino correcto es usar `Reprovisionar tenant` desde `Tenants`
+
+Ese flujo crea un job nuevo `create_tenant_database` para recomponer la base tenant sin reescribir el historial anterior.
 
 ## Qué se ve en frontend despues del ajuste
 

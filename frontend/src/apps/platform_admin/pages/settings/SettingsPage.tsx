@@ -11,6 +11,7 @@ import {
   getPlatformRootRecoveryStatus,
   listPlatformUsers,
 } from "../../../../services/platform-api";
+import { API_BASE_URL, getDefaultApiBaseUrl } from "../../../../services/api";
 import { useAuth } from "../../../../store/auth-context";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
 import type {
@@ -20,16 +21,15 @@ import type {
   PlatformUser,
 } from "../../../../types";
 
-const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() ||
-  "http://127.0.0.1:8000";
-
 export function SettingsPage() {
   const { session } = useAuth();
   const [capabilities, setCapabilities] = useState<PlatformCapabilities | null>(null);
   const [platformUsers, setPlatformUsers] = useState<PlatformUser[]>([]);
   const [rootRecoveryStatus, setRootRecoveryStatus] =
     useState<PlatformRootRecoveryStatusResponse | null>(null);
+  const [rootRecoveryStatusError, setRootRecoveryStatusError] = useState<ApiError | null>(
+    null
+  );
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -57,12 +57,7 @@ export function SettingsPage() {
   }, [platformUsers]);
 
   const runtimeApiUrl = useMemo(() => {
-    if (typeof window === "undefined") {
-      return "n/a";
-    }
-
-    const host = window.location.hostname || "127.0.0.1";
-    return `http://${host}:8000`;
+    return getDefaultApiBaseUrl();
   }, []);
 
   useEffect(() => {
@@ -75,18 +70,41 @@ export function SettingsPage() {
 
       setIsLoading(true);
       setError(null);
+      setRootRecoveryStatusError(null);
 
       try {
-        const [capabilitiesResponse, rootRecoveryResponse, platformUsersResponse] =
-          await Promise.all([
+        const [capabilitiesResult, rootRecoveryResult, platformUsersResult] =
+          await Promise.allSettled([
           getPlatformCapabilities(session.accessToken),
-          getPlatformRootRecoveryStatus(),
+          getPlatformRootRecoveryStatus(session.accessToken),
           listPlatformUsers(session.accessToken),
         ]);
         if (isMounted) {
-          setCapabilities(capabilitiesResponse);
-          setRootRecoveryStatus(rootRecoveryResponse);
-          setPlatformUsers(platformUsersResponse.data);
+          if (capabilitiesResult.status === "fulfilled") {
+            setCapabilities(capabilitiesResult.value);
+          } else {
+            setCapabilities(null);
+          }
+
+          if (platformUsersResult.status === "fulfilled") {
+            setPlatformUsers(platformUsersResult.value.data);
+          } else {
+            setPlatformUsers([]);
+          }
+
+          if (rootRecoveryResult.status === "fulfilled") {
+            setRootRecoveryStatus(rootRecoveryResult.value);
+          } else {
+            setRootRecoveryStatus(null);
+            setRootRecoveryStatusError(rootRecoveryResult.reason as ApiError);
+          }
+
+          if (
+            capabilitiesResult.status === "rejected" &&
+            platformUsersResult.status === "rejected"
+          ) {
+            throw capabilitiesResult.reason;
+          }
         }
       } catch (rawError) {
         if (isMounted) {
@@ -94,6 +112,7 @@ export function SettingsPage() {
           setCapabilities(null);
           setRootRecoveryStatus(null);
           setPlatformUsers([]);
+          setRootRecoveryStatusError(null);
         }
       } finally {
         if (isMounted) {
@@ -208,17 +227,41 @@ export function SettingsPage() {
             />
             <DetailField
               label="Superadministrador activo"
-              value={rootRecoveryStatus?.has_active_superadmin ? "sí" : "no"}
+              value={
+                rootRecoveryStatus
+                  ? rootRecoveryStatus.has_active_superadmin
+                    ? "sí"
+                    : "no"
+                  : "n/d"
+              }
             />
             <DetailField
               label="Clave de recuperación"
-              value={rootRecoveryStatus?.recovery_configured ? "configurada" : "no configurada"}
+              value={
+                rootRecoveryStatus
+                  ? rootRecoveryStatus.recovery_configured
+                    ? "configurada"
+                    : "no configurada"
+                  : "n/d"
+              }
             />
             <DetailField
               label="Recuperación disponible ahora"
-              value={rootRecoveryStatus?.recovery_available ? "sí" : "no"}
+              value={
+                rootRecoveryStatus
+                  ? rootRecoveryStatus.recovery_available
+                    ? "sí"
+                    : "no"
+                  : "n/d"
+              }
             />
           </div>
+          {rootRecoveryStatusError ? (
+            <div className="alert alert-warning mt-3 mb-0">
+              No fue posible leer ahora el estado de recuperación raíz. El resto de la consola sí
+              quedó cargado correctamente.
+            </div>
+          ) : null}
           <div className="dashboard-quick-hints mt-0">
             <div>La política vigente exige una sola cuenta `superadmin` activa para operar la plataforma.</div>
             <div>Si la recuperación aparece disponible, normalmente significa que ya no queda ningún `superadmin` activo y debes usar <Link to="/login/root-recovery">Recuperar cuenta raíz</Link>.</div>

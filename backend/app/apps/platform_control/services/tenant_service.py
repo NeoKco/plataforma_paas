@@ -113,6 +113,40 @@ class TenantService:
 
         return tenant
 
+    def reprovision_tenant(self, db: Session, tenant_id: int) -> ProvisioningJob:
+        tenant = self.tenant_repository.get_by_id(db, tenant_id)
+        if not tenant:
+            raise ValueError("Tenant not found")
+
+        if tenant.status == "archived":
+            raise ValueError("Archived tenants must be restored before reprovisioning")
+
+        db_configured = bool(
+            getattr(tenant, "db_name", None)
+            and getattr(tenant, "db_user", None)
+            and getattr(tenant, "db_host", None)
+            and getattr(tenant, "db_port", None)
+        )
+        if db_configured:
+            raise ValueError("Tenant database configuration is already complete")
+
+        active_job = (
+            db.query(ProvisioningJob)
+            .filter(ProvisioningJob.tenant_id == tenant.id)
+            .filter(ProvisioningJob.status.in_(["pending", "retry_pending", "running"]))
+            .order_by(ProvisioningJob.id.desc())
+            .first()
+        )
+        if active_job:
+            raise ValueError("Tenant already has a live provisioning job")
+
+        return self.provisioning_dispatch_service.enqueue_job(
+            db=db,
+            tenant_id=tenant.id,
+            job_type="create_tenant_database",
+            status="pending",
+        )
+
     def update_basic_identity(
         self,
         db: Session,

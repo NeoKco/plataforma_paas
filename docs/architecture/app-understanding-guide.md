@@ -146,6 +146,7 @@ Lectura importante:
 - el alta dispara provisioning
 - el detalle del tenant ya muestra un bloque `Provisioning` con el ultimo job y su estado
 - desde ahi puedes entender si el tenant sigue `pending`, si necesita retry o si ya quedo listo
+- si un tenant quedo `active` pero sin configuracion DB tenant completa, la consola ya no ofrece entrar al portal y expone `Reprovisionar tenant`
 - el acceso rapido al `tenant_portal` solo corresponde cuando el tenant ya esta `active`, con provisioning completado y configuracion DB tenant valida
 
 ### `Usuarios de plataforma`

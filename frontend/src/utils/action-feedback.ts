@@ -27,6 +27,7 @@ export function getPlatformActionFeedbackLabel(scope: string): string {
     "sync-schema": "Esquema tenant",
     "run-provisioning-job": "Ejecución de provisioning",
     "requeue-provisioning-job": "Reintento de provisioning",
+    "reprovision-tenant": "Reprovisionado de tenant",
     "reconcile-batch": "Reconcile en lote",
     "Reencolado DLQ": "Reencolado DLQ",
   };
@@ -67,6 +68,8 @@ export function getPlatformActionSuccessMessage(
     "run-provisioning-job": "El job de provisioning fue ejecutado correctamente.",
     "requeue-provisioning-job":
       "El job de provisioning volvió a cola para un nuevo intento.",
+    "reprovision-tenant":
+      "Se creó un nuevo job de provisioning para recomponer la base tenant.",
     "reconcile-batch": "Los eventos filtrados fueron reconciliados correctamente.",
     "Reencolado DLQ": "Las filas DLQ volvieron a cola para nuevo procesamiento.",
   };

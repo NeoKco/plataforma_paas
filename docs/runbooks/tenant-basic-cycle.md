@@ -38,6 +38,7 @@ Lectura practica:
 - significa que entro al catalogo central y quedo listo para provisioning
 - el detalle del tenant ya muestra un bloque `Provisioning` con el ultimo job visible para ese tenant
 - desde ese bloque ya puede abrirse la pantalla global de `Provisioning` o ejecutar/reintentar el job segun su estado
+- si un tenant quedo con historial `completed` pero sigue sin DB tenant configurada, el bloque ahora tambien expone `Reprovisionar tenant`
 - el acceso rapido a `tenant_portal` ya debe reservarse para tenants `active` con provisioning completado
 
 ![Formulario de alta y catalogo tenant](../assets/app-visual-manual/04a-tenants-create-form-catalog.png)
@@ -60,6 +61,7 @@ Lectura practica importante:
 - `crear tenant` = alta en catalogo central
 - `provisionar tenant` = materializar DB tenant, rol tecnico, esquema y bootstrap
 - esas dos cosas son parte del mismo ciclo, pero no son la misma accion
+- si la DB tenant no quedo materializada aunque exista un job historico `completed`, el camino correcto ya no es forzar el portal: es lanzar `Reprovisionar tenant`
 
 ![Tenant nuevo en estado pending](../assets/app-visual-manual/04b-tenants-created-pending-detail.png)
 
@@ -167,6 +169,7 @@ Motivo:
 - no elimina historial
 - no equivale a editar el lifecycle archivado de forma improvisada
 - el acceso rapido al portal tenant no debe presentarse como accion util para tenants `pending`, `archived` o con provisioning incompleto
+- si el tenant esta `active` pero `db_configured=false`, la consola debe seguir ocultando `Abrir portal tenant` y ofrecer `Reprovisionar tenant`
 
 ## 6. Que no conviene hacer todavia
 
@@ -198,6 +201,7 @@ Este bloque ya queda practicamente cerrado a nivel de consola:
 Lo que sigue abierto aqui ya no es una falta de UI base, sino una decision de producto:
 
 - definir recien despues, y solo si se vuelve necesario, una politica de baja dura para tenants provisionados o con historia real
+- evaluar mas adelante un flujo distinto de `reprovisionado profundo` para tenants que ya tienen DB materializada y requieren recomposicion mas invasiva
 
 ## 8. Validacion recomendada
 

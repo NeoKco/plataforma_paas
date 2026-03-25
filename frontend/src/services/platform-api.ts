@@ -60,9 +60,12 @@ export function refreshPlatformSession(refreshToken: string) {
   });
 }
 
-export function getPlatformRootRecoveryStatus() {
+export function getPlatformRootRecoveryStatus(accessToken?: string | null) {
   return apiRequest<PlatformRootRecoveryStatusResponse>(
-    "/platform/auth/root-recovery/status"
+    "/platform/auth/root-recovery/status",
+    {
+      token: accessToken ?? undefined,
+    }
   );
 }
 
@@ -206,6 +209,16 @@ export function createPlatformTenant(
 
 export function getPlatformTenant(accessToken: string, tenantId: number) {
   return apiRequest<PlatformTenant>(`/platform/tenants/${tenantId}`, {
+    token: accessToken,
+  });
+}
+
+export function reprovisionPlatformTenant(
+  accessToken: string,
+  tenantId: number
+) {
+  return apiRequest<ProvisioningJob>(`/platform/tenants/${tenantId}/reprovision`, {
+    method: "POST",
     token: accessToken,
   });
 }

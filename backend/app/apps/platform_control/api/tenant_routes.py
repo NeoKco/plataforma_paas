@@ -37,6 +37,7 @@ from app.apps.platform_control.schemas import (
     TenantListResponse,
     TenantPlanResponse,
     TenantPlanUpdateRequest,
+    ProvisioningJobResponse,
     TenantRateLimitResponse,
     TenantRateLimitUpdateRequest,
     TenantDeleteResponse,
@@ -299,6 +300,21 @@ def create_tenant(
         return _build_tenant_response(tenant)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/{tenant_id}/reprovision", response_model=ProvisioningJobResponse)
+def reprovision_tenant(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> ProvisioningJobResponse:
+    try:
+        job = tenant_service.reprovision_tenant(db=db, tenant_id=tenant_id)
+        return ProvisioningJobResponse.model_validate(job)
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
 
 
 @router.patch("/{tenant_id}", response_model=TenantIdentityResponse)

@@ -76,6 +76,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     get_tenant_policy_history,
     reconcile_tenant_billing_events_batch,
     reconcile_tenant_billing_from_event,
+    reprovision_tenant,
     sync_tenant_billing_event,
     restore_tenant,
     update_tenant_identity,
@@ -844,6 +845,93 @@ class PlatformServicesTestCase(unittest.TestCase):
                 ("ProvisioningJob", False),
                 ("TenantPolicyChangeEvent", False),
             ],
+        )
+
+    def test_tenant_service_rejects_reprovision_for_archived_tenant(self) -> None:
+        tenant = build_tenant_record_stub(status="archived")
+        tenant.id = 1
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant)
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.reprovision_tenant(db=object(), tenant_id=1)
+
+        self.assertEqual(
+            str(exc.exception),
+            "Archived tenants must be restored before reprovisioning",
+        )
+
+    def test_tenant_service_rejects_reprovision_for_complete_db(self) -> None:
+        tenant = build_tenant_record_stub(status="active")
+        tenant.id = 1
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant)
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.reprovision_tenant(db=MagicMock(), tenant_id=1)
+
+        self.assertEqual(
+            str(exc.exception),
+            "Tenant database configuration is already complete",
+        )
+
+    def test_tenant_service_rejects_reprovision_with_live_job(self) -> None:
+        tenant = build_tenant_record_stub(status="active")
+        tenant.id = 1
+        db = MagicMock()
+        query = db.query.return_value
+        query.filter.return_value = query
+        query.order_by.return_value = query
+        query.first.return_value = SimpleNamespace(id=9, status="pending")
+        dispatch = MagicMock()
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant),
+            provisioning_dispatch_service=dispatch,
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.reprovision_tenant(db=db, tenant_id=1)
+
+        self.assertEqual(
+            str(exc.exception),
+            "Tenant already has a live provisioning job",
+        )
+        dispatch.enqueue_job.assert_not_called()
+
+    def test_tenant_service_enqueues_reprovision_for_incomplete_db(self) -> None:
+        tenant = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
+        tenant.id = 1
+        db = MagicMock()
+        query = db.query.return_value
+        query.filter.return_value = query
+        query.order_by.return_value = query
+        query.first.return_value = None
+        dispatch = MagicMock()
+        dispatch.enqueue_job.return_value = SimpleNamespace(
+            id=21,
+            tenant_id=1,
+            job_type="create_tenant_database",
+            status="pending",
+        )
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant),
+            provisioning_dispatch_service=dispatch,
+        )
+
+        result = service.reprovision_tenant(db=db, tenant_id=1)
+
+        self.assertEqual(result.id, 21)
+        dispatch.enqueue_job.assert_called_once_with(
+            db=db,
+            tenant_id=1,
+            job_type="create_tenant_database",
+            status="pending",
         )
 
     def test_tenant_service_resolves_effective_module_limits_with_sources(self) -> None:
@@ -4646,6 +4734,34 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.tenant_id, 1)
         self.assertEqual(response.tenant_slug, "empresa-temporal")
         self.assertEqual(response.tenant_name, "Empresa Temporal")
+
+    def test_reprovision_tenant_returns_job_schema(self) -> None:
+        job = SimpleNamespace(
+            id=21,
+            tenant_id=5,
+            job_type="create_tenant_database",
+            status="pending",
+            attempts=0,
+            max_attempts=3,
+            error_code=None,
+            error_message=None,
+            next_retry_at=None,
+        )
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.reprovision_tenant",
+            return_value=job,
+        ) as reprovision_mock:
+            response = reprovision_tenant(
+                tenant_id=5,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertEqual(response.id, 21)
+        self.assertEqual(response.tenant_id, 5)
+        self.assertEqual(response.status, "pending")
+        reprovision_mock.assert_called_once()
 
     def test_get_tenant_policy_history_returns_schema(self) -> None:
         tenant = build_tenant_record_stub()

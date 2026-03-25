@@ -27,6 +27,7 @@ import {
   getPlatformTenantModuleUsage,
   getPlatformTenantPolicyHistory,
   listProvisioningJobs,
+  reprovisionPlatformTenant,
   requeueProvisioningJob,
   runProvisioningJob,
   listPlatformTenants,
@@ -842,6 +843,33 @@ export function TenantsPage() {
     });
   }
 
+  function handleReprovisionTenant() {
+    if (!session?.accessToken || selectedTenantId === null || !selectedTenantSummary) {
+      return;
+    }
+
+    requestConfirmation({
+      scope: "reprovision-tenant",
+      title: "Confirmar reprovisionado del tenant",
+      description:
+        "Esta acción crea un nuevo job para recomponer la base tenant cuando el historial previo quedó completado, pero la configuración DB sigue incompleta.",
+      details: [
+        `Tenant: ${selectedTenantSummary.name}`,
+        `Slug: ${selectedTenantSummary.slug}`,
+        `Lifecycle actual: ${displayPlatformCode(selectedTenantSummary.status)}`,
+        "Úsalo cuando el portal tenant siga bloqueado por configuración DB incompleta.",
+      ],
+      confirmLabel: "Reprovisionar tenant",
+      action: async () => {
+        await reprovisionPlatformTenant(session.accessToken, selectedTenantId);
+        return {
+          message:
+            "Se creó un nuevo job de provisioning para recomponer la base tenant.",
+        };
+      },
+    });
+  }
+
   function handleArchiveTenant() {
     if (!session?.accessToken || selectedTenantId === null || !selectedTenantSummary) {
       return;
@@ -1375,6 +1403,13 @@ export function TenantsPage() {
                         Detalle último error: {selectedProvisioningJob.error_message}
                       </div>
                     ) : null}
+                    {!selectedTenantSummary.db_configured &&
+                    selectedProvisioningJob.status === "completed" ? (
+                      <div className="tenant-inline-note">
+                        El tenant tiene un job histórico completado, pero la configuración DB
+                        sigue incompleta. Debes reprovisionarlo para recomponer su base tenant.
+                      </div>
+                    ) : null}
 
                     <div className="tenant-context-actions tenant-context-actions--compact">
                       <div className="tenant-help-text">
@@ -1406,15 +1441,46 @@ export function TenantsPage() {
                             Reintentar
                           </button>
                         )}
+                        {!selectedTenantSummary.db_configured &&
+                          selectedProvisioningJob.status === "completed" && (
+                            <button
+                              className="btn btn-outline-secondary btn-sm"
+                              type="button"
+                              onClick={handleReprovisionTenant}
+                              disabled={isActionSubmitting}
+                            >
+                              Reprovisionar tenant
+                            </button>
+                          )}
                       </div>
                     </div>
                   </>
                 ) : (
-                  <div className="text-secondary">
-                    Este tenant todavía no tiene jobs visibles de provisioning. Si acaba de ser
-                    creado, recarga el catálogo o abre la consola de provisioning para revisar la
-                    cola global.
-                  </div>
+                  <>
+                    <div className="text-secondary">
+                      Este tenant todavía no tiene jobs visibles de provisioning. Si acaba de ser
+                      creado, recarga el catálogo o abre la consola de provisioning para revisar la
+                      cola global.
+                    </div>
+                    {!selectedTenantSummary.db_configured ? (
+                      <div className="tenant-context-actions tenant-context-actions--compact">
+                        <div className="tenant-help-text">
+                          El tenant sigue sin configuración DB completa. Puedes crear ahora un job
+                          nuevo de provisioning para prepararlo.
+                        </div>
+                        <div className="tenant-context-actions__buttons">
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            type="button"
+                            onClick={handleReprovisionTenant}
+                            disabled={isActionSubmitting}
+                          >
+                            Reprovisionar tenant
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </>
                 )}
               </PanelCard>
 

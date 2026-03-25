@@ -3,7 +3,7 @@ import type { ApiError, ApiErrorPayload } from "../types";
 const PLATFORM_AUTH_ERROR_EVENT = "platform_paas:platform-auth-error";
 const TENANT_AUTH_ERROR_EVENT = "platform_paas:tenant-auth-error";
 
-function getDefaultApiBaseUrl() {
+export function getDefaultApiBaseUrl() {
   if (typeof window === "undefined") {
     return "http://127.0.0.1:8000";
   }
@@ -14,7 +14,7 @@ function getDefaultApiBaseUrl() {
   return `${protocol}//${hostname}:8000`;
 }
 
-const API_BASE_URL =
+export const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() ||
   getDefaultApiBaseUrl();
 
