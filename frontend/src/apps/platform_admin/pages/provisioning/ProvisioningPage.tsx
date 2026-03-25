@@ -111,6 +111,75 @@ export function ProvisioningPage() {
     );
   }, [jobs]);
 
+  const operationalSignals = useMemo(() => {
+    const signals: Array<{
+      key: string;
+      title: string;
+      detail: string;
+    }> = [];
+
+    const latestCycle = cycleHistory?.data[0];
+    const failedJobCount = jobs.filter((job) => job.status === "failed").length;
+    const retryJobCount = jobs.filter((job) => job.status === "retry_pending").length;
+    const pendingJobCount = jobs.filter((job) => job.status === "pending").length;
+
+    if (failedJobCount > 0) {
+      signals.push({
+        key: "failed-jobs",
+        title: `${failedJobCount} jobs agotaron intentos`,
+        detail:
+          "Revisa primero el panel de jobs que requieren acción y luego inspecciona el error agrupado por código para decidir si conviene reencolar o corregir antes la causa.",
+      });
+    }
+
+    if (dlq?.total_jobs) {
+      signals.push({
+        key: "dlq-jobs",
+        title: `${dlq.total_jobs} filas quedaron en DLQ`,
+        detail:
+          "Usa los filtros DLQ para aislar una familia de fallos y reencola solo el subconjunto necesario en vez de devolver toda la cola.",
+      });
+    }
+
+    if (retryJobCount > 0) {
+      signals.push({
+        key: "retry-jobs",
+        title: `${retryJobCount} jobs esperan reintento`,
+        detail:
+          "No están muertos: puedes esperar el próximo ciclo del worker o forzar ejecución ahora si necesitas acelerar la recuperación.",
+      });
+    }
+
+    if (pendingJobCount > 0) {
+      signals.push({
+        key: "pending-jobs",
+        title: `${pendingJobCount} jobs siguen en cola`,
+        detail:
+          "Esto suele indicar backlog normal. Si el alta de un tenant es urgente, puedes ejecutar el job manualmente desde la consola.",
+      });
+    }
+
+    if (latestCycle?.stopped_due_to_failure_limit) {
+      signals.push({
+        key: "failure-limit",
+        title: "El último ciclo del worker se detuvo por límite de fallos",
+        detail:
+          "La corrida reciente cortó procesamiento para no seguir acumulando errores. Revisa los jobs fallidos y los códigos de error antes de reintentar masivamente.",
+      });
+    }
+
+    if ((latestCycle?.failed_count || 0) > 0 && failedJobCount === 0) {
+      signals.push({
+        key: "cycle-failed-count",
+        title: `${latestCycle?.failed_count || 0} fallos en el último ciclo`,
+        detail:
+          "Aunque no haya jobs marcados como fallidos definitivos, el worker sí vio errores recientes. Revisa alertas activas y familias de error para evitar deuda silenciosa.",
+      });
+    }
+
+    return signals;
+  }, [cycleHistory?.data, dlq?.total_jobs, jobs]);
+
   const jobTypeOptions = useMemo(() => {
     const keys = new Set<string>();
     jobs.forEach((job) => keys.add(job.job_type));
@@ -483,6 +552,26 @@ function handleRefresh() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+      </PanelCard>
+
+      <PanelCard
+        title="Qué revisar ahora"
+        subtitle="Lectura operativa rápida para distinguir backlog normal de deuda que ya requiere intervención."
+      >
+        {operationalSignals.length === 0 ? (
+          <EmptyState
+            title="No hay señales operativas abiertas"
+            detail="No hay jobs fallidos, DLQ relevante ni señales recientes de ciclos cortados por error. Provisioning se ve estable en este momento."
+          />
+        ) : (
+          <div className="dashboard-quick-hints mt-0">
+            {operationalSignals.map((signal) => (
+              <div key={signal.key}>
+                <strong>{signal.title}.</strong> {signal.detail}
+              </div>
+            ))}
           </div>
         )}
       </PanelCard>

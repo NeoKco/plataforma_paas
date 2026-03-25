@@ -208,6 +208,7 @@ Aqui ves:
 - ejecucion directa de jobs pendientes o en retry
 - familias de fallo por `error_code`
 - ciclos recientes del worker
+- una lectura corta de `Que revisar ahora` para decidir si el problema es backlog normal, retry, fallo definitivo o deuda en DLQ
 
 No es una pantalla de negocio. Es una pantalla operativa de automatizacion.
 

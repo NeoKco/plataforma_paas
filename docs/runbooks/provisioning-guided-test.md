@@ -39,6 +39,7 @@ Hoy ese ciclo se ve repartido asi:
 - `Provisioning` ya muestra familias de fallo por `error_code` y ciclos recientes del worker
 - `Provisioning` ya resume primero los jobs que requieren accion para no perderse entre historial y tablas largas
 - las acciones manuales de `Ejecutar ahora`, `Reencolar job` y `Reencolar DLQ` ya pasan por confirmacion previa y dejan feedback especifico por accion
+- `Provisioning` ya muestra tambien un bloque `Que revisar ahora` para distinguir backlog normal, retries, jobs fallidos, DLQ y ciclos del worker cortados por error
 - `Tenants` ya deja `Reprovisionar tenant` cuando el historial previo quedo `completed`, pero la configuracion DB sigue incompleta
 
 ## Cuándo usar esta prueba
