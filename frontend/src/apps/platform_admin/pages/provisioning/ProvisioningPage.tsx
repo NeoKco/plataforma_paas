@@ -262,12 +262,25 @@ export function ProvisioningPage() {
       });
     } finally {
       setIsActionSubmitting(false);
-    }
   }
+}
 
-  function handleRefresh() {
-    void loadProvisioningWorkspace();
+function getProvisioningActionRecommendation(status: string): string {
+  switch (status) {
+    case "failed":
+      return "Reencola el job o revisa el error antes de volver a intentar.";
+    case "retry_pending":
+      return "Puedes esperar el próximo ciclo del worker o forzar ejecución ahora.";
+    case "pending":
+      return "Puedes dejarlo en cola o ejecutarlo ahora si necesitas acelerar el alta.";
+    default:
+      return "n/a";
   }
+}
+
+function handleRefresh() {
+  void loadProvisioningWorkspace();
+}
 
   function handleDlqFilterSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

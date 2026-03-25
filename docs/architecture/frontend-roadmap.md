@@ -257,10 +257,12 @@ Avance actual:
 - `Provisioning` ya permite inspeccionar DLQ y hacer requeue individual o batch
 - `Provisioning` ya muestra mensajes de error por accion con el detalle real del backend
 - `Provisioning` ya pide confirmacion previa antes del reencolado batch de DLQ
+- `Provisioning` ya pide tambien confirmacion previa al reencolar un job fallido o forzar ejecucion manual
 - `Provisioning` ya traduce mejor `job_type`, `alert_code` y `error_code` sin perder el codigo tecnico
 - `Provisioning` ya permite ejecutar desde la consola un job `pending` o `retry_pending`
 - `Provisioning` ya muestra fallos agregados por `error_code`
 - `Provisioning` ya muestra ciclos recientes del worker para distinguir backlog de ejecucion
+- `Provisioning` ya muestra un bloque corto de `Jobs que requieren accion` para decidir rapido si conviene ejecutar, esperar retry o reencolar
 
 Lectura practica:
 
