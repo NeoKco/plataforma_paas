@@ -283,6 +283,8 @@ Casos importantes ya congelados aqui:
 - retries de provisioning con password rotada
 - alta y edicion basica de tenant
 - restore formal de tenant archivado
+- alta, permisos y borrado seguro de usuarios de plataforma
+- listado y filtros base de `Actividad` de plataforma
 
 ## Suite HTTP Smoke
 

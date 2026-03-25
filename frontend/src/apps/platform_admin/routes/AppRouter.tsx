@@ -1,6 +1,7 @@
 import { Navigate, createBrowserRouter, RouterProvider } from "react-router-dom";
 import { LoginPage } from "../pages/auth/LoginPage";
 import { DashboardPage } from "../pages/dashboard/DashboardPage";
+import { PlatformActivityPage } from "../pages/activity/PlatformActivityPage";
 import { TenantsPage } from "../pages/tenants/TenantsPage";
 import { ProvisioningPage } from "../pages/provisioning/ProvisioningPage";
 import { BillingPage } from "../pages/billing/BillingPage";
@@ -9,6 +10,7 @@ import { InstallPage } from "../pages/install/InstallPage";
 import { PlatformUsersPage } from "../pages/users/PlatformUsersPage";
 import { RequireAuth } from "./RequireAuth";
 import { RequireInstalled } from "./RequireInstalled";
+import { RequirePlatformRoles } from "./RequirePlatformRoles";
 import { RequireTenantAuth } from "../../tenant_portal/routes/RequireTenantAuth";
 import { TenantLoginPage } from "../../tenant_portal/pages/auth/TenantLoginPage";
 import { TenantOverviewPage } from "../../tenant_portal/pages/overview/TenantOverviewPage";
@@ -46,11 +48,20 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <PlatformHomeRoute /> },
+      {
+        element: <RequirePlatformRoles allowedRoles={["superadmin", "admin"]} />,
+        children: [{ path: "activity", element: <PlatformActivityPage /> }],
+      },
       { path: "users", element: <PlatformUsersPage /> },
-      { path: "tenants", element: <TenantsPage /> },
-      { path: "provisioning", element: <ProvisioningPage /> },
-      { path: "billing", element: <BillingPage /> },
-      { path: "settings", element: <SettingsPage /> },
+      {
+        element: <RequirePlatformRoles allowedRoles={["superadmin"]} redirectTo="/users" />,
+        children: [
+          { path: "tenants", element: <TenantsPage /> },
+          { path: "provisioning", element: <ProvisioningPage /> },
+          { path: "billing", element: <BillingPage /> },
+          { path: "settings", element: <SettingsPage /> },
+        ],
+      },
     ],
   },
   {

@@ -50,6 +50,7 @@ En este momento la documentacion creada formalmente dentro del repositorio comie
 - [Demo data y seeds de desarrollo](./runbooks/demo-data.md)
 - [Ciclo basico de tenants](./runbooks/tenant-basic-cycle.md)
 - [Ciclo basico de usuarios de plataforma](./runbooks/platform-users-cycle.md)
+- [Actividad de plataforma](./runbooks/platform-activity.md)
 - [Prueba guiada de provisioning](./runbooks/provisioning-guided-test.md)
 - [Prueba guiada de billing](./runbooks/billing-guided-test.md)
 - [Prueba guiada de tenant portal](./runbooks/tenant-portal-guided-test.md)

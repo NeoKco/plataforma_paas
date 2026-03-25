@@ -25,6 +25,9 @@ from app.apps.platform_control.api.auth_routes import (  # noqa: E402
     logout,
     refresh_login,
 )
+from app.apps.platform_control.api.auth_audit_routes import (  # noqa: E402
+    list_platform_auth_audit,
+)
 from app.apps.platform_control.api.billing_webhook_routes import (  # noqa: E402
     sync_stripe_billing_webhook,
 )
@@ -569,6 +572,34 @@ class PlatformServicesTestCase(unittest.TestCase):
                 actor_role="admin",
                 actor_user_id=7,
             )
+
+    def test_auth_audit_service_lists_recent_events_with_normalized_filters(self) -> None:
+        captured = {}
+
+        class FakeAuthAuditRepository:
+            def list_recent(self, db, **kwargs):
+                captured.update(kwargs)
+                return []
+
+        from app.apps.platform_control.services.auth_audit_service import AuthAuditService
+
+        service = AuthAuditService(
+            auth_audit_event_repository=FakeAuthAuditRepository()
+        )
+
+        result = service.list_recent_events(
+            db=object(),
+            limit=500,
+            subject_scope=" PLATFORM ",
+            outcome=" SUCCESS ",
+            search="  admin@platform.local  ",
+        )
+
+        self.assertEqual(result, [])
+        self.assertEqual(captured["limit"], 100)
+        self.assertEqual(captured["subject_scope"], "platform")
+        self.assertEqual(captured["outcome"], "success")
+        self.assertEqual(captured["search"], "admin@platform.local")
 
     def test_tenant_service_creates_tenant_and_provisioning_job(self) -> None:
         saved_tenant = build_tenant_record_stub()
@@ -3038,6 +3069,36 @@ class PlatformRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertEqual(response.total_users, 0)
+
+    def test_list_platform_auth_audit_returns_recent_events(self) -> None:
+        events = [
+            SimpleNamespace(
+                id=1,
+                event_type="platform.login",
+                subject_scope="platform",
+                outcome="success",
+                subject_user_id=1,
+                tenant_slug=None,
+                email="admin@platform.local",
+                token_jti="abc",
+                detail="Platform login successful",
+                created_at=datetime.now(timezone.utc),
+            )
+        ]
+
+        with patch(
+            "app.apps.platform_control.api.auth_audit_routes."
+            "auth_audit_service.list_recent_events",
+            return_value=events,
+        ):
+            response = list_platform_auth_audit(
+                db=object(),
+                _token=self._token_payload(role="admin"),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.total_events, 1)
+        self.assertEqual(response.data[0].event_type, "platform.login")
 
     def test_create_platform_user_returns_schema(self) -> None:
         user = build_platform_user_stub(

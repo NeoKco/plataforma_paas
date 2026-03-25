@@ -6,10 +6,16 @@ export function SidebarNav() {
   const { language } = useLanguage();
   const { session } = useAuth();
   const currentRole = session?.role || "support";
-  const navItems = [
+  const commonNavItems = [
     {
       to: "/users",
       label: language === "es" ? "Usuarios plataforma" : "Platform Users",
+    },
+  ];
+  const adminNavItems = [
+    {
+      to: "/activity",
+      label: language === "es" ? "Actividad" : "Activity",
     },
   ];
   const superadminOnlyItems = [
@@ -24,8 +30,10 @@ export function SidebarNav() {
   ];
   const visibleNavItems =
     currentRole === "superadmin"
-      ? [superadminOnlyItems[0], ...navItems, ...superadminOnlyItems.slice(1)]
-      : navItems;
+      ? [superadminOnlyItems[0], ...commonNavItems, ...adminNavItems, ...superadminOnlyItems.slice(1)]
+      : currentRole === "admin"
+        ? [...commonNavItems, ...adminNavItems]
+        : commonNavItems;
 
   return (
     <aside className="platform-sidebar">

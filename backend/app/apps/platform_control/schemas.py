@@ -89,6 +89,29 @@ class PlatformUserDeleteResponse(BaseModel):
     role: str
 
 
+class AuthAuditEventResponse(BaseModel):
+    id: int
+    event_type: str
+    subject_scope: str
+    outcome: str
+    subject_user_id: int | None = None
+    tenant_slug: str | None = None
+    email: str | None = None
+    token_jti: str | None = None
+    detail: str | None = None
+    created_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class AuthAuditEventListResponse(BaseModel):
+    success: bool
+    message: str
+    total_events: int
+    data: list[AuthAuditEventResponse]
+
+
 class PlatformModuleLimitCapabilityResponse(BaseModel):
     key: str
     module_name: str

@@ -1,6 +1,7 @@
 import type {
   PlatformCapabilities,
   PlatformLoginResponse,
+  PlatformAuthAuditEventListResponse,
   PlatformTenant,
   PlatformTenantAccessPolicy,
   PlatformTenantBillingResponse,
@@ -66,6 +67,38 @@ export function getPlatformCapabilities(accessToken: string) {
   return apiRequest<PlatformCapabilities>("/platform/capabilities", {
     token: accessToken,
   });
+}
+
+export function getPlatformAuthAudit(
+  accessToken: string,
+  params?: {
+    limit?: number;
+    subject_scope?: string;
+    outcome?: string;
+    search?: string;
+  }
+) {
+  const query = new URLSearchParams();
+  if (params?.limit) {
+    query.set("limit", String(params.limit));
+  }
+  if (params?.subject_scope) {
+    query.set("subject_scope", params.subject_scope);
+  }
+  if (params?.outcome) {
+    query.set("outcome", params.outcome);
+  }
+  if (params?.search) {
+    query.set("search", params.search);
+  }
+
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return apiRequest<PlatformAuthAuditEventListResponse>(
+    `/platform/auth-audit/${suffix}`,
+    {
+      token: accessToken,
+    }
+  );
 }
 
 export function listPlatformUsers(accessToken: string) {

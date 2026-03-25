@@ -160,6 +160,26 @@ export type PlatformUserDeleteResponse = {
   role: string;
 };
 
+export type PlatformAuthAuditEvent = {
+  id: number;
+  event_type: string;
+  subject_scope: string;
+  outcome: string;
+  subject_user_id: number | null;
+  tenant_slug: string | null;
+  email: string | null;
+  token_jti: string | null;
+  detail: string | null;
+  created_at: string | null;
+};
+
+export type PlatformAuthAuditEventListResponse = {
+  success: boolean;
+  message: string;
+  total_events: number;
+  data: PlatformAuthAuditEvent[];
+};
+
 export type TenantLoginResponse = {
   success: boolean;
   message: string;

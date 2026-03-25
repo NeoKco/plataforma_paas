@@ -39,3 +39,24 @@ class AuthAuditService:
             detail=detail,
         )
         return self.auth_audit_event_repository.save(db, event)
+
+    def list_recent_events(
+        self,
+        db: Session,
+        *,
+        limit: int = 50,
+        subject_scope: str | None = None,
+        outcome: str | None = None,
+        search: str | None = None,
+    ) -> list[AuthAuditEvent]:
+        normalized_scope = subject_scope.strip().lower() if subject_scope else None
+        normalized_outcome = outcome.strip().lower() if outcome else None
+        normalized_search = search.strip() if search else None
+
+        return self.auth_audit_event_repository.list_recent(
+            db,
+            limit=max(1, min(limit, 100)),
+            subject_scope=normalized_scope or None,
+            outcome=normalized_outcome or None,
+            search=normalized_search or None,
+        )

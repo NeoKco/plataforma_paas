@@ -13,6 +13,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 
 - existe instalador visual para primer arranque
 - existe `platform_admin` con login, sesion, dashboard, `Usuarios de plataforma`, `Tenants`, `Provisioning`, `Billing` y `Settings`
+- existe tambien `Actividad` de plataforma para auditoria breve de accesos recientes
 - existe `tenant_portal` con login, resumen, usuarios y finanzas
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
 
@@ -21,6 +22,7 @@ Lo que queda pendiente ya no es abrir el frontend desde cero.
 Lo pendiente es sobre todo:
 
 - cerrar el ciclo basico de tenants y operadores de plataforma desde UI
+- cerrar la politica visible por rol dentro de `platform_admin`
 - refinamiento de UX
 - labels y catalogos mas ricos desde backend
 - endurecimiento de bordes y automatizacion
@@ -212,6 +214,8 @@ Bloque basico ya cerrado en paralelo:
 - hoy ya permite listar operadores, crear usuarios, editar nombre y rol, activar o desactivar acceso, resetear contraseña inicial y borrar usuarios no criticos
 - la politica ya bloquea crear o promover mas de un `superadmin` activo, protege que siempre quede uno activo y deja `superadmin` fuera del borrado
 - ya existe un rol `admin` intermedio para gobernar usuarios `support` sin tocar la cuenta raiz
+- `Actividad` ya existe como flujo visible para `superadmin` y `admin`
+- `support` ya no ve `Actividad` ni los bloques exclusivos de `superadmin`, evitando rutas visibles que terminen en `403`
 
 Avance reciente de lenguaje y labels:
 

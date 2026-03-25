@@ -168,6 +168,12 @@ Para leerlo de forma aislada, revisa:
 
 - [Ciclo basico de usuarios de plataforma](../runbooks/platform-users-cycle.md)
 
+Politica corta de acceso por bloque:
+
+- `superadmin` ve toda la consola
+- `admin` hoy opera `Usuarios de plataforma` y `Actividad`
+- `support` hoy queda concentrado en `Usuarios de plataforma` con alcance mas acotado
+
 Nota importante de lectura:
 
 - la UI ya traduce varios codigos internos del backend a labels mas naturales
@@ -188,6 +194,24 @@ Aqui ves:
 - reencolado
 
 No es una pantalla de negocio. Es una pantalla operativa de automatizacion.
+
+### `Actividad`
+
+Es la vista corta de auditoria de accesos recientes.
+
+Aqui ves:
+
+- eventos `platform`
+- eventos `tenant`
+- accesos correctos
+- accesos fallidos
+- accesos denegados
+
+No reemplaza logs ni una auditoria completa, pero sirve para soporte y validacion funcional rapida.
+
+Para leerla de forma aislada, revisa:
+
+- [Actividad de plataforma](../runbooks/platform-activity.md)
 
 ### `Facturacion`
 

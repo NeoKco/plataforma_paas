@@ -37,6 +37,7 @@ Antes de abrir mas modulos de negocio, conviene dejar cerrada la base de platafo
 - archivar tenants como baja operativa segura
 - filtrar y buscar tenants con comodidad
 - gobernar su estado, billing, mantenimiento y limites desde una sola consola
+- gobernar operadores de plataforma y leer actividad reciente sin depender solo de logs
 
 La recomendacion actual es esta:
 
@@ -93,8 +94,10 @@ Resultado actual:
 - existe creacion de tenants
 - existen `provisioning_jobs`
 - `platform_admin` ya permite listar usuarios de plataforma, darlos de alta, editar nombre y rol, activar o desactivar acceso, resetear contraseña inicial y borrar usuarios no criticos
+- `platform_admin` ya expone `Actividad` para auditoria breve de accesos recientes de `platform` y `tenant`
 - la politica vigente ya endurece `platform_users` para operar con un solo `superadmin` activo
 - existe ya un rol `admin` intermedio para crear y gobernar usuarios `support` sin tocar la cuenta `superadmin`
+- la consola ya diferencia mejor que puede ver cada rol: `superadmin` todo, `admin` usuarios y actividad, `support` alcance mas acotado
 
 Nota de cierre practico:
 

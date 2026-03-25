@@ -59,6 +59,8 @@ Politica de gestion por rol:
 - `admin` puede editar, activar, desactivar, resetear contraseña y borrar usuarios `support`
 - `admin` no puede tocar cuentas `superadmin`
 - `admin` tampoco puede crear mas `admin`
+- `admin` hoy tambien puede entrar al bloque `Actividad`
+- `support` hoy queda fuera de `Actividad` y de los bloques exclusivos de `superadmin`
 
 ## 4. Flujos cubiertos
 

@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.apps.installer.api.routes import router as installer_router
 from app.apps.platform_control.api.auth_routes import router as platform_auth_router
+from app.apps.platform_control.api.auth_audit_routes import (
+    router as platform_auth_audit_router,
+)
 from app.apps.platform_control.api.billing_webhook_routes import (
     router as billing_webhook_router,
 )
@@ -93,6 +96,7 @@ def register_installed_routes(app: FastAPI) -> None:
     # Platform routes
     app.include_router(platform_router)
     app.include_router(platform_auth_router)
+    app.include_router(platform_auth_audit_router)
     app.include_router(billing_webhook_router)
     app.include_router(tenant_router)
     app.include_router(platform_user_router)
