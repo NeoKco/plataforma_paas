@@ -3405,6 +3405,8 @@ class PlatformRoutesTestCase(unittest.TestCase):
             "app.apps.platform_control.api.platform_user_routes."
             "platform_user_service.update_user",
             return_value=user,
+        ), patch(
+            "app.apps.platform_control.api.platform_user_routes.auth_audit_service.log_event",
         ):
             response = update_platform_user(
                 user_id=7,
@@ -3432,6 +3434,8 @@ class PlatformRoutesTestCase(unittest.TestCase):
             "app.apps.platform_control.api.platform_user_routes."
             "platform_user_service.set_user_status",
             return_value=user,
+        ), patch(
+            "app.apps.platform_control.api.platform_user_routes.auth_audit_service.log_event",
         ):
             response = update_platform_user_status(
                 user_id=7,
@@ -3456,6 +3460,8 @@ class PlatformRoutesTestCase(unittest.TestCase):
             "app.apps.platform_control.api.platform_user_routes."
             "platform_user_service.reset_password",
             return_value=user,
+        ), patch(
+            "app.apps.platform_control.api.platform_user_routes.auth_audit_service.log_event",
         ):
             response = reset_platform_user_password(
                 user_id=7,
@@ -3505,6 +3511,8 @@ class PlatformRoutesTestCase(unittest.TestCase):
             "app.apps.platform_control.api.tenant_routes."
             "tenant_service.tenant_plan_policy_service.get_enabled_modules",
             return_value=["core", "users", "finance"],
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
         ):
             response = create_tenant(
                 payload=TenantCreateRequest(
@@ -4701,6 +4709,8 @@ class PlatformRoutesTestCase(unittest.TestCase):
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
             "tenant_policy_event_service.record_change",
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
         ):
             response = restore_tenant(
                 tenant_id=1,
@@ -4727,6 +4737,8 @@ class PlatformRoutesTestCase(unittest.TestCase):
         with patch(
             "app.apps.platform_control.api.tenant_routes.tenant_service.delete_tenant",
             return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
         ):
             response = delete_tenant(
                 tenant_id=1,
@@ -4799,7 +4811,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
                 _token=self._token_payload(),
             )
 
-        self.assertTrue(response.success)
+        self.assertEqual(response.id, 11)
         audit_mock.assert_called_once()
 
     def test_delete_tenant_logs_audit_event(self) -> None:

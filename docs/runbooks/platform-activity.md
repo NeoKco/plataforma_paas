@@ -10,6 +10,7 @@ Desde `platform_admin` ya se puede:
 
 - listar eventos recientes de autenticacion
 - listar cambios administrativos recientes sobre tenants
+- listar acciones criticas recientes de operadores de plataforma
 - filtrar por `scope`
 - filtrar por resultado
 - buscar por email, tenant, detalle o tipo de evento
@@ -34,6 +35,8 @@ Ahora tambien ayuda a responder:
 - quien cambio billing, estado, mantenimiento, plan o limites de un tenant
 - sobre que tenant se hizo ese cambio
 - que campos fueron tocados recientemente
+- quien creo, actualizo, activo, desactivo, reseteo contraseña o elimino un usuario de plataforma
+- quien creo, reprovisiono, restauro o elimino un tenant
 
 ## 3. Politica vigente
 
@@ -72,12 +75,34 @@ Cada fila muestra:
 - tenant relacionado si aplica
 - detalle resumido
 
+En la practica, la tabla principal ya mezcla:
+
+- autenticacion
+- mutaciones criticas de `Usuarios de plataforma`
+- acciones duras del ciclo tenant que no siempre aparecen en el historial de politica
+
 ## 5. Endpoints actuales
 
 Backend actual:
 
 - `GET /platform/auth-audit/`
 - `GET /platform/tenants/policy-history/recent`
+
+Eventos visibles relevantes hoy:
+
+- `platform.login`
+- `platform.refresh`
+- `platform.logout`
+- `platform.root_recovery`
+- `platform.user.create`
+- `platform.user.update`
+- `platform.user.status`
+- `platform.user.password_reset`
+- `platform.user.delete`
+- `platform.tenant.create`
+- `platform.tenant.reprovision`
+- `platform.tenant.restore`
+- `platform.tenant.delete`
 
 Filtros soportados hoy:
 

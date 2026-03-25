@@ -17,6 +17,15 @@ Desde `Tenants` hoy ya puedes:
 - abrir el portal tenant solo cuando el tenant ya esta realmente listo
 - operar estado, mantenimiento, billing, plan, limites y sincronizacion de esquema
 
+Auditoria visible actual:
+
+- alta de tenant
+- restore de tenant archivado
+- borrado seguro de tenant archivado
+- reprovisionado de tenant inconsistente
+
+Las mutaciones finas de estado, billing, mantenimiento, limites y plan siguen quedando visibles ademas en el historial de politica del tenant.
+
 ## 1. Crear tenant
 
 La alta visual pide:

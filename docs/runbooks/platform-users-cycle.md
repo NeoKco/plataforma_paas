@@ -17,6 +17,8 @@ Desde `platform_admin` ya se puede:
 
 Todo esto se hace sobre `platform_users` en `platform_control`.
 
+Todas estas mutaciones ya dejan rastro visible en `Actividad`.
+
 ## 2. Que problema resuelve
 
 Hasta ahora la plataforma podia autenticarse contra `platform_users`, pero no existia una forma visible de gobernar esos operadores desde la UI.
@@ -123,6 +125,14 @@ Hoy no se puede:
 - borrar cuentas `superadmin`
 - borrar la propia cuenta desde la UI
 - usar `admin` para borrar cuentas `admin` o `superadmin`
+
+Auditoria visible actual de este bloque:
+
+- alta de usuario de plataforma
+- cambio de identidad o rol
+- activacion o desactivacion de acceso
+- reset de contraseña inicial
+- borrado de usuario no critico
 
 ## 5. Endpoints actuales
 
