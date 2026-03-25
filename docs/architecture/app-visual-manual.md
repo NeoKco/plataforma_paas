@@ -22,6 +22,24 @@ Y separa tres momentos:
 2. operacion desde `platform_admin`
 3. trabajo normal desde `tenant_portal`
 
+## Regla actual de uso
+
+Este manual visual sigue siendo util, pero por ahora no debe marcar el ritmo del trabajo.
+
+Regla vigente:
+
+- primero documentacion escrita
+- despues notas de recaptura pendiente
+- y solo al final capturas estables cuando la pantalla deje de moverse
+
+Eso evita rehacer imagenes cada vez que cambia la UX o se corrigen textos, bloques o estados.
+
+En consecuencia:
+
+- el set actual de imagenes sirve como referencia de apoyo
+- pero nuevas capturas deben agregarse solo cuando realmente aporten o cuando el flujo ya este suficientemente estable
+- si un bloque sigue cambiando, conviene dejar la marca escrita de recaptura y no forzar imagen nueva todavia
+
 ## Estado actual del producto
 
 Hoy el backend ya soporta un modo instalador, pero el frontend todavia no muestra un wizard visual de primera ejecucion.
@@ -34,6 +52,7 @@ Nota operativa:
 
 - el login de `tenant_portal` ya es usable, pero su UX todavia tiene refinamientos pendientes para hacerlo mas natural para usuario final
 - el set de capturas actual sirve para comprender la app, pero conviene hacer una recaptura final cuando se estabilice la siguiente pasada de frontend para no duplicar trabajo visual
+- mientras esa estabilizacion no ocurra, priorizar notas escritas de lo validado por sobre nuevas imagenes
 
 Cuando se implemente el instalador visual, este manual ya deja definido donde encaja esa pantalla.
 
@@ -48,7 +67,10 @@ Con esta convencion:
 - `01-platform-login.png`
 - `02-platform-dashboard.png`
 - `03-tenants-catalog.png`
-- `04-tenant-pending.png`
+- `04a-tenants-create-form-catalog.png`
+- `04b-tenants-created-pending-detail.png`
+- `04c-tenants-basic-identity-edit.png`
+- `04d-tenants-archived-result.png`
 - `05a-tenant-active-header.png`
 - `05b-tenant-active-usage.png`
 - `05c-tenant-billing-past-due-summary.png`
@@ -99,7 +121,10 @@ Este bloque sirve para ir completando el manual de forma iterativa.
 | `01-platform-login.png` | login platform | listo |
 | `02-platform-dashboard.png` | resumen operativo | listo |
 | `03-tenants-catalog.png` | catalogo tenant | listo |
-| `04-tenant-pending.png` | tenant incompleto | pendiente |
+| `04a-tenants-create-form-catalog.png` | tenants: alta y filtros | listo |
+| `04b-tenants-created-pending-detail.png` | tenants: alta creada en pending | listo |
+| `04c-tenants-basic-identity-edit.png` | tenants: identidad basica | listo |
+| `04d-tenants-archived-result.png` | tenants: archivo operativo | listo |
 | `05a-tenant-active-header.png` | tenant operativo: contexto | listo |
 | `05b-tenant-active-usage.png` | tenant operativo: uso por modulo | listo |
 | `05c-tenant-billing-past-due-summary.png` | tenant operativo: billing en deuda con gracia | listo |
@@ -147,46 +172,49 @@ Para aprender la app en una secuencia razonable, conviene hacerlo asi:
 1. `01-platform-login.png`
 2. `02-platform-dashboard.png`
 3. `03-tenants-catalog.png`
-4. `04-tenant-pending.png`
-5. `05a-tenant-active-header.png`
-6. `05b-tenant-active-usage.png`
-7. `05c-tenant-billing-past-due-summary.png`
-8. `05d-tenant-billing-controls-identity.png`
-9. `05e-tenant-billing-controls-identity-detail.png`
-10. `05f-tenant-module-limits-finance-override.png`
-11. `05g-tenant-module-limits-users-admin-override.png`
-12. `05h-tenant-billing-blocked-no-grace.png`
-13. `06a-provisioning-jobs-overview.png`
-14. `06b-provisioning-metrics-alerts.png`
-15. `06c-provisioning-dlq.png`
-16. `07a-billing-overview-filters.png`
-17. `07b-billing-summary-alerts-workspace.png`
-18. `07c-billing-tenant-events-reconcile.png`
-19. `07d-billing-reconciled-workspace.png`
-20. `08a-platform-settings-overview.png`
-21. `08b-platform-settings-capabilities.png`
-22. `08c-platform-settings-enums-scope.png`
-23. `09-tenant-portal-login.png`
-24. `09b-tenant-portal-login-billing-blocked.png`
-25. `10-tenant-portal-overview.png`
-26. `10b-tenant-portal-posture-current-user.png`
-27. `10c-tenant-portal-module-usage.png`
-28. `10d-tenant-portal-overview-billing-posture.png`
-29. `10e-tenant-portal-module-usage-live.png`
-30. `10f-tenant-portal-module-usage-multi-limit.png`
-31. `10g-tenant-portal-module-usage-active-users-limit.png`
-32. `11a-tenant-users-overview.png`
-33. `11b-tenant-users-form-list.png`
-34. `11c-tenant-users-created-success.png`
-35. `11d-tenant-users-admin-limit-blocked.png`
-36. `11e-tenant-users-admin-reactivation-attempt.png`
-37. `11f-tenant-users-admin-reactivation-blocked.png`
-38. `11g-tenant-users-active-limit-blocked.png`
-39. `12a-tenant-finance-overview-form.png`
-40. `12b-tenant-finance-entry-created.png`
-39. `12c-tenant-finance-usage-before-limit-override.png`
-40. `12d-tenant-finance-at-limit-override.png`
-41. `12e-tenant-finance-limit-blocked-message.png`
+4. `04a-tenants-create-form-catalog.png`
+5. `04b-tenants-created-pending-detail.png`
+6. `04c-tenants-basic-identity-edit.png`
+7. `04d-tenants-archived-result.png`
+8. `05a-tenant-active-header.png`
+9. `05b-tenant-active-usage.png`
+10. `05c-tenant-billing-past-due-summary.png`
+11. `05d-tenant-billing-controls-identity.png`
+12. `05e-tenant-billing-controls-identity-detail.png`
+13. `05f-tenant-module-limits-finance-override.png`
+14. `05g-tenant-module-limits-users-admin-override.png`
+15. `05h-tenant-billing-blocked-no-grace.png`
+16. `06a-provisioning-jobs-overview.png`
+17. `06b-provisioning-metrics-alerts.png`
+18. `06c-provisioning-dlq.png`
+19. `07a-billing-overview-filters.png`
+20. `07b-billing-summary-alerts-workspace.png`
+21. `07c-billing-tenant-events-reconcile.png`
+22. `07d-billing-reconciled-workspace.png`
+23. `08a-platform-settings-overview.png`
+24. `08b-platform-settings-capabilities.png`
+25. `08c-platform-settings-enums-scope.png`
+26. `09-tenant-portal-login.png`
+27. `09b-tenant-portal-login-billing-blocked.png`
+28. `10-tenant-portal-overview.png`
+29. `10b-tenant-portal-posture-current-user.png`
+30. `10c-tenant-portal-module-usage.png`
+31. `10d-tenant-portal-overview-billing-posture.png`
+32. `10e-tenant-portal-module-usage-live.png`
+33. `10f-tenant-portal-module-usage-multi-limit.png`
+34. `10g-tenant-portal-module-usage-active-users-limit.png`
+35. `11a-tenant-users-overview.png`
+36. `11b-tenant-users-form-list.png`
+37. `11c-tenant-users-created-success.png`
+38. `11d-tenant-users-admin-limit-blocked.png`
+39. `11e-tenant-users-admin-reactivation-attempt.png`
+40. `11f-tenant-users-admin-reactivation-blocked.png`
+41. `11g-tenant-users-active-limit-blocked.png`
+42. `12a-tenant-finance-overview-form.png`
+43. `12b-tenant-finance-entry-created.png`
+44. `12c-tenant-finance-usage-before-limit-override.png`
+45. `12d-tenant-finance-at-limit-override.png`
+46. `12e-tenant-finance-limit-blocked-message.png`
 
 Con este set ya queda explicado casi todo el producto visible actual.
 
@@ -241,6 +269,49 @@ Esta pantalla sirve para leer la salud global de la plataforma sin entrar todavi
 - plan
 
 Si alguien quiere entender en que estado real se encuentra un tenant, casi siempre debe empezar aqui.
+
+#### Alta visual, filtros y arranque del ciclo tenant
+
+![Crear tenant y filtros del catalogo](../assets/app-visual-manual/04a-tenants-create-form-catalog.png)
+
+Aqui ya se ve el bloque minimo de entrada:
+
+- alta visual del tenant
+- filtros de catalogo
+- seleccion del espacio central a operar
+
+#### Tenant recien creado en `pending`
+
+![Tenant recien creado en pending](../assets/app-visual-manual/04b-tenants-created-pending-detail.png)
+
+Esta captura deja claro que crear tenant y provisionarlo no son lo mismo:
+
+- el tenant ya existe
+- ya aparece en el catalogo
+- pero todavia no esta listo para uso final porque sigue en `pending`
+
+#### Edicion basica de identidad
+
+![Edicion basica del tenant](../assets/app-visual-manual/04c-tenants-basic-identity-edit.png)
+
+La consola ya permite cambiar:
+
+- nombre visible
+- tipo de tenant
+
+Y deja explicito que el `slug` se mantiene estable.
+
+#### Archivo operativo seguro
+
+![Tenant archivado](../assets/app-visual-manual/04d-tenants-archived-result.png)
+
+Aqui se ve la baja operativa correcta del producto actual:
+
+- `archived`
+- acceso bloqueado
+- historial intacto
+
+Se archiva el tenant; no se hace borrado fisico duro.
 
 ### 5. Tenant sano y operativo
 

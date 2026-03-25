@@ -8,7 +8,10 @@ Nombres sugeridos:
 - `01-platform-login.png`
 - `02-platform-dashboard.png`
 - `03-tenants-catalog.png`
-- `04-tenant-pending.png`
+- `04a-tenants-create-form-catalog.png`
+- `04b-tenants-created-pending-detail.png`
+- `04c-tenants-basic-identity-edit.png`
+- `04d-tenants-archived-result.png`
 - `05a-tenant-active-header.png`
 - `05b-tenant-active-usage.png`
 - `05c-tenant-billing-past-due-summary.png`
@@ -69,5 +72,9 @@ Nombres de pruebas guiadas recientes:
 - `11f-tenant-users-admin-reactivation-blocked.png`: reactivacion bloqueada con mensaje claro de limite admin
 - `11g-tenant-users-active-limit-blocked.png`: intento bloqueado al activar otro usuario cuando ya no quedan cupos activos
 - `09b-tenant-portal-login-billing-blocked.png`: login tenant rechazado por `billing` sin gracia vigente
+- `04a-tenants-create-form-catalog.png`: formulario de alta tenant con filtros visibles del catalogo
+- `04b-tenants-created-pending-detail.png`: tenant nuevo ya creado en `pending`, listo para seguirse desde provisioning
+- `04c-tenants-basic-identity-edit.png`: bloque de identidad basica con `name` y `tenant_type` editables
+- `04d-tenants-archived-result.png`: resultado del archivo operativo del tenant con policy bloqueada
 
 Este directorio existe para que el manual visual tenga una ubicacion estable y no queden imagenes sueltas por el repositorio.

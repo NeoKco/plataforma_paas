@@ -26,6 +26,12 @@ Lo pendiente es sobre todo:
 - endurecimiento de bordes y automatizacion
 - cierre visual y operativo de algunos detalles
 
+Nota de ejecucion:
+
+- la documentacion visual ya no debe empujar el ritmo del frontend mientras las pantallas sigan moviendose
+- primero conviene cerrar producto, reglas y UX
+- despues hacer la recaptura visual final de los bloques estables
+
 ## Objetivo del frontend en esta etapa
 
 El objetivo actual ya no es construir la base del frontend.
@@ -171,6 +177,7 @@ Avance actual:
 - `Tenants` ya permite buscar y filtrar por nombre, slug, tipo, estado y billing
 - `Tenants` ya permite editar identidad basica del tenant para `name` y `tenant_type`
 - `Tenants` ya expone `archivar tenant` como baja operativa segura usando el lifecycle existente
+- `Tenants` ya expone `restaurar tenant` como flujo formal solo para tenants archivados, con estado destino explicito
 - `Tenants` ya permite operar `status`
 - `Tenants` ya permite operar `maintenance`
 - `Tenants` ya permite operar `billing`
@@ -186,6 +193,7 @@ Pendientes finos conocidos:
 
 - decidir si `slug` queda definitivamente estable y, si es asi, mantener la edicion basica limitada a `name` y `tenant_type`
 - no abrir `delete` duro mientras no exista una politica clara sobre DB tenant, billing history, policy history y auditoria
+- decidir mas adelante si vale la pena abrir una restauracion mas rica o si el flujo actual `archived -> restore` ya es suficiente
 - revisar el tono final de varias ayudas `?` para que suenen menos tecnicas
 - decidir si todas las ayudas `?` actuales aportan o si algunas deben simplificarse o salir
 - seguir refinando labels visibles para que conceptos de negocio y operacion suenen mas naturales segun contexto, aunque ya no dependemos de codigos crudos para casos comunes

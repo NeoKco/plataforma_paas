@@ -14,6 +14,7 @@ import type {
   PlatformTenantPolicyHistoryResponse,
   PlatformTenantPlanResponse,
   PlatformTenantRateLimitResponse,
+  PlatformTenantRestoreResponse,
   PlatformTenantStatusResponse,
   PlatformBillingAlertHistoryResponse,
   PlatformBillingAlertsResponse,
@@ -138,6 +139,24 @@ export function updatePlatformTenantStatus(
     `/platform/tenants/${tenantId}/status`,
     {
       method: "PATCH",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function restorePlatformTenant(
+  accessToken: string,
+  tenantId: number,
+  payload: {
+    target_status: string;
+    restore_reason: string | null;
+  }
+) {
+  return apiRequest<PlatformTenantRestoreResponse>(
+    `/platform/tenants/${tenantId}/restore`,
+    {
+      method: "POST",
       token: accessToken,
       body: payload,
     }

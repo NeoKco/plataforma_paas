@@ -457,6 +457,11 @@ class TenantStatusUpdateRequest(BaseModel):
     status_reason: str | None = None
 
 
+class TenantRestoreRequest(BaseModel):
+    target_status: str = "active"
+    restore_reason: str | None = None
+
+
 class TenantStatusResponse(BaseModel):
     success: bool
     message: str

@@ -219,6 +219,8 @@ export type PlatformTenantStatusResponse = {
   tenant_status_reason: string | null;
 };
 
+export type PlatformTenantRestoreResponse = PlatformTenantStatusResponse;
+
 export type PlatformTenantMaintenanceResponse = {
   success: boolean;
   message: string;

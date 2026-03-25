@@ -27,6 +27,7 @@ import {
   getPlatformTenantPolicyHistory,
   listPlatformTenants,
   syncPlatformTenantSchema,
+  restorePlatformTenant,
   updatePlatformTenantBilling,
   updatePlatformTenantBillingIdentity,
   updatePlatformTenantIdentity,
@@ -121,6 +122,8 @@ export function TenantsPage() {
   const [catalogTypeFilter, setCatalogTypeFilter] = useState("");
   const [identityName, setIdentityName] = useState("");
   const [identityTenantType, setIdentityTenantType] = useState("empresa");
+  const [restoreTargetStatus, setRestoreTargetStatus] = useState("active");
+  const [restoreReason, setRestoreReason] = useState("");
 
   const selectedTenantSummary =
     tenants.find((tenant) => tenant.id === selectedTenantId) || selectedTenant;
@@ -394,6 +397,8 @@ export function TenantsPage() {
     );
     setIdentityName(selectedTenantSummary.name);
     setIdentityTenantType(selectedTenantSummary.tenant_type);
+    setRestoreTargetStatus("active");
+    setRestoreReason("");
     const nextDrafts = Object.fromEntries(
       moduleLimitKeys.map((key) => {
         const value = selectedTenantSummary.module_limits?.[key];
@@ -749,7 +754,7 @@ export function TenantsPage() {
       details: [
         `Tenant: ${selectedTenantSummary.name}`,
         `Slug: ${selectedTenantSummary.slug}`,
-        "El archivo operativo es reversible cambiando luego el lifecycle desde plataforma.",
+        "La reapertura posterior debe hacerse usando el flujo explícito de restauración.",
       ],
       confirmLabel: "Archivar tenant",
       tone: "danger",
@@ -759,6 +764,34 @@ export function TenantsPage() {
           status_reason:
             normalizeNullableString(statusReason) ||
             "Archivado desde consola de plataforma",
+        }),
+    });
+  }
+
+  function handleRestoreTenantSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session?.accessToken || selectedTenantId === null || !selectedTenantSummary) {
+      return;
+    }
+
+    requestConfirmation({
+      scope: "restore-tenant",
+      title: "Confirmar restauración del tenant",
+      description:
+        "Restaurar vuelve a abrir el tenant archivado y lo deja en el lifecycle destino elegido, sin perder historial ni referencias operativas.",
+      details: [
+        `Tenant: ${selectedTenantSummary.name}`,
+        `Slug: ${selectedTenantSummary.slug}`,
+        `Estado actual: ${selectedTenantSummary.status}`,
+        `Estado de restauración: ${restoreTargetStatus}`,
+        `Motivo: ${normalizeNullableString(restoreReason) || "sin motivo"}`,
+      ],
+      confirmLabel: "Restaurar tenant",
+      tone: "warning",
+      action: () =>
+        restorePlatformTenant(session.accessToken, selectedTenantId, {
+          target_status: restoreTargetStatus,
+          restore_reason: normalizeNullableString(restoreReason),
         }),
     });
   }
@@ -1030,7 +1063,12 @@ export function TenantsPage() {
                       >
                         Archivar tenant
                       </button>
-                    ) : null}
+                    ) : (
+                      <div className="tenant-help-text">
+                        Este tenant está archivado. Usa el bloque de restauración para reabrirlo
+                        con un lifecycle explícito.
+                      </div>
+                    )}
                     {tenantPortalHref ? (
                       <Link className="btn btn-outline-primary btn-sm" to={tenantPortalHref}>
                         Abrir portal tenant
@@ -1147,6 +1185,44 @@ export function TenantsPage() {
                 ) : null}
 
                 <div className="tenant-action-grid">
+                  {selectedTenantSummary.status === "archived" ? (
+                    <form className="tenant-action-form" onSubmit={handleRestoreTenantSubmit}>
+                      <h3 className="tenant-action-form__title">Restauración</h3>
+                      <FieldHelpLabel
+                        label="Estado destino"
+                        help="La restauración no cambia el slug ni elimina historial. Solo reabre el tenant archivado en el lifecycle que definas aquí."
+                      />
+                      <select
+                        className="form-select"
+                        value={restoreTargetStatus}
+                        onChange={(event) => setRestoreTargetStatus(event.target.value)}
+                      >
+                        {["pending", "active", "suspended"].map((value) => (
+                          <option key={value} value={value}>
+                            {displayPlatformCode(value)}
+                          </option>
+                        ))}
+                      </select>
+                      <FieldHelpLabel
+                        label="Motivo de restauración"
+                        help="Úsalo para dejar trazabilidad operativa de por qué el tenant vuelve a abrirse."
+                      />
+                      <textarea
+                        className="form-control"
+                        rows={3}
+                        value={restoreReason}
+                        onChange={(event) => setRestoreReason(event.target.value)}
+                        placeholder="Ej: Reactivación operativa autorizada"
+                      />
+                      <div className="tenant-inline-note mt-3">
+                        La restauración es explícita y no equivale a editar el estado a mano.
+                      </div>
+                      <button className="btn btn-primary mt-3" type="submit" disabled={isActionSubmitting}>
+                        Restaurar tenant
+                      </button>
+                    </form>
+                  ) : null}
+
                   <form className="tenant-action-form" onSubmit={handleIdentitySubmit}>
                     <h3 className="tenant-action-form__title">Identidad básica</h3>
                     <FieldHelpLabel

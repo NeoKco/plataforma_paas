@@ -121,6 +121,14 @@ Si el cambio además toca reglas visibles de negocio:
 
 4. correr `app.tests.test_platform_flow` y/o `app.tests.test_tenant_flow` segun corresponda
 
+Si el cambio toca especificamente el ciclo basico del tenant:
+
+5. correr `app.tests.test_platform_flow`
+6. validar al menos una secuencia corta:
+   - crear tenant
+   - archivar tenant
+   - restaurar tenant
+
 ## 6. Cuándo hacer prueba manual
 
 No conviene hacer exploración manual larga todo el tiempo.
@@ -156,14 +164,39 @@ Ruta recomendada:
 - procedimiento o prueba: `docs/runbooks/`
 - capturas: `docs/assets/app-visual-manual/`
 
+Prioridad actual:
+
+1. documentacion escrita
+2. notas de seguimiento sobre lo visual
+3. capturas solo cuando la pantalla ya este estable o cuando la evidencia visual sea realmente necesaria
+
+La regla operativa ahora es simple:
+
+- no detener avance de producto para perseguir capturas si la UI aun esta cambiando
+- dejar por escrito que se valido, que falta y que deberia recapturarse mas adelante
+- hacer la recaptura visual fuerte solo cuando el bloque ya no este moviendose tanto
+
 ## 8. Regla para capturas
 
-Cuando una prueba genere capturas útiles:
+Cuando una prueba genere capturas utiles:
 
 1. guárdalas en `docs/assets/app-visual-manual/`
 2. usa nombres temporales `pending_XX.png`
 3. revísalas antes de borrar o renombrar
 4. conserva solo las que realmente aportan
+
+Pero hoy la prioridad no es llenar el repo de imagenes.
+
+Hazlo solo si ocurre una de estas dos cosas:
+
+- la captura documenta un comportamiento importante que no se entiende bien solo con texto
+- la pantalla ya esta suficientemente estable y no deberia recapturarse enseguida
+
+Si no, deja solo:
+
+- documentacion escrita
+- nota corta de recaptura pendiente
+- referencia al flujo validado
 
 ## 9. Si algo falla
 
@@ -192,3 +225,4 @@ Antes de cerrar una sesión de trabajo:
 2. deja la documentación actualizada si correspondía
 3. deja pendientes reales anotados en roadmap o baseline
 4. evita dejar capturas `pending_*.png` sueltas si ya fueron procesadas
+5. si no hubo captura porque la UI sigue cambiando, deja la nota de recaptura pendiente en la documentacion correspondiente

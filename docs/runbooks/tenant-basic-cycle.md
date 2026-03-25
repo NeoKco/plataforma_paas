@@ -89,7 +89,76 @@ Si hace:
 
 ![Tenant archivado desde consola](../assets/app-visual-manual/04d-tenants-archived-result.png)
 
-## 5. Que no conviene hacer todavia
+## 4b. Restaurar tenant archivado
+
+La restauracion ya existe como flujo formal y no como mutacion improvisada del lifecycle.
+
+La accion pide:
+
+- estado destino
+- motivo de restauracion
+
+Estados destino permitidos:
+
+- `pending`
+- `active`
+- `suspended`
+
+Lectura practica:
+
+- `pending`: reabre el tenant pero lo deja fuera de uso normal mientras se revisa o reprovisiona
+- `active`: reabre el tenant para operacion normal
+- `suspended`: lo saca de `archived`, pero lo deja aun restringido por decision operativa
+
+La restauracion:
+
+- no cambia `slug`
+- no borra historial
+- no elimina billing history ni policy history
+- deja trazabilidad con evento propio de `restore`
+
+## 5. Politica operativa vigente
+
+Para no seguir mezclando recomendaciones con decisiones, la politica vigente del producto queda asi:
+
+### `slug`
+
+- el `slug` se trata como identificador estable
+- no se expone su edicion en UI
+- cualquier cambio futuro de `slug` requeriria una politica formal de migracion y compatibilidad
+
+Motivo:
+
+- el `slug` participa en rutas, credenciales bootstrap, referencias operativas, acceso al portal tenant y lectura humana del catalogo
+
+### `archive`
+
+- `archive` es la baja operativa correcta en esta etapa
+- un tenant archivado sale de la operacion normal sin perder historia ni trazabilidad
+- la consola debe seguir priorizando esta salida por sobre cualquier borrado duro
+
+### `delete`
+
+- no se expone `delete` fisico en UI
+- no se considera parte del ciclo basico cerrado
+- si algun dia se implementa, debe venir con politica formal sobre:
+  - DB tenant
+  - billing history
+  - policy history
+  - jobs de provisioning
+  - auditoria y restauracion
+
+### restauracion
+
+- ya existe una accion formal de `restore` para tenants archivados
+- la restauracion pide:
+  - estado destino (`pending`, `active` o `suspended`)
+  - motivo de restauracion
+- no cambia `slug`
+- no elimina historial
+- no equivale a editar el lifecycle archivado de forma improvisada
+
+## 6. Que no conviene hacer todavia
 
 No conviene exponer `delete` duro por ahora.
 
@@ -104,7 +173,7 @@ Motivo:
 
 Mientras no exista una politica formal de baja dura, `archive` debe seguir siendo la salida segura.
 
-## 6. Estado actual del bloque basico
+## 7. Estado actual del bloque basico
 
 Este bloque ya queda practicamente cerrado a nivel de consola:
 
@@ -117,10 +186,9 @@ Este bloque ya queda practicamente cerrado a nivel de consola:
 
 Lo que sigue abierto aqui ya no es una falta de UI base, sino una decision de producto:
 
-- confirmar formalmente que el `slug` queda estable
-- mantener fuera `delete` fisico hasta definir politica de baja dura
+- definir recien despues, y solo si se vuelve necesario, una politica de baja dura
 
-## 7. Validacion recomendada
+## 8. Validacion recomendada
 
 Cuando cambies este bloque, la validacion corta recomendada es:
 
@@ -129,9 +197,80 @@ Cuando cambies este bloque, la validacion corta recomendada es:
 3. confirmar que se genero provisioning
 4. editar `name` o `tenant_type`
 5. archivar tenant
-6. revisar politica de acceso y efecto operativo
+6. confirmar que sale de la operacion normal con `status=archived`
+7. restaurar tenant con un estado destino explicito
+8. revisar politica de acceso y efecto operativo
 
-## 8. Documentacion relacionada
+## 8b. Validacion funcional corta en UI
+
+Si quieres validar rapidamente el flujo nuevo sin abrir una prueba larga, usa esta secuencia:
+
+### Caso sugerido
+
+1. entrar a `Tenants`
+2. crear un tenant nuevo con:
+   - nombre visible
+   - slug claro
+   - tipo de tenant
+   - plan opcional
+3. confirmar que aparece en el catalogo y nace en `pending`
+4. editar `name` o `tenant_type`
+5. confirmar que el `slug` no cambia
+6. archivar tenant
+7. confirmar que:
+   - el tenant queda en `archived`
+   - la politica de acceso deja de permitir operacion normal
+8. usar el bloque `Restauracion`
+9. elegir un estado destino explicito:
+   - `pending`
+   - `active`
+   - o `suspended`
+10. confirmar que:
+   - el tenant sale de `archived`
+   - el nuevo estado queda visible en catalogo y detalle
+   - el motivo de restauracion queda trazable
+
+### Resultado esperado
+
+El flujo se considera sano si:
+
+- el alta no requiere salir de `Tenants`
+- la identidad basica cambia sin tocar el `slug`
+- `archive` funciona como baja operativa
+- `restore` no reaparece como cambio informal de lifecycle
+- el tenant vuelve con el estado destino elegido
+
+### Cuando repetir esta validacion
+
+Conviene repetir esta secuencia si cambias:
+
+- formularios de `Tenants`
+- reglas de lifecycle
+- labels de estados
+- politica de acceso derivada del lifecycle
+- feedback de acciones administrativas
+
+## 9. Cobertura automatizada actual
+
+Este bloque ya no depende solo de prueba manual.
+
+Hoy la suite `platform` ya cubre al menos:
+
+- alta de tenant
+- edicion basica
+- validacion de campos obligatorios
+- cambio de estado
+- restauracion de tenant archivado
+- rechazo de restore sobre tenants no archivados
+
+Suite recomendada:
+
+```bash
+cd /home/felipe/platform_paas/backend
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_platform_flow
+```
+
+## 10. Documentacion relacionada
 
 - [Guia unica para entender la app](../architecture/app-understanding-guide.md)
 - [Roadmap de frontend](../architecture/frontend-roadmap.md)

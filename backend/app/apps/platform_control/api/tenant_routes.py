@@ -32,6 +32,7 @@ from app.apps.platform_control.schemas import (
     TenantModuleLimitsResponse,
     TenantModuleLimitsUpdateRequest,
     TenantCreateRequest,
+    TenantRestoreRequest,
     TenantListResponse,
     TenantPlanResponse,
     TenantPlanUpdateRequest,
@@ -1045,6 +1046,47 @@ def update_tenant_status(
     return TenantStatusResponse(
         success=True,
         message="Estado de tenant actualizado correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        tenant_status_reason=tenant.status_reason,
+    )
+
+
+@router.post(
+    "/{tenant_id}/restore",
+    response_model=TenantStatusResponse,
+)
+def restore_tenant(
+    tenant_id: int,
+    payload: TenantRestoreRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantStatusResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        tenant = tenant_service.restore_tenant(
+            db=db,
+            tenant_id=tenant_id,
+            target_status=payload.target_status,
+            restore_reason=payload.restore_reason,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="restore",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+
+    return TenantStatusResponse(
+        success=True,
+        message="Tenant restaurado correctamente",
         tenant_id=tenant.id,
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,

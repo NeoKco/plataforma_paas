@@ -191,6 +191,11 @@ Cobertura actual:
 - `PlatformAuthService` contra DB control temporal
 - `TenantService` persistiendo tenant real
 - `ProvisioningJobService` leyendo jobs reales
+- flujo basico seguro de tenants:
+  - alta
+  - edicion basica
+  - archive
+  - restore formal sobre tenants archivados
 
 Ejecucion:
 
@@ -248,6 +253,36 @@ Ejecucion:
 cd /home/felipe/platform_paas/backend
 /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_platform_postgres_integration_flow
 ```
+
+## Suite Platform de regresion rapida
+
+Archivo:
+
+- `backend/app/tests/test_platform_flow.py`
+
+Usarla cuando toques:
+
+- lifecycle tenant
+- archive o restore
+- billing y politica de acceso
+- provisioning y recuperacion
+
+Ejecucion:
+
+```bash
+cd /home/felipe/platform_paas/backend
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_platform_flow
+```
+
+Casos importantes ya congelados aqui:
+
+- `past_due` con gracia
+- `past_due` sin gracia
+- `canceled` dentro y fuera de periodo
+- mantenimiento con fechas naive/aware
+- retries de provisioning con password rotada
+- alta y edicion basica de tenant
+- restore formal de tenant archivado
 
 ## Suite HTTP Smoke
 

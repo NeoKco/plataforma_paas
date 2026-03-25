@@ -241,6 +241,33 @@ class TenantService:
         tenant.status_reason = status_reason.strip() if status_reason else None
         return self.tenant_repository.save(db, tenant)
 
+    def restore_tenant(
+        self,
+        db: Session,
+        tenant_id: int,
+        *,
+        target_status: str = "active",
+        restore_reason: str | None = None,
+    ) -> Tenant:
+        tenant = self.tenant_repository.get_by_id(db, tenant_id)
+        if not tenant:
+            raise ValueError("Tenant not found")
+        if tenant.status != "archived":
+            raise ValueError("Only archived tenants can be restored")
+
+        normalized_target_status = target_status.strip().lower()
+        allowed_restore_statuses = {"pending", "active", "suspended"}
+        if normalized_target_status not in allowed_restore_statuses:
+            raise ValueError("Invalid tenant restore target status")
+
+        tenant.status = normalized_target_status
+        tenant.status_reason = (
+            restore_reason.strip()
+            if restore_reason
+            else "Restaurado desde consola de plataforma"
+        )
+        return self.tenant_repository.save(db, tenant)
+
     def set_plan(
         self,
         db: Session,

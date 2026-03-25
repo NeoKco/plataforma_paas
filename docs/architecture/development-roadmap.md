@@ -43,6 +43,7 @@ La recomendacion actual es esta:
 - no abrir `delete` fisico de tenants todavia
 - tratar `archive` como la baja basica correcta
 - dejar `slug` como identificador estable salvo que despues exista una politica formal de cambio
+- no usar `restore` como mutacion informal de estados; ya existe como flujo explicito para tenants archivados
 
 ## Etapa 0. Base de Proyecto
 
@@ -96,7 +97,8 @@ Nota de cierre practico:
 
 - la base backend de control central ya esta
 - el frontend ya cubre alta, edicion basica, archivo operativo y filtrado de tenants
-- queda pendiente sobre todo confirmar la politica final de `slug` estable y mantener fuera el `delete` fisico hasta tener una politica formal de baja dura
+- el frontend ya cubre tambien restauracion formal de tenants archivados con estado destino explicito
+- la politica vigente ya deja `slug` estable, `archive` como baja operativa, `restore` explicito y `delete` fisico fuera del alcance actual
 
 ## Etapa 3. Provisionamiento Multi-Tenant
 

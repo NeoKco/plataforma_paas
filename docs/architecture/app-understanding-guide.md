@@ -78,7 +78,11 @@ Prioridad actual del producto:
 - antes de abrir mas modulos de negocio, conviene cerrar bien la base de plataforma
 - eso incluye que `platform_admin` pueda manejar de forma clara el ciclo basico del tenant como entidad central
 - hoy esa base ya cubre alta, edicion basica y archivo operativo desde `Tenants`
-- lo que sigue abierto aqui ya no es falta de UI base, sino decision de producto sobre `slug` estable y ausencia de `delete` fisico
+- la politica vigente ya es:
+  - `slug` estable
+  - `archive` como baja operativa correcta
+  - `delete` fisico fuera de UI por ahora
+  - `restore` solo como flujo explicito, no como cambio improvisado de estado
 
 ## 5. Que hace cada pantalla principal
 
@@ -127,6 +131,13 @@ Para leerlo de forma aislada, revisa:
 - [Ciclo basico de tenants](../runbooks/tenant-basic-cycle.md)
 
 No conviene empezar por borrado fisico duro porque un tenant no es solo una fila: tambien arrastra DB tenant, jobs, billing history, policy history y auditoria.
+
+Politica operativa vigente:
+
+- `slug` estable
+- `archive` como salida basica
+- `delete` duro fuera del alcance actual
+- `restore` ya existe como accion formal solo para tenants archivados
 
 Nota importante de lectura:
 

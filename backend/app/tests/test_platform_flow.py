@@ -63,6 +63,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     reconcile_tenant_billing_events_batch,
     reconcile_tenant_billing_from_event,
     sync_tenant_billing_event,
+    restore_tenant,
     update_tenant_identity,
     update_tenant_billing_identity,
     update_tenant_billing,
@@ -86,6 +87,7 @@ from app.apps.platform_control.schemas import (  # noqa: E402
     TenantModuleLimitsUpdateRequest,
     TenantPlanUpdateRequest,
     TenantRateLimitUpdateRequest,
+    TenantRestoreRequest,
     TenantStatusUpdateRequest,
 )
 from app.apps.platform_control.services.auth_service import PlatformAuthService  # noqa: E402
@@ -344,6 +346,51 @@ class PlatformServicesTestCase(unittest.TestCase):
                 tenant_id=1,
                 name="Empresa Demo",
                 tenant_type="   ",
+            )
+
+    def test_tenant_service_restores_archived_tenant_with_explicit_target_status(self) -> None:
+        tenant = build_tenant_record_stub(
+            status="archived",
+            status_reason="Archivado por baja operativa",
+        )
+        calls: list[tuple] = []
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                calls.append(("get_by_id", tenant_id))
+                return tenant
+
+            def save(self, db, tenant_to_save):
+                calls.append(("save", tenant_to_save.status, tenant_to_save.status_reason))
+                return tenant_to_save
+
+        service = TenantService(tenant_repository=FakeTenantRepository())
+
+        result = service.restore_tenant(
+            db=object(),
+            tenant_id=9,
+            target_status="suspended",
+            restore_reason="Restauración controlada",
+        )
+
+        self.assertEqual(result.status, "suspended")
+        self.assertEqual(result.status_reason, "Restauración controlada")
+        self.assertEqual(
+            calls,
+            [("get_by_id", 9), ("save", "suspended", "Restauración controlada")],
+        )
+
+    def test_tenant_service_rejects_restore_for_non_archived_tenant(self) -> None:
+        tenant = build_tenant_record_stub(status="active")
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant)
+        )
+
+        with self.assertRaises(ValueError):
+            service.restore_tenant(
+                db=object(),
+                tenant_id=1,
+                target_status="active",
             )
 
     def test_tenant_service_resolves_effective_module_limits_with_sources(self) -> None:
@@ -3809,6 +3856,41 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.tenant_status, "suspended")
         self.assertEqual(response.tenant_status_reason, "billing overdue")
+
+    def test_restore_tenant_returns_schema(self) -> None:
+        previous_tenant = build_tenant_record_stub(status="archived")
+        previous_tenant.id = 1
+        tenant = build_tenant_record_stub(
+            status="active",
+            status_reason="Restaurado desde consola",
+        )
+        tenant.id = 1
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.tenant_repository.get_by_id",
+            return_value=previous_tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.restore_tenant",
+            return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_policy_event_service.record_change",
+        ):
+            response = restore_tenant(
+                tenant_id=1,
+                payload=TenantRestoreRequest(
+                    target_status="active",
+                    restore_reason="Restaurado desde consola",
+                ),
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.tenant_status, "active")
+        self.assertEqual(response.tenant_status_reason, "Restaurado desde consola")
 
     def test_get_tenant_policy_history_returns_schema(self) -> None:
         tenant = build_tenant_record_stub()
