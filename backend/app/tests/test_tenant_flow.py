@@ -1,4 +1,5 @@
 import os
+import asyncio
 import unittest
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
@@ -247,6 +248,23 @@ class TenantMiddlewareMaintenanceTestCase(unittest.TestCase):
             get_effective_module_limit_sources=None,
         )
         return middleware
+
+    def test_dispatch_allows_platform_root_recovery_status_without_token(self) -> None:
+        request = SimpleNamespace(
+            method="GET",
+            url=SimpleNamespace(path="/platform/auth/root-recovery/status"),
+        )
+        middleware = self._middleware()
+        calls: list[str] = []
+
+        async def call_next(req):
+            calls.append(req.url.path)
+            return "ok"
+
+        response = asyncio.run(middleware.dispatch(request, call_next))
+
+        self.assertEqual(response, "ok")
+        self.assertEqual(calls, ["/platform/auth/root-recovery/status"])
 
     def test_apply_tenant_runtime_state_blocks_write_when_maintenance_enabled(self) -> None:
         request = SimpleNamespace(

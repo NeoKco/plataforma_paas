@@ -46,6 +46,8 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
             "/tenant/health",
             "/platform/auth/login",
             "/platform/auth/refresh",
+            "/platform/auth/root-recovery/status",
+            "/platform/auth/root-recovery",
         }
 
         if path in public_paths:

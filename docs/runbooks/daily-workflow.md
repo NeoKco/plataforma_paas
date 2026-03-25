@@ -213,6 +213,12 @@ Orden corto de diagnóstico:
    - error de negocio
    - error de provisioning o billing
 
+Caso puntual ya conocido:
+
+- si `health` responde y `Settings` igual cae en rojo, revisa `GET /platform/auth/root-recovery/status`
+- esa ruta ya debe responder sin sesion porque forma parte del flujo publico de recuperacion raiz
+- si esa ruta falla, `Settings` ya no deberia colapsar completa; el warning debe quedar acotado al bloque de cuenta raiz
+
 Apoyos:
 
 - [Onboarding de developers](./developer-onboarding.md)

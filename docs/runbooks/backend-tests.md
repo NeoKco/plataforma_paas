@@ -142,6 +142,13 @@ cd /home/felipe/platform_paas/backend
 /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_tenant_flow
 ```
 
+Cobertura adicional relevante:
+
+- middleware auth tenant y platform
+- rutas publicas de login, refresh y recuperacion raiz
+- guardas de mantenimiento, billing y rate limit
+- regresion para que `GET /platform/auth/root-recovery/status` siga siendo publico y no vuelva a romper `Settings`
+
 ## Suite Tenant Finance
 
 Archivo:

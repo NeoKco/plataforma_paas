@@ -49,6 +49,7 @@ from app.apps.platform_control.schemas import (
 from app.apps.platform_control.services.billing_alert_service import (
     BillingAlertService,
 )
+from app.apps.platform_control.services.auth_audit_service import AuthAuditService
 from app.apps.tenant_modules.core.services.tenant_connection_service import (
     TenantConnectionService,
 )
@@ -69,6 +70,7 @@ from app.common.db.session_manager import get_control_db
 router = APIRouter(prefix="/platform/tenants", tags=["platform-tenants"])
 tenant_service = TenantService()
 tenant_policy_event_service = TenantPolicyEventService()
+auth_audit_service = AuthAuditService()
 tenant_billing_sync_service = TenantBillingSyncService(
     tenant_service=tenant_service,
     tenant_policy_event_service=tenant_policy_event_service,
@@ -297,6 +299,16 @@ def create_tenant(
             tenant_type=payload.tenant_type,
             plan_code=payload.plan_code,
         )
+        auth_audit_service.log_event(
+            db,
+            event_type="platform.tenant.create",
+            subject_scope="platform",
+            outcome="success",
+            subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+            email=_token.get("email"),
+            tenant_slug=tenant.slug,
+            detail=f"Creo tenant {tenant.slug} de tipo {tenant.tenant_type}",
+        )
         return _build_tenant_response(tenant)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -310,6 +322,20 @@ def reprovision_tenant(
 ) -> ProvisioningJobResponse:
     try:
         job = tenant_service.reprovision_tenant(db=db, tenant_id=tenant_id)
+        tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+        auth_audit_service.log_event(
+            db,
+            event_type="platform.tenant.reprovision",
+            subject_scope="platform",
+            outcome="success",
+            subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+            email=_token.get("email"),
+            tenant_slug=None if tenant is None else tenant.slug,
+            detail=(
+                f"Reencolo provisioning inicial para tenant "
+                f"{tenant.slug if tenant is not None else tenant_id}"
+            ),
+        )
         return ProvisioningJobResponse.model_validate(job)
     except ValueError as exc:
         detail = str(exc)
@@ -1107,6 +1133,16 @@ def restore_tenant(
         previous_state=previous_state,
         actor_context=_token,
     )
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.tenant.restore",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+        email=_token.get("email"),
+        tenant_slug=tenant.slug,
+        detail=f"Restauro tenant a estado {tenant.status}",
+    )
 
     return TenantStatusResponse(
         success=True,
@@ -1128,6 +1164,16 @@ def delete_tenant(
     _token: dict = Depends(require_role("superadmin")),
 ) -> TenantDeleteResponse:
     tenant = tenant_service.delete_tenant(db, tenant_id)
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.tenant.delete",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+        email=_token.get("email"),
+        tenant_slug=tenant.slug,
+        detail=f"Elimino tenant archivado {tenant.slug}",
+    )
     return TenantDeleteResponse(
         success=True,
         message="Tenant eliminado correctamente",

@@ -3373,6 +3373,8 @@ class PlatformRoutesTestCase(unittest.TestCase):
             "app.apps.platform_control.api.platform_user_routes."
             "platform_user_service.create_user",
             return_value=user,
+        ), patch(
+            "app.apps.platform_control.api.platform_user_routes.auth_audit_service.log_event",
         ):
             response = create_platform_user(
                 payload=PlatformUserCreateRequest(
@@ -3478,6 +3480,8 @@ class PlatformRoutesTestCase(unittest.TestCase):
             "app.apps.platform_control.api.platform_user_routes."
             "platform_user_service.delete_user",
             return_value=user,
+        ), patch(
+            "app.apps.platform_control.api.platform_user_routes.auth_audit_service.log_event",
         ):
             response = delete_platform_user(
                 user_id=7,
@@ -4751,6 +4755,13 @@ class PlatformRoutesTestCase(unittest.TestCase):
         with patch(
             "app.apps.platform_control.api.tenant_routes.tenant_service.reprovision_tenant",
             return_value=job,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.tenant_repository.get_by_id",
+            return_value=build_tenant_record_stub(
+                tenant_slug="empresa-bootstrap",
+            ),
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
         ) as reprovision_mock:
             response = reprovision_tenant(
                 tenant_id=5,
@@ -4762,6 +4773,57 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.tenant_id, 5)
         self.assertEqual(response.status, "pending")
         reprovision_mock.assert_called_once()
+
+    def test_create_tenant_logs_audit_event(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Central",
+            tenant_slug="empresa-central",
+            tenant_type="empresa",
+        )
+        tenant.id = 11
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.create_tenant",
+            return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
+        ) as audit_mock:
+            response = create_tenant(
+                payload=TenantCreateRequest(
+                    name="Empresa Central",
+                    slug="empresa-central",
+                    tenant_type="empresa",
+                    plan_code=None,
+                ),
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        audit_mock.assert_called_once()
+
+    def test_delete_tenant_logs_audit_event(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Temporal",
+            tenant_slug="empresa-temporal",
+            status="archived",
+        )
+        tenant.id = 1
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.delete_tenant",
+            return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
+        ) as audit_mock:
+            response = delete_tenant(
+                tenant_id=1,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        audit_mock.assert_called_once()
 
     def test_get_tenant_policy_history_returns_schema(self) -> None:
         tenant = build_tenant_record_stub()

@@ -322,10 +322,12 @@ Avance actual:
 - `Settings` ya expone sesion actual, `API configurada`, `API esperada en esta red`, catalogo backend y alcance de la UI
 - `Settings` ya expone tambien estado visible de cuenta raiz y recuperacion, para no depender solo del instalador o del login de recuperacion
 - `Settings` ya resume tambien la gobernanza visible de acceso de plataforma para detectar rapido si quedaron multiples `superadmin`, cuantos `admin` activos existen y cuanto soporte operativo esta habilitado
+- `Settings` ya no colapsa completa si falla solo el bloque de `root recovery`; las lecturas se resuelven por bloque y el warning queda localizado
 
 Pendiente fino conocido:
 
 - sigue pendiente alinear de forma definitiva la configuracion real del frontend con el host efectivo, aunque `Settings` ya hace visible la diferencia entre URL configurada y URL esperada en la red actual
+- queda cerrado el bug donde `GET /platform/auth/root-recovery/status` podia devolver `401` aun siendo parte del flujo publico de recuperacion; el middleware ya lo trata como ruta publica
 
 Lectura practica:
 

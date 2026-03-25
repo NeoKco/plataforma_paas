@@ -242,9 +242,12 @@ Sirve para revisar:
 No es una pantalla para mutar datos críticos.
 
 Su valor está en hacer visibles estados que antes obligaban a revisar documentación o recordar decisiones de instalación.
-- accesos correctos
-- accesos fallidos
-- accesos denegados
+
+Nota operativa:
+
+- si `health` responde pero `Configuración` aparece en rojo, el problema no siempre es “backend caído”
+- un caso real ya visto fue `GET /platform/auth/root-recovery/status` devolviendo `401` aunque debía ser público
+- ese bug ya quedó corregido en middleware y `Configuración` también quedó endurecida para no colapsar completa por una sola lectura fallida
 
 No reemplaza logs ni una auditoria completa, pero sirve para soporte y validacion funcional rapida.
 

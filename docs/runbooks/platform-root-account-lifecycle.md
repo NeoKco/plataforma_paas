@@ -58,6 +58,14 @@ Ahora existe:
 - `GET /platform/auth/root-recovery/status`
 - `POST /platform/auth/root-recovery`
 
+Estas dos rutas deben quedar accesibles sin sesion activa, porque forman parte del flujo de recuperacion cuando ya no queda ningun `superadmin` operativo.
+
+Nota operativa importante:
+
+- si `health`, `capabilities` y `usuarios de plataforma` responden, pero `Configuración` cae completa en error, conviene revisar primero `GET /platform/auth/root-recovery/status`
+- este endpoint ya quedo tratado como ruta publica en el middleware de autenticacion para que `Configuración` no falle por un `401` indebido
+- `Configuración` tambien quedo endurecida para no colapsar toda la pantalla si solo ese bloque puntual falla
+
 Este flujo solo funciona cuando:
 
 - la plataforma ya esta instalada
@@ -124,6 +132,12 @@ La consola ya hace visible este bloque en dos lugares:
 - si la plataforma conserva un `superadmin` activo
 - si la clave de recuperacion esta configurada
 - si la recuperacion raiz esta disponible en ese momento
+
+Y ahora, si el bloque de recuperacion raiz no puede leerse temporalmente:
+
+- el resto de `Configuración` sigue cargando
+- el problema se muestra como advertencia local del bloque
+- ya no se degrada toda la pantalla a cero por una sola llamada fallida
 
 Eso evita depender solo del login o de la documentacion para saber si la cuenta raiz sigue protegida.
 

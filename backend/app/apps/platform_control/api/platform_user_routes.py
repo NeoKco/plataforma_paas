@@ -11,6 +11,7 @@ from app.apps.platform_control.schemas import (
     PlatformUserUpdateRequest,
     PlatformUserWriteResponse,
 )
+from app.apps.platform_control.services.auth_audit_service import AuthAuditService
 from app.apps.platform_control.services.platform_user_service import (
     PlatformUserService,
 )
@@ -19,6 +20,7 @@ from app.common.db.session_manager import get_control_db
 
 router = APIRouter(prefix="/platform/users", tags=["platform-users"])
 platform_user_service = PlatformUserService()
+auth_audit_service = AuthAuditService()
 
 
 def _build_write_response(
@@ -70,6 +72,16 @@ def create_platform_user(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.user.create",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+        email=_token.get("email"),
+        detail=f"Creo usuario {user.email} con rol {user.role}",
+    )
+
     return _build_write_response(
         user,
         message="El usuario de plataforma fue creado correctamente.",
@@ -96,6 +108,16 @@ def update_platform_user(
         status_code = 404 if detail == "Platform user not found" else 400
         raise HTTPException(status_code=status_code, detail=detail) from exc
 
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.user.update",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+        email=_token.get("email"),
+        detail=f"Actualizo usuario {user.email} a rol {user.role}",
+    )
+
     return _build_write_response(
         user,
         message="El usuario de plataforma fue actualizado correctamente.",
@@ -120,6 +142,18 @@ def update_platform_user_status(
         detail = str(exc)
         status_code = 404 if detail == "Platform user not found" else 400
         raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.user.status",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+        email=_token.get("email"),
+        detail=(
+            f"{'Activo' if user.is_active else 'Desactivo'} acceso de {user.email}"
+        ),
+    )
 
     return _build_write_response(
         user,
@@ -146,6 +180,16 @@ def reset_platform_user_password(
         status_code = 404 if detail == "Platform user not found" else 400
         raise HTTPException(status_code=status_code, detail=detail) from exc
 
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.user.password_reset",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+        email=_token.get("email"),
+        detail=f"Reinicio contraseña inicial de {user.email}",
+    )
+
     return _build_write_response(
         user,
         message="La contraseña del usuario de plataforma fue actualizada correctamente.",
@@ -169,6 +213,16 @@ def delete_platform_user(
         detail = str(exc)
         status_code = 404 if detail == "Platform user not found" else 400
         raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.user.delete",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+        email=_token.get("email"),
+        detail=f"Elimino usuario {user.email} con rol {user.role}",
+    )
 
     return PlatformUserDeleteResponse(
         success=True,
