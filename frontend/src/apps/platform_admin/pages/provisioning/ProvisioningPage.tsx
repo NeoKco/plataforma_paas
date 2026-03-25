@@ -45,6 +45,7 @@ type ActionFeedback = {
 };
 
 type PendingConfirmation = {
+  scope: string;
   title: string;
   description: string;
   details: string[];
@@ -100,6 +101,15 @@ export function ProvisioningPage() {
       dlqJobs,
     };
   }, [alerts?.total_alerts, dlq?.total_jobs, jobs]);
+
+  const jobsRequiringAction = useMemo(() => {
+    return jobs.filter(
+      (job) =>
+        job.status === "failed" ||
+        job.status === "retry_pending" ||
+        job.status === "pending"
+    );
+  }, [jobs]);
 
   const jobTypeOptions = useMemo(() => {
     const keys = new Set<string>();
@@ -271,6 +281,7 @@ export function ProvisioningPage() {
     }
 
     setPendingConfirmation({
+      scope: "requeue-dlq-batch",
       title: "Reencolar filas DLQ filtradas",
       description:
         "Esta acción vuelve a poner en cola el subconjunto actual del DLQ usando los filtros visibles en pantalla.",
@@ -300,12 +311,23 @@ export function ProvisioningPage() {
       return;
     }
 
-    void runAction(`Reencolar job #${jobId}`, () =>
-      requeueProvisioningJob(session.accessToken, jobId, {
-        resetAttempts: dlqResetAttempts,
-        delaySeconds: parseNonNegativeInteger(dlqDelaySeconds, 0),
-      })
-    );
+    setPendingConfirmation({
+      scope: "requeue-provisioning-job",
+      title: `Reencolar job #${jobId}`,
+      description:
+        "Esta acción devuelve el job a cola para que vuelva a entrar al ciclo normal del worker.",
+      details: [
+        `Job: #${jobId}`,
+        `Resetear intentos: ${dlqResetAttempts ? "sí" : "no"}`,
+        `Demora antes de reencolar: ${parseNonNegativeInteger(dlqDelaySeconds, 0)} s`,
+      ],
+      confirmLabel: "Reencolar job",
+      action: () =>
+        requeueProvisioningJob(session.accessToken, jobId, {
+          resetAttempts: dlqResetAttempts,
+          delaySeconds: parseNonNegativeInteger(dlqDelaySeconds, 0),
+        }),
+    });
   }
 
   function handleRunNow(job: ProvisioningJob) {
@@ -314,6 +336,7 @@ export function ProvisioningPage() {
     }
 
     setPendingConfirmation({
+      scope: "run-provisioning-job",
       title: `Ejecutar ahora el job #${job.id}`,
       description:
         "Esta acción intenta procesar inmediatamente el job seleccionado, sin esperar al siguiente ciclo del worker.",
@@ -346,7 +369,7 @@ export function ProvisioningPage() {
         }
       />
 
-      <ConfirmDialog
+        <ConfirmDialog
         isOpen={Boolean(pendingConfirmation)}
         title={pendingConfirmation?.title || ""}
         description={pendingConfirmation?.description || ""}
@@ -358,7 +381,7 @@ export function ProvisioningPage() {
           }
           const currentAction = pendingConfirmation;
           setPendingConfirmation(null);
-          void runAction("Reencolado DLQ", currentAction.action);
+          void runAction(currentAction.scope, currentAction.action);
         }}
         onCancel={() => setPendingConfirmation(null)}
         isSubmitting={isActionSubmitting}
@@ -393,6 +416,63 @@ export function ProvisioningPage() {
         <MetricCard label="Alertas activas" value={overview.activeAlerts} />
         <MetricCard label="Filas DLQ" value={overview.dlqJobs} />
       </div>
+
+      <PanelCard
+        title="Jobs que requieren acción"
+        subtitle="Vista corta para decidir rápido si debes ejecutar, esperar retry o reencolar."
+      >
+        {jobsRequiringAction.length === 0 ? (
+          <EmptyState
+            title="No hay jobs que requieran intervención"
+            detail="No existen jobs pendientes, en retry o fallidos. El worker quedó sin deuda operativa inmediata."
+          />
+        ) : (
+          <div className="table-responsive">
+            <table className="table align-middle">
+              <thead>
+                <tr>
+                  <th>Job</th>
+                  <th>Tenant</th>
+                  <th>Estado</th>
+                  <th>Acción recomendada</th>
+                  <th>Siguiente paso</th>
+                </tr>
+              </thead>
+              <tbody>
+                {jobsRequiringAction.map((job) => (
+                  <tr key={`action-${job.id}`}>
+                    <td><code>#{job.id}</code></td>
+                    <td><code>{tenantSlugById.get(job.tenant_id) || `tenant-${job.tenant_id}`}</code></td>
+                    <td><StatusBadge value={job.status} /></td>
+                    <td>{getProvisioningActionRecommendation(job.status)}</td>
+                    <td>
+                      {job.status === "failed" ? (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => handleSingleRequeue(job.id)}
+                          disabled={isActionSubmitting}
+                        >
+                          Reencolar
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => handleRunNow(job)}
+                          disabled={isActionSubmitting}
+                        >
+                          Ejecutar ahora
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </PanelCard>
 
       {showDevelopmentBootstrapHelp ? (
         <PanelCard
