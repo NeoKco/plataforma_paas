@@ -62,6 +62,7 @@ from app.apps.platform_control.api.routes import (  # noqa: E402
 )
 from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     create_tenant,
+    delete_tenant,
     get_platform_billing_event_alerts,
     get_platform_billing_event_alert_history,
     get_platform_billing_events_summary,
@@ -744,6 +745,106 @@ class PlatformServicesTestCase(unittest.TestCase):
                 tenant_id=1,
                 target_status="active",
             )
+
+    def test_tenant_service_rejects_delete_for_non_archived_tenant(self) -> None:
+        tenant = build_tenant_record_stub(status="active")
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant)
+        )
+
+        with self.assertRaises(ValueError):
+            service.delete_tenant(db=object(), tenant_id=1)
+
+    def test_tenant_service_rejects_delete_for_archived_tenant_with_db_config(self) -> None:
+        tenant = build_tenant_record_stub(status="archived")
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant)
+        )
+
+        with self.assertRaises(ValueError):
+            service.delete_tenant(db=object(), tenant_id=1)
+
+    def test_tenant_service_rejects_delete_for_archived_tenant_with_billing_history(self) -> None:
+        tenant = build_tenant_record_stub(status="archived")
+
+        class FakeQuery:
+            def __init__(self, model_name: str):
+                self.model_name = model_name
+                self.filter_calls = 0
+
+            def filter(self, *args, **kwargs):
+                self.filter_calls += 1
+                return self
+
+            def count(self):
+                if self.model_name == "TenantBillingSyncEvent":
+                    return 1
+                return 0
+
+            def delete(self, synchronize_session=False):
+                return 0
+
+        class FakeDb:
+            def query(self, model):
+                return FakeQuery(model.__name__)
+
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant)
+        )
+
+        with self.assertRaises(ValueError):
+            service.delete_tenant(db=FakeDb(), tenant_id=1)
+
+    def test_tenant_service_deletes_archived_unprovisioned_tenant_and_technical_history(self) -> None:
+        tenant = build_tenant_record_stub(status="archived")
+        tenant.id = 1
+        deleted_targets: list[int] = []
+        deleted_queries: list[tuple[str, bool]] = []
+
+        class FakeQuery:
+            def __init__(self, model_name: str):
+                self.model_name = model_name
+                self.filter_calls = 0
+
+            def filter(self, *args, **kwargs):
+                self.filter_calls += 1
+                return self
+
+            def count(self):
+                return 0
+
+            def delete(self, synchronize_session=False):
+                deleted_queries.append((self.model_name, synchronize_session))
+                return 1
+
+        class FakeDb:
+            def query(self, model):
+                return FakeQuery(model.__name__)
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+            def delete(self, db, target):
+                deleted_targets.append(target.id)
+
+        service = TenantService(tenant_repository=FakeTenantRepository())
+
+        result = service.delete_tenant(db=FakeDb(), tenant_id=1)
+
+        self.assertIs(result, tenant)
+        self.assertEqual(deleted_targets, [tenant.id])
+        self.assertEqual(
+            deleted_queries,
+            [
+                ("ProvisioningJob", False),
+                ("TenantPolicyChangeEvent", False),
+            ],
+        )
 
     def test_tenant_service_resolves_effective_module_limits_with_sources(self) -> None:
         tenant = build_tenant_record_stub(
@@ -4522,6 +4623,29 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.tenant_status, "active")
         self.assertEqual(response.tenant_status_reason, "Restaurado desde consola")
+
+    def test_delete_tenant_returns_schema(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Temporal",
+            tenant_slug="empresa-temporal",
+            status="archived",
+        )
+        tenant.id = 1
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.delete_tenant",
+            return_value=tenant,
+        ):
+            response = delete_tenant(
+                tenant_id=1,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.tenant_id, 1)
+        self.assertEqual(response.tenant_slug, "empresa-temporal")
+        self.assertEqual(response.tenant_name, "Empresa Temporal")
 
     def test_get_tenant_policy_history_returns_schema(self) -> None:
         tenant = build_tenant_record_stub()

@@ -20,6 +20,7 @@ import {
 } from "../../../../utils/platform-labels";
 import {
   createPlatformTenant,
+  deletePlatformTenant,
   getPlatformCapabilities,
   getPlatformTenant,
   getPlatformTenantAccessPolicy,
@@ -64,7 +65,7 @@ type PendingConfirmation = {
   details: string[];
   confirmLabel: string;
   tone?: "warning" | "danger";
-  action: () => Promise<{ message: string }>;
+  action: () => Promise<{ message: string; afterSuccess?: () => Promise<void> | void }>;
 };
 
 export function TenantsPage() {
@@ -459,14 +460,18 @@ export function TenantsPage() {
 
   async function runAction(
     scope: string,
-    action: () => Promise<{ message: string }>
+    action: () => Promise<{ message: string; afterSuccess?: () => Promise<void> | void }>
   ) {
     setIsActionSubmitting(true);
     setActionFeedback(null);
 
     try {
       const result = await action();
-      await reloadSelectedTenantWorkspace();
+      if (result.afterSuccess) {
+        await result.afterSuccess();
+      } else {
+        await reloadSelectedTenantWorkspace();
+      }
       setActionFeedback({
         scope,
         type: "success",
@@ -892,6 +897,42 @@ export function TenantsPage() {
     });
   }
 
+  function handleDeleteTenant() {
+    if (!session?.accessToken || selectedTenantId === null || !selectedTenantSummary) {
+      return;
+    }
+
+    requestConfirmation({
+      scope: "delete-tenant",
+      title: "Confirmar borrado seguro del tenant",
+      description:
+        "Esta acción elimina definitivamente el tenant archivado solo cuando nunca quedó materializada su infraestructura tenant ni su historial comercial.",
+      details: [
+        `Tenant: ${selectedTenantSummary.name}`,
+        `Slug: ${selectedTenantSummary.slug}`,
+        "Úsalo solo para altas descartadas, pruebas o tenants archivados que no deben conservarse.",
+      ],
+      confirmLabel: "Eliminar tenant",
+      tone: "danger",
+      action: async () => {
+        const deletedTenantId = selectedTenantId;
+        await deletePlatformTenant(session.accessToken, selectedTenantId);
+        return {
+          message: "El tenant fue eliminado correctamente.",
+          afterSuccess: async () => {
+            setSelectedTenantId(null);
+            setSelectedTenant(null);
+            setAccessPolicy(null);
+            setModuleUsage(null);
+            setPolicyHistory([]);
+            setSelectedProvisioningJob(null);
+            await loadTenantsCatalog();
+          },
+        };
+      },
+    });
+  }
+
   return (
     <div className="d-grid gap-4">
       <ConfirmDialog
@@ -1160,10 +1201,20 @@ export function TenantsPage() {
                         Archivar tenant
                       </button>
                     ) : (
-                      <div className="tenant-help-text">
-                        Este tenant está archivado. Usa el bloque de restauración para reabrirlo
-                        con un lifecycle explícito.
-                      </div>
+                      <>
+                        <div className="tenant-help-text">
+                          Este tenant está archivado. Usa el bloque de restauración para reabrirlo
+                          con un lifecycle explícito.
+                        </div>
+                        <button
+                          className="btn btn-outline-danger btn-sm"
+                          type="button"
+                          onClick={handleDeleteTenant}
+                          disabled={isActionSubmitting}
+                        >
+                          Eliminar tenant
+                        </button>
+                      </>
                     )}
                     {tenantPortalHref && canOpenTenantPortal ? (
                       <Link className="btn btn-outline-primary btn-sm" to={tenantPortalHref}>
@@ -1412,6 +1463,10 @@ export function TenantsPage() {
                       />
                       <div className="tenant-inline-note mt-3">
                         La restauración es explícita y no equivale a editar el estado a mano.
+                      </div>
+                      <div className="tenant-inline-note mt-3">
+                        Si este tenant archivado nunca llegó a quedar provisionado y no debe
+                        conservarse, puedes usar `Eliminar tenant` para removerlo definitivamente.
                       </div>
                       <button className="btn btn-primary mt-3" type="submit" disabled={isActionSubmitting}>
                         Restaurar tenant

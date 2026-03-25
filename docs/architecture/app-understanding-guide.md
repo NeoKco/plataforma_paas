@@ -137,7 +137,7 @@ Politica operativa vigente:
 
 - `slug` estable
 - `archive` como salida basica
-- `delete` duro fuera del alcance actual
+- `delete` ya existe solo como borrado seguro y muy acotado para tenants archivados sin DB tenant materializada ni historial comercial
 - `restore` ya existe como accion formal solo para tenants archivados
 
 Lectura importante:

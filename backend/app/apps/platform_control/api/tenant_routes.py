@@ -39,6 +39,7 @@ from app.apps.platform_control.schemas import (
     TenantPlanUpdateRequest,
     TenantRateLimitResponse,
     TenantRateLimitUpdateRequest,
+    TenantDeleteResponse,
     TenantStatusResponse,
     TenantStatusUpdateRequest,
     TenantResponse,
@@ -110,7 +111,10 @@ def _build_tenant_response(tenant) -> TenantResponse:
         slug=tenant.slug,
         tenant_type=tenant.tenant_type,
         db_configured=bool(
-            tenant.db_name and tenant.db_user and tenant.db_host and tenant.db_port
+            getattr(tenant, "db_name", None)
+            and getattr(tenant, "db_user", None)
+            and getattr(tenant, "db_host", None)
+            and getattr(tenant, "db_port", None)
         ),
         plan_code=tenant.plan_code,
         billing_provider=tenant.billing_provider,
@@ -1095,6 +1099,25 @@ def restore_tenant(
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
         tenant_status_reason=tenant.status_reason,
+    )
+
+
+@router.delete(
+    "/{tenant_id}",
+    response_model=TenantDeleteResponse,
+)
+def delete_tenant(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantDeleteResponse:
+    tenant = tenant_service.delete_tenant(db, tenant_id)
+    return TenantDeleteResponse(
+        success=True,
+        message="Tenant eliminado correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_name=tenant.name,
     )
 
 

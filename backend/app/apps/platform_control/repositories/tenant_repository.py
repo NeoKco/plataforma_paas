@@ -62,3 +62,7 @@ class TenantRepository:
 
     def refresh(self, db: Session, tenant: Tenant) -> None:
         db.refresh(tenant)
+
+    def delete(self, db: Session, tenant: Tenant) -> None:
+        db.delete(tenant)
+        db.commit()

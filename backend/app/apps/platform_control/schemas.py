@@ -576,6 +576,14 @@ class TenantStatusResponse(BaseModel):
     tenant_status_reason: str | None = None
 
 
+class TenantDeleteResponse(BaseModel):
+    success: bool
+    message: str
+    tenant_id: int
+    tenant_slug: str
+    tenant_name: str
+
+
 class TenantPolicyChangeEventResponse(BaseModel):
     id: int
     tenant_id: int

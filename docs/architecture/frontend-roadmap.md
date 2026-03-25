@@ -181,6 +181,7 @@ Avance actual:
 - `Tenants` ya permite editar identidad basica del tenant para `name` y `tenant_type`
 - `Tenants` ya expone `archivar tenant` como baja operativa segura usando el lifecycle existente
 - `Tenants` ya expone `restaurar tenant` como flujo formal solo para tenants archivados, con estado destino explicito
+- `Tenants` ya expone `eliminar tenant` como borrado seguro solo para tenants archivados sin DB tenant materializada ni historial comercial
 - `Tenants` ya muestra el ultimo job de provisioning del tenant seleccionado con acceso rapido a la consola global y acciones directas segun estado
 - `Tenants` ya permite operar `status`
 - `Tenants` ya permite operar `maintenance`
@@ -196,7 +197,7 @@ Avance actual:
 Pendientes finos conocidos:
 
 - decidir si `slug` queda definitivamente estable y, si es asi, mantener la edicion basica limitada a `name` y `tenant_type`
-- no abrir `delete` duro mientras no exista una politica clara sobre DB tenant, billing history, policy history y auditoria
+- mantener `delete` acotado al flujo seguro actual y no abrir todavia un borrado duro para tenants provisionados o con historia comercial
 - decidir mas adelante si vale la pena abrir una restauracion mas rica o si el flujo actual `archived -> restore` ya es suficiente
 - revisar el tono final de varias ayudas `?` para que suenen menos tecnicas
 - decidir si todas las ayudas `?` actuales aportan o si algunas deben simplificarse o salir

@@ -5,6 +5,13 @@ import json
 from sqlalchemy.orm import Session
 
 from app.apps.platform_control.models.tenant import Tenant
+from app.apps.platform_control.models.provisioning_job import ProvisioningJob
+from app.apps.platform_control.models.tenant_billing_sync_event import (
+    TenantBillingSyncEvent,
+)
+from app.apps.platform_control.models.tenant_policy_change_event import (
+    TenantPolicyChangeEvent,
+)
 from app.apps.platform_control.repositories.tenant_repository import TenantRepository
 from app.apps.provisioning.services.tenant_schema_service import TenantSchemaService
 from app.apps.provisioning.services.provisioning_dispatch_service import (
@@ -267,6 +274,50 @@ class TenantService:
             else "Restaurado desde consola de plataforma"
         )
         return self.tenant_repository.save(db, tenant)
+
+    def delete_tenant(self, db: Session, tenant_id: int) -> Tenant:
+        tenant = self.tenant_repository.get_by_id(db, tenant_id)
+        if not tenant:
+            raise ValueError("Tenant not found")
+
+        if tenant.status != "archived":
+            raise ValueError("Only archived tenants can be deleted")
+
+        if (
+            getattr(tenant, "db_name", None)
+            or getattr(tenant, "db_user", None)
+            or getattr(tenant, "db_host", None)
+            or getattr(tenant, "db_port", None)
+        ):
+            raise ValueError(
+                "Only archived tenants without provisioned database configuration can be deleted"
+            )
+
+        billing_events = (
+            db.query(TenantBillingSyncEvent)
+            .filter(TenantBillingSyncEvent.tenant_id == tenant_id)
+            .count()
+        )
+        if billing_events > 0:
+            raise ValueError("Tenants with billing history cannot be deleted")
+
+        completed_jobs = (
+            db.query(ProvisioningJob)
+            .filter(ProvisioningJob.tenant_id == tenant_id)
+            .filter(ProvisioningJob.status == "completed")
+            .count()
+        )
+        if completed_jobs > 0:
+            raise ValueError("Tenants with completed provisioning cannot be deleted")
+
+        db.query(ProvisioningJob).filter(ProvisioningJob.tenant_id == tenant_id).delete(
+            synchronize_session=False
+        )
+        db.query(TenantPolicyChangeEvent).filter(
+            TenantPolicyChangeEvent.tenant_id == tenant_id
+        ).delete(synchronize_session=False)
+        self.tenant_repository.delete(db, tenant)
+        return tenant
 
     def set_plan(
         self,
