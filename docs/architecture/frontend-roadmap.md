@@ -20,6 +20,7 @@ Lo que queda pendiente ya no es abrir el frontend desde cero.
 
 Lo pendiente es sobre todo:
 
+- cerrar el ciclo basico de tenants desde UI
 - refinamiento de UX
 - labels y catalogos mas ricos desde backend
 - endurecimiento de bordes y automatizacion
@@ -149,6 +150,9 @@ Objetivo:
 
 Entregables minimos:
 
+- alta visual de tenant
+- edicion basica de identidad tenant
+- archivo de tenant como baja operativa segura
 - cambio de `status`
 - cambio de `maintenance`
 - cambio de `plan`
@@ -162,6 +166,11 @@ Condicion importante:
 
 Avance actual:
 
+- backend ya permite crear tenants por API
+- `Tenants` ya permite crear tenants desde frontend con nombre, slug, tipo y plan inicial
+- `Tenants` ya permite buscar y filtrar por nombre, slug, tipo, estado y billing
+- `Tenants` ya permite editar identidad basica del tenant para `name` y `tenant_type`
+- `Tenants` ya expone `archivar tenant` como baja operativa segura usando el lifecycle existente
 - `Tenants` ya permite operar `status`
 - `Tenants` ya permite operar `maintenance`
 - `Tenants` ya permite operar `billing`
@@ -175,6 +184,8 @@ Avance actual:
 
 Pendientes finos conocidos:
 
+- decidir si `slug` queda definitivamente estable y, si es asi, mantener la edicion basica limitada a `name` y `tenant_type`
+- no abrir `delete` duro mientras no exista una politica clara sobre DB tenant, billing history, policy history y auditoria
 - revisar el tono final de varias ayudas `?` para que suenen menos tecnicas
 - decidir si todas las ayudas `?` actuales aportan o si algunas deben simplificarse o salir
 - seguir refinando labels visibles para que conceptos de negocio y operacion suenen mas naturales segun contexto, aunque ya no dependemos de codigos crudos para casos comunes
@@ -183,8 +194,9 @@ Pendientes finos conocidos:
 
 Lectura practica:
 
-- la operacion central del tenant ya esta implementada
-- esta etapa sigue abierta solo por refinamiento de UX, labels y catalogos
+- la operacion sobre tenants ya esta avanzada
+- el CRUD basico seguro ya esta muy cerca de cierre
+- lo que sigue abierto aqui es sobre todo politica de producto: confirmar `slug` estable y seguir sin `delete` fisico por ahora
 
 Avance reciente de lenguaje y labels:
 
@@ -379,8 +391,9 @@ Hoy la lectura correcta es esta:
 
 Lo mas rentable para las proximas sesiones es esto:
 
-1. rematar `Dashboard` y `Settings`, que ya mejoraron su lenguaje y lectura operativa pero todavia pueden ganar consistencia final
-2. seguir endureciendo bordes reales solo cuando aparezcan durante cambios funcionales, evitando volver a modo de prueba manual pesada por defecto
-3. pedir al backend catalogos mas ricos para planes, estados y ayudas visibles donde todavia asomen codigos internos
-4. seguir puliendo el `tenant_portal` como experiencia final de usuario, no solo como consola tecnica
-5. documentar de inmediato cada validacion importante y cada captura util para no tener que reconstruir contexto despues
+1. cerrar el flujo basico de tenants desde `platform_admin`: crear, editar identidad basica, archivar y filtrar
+2. definir explicitamente que `archivar` es la baja operativa base y que `delete` fisico no se abre todavia
+3. rematar `Dashboard` y `Settings`, que ya mejoraron su lenguaje y lectura operativa pero todavia pueden ganar consistencia final
+4. seguir endureciendo bordes reales solo cuando aparezcan durante cambios funcionales, evitando volver a modo de prueba manual pesada por defecto
+5. pedir al backend catalogos mas ricos para planes, estados y ayudas visibles donde todavia asomen codigos internos
+6. documentar de inmediato cada validacion importante y cada captura util para no tener que reconstruir contexto despues

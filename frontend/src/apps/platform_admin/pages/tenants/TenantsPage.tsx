@@ -19,6 +19,7 @@ import {
   displayPlatformCode,
 } from "../../../../utils/platform-labels";
 import {
+  createPlatformTenant,
   getPlatformCapabilities,
   getPlatformTenant,
   getPlatformTenantAccessPolicy,
@@ -28,6 +29,7 @@ import {
   syncPlatformTenantSchema,
   updatePlatformTenantBilling,
   updatePlatformTenantBillingIdentity,
+  updatePlatformTenantIdentity,
   updatePlatformTenantMaintenance,
   updatePlatformTenantModuleLimits,
   updatePlatformTenantPlan,
@@ -108,9 +110,55 @@ export function TenantsPage() {
   const [moduleLimitDrafts, setModuleLimitDrafts] = useState<Record<string, string>>(
     {}
   );
+  const [createTenantName, setCreateTenantName] = useState("");
+  const [createTenantSlug, setCreateTenantSlug] = useState("");
+  const [createTenantSlugTouched, setCreateTenantSlugTouched] = useState(false);
+  const [createTenantType, setCreateTenantType] = useState("empresa");
+  const [createTenantPlanCode, setCreateTenantPlanCode] = useState("");
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [catalogStatusFilter, setCatalogStatusFilter] = useState("");
+  const [catalogBillingFilter, setCatalogBillingFilter] = useState("");
+  const [catalogTypeFilter, setCatalogTypeFilter] = useState("");
+  const [identityName, setIdentityName] = useState("");
+  const [identityTenantType, setIdentityTenantType] = useState("empresa");
 
   const selectedTenantSummary =
     tenants.find((tenant) => tenant.id === selectedTenantId) || selectedTenant;
+
+  const tenantTypeOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(["empresa", "condominio", ...tenants.map((tenant) => tenant.tenant_type)])
+      ).sort(),
+    [tenants]
+  );
+
+  const filteredTenants = useMemo(() => {
+    const search = catalogSearch.trim().toLowerCase();
+
+    return tenants.filter((tenant) => {
+      const matchesSearch =
+        !search ||
+        tenant.name.toLowerCase().includes(search) ||
+        tenant.slug.toLowerCase().includes(search) ||
+        tenant.tenant_type.toLowerCase().includes(search);
+      const matchesStatus =
+        !catalogStatusFilter || tenant.status === catalogStatusFilter;
+      const matchesBilling =
+        !catalogBillingFilter ||
+        (tenant.billing_status || "") === catalogBillingFilter;
+      const matchesType =
+        !catalogTypeFilter || tenant.tenant_type === catalogTypeFilter;
+
+      return matchesSearch && matchesStatus && matchesBilling && matchesType;
+    });
+  }, [
+    catalogBillingFilter,
+    catalogSearch,
+    catalogStatusFilter,
+    catalogTypeFilter,
+    tenants,
+  ]);
 
   const planOptions = useMemo(
     () =>
@@ -344,6 +392,8 @@ export function TenantsPage() {
     setBillingProviderSubscriptionId(
       selectedTenantSummary.billing_provider_subscription_id || ""
     );
+    setIdentityName(selectedTenantSummary.name);
+    setIdentityTenantType(selectedTenantSummary.tenant_type);
     const nextDrafts = Object.fromEntries(
       moduleLimitKeys.map((key) => {
         const value = selectedTenantSummary.module_limits?.[key];
@@ -392,6 +442,74 @@ export function TenantsPage() {
     const confirmation = pendingConfirmation;
     setPendingConfirmation(null);
     await runAction(confirmation.scope, confirmation.action);
+  }
+
+  async function handleCreateTenantSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session?.accessToken) {
+      return;
+    }
+
+    setIsActionSubmitting(true);
+    setActionFeedback(null);
+
+    try {
+      const createdTenant = await createPlatformTenant(session.accessToken, {
+        name: createTenantName.trim(),
+        slug: createTenantSlug.trim(),
+        tenant_type: createTenantType,
+        plan_code: normalizeNullableString(createTenantPlanCode),
+      });
+      await loadTenantsCatalog();
+      setSelectedTenantId(createdTenant.id);
+      await loadTenantWorkspace(createdTenant.id);
+      setCreateTenantName("");
+      setCreateTenantSlug("");
+      setCreateTenantSlugTouched(false);
+      setCreateTenantType("empresa");
+      setCreateTenantPlanCode("");
+      setActionFeedback({
+        scope: "create-tenant",
+        type: "success",
+        message: getPlatformActionSuccessMessage("create-tenant"),
+      });
+    } catch (rawError) {
+      const typedError = rawError as ApiError;
+      setActionFeedback({
+        scope: "create-tenant",
+        type: "error",
+        message: getApiErrorDisplayMessage(typedError),
+      });
+    } finally {
+      setIsActionSubmitting(false);
+    }
+  }
+
+  function handleIdentitySubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session?.accessToken || selectedTenantId === null) {
+      return;
+    }
+
+    requestConfirmation({
+      scope: "identity-tenant",
+      title: "Confirmar actualización de identidad básica",
+      description:
+        "Esta acción actualiza el nombre visible y el tipo operativo del tenant. El slug se mantiene estable.",
+      details: [
+        `Tenant actual: ${selectedTenantSummary?.name || "n/a"}`,
+        `Nuevo nombre: ${identityName.trim() || "n/a"}`,
+        `Tipo actual: ${selectedTenantSummary?.tenant_type || "n/a"}`,
+        `Nuevo tipo: ${identityTenantType || "n/a"}`,
+        `Slug estable: ${selectedTenantSummary?.slug || "n/a"}`,
+      ],
+      confirmLabel: "Actualizar identidad",
+      action: () =>
+        updatePlatformTenantIdentity(session.accessToken, selectedTenantId, {
+          name: identityName.trim(),
+          tenant_type: identityTenantType,
+        }),
+    });
   }
 
   function handleStatusSubmit(event: FormEvent<HTMLFormElement>) {
@@ -618,6 +736,33 @@ export function TenantsPage() {
     });
   }
 
+  function handleArchiveTenant() {
+    if (!session?.accessToken || selectedTenantId === null || !selectedTenantSummary) {
+      return;
+    }
+
+    requestConfirmation({
+      scope: "archive-tenant",
+      title: "Confirmar archivo del tenant",
+      description:
+        "Archivar deja al tenant fuera de operación normal sin eliminar su historial, jobs ni referencias técnicas.",
+      details: [
+        `Tenant: ${selectedTenantSummary.name}`,
+        `Slug: ${selectedTenantSummary.slug}`,
+        "El archivo operativo es reversible cambiando luego el lifecycle desde plataforma.",
+      ],
+      confirmLabel: "Archivar tenant",
+      tone: "danger",
+      action: () =>
+        updatePlatformTenantStatus(session.accessToken, selectedTenantId, {
+          status: "archived",
+          status_reason:
+            normalizeNullableString(statusReason) ||
+            "Archivado desde consola de plataforma",
+        }),
+    });
+  }
+
   return (
     <div className="d-grid gap-4">
       <ConfirmDialog
@@ -646,59 +791,210 @@ export function TenantsPage() {
       ) : null}
 
       <div className="tenants-page-grid">
-        <PanelCard
-          title="Catálogo de tenants"
-          subtitle="Este listado se alimenta desde los endpoints de catálogo tenant de plataforma."
-        >
-          {isListLoading ? <LoadingBlock label="Cargando tenants..." /> : null}
-
-          {!isListLoading && tenants.length === 0 ? (
-            <div className="text-secondary">
-              Aún no hay tenants. Puedes cargar datos demo o crear el primer tenant
-              desde la API mientras la acción visual sigue pendiente.
-            </div>
-          ) : null}
-
-          {tenants.length > 0 ? (
-            <div className="tenant-list">
-              {tenants.map((tenant) => {
-                const isSelected = tenant.id === selectedTenantId;
-                return (
-                  <button
-                    key={tenant.id}
-                    type="button"
-                    className={`tenant-list__item${isSelected ? " is-selected" : ""}`}
-                    onClick={() => setSelectedTenantId(tenant.id)}
+        <div className="d-grid gap-4">
+          <PanelCard
+            title="Crear tenant"
+            subtitle="Alta operativa básica: nombre, slug, tipo y plan inicial para disparar provisioning."
+          >
+            <form className="tenant-action-form tenant-create-form" onSubmit={handleCreateTenantSubmit}>
+              <FieldHelpLabel
+                label="Nombre visible"
+                help="Nombre con el que el operador reconocerá el tenant en la consola."
+              />
+              <input
+                className="form-control"
+                value={createTenantName}
+                onChange={(event) => {
+                  const nextName = event.target.value;
+                  setCreateTenantName(nextName);
+                  if (!createTenantSlugTouched) {
+                    setCreateTenantSlug(slugifyTenantName(nextName));
+                  }
+                }}
+                placeholder="Ej: Empresa Centro"
+                required
+              />
+              <FieldHelpLabel
+                label="Slug"
+                help="Identificador estable del tenant. Conviene definirlo bien al inicio porque se usa en portal tenant, bootstrap y referencias técnicas."
+              />
+              <input
+                className="form-control"
+                value={createTenantSlug}
+                onChange={(event) => {
+                  setCreateTenantSlugTouched(true);
+                  setCreateTenantSlug(slugifyTenantName(event.target.value));
+                }}
+                placeholder="empresa-centro"
+                required
+              />
+              <div className="tenant-inline-form-grid">
+                <div>
+                  <FieldHelpLabel
+                    label="Tipo de tenant"
+                    help="Clasifica el tenant según su vertical principal. Puedes empezar por empresa o condominio."
+                  />
+                  <select
+                    className="form-select"
+                    value={createTenantType}
+                    onChange={(event) => setCreateTenantType(event.target.value)}
                   >
-                    <div className="tenant-list__row">
-                      <div>
-                        <div className="tenant-list__title">{tenant.name}</div>
-                        <div className="tenant-list__meta">
-                          <code>{tenant.slug}</code>
-                          <span>{tenant.tenant_type}</span>
-                        </div>
-                      </div>
-                      <StatusBadge value={tenant.status} />
-                    </div>
-                    <div className="tenant-list__chips">
-                      <span className="tenant-chip">
-                        billing: {displayPlatformCode(tenant.billing_status || "none")}
-                      </span>
-                      <span className="tenant-chip">
-                        plan: {tenant.plan_code || "ninguno"}
-                      </span>
-                      {tenant.maintenance_mode ? (
-                        <span className="tenant-chip tenant-chip--warning">
-                          mantenimiento
-                        </span>
-                      ) : null}
-                    </div>
-                  </button>
-                );
-              })}
+                    {tenantTypeOptions.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <FieldHelpLabel
+                    label="Plan inicial"
+                    help="Puedes partir sin plan o asignar uno desde el alta para que el tenant nazca con su política base."
+                  />
+                  <select
+                    className="form-select"
+                    value={createTenantPlanCode}
+                    onChange={(event) => setCreateTenantPlanCode(event.target.value)}
+                  >
+                    <option value="">Sin plan</option>
+                    {planOptions.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <p className="tenant-help-text mt-2">
+                Al crear el tenant se dispara provisioning para preparar su base tenant y
+                dejar el acceso bootstrap listo.
+              </p>
+              <button
+                className="btn btn-primary mt-3"
+                type="submit"
+                disabled={
+                  isActionSubmitting ||
+                  !createTenantName.trim() ||
+                  !createTenantSlug.trim()
+                }
+              >
+                Crear tenant
+              </button>
+            </form>
+          </PanelCard>
+
+          <PanelCard
+            title="Catálogo de tenants"
+            subtitle="Busca, filtra y selecciona tenants para entrar a su operación central."
+          >
+            <div className="tenant-catalog-filters">
+              <input
+                className="form-control"
+                value={catalogSearch}
+                onChange={(event) => setCatalogSearch(event.target.value)}
+                placeholder="Buscar por nombre, slug o tipo"
+              />
+              <div className="tenant-inline-form-grid">
+                <select
+                  className="form-select"
+                  value={catalogStatusFilter}
+                  onChange={(event) => setCatalogStatusFilter(event.target.value)}
+                >
+                  <option value="">Todos los estados</option>
+                  {(capabilities?.tenant_statuses || []).map((value) => (
+                    <option key={value} value={value}>
+                      {displayPlatformCode(value)}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="form-select"
+                  value={catalogBillingFilter}
+                  onChange={(event) => setCatalogBillingFilter(event.target.value)}
+                >
+                  <option value="">Toda la facturación</option>
+                  {(capabilities?.tenant_billing_statuses || []).map((value) => (
+                    <option key={value} value={value}>
+                      {displayPlatformCode(value)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <select
+                className="form-select"
+                value={catalogTypeFilter}
+                onChange={(event) => setCatalogTypeFilter(event.target.value)}
+              >
+                <option value="">Todos los tipos</option>
+                {tenantTypeOptions.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
             </div>
-          ) : null}
-        </PanelCard>
+
+            {isListLoading ? <LoadingBlock label="Cargando tenants..." /> : null}
+
+            {!isListLoading && tenants.length === 0 ? (
+              <div className="text-secondary">
+                Aún no hay tenants creados. Usa el formulario superior para dar de alta el
+                primero y disparar su provisioning inicial.
+              </div>
+            ) : null}
+
+            {!isListLoading && tenants.length > 0 && filteredTenants.length === 0 ? (
+              <div className="text-secondary">
+                No hay tenants que coincidan con los filtros actuales.
+              </div>
+            ) : null}
+
+            {filteredTenants.length > 0 ? (
+              <>
+                <div className="tenant-catalog-summary">
+                  {filteredTenants.length} de {tenants.length} tenants visibles
+                </div>
+                <div className="tenant-list">
+                  {filteredTenants.map((tenant) => {
+                    const isSelected = tenant.id === selectedTenantId;
+                    return (
+                      <button
+                        key={tenant.id}
+                        type="button"
+                        className={`tenant-list__item${isSelected ? " is-selected" : ""}`}
+                        onClick={() => setSelectedTenantId(tenant.id)}
+                      >
+                        <div className="tenant-list__row">
+                          <div>
+                            <div className="tenant-list__title">{tenant.name}</div>
+                            <div className="tenant-list__meta">
+                              <code>{tenant.slug}</code>
+                              <span>{tenant.tenant_type}</span>
+                            </div>
+                          </div>
+                          <StatusBadge value={tenant.status} />
+                        </div>
+                        <div className="tenant-list__chips">
+                          <span className="tenant-chip">
+                            billing: {displayPlatformCode(tenant.billing_status || "none")}
+                          </span>
+                          <span className="tenant-chip">
+                            plan: {tenant.plan_code || "ninguno"}
+                          </span>
+                          {tenant.maintenance_mode ? (
+                            <span className="tenant-chip tenant-chip--warning">
+                              mantenimiento
+                            </span>
+                          ) : null}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            ) : null}
+          </PanelCard>
+        </div>
 
         <div className="d-grid gap-4">
           {isDetailLoading && !selectedTenant ? (
@@ -724,11 +1020,23 @@ export function TenantsPage() {
                     Acceso rápido para superadmin al portal tenant con el slug ya
                     precargado.
                   </div>
-                  {tenantPortalHref ? (
-                    <Link className="btn btn-outline-primary btn-sm" to={tenantPortalHref}>
-                      Abrir portal tenant
-                    </Link>
-                  ) : null}
+                  <div className="tenant-context-actions__buttons">
+                    {selectedTenantSummary.status !== "archived" ? (
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        type="button"
+                        onClick={handleArchiveTenant}
+                        disabled={isActionSubmitting}
+                      >
+                        Archivar tenant
+                      </button>
+                    ) : null}
+                    {tenantPortalHref ? (
+                      <Link className="btn btn-outline-primary btn-sm" to={tenantPortalHref}>
+                        Abrir portal tenant
+                      </Link>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="tenant-detail-grid">
                   <DetailField label="Slug" value={<code>{selectedTenantSummary.slug}</code>} />
@@ -827,7 +1135,7 @@ export function TenantsPage() {
 
               <PanelCard
                 title="Acciones administrativas"
-                subtitle="Primera slice F4: mutar lifecycle tenant, mantenimiento, billing, plan y rate limits."
+                subtitle="Gobierna lifecycle, mantenimiento, billing, plan, límites y operación técnica del tenant seleccionado."
               >
                 {actionFeedback ? (
                   <div
@@ -839,6 +1147,45 @@ export function TenantsPage() {
                 ) : null}
 
                 <div className="tenant-action-grid">
+                  <form className="tenant-action-form" onSubmit={handleIdentitySubmit}>
+                    <h3 className="tenant-action-form__title">Identidad básica</h3>
+                    <FieldHelpLabel
+                      label="Nombre visible"
+                      help="Este nombre se usa en catálogo, detalle y operación diaria del tenant."
+                    />
+                    <input
+                      className="form-control"
+                      value={identityName}
+                      onChange={(event) => setIdentityName(event.target.value)}
+                    />
+                    <FieldHelpLabel
+                      label="Tipo de tenant"
+                      help="Clasifica operativamente el tenant sin tocar su slug ni su historial técnico."
+                    />
+                    <select
+                      className="form-select"
+                      value={identityTenantType}
+                      onChange={(event) => setIdentityTenantType(event.target.value)}
+                    >
+                      {tenantTypeOptions.map((value) => (
+                        <option key={value} value={value}>
+                          {value}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="tenant-inline-note mt-3">
+                      El slug se mantiene estable para no romper accesos, bootstrap ni referencias
+                      técnicas.
+                    </div>
+                    <button
+                      className="btn btn-primary mt-3"
+                      type="submit"
+                      disabled={isActionSubmitting || !identityName.trim()}
+                    >
+                      Actualizar identidad básica
+                    </button>
+                  </form>
+
                   <form className="tenant-action-form" onSubmit={handleStatusSubmit}>
                     <h3 className="tenant-action-form__title">Estado</h3>
                     <FieldHelpLabel
@@ -1484,6 +1831,16 @@ function FieldHelpLabel({
       <div className="inline-help__bubble">{help}</div>
     </div>
   );
+}
+
+function slugifyTenantName(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64);
 }
 
 function normalizeNullableString(value: string): string | null {

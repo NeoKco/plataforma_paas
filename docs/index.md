@@ -48,6 +48,7 @@ En este momento la documentacion creada formalmente dentro del repositorio comie
 - [Reglas backend y guia de cambios](./runbooks/backend-rules-and-change-guidelines.md)
 - [Onboarding de developers](./runbooks/developer-onboarding.md)
 - [Demo data y seeds de desarrollo](./runbooks/demo-data.md)
+- [Ciclo basico de tenants](./runbooks/tenant-basic-cycle.md)
 - [Prueba guiada de provisioning](./runbooks/provisioning-guided-test.md)
 - [Prueba guiada de billing](./runbooks/billing-guided-test.md)
 - [Prueba guiada de tenant portal](./runbooks/tenant-portal-guided-test.md)

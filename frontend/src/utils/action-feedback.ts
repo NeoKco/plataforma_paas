@@ -7,6 +7,9 @@ export function getPlatformActionFeedbackLabel(scope: string): string {
   }
 
   const knownLabels: Record<string, string> = {
+    "create-tenant": "Alta de tenant",
+    "identity-tenant": "Identidad básica",
+    "archive-tenant": "Archivo de tenant",
     status: "Estado del tenant",
     maintenance: "Mantenimiento",
     billing: "Facturación",
@@ -34,6 +37,9 @@ export function getPlatformActionSuccessMessage(
   }
 
   const knownMessages: Record<string, string> = {
+    "create-tenant": "El tenant fue creado correctamente y quedó listo para provisioning.",
+    "identity-tenant": "La identidad básica del tenant fue actualizada correctamente.",
+    "archive-tenant": "El tenant fue archivado correctamente.",
     status: "El estado del tenant fue actualizado correctamente.",
     maintenance: "La ventana de mantenimiento fue actualizada correctamente.",
     billing: "La facturación del tenant fue actualizada correctamente.",

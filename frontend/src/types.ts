@@ -152,6 +152,23 @@ export type PlatformTenantListResponse = {
   data: PlatformTenant[];
 };
 
+export type PlatformTenantCreateRequest = {
+  name: string;
+  slug: string;
+  tenant_type: string;
+  plan_code: string | null;
+};
+
+export type PlatformTenantIdentityResponse = {
+  success: boolean;
+  message: string;
+  tenant_id: number;
+  tenant_slug: string;
+  tenant_name: string;
+  tenant_type: string;
+  tenant_status: string;
+};
+
 export type PlatformTenantAccessPolicy = {
   success: boolean;
   message: string;

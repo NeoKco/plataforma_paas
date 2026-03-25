@@ -73,6 +73,13 @@ El flujo correcto del producto es este:
 6. corregir problemas desde `Provisioning` o `Billing` si hace falta
 7. entrar al `tenant_portal` cuando el tenant ya esta operativo
 
+Prioridad actual del producto:
+
+- antes de abrir mas modulos de negocio, conviene cerrar bien la base de plataforma
+- eso incluye que `platform_admin` pueda manejar de forma clara el ciclo basico del tenant como entidad central
+- hoy esa base ya cubre alta, edicion basica y archivo operativo desde `Tenants`
+- lo que sigue abierto aqui ya no es falta de UI base, sino decision de producto sobre `slug` estable y ausencia de `delete` fisico
+
 ## 5. Que hace cada pantalla principal
 
 ### `Resumen`
@@ -95,6 +102,7 @@ Es la pantalla mas importante para operar el producto.
 
 Desde aqui puedes ver o mutar:
 
+- alta y ciclo basico del tenant como entidad central de plataforma
 - lifecycle del tenant
 - mantenimiento
 - billing
@@ -105,6 +113,20 @@ Desde aqui puedes ver o mutar:
 - uso por modulo
 
 Si un tenant no funciona, normalmente empiezas aqui.
+
+Tambien es la pantalla donde deberia terminar de cerrarse el CRUD basico seguro del tenant:
+
+- crear tenant
+- editar su identidad basica
+- archivarlo como baja operativa
+
+Ese ciclo ya esta disponible en la UI actual.
+
+Para leerlo de forma aislada, revisa:
+
+- [Ciclo basico de tenants](../runbooks/tenant-basic-cycle.md)
+
+No conviene empezar por borrado fisico duro porque un tenant no es solo una fila: tambien arrastra DB tenant, jobs, billing history, policy history y auditoria.
 
 Nota importante de lectura:
 

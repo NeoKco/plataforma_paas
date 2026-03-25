@@ -63,6 +63,11 @@ class TenantCreateRequest(BaseModel):
     plan_code: str | None = None
 
 
+class TenantIdentityUpdateRequest(BaseModel):
+    name: str
+    tenant_type: str
+
+
 class TenantResponse(BaseModel):
     id: int
     name: str
@@ -99,6 +104,16 @@ class TenantListResponse(BaseModel):
     message: str
     total_tenants: int
     data: list[TenantResponse]
+
+
+class TenantIdentityResponse(BaseModel):
+    success: bool
+    message: str
+    tenant_id: int
+    tenant_slug: str
+    tenant_name: str
+    tenant_type: str
+    tenant_status: str
 
 
 class TenantMaintenanceUpdateRequest(BaseModel):

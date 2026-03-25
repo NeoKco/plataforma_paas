@@ -4,6 +4,8 @@ import type {
   PlatformTenant,
   PlatformTenantAccessPolicy,
   PlatformTenantBillingResponse,
+  PlatformTenantCreateRequest,
+  PlatformTenantIdentityResponse,
   PlatformTenantListResponse,
   PlatformTenantMaintenanceResponse,
   PlatformTenantModuleLimitsResponse,
@@ -65,10 +67,39 @@ export function listPlatformTenants(accessToken: string) {
   });
 }
 
+export function createPlatformTenant(
+  accessToken: string,
+  payload: PlatformTenantCreateRequest
+) {
+  return apiRequest<PlatformTenant>("/platform/tenants/", {
+    method: "POST",
+    token: accessToken,
+    body: payload,
+  });
+}
+
 export function getPlatformTenant(accessToken: string, tenantId: number) {
   return apiRequest<PlatformTenant>(`/platform/tenants/${tenantId}`, {
     token: accessToken,
   });
+}
+
+export function updatePlatformTenantIdentity(
+  accessToken: string,
+  tenantId: number,
+  payload: {
+    name: string;
+    tenant_type: string;
+  }
+) {
+  return apiRequest<PlatformTenantIdentityResponse>(
+    `/platform/tenants/${tenantId}`,
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: payload,
+    }
+  );
 }
 
 export function getPlatformTenantAccessPolicy(

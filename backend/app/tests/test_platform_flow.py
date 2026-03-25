@@ -63,6 +63,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     reconcile_tenant_billing_events_batch,
     reconcile_tenant_billing_from_event,
     sync_tenant_billing_event,
+    update_tenant_identity,
     update_tenant_billing_identity,
     update_tenant_billing,
     sync_tenant_schema,
@@ -80,6 +81,7 @@ from app.apps.platform_control.schemas import (  # noqa: E402
     TenantBillingSyncEventRequest,
     TenantBillingUpdateRequest,
     TenantCreateRequest,
+    TenantIdentityUpdateRequest,
     TenantMaintenanceUpdateRequest,
     TenantModuleLimitsUpdateRequest,
     TenantPlanUpdateRequest,
@@ -288,6 +290,61 @@ class PlatformServicesTestCase(unittest.TestCase):
                 ("create_job", 1, "create_tenant_database", "pending"),
             ],
         )
+
+    def test_tenant_service_updates_basic_identity(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Demo",
+            tenant_slug="empresa-demo",
+            tenant_type="empresa",
+        )
+        calls: list[tuple] = []
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                calls.append(("get_by_id", tenant_id))
+                return tenant
+
+            def save(self, db, tenant_to_save):
+                calls.append(("save", tenant_to_save.name, tenant_to_save.tenant_type))
+                return tenant_to_save
+
+        service = TenantService(tenant_repository=FakeTenantRepository())
+
+        result = service.update_basic_identity(
+            db=object(),
+            tenant_id=7,
+            name="Empresa Centro",
+            tenant_type="condominio",
+        )
+
+        self.assertEqual(result.name, "Empresa Centro")
+        self.assertEqual(result.tenant_type, "condominio")
+        self.assertEqual(
+            calls,
+            [("get_by_id", 7), ("save", "Empresa Centro", "condominio")],
+        )
+
+    def test_tenant_service_rejects_empty_basic_identity_fields(self) -> None:
+        tenant = build_tenant_record_stub()
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant)
+        )
+
+        with self.assertRaises(ValueError):
+            service.update_basic_identity(
+                db=object(),
+                tenant_id=1,
+                name="   ",
+                tenant_type="empresa",
+            )
+
+        with self.assertRaises(ValueError):
+            service.update_basic_identity(
+                db=object(),
+                tenant_id=1,
+                name="Empresa Demo",
+                tenant_type="   ",
+            )
 
     def test_tenant_service_resolves_effective_module_limits_with_sources(self) -> None:
         tenant = build_tenant_record_stub(
@@ -2592,6 +2649,48 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.slug, "empresa-bootstrap")
         self.assertEqual(response.status, "pending")
         self.assertEqual(response.plan_enabled_modules, ["core", "users", "finance"])
+
+    def test_update_tenant_identity_returns_schema(self) -> None:
+        previous_tenant = build_tenant_record_stub(
+            tenant_name="Empresa Demo",
+            tenant_slug="empresa-demo",
+            tenant_type="empresa",
+        )
+        previous_tenant.id = 1
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Centro",
+            tenant_slug="empresa-demo",
+            tenant_type="condominio",
+        )
+        tenant.id = 1
+        tenant.status = "active"
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.tenant_repository.get_by_id",
+            return_value=previous_tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.update_basic_identity",
+            return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_policy_event_service.record_change",
+        ):
+            response = update_tenant_identity(
+                tenant_id=1,
+                payload=TenantIdentityUpdateRequest(
+                    name="Empresa Centro",
+                    tenant_type="condominio",
+                ),
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.tenant_slug, "empresa-demo")
+        self.assertEqual(response.tenant_name, "Empresa Centro")
+        self.assertEqual(response.tenant_type, "condominio")
 
     def test_list_tenants_returns_catalog(self) -> None:
         tenant_one = build_tenant_record_stub(

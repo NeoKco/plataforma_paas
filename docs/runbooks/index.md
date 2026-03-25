@@ -13,6 +13,7 @@ Esta seccion agrupa procedimientos operativos y pasos repetibles para trabajar c
 - [Flujo diario de trabajo](./daily-workflow.md): rutina corta para arrancar, validar cambios, decidir pruebas manuales y cerrar el dia sin perder orden.
 - [Catalogo de variables de entorno backend](./backend-env-catalog.md): resumen por categoria de las variables de runtime y operacion del backend.
 - [Demo data y seeds de desarrollo](./demo-data.md): carga reproducible de tenants y datos de ejemplo para demos y validacion manual.
+- [Ciclo basico de tenants](./tenant-basic-cycle.md): alta, catalogo, filtros, identidad basica y archivo operativo desde `platform_admin`.
 - [Prueba guiada de provisioning](./provisioning-guided-test.md): ejercicio real de `pending -> retry_pending -> completed` para entender y validar el worker.
 - [Prueba guiada de billing](./billing-guided-test.md): ejercicio real de `applied -> reconciled` para entender el workspace de billing y la reimposicion del estado tenant.
 - [Prueba guiada de tenant portal](./tenant-portal-guided-test.md): recorrido real de login, resumen, usuarios y finanzas sobre un tenant ya provisionado.

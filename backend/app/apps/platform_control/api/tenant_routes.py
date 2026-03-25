@@ -19,6 +19,8 @@ from app.apps.platform_control.schemas import (
     TenantBillingSyncEventResponse,
     TenantBillingSyncHistoryResponse,
     TenantBillingSyncSummaryResponse,
+    TenantIdentityResponse,
+    TenantIdentityUpdateRequest,
     TenantBillingUpdateRequest,
     TenantPolicyChangeHistoryResponse,
     TenantMaintenanceResponse,
@@ -288,6 +290,45 @@ def create_tenant(
         return _build_tenant_response(tenant)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.patch("/{tenant_id}", response_model=TenantIdentityResponse)
+def update_tenant_identity(
+    tenant_id: int,
+    payload: TenantIdentityUpdateRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantIdentityResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        tenant = tenant_service.update_basic_identity(
+            db=db,
+            tenant_id=tenant_id,
+            name=payload.name,
+            tenant_type=payload.tenant_type,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="identity",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+
+    return TenantIdentityResponse(
+        success=True,
+        message="Identidad basica del tenant actualizada correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_name=tenant.name,
+        tenant_type=tenant.tenant_type,
+        tenant_status=tenant.status,
+    )
 
 
 @router.get("/", response_model=TenantListResponse)

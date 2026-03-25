@@ -106,6 +106,29 @@ class TenantService:
 
         return tenant
 
+    def update_basic_identity(
+        self,
+        db: Session,
+        tenant_id: int,
+        name: str,
+        tenant_type: str,
+    ) -> Tenant:
+        tenant = self.tenant_repository.get_by_id(db, tenant_id)
+        if not tenant:
+            raise ValueError("Tenant not found")
+
+        normalized_name = name.strip()
+        normalized_tenant_type = tenant_type.strip()
+
+        if not normalized_name:
+            raise ValueError("Tenant name is required")
+        if not normalized_tenant_type:
+            raise ValueError("Tenant type is required")
+
+        tenant.name = normalized_name
+        tenant.tenant_type = normalized_tenant_type
+        return self.tenant_repository.save(db, tenant)
+
     def sync_tenant_schema(self, db: Session, tenant_id: int) -> Tenant:
         tenant = self.tenant_repository.get_by_id(db, tenant_id)
         if not tenant:

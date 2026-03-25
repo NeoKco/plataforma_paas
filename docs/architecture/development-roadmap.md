@@ -28,6 +28,22 @@ La app apunta a terminar en un estado donde exista:
 - frontend para plataforma y tenant
 - despliegue, observabilidad, backup y seguridad operativa
 
+## Prioridad de producto antes de nuevos modulos
+
+Antes de abrir mas modulos de negocio, conviene dejar cerrada la base de plataforma que un operador esperaria como minima:
+
+- crear tenants desde UI
+- editar identidad basica de tenants
+- archivar tenants como baja operativa segura
+- filtrar y buscar tenants con comodidad
+- gobernar su estado, billing, mantenimiento y limites desde una sola consola
+
+La recomendacion actual es esta:
+
+- no abrir `delete` fisico de tenants todavia
+- tratar `archive` como la baja basica correcta
+- dejar `slug` como identificador estable salvo que despues exista una politica formal de cambio
+
 ## Etapa 0. Base de Proyecto
 
 Estado: `Completado`
@@ -75,6 +91,12 @@ Resultado actual:
 - existe login de plataforma
 - existe creacion de tenants
 - existen `provisioning_jobs`
+
+Nota de cierre practico:
+
+- la base backend de control central ya esta
+- el frontend ya cubre alta, edicion basica, archivo operativo y filtrado de tenants
+- queda pendiente sobre todo confirmar la politica final de `slug` estable y mantener fuera el `delete` fisico hasta tener una politica formal de baja dura
 
 ## Etapa 3. Provisionamiento Multi-Tenant
 
@@ -446,11 +468,12 @@ Entregables esperados:
 
 Mirando el estado real del proyecto, lo mas conveniente ahora es:
 
-1. seguir cerrando `finance` y los contratos visibles ya existentes antes de abrir otro modulo grande
+1. cerrar el ciclo basico de tenants como entidad central de plataforma: alta, edicion basica, archivo y operacion diaria
 2. consolidar frontend y documentacion como capa operativa estable, no como prototipo temporal
 3. endurecer calidad tecnica y automatizacion para depender menos de prueba manual repetitiva
 4. mejorar catalogos y labels expuestos por backend para que frontend deje de traducir tantos codigos internos por su cuenta
 5. dejar instalador, onboarding y flujo diario suficientemente claros para que el arranque del proyecto no requiera reconstruir contexto
+6. solo despues de lo anterior, volver a abrir con fuerza el siguiente bloque de modulos
 
 Resultado actual:
 
