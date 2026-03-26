@@ -182,12 +182,14 @@ Cobertura actual:
 - migraciones tenant del modulo hasta `0003_finance_catalogs`
 - seeds idempotentes para moneda base, categorias y settings
 - repositories CRUD base del modulo y sus restricciones de unicidad/activacion
+- validaciones de servicio para cuentas, categorias y moneda base
+- rutas CRUD base para catalogos, settings y exchange rates
 
 Ejecucion:
 
 ```bash
 cd /home/felipe/platform_paas/backend
-/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_tenant_finance_flow
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_tenant_finance_flow app.tests.test_finance_catalog_repositories app.tests.test_finance_catalog_services app.tests.test_finance_catalog_routes
 ```
 
 ## Suite Tenant Integration

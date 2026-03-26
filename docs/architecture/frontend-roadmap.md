@@ -376,6 +376,7 @@ Avance actual:
 - la primera pantalla ya consume `GET /tenant/module-usage`
 - `Users` ya tiene listado, alta basica y cambio de estado
 - `Finance` ya tiene resumen, uso efectivo, listado y alta basica de movimientos
+- `Finance` ya tiene tambien contratos backend CRUD para catalogos base, aunque aun no se abren sus vistas dedicadas
 - el portal ya refleja enforcement real de billing y limites por modulo
 - el portal ya traduce mejor roles, fuentes y estados visibles
 

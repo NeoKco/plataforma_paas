@@ -32,6 +32,7 @@ El trabajo sobre `finance` ya arranco siguiendo el orden obligatorio del prompt 
 - `Lote 0` completado
 - `Lote 1` completado
 - `Lote 2` completado
+- `Lote 3` completado
 
 En esta fase quedaron listos:
 
@@ -45,6 +46,8 @@ En esta fase quedaron listos:
 - modelos SQLAlchemy de catalogos base
 - schemas backend por entidad
 - repositories CRUD base por catalogo
+- servicios backend por catalogo
+- endpoints CRUD base para catalogos, settings y exchange rates
 
 ## Archivos principales
 
@@ -65,6 +68,15 @@ En esta fase quedaron listos:
 - `GET /tenant/finance/entries`
 - `POST /tenant/finance/entries`
 - `GET /tenant/finance/summary`
+- `GET|POST|PUT|PATCH /tenant/finance/accounts`
+- `GET|POST|PUT|PATCH /tenant/finance/categories`
+- `GET|POST|PUT|PATCH /tenant/finance/beneficiaries`
+- `GET|POST|PUT|PATCH /tenant/finance/people`
+- `GET|POST|PUT|PATCH /tenant/finance/projects`
+- `GET|POST|PUT|PATCH /tenant/finance/tags`
+- `GET|POST|PUT|PATCH /tenant/finance/currencies`
+- `GET|POST|PUT /tenant/finance/currencies/exchange-rates`
+- `GET|POST|PUT|PATCH /tenant/finance/settings`
 
 ## Permisos usados
 
@@ -134,12 +146,11 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 
 ## Siguiente iteracion recomendable
 
-La siguiente iteracion sobre `finance` ya debe entrar en `Lote 3`:
+La siguiente iteracion sobre `finance` ya debe entrar en `Lote 4`:
 
-1. API de catalogos
-2. permisos finos por slice de catalogos
-3. cuentas
-4. evolucion de transacciones mas alla del `finance_entries` inicial
+1. consolidar cuentas como slice operativo completo
+2. empezar la evolucion de transacciones mas alla del `finance_entries` inicial
+3. preparar relaciones con tags, proyectos y beneficiarios en transacciones
 
 ## Convencion relacionada
 
