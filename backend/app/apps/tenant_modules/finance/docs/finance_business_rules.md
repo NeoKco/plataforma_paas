@@ -9,6 +9,12 @@ Reglas vigentes en el arranque:
   - `finance.entries.monthly.income`
   - `finance.entries.monthly.expense`
 
+Reglas agregadas en `Lote 1`:
+- la moneda base inicial del modulo queda sembrada como `USD`
+- las categorias semilla se crean de forma idempotente
+- los catalogos base nacen con `is_active` para privilegiar desactivacion sobre borrado
+- los tipos de cuenta minimos quedan publicados en `finance_settings`
+
 Pendiente:
 - reglas por cuentas
 - reglas por prestamos

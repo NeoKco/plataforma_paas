@@ -30,7 +30,7 @@ El modulo `finance` permite:
 El trabajo sobre `finance` ya arranco siguiendo el orden obligatorio del prompt maestro:
 
 - `Lote 0` completado
-- `Lote 1` pendiente
+- `Lote 1` completado
 
 En esta fase quedaron listos:
 
@@ -39,6 +39,8 @@ En esta fase quedaron listos:
 - router agregador del slice
 - placeholders de vistas futuras sin romper la vista actual de movimientos
 - documentacion tecnica y funcional inicial del modulo
+- migracion tenant `0003_finance_catalogs`
+- catalogos base del modulo y seeds idempotentes
 
 ## Archivos principales
 
@@ -128,10 +130,10 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 
 ## Siguiente iteracion recomendable
 
-La siguiente iteracion sobre `finance` ya debe entrar en `Lote 1` y `Lote 2`:
+La siguiente iteracion sobre `finance` ya debe entrar en `Lote 2`:
 
-1. migraciones base del modulo
-2. catalogos estructurales
+1. schemas y modelos base
+2. repositorios CRUD de catalogos
 3. cuentas
 4. evolucion de transacciones mas alla del `finance_entries` inicial
 

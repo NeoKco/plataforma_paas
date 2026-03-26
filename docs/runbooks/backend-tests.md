@@ -179,6 +179,8 @@ Cobertura actual:
 - permisos finos de finance
 - validaciones del `FinanceService`
 - listado, creacion y resumen del modulo
+- migraciones tenant del modulo hasta `0003_finance_catalogs`
+- seeds idempotentes para moneda base, categorias y settings
 
 Ejecucion:
 

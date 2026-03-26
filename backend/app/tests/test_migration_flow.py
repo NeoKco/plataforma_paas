@@ -4,10 +4,11 @@ import unittest
 os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
 
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.pool import StaticPool
 
 from app.common.db.migration_runner import MigrationRunner
+from migrations.tenant import v0003_finance_catalogs
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -119,12 +120,51 @@ class MigrationFlowTestCase(unittest.TestCase):
         applied = runner.apply_pending()
         tables = set(inspect(engine).get_table_names())
 
-        self.assertEqual(applied, ["0001_core", "0002_finance_entries"])
+        self.assertEqual(
+            applied,
+            [
+                "0001_core",
+                "0002_finance_entries",
+                "0003_finance_catalogs",
+            ],
+        )
         self.assertIn("tenant_info", tables)
         self.assertIn("roles", tables)
         self.assertIn("users", tables)
         self.assertIn("finance_entries", tables)
+        self.assertIn("finance_accounts", tables)
+        self.assertIn("finance_categories", tables)
+        self.assertIn("finance_beneficiaries", tables)
+        self.assertIn("finance_people", tables)
+        self.assertIn("finance_projects", tables)
+        self.assertIn("finance_tags", tables)
+        self.assertIn("finance_currencies", tables)
+        self.assertIn("finance_exchange_rates", tables)
+        self.assertIn("finance_settings", tables)
+        self.assertIn("finance_activity_logs", tables)
         self.assertIn("tenant_schema_migrations", tables)
+
+        with engine.connect() as conn:
+            currency_rows = conn.execute(
+                text("SELECT code, is_base FROM finance_currencies ORDER BY id ASC")
+            ).all()
+            category_rows = conn.execute(
+                text(
+                    "SELECT name, category_type FROM finance_categories ORDER BY id ASC"
+                )
+            ).all()
+            settings_rows = conn.execute(
+                text("SELECT setting_key FROM finance_settings ORDER BY setting_key ASC")
+            ).all()
+        self.assertEqual(currency_rows[0][0], "USD")
+        self.assertEqual(currency_rows[0][1], 1)
+        self.assertIn(("General Income", "income"), category_rows)
+        self.assertIn(("General Expense", "expense"), category_rows)
+        self.assertIn(("Transfer", "transfer"), category_rows)
+        self.assertEqual(
+            [row[0] for row in settings_rows],
+            ["account_types_catalog", "base_currency_code"],
+        )
 
     def test_runner_is_idempotent(self) -> None:
         engine = self._build_engine()
@@ -138,7 +178,35 @@ class MigrationFlowTestCase(unittest.TestCase):
         applied = runner.apply_pending()
 
         self.assertEqual(applied, [])
-        self.assertEqual(runner.get_applied_versions(), ["0001_core", "0002_finance_entries"])
+        self.assertEqual(
+            runner.get_applied_versions(),
+            [
+                "0001_core",
+                "0002_finance_entries",
+                "0003_finance_catalogs",
+            ],
+        )
+
+    def test_finance_catalog_seed_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            v0003_finance_catalogs.upgrade(conn)
+            v0003_finance_catalogs.upgrade(conn)
+
+        with engine.connect() as conn:
+            self.assertEqual(
+                conn.execute(text("SELECT COUNT(*) FROM finance_currencies")).scalar_one(),
+                1,
+            )
+            self.assertEqual(
+                conn.execute(text("SELECT COUNT(*) FROM finance_categories")).scalar_one(),
+                3,
+            )
+            self.assertEqual(
+                conn.execute(text("SELECT COUNT(*) FROM finance_settings")).scalar_one(),
+                2,
+            )
 
 
 if __name__ == "__main__":
