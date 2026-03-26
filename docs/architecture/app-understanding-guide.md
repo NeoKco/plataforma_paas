@@ -81,6 +81,7 @@ Prioridad actual del producto:
 - eso incluye que `platform_admin` pueda manejar de forma clara el ciclo basico del tenant como entidad central
 - ese bloque basico ya quedo suficientemente cerrado como para abrir modulos con menos deuda
 - `finance` queda declarado como modulo base del SaaS y referencia inicial para los modulos siguientes
+- el arranque del roadmap maestro de `finance` ya quedo hecho con slice backend/frontend propio y documentacion inicial
 - hoy esa base ya cubre alta, edicion basica y archivo operativo desde `Tenants`
 - la politica vigente ya es:
   - `slug` estable

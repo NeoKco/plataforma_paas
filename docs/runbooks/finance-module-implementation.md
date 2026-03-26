@@ -25,14 +25,34 @@ El modulo `finance` permite:
 - listar movimientos
 - obtener un resumen simple
 
+## Estado actual del roadmap maestro
+
+El trabajo sobre `finance` ya arranco siguiendo el orden obligatorio del prompt maestro:
+
+- `Lote 0` completado
+- `Lote 1` pendiente
+
+En esta fase quedaron listos:
+
+- estructura backend del modulo bajo `backend/app/apps/tenant_modules/finance/`
+- estructura frontend del modulo bajo `frontend/src/apps/tenant_portal/modules/finance/`
+- router agregador del slice
+- placeholders de vistas futuras sin romper la vista actual de movimientos
+- documentacion tecnica y funcional inicial del modulo
+
 ## Archivos principales
 
 - `backend/app/apps/tenant_modules/finance/models/entry.py`
 - `backend/app/apps/tenant_modules/finance/repositories/entry_repository.py`
+- `backend/app/apps/tenant_modules/finance/services/transaction_service.py`
 - `backend/app/apps/tenant_modules/finance/services/finance_service.py`
-- `backend/app/apps/tenant_modules/finance/schemas.py`
-- `backend/app/apps/tenant_modules/finance/api/routes.py`
+- `backend/app/apps/tenant_modules/finance/schemas/__init__.py`
+- `backend/app/apps/tenant_modules/finance/api/router.py`
+- `backend/app/apps/tenant_modules/finance/api/transactions.py`
 - `backend/app/tests/test_tenant_finance_flow.py`
+- `frontend/src/apps/tenant_portal/modules/finance/routes.tsx`
+- `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx`
+- `frontend/src/apps/tenant_portal/pages/finance/TenantFinancePageLegacy.tsx`
 
 ## Endpoints
 
@@ -108,11 +128,12 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 
 ## Siguiente iteracion recomendable
 
-La siguiente iteracion sobre `finance` ya deberia ser:
+La siguiente iteracion sobre `finance` ya debe entrar en `Lote 1` y `Lote 2`:
 
-1. migracion versionada real
-2. seed inicial opcional
-3. operaciones mas ricas de negocio
+1. migraciones base del modulo
+2. catalogos estructurales
+3. cuentas
+4. evolucion de transacciones mas alla del `finance_entries` inicial
 
 ## Convencion relacionada
 

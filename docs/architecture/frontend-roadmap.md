@@ -17,6 +17,8 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - `Actividad` ya no solo muestra accesos: ahora tambien expone cambios administrativos recientes sobre tenants
 - `Actividad` ya permite leer senales operativas breves y filtrar cambios tenant por tipo de evento y actor
 - existe `tenant_portal` con login, resumen, usuarios y finanzas
+- `finance` ya tiene slice frontend propio en `tenant_portal/modules/finance`
+- la ruta `/tenant-portal/finance` ya queda servida desde ese slice, preservando la vista actual de movimientos como base operativa
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
 
 Lo que queda pendiente ya no es abrir el frontend desde cero.
@@ -48,6 +50,7 @@ El objetivo ahora es este:
 - endurecer mensajes, estados y catalogos visibles
 - dejar el frontend listo para crecer sin retrabajo grande antes de abrir nuevos modulos
 - tratar `finance` como modulo base visible del SaaS antes de abrir otros dominios tenant
+- mantener `tenant_portal/modules/finance` como estructura canonica para la evolucion del modulo
 
 ## Principio rector
 

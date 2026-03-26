@@ -122,6 +122,14 @@ Si falta una de esas piezas, todavia no deberia presentarse como modulo cerrado.
 - modulo piloto para la convencion modular
 - referencia para los siguientes modulos tenant
 
+Arranque real ya completado:
+
+- slice backend propio bajo `tenant_modules/finance`
+- slice frontend propio bajo `tenant_portal/modules/finance`
+- router agregador del modulo
+- placeholders de vistas futuras
+- compatibilidad con la vista actual de movimientos para no romper operacion
+
 Eso no significa que `finance` sea necesariamente el dominio final mas importante del producto.
 
 Significa esto:

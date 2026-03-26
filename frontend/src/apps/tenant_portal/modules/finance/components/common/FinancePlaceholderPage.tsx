@@ -1,5 +1,5 @@
-import { PageHeader } from "../../../../../components/common/PageHeader";
-import { PanelCard } from "../../../../../components/common/PanelCard";
+import { PageHeader } from "../../../../../../components/common/PageHeader";
+import { PanelCard } from "../../../../../../components/common/PanelCard";
 
 export function FinancePlaceholderPage({
   title,
