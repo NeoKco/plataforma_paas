@@ -10,6 +10,11 @@ Estado tras `Lote 1`:
 - no se agregaron endpoints nuevos todavia
 - la prioridad de esta fase fue dejar el esquema tenant base del modulo listo
 
+Estado tras `Lote 2`:
+- ya existen schemas y repositories de catalogos
+- todavia no se exponen endpoints CRUD de catalogos
+- el siguiente paso correcto es `Lote 3`, no adelantar UI sin API
+
 Estructura objetivo:
 - router agregador en `api/router.py`
 - subrutas por slice funcional (`transactions`, `accounts`, `categories`, etc.)

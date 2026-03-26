@@ -72,6 +72,6 @@ Tablas base ya creadas en `Lote 1`:
 - seeds preparados para re-ejecucion segura
 
 Pendiente siguiente:
-- modelos SQLAlchemy de catalogos
-- repositorios CRUD de catalogos
+- endpoints CRUD de catalogos
+- validaciones de negocio de cuentas y jerarquias
 - evolucion de `finance_entries` hacia `finance_transactions`

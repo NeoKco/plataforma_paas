@@ -3,7 +3,7 @@
 Estado actual:
 - `finance` queda definido como modulo base del SaaS.
 - este modulo actua como piloto para la convencion modular futura.
-- el arranque actual ya cubre `Lote 0` y `Lote 1` del plan maestro.
+- el arranque actual ya cubre `Lote 0`, `Lote 1` y `Lote 2` del plan maestro.
 
 Alcance de esta fase:
 - estructura backend y frontend del modulo
@@ -12,7 +12,10 @@ Alcance de esta fase:
 - preservacion del flujo minimo ya existente de movimientos
 - migraciones base de catalogos y configuracion
 - seeds idempotentes iniciales para moneda, categorias y settings
+- modelos SQLAlchemy de catalogos base
+- schemas backend por entidad
+- repositories CRUD base por catalogo
 
 Pendiente inmediato:
-- `Lote 2` schemas y modelos de catalogos
 - `Lote 3` API de catalogos
+- `Lote 4` frontend de catalogos

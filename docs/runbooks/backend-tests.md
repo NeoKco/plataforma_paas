@@ -181,6 +181,7 @@ Cobertura actual:
 - listado, creacion y resumen del modulo
 - migraciones tenant del modulo hasta `0003_finance_catalogs`
 - seeds idempotentes para moneda base, categorias y settings
+- repositories CRUD base del modulo y sus restricciones de unicidad/activacion
 
 Ejecucion:
 

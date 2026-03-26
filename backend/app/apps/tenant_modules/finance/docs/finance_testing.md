@@ -6,9 +6,10 @@ Cobertura actual:
 - integracion tenant existente
 - migraciones tenant `0001`, `0002` y `0003`
 - idempotencia de seeds base del modulo
+- repositories CRUD base de catalogos
+- unicidad y activos/inactivos sobre catalogos clave
 
 Pendiente por lotes:
-- pruebas de catalogos
 - pruebas de cuentas
 - pruebas de transacciones complejas
 - pruebas de reconciliacion y reportes

@@ -216,6 +216,7 @@ Resultado actual:
 - `finance` queda declarado como modulo base del SaaS y modulo piloto para los siguientes slices tenant
 - el `Lote 0` del roadmap maestro de `finance` ya quedo ejecutado con estructura backend/frontend, router agregador y documentacion inicial
 - el `Lote 1` ya dejo migraciones base del modulo para catalogos, configuracion y auditoria
+- el `Lote 2` ya dejo modelos, schemas y repositories base para catalogos del modulo
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
 - existe enforcement de `finance.entries`, `finance.entries.monthly`, cuotas segmentadas como `finance.entries.monthly.income`, `finance.entries.monthly.expense`, `core.users`, `core.users.active`, `core.users.monthly` y cuotas por rol como `core.users.admin` por plan, override tenant y billing grace
@@ -226,7 +227,7 @@ Resultado actual:
 
 Falta para cerrarlo:
 
-- ejecutar `Lote 2` y `Lote 3` del roadmap maestro para dejar de depender solo de `finance_entries` y abrir CRUD real de catalogos
+- ejecutar `Lote 3` y `Lote 4` del roadmap maestro para abrir CRUD real de catalogos y su UI
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 

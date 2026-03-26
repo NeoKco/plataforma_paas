@@ -31,6 +31,7 @@ El trabajo sobre `finance` ya arranco siguiendo el orden obligatorio del prompt 
 
 - `Lote 0` completado
 - `Lote 1` completado
+- `Lote 2` completado
 
 En esta fase quedaron listos:
 
@@ -41,6 +42,9 @@ En esta fase quedaron listos:
 - documentacion tecnica y funcional inicial del modulo
 - migracion tenant `0003_finance_catalogs`
 - catalogos base del modulo y seeds idempotentes
+- modelos SQLAlchemy de catalogos base
+- schemas backend por entidad
+- repositories CRUD base por catalogo
 
 ## Archivos principales
 
@@ -130,10 +134,10 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 
 ## Siguiente iteracion recomendable
 
-La siguiente iteracion sobre `finance` ya debe entrar en `Lote 2`:
+La siguiente iteracion sobre `finance` ya debe entrar en `Lote 3`:
 
-1. schemas y modelos base
-2. repositorios CRUD de catalogos
+1. API de catalogos
+2. permisos finos por slice de catalogos
 3. cuentas
 4. evolucion de transacciones mas alla del `finance_entries` inicial
 
