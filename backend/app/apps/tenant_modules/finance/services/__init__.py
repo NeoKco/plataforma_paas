@@ -1,4 +1,4 @@
-from app.apps.tenant_modules.finance.services.transaction_service import (
+from app.apps.tenant_modules.finance.services.finance_service import (
     FinanceService,
     FinanceUsageLimitExceededError,
 )

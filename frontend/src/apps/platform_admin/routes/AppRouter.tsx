@@ -12,11 +12,11 @@ import { PlatformUsersPage } from "../pages/users/PlatformUsersPage";
 import { RequireAuth } from "./RequireAuth";
 import { RequireInstalled } from "./RequireInstalled";
 import { RequirePlatformRoles } from "./RequirePlatformRoles";
+import { financeTenantPortalRoutes } from "../../tenant_portal/modules/finance";
 import { RequireTenantAuth } from "../../tenant_portal/routes/RequireTenantAuth";
 import { TenantLoginPage } from "../../tenant_portal/pages/auth/TenantLoginPage";
 import { TenantOverviewPage } from "../../tenant_portal/pages/overview/TenantOverviewPage";
 import { TenantUsersPage } from "../../tenant_portal/pages/users/TenantUsersPage";
-import { TenantFinancePage } from "../../tenant_portal/pages/finance/TenantFinancePage";
 import { useAuth } from "../../../store/auth-context";
 
 function PlatformHomeRoute() {
@@ -91,7 +91,10 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <TenantOverviewPage /> },
       { path: "users", element: <TenantUsersPage /> },
-      { path: "finance", element: <TenantFinancePage /> },
+      {
+        path: "finance",
+        children: financeTenantPortalRoutes,
+      },
     ],
   },
 ]);

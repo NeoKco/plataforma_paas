@@ -1,0 +1,1 @@
+export { financeTenantPortalRoutes } from "./routes";

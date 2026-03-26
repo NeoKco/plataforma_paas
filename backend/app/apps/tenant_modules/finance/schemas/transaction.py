@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from app.apps.tenant_modules.core.schemas import TenantUserContextResponse
+from app.apps.tenant_modules.finance.schemas.common import FinanceResponseBase
 
 
 class FinanceEntryCreateRequest(BaseModel):
@@ -19,17 +19,11 @@ class FinanceEntryItemResponse(BaseModel):
     created_by_user_id: int | None = None
 
 
-class FinanceEntryMutationResponse(BaseModel):
-    success: bool
-    message: str
-    requested_by: TenantUserContextResponse
+class FinanceEntryMutationResponse(FinanceResponseBase):
     data: FinanceEntryItemResponse
 
 
-class FinanceEntriesResponse(BaseModel):
-    success: bool
-    message: str
-    requested_by: TenantUserContextResponse
+class FinanceEntriesResponse(FinanceResponseBase):
     total: int
     data: list[FinanceEntryItemResponse]
 
@@ -41,10 +35,7 @@ class FinanceSummaryData(BaseModel):
     total_entries: int
 
 
-class FinanceSummaryResponse(BaseModel):
-    success: bool
-    message: str
-    requested_by: TenantUserContextResponse
+class FinanceSummaryResponse(FinanceResponseBase):
     data: FinanceSummaryData
 
 
@@ -58,8 +49,5 @@ class FinanceUsageData(BaseModel):
     limit_source: str | None = None
 
 
-class FinanceUsageResponse(BaseModel):
-    success: bool
-    message: str
-    requested_by: TenantUserContextResponse
+class FinanceUsageResponse(FinanceResponseBase):
     data: FinanceUsageData
