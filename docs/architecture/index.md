@@ -23,6 +23,7 @@ Esta seccion agrupa la documentacion de arquitectura del proyecto: estructura de
 - [Modelo multi-tenant](./multi-tenant-model.md): separacion entre base de control y bases por tenant, ciclo de vida y aislamiento.
 - [Autenticacion y autorizacion](./authentication-and-authorization.md): JWT, middleware, roles y estado actual del enforcement.
 - [Roadmap de desarrollo](./development-roadmap.md): hoja de ruta completa del proyecto, desde bootstrap hasta modulos, frontend e infraestructura.
+- [Convencion modular por slice](./module-slice-convention.md): regla oficial para abrir modulos nuevos tomando `finance` como modulo base del SaaS.
 
 ## Alcance Esperado
 

@@ -2,6 +2,12 @@
 
 Este documento describe el primer modulo tenant funcional agregado sobre la base multi-tenant actual.
 
+Desde el estado actual del proyecto, `finance` queda ademas declarado como:
+
+- modulo base del SaaS
+- modulo piloto para la convencion modular futura
+- referencia tecnica para los siguientes modulos tenant
+
 ## Objetivo
 
 Agregar un modulo pequeno pero real que reutilice:
@@ -74,6 +80,16 @@ En otras palabras:
 - la persistencia fisica en DB se cubre por migracion tenant `0002_finance_entries`
 - para tenants existentes aun debes ejecutar sync de esquema o la migracion correspondiente
 
+## Por que este modulo queda como base
+
+`Finance` ya no se interpreta solo como una demo funcional.
+
+En la politica actual del proyecto, queda como:
+
+- primer modulo real sobre la base tenant ya cerrada
+- referencia para permisos, enforcement, migraciones y UI tenant
+- modulo sobre el cual conviene probar el patron completo antes de abrir otros dominios
+
 ## Por que igual sirve este paso
 
 Porque deja resuelto el esqueleto que van a seguir los modulos futuros:
@@ -97,3 +113,9 @@ La siguiente iteracion sobre `finance` ya deberia ser:
 1. migracion versionada real
 2. seed inicial opcional
 3. operaciones mas ricas de negocio
+
+## Convencion relacionada
+
+La regla general para modulos nuevos ya quedo escrita en:
+
+- [Convencion modular por slice](../architecture/module-slice-convention.md)

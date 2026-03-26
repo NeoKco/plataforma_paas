@@ -29,6 +29,7 @@ Lo pendiente es sobre todo:
 - labels y catalogos mas ricos desde backend
 - endurecimiento de bordes y automatizacion
 - cierre visual y operativo de algunos detalles
+- definir la convencion oficial para que los siguientes modulos nazcan como slices coherentes, tomando `finance` como modulo piloto
 
 Nota de ejecucion:
 
@@ -46,6 +47,7 @@ El objetivo ahora es este:
 - seguir consumiendo backend como fuente de verdad
 - endurecer mensajes, estados y catalogos visibles
 - dejar el frontend listo para crecer sin retrabajo grande antes de abrir nuevos modulos
+- tratar `finance` como modulo base visible del SaaS antes de abrir otros dominios tenant
 
 ## Principio rector
 

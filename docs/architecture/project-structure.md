@@ -2,6 +2,11 @@
 
 Este documento describe la estructura actual de la carpeta raiz `platform_paas` para contextualizar el repositorio y sus areas principales.
 
+Tambien deja una regla nueva para la siguiente etapa del proyecto:
+
+- `finance` queda como modulo base del SaaS
+- los modulos nuevos deben pensarse como slices completos, aunque el repo actual siga separado por backend, frontend, migraciones y docs
+
 ## Vista General
 
 ```text
@@ -148,6 +153,10 @@ platform_paas/
 ├── .platform_installed
 └── estructura_proyecto.txt
 ```
+
+Referencia de esta politica:
+
+- [Convencion modular por slice](./module-slice-convention.md)
 
 ## Estructura de `tenant_modules`
 

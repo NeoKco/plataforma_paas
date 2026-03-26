@@ -213,6 +213,7 @@ Objetivo:
 Resultado actual:
 
 - existe el modulo `finance` con modelo, repositorio, servicio, router y tests
+- `finance` queda declarado como modulo base del SaaS y modulo piloto para los siguientes slices tenant
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
 - existe enforcement de `finance.entries`, `finance.entries.monthly`, cuotas segmentadas como `finance.entries.monthly.income`, `finance.entries.monthly.expense`, `core.users`, `core.users.active`, `core.users.monthly` y cuotas por rol como `core.users.admin` por plan, override tenant y billing grace
@@ -224,6 +225,7 @@ Resultado actual:
 Falta para cerrarlo:
 
 - validaciones y casos de uso de negocio mas ricos
+- consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 
 ## Etapa 9. Calidad Tecnica Base
 

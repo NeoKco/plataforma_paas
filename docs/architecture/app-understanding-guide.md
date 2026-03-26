@@ -79,6 +79,8 @@ Prioridad actual del producto:
 - antes de abrir mas modulos de negocio, conviene cerrar bien la base de plataforma
 - la prioridad vigente es cerrar completamente el bloque basico del tenant antes de abrir modulos nuevos
 - eso incluye que `platform_admin` pueda manejar de forma clara el ciclo basico del tenant como entidad central
+- ese bloque basico ya quedo suficientemente cerrado como para abrir modulos con menos deuda
+- `finance` queda declarado como modulo base del SaaS y referencia inicial para los modulos siguientes
 - hoy esa base ya cubre alta, edicion basica y archivo operativo desde `Tenants`
 - la politica vigente ya es:
   - `slug` estable
