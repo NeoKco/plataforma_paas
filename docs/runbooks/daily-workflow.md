@@ -165,6 +165,9 @@ Si el cambio toca especificamente el ciclo basico del tenant:
    - restaurar tenant
 7. si la DB tenant ya existe y algo sigue raro:
    - revisar en `Tenants` la lectura de esquema tenant antes de asumir que faltan tablas o que el provisioning no corrió
+8. si el cambio toca passwords tecnicas, builders de conexion o PostgreSQL:
+   - correr `app.tests.test_db_url_factory`
+   - si el entorno local lo permite, correr tambien `app.tests.test_tenant_postgres_integration_flow` y `app.tests.test_platform_postgres_integration_flow`
 
 ## 6. Cuándo hacer prueba manual
 
@@ -253,6 +256,11 @@ Caso puntual ya conocido:
 - si `health` responde y `Settings` igual cae en rojo, revisa `GET /platform/auth/root-recovery/status`
 - esa ruta ya debe responder sin sesion porque forma parte del flujo publico de recuperacion raiz
 - si esa ruta falla, `Settings` ya no deberia colapsar completa; el warning debe quedar acotado al bloque de cuenta raiz
+- si una integracion PostgreSQL falla y el backend principal sigue vivo, no asumas “PostgreSQL abajo” de inmediato
+- primero revisa si la password usada en la URL contiene `@`, `:` o `/` y confirma que el builder use `URL.create(...)` en vez de interpolacion cruda
+- si aparece `UndefinedColumn` sobre tablas de `platform_control` al abrir `Tenants` o `Resumen`, normalmente significa esquema de control atrasado
+- el backend ahora aplica migraciones de control al arrancar cuando la plataforma ya esta instalada
+- primer paso correcto: reiniciar `uvicorn`; si quieres forzarlo manualmente, usa `backend/app/scripts/run_control_migrations.py`
 
 Apoyos:
 

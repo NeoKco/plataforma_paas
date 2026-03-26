@@ -159,6 +159,8 @@ Lectura importante:
 - si un tenant quedo `active` pero sin configuracion DB tenant completa, la consola ya no ofrece entrar al portal y expone `Reprovisionar tenant`
 - el acceso rapido al `tenant_portal` solo corresponde cuando el tenant ya esta `active`, con provisioning completado y configuracion DB tenant valida
 - si un tenant queda bloqueado por lifecycle o billing, `Tenants` y el login tenant ya intentan explicarlo con lenguaje operativo en vez de depender del detalle crudo del backend
+- la conectividad PostgreSQL ya no depende de interpolar `username:password@host` a mano; la plataforma usa builders seguros para que passwords con caracteres reservados no rompan readiness, provisioning ni rotacion tecnica
+- la base de control tambien debe mantenerse al dia con sus migraciones; la plataforma ya intenta aplicarlas automaticamente al arrancar cuando la instalacion ya existe
 
 ### `Usuarios de plataforma`
 

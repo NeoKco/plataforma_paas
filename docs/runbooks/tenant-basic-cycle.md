@@ -18,6 +18,7 @@ Desde `Tenants` hoy ya puedes:
 - operar estado, mantenimiento, billing, plan, limites y sincronizacion de esquema
 - rotar credenciales tecnicas de DB tenant de forma controlada
 - revisar si el esquema tenant esta al dia sin entrar a SQL manual
+- validar el ciclo tambien contra PostgreSQL real cuando cambian passwords tecnicas o builders de conexion
 
 Auditoria visible actual:
 
@@ -31,6 +32,8 @@ Las mutaciones finas de estado, billing, mantenimiento, limites y plan siguen qu
 Tambien queda visible como evento tecnico:
 
 - rotacion de credenciales DB tenant
+- la plataforma ya usa builders seguros de URL PostgreSQL para que passwords con `@`, `:` o `/` no rompan provisioning, rotacion tecnica ni readiness tenant
+- si el modelo tenant crece con nuevas columnas en `platform_control`, el backend ya aplica migraciones de control al arrancar para evitar que `Tenants` falle por esquema desalineado
 
 ## 1. Crear tenant
 

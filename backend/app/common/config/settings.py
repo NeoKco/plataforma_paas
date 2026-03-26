@@ -4,6 +4,8 @@ from typing import Any
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.common.db.url_factory import build_postgres_url
+
 
 BASE_DIR = Path(__file__).resolve().parents[4]
 
@@ -153,11 +155,13 @@ class Settings(BaseSettings):
     )
 
     @property
-    def control_database_url(self) -> str:
-        return (
-            f"postgresql+psycopg2://"
-            f"{self.CONTROL_DB_USER}:{self.CONTROL_DB_PASSWORD}"
-            f"@{self.CONTROL_DB_HOST}:{self.CONTROL_DB_PORT}/{self.CONTROL_DB_NAME}"
+    def control_database_url(self):
+        return build_postgres_url(
+            host=self.CONTROL_DB_HOST,
+            port=self.CONTROL_DB_PORT,
+            database=self.CONTROL_DB_NAME,
+            username=self.CONTROL_DB_USER,
+            password=self.CONTROL_DB_PASSWORD,
         )
 
     @property

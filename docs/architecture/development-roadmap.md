@@ -244,6 +244,8 @@ Resultado actual:
 - existe una base comun de fixtures y builders reutilizables para tests en `backend/app/tests/fixtures.py`
 - existe un runner unificado de pruebas backend para el equipo en `backend/app/scripts/run_backend_tests.py`
 - existe un workflow base de CI en `.github/workflows/backend-tests.yml` usando PostgreSQL temporal
+- ya quedo corregido el riesgo de parseo incorrecto de credenciales PostgreSQL con caracteres reservados usando builders seguros de URL
+- el backend ya reaplica migraciones de control al startup cuando la plataforma esta instalada, para evitar desalineacion entre modelo y esquema tras cambios de `platform_control`
 
 Falta para cerrarlo:
 

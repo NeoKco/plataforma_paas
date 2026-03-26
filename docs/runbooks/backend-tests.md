@@ -151,12 +151,21 @@ Cobertura adicional relevante:
 - hardening de runtime para que passwords bootstrap tenant de demo o demasiado cortas no pasen en `production`
 - `GET /platform/security-posture` para no perder la lectura operativa de seguridad en `Settings`
 - rotacion formal de credenciales tecnicas tenant, incluyendo rollback seguro si la nueva password no valida
+- construccion segura de URLs PostgreSQL cuando las credenciales contienen caracteres reservados como `@`, `:` o `/`
+- arranque backend aplicando migraciones de control automaticamente cuando la plataforma ya esta instalada, para no romper `Tenants` por columnas nuevas aun no migradas
 
 Suite puntual de seguridad:
 
 ```bash
 cd /home/felipe/platform_paas/backend
 /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_security_hardening
+```
+
+Suite puntual de builders DB:
+
+```bash
+cd /home/felipe/platform_paas/backend
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_db_url_factory
 ```
 
 ## Suite Tenant Finance
@@ -231,6 +240,7 @@ Cobertura actual:
 
 - CRUD tenant real contra PostgreSQL temporal
 - `FinanceService` contra PostgreSQL temporal
+- validacion real del builder de conexion cuando las credenciales contienen caracteres reservados
 
 Requisito:
 
@@ -256,6 +266,7 @@ Cobertura actual:
 
 - `PlatformAuthService` contra PostgreSQL temporal
 - creacion de tenant y `provisioning_job` contra PostgreSQL temporal
+- validacion real del acceso control DB con credenciales reservadas bien escapadas
 
 Requisito:
 

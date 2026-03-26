@@ -1,8 +1,9 @@
 from sqlalchemy import create_engine
+from sqlalchemy.engine import URL
 
 
 def create_postgres_engine(
-    database_url: str,
+    database_url: str | URL,
     *,
     pool_size: int,
     max_overflow: int,

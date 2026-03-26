@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 
 from app.common.db.control_database import control_engine
 from app.common.db.migration_runner import MigrationRunner
+from app.common.db.url_factory import build_postgres_url
 
 
 CONTROL_MIGRATION_TABLE = "control_schema_migrations"
@@ -25,7 +26,13 @@ def run_tenant_migrations(
     password: str,
 ) -> list[str]:
     engine = create_engine(
-        f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}",
+        build_postgres_url(
+            host=host,
+            port=port,
+            database=database,
+            username=username,
+            password=password,
+        ),
         pool_pre_ping=True,
     )
     runner = MigrationRunner(
@@ -47,7 +54,13 @@ def get_tenant_migration_status(
     password: str,
 ) -> dict:
     engine = create_engine(
-        f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}",
+        build_postgres_url(
+            host=host,
+            port=port,
+            database=database,
+            username=username,
+            password=password,
+        ),
         pool_pre_ping=True,
     )
     runner = MigrationRunner(

@@ -5,6 +5,8 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.common.db.url_factory import build_postgres_url
+
 
 def build_sqlite_session(base) -> tuple[Session, object]:
     engine = create_engine(
@@ -40,20 +42,24 @@ def build_postgres_session(base, db_prefix: str) -> tuple[Session, object, str]:
         raise RuntimeError("PGTEST_* no configurado")
 
     database_name = f"{db_prefix}_{uuid.uuid4().hex[:10]}"
-    admin_url = (
-        "postgresql+psycopg2://"
-        f"{config['admin_user']}:{config['admin_password']}"
-        f"@{config['host']}:{config['port']}/{config['admin_db']}"
+    admin_url = build_postgres_url(
+        host=config["host"],
+        port=config["port"],
+        database=config["admin_db"],
+        username=config["admin_user"],
+        password=config["admin_password"],
     )
     admin_engine = create_engine(admin_url, isolation_level="AUTOCOMMIT")
 
     with admin_engine.connect() as conn:
         conn.execute(text(f'CREATE DATABASE "{database_name}"'))
 
-    db_url = (
-        "postgresql+psycopg2://"
-        f"{config['admin_user']}:{config['admin_password']}"
-        f"@{config['host']}:{config['port']}/{database_name}"
+    db_url = build_postgres_url(
+        host=config["host"],
+        port=config["port"],
+        database=database_name,
+        username=config["admin_user"],
+        password=config["admin_password"],
     )
     engine = create_engine(db_url, pool_pre_ping=True)
     base.metadata.create_all(bind=engine)
@@ -66,10 +72,12 @@ def drop_postgres_database(database_name: str) -> None:
     if not config:
         return
 
-    admin_url = (
-        "postgresql+psycopg2://"
-        f"{config['admin_user']}:{config['admin_password']}"
-        f"@{config['host']}:{config['port']}/{config['admin_db']}"
+    admin_url = build_postgres_url(
+        host=config["host"],
+        port=config["port"],
+        database=config["admin_db"],
+        username=config["admin_user"],
+        password=config["admin_password"],
     )
     admin_engine = create_engine(admin_url, isolation_level="AUTOCOMMIT")
 

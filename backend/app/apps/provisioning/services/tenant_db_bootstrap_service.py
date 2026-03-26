@@ -5,6 +5,7 @@ from app.apps.tenant_modules.core.models.role import Role
 from app.apps.tenant_modules.core.models.tenant_info import TenantInfo
 from app.apps.tenant_modules.core.models.user import User
 from app.apps.provisioning.services.tenant_schema_service import TenantSchemaService
+from app.common.db.url_factory import build_postgres_url
 from app.common.security.password_service import hash_password
 
 
@@ -26,10 +27,12 @@ class TenantDatabaseBootstrapService:
         tenant_slug: str,
         tenant_type: str,
     ) -> None:
-        database_url = (
-            f"postgresql+psycopg2://"
-            f"{username}:{password}"
-            f"@{host}:{port}/{database}"
+        database_url = build_postgres_url(
+            host=host,
+            port=port,
+            database=database,
+            username=username,
+            password=password,
         )
 
         engine = create_engine(database_url, pool_pre_ping=True)

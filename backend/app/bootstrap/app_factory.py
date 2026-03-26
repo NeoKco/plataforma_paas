@@ -25,6 +25,7 @@ from app.apps.tenant_modules.finance.api.routes import router as tenant_finance_
 from app.bootstrap.install_checker import is_platform_installed
 from app.common.auth.jwt_service import JWTService
 from app.common.config.settings import settings
+from app.common.db.migration_service import run_control_migrations
 from app.common.exceptions.handlers import register_exception_handlers
 from app.common.middleware.request_observability_middleware import (
     RequestObservabilityMiddleware,
@@ -41,10 +42,12 @@ def create_app() -> FastAPI:
         debug=settings.DEBUG,
     )
 
-    register_exception_handlers(app)
-    register_common_components(app)
+    platform_installed = is_platform_installed()
 
-    if is_platform_installed():
+    register_exception_handlers(app)
+    register_common_components(app, platform_installed=platform_installed)
+
+    if platform_installed:
         register_installed_routes(app)
     else:
         register_install_routes(app)
@@ -54,7 +57,7 @@ def create_app() -> FastAPI:
     return app
 
 
-def register_common_components(app: FastAPI) -> None:
+def register_common_components(app: FastAPI, *, platform_installed: bool) -> None:
     if settings.backend_cors_allowed_origins:
         app.add_middleware(
             CORSMiddleware,
@@ -86,6 +89,8 @@ def register_common_components(app: FastAPI) -> None:
     @app.on_event("startup")
     def validate_runtime_security() -> None:
         runtime_security_service.validate_settings(settings)
+        if platform_installed:
+            run_control_migrations()
 
 
 def register_install_routes(app: FastAPI) -> None:
