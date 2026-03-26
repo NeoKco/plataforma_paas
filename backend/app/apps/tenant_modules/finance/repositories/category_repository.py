@@ -9,6 +9,21 @@ from app.apps.tenant_modules.finance.repositories.catalog_repository import (
 class FinanceCategoryRepository(FinanceCatalogRepository[FinanceCategory]):
     model_class = FinanceCategory
 
+    def get_by_name_and_type(
+        self,
+        tenant_db: Session,
+        name: str,
+        category_type: str,
+    ) -> FinanceCategory | None:
+        return (
+            tenant_db.query(FinanceCategory)
+            .filter(
+                FinanceCategory.name == name,
+                FinanceCategory.category_type == category_type,
+            )
+            .first()
+        )
+
     def list_by_type(
         self,
         tenant_db: Session,
