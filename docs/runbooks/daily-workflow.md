@@ -44,6 +44,15 @@ Si `installed=false`, el flujo correcto es:
 - guardar la clave de recuperacion
 - volver a `Platform Admin`
 
+Si vas a levantar la app con `APP_ENV=production`, revisa antes:
+
+- `JWT_SECRET_KEY`
+- `CONTROL_DB_PASSWORD`
+- `POSTGRES_ADMIN_PASSWORD`
+- cualquier `TENANT_BOOTSTRAP_DB_PASSWORD_*`
+
+La plataforma ya rechaza en runtime passwords bootstrap tenant de demo o demasiado cortas cuando corre en `production`.
+
 ## 3. Baseline de demo recomendado
 
 Si vas a trabajar frontend o pruebas guiadas, deja primero el baseline estable:
@@ -137,6 +146,16 @@ Si el cambio cae sobre `Actividad`:
    - que los filtros de cambios tenant por tipo y actor no rompan la lectura general
    - que `support` siga fuera de este bloque tanto en menu como por URL directa
 
+Si el cambio cae sobre secretos, recovery o endurecimiento de entorno:
+
+5. verificar en `Configuracion`:
+   - `Instalacion y cuenta raiz`
+   - `Postura de secretos y runtime`
+6. confirmar que el runtime no quede marcado como listo para produccion si siguen defaults inseguros o passwords bootstrap tenant debiles
+7. si la DB tenant ya esta materializada y tocaste secretos tecnicos:
+   - validar que `Tenants` siga mostrando `Rotar credenciales tecnicas`
+   - validar que la accion no afecte el acceso del portal tenant
+
 Si el cambio toca especificamente el ciclo basico del tenant:
 
 5. correr `app.tests.test_platform_flow`
@@ -144,6 +163,8 @@ Si el cambio toca especificamente el ciclo basico del tenant:
    - crear tenant
    - archivar tenant
    - restaurar tenant
+7. si la DB tenant ya existe y algo sigue raro:
+   - revisar en `Tenants` la lectura de esquema tenant antes de asumir que faltan tablas o que el provisioning no corrió
 
 ## 6. Cuándo hacer prueba manual
 

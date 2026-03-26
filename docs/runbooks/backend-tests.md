@@ -148,6 +148,16 @@ Cobertura adicional relevante:
 - rutas publicas de login, refresh y recuperacion raiz
 - guardas de mantenimiento, billing y rate limit
 - regresion para que `GET /platform/auth/root-recovery/status` siga siendo publico y no vuelva a romper `Settings`
+- hardening de runtime para que passwords bootstrap tenant de demo o demasiado cortas no pasen en `production`
+- `GET /platform/security-posture` para no perder la lectura operativa de seguridad en `Settings`
+- rotacion formal de credenciales tecnicas tenant, incluyendo rollback seguro si la nueva password no valida
+
+Suite puntual de seguridad:
+
+```bash
+cd /home/felipe/platform_paas/backend
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_security_hardening
+```
 
 ## Suite Tenant Finance
 
@@ -478,6 +488,7 @@ Resultados verificados en este entorno:
 - `app.tests.test_tenant_integration_flow`: OK
 - `app.tests.test_platform_integration_flow`: OK
 - `app.tests.test_migration_flow`: OK
+- `app.tests.test_platform_flow`: OK, incluyendo lectura y respuesta de `schema-status` tenant
 - `app.tests.test_provisioning_worker`: OK
 - `app.tests.test_security_hardening`: OK
 - `app.tests.test_http_smoke`: OK
@@ -549,6 +560,7 @@ Estos casos ya quedaron cubiertos y no deberian volver a depender solo de prueba
 
 - mantenimiento con datetimes `naive` y `aware`
 - rotacion de password para roles PostgreSQL tenant ya existentes durante retries de provisioning
+- migracion de control `0023_tenant_db_credentials_tracking`
 - bloqueo por `core.users.admin` al crear, cambiar rol o reactivar admins fuera de cupo
 - bloqueo por `core.users.active` al reactivar usuarios fuera de cupo
 - acceso tenant permitido o bloqueado por `billing` en estados `past_due`, `canceled` y `suspended`

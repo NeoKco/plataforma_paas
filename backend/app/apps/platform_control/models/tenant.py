@@ -94,6 +94,18 @@ class Tenant(Base):
     db_user: Mapped[str | None] = mapped_column(String(150), nullable=True)
     db_host: Mapped[str | None] = mapped_column(String(100), nullable=True)
     db_port: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tenant_schema_version: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+    tenant_schema_synced_at: Mapped[DateTime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    tenant_db_credentials_rotated_at: Mapped[DateTime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),

@@ -1,18 +1,24 @@
 from fastapi import APIRouter, Depends
 
-from app.apps.platform_control.schemas import PlatformCapabilityCatalogResponse
+from app.apps.platform_control.schemas import (
+    PlatformCapabilityCatalogResponse,
+    PlatformRuntimeSecurityPostureResponse,
+)
 from app.apps.platform_control.services.platform_capability_service import (
     PlatformCapabilityService,
 )
-from app.common.auth.dependencies import get_current_token_payload
-from app.common.auth.role_dependencies import require_role
 from app.apps.platform_control.services.platform_runtime_service import (
     PlatformRuntimeService,
 )
+from app.common.auth.dependencies import get_current_token_payload
+from app.common.auth.role_dependencies import require_role
+from app.common.config.settings import settings
+from app.common.security.runtime_security_service import RuntimeSecurityService
 
 router = APIRouter(prefix="/platform", tags=["platform-control"])
 platform_runtime_service = PlatformRuntimeService()
 platform_capability_service = PlatformCapabilityService()
+runtime_security_service = RuntimeSecurityService()
 
 
 @router.get("/ping-db")
@@ -47,4 +53,26 @@ def get_platform_capabilities(
         success=True,
         message="Catalogo de capacidades de backend recuperado correctamente",
         **catalog,
+    )
+
+
+@router.get(
+    "/security-posture",
+    response_model=PlatformRuntimeSecurityPostureResponse,
+)
+def get_platform_security_posture(
+    _token: dict = Depends(require_role("superadmin")),
+) -> PlatformRuntimeSecurityPostureResponse:
+    try:
+        findings = runtime_security_service.validate_settings(settings)
+    except RuntimeError as exc:
+        findings = [str(exc)]
+
+    return PlatformRuntimeSecurityPostureResponse(
+        success=True,
+        message="Postura de seguridad de runtime recuperada correctamente",
+        app_env=settings.APP_ENV,
+        production_ready=len(findings) == 0,
+        findings_count=len(findings),
+        findings=findings,
     )

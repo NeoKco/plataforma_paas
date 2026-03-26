@@ -5,9 +5,11 @@ import type {
   PlatformRootRecoveryRequest,
   PlatformRootRecoveryResponse,
   PlatformRootRecoveryStatusResponse,
+  PlatformRuntimeSecurityPostureResponse,
   PlatformTenant,
   PlatformTenantAccessPolicy,
   PlatformTenantBillingResponse,
+  PlatformTenantDbCredentialsRotateResponse,
   PlatformUserCreateRequest,
   PlatformUserDeleteResponse,
   PlatformUserListResponse,
@@ -21,6 +23,7 @@ import type {
   PlatformTenantMaintenanceResponse,
   PlatformTenantModuleLimitsResponse,
   PlatformTenantSchemaSyncResponse,
+  PlatformTenantSchemaStatusResponse,
   PlatformTenantModuleUsageSummary,
   PlatformTenantPolicyHistoryResponse,
   PlatformTenantPolicyActivityResponse,
@@ -90,6 +93,15 @@ export function getPlatformCapabilities(accessToken: string) {
   return apiRequest<PlatformCapabilities>("/platform/capabilities", {
     token: accessToken,
   });
+}
+
+export function getPlatformSecurityPosture(accessToken: string) {
+  return apiRequest<PlatformRuntimeSecurityPostureResponse>(
+    "/platform/security-posture",
+    {
+      token: accessToken,
+    }
+  );
 }
 
 export function getPlatformAuthAudit(
@@ -211,6 +223,31 @@ export function getPlatformTenant(accessToken: string, tenantId: number) {
   return apiRequest<PlatformTenant>(`/platform/tenants/${tenantId}`, {
     token: accessToken,
   });
+}
+
+export function rotatePlatformTenantDbCredentials(
+  accessToken: string,
+  tenantId: number
+) {
+  return apiRequest<PlatformTenantDbCredentialsRotateResponse>(
+    `/platform/tenants/${tenantId}/rotate-db-credentials`,
+    {
+      method: "POST",
+      token: accessToken,
+    }
+  );
+}
+
+export function getPlatformTenantSchemaStatus(
+  accessToken: string,
+  tenantId: number
+) {
+  return apiRequest<PlatformTenantSchemaStatusResponse>(
+    `/platform/tenants/${tenantId}/schema-status`,
+    {
+      token: accessToken,
+    }
+  );
 }
 
 export function reprovisionPlatformTenant(

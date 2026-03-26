@@ -29,6 +29,7 @@ export function getPlatformActionFeedbackLabel(scope: string): string {
     "requeue-provisioning-job": "Reintento de provisioning",
     "requeue-dlq-batch": "Reencolado DLQ",
     "reprovision-tenant": "Reprovisionado de tenant",
+    "rotate-tenant-db-credentials": "Credenciales técnicas tenant",
     "reconcile-batch": "Reconcile en lote",
     "Reencolado DLQ": "Reencolado DLQ",
   };
@@ -73,6 +74,8 @@ export function getPlatformActionSuccessMessage(
       "Las filas DLQ volvieron a cola para nuevo procesamiento.",
     "reprovision-tenant":
       "Se creó un nuevo job de provisioning para recomponer la base tenant.",
+    "rotate-tenant-db-credentials":
+      "Las credenciales técnicas tenant fueron rotadas correctamente.",
     "reconcile-batch": "Los eventos filtrados fueron reconciliados correctamente.",
     "Reencolado DLQ": "Las filas DLQ volvieron a cola para nuevo procesamiento.",
   };

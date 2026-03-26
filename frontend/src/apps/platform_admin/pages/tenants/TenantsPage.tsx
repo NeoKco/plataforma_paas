@@ -26,9 +26,11 @@ import {
   getPlatformTenant,
   getPlatformTenantAccessPolicy,
   getPlatformTenantModuleUsage,
+  getPlatformTenantSchemaStatus,
   getPlatformTenantPolicyHistory,
   listProvisioningJobs,
   reprovisionPlatformTenant,
+  rotatePlatformTenantDbCredentials,
   requeueProvisioningJob,
   runProvisioningJob,
   listPlatformTenants,
@@ -51,6 +53,7 @@ import type {
   PlatformTenant,
   PlatformTenantAccessPolicy,
   PlatformTenantPolicyChangeEvent,
+  PlatformTenantSchemaStatusResponse,
   PlatformTenantModuleUsageSummary,
 } from "../../../../types";
 
@@ -82,6 +85,8 @@ export function TenantsPage() {
   const [moduleUsage, setModuleUsage] =
     useState<PlatformTenantModuleUsageSummary | null>(null);
   const [moduleUsageNotice, setModuleUsageNotice] = useState<string | null>(null);
+  const [schemaStatus, setSchemaStatus] =
+    useState<PlatformTenantSchemaStatusResponse | null>(null);
   const [policyHistory, setPolicyHistory] = useState<PlatformTenantPolicyChangeEvent[]>(
     []
   );
@@ -90,6 +95,7 @@ export function TenantsPage() {
   const [moduleUsageError, setModuleUsageError] = useState<ApiError | null>(null);
   const [policyHistoryError, setPolicyHistoryError] = useState<ApiError | null>(null);
   const [provisioningJobError, setProvisioningJobError] = useState<ApiError | null>(null);
+  const [schemaStatusError, setSchemaStatusError] = useState<ApiError | null>(null);
   const [isListLoading, setIsListLoading] = useState(true);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
@@ -296,9 +302,11 @@ export function TenantsPage() {
     setModuleUsageNotice(null);
     setPolicyHistoryError(null);
     setProvisioningJobError(null);
+    setSchemaStatusError(null);
     setSelectedTenant(null);
     setAccessPolicy(null);
     setModuleUsage(null);
+    setSchemaStatus(null);
     setPolicyHistory([]);
     setSelectedProvisioningJob(null);
     let tenantStatus: string | null = null;
@@ -311,6 +319,28 @@ export function TenantsPage() {
       setSelectedTenant(tenantResponse);
       setAccessPolicy(accessPolicyResponse);
       tenantStatus = tenantResponse.status;
+
+      if (tenantResponse.db_configured) {
+        try {
+          const schemaStatusResponse = await getPlatformTenantSchemaStatus(
+            session.accessToken,
+            tenantId
+          );
+          setSchemaStatus(schemaStatusResponse);
+          setSelectedTenant((current) =>
+            current
+              ? {
+                  ...current,
+                  tenant_schema_version: schemaStatusResponse.current_version,
+                  tenant_schema_synced_at: schemaStatusResponse.last_applied_at,
+                }
+              : current
+          );
+        } catch (rawError) {
+          setSchemaStatus(null);
+          setSchemaStatusError(rawError as ApiError);
+        }
+      }
 
       if (tenantResponse.status !== "active") {
         setModuleUsage(null);
@@ -866,6 +896,33 @@ export function TenantsPage() {
         return {
           message:
             "Se creó un nuevo job de provisioning para recomponer la base tenant.",
+        };
+      },
+    });
+  }
+
+  function handleRotateTenantDbCredentials() {
+    if (!session?.accessToken || selectedTenantId === null || !selectedTenantSummary) {
+      return;
+    }
+
+    requestConfirmation({
+      scope: "rotate-tenant-db-credentials",
+      title: "Confirmar rotación de credenciales técnicas",
+      description:
+        "Esta acción rota la contraseña técnica de la base tenant, valida el nuevo acceso y actualiza el secreto dinámico usado por la plataforma.",
+      details: [
+        `Tenant: ${selectedTenantSummary.name}`,
+        `Slug: ${selectedTenantSummary.slug}`,
+        `DB tenant configurada: ${selectedTenantSummary.db_configured ? "sí" : "no"}`,
+        "No cambia las credenciales del portal tenant ni las cuentas de usuario final.",
+      ],
+      confirmLabel: "Rotar credenciales",
+      action: async () => {
+        await rotatePlatformTenantDbCredentials(session.accessToken, selectedTenantId);
+        return {
+          message:
+            "La credencial técnica de la base tenant fue rotada y validada correctamente.",
         };
       },
     });
@@ -1485,6 +1542,81 @@ export function TenantsPage() {
                     ) : null}
                   </>
                 )}
+
+                {selectedTenantSummary.db_configured ? (
+                  schemaStatusError ? (
+                    <div className="tenant-inline-note">
+                      No se pudo leer la trazabilidad de esquema tenant en esta revisión.
+                    </div>
+                  ) : schemaStatus ? (
+                    <>
+                      <div className="tenant-section-divider" />
+                      <div className="tenant-detail-grid">
+                        <DetailField
+                          label="Esquema actual"
+                          value={schemaStatus.current_version || "sin registro"}
+                        />
+                        <DetailField
+                          label="Última versión disponible"
+                          value={schemaStatus.latest_available_version || "n/a"}
+                        />
+                        <DetailField
+                          label="Migraciones pendientes"
+                          value={schemaStatus.pending_count}
+                        />
+                        <DetailField
+                          label="Última sincronización"
+                          value={formatDateTime(schemaStatus.last_applied_at)}
+                        />
+                      </div>
+                      {schemaStatus.pending_count > 0 ? (
+                        <div className="tenant-inline-note">
+                          El tenant no está al día de esquema. Usa{" "}
+                          <strong>Sincronizar esquema tenant</strong> para aplicar las
+                          migraciones pendientes.
+                        </div>
+                      ) : (
+                        <div className="tenant-inline-note">
+                          El esquema tenant está al día según las migraciones registradas.
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="tenant-inline-note">
+                      La DB tenant existe, pero todavía no hay una lectura reciente de su
+                      versión de esquema.
+                    </div>
+                  )
+                ) : null}
+                {selectedTenantSummary.db_configured ? (
+                  <>
+                    <div className="tenant-detail-grid">
+                      <DetailField
+                        label="Última rotación credenciales DB"
+                        value={formatDateTime(
+                          selectedTenantSummary.tenant_db_credentials_rotated_at
+                        )}
+                      />
+                    </div>
+                    <div className="tenant-context-actions tenant-context-actions--compact">
+                      <div className="tenant-help-text">
+                        Si necesitas endurecer operación o sospechas exposición de secretos
+                        técnicos, puedes rotar la contraseña DB tenant sin afectar el acceso
+                        del portal tenant.
+                      </div>
+                      <div className="tenant-context-actions__buttons">
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          type="button"
+                          onClick={handleRotateTenantDbCredentials}
+                          disabled={isActionSubmitting}
+                        >
+                          Rotar credenciales técnicas
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                ) : null}
               </PanelCard>
 
               <PanelCard

@@ -271,10 +271,11 @@ Resultado actual:
 - el bootstrap tenant ya crea tambien tablas de modulos registrados como `finance`
 - existe una operacion administrativa de sync de esquema tenant para bases ya provisionadas
 - existen migraciones versionadas base para `control` y `tenant`
+- `Tenants` ya deja leer la version de esquema aplicada por tenant, la ultima version disponible, la cantidad de migraciones pendientes y la ultima sincronizacion registrada
+- `platform_control.tenants` ya guarda trazabilidad minima del esquema tenant con `tenant_schema_version` y `tenant_schema_synced_at`
 
 Falta para cerrarlo:
 
-- trazabilidad de que schema tiene cada tenant
 - estrategia mas rica por modulo y posibles downgrades
 
 ## Etapa 11. Secretos y Seguridad Operativa
@@ -296,17 +297,21 @@ Entregables esperados:
 Resultado actual:
 
 - existe validacion de secretos inseguros en runtime para produccion
+- las passwords bootstrap tenant de demo o demasiado cortas ya quedan prohibidas en `production`
 - el password tecnico tenant se resuelve por env var dinamica, no por `if/elif`
 - el provisioning persiste el secreto tenant en `.env` y `os.environ`
 - los logs dejan de mostrar el password completo de la DB tenant
 - los JWT ahora validan `iss`, `aud`, `jti` y `token_type`, con audiencias separadas para `platform` y `tenant`
 - ya existe refresh token rotatorio y revocacion basica de sesion en `platform_control`
 - ya existe auditoria basica de eventos de autenticacion en `platform_control`
+- el equipo ya tiene documentado que las passwords bootstrap tenant de ejemplo solo son aceptables para baseline local o pruebas
+- `Settings` ya puede leer la postura de seguridad de runtime sin exponer secretos, solo hallazgos y readiness para produccion
+- ya existe rotacion formal de credenciales tecnicas tenant con validacion del nuevo acceso y rollback al secreto anterior si la prueba falla
 
 Falta para cerrarlo:
 
 - secret manager real
-- rotacion de secretos
+- rotacion centralizada de secretos fuera de `.env`
 - politicas de distribucion de credenciales
 - sesion multi-dispositivo mas rica y auditoriable
 

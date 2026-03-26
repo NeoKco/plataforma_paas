@@ -58,6 +58,7 @@ from app.apps.platform_control.api.provisioning_job_routes import (  # noqa: E40
 from app.apps.platform_control.api.routes import (  # noqa: E402
     admin_only_route,
     get_platform_capabilities,
+    get_platform_security_posture,
     ping_control_db,
 )
 from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
@@ -69,6 +70,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     get_tenant,
     get_tenant_finance_usage,
     get_tenant_module_usage,
+    get_tenant_schema_status,
     list_tenants,
     get_tenant_access_policy,
     get_tenant_billing_events,
@@ -77,6 +79,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     reconcile_tenant_billing_events_batch,
     reconcile_tenant_billing_from_event,
     reprovision_tenant,
+    rotate_tenant_db_credentials,
     sync_tenant_billing_event,
     restore_tenant,
     update_tenant_identity,
@@ -934,6 +937,128 @@ class PlatformServicesTestCase(unittest.TestCase):
             status="pending",
         )
 
+    def test_tenant_service_rotates_db_credentials_and_clears_bootstrap_secret(self) -> None:
+        tenant = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
+        tenant.id = 1
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+            def save(self, db, tenant_to_save):
+                return tenant_to_save
+
+        tenant_secret_service = MagicMock()
+        tenant_secret_service.store_tenant_db_password.return_value = (
+            "TENANT_DB_PASSWORD__EMPRESA_DEMO"
+        )
+        tenant_connection_service = MagicMock()
+        tenant_connection_service.get_tenant_database_credentials.return_value = {
+            "host": "127.0.0.1",
+            "port": 5432,
+            "database": "tenant_empresa_demo",
+            "username": "user_empresa_demo",
+            "password": "old-secret",
+        }
+
+        service = TenantService(
+            tenant_repository=FakeTenantRepository(),
+            tenant_connection_service=tenant_connection_service,
+            tenant_secret_service=tenant_secret_service,
+        )
+
+        with patch(
+            "app.apps.platform_control.services.tenant_service.PostgresBootstrapService"
+        ) as bootstrap_cls, patch.object(
+            service,
+            "_validate_tenant_db_connection",
+        ) as validate_mock, patch.object(
+            service,
+            "_generate_tenant_db_password",
+            return_value="new-tenant-secret",
+        ):
+            bootstrap = bootstrap_cls.return_value
+            bootstrap.role_exists.return_value = True
+            bootstrap.database_exists.return_value = True
+
+            result = service.rotate_tenant_db_credentials(db=object(), tenant_id=1)
+
+        self.assertIs(result["tenant"], tenant)
+        self.assertEqual(
+            result["env_var_name"], "TENANT_DB_PASSWORD__EMPRESA_DEMO"
+        )
+        self.assertIsNotNone(result["rotated_at"])
+        self.assertIsNotNone(tenant.tenant_db_credentials_rotated_at)
+        validate_mock.assert_called_once_with(
+            host="127.0.0.1",
+            port=5432,
+            database="tenant_empresa_demo",
+            username="user_empresa_demo",
+            password="new-tenant-secret",
+        )
+        bootstrap.create_role_if_not_exists.assert_called_once_with(
+            "user_empresa_demo", "new-tenant-secret"
+        )
+        tenant_secret_service.store_tenant_db_password.assert_called_once()
+        tenant_secret_service.clear_tenant_bootstrap_db_password.assert_called_once()
+
+    def test_tenant_service_restores_previous_password_when_rotation_validation_fails(self) -> None:
+        tenant = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
+        tenant.id = 1
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant),
+            tenant_connection_service=SimpleNamespace(
+                get_tenant_database_credentials=lambda tenant: {
+                    "host": "127.0.0.1",
+                    "port": 5432,
+                    "database": "tenant_empresa_demo",
+                    "username": "user_empresa_demo",
+                    "password": "old-secret",
+                }
+            ),
+            tenant_secret_service=MagicMock(),
+        )
+
+        with patch(
+            "app.apps.platform_control.services.tenant_service.PostgresBootstrapService"
+        ) as bootstrap_cls, patch.object(
+            service,
+            "_validate_tenant_db_connection",
+            side_effect=RuntimeError("cannot connect"),
+        ), patch.object(
+            service,
+            "_generate_tenant_db_password",
+            return_value="new-tenant-secret",
+        ):
+            bootstrap = bootstrap_cls.return_value
+            bootstrap.role_exists.return_value = True
+            bootstrap.database_exists.return_value = True
+
+            with self.assertRaises(ValueError) as exc:
+                service.rotate_tenant_db_credentials(db=object(), tenant_id=1)
+
+        self.assertEqual(
+            str(exc.exception),
+            "Rotated credentials failed validation and the previous password was restored",
+        )
+        self.assertEqual(
+            bootstrap.create_role_if_not_exists.call_args_list[0].args,
+            ("user_empresa_demo", "new-tenant-secret"),
+        )
+        self.assertEqual(
+            bootstrap.create_role_if_not_exists.call_args_list[1].args,
+            ("user_empresa_demo", "old-secret"),
+        )
+
     def test_tenant_service_resolves_effective_module_limits_with_sources(self) -> None:
         tenant = build_tenant_record_stub(
             plan_code="pro",
@@ -1096,6 +1221,41 @@ class PlatformServicesTestCase(unittest.TestCase):
 
         self.assertEqual(result.status, "suspended")
         self.assertEqual(result.status_reason, "billing overdue")
+
+    def test_tenant_service_gets_schema_status_and_tracks_version(self) -> None:
+        tenant = build_tenant_record_stub(status="active")
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+            def save(self, db, tenant_to_save):
+                return tenant_to_save
+
+        fake_schema_service = SimpleNamespace(
+            get_schema_status=lambda **kwargs: {
+                "current_version": "0002_finance_entries",
+                "latest_available_version": "0002_finance_entries",
+                "pending_versions": [],
+                "pending_count": 0,
+                "last_applied_at": datetime.now(timezone.utc),
+            }
+        )
+
+        service = TenantService(
+            tenant_repository=FakeTenantRepository(),
+            tenant_schema_service=fake_schema_service,
+        )
+
+        result = service.get_tenant_schema_status(db=object(), tenant_id=1)
+
+        self.assertEqual(result["current_version"], "0002_finance_entries")
+        self.assertEqual(tenant.tenant_schema_version, "0002_finance_entries")
+        self.assertEqual(result["tenant"], tenant)
 
     def test_tenant_service_updates_billing_state(self) -> None:
         tenant = build_tenant_record_stub(
@@ -3243,6 +3403,29 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.billing_providers, ["stripe"])
         self.assertIn("broker", response.provisioning_dispatch_backends)
 
+    @patch("app.apps.platform_control.api.routes.runtime_security_service")
+    @patch("app.apps.platform_control.api.routes.settings")
+    def test_get_platform_security_posture_returns_runtime_findings(
+        self,
+        fake_settings,
+        fake_runtime_security_service,
+    ) -> None:
+        fake_settings.APP_ENV = "development"
+        fake_runtime_security_service.validate_settings.return_value = [
+            "JWT_SECRET_KEY sigue con un valor inseguro por defecto",
+            "TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP sigue con una password bootstrap insegura de demo",
+        ]
+
+        response = get_platform_security_posture(
+            _token=self._token_payload(),
+        )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.app_env, "development")
+        self.assertFalse(response.production_ready)
+        self.assertEqual(response.findings_count, 2)
+        self.assertEqual(len(response.findings), 2)
+
     def test_list_platform_users_returns_catalog(self) -> None:
         users = [
             build_platform_user_stub(
@@ -3704,6 +3887,16 @@ class PlatformRoutesTestCase(unittest.TestCase):
         with patch(
             "app.apps.platform_control.api.tenant_routes.tenant_service.sync_tenant_schema",
             return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.get_tenant_schema_status",
+            return_value={
+                "tenant": tenant,
+                "current_version": "0002_finance_entries",
+                "latest_available_version": "0002_finance_entries",
+                "pending_count": 0,
+                "last_applied_at": datetime.now(timezone.utc),
+                "applied_now": [],
+            },
         ):
             response = sync_tenant_schema(
                 tenant_id=1,
@@ -3713,6 +3906,33 @@ class PlatformRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertEqual(response.tenant_slug, "empresa-bootstrap")
+        self.assertEqual(response.current_version, "0002_finance_entries")
+
+    def test_get_tenant_schema_status_returns_schema(self) -> None:
+        tenant = build_tenant_record_stub()
+        tenant.id = 1
+        tenant.status = "active"
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.get_tenant_schema_status",
+            return_value={
+                "tenant": tenant,
+                "current_version": "0002_finance_entries",
+                "latest_available_version": "0002_finance_entries",
+                "pending_count": 0,
+                "pending_versions": [],
+                "last_applied_at": datetime.now(timezone.utc),
+            },
+        ):
+            response = get_tenant_schema_status(
+                tenant_id=1,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.tenant_slug, "empresa-bootstrap")
+        self.assertEqual(response.current_version, "0002_finance_entries")
 
     def test_update_tenant_maintenance_mode_returns_schema(self) -> None:
         previous_tenant = build_tenant_record_stub()
@@ -4812,6 +5032,47 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.tenant_id, 5)
         self.assertEqual(response.status, "pending")
         reprovision_mock.assert_called_once()
+
+    def test_rotate_tenant_db_credentials_returns_schema(self) -> None:
+        rotated_at = datetime.now(timezone.utc)
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Demo",
+            tenant_slug="empresa-demo",
+            status="active",
+        )
+        tenant.id = 5
+        tenant.tenant_db_credentials_rotated_at = rotated_at
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes._capture_tenant_snapshot",
+            return_value={"status": "active"},
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.rotate_tenant_db_credentials",
+            return_value={
+                "tenant": tenant,
+                "env_var_name": "TENANT_DB_PASSWORD__EMPRESA_DEMO",
+                "rotated_at": rotated_at,
+            },
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes._record_tenant_policy_event",
+        ) as record_mock, patch(
+            "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
+        ) as audit_mock:
+            response = rotate_tenant_db_credentials(
+                tenant_id=5,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.tenant_id, 5)
+        self.assertEqual(response.tenant_slug, "empresa-demo")
+        self.assertEqual(
+            response.env_var_name, "TENANT_DB_PASSWORD__EMPRESA_DEMO"
+        )
+        self.assertEqual(response.rotated_at, rotated_at)
+        record_mock.assert_called_once()
+        audit_mock.assert_called_once()
 
     def test_create_tenant_logs_audit_event(self) -> None:
         tenant = build_tenant_record_stub(

@@ -184,6 +184,8 @@ Avance actual:
 - `Tenants` ya expone `restaurar tenant` como flujo formal solo para tenants archivados, con estado destino explicito
 - `Tenants` ya expone `eliminar tenant` como borrado seguro solo para tenants archivados sin DB tenant materializada ni historial comercial
 - `Tenants` ya muestra el ultimo job de provisioning del tenant seleccionado con acceso rapido a la consola global y acciones directas segun estado
+- `Tenants` ya muestra tambien el estado de esquema tenant con version actual, ultima version disponible, migraciones pendientes y ultima sincronizacion
+- `Tenants` ya permite rotar credenciales tecnicas de DB tenant cuando la base ya esta materializada
 - `Tenants` ya expone `Reprovisionar tenant` para estados inconsistentes donde existe historial `completed`, pero la DB tenant sigue incompleta
 - pendiente futuro: decidir si vale la pena abrir un `reprovisionado profundo` separado para tenants ya materializados, con controles mucho mas estrictos
 - `Tenants` ya permite operar `status`
@@ -213,6 +215,7 @@ Lectura practica:
 - la operacion sobre tenants ya esta avanzada
 - el CRUD basico seguro ya esta muy cerca de cierre
 - lo que sigue abierto aqui es sobre todo politica de producto: confirmar `slug` estable y seguir sin `delete` fisico por ahora
+- la trazabilidad de esquema tenant ya no depende de revisar tablas a mano ni de recordar la ultima migracion aplicada
 
 Bloque basico ya cerrado en paralelo:
 
@@ -331,6 +334,7 @@ Avance actual:
 - `Settings` ya expone sesion actual, `API configurada`, `API esperada en esta red`, catalogo backend y alcance de la UI
 - `Settings` ya expone tambien estado visible de cuenta raiz y recuperacion, para no depender solo del instalador o del login de recuperacion
 - `Settings` ya resume tambien la gobernanza visible de acceso de plataforma para detectar rapido si quedaron multiples `superadmin`, cuantos `admin` activos existen y cuanto soporte operativo esta habilitado
+- `Settings` ya expone tambien la postura de secretos y runtime sin mostrar valores sensibles
 - `Settings` ya no colapsa completa si falla solo el bloque de `root recovery`; las lecturas se resuelven por bloque y el warning queda localizado
 
 Pendiente fino conocido:

@@ -123,6 +123,7 @@ Desde aqui puedes ver o mutar:
 - identidad de billing
 - policy history
 - uso por modulo
+- trazabilidad basica del esquema tenant
 
 Si un tenant no funciona, normalmente empiezas aqui.
 
@@ -152,6 +153,8 @@ Lectura importante:
 - crear un tenant desde esta pantalla no significa dejarlo operativo de inmediato
 - el alta dispara provisioning
 - el detalle del tenant ya muestra un bloque `Provisioning` con el ultimo job y su estado
+- el detalle tenant ya muestra tambien si la base esta al dia de migraciones o si el esquema quedo atrasado
+- si la DB tenant ya existe, el detalle tambien deja rotar la credencial tecnica de la base tenant
 - desde ahi puedes entender si el tenant sigue `pending`, si necesita retry o si ya quedo listo
 - si un tenant quedo `active` pero sin configuracion DB tenant completa, la consola ya no ofrece entrar al portal y expone `Reprovisionar tenant`
 - el acceso rapido al `tenant_portal` solo corresponde cuando el tenant ya esta `active`, con provisioning completado y configuracion DB tenant valida
@@ -194,6 +197,7 @@ Politica corta de acceso por bloque:
 - `admin` hoy opera `Usuarios de plataforma` y `Actividad`
 - `support` hoy queda concentrado en `Usuarios de plataforma` con alcance mas acotado
 - `Configuracion` ya resume tambien la gobernanza visible del entorno para verificar si sigue existiendo exactamente un `superadmin` activo y como esta repartido el acceso operativo
+- `Configuracion` ya resume tambien la postura de secretos y runtime sin exponer valores sensibles
 
 Nota importante de lectura:
 

@@ -30,6 +30,7 @@ class TenantPolicyEventService:
         "api_read_requests_per_minute",
         "api_write_requests_per_minute",
         "module_limits_json",
+        "tenant_db_credentials_rotated_at",
     )
 
     def __init__(

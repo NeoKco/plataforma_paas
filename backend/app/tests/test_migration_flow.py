@@ -56,6 +56,8 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0019_tenant_billing_identity",
                 "0020_billing_operational_alerts",
                 "0021_tenant_module_limits",
+                "0022_tenant_schema_tracking",
+                "0023_tenant_db_credentials_tracking",
             ],
         )
         self.assertIn("platform_installation", tables)
@@ -82,6 +84,9 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("billing_provider_customer_id", tenant_columns)
         self.assertIn("billing_provider_subscription_id", tenant_columns)
         self.assertIn("module_limits_json", tenant_columns)
+        self.assertIn("tenant_schema_version", tenant_columns)
+        self.assertIn("tenant_schema_synced_at", tenant_columns)
+        self.assertIn("tenant_db_credentials_rotated_at", tenant_columns)
         self.assertIn("provisioning_jobs", tables)
         provisioning_job_columns = {
             column["name"] for column in inspect(engine).get_columns("provisioning_jobs")

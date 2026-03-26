@@ -160,6 +160,15 @@ class PlatformCapabilityCatalogResponse(BaseModel):
     provisioning_dispatch_backends: list[str]
 
 
+class PlatformRuntimeSecurityPostureResponse(BaseModel):
+    success: bool
+    message: str
+    app_env: str
+    production_ready: bool
+    findings_count: int
+    findings: list[str]
+
+
 class TenantCreateRequest(BaseModel):
     name: str
     slug: str
@@ -178,6 +187,9 @@ class TenantResponse(BaseModel):
     slug: str
     tenant_type: str
     db_configured: bool = False
+    tenant_schema_version: str | None = None
+    tenant_schema_synced_at: datetime | None = None
+    tenant_db_credentials_rotated_at: datetime | None = None
     plan_code: str | None = None
     billing_provider: str | None = None
     billing_provider_customer_id: str | None = None
@@ -555,6 +567,34 @@ class TenantSchemaSyncResponse(BaseModel):
     tenant_id: int
     tenant_slug: str
     tenant_status: str
+    current_version: str | None = None
+    latest_available_version: str | None = None
+    pending_count: int = 0
+    last_applied_at: datetime | None = None
+    applied_now: list[str] = []
+
+
+class TenantSchemaStatusResponse(BaseModel):
+    success: bool
+    message: str
+    tenant_id: int
+    tenant_slug: str
+    tenant_status: str
+    current_version: str | None = None
+    latest_available_version: str | None = None
+    pending_count: int = 0
+    pending_versions: list[str] = []
+    last_applied_at: datetime | None = None
+
+
+class TenantDbCredentialsRotateResponse(BaseModel):
+    success: bool
+    message: str
+    tenant_id: int
+    tenant_slug: str
+    tenant_status: str
+    env_var_name: str
+    rotated_at: datetime | None = None
 
 
 class TenantStatusUpdateRequest(BaseModel):

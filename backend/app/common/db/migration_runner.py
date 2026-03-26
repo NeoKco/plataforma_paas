@@ -55,6 +55,34 @@ class MigrationRunner:
     def get_applied_versions(self) -> list[str]:
         return sorted(self._get_applied_versions())
 
+    def get_available_versions(self) -> list[str]:
+        return [module.MIGRATION_ID for module in self._load_migrations()]
+
+    def get_latest_available_version(self) -> str | None:
+        versions = self.get_available_versions()
+        if not versions:
+            return None
+        return versions[-1]
+
+    def get_applied_migrations(self) -> list[dict]:
+        with self.engine.begin() as conn:
+            self.migration_table.create(bind=conn, checkfirst=True)
+            rows = conn.execute(
+                select(
+                    self.migration_table.c.version,
+                    self.migration_table.c.description,
+                    self.migration_table.c.applied_at,
+                ).order_by(self.migration_table.c.version.asc())
+            ).all()
+            return [
+                {
+                    "version": row[0],
+                    "description": row[1],
+                    "applied_at": row[2],
+                }
+                for row in rows
+            ]
+
     def _get_applied_versions(self) -> set[str]:
         with self.engine.begin() as conn:
             self.migration_table.create(bind=conn, checkfirst=True)

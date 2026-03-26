@@ -16,6 +16,8 @@ Desde `Tenants` hoy ya puedes:
 - eliminar tenant de forma definitiva solo en modo seguro y acotado
 - abrir el portal tenant solo cuando el tenant ya esta realmente listo
 - operar estado, mantenimiento, billing, plan, limites y sincronizacion de esquema
+- rotar credenciales tecnicas de DB tenant de forma controlada
+- revisar si el esquema tenant esta al dia sin entrar a SQL manual
 
 Auditoria visible actual:
 
@@ -25,6 +27,10 @@ Auditoria visible actual:
 - reprovisionado de tenant inconsistente
 
 Las mutaciones finas de estado, billing, mantenimiento, limites y plan siguen quedando visibles ademas en el historial de politica del tenant.
+
+Tambien queda visible como evento tecnico:
+
+- rotacion de credenciales DB tenant
 
 ## 1. Crear tenant
 
@@ -46,6 +52,7 @@ Lectura practica:
 - crear tenant no significa que ya este listo para usar
 - significa que entro al catalogo central y quedo listo para provisioning
 - el detalle del tenant ya muestra un bloque `Provisioning` con el ultimo job visible para ese tenant
+- el mismo detalle ya deja ver si el esquema tenant esta al dia o si quedaron migraciones pendientes
 - desde ese bloque ya puede abrirse la pantalla global de `Provisioning` o ejecutar/reintentar el job segun su estado
 - si un tenant quedo con historial `completed` pero sigue sin DB tenant configurada, el bloque ahora tambien expone `Reprovisionar tenant`
 - el acceso rapido a `tenant_portal` ya debe reservarse para tenants `active` con provisioning completado
@@ -180,6 +187,8 @@ Motivo:
 - el acceso rapido al portal tenant no debe presentarse como accion util para tenants `pending`, `archived` o con provisioning incompleto
 - si el tenant esta `active` pero `db_configured=false`, la consola debe seguir ocultando `Abrir portal tenant` y ofrecer `Reprovisionar tenant`
 - si el tenant queda bloqueado por lifecycle o billing, `Tenants` y `tenant_portal` deben mostrar una explicacion operativa clara en vez de dejar el detalle crudo del backend
+- si la DB tenant existe pero el esquema queda atrasado, `Tenants` ya deja visible version actual, ultima version disponible, cantidad de migraciones pendientes y ultima sincronizacion
+- si la DB tenant ya existe, `Tenants` tambien deja rotar la credencial tecnica de la base tenant sin afectar usuarios del portal
 
 ## 6. Que no conviene hacer todavia
 
@@ -226,6 +235,7 @@ Cuando cambies este bloque, la validacion corta recomendada es:
 7. probar `delete` solo si el tenant sigue archivado y nunca llego a quedar materializado
 8. restaurar tenant con un estado destino explicito cuando corresponda
 9. revisar politica de acceso y efecto operativo
+10. si la DB tenant ya existe, verificar que la accion `Rotar credenciales tecnicas` siga visible y deje trazabilidad
 
 ## 8b. Validacion funcional corta en UI
 

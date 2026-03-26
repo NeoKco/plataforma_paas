@@ -19,6 +19,7 @@ En el arranque del backend se valida que en produccion no sigan valores inseguro
 - `JWT_SECRET_KEY` por defecto
 - `CONTROL_DB_PASSWORD` por defecto
 - `POSTGRES_ADMIN_PASSWORD` vacio
+- passwords bootstrap tenant de demo o demasiado cortas
 - `JWT_ISSUER` vacio
 - `JWT_PLATFORM_AUDIENCE` vacio
 - `JWT_TENANT_AUDIENCE` vacio
@@ -26,6 +27,26 @@ En el arranque del backend se valida que en produccion no sigan valores inseguro
 Archivo principal:
 
 - `backend/app/common/security/runtime_security_service.py`
+- `backend/app/apps/platform_control/api/routes.py`
+
+Politica actual para bootstrap tenant:
+
+- en `development` o `test`, las passwords bootstrap de demo pueden existir y se reportan como hallazgo
+- en `production`, cualquier `TENANT_BOOTSTRAP_DB_PASSWORD_*` con valor de demo o con menos de 16 caracteres hace fallar el arranque
+
+Esto busca evitar que una plataforma pase a produccion con secretos tecnicos tenant triviales heredados del baseline local.
+
+Lectura operativa visible:
+
+- `GET /platform/security-posture`
+- `Configuracion -> Postura de secretos y runtime`
+
+Esta lectura no expone secretos; solo resume:
+
+- entorno actual
+- si el runtime quedaria listo para produccion
+- cantidad de hallazgos
+- lista de hallazgos descriptivos
 
 ## 2. Secretos tenant dinamicos
 
@@ -50,6 +71,22 @@ Resolucion actual:
 - y finalmente lee la clave directamente desde `/.env`
 
 Esto ultimo es importante porque el provisioning puede crear secretos tenant dinamicos despues de la instalacion inicial y el backend necesita poder resolverlos tras reinicios.
+
+### Rotacion formal de credenciales tecnicas tenant
+
+Desde `Tenants` ya existe una accion explicita para rotar la password tecnica de DB tenant cuando la base del tenant ya esta configurada.
+
+Politica actual:
+
+- genera una password nueva y fuerte
+- altera la password del rol PostgreSQL del tenant
+- valida que el nuevo acceso realmente funcione
+- si la validacion falla, restaura la password anterior
+- guarda el secreto dinamico nuevo en `/.env`
+- limpia la variable bootstrap antigua si todavia existia
+- deja trazabilidad en actividad e historial de politica tenant
+
+Esto permite endurecer operacion sin tocar credenciales del portal tenant ni depender de cambios manuales sobre PostgreSQL.
 
 ## 3. Menor exposicion de secretos en logs
 
@@ -192,6 +229,6 @@ cd /home/felipe/platform_paas/backend
 Lo que aun falta para considerar esta etapa cerrada:
 
 - secret manager real fuera de `.env`
-- rotacion de secretos tenant
+- rotacion centralizada de secretos fuera de `/.env`
 - cierre global de sesiones por dispositivo o familia
 - ampliar auditoria hacia middleware, operaciones administrativas y eventos funcionales

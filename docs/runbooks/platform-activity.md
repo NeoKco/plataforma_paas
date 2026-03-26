@@ -105,6 +105,7 @@ Eventos visibles relevantes hoy:
 - `platform.user.delete`
 - `platform.tenant.create`
 - `platform.tenant.reprovision`
+- `platform.tenant_db_credentials_rotated`
 - `platform.tenant.restore`
 - `platform.tenant.delete`
 

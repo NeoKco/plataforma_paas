@@ -45,6 +45,15 @@ class TenantSecretService:
         self._upsert_env_var(env_path, env_var, password)
         return env_var
 
+    def clear_tenant_bootstrap_db_password(
+        self,
+        tenant_slug: str,
+        env_path: Path,
+    ) -> None:
+        bootstrap_var = f"TENANT_BOOTSTRAP_DB_PASSWORD_{tenant_slug.upper().replace('-', '_')}"
+        os.environ.pop(bootstrap_var, None)
+        self._remove_env_var(env_path, bootstrap_var)
+
     def mask_secret(self, value: str, visible: int = 4) -> str:
         if len(value) <= visible:
             return "*" * len(value)
@@ -84,3 +93,14 @@ class TenantSecretService:
                 return line.split("=", 1)[1].strip()
 
         return None
+
+    def _remove_env_var(self, env_path: Path, env_var: str) -> None:
+        if not env_path.exists():
+            return
+
+        updated_lines = [
+            line
+            for line in env_path.read_text(encoding="utf-8").splitlines()
+            if not line.startswith(f"{env_var}=")
+        ]
+        env_path.write_text("\n".join(updated_lines) + "\n", encoding="utf-8")

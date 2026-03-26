@@ -88,6 +88,24 @@ Hoy las migraciones tambien entran por estas vias:
 - `TenantSchemaService` ejecuta migraciones tenant
 - el provisioning de un tenant nuevo ya usa ese servicio
 - `POST /platform/tenants/{tenant_id}/sync-schema` permite sincronizar una tenant DB existente
+- `GET /platform/tenants/{tenant_id}/schema-status` deja leer version actual, ultima version disponible y migraciones pendientes
+
+## Trazabilidad actual por tenant
+
+Hoy ya existe trazabilidad minima de esquema tenant en dos capas:
+
+- en la tenant DB:
+  - `tenant_schema_migrations`
+- en `platform_control.tenants`:
+  - `tenant_schema_version`
+  - `tenant_schema_synced_at`
+
+Eso permite que `Tenants` muestre:
+
+- version actual aplicada
+- ultima version disponible
+- cantidad de migraciones pendientes
+- ultima sincronizacion registrada
 
 Importante:
 

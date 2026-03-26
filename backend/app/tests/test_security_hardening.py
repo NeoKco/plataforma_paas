@@ -44,6 +44,8 @@ class RuntimeSecurityServiceTestCase(unittest.TestCase):
             JWT_ISSUER="",
             JWT_PLATFORM_AUDIENCE="",
             JWT_TENANT_AUDIENCE="",
+            TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP="123456789",
+            TENANT_BOOTSTRAP_DB_PASSWORD_CONDOMINIO_DEMO="123456789",
         )
 
         with self.assertRaises(RuntimeError):
@@ -59,12 +61,20 @@ class RuntimeSecurityServiceTestCase(unittest.TestCase):
             JWT_ISSUER="",
             JWT_PLATFORM_AUDIENCE="",
             JWT_TENANT_AUDIENCE="",
+            TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP="123456789",
+            TENANT_BOOTSTRAP_DB_PASSWORD_CONDOMINIO_DEMO="shortsecret",
         )
 
         findings = service.validate_settings(fake_settings)
 
-        self.assertGreaterEqual(len(findings), 5)
+        self.assertGreaterEqual(len(findings), 7)
         self.assertTrue(any("JWT_ISSUER" in finding for finding in findings))
+        self.assertTrue(
+            any("TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP" in finding for finding in findings)
+        )
+        self.assertTrue(
+            any("TENANT_BOOTSTRAP_DB_PASSWORD_CONDOMINIO_DEMO" in finding for finding in findings)
+        )
 
 
 class JWTSecurityServiceTestCase(unittest.TestCase):

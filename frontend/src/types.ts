@@ -120,6 +120,15 @@ export type PlatformCapabilities = {
   provisioning_dispatch_backends: string[];
 };
 
+export type PlatformRuntimeSecurityPostureResponse = {
+  success: boolean;
+  message: string;
+  app_env: string;
+  production_ready: boolean;
+  findings_count: number;
+  findings: string[];
+};
+
 export type PlatformLoginResponse = {
   success: boolean;
   message: string;
@@ -226,6 +235,9 @@ export type PlatformTenant = {
   slug: string;
   tenant_type: string;
   db_configured: boolean;
+  tenant_schema_version: string | null;
+  tenant_schema_synced_at: string | null;
+  tenant_db_credentials_rotated_at: string | null;
   plan_code: string | null;
   billing_provider: string | null;
   billing_provider_customer_id: string | null;
@@ -402,6 +414,34 @@ export type PlatformTenantSchemaSyncResponse = {
   tenant_id: number;
   tenant_slug: string;
   tenant_status: string;
+  current_version: string | null;
+  latest_available_version: string | null;
+  pending_count: number;
+  last_applied_at: string | null;
+  applied_now: string[];
+};
+
+export type PlatformTenantSchemaStatusResponse = {
+  success: boolean;
+  message: string;
+  tenant_id: number;
+  tenant_slug: string;
+  tenant_status: string;
+  current_version: string | null;
+  latest_available_version: string | null;
+  pending_count: number;
+  pending_versions: string[];
+  last_applied_at: string | null;
+};
+
+export type PlatformTenantDbCredentialsRotateResponse = {
+  success: boolean;
+  message: string;
+  tenant_id: number;
+  tenant_slug: string;
+  tenant_status: string;
+  env_var_name: string;
+  rotated_at: string | null;
 };
 
 export type PlatformTenantPolicyChangeEvent = {

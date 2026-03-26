@@ -45,6 +45,8 @@ from app.apps.platform_control.schemas import (
     TenantStatusUpdateRequest,
     TenantResponse,
     TenantSchemaSyncResponse,
+    TenantSchemaStatusResponse,
+    TenantDbCredentialsRotateResponse,
 )
 from app.apps.platform_control.services.billing_alert_service import (
     BillingAlertService,
@@ -118,6 +120,11 @@ def _build_tenant_response(tenant) -> TenantResponse:
             and getattr(tenant, "db_user", None)
             and getattr(tenant, "db_host", None)
             and getattr(tenant, "db_port", None)
+        ),
+        tenant_schema_version=getattr(tenant, "tenant_schema_version", None),
+        tenant_schema_synced_at=getattr(tenant, "tenant_schema_synced_at", None),
+        tenant_db_credentials_rotated_at=getattr(
+            tenant, "tenant_db_credentials_rotated_at", None
         ),
         plan_code=tenant.plan_code,
         billing_provider=tenant.billing_provider,
@@ -523,6 +530,7 @@ def sync_tenant_schema(
 ) -> TenantSchemaSyncResponse:
     try:
         tenant = tenant_service.sync_tenant_schema(db=db, tenant_id=tenant_id)
+        schema_status = tenant_service.get_tenant_schema_status(db=db, tenant_id=tenant_id)
     except ValueError as exc:
         detail = str(exc)
         status_code = 404 if detail == "Tenant not found" else 400
@@ -534,6 +542,86 @@ def sync_tenant_schema(
         tenant_id=tenant.id,
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
+        current_version=schema_status.get("current_version"),
+        latest_available_version=schema_status.get("latest_available_version"),
+        pending_count=schema_status.get("pending_count", 0),
+        last_applied_at=schema_status.get("last_applied_at"),
+        applied_now=schema_status.get("applied_now", []),
+    )
+
+
+@router.get("/{tenant_id}/schema-status", response_model=TenantSchemaStatusResponse)
+def get_tenant_schema_status(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantSchemaStatusResponse:
+    try:
+        schema_status = tenant_service.get_tenant_schema_status(db=db, tenant_id=tenant_id)
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    tenant = schema_status["tenant"]
+    return TenantSchemaStatusResponse(
+        success=True,
+        message="Estado de esquema tenant recuperado correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        current_version=schema_status.get("current_version"),
+        latest_available_version=schema_status.get("latest_available_version"),
+        pending_count=schema_status.get("pending_count", 0),
+        pending_versions=schema_status.get("pending_versions", []),
+        last_applied_at=schema_status.get("last_applied_at"),
+    )
+
+
+@router.post(
+    "/{tenant_id}/rotate-db-credentials",
+    response_model=TenantDbCredentialsRotateResponse,
+)
+def rotate_tenant_db_credentials(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantDbCredentialsRotateResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        result = tenant_service.rotate_tenant_db_credentials(db=db, tenant_id=tenant_id)
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    tenant = result["tenant"]
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="technical_credentials",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.tenant_db_credentials_rotated",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token.get("sub")) if _token.get("sub") else None,
+        tenant_slug=tenant.slug,
+        email=_token.get("email"),
+        detail="Credenciales tecnicas tenant rotadas desde plataforma",
+    )
+
+    return TenantDbCredentialsRotateResponse(
+        success=True,
+        message="Las credenciales técnicas tenant fueron rotadas correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        env_var_name=result["env_var_name"],
+        rotated_at=result["rotated_at"],
     )
 
 

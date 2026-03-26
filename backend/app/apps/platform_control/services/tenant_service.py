@@ -1,9 +1,14 @@
 from datetime import datetime, timezone
 from dataclasses import dataclass
 import json
+from pathlib import Path
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.apps.installer.services.postgres_bootstrap_service import (
+    PostgresBootstrapService,
+)
 from app.apps.platform_control.models.tenant import Tenant
 from app.apps.platform_control.models.provisioning_job import ProvisioningJob
 from app.apps.platform_control.models.tenant_billing_sync_event import (
@@ -27,6 +32,9 @@ from app.common.policies.tenant_billing_grace_policy_service import (
     TenantBillingGracePolicyService,
 )
 from app.common.policies.tenant_plan_policy_service import TenantPlanPolicyService
+from app.common.config.settings import settings
+from app.common.db.tenant_database import get_tenant_session_factory
+from app.common.security.tenant_secret_service import TenantSecretService
 
 
 @dataclass(frozen=True)
@@ -59,6 +67,7 @@ class TenantService:
         tenant_schema_service: TenantSchemaService | None = None,
         tenant_plan_policy_service: TenantPlanPolicyService | None = None,
         tenant_billing_grace_policy_service: TenantBillingGracePolicyService | None = None,
+        tenant_secret_service: TenantSecretService | None = None,
     ):
         self.tenant_repository = tenant_repository or TenantRepository()
         self.provisioning_job_service = (
@@ -80,6 +89,7 @@ class TenantService:
         self.tenant_billing_grace_policy_service = (
             tenant_billing_grace_policy_service or TenantBillingGracePolicyService()
         )
+        self.tenant_secret_service = tenant_secret_service or TenantSecretService()
 
     def create_tenant(
         self,
@@ -181,8 +191,83 @@ class TenantService:
         credentials = self.tenant_connection_service.get_tenant_database_credentials(
             tenant
         )
-        self.tenant_schema_service.sync_schema(**credentials)
-        return tenant
+        status = self.tenant_schema_service.sync_schema(**credentials)
+        self._apply_schema_tracking(tenant, status)
+        return self.tenant_repository.save(db, tenant)
+
+    def get_tenant_schema_status(self, db: Session, tenant_id: int) -> dict:
+        tenant = self.tenant_repository.get_by_id(db, tenant_id)
+        if not tenant:
+            raise ValueError("Tenant not found")
+
+        credentials = self.tenant_connection_service.get_tenant_database_credentials(
+            tenant
+        )
+        status = self.tenant_schema_service.get_schema_status(**credentials)
+        self._apply_schema_tracking(tenant, status)
+        self.tenant_repository.save(db, tenant)
+        return {"tenant": tenant, **status}
+
+    def rotate_tenant_db_credentials(self, db: Session, tenant_id: int) -> dict:
+        tenant = self.tenant_repository.get_by_id(db, tenant_id)
+        if not tenant:
+            raise ValueError("Tenant not found")
+
+        if tenant.status == "archived":
+            raise ValueError("Archived tenants cannot rotate technical credentials")
+
+        credentials = self.tenant_connection_service.get_tenant_database_credentials(
+            tenant
+        )
+        current_password = credentials["password"]
+        new_password = self._generate_tenant_db_password()
+        while new_password == current_password:
+            new_password = self._generate_tenant_db_password()
+
+        bootstrap = PostgresBootstrapService(
+            admin_host=settings.CONTROL_DB_HOST,
+            admin_port=settings.CONTROL_DB_PORT,
+            admin_db_name="postgres",
+            admin_user="postgres",
+            admin_password=settings.POSTGRES_ADMIN_PASSWORD,
+        )
+
+        if not bootstrap.role_exists(tenant.db_user):
+            raise ValueError("Tenant database role not found")
+        if not bootstrap.database_exists(tenant.db_name):
+            raise ValueError("Tenant database not found")
+
+        bootstrap.create_role_if_not_exists(tenant.db_user, new_password)
+        try:
+            self._validate_tenant_db_connection(
+                host=tenant.db_host,
+                port=tenant.db_port,
+                database=tenant.db_name,
+                username=tenant.db_user,
+                password=new_password,
+            )
+        except Exception as exc:
+            bootstrap.create_role_if_not_exists(tenant.db_user, current_password)
+            raise ValueError(
+                "Rotated credentials failed validation and the previous password was restored"
+            ) from exc
+
+        env_var_name = self.tenant_secret_service.store_tenant_db_password(
+            tenant_slug=tenant.slug,
+            password=new_password,
+            env_path=Path(settings.BASE_DIR) / ".env",
+        )
+        self.tenant_secret_service.clear_tenant_bootstrap_db_password(
+            tenant_slug=tenant.slug,
+            env_path=Path(settings.BASE_DIR) / ".env",
+        )
+        tenant.tenant_db_credentials_rotated_at = datetime.now(timezone.utc)
+        tenant = self.tenant_repository.save(db, tenant)
+        return {
+            "tenant": tenant,
+            "env_var_name": env_var_name,
+            "rotated_at": tenant.tenant_db_credentials_rotated_at,
+        }
 
     def set_maintenance_mode(
         self,
@@ -776,6 +861,41 @@ class TenantService:
             return None
 
         return normalized_value
+
+    def _apply_schema_tracking(self, tenant: Tenant, status: dict) -> None:
+        tenant.tenant_schema_version = status.get("current_version")
+        tenant.tenant_schema_synced_at = status.get("last_applied_at")
+
+    def _validate_tenant_db_connection(
+        self,
+        *,
+        host: str,
+        port: int,
+        database: str,
+        username: str,
+        password: str,
+    ) -> None:
+        session_factory = get_tenant_session_factory(
+            host=host,
+            port=port,
+            database=database,
+            username=username,
+            password=password,
+        )
+        session = session_factory()
+        bind = session.get_bind()
+        try:
+            session.execute(text("SELECT 1"))
+        finally:
+            session.close()
+            bind.dispose()
+
+    def _generate_tenant_db_password(self, length: int = 24) -> str:
+        from secrets import choice
+        import string
+
+        alphabet = string.ascii_letters + string.digits + "!@#$%*-_"
+        return "".join(choice(alphabet) for _ in range(length))
 
     def _resolve_effective_module_limits_with_sources(
         self,

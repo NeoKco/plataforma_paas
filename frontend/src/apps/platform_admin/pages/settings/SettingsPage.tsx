@@ -9,6 +9,7 @@ import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import {
   getPlatformCapabilities,
   getPlatformRootRecoveryStatus,
+  getPlatformSecurityPosture,
   listPlatformUsers,
 } from "../../../../services/platform-api";
 import { API_BASE_URL, getDefaultApiBaseUrl } from "../../../../services/api";
@@ -18,6 +19,7 @@ import type {
   ApiError,
   PlatformCapabilities,
   PlatformRootRecoveryStatusResponse,
+  PlatformRuntimeSecurityPostureResponse,
   PlatformUser,
 } from "../../../../types";
 
@@ -27,7 +29,12 @@ export function SettingsPage() {
   const [platformUsers, setPlatformUsers] = useState<PlatformUser[]>([]);
   const [rootRecoveryStatus, setRootRecoveryStatus] =
     useState<PlatformRootRecoveryStatusResponse | null>(null);
+  const [securityPosture, setSecurityPosture] =
+    useState<PlatformRuntimeSecurityPostureResponse | null>(null);
   const [rootRecoveryStatusError, setRootRecoveryStatusError] = useState<ApiError | null>(
+    null
+  );
+  const [securityPostureError, setSecurityPostureError] = useState<ApiError | null>(
     null
   );
   const [error, setError] = useState<ApiError | null>(null);
@@ -71,14 +78,21 @@ export function SettingsPage() {
       setIsLoading(true);
       setError(null);
       setRootRecoveryStatusError(null);
+      setSecurityPostureError(null);
 
       try {
-        const [capabilitiesResult, rootRecoveryResult, platformUsersResult] =
+        const [
+          capabilitiesResult,
+          rootRecoveryResult,
+          platformUsersResult,
+          securityPostureResult,
+        ] =
           await Promise.allSettled([
-          getPlatformCapabilities(session.accessToken),
-          getPlatformRootRecoveryStatus(session.accessToken),
-          listPlatformUsers(session.accessToken),
-        ]);
+            getPlatformCapabilities(session.accessToken),
+            getPlatformRootRecoveryStatus(session.accessToken),
+            listPlatformUsers(session.accessToken),
+            getPlatformSecurityPosture(session.accessToken),
+          ]);
         if (isMounted) {
           if (capabilitiesResult.status === "fulfilled") {
             setCapabilities(capabilitiesResult.value);
@@ -99,9 +113,17 @@ export function SettingsPage() {
             setRootRecoveryStatusError(rootRecoveryResult.reason as ApiError);
           }
 
+          if (securityPostureResult.status === "fulfilled") {
+            setSecurityPosture(securityPostureResult.value);
+          } else {
+            setSecurityPosture(null);
+            setSecurityPostureError(securityPostureResult.reason as ApiError);
+          }
+
           if (
             capabilitiesResult.status === "rejected" &&
-            platformUsersResult.status === "rejected"
+            platformUsersResult.status === "rejected" &&
+            securityPostureResult.status === "rejected"
           ) {
             throw capabilitiesResult.reason;
           }
@@ -111,8 +133,10 @@ export function SettingsPage() {
           setError(rawError as ApiError);
           setCapabilities(null);
           setRootRecoveryStatus(null);
+          setSecurityPosture(null);
           setPlatformUsers([]);
           setRootRecoveryStatusError(null);
+          setSecurityPostureError(null);
         }
       } finally {
         if (isMounted) {
@@ -266,6 +290,46 @@ export function SettingsPage() {
             <div>La política vigente exige una sola cuenta `superadmin` activa para operar la plataforma.</div>
             <div>Si la recuperación aparece disponible, normalmente significa que ya no queda ningún `superadmin` activo y debes usar <Link to="/login/root-recovery">Recuperar cuenta raíz</Link>.</div>
             <div>La gobernanza normal de operadores se hace desde <Link to="/users">Usuarios de plataforma</Link>, no desde el flujo de recuperación.</div>
+          </div>
+        </PanelCard>
+
+        <PanelCard
+          title="Postura de secretos y runtime"
+          subtitle="Lectura segura de hallazgos de configuración sin exponer valores sensibles."
+        >
+          <div className="tenant-detail-grid">
+            <DetailField label="Entorno actual" value={securityPosture?.app_env || "n/d"} />
+            <DetailField
+              label="Listo para producción"
+              value={
+                securityPosture
+                  ? securityPosture.production_ready
+                    ? "sí"
+                    : "no"
+                  : "n/d"
+              }
+            />
+            <DetailField
+              label="Hallazgos"
+              value={securityPosture?.findings_count ?? "n/d"}
+            />
+          </div>
+          {securityPostureError ? (
+            <div className="alert alert-warning mt-3 mb-0">
+              No fue posible leer ahora la postura de seguridad. El resto de la consola sí quedó
+              cargado correctamente.
+            </div>
+          ) : null}
+          {securityPosture && securityPosture.findings.length ? (
+            <div className="dashboard-quick-hints mt-3">
+              {securityPosture.findings.map((finding) => (
+                <div key={finding}>{finding}</div>
+              ))}
+            </div>
+          ) : null}
+          <div className="dashboard-quick-hints mt-3">
+            <div>Las passwords bootstrap tenant de demo o demasiado cortas ya quedan prohibidas cuando `APP_ENV=production`.</div>
+            <div>Esta lectura no muestra secretos; solo resume si el runtime tiene hallazgos pendientes.</div>
           </div>
         </PanelCard>
 
