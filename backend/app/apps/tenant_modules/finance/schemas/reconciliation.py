@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from app.apps.tenant_modules.finance.schemas.common import FinanceResponseBase
+
 
 class FinanceExchangeRateBase(BaseModel):
     source_currency_id: int
@@ -23,3 +25,12 @@ class FinanceExchangeRateUpdateRequest(FinanceExchangeRateBase):
 class FinanceExchangeRateItemResponse(FinanceExchangeRateBase):
     id: int
     created_at: datetime
+
+
+class FinanceExchangeRateMutationResponse(FinanceResponseBase):
+    data: FinanceExchangeRateItemResponse
+
+
+class FinanceExchangeRatesResponse(FinanceResponseBase):
+    total: int
+    data: list[FinanceExchangeRateItemResponse]

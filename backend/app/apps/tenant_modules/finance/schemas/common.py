@@ -7,3 +7,7 @@ class FinanceResponseBase(BaseModel):
     success: bool
     message: str
     requested_by: TenantUserContextResponse
+
+
+class FinanceStatusUpdateRequest(BaseModel):
+    is_active: bool
