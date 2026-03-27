@@ -8,6 +8,7 @@ Estado actual:
 - existe `0006_finance_budgets` como migracion base de presupuestos mensuales
 - existe `0007_finance_loans` como migracion base de cartera de prestamos
 - existe `0008_finance_loan_installments` como migracion de cronograma y cuotas
+- existe `0009_finance_loan_installment_payment_split` como migracion de split capital/interes pagado por cuota
 
 Objetivo contractual:
 - ampliar el esquema tenant del modulo segun el roadmap maestro
@@ -105,9 +106,11 @@ Tablas base ya creadas en `Lote 1`:
 ### `finance_loan_installments`
 - cuotas generadas por prestamo con numero, vencimiento y montos de capital/interes
 - conserva avance de pago simple por cuota y estado derivado (`pending`, `partial`, `overdue`, `paid`)
-- ya soporta abonos manuales simples por cuota
-- ya soporta reversa simple de esos abonos
-- sigue pendiente una capa mas rica de amortizacion avanzada, pagos masivos y enlace contable real
+- ya soporta abonos manuales por cuota
+- ya conserva `paid_principal_amount` y `paid_interest_amount` para separar capital e interes pagado
+- ya soporta asignacion del pago por `interest_first`, `principal_first` o `proportional`
+- ya soporta reversa parcial o total de esos abonos
+- sigue pendiente una capa mas rica de lotes, razones estructuradas de reversa y enlace contable real
 
 ## Reglas estructurales de esta fase
 
@@ -117,5 +120,5 @@ Tablas base ya creadas en `Lote 1`:
 
 Pendiente siguiente:
 - endurecer lectura de presupuestos y estados operativos derivados
-- endurecer el pago sobre cronograma de prestamos con casos mas ricos
+- endurecer el pago sobre cronograma de prestamos con lotes y enlace contable
 - planificacion y reportes

@@ -20,5 +20,7 @@ Estado actual:
 - `Presupuestos` ya permite alta y edicion de montos, nota y estado activo, usando comparacion contra la ejecucion real del mes
 - `Presupuestos` ya permite filtrar por tipo, estado derivado e inclusion de inactivos
 - ya existe una pantalla operativa de `Préstamos` con cartera por contraparte, capital, saldo, cuotas y moneda
-- `Préstamos` ya expone un cronograma inicial por cuotas y ya permite aplicar o revertir pagos manuales simples, aunque todavía no cubre amortización avanzada ni enlace contable real
+- `Préstamos` ya expone un cronograma inicial por cuotas y ya permite aplicar o revertir pagos manuales sobre cuotas, con reparto configurable entre interés y capital
+- el cronograma ya muestra capital pagado e interés pagado por cuota
+- todavía siguen pendientes los lotes, las razones estructuradas de reversa y el enlace contable real
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo

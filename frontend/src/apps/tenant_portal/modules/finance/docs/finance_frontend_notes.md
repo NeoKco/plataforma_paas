@@ -41,11 +41,13 @@
 - ya existe una primera pantalla real de `Préstamos`
 - esa pantalla ya permite crear y editar cartera con saldo pendiente, contraparte, cuotas y frecuencia mensual
 - esa misma pantalla ya permite abrir un panel de cronograma por préstamo con detalle de cuotas y próximo vencimiento
-- esa misma pantalla ya permite aplicar abonos simples sobre una cuota del cronograma
+- esa misma pantalla ya permite aplicar abonos sobre una cuota del cronograma
+- esa misma pantalla ya permite elegir modo de asignacion del abono entre interes y capital
+- esa misma pantalla ya muestra capital pagado e interes pagado por cuota
 - esa misma pantalla ya permite revertir parcial o totalmente un abono ya aplicado sobre una cuota
 
 Pendiente inmediato:
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
 - endurecer `Presupuestos` con lectura agregada mas densa antes de abrir reportes
-- endurecer el pago de cuotas de `Préstamos` con UX de amortizacion y casos masivos antes de considerarlo un dominio cerrado
+- endurecer el pago de cuotas de `Préstamos` con casos masivos y enlace contable antes de considerarlo un dominio cerrado

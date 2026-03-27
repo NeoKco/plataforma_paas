@@ -198,9 +198,10 @@ Cobertura actual:
 - filtros por transaccion, edicion completa, filtro por favoritas y operaciones batch de favorito/conciliacion con nota opcional
 - presupuestos mensuales por categoria, con comparacion `presupuesto vs real`
 - prestamos con resumen de cartera, filtros por tipo/estado y detalle de cronograma por cuotas
-- pagos manuales simples sobre cuotas de prestamos con recálculo de saldo pendiente
-- reversa simple de pagos sobre cuotas de prestamos
-- migraciones tenant del modulo hasta `0008_finance_loan_installments`
+- pagos sobre cuotas de prestamos con recálculo de saldo pendiente
+- asignacion del pago entre capital e interes
+- reversa parcial o total de pagos sobre cuotas de prestamos
+- migraciones tenant del modulo hasta `0009_finance_loan_installment_payment_split`
 - seeds idempotentes para moneda base, `CLP`, categorias y settings
 - repositories CRUD base del modulo y sus restricciones de unicidad/activacion
 - validaciones de servicio para cuentas, categorias y moneda base
