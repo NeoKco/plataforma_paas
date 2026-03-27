@@ -28,6 +28,7 @@ class FinanceTransactionRepository:
         transaction_type: str | None = None,
         account_id: int | None = None,
         category_id: int | None = None,
+        is_favorite: bool | None = None,
         is_reconciled: bool | None = None,
         search: str | None = None,
     ) -> list[FinanceTransaction]:
@@ -46,6 +47,8 @@ class FinanceTransactionRepository:
             )
         if category_id is not None:
             query = query.filter(FinanceTransaction.category_id == category_id)
+        if is_favorite is not None:
+            query = query.filter(FinanceTransaction.is_favorite == is_favorite)
         if is_reconciled is not None:
             query = query.filter(FinanceTransaction.is_reconciled == is_reconciled)
         if search:
@@ -90,6 +93,20 @@ class FinanceTransactionRepository:
             tenant_db.query(FinanceTransaction)
             .filter(FinanceTransaction.id == transaction_id)
             .first()
+        )
+
+    def list_by_ids(
+        self,
+        tenant_db: Session,
+        transaction_ids: list[int],
+    ) -> list[FinanceTransaction]:
+        if not transaction_ids:
+            return []
+        return (
+            tenant_db.query(FinanceTransaction)
+            .filter(FinanceTransaction.id.in_(transaction_ids))
+            .order_by(FinanceTransaction.id.asc())
+            .all()
         )
 
     def persist(self, tenant_db: Session, transaction: FinanceTransaction) -> FinanceTransaction:
