@@ -32,6 +32,10 @@ from app.apps.tenant_modules.finance.api.loans import (
     reverse_finance_loan_installment_payment_batch,
     update_finance_loan,
 )
+from app.apps.tenant_modules.finance.api.reports import (
+    get_finance_reports_overview,
+    reports_service,
+)
 
 __all__ = [
     "create_finance_transaction",
@@ -47,12 +51,14 @@ __all__ = [
     "finance_summary",
     "finance_usage",
     "get_finance_transaction_detail",
+    "get_finance_reports_overview",
     "get_finance_loan_detail",
     "list_finance_transactions",
     "list_finance_entries",
     "list_finance_budgets",
     "list_finance_loans",
     "loan_service",
+    "reports_service",
     "reverse_finance_loan_installment_payment",
     "reverse_finance_loan_installment_payment_batch",
     "update_finance_budget",

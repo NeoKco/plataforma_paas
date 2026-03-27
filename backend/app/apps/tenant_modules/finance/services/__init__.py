@@ -11,7 +11,11 @@ from app.apps.tenant_modules.finance.services.finance_service import (
 )
 from app.apps.tenant_modules.finance.services.loan_service import FinanceLoanService
 from app.apps.tenant_modules.finance.services.person_service import FinancePersonService
+from app.apps.tenant_modules.finance.services.planning_service import (
+    FinancePlanningService,
+)
 from app.apps.tenant_modules.finance.services.project_service import FinanceProjectService
+from app.apps.tenant_modules.finance.services.reports_service import FinanceReportsService
 from app.apps.tenant_modules.finance.services.settings_service import (
     FinanceSettingsService,
 )
@@ -25,7 +29,9 @@ __all__ = [
     "FinanceCurrencyService",
     "FinanceLoanService",
     "FinancePersonService",
+    "FinancePlanningService",
     "FinanceProjectService",
+    "FinanceReportsService",
     "FinanceService",
     "FinanceSettingsService",
     "FinanceTagService",

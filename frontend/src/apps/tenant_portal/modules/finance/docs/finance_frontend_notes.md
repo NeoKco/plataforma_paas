@@ -48,9 +48,10 @@
 - esa misma pantalla ya permite seleccionar varias cuotas y operar pago o reversa en lote
 - esa misma pantalla ya exige motivo estructurado al revertir y muestra ese motivo en el cronograma
 - esa misma pantalla ya dispara el enlace contable minimo: pago/reversa crean transacciones enlazadas
+- ya existe una pantalla real de `Reportes` con overview mensual consolidado
 
 Pendiente inmediato:
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
-- endurecer `Presupuestos` con lectura agregada mas densa antes de abrir reportes
+- endurecer `Presupuestos` con lectura agregada mas densa y densificar `Reportes`
 - enriquecer el pago de cuotas de `Préstamos` con cuenta origen y lectura contable derivada antes de considerarlo un dominio cerrado

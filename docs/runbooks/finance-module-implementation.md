@@ -149,6 +149,7 @@ La persistencia transicional del modulo queda asi:
 - `finance_entries` se conserva como tabla minima legacy
 - `finance_transactions` pasa a ser la tabla central real del modulo
 - `finance_budgets` abre la primera capa de planificacion mensual del modulo
+- `finance_reports` abre la primera lectura consolidada mensual del modulo
 - `finance_loans` abre la primera capa de cartera de prestamos del modulo
 - `finance_loan_installments` abre el primer cronograma versionado de cuotas por prestamo
 
@@ -265,13 +266,14 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 14. pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
 15. motivos estructurados de reversa sobre cuotas, visibles en cronograma y persistidos en DB
 16. enlace contable minimo desde cuotas hacia `finance_transactions` por `loan_id`, `source_type` y `source_id`
+17. primera vista real de `Reportes` con overview mensual de transacciones, presupuestos y préstamos
 
 Lo siguiente recomendable ahora es:
 
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
 3. enriquecer el enlace contable de `Préstamos` con cuenta origen y lectura derivada mas densa
-4. seguir con planificacion y reportes
+4. abrir planificacion real, ahora que `Reportes` ya tiene una primera lectura operativa
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 6. abrir exportacion o vistas derivadas cuando el trabajo operativo del slice ya quede estable
 

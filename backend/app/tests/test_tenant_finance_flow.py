@@ -23,6 +23,7 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     create_finance_transaction,
     create_finance_entry,
     finance_account_balances,
+    get_finance_reports_overview,
     finance_usage,
     finance_summary,
     get_finance_loan_detail,
@@ -898,6 +899,74 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.data.loan.installments_total, 12)
         self.assertEqual(response.data.installments[0].installment_status, "paid")
+
+    def test_get_finance_reports_overview_returns_consolidated_payload(self) -> None:
+        overview = {
+            "period_month": date(2026, 4, 1),
+            "transaction_snapshot": {
+                "period_month": date(2026, 4, 1),
+                "total_income": 500.0,
+                "total_expense": 120.0,
+                "net_balance": 380.0,
+                "total_transactions": 2,
+                "reconciled_count": 1,
+                "unreconciled_count": 1,
+                "favorite_count": 1,
+                "loan_linked_count": 0,
+            },
+            "budget_snapshot": {
+                "period_month": date(2026, 4, 1),
+                "total_budgeted": 300.0,
+                "total_actual": 120.0,
+                "total_variance": 180.0,
+                "total_items": 1,
+                "over_budget_count": 0,
+                "within_budget_count": 1,
+                "inactive_count": 0,
+                "unused_count": 0,
+            },
+            "loan_snapshot": {
+                "borrowed_balance": 700.0,
+                "lent_balance": 0.0,
+                "total_principal": 1000.0,
+                "total_items": 1,
+                "active_items": 1,
+                "open_items": 1,
+                "settled_items": 0,
+            },
+            "top_income_categories": [
+                {
+                    "category_id": 1,
+                    "category_name": "General Income",
+                    "category_type": "income",
+                    "total_amount": 500.0,
+                }
+            ],
+            "top_expense_categories": [
+                {
+                    "category_id": 2,
+                    "category_name": "General Expense",
+                    "category_type": "expense",
+                    "total_amount": 120.0,
+                }
+            ],
+        }
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.reports_service.get_overview",
+            return_value=overview,
+        ):
+            response = get_finance_reports_overview(
+                period_month=date(2026, 4, 1),
+                current_user=self._current_user(role="operator"),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.transaction_snapshot.total_income, 500.0)
+        self.assertEqual(response.data.budget_snapshot.total_budgeted, 300.0)
+        self.assertEqual(response.data.loan_snapshot.borrowed_balance, 700.0)
+        self.assertEqual(response.data.top_expense_categories[0].category_name, "General Expense")
 
     def test_apply_finance_loan_installment_payment_returns_mutated_rows(self) -> None:
         loan_row = {

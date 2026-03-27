@@ -42,7 +42,7 @@ Lo pendiente es sobre todo:
 - cierre visual y operativo de algunos detalles
 - definir la convencion oficial para que los siguientes modulos nazcan como slices coherentes, tomando `finance` como modulo piloto
 - completar la vista moderna de transacciones con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes antes de abrir mas dominios grandes dentro de finance
-- endurecer la primera pantalla de `Presupuestos` antes de abrir reportes
+- endurecer la primera pantalla de `Presupuestos` y densificar `Reportes` ahora que ya existe el overview mensual
 - enriquecer pagos de `Préstamos` con cuenta origen y lectura contable derivada antes de darlo por base cerrada
 
 Nota de ejecucion:

@@ -4,6 +4,7 @@ const NAV_ITEMS = [
   { to: "/tenant-portal/finance", label: "Movimientos" },
   { to: "/tenant-portal/finance/budgets", label: "Presupuestos" },
   { to: "/tenant-portal/finance/loans", label: "Préstamos" },
+  { to: "/tenant-portal/finance/reports", label: "Reportes" },
   { to: "/tenant-portal/finance/accounts", label: "Cuentas" },
   { to: "/tenant-portal/finance/categories", label: "Categorías" },
   { to: "/tenant-portal/finance/tools", label: "Catálogos" },

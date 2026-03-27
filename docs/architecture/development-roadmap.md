@@ -240,6 +240,7 @@ Resultado actual:
 - ya existen pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
 - ya existen razones estructuradas de reversa sobre cuotas, tanto individual como batch
 - ya existe enlace contable minimo: cada pago o reversa de cuota genera una transaccion real enlazada al préstamo
+- ya existe una primera vista real de `Reportes` con overview mensual de transacciones, presupuestos y préstamos
 - `CLP` ya forma parte de las monedas semilla del modulo
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
@@ -255,7 +256,7 @@ Falta para cerrarlo:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura agregada y estados operativos mas ricos
 - enriquecer `Préstamos` con cuenta origen y lectura contable derivada mas densa
-- ejecutar `Lote 7` y siguientes del roadmap maestro para planificacion y reportes
+- seguir `Lote 7` con planificacion real y reportes mas densos
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 

@@ -31,6 +31,7 @@ Cobertura actual:
 - pagos y reversiones en lote sobre cuotas de prestamos
 - validacion de `reversal_reason_code` en reversas individuales y batch
 - enlace contable minimo desde cuotas hacia `finance_transactions`
+- reportes overview con agregados mensuales de transacciones, presupuestos y préstamos
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:

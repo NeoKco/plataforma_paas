@@ -117,6 +117,31 @@
   gap: 1rem;
 }
 
+.finance-report-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.finance-report-definition-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.65rem 1rem;
+  margin: 0;
+}
+
+.finance-report-definition-list dt {
+  margin: 0;
+  color: var(--color-text-muted, #46526a);
+  font-weight: 600;
+}
+
+.finance-report-definition-list dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 700;
+  color: #163e91;
+}
+
 .finance-filter-grid {
   display: grid;
   gap: 0.75rem;
@@ -186,6 +211,11 @@
 
   .finance-transaction-layout {
     grid-template-columns: minmax(0, 1.45fr) minmax(340px, 0.95fr);
+    align-items: start;
+  }
+
+  .finance-report-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
   }
 }
