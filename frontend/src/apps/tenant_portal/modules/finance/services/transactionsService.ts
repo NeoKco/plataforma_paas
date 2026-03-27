@@ -246,14 +246,15 @@ export function updateTenantFinanceTransactionsFavoriteBatch(
 export function updateTenantFinanceTransactionReconciliation(
   accessToken: string,
   transactionId: number,
-  isReconciled: boolean
+  isReconciled: boolean,
+  note?: string
 ) {
   return apiRequest<TenantFinanceTransactionMutationResponse>(
     `/tenant/finance/transactions/${transactionId}/reconciliation`,
     {
       method: "PATCH",
       token: accessToken,
-      body: { is_reconciled: isReconciled },
+      body: { is_reconciled: isReconciled, note: note || null },
     }
   );
 }
@@ -261,14 +262,19 @@ export function updateTenantFinanceTransactionReconciliation(
 export function updateTenantFinanceTransactionsReconciliationBatch(
   accessToken: string,
   transactionIds: number[],
-  isReconciled: boolean
+  isReconciled: boolean,
+  note?: string
 ) {
   return apiRequest<TenantFinanceTransactionBatchMutationResponse>(
     "/tenant/finance/transactions/reconciliation/batch",
     {
       method: "PATCH",
       token: accessToken,
-      body: { transaction_ids: transactionIds, is_reconciled: isReconciled },
+      body: {
+        transaction_ids: transactionIds,
+        is_reconciled: isReconciled,
+        note: note || null,
+      },
     }
   );
 }

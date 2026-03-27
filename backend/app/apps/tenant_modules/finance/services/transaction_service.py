@@ -294,6 +294,7 @@ class FinanceService:
         transaction_id: int,
         *,
         is_reconciled: bool,
+        note: str | None = None,
         actor_user_id: int | None = None,
     ) -> FinanceTransaction:
         transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
@@ -310,7 +311,10 @@ class FinanceService:
             event_type="transaction.reconciliation.updated",
             actor_user_id=actor_user_id,
             summary="Estado de conciliacion actualizado",
-            payload={"is_reconciled": is_reconciled},
+            payload={
+                "is_reconciled": is_reconciled,
+                "note": note.strip() if note and note.strip() else None,
+            },
         )
         return saved
 
@@ -346,10 +350,12 @@ class FinanceService:
         transaction_ids: list[int],
         *,
         is_reconciled: bool,
+        note: str | None = None,
         actor_user_id: int | None = None,
     ) -> list[FinanceTransaction]:
         transactions = self._get_transactions_for_batch(tenant_db, transaction_ids)
         effective_reconciled_at = datetime.now(timezone.utc) if is_reconciled else None
+        normalized_note = note.strip() if note and note.strip() else None
         for transaction in transactions:
             transaction.is_reconciled = is_reconciled
             transaction.reconciled_at = effective_reconciled_at
@@ -360,7 +366,10 @@ class FinanceService:
                 event_type="transaction.reconciliation.updated.batch",
                 actor_user_id=actor_user_id,
                 summary="Estado de conciliacion actualizado en lote",
-                payload={"is_reconciled": is_reconciled},
+                payload={
+                    "is_reconciled": is_reconciled,
+                    "note": normalized_note,
+                },
             )
         tenant_db.commit()
         for transaction in transactions:

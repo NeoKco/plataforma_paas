@@ -71,6 +71,7 @@ En esta fase quedaron listos:
 - modo edicion en la pantalla principal de `Transacciones`, con cancelar y refresco del detalle sin colapsarlo
 - filtro explicito por favoritas y mesa de trabajo basica con seleccion multiple
 - acciones por lote para favoritas y conciliacion desde la tabla principal
+- conciliacion guiada con nota opcional, confirmacion explicita y auditoria reciente enriquecida
 
 ## Archivos principales
 
@@ -206,7 +207,7 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 
 Lo siguiente recomendable ahora es:
 
-1. abrir conciliacion asistida mas rica: motivos, comentarios, agrupacion y revision visual
+1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. seguir con prestamos, planificacion y reportes
 3. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 4. abrir exportacion o vistas derivadas cuando el trabajo operativo del slice ya quede estable

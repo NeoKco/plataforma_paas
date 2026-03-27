@@ -132,6 +132,7 @@ class FinanceTransactionFavoriteUpdateRequest(BaseModel):
 
 class FinanceTransactionReconciliationUpdateRequest(BaseModel):
     is_reconciled: bool
+    note: str | None = None
 
 
 class FinanceTransactionFavoriteBatchUpdateRequest(BaseModel):
@@ -142,6 +143,7 @@ class FinanceTransactionFavoriteBatchUpdateRequest(BaseModel):
 class FinanceTransactionReconciliationBatchUpdateRequest(BaseModel):
     transaction_ids: list[int]
     is_reconciled: bool
+    note: str | None = None
 
 
 class FinanceTransactionBatchMutationData(BaseModel):

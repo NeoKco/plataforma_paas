@@ -95,6 +95,8 @@ export function FinanceTransactionsPage() {
     useState<TenantFinanceTransactionDetailResponse["data"] | null>(null);
   const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null);
   const [formState, setFormState] = useState<TransactionFormState>(DEFAULT_FORM_STATE);
+  const [reconciliationNote, setReconciliationNote] = useState("");
+  const [reconciliationConfirmation, setReconciliationConfirmation] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [detailError, setDetailError] = useState<ApiError | null>(null);
   const [usageError, setUsageError] = useState<ApiError | null>(null);
@@ -355,11 +357,21 @@ export function FinanceTransactionsPage() {
     if (!session?.accessToken) {
       return;
     }
+    const nextState = !transaction.is_reconciled;
+    const confirmed = window.confirm(
+      nextState
+        ? "¿Confirmas conciliar esta transacción?"
+        : "¿Confirmas quitar la conciliación de esta transacción?"
+    );
+    if (!confirmed) {
+      return;
+    }
     await runRowAction(async () => {
       const response = await updateTenantFinanceTransactionReconciliation(
         session.accessToken,
         transaction.id,
-        !transaction.is_reconciled
+        nextState,
+        reconciliationNote
       );
       setActionFeedback({ type: "success", message: response.message });
     });
@@ -384,14 +396,25 @@ export function FinanceTransactionsPage() {
     if (!session?.accessToken || selectedTransactionIds.length === 0) {
       return;
     }
+    const confirmed = window.confirm(
+      isReconciled
+        ? `¿Confirmas conciliar ${selectedTransactionIds.length} transacciones seleccionadas?`
+        : `¿Confirmas quitar la conciliación de ${selectedTransactionIds.length} transacciones seleccionadas?`
+    );
+    if (!confirmed) {
+      return;
+    }
     await runRowAction(async () => {
       const response = await updateTenantFinanceTransactionsReconciliationBatch(
         session.accessToken,
         selectedTransactionIds,
-        isReconciled
+        isReconciled,
+        reconciliationNote
       );
       setActionFeedback({ type: "success", message: response.message });
       setSelectedTransactionIds([]);
+      setReconciliationNote("");
+      setReconciliationConfirmation(false);
     });
   }
 
@@ -425,6 +448,9 @@ export function FinanceTransactionsPage() {
   ).length;
   const pendingReconciliationCount = transactions.filter(
     (transaction) => !transaction.is_reconciled
+  ).length;
+  const selectedReconciledCount = selectedTransactions.filter(
+    (transaction) => transaction.is_reconciled
   ).length;
 
   function toggleTransactionSelection(transactionId: number) {
@@ -975,6 +1001,39 @@ export function FinanceTransactionsPage() {
               <strong>Mesa de trabajo:</strong> {selectedTransactionIds.length} transacciones seleccionadas.
               {" "}
               {selectedPendingReconciliationCount} pendientes de conciliación.
+              <div className="finance-reconciliation-workspace mt-3">
+                <div className="tenant-detail-grid">
+                  <DetailField label="Pendientes seleccionadas" value={selectedPendingReconciliationCount} />
+                  <DetailField label="Ya conciliadas" value={selectedReconciledCount} />
+                  <DetailField label="Favoritas seleccionadas" value={selectedFavoritesCount} />
+                </div>
+                <div className="mt-3">
+                  <label className="form-label">Nota de conciliación</label>
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    value={reconciliationNote}
+                    onChange={(event) => setReconciliationNote(event.target.value)}
+                    placeholder="Ej: revisión operativa validada contra cartola del día"
+                  />
+                  <div className="form-text">
+                    La nota queda visible en la auditoría reciente de cada transacción conciliada.
+                  </div>
+                </div>
+                <label className="form-check d-flex align-items-center gap-2 mt-3 mb-0">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={reconciliationConfirmation}
+                    onChange={(event) =>
+                      setReconciliationConfirmation(event.target.checked)
+                    }
+                  />
+                  <span className="form-check-label">
+                    Confirmo que revisé la selección antes de operar conciliación en lote.
+                  </span>
+                </label>
+              </div>
               <div className="finance-inline-toolbar finance-inline-toolbar--compact mt-2">
                 <button
                   className="btn btn-outline-warning btn-sm"
@@ -995,7 +1054,11 @@ export function FinanceTransactionsPage() {
                 <button
                   className="btn btn-outline-success btn-sm"
                   type="button"
-                  disabled={isActionSubmitting}
+                  disabled={
+                    isActionSubmitting ||
+                    selectedPendingReconciliationCount === 0 ||
+                    !reconciliationConfirmation
+                  }
                   onClick={() => void handleBatchReconciliation(true)}
                 >
                   Conciliar lote
@@ -1003,7 +1066,11 @@ export function FinanceTransactionsPage() {
                 <button
                   className="btn btn-outline-secondary btn-sm"
                   type="button"
-                  disabled={isActionSubmitting}
+                  disabled={
+                    isActionSubmitting ||
+                    selectedReconciledCount === 0 ||
+                    !reconciliationConfirmation
+                  }
                   onClick={() => void handleBatchReconciliation(false)}
                 >
                   Desconciliar lote
@@ -1012,7 +1079,10 @@ export function FinanceTransactionsPage() {
                   className="btn btn-outline-secondary btn-sm"
                   type="button"
                   disabled={isActionSubmitting}
-                  onClick={() => setSelectedTransactionIds([])}
+                  onClick={() => {
+                    setSelectedTransactionIds([]);
+                    setReconciliationConfirmation(false);
+                  }}
                 >
                   Limpiar selección
                 </button>

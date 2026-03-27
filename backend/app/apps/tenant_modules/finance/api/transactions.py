@@ -314,6 +314,7 @@ def update_finance_transaction_reconciliation(
             tenant_db,
             transaction_id,
             is_reconciled=payload.is_reconciled,
+            note=getattr(payload, "note", None),
             actor_user_id=current_user["user_id"],
         )
     except ValueError as exc:
@@ -341,6 +342,7 @@ def update_finance_transactions_reconciliation_batch(
             tenant_db,
             payload.transaction_ids,
             is_reconciled=payload.is_reconciled,
+            note=getattr(payload, "note", None),
             actor_user_id=current_user["user_id"],
         )
     except ValueError as exc:

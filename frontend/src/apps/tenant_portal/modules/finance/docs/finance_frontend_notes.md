@@ -33,7 +33,8 @@
 - ya existen filtros operativos y acciones rapidas de favorito/conciliacion
 - ya existe modo edicion completo dentro de la misma pantalla de `Transacciones`
 - ya existe seleccion multiple y lote basico para favoritas/conciliacion
+- ya existe nota opcional y confirmacion explicita para conciliacion desde la mesa de trabajo
 
 Pendiente inmediato:
-- enriquecer la experiencia de conciliacion con mesas de trabajo mas guiadas
+- enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas

@@ -28,7 +28,8 @@ Alcance de esta fase:
 - filtros operativos y toggles rapidos de favorito/conciliacion
 - edicion completa de transacciones existentes sobre el mismo contrato moderno
 - mesa de trabajo basica con seleccion multiple y acciones por lote para favoritas/conciliacion
+- nota opcional y confirmacion explicita para operaciones de conciliacion
 
 Pendiente inmediato:
-- completar `Lote 6` con conciliacion asistida mas rica
+- completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - `Lote 7` prestamos, planificacion y reportes
