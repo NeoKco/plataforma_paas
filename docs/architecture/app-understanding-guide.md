@@ -170,13 +170,16 @@ Lectura importante:
 - si un tenant quedo `active` pero sin configuracion DB tenant completa, la consola ya no ofrece entrar al portal y expone `Reprovisionar tenant`
 - si un tenant archivado ya fue desprovisionado y no debe conservarse, la consola ya puede ofrecer `Eliminar tenant`
 - ese borrado ya no depende de conservar la DB tenant ni la fila viva en catalogo para auditoria minima; esa evidencia resumida queda en `platform_control.tenant_retirement_archives`
-- la misma pantalla `Tenants` ya deja consultar un bloque `Archivo histórico` para revisar retirados recientes sin reintroducirlos al catálogo activo
-- ese bloque ya deja además abrir un detalle del snapshot de retiro con eventos recientes de billing, policy y provisioning conservados en resumen
+- la barra lateral ya expone una vista propia `Histórico tenants` para revisar retirados recientes sin reintroducirlos al catálogo activo
+- esa vista ya deja además abrir un detalle del snapshot de retiro con eventos recientes de billing, policy y provisioning conservados en resumen
+- el detalle del archivo historico ya no se expande solo: se abre bajo demanda con `Ver detalle` y se colapsa con `Ocultar detalle`
+- `Tenants` queda enfocado en catálogo vivo y operación diaria, con un acceso corto para abrir la vista histórica cuando haga falta
 - el acceso rapido al `tenant_portal` solo corresponde cuando el tenant ya esta `active`, con provisioning completado y configuracion DB tenant valida
 - si un tenant queda bloqueado por lifecycle o billing, `Tenants` y el login tenant ya intentan explicarlo con lenguaje operativo en vez de depender del detalle crudo del backend
 - la conectividad PostgreSQL ya no depende de interpolar `username:password@host` a mano; la plataforma usa builders seguros para que passwords con caracteres reservados no rompan readiness, provisioning ni rotacion tecnica
 - la base de control tambien debe mantenerse al dia con sus migraciones; la plataforma ya intenta aplicarlas automaticamente al arrancar cuando la instalacion ya existe
 - si la credencial tecnica tenant queda desalineada con PostgreSQL, el login tenant ya debe caer como error operativo controlado y `Uso por módulo` debe pedir rotar o reprovisionar esa credencial antes de seguir
+- si un tenant ya fue desprovisionado y `db_configured=false`, la consola ya no debe intentar listar usuarios del portal ni ofrecer resets contra una DB inexistente
 
 ### `Usuarios de plataforma`
 
@@ -239,6 +242,7 @@ Aqui ves:
 - familias de fallo por `error_code`
 - ciclos recientes del worker
 - una lectura corta de `Que revisar ahora` para decidir si el problema es backlog normal, retry, fallo definitivo o deuda en DLQ
+- un filtro por operacion para separar altas, retiros tecnicos y cambios de esquema
 
 No es una pantalla de negocio. Es una pantalla operativa de automatizacion.
 
@@ -246,6 +250,7 @@ La idea correcta es leerla junto con `Tenants`:
 
 - `Tenants` te dice que tenant existe y cual es su estado de negocio/operacion
 - `Provisioning` te dice si la base tecnica del tenant ya fue preparada o por que fallo
+- si ves `deprovision_tenant_database`, debes leerlo como retiro tecnico del tenant archivado, no como una alta rota
 
 ### `Actividad`
 

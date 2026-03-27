@@ -339,21 +339,33 @@ class TenantService:
         dropped_role = False
 
         if tenant.db_name:
-            bootstrap.drop_database_if_exists(tenant.db_name)
+            try:
+                bootstrap.drop_database_if_exists(tenant.db_name)
+            except Exception as exc:
+                setattr(exc, "_provisioning_stage", "deprovision_tenant_database")
+                raise
             dropped_database = True
         if tenant.db_user:
-            bootstrap.drop_role_if_exists(tenant.db_user)
+            try:
+                bootstrap.drop_role_if_exists(tenant.db_user)
+            except Exception as exc:
+                setattr(exc, "_provisioning_stage", "deprovision_tenant_role")
+                raise
             dropped_role = True
 
         env_path = Path(settings.BASE_DIR) / ".env"
-        self.tenant_secret_service.clear_tenant_db_password(
-            tenant_slug=tenant.slug,
-            env_path=env_path,
-        )
-        self.tenant_secret_service.clear_tenant_bootstrap_db_password(
-            tenant_slug=tenant.slug,
-            env_path=env_path,
-        )
+        try:
+            self.tenant_secret_service.clear_tenant_db_password(
+                tenant_slug=tenant.slug,
+                env_path=env_path,
+            )
+            self.tenant_secret_service.clear_tenant_bootstrap_db_password(
+                tenant_slug=tenant.slug,
+                env_path=env_path,
+            )
+        except Exception as exc:
+            setattr(exc, "_provisioning_stage", "deprovision_tenant_secret")
+            raise
 
         tenant.db_name = None
         tenant.db_user = None

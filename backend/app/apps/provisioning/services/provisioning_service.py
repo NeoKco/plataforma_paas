@@ -319,6 +319,8 @@ class ProvisioningService:
         try:
             return self.tenant_service.deprovision_tenant(db=db, tenant_id=tenant.id)
         except Exception as exc:
+            if getattr(exc, "_provisioning_stage", None):
+                raise
             detail = str(exc)
             if "drop database" in detail.lower():
                 setattr(exc, "_provisioning_stage", "deprovision_tenant_database")

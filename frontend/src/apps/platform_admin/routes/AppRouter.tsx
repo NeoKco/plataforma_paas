@@ -7,6 +7,7 @@ import { TenantsPage } from "../pages/tenants/TenantsPage";
 import { ProvisioningPage } from "../pages/provisioning/ProvisioningPage";
 import { BillingPage } from "../pages/billing/BillingPage";
 import { SettingsPage } from "../pages/settings/SettingsPage";
+import { TenantHistoryPage } from "../pages/tenant_history/TenantHistoryPage";
 import { InstallPage } from "../pages/install/InstallPage";
 import { PlatformUsersPage } from "../pages/users/PlatformUsersPage";
 import { RequireAuth } from "./RequireAuth";
@@ -66,6 +67,7 @@ const router = createBrowserRouter([
         element: <RequirePlatformRoles allowedRoles={["superadmin"]} redirectTo="/users" />,
         children: [
           { path: "tenants", element: <TenantsPage /> },
+          { path: "tenant-history", element: <TenantHistoryPage /> },
           { path: "provisioning", element: <ProvisioningPage /> },
           { path: "billing", element: <BillingPage /> },
           { path: "settings", element: <SettingsPage /> },

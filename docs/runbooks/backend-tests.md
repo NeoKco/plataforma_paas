@@ -153,6 +153,7 @@ Cobertura adicional relevante:
 - rotacion formal de credenciales tecnicas tenant, incluyendo rollback seguro si la nueva password no valida
 - desprovisionado tecnico de tenants archivados mediante job `deprovision_tenant_database`
 - archivo historico minimo del tenant en `tenant_retirement_archives` antes del borrado definitivo
+- endpoint de detalle del archivo historico y snapshot funcional resumido del tenant retirado
 - construccion segura de URLs PostgreSQL cuando las credenciales contienen caracteres reservados como `@`, `:` o `/`
 - arranque backend aplicando migraciones de control automaticamente cuando la plataforma ya esta instalada, para no romper `Tenants` por columnas nuevas aun no migradas
 - validacion temprana de conexion tenant para que credenciales DB rotas se traduzcan a error operativo controlado y no a `500` crudo
@@ -160,6 +161,7 @@ Cobertura adicional relevante:
 - rotacion de credenciales tecnicas tenant devolviendo detalle operativo accionable cuando falta el rol, falta la base o la validacion de la nueva password se revierte
 - borrado seguro devolviendo `400/404` con motivo legible en vez de dejar escapar `500`
 - selector real de usuarios tenant en `Tenants` para resetear contraseñas del portal sin asumir `admin@<slug>.local`
+- `GET /platform/tenants/{id}/users` devolviendo error controlado o quedando oculto en UI cuando el tenant ya fue desprovisionado
 
 Suite puntual de seguridad:
 

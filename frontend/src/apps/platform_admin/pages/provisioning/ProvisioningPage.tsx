@@ -85,6 +85,7 @@ export function ProvisioningPage() {
   const [dlqErrorContains, setDlqErrorContains] = useState("");
   const [dlqResetAttempts, setDlqResetAttempts] = useState(true);
   const [dlqDelaySeconds, setDlqDelaySeconds] = useState("0");
+  const [jobOperationFilter, setJobOperationFilter] = useState("all");
 
   const overview = useMemo(() => {
     const totalJobs = jobs.length;
@@ -111,6 +112,24 @@ export function ProvisioningPage() {
     );
   }, [jobs]);
 
+  const filteredJobs = useMemo(() => {
+    if (jobOperationFilter === "all") {
+      return jobs;
+    }
+    return jobs.filter(
+      (job) => getProvisioningOperationKind(job.job_type) === jobOperationFilter
+    );
+  }, [jobOperationFilter, jobs]);
+
+  const filteredJobsRequiringAction = useMemo(() => {
+    if (jobOperationFilter === "all") {
+      return jobsRequiringAction;
+    }
+    return jobsRequiringAction.filter(
+      (job) => getProvisioningOperationKind(job.job_type) === jobOperationFilter
+    );
+  }, [jobOperationFilter, jobsRequiringAction]);
+
   const operationalSignals = useMemo(() => {
     const signals: Array<{
       key: string;
@@ -122,6 +141,13 @@ export function ProvisioningPage() {
     const failedJobCount = jobs.filter((job) => job.status === "failed").length;
     const retryJobCount = jobs.filter((job) => job.status === "retry_pending").length;
     const pendingJobCount = jobs.filter((job) => job.status === "pending").length;
+    const activeDeprovisionJobs = jobs.filter(
+      (job) =>
+        job.job_type === "deprovision_tenant_database" &&
+        (job.status === "failed" ||
+          job.status === "retry_pending" ||
+          job.status === "pending")
+    ).length;
 
     if (failedJobCount > 0) {
       signals.push({
@@ -129,6 +155,15 @@ export function ProvisioningPage() {
         title: `${failedJobCount} jobs agotaron intentos`,
         detail:
           "Revisa primero el panel de jobs que requieren acción y luego inspecciona el error agrupado por código para decidir si conviene reencolar o corregir antes la causa.",
+      });
+    }
+
+    if (activeDeprovisionJobs > 0) {
+      signals.push({
+        key: "deprovision-jobs",
+        title: `${activeDeprovisionJobs} retiros técnicos siguen abiertos`,
+        detail:
+          "No los leas como backlog normal de altas. Revisa si hay tenants archivados esperando liberar infraestructura antes de intentar borrarlos del catálogo.",
       });
     }
 
@@ -198,6 +233,23 @@ export function ProvisioningPage() {
     });
     return entries;
   }, [metrics?.data, metricsByJobType?.data]);
+
+  const jobsByOperation = useMemo(() => {
+    return {
+      provision: jobs.filter(
+        (job) => getProvisioningOperationKind(job.job_type) === "provision"
+      ).length,
+      deprovision: jobs.filter(
+        (job) => getProvisioningOperationKind(job.job_type) === "deprovision"
+      ).length,
+      schema: jobs.filter(
+        (job) => getProvisioningOperationKind(job.job_type) === "schema"
+      ).length,
+      other: jobs.filter(
+        (job) => getProvisioningOperationKind(job.job_type) === "other"
+      ).length,
+    };
+  }, [jobs]);
 
   async function loadProvisioningWorkspace() {
     if (!session?.accessToken) {
@@ -334,8 +386,21 @@ export function ProvisioningPage() {
   }
 }
 
-function getProvisioningActionRecommendation(status: string): string {
-  switch (status) {
+function getProvisioningActionRecommendation(job: ProvisioningJob): string {
+  if (job.job_type === "deprovision_tenant_database") {
+    switch (job.status) {
+      case "failed":
+        return "Corrige el bloqueo del retiro técnico y reencola el job antes de intentar borrar el tenant.";
+      case "retry_pending":
+        return "El retiro técnico volverá a intentarse. Puedes esperar el worker o forzar la ejecución si quieres cerrar el tenant ahora.";
+      case "pending":
+        return "El retiro técnico quedó en cola. Ejecútalo ahora si necesitas liberar infraestructura sin esperar al worker.";
+      default:
+        return "n/a";
+    }
+  }
+
+  switch (job.status) {
     case "failed":
       return "Reencola el job o revisa el error antes de volver a intentar.";
     case "retry_pending":
@@ -421,14 +486,19 @@ function handleRefresh() {
       scope: "run-provisioning-job",
       title: `Ejecutar ahora el job #${job.id}`,
       description:
-        "Esta acción intenta procesar inmediatamente el job seleccionado, sin esperar al siguiente ciclo del worker.",
+        job.job_type === "deprovision_tenant_database"
+          ? "Esta acción intenta ejecutar inmediatamente el retiro técnico del tenant seleccionado, sin esperar al siguiente ciclo del worker."
+          : "Esta acción intenta procesar inmediatamente el job seleccionado, sin esperar al siguiente ciclo del worker.",
       details: [
         `Tenant: ${tenantSlugById.get(job.tenant_id) || `tenant-${job.tenant_id}`}`,
         `Operación: ${formatProvisioningJobType(job.job_type)}`,
         `Estado actual: ${formatProvisioningCodeLabel(job.status)}`,
         `Intentos usados: ${job.attempts}/${job.max_attempts}`,
       ],
-      confirmLabel: "Ejecutar ahora",
+      confirmLabel:
+        job.job_type === "deprovision_tenant_database"
+          ? "Ejecutar retiro técnico"
+          : "Ejecutar ahora",
       action: () => runProvisioningJob(session.accessToken, job.id),
     });
   }
@@ -487,7 +557,68 @@ function handleRefresh() {
         <div className="dashboard-quick-hints mt-0">
           <div>`Crear tenant` da de alta la entidad en `platform_control` y dispara el job inicial.</div>
           <div>`Provisionar` prepara la DB tenant, el usuario técnico, el esquema y el admin bootstrap.</div>
+          <div>`Desprovisionar tenant` crea un job de retiro técnico para soltar DB, rol y secretos técnicos sin borrar todavía la fila viva del tenant.</div>
           <div>`Pending` espera worker, `retry_pending` volverá a intentarse, `failed` requiere intervención y `completed` deja el tenant listo.</div>
+        </div>
+      </PanelCard>
+
+      <PanelCard
+        title="Foco por operación"
+        subtitle="Separa altas, retiros técnicos y cambios de esquema para no mezclar deudas distintas en la misma lectura."
+      >
+        <div className="provisioning-filter-strip">
+          <button
+            type="button"
+            className={`btn btn-sm ${jobOperationFilter === "all" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => setJobOperationFilter("all")}
+          >
+            Todas
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm ${jobOperationFilter === "provision" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => setJobOperationFilter("provision")}
+          >
+            Altas
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm ${jobOperationFilter === "deprovision" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => setJobOperationFilter("deprovision")}
+          >
+            Retiros técnicos
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm ${jobOperationFilter === "schema" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => setJobOperationFilter("schema")}
+          >
+            Esquema
+          </button>
+        </div>
+        <div className="provisioning-operation-summary">
+          <ProvisioningOperationSummaryItem
+            label="Altas"
+            count={jobsByOperation.provision}
+            kind="provision"
+          />
+          <ProvisioningOperationSummaryItem
+            label="Retiros técnicos"
+            count={jobsByOperation.deprovision}
+            kind="deprovision"
+          />
+          <ProvisioningOperationSummaryItem
+            label="Esquema"
+            count={jobsByOperation.schema}
+            kind="schema"
+          />
+          {jobsByOperation.other > 0 ? (
+            <ProvisioningOperationSummaryItem
+              label="Otros"
+              count={jobsByOperation.other}
+              kind="other"
+            />
+          ) : null}
         </div>
       </PanelCard>
 
@@ -503,10 +634,14 @@ function handleRefresh() {
         title="Jobs que requieren acción"
         subtitle="Vista corta para decidir rápido si debes ejecutar, esperar retry o reencolar."
       >
-        {jobsRequiringAction.length === 0 ? (
+        {filteredJobsRequiringAction.length === 0 ? (
           <EmptyState
             title="No hay jobs que requieran intervención"
-            detail="No existen jobs pendientes, en retry o fallidos. El worker quedó sin deuda operativa inmediata."
+            detail={
+              jobOperationFilter === "all"
+                ? "No existen jobs pendientes, en retry o fallidos. El worker quedó sin deuda operativa inmediata."
+                : "No hay jobs abiertos para la operación filtrada en este momento."
+            }
           />
         ) : (
           <div className="table-responsive">
@@ -515,18 +650,20 @@ function handleRefresh() {
                 <tr>
                   <th>Job</th>
                   <th>Tenant</th>
+                  <th>Operación</th>
                   <th>Estado</th>
                   <th>Acción recomendada</th>
                   <th>Siguiente paso</th>
                 </tr>
               </thead>
               <tbody>
-                {jobsRequiringAction.map((job) => (
+                {filteredJobsRequiringAction.map((job) => (
                   <tr key={`action-${job.id}`}>
                     <td><code>#{job.id}</code></td>
                     <td><code>{tenantSlugById.get(job.tenant_id) || `tenant-${job.tenant_id}`}</code></td>
+                    <td><ProvisioningOperationBadge jobType={job.job_type} /></td>
                     <td><StatusBadge value={job.status} /></td>
-                    <td>{getProvisioningActionRecommendation(job.status)}</td>
+                    <td>{getProvisioningActionRecommendation(job)}</td>
                     <td>
                       {job.status === "failed" ? (
                         <button
@@ -605,10 +742,15 @@ function handleRefresh() {
         />
       ) : null}
 
-      {!jobsError && jobs.length > 0 ? (
+      {!jobsError && filteredJobs.length > 0 ? (
         <DataTableCard
           title="Jobs de provisioning"
-          rows={jobs}
+          subtitle={
+            jobOperationFilter === "all"
+              ? "Catálogo completo de jobs técnicos."
+              : `Vista filtrada por ${formatProvisioningOperationFilterLabel(jobOperationFilter)}.`
+          }
+          rows={filteredJobs}
           columns={[
             {
               key: "id",
@@ -621,6 +763,11 @@ function handleRefresh() {
               render: (row) => (
                 <code>{tenantSlugById.get(row.tenant_id) || `tenant-${row.tenant_id}`}</code>
               ),
+            },
+            {
+              key: "operation",
+              header: "Operación",
+              render: (row) => <ProvisioningOperationBadge jobType={row.job_type} />,
             },
             {
               key: "job_type",
@@ -691,11 +838,23 @@ function handleRefresh() {
       ) : !jobsError && !isLoading ? (
         <PanelCard
           title="Jobs de provisioning"
-          subtitle="El backend no devolvió jobs en el catálogo actual."
+          subtitle={
+            jobs.length === 0
+              ? "El backend no devolvió jobs en el catálogo actual."
+              : "El filtro actual no dejó jobs visibles en la tabla."
+          }
         >
           <EmptyState
-            title="Todavía no hay jobs de provisioning"
-            detail="Esto suele pasar cuando aún no se crean tenants nuevos o cuando no hubo automatizaciones pendientes en este entorno."
+            title={
+              jobs.length === 0
+                ? "Todavía no hay jobs de provisioning"
+                : "No hay jobs para la operación filtrada"
+            }
+            detail={
+              jobs.length === 0
+                ? "Esto suele pasar cuando aún no se crean tenants nuevos o cuando no hubo automatizaciones pendientes en este entorno."
+                : "Prueba con otra operación o vuelve a `Todas` para recuperar el catálogo completo."
+            }
           />
         </PanelCard>
       ) : null}
@@ -916,7 +1075,7 @@ function handleRefresh() {
               <div>
                 <FieldHelpLabel
                   label="Tipo de job"
-                  help="Filtra por operación interna de provisioning, por ejemplo crear base tenant o sincronizar esquema."
+                  help="Filtra por operación interna de provisioning, por ejemplo crear base tenant, sincronizar esquema o retirar infraestructura técnica."
                 />
                 <input
                   className="form-control"
@@ -1211,6 +1370,39 @@ function ProvisioningCodeCell({
   );
 }
 
+function ProvisioningOperationBadge({ jobType }: { jobType: string }) {
+  const kind = getProvisioningOperationKind(jobType);
+  const classNameByKind: Record<string, string> = {
+    provision: "status-badge status-badge--success",
+    deprovision: "status-badge status-badge--warning",
+    schema: "status-badge status-badge--info",
+    other: "status-badge status-badge--neutral",
+  };
+  return (
+    <span className={classNameByKind[kind]}>
+      {formatProvisioningOperationKind(kind)}
+    </span>
+  );
+}
+
+function ProvisioningOperationSummaryItem({
+  label,
+  count,
+  kind,
+}: {
+  label: string;
+  count: number;
+  kind: "provision" | "deprovision" | "schema" | "other";
+}) {
+  return (
+    <div className="provisioning-operation-summary__item">
+      <ProvisioningOperationBadge jobType={kindToRepresentativeJobType(kind)} />
+      <strong>{count}</strong>
+      <span>{label}</span>
+    </div>
+  );
+}
+
 function SeverityBadge({ value }: { value: string }) {
   const normalized = value.trim().toLowerCase();
   const className =
@@ -1225,11 +1417,63 @@ function SeverityBadge({ value }: { value: string }) {
 function formatProvisioningJobType(value: string): string {
   const knownLabels: Record<string, string> = {
     create_tenant_database: "Crear base del tenant",
+    deprovision_tenant_database: "Desprovisionar base del tenant",
     sync_tenant_schema: "Sincronizar esquema tenant",
     repair_tenant_schema: "Reparar esquema tenant",
   };
 
   return knownLabels[value] || formatProvisioningCodeLabel(value);
+}
+
+function getProvisioningOperationKind(
+  jobType: string
+): "provision" | "deprovision" | "schema" | "other" {
+  if (jobType === "create_tenant_database") {
+    return "provision";
+  }
+  if (jobType === "deprovision_tenant_database") {
+    return "deprovision";
+  }
+  if (jobType === "sync_tenant_schema" || jobType === "repair_tenant_schema") {
+    return "schema";
+  }
+  return "other";
+}
+
+function formatProvisioningOperationKind(
+  kind: "provision" | "deprovision" | "schema" | "other"
+): string {
+  const labels: Record<string, string> = {
+    provision: "alta",
+    deprovision: "retiro técnico",
+    schema: "esquema",
+    other: "otro",
+  };
+  return labels[kind] || kind;
+}
+
+function formatProvisioningOperationFilterLabel(value: string): string {
+  if (value === "all") {
+    return "todas las operaciones";
+  }
+  return formatProvisioningOperationKind(
+    value as "provision" | "deprovision" | "schema" | "other"
+  );
+}
+
+function kindToRepresentativeJobType(
+  kind: "provision" | "deprovision" | "schema" | "other"
+): string {
+  if (kind === "provision") {
+    return "create_tenant_database";
+  }
+  if (kind === "deprovision") {
+    return "deprovision_tenant_database";
+  }
+  if (kind === "schema") {
+    return "sync_tenant_schema";
+  }
+  return "other";
 }
 
 function formatProvisioningAlertCode(value: string): string {

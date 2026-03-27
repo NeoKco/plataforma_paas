@@ -299,6 +299,39 @@ code {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.provisioning-filter-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.provisioning-operation-summary {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.provisioning-operation-summary__item {
+  align-items: start;
+  background: rgba(18, 86, 204, 0.03);
+  border: 1px solid rgba(18, 86, 204, 0.08);
+  border-radius: 16px;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem;
+}
+
+.provisioning-operation-summary__item strong {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.provisioning-operation-summary__item span:last-child {
+  color: var(--color-text-secondary);
+  font-size: 0.84rem;
+}
+
 .billing-data-grid {
   display: grid;
   gap: 1rem;
@@ -1095,6 +1128,7 @@ code {
   .dashboard-overview-grid,
   .dashboard-section-grid,
   .provisioning-overview-grid,
+  .provisioning-operation-summary,
   .billing-overview-grid,
   .billing-filter-grid,
   .tenant-portal-metrics,

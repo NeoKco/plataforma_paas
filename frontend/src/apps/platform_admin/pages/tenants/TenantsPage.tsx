@@ -545,11 +545,10 @@ export function TenantsPage() {
 
   async function reloadSelectedTenantWorkspace() {
     if (selectedTenantId === null) {
-      await loadRetirementArchives();
+      await loadTenantsCatalog();
       return;
     }
     await loadTenantsCatalog();
-    await loadRetirementArchives();
     await loadTenantWorkspace(selectedTenantId);
   }
 
@@ -559,7 +558,6 @@ export function TenantsPage() {
     }
     void loadCapabilities();
     void loadTenantsCatalog();
-    void loadRetirementArchives();
   }, [session?.accessToken]);
 
   useEffect(() => {
@@ -1215,7 +1213,6 @@ export function TenantsPage() {
             setPolicyHistory([]);
             setSelectedProvisioningJob(null);
             await loadTenantsCatalog();
-            await loadRetirementArchives();
           },
         };
       },
@@ -1276,6 +1273,11 @@ export function TenantsPage() {
         eyebrow="Plataforma"
         title="Tenants"
         description="Vista operativa sobre lifecycle tenant, billing, mantenimiento, política de acceso y uso actual por módulo."
+        actions={
+          <Link className="btn btn-outline-primary" to="/tenant-history">
+            Abrir histórico
+          </Link>
+        }
       />
 
       {listError ? (
@@ -1490,317 +1492,6 @@ export function TenantsPage() {
             ) : null}
           </PanelCard>
 
-          <PanelCard
-            title="Archivo histórico"
-            subtitle="Tenants ya retirados del catálogo activo, con auditoría resumida del borrado."
-          >
-            <input
-              className="form-control"
-              value={retirementSearch}
-              onChange={(event) => setRetirementSearch(event.target.value)}
-              placeholder="Buscar por nombre, slug, actor o billing"
-            />
-
-            {isRetirementArchivesLoading ? (
-              <LoadingBlock label="Cargando archivo histórico..." />
-            ) : null}
-
-            {retirementArchivesError ? (
-              <ErrorState
-                title="No se pudo leer el archivo histórico"
-                detail={
-                  retirementArchivesError.payload?.detail ||
-                  retirementArchivesError.message
-                }
-                requestId={retirementArchivesError.payload?.request_id}
-              />
-            ) : null}
-
-            {!isRetirementArchivesLoading &&
-            !retirementArchivesError &&
-            retirementArchives.length === 0 ? (
-              <div className="text-secondary">
-                Aún no hay tenants retirados archivados en esta instalación.
-              </div>
-            ) : null}
-
-            {!isRetirementArchivesLoading &&
-            !retirementArchivesError &&
-            retirementArchives.length > 0 &&
-            filteredRetirementArchives.length === 0 ? (
-              <div className="text-secondary">
-                No hay tenants retirados que coincidan con el filtro actual.
-              </div>
-            ) : null}
-
-            {!isRetirementArchivesLoading &&
-            !retirementArchivesError &&
-            filteredRetirementArchives.length > 0 ? (
-              <>
-                <DataTableCard
-                  title="Retirados recientes"
-                  rows={filteredRetirementArchives}
-                  columns={[
-                    {
-                      key: "deleted_at",
-                      header: "Retirado en",
-                      render: (row) => formatDateTime(row.deleted_at),
-                    },
-                    {
-                      key: "tenant_name",
-                      header: "Tenant",
-                      render: (row) => (
-                        <div>
-                          <div>{row.tenant_name}</div>
-                          <div className="tenant-list__meta">
-                            <code>{row.tenant_slug}</code>
-                            <span>{row.tenant_type}</span>
-                          </div>
-                        </div>
-                      ),
-                    },
-                    {
-                      key: "deleted_by_email",
-                      header: "Actor",
-                      render: (row) => row.deleted_by_email || "sistema",
-                    },
-                    {
-                      key: "billing_status",
-                      header: "Billing final",
-                      render: (row) =>
-                        row.billing_status
-                          ? displayPlatformCode(row.billing_status)
-                          : "ninguno",
-                    },
-                    {
-                      key: "billing_events_count",
-                      header: "Eventos",
-                      render: (row) =>
-                        `${row.billing_events_count} billing / ${row.policy_events_count} policy / ${row.provisioning_jobs_count} jobs`,
-                    },
-                    {
-                      key: "actions",
-                      header: "Detalle",
-                      render: (row) => (
-                        <button
-                          className="btn btn-outline-secondary btn-sm"
-                          type="button"
-                          onClick={() => {
-                            if (selectedRetirementArchiveId === row.id) {
-                              setSelectedRetirementArchiveId(null);
-                              setSelectedRetirementArchive(null);
-                              setSelectedRetirementSummary(null);
-                              setRetirementArchiveDetailError(null);
-                              return;
-                            }
-                            setSelectedRetirementArchiveId(row.id);
-                            void loadRetirementArchiveDetail(row.id);
-                          }}
-                          disabled={isRetirementArchiveDetailLoading}
-                        >
-                          {selectedRetirementArchiveId === row.id
-                            ? "Ocultar detalle"
-                            : "Ver detalle"}
-                        </button>
-                      ),
-                    },
-                  ]}
-                />
-
-                {isRetirementArchiveDetailLoading ? (
-                  <LoadingBlock label="Cargando detalle del archivo histórico..." />
-                ) : null}
-
-                {retirementArchiveDetailError ? (
-                  <ErrorState
-                    title="No se pudo leer el detalle del archivo histórico"
-                    detail={
-                      retirementArchiveDetailError.payload?.detail ||
-                      retirementArchiveDetailError.message
-                    }
-                    requestId={retirementArchiveDetailError.payload?.request_id}
-                  />
-                ) : null}
-
-                {selectedRetirementArchive && selectedRetirementSummary ? (
-                  <PanelCard
-                    title={`Detalle histórico: ${selectedRetirementArchive.tenant_name}`}
-                    subtitle="Snapshot resumido guardado al momento del retiro definitivo."
-                  >
-                    <div className="tenant-detail-grid">
-                      <DetailField
-                        label="Slug"
-                        value={<code>{selectedRetirementArchive.tenant_slug}</code>}
-                      />
-                      <DetailField
-                        label="Retirado en"
-                        value={formatDateTime(selectedRetirementArchive.deleted_at)}
-                      />
-                      <DetailField
-                        label="Actor"
-                        value={selectedRetirementArchive.deleted_by_email || "sistema"}
-                      />
-                      <DetailField
-                        label="Billing final"
-                        value={
-                          selectedRetirementArchive.billing_status
-                            ? displayPlatformCode(
-                                selectedRetirementArchive.billing_status
-                              )
-                            : "ninguno"
-                        }
-                      />
-                    </div>
-
-                    <div className="tenant-inline-note">
-                      Policy efectiva al retiro:{" "}
-                      {formatArchiveAccessPolicy(selectedRetirementSummary)}
-                    </div>
-
-                    <div className="tenant-inline-note">
-                      Límites efectivos:{" "}
-                      {formatArchiveModuleLimits(selectedRetirementSummary)}
-                    </div>
-                  </PanelCard>
-                ) : null}
-
-                {selectedRetirementArchive &&
-                extractArchiveRows(selectedRetirementSummary, [
-                  "retirement",
-                  "recent_billing_events",
-                ]).length > 0 ? (
-                  <DataTableCard
-                    title="Billing reciente"
-                    rows={extractArchiveRows(selectedRetirementSummary, [
-                      "retirement",
-                      "recent_billing_events",
-                    ])}
-                    columns={[
-                      {
-                        key: "recorded_at",
-                        header: "Registrado",
-                        render: (row) => formatDateTime(readArchiveString(row, "recorded_at")),
-                      },
-                      {
-                        key: "event_type",
-                        header: "Evento",
-                        render: (row) => readArchiveString(row, "event_type") || "n/a",
-                      },
-                      {
-                        key: "provider",
-                        header: "Proveedor",
-                        render: (row) => readArchiveString(row, "provider") || "n/a",
-                      },
-                      {
-                        key: "processing_result",
-                        header: "Resultado",
-                        render: (row) =>
-                          readArchiveString(row, "processing_result") || "n/a",
-                      },
-                      {
-                        key: "billing_status",
-                        header: "Billing",
-                        render: (row) =>
-                          readArchiveString(row, "billing_status") || "n/a",
-                      },
-                    ]}
-                  />
-                ) : null}
-
-                {selectedRetirementArchive &&
-                extractArchiveRows(selectedRetirementSummary, [
-                  "retirement",
-                  "recent_policy_events",
-                ]).length > 0 ? (
-                  <DataTableCard
-                    title="Cambios de política recientes"
-                    rows={extractArchiveRows(selectedRetirementSummary, [
-                      "retirement",
-                      "recent_policy_events",
-                    ])}
-                    columns={[
-                      {
-                        key: "recorded_at",
-                        header: "Registrado",
-                        render: (row) => formatDateTime(readArchiveString(row, "recorded_at")),
-                      },
-                      {
-                        key: "event_type",
-                        header: "Evento",
-                        render: (row) => readArchiveString(row, "event_type") || "n/a",
-                      },
-                      {
-                        key: "actor_email",
-                        header: "Actor",
-                        render: (row) =>
-                          readArchiveString(row, "actor_email") ||
-                          readArchiveString(row, "actor_role") ||
-                          "sistema",
-                      },
-                      {
-                        key: "changed_fields",
-                        header: "Campos",
-                        render: (row) => formatArchiveStringArray(row.changed_fields),
-                      },
-                    ]}
-                  />
-                ) : null}
-
-                {selectedRetirementArchive &&
-                extractArchiveRows(selectedRetirementSummary, [
-                  "retirement",
-                  "recent_provisioning_jobs",
-                ]).length > 0 ? (
-                  <DataTableCard
-                    title="Jobs técnicos recientes"
-                    rows={extractArchiveRows(selectedRetirementSummary, [
-                      "retirement",
-                      "recent_provisioning_jobs",
-                    ])}
-                    columns={[
-                      {
-                        key: "created_at",
-                        header: "Creado",
-                        render: (row) => formatDateTime(readArchiveString(row, "created_at")),
-                      },
-                      {
-                        key: "job_type",
-                        header: "Tipo",
-                        render: (row) =>
-                          formatProvisioningJobType(
-                            readArchiveString(row, "job_type") || "unknown"
-                          ),
-                      },
-                      {
-                        key: "status",
-                        header: "Estado",
-                        render: (row) =>
-                          readArchiveString(row, "status") ? (
-                            <StatusBadge value={readArchiveString(row, "status") || "unknown"} />
-                          ) : (
-                            "n/a"
-                          ),
-                      },
-                      {
-                        key: "attempts",
-                        header: "Intentos",
-                        render: (row) =>
-                          `${readArchiveNumber(row, "attempts") ?? 0}/${readArchiveNumber(
-                            row,
-                            "max_attempts"
-                          ) ?? 0}`,
-                      },
-                      {
-                        key: "error_code",
-                        header: "Error",
-                        render: (row) => readArchiveString(row, "error_code") || "ninguno",
-                      },
-                    ]}
-                  />
-                ) : null}
-              </>
-            ) : null}
-          </PanelCard>
         </div>
 
         <div className="d-grid gap-4">

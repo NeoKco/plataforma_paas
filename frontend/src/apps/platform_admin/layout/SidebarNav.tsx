@@ -22,6 +22,10 @@ export function SidebarNav() {
     { to: "/", label: language === "es" ? "Resumen" : "Dashboard" },
     { to: "/tenants", label: language === "es" ? "Tenants" : "Tenants" },
     {
+      to: "/tenant-history",
+      label: language === "es" ? "Histórico tenants" : "Tenant History",
+    },
+    {
       to: "/provisioning",
       label: language === "es" ? "Provisioning" : "Provisioning",
     },

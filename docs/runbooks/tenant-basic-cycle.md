@@ -20,8 +20,8 @@ Desde `Tenants` hoy ya puedes:
 - rotar credenciales tecnicas de DB tenant de forma controlada
 - reiniciar la contraseña de usuarios del portal tenant desde plataforma
 - revisar si el esquema tenant esta al dia sin entrar a SQL manual
-- consultar el archivo historico de tenants retirados sin mezclarlos con el catalogo vivo
-- inspeccionar el detalle funcional del snapshot de retiro: policy efectiva, límites, billing reciente, policy history reciente y jobs técnicos recientes
+- abrir la vista lateral `Histórico tenants` para consultar retirados sin mezclarlos con el catálogo vivo
+- inspeccionar ahi el detalle funcional del snapshot de retiro: policy efectiva, límites, billing reciente, policy history reciente y jobs técnicos recientes
 - abrir y cerrar ese detalle historico bajo demanda desde `Ver detalle` y `Ocultar detalle`, sin dejarlo expandido por defecto
 - validar el ciclo tambien contra PostgreSQL real cuando cambian passwords tecnicas o builders de conexion
 
@@ -32,7 +32,7 @@ Auditoria visible actual:
 - borrado seguro de tenant archivado
 - reprovisionado de tenant inconsistente
 - solicitud de desprovisionado tecnico de tenant archivado
-- consulta del archivo historico de tenants retirados desde la misma pantalla `Tenants`
+- consulta del archivo historico de tenants retirados desde la vista `Histórico tenants`
 
 Las mutaciones finas de estado, billing, mantenimiento, limites y plan siguen quedando visibles ademas en el historial de politica del tenant.
 
@@ -278,7 +278,7 @@ Lectura operativa:
 
 ## 7b. Archivo historico en UI
 
-La columna izquierda de `Tenants` ya muestra un bloque `Archivo histórico`.
+La barra lateral de `platform_admin` ya muestra una entrada propia: `Histórico tenants`.
 
 Comportamiento actual esperado:
 
@@ -287,6 +287,7 @@ Comportamiento actual esperado:
 - `Ver detalle` abre el snapshot del retirado seleccionado
 - `Ocultar detalle` colapsa el panel y deja la lista visible sin detalle expandido
 - el detalle no debe autoabrirse al cargar la pantalla
+- `Tenants` ya no mezcla esta auditoria con la operacion diaria; desde ahi solo queda un acceso corto para abrir la vista historica
 
 El detalle historico actual muestra:
 

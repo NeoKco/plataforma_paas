@@ -953,6 +953,41 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertIsNone(tenant.tenant_schema_synced_at)
         self.assertIsNone(tenant.tenant_db_credentials_rotated_at)
 
+    def test_tenant_service_tags_database_drop_failure_during_deprovision(self) -> None:
+        tenant = build_tenant_record_stub(status="archived", tenant_slug="empresa-demo")
+        tenant.id = 1
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+            def save(self, db, tenant_to_save):
+                return tenant_to_save
+
+        service = TenantService(
+            tenant_repository=FakeTenantRepository(),
+            tenant_secret_service=MagicMock(),
+        )
+
+        with patch(
+            "app.apps.platform_control.services.tenant_service.PostgresBootstrapService"
+        ) as bootstrap_cls:
+            bootstrap_cls.return_value.drop_database_if_exists.side_effect = RuntimeError(
+                "drop database blocked"
+            )
+
+            with self.assertRaises(RuntimeError) as raised:
+                service.deprovision_tenant(db=MagicMock(), tenant_id=1)
+
+        self.assertEqual(
+            getattr(raised.exception, "_provisioning_stage", None),
+            "deprovision_tenant_database",
+        )
+
     def test_tenant_service_deletes_archived_unprovisioned_tenant_and_technical_history(self) -> None:
         tenant = build_tenant_record_stub(status="archived")
         tenant.id = 1

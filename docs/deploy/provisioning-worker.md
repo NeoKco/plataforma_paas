@@ -136,6 +136,16 @@ Lectura practica:
 - `deprovision_tenant_database` retira DB tenant, rol tecnico y secretos tecnicos asociados
 - `sync_tenant_schema` aplica migraciones sobre una DB tenant ya existente
 
+Lectura operativa en consola:
+
+- `deprovision_tenant_database` debe interpretarse como retiro tecnico, no como alta normal
+- si falla, el `error_code` ya debe quedar clasificado por etapa:
+  - `tenant_database_drop_failed`
+  - `tenant_role_drop_failed`
+  - `tenant_secret_clear_failed`
+- si queda `retry_pending`, el tenant sigue archivado y puedes esperar el worker o ejecutar el job manualmente desde `Provisioning`
+- la pantalla `Provisioning` ya deja filtrar por operacion (`Altas`, `Retiros técnicos`, `Esquema`) para no mezclar backlog de alta con retiros pendientes
+
 Si usas perfiles o filtros por `job_type`, debes incluir `deprovision_tenant_database` en los workers que vayan a procesar retiros tecnicos. Si no lo haces, el job puede quedar `pending` hasta que lo ejecutes manualmente.
 
 Modo continuo:
