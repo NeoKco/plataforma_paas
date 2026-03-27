@@ -87,6 +87,9 @@ Estado tras la primera parte de `Lote 6`:
 - ya existen `GET|POST /tenant/finance/transactions`
 - ya existe `GET /tenant/finance/transactions/{transaction_id}` con auditoria reciente
 - ya existe `GET /tenant/finance/account-balances`
+- `GET /tenant/finance/transactions` ya admite filtros por tipo, cuenta, categoria, conciliacion y texto
+- ya existen `PATCH /tenant/finance/transactions/{transaction_id}/favorite`
+- ya existen `PATCH /tenant/finance/transactions/{transaction_id}/reconciliation`
 - `tenant_portal` ya consume ese contrato moderno en la pantalla principal de `Transacciones`
 
 Nucleo transaccional ya disponible en backend:
@@ -97,4 +100,4 @@ Nucleo transaccional ya disponible en backend:
 
 Pendiente:
 - endpoints de prestamos, presupuestos, conciliacion y reportes
-- filtros, edicion y conciliacion sobre transacciones existentes
+- edicion completa de transacciones existentes

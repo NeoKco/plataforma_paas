@@ -30,7 +30,8 @@
 - la pantalla de `Transacciones` ya usa el contrato moderno
 - `/tenant/finance/entries` se mantiene como compatibilidad legacy
 - ya existe detalle operacional por transaccion y balances por cuenta
+- ya existen filtros operativos y acciones rapidas de favorito/conciliacion
 
 Pendiente inmediato:
-- agregar filtros y busqueda sobre transacciones modernas
-- abrir edicion, conciliacion y favoritos sobre movimientos existentes
+- abrir edicion completa de transacciones existentes
+- enriquecer la experiencia de conciliacion y favoritos

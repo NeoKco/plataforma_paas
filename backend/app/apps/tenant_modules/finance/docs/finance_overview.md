@@ -25,7 +25,8 @@ Alcance de esta fase:
 - compatibilidad legacy: `/tenant/finance/entries` sigue operando, pero ya persiste sobre `finance_transactions`
 - endpoints modernos de transacciones, balances por cuenta y detalle con auditoria
 - pantalla tenant operativa sobre `finance_transactions`
+- filtros operativos y toggles rapidos de favorito/conciliacion
 
 Pendiente inmediato:
-- profundizar `Lote 6` con filtros, edicion y conciliacion
+- completar `Lote 6` con edicion plena y vistas mas ricas de conciliacion
 - `Lote 7` prestamos, planificacion y reportes
