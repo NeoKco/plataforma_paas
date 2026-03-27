@@ -20,6 +20,7 @@ Desde `Tenants` hoy ya puedes:
 - rotar credenciales tecnicas de DB tenant de forma controlada
 - reiniciar la contraseña de usuarios del portal tenant desde plataforma
 - revisar si el esquema tenant esta al dia sin entrar a SQL manual
+- consultar el archivo historico de tenants retirados sin mezclarlos con el catalogo vivo
 - validar el ciclo tambien contra PostgreSQL real cuando cambian passwords tecnicas o builders de conexion
 
 Auditoria visible actual:
@@ -29,6 +30,7 @@ Auditoria visible actual:
 - borrado seguro de tenant archivado
 - reprovisionado de tenant inconsistente
 - solicitud de desprovisionado tecnico de tenant archivado
+- consulta del archivo historico de tenants retirados desde la misma pantalla `Tenants`
 
 Las mutaciones finas de estado, billing, mantenimiento, limites y plan siguen quedando visibles ademas en el historial de politica del tenant.
 

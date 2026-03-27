@@ -170,6 +170,7 @@ Lectura importante:
 - si un tenant quedo `active` pero sin configuracion DB tenant completa, la consola ya no ofrece entrar al portal y expone `Reprovisionar tenant`
 - si un tenant archivado ya fue desprovisionado y no debe conservarse, la consola ya puede ofrecer `Eliminar tenant`
 - ese borrado ya no depende de conservar la DB tenant ni la fila viva en catalogo para auditoria minima; esa evidencia resumida queda en `platform_control.tenant_retirement_archives`
+- la misma pantalla `Tenants` ya deja consultar un bloque `Archivo histórico` para revisar retirados recientes sin reintroducirlos al catálogo activo
 - el acceso rapido al `tenant_portal` solo corresponde cuando el tenant ya esta `active`, con provisioning completado y configuracion DB tenant valida
 - si un tenant queda bloqueado por lifecycle o billing, `Tenants` y el login tenant ya intentan explicarlo con lenguaje operativo en vez de depender del detalle crudo del backend
 - la conectividad PostgreSQL ya no depende de interpolar `username:password@host` a mano; la plataforma usa builders seguros para que passwords con caracteres reservados no rompan readiness, provisioning ni rotacion tecnica

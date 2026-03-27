@@ -345,6 +345,33 @@ export type PlatformTenantDeleteResponse = {
   tenant_name: string;
 };
 
+export type PlatformTenantRetirementArchiveItem = {
+  id: number;
+  original_tenant_id: number;
+  tenant_slug: string;
+  tenant_name: string;
+  tenant_type: string;
+  plan_code: string | null;
+  tenant_status: string;
+  billing_provider: string | null;
+  billing_status: string | null;
+  billing_events_count: number;
+  policy_events_count: number;
+  provisioning_jobs_count: number;
+  deleted_by_email: string | null;
+  tenant_created_at: string | null;
+  deleted_at: string;
+};
+
+export type PlatformTenantRetirementArchiveListResponse = {
+  success: boolean;
+  message: string;
+  total: number;
+  limit: number;
+  search: string | null;
+  data: PlatformTenantRetirementArchiveItem[];
+};
+
 export type PlatformTenantDeprovisionResponse = {
   success: boolean;
   message: string;

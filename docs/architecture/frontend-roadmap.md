@@ -190,6 +190,7 @@ Avance actual:
 - `Tenants` ya expone `archivar tenant` como baja operativa segura usando el lifecycle existente
 - `Tenants` ya expone `restaurar tenant` como flujo formal solo para tenants archivados, con estado destino explicito
 - `Tenants` ya expone `eliminar tenant` como borrado seguro para tenants archivados sin DB tenant materializada; antes de borrar, backend resume la auditoria minima en `tenant_retirement_archives`
+- `Tenants` ya muestra tambien un bloque `Archivo histórico` para consultar tenants retirados sin mantenerlos en la lista principal
 - `Tenants` ya muestra el ultimo job de provisioning del tenant seleccionado con acceso rapido a la consola global y acciones directas segun estado
 - `Tenants` ya muestra tambien el estado de esquema tenant con version actual, ultima version disponible, migraciones pendientes y ultima sincronizacion
 - `Tenants` ya permite rotar credenciales tecnicas de DB tenant cuando la base ya esta materializada

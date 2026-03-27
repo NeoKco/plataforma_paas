@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import text
+from sqlalchemy import desc, or_, text
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
 
@@ -52,6 +52,11 @@ from app.apps.platform_control.schemas import (
     TenantPortalUserPasswordResetResponse,
     TenantPortalUsersItemResponse,
     TenantPortalUsersResponse,
+    TenantRetirementArchiveItemResponse,
+    TenantRetirementArchiveListResponse,
+)
+from app.apps.platform_control.models.tenant_retirement_archive import (
+    TenantRetirementArchive,
 )
 from app.apps.platform_control.services.billing_alert_service import (
     BillingAlertService,
@@ -237,6 +242,28 @@ def _build_tenant_portal_user_item(user) -> TenantPortalUsersItemResponse:
         email=user.email,
         role=user.role,
         is_active=user.is_active,
+    )
+
+
+def _build_tenant_retirement_archive_item(
+    archive,
+) -> TenantRetirementArchiveItemResponse:
+    return TenantRetirementArchiveItemResponse(
+        id=archive.id,
+        original_tenant_id=archive.original_tenant_id,
+        tenant_slug=archive.tenant_slug,
+        tenant_name=archive.tenant_name,
+        tenant_type=archive.tenant_type,
+        plan_code=archive.plan_code,
+        tenant_status=archive.tenant_status,
+        billing_provider=archive.billing_provider,
+        billing_status=archive.billing_status,
+        billing_events_count=archive.billing_events_count,
+        policy_events_count=archive.policy_events_count,
+        provisioning_jobs_count=archive.provisioning_jobs_count,
+        deleted_by_email=archive.deleted_by_email,
+        tenant_created_at=archive.tenant_created_at,
+        deleted_at=archive.deleted_at,
     )
 
 
@@ -484,6 +511,49 @@ def list_tenants(
         message="Tenants recuperados correctamente",
         total_tenants=len(tenants),
         data=[_build_tenant_response(tenant) for tenant in tenants],
+    )
+
+
+@router.get(
+    "/retirement-archives",
+    response_model=TenantRetirementArchiveListResponse,
+)
+def list_tenant_retirement_archives(
+    limit: int = 25,
+    search: str | None = None,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantRetirementArchiveListResponse:
+    normalized_limit = max(1, min(limit, 200))
+    query = db.query(TenantRetirementArchive)
+
+    normalized_search = None if search is None else search.strip()
+    if normalized_search:
+        search_term = f"%{normalized_search}%"
+        query = query.filter(
+            or_(
+                TenantRetirementArchive.tenant_name.ilike(search_term),
+                TenantRetirementArchive.tenant_slug.ilike(search_term),
+                TenantRetirementArchive.deleted_by_email.ilike(search_term),
+            )
+        )
+
+    rows = (
+        query.order_by(
+            desc(TenantRetirementArchive.deleted_at),
+            desc(TenantRetirementArchive.id),
+        )
+        .limit(normalized_limit)
+        .all()
+    )
+
+    return TenantRetirementArchiveListResponse(
+        success=True,
+        message="Archivo histórico de tenants recuperado correctamente",
+        total=len(rows),
+        limit=normalized_limit,
+        search=normalized_search or None,
+        data=[_build_tenant_retirement_archive_item(row) for row in rows],
     )
 
 

@@ -74,6 +74,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     get_tenant_finance_usage,
     get_tenant_module_usage,
     list_tenant_portal_users,
+    list_tenant_retirement_archives,
     get_tenant_schema_status,
     list_tenants,
     get_tenant_access_policy,
@@ -118,6 +119,7 @@ from app.apps.platform_control.schemas import (  # noqa: E402
     TenantRestoreRequest,
     TenantPortalUserPasswordResetRequest,
     TenantPortalUsersResponse,
+    TenantRetirementArchiveListResponse,
     TenantStatusUpdateRequest,
 )
 from app.apps.platform_control.services.auth_service import PlatformAuthService  # noqa: E402
@@ -5589,6 +5591,54 @@ class PlatformRoutesTestCase(unittest.TestCase):
             exc.exception.detail,
             "Tenant database configuration is incomplete",
         )
+
+    def test_list_tenant_retirement_archives_returns_schema(self) -> None:
+        archive = SimpleNamespace(
+            id=7,
+            original_tenant_id=4,
+            tenant_slug="empresa-provisioning-demo",
+            tenant_name="Empresa Provisioning Demo",
+            tenant_type="empresa",
+            plan_code="mensual",
+            tenant_status="archived",
+            billing_provider="stripe",
+            billing_status="active",
+            billing_events_count=4,
+            policy_events_count=6,
+            provisioning_jobs_count=2,
+            deleted_by_email="admin@platform.local",
+            tenant_created_at=datetime(2026, 3, 20, 12, 0, tzinfo=timezone.utc),
+            deleted_at=datetime(2026, 3, 26, 15, 0, tzinfo=timezone.utc),
+        )
+
+        class FakeQuery:
+            def filter(self, *args, **kwargs):
+                return self
+
+            def order_by(self, *args, **kwargs):
+                return self
+
+            def limit(self, _value):
+                return self
+
+            def all(self):
+                return [archive]
+
+        class FakeDb:
+            def query(self, _model):
+                return FakeQuery()
+
+        response = list_tenant_retirement_archives(
+            limit=25,
+            search=None,
+            db=FakeDb(),
+            _token=self._token_payload(),
+        )
+
+        self.assertIsInstance(response, TenantRetirementArchiveListResponse)
+        self.assertTrue(response.success)
+        self.assertEqual(response.total, 1)
+        self.assertEqual(response.data[0].tenant_slug, "empresa-provisioning-demo")
 
     def test_create_tenant_logs_audit_event(self) -> None:
         tenant = build_tenant_record_stub(

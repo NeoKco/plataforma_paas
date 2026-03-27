@@ -11,6 +11,7 @@ import type {
   PlatformTenantBillingResponse,
   PlatformTenantDbCredentialsRotateResponse,
   PlatformTenantPortalUsersResponse,
+  PlatformTenantRetirementArchiveListResponse,
   PlatformTenantUserPasswordResetRequest,
   PlatformTenantUserPasswordResetResponse,
   PlatformUserCreateRequest,
@@ -209,6 +210,30 @@ export function listPlatformTenants(accessToken: string) {
   return apiRequest<PlatformTenantListResponse>("/platform/tenants/", {
     token: accessToken,
   });
+}
+
+export function listPlatformTenantRetirementArchives(
+  accessToken: string,
+  params?: {
+    limit?: number;
+    search?: string;
+  }
+) {
+  const query = new URLSearchParams();
+  if (params?.limit) {
+    query.set("limit", String(params.limit));
+  }
+  if (params?.search?.trim()) {
+    query.set("search", params.search.trim());
+  }
+
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return apiRequest<PlatformTenantRetirementArchiveListResponse>(
+    `/platform/tenants/retirement-archives${suffix}`,
+    {
+      token: accessToken,
+    }
+  );
 }
 
 export function createPlatformTenant(

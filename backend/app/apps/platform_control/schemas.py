@@ -670,6 +670,33 @@ class TenantDeleteResponse(BaseModel):
     tenant_name: str
 
 
+class TenantRetirementArchiveItemResponse(BaseModel):
+    id: int
+    original_tenant_id: int
+    tenant_slug: str
+    tenant_name: str
+    tenant_type: str
+    plan_code: str | None = None
+    tenant_status: str
+    billing_provider: str | None = None
+    billing_status: str | None = None
+    billing_events_count: int
+    policy_events_count: int
+    provisioning_jobs_count: int
+    deleted_by_email: str | None = None
+    tenant_created_at: datetime | None = None
+    deleted_at: datetime
+
+
+class TenantRetirementArchiveListResponse(BaseModel):
+    success: bool
+    message: str
+    total: int
+    limit: int
+    search: str | None = None
+    data: list[TenantRetirementArchiveItemResponse]
+
+
 class TenantPolicyChangeEventResponse(BaseModel):
     id: int
     tenant_id: int

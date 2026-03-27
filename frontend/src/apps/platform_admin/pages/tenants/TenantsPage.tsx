@@ -29,6 +29,7 @@ import {
   getPlatformTenantModuleUsage,
   getPlatformTenantSchemaStatus,
   getPlatformTenantPolicyHistory,
+  listPlatformTenantRetirementArchives,
   listPlatformTenantUsers,
   listProvisioningJobs,
   reprovisionPlatformTenant,
@@ -56,6 +57,7 @@ import type {
   PlatformTenant,
   PlatformTenantAccessPolicy,
   PlatformTenantPortalUserItem,
+  PlatformTenantRetirementArchiveItem,
   PlatformTenantPolicyChangeEvent,
   PlatformTenantSchemaStatusResponse,
   PlatformTenantModuleUsageSummary,
@@ -95,13 +97,20 @@ export function TenantsPage() {
   const [policyHistory, setPolicyHistory] = useState<PlatformTenantPolicyChangeEvent[]>(
     []
   );
+  const [retirementArchives, setRetirementArchives] = useState<
+    PlatformTenantRetirementArchiveItem[]
+  >([]);
   const [listError, setListError] = useState<ApiError | null>(null);
+  const [retirementArchivesError, setRetirementArchivesError] = useState<ApiError | null>(
+    null
+  );
   const [detailError, setDetailError] = useState<ApiError | null>(null);
   const [moduleUsageError, setModuleUsageError] = useState<ApiError | null>(null);
   const [policyHistoryError, setPolicyHistoryError] = useState<ApiError | null>(null);
   const [provisioningJobError, setProvisioningJobError] = useState<ApiError | null>(null);
   const [schemaStatusError, setSchemaStatusError] = useState<ApiError | null>(null);
   const [isListLoading, setIsListLoading] = useState(true);
+  const [isRetirementArchivesLoading, setIsRetirementArchivesLoading] = useState(true);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
@@ -141,6 +150,7 @@ export function TenantsPage() {
   const [createTenantType, setCreateTenantType] = useState("empresa");
   const [createTenantPlanCode, setCreateTenantPlanCode] = useState("");
   const [catalogSearch, setCatalogSearch] = useState("");
+  const [retirementSearch, setRetirementSearch] = useState("");
   const [catalogStatusFilter, setCatalogStatusFilter] = useState("");
   const [catalogBillingFilter, setCatalogBillingFilter] = useState("");
   const [catalogTypeFilter, setCatalogTypeFilter] = useState("");
@@ -189,6 +199,24 @@ export function TenantsPage() {
     catalogTypeFilter,
     tenants,
   ]);
+
+  const filteredRetirementArchives = useMemo(() => {
+    const search = retirementSearch.trim().toLowerCase();
+    if (!search) {
+      return retirementArchives;
+    }
+
+    return retirementArchives.filter((archive) => {
+      return (
+        archive.tenant_name.toLowerCase().includes(search) ||
+        archive.tenant_slug.toLowerCase().includes(search) ||
+        archive.tenant_type.toLowerCase().includes(search) ||
+        (archive.deleted_by_email || "").toLowerCase().includes(search) ||
+        (archive.billing_provider || "").toLowerCase().includes(search) ||
+        (archive.billing_status || "").toLowerCase().includes(search)
+      );
+    });
+  }, [retirementArchives, retirementSearch]);
 
   const planOptions = useMemo(
     () =>
@@ -300,6 +328,27 @@ export function TenantsPage() {
       setListError(rawError as ApiError);
     } finally {
       setIsListLoading(false);
+    }
+  }
+
+  async function loadRetirementArchives() {
+    if (!session?.accessToken) {
+      return;
+    }
+
+    setIsRetirementArchivesLoading(true);
+    setRetirementArchivesError(null);
+    try {
+      const response = await listPlatformTenantRetirementArchives(
+        session.accessToken,
+        { limit: 100 }
+      );
+      setRetirementArchives(response.data);
+    } catch (rawError) {
+      setRetirementArchivesError(rawError as ApiError);
+      setRetirementArchives([]);
+    } finally {
+      setIsRetirementArchivesLoading(false);
     }
   }
 
@@ -446,9 +495,11 @@ export function TenantsPage() {
 
   async function reloadSelectedTenantWorkspace() {
     if (selectedTenantId === null) {
+      await loadRetirementArchives();
       return;
     }
     await loadTenantsCatalog();
+    await loadRetirementArchives();
     await loadTenantWorkspace(selectedTenantId);
   }
 
@@ -458,6 +509,7 @@ export function TenantsPage() {
     }
     void loadCapabilities();
     void loadTenantsCatalog();
+    void loadRetirementArchives();
   }, [session?.accessToken]);
 
   useEffect(() => {
@@ -1113,6 +1165,7 @@ export function TenantsPage() {
             setPolicyHistory([]);
             setSelectedProvisioningJob(null);
             await loadTenantsCatalog();
+            await loadRetirementArchives();
           },
         };
       },
@@ -1384,6 +1437,98 @@ export function TenantsPage() {
                   })}
                 </div>
               </>
+            ) : null}
+          </PanelCard>
+
+          <PanelCard
+            title="Archivo histórico"
+            subtitle="Tenants ya retirados del catálogo activo, con auditoría resumida del borrado."
+          >
+            <input
+              className="form-control"
+              value={retirementSearch}
+              onChange={(event) => setRetirementSearch(event.target.value)}
+              placeholder="Buscar por nombre, slug, actor o billing"
+            />
+
+            {isRetirementArchivesLoading ? (
+              <LoadingBlock label="Cargando archivo histórico..." />
+            ) : null}
+
+            {retirementArchivesError ? (
+              <ErrorState
+                title="No se pudo leer el archivo histórico"
+                detail={
+                  retirementArchivesError.payload?.detail ||
+                  retirementArchivesError.message
+                }
+                requestId={retirementArchivesError.payload?.request_id}
+              />
+            ) : null}
+
+            {!isRetirementArchivesLoading &&
+            !retirementArchivesError &&
+            retirementArchives.length === 0 ? (
+              <div className="text-secondary">
+                Aún no hay tenants retirados archivados en esta instalación.
+              </div>
+            ) : null}
+
+            {!isRetirementArchivesLoading &&
+            !retirementArchivesError &&
+            retirementArchives.length > 0 &&
+            filteredRetirementArchives.length === 0 ? (
+              <div className="text-secondary">
+                No hay tenants retirados que coincidan con el filtro actual.
+              </div>
+            ) : null}
+
+            {!isRetirementArchivesLoading &&
+            !retirementArchivesError &&
+            filteredRetirementArchives.length > 0 ? (
+              <DataTableCard
+                title="Retirados recientes"
+                rows={filteredRetirementArchives}
+                columns={[
+                  {
+                    key: "deleted_at",
+                    header: "Retirado en",
+                    render: (row) => formatDateTime(row.deleted_at),
+                  },
+                  {
+                    key: "tenant_name",
+                    header: "Tenant",
+                    render: (row) => (
+                      <div>
+                        <div>{row.tenant_name}</div>
+                        <div className="tenant-list__meta">
+                          <code>{row.tenant_slug}</code>
+                          <span>{row.tenant_type}</span>
+                        </div>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "deleted_by_email",
+                    header: "Actor",
+                    render: (row) => row.deleted_by_email || "sistema",
+                  },
+                  {
+                    key: "billing_status",
+                    header: "Billing final",
+                    render: (row) =>
+                      row.billing_status
+                        ? displayPlatformCode(row.billing_status)
+                        : "ninguno",
+                  },
+                  {
+                    key: "billing_events_count",
+                    header: "Eventos",
+                    render: (row) =>
+                      `${row.billing_events_count} billing / ${row.policy_events_count} policy / ${row.provisioning_jobs_count} jobs`,
+                  },
+                ]}
+              />
             ) : null}
           </PanelCard>
         </div>
