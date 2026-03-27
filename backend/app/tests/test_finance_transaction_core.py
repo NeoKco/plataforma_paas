@@ -324,6 +324,60 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
         self.assertTrue(updated.is_favorite)
         self.assertTrue(updated.is_reconciled)
 
+    def test_can_filter_by_favorite_and_update_batch_flags(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+
+        first = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=15.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Pago 1",
+            ),
+            created_by_user_id=1,
+        )
+        second = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=25.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Pago 2",
+            ),
+            created_by_user_id=1,
+        )
+
+        updated_favorites = self.service.update_transactions_favorite_batch(
+            self.db,
+            [first.id, second.id],
+            is_favorite=True,
+            actor_user_id=7,
+        )
+        updated_reconciliation = self.service.update_transactions_reconciliation_batch(
+            self.db,
+            [first.id, second.id],
+            is_reconciled=True,
+            actor_user_id=8,
+        )
+        favorites = self.service.list_transactions_filtered(self.db, is_favorite=True)
+
+        self.assertEqual(len(updated_favorites), 2)
+        self.assertEqual(len(updated_reconciliation), 2)
+        self.assertEqual(len(favorites), 2)
+        self.assertTrue(all(transaction.is_favorite for transaction in favorites))
+        self.assertTrue(all(transaction.is_reconciled for transaction in favorites))
+
 
 if __name__ == "__main__":
     unittest.main()

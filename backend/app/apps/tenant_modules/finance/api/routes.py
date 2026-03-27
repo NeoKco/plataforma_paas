@@ -10,6 +10,8 @@ from app.apps.tenant_modules.finance.api.transactions import (
     list_finance_transactions,
     list_finance_entries,
     update_finance_transaction,
+    update_finance_transactions_favorite_batch,
+    update_finance_transactions_reconciliation_batch,
     update_finance_transaction_favorite,
     update_finance_transaction_reconciliation,
 )
@@ -26,6 +28,8 @@ __all__ = [
     "list_finance_transactions",
     "list_finance_entries",
     "update_finance_transaction",
+    "update_finance_transactions_favorite_batch",
+    "update_finance_transactions_reconciliation_batch",
     "update_finance_transaction_favorite",
     "update_finance_transaction_reconciliation",
 ]

@@ -32,6 +32,8 @@ import {
   updateTenantFinanceTransaction,
   updateTenantFinanceTransactionFavorite,
   updateTenantFinanceTransactionReconciliation,
+  updateTenantFinanceTransactionsFavoriteBatch,
+  updateTenantFinanceTransactionsReconciliationBatch,
   type TenantFinanceAccountBalance,
   type TenantFinanceTransactionFilters,
   type TenantFinanceSummaryResponse,
@@ -87,6 +89,7 @@ export function FinanceTransactionsPage() {
   const [accounts, setAccounts] = useState<TenantFinanceAccount[]>([]);
   const [categories, setCategories] = useState<TenantFinanceCategory[]>([]);
   const [currencies, setCurrencies] = useState<TenantFinanceCurrency[]>([]);
+  const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([]);
   const [selectedTransactionId, setSelectedTransactionId] = useState<number | null>(null);
   const [selectedTransactionDetail, setSelectedTransactionDetail] =
     useState<TenantFinanceTransactionDetailResponse["data"] | null>(null);
@@ -103,12 +106,14 @@ export function FinanceTransactionsPage() {
     transactionType: string;
     accountId: string;
     categoryId: string;
+    favorite: string;
     reconciliation: string;
     search: string;
   }>({
     transactionType: "",
     accountId: "",
     categoryId: "",
+    favorite: "",
     reconciliation: "",
     search: "",
   });
@@ -149,6 +154,7 @@ export function FinanceTransactionsPage() {
     filters.transactionType,
     filters.accountId,
     filters.categoryId,
+    filters.favorite,
     filters.reconciliation,
     filters.search,
   ]);
@@ -216,6 +222,13 @@ export function FinanceTransactionsPage() {
 
     setTransactions(
       transactionsResult.status === "fulfilled" ? transactionsResult.value.data : []
+    );
+    setSelectedTransactionIds((current) =>
+      current.filter((transactionId) =>
+        (transactionsResult.status === "fulfilled" ? transactionsResult.value.data : []).some(
+          (transaction) => transaction.id === transactionId
+        )
+      )
     );
     setSummaryResponse(summaryResult.status === "fulfilled" ? summaryResult.value : null);
 
@@ -352,6 +365,36 @@ export function FinanceTransactionsPage() {
     });
   }
 
+  async function handleBatchFavorite(isFavorite: boolean) {
+    if (!session?.accessToken || selectedTransactionIds.length === 0) {
+      return;
+    }
+    await runRowAction(async () => {
+      const response = await updateTenantFinanceTransactionsFavoriteBatch(
+        session.accessToken,
+        selectedTransactionIds,
+        isFavorite
+      );
+      setActionFeedback({ type: "success", message: response.message });
+      setSelectedTransactionIds([]);
+    });
+  }
+
+  async function handleBatchReconciliation(isReconciled: boolean) {
+    if (!session?.accessToken || selectedTransactionIds.length === 0) {
+      return;
+    }
+    await runRowAction(async () => {
+      const response = await updateTenantFinanceTransactionsReconciliationBatch(
+        session.accessToken,
+        selectedTransactionIds,
+        isReconciled
+      );
+      setActionFeedback({ type: "success", message: response.message });
+      setSelectedTransactionIds([]);
+    });
+  }
+
   function startEditingTransaction(transaction: TenantFinanceTransaction) {
     setEditingTransactionId(transaction.id);
     setFormState(buildTransactionFormState(transaction));
@@ -366,6 +409,42 @@ export function FinanceTransactionsPage() {
       currencyId: baseCurrency ? String(baseCurrency.id) : "",
       transactionAt: buildDateTimeLocalValue(),
     });
+  }
+
+  const selectedTransactions = transactions.filter((transaction) =>
+    selectedTransactionIds.includes(transaction.id)
+  );
+  const selectedFavoritesCount = selectedTransactions.filter(
+    (transaction) => transaction.is_favorite
+  ).length;
+  const selectedPendingReconciliationCount = selectedTransactions.filter(
+    (transaction) => !transaction.is_reconciled
+  ).length;
+  const favoriteTransactionsCount = transactions.filter(
+    (transaction) => transaction.is_favorite
+  ).length;
+  const pendingReconciliationCount = transactions.filter(
+    (transaction) => !transaction.is_reconciled
+  ).length;
+
+  function toggleTransactionSelection(transactionId: number) {
+    setSelectedTransactionIds((current) =>
+      current.includes(transactionId)
+        ? current.filter((id) => id !== transactionId)
+        : [...current, transactionId]
+    );
+  }
+
+  function toggleVisibleSelection() {
+    const visibleIds = transactions.map((transaction) => transaction.id);
+    const allVisibleSelected =
+      visibleIds.length > 0 &&
+      visibleIds.every((transactionId) => selectedTransactionIds.includes(transactionId));
+    setSelectedTransactionIds((current) =>
+      allVisibleSelected
+        ? current.filter((transactionId) => !visibleIds.includes(transactionId))
+        : Array.from(new Set([...current, ...visibleIds]))
+    );
   }
 
   return (
@@ -738,6 +817,16 @@ export function FinanceTransactionsPage() {
           title="Transacciones recientes"
           subtitle="La tabla ya lee finance_transactions y no la capa legacy de entries."
         >
+          <div className="tenant-detail-grid mb-3">
+            <DetailField label="Favoritas visibles" value={favoriteTransactionsCount} />
+            <DetailField label="Pendientes conciliación" value={pendingReconciliationCount} />
+            <DetailField label="Seleccionadas" value={selectedTransactionIds.length} />
+            <DetailField
+              label="Favoritas seleccionadas"
+              value={selectedFavoritesCount}
+            />
+          </div>
+
           <div className="finance-filter-grid">
             <div>
               <label className="form-label">Buscar</label>
@@ -803,6 +892,23 @@ export function FinanceTransactionsPage() {
               </select>
             </div>
             <div>
+              <label className="form-label">Favorita</label>
+              <select
+                className="form-select"
+                value={filters.favorite}
+                onChange={(event) =>
+                  setFilters((current) => ({
+                    ...current,
+                    favorite: event.target.value,
+                  }))
+                }
+              >
+                <option value="">Todas</option>
+                <option value="yes">Favoritas</option>
+                <option value="no">No favoritas</option>
+              </select>
+            </div>
+            <div>
               <label className="form-label">Conciliación</label>
               <select
                 className="form-select"
@@ -821,11 +927,116 @@ export function FinanceTransactionsPage() {
             </div>
           </div>
 
+          <div className="finance-inline-toolbar finance-inline-toolbar--compact mb-3">
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
+              onClick={() =>
+                setFilters((current) => ({
+                  ...current,
+                  favorite: "yes",
+                }))
+              }
+            >
+              Solo favoritas
+            </button>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
+              onClick={() =>
+                setFilters((current) => ({
+                  ...current,
+                  reconciliation: "pending",
+                }))
+              }
+            >
+              Pendientes conciliación
+            </button>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
+              onClick={() =>
+                setFilters({
+                  transactionType: "",
+                  accountId: "",
+                  categoryId: "",
+                  favorite: "",
+                  reconciliation: "",
+                  search: "",
+                })
+              }
+            >
+              Limpiar filtros
+            </button>
+          </div>
+
+          {selectedTransactionIds.length > 0 ? (
+            <div className="tenant-action-feedback tenant-action-feedback--success">
+              <strong>Mesa de trabajo:</strong> {selectedTransactionIds.length} transacciones seleccionadas.
+              {" "}
+              {selectedPendingReconciliationCount} pendientes de conciliación.
+              <div className="finance-inline-toolbar finance-inline-toolbar--compact mt-2">
+                <button
+                  className="btn btn-outline-warning btn-sm"
+                  type="button"
+                  disabled={isActionSubmitting}
+                  onClick={() => void handleBatchFavorite(true)}
+                >
+                  Marcar favoritas
+                </button>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  disabled={isActionSubmitting}
+                  onClick={() => void handleBatchFavorite(false)}
+                >
+                  Quitar favoritas
+                </button>
+                <button
+                  className="btn btn-outline-success btn-sm"
+                  type="button"
+                  disabled={isActionSubmitting}
+                  onClick={() => void handleBatchReconciliation(true)}
+                >
+                  Conciliar lote
+                </button>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  disabled={isActionSubmitting}
+                  onClick={() => void handleBatchReconciliation(false)}
+                >
+                  Desconciliar lote
+                </button>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  disabled={isActionSubmitting}
+                  onClick={() => setSelectedTransactionIds([])}
+                >
+                  Limpiar selección
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           {transactions.length > 0 ? (
             <div className="table-responsive">
               <table className="table table-hover align-middle mb-0">
                 <thead>
                   <tr>
+                    <th>
+                      <input
+                        type="checkbox"
+                        checked={
+                          transactions.length > 0 &&
+                          transactions.every((transaction) =>
+                            selectedTransactionIds.includes(transaction.id)
+                          )
+                        }
+                        onChange={toggleVisibleSelection}
+                      />
+                    </th>
                     <th>Detalle</th>
                     <th>Fecha</th>
                     <th>Tipo</th>
@@ -852,6 +1063,13 @@ export function FinanceTransactionsPage() {
                         key={transaction.id}
                         className={isSelected ? "table-primary" : undefined}
                       >
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={selectedTransactionIds.includes(transaction.id)}
+                            onChange={() => toggleTransactionSelection(transaction.id)}
+                          />
+                        </td>
                         <td>
                           <button
                             className={`btn btn-sm ${
@@ -1144,6 +1362,7 @@ function buildApiFilters(filters: {
   transactionType: string;
   accountId: string;
   categoryId: string;
+  favorite: string;
   reconciliation: string;
   search: string;
 }): TenantFinanceTransactionFilters {
@@ -1151,6 +1370,12 @@ function buildApiFilters(filters: {
     transactionType: filters.transactionType || undefined,
     accountId: filters.accountId ? Number(filters.accountId) : null,
     categoryId: filters.categoryId ? Number(filters.categoryId) : null,
+    isFavorite:
+      filters.favorite === "yes"
+        ? true
+        : filters.favorite === "no"
+          ? false
+          : null,
     isReconciled:
       filters.reconciliation === "done"
         ? true

@@ -22,6 +22,8 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     finance_summary,
     get_finance_transaction_detail,
     update_finance_transaction,
+    update_finance_transactions_favorite_batch,
+    update_finance_transactions_reconciliation_batch,
     update_finance_transaction_favorite,
     update_finance_transaction_reconciliation,
     list_finance_transactions,
@@ -307,6 +309,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 transaction_type="expense",
                 account_id=4,
                 category_id=9,
+                is_favorite=True,
                 is_reconciled=False,
                 search="mantencion",
                 current_user=self._current_user(role="operator"),
@@ -317,6 +320,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(list_transactions_mock.call_args.kwargs["transaction_type"], "expense")
         self.assertEqual(list_transactions_mock.call_args.kwargs["account_id"], 4)
         self.assertEqual(list_transactions_mock.call_args.kwargs["category_id"], 9)
+        self.assertTrue(list_transactions_mock.call_args.kwargs["is_favorite"])
         self.assertFalse(list_transactions_mock.call_args.kwargs["is_reconciled"])
         self.assertEqual(list_transactions_mock.call_args.kwargs["search"], "mantencion")
 
@@ -592,6 +596,23 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertTrue(response.data.is_favorite)
 
+    def test_update_finance_transactions_favorite_batch_returns_affected_ids(self) -> None:
+        transactions = [SimpleNamespace(id=21), SimpleNamespace(id=22)]
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.update_transactions_favorite_batch",
+            return_value=transactions,
+        ):
+            response = update_finance_transactions_favorite_batch(
+                payload=SimpleNamespace(transaction_ids=[21, 22], is_favorite=True),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.affected_count, 2)
+        self.assertEqual(response.data.transaction_ids, [21, 22])
+
     def test_update_finance_transaction_reconciliation_returns_mutated_transaction(self) -> None:
         transaction = SimpleNamespace(
             id=22,
@@ -639,6 +660,23 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertTrue(response.data.is_reconciled)
+
+    def test_update_finance_transactions_reconciliation_batch_returns_affected_ids(self) -> None:
+        transactions = [SimpleNamespace(id=31), SimpleNamespace(id=32), SimpleNamespace(id=33)]
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.update_transactions_reconciliation_batch",
+            return_value=transactions,
+        ):
+            response = update_finance_transactions_reconciliation_batch(
+                payload=SimpleNamespace(transaction_ids=[31, 32, 33], is_reconciled=True),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.affected_count, 3)
+        self.assertEqual(response.data.transaction_ids, [31, 32, 33])
 
     def test_create_finance_entry_returns_403_when_plan_limit_is_reached(self) -> None:
         with patch(

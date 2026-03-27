@@ -117,8 +117,18 @@ export type TenantFinanceTransactionFilters = {
   transactionType?: string;
   accountId?: number | null;
   categoryId?: number | null;
+  isFavorite?: boolean | null;
   isReconciled?: boolean | null;
   search?: string;
+};
+
+export type TenantFinanceTransactionBatchMutationResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    affected_count: number;
+    transaction_ids: number[];
+  };
 };
 
 export function getTenantFinanceTransactions(
@@ -134,6 +144,9 @@ export function getTenantFinanceTransactions(
   }
   if (filters.categoryId != null) {
     params.set("category_id", String(filters.categoryId));
+  }
+  if (filters.isFavorite != null) {
+    params.set("is_favorite", filters.isFavorite ? "true" : "false");
   }
   if (filters.isReconciled != null) {
     params.set("is_reconciled", filters.isReconciled ? "true" : "false");
@@ -215,6 +228,21 @@ export function updateTenantFinanceTransactionFavorite(
   );
 }
 
+export function updateTenantFinanceTransactionsFavoriteBatch(
+  accessToken: string,
+  transactionIds: number[],
+  isFavorite: boolean
+) {
+  return apiRequest<TenantFinanceTransactionBatchMutationResponse>(
+    "/tenant/finance/transactions/favorite/batch",
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: { transaction_ids: transactionIds, is_favorite: isFavorite },
+    }
+  );
+}
+
 export function updateTenantFinanceTransactionReconciliation(
   accessToken: string,
   transactionId: number,
@@ -226,6 +254,21 @@ export function updateTenantFinanceTransactionReconciliation(
       method: "PATCH",
       token: accessToken,
       body: { is_reconciled: isReconciled },
+    }
+  );
+}
+
+export function updateTenantFinanceTransactionsReconciliationBatch(
+  accessToken: string,
+  transactionIds: number[],
+  isReconciled: boolean
+) {
+  return apiRequest<TenantFinanceTransactionBatchMutationResponse>(
+    "/tenant/finance/transactions/reconciliation/batch",
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: { transaction_ids: transactionIds, is_reconciled: isReconciled },
     }
   );
 }

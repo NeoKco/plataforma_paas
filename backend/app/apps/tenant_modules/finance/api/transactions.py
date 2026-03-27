@@ -18,12 +18,16 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceSummaryData,
     FinanceSummaryResponse,
     FinanceTransactionAuditItemResponse,
+    FinanceTransactionBatchMutationData,
+    FinanceTransactionBatchMutationResponse,
     FinanceTransactionCreateRequest,
     FinanceTransactionDetailData,
     FinanceTransactionDetailResponse,
+    FinanceTransactionFavoriteBatchUpdateRequest,
     FinanceTransactionFavoriteUpdateRequest,
     FinanceTransactionItemResponse,
     FinanceTransactionMutationResponse,
+    FinanceTransactionReconciliationBatchUpdateRequest,
     FinanceTransactionReconciliationUpdateRequest,
     FinanceTransactionUpdateRequest,
     FinanceTransactionsResponse,
@@ -135,6 +139,7 @@ def list_finance_transactions(
     transaction_type: str | None = None,
     account_id: int | None = None,
     category_id: int | None = None,
+    is_favorite: bool | None = None,
     is_reconciled: bool | None = None,
     search: str | None = None,
     current_user=Depends(require_finance_read),
@@ -145,6 +150,7 @@ def list_finance_transactions(
         transaction_type=transaction_type,
         account_id=account_id,
         category_id=category_id,
+        is_favorite=is_favorite,
         is_reconciled=is_reconciled,
         search=search,
     )
@@ -264,6 +270,36 @@ def update_finance_transaction_favorite(
 
 
 @router.patch(
+    "/transactions/favorite/batch",
+    response_model=FinanceTransactionBatchMutationResponse,
+)
+def update_finance_transactions_favorite_batch(
+    payload: FinanceTransactionFavoriteBatchUpdateRequest,
+    current_user=Depends(require_finance_create),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTransactionBatchMutationResponse:
+    try:
+        transactions = finance_service.update_transactions_favorite_batch(
+            tenant_db,
+            payload.transaction_ids,
+            is_favorite=payload.is_favorite,
+            actor_user_id=current_user["user_id"],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceTransactionBatchMutationResponse(
+        success=True,
+        message="Favoritos actualizados en lote correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        data=FinanceTransactionBatchMutationData(
+            affected_count=len(transactions),
+            transaction_ids=[transaction.id for transaction in transactions],
+        ),
+    )
+
+
+@router.patch(
     "/transactions/{transaction_id}/reconciliation",
     response_model=FinanceTransactionMutationResponse,
 )
@@ -288,6 +324,36 @@ def update_finance_transaction_reconciliation(
         message="Estado de conciliacion actualizado correctamente",
         requested_by=_build_tenant_user_context(current_user),
         data=_build_finance_transaction_item(transaction),
+    )
+
+
+@router.patch(
+    "/transactions/reconciliation/batch",
+    response_model=FinanceTransactionBatchMutationResponse,
+)
+def update_finance_transactions_reconciliation_batch(
+    payload: FinanceTransactionReconciliationBatchUpdateRequest,
+    current_user=Depends(require_finance_create),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTransactionBatchMutationResponse:
+    try:
+        transactions = finance_service.update_transactions_reconciliation_batch(
+            tenant_db,
+            payload.transaction_ids,
+            is_reconciled=payload.is_reconciled,
+            actor_user_id=current_user["user_id"],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceTransactionBatchMutationResponse(
+        success=True,
+        message="Conciliacion actualizada en lote correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        data=FinanceTransactionBatchMutationData(
+            affected_count=len(transactions),
+            transaction_ids=[transaction.id for transaction in transactions],
+        ),
     )
 
 

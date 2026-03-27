@@ -69,6 +69,8 @@ En esta fase quedaron listos:
 - acciones rapidas para marcar favorita o conciliada una transaccion existente
 - edicion completa de transacciones existentes usando el mismo contrato de escritura
 - modo edicion en la pantalla principal de `Transacciones`, con cancelar y refresco del detalle sin colapsarlo
+- filtro explicito por favoritas y mesa de trabajo basica con seleccion multiple
+- acciones por lote para favoritas y conciliacion desde la tabla principal
 
 ## Archivos principales
 
@@ -200,12 +202,14 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 3. filtros operativos por tipo, cuenta, categoria, conciliacion y texto
 4. toggles rapidos de favorito y conciliacion
 5. edicion completa de transacciones existentes
+6. mesa de trabajo basica para conciliacion/favoritos con seleccion multiple y acciones por lote
 
 Lo siguiente recomendable ahora es:
 
-1. ampliar conciliacion y favoritos con vistas de trabajo mas ricas
+1. abrir conciliacion asistida mas rica: motivos, comentarios, agrupacion y revision visual
 2. seguir con prestamos, planificacion y reportes
-3. abrir acciones mas densas de trabajo sobre lotes o conciliacion asistida
+3. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
+4. abrir exportacion o vistas derivadas cuando el trabajo operativo del slice ya quede estable
 
 ## Convencion relacionada
 

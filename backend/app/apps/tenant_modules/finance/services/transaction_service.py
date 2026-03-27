@@ -233,6 +233,7 @@ class FinanceService:
         transaction_type: str | None = None,
         account_id: int | None = None,
         category_id: int | None = None,
+        is_favorite: bool | None = None,
         is_reconciled: bool | None = None,
         search: str | None = None,
     ) -> list[FinanceTransaction]:
@@ -241,6 +242,7 @@ class FinanceService:
             transaction_type=transaction_type,
             account_id=account_id,
             category_id=category_id,
+            is_favorite=is_favorite,
             is_reconciled=is_reconciled,
             search=search,
         )
@@ -311,6 +313,59 @@ class FinanceService:
             payload={"is_reconciled": is_reconciled},
         )
         return saved
+
+    def update_transactions_favorite_batch(
+        self,
+        tenant_db: Session,
+        transaction_ids: list[int],
+        *,
+        is_favorite: bool,
+        actor_user_id: int | None = None,
+    ) -> list[FinanceTransaction]:
+        transactions = self._get_transactions_for_batch(tenant_db, transaction_ids)
+        for transaction in transactions:
+            transaction.is_favorite = is_favorite
+            transaction.favorite_flag = is_favorite
+            transaction.updated_by_user_id = actor_user_id
+            self.transaction_audit_repository.save_event(
+                tenant_db,
+                transaction_id=transaction.id,
+                event_type="transaction.favorite.updated.batch",
+                actor_user_id=actor_user_id,
+                summary="Favorito de transaccion actualizado en lote",
+                payload={"is_favorite": is_favorite},
+            )
+        tenant_db.commit()
+        for transaction in transactions:
+            tenant_db.refresh(transaction)
+        return transactions
+
+    def update_transactions_reconciliation_batch(
+        self,
+        tenant_db: Session,
+        transaction_ids: list[int],
+        *,
+        is_reconciled: bool,
+        actor_user_id: int | None = None,
+    ) -> list[FinanceTransaction]:
+        transactions = self._get_transactions_for_batch(tenant_db, transaction_ids)
+        effective_reconciled_at = datetime.now(timezone.utc) if is_reconciled else None
+        for transaction in transactions:
+            transaction.is_reconciled = is_reconciled
+            transaction.reconciled_at = effective_reconciled_at
+            transaction.updated_by_user_id = actor_user_id
+            self.transaction_audit_repository.save_event(
+                tenant_db,
+                transaction_id=transaction.id,
+                event_type="transaction.reconciliation.updated.batch",
+                actor_user_id=actor_user_id,
+                summary="Estado de conciliacion actualizado en lote",
+                payload={"is_reconciled": is_reconciled},
+            )
+        tenant_db.commit()
+        for transaction in transactions:
+            tenant_db.refresh(transaction)
+        return transactions
 
     def _build_transaction_values(
         self,
@@ -385,6 +440,21 @@ class FinanceService:
             "is_reconciled": payload.is_reconciled,
             "reconciled_at": reconciled_at,
         }
+
+    def _get_transactions_for_batch(
+        self,
+        tenant_db: Session,
+        transaction_ids: list[int],
+    ) -> list[FinanceTransaction]:
+        normalized_ids = list(dict.fromkeys(transaction_ids))
+        if not normalized_ids:
+            raise ValueError("Debes indicar al menos una transaccion")
+        transactions = self.transaction_repository.list_by_ids(tenant_db, normalized_ids)
+        loaded_ids = {transaction.id for transaction in transactions}
+        missing_ids = [transaction_id for transaction_id in normalized_ids if transaction_id not in loaded_ids]
+        if missing_ids:
+            raise ValueError("Una o mas transacciones financieras no existen")
+        return transactions
 
     def get_summary(self, tenant_db: Session) -> dict[str, float]:
         entries = self.transaction_repository.list_all(tenant_db)
