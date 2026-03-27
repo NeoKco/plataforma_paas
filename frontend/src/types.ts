@@ -444,6 +444,42 @@ export type PlatformTenantDbCredentialsRotateResponse = {
   rotated_at: string | null;
 };
 
+export type PlatformTenantUserPasswordResetRequest = {
+  email: string;
+  new_password: string;
+};
+
+export type PlatformTenantUserPasswordResetResponse = {
+  success: boolean;
+  message: string;
+  tenant_id: number;
+  tenant_slug: string;
+  tenant_status: string;
+  user_id: number;
+  full_name: string;
+  email: string;
+  role: string;
+  is_active: boolean;
+};
+
+export type PlatformTenantPortalUserItem = {
+  id: number;
+  full_name: string;
+  email: string;
+  role: string;
+  is_active: boolean;
+};
+
+export type PlatformTenantPortalUsersResponse = {
+  success: boolean;
+  message: string;
+  tenant_id: number;
+  tenant_slug: string;
+  tenant_status: string;
+  total: number;
+  data: PlatformTenantPortalUserItem[];
+};
+
 export type PlatformTenantPolicyChangeEvent = {
   id: number;
   tenant_id: number;

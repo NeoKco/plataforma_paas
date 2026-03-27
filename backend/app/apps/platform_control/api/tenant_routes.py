@@ -48,6 +48,10 @@ from app.apps.platform_control.schemas import (
     TenantSchemaSyncResponse,
     TenantSchemaStatusResponse,
     TenantDbCredentialsRotateResponse,
+    TenantPortalUserPasswordResetRequest,
+    TenantPortalUserPasswordResetResponse,
+    TenantPortalUsersItemResponse,
+    TenantPortalUsersResponse,
 )
 from app.apps.platform_control.services.billing_alert_service import (
     BillingAlertService,
@@ -59,6 +63,7 @@ from app.apps.tenant_modules.core.services.tenant_connection_service import (
 from app.apps.tenant_modules.core.services.module_usage_service import (
     TenantModuleUsageService,
 )
+from app.apps.tenant_modules.core.services.tenant_data_service import TenantDataService
 from app.apps.tenant_modules.finance.services.finance_service import FinanceService
 from app.apps.platform_control.services.tenant_billing_sync_service import (
     TenantBillingSyncService,
@@ -84,6 +89,7 @@ billing_alert_service = BillingAlertService(
 tenant_connection_service = TenantConnectionService()
 finance_service = FinanceService()
 tenant_module_usage_service = TenantModuleUsageService(finance_service=finance_service)
+tenant_data_service = TenantDataService()
 
 
 def _raise_tenant_schema_http_error(exc: Exception) -> None:
@@ -206,6 +212,31 @@ def _build_tenant_response(tenant) -> TenantResponse:
         maintenance_access_mode=tenant.maintenance_access_mode,
         api_read_requests_per_minute=tenant.api_read_requests_per_minute,
         api_write_requests_per_minute=tenant.api_write_requests_per_minute,
+    )
+
+
+def _build_tenant_portal_user_reset_response(tenant, user):
+    return TenantPortalUserPasswordResetResponse(
+        success=True,
+        message="La contraseña del usuario tenant fue actualizada correctamente.",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        user_id=user.id,
+        full_name=user.full_name,
+        email=user.email,
+        role=user.role,
+        is_active=user.is_active,
+    )
+
+
+def _build_tenant_portal_user_item(user) -> TenantPortalUsersItemResponse:
+    return TenantPortalUsersItemResponse(
+        id=user.id,
+        full_name=user.full_name,
+        email=user.email,
+        role=user.role,
+        is_active=user.is_active,
     )
 
 
@@ -673,6 +704,78 @@ def rotate_tenant_db_credentials(
         tenant_status=tenant.status,
         env_var_name=result["env_var_name"],
         rotated_at=result["rotated_at"],
+    )
+
+
+@router.post(
+    "/{tenant_id}/users/reset-password",
+    response_model=TenantPortalUserPasswordResetResponse,
+)
+def reset_tenant_portal_user_password(
+    tenant_id: int,
+    payload: TenantPortalUserPasswordResetRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantPortalUserPasswordResetResponse:
+    tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    try:
+        with _open_platform_tenant_db(tenant) as tenant_db:
+            user = tenant_data_service.reset_user_password_by_email(
+                tenant_db,
+                email=payload.email,
+                new_password=payload.new_password,
+            )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant user not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    except (OperationalError, ProgrammingError) as exc:
+        _raise_tenant_schema_http_error(exc)
+
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.tenant_user.password_reset",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+        tenant_slug=tenant.slug,
+        email=_token.get("email"),
+        detail=f"Reinicio contraseña portal tenant de {user.email}",
+    )
+
+    return _build_tenant_portal_user_reset_response(tenant, user)
+
+
+@router.get(
+    "/{tenant_id}/users",
+    response_model=TenantPortalUsersResponse,
+)
+def list_tenant_portal_users(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantPortalUsersResponse:
+    tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    try:
+        with _open_platform_tenant_db(tenant) as tenant_db:
+            users = tenant_data_service.list_users(tenant_db)
+    except (OperationalError, ProgrammingError) as exc:
+        _raise_tenant_schema_http_error(exc)
+
+    return TenantPortalUsersResponse(
+        success=True,
+        message="Usuarios del portal tenant recuperados correctamente.",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        total=len(users),
+        data=[_build_tenant_portal_user_item(user) for user in users],
     )
 
 

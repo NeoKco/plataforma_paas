@@ -10,6 +10,9 @@ import type {
   PlatformTenantAccessPolicy,
   PlatformTenantBillingResponse,
   PlatformTenantDbCredentialsRotateResponse,
+  PlatformTenantPortalUsersResponse,
+  PlatformTenantUserPasswordResetRequest,
+  PlatformTenantUserPasswordResetResponse,
   PlatformUserCreateRequest,
   PlatformUserDeleteResponse,
   PlatformUserListResponse,
@@ -233,6 +236,30 @@ export function rotatePlatformTenantDbCredentials(
     `/platform/tenants/${tenantId}/rotate-db-credentials`,
     {
       method: "POST",
+      token: accessToken,
+    }
+  );
+}
+
+export function resetPlatformTenantUserPassword(
+  accessToken: string,
+  tenantId: number,
+  payload: PlatformTenantUserPasswordResetRequest
+) {
+  return apiRequest<PlatformTenantUserPasswordResetResponse>(
+    `/platform/tenants/${tenantId}/users/reset-password`,
+    {
+      method: "POST",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function listPlatformTenantUsers(accessToken: string, tenantId: number) {
+  return apiRequest<PlatformTenantPortalUsersResponse>(
+    `/platform/tenants/${tenantId}/users`,
+    {
       token: accessToken,
     }
   );

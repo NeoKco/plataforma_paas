@@ -266,6 +266,29 @@ class TenantDataService:
 
         return self.user_repository.save(tenant_db, user)
 
+    def reset_user_password_by_email(
+        self,
+        tenant_db: Session,
+        *,
+        email: str,
+        new_password: str,
+    ) -> User:
+        normalized_email = email.strip()
+        normalized_password = new_password.strip()
+
+        if not normalized_email:
+            raise ValueError("Tenant user email is required")
+
+        if not normalized_password:
+            raise ValueError("Tenant user password is required")
+
+        user = self.user_repository.get_by_email(tenant_db, normalized_email)
+        if not user:
+            raise ValueError("Tenant user not found")
+
+        user.password_hash = hash_password(normalized_password)
+        return self.user_repository.save(tenant_db, user)
+
     def update_user_status(
         self,
         tenant_db: Session,

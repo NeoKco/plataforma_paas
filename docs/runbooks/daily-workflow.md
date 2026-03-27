@@ -169,7 +169,10 @@ Si el cambio toca especificamente el ciclo basico del tenant:
    - revisar si la credencial técnica tenant quedó desalineada con PostgreSQL
    - si el tenant ya tiene DB materializada, usar `Rotar credenciales tecnicas`
    - si además la DB quedó inconsistente o incompleta, considerar `Reprovisionar tenant`
-9. si el cambio toca passwords tecnicas, builders de conexion o PostgreSQL:
+9. si el problema es solo una contraseña olvidada de un usuario del portal tenant:
+   - no rotar la credencial tecnica DB
+   - usar el bloque `Acceso portal tenant` dentro de `Platform Admin > Tenants`
+10. si el cambio toca passwords tecnicas, builders de conexion o PostgreSQL:
    - correr `app.tests.test_db_url_factory`
    - si el entorno local lo permite, correr tambien `app.tests.test_tenant_postgres_integration_flow` y `app.tests.test_platform_postgres_integration_flow`
 

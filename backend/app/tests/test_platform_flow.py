@@ -16,6 +16,7 @@ from app.tests.fixtures import (  # noqa: E402
     build_platform_request,
     build_platform_user_stub,
     build_tenant_record_stub,
+    build_tenant_user_stub,
     set_test_environment,
 )
 
@@ -71,6 +72,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     get_tenant,
     get_tenant_finance_usage,
     get_tenant_module_usage,
+    list_tenant_portal_users,
     get_tenant_schema_status,
     list_tenants,
     get_tenant_access_policy,
@@ -80,6 +82,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     reconcile_tenant_billing_events_batch,
     reconcile_tenant_billing_from_event,
     reprovision_tenant,
+    reset_tenant_portal_user_password,
     rotate_tenant_db_credentials,
     sync_tenant_billing_event,
     restore_tenant,
@@ -112,6 +115,8 @@ from app.apps.platform_control.schemas import (  # noqa: E402
     TenantPlanUpdateRequest,
     TenantRateLimitUpdateRequest,
     TenantRestoreRequest,
+    TenantPortalUserPasswordResetRequest,
+    TenantPortalUsersResponse,
     TenantStatusUpdateRequest,
 )
 from app.apps.platform_control.services.auth_service import PlatformAuthService  # noqa: E402
@@ -5168,6 +5173,147 @@ class PlatformRoutesTestCase(unittest.TestCase):
             exc.exception.detail,
             "The rotated tenant credentials could not be validated and the previous password was restored. Verify PostgreSQL admin access and tenant database reachability before retrying.",
         )
+
+    def test_reset_tenant_portal_user_password_returns_schema(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Demo",
+            tenant_slug="empresa-demo",
+            status="active",
+        )
+        tenant.id = 5
+        user = build_tenant_user_stub(
+            user_id=12,
+            full_name="Admin Tenant",
+            email="admin@empresa-demo.local",
+            role="admin",
+            is_active=True,
+        )
+
+        class _TenantDbContext:
+            def __enter__(self):
+                return object()
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.tenant_repository.get_by_id",
+            return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes._open_platform_tenant_db",
+            return_value=_TenantDbContext(),
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_data_service.reset_user_password_by_email",
+            return_value=user,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
+        ) as audit_mock:
+            response = reset_tenant_portal_user_password(
+                tenant_id=5,
+                payload=TenantPortalUserPasswordResetRequest(
+                    email="admin@empresa-demo.local",
+                    new_password="NuevaClave123!",
+                ),
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.tenant_id, 5)
+        self.assertEqual(response.user_id, 12)
+        self.assertEqual(response.email, "admin@empresa-demo.local")
+        audit_mock.assert_called_once()
+
+    def test_reset_tenant_portal_user_password_returns_404_when_missing_user(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Demo",
+            tenant_slug="empresa-demo",
+            status="active",
+        )
+        tenant.id = 5
+
+        class _TenantDbContext:
+            def __enter__(self):
+                return object()
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.tenant_repository.get_by_id",
+            return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes._open_platform_tenant_db",
+            return_value=_TenantDbContext(),
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_data_service.reset_user_password_by_email",
+            side_effect=ValueError("Tenant user not found"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                reset_tenant_portal_user_password(
+                    tenant_id=5,
+                    payload=TenantPortalUserPasswordResetRequest(
+                        email="admin@empresa-demo.local",
+                        new_password="NuevaClave123!",
+                    ),
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 404)
+        self.assertEqual(exc.exception.detail, "Tenant user not found")
+
+    def test_list_tenant_portal_users_returns_schema(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Condominio Demo",
+            tenant_slug="condominio-demo",
+            status="active",
+        )
+        tenant.id = 2
+        users = [
+            build_tenant_user_stub(
+                user_id=1,
+                full_name="Tenant Manager",
+                email="manager@condominio-demo.local",
+                role="manager",
+                is_active=True,
+            ),
+            build_tenant_user_stub(
+                user_id=2,
+                full_name="Tenant Operator",
+                email="operator@condominio-demo.local",
+                role="operator",
+                is_active=True,
+            ),
+        ]
+
+        class _TenantDbContext:
+            def __enter__(self):
+                return object()
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.tenant_repository.get_by_id",
+            return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes._open_platform_tenant_db",
+            return_value=_TenantDbContext(),
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_data_service.list_users",
+            return_value=users,
+        ):
+            response = list_tenant_portal_users(
+                tenant_id=2,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertIsInstance(response, TenantPortalUsersResponse)
+        self.assertTrue(response.success)
+        self.assertEqual(response.total, 2)
+        self.assertEqual(response.data[0].email, "manager@condominio-demo.local")
 
     def test_create_tenant_logs_audit_event(self) -> None:
         tenant = build_tenant_record_stub(

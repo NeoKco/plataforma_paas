@@ -597,6 +597,42 @@ class TenantDbCredentialsRotateResponse(BaseModel):
     rotated_at: datetime | None = None
 
 
+class TenantPortalUserPasswordResetRequest(BaseModel):
+    email: str
+    new_password: str
+
+
+class TenantPortalUserPasswordResetResponse(BaseModel):
+    success: bool
+    message: str
+    tenant_id: int
+    tenant_slug: str
+    tenant_status: str
+    user_id: int
+    full_name: str
+    email: str
+    role: str
+    is_active: bool
+
+
+class TenantPortalUsersItemResponse(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    role: str
+    is_active: bool
+
+
+class TenantPortalUsersResponse(BaseModel):
+    success: bool
+    message: str
+    tenant_id: int
+    tenant_slug: str
+    tenant_status: str
+    total: int
+    data: list[TenantPortalUsersItemResponse]
+
+
 class TenantStatusUpdateRequest(BaseModel):
     status: str
     status_reason: str | None = None

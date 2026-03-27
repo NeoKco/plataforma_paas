@@ -17,6 +17,7 @@ Desde `Tenants` hoy ya puedes:
 - abrir el portal tenant solo cuando el tenant ya esta realmente listo
 - operar estado, mantenimiento, billing, plan, limites y sincronizacion de esquema
 - rotar credenciales tecnicas de DB tenant de forma controlada
+- reiniciar la contraseña de usuarios del portal tenant desde plataforma
 - revisar si el esquema tenant esta al dia sin entrar a SQL manual
 - validar el ciclo tambien contra PostgreSQL real cuando cambian passwords tecnicas o builders de conexion
 
@@ -198,6 +199,9 @@ Motivo:
   - `Uso por modulo` debe indicar que primero debes rotar o reprovisionar la credencial tecnica de la base tenant
   - ese camino ya no debe caer con `500` crudo por `password authentication failed`
   - si la rotacion devuelve `role not found` o `database not found`, el siguiente camino correcto es `Reprovisionar tenant`
+  - la credencial tecnica rotada queda guardada en `/home/felipe/platform_paas/.env` bajo `TENANT_DB_PASSWORD__<SLUG>`
+  - esa credencial tecnica no corresponde a la contraseña del usuario del portal tenant
+  - si un usuario del portal tenant pierde su clave, `Platform Admin > Tenants` ya deja reiniciarla por email sin tocar la credencial tecnica DB
 
 ## 6. Que no conviene hacer todavia
 

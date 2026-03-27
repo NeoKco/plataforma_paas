@@ -30,6 +30,7 @@ export function getPlatformActionFeedbackLabel(scope: string): string {
     "requeue-dlq-batch": "Reencolado DLQ",
     "reprovision-tenant": "Reprovisionado de tenant",
     "rotate-tenant-db-credentials": "Credenciales técnicas tenant",
+    "reset-tenant-portal-password": "Contraseña portal tenant",
     "reconcile-batch": "Reconcile en lote",
     "Reencolado DLQ": "Reencolado DLQ",
   };
@@ -76,6 +77,8 @@ export function getPlatformActionSuccessMessage(
       "Se creó un nuevo job de provisioning para recomponer la base tenant.",
     "rotate-tenant-db-credentials":
       "Las credenciales técnicas tenant fueron rotadas correctamente.",
+    "reset-tenant-portal-password":
+      "La contraseña del usuario del portal tenant fue actualizada correctamente.",
     "reconcile-batch": "Los eventos filtrados fueron reconciliados correctamente.",
     "Reencolado DLQ": "Las filas DLQ volvieron a cola para nuevo procesamiento.",
   };

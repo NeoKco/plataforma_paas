@@ -2136,6 +2136,42 @@ class TenantRoutesTestCase(unittest.TestCase):
 
         self.assertFalse(response.data.is_active)
 
+    def test_tenant_data_service_resets_user_password_by_email(self) -> None:
+        user = build_tenant_user_stub(
+            user_id=7,
+            full_name="Tenant Admin",
+            email="admin@empresa-bootstrap.local",
+        )
+        repository = SimpleNamespace(
+            get_by_email=lambda tenant_db, email: user if email == user.email else None,
+            save=lambda tenant_db, user_to_save: user_to_save,
+        )
+        service = TenantDataService(user_repository=repository)
+
+        updated_user = service.reset_user_password_by_email(
+            tenant_db=object(),
+            email="admin@empresa-bootstrap.local",
+            new_password="NuevaClave123!",
+        )
+
+        self.assertIs(updated_user, user)
+        self.assertNotEqual(updated_user.password_hash, "hashed-password")
+
+    def test_tenant_data_service_reset_user_password_by_email_rejects_missing_user(self) -> None:
+        repository = SimpleNamespace(
+            get_by_email=lambda tenant_db, email: None,
+        )
+        service = TenantDataService(user_repository=repository)
+
+        with self.assertRaises(ValueError) as exc:
+            service.reset_user_password_by_email(
+                tenant_db=object(),
+                email="admin@empresa-bootstrap.local",
+                new_password="NuevaClave123!",
+            )
+
+        self.assertEqual(str(exc.exception), "Tenant user not found")
+
 
 if __name__ == "__main__":
     unittest.main()

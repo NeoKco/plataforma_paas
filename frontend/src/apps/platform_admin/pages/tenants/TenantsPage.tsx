@@ -28,8 +28,10 @@ import {
   getPlatformTenantModuleUsage,
   getPlatformTenantSchemaStatus,
   getPlatformTenantPolicyHistory,
+  listPlatformTenantUsers,
   listProvisioningJobs,
   reprovisionPlatformTenant,
+  resetPlatformTenantUserPassword,
   rotatePlatformTenantDbCredentials,
   requeueProvisioningJob,
   runProvisioningJob,
@@ -52,6 +54,7 @@ import type {
   ProvisioningJob,
   PlatformTenant,
   PlatformTenantAccessPolicy,
+  PlatformTenantPortalUserItem,
   PlatformTenantPolicyChangeEvent,
   PlatformTenantSchemaStatusResponse,
   PlatformTenantModuleUsageSummary,
@@ -61,6 +64,7 @@ type ActionFeedback = {
   scope: string;
   type: "success" | "error";
   message: string;
+  details?: string[];
 };
 
 type PendingConfirmation = {
@@ -122,6 +126,11 @@ export function TenantsPage() {
   const [billingProviderCustomerId, setBillingProviderCustomerId] = useState("");
   const [billingProviderSubscriptionId, setBillingProviderSubscriptionId] =
     useState("");
+  const [tenantPortalUsers, setTenantPortalUsers] = useState<
+    PlatformTenantPortalUserItem[]
+  >([]);
+  const [tenantPortalResetEmail, setTenantPortalResetEmail] = useState("");
+  const [tenantPortalResetPassword, setTenantPortalResetPassword] = useState("");
   const [moduleLimitDrafts, setModuleLimitDrafts] = useState<Record<string, string>>(
     {}
   );
@@ -229,10 +238,12 @@ export function TenantsPage() {
     }
     const searchParams = new URLSearchParams({
       tenantSlug: selectedTenantSummary.slug,
-      email: `admin@${selectedTenantSummary.slug}.local`,
     });
+    if (tenantPortalResetEmail) {
+      searchParams.set("email", tenantPortalResetEmail);
+    }
     return `/tenant-portal/login?${searchParams.toString()}`;
-  }, [selectedTenantSummary]);
+  }, [selectedTenantSummary, tenantPortalResetEmail]);
 
   const canOpenTenantPortal = useMemo(() => {
     if (!selectedTenantSummary) {
@@ -309,6 +320,7 @@ export function TenantsPage() {
     setSchemaStatus(null);
     setPolicyHistory([]);
     setSelectedProvisioningJob(null);
+    setTenantPortalUsers([]);
     let tenantStatus: string | null = null;
 
     try {
@@ -412,6 +424,16 @@ export function TenantsPage() {
       setProvisioningJobError(rawError as ApiError);
     }
 
+    try {
+      const tenantUsersResponse = await listPlatformTenantUsers(
+        session.accessToken,
+        tenantId
+      );
+      setTenantPortalUsers(tenantUsersResponse.data);
+    } catch (_rawError) {
+      setTenantPortalUsers([]);
+    }
+
     setIsDetailLoading(false);
   }
 
@@ -483,6 +505,8 @@ export function TenantsPage() {
     setBillingProviderSubscriptionId(
       selectedTenantSummary.billing_provider_subscription_id || ""
     );
+    setTenantPortalResetEmail("");
+    setTenantPortalResetPassword("");
     setIdentityName(selectedTenantSummary.name);
     setIdentityTenantType(selectedTenantSummary.tenant_type);
     setRestoreTargetStatus("active");
@@ -497,9 +521,35 @@ export function TenantsPage() {
     setActionFeedback(null);
   }, [moduleLimitKeys, selectedTenantSummary]);
 
+  useEffect(() => {
+    if (tenantPortalUsers.length === 0) {
+      setTenantPortalResetEmail("");
+      return;
+    }
+
+    if (
+      tenantPortalResetEmail &&
+      tenantPortalUsers.some((user) => user.email === tenantPortalResetEmail)
+    ) {
+      return;
+    }
+
+    const preferredUser =
+      tenantPortalUsers.find((user) => user.is_active && user.role === "admin") ||
+      tenantPortalUsers.find((user) => user.is_active && user.role === "manager") ||
+      tenantPortalUsers.find((user) => user.is_active && user.role === "user") ||
+      tenantPortalUsers[0];
+
+    setTenantPortalResetEmail(preferredUser?.email || "");
+  }, [tenantPortalResetEmail, tenantPortalUsers]);
+
   async function runAction(
     scope: string,
-    action: () => Promise<{ message: string; afterSuccess?: () => Promise<void> | void }>
+    action: () => Promise<{
+      afterSuccess?: () => Promise<void> | void;
+      details?: string[];
+      message: string;
+    }>
   ) {
     setIsActionSubmitting(true);
     setActionFeedback(null);
@@ -512,6 +562,7 @@ export function TenantsPage() {
         await reloadSelectedTenantWorkspace();
       }
       setActionFeedback({
+        details: result.details,
         scope,
         type: "success",
         message: getPlatformActionSuccessMessage(scope, result.message),
@@ -926,12 +977,47 @@ export function TenantsPage() {
       ],
       confirmLabel: "Rotar credenciales",
       action: async () => {
-        await rotatePlatformTenantDbCredentials(session.accessToken, selectedTenantId);
+        const response = await rotatePlatformTenantDbCredentials(
+          session.accessToken,
+          selectedTenantId
+        );
         return {
           message:
             "La credencial técnica de la base tenant fue rotada y validada correctamente.",
+          details: [
+            `Variable actualizada: ${response.env_var_name}`,
+            "Archivo gestionado: /home/felipe/platform_paas/.env",
+            "Esta credencial es técnica para la base tenant. No corresponde a la contraseña del portal tenant.",
+          ],
         };
       },
+    });
+  }
+
+  async function handleResetTenantPortalPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session?.accessToken || selectedTenantId === null) {
+      return;
+    }
+
+    await runAction("reset-tenant-portal-password", async () => {
+      const response = await resetPlatformTenantUserPassword(
+        session.accessToken,
+        selectedTenantId,
+        {
+          email: tenantPortalResetEmail.trim(),
+          new_password: tenantPortalResetPassword,
+        }
+      );
+      setTenantPortalResetPassword("");
+      return {
+        message: "La contraseña del usuario tenant fue actualizada correctamente.",
+        details: [
+          `Usuario actualizado: ${response.email}`,
+          `Tenant: ${response.tenant_slug}`,
+          "Esto cambia la contraseña del portal tenant, no la credencial técnica de la base de datos.",
+        ],
+      };
     });
   }
 
@@ -1605,6 +1691,13 @@ export function TenantsPage() {
                           {getPlatformActionFeedbackLabel(actionFeedback.scope)}:
                         </strong>{" "}
                         {actionFeedback.message}
+                        {actionFeedback.details?.length ? (
+                          <div className="mt-2">
+                            {actionFeedback.details.map((detail) => (
+                              <div key={detail}>{detail}</div>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                     ) : null}
                     <div className="tenant-detail-grid">
@@ -1619,7 +1712,8 @@ export function TenantsPage() {
                       <div className="tenant-help-text">
                         Si necesitas endurecer operación o sospechas exposición de secretos
                         técnicos, puedes rotar la contraseña DB tenant sin afectar el acceso
-                        del portal tenant.
+                        del portal tenant. Esta no es la contraseña del usuario del portal
+                        tenant; esa credencial de acceso se gestiona aparte.
                       </div>
                       <div className="tenant-context-actions__buttons">
                         <button
@@ -1646,6 +1740,13 @@ export function TenantsPage() {
                   >
                     <strong>{getPlatformActionFeedbackLabel(actionFeedback.scope)}:</strong>{" "}
                     {actionFeedback.message}
+                    {actionFeedback.details?.length ? (
+                      <div className="mt-2">
+                        {actionFeedback.details.map((detail) => (
+                          <div key={detail}>{detail}</div>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
 
@@ -2210,6 +2311,74 @@ export function TenantsPage() {
                       disabled={isActionSubmitting}
                     >
                       Sincronizar esquema tenant
+                    </button>
+                  </form>
+
+                  <form
+                    className="tenant-action-form"
+                    onSubmit={handleResetTenantPortalPassword}
+                  >
+                    <h3 className="tenant-action-form__title">
+                      Acceso portal tenant
+                    </h3>
+                    <p className="tenant-help-text mb-3">
+                      Usa este bloque para reiniciar la contraseña de un usuario del
+                      portal tenant cuando la olvidó. No cambia la credencial técnica
+                      de la base tenant.
+                    </p>
+                    <FieldHelpLabel
+                      label="Usuario portal tenant"
+                      help="Selecciona un usuario real cargado desde la base tenant actual. Esto evita intentar reinicios sobre correos que no existen."
+                      placement="left"
+                    />
+                    <select
+                      className="form-select"
+                      required
+                      value={tenantPortalResetEmail}
+                      onChange={(event) => setTenantPortalResetEmail(event.target.value)}
+                    >
+                      <option value="">
+                        {tenantPortalUsers.length > 0
+                          ? "Selecciona un usuario tenant"
+                          : "No hay usuarios tenant disponibles"}
+                      </option>
+                      {tenantPortalUsers.map((user) => (
+                        <option key={user.id} value={user.email}>
+                          {`${user.email} · ${user.role} · ${
+                            user.is_active ? "activo" : "inactivo"
+                          }`}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="tenant-help-text mb-3">
+                      La lista se carga desde la base tenant activa. Si no aparecen
+                      usuarios, revisa el acceso técnico del tenant o su bootstrap de
+                      usuarios.
+                    </p>
+                    <FieldHelpLabel
+                      label="Nueva contraseña portal"
+                      help="La nueva contraseña se aplica al usuario tenant indicado y no toca la contraseña técnica de la DB."
+                      placement="left"
+                    />
+                    <input
+                      className="form-control"
+                      type="password"
+                      required
+                      value={tenantPortalResetPassword}
+                      onChange={(event) =>
+                        setTenantPortalResetPassword(event.target.value)
+                      }
+                    />
+                    <button
+                      className="btn btn-primary mt-3"
+                      type="submit"
+                      disabled={
+                        isActionSubmitting ||
+                        !tenantPortalResetEmail ||
+                        !tenantPortalResetPassword
+                      }
+                    >
+                      Reiniciar contraseña portal
                     </button>
                   </form>
                 </div>
