@@ -4,7 +4,7 @@ Cobertura actual:
 - rutas basicas de `finance`
 - limites base del modulo
 - integracion tenant existente
-- migraciones tenant `0001`, `0002`, `0003`, `0004` y `0005`
+- migraciones tenant `0001`, `0002`, `0003`, `0004`, `0005` y `0006`
 - idempotencia de seeds base del modulo
 - seed idempotente de `CLP`
 - repositories CRUD base de catalogos
@@ -19,8 +19,10 @@ Cobertura actual:
   - moneda no base con `exchange_rate`
   - integridad de balances por cuenta
 - integracion SQLite real del balance por cuentas
+- core de presupuestos por categoria y mes, incluyendo comparacion `presupuesto vs real`
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:
-- pruebas de relaciones enriquecidas y endpoints nuevos de transacciones
-- pruebas de reconciliacion y reportes
+- pruebas de reconciliacion mas guiada y lotes asistidos
+- pruebas de filtros/estados de presupuestos
+- pruebas de prestamos y reportes

@@ -1,5 +1,6 @@
 import os
 import unittest
+from datetime import date
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -15,12 +16,14 @@ from app.tests.fixtures import (  # noqa: E402
 set_test_environment()
 
 from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
+    create_finance_budget,
     create_finance_transaction,
     create_finance_entry,
     finance_account_balances,
     finance_usage,
     finance_summary,
     get_finance_transaction_detail,
+    list_finance_budgets,
     update_finance_transaction,
     update_finance_transactions_favorite_batch,
     update_finance_transactions_reconciliation_batch,
@@ -30,6 +33,7 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     list_finance_entries,
 )
 from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
+    FinanceBudgetCreateRequest,
     FinanceEntryCreateRequest,
     FinanceTransactionCreateRequest,
     FinanceTransactionUpdateRequest,
@@ -547,6 +551,93 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.data[0].account_name, "Caja principal")
         self.assertEqual(response.data[0].balance, 980.5)
+
+    def test_list_finance_budgets_returns_budget_rows(self) -> None:
+        rows = [
+            {
+                "budget": SimpleNamespace(
+                    id=5,
+                    period_month=date(2026, 3, 1),
+                    category_id=9,
+                    amount=500.0,
+                    note="Marzo",
+                    is_active=True,
+                    created_at="2026-03-27T16:00:00+00:00",
+                    updated_at="2026-03-27T16:00:00+00:00",
+                ),
+                "category_name": "Marketing",
+                "category_type": "expense",
+                "actual_amount": 200.0,
+                "variance_amount": 300.0,
+                "utilization_ratio": 0.4,
+            }
+        ]
+        summary = {
+            "period_month": date(2026, 3, 1),
+            "total_budgeted": 500.0,
+            "total_actual": 200.0,
+            "total_variance": 300.0,
+            "total_items": 1,
+        }
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.budget_service.list_budgets",
+            return_value=(rows, summary),
+        ):
+            response = list_finance_budgets(
+                period_month=date(2026, 3, 8),
+                current_user=self._current_user(role="operator"),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.total, 1)
+        self.assertEqual(response.data[0].category_name, "Marketing")
+        self.assertEqual(response.summary.total_actual, 200.0)
+
+    def test_create_finance_budget_returns_created_budget(self) -> None:
+        budget = SimpleNamespace(id=5, period_month=date(2026, 3, 1))
+        rows = [
+            {
+                "budget": SimpleNamespace(
+                    id=5,
+                    period_month=date(2026, 3, 1),
+                    category_id=9,
+                    amount=500.0,
+                    note="Marzo",
+                    is_active=True,
+                    created_at="2026-03-27T16:00:00+00:00",
+                    updated_at="2026-03-27T16:00:00+00:00",
+                ),
+                "category_name": "Marketing",
+                "category_type": "expense",
+                "actual_amount": 0.0,
+                "variance_amount": 500.0,
+                "utilization_ratio": 0.0,
+            }
+        ]
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.budget_service.create_budget",
+            return_value=budget,
+        ), patch(
+            "app.apps.tenant_modules.finance.api.routes.budget_service.list_budgets",
+            return_value=(rows, {}),
+        ):
+            response = create_finance_budget(
+                payload=FinanceBudgetCreateRequest(
+                    period_month=date(2026, 3, 18),
+                    category_id=9,
+                    amount=500.0,
+                    note="Marzo",
+                    is_active=True,
+                ),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.amount, 500.0)
 
     def test_update_finance_transaction_favorite_returns_mutated_transaction(self) -> None:
         transaction = SimpleNamespace(

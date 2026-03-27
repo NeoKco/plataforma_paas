@@ -2,6 +2,7 @@ from app.apps.tenant_modules.finance.services.account_service import FinanceAcco
 from app.apps.tenant_modules.finance.services.beneficiary_service import (
     FinanceBeneficiaryService,
 )
+from app.apps.tenant_modules.finance.services.budget_service import FinanceBudgetService
 from app.apps.tenant_modules.finance.services.category_service import FinanceCategoryService
 from app.apps.tenant_modules.finance.services.currency_service import FinanceCurrencyService
 from app.apps.tenant_modules.finance.services.finance_service import (
@@ -18,6 +19,7 @@ from app.apps.tenant_modules.finance.services.tag_service import FinanceTagServi
 __all__ = [
     "FinanceAccountService",
     "FinanceBeneficiaryService",
+    "FinanceBudgetService",
     "FinanceCategoryService",
     "FinanceCurrencyService",
     "FinancePersonService",

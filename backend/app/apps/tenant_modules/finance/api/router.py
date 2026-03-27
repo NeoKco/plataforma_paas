@@ -4,6 +4,7 @@ from app.apps.tenant_modules.finance.api.accounts import router as accounts_rout
 from app.apps.tenant_modules.finance.api.beneficiaries import (
     router as beneficiaries_router,
 )
+from app.apps.tenant_modules.finance.api.budgets import router as budgets_router
 from app.apps.tenant_modules.finance.api.categories import router as categories_router
 from app.apps.tenant_modules.finance.api.currencies import router as currencies_router
 from app.apps.tenant_modules.finance.api.people import router as people_router
@@ -16,6 +17,7 @@ router = APIRouter(tags=["Tenant Finance"])
 router.include_router(accounts_router)
 router.include_router(categories_router)
 router.include_router(beneficiaries_router)
+router.include_router(budgets_router)
 router.include_router(people_router)
 router.include_router(projects_router)
 router.include_router(tags_router)

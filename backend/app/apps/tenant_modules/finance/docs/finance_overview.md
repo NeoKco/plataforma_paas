@@ -29,7 +29,11 @@ Alcance de esta fase:
 - edicion completa de transacciones existentes sobre el mismo contrato moderno
 - mesa de trabajo basica con seleccion multiple y acciones por lote para favoritas/conciliacion
 - nota opcional y confirmacion explicita para operaciones de conciliacion
+- primera pantalla real de `Presupuestos` con lectura mensual por categoria
+- comparacion `presupuesto vs ejecucion real` usando el mismo nucleo de transacciones
+- contrato backend propio para crear, listar y editar presupuestos mensuales
 
 Pendiente inmediato:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
+- endurecer `Presupuestos` con filtros, estados y lectura por tipo
 - `Lote 7` prestamos, planificacion y reportes

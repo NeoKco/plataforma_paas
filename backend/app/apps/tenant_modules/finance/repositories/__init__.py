@@ -4,6 +4,9 @@ from app.apps.tenant_modules.finance.repositories.account_repository import (
 from app.apps.tenant_modules.finance.repositories.beneficiary_repository import (
     FinanceBeneficiaryRepository,
 )
+from app.apps.tenant_modules.finance.repositories.budget_repository import (
+    FinanceBudgetRepository,
+)
 from app.apps.tenant_modules.finance.repositories.category_repository import (
     FinanceCategoryRepository,
 )
@@ -38,6 +41,7 @@ from app.apps.tenant_modules.finance.repositories.transaction_repository import 
 __all__ = [
     "FinanceAccountRepository",
     "FinanceBeneficiaryRepository",
+    "FinanceBudgetRepository",
     "FinanceCategoryRepository",
     "FinanceCurrencyRepository",
     "FinanceEntryRepository",

@@ -5,6 +5,7 @@ Estado actual:
 - existe `0003_finance_catalogs` como migracion base de catalogos del modulo
 - existe `0004_finance_seed_clp` como seed adicional de moneda
 - existe `0005_finance_transactions` como migracion del nucleo transaccional real
+- existe `0006_finance_budgets` como migracion base de presupuestos mensuales
 
 Objetivo contractual:
 - ampliar el esquema tenant del modulo segun el roadmap maestro
@@ -26,6 +27,7 @@ Tablas base ya creadas en `Lote 1`:
 - `finance_transaction_tags`
 - `finance_transaction_attachments`
 - `finance_transaction_audit`
+- `finance_budgets`
 
 ## Seeds idempotentes iniciales
 
@@ -86,6 +88,11 @@ Tablas base ya creadas en `Lote 1`:
 ### `finance_transaction_audit`
 - auditoria propia del ciclo de vida de la transaccion
 
+### `finance_budgets`
+- presupuesto mensual por categoria
+- preparado para comparar monto presupuestado contra ejecucion real del mes
+- base para planificacion, alertas de desvio y reportes posteriores
+
 ## Reglas estructurales de esta fase
 
 - indices por `is_active`, `sort_order` y `created_at` donde aplica
@@ -93,5 +100,5 @@ Tablas base ya creadas en `Lote 1`:
 - seeds preparados para re-ejecucion segura
 
 Pendiente siguiente:
-- endpoints ricos de transacciones, balances y detalle operacional
-- prestamos, plantillas, planificacion y reportes
+- endurecer filtros/estados de presupuestos y lectura por tipo
+- prestamos, planificacion y reportes

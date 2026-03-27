@@ -16,4 +16,6 @@ Estado actual:
 - esa misma pantalla ya permite filtrar, editar, marcar favorita y conciliar transacciones existentes
 - esa misma pantalla ya permite tambien seleccion multiple y acciones por lote para favoritas o conciliacion
 - las operaciones de conciliacion ya aceptan nota opcional y pasan por confirmacion explicita
+- ya existe una pantalla operativa de `Presupuestos` con lectura mensual por categoria
+- `Presupuestos` ya permite alta y edicion de montos, nota y estado activo, usando comparacion contra la ejecucion real del mes
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo

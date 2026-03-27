@@ -15,11 +15,19 @@ from app.apps.tenant_modules.finance.api.transactions import (
     update_finance_transaction_favorite,
     update_finance_transaction_reconciliation,
 )
+from app.apps.tenant_modules.finance.api.budgets import (
+    budget_service,
+    create_finance_budget,
+    list_finance_budgets,
+    update_finance_budget,
+)
 
 __all__ = [
     "create_finance_transaction",
     "router",
     "create_finance_entry",
+    "create_finance_budget",
+    "budget_service",
     "finance_account_balances",
     "finance_service",
     "finance_summary",
@@ -27,6 +35,8 @@ __all__ = [
     "get_finance_transaction_detail",
     "list_finance_transactions",
     "list_finance_entries",
+    "list_finance_budgets",
+    "update_finance_budget",
     "update_finance_transaction",
     "update_finance_transactions_favorite_batch",
     "update_finance_transactions_reconciliation_batch",

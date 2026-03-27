@@ -34,7 +34,11 @@
 - ya existe modo edicion completo dentro de la misma pantalla de `Transacciones`
 - ya existe seleccion multiple y lote basico para favoritas/conciliacion
 - ya existe nota opcional y confirmacion explicita para conciliacion desde la mesa de trabajo
+- ya existe una primera pantalla real de `Presupuestos`
+- esa pantalla ya permite leer el mes actual o seleccionado, crear un presupuesto y editarlo
+- la UI ya compara `presupuesto`, `ejecucion real`, `variacion` y `uso %` por categoria
 
 Pendiente inmediato:
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
+- endurecer `Presupuestos` con filtros por estado/tipo y lectura agregada mas densa antes de abrir `Prestamos`

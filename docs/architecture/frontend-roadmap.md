@@ -21,6 +21,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - la ruta `/tenant-portal/finance` ya queda servida desde ese slice, preservando la vista actual de movimientos como base operativa
 - `finance` ya expone frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
 - `finance` ya expone una primera pantalla moderna de transacciones sobre `finance_transactions`, con balances por cuenta, panel de detalle operacional, filtros reales, modo edicion sobre la misma vista y una mesa de trabajo guiada con seleccion multiple, nota y confirmacion para favoritas/conciliacion
+- `finance` ya expone una primera pantalla real de `Presupuestos` con lectura mensual `presupuesto vs real`
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
 
@@ -36,6 +37,7 @@ Lo pendiente es sobre todo:
 - cierre visual y operativo de algunos detalles
 - definir la convencion oficial para que los siguientes modulos nazcan como slices coherentes, tomando `finance` como modulo piloto
 - completar la vista moderna de transacciones con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes antes de abrir mas dominios grandes dentro de finance
+- endurecer la primera pantalla de `Presupuestos` antes de abrir `Prestamos` o `Reportes`
 
 Nota de ejecucion:
 
@@ -385,6 +387,7 @@ Avance actual:
 - `Users` ya tiene listado, alta basica y cambio de estado
 - `Finance` ya tiene resumen, uso efectivo, listado y alta basica de movimientos
 - `Finance` ya tiene tambien contratos backend CRUD para catalogos base, aunque aun no se abren sus vistas dedicadas
+- `Finance` ya tiene una vista real de `Presupuestos` con comparacion mensual `presupuesto vs real`
 - el portal ya refleja enforcement real de billing y limites por modulo
 - el portal ya traduce mejor roles, fuentes y estados visibles
 

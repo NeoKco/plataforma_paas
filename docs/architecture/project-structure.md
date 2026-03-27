@@ -351,7 +351,8 @@ backend/
 │       ├── v0002_finance_entries.py
 │       ├── v0003_finance_catalogs.py
 │       ├── v0004_finance_seed_clp.py
-│       └── v0005_finance_transactions.py
+│       ├── v0005_finance_transactions.py
+│       └── v0006_finance_budgets.py
 ```
 
 ## Frontend en Estado Actual
@@ -420,7 +421,7 @@ Hoy esta base cubre:
 
 - `platform_admin` ya operable con `Resumen`, `Usuarios de plataforma`, `Actividad`, `Tenants`, `Provisioning`, `Facturación`, `Configuración` y `Histórico tenants`
 - `tenant_portal` ya operable con login, overview, usuarios y slice `finance`
-- `finance` ya no es solo placeholder: ya tiene catálogos, settings y primera pantalla moderna de `Transacciones` sobre `finance_transactions`, con filtros, edición y acciones rápidas
+- `finance` ya no es solo placeholder: ya tiene catálogos, settings, pantalla moderna de `Transacciones` sobre `finance_transactions` y primera pantalla real de `Presupuestos`
 
 ## Documentacion en Estado Actual
 

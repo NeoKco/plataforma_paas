@@ -11,6 +11,7 @@ from app.common.db.migration_runner import MigrationRunner
 from migrations.tenant import v0003_finance_catalogs
 from migrations.tenant import v0004_finance_seed_clp
 from migrations.tenant import v0005_finance_transactions
+from migrations.tenant import v0006_finance_budgets
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -61,6 +62,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0021_tenant_module_limits",
                 "0022_tenant_schema_tracking",
                 "0023_tenant_db_credentials_tracking",
+                "0024_tenant_retirement_archives",
             ],
         )
         self.assertIn("platform_installation", tables)
@@ -130,6 +132,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0003_finance_catalogs",
                 "0004_finance_seed_clp",
                 "0005_finance_transactions",
+                "0006_finance_budgets",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -150,6 +153,7 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("finance_transaction_tags", tables)
         self.assertIn("finance_transaction_attachments", tables)
         self.assertIn("finance_transaction_audit", tables)
+        self.assertIn("finance_budgets", tables)
         self.assertIn("tenant_schema_migrations", tables)
 
         with engine.connect() as conn:
@@ -195,6 +199,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0003_finance_catalogs",
                 "0004_finance_seed_clp",
                 "0005_finance_transactions",
+                "0006_finance_budgets",
             ],
         )
 
@@ -276,6 +281,16 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertEqual(rows[0][2], "billing")
         self.assertEqual(rows[0][3], "finance_entries_migration")
         self.assertEqual(rows[0][4], 1)
+
+    def test_finance_budgets_migration_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            v0003_finance_catalogs.upgrade(conn)
+            v0006_finance_budgets.upgrade(conn)
+            v0006_finance_budgets.upgrade(conn)
+
+        self.assertIn("finance_budgets", set(inspect(engine).get_table_names()))
 
 
 if __name__ == "__main__":

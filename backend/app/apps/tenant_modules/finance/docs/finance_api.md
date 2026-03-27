@@ -11,6 +11,9 @@ API vigente en el arranque:
 - `PATCH /tenant/finance/transactions/{transaction_id}/reconciliation`
 - `PATCH /tenant/finance/transactions/favorite/batch`
 - `PATCH /tenant/finance/transactions/reconciliation/batch`
+- `GET /tenant/finance/budgets`
+- `POST /tenant/finance/budgets`
+- `PUT /tenant/finance/budgets/{budget_id}`
 - `GET /tenant/finance/account-balances`
 - `GET /tenant/finance/summary`
 - `GET /tenant/finance/usage`
@@ -99,13 +102,19 @@ Estado actual de `Lote 6`:
 - ya existen `PATCH /tenant/finance/transactions/favorite/batch`
 - ya existen `PATCH /tenant/finance/transactions/reconciliation/batch` con nota opcional
 - `tenant_portal` ya consume ese contrato moderno en la pantalla principal de `Transacciones`
+- ya existen `GET|POST /tenant/finance/budgets`
+- ya existe `PUT /tenant/finance/budgets/{budget_id}` para editar un presupuesto mensual existente
+- `GET /tenant/finance/budgets` ya expone lectura `presupuesto vs real` por mes y categoria, con variacion y porcentaje de uso
+- `tenant_portal` ya consume ese contrato en la primera pantalla real de `Presupuestos`
 
 Nucleo transaccional ya disponible en backend:
 - tabla `finance_transactions`
 - tabla `finance_transaction_tags`
 - tabla `finance_transaction_attachments`
 - tabla `finance_transaction_audit`
+- tabla `finance_budgets`
 
 Pendiente:
-- endpoints de prestamos, presupuestos, conciliacion y reportes
+- enriquecer `budgets` con filtros por estado/tipo y lectura mas densa por categoria
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
+- endpoints de prestamos, planificacion y reportes

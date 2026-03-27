@@ -1,6 +1,7 @@
 from app.apps.tenant_modules.finance.models.account import FinanceAccount
 from app.apps.tenant_modules.finance.models.activity_log import FinanceActivityLog
 from app.apps.tenant_modules.finance.models.beneficiary import FinanceBeneficiary
+from app.apps.tenant_modules.finance.models.budget import FinanceBudget
 from app.apps.tenant_modules.finance.models.category import FinanceCategory
 from app.apps.tenant_modules.finance.models.currency import FinanceCurrency
 from app.apps.tenant_modules.finance.models.entry import FinanceEntry
@@ -22,6 +23,7 @@ __all__ = [
     "FinanceAccount",
     "FinanceActivityLog",
     "FinanceBeneficiary",
+    "FinanceBudget",
     "FinanceCategory",
     "FinanceCurrency",
     "FinanceEntry",

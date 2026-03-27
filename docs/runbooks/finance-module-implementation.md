@@ -78,13 +78,17 @@ En esta fase quedaron listos:
 - `backend/app/apps/tenant_modules/finance/models/entry.py`
 - `backend/app/apps/tenant_modules/finance/repositories/entry_repository.py`
 - `backend/app/apps/tenant_modules/finance/services/transaction_service.py`
+- `backend/app/apps/tenant_modules/finance/services/budget_service.py`
 - `backend/app/apps/tenant_modules/finance/services/finance_service.py`
 - `backend/app/apps/tenant_modules/finance/schemas/__init__.py`
 - `backend/app/apps/tenant_modules/finance/api/router.py`
 - `backend/app/apps/tenant_modules/finance/api/transactions.py`
+- `backend/app/apps/tenant_modules/finance/api/budgets.py`
 - `backend/app/tests/test_tenant_finance_flow.py`
+- `backend/app/tests/test_finance_budget_core.py`
 - `frontend/src/apps/tenant_portal/modules/finance/routes.tsx`
 - `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx`
+- `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceBudgetsPage.tsx`
 - `frontend/src/apps/tenant_portal/pages/finance/TenantFinancePageLegacy.tsx`
 
 ## Endpoints
@@ -92,6 +96,7 @@ En esta fase quedaron listos:
 - `GET /tenant/finance/entries`
 - `POST /tenant/finance/entries`
 - `GET /tenant/finance/summary`
+- `GET|POST|PUT /tenant/finance/budgets`
 - `GET|POST|PUT|PATCH /tenant/finance/accounts`
 - `GET|POST|PUT|PATCH /tenant/finance/categories`
 - `GET|POST|PUT|PATCH /tenant/finance/beneficiaries`
@@ -123,6 +128,7 @@ La persistencia transicional del modulo queda asi:
 
 - `finance_entries` se conserva como tabla minima legacy
 - `finance_transactions` pasa a ser la tabla central real del modulo
+- `finance_budgets` abre la primera capa de planificacion mensual del modulo
 
 Campos legacy principales:
 
@@ -151,6 +157,14 @@ Campos base del nuevo nucleo:
 - `is_reconciled`
 - `source_type`
 - `source_id`
+
+Campos base de presupuestos:
+
+- `period_month`
+- `category_id`
+- `amount`
+- `note`
+- `is_active`
 
 ## Validaciones actuales
 
@@ -204,13 +218,15 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 4. toggles rapidos de favorito y conciliacion
 5. edicion completa de transacciones existentes
 6. mesa de trabajo basica para conciliacion/favoritos con seleccion multiple y acciones por lote
+7. primera vista real de `Presupuestos` por mes y categoria, con comparacion presupuesto vs ejecucion
 
 Lo siguiente recomendable ahora es:
 
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
-2. seguir con prestamos, planificacion y reportes
-3. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
-4. abrir exportacion o vistas derivadas cuando el trabajo operativo del slice ya quede estable
+2. endurecer `Presupuestos` con estados, filtros y lectura por tipo
+3. seguir con prestamos, planificacion y reportes
+4. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
+5. abrir exportacion o vistas derivadas cuando el trabajo operativo del slice ya quede estable
 
 ## Convencion relacionada
 
