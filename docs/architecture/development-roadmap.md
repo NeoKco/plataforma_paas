@@ -217,7 +217,9 @@ Resultado actual:
 - el `Lote 0` del roadmap maestro de `finance` ya quedo ejecutado con estructura backend/frontend, router agregador y documentacion inicial
 - el `Lote 1` ya dejo migraciones base del modulo para catalogos, configuracion y auditoria
 - el `Lote 2` ya dejo modelos, schemas y repositories base para catalogos del modulo
-- el `Lote 3` ya dejo servicios y endpoints CRUD base para catalogos, settings y exchange rates
+- el `Lote 3` ya dejo servicios, endpoints CRUD base, endpoints de detalle y `reorder` para catalogos, settings y exchange rates
+- el `Lote 4` ya dejo frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
+- `CLP` ya forma parte de las monedas semilla del modulo
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
 - existe enforcement de `finance.entries`, `finance.entries.monthly`, cuotas segmentadas como `finance.entries.monthly.income`, `finance.entries.monthly.expense`, `core.users`, `core.users.active`, `core.users.monthly` y cuotas por rol como `core.users.admin` por plan, override tenant y billing grace
@@ -228,7 +230,7 @@ Resultado actual:
 
 Falta para cerrarlo:
 
-- ejecutar `Lote 4` y `Lote 5` del roadmap maestro para consolidar cuentas y enriquecer transacciones
+- ejecutar `Lote 5` y siguientes del roadmap maestro para consolidar transacciones, panel de detalle y reportes
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 

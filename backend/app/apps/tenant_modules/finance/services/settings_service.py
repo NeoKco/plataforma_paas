@@ -36,6 +36,9 @@ class FinanceSettingsService:
         setting = FinanceSetting(**normalized)
         return self.settings_repository.save(tenant_db, setting)
 
+    def get_setting(self, tenant_db: Session, setting_id: int) -> FinanceSetting:
+        return self._get_or_raise(tenant_db, setting_id)
+
     def update_setting(
         self,
         tenant_db: Session,

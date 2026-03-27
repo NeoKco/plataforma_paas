@@ -179,17 +179,18 @@ Cobertura actual:
 - permisos finos de finance
 - validaciones del `FinanceService`
 - listado, creacion y resumen del modulo
-- migraciones tenant del modulo hasta `0003_finance_catalogs`
-- seeds idempotentes para moneda base, categorias y settings
+- migraciones tenant del modulo hasta `0004_finance_seed_clp`
+- seeds idempotentes para moneda base, `CLP`, categorias y settings
 - repositories CRUD base del modulo y sus restricciones de unicidad/activacion
 - validaciones de servicio para cuentas, categorias y moneda base
 - rutas CRUD base para catalogos, settings y exchange rates
+- rutas de detalle y `reorder` para catalogos principales
 
 Ejecucion:
 
 ```bash
 cd /home/felipe/platform_paas/backend
-/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_tenant_finance_flow app.tests.test_finance_catalog_repositories app.tests.test_finance_catalog_services app.tests.test_finance_catalog_routes
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_tenant_finance_flow app.tests.test_finance_catalog_repositories app.tests.test_finance_catalog_services app.tests.test_finance_catalog_routes app.tests.test_migration_flow
 ```
 
 ## Suite Tenant Integration

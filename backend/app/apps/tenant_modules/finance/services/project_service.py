@@ -36,6 +36,9 @@ class FinanceProjectService:
         project = FinanceProject(**normalized)
         return self.project_repository.save(tenant_db, project)
 
+    def get_project(self, tenant_db: Session, project_id: int) -> FinanceProject:
+        return self._get_or_raise(tenant_db, project_id)
+
     def update_project(
         self,
         tenant_db: Session,
@@ -57,6 +60,13 @@ class FinanceProjectService:
     ) -> FinanceProject:
         project = self._get_or_raise(tenant_db, project_id)
         return self.project_repository.set_active(tenant_db, project, is_active)
+
+    def reorder_projects(
+        self,
+        tenant_db: Session,
+        items: list[tuple[int, int]],
+    ) -> list[FinanceProject]:
+        return self.project_repository.reorder(tenant_db, items)
 
     def _get_or_raise(self, tenant_db: Session, project_id: int) -> FinanceProject:
         project = self.project_repository.get_by_id(tenant_db, project_id)

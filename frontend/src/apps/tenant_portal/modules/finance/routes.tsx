@@ -1,4 +1,5 @@
 import type { RouteObject } from "react-router-dom";
+import "./styles/finance.css";
 import { FinanceAccountsPage } from "./pages/FinanceAccountsPage";
 import { FinanceBudgetsPage } from "./pages/FinanceBudgetsPage";
 import { FinanceCalendarPage } from "./pages/FinanceCalendarPage";

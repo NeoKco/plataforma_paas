@@ -11,6 +11,7 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceProjectItemResponse,
     FinanceProjectMutationResponse,
     FinanceProjectsResponse,
+    FinanceReorderRequest,
     FinanceProjectUpdateRequest,
     FinanceStatusUpdateRequest,
 )
@@ -69,6 +70,25 @@ def create_finance_project(
     )
 
 
+@router.get("/{project_id}", response_model=FinanceProjectMutationResponse)
+def get_finance_project(
+    project_id: int,
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceProjectMutationResponse:
+    try:
+        project = project_service.get_project(tenant_db, project_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceProjectMutationResponse(
+        success=True,
+        message="Proyecto recuperado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_project_item(project),
+    )
+
+
 @router.put("/{project_id}", response_model=FinanceProjectMutationResponse)
 def update_finance_project(
     project_id: int,
@@ -110,4 +130,27 @@ def update_finance_project_status(
         message="Estado del proyecto actualizado correctamente",
         requested_by=build_finance_requested_by(current_user),
         data=_build_project_item(project),
+    )
+
+
+@router.patch("/reorder", response_model=FinanceProjectsResponse)
+def reorder_finance_projects(
+    payload: FinanceReorderRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceProjectsResponse:
+    try:
+        projects = project_service.reorder_projects(
+            tenant_db,
+            [(item.id, item.sort_order) for item in payload.items],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceProjectsResponse(
+        success=True,
+        message="Orden de proyectos actualizado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        total=len(projects),
+        data=[_build_project_item(item) for item in projects],
     )

@@ -17,6 +17,7 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceExchangeRateMutationResponse,
     FinanceExchangeRatesResponse,
     FinanceExchangeRateUpdateRequest,
+    FinanceReorderRequest,
     FinanceStatusUpdateRequest,
 )
 from app.apps.tenant_modules.finance.services import FinanceCurrencyService
@@ -92,6 +93,25 @@ def create_finance_currency(
     )
 
 
+@router.get("/{currency_id}", response_model=FinanceCurrencyMutationResponse)
+def get_finance_currency(
+    currency_id: int,
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceCurrencyMutationResponse:
+    try:
+        currency = currency_service.get_currency(tenant_db, currency_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceCurrencyMutationResponse(
+        success=True,
+        message="Moneda recuperada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_currency_item(currency),
+    )
+
+
 @router.put("/{currency_id}", response_model=FinanceCurrencyMutationResponse)
 def update_finance_currency(
     currency_id: int,
@@ -136,6 +156,29 @@ def update_finance_currency_status(
     )
 
 
+@router.patch("/reorder", response_model=FinanceCurrenciesResponse)
+def reorder_finance_currencies(
+    payload: FinanceReorderRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceCurrenciesResponse:
+    try:
+        currencies = currency_service.reorder_currencies(
+            tenant_db,
+            [(item.id, item.sort_order) for item in payload.items],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceCurrenciesResponse(
+        success=True,
+        message="Orden de monedas actualizado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        total=len(currencies),
+        data=[_build_currency_item(item) for item in currencies],
+    )
+
+
 @router.get("/exchange-rates", response_model=FinanceExchangeRatesResponse)
 def list_finance_exchange_rates(
     current_user=Depends(require_finance_read),
@@ -148,6 +191,25 @@ def list_finance_exchange_rates(
         requested_by=build_finance_requested_by(current_user),
         total=len(exchange_rates),
         data=[_build_exchange_rate_item(item) for item in exchange_rates],
+    )
+
+
+@router.get("/exchange-rates/{exchange_rate_id}", response_model=FinanceExchangeRateMutationResponse)
+def get_finance_exchange_rate(
+    exchange_rate_id: int,
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceExchangeRateMutationResponse:
+    try:
+        exchange_rate = currency_service.get_exchange_rate(tenant_db, exchange_rate_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceExchangeRateMutationResponse(
+        success=True,
+        message="Tipo de cambio recuperado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_exchange_rate_item(exchange_rate),
     )
 
 

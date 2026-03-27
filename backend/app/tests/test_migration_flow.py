@@ -9,6 +9,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.common.db.migration_runner import MigrationRunner
 from migrations.tenant import v0003_finance_catalogs
+from migrations.tenant import v0004_finance_seed_clp
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -126,6 +127,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0001_core",
                 "0002_finance_entries",
                 "0003_finance_catalogs",
+                "0004_finance_seed_clp",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -158,6 +160,7 @@ class MigrationFlowTestCase(unittest.TestCase):
             ).all()
         self.assertEqual(currency_rows[0][0], "USD")
         self.assertEqual(currency_rows[0][1], 1)
+        self.assertIn(("CLP", 0), currency_rows)
         self.assertIn(("General Income", "income"), category_rows)
         self.assertIn(("General Expense", "expense"), category_rows)
         self.assertIn(("Transfer", "transfer"), category_rows)
@@ -184,6 +187,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0001_core",
                 "0002_finance_entries",
                 "0003_finance_catalogs",
+                "0004_finance_seed_clp",
             ],
         )
 
@@ -193,11 +197,13 @@ class MigrationFlowTestCase(unittest.TestCase):
         with engine.begin() as conn:
             v0003_finance_catalogs.upgrade(conn)
             v0003_finance_catalogs.upgrade(conn)
+            v0004_finance_seed_clp.upgrade(conn)
+            v0004_finance_seed_clp.upgrade(conn)
 
         with engine.connect() as conn:
             self.assertEqual(
                 conn.execute(text("SELECT COUNT(*) FROM finance_currencies")).scalar_one(),
-                1,
+                2,
             )
             self.assertEqual(
                 conn.execute(text("SELECT COUNT(*) FROM finance_categories")).scalar_one(),
@@ -207,6 +213,13 @@ class MigrationFlowTestCase(unittest.TestCase):
                 conn.execute(text("SELECT COUNT(*) FROM finance_settings")).scalar_one(),
                 2,
             )
+            currency_codes = [
+                row[0]
+                for row in conn.execute(
+                    text("SELECT code FROM finance_currencies ORDER BY sort_order ASC, id ASC")
+                ).all()
+            ]
+            self.assertEqual(currency_codes, ["USD", "CLP"])
 
 
 if __name__ == "__main__":

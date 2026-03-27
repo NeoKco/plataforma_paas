@@ -11,6 +11,7 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceAccountItemResponse,
     FinanceAccountMutationResponse,
     FinanceAccountsResponse,
+    FinanceReorderRequest,
     FinanceAccountUpdateRequest,
     FinanceStatusUpdateRequest,
 )
@@ -79,6 +80,25 @@ def create_finance_account(
     )
 
 
+@router.get("/{account_id}", response_model=FinanceAccountMutationResponse)
+def get_finance_account(
+    account_id: int,
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceAccountMutationResponse:
+    try:
+        account = account_service.get_account(tenant_db, account_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceAccountMutationResponse(
+        success=True,
+        message="Cuenta financiera recuperada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_account_item(account),
+    )
+
+
 @router.put("/{account_id}", response_model=FinanceAccountMutationResponse)
 def update_finance_account(
     account_id: int,
@@ -120,4 +140,27 @@ def update_finance_account_status(
         message="Estado de la cuenta financiera actualizado correctamente",
         requested_by=build_finance_requested_by(current_user),
         data=_build_account_item(account),
+    )
+
+
+@router.patch("/reorder", response_model=FinanceAccountsResponse)
+def reorder_finance_accounts(
+    payload: FinanceReorderRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceAccountsResponse:
+    try:
+        accounts = account_service.reorder_accounts(
+            tenant_db,
+            [(item.id, item.sort_order) for item in payload.items],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceAccountsResponse(
+        success=True,
+        message="Orden de cuentas financieras actualizado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        total=len(accounts),
+        data=[_build_account_item(account) for account in accounts],
     )

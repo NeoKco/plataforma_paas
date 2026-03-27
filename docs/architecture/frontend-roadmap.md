@@ -19,6 +19,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - existe `tenant_portal` con login, resumen, usuarios y finanzas
 - `finance` ya tiene slice frontend propio en `tenant_portal/modules/finance`
 - la ruta `/tenant-portal/finance` ya queda servida desde ese slice, preservando la vista actual de movimientos como base operativa
+- `finance` ya expone frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
 
 Lo que queda pendiente ya no es abrir el frontend desde cero.

@@ -36,6 +36,9 @@ class FinancePersonService:
         person = FinancePerson(**normalized)
         return self.person_repository.save(tenant_db, person)
 
+    def get_person(self, tenant_db: Session, person_id: int) -> FinancePerson:
+        return self._get_or_raise(tenant_db, person_id)
+
     def update_person(
         self,
         tenant_db: Session,
@@ -57,6 +60,13 @@ class FinancePersonService:
     ) -> FinancePerson:
         person = self._get_or_raise(tenant_db, person_id)
         return self.person_repository.set_active(tenant_db, person, is_active)
+
+    def reorder_people(
+        self,
+        tenant_db: Session,
+        items: list[tuple[int, int]],
+    ) -> list[FinancePerson]:
+        return self.person_repository.reorder(tenant_db, items)
 
     def _get_or_raise(self, tenant_db: Session, person_id: int) -> FinancePerson:
         person = self.person_repository.get_by_id(tenant_db, person_id)

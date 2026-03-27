@@ -7,6 +7,7 @@ from app.apps.tenant_modules.finance.dependencies import (
     require_finance_read,
 )
 from app.apps.tenant_modules.finance.schemas import (
+    FinanceReorderRequest,
     FinanceStatusUpdateRequest,
     FinanceTagCreateRequest,
     FinanceTagItemResponse,
@@ -68,6 +69,25 @@ def create_finance_tag(
     )
 
 
+@router.get("/{tag_id}", response_model=FinanceTagMutationResponse)
+def get_finance_tag(
+    tag_id: int,
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTagMutationResponse:
+    try:
+        tag = tag_service.get_tag(tenant_db, tag_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceTagMutationResponse(
+        success=True,
+        message="Etiqueta recuperada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_tag_item(tag),
+    )
+
+
 @router.put("/{tag_id}", response_model=FinanceTagMutationResponse)
 def update_finance_tag(
     tag_id: int,
@@ -105,4 +125,27 @@ def update_finance_tag_status(
         message="Estado de la etiqueta actualizado correctamente",
         requested_by=build_finance_requested_by(current_user),
         data=_build_tag_item(tag),
+    )
+
+
+@router.patch("/reorder", response_model=FinanceTagsResponse)
+def reorder_finance_tags(
+    payload: FinanceReorderRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTagsResponse:
+    try:
+        tags = tag_service.reorder_tags(
+            tenant_db,
+            [(item.id, item.sort_order) for item in payload.items],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceTagsResponse(
+        success=True,
+        message="Orden de etiquetas actualizado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        total=len(tags),
+        data=[_build_tag_item(item) for item in tags],
     )

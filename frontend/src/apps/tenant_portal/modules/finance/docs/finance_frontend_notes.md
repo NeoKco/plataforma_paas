@@ -14,5 +14,18 @@
 
 `Lote 3` abre API, no pantallas:
 - ya existen endpoints CRUD base para catalogos, settings y exchange rates
-- el frontend todavia no los consume desde vistas nuevas
-- el siguiente paso correcto es abrir cuentas/catalogos visualmente sobre estos contratos, no inventar otra API
+- ya existen tambien endpoints de detalle y `reorder` donde aplica
+- `CLP` ya forma parte del seed inicial del modulo
+
+`Lote 4` ya abre frontend de catalogos:
+- `/tenant-portal/finance/accounts`
+- `/tenant-portal/finance/categories`
+- `/tenant-portal/finance/tools`
+- `/tenant-portal/finance/settings`
+- las pantallas consumen la API real del modulo
+- la navegacion secundaria del slice ya queda activa
+- los formularios reutilizan el contrato backend sin inventar otra capa de datos
+
+Pendiente inmediato:
+- evolucionar de `finance_entries` a `finance_transactions` con relaciones reales
+- abrir el siguiente lote sobre tabla de transacciones y detalle operacional

@@ -11,6 +11,7 @@ from app.apps.tenant_modules.finance.schemas import (
     FinancePersonCreateRequest,
     FinancePersonItemResponse,
     FinancePersonMutationResponse,
+    FinanceReorderRequest,
     FinancePersonUpdateRequest,
     FinanceStatusUpdateRequest,
 )
@@ -69,6 +70,25 @@ def create_finance_person(
     )
 
 
+@router.get("/{person_id}", response_model=FinancePersonMutationResponse)
+def get_finance_person(
+    person_id: int,
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinancePersonMutationResponse:
+    try:
+        person = person_service.get_person(tenant_db, person_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinancePersonMutationResponse(
+        success=True,
+        message="Persona recuperada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_person_item(person),
+    )
+
+
 @router.put("/{person_id}", response_model=FinancePersonMutationResponse)
 def update_finance_person(
     person_id: int,
@@ -110,4 +130,27 @@ def update_finance_person_status(
         message="Estado de la persona actualizado correctamente",
         requested_by=build_finance_requested_by(current_user),
         data=_build_person_item(person),
+    )
+
+
+@router.patch("/reorder", response_model=FinancePeopleResponse)
+def reorder_finance_people(
+    payload: FinanceReorderRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinancePeopleResponse:
+    try:
+        people = person_service.reorder_people(
+            tenant_db,
+            [(item.id, item.sort_order) for item in payload.items],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinancePeopleResponse(
+        success=True,
+        message="Orden de personas actualizado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        total=len(people),
+        data=[_build_person_item(item) for item in people],
     )

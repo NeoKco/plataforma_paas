@@ -20,7 +20,9 @@ from app.apps.tenant_modules.finance.schemas.category import (
     FinanceCategoryUpdateRequest,
 )
 from app.apps.tenant_modules.finance.schemas.common import (
+    FinanceReorderRequest,
     FinanceResponseBase,
+    FinanceReorderItemRequest,
     FinanceStatusUpdateRequest,
 )
 from app.apps.tenant_modules.finance.schemas.currency import (
@@ -116,6 +118,8 @@ __all__ = [
     "FinanceProjectItemResponse",
     "FinanceProjectMutationResponse",
     "FinanceProjectUpdateRequest",
+    "FinanceReorderItemRequest",
+    "FinanceReorderRequest",
     "FinanceResponseBase",
     "FinanceSettingMutationResponse",
     "FinanceSettingsResponse",

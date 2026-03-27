@@ -1,3 +1,116 @@
 .finance-module-placeholder {
   min-height: 200px;
 }
+
+.finance-module-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.finance-module-nav__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--color-border-default, #d5dce7);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-text-muted, #46526a);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.finance-module-nav__link:hover {
+  border-color: #6f8bd8;
+  color: #1f3b7f;
+  text-decoration: none;
+}
+
+.finance-module-nav__link.is-active {
+  border-color: #2559c7;
+  background: #edf3ff;
+  color: #163e91;
+  box-shadow: 0 0 0 1px rgba(37, 89, 199, 0.06);
+}
+
+.finance-catalog-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.finance-page-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.finance-form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.finance-form-grid--full {
+  grid-column: 1 / -1;
+}
+
+.finance-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  grid-column: 1 / -1;
+}
+
+.finance-tab-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.finance-inline-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.finance-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: lowercase;
+}
+
+.finance-status-pill.is-active {
+  background: #e7f6ee;
+  color: #177245;
+}
+
+.finance-status-pill.is-inactive {
+  background: #f4ede1;
+  color: #8a6113;
+}
+
+.finance-note-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--color-text-muted, #46526a);
+}
+
+@media (min-width: 1200px) {
+  .finance-catalog-layout {
+    grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.4fr);
+    align-items: start;
+  }
+}

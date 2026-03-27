@@ -3,6 +3,7 @@
 Estado actual:
 - existe `finance_entries` como tabla minima operativa
 - existe `0003_finance_catalogs` como migracion base de catalogos del modulo
+- existe `0004_finance_seed_clp` como seed adicional de moneda
 
 Objetivo contractual:
 - ampliar el esquema tenant del modulo segun el roadmap maestro
@@ -24,6 +25,7 @@ Tablas base ya creadas en `Lote 1`:
 ## Seeds idempotentes iniciales
 
 - moneda base `USD`
+- moneda secundaria `CLP`
 - categorias:
   - `General Income`
   - `General Expense`
@@ -72,6 +74,5 @@ Tablas base ya creadas en `Lote 1`:
 - seeds preparados para re-ejecucion segura
 
 Pendiente siguiente:
-- endpoints CRUD de catalogos
-- validaciones de negocio de cuentas y jerarquias
+- validaciones de negocio de transacciones con relaciones reales
 - evolucion de `finance_entries` hacia `finance_transactions`

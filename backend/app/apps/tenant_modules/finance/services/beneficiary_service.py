@@ -36,6 +36,9 @@ class FinanceBeneficiaryService:
         beneficiary = FinanceBeneficiary(**normalized)
         return self.beneficiary_repository.save(tenant_db, beneficiary)
 
+    def get_beneficiary(self, tenant_db: Session, beneficiary_id: int) -> FinanceBeneficiary:
+        return self._get_or_raise(tenant_db, beneficiary_id)
+
     def update_beneficiary(
         self,
         tenant_db: Session,
@@ -57,6 +60,13 @@ class FinanceBeneficiaryService:
     ) -> FinanceBeneficiary:
         beneficiary = self._get_or_raise(tenant_db, beneficiary_id)
         return self.beneficiary_repository.set_active(tenant_db, beneficiary, is_active)
+
+    def reorder_beneficiaries(
+        self,
+        tenant_db: Session,
+        items: list[tuple[int, int]],
+    ) -> list[FinanceBeneficiary]:
+        return self.beneficiary_repository.reorder(tenant_db, items)
 
     def _get_or_raise(self, tenant_db: Session, beneficiary_id: int) -> FinanceBeneficiary:
         beneficiary = self.beneficiary_repository.get_by_id(tenant_db, beneficiary_id)

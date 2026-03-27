@@ -70,6 +70,25 @@ def create_finance_setting(
     )
 
 
+@router.get("/{setting_id}", response_model=FinanceSettingMutationResponse)
+def get_finance_setting(
+    setting_id: int,
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceSettingMutationResponse:
+    try:
+        setting = settings_service.get_setting(tenant_db, setting_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceSettingMutationResponse(
+        success=True,
+        message="Configuracion financiera recuperada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_setting_item(setting),
+    )
+
+
 @router.put("/{setting_id}", response_model=FinanceSettingMutationResponse)
 def update_finance_setting(
     setting_id: int,

@@ -11,6 +11,7 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceBeneficiaryCreateRequest,
     FinanceBeneficiaryItemResponse,
     FinanceBeneficiaryMutationResponse,
+    FinanceReorderRequest,
     FinanceBeneficiaryUpdateRequest,
     FinanceStatusUpdateRequest,
 )
@@ -72,6 +73,25 @@ def create_finance_beneficiary(
     )
 
 
+@router.get("/{beneficiary_id}", response_model=FinanceBeneficiaryMutationResponse)
+def get_finance_beneficiary(
+    beneficiary_id: int,
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceBeneficiaryMutationResponse:
+    try:
+        beneficiary = beneficiary_service.get_beneficiary(tenant_db, beneficiary_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceBeneficiaryMutationResponse(
+        success=True,
+        message="Beneficiario recuperado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_beneficiary_item(beneficiary),
+    )
+
+
 @router.put("/{beneficiary_id}", response_model=FinanceBeneficiaryMutationResponse)
 def update_finance_beneficiary(
     beneficiary_id: int,
@@ -117,4 +137,27 @@ def update_finance_beneficiary_status(
         message="Estado del beneficiario actualizado correctamente",
         requested_by=build_finance_requested_by(current_user),
         data=_build_beneficiary_item(beneficiary),
+    )
+
+
+@router.patch("/reorder", response_model=FinanceBeneficiariesResponse)
+def reorder_finance_beneficiaries(
+    payload: FinanceReorderRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceBeneficiariesResponse:
+    try:
+        beneficiaries = beneficiary_service.reorder_beneficiaries(
+            tenant_db,
+            [(item.id, item.sort_order) for item in payload.items],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceBeneficiariesResponse(
+        success=True,
+        message="Orden de beneficiarios actualizado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        total=len(beneficiaries),
+        data=[_build_beneficiary_item(item) for item in beneficiaries],
     )

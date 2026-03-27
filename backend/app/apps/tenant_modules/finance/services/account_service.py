@@ -41,6 +41,9 @@ class FinanceAccountService:
         account = FinanceAccount(**normalized)
         return self.account_repository.save(tenant_db, account)
 
+    def get_account(self, tenant_db: Session, account_id: int) -> FinanceAccount:
+        return self._get_account_or_raise(tenant_db, account_id)
+
     def update_account(
         self,
         tenant_db: Session,
@@ -64,6 +67,13 @@ class FinanceAccountService:
     ) -> FinanceAccount:
         account = self._get_account_or_raise(tenant_db, account_id)
         return self.account_repository.set_active(tenant_db, account, is_active)
+
+    def reorder_accounts(
+        self,
+        tenant_db: Session,
+        items: list[tuple[int, int]],
+    ) -> list[FinanceAccount]:
+        return self.account_repository.reorder(tenant_db, items)
 
     def _get_account_or_raise(self, tenant_db: Session, account_id: int) -> FinanceAccount:
         account = self.account_repository.get_by_id(tenant_db, account_id)

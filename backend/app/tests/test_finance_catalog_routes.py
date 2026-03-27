@@ -12,17 +12,24 @@ from fastapi import HTTPException
 from app.tests.fixtures import build_tenant_context
 from app.apps.tenant_modules.finance.api.accounts import (
     create_finance_account,
+    get_finance_account,
+    reorder_finance_accounts,
     update_finance_account_status,
 )
-from app.apps.tenant_modules.finance.api.categories import list_finance_categories
+from app.apps.tenant_modules.finance.api.categories import (
+    get_finance_category,
+    list_finance_categories,
+    reorder_finance_categories,
+)
 from app.apps.tenant_modules.finance.api.currencies import (
     create_finance_currency,
+    get_finance_exchange_rate,
     list_finance_exchange_rates,
 )
 from app.apps.tenant_modules.finance.schemas import (
     FinanceAccountCreateRequest,
-    FinanceCategoryItemResponse,
     FinanceCurrencyCreateRequest,
+    FinanceReorderRequest,
     FinanceStatusUpdateRequest,
 )
 
@@ -124,6 +131,148 @@ class FinanceCatalogRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertFalse(response.data.is_active)
 
+    def test_get_finance_account_returns_account_detail(self) -> None:
+        account = SimpleNamespace(
+            id=3,
+            name="Caja",
+            code="CASH",
+            account_type="cash",
+            currency_id=1,
+            parent_account_id=None,
+            opening_balance=0.0,
+            opening_balance_at=None,
+            icon=None,
+            is_favorite=False,
+            is_balance_hidden=False,
+            is_active=True,
+            sort_order=100,
+            created_at=datetime(2026, 3, 26, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 3, 26, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.accounts.account_service.get_account",
+            return_value=account,
+        ):
+            response = get_finance_account(
+                account_id=3,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data.code, "CASH")
+
+    def test_reorder_finance_accounts_returns_reordered_items(self) -> None:
+        accounts = [
+            SimpleNamespace(
+                id=1,
+                name="Caja",
+                code="CASH",
+                account_type="cash",
+                currency_id=1,
+                parent_account_id=None,
+                opening_balance=0.0,
+                opening_balance_at=None,
+                icon=None,
+                is_favorite=False,
+                is_balance_hidden=False,
+                is_active=True,
+                sort_order=10,
+                created_at=datetime(2026, 3, 26, 12, 0, tzinfo=timezone.utc),
+                updated_at=datetime(2026, 3, 26, 12, 0, tzinfo=timezone.utc),
+            ),
+            SimpleNamespace(
+                id=2,
+                name="Banco",
+                code="BANK",
+                account_type="bank",
+                currency_id=1,
+                parent_account_id=None,
+                opening_balance=0.0,
+                opening_balance_at=None,
+                icon=None,
+                is_favorite=False,
+                is_balance_hidden=False,
+                is_active=True,
+                sort_order=20,
+                created_at=datetime(2026, 3, 26, 12, 0, tzinfo=timezone.utc),
+                updated_at=datetime(2026, 3, 26, 12, 0, tzinfo=timezone.utc),
+            ),
+        ]
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.accounts.account_service.reorder_accounts",
+            return_value=accounts,
+        ):
+            response = reorder_finance_accounts(
+                payload=FinanceReorderRequest(
+                    items=[
+                        {"id": 1, "sort_order": 10},
+                        {"id": 2, "sort_order": 20},
+                    ]
+                ),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.total, 2)
+
+    def test_get_finance_category_returns_detail(self) -> None:
+        category = SimpleNamespace(
+            id=7,
+            name="Ventas",
+            category_type="income",
+            parent_category_id=None,
+            icon=None,
+            color=None,
+            note=None,
+            is_active=True,
+            sort_order=100,
+            created_at=datetime(2026, 3, 26, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 3, 26, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.categories.category_service.get_category",
+            return_value=category,
+        ):
+            response = get_finance_category(
+                category_id=7,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data.category_type, "income")
+
+    def test_reorder_finance_categories_returns_items(self) -> None:
+        categories = [
+            SimpleNamespace(
+                id=1,
+                name="Ventas",
+                category_type="income",
+                parent_category_id=None,
+                icon=None,
+                color=None,
+                note=None,
+                is_active=True,
+                sort_order=10,
+                created_at=datetime(2026, 3, 26, 12, 0, tzinfo=timezone.utc),
+                updated_at=datetime(2026, 3, 26, 12, 0, tzinfo=timezone.utc),
+            )
+        ]
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.categories.category_service.reorder_categories",
+            return_value=categories,
+        ):
+            response = reorder_finance_categories(
+                payload=FinanceReorderRequest(items=[{"id": 1, "sort_order": 10}]),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.total, 1)
+
     def test_create_finance_currency_returns_created_item(self) -> None:
         currency = SimpleNamespace(
             id=2,
@@ -181,6 +330,30 @@ class FinanceCatalogRoutesTestCase(unittest.TestCase):
 
         self.assertEqual(response.total, 1)
         self.assertEqual(response.data[0].rate, 0.0011)
+
+    def test_get_finance_exchange_rate_returns_detail(self) -> None:
+        exchange_rate = SimpleNamespace(
+            id=4,
+            source_currency_id=2,
+            target_currency_id=1,
+            rate=0.0011,
+            effective_at=datetime(2026, 3, 26, 12, 0, tzinfo=timezone.utc),
+            source="manual",
+            note=None,
+            created_at=datetime(2026, 3, 26, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.currencies.currency_service.get_exchange_rate",
+            return_value=exchange_rate,
+        ):
+            response = get_finance_exchange_rate(
+                exchange_rate_id=4,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data.id, 4)
 
 
 if __name__ == "__main__":

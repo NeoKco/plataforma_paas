@@ -64,3 +64,30 @@ class FinanceCatalogRepository(Generic[ModelT]):
             raise
         tenant_db.refresh(item)
         return item
+
+    def reorder(
+        self,
+        tenant_db: Session,
+        items: list[tuple[int, int]],
+    ) -> list[ModelT]:
+        if not hasattr(self.model_class, "sort_order"):
+            raise AttributeError("This repository does not support reorder")
+
+        reordered: list[ModelT] = []
+        for item_id, sort_order in items:
+            item = self.get_by_id(tenant_db, item_id)
+            if item is None:
+                raise ValueError(f"Catalog item {item_id} does not exist")
+            setattr(item, "sort_order", sort_order)
+            tenant_db.add(item)
+            reordered.append(item)
+
+        try:
+            tenant_db.commit()
+        except Exception:
+            tenant_db.rollback()
+            raise
+
+        for item in reordered:
+            tenant_db.refresh(item)
+        return reordered

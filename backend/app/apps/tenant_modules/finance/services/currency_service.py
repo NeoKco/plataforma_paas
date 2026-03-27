@@ -46,6 +46,9 @@ class FinanceCurrencyService:
         self._normalize_base_currency(tenant_db, currency, previous_base)
         return currency
 
+    def get_currency(self, tenant_db: Session, currency_id: int) -> FinanceCurrency:
+        return self._get_currency_or_raise(tenant_db, currency_id)
+
     def update_currency(
         self,
         tenant_db: Session,
@@ -73,8 +76,22 @@ class FinanceCurrencyService:
             raise ValueError("No puedes desactivar la moneda base")
         return self.currency_repository.set_active(tenant_db, currency, is_active)
 
+    def reorder_currencies(
+        self,
+        tenant_db: Session,
+        items: list[tuple[int, int]],
+    ) -> list[FinanceCurrency]:
+        return self.currency_repository.reorder(tenant_db, items)
+
     def list_exchange_rates(self, tenant_db: Session) -> list[FinanceExchangeRate]:
         return self.exchange_rate_repository.list_all(tenant_db)
+
+    def get_exchange_rate(
+        self,
+        tenant_db: Session,
+        exchange_rate_id: int,
+    ) -> FinanceExchangeRate:
+        return self._get_exchange_rate_or_raise(tenant_db, exchange_rate_id)
 
     def create_exchange_rate(
         self,

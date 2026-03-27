@@ -11,6 +11,7 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceCategoryCreateRequest,
     FinanceCategoryItemResponse,
     FinanceCategoryMutationResponse,
+    FinanceReorderRequest,
     FinanceCategoryUpdateRequest,
     FinanceStatusUpdateRequest,
 )
@@ -77,6 +78,25 @@ def create_finance_category(
     )
 
 
+@router.get("/{category_id}", response_model=FinanceCategoryMutationResponse)
+def get_finance_category(
+    category_id: int,
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceCategoryMutationResponse:
+    try:
+        category = category_service.get_category(tenant_db, category_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceCategoryMutationResponse(
+        success=True,
+        message="Categoria financiera recuperada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_category_item(category),
+    )
+
+
 @router.put("/{category_id}", response_model=FinanceCategoryMutationResponse)
 def update_finance_category(
     category_id: int,
@@ -118,4 +138,27 @@ def update_finance_category_status(
         message="Estado de la categoria financiera actualizado correctamente",
         requested_by=build_finance_requested_by(current_user),
         data=_build_category_item(category),
+    )
+
+
+@router.patch("/reorder", response_model=FinanceCategoriesResponse)
+def reorder_finance_categories(
+    payload: FinanceReorderRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceCategoriesResponse:
+    try:
+        categories = category_service.reorder_categories(
+            tenant_db,
+            [(item.id, item.sort_order) for item in payload.items],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceCategoriesResponse(
+        success=True,
+        message="Orden de categorias financieras actualizado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        total=len(categories),
+        data=[_build_category_item(category) for category in categories],
     )

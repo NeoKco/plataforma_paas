@@ -36,6 +36,9 @@ class FinanceTagService:
         tag = FinanceTag(**normalized)
         return self.tag_repository.save(tenant_db, tag)
 
+    def get_tag(self, tenant_db: Session, tag_id: int) -> FinanceTag:
+        return self._get_or_raise(tenant_db, tag_id)
+
     def update_tag(
         self,
         tenant_db: Session,
@@ -57,6 +60,13 @@ class FinanceTagService:
     ) -> FinanceTag:
         tag = self._get_or_raise(tenant_db, tag_id)
         return self.tag_repository.set_active(tenant_db, tag, is_active)
+
+    def reorder_tags(
+        self,
+        tenant_db: Session,
+        items: list[tuple[int, int]],
+    ) -> list[FinanceTag]:
+        return self.tag_repository.reorder(tenant_db, items)
 
     def _get_or_raise(self, tenant_db: Session, tag_id: int) -> FinanceTag:
         tag = self.tag_repository.get_by_id(tenant_db, tag_id)

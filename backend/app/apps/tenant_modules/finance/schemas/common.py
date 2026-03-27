@@ -11,3 +11,12 @@ class FinanceResponseBase(BaseModel):
 
 class FinanceStatusUpdateRequest(BaseModel):
     is_active: bool
+
+
+class FinanceReorderItemRequest(BaseModel):
+    id: int
+    sort_order: int
+
+
+class FinanceReorderRequest(BaseModel):
+    items: list[FinanceReorderItemRequest]

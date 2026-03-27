@@ -43,6 +43,9 @@ class FinanceCategoryService:
         category = FinanceCategory(**normalized)
         return self.category_repository.save(tenant_db, category)
 
+    def get_category(self, tenant_db: Session, category_id: int) -> FinanceCategory:
+        return self._get_category_or_raise(tenant_db, category_id)
+
     def update_category(
         self,
         tenant_db: Session,
@@ -66,6 +69,13 @@ class FinanceCategoryService:
     ) -> FinanceCategory:
         category = self._get_category_or_raise(tenant_db, category_id)
         return self.category_repository.set_active(tenant_db, category, is_active)
+
+    def reorder_categories(
+        self,
+        tenant_db: Session,
+        items: list[tuple[int, int]],
+    ) -> list[FinanceCategory]:
+        return self.category_repository.reorder(tenant_db, items)
 
     def _get_category_or_raise(self, tenant_db: Session, category_id: int) -> FinanceCategory:
         category = self.category_repository.get_by_id(tenant_db, category_id)

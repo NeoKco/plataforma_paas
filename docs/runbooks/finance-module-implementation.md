@@ -42,12 +42,16 @@ En esta fase quedaron listos:
 - placeholders de vistas futuras sin romper la vista actual de movimientos
 - documentacion tecnica y funcional inicial del modulo
 - migracion tenant `0003_finance_catalogs`
+- migracion tenant `0004_finance_seed_clp`
 - catalogos base del modulo y seeds idempotentes
+- `CLP` disponible como moneda semilla adicional
 - modelos SQLAlchemy de catalogos base
 - schemas backend por entidad
 - repositories CRUD base por catalogo
 - servicios backend por catalogo
 - endpoints CRUD base para catalogos, settings y exchange rates
+- endpoints de detalle y `reorder` para catalogos principales
+- frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
 
 ## Archivos principales
 
@@ -77,6 +81,8 @@ En esta fase quedaron listos:
 - `GET|POST|PUT|PATCH /tenant/finance/currencies`
 - `GET|POST|PUT /tenant/finance/currencies/exchange-rates`
 - `GET|POST|PUT|PATCH /tenant/finance/settings`
+- `GET` detalle por entidad en catalogos principales
+- `PATCH /reorder` donde aplica
 
 ## Permisos usados
 
@@ -146,11 +152,11 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 
 ## Siguiente iteracion recomendable
 
-La siguiente iteracion sobre `finance` ya debe entrar en `Lote 4`:
+La siguiente iteracion sobre `finance` ya debe entrar en `Lote 5`:
 
-1. consolidar cuentas como slice operativo completo
-2. empezar la evolucion de transacciones mas alla del `finance_entries` inicial
-3. preparar relaciones con tags, proyectos y beneficiarios en transacciones
+1. consolidar la tabla `finance_transactions`
+2. reemplazar el flujo minimo basado en `finance_entries`
+3. conectar cuentas, categorias, beneficiarios, personas, proyectos y tags a transacciones reales
 
 ## Convencion relacionada
 
