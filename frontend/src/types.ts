@@ -345,6 +345,16 @@ export type PlatformTenantDeleteResponse = {
   tenant_name: string;
 };
 
+export type PlatformTenantDeprovisionResponse = {
+  success: boolean;
+  message: string;
+  tenant_id: number;
+  tenant_slug: string;
+  tenant_status: string;
+  dropped_database: boolean;
+  dropped_role: boolean;
+};
+
 export type PlatformTenantMaintenanceResponse = {
   success: boolean;
   message: string;

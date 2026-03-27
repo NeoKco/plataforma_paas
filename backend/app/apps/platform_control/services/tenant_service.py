@@ -269,6 +269,76 @@ class TenantService:
             "rotated_at": tenant.tenant_db_credentials_rotated_at,
         }
 
+    def deprovision_tenant(self, db: Session, tenant_id: int) -> dict:
+        tenant = self.tenant_repository.get_by_id(db, tenant_id)
+        if not tenant:
+            raise ValueError("Tenant not found")
+
+        if tenant.status != "archived":
+            raise ValueError("Only archived tenants can be deprovisioned")
+
+        has_db_config = bool(
+            getattr(tenant, "db_name", None)
+            or getattr(tenant, "db_user", None)
+            or getattr(tenant, "db_host", None)
+            or getattr(tenant, "db_port", None)
+        )
+        if not has_db_config:
+            raise ValueError("Tenant database configuration is already empty")
+
+        active_job = (
+            db.query(ProvisioningJob)
+            .filter(ProvisioningJob.tenant_id == tenant.id)
+            .filter(ProvisioningJob.status.in_(["pending", "retry_pending", "running"]))
+            .order_by(ProvisioningJob.id.desc())
+            .first()
+        )
+        if active_job:
+            raise ValueError("Tenant already has a live provisioning job")
+
+        bootstrap = PostgresBootstrapService(
+            admin_host=settings.CONTROL_DB_HOST,
+            admin_port=settings.CONTROL_DB_PORT,
+            admin_db_name="postgres",
+            admin_user="postgres",
+            admin_password=settings.POSTGRES_ADMIN_PASSWORD,
+        )
+
+        dropped_database = False
+        dropped_role = False
+
+        if tenant.db_name:
+            bootstrap.drop_database_if_exists(tenant.db_name)
+            dropped_database = True
+        if tenant.db_user:
+            bootstrap.drop_role_if_exists(tenant.db_user)
+            dropped_role = True
+
+        env_path = Path(settings.BASE_DIR) / ".env"
+        self.tenant_secret_service.clear_tenant_db_password(
+            tenant_slug=tenant.slug,
+            env_path=env_path,
+        )
+        self.tenant_secret_service.clear_tenant_bootstrap_db_password(
+            tenant_slug=tenant.slug,
+            env_path=env_path,
+        )
+
+        tenant.db_name = None
+        tenant.db_user = None
+        tenant.db_host = None
+        tenant.db_port = None
+        tenant.tenant_schema_version = None
+        tenant.tenant_schema_synced_at = None
+        tenant.tenant_db_credentials_rotated_at = None
+        tenant = self.tenant_repository.save(db, tenant)
+
+        return {
+            "tenant": tenant,
+            "dropped_database": dropped_database,
+            "dropped_role": dropped_role,
+        }
+
     def set_maintenance_mode(
         self,
         db: Session,
@@ -419,15 +489,6 @@ class TenantService:
         )
         if billing_events > 0:
             raise ValueError("Tenants with billing history cannot be deleted")
-
-        completed_jobs = (
-            db.query(ProvisioningJob)
-            .filter(ProvisioningJob.tenant_id == tenant_id)
-            .filter(ProvisioningJob.status == "completed")
-            .count()
-        )
-        if completed_jobs > 0:
-            raise ValueError("Tenants with completed provisioning cannot be deleted")
 
         db.query(ProvisioningJob).filter(ProvisioningJob.tenant_id == tenant_id).delete(
             synchronize_session=False

@@ -52,6 +52,15 @@ class TenantSecretService:
         os.environ.pop(bootstrap_var, None)
         self._remove_env_var(env_path, bootstrap_var)
 
+    def clear_tenant_db_password(
+        self,
+        tenant_slug: str,
+        env_path: Path,
+    ) -> None:
+        env_var = self.build_tenant_db_password_env_var_name(tenant_slug)
+        os.environ.pop(env_var, None)
+        self._remove_env_var(env_path, env_var)
+
     def mask_secret(self, value: str, visible: int = 4) -> str:
         if len(value) <= visible:
             return "*" * len(value)

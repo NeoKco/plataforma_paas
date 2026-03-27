@@ -48,6 +48,7 @@ from app.apps.platform_control.schemas import (
     TenantSchemaSyncResponse,
     TenantSchemaStatusResponse,
     TenantDbCredentialsRotateResponse,
+    TenantDeprovisionResponse,
     TenantPortalUserPasswordResetRequest,
     TenantPortalUserPasswordResetResponse,
     TenantPortalUsersItemResponse,
@@ -749,6 +750,62 @@ def reset_tenant_portal_user_password(
     return _build_tenant_portal_user_reset_response(tenant, user)
 
 
+@router.post(
+    "/{tenant_id}/deprovision",
+    response_model=TenantDeprovisionResponse,
+)
+def deprovision_tenant(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantDeprovisionResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+
+    try:
+        result = tenant_service.deprovision_tenant(db, tenant_id)
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    except (OperationalError, ProgrammingError) as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Tenant deprovision failed. Verify PostgreSQL admin access and "
+                "tenant database reachability before retrying."
+            ),
+        ) from exc
+
+    tenant = result["tenant"]
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="technical_deprovision",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.tenant.deprovision",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+        email=_token.get("email"),
+        tenant_slug=tenant.slug,
+        detail="Tenant desprovisionado desde plataforma",
+    )
+
+    return TenantDeprovisionResponse(
+        success=True,
+        message="El tenant archivado fue desprovisionado correctamente.",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        dropped_database=result["dropped_database"],
+        dropped_role=result["dropped_role"],
+    )
+
+
 @router.get(
     "/{tenant_id}/users",
     response_model=TenantPortalUsersResponse,
@@ -1405,7 +1462,13 @@ def delete_tenant(
     db: Session = Depends(get_control_db),
     _token: dict = Depends(require_role("superadmin")),
 ) -> TenantDeleteResponse:
-    tenant = tenant_service.delete_tenant(db, tenant_id)
+    try:
+        tenant = tenant_service.delete_tenant(db, tenant_id)
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
     auth_audit_service.log_event(
         db,
         event_type="platform.tenant.delete",

@@ -10,6 +10,7 @@ export function getPlatformActionFeedbackLabel(scope: string): string {
     "create-tenant": "Alta de tenant",
     "identity-tenant": "Identidad básica",
     "archive-tenant": "Archivo de tenant",
+    "deprovision-tenant": "Desprovisionado de tenant",
     "restore-tenant": "Restauración de tenant",
     "delete-tenant": "Borrado seguro de tenant",
     "create-platform-user": "Alta de usuario de plataforma",
@@ -53,6 +54,8 @@ export function getPlatformActionSuccessMessage(
     "create-tenant": "El tenant fue creado correctamente y quedó listo para provisioning.",
     "identity-tenant": "La identidad básica del tenant fue actualizada correctamente.",
     "archive-tenant": "El tenant fue archivado correctamente.",
+    "deprovision-tenant":
+      "La infraestructura técnica del tenant fue desprovisionada correctamente.",
     "restore-tenant": "El tenant fue restaurado correctamente.",
     "delete-tenant": "El tenant fue eliminado correctamente.",
     "create-platform-user": "El usuario de plataforma fue creado correctamente.",

@@ -597,6 +597,16 @@ class TenantDbCredentialsRotateResponse(BaseModel):
     rotated_at: datetime | None = None
 
 
+class TenantDeprovisionResponse(BaseModel):
+    success: bool
+    message: str
+    tenant_id: int
+    tenant_slug: str
+    tenant_status: str
+    dropped_database: bool
+    dropped_role: bool
+
+
 class TenantPortalUserPasswordResetRequest(BaseModel):
     email: str
     new_password: str

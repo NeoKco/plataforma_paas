@@ -71,6 +71,38 @@ class PostgresBootstrapService:
         with engine.connect() as conn:
             conn.execute(sql)
 
+    def terminate_database_connections(self, db_name: str) -> None:
+        engine = self._get_engine()
+        sql = text(
+            """
+            SELECT pg_terminate_backend(pid)
+            FROM pg_stat_activity
+            WHERE datname = :db_name
+              AND pid <> pg_backend_pid()
+            """
+        )
+        with engine.connect() as conn:
+            conn.execute(sql, {"db_name": db_name})
+
+    def drop_database_if_exists(self, db_name: str) -> None:
+        if not self.database_exists(db_name):
+            return
+
+        self.terminate_database_connections(db_name)
+        engine = self._get_engine()
+        sql = text(f'DROP DATABASE "{db_name}"')
+        with engine.connect() as conn:
+            conn.execute(sql)
+
+    def drop_role_if_exists(self, role_name: str) -> None:
+        if not self.role_exists(role_name):
+            return
+
+        engine = self._get_engine()
+        sql = text(f'DROP ROLE "{role_name}"')
+        with engine.connect() as conn:
+            conn.execute(sql)
+
     def bootstrap_control_database(
         self,
         control_db_name: str,

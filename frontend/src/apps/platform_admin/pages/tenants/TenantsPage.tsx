@@ -21,6 +21,7 @@ import {
 } from "../../../../utils/platform-labels";
 import {
   createPlatformTenant,
+  deprovisionPlatformTenant,
   deletePlatformTenant,
   getPlatformCapabilities,
   getPlatformTenant,
@@ -1112,6 +1113,41 @@ export function TenantsPage() {
     });
   }
 
+  function handleDeprovisionTenant() {
+    if (!session?.accessToken || selectedTenantId === null || !selectedTenantSummary) {
+      return;
+    }
+
+    requestConfirmation({
+      scope: "deprovision-tenant",
+      title: "Confirmar desprovisionado del tenant",
+      description:
+        "Esta acción elimina la base tenant, el rol técnico de PostgreSQL y los secretos técnicos asociados. No equivale a borrar el registro del tenant.",
+      details: [
+        `Tenant: ${selectedTenantSummary.name}`,
+        `Slug: ${selectedTenantSummary.slug}`,
+        "Debe usarse sobre tenants archivados cuando ya no deban conservar infraestructura técnica.",
+        "Después de desprovisionar, el tenant puede quedar apto para borrado seguro si tampoco tiene historial comercial protegido.",
+      ],
+      confirmLabel: "Desprovisionar tenant",
+      tone: "danger",
+      action: async () => {
+        const response = await deprovisionPlatformTenant(
+          session.accessToken,
+          selectedTenantId
+        );
+        return {
+          message: "La infraestructura técnica del tenant fue desprovisionada correctamente.",
+          details: [
+            `Base eliminada: ${response.dropped_database ? "sí" : "no"}`,
+            `Rol técnico eliminado: ${response.dropped_role ? "sí" : "no"}`,
+            "Las credenciales técnicas y la configuración DB del tenant fueron limpiadas.",
+          ],
+        };
+      },
+    });
+  }
+
   return (
     <div className="d-grid gap-4">
       <ConfirmDialog
@@ -1385,14 +1421,25 @@ export function TenantsPage() {
                           Este tenant está archivado. Usa el bloque de restauración para reabrirlo
                           con un lifecycle explícito.
                         </div>
-                        <button
-                          className="btn btn-outline-danger btn-sm"
-                          type="button"
-                          onClick={handleDeleteTenant}
-                          disabled={isActionSubmitting}
-                        >
-                          Eliminar tenant
-                        </button>
+                        {selectedTenantSummary.db_configured ? (
+                          <button
+                            className="btn btn-outline-danger btn-sm"
+                            type="button"
+                            onClick={handleDeprovisionTenant}
+                            disabled={isActionSubmitting}
+                          >
+                            Desprovisionar tenant
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn-outline-danger btn-sm"
+                            type="button"
+                            onClick={handleDeleteTenant}
+                            disabled={isActionSubmitting}
+                          >
+                            Eliminar tenant
+                          </button>
+                        )}
                       </>
                     )}
                     {tenantPortalHref && canOpenTenantPortal ? (
@@ -1784,8 +1831,10 @@ export function TenantsPage() {
                         La restauración es explícita y no equivale a editar el estado a mano.
                       </div>
                       <div className="tenant-inline-note mt-3">
-                        Si este tenant archivado nunca llegó a quedar provisionado y no debe
-                        conservarse, puedes usar `Eliminar tenant` para removerlo definitivamente.
+                        Si este tenant archivado todavía conserva base o credenciales técnicas,
+                        primero usa `Desprovisionar tenant`. Cuando ya no tenga configuración
+                        DB y no deba conservarse, podrás usar `Eliminar tenant` para removerlo
+                        definitivamente.
                       </div>
                       <button className="btn btn-primary mt-3" type="submit" disabled={isActionSubmitting}>
                         Restaurar tenant

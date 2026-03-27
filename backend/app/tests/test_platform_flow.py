@@ -65,6 +65,7 @@ from app.apps.platform_control.api.routes import (  # noqa: E402
 )
 from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     create_tenant,
+    deprovision_tenant,
     delete_tenant,
     get_platform_billing_event_alerts,
     get_platform_billing_event_alert_history,
@@ -809,6 +810,76 @@ class PlatformServicesTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             service.delete_tenant(db=FakeDb(), tenant_id=1)
 
+    def test_tenant_service_rejects_deprovision_for_non_archived_tenant(self) -> None:
+        tenant = build_tenant_record_stub(status="active")
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant)
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.deprovision_tenant(db=MagicMock(), tenant_id=1)
+
+        self.assertEqual(
+            str(exc.exception),
+            "Only archived tenants can be deprovisioned",
+        )
+
+    def test_tenant_service_deprovisions_archived_tenant_and_clears_db_config(self) -> None:
+        tenant = build_tenant_record_stub(status="archived", tenant_slug="empresa-demo")
+        tenant.id = 1
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+        tenant.tenant_schema_version = "0005_finance_transactions"
+        tenant.tenant_schema_synced_at = datetime.now(timezone.utc)
+        tenant.tenant_db_credentials_rotated_at = datetime.now(timezone.utc)
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+            def save(self, db, tenant_to_save):
+                return tenant_to_save
+
+        tenant_secret_service = MagicMock()
+        db = MagicMock()
+        query = db.query.return_value
+        query.filter.return_value = query
+        query.order_by.return_value = query
+        query.first.return_value = None
+
+        service = TenantService(
+            tenant_repository=FakeTenantRepository(),
+            tenant_secret_service=tenant_secret_service,
+        )
+
+        with patch(
+            "app.apps.platform_control.services.tenant_service.PostgresBootstrapService"
+        ) as bootstrap_cls:
+            bootstrap = bootstrap_cls.return_value
+
+            result = service.deprovision_tenant(db=db, tenant_id=1)
+
+        self.assertIs(result["tenant"], tenant)
+        self.assertTrue(result["dropped_database"])
+        self.assertTrue(result["dropped_role"])
+        bootstrap.drop_database_if_exists.assert_called_once_with("tenant_empresa_demo")
+        bootstrap.drop_role_if_exists.assert_called_once_with("user_empresa_demo")
+        tenant_secret_service.clear_tenant_db_password.assert_called_once()
+        tenant_secret_service.clear_tenant_bootstrap_db_password.assert_called_once()
+        self.assertIsNone(tenant.db_name)
+        self.assertIsNone(tenant.db_user)
+        self.assertIsNone(tenant.db_host)
+        self.assertIsNone(tenant.db_port)
+        self.assertIsNone(tenant.tenant_schema_version)
+        self.assertIsNone(tenant.tenant_schema_synced_at)
+        self.assertIsNone(tenant.tenant_db_credentials_rotated_at)
+
     def test_tenant_service_deletes_archived_unprovisioned_tenant_and_technical_history(self) -> None:
         tenant = build_tenant_record_stub(status="archived")
         tenant.id = 1
@@ -855,6 +926,46 @@ class PlatformServicesTestCase(unittest.TestCase):
                 ("TenantPolicyChangeEvent", False),
             ],
         )
+
+    def test_tenant_service_allows_delete_after_completed_provisioning_when_unprovisioned(self) -> None:
+        tenant = build_tenant_record_stub(status="archived")
+        tenant.id = 1
+        deleted_targets: list[int] = []
+
+        class FakeQuery:
+            def __init__(self, model_name: str):
+                self.model_name = model_name
+
+            def filter(self, *args, **kwargs):
+                return self
+
+            def count(self):
+                if self.model_name == "TenantBillingSyncEvent":
+                    return 0
+                if self.model_name == "ProvisioningJob":
+                    return 1
+                return 0
+
+            def delete(self, synchronize_session=False):
+                return 1
+
+        class FakeDb:
+            def query(self, model):
+                return FakeQuery(model.__name__)
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+            def delete(self, db, target):
+                deleted_targets.append(target.id)
+
+        service = TenantService(tenant_repository=FakeTenantRepository())
+
+        result = service.delete_tenant(db=FakeDb(), tenant_id=1)
+
+        self.assertIs(result, tenant)
+        self.assertEqual(deleted_targets, [1])
 
     def test_tenant_service_rejects_reprovision_for_archived_tenant(self) -> None:
         tenant = build_tenant_record_stub(status="archived")
@@ -5174,6 +5285,64 @@ class PlatformRoutesTestCase(unittest.TestCase):
             "The rotated tenant credentials could not be validated and the previous password was restored. Verify PostgreSQL admin access and tenant database reachability before retrying.",
         )
 
+    def test_deprovision_tenant_returns_schema(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Demo",
+            tenant_slug="empresa-demo",
+            status="archived",
+        )
+        tenant.id = 5
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes._capture_tenant_snapshot",
+            return_value={"status": "archived"},
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.deprovision_tenant",
+            return_value={
+                "tenant": tenant,
+                "dropped_database": True,
+                "dropped_role": True,
+            },
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes._record_tenant_policy_event",
+        ) as record_mock, patch(
+            "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
+        ) as audit_mock:
+            response = deprovision_tenant(
+                tenant_id=5,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.tenant_id, 5)
+        self.assertEqual(response.tenant_slug, "empresa-demo")
+        self.assertTrue(response.dropped_database)
+        self.assertTrue(response.dropped_role)
+        record_mock.assert_called_once()
+        audit_mock.assert_called_once()
+
+    def test_deprovision_tenant_returns_400_when_business_rule_blocks_action(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.tenant_routes._capture_tenant_snapshot",
+            return_value={"status": "archived"},
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.deprovision_tenant",
+            side_effect=ValueError("Only archived tenants can be deprovisioned"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                deprovision_tenant(
+                    tenant_id=5,
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertEqual(
+            exc.exception.detail,
+            "Only archived tenants can be deprovisioned",
+        )
+
     def test_reset_tenant_portal_user_password_returns_schema(self) -> None:
         tenant = build_tenant_record_stub(
             tenant_name="Empresa Demo",
@@ -5365,6 +5534,41 @@ class PlatformRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         audit_mock.assert_called_once()
+
+    def test_delete_tenant_returns_400_when_business_rule_blocks_deletion(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.delete_tenant",
+            side_effect=ValueError(
+                "Only archived tenants without provisioned database configuration can be deleted"
+            ),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                delete_tenant(
+                    tenant_id=4,
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertEqual(
+            exc.exception.detail,
+            "Only archived tenants without provisioned database configuration can be deleted",
+        )
+
+    def test_delete_tenant_returns_404_when_tenant_is_missing(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.delete_tenant",
+            side_effect=ValueError("Tenant not found"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                delete_tenant(
+                    tenant_id=404,
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 404)
+        self.assertEqual(exc.exception.detail, "Tenant not found")
 
     def test_get_tenant_policy_history_returns_schema(self) -> None:
         tenant = build_tenant_record_stub()

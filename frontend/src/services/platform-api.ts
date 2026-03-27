@@ -20,6 +20,7 @@ import type {
   PlatformUserUpdateRequest,
   PlatformUserWriteResponse,
   PlatformTenantCreateRequest,
+  PlatformTenantDeprovisionResponse,
   PlatformTenantDeleteResponse,
   PlatformTenantIdentityResponse,
   PlatformTenantListResponse,
@@ -370,6 +371,16 @@ export function deletePlatformTenant(accessToken: string, tenantId: number) {
     method: "DELETE",
     token: accessToken,
   });
+}
+
+export function deprovisionPlatformTenant(accessToken: string, tenantId: number) {
+  return apiRequest<PlatformTenantDeprovisionResponse>(
+    `/platform/tenants/${tenantId}/deprovision`,
+    {
+      method: "POST",
+      token: accessToken,
+    }
+  );
 }
 
 export function updatePlatformTenantMaintenance(
