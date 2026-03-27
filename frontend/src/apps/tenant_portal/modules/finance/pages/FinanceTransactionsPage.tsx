@@ -10,6 +10,7 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { displayPlatformCode } from "../../../../../utils/platform-labels";
 import type { ApiError } from "../../../../../types";
+import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import {
   getTenantFinanceAccounts,
   type TenantFinanceAccount,
@@ -480,6 +481,8 @@ export function FinanceTransactionsPage() {
         title="Transacciones financieras"
         description="Opera el núcleo real de finance con balances por cuenta y trazabilidad reciente."
       />
+
+      <FinanceModuleNav />
 
       {actionFeedback ? (
         <div className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}>
