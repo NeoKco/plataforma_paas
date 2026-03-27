@@ -195,7 +195,7 @@ Cobertura actual:
 - listado, creacion y resumen del modulo
 - listado, creacion y detalle moderno de `transactions`
 - balances por cuenta expuestos por API
-- filtros por transaccion, edicion completa, filtro por favoritas y operaciones batch de favorito/conciliacion
+- filtros por transaccion, edicion completa, filtro por favoritas y operaciones batch de favorito/conciliacion con nota opcional
 - migraciones tenant del modulo hasta `0005_finance_transactions`
 - seeds idempotentes para moneda base, `CLP`, categorias y settings
 - repositories CRUD base del modulo y sus restricciones de unicidad/activacion
