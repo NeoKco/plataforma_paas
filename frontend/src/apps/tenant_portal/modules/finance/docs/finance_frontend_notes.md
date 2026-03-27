@@ -26,12 +26,11 @@
 - la navegacion secundaria del slice ya queda activa
 - los formularios reutilizan el contrato backend sin inventar otra capa de datos
 
-Pendiente inmediato:
-`Lote 5` ya mueve el nucleo backend a `finance_transactions`:
-- la pantalla heredada de `Movimientos` sigue visible
-- `/tenant/finance/entries` se mantiene como contrato legacy
-- el frontend todavia no abre UI rica de transacciones; eso queda para el siguiente lote
+`Lote 5` ya movio el nucleo backend a `finance_transactions` y `Lote 6` ya abrio su primera cara visible:
+- la pantalla de `Transacciones` ya usa el contrato moderno
+- `/tenant/finance/entries` se mantiene como compatibilidad legacy
+- ya existe detalle operacional por transaccion y balances por cuenta
 
 Pendiente inmediato:
-- abrir el siguiente lote sobre detalle operacional de transacciones
-- exponer balances por cuenta y relaciones ricas en la UI de movimientos
+- agregar filtros y busqueda sobre transacciones modernas
+- abrir edicion, conciliacion y favoritos sobre movimientos existentes

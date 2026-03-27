@@ -59,6 +59,12 @@ En esta fase quedaron listos:
 - tablas auxiliares de tags, adjuntos y auditoria por transaccion
 - backfill idempotente desde `finance_entries`
 - compatibilidad legacy de `/tenant/finance/entries` sobre la nueva persistencia
+- endpoints modernos `GET|POST /tenant/finance/transactions`
+- endpoint `GET /tenant/finance/transactions/{transaction_id}` con auditoria reciente
+- endpoint `GET /tenant/finance/account-balances`
+- vista tenant real de transacciones sobre `finance_transactions`
+- panel de detalle operacional por transaccion seleccionada
+- balances por cuenta visibles desde la UI tenant
 
 ## Archivos principales
 
@@ -183,10 +189,15 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 
 ## Siguiente iteracion recomendable
 
-La siguiente iteracion sobre `finance` ya debe entrar en `Lote 6`:
+`Lote 6` ya quedo abierto con el slice minimo util:
 
-1. abrir detalle y panel operacional sobre `finance_transactions`
-2. exponer balances por cuenta y trazabilidad rica en UI
+1. pantalla tenant de transacciones sobre `finance_transactions`
+2. balances por cuenta y detalle operacional con auditoria reciente
+
+Lo siguiente recomendable ahora es:
+
+1. filtros operativos y busqueda sobre transacciones
+2. edicion, conciliacion y favoritos sobre transacciones existentes
 3. seguir con prestamos, planificacion y reportes
 
 ## Convencion relacionada

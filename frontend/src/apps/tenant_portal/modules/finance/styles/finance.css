@@ -108,9 +108,66 @@
   color: var(--color-text-muted, #46526a);
 }
 
+.finance-transaction-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.finance-balance-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.finance-balance-list__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--color-border-subtle, #e2e8f0);
+  border-radius: 0.9rem;
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.finance-balance-list__title {
+  font-weight: 700;
+}
+
+.finance-balance-list__value {
+  font-weight: 700;
+  color: #163e91;
+}
+
+.finance-audit-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.finance-audit-list__item {
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--color-border-subtle, #e2e8f0);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.finance-audit-list__payload {
+  margin: 0.6rem 0 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.7rem;
+  background: #f8fafc;
+  font-size: 0.82rem;
+  color: #46526a;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 @media (min-width: 1200px) {
   .finance-catalog-layout {
     grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.4fr);
+    align-items: start;
+  }
+
+  .finance-transaction-layout {
+    grid-template-columns: minmax(0, 1.45fr) minmax(340px, 0.95fr);
     align-items: start;
   }
 }

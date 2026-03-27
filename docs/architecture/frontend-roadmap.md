@@ -20,7 +20,8 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - `finance` ya tiene slice frontend propio en `tenant_portal/modules/finance`
 - la ruta `/tenant-portal/finance` ya queda servida desde ese slice, preservando la vista actual de movimientos como base operativa
 - `finance` ya expone frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
-- el backend de `finance` ya mueve su nucleo a `finance_transactions`, aunque la UI de movimientos aun conserva el contrato legacy `/entries`
+- `finance` ya expone una primera pantalla moderna de transacciones sobre `finance_transactions`, con balances por cuenta y panel de detalle operacional
+- el contrato legacy `/entries` sigue existiendo solo como compatibilidad
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
 
 Lo que queda pendiente ya no es abrir el frontend desde cero.
@@ -34,6 +35,7 @@ Lo pendiente es sobre todo:
 - endurecimiento de bordes y automatizacion
 - cierre visual y operativo de algunos detalles
 - definir la convencion oficial para que los siguientes modulos nazcan como slices coherentes, tomando `finance` como modulo piloto
+- profundizar la vista moderna de transacciones con filtros, edicion y conciliacion antes de abrir mas dominios grandes dentro de finance
 
 Nota de ejecucion:
 
