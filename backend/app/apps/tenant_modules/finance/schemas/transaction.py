@@ -1,3 +1,5 @@
+from datetime import date, datetime
+
 from pydantic import BaseModel
 
 from app.apps.tenant_modules.finance.schemas.common import FinanceResponseBase
@@ -26,6 +28,72 @@ class FinanceEntryMutationResponse(FinanceResponseBase):
 class FinanceEntriesResponse(FinanceResponseBase):
     total: int
     data: list[FinanceEntryItemResponse]
+
+
+class FinanceTransactionCreateRequest(BaseModel):
+    transaction_type: str
+    account_id: int | None = None
+    target_account_id: int | None = None
+    category_id: int | None = None
+    beneficiary_id: int | None = None
+    person_id: int | None = None
+    project_id: int | None = None
+    currency_id: int
+    loan_id: int | None = None
+    amount: float
+    discount_amount: float = 0
+    exchange_rate: float | None = None
+    amortization_months: int | None = None
+    transaction_at: datetime
+    alternative_date: date | None = None
+    description: str
+    notes: str | None = None
+    is_favorite: bool = False
+    is_reconciled: bool = False
+    tag_ids: list[int] | None = None
+
+
+class FinanceTransactionItemResponse(BaseModel):
+    id: int
+    transaction_type: str
+    account_id: int | None = None
+    target_account_id: int | None = None
+    category_id: int | None = None
+    beneficiary_id: int | None = None
+    person_id: int | None = None
+    project_id: int | None = None
+    currency_id: int
+    loan_id: int | None = None
+    amount: float
+    amount_in_base_currency: float | None = None
+    exchange_rate: float | None = None
+    discount_amount: float = 0
+    amortization_months: int | None = None
+    transaction_at: datetime
+    alternative_date: date | None = None
+    description: str
+    notes: str | None = None
+    is_favorite: bool = False
+    favorite_flag: bool = False
+    is_reconciled: bool = False
+    reconciled_at: datetime | None = None
+    is_template_origin: bool = False
+    source_type: str | None = None
+    source_id: int | None = None
+    created_by_user_id: int | None = None
+    updated_by_user_id: int | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class FinanceAccountBalanceItem(BaseModel):
+    account_id: int
+    balance: float
+
+
+class FinanceAccountBalancesResponse(FinanceResponseBase):
+    total: int
+    data: list[FinanceAccountBalanceItem]
 
 
 class FinanceSummaryData(BaseModel):

@@ -28,6 +28,12 @@ from app.apps.tenant_modules.finance.repositories.settings_repository import (
 from app.apps.tenant_modules.finance.repositories.tag_repository import (
     FinanceTagRepository,
 )
+from app.apps.tenant_modules.finance.repositories.transaction_audit_repository import (
+    FinanceTransactionAuditRepository,
+)
+from app.apps.tenant_modules.finance.repositories.transaction_repository import (
+    FinanceTransactionRepository,
+)
 
 __all__ = [
     "FinanceAccountRepository",
@@ -40,4 +46,6 @@ __all__ = [
     "FinanceProjectRepository",
     "FinanceSettingsRepository",
     "FinanceTagRepository",
+    "FinanceTransactionAuditRepository",
+    "FinanceTransactionRepository",
 ]

@@ -2,10 +2,14 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.finance.models.entry import FinanceEntry
-from app.apps.tenant_modules.finance.repositories.entry_repository import (
-    FinanceEntryRepository,
+from app.apps.tenant_modules.finance.models import FinanceAccount, FinanceCurrency, FinanceTransaction
+from app.apps.tenant_modules.finance.repositories import (
+    FinanceAccountRepository,
+    FinanceCurrencyRepository,
+    FinanceTransactionAuditRepository,
+    FinanceTransactionRepository,
 )
+from app.apps.tenant_modules.finance.schemas import FinanceTransactionCreateRequest
 from app.common.policies.module_limit_catalog import (
     FINANCE_ENTRIES_LIMIT_KEY,
     FINANCE_ENTRIES_MONTHLY_LIMIT_KEY,
@@ -24,9 +28,17 @@ class FinanceService:
 
     def __init__(
         self,
-        entry_repository: FinanceEntryRepository | None = None,
+        transaction_repository: FinanceTransactionRepository | None = None,
+        currency_repository: FinanceCurrencyRepository | None = None,
+        account_repository: FinanceAccountRepository | None = None,
+        transaction_audit_repository: FinanceTransactionAuditRepository | None = None,
     ):
-        self.entry_repository = entry_repository or FinanceEntryRepository()
+        self.transaction_repository = transaction_repository or FinanceTransactionRepository()
+        self.currency_repository = currency_repository or FinanceCurrencyRepository()
+        self.account_repository = account_repository or FinanceAccountRepository()
+        self.transaction_audit_repository = (
+            transaction_audit_repository or FinanceTransactionAuditRepository()
+        )
 
     def create_entry(
         self,
@@ -39,7 +51,7 @@ class FinanceService:
         max_entries: int | None = None,
         max_monthly_entries: int | None = None,
         max_monthly_entries_by_type: dict[str, int] | None = None,
-    ) -> FinanceEntry:
+    ) -> FinanceTransaction:
         normalized_type = movement_type.strip().lower()
         if normalized_type not in {"income", "expense"}:
             raise ValueError("movement_type debe ser income o expense")
@@ -48,14 +60,14 @@ class FinanceService:
             raise ValueError("amount debe ser mayor que cero")
 
         if max_entries is not None and max_entries > 0:
-            current_entries = self.entry_repository.count_all(tenant_db)
+            current_entries = self.transaction_repository.count_all(tenant_db)
             if current_entries >= max_entries:
                 raise FinanceUsageLimitExceededError(
                     "El plan actual alcanzo el limite de finance.entries"
                 )
 
         if max_monthly_entries is not None and max_monthly_entries > 0:
-            current_monthly_entries = self.entry_repository.count_created_since(
+            current_monthly_entries = self.transaction_repository.count_created_since(
                 tenant_db,
                 self._get_current_month_start(),
             )
@@ -69,7 +81,7 @@ class FinanceService:
             type_monthly_limit = max_monthly_entries_by_type.get(normalized_type)
         if type_monthly_limit is not None and type_monthly_limit > 0:
             current_type_monthly_entries = (
-                self.entry_repository.count_created_since_by_type(
+                self.transaction_repository.count_created_since_by_type(
                     tenant_db,
                     self._get_current_month_start(),
                     normalized_type,
@@ -81,25 +93,149 @@ class FinanceService:
                     f"{self.MONTHLY_TYPE_MODULE_LIMIT_KEYS[normalized_type]}"
                 )
 
-        entry = FinanceEntry(
-            movement_type=normalized_type,
-            concept=concept,
+        base_currency = self._get_base_currency_or_raise(tenant_db)
+        transaction = FinanceTransaction(
+            transaction_type=normalized_type,
+            account_id=None,
+            target_account_id=None,
+            category_id=None,
+            beneficiary_id=None,
+            person_id=None,
+            project_id=None,
+            currency_id=base_currency.id,
+            loan_id=None,
             amount=amount,
-            category=category,
+            amount_in_base_currency=amount,
+            exchange_rate=1,
+            discount_amount=0,
+            amortization_months=None,
+            transaction_at=datetime.now(timezone.utc),
+            alternative_date=None,
+            description=concept,
+            notes=category,
+            is_favorite=False,
+            favorite_flag=False,
+            is_reconciled=False,
+            reconciled_at=None,
+            is_template_origin=False,
+            planner_id=None,
+            template_id=None,
+            source_type="legacy_entries_api",
+            source_id=None,
             created_by_user_id=created_by_user_id,
+            updated_by_user_id=created_by_user_id,
         )
-        return self.entry_repository.save(tenant_db, entry)
+        saved = self.transaction_repository.save(tenant_db, transaction)
+        self.transaction_audit_repository.save_event(
+            tenant_db,
+            transaction_id=saved.id,
+            event_type="transaction.created.legacy_entry",
+            actor_user_id=created_by_user_id,
+            summary="Movimiento creado desde API legacy de entries",
+            payload={"transaction_type": normalized_type, "concept": concept},
+        )
+        return saved
 
-    def list_entries(self, tenant_db: Session) -> list[FinanceEntry]:
-        return self.entry_repository.list_all(tenant_db)
+    def create_transaction(
+        self,
+        tenant_db: Session,
+        payload: FinanceTransactionCreateRequest,
+        *,
+        created_by_user_id: int | None = None,
+    ) -> FinanceTransaction:
+        normalized_type = payload.transaction_type.strip().lower()
+        if normalized_type not in {"income", "expense", "transfer"}:
+            raise ValueError("transaction_type debe ser income, expense o transfer")
+        if payload.amount <= 0:
+            raise ValueError("amount debe ser mayor que cero")
+        if not payload.description.strip():
+            raise ValueError("La descripcion de la transaccion es obligatoria")
+
+        currency = self._get_currency_or_raise(tenant_db, payload.currency_id)
+        source_account = self._get_account_if_present(tenant_db, payload.account_id)
+        target_account = self._get_account_if_present(tenant_db, payload.target_account_id)
+
+        if payload.account_id is None:
+            raise ValueError("La transaccion requiere una cuenta origen")
+
+        if normalized_type == "transfer":
+            if payload.target_account_id is None:
+                raise ValueError("La transferencia requiere cuenta destino")
+            if payload.account_id == payload.target_account_id:
+                raise ValueError("La transferencia requiere cuentas distintas")
+        elif payload.target_account_id is not None:
+            raise ValueError("Solo las transferencias pueden usar cuenta destino")
+
+        if source_account and source_account.currency_id != currency.id:
+            raise ValueError("La moneda de la transaccion debe coincidir con la cuenta origen")
+        if target_account and target_account.currency_id != currency.id:
+            raise ValueError("La moneda de la transaccion debe coincidir con la cuenta destino")
+
+        amount_in_base_currency, exchange_rate = self._resolve_base_amounts(
+            tenant_db,
+            currency=currency,
+            amount=payload.amount,
+            exchange_rate=payload.exchange_rate,
+        )
+
+        transaction = FinanceTransaction(
+            transaction_type=normalized_type,
+            account_id=payload.account_id,
+            target_account_id=payload.target_account_id,
+            category_id=payload.category_id,
+            beneficiary_id=payload.beneficiary_id,
+            person_id=payload.person_id,
+            project_id=payload.project_id,
+            currency_id=payload.currency_id,
+            loan_id=payload.loan_id,
+            amount=payload.amount,
+            amount_in_base_currency=amount_in_base_currency,
+            exchange_rate=exchange_rate,
+            discount_amount=payload.discount_amount,
+            amortization_months=payload.amortization_months,
+            transaction_at=payload.transaction_at,
+            alternative_date=payload.alternative_date,
+            description=payload.description.strip(),
+            notes=payload.notes.strip() if payload.notes and payload.notes.strip() else None,
+            is_favorite=payload.is_favorite,
+            favorite_flag=payload.is_favorite,
+            is_reconciled=payload.is_reconciled,
+            reconciled_at=payload.transaction_at if payload.is_reconciled else None,
+            is_template_origin=False,
+            planner_id=None,
+            template_id=None,
+            source_type=None,
+            source_id=None,
+            created_by_user_id=created_by_user_id,
+            updated_by_user_id=created_by_user_id,
+        )
+        saved = self.transaction_repository.save(tenant_db, transaction)
+        self.transaction_audit_repository.save_event(
+            tenant_db,
+            transaction_id=saved.id,
+            event_type="transaction.created",
+            actor_user_id=created_by_user_id,
+            summary="Transaccion financiera creada",
+            payload={
+                "transaction_type": normalized_type,
+                "account_id": payload.account_id,
+                "target_account_id": payload.target_account_id,
+                "currency_id": payload.currency_id,
+                "amount": payload.amount,
+            },
+        )
+        return saved
+
+    def list_entries(self, tenant_db: Session) -> list[FinanceTransaction]:
+        return self.transaction_repository.list_all(tenant_db)
 
     def get_summary(self, tenant_db: Session) -> dict[str, float]:
-        entries = self.entry_repository.list_all(tenant_db)
+        entries = self.transaction_repository.list_all(tenant_db)
         total_income = sum(
-            entry.amount for entry in entries if entry.movement_type == "income"
+            entry.amount for entry in entries if entry.transaction_type == "income"
         )
         total_expense = sum(
-            entry.amount for entry in entries if entry.movement_type == "expense"
+            entry.amount for entry in entries if entry.transaction_type == "expense"
         )
 
         return {
@@ -115,7 +251,7 @@ class FinanceService:
         *,
         max_entries: int | None = None,
     ) -> dict:
-        used_entries = self.entry_repository.count_all(tenant_db)
+        used_entries = self.transaction_repository.count_all(tenant_db)
         unlimited = max_entries is None or max_entries <= 0
         effective_max_entries = None if unlimited else max_entries
         remaining_entries = (
@@ -141,7 +277,7 @@ class FinanceService:
         *,
         max_entries: int | None = None,
     ) -> dict:
-        used_entries = self.entry_repository.count_created_since(
+        used_entries = self.transaction_repository.count_created_since(
             tenant_db,
             self._get_current_month_start(),
         )
@@ -173,7 +309,7 @@ class FinanceService:
     ) -> dict:
         normalized_type = movement_type.strip().lower()
         module_key = self.MONTHLY_TYPE_MODULE_LIMIT_KEYS[normalized_type]
-        used_entries = self.entry_repository.count_created_since_by_type(
+        used_entries = self.transaction_repository.count_created_since_by_type(
             tenant_db,
             self._get_current_month_start(),
             normalized_type,
@@ -197,6 +333,70 @@ class FinanceService:
             else used_entries >= effective_max_entries,
         }
 
+    def get_account_balances(self, tenant_db: Session) -> dict[int, float]:
+        accounts = self.account_repository.list_all(tenant_db, include_inactive=True)
+        balances = {account.id: float(account.opening_balance or 0) for account in accounts}
+
+        for transaction in self.transaction_repository.list_all(tenant_db):
+            amount = float(transaction.amount)
+            if transaction.transaction_type == "income" and transaction.account_id:
+                balances[transaction.account_id] = balances.get(transaction.account_id, 0.0) + amount
+            elif transaction.transaction_type == "expense" and transaction.account_id:
+                balances[transaction.account_id] = balances.get(transaction.account_id, 0.0) - amount
+            elif transaction.transaction_type == "transfer":
+                if transaction.account_id:
+                    balances[transaction.account_id] = balances.get(transaction.account_id, 0.0) - amount
+                if transaction.target_account_id:
+                    balances[transaction.target_account_id] = balances.get(transaction.target_account_id, 0.0) + amount
+
+        return balances
+
     def _get_current_month_start(self) -> datetime:
         now = datetime.now(timezone.utc)
         return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    def _get_currency_or_raise(self, tenant_db: Session, currency_id: int) -> FinanceCurrency:
+        currency = self.currency_repository.get_by_id(tenant_db, currency_id)
+        if currency is None:
+            raise ValueError("La moneda seleccionada no existe")
+        return currency
+
+    def _get_base_currency_or_raise(self, tenant_db: Session) -> FinanceCurrency:
+        currencies = self.currency_repository.list_all(tenant_db, include_inactive=True)
+        for currency in currencies:
+            if currency.is_base:
+                return currency
+        if currencies:
+            return currencies[0]
+        raise ValueError("No existe una moneda base configurada para finance")
+
+    def _get_account_if_present(
+        self,
+        tenant_db: Session,
+        account_id: int | None,
+    ) -> FinanceAccount | None:
+        if account_id is None:
+            return None
+        account = self.account_repository.get_by_id(tenant_db, account_id)
+        if account is None:
+            raise ValueError("La cuenta financiera seleccionada no existe")
+        return account
+
+    def _resolve_base_amounts(
+        self,
+        tenant_db: Session,
+        *,
+        currency: FinanceCurrency,
+        amount: float,
+        exchange_rate: float | None,
+    ) -> tuple[float, float | None]:
+        base_currency = self._get_base_currency_or_raise(tenant_db)
+        if currency.id == base_currency.id:
+            return amount, exchange_rate or 1
+
+        if exchange_rate is None or exchange_rate <= 0:
+            raise ValueError(
+                "Las transacciones en moneda no base requieren exchange_rate mayor que cero"
+            )
+
+        return amount * exchange_rate, exchange_rate

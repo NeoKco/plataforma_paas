@@ -9,6 +9,14 @@ from app.apps.tenant_modules.finance.models.person import FinancePerson
 from app.apps.tenant_modules.finance.models.project import FinanceProject
 from app.apps.tenant_modules.finance.models.settings import FinanceSetting
 from app.apps.tenant_modules.finance.models.tag import FinanceTag
+from app.apps.tenant_modules.finance.models.transaction import FinanceTransaction
+from app.apps.tenant_modules.finance.models.transaction_attachment import (
+    FinanceTransactionAttachment,
+)
+from app.apps.tenant_modules.finance.models.transaction_audit import (
+    FinanceTransactionAudit,
+)
+from app.apps.tenant_modules.finance.models.transaction_tag import FinanceTransactionTag
 
 __all__ = [
     "FinanceAccount",
@@ -22,4 +30,8 @@ __all__ = [
     "FinanceProject",
     "FinanceSetting",
     "FinanceTag",
+    "FinanceTransaction",
+    "FinanceTransactionAttachment",
+    "FinanceTransactionAudit",
+    "FinanceTransactionTag",
 ]
