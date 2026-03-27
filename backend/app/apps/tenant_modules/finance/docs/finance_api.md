@@ -73,6 +73,18 @@ Estado tras `Lote 4`:
 - frontend ya consume estos contratos en `/tenant-portal/finance/tools`
 - frontend ya consume estos contratos en `/tenant-portal/finance/settings`
 
+Estado tras `Lote 5`:
+- `/tenant/finance/entries` se mantiene como contrato legacy
+- internamente, esas rutas ya persisten y leen desde `finance_transactions`
+- el backfill desde `finance_entries` a `finance_transactions` queda cubierto por migracion
+- el siguiente paso API ya no es romper `/entries`, sino abrir endpoints ricos de transacciones sobre la nueva tabla
+
+Nucleo transaccional ya disponible en backend:
+- tabla `finance_transactions`
+- tabla `finance_transaction_tags`
+- tabla `finance_transaction_attachments`
+- tabla `finance_transaction_audit`
+
 Pendiente:
 - endpoints de prestamos, presupuestos, conciliacion y reportes
-- evolucion de `entries` hacia `transactions` con relaciones reales
+- endpoints ricos de `transactions` y balances por cuenta

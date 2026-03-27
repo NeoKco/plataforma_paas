@@ -27,5 +27,11 @@
 - los formularios reutilizan el contrato backend sin inventar otra capa de datos
 
 Pendiente inmediato:
-- evolucionar de `finance_entries` a `finance_transactions` con relaciones reales
-- abrir el siguiente lote sobre tabla de transacciones y detalle operacional
+`Lote 5` ya mueve el nucleo backend a `finance_transactions`:
+- la pantalla heredada de `Movimientos` sigue visible
+- `/tenant/finance/entries` se mantiene como contrato legacy
+- el frontend todavia no abre UI rica de transacciones; eso queda para el siguiente lote
+
+Pendiente inmediato:
+- abrir el siguiente lote sobre detalle operacional de transacciones
+- exponer balances por cuenta y relaciones ricas en la UI de movimientos

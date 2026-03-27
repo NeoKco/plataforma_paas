@@ -4,6 +4,7 @@ Estado actual:
 - existe `finance_entries` como tabla minima operativa
 - existe `0003_finance_catalogs` como migracion base de catalogos del modulo
 - existe `0004_finance_seed_clp` como seed adicional de moneda
+- existe `0005_finance_transactions` como migracion del nucleo transaccional real
 
 Objetivo contractual:
 - ampliar el esquema tenant del modulo segun el roadmap maestro
@@ -21,6 +22,10 @@ Tablas base ya creadas en `Lote 1`:
 - `finance_exchange_rates`
 - `finance_settings`
 - `finance_activity_logs`
+- `finance_transactions`
+- `finance_transaction_tags`
+- `finance_transaction_attachments`
+- `finance_transaction_audit`
 
 ## Seeds idempotentes iniciales
 
@@ -67,6 +72,20 @@ Tablas base ya creadas en `Lote 1`:
 ### `finance_activity_logs`
 - auditoria interna del modulo para eventos de negocio futuros
 
+### `finance_transactions`
+- tabla central real del modulo para ingresos, gastos y transferencias
+- preparada para enlazar cuentas, categorias, terceros, proyectos, moneda y auditoria
+- conserva compatibilidad con `finance_entries` mediante backfill y API legacy
+
+### `finance_transaction_tags`
+- relacion N:M entre transacciones y etiquetas
+
+### `finance_transaction_attachments`
+- adjuntos base por transaccion
+
+### `finance_transaction_audit`
+- auditoria propia del ciclo de vida de la transaccion
+
 ## Reglas estructurales de esta fase
 
 - indices por `is_active`, `sort_order` y `created_at` donde aplica
@@ -74,5 +93,5 @@ Tablas base ya creadas en `Lote 1`:
 - seeds preparados para re-ejecucion segura
 
 Pendiente siguiente:
-- validaciones de negocio de transacciones con relaciones reales
-- evolucion de `finance_entries` hacia `finance_transactions`
+- endpoints ricos de transacciones, balances y detalle operacional
+- prestamos, plantillas, planificacion y reportes

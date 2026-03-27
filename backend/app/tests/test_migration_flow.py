@@ -10,6 +10,7 @@ from sqlalchemy.pool import StaticPool
 from app.common.db.migration_runner import MigrationRunner
 from migrations.tenant import v0003_finance_catalogs
 from migrations.tenant import v0004_finance_seed_clp
+from migrations.tenant import v0005_finance_transactions
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -128,6 +129,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0002_finance_entries",
                 "0003_finance_catalogs",
                 "0004_finance_seed_clp",
+                "0005_finance_transactions",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -144,6 +146,10 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("finance_exchange_rates", tables)
         self.assertIn("finance_settings", tables)
         self.assertIn("finance_activity_logs", tables)
+        self.assertIn("finance_transactions", tables)
+        self.assertIn("finance_transaction_tags", tables)
+        self.assertIn("finance_transaction_attachments", tables)
+        self.assertIn("finance_transaction_audit", tables)
         self.assertIn("tenant_schema_migrations", tables)
 
         with engine.connect() as conn:
@@ -188,6 +194,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0002_finance_entries",
                 "0003_finance_catalogs",
                 "0004_finance_seed_clp",
+                "0005_finance_transactions",
             ],
         )
 
@@ -220,6 +227,55 @@ class MigrationFlowTestCase(unittest.TestCase):
                 ).all()
             ]
             self.assertEqual(currency_codes, ["USD", "CLP"])
+
+    def test_finance_transactions_migration_backfills_legacy_entries(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            MigrationRunner(
+                engine=engine,
+                package_name="migrations.tenant",
+                table_name="tenant_schema_migrations",
+            ).apply_pending()
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO finance_entries (
+                        movement_type,
+                        concept,
+                        amount,
+                        category,
+                        created_by_user_id
+                    ) VALUES (
+                        'income',
+                        'Cobro migrado',
+                        1500.0,
+                        'billing',
+                        7
+                    )
+                    """
+                )
+            )
+            conn.execute(text("DELETE FROM finance_transactions"))
+            v0005_finance_transactions.upgrade(conn)
+
+        with engine.connect() as conn:
+            rows = conn.execute(
+                text(
+                    """
+                    SELECT transaction_type, description, notes, source_type, source_id
+                    FROM finance_transactions
+                    ORDER BY id ASC
+                    """
+                )
+            ).all()
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][0], "income")
+        self.assertEqual(rows[0][1], "Cobro migrado")
+        self.assertEqual(rows[0][2], "billing")
+        self.assertEqual(rows[0][3], "finance_entries_migration")
+        self.assertEqual(rows[0][4], 1)
 
 
 if __name__ == "__main__":

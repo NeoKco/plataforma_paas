@@ -1,6 +1,8 @@
 from collections.abc import Generator
 
 from fastapi import HTTPException, Request, status
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.core.services.tenant_connection_service import (
@@ -59,10 +61,17 @@ def get_tenant_db(request: Request) -> Generator[Session, None, None]:
         try:
             tenant_session_factory = connection_service.get_tenant_session(tenant)
             tenant_db = tenant_session_factory()
+            if hasattr(tenant_db, "execute"):
+                tenant_db.execute(text("SELECT 1"))
         except ValueError as exc:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=str(exc),
+            ) from exc
+        except OperationalError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Tenant unavailable due to operational error",
             ) from exc
 
         yield tenant_db

@@ -33,6 +33,8 @@ El trabajo sobre `finance` ya arranco siguiendo el orden obligatorio del prompt 
 - `Lote 1` completado
 - `Lote 2` completado
 - `Lote 3` completado
+- `Lote 4` completado
+- `Lote 5` completado
 
 En esta fase quedaron listos:
 
@@ -52,6 +54,11 @@ En esta fase quedaron listos:
 - endpoints CRUD base para catalogos, settings y exchange rates
 - endpoints de detalle y `reorder` para catalogos principales
 - frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
+- migracion tenant `0005_finance_transactions`
+- tabla `finance_transactions` como nucleo real del modulo
+- tablas auxiliares de tags, adjuntos y auditoria por transaccion
+- backfill idempotente desde `finance_entries`
+- compatibilidad legacy de `/tenant/finance/entries` sobre la nueva persistencia
 
 ## Archivos principales
 
@@ -99,7 +106,12 @@ Roles actuales:
 
 ## Modelo actual
 
-La tabla pensada para este modulo es `finance_entries`, con campos:
+La persistencia transicional del modulo queda asi:
+
+- `finance_entries` se conserva como tabla minima legacy
+- `finance_transactions` pasa a ser la tabla central real del modulo
+
+Campos legacy principales:
 
 - `movement_type`
 - `concept`
@@ -107,6 +119,25 @@ La tabla pensada para este modulo es `finance_entries`, con campos:
 - `category`
 - `created_by_user_id`
 - `created_at`
+
+Campos base del nuevo nucleo:
+
+- `transaction_type`
+- `account_id`
+- `target_account_id`
+- `category_id`
+- `beneficiary_id`
+- `person_id`
+- `project_id`
+- `currency_id`
+- `amount`
+- `amount_in_base_currency`
+- `exchange_rate`
+- `description`
+- `notes`
+- `is_reconciled`
+- `source_type`
+- `source_id`
 
 ## Validaciones actuales
 
@@ -152,11 +183,11 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 
 ## Siguiente iteracion recomendable
 
-La siguiente iteracion sobre `finance` ya debe entrar en `Lote 5`:
+La siguiente iteracion sobre `finance` ya debe entrar en `Lote 6`:
 
-1. consolidar la tabla `finance_transactions`
-2. reemplazar el flujo minimo basado en `finance_entries`
-3. conectar cuentas, categorias, beneficiarios, personas, proyectos y tags a transacciones reales
+1. abrir detalle y panel operacional sobre `finance_transactions`
+2. exponer balances por cuenta y trazabilidad rica en UI
+3. seguir con prestamos, planificacion y reportes
 
 ## Convencion relacionada
 

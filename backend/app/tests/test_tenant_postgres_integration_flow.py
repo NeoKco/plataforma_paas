@@ -10,6 +10,7 @@ from app.apps.tenant_modules.core.models.user import User  # noqa: F401,E402
 from app.apps.tenant_modules.core.services.tenant_data_service import (  # noqa: E402
     TenantDataService,
 )
+from app.apps.tenant_modules.finance.models.currency import FinanceCurrency  # noqa: F401,E402
 from app.apps.tenant_modules.finance.models.entry import FinanceEntry  # noqa: F401,E402
 from app.apps.tenant_modules.finance.services.finance_service import (  # noqa: E402
     FinanceService,
@@ -41,6 +42,19 @@ class TenantPostgresIntegrationTestCase(unittest.TestCase):
         drop_postgres_database(self.database_name)
 
     def test_create_user_and_finance_entry_against_postgres(self) -> None:
+        self.db.add(
+            FinanceCurrency(
+                code="USD",
+                name="US Dollar",
+                symbol="$",
+                decimal_places=2,
+                is_base=True,
+                is_active=True,
+                sort_order=10,
+            )
+        )
+        self.db.commit()
+
         user = self.tenant_data_service.create_user(
             tenant_db=self.db,
             full_name="Operador PG",

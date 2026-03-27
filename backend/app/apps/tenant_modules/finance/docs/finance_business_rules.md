@@ -34,7 +34,19 @@ Reglas agregadas en `Lote 3`:
 - cuando un `commit()` falla, el repositorio hace `rollback()` para no dejar la sesion contaminada
 
 Pendiente:
-- reglas por cuentas
-- reglas por prestamos
-- conciliacion
+Reglas agregadas en `Lote 5`:
+- el nucleo real del modulo se mueve a `finance_transactions`
+- `transfer` exige cuenta destino y no permite misma cuenta origen/destino
+- `income` y `expense` no aceptan `target_account_id`
+- la transaccion exige `currency_id`
+- si la moneda no es base, `exchange_rate` debe ser mayor que cero
+- si la moneda es base, la transaccion congela `exchange_rate = 1`
+- las cuentas origen/destino deben usar la misma moneda de la transaccion
+- el balance por cuenta se calcula desde saldo inicial + ingresos - gastos +/- transferencias
+- la API legacy `/entries` sigue viva, pero ya escribe auditoria y persiste sobre `finance_transactions`
+
+Pendiente:
+- validacion explicita de relaciones opcionales enriquecidas (`beneficiary`, `person`, `project`, `loan`)
+- prestamos
+- conciliacion operativa
 - plantillas y programacion recurrente

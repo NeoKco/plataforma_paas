@@ -380,6 +380,13 @@ export function TenantsPage() {
         setModuleUsageNotice(
           "La base tenant existe, pero su esquema está incompleto. Debes sincronizar migraciones tenant antes de ver el uso por módulo."
         );
+      } else if (
+        typedError.payload?.detail ===
+        "Tenant database access failed. Rotate or reprovision tenant DB credentials before requesting module usage."
+      ) {
+        setModuleUsageNotice(
+          "La base tenant no aceptó la credencial técnica actual. Debes rotar o reprovisionar las credenciales de la base tenant antes de ver el uso por módulo."
+        );
       } else {
         setModuleUsageError(typedError);
       }

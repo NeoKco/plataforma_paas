@@ -1,5 +1,7 @@
 import os
 import unittest
+from datetime import datetime, timezone
+from types import SimpleNamespace
 
 os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
@@ -10,7 +12,9 @@ from app.apps.tenant_modules.core.models.user import User  # noqa: F401,E402
 from app.apps.tenant_modules.core.services.tenant_data_service import (  # noqa: E402
     TenantDataService,
 )
+from app.apps.tenant_modules.finance.models.currency import FinanceCurrency  # noqa: F401,E402
 from app.apps.tenant_modules.finance.models.entry import FinanceEntry  # noqa: F401,E402
+from app.apps.tenant_modules.finance.models.account import FinanceAccount  # noqa: F401,E402
 from app.apps.tenant_modules.finance.services.finance_service import (  # noqa: E402
     FinanceService,
 )
@@ -78,6 +82,18 @@ class TenantIntegrationTestCase(unittest.TestCase):
         self.assertFalse(persisted_user.is_active)
 
     def test_finance_entries_and_summary_against_real_tenant_db(self) -> None:
+        base_currency = FinanceCurrency(
+            code="USD",
+            name="US Dollar",
+            symbol="$",
+            decimal_places=2,
+            is_base=True,
+            is_active=True,
+            sort_order=10,
+        )
+        self.db.add(base_currency)
+        self.db.commit()
+
         self.finance_service.create_entry(
             tenant_db=self.db,
             movement_type="income",
@@ -102,6 +118,127 @@ class TenantIntegrationTestCase(unittest.TestCase):
         self.assertEqual(summary["total_income"], 1000.0)
         self.assertEqual(summary["total_expense"], 55.5)
         self.assertEqual(summary["balance"], 944.5)
+
+    def test_finance_transaction_balances_against_real_tenant_db(self) -> None:
+        usd = FinanceCurrency(
+            code="USD",
+            name="US Dollar",
+            symbol="$",
+            decimal_places=2,
+            is_base=True,
+            is_active=True,
+            sort_order=10,
+        )
+        self.db.add(usd)
+        self.db.commit()
+        self.db.refresh(usd)
+
+        caja = FinanceAccount(
+            name="Caja",
+            code="CAJA",
+            account_type="cash",
+            currency_id=usd.id,
+            opening_balance=100.0,
+            is_active=True,
+            sort_order=10,
+        )
+        banco = FinanceAccount(
+            name="Banco",
+            code="BANK",
+            account_type="bank",
+            currency_id=usd.id,
+            opening_balance=50.0,
+            is_active=True,
+            sort_order=20,
+        )
+        self.db.add_all([caja, banco])
+        self.db.commit()
+        self.db.refresh(caja)
+        self.db.refresh(banco)
+
+        self.finance_service.create_transaction(
+            tenant_db=self.db,
+            payload=SimpleNamespace(
+                transaction_type="income",
+                account_id=caja.id,
+                target_account_id=None,
+                category_id=None,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=usd.id,
+                loan_id=None,
+                amount=200.0,
+                discount_amount=0,
+                exchange_rate=None,
+                amortization_months=None,
+                transaction_at=datetime.now(timezone.utc),
+                alternative_date=None,
+                description="Cobro caja",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=False,
+                tag_ids=None,
+            ),
+            created_by_user_id=1,
+        )
+        self.finance_service.create_transaction(
+            tenant_db=self.db,
+            payload=SimpleNamespace(
+                transaction_type="expense",
+                account_id=caja.id,
+                target_account_id=None,
+                category_id=None,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=usd.id,
+                loan_id=None,
+                amount=20.0,
+                discount_amount=0,
+                exchange_rate=None,
+                amortization_months=None,
+                transaction_at=datetime.now(timezone.utc),
+                alternative_date=None,
+                description="Gasto caja",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=False,
+                tag_ids=None,
+            ),
+            created_by_user_id=1,
+        )
+        self.finance_service.create_transaction(
+            tenant_db=self.db,
+            payload=SimpleNamespace(
+                transaction_type="transfer",
+                account_id=caja.id,
+                target_account_id=banco.id,
+                category_id=None,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=usd.id,
+                loan_id=None,
+                amount=30.0,
+                discount_amount=0,
+                exchange_rate=None,
+                amortization_months=None,
+                transaction_at=datetime.now(timezone.utc),
+                alternative_date=None,
+                description="Transferencia",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=False,
+                tag_ids=None,
+            ),
+            created_by_user_id=1,
+        )
+
+        balances = self.finance_service.get_account_balances(self.db)
+
+        self.assertEqual(balances[caja.id], 250.0)
+        self.assertEqual(balances[banco.id], 80.0)
 
 
 if __name__ == "__main__":

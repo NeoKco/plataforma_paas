@@ -219,9 +219,11 @@ Resultado actual:
 - el `Lote 2` ya dejo modelos, schemas y repositories base para catalogos del modulo
 - el `Lote 3` ya dejo servicios, endpoints CRUD base, endpoints de detalle y `reorder` para catalogos, settings y exchange rates
 - el `Lote 4` ya dejo frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
+- el `Lote 5` ya dejo `finance_transactions` como nucleo transaccional real, con backfill idempotente desde `finance_entries`
 - `CLP` ya forma parte de las monedas semilla del modulo
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
+- existe migracion tenant versionada para `finance_transactions`, `finance_transaction_tags`, `finance_transaction_attachments` y `finance_transaction_audit`
 - existe enforcement de `finance.entries`, `finance.entries.monthly`, cuotas segmentadas como `finance.entries.monthly.income`, `finance.entries.monthly.expense`, `core.users`, `core.users.active`, `core.users.monthly` y cuotas por rol como `core.users.admin` por plan, override tenant y billing grace
 - existe visibilidad operativa de uso vs limite desde `tenant` y desde `platform`
 - existe ya una vista generica de uso por modulo para preparar el mismo patron en futuros modulos
@@ -230,7 +232,7 @@ Resultado actual:
 
 Falta para cerrarlo:
 
-- ejecutar `Lote 5` y siguientes del roadmap maestro para consolidar transacciones, panel de detalle y reportes
+- ejecutar `Lote 6` y siguientes del roadmap maestro para abrir detalle operacional, reportes y dominios mas ricos
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 

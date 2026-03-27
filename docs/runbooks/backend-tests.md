@@ -179,18 +179,20 @@ Cobertura actual:
 - permisos finos de finance
 - validaciones del `FinanceService`
 - listado, creacion y resumen del modulo
-- migraciones tenant del modulo hasta `0004_finance_seed_clp`
+- migraciones tenant del modulo hasta `0005_finance_transactions`
 - seeds idempotentes para moneda base, `CLP`, categorias y settings
 - repositories CRUD base del modulo y sus restricciones de unicidad/activacion
 - validaciones de servicio para cuentas, categorias y moneda base
 - rutas CRUD base para catalogos, settings y exchange rates
 - rutas de detalle y `reorder` para catalogos principales
+- backfill desde `finance_entries` hacia `finance_transactions`
+- reglas del core transaccional para transferencias, moneda no base y balances por cuenta
 
 Ejecucion:
 
 ```bash
 cd /home/felipe/platform_paas/backend
-/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_tenant_finance_flow app.tests.test_finance_catalog_repositories app.tests.test_finance_catalog_services app.tests.test_finance_catalog_routes app.tests.test_migration_flow
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_tenant_finance_flow app.tests.test_finance_catalog_repositories app.tests.test_finance_catalog_services app.tests.test_finance_catalog_routes app.tests.test_finance_transaction_core app.tests.test_migration_flow
 ```
 
 ## Suite Tenant Integration
@@ -204,6 +206,7 @@ Cobertura actual:
 - `TenantDataService` contra DB SQLite temporal
 - CRUD tenant real sobre persistencia
 - `FinanceService` contra DB temporal con resumen real
+- balances por cuenta con ingresos, gastos y transferencias sobre el core transaccional nuevo
 
 Ejecucion:
 

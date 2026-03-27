@@ -10,3 +10,5 @@ Estado actual:
 - ya existen catálogos operativos para cuentas, categorías, beneficiarios, personas, proyectos, etiquetas, monedas, tipos de cambio y settings
 - `CLP` queda sembrada como moneda disponible desde las migraciones base
 - las pantallas actuales todavía asumen permisos simples `tenant.finance.read` y `tenant.finance.create`
+- `finance_transactions` ya existe como núcleo real del módulo, con auditoría y adjuntos base
+- la compatibilidad legacy de `/entries` se mantiene para no romper la operación actual mientras madura la UI de transacciones

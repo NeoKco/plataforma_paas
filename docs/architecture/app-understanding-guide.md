@@ -82,8 +82,9 @@ Prioridad actual del producto:
 - ese bloque basico ya quedo suficientemente cerrado como para abrir modulos con menos deuda
 - `finance` queda declarado como modulo base del SaaS y referencia inicial para los modulos siguientes
 - el arranque del roadmap maestro de `finance` ya quedo hecho con slice backend/frontend propio y documentacion inicial
-- esa base ya cubre `Lote 0`, `Lote 1`, `Lote 2`, `Lote 3` y `Lote 4`
+- esa base ya cubre `Lote 0`, `Lote 1`, `Lote 2`, `Lote 3`, `Lote 4` y `Lote 5`
 - `CLP` ya queda sembrada como moneda disponible del modulo
+- el nucleo de persistencia de `finance` ya vive en `finance_transactions`, aunque la pantalla heredada de movimientos sigue usando `/entries` como contrato compatible
 - hoy esa base ya cubre alta, edicion basica y archivo operativo desde `Tenants`
 - la politica vigente ya es:
   - `slug` estable

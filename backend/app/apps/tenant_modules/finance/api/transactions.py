@@ -39,10 +39,10 @@ def _build_tenant_user_context(context: dict) -> TenantUserContextResponse:
 def _build_finance_entry_item(entry) -> FinanceEntryItemResponse:
     return FinanceEntryItemResponse(
         id=entry.id,
-        movement_type=entry.movement_type,
-        concept=entry.concept,
+        movement_type=getattr(entry, "movement_type", getattr(entry, "transaction_type", "")),
+        concept=getattr(entry, "concept", getattr(entry, "description", "")),
         amount=entry.amount,
-        category=entry.category,
+        category=getattr(entry, "category", getattr(entry, "notes", None)),
         created_by_user_id=entry.created_by_user_id,
     )
 

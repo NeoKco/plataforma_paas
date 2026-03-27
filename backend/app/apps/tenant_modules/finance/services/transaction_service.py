@@ -29,11 +29,16 @@ class FinanceService:
     def __init__(
         self,
         transaction_repository: FinanceTransactionRepository | None = None,
+        entry_repository=None,
         currency_repository: FinanceCurrencyRepository | None = None,
         account_repository: FinanceAccountRepository | None = None,
         transaction_audit_repository: FinanceTransactionAuditRepository | None = None,
     ):
-        self.transaction_repository = transaction_repository or FinanceTransactionRepository()
+        # `entry_repository` se mantiene como alias legacy para no romper tests
+        # ni puntos de integración que aún no migran a `transaction_repository`.
+        self.transaction_repository = (
+            transaction_repository or entry_repository or FinanceTransactionRepository()
+        )
         self.currency_repository = currency_repository or FinanceCurrencyRepository()
         self.account_repository = account_repository or FinanceAccountRepository()
         self.transaction_audit_repository = (
@@ -232,10 +237,16 @@ class FinanceService:
     def get_summary(self, tenant_db: Session) -> dict[str, float]:
         entries = self.transaction_repository.list_all(tenant_db)
         total_income = sum(
-            entry.amount for entry in entries if entry.transaction_type == "income"
+            entry.amount
+            for entry in entries
+            if getattr(entry, "transaction_type", getattr(entry, "movement_type", None))
+            == "income"
         )
         total_expense = sum(
-            entry.amount for entry in entries if entry.transaction_type == "expense"
+            entry.amount
+            for entry in entries
+            if getattr(entry, "transaction_type", getattr(entry, "movement_type", None))
+            == "expense"
         )
 
         return {

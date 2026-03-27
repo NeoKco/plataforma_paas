@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
 
@@ -106,6 +107,21 @@ def _raise_tenant_schema_http_error(exc: Exception) -> None:
             ),
         ) from exc
 
+    if (
+        "password authentication failed" in detail
+        or "autentificación password falló" in detail
+        or "authentication failed" in detail
+        or "connection refused" in detail
+        or "could not connect to server" in detail
+    ):
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Tenant database access failed. Rotate or reprovision tenant DB "
+                "credentials before requesting module usage."
+            ),
+        ) from exc
+
     raise exc
 
 
@@ -191,6 +207,8 @@ def _open_platform_tenant_db(tenant):
     try:
         tenant_session_factory = tenant_connection_service.get_tenant_session(tenant)
         tenant_db = tenant_session_factory()
+        if hasattr(tenant_db, "execute"):
+            tenant_db.execute(text("SELECT 1"))
         yield tenant_db
     finally:
         if tenant_db is not None:

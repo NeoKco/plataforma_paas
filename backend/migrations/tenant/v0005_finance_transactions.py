@@ -29,6 +29,42 @@ finance_currencies = Table(
     Column("is_base", Boolean, nullable=False, server_default="0", index=True),
 )
 
+finance_accounts = Table(
+    "finance_accounts",
+    metadata,
+    Column("id", Integer, primary_key=True),
+)
+
+finance_categories = Table(
+    "finance_categories",
+    metadata,
+    Column("id", Integer, primary_key=True),
+)
+
+finance_beneficiaries = Table(
+    "finance_beneficiaries",
+    metadata,
+    Column("id", Integer, primary_key=True),
+)
+
+finance_people = Table(
+    "finance_people",
+    metadata,
+    Column("id", Integer, primary_key=True),
+)
+
+finance_projects = Table(
+    "finance_projects",
+    metadata,
+    Column("id", Integer, primary_key=True),
+)
+
+finance_tags = Table(
+    "finance_tags",
+    metadata,
+    Column("id", Integer, primary_key=True),
+)
+
 finance_entries = Table(
     "finance_entries",
     metadata,
