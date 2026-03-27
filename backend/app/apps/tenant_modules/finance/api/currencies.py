@@ -93,6 +93,83 @@ def create_finance_currency(
     )
 
 
+@router.get("/exchange-rates", response_model=FinanceExchangeRatesResponse)
+def list_finance_exchange_rates(
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceExchangeRatesResponse:
+    exchange_rates = currency_service.list_exchange_rates(tenant_db)
+    return FinanceExchangeRatesResponse(
+        success=True,
+        message="Tipos de cambio recuperados correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        total=len(exchange_rates),
+        data=[_build_exchange_rate_item(item) for item in exchange_rates],
+    )
+
+
+@router.get("/exchange-rates/{exchange_rate_id}", response_model=FinanceExchangeRateMutationResponse)
+def get_finance_exchange_rate(
+    exchange_rate_id: int,
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceExchangeRateMutationResponse:
+    try:
+        exchange_rate = currency_service.get_exchange_rate(tenant_db, exchange_rate_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceExchangeRateMutationResponse(
+        success=True,
+        message="Tipo de cambio recuperado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_exchange_rate_item(exchange_rate),
+    )
+
+
+@router.post("/exchange-rates", response_model=FinanceExchangeRateMutationResponse)
+def create_finance_exchange_rate(
+    payload: FinanceExchangeRateCreateRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceExchangeRateMutationResponse:
+    try:
+        exchange_rate = currency_service.create_exchange_rate(tenant_db, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceExchangeRateMutationResponse(
+        success=True,
+        message="Tipo de cambio creado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_exchange_rate_item(exchange_rate),
+    )
+
+
+@router.put("/exchange-rates/{exchange_rate_id}", response_model=FinanceExchangeRateMutationResponse)
+def update_finance_exchange_rate(
+    exchange_rate_id: int,
+    payload: FinanceExchangeRateUpdateRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceExchangeRateMutationResponse:
+    try:
+        exchange_rate = currency_service.update_exchange_rate(
+            tenant_db,
+            exchange_rate_id,
+            payload,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceExchangeRateMutationResponse(
+        success=True,
+        message="Tipo de cambio actualizado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_exchange_rate_item(exchange_rate),
+    )
+
+
 @router.get("/{currency_id}", response_model=FinanceCurrencyMutationResponse)
 def get_finance_currency(
     currency_id: int,
@@ -178,79 +255,3 @@ def reorder_finance_currencies(
         data=[_build_currency_item(item) for item in currencies],
     )
 
-
-@router.get("/exchange-rates", response_model=FinanceExchangeRatesResponse)
-def list_finance_exchange_rates(
-    current_user=Depends(require_finance_read),
-    tenant_db: Session = Depends(get_tenant_db),
-) -> FinanceExchangeRatesResponse:
-    exchange_rates = currency_service.list_exchange_rates(tenant_db)
-    return FinanceExchangeRatesResponse(
-        success=True,
-        message="Tipos de cambio recuperados correctamente",
-        requested_by=build_finance_requested_by(current_user),
-        total=len(exchange_rates),
-        data=[_build_exchange_rate_item(item) for item in exchange_rates],
-    )
-
-
-@router.get("/exchange-rates/{exchange_rate_id}", response_model=FinanceExchangeRateMutationResponse)
-def get_finance_exchange_rate(
-    exchange_rate_id: int,
-    current_user=Depends(require_finance_read),
-    tenant_db: Session = Depends(get_tenant_db),
-) -> FinanceExchangeRateMutationResponse:
-    try:
-        exchange_rate = currency_service.get_exchange_rate(tenant_db, exchange_rate_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-    return FinanceExchangeRateMutationResponse(
-        success=True,
-        message="Tipo de cambio recuperado correctamente",
-        requested_by=build_finance_requested_by(current_user),
-        data=_build_exchange_rate_item(exchange_rate),
-    )
-
-
-@router.post("/exchange-rates", response_model=FinanceExchangeRateMutationResponse)
-def create_finance_exchange_rate(
-    payload: FinanceExchangeRateCreateRequest,
-    current_user=Depends(require_finance_manage),
-    tenant_db: Session = Depends(get_tenant_db),
-) -> FinanceExchangeRateMutationResponse:
-    try:
-        exchange_rate = currency_service.create_exchange_rate(tenant_db, payload)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    return FinanceExchangeRateMutationResponse(
-        success=True,
-        message="Tipo de cambio creado correctamente",
-        requested_by=build_finance_requested_by(current_user),
-        data=_build_exchange_rate_item(exchange_rate),
-    )
-
-
-@router.put("/exchange-rates/{exchange_rate_id}", response_model=FinanceExchangeRateMutationResponse)
-def update_finance_exchange_rate(
-    exchange_rate_id: int,
-    payload: FinanceExchangeRateUpdateRequest,
-    current_user=Depends(require_finance_manage),
-    tenant_db: Session = Depends(get_tenant_db),
-) -> FinanceExchangeRateMutationResponse:
-    try:
-        exchange_rate = currency_service.update_exchange_rate(
-            tenant_db,
-            exchange_rate_id,
-            payload,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    return FinanceExchangeRateMutationResponse(
-        success=True,
-        message="Tipo de cambio actualizado correctamente",
-        requested_by=build_finance_requested_by(current_user),
-        data=_build_exchange_rate_item(exchange_rate),
-    )

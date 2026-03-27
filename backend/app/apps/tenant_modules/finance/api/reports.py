@@ -1,8 +1,12 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
 
+from app.apps.tenant_modules.finance.api.error_handling import (
+    raise_finance_schema_http_error,
+)
 from app.apps.tenant_modules.finance.dependencies import (
     build_finance_requested_by,
     require_finance_read,
@@ -24,10 +28,13 @@ def get_finance_reports_overview(
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceReportOverviewResponse:
-    overview = reports_service.get_overview(
-        tenant_db,
-        period_month=period_month,
-    )
+    try:
+        overview = reports_service.get_overview(
+            tenant_db,
+            period_month=period_month,
+        )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     return FinanceReportOverviewResponse(
         success=True,
         message="Reporte financiero recuperado correctamente",

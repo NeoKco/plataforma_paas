@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from fastapi import HTTPException
+from sqlalchemy.exc import ProgrammingError
 
 from app.tests.fixtures import (  # noqa: E402
     build_finance_entry_stub,
@@ -42,6 +43,7 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     list_finance_transactions,
     list_finance_entries,
 )
+from app.apps.tenant_modules.finance.api.currencies import router as currencies_router  # noqa: E402
 from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceBudgetCreateRequest,
     FinanceEntryCreateRequest,
@@ -1036,6 +1038,62 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.summary.total_income, 500.0)
         self.assertEqual(response.data.loan_due_items[0].loan_name, "Prestamo operativo")
         self.assertEqual(response.data.budget_focus[0].budget_status, "within_budget")
+
+    def test_list_finance_budgets_returns_controlled_error_when_schema_is_incomplete(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.finance.api.budgets.budget_service.list_budgets",
+            side_effect=ProgrammingError(
+                "SELECT * FROM finance_budgets",
+                {},
+                Exception("UndefinedTable: finance_budgets"),
+            ),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                list_finance_budgets(
+                    period_month=date(2026, 3, 1),
+                    include_inactive=True,
+                    category_type=None,
+                    budget_status=None,
+                    current_user=self._current_user(role="operator"),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertIn("esquema finance del tenant está incompleto", exc.exception.detail)
+
+    def test_get_finance_reports_overview_returns_controlled_error_when_schema_is_incomplete(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.reports_service.get_overview",
+            side_effect=ProgrammingError(
+                "SELECT * FROM finance_budgets",
+                {},
+                Exception("UndefinedTable: finance_budgets"),
+            ),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                get_finance_reports_overview(
+                    period_month=date(2026, 3, 1),
+                    current_user=self._current_user(role="operator"),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertIn("esquema finance del tenant está incompleto", exc.exception.detail)
+
+
+class TenantFinanceRouteOrderTestCase(unittest.TestCase):
+    def _current_user(self, role: str = "manager") -> dict:
+        return build_tenant_context(
+            role=role,
+            email="manager@empresa-bootstrap.local",
+        )
+
+    def test_exchange_rates_routes_are_registered_before_dynamic_currency_route(self) -> None:
+        route_paths = [route.path for route in currencies_router.routes]
+        self.assertLess(
+            route_paths.index("/tenant/finance/currencies/exchange-rates"),
+            route_paths.index("/tenant/finance/currencies/{currency_id}"),
+        )
 
     def test_apply_finance_loan_installment_payment_returns_mutated_rows(self) -> None:
         loan_row = {

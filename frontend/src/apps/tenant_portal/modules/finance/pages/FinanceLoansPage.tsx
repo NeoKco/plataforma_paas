@@ -8,6 +8,7 @@ import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import {
   getTenantFinanceCurrencies,
   type TenantFinanceCurrency,
@@ -464,6 +465,8 @@ export function FinanceLoansPage() {
         title="Préstamos"
         description="Gestiona dinero prestado o recibido, con saldo pendiente, contraparte y lectura rápida de cartera."
       />
+
+      <FinanceModuleNav />
 
       {actionFeedback ? (
         <div className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}>

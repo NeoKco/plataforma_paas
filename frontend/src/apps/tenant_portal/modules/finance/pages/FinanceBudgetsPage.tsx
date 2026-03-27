@@ -8,6 +8,7 @@ import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import {
   getTenantFinanceCategories,
   type TenantFinanceCategory,
@@ -177,6 +178,8 @@ export function FinanceBudgetsPage() {
         title="Presupuestos"
         description="Define metas mensuales por categoría y compara rápidamente lo presupuestado contra lo ejecutado."
       />
+
+      <FinanceModuleNav />
 
       {actionFeedback ? (
         <div className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}>

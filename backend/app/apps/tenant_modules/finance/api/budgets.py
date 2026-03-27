@@ -1,8 +1,12 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
 
+from app.apps.tenant_modules.finance.api.error_handling import (
+    raise_finance_schema_http_error,
+)
 from app.apps.tenant_modules.finance.dependencies import (
     build_finance_requested_by,
     require_finance_manage,
@@ -52,13 +56,16 @@ def list_finance_budgets(
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceBudgetsResponse:
-    rows, summary = budget_service.list_budgets(
-        tenant_db,
-        period_month=period_month,
-        include_inactive=include_inactive,
-        category_type=category_type,
-        budget_status=budget_status,
-    )
+    try:
+        rows, summary = budget_service.list_budgets(
+            tenant_db,
+            period_month=period_month,
+            include_inactive=include_inactive,
+            category_type=category_type,
+            budget_status=budget_status,
+        )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     return FinanceBudgetsResponse(
         success=True,
         message="Presupuestos financieros recuperados correctamente",
@@ -85,6 +92,8 @@ def create_finance_budget(
         row = next(item for item in rows if item["budget"].id == budget.id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceBudgetMutationResponse(
         success=True,
@@ -111,6 +120,8 @@ def update_finance_budget(
         row = next(item for item in rows if item["budget"].id == budget.id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceBudgetMutationResponse(
         success=True,

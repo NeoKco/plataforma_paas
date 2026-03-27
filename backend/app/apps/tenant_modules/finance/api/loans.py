@@ -1,6 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
 
+from app.apps.tenant_modules.finance.api.error_handling import (
+    raise_finance_schema_http_error,
+)
 from app.apps.tenant_modules.finance.dependencies import (
     build_finance_requested_by,
     require_finance_manage,
@@ -92,12 +96,15 @@ def list_finance_loans(
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceLoansResponse:
-    rows, summary = loan_service.list_loans(
-        tenant_db,
-        include_inactive=include_inactive,
-        loan_type=loan_type,
-        loan_status=loan_status,
-    )
+    try:
+        rows, summary = loan_service.list_loans(
+            tenant_db,
+            include_inactive=include_inactive,
+            loan_type=loan_type,
+            loan_status=loan_status,
+        )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     return FinanceLoansResponse(
         success=True,
         message="Préstamos financieros recuperados correctamente",
@@ -118,6 +125,8 @@ def get_finance_loan_detail(
         loan_row, installments = loan_service.get_loan_detail(tenant_db, loan_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceLoanDetailResponse(
         success=True,
@@ -154,6 +163,8 @@ def apply_finance_loan_installment_payment_batch(
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceLoanInstallmentBatchMutationResponse(
         success=True,
@@ -191,6 +202,8 @@ def apply_finance_loan_installment_payment(
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceLoanInstallmentPaymentResponse(
         success=True,
@@ -226,6 +239,8 @@ def reverse_finance_loan_installment_payment_batch(
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceLoanInstallmentBatchMutationResponse(
         success=True,
@@ -262,6 +277,8 @@ def reverse_finance_loan_installment_payment(
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceLoanInstallmentReversalResponse(
         success=True,
@@ -286,6 +303,8 @@ def create_finance_loan(
         row = next(item for item in rows if item["loan"].id == loan.id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceLoanMutationResponse(
         success=True,
@@ -308,6 +327,8 @@ def update_finance_loan(
         row = next(item for item in rows if item["loan"].id == loan.id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceLoanMutationResponse(
         success=True,
