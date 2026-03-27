@@ -21,6 +21,7 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     finance_usage,
     finance_summary,
     get_finance_transaction_detail,
+    update_finance_transaction,
     update_finance_transaction_favorite,
     update_finance_transaction_reconciliation,
     list_finance_transactions,
@@ -29,6 +30,7 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
 from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceEntryCreateRequest,
     FinanceTransactionCreateRequest,
+    FinanceTransactionUpdateRequest,
 )
 from app.apps.tenant_modules.finance.services.finance_service import (  # noqa: E402
     FinanceService,
@@ -444,6 +446,76 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.data.transaction.id, 14)
         self.assertEqual(response.data.audit_events[0].payload, {"amount": 80})
+
+    def test_update_finance_transaction_returns_updated_transaction(self) -> None:
+        transaction = SimpleNamespace(
+            id=15,
+            transaction_type="expense",
+            account_id=1,
+            target_account_id=None,
+            category_id=2,
+            beneficiary_id=None,
+            person_id=None,
+            project_id=None,
+            currency_id=1,
+            loan_id=None,
+            amount=420.0,
+            amount_in_base_currency=420.0,
+            exchange_rate=1.0,
+            discount_amount=0.0,
+            amortization_months=None,
+            transaction_at="2026-03-27T14:30:00+00:00",
+            alternative_date=None,
+            description="Gasto reajustado",
+            notes="actualizado",
+            is_favorite=True,
+            favorite_flag=True,
+            is_reconciled=True,
+            reconciled_at="2026-03-27T14:30:00+00:00",
+            is_template_origin=False,
+            source_type=None,
+            source_id=None,
+            created_by_user_id=5,
+            updated_by_user_id=6,
+            created_at="2026-03-27T14:00:00+00:00",
+            updated_at="2026-03-27T14:30:00+00:00",
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.update_transaction",
+            return_value=transaction,
+        ) as update_transaction_mock:
+            response = update_finance_transaction(
+                transaction_id=15,
+                payload=FinanceTransactionUpdateRequest(
+                    transaction_type="expense",
+                    account_id=1,
+                    target_account_id=None,
+                    category_id=2,
+                    beneficiary_id=None,
+                    person_id=None,
+                    project_id=None,
+                    currency_id=1,
+                    loan_id=None,
+                    amount=420.0,
+                    discount_amount=0.0,
+                    exchange_rate=1.0,
+                    amortization_months=None,
+                    transaction_at="2026-03-27T14:30:00+00:00",
+                    alternative_date=None,
+                    description="Gasto reajustado",
+                    notes="actualizado",
+                    is_favorite=True,
+                    is_reconciled=True,
+                    tag_ids=None,
+                ),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.description, "Gasto reajustado")
+        self.assertEqual(update_transaction_mock.call_args.kwargs["actor_user_id"], 1)
 
     def test_finance_account_balances_returns_named_accounts(self) -> None:
         accounts = [

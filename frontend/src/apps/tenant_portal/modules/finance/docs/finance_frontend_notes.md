@@ -31,7 +31,8 @@
 - `/tenant/finance/entries` se mantiene como compatibilidad legacy
 - ya existe detalle operacional por transaccion y balances por cuenta
 - ya existen filtros operativos y acciones rapidas de favorito/conciliacion
+- ya existe modo edicion completo dentro de la misma pantalla de `Transacciones`
 
 Pendiente inmediato:
-- abrir edicion completa de transacciones existentes
 - enriquecer la experiencia de conciliacion y favoritos
+- abrir mesas de trabajo mas densas para conciliacion o lotes

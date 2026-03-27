@@ -164,6 +164,21 @@ export function createTenantFinanceTransaction(
   );
 }
 
+export function updateTenantFinanceTransaction(
+  accessToken: string,
+  transactionId: number,
+  payload: TenantFinanceTransactionWriteRequest
+) {
+  return apiRequest<TenantFinanceTransactionMutationResponse>(
+    `/tenant/finance/transactions/${transactionId}`,
+    {
+      method: "PUT",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
 export function getTenantFinanceTransactionDetail(
   accessToken: string,
   transactionId: number

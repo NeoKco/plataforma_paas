@@ -29,6 +29,7 @@ import {
   getTenantFinanceTransactionDetail,
   getTenantFinanceTransactions,
   getTenantFinanceUsage,
+  updateTenantFinanceTransaction,
   updateTenantFinanceTransactionFavorite,
   updateTenantFinanceTransactionReconciliation,
   type TenantFinanceAccountBalance,
@@ -89,6 +90,7 @@ export function FinanceTransactionsPage() {
   const [selectedTransactionId, setSelectedTransactionId] = useState<number | null>(null);
   const [selectedTransactionDetail, setSelectedTransactionDetail] =
     useState<TenantFinanceTransactionDetailResponse["data"] | null>(null);
+  const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null);
   const [formState, setFormState] = useState<TransactionFormState>(DEFAULT_FORM_STATE);
   const [error, setError] = useState<ApiError | null>(null);
   const [detailError, setDetailError] = useState<ApiError | null>(null);
@@ -297,44 +299,20 @@ export function FinanceTransactionsPage() {
     setActionFeedback(null);
 
     try {
-      const response = await createTenantFinanceTransaction(session.accessToken, {
-        transaction_type: formState.transactionType,
-        account_id: normalizeNullableNumber(formState.accountId),
-        target_account_id:
-          formState.transactionType === "transfer"
-            ? normalizeNullableNumber(formState.targetAccountId)
-            : null,
-        category_id:
-          formState.transactionType === "transfer"
-            ? null
-            : normalizeNullableNumber(formState.categoryId),
-        beneficiary_id: null,
-        person_id: null,
-        project_id: null,
-        currency_id: Number(formState.currencyId),
-        loan_id: null,
-        amount: Number.parseFloat(formState.amount),
-        discount_amount: 0,
-        exchange_rate: normalizeNullableFloat(formState.exchangeRate),
-        amortization_months: null,
-        transaction_at: buildIsoFromDateTimeLocal(formState.transactionAt),
-        alternative_date: null,
-        description: formState.description.trim(),
-        notes: normalizeNullableString(formState.notes),
-        is_favorite: formState.isFavorite,
-        is_reconciled: formState.isReconciled,
-        tag_ids: null,
-      });
+      const payload = buildTransactionWritePayload(formState);
+      const response = editingTransactionId
+        ? await updateTenantFinanceTransaction(
+            session.accessToken,
+            editingTransactionId,
+            payload
+          )
+        : await createTenantFinanceTransaction(session.accessToken, payload);
 
       await loadFinanceWorkspace();
-      setFormState((current) => ({
-        ...DEFAULT_FORM_STATE,
-        accountId: current.accountId,
-        currencyId: current.currencyId,
-        transactionType: current.transactionType,
-      }));
+      resetFormForCreate();
       setActionFeedback({ type: "success", message: response.message });
       setSelectedTransactionId(response.data.id);
+      setEditingTransactionId(null);
       await fetchTransactionDetail(response.data.id);
     } catch (rawError) {
       setActionFeedback({
@@ -371,6 +349,22 @@ export function FinanceTransactionsPage() {
         !transaction.is_reconciled
       );
       setActionFeedback({ type: "success", message: response.message });
+    });
+  }
+
+  function startEditingTransaction(transaction: TenantFinanceTransaction) {
+    setEditingTransactionId(transaction.id);
+    setFormState(buildTransactionFormState(transaction));
+    setActionFeedback(null);
+  }
+
+  function resetFormForCreate() {
+    setEditingTransactionId(null);
+    setFormState({
+      ...DEFAULT_FORM_STATE,
+      accountId: accounts[0] ? String(accounts[0].id) : "",
+      currencyId: baseCurrency ? String(baseCurrency.id) : "",
+      transactionAt: buildDateTimeLocalValue(),
     });
   }
 
@@ -423,9 +417,18 @@ export function FinanceTransactionsPage() {
 
       <div className="tenant-portal-split tenant-portal-split--finance">
         <PanelCard
-          title="Registrar transacción"
-          subtitle="Usa el contrato moderno de finance_transactions para ingresos, egresos y transferencias."
+          title={editingTransactionId ? "Editar transacción" : "Registrar transacción"}
+          subtitle={
+            editingTransactionId
+              ? "Ajusta el movimiento seleccionado sin salir de la vista operativa."
+              : "Usa el contrato moderno de finance_transactions para ingresos, egresos y transferencias."
+          }
         >
+          {editingTransactionId ? (
+            <div className="tenant-action-feedback tenant-action-feedback--success">
+              <strong>Edición activa:</strong> estás modificando la transacción #{editingTransactionId}.
+            </div>
+          ) : null}
           <form className="d-grid gap-3" onSubmit={handleCreateTransaction}>
             <div className="tenant-inline-form-grid">
               <div>
@@ -639,9 +642,21 @@ export function FinanceTransactionsPage() {
               </label>
             </div>
 
-            <button className="btn btn-primary" type="submit" disabled={isActionSubmitting}>
-              Registrar transacción
-            </button>
+            <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+              <button className="btn btn-primary" type="submit" disabled={isActionSubmitting}>
+                {editingTransactionId ? "Guardar cambios" : "Registrar transacción"}
+              </button>
+              {editingTransactionId ? (
+                <button
+                  className="btn btn-outline-secondary"
+                  type="button"
+                  disabled={isActionSubmitting}
+                  onClick={resetFormForCreate}
+                >
+                  Cancelar edición
+                </button>
+              ) : null}
+            </div>
           </form>
         </PanelCard>
 
@@ -866,6 +881,14 @@ export function FinanceTransactionsPage() {
                         <td>
                           <div className="finance-inline-toolbar finance-inline-toolbar--compact">
                             <button
+                              className="btn btn-sm btn-outline-primary"
+                              type="button"
+                              disabled={isActionSubmitting}
+                              onClick={() => startEditingTransaction(transaction)}
+                            >
+                              Editar
+                            </button>
+                            <button
                               className={`btn btn-sm ${
                                 transaction.is_favorite
                                   ? "btn-outline-warning"
@@ -972,6 +995,17 @@ export function FinanceTransactionsPage() {
               </div>
 
               <div>
+                <button
+                  className="btn btn-outline-primary btn-sm"
+                  type="button"
+                  disabled={isActionSubmitting}
+                  onClick={() => startEditingTransaction(selectedTransactionDetail.transaction)}
+                >
+                  Editar esta transacción
+                </button>
+              </div>
+
+              <div>
                 <div className="tenant-detail__label">Notas</div>
                 <div className="tenant-detail__value">
                   {selectedTransactionDetail.transaction.notes || "sin notas"}
@@ -1040,6 +1074,10 @@ function normalizeNullableFloat(value: string): number | null {
 
 function buildDateTimeLocalValue() {
   return new Date().toISOString().slice(0, 16);
+}
+
+function buildDateTimeLocalValueFromIso(value: string) {
+  return new Date(value).toISOString().slice(0, 16);
 }
 
 function buildIsoFromDateTimeLocal(value: string) {
@@ -1120,5 +1158,59 @@ function buildApiFilters(filters: {
           ? false
           : null,
     search: filters.search || undefined,
+  };
+}
+
+function buildTransactionWritePayload(
+  formState: TransactionFormState
+) {
+  return {
+    transaction_type: formState.transactionType,
+    account_id: normalizeNullableNumber(formState.accountId),
+    target_account_id:
+      formState.transactionType === "transfer"
+        ? normalizeNullableNumber(formState.targetAccountId)
+        : null,
+    category_id:
+      formState.transactionType === "transfer"
+        ? null
+        : normalizeNullableNumber(formState.categoryId),
+    beneficiary_id: null,
+    person_id: null,
+    project_id: null,
+    currency_id: Number(formState.currencyId),
+    loan_id: null,
+    amount: Number.parseFloat(formState.amount),
+    discount_amount: 0,
+    exchange_rate: normalizeNullableFloat(formState.exchangeRate),
+    amortization_months: null,
+    transaction_at: buildIsoFromDateTimeLocal(formState.transactionAt),
+    alternative_date: null,
+    description: formState.description.trim(),
+    notes: normalizeNullableString(formState.notes),
+    is_favorite: formState.isFavorite,
+    is_reconciled: formState.isReconciled,
+    tag_ids: null,
+  };
+}
+
+function buildTransactionFormState(
+  transaction: TenantFinanceTransaction
+): TransactionFormState {
+  return {
+    transactionType: transaction.transaction_type,
+    accountId: transaction.account_id ? String(transaction.account_id) : "",
+    targetAccountId: transaction.target_account_id
+      ? String(transaction.target_account_id)
+      : "",
+    categoryId: transaction.category_id ? String(transaction.category_id) : "",
+    currencyId: String(transaction.currency_id),
+    amount: String(transaction.amount),
+    exchangeRate: transaction.exchange_rate ? String(transaction.exchange_rate) : "",
+    transactionAt: buildDateTimeLocalValueFromIso(transaction.transaction_at),
+    description: transaction.description,
+    notes: transaction.notes || "",
+    isReconciled: transaction.is_reconciled,
+    isFavorite: transaction.is_favorite,
   };
 }

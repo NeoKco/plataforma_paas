@@ -9,7 +9,10 @@ from app.apps.tenant_modules.finance.repositories import (
     FinanceTransactionAuditRepository,
     FinanceTransactionRepository,
 )
-from app.apps.tenant_modules.finance.schemas import FinanceTransactionCreateRequest
+from app.apps.tenant_modules.finance.schemas import (
+    FinanceTransactionCreateRequest,
+    FinanceTransactionUpdateRequest,
+)
 from app.common.policies.module_limit_catalog import (
     FINANCE_ENTRIES_LIMIT_KEY,
     FINANCE_ENTRIES_MONTHLY_LIMIT_KEY,
@@ -148,64 +151,13 @@ class FinanceService:
         *,
         created_by_user_id: int | None = None,
     ) -> FinanceTransaction:
-        normalized_type = payload.transaction_type.strip().lower()
-        if normalized_type not in {"income", "expense", "transfer"}:
-            raise ValueError("transaction_type debe ser income, expense o transfer")
-        if payload.amount <= 0:
-            raise ValueError("amount debe ser mayor que cero")
-        if not payload.description.strip():
-            raise ValueError("La descripcion de la transaccion es obligatoria")
-
-        currency = self._get_currency_or_raise(tenant_db, payload.currency_id)
-        source_account = self._get_account_if_present(tenant_db, payload.account_id)
-        target_account = self._get_account_if_present(tenant_db, payload.target_account_id)
-
-        if payload.account_id is None:
-            raise ValueError("La transaccion requiere una cuenta origen")
-
-        if normalized_type == "transfer":
-            if payload.target_account_id is None:
-                raise ValueError("La transferencia requiere cuenta destino")
-            if payload.account_id == payload.target_account_id:
-                raise ValueError("La transferencia requiere cuentas distintas")
-        elif payload.target_account_id is not None:
-            raise ValueError("Solo las transferencias pueden usar cuenta destino")
-
-        if source_account and source_account.currency_id != currency.id:
-            raise ValueError("La moneda de la transaccion debe coincidir con la cuenta origen")
-        if target_account and target_account.currency_id != currency.id:
-            raise ValueError("La moneda de la transaccion debe coincidir con la cuenta destino")
-
-        amount_in_base_currency, exchange_rate = self._resolve_base_amounts(
+        transaction_values = self._build_transaction_values(
             tenant_db,
-            currency=currency,
-            amount=payload.amount,
-            exchange_rate=payload.exchange_rate,
+            payload,
+            current_transaction=None,
         )
-
         transaction = FinanceTransaction(
-            transaction_type=normalized_type,
-            account_id=payload.account_id,
-            target_account_id=payload.target_account_id,
-            category_id=payload.category_id,
-            beneficiary_id=payload.beneficiary_id,
-            person_id=payload.person_id,
-            project_id=payload.project_id,
-            currency_id=payload.currency_id,
-            loan_id=payload.loan_id,
-            amount=payload.amount,
-            amount_in_base_currency=amount_in_base_currency,
-            exchange_rate=exchange_rate,
-            discount_amount=payload.discount_amount,
-            amortization_months=payload.amortization_months,
-            transaction_at=payload.transaction_at,
-            alternative_date=payload.alternative_date,
-            description=payload.description.strip(),
-            notes=payload.notes.strip() if payload.notes and payload.notes.strip() else None,
-            is_favorite=payload.is_favorite,
-            favorite_flag=payload.is_favorite,
-            is_reconciled=payload.is_reconciled,
-            reconciled_at=payload.transaction_at if payload.is_reconciled else None,
+            **transaction_values,
             is_template_origin=False,
             planner_id=None,
             template_id=None,
@@ -222,11 +174,48 @@ class FinanceService:
             actor_user_id=created_by_user_id,
             summary="Transaccion financiera creada",
             payload={
-                "transaction_type": normalized_type,
-                "account_id": payload.account_id,
-                "target_account_id": payload.target_account_id,
-                "currency_id": payload.currency_id,
-                "amount": payload.amount,
+                "transaction_type": transaction_values["transaction_type"],
+                "account_id": transaction_values["account_id"],
+                "target_account_id": transaction_values["target_account_id"],
+                "currency_id": transaction_values["currency_id"],
+                "amount": transaction_values["amount"],
+            },
+        )
+        return saved
+
+    def update_transaction(
+        self,
+        tenant_db: Session,
+        transaction_id: int,
+        payload: FinanceTransactionUpdateRequest,
+        *,
+        actor_user_id: int | None = None,
+    ) -> FinanceTransaction:
+        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        if transaction is None:
+            raise ValueError("La transaccion financiera no existe")
+
+        transaction_values = self._build_transaction_values(
+            tenant_db,
+            payload,
+            current_transaction=transaction,
+        )
+        for field, value in transaction_values.items():
+            setattr(transaction, field, value)
+        transaction.updated_by_user_id = actor_user_id
+        saved = self.transaction_repository.persist(tenant_db, transaction)
+        self.transaction_audit_repository.save_event(
+            tenant_db,
+            transaction_id=saved.id,
+            event_type="transaction.updated",
+            actor_user_id=actor_user_id,
+            summary="Transaccion financiera actualizada",
+            payload={
+                "transaction_type": transaction_values["transaction_type"],
+                "account_id": transaction_values["account_id"],
+                "target_account_id": transaction_values["target_account_id"],
+                "currency_id": transaction_values["currency_id"],
+                "amount": transaction_values["amount"],
             },
         )
         return saved
@@ -310,11 +299,7 @@ class FinanceService:
             raise ValueError("La transaccion financiera no existe")
 
         transaction.is_reconciled = is_reconciled
-        transaction.reconciled_at = (
-            datetime.now(timezone.utc)
-            if is_reconciled
-            else None
-        )
+        transaction.reconciled_at = datetime.now(timezone.utc) if is_reconciled else None
         transaction.updated_by_user_id = actor_user_id
         saved = self.transaction_repository.persist(tenant_db, transaction)
         self.transaction_audit_repository.save_event(
@@ -326,6 +311,80 @@ class FinanceService:
             payload={"is_reconciled": is_reconciled},
         )
         return saved
+
+    def _build_transaction_values(
+        self,
+        tenant_db: Session,
+        payload: FinanceTransactionCreateRequest | FinanceTransactionUpdateRequest,
+        *,
+        current_transaction: FinanceTransaction | None,
+    ) -> dict:
+        normalized_type = payload.transaction_type.strip().lower()
+        if normalized_type not in {"income", "expense", "transfer"}:
+            raise ValueError("transaction_type debe ser income, expense o transfer")
+        if payload.amount <= 0:
+            raise ValueError("amount debe ser mayor que cero")
+        if not payload.description.strip():
+            raise ValueError("La descripcion de la transaccion es obligatoria")
+
+        currency = self._get_currency_or_raise(tenant_db, payload.currency_id)
+        source_account = self._get_account_if_present(tenant_db, payload.account_id)
+        target_account = self._get_account_if_present(tenant_db, payload.target_account_id)
+
+        if payload.account_id is None:
+            raise ValueError("La transaccion requiere una cuenta origen")
+
+        if normalized_type == "transfer":
+            if payload.target_account_id is None:
+                raise ValueError("La transferencia requiere cuenta destino")
+            if payload.account_id == payload.target_account_id:
+                raise ValueError("La transferencia requiere cuentas distintas")
+        elif payload.target_account_id is not None:
+            raise ValueError("Solo las transferencias pueden usar cuenta destino")
+
+        if source_account and source_account.currency_id != currency.id:
+            raise ValueError("La moneda de la transaccion debe coincidir con la cuenta origen")
+        if target_account and target_account.currency_id != currency.id:
+            raise ValueError("La moneda de la transaccion debe coincidir con la cuenta destino")
+
+        amount_in_base_currency, exchange_rate = self._resolve_base_amounts(
+            tenant_db,
+            currency=currency,
+            amount=payload.amount,
+            exchange_rate=payload.exchange_rate,
+        )
+        reconciled_at = None
+        if payload.is_reconciled:
+            reconciled_at = (
+                current_transaction.reconciled_at
+                if current_transaction and current_transaction.reconciled_at
+                else payload.transaction_at
+            )
+
+        return {
+            "transaction_type": normalized_type,
+            "account_id": payload.account_id,
+            "target_account_id": payload.target_account_id,
+            "category_id": payload.category_id,
+            "beneficiary_id": payload.beneficiary_id,
+            "person_id": payload.person_id,
+            "project_id": payload.project_id,
+            "currency_id": payload.currency_id,
+            "loan_id": payload.loan_id,
+            "amount": payload.amount,
+            "amount_in_base_currency": amount_in_base_currency,
+            "exchange_rate": exchange_rate,
+            "discount_amount": payload.discount_amount,
+            "amortization_months": payload.amortization_months,
+            "transaction_at": payload.transaction_at,
+            "alternative_date": payload.alternative_date,
+            "description": payload.description.strip(),
+            "notes": payload.notes.strip() if payload.notes and payload.notes.strip() else None,
+            "is_favorite": payload.is_favorite,
+            "favorite_flag": payload.is_favorite,
+            "is_reconciled": payload.is_reconciled,
+            "reconciled_at": reconciled_at,
+        }
 
     def get_summary(self, tenant_db: Session) -> dict[str, float]:
         entries = self.transaction_repository.list_all(tenant_db)

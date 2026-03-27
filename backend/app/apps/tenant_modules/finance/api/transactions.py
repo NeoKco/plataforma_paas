@@ -25,6 +25,7 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceTransactionItemResponse,
     FinanceTransactionMutationResponse,
     FinanceTransactionReconciliationUpdateRequest,
+    FinanceTransactionUpdateRequest,
     FinanceTransactionsResponse,
     FinanceUsageData,
     FinanceUsageResponse,
@@ -175,6 +176,33 @@ def create_finance_transaction(
     return FinanceTransactionMutationResponse(
         success=True,
         message="Transaccion financiera creada correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        data=_build_finance_transaction_item(transaction),
+    )
+
+
+@router.put("/transactions/{transaction_id}", response_model=FinanceTransactionMutationResponse)
+def update_finance_transaction(
+    transaction_id: int,
+    payload: FinanceTransactionUpdateRequest,
+    current_user=Depends(require_finance_create),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTransactionMutationResponse:
+    try:
+        transaction = finance_service.update_transaction(
+            tenant_db,
+            transaction_id,
+            payload,
+            actor_user_id=current_user["user_id"],
+        )
+    except ValueError as exc:
+        if str(exc) == "La transaccion financiera no existe":
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceTransactionMutationResponse(
+        success=True,
+        message="Transaccion financiera actualizada correctamente",
         requested_by=_build_tenant_user_context(current_user),
         data=_build_finance_transaction_item(transaction),
     )

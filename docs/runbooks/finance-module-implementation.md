@@ -67,6 +67,8 @@ En esta fase quedaron listos:
 - balances por cuenta visibles desde la UI tenant
 - filtros operativos por tipo, cuenta, categoria, conciliacion y texto
 - acciones rapidas para marcar favorita o conciliada una transaccion existente
+- edicion completa de transacciones existentes usando el mismo contrato de escritura
+- modo edicion en la pantalla principal de `Transacciones`, con cancelar y refresco del detalle sin colapsarlo
 
 ## Archivos principales
 
@@ -191,16 +193,19 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 
 ## Siguiente iteracion recomendable
 
-`Lote 6` ya quedo abierto con el slice minimo util:
+`Lote 6` ya quedo abierto sobre un slice operativo mas completo:
 
 1. pantalla tenant de transacciones sobre `finance_transactions`
 2. balances por cuenta y detalle operacional con auditoria reciente
+3. filtros operativos por tipo, cuenta, categoria, conciliacion y texto
+4. toggles rapidos de favorito y conciliacion
+5. edicion completa de transacciones existentes
 
 Lo siguiente recomendable ahora es:
 
-1. edicion completa de transacciones existentes
-2. ampliar conciliacion y favoritos con vistas de trabajo mas ricas
-3. seguir con prestamos, planificacion y reportes
+1. ampliar conciliacion y favoritos con vistas de trabajo mas ricas
+2. seguir con prestamos, planificacion y reportes
+3. abrir acciones mas densas de trabajo sobre lotes o conciliacion asistida
 
 ## Convencion relacionada
 

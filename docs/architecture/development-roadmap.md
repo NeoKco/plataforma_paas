@@ -227,7 +227,7 @@ Resultado actual:
 - el `Lote 3` ya dejo servicios, endpoints CRUD base, endpoints de detalle y `reorder` para catalogos, settings y exchange rates
 - el `Lote 4` ya dejo frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
 - el `Lote 5` ya dejo `finance_transactions` como nucleo transaccional real, con backfill idempotente desde `finance_entries`
-- el `Lote 6` ya abrio la primera vista moderna de transacciones sobre `finance_transactions`, con balances por cuenta y detalle operacional con auditoria reciente
+- el `Lote 6` ya abrio la primera vista moderna de transacciones sobre `finance_transactions`, con balances por cuenta, detalle operacional con auditoria reciente, filtros reales y edicion completa de transacciones existentes
 - `CLP` ya forma parte de las monedas semilla del modulo
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
@@ -240,7 +240,7 @@ Resultado actual:
 
 Falta para cerrarlo:
 
-- completar `Lote 6` con edicion plena de transacciones y vistas mas ricas de trabajo sobre conciliacion/favoritos
+- completar `Lote 6` con vistas mas ricas de trabajo sobre conciliacion/favoritos y luego abrir prestamos, planificacion y reportes
 - ejecutar `Lote 7` y siguientes del roadmap maestro para prestamos, planificacion y reportes
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande

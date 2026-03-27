@@ -420,7 +420,7 @@ Hoy esta base cubre:
 
 - `platform_admin` ya operable con `Resumen`, `Usuarios de plataforma`, `Actividad`, `Tenants`, `Provisioning`, `Facturación`, `Configuración` y `Histórico tenants`
 - `tenant_portal` ya operable con login, overview, usuarios y slice `finance`
-- `finance` ya no es solo placeholder: ya tiene catálogos, settings y primera pantalla moderna de `Transacciones` sobre `finance_transactions`
+- `finance` ya no es solo placeholder: ya tiene catálogos, settings y primera pantalla moderna de `Transacciones` sobre `finance_transactions`, con filtros, edición y acciones rápidas
 
 ## Documentacion en Estado Actual
 

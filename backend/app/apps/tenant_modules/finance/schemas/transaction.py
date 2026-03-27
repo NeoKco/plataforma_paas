@@ -53,6 +53,10 @@ class FinanceTransactionCreateRequest(BaseModel):
     tag_ids: list[int] | None = None
 
 
+class FinanceTransactionUpdateRequest(FinanceTransactionCreateRequest):
+    pass
+
+
 class FinanceTransactionFiltersRequest(BaseModel):
     transaction_type: str | None = None
     account_id: int | None = None

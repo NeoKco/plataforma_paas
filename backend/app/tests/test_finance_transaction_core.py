@@ -7,7 +7,10 @@ os.environ["APP_ENV"] = "test"
 
 from app.apps.tenant_modules.finance.models.account import FinanceAccount  # noqa: E402
 from app.apps.tenant_modules.finance.models.currency import FinanceCurrency  # noqa: E402
-from app.apps.tenant_modules.finance.schemas import FinanceTransactionCreateRequest  # noqa: E402
+from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
+    FinanceTransactionCreateRequest,
+    FinanceTransactionUpdateRequest,
+)
 from app.apps.tenant_modules.finance.services.finance_service import FinanceService  # noqa: E402
 from app.common.db.tenant_base import TenantBase  # noqa: E402
 from app.tests.db_test_utils import build_sqlite_session  # noqa: E402
@@ -255,6 +258,71 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
         self.assertTrue(favorited.is_favorite)
         self.assertTrue(reconciled.is_reconciled)
         self.assertIsNotNone(reconciled.reconciled_at)
+
+    def test_can_update_transaction_and_recalculate_amounts(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        clp = self._seed_currency(code="CLP", is_base=False, sort_order=20)
+        caja_usd = self._seed_account(
+            name="Caja USD",
+            code="CAJA_USD",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+        caja_clp = self._seed_account(
+            name="Caja CLP",
+            code="CAJA_CLP",
+            currency_id=clp.id,
+            opening_balance=0.0,
+            sort_order=20,
+        )
+
+        created = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=caja_usd.id,
+                currency_id=usd.id,
+                amount=100.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Cobro inicial",
+            ),
+            created_by_user_id=1,
+        )
+
+        updated = self.service.update_transaction(
+            tenant_db=self.db,
+            transaction_id=created.id,
+            payload=FinanceTransactionUpdateRequest(
+                transaction_type="expense",
+                account_id=caja_clp.id,
+                target_account_id=None,
+                category_id=None,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=clp.id,
+                loan_id=None,
+                amount=10000.0,
+                discount_amount=0.0,
+                exchange_rate=0.001,
+                amortization_months=None,
+                transaction_at=datetime.now(timezone.utc),
+                alternative_date=None,
+                description="Pago actualizado",
+                notes="ajuste",
+                is_favorite=True,
+                is_reconciled=True,
+                tag_ids=None,
+            ),
+            actor_user_id=2,
+        )
+
+        self.assertEqual(updated.transaction_type, "expense")
+        self.assertEqual(updated.account_id, caja_clp.id)
+        self.assertAlmostEqual(updated.amount_in_base_currency, 10.0, places=6)
+        self.assertEqual(updated.updated_by_user_id, 2)
+        self.assertTrue(updated.is_favorite)
+        self.assertTrue(updated.is_reconciled)
 
 
 if __name__ == "__main__":

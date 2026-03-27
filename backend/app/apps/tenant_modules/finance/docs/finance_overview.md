@@ -3,7 +3,7 @@
 Estado actual:
 - `finance` queda definido como modulo base del SaaS.
 - este modulo actua como piloto para la convencion modular futura.
-- el arranque actual ya cubre `Lote 0`, `Lote 1`, `Lote 2`, `Lote 3`, `Lote 4`, `Lote 5` y la primera parte de `Lote 6` del plan maestro.
+- el arranque actual ya cubre `Lote 0`, `Lote 1`, `Lote 2`, `Lote 3`, `Lote 4`, `Lote 5` y el tramo operativo actual de `Lote 6` del plan maestro.
 
 Alcance de esta fase:
 - estructura backend y frontend del modulo
@@ -26,7 +26,8 @@ Alcance de esta fase:
 - endpoints modernos de transacciones, balances por cuenta y detalle con auditoria
 - pantalla tenant operativa sobre `finance_transactions`
 - filtros operativos y toggles rapidos de favorito/conciliacion
+- edicion completa de transacciones existentes sobre el mismo contrato moderno
 
 Pendiente inmediato:
-- completar `Lote 6` con edicion plena y vistas mas ricas de conciliacion
+- completar `Lote 6` con vistas mas ricas de conciliacion y favoritos
 - `Lote 7` prestamos, planificacion y reportes

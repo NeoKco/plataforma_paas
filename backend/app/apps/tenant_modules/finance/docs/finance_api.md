@@ -5,7 +5,10 @@ API vigente en el arranque:
 - `POST /tenant/finance/entries`
 - `GET /tenant/finance/transactions`
 - `POST /tenant/finance/transactions`
+- `PUT /tenant/finance/transactions/{transaction_id}`
 - `GET /tenant/finance/transactions/{transaction_id}`
+- `PATCH /tenant/finance/transactions/{transaction_id}/favorite`
+- `PATCH /tenant/finance/transactions/{transaction_id}/reconciliation`
 - `GET /tenant/finance/account-balances`
 - `GET /tenant/finance/summary`
 - `GET /tenant/finance/usage`
@@ -83,8 +86,9 @@ Estado tras `Lote 5`:
 - el backfill desde `finance_entries` a `finance_transactions` queda cubierto por migracion
 - el siguiente paso API ya no era romper `/entries`, sino abrir endpoints ricos de transacciones sobre la nueva tabla
 
-Estado tras la primera parte de `Lote 6`:
+Estado actual de `Lote 6`:
 - ya existen `GET|POST /tenant/finance/transactions`
+- ya existe `PUT /tenant/finance/transactions/{transaction_id}` para editar una transaccion existente
 - ya existe `GET /tenant/finance/transactions/{transaction_id}` con auditoria reciente
 - ya existe `GET /tenant/finance/account-balances`
 - `GET /tenant/finance/transactions` ya admite filtros por tipo, cuenta, categoria, conciliacion y texto
@@ -100,4 +104,4 @@ Nucleo transaccional ya disponible en backend:
 
 Pendiente:
 - endpoints de prestamos, presupuestos, conciliacion y reportes
-- edicion completa de transacciones existentes
+- mesas de trabajo mas ricas para conciliacion y favoritos
