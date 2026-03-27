@@ -3,7 +3,11 @@ from datetime import date, datetime
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.finance.models import FinanceBudget, FinanceTransaction
+from app.apps.tenant_modules.finance.models import (
+    FinanceBudget,
+    FinanceCategory,
+    FinanceTransaction,
+)
 
 
 class FinanceBudgetRepository:
@@ -19,8 +23,14 @@ class FinanceBudgetRepository:
         period_month: date,
         *,
         include_inactive: bool = True,
+        category_type: str | None = None,
     ) -> list[FinanceBudget]:
         query = tenant_db.query(FinanceBudget).filter(FinanceBudget.period_month == period_month)
+        if category_type:
+            query = query.join(
+                FinanceCategory,
+                FinanceCategory.id == FinanceBudget.category_id,
+            ).filter(FinanceCategory.category_type == category_type)
         if not include_inactive:
             query = query.filter(FinanceBudget.is_active.is_(True))
         return query.order_by(FinanceBudget.category_id.asc(), FinanceBudget.id.asc()).all()

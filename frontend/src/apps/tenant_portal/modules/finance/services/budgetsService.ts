@@ -6,6 +6,7 @@ export type TenantFinanceBudget = {
   category_id: number;
   category_name: string;
   category_type: string;
+  budget_status: string;
   amount: number;
   actual_amount: number;
   variance_amount: number;
@@ -22,6 +23,10 @@ export type TenantFinanceBudgetsSummary = {
   total_actual: number;
   total_variance: number;
   total_items: number;
+  income_budgeted: number;
+  income_actual: number;
+  expense_budgeted: number;
+  expense_actual: number;
 };
 
 export type TenantFinanceBudgetsResponse = {
@@ -49,11 +54,21 @@ export type TenantFinanceBudgetWriteRequest = {
 export function getTenantFinanceBudgets(
   accessToken: string,
   periodMonth: string,
-  includeInactive = true
+  options?: {
+    includeInactive?: boolean;
+    categoryType?: string;
+    budgetStatus?: string;
+  }
 ) {
   const params = new URLSearchParams();
   params.set("period_month", periodMonth);
-  params.set("include_inactive", includeInactive ? "true" : "false");
+  params.set("include_inactive", options?.includeInactive === false ? "false" : "true");
+  if (options?.categoryType) {
+    params.set("category_type", options.categoryType);
+  }
+  if (options?.budgetStatus) {
+    params.set("budget_status", options.budgetStatus);
+  }
   return apiRequest<TenantFinanceBudgetsResponse>(
     `/tenant/finance/budgets?${params.toString()}`,
     { token: accessToken }

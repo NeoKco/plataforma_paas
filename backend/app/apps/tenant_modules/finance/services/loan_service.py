@@ -1,0 +1,294 @@
+from calendar import monthrange
+from datetime import date
+
+from sqlalchemy.orm import Session
+
+from app.apps.tenant_modules.finance.models import FinanceLoan, FinanceLoanInstallment
+from app.apps.tenant_modules.finance.repositories import (
+    FinanceCurrencyRepository,
+    FinanceLoanInstallmentRepository,
+    FinanceLoanRepository,
+)
+from app.apps.tenant_modules.finance.schemas import (
+    FinanceLoanCreateRequest,
+    FinanceLoanUpdateRequest,
+)
+
+
+class FinanceLoanService:
+    def __init__(
+        self,
+        loan_repository: FinanceLoanRepository | None = None,
+        currency_repository: FinanceCurrencyRepository | None = None,
+        installment_repository: FinanceLoanInstallmentRepository | None = None,
+    ) -> None:
+        self.loan_repository = loan_repository or FinanceLoanRepository()
+        self.currency_repository = currency_repository or FinanceCurrencyRepository()
+        self.installment_repository = (
+            installment_repository or FinanceLoanInstallmentRepository()
+        )
+
+    def list_loans(
+        self,
+        tenant_db: Session,
+        *,
+        include_inactive: bool = True,
+        loan_type: str | None = None,
+        loan_status: str | None = None,
+    ) -> tuple[list[dict], dict]:
+        loans = self.loan_repository.list_all(
+            tenant_db,
+            include_inactive=include_inactive,
+            loan_type=loan_type,
+        )
+        rows = [
+            self._build_loan_row(
+                tenant_db,
+                loan,
+                installments=self.installment_repository.list_by_loan(tenant_db, loan.id),
+            )
+            for loan in loans
+        ]
+
+        if loan_status:
+            rows = [row for row in rows if row["loan_status"] == loan_status]
+
+        summary = {
+            "total_items": len(rows),
+            "active_items": len(
+                [
+                    row for row in rows
+                    if row["loan"].is_active and row["loan_status"] != "settled"
+                ]
+            ),
+            "borrowed_balance": sum(
+                row["loan"].current_balance
+                for row in rows
+                if row["loan"].loan_type == "borrowed"
+            ),
+            "lent_balance": sum(
+                row["loan"].current_balance
+                for row in rows
+                if row["loan"].loan_type == "lent"
+            ),
+            "total_principal": sum(row["loan"].principal_amount for row in rows),
+        }
+        return rows, summary
+
+    def get_loan_detail(self, tenant_db: Session, loan_id: int) -> tuple[dict, list[dict]]:
+        loan = self._get_loan_or_raise(tenant_db, loan_id)
+        installments = self.installment_repository.list_by_loan(tenant_db, loan.id)
+        loan_row = self._build_loan_row(tenant_db, loan, installments=installments)
+        installment_rows = [
+            self._build_installment_row(installment)
+            for installment in installments
+        ]
+        return loan_row, installment_rows
+
+    def create_loan(
+        self,
+        tenant_db: Session,
+        payload: FinanceLoanCreateRequest,
+    ) -> FinanceLoan:
+        normalized = self._normalize_payload(payload)
+        self._validate_payload(tenant_db, normalized)
+        loan = self.loan_repository.save(tenant_db, FinanceLoan(**normalized))
+        self._sync_installments(tenant_db, loan)
+        tenant_db.refresh(loan)
+        return loan
+
+    def update_loan(
+        self,
+        tenant_db: Session,
+        loan_id: int,
+        payload: FinanceLoanUpdateRequest,
+    ) -> FinanceLoan:
+        loan = self._get_loan_or_raise(tenant_db, loan_id)
+        normalized = self._normalize_payload(payload)
+        self._validate_payload(tenant_db, normalized)
+        for field, value in normalized.items():
+            setattr(loan, field, value)
+        loan = self.loan_repository.save(tenant_db, loan)
+        self._sync_installments(tenant_db, loan)
+        tenant_db.refresh(loan)
+        return loan
+
+    def _build_loan_row(
+        self,
+        tenant_db: Session,
+        loan: FinanceLoan,
+        *,
+        installments: list[FinanceLoanInstallment],
+    ) -> dict:
+        currency = self._get_currency_or_raise(tenant_db, loan.currency_id)
+        paid_amount = max(loan.principal_amount - loan.current_balance, 0.0)
+        installment_rows = [self._build_installment_row(item) for item in installments]
+        next_due = next(
+            (
+                item["installment"].due_date
+                for item in installment_rows
+                if item["installment_status"] != "paid"
+            ),
+            None,
+        )
+        paid_count = len(
+            [item for item in installment_rows if item["installment_status"] == "paid"]
+        )
+        return {
+            "loan": loan,
+            "currency_code": currency.code,
+            "loan_status": self._build_loan_status(
+                current_balance=loan.current_balance,
+                is_active=loan.is_active,
+            ),
+            "paid_amount": paid_amount,
+            "next_due_date": next_due,
+            "installments_total": len(installment_rows),
+            "installments_paid": paid_count,
+        }
+
+    def _build_installment_row(self, installment: FinanceLoanInstallment) -> dict:
+        return {
+            "installment": installment,
+            "installment_status": self._build_installment_status(
+                due_date=installment.due_date,
+                planned_amount=installment.planned_amount,
+                paid_amount=installment.paid_amount,
+            ),
+        }
+
+    def _sync_installments(self, tenant_db: Session, loan: FinanceLoan) -> None:
+        installments = self._build_installments_for_loan(loan)
+        self.installment_repository.replace_for_loan(
+            tenant_db,
+            loan_id=loan.id,
+            installments=installments,
+        )
+
+    def _build_installments_for_loan(
+        self,
+        loan: FinanceLoan,
+    ) -> list[FinanceLoanInstallment]:
+        if not loan.installments_count or loan.installments_count <= 0:
+            return []
+
+        principal_chunks = self._split_amount(loan.principal_amount, loan.installments_count)
+        interest_total = loan.principal_amount * ((loan.interest_rate or 0.0) / 100.0)
+        interest_chunks = self._split_amount(interest_total, loan.installments_count)
+        installments: list[FinanceLoanInstallment] = []
+        for index in range(loan.installments_count):
+            due_date = self._add_months(loan.start_date, index)
+            principal_amount = principal_chunks[index]
+            interest_amount = interest_chunks[index]
+            installments.append(
+                FinanceLoanInstallment(
+                    loan_id=loan.id,
+                    installment_number=index + 1,
+                    due_date=due_date,
+                    planned_amount=round(principal_amount + interest_amount, 2),
+                    principal_amount=principal_amount,
+                    interest_amount=interest_amount,
+                    paid_amount=0.0,
+                    paid_at=None,
+                    note=None,
+                )
+            )
+        return installments
+
+    def _split_amount(self, amount: float, chunks: int) -> list[float]:
+        base = round(amount / chunks, 2)
+        values = [base for _ in range(chunks)]
+        difference = round(amount - sum(values), 2)
+        index = 0
+        while difference > 0 and index < chunks:
+            values[index] = round(values[index] + 0.01, 2)
+            difference = round(difference - 0.01, 2)
+            index += 1
+        return values
+
+    def _add_months(self, source_date: date, months: int) -> date:
+        month = source_date.month - 1 + months
+        year = source_date.year + month // 12
+        month = month % 12 + 1
+        day = min(source_date.day, monthrange(year, month)[1])
+        return date(year, month, day)
+
+    def _get_loan_or_raise(self, tenant_db: Session, loan_id: int) -> FinanceLoan:
+        loan = self.loan_repository.get_by_id(tenant_db, loan_id)
+        if loan is None:
+            raise ValueError("El préstamo financiero solicitado no existe")
+        return loan
+
+    def _get_currency_or_raise(self, tenant_db: Session, currency_id: int):
+        currency = self.currency_repository.get_by_id(tenant_db, currency_id)
+        if currency is None:
+            raise ValueError("La moneda financiera solicitada no existe")
+        return currency
+
+    def _normalize_payload(
+        self,
+        payload: FinanceLoanCreateRequest | FinanceLoanUpdateRequest,
+    ) -> dict:
+        return {
+            "name": payload.name.strip(),
+            "loan_type": payload.loan_type,
+            "counterparty_name": payload.counterparty_name.strip(),
+            "currency_id": payload.currency_id,
+            "principal_amount": payload.principal_amount,
+            "current_balance": payload.current_balance,
+            "interest_rate": payload.interest_rate,
+            "installments_count": payload.installments_count,
+            "payment_frequency": payload.payment_frequency,
+            "start_date": payload.start_date,
+            "due_date": payload.due_date,
+            "note": payload.note.strip() if payload.note and payload.note.strip() else None,
+            "is_active": payload.is_active,
+        }
+
+    def _validate_payload(self, tenant_db: Session, payload: dict) -> None:
+        if payload["loan_type"] not in {"borrowed", "lent"}:
+            raise ValueError("El tipo de préstamo debe ser 'borrowed' o 'lent'")
+        if not payload["name"]:
+            raise ValueError("El nombre del préstamo es obligatorio")
+        if not payload["counterparty_name"]:
+            raise ValueError("La contraparte del préstamo es obligatoria")
+        if payload["principal_amount"] <= 0:
+            raise ValueError("El capital inicial del préstamo debe ser mayor que cero")
+        if payload["current_balance"] < 0:
+            raise ValueError("El saldo pendiente del préstamo no puede ser negativo")
+        if payload["interest_rate"] is not None and payload["interest_rate"] < 0:
+            raise ValueError("La tasa de interés no puede ser negativa")
+        if payload["installments_count"] is not None and payload["installments_count"] <= 0:
+            raise ValueError("La cantidad de cuotas debe ser mayor que cero")
+        if payload["payment_frequency"] not in {"monthly"}:
+            raise ValueError("La frecuencia de pago soportada por ahora es 'monthly'")
+        if payload["due_date"] and payload["due_date"] < payload["start_date"]:
+            raise ValueError("El vencimiento no puede ser anterior al inicio del préstamo")
+        self._get_currency_or_raise(tenant_db, payload["currency_id"])
+
+    def _build_loan_status(
+        self,
+        *,
+        current_balance: float,
+        is_active: bool,
+    ) -> str:
+        if not is_active:
+            return "inactive"
+        if current_balance <= 0:
+            return "settled"
+        return "open"
+
+    def _build_installment_status(
+        self,
+        *,
+        due_date: date,
+        planned_amount: float,
+        paid_amount: float,
+    ) -> str:
+        if paid_amount >= planned_amount:
+            return "paid"
+        if paid_amount > 0:
+            return "partial"
+        if due_date < date.today():
+            return "overdue"
+        return "pending"

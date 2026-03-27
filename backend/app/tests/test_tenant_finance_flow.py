@@ -17,6 +17,7 @@ set_test_environment()
 
 from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     create_finance_budget,
+    create_finance_loan,
     create_finance_transaction,
     create_finance_entry,
     finance_account_balances,
@@ -24,7 +25,9 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     finance_summary,
     get_finance_transaction_detail,
     list_finance_budgets,
+    list_finance_loans,
     update_finance_transaction,
+    update_finance_loan,
     update_finance_transactions_favorite_batch,
     update_finance_transactions_reconciliation_batch,
     update_finance_transaction_favorite,
@@ -35,6 +38,8 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
 from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceBudgetCreateRequest,
     FinanceEntryCreateRequest,
+    FinanceLoanCreateRequest,
+    FinanceLoanUpdateRequest,
     FinanceTransactionCreateRequest,
     FinanceTransactionUpdateRequest,
 )
@@ -567,6 +572,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 ),
                 "category_name": "Marketing",
                 "category_type": "expense",
+                "budget_status": "within_budget",
                 "actual_amount": 200.0,
                 "variance_amount": 300.0,
                 "utilization_ratio": 0.4,
@@ -578,6 +584,10 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             "total_actual": 200.0,
             "total_variance": 300.0,
             "total_items": 1,
+            "income_budgeted": 0.0,
+            "income_actual": 0.0,
+            "expense_budgeted": 500.0,
+            "expense_actual": 200.0,
         }
 
         with patch(
@@ -611,6 +621,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 ),
                 "category_name": "Marketing",
                 "category_type": "expense",
+                "budget_status": "unused",
                 "actual_amount": 0.0,
                 "variance_amount": 500.0,
                 "utilization_ratio": 0.0,
@@ -638,6 +649,161 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertEqual(response.data.amount, 500.0)
+
+    def test_list_finance_loans_returns_rows(self) -> None:
+        rows = [
+            {
+                "loan": SimpleNamespace(
+                    id=3,
+                    name="Crédito local",
+                    loan_type="borrowed",
+                    counterparty_name="Banco Centro",
+                    currency_id=1,
+                    principal_amount=1000.0,
+                    current_balance=700.0,
+                    interest_rate=7.5,
+                    start_date=date(2026, 3, 1),
+                    due_date=date(2027, 3, 1),
+                    note="Renegociado",
+                    is_active=True,
+                    created_at="2026-03-27T16:00:00+00:00",
+                    updated_at="2026-03-27T16:00:00+00:00",
+                ),
+                "currency_code": "USD",
+                "loan_status": "open",
+                "paid_amount": 300.0,
+            }
+        ]
+        summary = {
+            "total_items": 1,
+            "active_items": 1,
+            "borrowed_balance": 700.0,
+            "lent_balance": 0.0,
+            "total_principal": 1000.0,
+        }
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.loan_service.list_loans",
+            return_value=(rows, summary),
+        ):
+            response = list_finance_loans(
+                current_user=self._current_user(role="operator"),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.total, 1)
+        self.assertEqual(response.data[0].loan_status, "open")
+        self.assertEqual(response.summary.borrowed_balance, 700.0)
+
+    def test_create_finance_loan_returns_created_row(self) -> None:
+        loan = SimpleNamespace(id=3)
+        rows = [
+            {
+                "loan": SimpleNamespace(
+                    id=3,
+                    name="Préstamo socio",
+                    loan_type="lent",
+                    counterparty_name="Socio Uno",
+                    currency_id=1,
+                    principal_amount=500.0,
+                    current_balance=250.0,
+                    interest_rate=None,
+                    start_date=date(2026, 3, 1),
+                    due_date=None,
+                    note=None,
+                    is_active=True,
+                    created_at="2026-03-27T16:00:00+00:00",
+                    updated_at="2026-03-27T16:00:00+00:00",
+                ),
+                "currency_code": "USD",
+                "loan_status": "open",
+                "paid_amount": 250.0,
+            }
+        ]
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.loan_service.create_loan",
+            return_value=loan,
+        ), patch(
+            "app.apps.tenant_modules.finance.api.routes.loan_service.list_loans",
+            return_value=(rows, {}),
+        ):
+            response = create_finance_loan(
+                payload=FinanceLoanCreateRequest(
+                    name="Préstamo socio",
+                    loan_type="lent",
+                    counterparty_name="Socio Uno",
+                    currency_id=1,
+                    principal_amount=500.0,
+                    current_balance=250.0,
+                    interest_rate=None,
+                    start_date=date(2026, 3, 1),
+                    due_date=None,
+                    note=None,
+                    is_active=True,
+                ),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.current_balance, 250.0)
+
+    def test_update_finance_loan_returns_updated_row(self) -> None:
+        loan = SimpleNamespace(id=3)
+        rows = [
+            {
+                "loan": SimpleNamespace(
+                    id=3,
+                    name="Crédito local",
+                    loan_type="borrowed",
+                    counterparty_name="Banco Centro",
+                    currency_id=1,
+                    principal_amount=1000.0,
+                    current_balance=650.0,
+                    interest_rate=7.0,
+                    start_date=date(2026, 3, 1),
+                    due_date=None,
+                    note="Actualizado",
+                    is_active=True,
+                    created_at="2026-03-27T16:00:00+00:00",
+                    updated_at="2026-03-27T17:00:00+00:00",
+                ),
+                "currency_code": "USD",
+                "loan_status": "open",
+                "paid_amount": 350.0,
+            }
+        ]
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.loan_service.update_loan",
+            return_value=loan,
+        ), patch(
+            "app.apps.tenant_modules.finance.api.routes.loan_service.list_loans",
+            return_value=(rows, {}),
+        ):
+            response = update_finance_loan(
+                loan_id=3,
+                payload=FinanceLoanUpdateRequest(
+                    name="Crédito local",
+                    loan_type="borrowed",
+                    counterparty_name="Banco Centro",
+                    currency_id=1,
+                    principal_amount=1000.0,
+                    current_balance=650.0,
+                    interest_rate=7.0,
+                    start_date=date(2026, 3, 1),
+                    due_date=None,
+                    note="Actualizado",
+                    is_active=True,
+                ),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.paid_amount, 350.0)
 
     def test_update_finance_transaction_favorite_returns_mutated_transaction(self) -> None:
         transaction = SimpleNamespace(

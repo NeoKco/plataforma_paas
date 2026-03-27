@@ -48,6 +48,9 @@ export function FinanceBudgetsPage() {
   const [categories, setCategories] = useState<TenantFinanceCategory[]>([]);
   const [editingBudgetId, setEditingBudgetId] = useState<number | null>(null);
   const [filterMonth, setFilterMonth] = useState(buildMonthValue());
+  const [filterCategoryType, setFilterCategoryType] = useState("");
+  const [filterBudgetStatus, setFilterBudgetStatus] = useState("");
+  const [includeInactive, setIncludeInactive] = useState(true);
   const [formState, setFormState] = useState<BudgetFormState>(DEFAULT_FORM_STATE);
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +69,7 @@ export function FinanceBudgetsPage() {
 
   useEffect(() => {
     void loadBudgetWorkspace();
-  }, [session?.accessToken, filterMonth]);
+  }, [session?.accessToken, filterMonth, filterCategoryType, filterBudgetStatus, includeInactive]);
 
   useEffect(() => {
     if (!formState.categoryId && categoriesForBudgets.length > 0) {
@@ -86,7 +89,11 @@ export function FinanceBudgetsPage() {
     setError(null);
 
     const results = await Promise.allSettled([
-      getTenantFinanceBudgets(session.accessToken, buildPeriodMonthIso(filterMonth), true),
+      getTenantFinanceBudgets(session.accessToken, buildPeriodMonthIso(filterMonth), {
+        includeInactive,
+        categoryType: filterCategoryType || undefined,
+        budgetStatus: filterBudgetStatus || undefined,
+      }),
       getTenantFinanceCategories(session.accessToken, { includeInactive: false }),
     ]);
 
@@ -180,10 +187,10 @@ export function FinanceBudgetsPage() {
       {isLoading ? <LoadingBlock label="Cargando presupuestos..." /> : null}
 
       <div className="tenant-portal-metrics">
-        <MetricCard label="Presupuestado" value={formatMoney(summary?.total_budgeted || 0)} hint="Total del mes visible" />
+        <MetricCard label="Presupuestado" value={formatMoney(summary?.total_budgeted || 0)} hint="Total del filtro visible" />
         <MetricCard label="Ejecutado" value={formatMoney(summary?.total_actual || 0)} hint="Real acumulado por categoría" />
         <MetricCard label="Desviación" value={formatMoney(summary?.total_variance || 0)} hint="Presupuesto menos real" />
-        <MetricCard label="Ítems" value={summary?.total_items || 0} hint="Presupuestos del período" />
+        <MetricCard label="Ítems" value={summary?.total_items || 0} hint="Presupuestos del filtro" />
       </div>
 
       {error ? (
@@ -296,17 +303,61 @@ export function FinanceBudgetsPage() {
 
         <PanelCard
           title="Lectura del período"
-          subtitle="Selecciona el mes que quieres revisar y observa el desvío global del presupuesto."
+          subtitle="Filtra por tipo o estado para concentrarte en categorías con desviación, inactivas o sin uso."
         >
           <div className="d-grid gap-3">
-            <div>
-              <label className="form-label">Mes visible</label>
-              <input
-                className="form-control"
-                type="month"
-                value={filterMonth}
-                onChange={(event) => setFilterMonth(event.target.value)}
-              />
+            <div className="tenant-inline-form-grid">
+              <div>
+                <label className="form-label">Mes visible</label>
+                <input
+                  className="form-control"
+                  type="month"
+                  value={filterMonth}
+                  onChange={(event) => setFilterMonth(event.target.value)}
+                />
+              </div>
+              <div>
+                <label className="form-label">Tipo</label>
+                <select
+                  className="form-select"
+                  value={filterCategoryType}
+                  onChange={(event) => setFilterCategoryType(event.target.value)}
+                >
+                  <option value="">Todos</option>
+                  <option value="income">Ingresos</option>
+                  <option value="expense">Egresos</option>
+                </select>
+              </div>
+            </div>
+            <div className="tenant-inline-form-grid">
+              <div>
+                <label className="form-label">Estado derivado</label>
+                <select
+                  className="form-select"
+                  value={filterBudgetStatus}
+                  onChange={(event) => setFilterBudgetStatus(event.target.value)}
+                >
+                  <option value="">Todos</option>
+                  <option value="within_budget">Dentro del presupuesto</option>
+                  <option value="over_budget">Sobre el presupuesto</option>
+                  <option value="unused">Sin ejecución</option>
+                  <option value="inactive">Inactivo</option>
+                </select>
+              </div>
+              <div className="d-flex align-items-end">
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="finance-budgets-include-inactive"
+                    checked={includeInactive}
+                    onChange={(event) => setIncludeInactive(event.target.checked)}
+                  />
+                  <label className="form-check-label" htmlFor="finance-budgets-include-inactive">
+                    Incluir inactivos
+                  </label>
+                </div>
+              </div>
             </div>
             <div className="tenant-detail-grid">
               <DetailField label="Presupuestado" value={formatMoney(summary?.total_budgeted || 0)} />
@@ -314,13 +365,19 @@ export function FinanceBudgetsPage() {
               <DetailField label="Desviación" value={formatMoney(summary?.total_variance || 0)} />
               <DetailField label="Filas" value={summary?.total_items || 0} />
             </div>
+            <div className="tenant-detail-grid">
+              <DetailField label="Ingreso presup." value={formatMoney(summary?.income_budgeted || 0)} />
+              <DetailField label="Ingreso real" value={formatMoney(summary?.income_actual || 0)} />
+              <DetailField label="Egreso presup." value={formatMoney(summary?.expense_budgeted || 0)} />
+              <DetailField label="Egreso real" value={formatMoney(summary?.expense_actual || 0)} />
+            </div>
           </div>
         </PanelCard>
       </div>
 
       <PanelCard
         title="Presupuesto vs ejecución"
-        subtitle="Comparación mensual por categoría para ingreso o egreso."
+        subtitle="Comparación mensual por categoría, con estado derivado para leer rápido qué necesita atención."
       >
         {budgetsResponse && budgetsResponse.data.length > 0 ? (
           <div className="table-responsive">
@@ -349,11 +406,9 @@ export function FinanceBudgetsPage() {
                     <td>{formatMoney(budget.variance_amount)}</td>
                     <td>{formatPercent(budget.utilization_ratio)}</td>
                     <td>
-                      {budget.is_active ? (
-                        <span className="status-badge status-badge--success">activo</span>
-                      ) : (
-                        <span className="status-badge status-badge--neutral">inactivo</span>
-                      )}
+                      <span className={`status-badge ${budgetStatusBadgeClass(budget.budget_status)}`}>
+                        {displayBudgetStatus(budget.budget_status)}
+                      </span>
                     </td>
                     <td>
                       <button
@@ -371,7 +426,7 @@ export function FinanceBudgetsPage() {
           </div>
         ) : (
           <div className="text-secondary">
-            Aún no existen presupuestos para el período seleccionado.
+            No hay presupuestos para el filtro seleccionado.
           </div>
         )}
       </PanelCard>
@@ -415,6 +470,35 @@ function formatMonthLabel(value: string): string {
 
 function displayCategoryType(value: string): string {
   return value === "income" ? "ingreso" : value === "expense" ? "egreso" : value;
+}
+
+function displayBudgetStatus(value: string): string {
+  if (value === "over_budget") {
+    return "sobre presupuesto";
+  }
+  if (value === "within_budget") {
+    return "dentro del presupuesto";
+  }
+  if (value === "unused") {
+    return "sin ejecución";
+  }
+  if (value === "inactive") {
+    return "inactivo";
+  }
+  return value;
+}
+
+function budgetStatusBadgeClass(value: string): string {
+  if (value === "over_budget") {
+    return "status-badge--danger";
+  }
+  if (value === "within_budget") {
+    return "status-badge--success";
+  }
+  if (value === "unused") {
+    return "status-badge--warning";
+  }
+  return "status-badge--neutral";
 }
 
 function DetailField({

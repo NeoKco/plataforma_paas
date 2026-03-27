@@ -40,6 +40,17 @@ from app.apps.tenant_modules.finance.schemas.currency import (
     FinanceCurrencyMutationResponse,
     FinanceCurrencyUpdateRequest,
 )
+from app.apps.tenant_modules.finance.schemas.loan import (
+    FinanceLoanCreateRequest,
+    FinanceLoanDetailData,
+    FinanceLoanDetailResponse,
+    FinanceLoanInstallmentItemResponse,
+    FinanceLoanItemResponse,
+    FinanceLoanMutationResponse,
+    FinanceLoansResponse,
+    FinanceLoansSummaryData,
+    FinanceLoanUpdateRequest,
+)
 from app.apps.tenant_modules.finance.schemas.person import (
     FinancePeopleResponse,
     FinancePersonCreateRequest,
@@ -141,6 +152,15 @@ __all__ = [
     "FinanceEntryCreateRequest",
     "FinanceEntryItemResponse",
     "FinanceEntryMutationResponse",
+    "FinanceLoanCreateRequest",
+    "FinanceLoanDetailData",
+    "FinanceLoanDetailResponse",
+    "FinanceLoanInstallmentItemResponse",
+    "FinanceLoanItemResponse",
+    "FinanceLoanMutationResponse",
+    "FinanceLoansResponse",
+    "FinanceLoansSummaryData",
+    "FinanceLoanUpdateRequest",
     "FinancePeopleResponse",
     "FinancePersonCreateRequest",
     "FinancePersonItemResponse",

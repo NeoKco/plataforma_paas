@@ -37,8 +37,12 @@
 - ya existe una primera pantalla real de `Presupuestos`
 - esa pantalla ya permite leer el mes actual o seleccionado, crear un presupuesto y editarlo
 - la UI ya compara `presupuesto`, `ejecucion real`, `variacion` y `uso %` por categoria
+- esa misma pantalla ya permite filtrar por tipo, estado derivado e inclusion de inactivos
+- ya existe una primera pantalla real de `Préstamos`
+- esa pantalla ya permite crear y editar cartera básica con saldo pendiente, contraparte y lectura por tipo/estado
 
 Pendiente inmediato:
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
-- endurecer `Presupuestos` con filtros por estado/tipo y lectura agregada mas densa antes de abrir `Prestamos`
+- endurecer `Presupuestos` con lectura agregada mas densa antes de abrir reportes
+- endurecer `Préstamos` con cronograma, cuotas y pagos antes de considerarlo un dominio cerrado

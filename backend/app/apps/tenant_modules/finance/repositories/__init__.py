@@ -19,6 +19,12 @@ from app.apps.tenant_modules.finance.repositories.entry_repository import (
 from app.apps.tenant_modules.finance.repositories.exchange_rate_repository import (
     FinanceExchangeRateRepository,
 )
+from app.apps.tenant_modules.finance.repositories.loan_repository import (
+    FinanceLoanRepository,
+)
+from app.apps.tenant_modules.finance.repositories.loan_installment_repository import (
+    FinanceLoanInstallmentRepository,
+)
 from app.apps.tenant_modules.finance.repositories.person_repository import (
     FinancePersonRepository,
 )
@@ -46,6 +52,8 @@ __all__ = [
     "FinanceCurrencyRepository",
     "FinanceEntryRepository",
     "FinanceExchangeRateRepository",
+    "FinanceLoanRepository",
+    "FinanceLoanInstallmentRepository",
     "FinancePersonRepository",
     "FinanceProjectRepository",
     "FinanceSettingsRepository",

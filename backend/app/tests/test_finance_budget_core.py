@@ -132,8 +132,57 @@ class FinanceBudgetCoreTestCase(unittest.TestCase):
         self.assertEqual(rows[0]["actual_amount"], 150.0)
         self.assertEqual(rows[0]["variance_amount"], 350.0)
         self.assertAlmostEqual(rows[0]["utilization_ratio"], 0.3, places=6)
+        self.assertEqual(rows[0]["budget_status"], "within_budget")
         self.assertEqual(summary["total_budgeted"], 500.0)
         self.assertEqual(summary["total_actual"], 150.0)
+        self.assertEqual(summary["expense_budgeted"], 500.0)
+        self.assertEqual(summary["expense_actual"], 150.0)
+        self.assertEqual(summary["income_budgeted"], 0.0)
+        self.assertEqual(summary["income_actual"], 0.0)
+
+    def test_budget_filters_support_status_and_category_type(self) -> None:
+        self._seed_currency()
+        expense_category = self._seed_category(name="Operación", category_type="expense")
+        income_category = self._seed_category(name="Ventas", category_type="income")
+
+        self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 3, 1),
+                category_id=expense_category.id,
+                amount=100.0,
+                note=None,
+                is_active=True,
+            ),
+        )
+        self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 3, 1),
+                category_id=income_category.id,
+                amount=250.0,
+                note=None,
+                is_active=False,
+            ),
+        )
+
+        over_budget_rows, _summary = self.budget_service.list_budgets(
+            self.db,
+            period_month=date(2026, 3, 1),
+            include_inactive=True,
+            budget_status="unused",
+        )
+        income_rows, _summary = self.budget_service.list_budgets(
+            self.db,
+            period_month=date(2026, 3, 1),
+            include_inactive=True,
+            category_type="income",
+        )
+
+        self.assertEqual(len(over_budget_rows), 1)
+        self.assertEqual(over_budget_rows[0]["budget_status"], "unused")
+        self.assertEqual(len(income_rows), 1)
+        self.assertEqual(income_rows[0]["category_type"], "income")
 
 
 if __name__ == "__main__":

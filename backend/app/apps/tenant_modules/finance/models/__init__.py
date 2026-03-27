@@ -6,6 +6,10 @@ from app.apps.tenant_modules.finance.models.category import FinanceCategory
 from app.apps.tenant_modules.finance.models.currency import FinanceCurrency
 from app.apps.tenant_modules.finance.models.entry import FinanceEntry
 from app.apps.tenant_modules.finance.models.exchange_rate import FinanceExchangeRate
+from app.apps.tenant_modules.finance.models.loan import FinanceLoan
+from app.apps.tenant_modules.finance.models.loan_installment import (
+    FinanceLoanInstallment,
+)
 from app.apps.tenant_modules.finance.models.person import FinancePerson
 from app.apps.tenant_modules.finance.models.project import FinanceProject
 from app.apps.tenant_modules.finance.models.settings import FinanceSetting
@@ -28,6 +32,8 @@ __all__ = [
     "FinanceCurrency",
     "FinanceEntry",
     "FinanceExchangeRate",
+    "FinanceLoan",
+    "FinanceLoanInstallment",
     "FinancePerson",
     "FinanceProject",
     "FinanceSetting",

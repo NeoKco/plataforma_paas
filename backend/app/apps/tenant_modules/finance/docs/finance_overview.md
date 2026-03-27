@@ -32,8 +32,12 @@ Alcance de esta fase:
 - primera pantalla real de `Presupuestos` con lectura mensual por categoria
 - comparacion `presupuesto vs ejecucion real` usando el mismo nucleo de transacciones
 - contrato backend propio para crear, listar y editar presupuestos mensuales
+- filtros de `Presupuestos` por tipo, estado derivado e inclusion de inactivos
+- primer slice real de `Préstamos` con cartera básica, saldo pendiente y contraparte
+- contrato backend propio para crear, listar y editar préstamos
 
 Pendiente inmediato:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
-- endurecer `Presupuestos` con filtros, estados y lectura por tipo
+- endurecer `Presupuestos` con lectura mas densa y estados operativos mas ricos
+- endurecer `Préstamos` con cuotas, cronograma y pagos aplicados
 - `Lote 7` prestamos, planificacion y reportes

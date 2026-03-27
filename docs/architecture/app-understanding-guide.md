@@ -87,6 +87,7 @@ Prioridad actual del producto:
 - el nucleo de persistencia de `finance` ya vive en `finance_transactions`
 - `tenant_portal` ya expone una primera pantalla moderna de `Transacciones` sobre ese nucleo, con balances por cuenta, detalle operacional, filtros reales y edicion completa
 - `tenant_portal` ya expone tambien una primera pantalla real de `Presupuestos`, con lectura mensual `presupuesto vs real` por categoria
+- `tenant_portal` ya expone una primera pantalla real de `Préstamos` con cartera base, contraparte y saldo pendiente
 - `/tenant/finance/entries` sigue existiendo solo como compatibilidad legacy mientras madura el resto del modulo
 - hoy esa base ya cubre alta, edicion basica y archivo operativo desde `Tenants`
 - la politica vigente ya es:

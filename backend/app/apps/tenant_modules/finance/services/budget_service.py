@@ -28,12 +28,15 @@ class FinanceBudgetService:
         *,
         period_month: date,
         include_inactive: bool = True,
+        category_type: str | None = None,
+        budget_status: str | None = None,
     ) -> tuple[list[dict], dict]:
         normalized_period_month = self._normalize_period_month(period_month)
         budgets = self.budget_repository.list_by_period_month(
             tenant_db,
             normalized_period_month,
             include_inactive=include_inactive,
+            category_type=category_type,
         )
         actual_amounts = self.budget_repository.aggregate_actual_amounts_by_category(
             tenant_db,
@@ -48,16 +51,27 @@ class FinanceBudgetService:
             utilization_ratio = (
                 None if budget.amount <= 0 else actual_amount / budget.amount
             )
+            derived_budget_status = self._build_budget_status(
+                is_active=budget.is_active,
+                actual_amount=actual_amount,
+                planned_amount=budget.amount,
+            )
             rows.append(
                 {
                     "budget": budget,
                     "category_name": category.name,
                     "category_type": category.category_type,
+                    "budget_status": derived_budget_status,
                     "actual_amount": actual_amount,
                     "variance_amount": variance_amount,
                     "utilization_ratio": utilization_ratio,
                 }
             )
+
+        if budget_status:
+            rows = [
+                row for row in rows if row["budget_status"] == budget_status
+            ]
 
         summary = {
             "period_month": normalized_period_month,
@@ -65,6 +79,26 @@ class FinanceBudgetService:
             "total_actual": sum(item["actual_amount"] for item in rows),
             "total_variance": sum(item["variance_amount"] for item in rows),
             "total_items": len(rows),
+            "income_budgeted": sum(
+                item["budget"].amount
+                for item in rows
+                if item["category_type"] == "income"
+            ),
+            "income_actual": sum(
+                item["actual_amount"]
+                for item in rows
+                if item["category_type"] == "income"
+            ),
+            "expense_budgeted": sum(
+                item["budget"].amount
+                for item in rows
+                if item["category_type"] == "expense"
+            ),
+            "expense_actual": sum(
+                item["actual_amount"]
+                for item in rows
+                if item["category_type"] == "expense"
+            ),
         }
         return rows, summary
 
@@ -139,6 +173,21 @@ class FinanceBudgetService:
 
     def _normalize_period_month(self, period_month: date) -> date:
         return period_month.replace(day=1)
+
+    def _build_budget_status(
+        self,
+        *,
+        is_active: bool,
+        actual_amount: float,
+        planned_amount: float,
+    ) -> str:
+        if not is_active:
+            return "inactive"
+        if actual_amount <= 0:
+            return "unused"
+        if actual_amount > planned_amount:
+            return "over_budget"
+        return "within_budget"
 
     def _month_start(self, period_month: date) -> datetime:
         return datetime.combine(period_month, time.min, tzinfo=timezone.utc)

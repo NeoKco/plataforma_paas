@@ -72,6 +72,9 @@ En esta fase quedaron listos:
 - filtro explicito por favoritas y mesa de trabajo basica con seleccion multiple
 - acciones por lote para favoritas y conciliacion desde la tabla principal
 - conciliacion guiada con nota opcional, confirmacion explicita y auditoria reciente enriquecida
+- primera pantalla real de `Presupuestos` con lectura `presupuesto vs real`
+- filtros de `Presupuestos` por tipo, estado derivado e inclusion de inactivos
+- primer slice real de `Préstamos` con cartera base, saldo pendiente y contraparte
 
 ## Archivos principales
 
@@ -84,11 +87,14 @@ En esta fase quedaron listos:
 - `backend/app/apps/tenant_modules/finance/api/router.py`
 - `backend/app/apps/tenant_modules/finance/api/transactions.py`
 - `backend/app/apps/tenant_modules/finance/api/budgets.py`
+- `backend/app/apps/tenant_modules/finance/api/loans.py`
 - `backend/app/tests/test_tenant_finance_flow.py`
 - `backend/app/tests/test_finance_budget_core.py`
+- `backend/app/tests/test_finance_loan_core.py`
 - `frontend/src/apps/tenant_portal/modules/finance/routes.tsx`
 - `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx`
 - `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceBudgetsPage.tsx`
+- `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceLoansPage.tsx`
 - `frontend/src/apps/tenant_portal/pages/finance/TenantFinancePageLegacy.tsx`
 
 ## Endpoints
@@ -97,6 +103,7 @@ En esta fase quedaron listos:
 - `POST /tenant/finance/entries`
 - `GET /tenant/finance/summary`
 - `GET|POST|PUT /tenant/finance/budgets`
+- `GET|POST|PUT /tenant/finance/loans`
 - `GET|POST|PUT|PATCH /tenant/finance/accounts`
 - `GET|POST|PUT|PATCH /tenant/finance/categories`
 - `GET|POST|PUT|PATCH /tenant/finance/beneficiaries`
@@ -129,6 +136,7 @@ La persistencia transicional del modulo queda asi:
 - `finance_entries` se conserva como tabla minima legacy
 - `finance_transactions` pasa a ser la tabla central real del modulo
 - `finance_budgets` abre la primera capa de planificacion mensual del modulo
+- `finance_loans` abre la primera capa de cartera de prestamos del modulo
 
 Campos legacy principales:
 
@@ -164,6 +172,19 @@ Campos base de presupuestos:
 - `category_id`
 - `amount`
 - `note`
+- `is_active`
+
+Campos base de préstamos:
+
+- `name`
+- `loan_type`
+- `counterparty_name`
+- `currency_id`
+- `principal_amount`
+- `current_balance`
+- `interest_rate`
+- `start_date`
+- `due_date`
 - `is_active`
 
 ## Validaciones actuales
@@ -219,14 +240,17 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 5. edicion completa de transacciones existentes
 6. mesa de trabajo basica para conciliacion/favoritos con seleccion multiple y acciones por lote
 7. primera vista real de `Presupuestos` por mes y categoria, con comparacion presupuesto vs ejecucion
+8. filtros de `Presupuestos` por tipo, estado e inactivos
+9. primera vista real de `Préstamos` con cartera base y saldo pendiente
 
 Lo siguiente recomendable ahora es:
 
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
-2. endurecer `Presupuestos` con estados, filtros y lectura por tipo
-3. seguir con prestamos, planificacion y reportes
-4. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
-5. abrir exportacion o vistas derivadas cuando el trabajo operativo del slice ya quede estable
+2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
+3. endurecer `Préstamos` con cuotas, cronograma y pagos aplicados
+4. seguir con planificacion y reportes
+5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
+6. abrir exportacion o vistas derivadas cuando el trabajo operativo del slice ya quede estable
 
 ## Convencion relacionada
 

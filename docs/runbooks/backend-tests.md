@@ -197,7 +197,8 @@ Cobertura actual:
 - balances por cuenta expuestos por API
 - filtros por transaccion, edicion completa, filtro por favoritas y operaciones batch de favorito/conciliacion con nota opcional
 - presupuestos mensuales por categoria, con comparacion `presupuesto vs real`
-- migraciones tenant del modulo hasta `0006_finance_budgets`
+- prestamos base con resumen de cartera y filtros por tipo/estado
+- migraciones tenant del modulo hasta `0007_finance_loans`
 - seeds idempotentes para moneda base, `CLP`, categorias y settings
 - repositories CRUD base del modulo y sus restricciones de unicidad/activacion
 - validaciones de servicio para cuentas, categorias y moneda base
@@ -211,7 +212,7 @@ Ejecucion:
 
 ```bash
 cd /home/felipe/platform_paas/backend
-/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_tenant_finance_flow app.tests.test_finance_catalog_repositories app.tests.test_finance_catalog_services app.tests.test_finance_catalog_routes app.tests.test_finance_transaction_core app.tests.test_finance_budget_core app.tests.test_migration_flow
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_tenant_finance_flow app.tests.test_finance_catalog_repositories app.tests.test_finance_catalog_services app.tests.test_finance_catalog_routes app.tests.test_finance_transaction_core app.tests.test_finance_budget_core app.tests.test_finance_loan_core app.tests.test_migration_flow
 ```
 
 Suite puntual de presupuestos:
@@ -219,6 +220,13 @@ Suite puntual de presupuestos:
 ```bash
 cd /home/felipe/platform_paas/backend
 /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_finance_budget_core
+```
+
+Suite puntual de préstamos:
+
+```bash
+cd /home/felipe/platform_paas/backend
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_finance_loan_core
 ```
 
 ## Suite Tenant Integration

@@ -31,6 +31,7 @@ def _build_budget_item(row: dict) -> FinanceBudgetItemResponse:
         category_id=budget.category_id,
         category_name=row["category_name"],
         category_type=row["category_type"],
+        budget_status=row["budget_status"],
         amount=budget.amount,
         actual_amount=row["actual_amount"],
         variance_amount=row["variance_amount"],
@@ -46,6 +47,8 @@ def _build_budget_item(row: dict) -> FinanceBudgetItemResponse:
 def list_finance_budgets(
     period_month: date,
     include_inactive: bool = True,
+    category_type: str | None = None,
+    budget_status: str | None = None,
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceBudgetsResponse:
@@ -53,6 +56,8 @@ def list_finance_budgets(
         tenant_db,
         period_month=period_month,
         include_inactive=include_inactive,
+        category_type=category_type,
+        budget_status=budget_status,
     )
     return FinanceBudgetsResponse(
         success=True,

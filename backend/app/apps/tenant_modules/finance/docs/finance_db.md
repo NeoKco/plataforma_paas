@@ -6,6 +6,7 @@ Estado actual:
 - existe `0004_finance_seed_clp` como seed adicional de moneda
 - existe `0005_finance_transactions` como migracion del nucleo transaccional real
 - existe `0006_finance_budgets` como migracion base de presupuestos mensuales
+- existe `0007_finance_loans` como migracion base de cartera de prestamos
 
 Objetivo contractual:
 - ampliar el esquema tenant del modulo segun el roadmap maestro
@@ -28,6 +29,7 @@ Tablas base ya creadas en `Lote 1`:
 - `finance_transaction_attachments`
 - `finance_transaction_audit`
 - `finance_budgets`
+- `finance_loans`
 
 ## Seeds idempotentes iniciales
 
@@ -93,6 +95,11 @@ Tablas base ya creadas en `Lote 1`:
 - preparado para comparar monto presupuestado contra ejecucion real del mes
 - base para planificacion, alertas de desvio y reportes posteriores
 
+### `finance_loans`
+- cartera base de prestamos prestados o recibidos
+- conserva contraparte, capital inicial, saldo pendiente, moneda y fechas clave
+- base para abrir luego cuotas, cronograma, intereses y conciliacion de pagos
+
 ## Reglas estructurales de esta fase
 
 - indices por `is_active`, `sort_order` y `created_at` donde aplica
@@ -100,5 +107,6 @@ Tablas base ya creadas en `Lote 1`:
 - seeds preparados para re-ejecucion segura
 
 Pendiente siguiente:
-- endurecer filtros/estados de presupuestos y lectura por tipo
-- prestamos, planificacion y reportes
+- endurecer lectura de presupuestos y estados operativos derivados
+- endurecer prestamos con cuotas y cronograma
+- planificacion y reportes

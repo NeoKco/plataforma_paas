@@ -230,6 +230,8 @@ Resultado actual:
 - el `Lote 6` ya abrio la primera vista moderna de transacciones sobre `finance_transactions`, con balances por cuenta, detalle operacional con auditoria reciente, filtros reales, edicion completa de transacciones existentes y una mesa de trabajo guiada para conciliacion/favoritos con seleccion multiple, nota y confirmacion
 - ya existe una primera vista real de `Presupuestos` por mes y categoria con comparacion presupuesto vs ejecucion real
 - existe migracion tenant versionada para `finance_budgets`
+- ya existe un primer slice real de `Préstamos` con cartera base, saldo pendiente y filtros por tipo/estado
+- existe migracion tenant versionada para `finance_loans`
 - `CLP` ya forma parte de las monedas semilla del modulo
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
@@ -243,8 +245,9 @@ Resultado actual:
 Falta para cerrarlo:
 
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
-- endurecer `Presupuestos` antes de abrir `Prestamos` o `Reportes`
-- ejecutar `Lote 7` y siguientes del roadmap maestro para prestamos, planificacion y reportes
+- endurecer `Presupuestos` con lectura agregada y estados operativos mas ricos
+- endurecer `Préstamos` con cuotas, cronograma y pagos aplicados
+- ejecutar `Lote 7` y siguientes del roadmap maestro para planificacion y reportes
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 

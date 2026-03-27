@@ -8,11 +8,14 @@ Estado actual:
 - la vista principal ya permite también seleccionar varias transacciones y operar favoritas o conciliación por lote
 - la conciliación ya puede dejar nota operativa y exige confirmación antes de aplicar el cambio
 - la vista `Presupuestos` ya permite cargar un monto mensual por categoría y compararlo contra la ejecución real del mes
+- la vista `Presupuestos` ya permite además filtrar por tipo, estado derivado e inactivos
+- la vista `Préstamos` ya permite registrar cartera básica prestada o recibida y revisar el saldo pendiente
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend
 
 Pantallas disponibles:
 - `Transacciones`
 - `Presupuestos`
+- `Préstamos`
 - `Cuentas`
 - `Categorías`
 - `Catálogos`

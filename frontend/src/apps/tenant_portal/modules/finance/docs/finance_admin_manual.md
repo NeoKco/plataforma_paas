@@ -18,4 +18,7 @@ Estado actual:
 - las operaciones de conciliacion ya aceptan nota opcional y pasan por confirmacion explicita
 - ya existe una pantalla operativa de `Presupuestos` con lectura mensual por categoria
 - `Presupuestos` ya permite alta y edicion de montos, nota y estado activo, usando comparacion contra la ejecucion real del mes
+- `Presupuestos` ya permite filtrar por tipo, estado derivado e inclusion de inactivos
+- ya existe una pantalla operativa de `Préstamos` con cartera base por contraparte, capital, saldo y moneda
+- `Préstamos` todavia no modela cuotas ni amortizacion detallada; este primer slice solo abre cartera y saldo
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo

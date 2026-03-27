@@ -21,11 +21,19 @@ from app.apps.tenant_modules.finance.api.budgets import (
     list_finance_budgets,
     update_finance_budget,
 )
+from app.apps.tenant_modules.finance.api.loans import (
+    create_finance_loan,
+    get_finance_loan_detail,
+    list_finance_loans,
+    loan_service,
+    update_finance_loan,
+)
 
 __all__ = [
     "create_finance_transaction",
     "router",
     "create_finance_entry",
+    "create_finance_loan",
     "create_finance_budget",
     "budget_service",
     "finance_account_balances",
@@ -33,10 +41,14 @@ __all__ = [
     "finance_summary",
     "finance_usage",
     "get_finance_transaction_detail",
+    "get_finance_loan_detail",
     "list_finance_transactions",
     "list_finance_entries",
     "list_finance_budgets",
+    "list_finance_loans",
+    "loan_service",
     "update_finance_budget",
+    "update_finance_loan",
     "update_finance_transaction",
     "update_finance_transactions_favorite_batch",
     "update_finance_transactions_reconciliation_batch",

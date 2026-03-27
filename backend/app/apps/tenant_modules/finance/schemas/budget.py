@@ -23,6 +23,7 @@ class FinanceBudgetItemResponse(BaseModel):
     category_id: int
     category_name: str
     category_type: str
+    budget_status: str
     amount: float
     actual_amount: float
     variance_amount: float
@@ -43,6 +44,10 @@ class FinanceBudgetsSummaryData(BaseModel):
     total_actual: float
     total_variance: float
     total_items: int
+    income_budgeted: float
+    income_actual: float
+    expense_budgeted: float
+    expense_actual: float
 
 
 class FinanceBudgetsResponse(FinanceResponseBase):
