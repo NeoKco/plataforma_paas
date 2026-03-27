@@ -80,6 +80,7 @@ En esta fase quedaron listos:
 - asignacion configurable del pago entre interes y capital por cuota
 - tracking separado de capital pagado e interes pagado en el cronograma
 - reversa parcial o total de abonos sobre cuotas de `Préstamos`, con devolucion del capital revertido al saldo del préstamo
+- pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
 
 ## Archivos principales
 
@@ -110,7 +111,9 @@ En esta fase quedaron listos:
 - `GET|POST|PUT /tenant/finance/budgets`
 - `GET|POST|PUT /tenant/finance/loans`
 - `GET /tenant/finance/loans/{loan_id}`
+- `PATCH /tenant/finance/loans/{loan_id}/installments/payment/batch`
 - `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment`
+- `PATCH /tenant/finance/loans/{loan_id}/installments/payment/reversal/batch`
 - `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment/reversal`
 - `GET|POST|PUT|PATCH /tenant/finance/accounts`
 - `GET|POST|PUT|PATCH /tenant/finance/categories`
@@ -257,12 +260,13 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 11. pago manual sobre cuota, con recálculo del saldo pendiente del préstamo
 12. asignacion configurable del pago entre interes y capital con tracking separado por cuota
 13. reversa parcial o total de abonos sobre cuota, con ajuste inverso del saldo pendiente segun capital revertido
+14. pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
 
 Lo siguiente recomendable ahora es:
 
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
-3. endurecer `Préstamos` con lotes, razones estructuradas de reversa y enlace contable real
+3. endurecer `Préstamos` con razones estructuradas de reversa y enlace contable real
 4. seguir con planificacion y reportes
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 6. abrir exportacion o vistas derivadas cuando el trabajo operativo del slice ya quede estable

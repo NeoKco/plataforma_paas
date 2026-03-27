@@ -40,9 +40,10 @@ Alcance de esta fase:
 - asignación configurable del pago entre interés y capital
 - tracking por cuota de capital pagado e interés pagado
 - reversa parcial o total de abonos sobre cuotas
+- pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
 
 Pendiente inmediato:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura mas densa y estados operativos mas ricos
-- endurecer pagos de `Préstamos` con lotes, razones estructuradas de reversa y enlace contable
+- endurecer pagos de `Préstamos` con razones estructuradas de reversa y enlace contable
 - `Lote 7` prestamos, planificacion y reportes

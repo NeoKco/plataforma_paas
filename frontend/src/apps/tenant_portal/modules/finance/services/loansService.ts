@@ -104,6 +104,32 @@ export type TenantFinanceLoanInstallmentReversalResponse = {
   };
 };
 
+export type TenantFinanceLoanInstallmentBatchMutationResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    loan: TenantFinanceLoan;
+    affected_count: number;
+    installment_ids: number[];
+  };
+};
+
+export type TenantFinanceLoanInstallmentPaymentBatchRequest = {
+  installment_ids: number[];
+  amount_mode: string;
+  paid_amount: number | null;
+  paid_at: string | null;
+  allocation_mode: string;
+  note: string | null;
+};
+
+export type TenantFinanceLoanInstallmentReversalBatchRequest = {
+  installment_ids: number[];
+  amount_mode: string;
+  reversed_amount: number | null;
+  note: string | null;
+};
+
 export type TenantFinanceLoanWriteRequest = {
   name: string;
   loan_type: string;
@@ -194,6 +220,36 @@ export function reverseTenantFinanceLoanInstallmentPayment(
 ) {
   return apiRequest<TenantFinanceLoanInstallmentReversalResponse>(
     `/tenant/finance/loans/${loanId}/installments/${installmentId}/payment/reversal`,
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function applyTenantFinanceLoanInstallmentPaymentBatch(
+  accessToken: string,
+  loanId: number,
+  payload: TenantFinanceLoanInstallmentPaymentBatchRequest
+) {
+  return apiRequest<TenantFinanceLoanInstallmentBatchMutationResponse>(
+    `/tenant/finance/loans/${loanId}/installments/payment/batch`,
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function reverseTenantFinanceLoanInstallmentPaymentBatch(
+  accessToken: string,
+  loanId: number,
+  payload: TenantFinanceLoanInstallmentReversalBatchRequest
+) {
+  return apiRequest<TenantFinanceLoanInstallmentBatchMutationResponse>(
+    `/tenant/finance/loans/${loanId}/installments/payment/reversal/batch`,
     {
       method: "PATCH",
       token: accessToken,

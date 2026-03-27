@@ -13,6 +13,7 @@ Estado actual:
 - la vista `Préstamos` ya permite además aplicar abonos sobre una cuota del cronograma
 - la vista `Préstamos` ya permite elegir cómo se reparte ese abono entre interés y capital
 - la vista `Préstamos` ya permite además revertir parcial o totalmente un abono aplicado a una cuota
+- la vista `Préstamos` ya permite además seleccionar varias cuotas y aplicar pago o reversa en lote
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend
 
 Pantallas disponibles:

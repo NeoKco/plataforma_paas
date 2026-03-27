@@ -118,9 +118,13 @@ Estado actual de `Lote 6`:
 - ya existe `GET /tenant/finance/loans/{loan_id}` para recuperar cronograma y detalle operativo de cuotas
 - `GET /tenant/finance/loans` ya expone cartera con saldo pendiente, capital inicial, proximo vencimiento y avance de cuotas
 - ya existe `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment` para registrar abonos sobre una cuota y recalcular el saldo pendiente del préstamo
+- ya existe `PATCH /tenant/finance/loans/{loan_id}/installments/payment/batch` para aplicar pago sobre varias cuotas seleccionadas del mismo préstamo
 - ese endpoint ya admite `allocation_mode = interest_first | principal_first | proportional`
+- el lote ya admite `amount_mode = full_remaining | fixed_per_installment`
 - el detalle de cuota ya expone `paid_principal_amount` y `paid_interest_amount`
 - ya existe `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment/reversal` para revertir parcial o totalmente un abono aplicado a una cuota
+- ya existe `PATCH /tenant/finance/loans/{loan_id}/installments/payment/reversal/batch` para revertir en lote cuotas seleccionadas del mismo préstamo
+- la reversa batch ya admite `amount_mode = full_paid | fixed_per_installment`
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Préstamos`
 
 Nucleo transaccional ya disponible en backend:
@@ -135,5 +139,5 @@ Nucleo transaccional ya disponible en backend:
 Pendiente:
 - enriquecer `budgets` con lectura mas densa por categoria y estados operativos mas ricos
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
-- endurecer pagos de `loans` con lotes, razones estructuradas de reversa y enlace contable antes de enlazarlo a reportes
+- endurecer pagos de `loans` con razones estructuradas de reversa y enlace contable antes de enlazarlo a reportes
 - endpoints de planificacion y reportes

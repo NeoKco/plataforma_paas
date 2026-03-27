@@ -27,10 +27,11 @@ Cobertura actual:
 - aplicacion de pagos sobre cuotas de prestamos y recálculo de saldo pendiente
 - asignacion avanzada del pago entre capital e interes
 - reversa parcial o total de pagos sobre cuotas
+- pagos y reversiones en lote sobre cuotas de prestamos
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
 - pruebas de lectura mas rica de presupuestos
-- pruebas de pagos masivos y enlace contable de cuotas de prestamos
+- pruebas de enlace contable de cuotas de prestamos
 - pruebas de reportes

@@ -42,6 +42,23 @@ class FinanceLoanInstallmentRepository:
             tenant_db.refresh(installment)
         return installments
 
+    def list_by_ids(
+        self,
+        tenant_db: Session,
+        installment_ids: list[int],
+    ) -> list[FinanceLoanInstallment]:
+        if not installment_ids:
+            return []
+        return (
+            tenant_db.query(FinanceLoanInstallment)
+            .filter(FinanceLoanInstallment.id.in_(installment_ids))
+            .order_by(
+                FinanceLoanInstallment.installment_number.asc(),
+                FinanceLoanInstallment.id.asc(),
+            )
+            .all()
+        )
+
     def list_by_loan(self, tenant_db: Session, loan_id: int) -> list[FinanceLoanInstallment]:
         return (
             tenant_db.query(FinanceLoanInstallment)

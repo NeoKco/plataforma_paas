@@ -133,29 +133,14 @@ class FinanceLoanService:
         installment = self.installment_repository.get_by_id(tenant_db, installment_id)
         if installment is None or installment.loan_id != loan.id:
             raise ValueError("La cuota del préstamo solicitada no existe")
-
-        next_paid_amount = round(installment.paid_amount + paid_amount, 2)
-        if next_paid_amount > installment.planned_amount:
-            raise ValueError("El pago supera el monto planificado de la cuota")
-
-        principal_delta, interest_delta = self._allocate_payment(
+        self._apply_payment_to_installment(
+            loan=loan,
             installment=installment,
             paid_amount=paid_amount,
+            paid_at=paid_at,
             allocation_mode=allocation_mode,
+            note=note,
         )
-
-        installment.paid_amount = next_paid_amount
-        installment.paid_principal_amount = round(
-            installment.paid_principal_amount + principal_delta, 2
-        )
-        installment.paid_interest_amount = round(
-            installment.paid_interest_amount + interest_delta, 2
-        )
-        installment.paid_at = paid_at or date.today()
-        if note is not None:
-            installment.note = note.strip() or None
-
-        loan.current_balance = round(max(loan.current_balance - principal_delta, 0.0), 2)
 
         tenant_db.add(installment)
         tenant_db.add(loan)
@@ -184,29 +169,12 @@ class FinanceLoanService:
         installment = self.installment_repository.get_by_id(tenant_db, installment_id)
         if installment is None or installment.loan_id != loan.id:
             raise ValueError("La cuota del préstamo solicitada no existe")
-        if reversed_amount > installment.paid_amount:
-            raise ValueError("La reversa supera el monto ya pagado de la cuota")
-
-        next_paid_amount = round(installment.paid_amount - reversed_amount, 2)
-        principal_delta, interest_delta = self._reverse_payment(
+        self._reverse_payment_on_installment(
+            loan=loan,
             installment=installment,
             reversed_amount=reversed_amount,
+            note=note,
         )
-
-        installment.paid_amount = next_paid_amount
-        installment.paid_principal_amount = round(
-            installment.paid_principal_amount - principal_delta, 2
-        )
-        installment.paid_interest_amount = round(
-            installment.paid_interest_amount - interest_delta, 2
-        )
-        installment.paid_at = installment.paid_at if next_paid_amount > 0 else None
-        if note is not None:
-            installment.note = note.strip() or None
-
-        loan.current_balance = round(loan.current_balance + principal_delta, 2)
-        if loan.current_balance > loan.principal_amount:
-            loan.current_balance = round(loan.principal_amount, 2)
 
         tenant_db.add(installment)
         tenant_db.add(loan)
@@ -218,6 +186,98 @@ class FinanceLoanService:
         loan_row = self._build_loan_row(tenant_db, loan, installments=installments)
         installment_row = self._build_installment_row(installment)
         return loan_row, installment_row
+
+    def apply_installment_payment_batch(
+        self,
+        tenant_db: Session,
+        *,
+        loan_id: int,
+        installment_ids: list[int],
+        amount_mode: str = "full_remaining",
+        paid_amount: float | None = None,
+        paid_at: date | None = None,
+        allocation_mode: str = "interest_first",
+        note: str | None = None,
+    ) -> tuple[dict, list[int]]:
+        if allocation_mode not in {"interest_first", "principal_first", "proportional"}:
+            raise ValueError("El modo de amortizacion del pago no es valido")
+        if amount_mode not in {"full_remaining", "fixed_per_installment"}:
+            raise ValueError("El modo de monto para pago en lote no es valido")
+        if amount_mode == "fixed_per_installment" and (paid_amount is None or paid_amount <= 0):
+            raise ValueError("El monto fijo por cuota debe ser mayor que cero")
+
+        loan, installments = self._get_loan_and_installments_for_batch(
+            tenant_db,
+            loan_id=loan_id,
+            installment_ids=installment_ids,
+        )
+        for installment in installments:
+            amount_to_apply = (
+                round(installment.planned_amount - installment.paid_amount, 2)
+                if amount_mode == "full_remaining"
+                else float(paid_amount)
+            )
+            self._apply_payment_to_installment(
+                loan=loan,
+                installment=installment,
+                paid_amount=amount_to_apply,
+                paid_at=paid_at,
+                allocation_mode=allocation_mode,
+                note=note,
+            )
+            tenant_db.add(installment)
+
+        tenant_db.add(loan)
+        tenant_db.commit()
+        tenant_db.refresh(loan)
+
+        installments_for_loan = self.installment_repository.list_by_loan(tenant_db, loan.id)
+        loan_row = self._build_loan_row(tenant_db, loan, installments=installments_for_loan)
+        return loan_row, [installment.id for installment in installments]
+
+    def reverse_installment_payment_batch(
+        self,
+        tenant_db: Session,
+        *,
+        loan_id: int,
+        installment_ids: list[int],
+        amount_mode: str = "full_paid",
+        reversed_amount: float | None = None,
+        note: str | None = None,
+    ) -> tuple[dict, list[int]]:
+        if amount_mode not in {"full_paid", "fixed_per_installment"}:
+            raise ValueError("El modo de monto para reversa en lote no es valido")
+        if amount_mode == "fixed_per_installment" and (
+            reversed_amount is None or reversed_amount <= 0
+        ):
+            raise ValueError("El monto fijo por cuota para reversa debe ser mayor que cero")
+
+        loan, installments = self._get_loan_and_installments_for_batch(
+            tenant_db,
+            loan_id=loan_id,
+            installment_ids=installment_ids,
+        )
+        for installment in installments:
+            amount_to_reverse = (
+                round(installment.paid_amount, 2)
+                if amount_mode == "full_paid"
+                else float(reversed_amount)
+            )
+            self._reverse_payment_on_installment(
+                loan=loan,
+                installment=installment,
+                reversed_amount=amount_to_reverse,
+                note=note,
+            )
+            tenant_db.add(installment)
+
+        tenant_db.add(loan)
+        tenant_db.commit()
+        tenant_db.refresh(loan)
+
+        installments_for_loan = self.installment_repository.list_by_loan(tenant_db, loan.id)
+        loan_row = self._build_loan_row(tenant_db, loan, installments=installments_for_loan)
+        return loan_row, [installment.id for installment in installments]
 
     def _build_loan_row(
         self,
@@ -362,6 +422,90 @@ class FinanceLoanService:
         principal_delta = min(reversed_amount, principal_paid)
         interest_delta = min(round(reversed_amount - principal_delta, 2), interest_paid)
         return round(principal_delta, 2), round(interest_delta, 2)
+
+    def _apply_payment_to_installment(
+        self,
+        *,
+        loan: FinanceLoan,
+        installment: FinanceLoanInstallment,
+        paid_amount: float,
+        paid_at: date | None,
+        allocation_mode: str,
+        note: str | None,
+    ) -> None:
+        if paid_amount <= 0:
+            raise ValueError("El pago aplicado a la cuota debe ser mayor que cero")
+        next_paid_amount = round(installment.paid_amount + paid_amount, 2)
+        if next_paid_amount > installment.planned_amount:
+            raise ValueError("El pago supera el monto planificado de la cuota")
+
+        principal_delta, interest_delta = self._allocate_payment(
+            installment=installment,
+            paid_amount=paid_amount,
+            allocation_mode=allocation_mode,
+        )
+        installment.paid_amount = next_paid_amount
+        installment.paid_principal_amount = round(
+            installment.paid_principal_amount + principal_delta, 2
+        )
+        installment.paid_interest_amount = round(
+            installment.paid_interest_amount + interest_delta, 2
+        )
+        installment.paid_at = paid_at or date.today()
+        if note is not None:
+            installment.note = note.strip() or None
+        loan.current_balance = round(max(loan.current_balance - principal_delta, 0.0), 2)
+
+    def _reverse_payment_on_installment(
+        self,
+        *,
+        loan: FinanceLoan,
+        installment: FinanceLoanInstallment,
+        reversed_amount: float,
+        note: str | None,
+    ) -> None:
+        if reversed_amount <= 0:
+            raise ValueError("La reversa aplicada a la cuota debe ser mayor que cero")
+        if reversed_amount > installment.paid_amount:
+            raise ValueError("La reversa supera el monto ya pagado de la cuota")
+
+        next_paid_amount = round(installment.paid_amount - reversed_amount, 2)
+        principal_delta, interest_delta = self._reverse_payment(
+            installment=installment,
+            reversed_amount=reversed_amount,
+        )
+        installment.paid_amount = next_paid_amount
+        installment.paid_principal_amount = round(
+            installment.paid_principal_amount - principal_delta, 2
+        )
+        installment.paid_interest_amount = round(
+            installment.paid_interest_amount - interest_delta, 2
+        )
+        installment.paid_at = installment.paid_at if next_paid_amount > 0 else None
+        if note is not None:
+            installment.note = note.strip() or None
+        loan.current_balance = round(loan.current_balance + principal_delta, 2)
+        if loan.current_balance > loan.principal_amount:
+            loan.current_balance = round(loan.principal_amount, 2)
+
+    def _get_loan_and_installments_for_batch(
+        self,
+        tenant_db: Session,
+        *,
+        loan_id: int,
+        installment_ids: list[int],
+    ) -> tuple[FinanceLoan, list[FinanceLoanInstallment]]:
+        unique_ids = list(dict.fromkeys(installment_ids))
+        if not unique_ids:
+            raise ValueError("Debes seleccionar al menos una cuota para operar en lote")
+
+        loan = self._get_loan_or_raise(tenant_db, loan_id)
+        installments = self.installment_repository.list_by_ids(tenant_db, unique_ids)
+        if len(installments) != len(unique_ids):
+            raise ValueError("Una o mas cuotas seleccionadas no existen")
+        if any(installment.loan_id != loan.id for installment in installments):
+            raise ValueError("Todas las cuotas del lote deben pertenecer al mismo préstamo")
+        return loan, installments
 
     def _split_amount(self, amount: float, chunks: int) -> list[float]:
         base = round(amount / chunks, 2)

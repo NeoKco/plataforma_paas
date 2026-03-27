@@ -14,10 +14,12 @@ import {
 } from "../services/currenciesService";
 import {
   applyTenantFinanceLoanInstallmentPayment,
+  applyTenantFinanceLoanInstallmentPaymentBatch,
   createTenantFinanceLoan,
   getTenantFinanceLoanDetail,
   getTenantFinanceLoans,
   reverseTenantFinanceLoanInstallmentPayment,
+  reverseTenantFinanceLoanInstallmentPaymentBatch,
   updateTenantFinanceLoan,
   type TenantFinanceLoan,
   type TenantFinanceLoanDetailResponse,
@@ -54,6 +56,14 @@ type InstallmentPaymentFormState = {
   note: string;
 };
 
+type InstallmentBatchFormState = {
+  mode: "apply" | "reverse";
+  amountMode: string;
+  amount: string;
+  allocationMode: string;
+  note: string;
+};
+
 const DEFAULT_FORM_STATE: LoanFormState = {
   name: "",
   loanType: "borrowed",
@@ -83,6 +93,14 @@ export function FinanceLoansPage() {
     mode: "apply",
     installmentId: null,
     paidAmount: "",
+    allocationMode: "interest_first",
+    note: "",
+  });
+  const [selectedInstallmentIds, setSelectedInstallmentIds] = useState<number[]>([]);
+  const [batchFormState, setBatchFormState] = useState<InstallmentBatchFormState>({
+    mode: "apply",
+    amountMode: "full_remaining",
+    amount: "",
     allocationMode: "interest_first",
     note: "",
   });
@@ -123,6 +141,14 @@ export function FinanceLoansPage() {
       mode: "apply",
       installmentId: null,
       paidAmount: "",
+      allocationMode: "interest_first",
+      note: "",
+    });
+    setSelectedInstallmentIds([]);
+    setBatchFormState({
+      mode: "apply",
+      amountMode: "full_remaining",
+      amount: "",
       allocationMode: "interest_first",
       note: "",
     });
@@ -333,6 +359,88 @@ export function FinanceLoansPage() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function handleInstallmentBatchSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session?.accessToken || selectedLoanId == null || selectedInstallmentIds.length === 0) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionFeedback(null);
+
+    try {
+      const response =
+        batchFormState.mode === "apply"
+          ? await applyTenantFinanceLoanInstallmentPaymentBatch(
+              session.accessToken,
+              selectedLoanId,
+              {
+                installment_ids: selectedInstallmentIds,
+                amount_mode: batchFormState.amountMode,
+                paid_amount:
+                  batchFormState.amountMode === "fixed_per_installment"
+                    ? Number.parseFloat(batchFormState.amount)
+                    : null,
+                paid_at: null,
+                allocation_mode: batchFormState.allocationMode,
+                note: batchFormState.note.trim() || null,
+              }
+            )
+          : await reverseTenantFinanceLoanInstallmentPaymentBatch(
+              session.accessToken,
+              selectedLoanId,
+              {
+                installment_ids: selectedInstallmentIds,
+                amount_mode: batchFormState.amountMode,
+                reversed_amount:
+                  batchFormState.amountMode === "fixed_per_installment"
+                    ? Number.parseFloat(batchFormState.amount)
+                    : null,
+                note: batchFormState.note.trim() || null,
+              }
+            );
+      await loadLoanWorkspace();
+      await loadLoanDetail();
+      setSelectedInstallmentIds([]);
+      setBatchFormState({
+        mode: "apply",
+        amountMode: "full_remaining",
+        amount: "",
+        allocationMode: "interest_first",
+        note: "",
+      });
+      setActionFeedback({
+        type: "success",
+        message: `${response.message} (${response.data.affected_count} cuotas)`,
+      });
+    } catch (rawError) {
+      setActionFeedback({
+        type: "error",
+        message: getApiErrorDisplayMessage(rawError as ApiError),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function toggleInstallmentSelection(installmentId: number) {
+    setSelectedInstallmentIds((current) =>
+      current.includes(installmentId)
+        ? current.filter((item) => item !== installmentId)
+        : [...current, installmentId]
+    );
+  }
+
+  function toggleAllInstallmentsSelection() {
+    if (!loanDetail?.installments.length) {
+      return;
+    }
+    const allIds = loanDetail.installments.map((installment) => installment.id);
+    setSelectedInstallmentIds((current) =>
+      current.length === allIds.length ? [] : allIds
+    );
   }
 
   const summary = loansResponse?.summary;
@@ -711,6 +819,167 @@ export function FinanceLoansPage() {
               />
             </div>
 
+            {loanDetail.installments.length > 0 ? (
+              <form className="d-grid gap-3" onSubmit={handleInstallmentBatchSubmit}>
+                <div className="tenant-detail-grid">
+                  <DetailField label="Cuotas seleccionadas" value={selectedInstallmentIds.length} />
+                  <DetailField
+                    label="Modo lote"
+                    value={batchFormState.mode === "apply" ? "pago" : "reversa"}
+                  />
+                  <DetailField
+                    label="Monto lote"
+                    value={
+                      batchFormState.mode === "apply"
+                        ? batchFormState.amountMode === "full_remaining"
+                          ? "saldo pendiente por cuota"
+                          : "monto fijo por cuota"
+                        : batchFormState.amountMode === "full_paid"
+                          ? "total pagado por cuota"
+                          : "monto fijo por cuota"
+                    }
+                  />
+                  <DetailField
+                    label="Acción sugerida"
+                    value={
+                      selectedInstallmentIds.length > 0
+                        ? "lista para ejecutar"
+                        : "selecciona cuotas del cronograma"
+                    }
+                  />
+                </div>
+
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">Operación en lote</label>
+                    <select
+                      className="form-select"
+                      value={batchFormState.mode}
+                      onChange={(event) =>
+                        setBatchFormState((current) => ({
+                          ...current,
+                          mode: event.target.value as "apply" | "reverse",
+                          amountMode:
+                            event.target.value === "apply"
+                              ? "full_remaining"
+                              : "full_paid",
+                        }))
+                      }
+                    >
+                      <option value="apply">Aplicar pago</option>
+                      <option value="reverse">Aplicar reversa</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Monto por cuota</label>
+                    <select
+                      className="form-select"
+                      value={batchFormState.amountMode}
+                      onChange={(event) =>
+                        setBatchFormState((current) => ({
+                          ...current,
+                          amountMode: event.target.value,
+                        }))
+                      }
+                    >
+                      {batchFormState.mode === "apply" ? (
+                        <>
+                          <option value="full_remaining">Saldo pendiente</option>
+                          <option value="fixed_per_installment">Monto fijo</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="full_paid">Total pagado</option>
+                          <option value="fixed_per_installment">Monto fijo</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">Monto fijo</label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={batchFormState.amount}
+                      disabled={batchFormState.amountMode !== "fixed_per_installment"}
+                      onChange={(event) =>
+                        setBatchFormState((current) => ({
+                          ...current,
+                          amount: event.target.value,
+                        }))
+                      }
+                      placeholder="Solo si eliges monto fijo"
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Modo amortización</label>
+                    <select
+                      className="form-select"
+                      value={batchFormState.allocationMode}
+                      disabled={batchFormState.mode === "reverse"}
+                      onChange={(event) =>
+                        setBatchFormState((current) => ({
+                          ...current,
+                          allocationMode: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="interest_first">Interés primero</option>
+                      <option value="principal_first">Capital primero</option>
+                      <option value="proportional">Proporcional</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="form-label">Nota operativa lote</label>
+                  <input
+                    className="form-control"
+                    value={batchFormState.note}
+                    onChange={(event) =>
+                      setBatchFormState((current) => ({
+                        ...current,
+                        note: event.target.value,
+                      }))
+                    }
+                    placeholder="Ej: abono grupal confirmado por tesorería"
+                  />
+                </div>
+
+                <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+                  <button
+                    className="btn btn-primary"
+                    type="submit"
+                    disabled={isSubmitting || selectedInstallmentIds.length === 0}
+                  >
+                    {batchFormState.mode === "apply" ? "Aplicar pago en lote" : "Aplicar reversa en lote"}
+                  </button>
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => {
+                      setSelectedInstallmentIds([]);
+                      setBatchFormState({
+                        mode: "apply",
+                        amountMode: "full_remaining",
+                        amount: "",
+                        allocationMode: "interest_first",
+                        note: "",
+                      });
+                    }}
+                  >
+                    Limpiar lote
+                  </button>
+                </div>
+              </form>
+            ) : null}
+
             {paymentFormState.installmentId != null ? (
               <form className="d-grid gap-3" onSubmit={handleInstallmentPaymentSubmit}>
                 <div className="tenant-inline-form-grid">
@@ -796,6 +1065,17 @@ export function FinanceLoansPage() {
                 <table className="table table-hover align-middle mb-0">
                   <thead>
                     <tr>
+                      <th>
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          checked={
+                            loanDetail.installments.length > 0 &&
+                            selectedInstallmentIds.length === loanDetail.installments.length
+                          }
+                          onChange={toggleAllInstallmentsSelection}
+                        />
+                      </th>
                       <th>#</th>
                       <th>Vence</th>
                       <th>Planificada</th>
@@ -811,6 +1091,14 @@ export function FinanceLoansPage() {
                   <tbody>
                     {loanDetail.installments.map((installment) => (
                       <tr key={installment.id}>
+                        <td>
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            checked={selectedInstallmentIds.includes(installment.id)}
+                            onChange={() => toggleInstallmentSelection(installment.id)}
+                          />
+                        </td>
                         <td>{installment.installment_number}</td>
                         <td>{formatShortDate(installment.due_date)}</td>
                         <td>{formatMoney(installment.planned_amount)}</td>

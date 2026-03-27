@@ -286,6 +286,92 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         self.assertEqual(updated_installment_row["installment"].paid_interest_amount, 0.0)
         self.assertEqual(updated_loan_row["loan"].current_balance, 800.0)
 
+    def test_apply_installment_payment_batch_supports_full_remaining_mode(self) -> None:
+        currency = self._seed_currency()
+        loan = self.loan_service.create_loan(
+            self.db,
+            FinanceLoanCreateRequest(
+                name="Credito batch",
+                loan_type="borrowed",
+                counterparty_name="Banco Batch",
+                currency_id=currency.id,
+                principal_amount=1000.0,
+                current_balance=1000.0,
+                interest_rate=20.0,
+                installments_count=5,
+                payment_frequency="monthly",
+                start_date=date(2027, 1, 10),
+                due_date=date(2027, 5, 10),
+                note=None,
+                is_active=True,
+            ),
+        )
+        _loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+
+        updated_loan_row, affected_ids = self.loan_service.apply_installment_payment_batch(
+            self.db,
+            loan_id=loan.id,
+            installment_ids=[installments[0]["installment"].id, installments[1]["installment"].id],
+            amount_mode="full_remaining",
+            allocation_mode="interest_first",
+            note="Pago lote",
+        )
+
+        _loan_row, refreshed_installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        self.assertEqual(len(affected_ids), 2)
+        self.assertEqual(updated_loan_row["loan"].current_balance, 600.0)
+        self.assertEqual(refreshed_installments[0]["installment_status"], "paid")
+        self.assertEqual(refreshed_installments[1]["installment_status"], "paid")
+        self.assertEqual(refreshed_installments[0]["installment"].paid_principal_amount, 200.0)
+        self.assertEqual(refreshed_installments[0]["installment"].paid_interest_amount, 40.0)
+
+    def test_reverse_installment_payment_batch_supports_fixed_amount_per_installment(self) -> None:
+        currency = self._seed_currency()
+        loan = self.loan_service.create_loan(
+            self.db,
+            FinanceLoanCreateRequest(
+                name="Credito reversa batch",
+                loan_type="borrowed",
+                counterparty_name="Banco Batch",
+                currency_id=currency.id,
+                principal_amount=1000.0,
+                current_balance=1000.0,
+                interest_rate=20.0,
+                installments_count=5,
+                payment_frequency="monthly",
+                start_date=date(2027, 1, 10),
+                due_date=date(2027, 5, 10),
+                note=None,
+                is_active=True,
+            ),
+        )
+        _loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        self.loan_service.apply_installment_payment_batch(
+            self.db,
+            loan_id=loan.id,
+            installment_ids=[installments[0]["installment"].id, installments[1]["installment"].id],
+            amount_mode="full_remaining",
+            allocation_mode="interest_first",
+            note="Pago lote",
+        )
+
+        updated_loan_row, affected_ids = self.loan_service.reverse_installment_payment_batch(
+            self.db,
+            loan_id=loan.id,
+            installment_ids=[installments[0]["installment"].id, installments[1]["installment"].id],
+            amount_mode="fixed_per_installment",
+            reversed_amount=50.0,
+            note="Reversa lote",
+        )
+
+        _loan_row, refreshed_installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        self.assertEqual(len(affected_ids), 2)
+        self.assertEqual(updated_loan_row["loan"].current_balance, 700.0)
+        self.assertEqual(refreshed_installments[0]["installment"].paid_amount, 190.0)
+        self.assertEqual(refreshed_installments[0]["installment"].paid_principal_amount, 150.0)
+        self.assertEqual(refreshed_installments[0]["installment"].paid_interest_amount, 40.0)
+        self.assertEqual(refreshed_installments[1]["installment"].paid_amount, 190.0)
+
 
 if __name__ == "__main__":
     unittest.main()

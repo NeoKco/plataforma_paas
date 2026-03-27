@@ -80,6 +80,22 @@ class FinanceLoanInstallmentReversalRequest(BaseModel):
     note: str | None = None
 
 
+class FinanceLoanInstallmentPaymentBatchRequest(BaseModel):
+    installment_ids: list[int]
+    amount_mode: str = "full_remaining"
+    paid_amount: float | None = None
+    paid_at: date | None = None
+    allocation_mode: str = "interest_first"
+    note: str | None = None
+
+
+class FinanceLoanInstallmentReversalBatchRequest(BaseModel):
+    installment_ids: list[int]
+    amount_mode: str = "full_paid"
+    reversed_amount: float | None = None
+    note: str | None = None
+
+
 class FinanceLoansSummaryData(BaseModel):
     total_items: int
     active_items: int
@@ -123,3 +139,13 @@ class FinanceLoanInstallmentReversalData(BaseModel):
 
 class FinanceLoanInstallmentReversalResponse(FinanceResponseBase):
     data: FinanceLoanInstallmentReversalData
+
+
+class FinanceLoanInstallmentBatchMutationData(BaseModel):
+    loan: FinanceLoanItemResponse
+    affected_count: int
+    installment_ids: list[int]
+
+
+class FinanceLoanInstallmentBatchMutationResponse(FinanceResponseBase):
+    data: FinanceLoanInstallmentBatchMutationData

@@ -201,6 +201,7 @@ Cobertura actual:
 - pagos sobre cuotas de prestamos con recálculo de saldo pendiente
 - asignacion del pago entre capital e interes
 - reversa parcial o total de pagos sobre cuotas de prestamos
+- pagos y reversiones en lote sobre cuotas de prestamos
 - migraciones tenant del modulo hasta `0009_finance_loan_installment_payment_split`
 - seeds idempotentes para moneda base, `CLP`, categorias y settings
 - repositories CRUD base del modulo y sus restricciones de unicidad/activacion

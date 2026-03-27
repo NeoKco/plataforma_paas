@@ -10,10 +10,14 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceLoanCreateRequest,
     FinanceLoanDetailData,
     FinanceLoanDetailResponse,
+    FinanceLoanInstallmentBatchMutationData,
+    FinanceLoanInstallmentBatchMutationResponse,
     FinanceLoanInstallmentItemResponse,
+    FinanceLoanInstallmentPaymentBatchRequest,
     FinanceLoanInstallmentPaymentData,
     FinanceLoanInstallmentPaymentRequest,
     FinanceLoanInstallmentPaymentResponse,
+    FinanceLoanInstallmentReversalBatchRequest,
     FinanceLoanInstallmentReversalData,
     FinanceLoanInstallmentReversalRequest,
     FinanceLoanInstallmentReversalResponse,
@@ -126,6 +130,42 @@ def get_finance_loan_detail(
 
 
 @router.patch(
+    "/{loan_id}/installments/payment/batch",
+    response_model=FinanceLoanInstallmentBatchMutationResponse,
+)
+def apply_finance_loan_installment_payment_batch(
+    loan_id: int,
+    payload: FinanceLoanInstallmentPaymentBatchRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceLoanInstallmentBatchMutationResponse:
+    try:
+        loan_row, installment_ids = loan_service.apply_installment_payment_batch(
+            tenant_db,
+            loan_id=loan_id,
+            installment_ids=payload.installment_ids,
+            amount_mode=payload.amount_mode,
+            paid_amount=payload.paid_amount,
+            paid_at=payload.paid_at,
+            allocation_mode=payload.allocation_mode,
+            note=payload.note,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceLoanInstallmentBatchMutationResponse(
+        success=True,
+        message="Pago en lote aplicado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=FinanceLoanInstallmentBatchMutationData(
+            loan=_build_loan_item(loan_row),
+            affected_count=len(installment_ids),
+            installment_ids=installment_ids,
+        ),
+    )
+
+
+@router.patch(
     "/{loan_id}/installments/{installment_id}/payment",
     response_model=FinanceLoanInstallmentPaymentResponse,
 )
@@ -156,6 +196,40 @@ def apply_finance_loan_installment_payment(
         data=FinanceLoanInstallmentPaymentData(
             loan=_build_loan_item(loan_row),
             installment=_build_installment_item(installment_row),
+        ),
+    )
+
+
+@router.patch(
+    "/{loan_id}/installments/payment/reversal/batch",
+    response_model=FinanceLoanInstallmentBatchMutationResponse,
+)
+def reverse_finance_loan_installment_payment_batch(
+    loan_id: int,
+    payload: FinanceLoanInstallmentReversalBatchRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceLoanInstallmentBatchMutationResponse:
+    try:
+        loan_row, installment_ids = loan_service.reverse_installment_payment_batch(
+            tenant_db,
+            loan_id=loan_id,
+            installment_ids=payload.installment_ids,
+            amount_mode=payload.amount_mode,
+            reversed_amount=payload.reversed_amount,
+            note=payload.note,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceLoanInstallmentBatchMutationResponse(
+        success=True,
+        message="Reversa en lote aplicada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=FinanceLoanInstallmentBatchMutationData(
+            loan=_build_loan_item(loan_row),
+            affected_count=len(installment_ids),
+            installment_ids=installment_ids,
         ),
     )
 

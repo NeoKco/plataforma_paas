@@ -22,5 +22,6 @@ Estado actual:
 - ya existe una pantalla operativa de `Préstamos` con cartera por contraparte, capital, saldo, cuotas y moneda
 - `Préstamos` ya expone un cronograma inicial por cuotas y ya permite aplicar o revertir pagos manuales sobre cuotas, con reparto configurable entre interés y capital
 - el cronograma ya muestra capital pagado e interés pagado por cuota
-- todavía siguen pendientes los lotes, las razones estructuradas de reversa y el enlace contable real
+- el cronograma ya permite además selección múltiple y operación batch de pago o reversa
+- todavía siguen pendientes las razones estructuradas de reversa y el enlace contable real
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo
