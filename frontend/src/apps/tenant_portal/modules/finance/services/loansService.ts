@@ -56,6 +56,8 @@ export type TenantFinanceLoanInstallment = {
   principal_amount: number;
   interest_amount: number;
   paid_amount: number;
+  paid_principal_amount: number;
+  paid_interest_amount: number;
   paid_at: string | null;
   installment_status: string;
   note: string | null;
@@ -75,6 +77,7 @@ export type TenantFinanceLoanDetailResponse = {
 export type TenantFinanceLoanInstallmentPaymentRequest = {
   paid_amount: number;
   paid_at: string | null;
+  allocation_mode: string;
   note: string | null;
 };
 

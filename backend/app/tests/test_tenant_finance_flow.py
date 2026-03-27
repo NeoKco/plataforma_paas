@@ -863,16 +863,18 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 "installment": SimpleNamespace(
                     id=21,
                     loan_id=4,
-                    installment_number=1,
-                    due_date=date(2026, 3, 1),
-                    planned_amount=110.0,
-                    principal_amount=100.0,
-                    interest_amount=10.0,
-                    paid_amount=110.0,
-                    paid_at=date(2026, 3, 1),
-                    note=None,
-                    created_at="2026-03-27T16:00:00+00:00",
-                    updated_at="2026-03-27T16:00:00+00:00",
+                installment_number=1,
+                due_date=date(2026, 3, 1),
+                planned_amount=110.0,
+                principal_amount=100.0,
+                interest_amount=10.0,
+                paid_amount=110.0,
+                paid_principal_amount=100.0,
+                paid_interest_amount=10.0,
+                paid_at=date(2026, 3, 1),
+                note=None,
+                created_at="2026-03-27T16:00:00+00:00",
+                updated_at="2026-03-27T16:00:00+00:00",
                 ),
                 "installment_status": "paid",
             }
@@ -929,6 +931,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 principal_amount=100.0,
                 interest_amount=10.0,
                 paid_amount=50.0,
+                paid_principal_amount=40.0,
+                paid_interest_amount=10.0,
                 paid_at=date(2026, 4, 1),
                 note="Abono parcial",
                 created_at="2026-03-27T16:00:00+00:00",
@@ -956,7 +960,12 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.data.loan.current_balance, 800.0)
         self.assertEqual(response.data.installment.installment_status, "partial")
+        self.assertEqual(response.data.installment.paid_principal_amount, 40.0)
+        self.assertEqual(response.data.installment.paid_interest_amount, 10.0)
         self.assertEqual(apply_payment_mock.call_args.kwargs["paid_amount"], 50.0)
+        self.assertEqual(
+            apply_payment_mock.call_args.kwargs["allocation_mode"], "interest_first"
+        )
 
     def test_reverse_finance_loan_installment_payment_returns_mutated_rows(self) -> None:
         loan_row = {
@@ -995,6 +1004,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 principal_amount=100.0,
                 interest_amount=10.0,
                 paid_amount=60.0,
+                paid_principal_amount=50.0,
+                paid_interest_amount=10.0,
                 paid_at=date(2026, 4, 1),
                 note="Reversa parcial",
                 created_at="2026-03-27T16:00:00+00:00",
@@ -1021,6 +1032,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.data.loan.current_balance, 850.0)
         self.assertEqual(response.data.installment.installment_status, "partial")
+        self.assertEqual(response.data.installment.paid_principal_amount, 50.0)
+        self.assertEqual(response.data.installment.paid_interest_amount, 10.0)
         self.assertEqual(reverse_payment_mock.call_args.kwargs["reversed_amount"], 40.0)
 
     def test_update_finance_transaction_favorite_returns_mutated_transaction(self) -> None:

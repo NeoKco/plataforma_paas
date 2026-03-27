@@ -197,9 +197,11 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         )
 
         self.assertEqual(updated_installment_row["installment"].paid_amount, 200.0)
+        self.assertEqual(updated_installment_row["installment"].paid_interest_amount, 40.0)
+        self.assertEqual(updated_installment_row["installment"].paid_principal_amount, 160.0)
         self.assertEqual(updated_installment_row["installment_status"], "partial")
         self.assertEqual(updated_installment_row["installment"].note, "Pago inicial")
-        self.assertEqual(updated_loan_row["loan"].current_balance, 800.0)
+        self.assertEqual(updated_loan_row["loan"].current_balance, 840.0)
         self.assertEqual(updated_loan_row["installments_paid"], 0)
 
     def test_reverse_installment_payment_restores_installment_and_loan_balance(self) -> None:
@@ -242,8 +244,46 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         )
 
         self.assertEqual(updated_installment_row["installment"].paid_amount, 100.0)
+        self.assertEqual(updated_installment_row["installment"].paid_principal_amount, 70.0)
+        self.assertEqual(updated_installment_row["installment"].paid_interest_amount, 30.0)
         self.assertEqual(updated_installment_row["installment"].note, "Reversa parcial")
         self.assertEqual(updated_installment_row["installment_status"], "partial")
+        self.assertEqual(updated_loan_row["loan"].current_balance, 830.0)
+
+    def test_apply_installment_payment_supports_principal_first_allocation(self) -> None:
+        currency = self._seed_currency()
+        loan = self.loan_service.create_loan(
+            self.db,
+            FinanceLoanCreateRequest(
+                name="Credito capital primero",
+                loan_type="borrowed",
+                counterparty_name="Banco Mix",
+                currency_id=currency.id,
+                principal_amount=1000.0,
+                current_balance=1000.0,
+                interest_rate=20.0,
+                installments_count=5,
+                payment_frequency="monthly",
+                start_date=date(2027, 1, 10),
+                due_date=date(2027, 5, 10),
+                note=None,
+                is_active=True,
+            ),
+        )
+        _loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        installment = installments[0]["installment"]
+
+        updated_loan_row, updated_installment_row = self.loan_service.apply_installment_payment(
+            self.db,
+            loan_id=loan.id,
+            installment_id=installment.id,
+            paid_amount=200.0,
+            allocation_mode="principal_first",
+            note="Pago capital",
+        )
+
+        self.assertEqual(updated_installment_row["installment"].paid_principal_amount, 200.0)
+        self.assertEqual(updated_installment_row["installment"].paid_interest_amount, 0.0)
         self.assertEqual(updated_loan_row["loan"].current_balance, 800.0)
 
 

@@ -50,6 +50,7 @@ type InstallmentPaymentFormState = {
   mode: "apply" | "reverse";
   installmentId: number | null;
   paidAmount: string;
+  allocationMode: string;
   note: string;
 };
 
@@ -82,6 +83,7 @@ export function FinanceLoansPage() {
     mode: "apply",
     installmentId: null,
     paidAmount: "",
+    allocationMode: "interest_first",
     note: "",
   });
   const [filterLoanType, setFilterLoanType] = useState("");
@@ -117,7 +119,13 @@ export function FinanceLoansPage() {
   }, [session?.accessToken, selectedLoanId]);
 
   useEffect(() => {
-    setPaymentFormState({ mode: "apply", installmentId: null, paidAmount: "", note: "" });
+    setPaymentFormState({
+      mode: "apply",
+      installmentId: null,
+      paidAmount: "",
+      allocationMode: "interest_first",
+      note: "",
+    });
   }, [selectedLoanId]);
 
   async function loadLoanWorkspace() {
@@ -260,6 +268,7 @@ export function FinanceLoansPage() {
       mode: "apply",
       installmentId: installment.id,
       paidAmount: remainingAmount > 0 ? String(remainingAmount) : "",
+      allocationMode: "interest_first",
       note: installment.note || "",
     });
   }
@@ -269,6 +278,7 @@ export function FinanceLoansPage() {
       mode: "reverse",
       installmentId: installment.id,
       paidAmount: installment.paid_amount > 0 ? String(installment.paid_amount) : "",
+      allocationMode: "interest_first",
       note: installment.note || "",
     });
   }
@@ -292,6 +302,7 @@ export function FinanceLoansPage() {
               {
                 paid_amount: Number.parseFloat(paymentFormState.paidAmount),
                 paid_at: null,
+                allocation_mode: paymentFormState.allocationMode,
                 note: paymentFormState.note.trim() || null,
               }
             )
@@ -306,7 +317,13 @@ export function FinanceLoansPage() {
             );
       await loadLoanWorkspace();
       await loadLoanDetail();
-      setPaymentFormState({ mode: "apply", installmentId: null, paidAmount: "", note: "" });
+      setPaymentFormState({
+        mode: "apply",
+        installmentId: null,
+        paidAmount: "",
+        allocationMode: "interest_first",
+        note: "",
+      });
       setActionFeedback({ type: "success", message: response.message });
     } catch (rawError) {
       setActionFeedback({
@@ -716,6 +733,26 @@ export function FinanceLoansPage() {
                     />
                   </div>
                   <div>
+                    <label className="form-label">Modo amortización</label>
+                    <select
+                      className="form-select"
+                      value={paymentFormState.allocationMode}
+                      onChange={(event) =>
+                        setPaymentFormState((current) => ({
+                          ...current,
+                          allocationMode: event.target.value,
+                        }))
+                      }
+                      disabled={paymentFormState.mode === "reverse"}
+                    >
+                      <option value="interest_first">Interés primero</option>
+                      <option value="principal_first">Capital primero</option>
+                      <option value="proportional">Proporcional</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="tenant-inline-form-grid">
+                  <div>
                     <label className="form-label">Nota operativa</label>
                     <input
                       className="form-control"
@@ -739,7 +776,13 @@ export function FinanceLoansPage() {
                     type="button"
                     disabled={isSubmitting}
                     onClick={() =>
-                      setPaymentFormState({ mode: "apply", installmentId: null, paidAmount: "", note: "" })
+                      setPaymentFormState({
+                        mode: "apply",
+                        installmentId: null,
+                        paidAmount: "",
+                        allocationMode: "interest_first",
+                        note: "",
+                      })
                     }
                   >
                     Cancelar
@@ -759,6 +802,8 @@ export function FinanceLoansPage() {
                       <th>Capital</th>
                       <th>Interés</th>
                       <th>Pagado</th>
+                      <th>Capital pagado</th>
+                      <th>Interés pagado</th>
                       <th>Estado</th>
                       <th>Acción</th>
                     </tr>
@@ -772,6 +817,8 @@ export function FinanceLoansPage() {
                         <td>{formatMoney(installment.principal_amount)}</td>
                         <td>{formatMoney(installment.interest_amount)}</td>
                         <td>{formatMoney(installment.paid_amount)}</td>
+                        <td>{formatMoney(installment.paid_principal_amount)}</td>
+                        <td>{formatMoney(installment.paid_interest_amount)}</td>
                         <td>
                           <span
                             className={`status-badge ${installmentStatusBadgeClass(

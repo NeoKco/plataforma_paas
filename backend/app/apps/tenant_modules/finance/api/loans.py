@@ -69,6 +69,8 @@ def _build_installment_item(row: dict) -> FinanceLoanInstallmentItemResponse:
         principal_amount=installment.principal_amount,
         interest_amount=installment.interest_amount,
         paid_amount=installment.paid_amount,
+        paid_principal_amount=installment.paid_principal_amount,
+        paid_interest_amount=installment.paid_interest_amount,
         paid_at=installment.paid_at,
         installment_status=row["installment_status"],
         note=installment.note,
@@ -141,6 +143,7 @@ def apply_finance_loan_installment_payment(
             installment_id=installment_id,
             paid_amount=payload.paid_amount,
             paid_at=payload.paid_at,
+            allocation_mode=payload.allocation_mode,
             note=payload.note,
         )
     except ValueError as exc:

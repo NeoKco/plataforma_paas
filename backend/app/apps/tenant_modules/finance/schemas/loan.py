@@ -59,6 +59,8 @@ class FinanceLoanInstallmentItemResponse(BaseModel):
     principal_amount: float
     interest_amount: float
     paid_amount: float
+    paid_principal_amount: float
+    paid_interest_amount: float
     paid_at: date | None = None
     installment_status: str
     note: str | None = None
@@ -69,6 +71,7 @@ class FinanceLoanInstallmentItemResponse(BaseModel):
 class FinanceLoanInstallmentPaymentRequest(BaseModel):
     paid_amount: float
     paid_at: date | None = None
+    allocation_mode: str = "interest_first"
     note: str | None = None
 
 

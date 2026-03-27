@@ -22,6 +22,14 @@ class FinanceLoanInstallment(TenantBase):
         CheckConstraint("principal_amount >= 0", name="chk_finance_loan_installments_principal_non_negative"),
         CheckConstraint("interest_amount >= 0", name="chk_finance_loan_installments_interest_non_negative"),
         CheckConstraint("paid_amount >= 0", name="chk_finance_loan_installments_paid_non_negative"),
+        CheckConstraint(
+            "paid_principal_amount >= 0",
+            name="chk_finance_loan_installments_paid_principal_non_negative",
+        ),
+        CheckConstraint(
+            "paid_interest_amount >= 0",
+            name="chk_finance_loan_installments_paid_interest_non_negative",
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
@@ -37,6 +45,8 @@ class FinanceLoanInstallment(TenantBase):
     principal_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     interest_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     paid_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    paid_principal_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    paid_interest_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     paid_at: Mapped[Date | None] = mapped_column(Date, nullable=True)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[DateTime] = mapped_column(

@@ -121,10 +121,13 @@ class FinanceLoanService:
         installment_id: int,
         paid_amount: float,
         paid_at: date | None = None,
+        allocation_mode: str = "interest_first",
         note: str | None = None,
     ) -> tuple[dict, dict]:
         if paid_amount <= 0:
             raise ValueError("El pago aplicado a la cuota debe ser mayor que cero")
+        if allocation_mode not in {"interest_first", "principal_first", "proportional"}:
+            raise ValueError("El modo de amortizacion del pago no es valido")
 
         loan = self._get_loan_or_raise(tenant_db, loan_id)
         installment = self.installment_repository.get_by_id(tenant_db, installment_id)
@@ -135,11 +138,19 @@ class FinanceLoanService:
         if next_paid_amount > installment.planned_amount:
             raise ValueError("El pago supera el monto planificado de la cuota")
 
-        previous_principal_paid = min(installment.paid_amount, installment.principal_amount)
-        next_principal_paid = min(next_paid_amount, installment.principal_amount)
-        principal_delta = round(next_principal_paid - previous_principal_paid, 2)
+        principal_delta, interest_delta = self._allocate_payment(
+            installment=installment,
+            paid_amount=paid_amount,
+            allocation_mode=allocation_mode,
+        )
 
         installment.paid_amount = next_paid_amount
+        installment.paid_principal_amount = round(
+            installment.paid_principal_amount + principal_delta, 2
+        )
+        installment.paid_interest_amount = round(
+            installment.paid_interest_amount + interest_delta, 2
+        )
         installment.paid_at = paid_at or date.today()
         if note is not None:
             installment.note = note.strip() or None
@@ -177,11 +188,18 @@ class FinanceLoanService:
             raise ValueError("La reversa supera el monto ya pagado de la cuota")
 
         next_paid_amount = round(installment.paid_amount - reversed_amount, 2)
-        previous_principal_paid = min(installment.paid_amount, installment.principal_amount)
-        next_principal_paid = min(next_paid_amount, installment.principal_amount)
-        principal_delta = round(previous_principal_paid - next_principal_paid, 2)
+        principal_delta, interest_delta = self._reverse_payment(
+            installment=installment,
+            reversed_amount=reversed_amount,
+        )
 
         installment.paid_amount = next_paid_amount
+        installment.paid_principal_amount = round(
+            installment.paid_principal_amount - principal_delta, 2
+        )
+        installment.paid_interest_amount = round(
+            installment.paid_interest_amount - interest_delta, 2
+        )
         installment.paid_at = installment.paid_at if next_paid_amount > 0 else None
         if note is not None:
             installment.note = note.strip() or None
@@ -277,11 +295,73 @@ class FinanceLoanService:
                     principal_amount=principal_amount,
                     interest_amount=interest_amount,
                     paid_amount=0.0,
+                    paid_principal_amount=0.0,
+                    paid_interest_amount=0.0,
                     paid_at=None,
                     note=None,
                 )
             )
         return installments
+
+    def _allocate_payment(
+        self,
+        *,
+        installment: FinanceLoanInstallment,
+        paid_amount: float,
+        allocation_mode: str,
+    ) -> tuple[float, float]:
+        principal_remaining = round(
+            installment.principal_amount - installment.paid_principal_amount, 2
+        )
+        interest_remaining = round(
+            installment.interest_amount - installment.paid_interest_amount, 2
+        )
+
+        if allocation_mode == "interest_first":
+            interest_delta = min(paid_amount, interest_remaining)
+            principal_delta = min(
+                round(paid_amount - interest_delta, 2), principal_remaining
+            )
+            return round(principal_delta, 2), round(interest_delta, 2)
+
+        if allocation_mode == "principal_first":
+            principal_delta = min(paid_amount, principal_remaining)
+            interest_delta = min(
+                round(paid_amount - principal_delta, 2), interest_remaining
+            )
+            return round(principal_delta, 2), round(interest_delta, 2)
+
+        principal_share = 0.0
+        interest_share = 0.0
+        if installment.planned_amount > 0:
+            principal_share = installment.principal_amount / installment.planned_amount
+            interest_share = installment.interest_amount / installment.planned_amount
+        principal_delta = round(min(paid_amount * principal_share, principal_remaining), 2)
+        interest_delta = round(min(paid_amount * interest_share, interest_remaining), 2)
+        residual = round(paid_amount - principal_delta - interest_delta, 2)
+        if residual > 0:
+            principal_extra = min(residual, round(principal_remaining - principal_delta, 2))
+            principal_delta = round(principal_delta + principal_extra, 2)
+            residual = round(residual - principal_extra, 2)
+        if residual > 0:
+            interest_delta = round(
+                interest_delta + min(residual, round(interest_remaining - interest_delta, 2)),
+                2,
+            )
+        return principal_delta, interest_delta
+
+    def _reverse_payment(
+        self,
+        *,
+        installment: FinanceLoanInstallment,
+        reversed_amount: float,
+    ) -> tuple[float, float]:
+        principal_paid = installment.paid_principal_amount
+        interest_paid = installment.paid_interest_amount
+
+        principal_delta = min(reversed_amount, principal_paid)
+        interest_delta = min(round(reversed_amount - principal_delta, 2), interest_paid)
+        return round(principal_delta, 2), round(interest_delta, 2)
 
     def _split_amount(self, amount: float, chunks: int) -> list[float]:
         base = round(amount / chunks, 2)

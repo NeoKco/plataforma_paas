@@ -14,6 +14,7 @@ from migrations.tenant import v0005_finance_transactions
 from migrations.tenant import v0006_finance_budgets
 from migrations.tenant import v0007_finance_loans
 from migrations.tenant import v0008_finance_loan_installments
+from migrations.tenant import v0009_finance_loan_installment_payment_split
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -137,6 +138,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0006_finance_budgets",
                 "0007_finance_loans",
                 "0008_finance_loan_installments",
+                "0009_finance_loan_installment_payment_split",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -161,6 +163,12 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("finance_loans", tables)
         self.assertIn("finance_loan_installments", tables)
         self.assertIn("tenant_schema_migrations", tables)
+        installment_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("finance_loan_installments")
+        }
+        self.assertIn("paid_principal_amount", installment_columns)
+        self.assertIn("paid_interest_amount", installment_columns)
 
         with engine.connect() as conn:
             currency_rows = conn.execute(
@@ -208,6 +216,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0006_finance_budgets",
                 "0007_finance_loans",
                 "0008_finance_loan_installments",
+                "0009_finance_loan_installment_payment_split",
             ],
         )
 
@@ -325,6 +334,23 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("installments_count", loan_columns)
         self.assertIn("payment_frequency", loan_columns)
         self.assertIn("finance_loan_installments", set(inspect(engine).get_table_names()))
+
+    def test_finance_loan_installment_payment_split_migration_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            v0003_finance_catalogs.upgrade(conn)
+            v0007_finance_loans.upgrade(conn)
+            v0008_finance_loan_installments.upgrade(conn)
+            v0009_finance_loan_installment_payment_split.upgrade(conn)
+            v0009_finance_loan_installment_payment_split.upgrade(conn)
+
+        installment_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("finance_loan_installments")
+        }
+        self.assertIn("paid_principal_amount", installment_columns)
+        self.assertIn("paid_interest_amount", installment_columns)
 
 
 if __name__ == "__main__":
