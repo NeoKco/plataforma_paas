@@ -106,7 +106,8 @@ Tablas base ya creadas en `Lote 1`:
 - cuotas generadas por prestamo con numero, vencimiento y montos de capital/interes
 - conserva avance de pago simple por cuota y estado derivado (`pending`, `partial`, `overdue`, `paid`)
 - ya soporta abonos manuales simples por cuota
-- sigue pendiente una capa mas rica de amortizacion avanzada, reversa y enlace contable real
+- ya soporta reversa simple de esos abonos
+- sigue pendiente una capa mas rica de amortizacion avanzada, pagos masivos y enlace contable real
 
 ## Reglas estructurales de esta fase
 

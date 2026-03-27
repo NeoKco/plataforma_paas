@@ -202,6 +202,50 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         self.assertEqual(updated_loan_row["loan"].current_balance, 800.0)
         self.assertEqual(updated_loan_row["installments_paid"], 0)
 
+    def test_reverse_installment_payment_restores_installment_and_loan_balance(self) -> None:
+        currency = self._seed_currency()
+        loan = self.loan_service.create_loan(
+            self.db,
+            FinanceLoanCreateRequest(
+                name="Credito maquinaria",
+                loan_type="borrowed",
+                counterparty_name="Banco Sur",
+                currency_id=currency.id,
+                principal_amount=900.0,
+                current_balance=900.0,
+                interest_rate=10.0,
+                installments_count=3,
+                payment_frequency="monthly",
+                start_date=date(2027, 2, 1),
+                due_date=date(2027, 4, 1),
+                note=None,
+                is_active=True,
+            ),
+        )
+        _loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        installment = installments[0]["installment"]
+
+        self.loan_service.apply_installment_payment(
+            self.db,
+            loan_id=loan.id,
+            installment_id=installment.id,
+            paid_amount=150.0,
+            note="Pago parcial",
+        )
+
+        updated_loan_row, updated_installment_row = self.loan_service.reverse_installment_payment(
+            self.db,
+            loan_id=loan.id,
+            installment_id=installment.id,
+            reversed_amount=50.0,
+            note="Reversa parcial",
+        )
+
+        self.assertEqual(updated_installment_row["installment"].paid_amount, 100.0)
+        self.assertEqual(updated_installment_row["installment"].note, "Reversa parcial")
+        self.assertEqual(updated_installment_row["installment_status"], "partial")
+        self.assertEqual(updated_loan_row["loan"].current_balance, 800.0)
+
 
 if __name__ == "__main__":
     unittest.main()

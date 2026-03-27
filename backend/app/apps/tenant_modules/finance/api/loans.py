@@ -14,6 +14,9 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceLoanInstallmentPaymentData,
     FinanceLoanInstallmentPaymentRequest,
     FinanceLoanInstallmentPaymentResponse,
+    FinanceLoanInstallmentReversalData,
+    FinanceLoanInstallmentReversalRequest,
+    FinanceLoanInstallmentReversalResponse,
     FinanceLoanItemResponse,
     FinanceLoanMutationResponse,
     FinanceLoansResponse,
@@ -148,6 +151,39 @@ def apply_finance_loan_installment_payment(
         message="Pago aplicado a la cuota correctamente",
         requested_by=build_finance_requested_by(current_user),
         data=FinanceLoanInstallmentPaymentData(
+            loan=_build_loan_item(loan_row),
+            installment=_build_installment_item(installment_row),
+        ),
+    )
+
+
+@router.patch(
+    "/{loan_id}/installments/{installment_id}/payment/reversal",
+    response_model=FinanceLoanInstallmentReversalResponse,
+)
+def reverse_finance_loan_installment_payment(
+    loan_id: int,
+    installment_id: int,
+    payload: FinanceLoanInstallmentReversalRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceLoanInstallmentReversalResponse:
+    try:
+        loan_row, installment_row = loan_service.reverse_installment_payment(
+            tenant_db,
+            loan_id=loan_id,
+            installment_id=installment_id,
+            reversed_amount=payload.reversed_amount,
+            note=payload.note,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceLoanInstallmentReversalResponse(
+        success=True,
+        message="Reversa aplicada a la cuota correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=FinanceLoanInstallmentReversalData(
             loan=_build_loan_item(loan_row),
             installment=_build_installment_item(installment_row),
         ),

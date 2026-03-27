@@ -24,10 +24,11 @@ Cobertura actual:
 - core de presupuestos por categoria y mes, incluyendo comparacion `presupuesto vs real`
 - core de prestamos con resumen de cartera, filtros por tipo/estado y generacion de cronograma mensual
 - aplicacion simple de pagos sobre cuotas de prestamos y recálculo de saldo pendiente
+- reversa simple de pagos sobre cuotas
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
 - pruebas de lectura mas rica de presupuestos
-- pruebas de amortizacion avanzada, reversa y pagos masivos de cuotas de prestamos
+- pruebas de amortizacion avanzada y pagos masivos de cuotas de prestamos
 - pruebas de reportes

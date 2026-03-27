@@ -27,6 +27,7 @@ from app.apps.tenant_modules.finance.api.loans import (
     get_finance_loan_detail,
     list_finance_loans,
     loan_service,
+    reverse_finance_loan_installment_payment,
     update_finance_loan,
 )
 
@@ -49,6 +50,7 @@ __all__ = [
     "list_finance_budgets",
     "list_finance_loans",
     "loan_service",
+    "reverse_finance_loan_installment_payment",
     "update_finance_budget",
     "update_finance_loan",
     "update_finance_transaction",

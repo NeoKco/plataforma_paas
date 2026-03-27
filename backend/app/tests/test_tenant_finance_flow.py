@@ -28,6 +28,7 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     get_finance_transaction_detail,
     list_finance_budgets,
     list_finance_loans,
+    reverse_finance_loan_installment_payment,
     update_finance_transaction,
     update_finance_loan,
     update_finance_transactions_favorite_batch,
@@ -42,6 +43,7 @@ from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceEntryCreateRequest,
     FinanceLoanCreateRequest,
     FinanceLoanInstallmentPaymentRequest,
+    FinanceLoanInstallmentReversalRequest,
     FinanceLoanUpdateRequest,
     FinanceTransactionCreateRequest,
     FinanceTransactionUpdateRequest,
@@ -955,6 +957,71 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.loan.current_balance, 800.0)
         self.assertEqual(response.data.installment.installment_status, "partial")
         self.assertEqual(apply_payment_mock.call_args.kwargs["paid_amount"], 50.0)
+
+    def test_reverse_finance_loan_installment_payment_returns_mutated_rows(self) -> None:
+        loan_row = {
+            "loan": SimpleNamespace(
+                id=4,
+                name="Credito equipo",
+                loan_type="borrowed",
+                counterparty_name="Banco Norte",
+                currency_id=1,
+                principal_amount=1200.0,
+                current_balance=850.0,
+                interest_rate=6.5,
+                installments_count=12,
+                payment_frequency="monthly",
+                start_date=date(2026, 3, 1),
+                due_date=date(2027, 2, 1),
+                note=None,
+                is_active=True,
+                created_at="2026-03-27T16:00:00+00:00",
+                updated_at="2026-03-27T16:00:00+00:00",
+            ),
+            "currency_code": "USD",
+            "loan_status": "open",
+            "paid_amount": 350.0,
+            "next_due_date": date(2026, 5, 1),
+            "installments_total": 12,
+            "installments_paid": 1,
+        }
+        installment_row = {
+            "installment": SimpleNamespace(
+                id=22,
+                loan_id=4,
+                installment_number=2,
+                due_date=date(2026, 4, 1),
+                planned_amount=110.0,
+                principal_amount=100.0,
+                interest_amount=10.0,
+                paid_amount=60.0,
+                paid_at=date(2026, 4, 1),
+                note="Reversa parcial",
+                created_at="2026-03-27T16:00:00+00:00",
+                updated_at="2026-03-27T16:00:00+00:00",
+            ),
+            "installment_status": "partial",
+        }
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.loan_service.reverse_installment_payment",
+            return_value=(loan_row, installment_row),
+        ) as reverse_payment_mock:
+            response = reverse_finance_loan_installment_payment(
+                loan_id=4,
+                installment_id=22,
+                payload=FinanceLoanInstallmentReversalRequest(
+                    reversed_amount=40.0,
+                    note="Reversa parcial",
+                ),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.loan.current_balance, 850.0)
+        self.assertEqual(response.data.installment.installment_status, "partial")
+        self.assertEqual(reverse_payment_mock.call_args.kwargs["reversed_amount"], 40.0)
 
     def test_update_finance_transaction_favorite_returns_mutated_transaction(self) -> None:
         transaction = SimpleNamespace(

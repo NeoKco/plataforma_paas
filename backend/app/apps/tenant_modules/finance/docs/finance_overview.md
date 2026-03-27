@@ -37,9 +37,10 @@ Alcance de esta fase:
 - contrato backend propio para crear, listar y editar préstamos
 - cronograma inicial de `Préstamos` con cuotas generadas, detalle por préstamo y próximo vencimiento
 - pagos manuales simples sobre cuotas con actualización del saldo pendiente
+- reversa simple de abonos sobre cuotas
 
 Pendiente inmediato:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura mas densa y estados operativos mas ricos
-- endurecer pagos de `Préstamos` con amortizacion avanzada, reversa y enlace contable
+- endurecer pagos de `Préstamos` con amortizacion avanzada, lote y enlace contable
 - `Lote 7` prestamos, planificacion y reportes

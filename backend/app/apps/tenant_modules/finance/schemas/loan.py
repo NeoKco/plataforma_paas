@@ -72,6 +72,11 @@ class FinanceLoanInstallmentPaymentRequest(BaseModel):
     note: str | None = None
 
 
+class FinanceLoanInstallmentReversalRequest(BaseModel):
+    reversed_amount: float
+    note: str | None = None
+
+
 class FinanceLoansSummaryData(BaseModel):
     total_items: int
     active_items: int
@@ -106,3 +111,12 @@ class FinanceLoanInstallmentPaymentData(BaseModel):
 
 class FinanceLoanInstallmentPaymentResponse(FinanceResponseBase):
     data: FinanceLoanInstallmentPaymentData
+
+
+class FinanceLoanInstallmentReversalData(BaseModel):
+    loan: FinanceLoanItemResponse
+    installment: FinanceLoanInstallmentItemResponse
+
+
+class FinanceLoanInstallmentReversalResponse(FinanceResponseBase):
+    data: FinanceLoanInstallmentReversalData

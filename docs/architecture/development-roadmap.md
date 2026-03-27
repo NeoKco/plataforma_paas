@@ -234,6 +234,7 @@ Resultado actual:
 - existe migracion tenant versionada para `finance_loans`
 - existe migracion tenant versionada para `finance_loan_installments`
 - ya existe aplicacion simple de pagos sobre cuotas de `Préstamos`, con recálculo de saldo pendiente
+- ya existe reversa simple de esos pagos sobre cuotas
 - `CLP` ya forma parte de las monedas semilla del modulo
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
@@ -248,7 +249,7 @@ Falta para cerrarlo:
 
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura agregada y estados operativos mas ricos
-- endurecer `Préstamos` con pagos mas ricos: amortizacion avanzada, reversa, lote y enlace contable
+- endurecer `Préstamos` con pagos mas ricos: amortizacion avanzada, lote y enlace contable
 - ejecutar `Lote 7` y siguientes del roadmap maestro para planificacion y reportes
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande

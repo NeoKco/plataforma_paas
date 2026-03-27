@@ -17,6 +17,7 @@ import {
   createTenantFinanceLoan,
   getTenantFinanceLoanDetail,
   getTenantFinanceLoans,
+  reverseTenantFinanceLoanInstallmentPayment,
   updateTenantFinanceLoan,
   type TenantFinanceLoan,
   type TenantFinanceLoanDetailResponse,
@@ -46,6 +47,7 @@ type ActionFeedback = {
 };
 
 type InstallmentPaymentFormState = {
+  mode: "apply" | "reverse";
   installmentId: number | null;
   paidAmount: string;
   note: string;
@@ -77,6 +79,7 @@ export function FinanceLoansPage() {
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [loanDetailError, setLoanDetailError] = useState<string | null>(null);
   const [paymentFormState, setPaymentFormState] = useState<InstallmentPaymentFormState>({
+    mode: "apply",
     installmentId: null,
     paidAmount: "",
     note: "",
@@ -114,7 +117,7 @@ export function FinanceLoansPage() {
   }, [session?.accessToken, selectedLoanId]);
 
   useEffect(() => {
-    setPaymentFormState({ installmentId: null, paidAmount: "", note: "" });
+    setPaymentFormState({ mode: "apply", installmentId: null, paidAmount: "", note: "" });
   }, [selectedLoanId]);
 
   async function loadLoanWorkspace() {
@@ -254,8 +257,18 @@ export function FinanceLoansPage() {
       0
     );
     setPaymentFormState({
+      mode: "apply",
       installmentId: installment.id,
       paidAmount: remainingAmount > 0 ? String(remainingAmount) : "",
+      note: installment.note || "",
+    });
+  }
+
+  function startInstallmentReversal(installment: TenantFinanceLoanInstallment) {
+    setPaymentFormState({
+      mode: "reverse",
+      installmentId: installment.id,
+      paidAmount: installment.paid_amount > 0 ? String(installment.paid_amount) : "",
       note: installment.note || "",
     });
   }
@@ -270,19 +283,30 @@ export function FinanceLoansPage() {
     setActionFeedback(null);
 
     try {
-      const response = await applyTenantFinanceLoanInstallmentPayment(
-        session.accessToken,
-        selectedLoanId,
-        paymentFormState.installmentId,
-        {
-          paid_amount: Number.parseFloat(paymentFormState.paidAmount),
-          paid_at: null,
-          note: paymentFormState.note.trim() || null,
-        }
-      );
+      const response =
+        paymentFormState.mode === "apply"
+          ? await applyTenantFinanceLoanInstallmentPayment(
+              session.accessToken,
+              selectedLoanId,
+              paymentFormState.installmentId,
+              {
+                paid_amount: Number.parseFloat(paymentFormState.paidAmount),
+                paid_at: null,
+                note: paymentFormState.note.trim() || null,
+              }
+            )
+          : await reverseTenantFinanceLoanInstallmentPayment(
+              session.accessToken,
+              selectedLoanId,
+              paymentFormState.installmentId,
+              {
+                reversed_amount: Number.parseFloat(paymentFormState.paidAmount),
+                note: paymentFormState.note.trim() || null,
+              }
+            );
       await loadLoanWorkspace();
       await loadLoanDetail();
-      setPaymentFormState({ installmentId: null, paidAmount: "", note: "" });
+      setPaymentFormState({ mode: "apply", installmentId: null, paidAmount: "", note: "" });
       setActionFeedback({ type: "success", message: response.message });
     } catch (rawError) {
       setActionFeedback({
@@ -674,7 +698,9 @@ export function FinanceLoansPage() {
               <form className="d-grid gap-3" onSubmit={handleInstallmentPaymentSubmit}>
                 <div className="tenant-inline-form-grid">
                   <div>
-                    <label className="form-label">Abono a cuota</label>
+                    <label className="form-label">
+                      {paymentFormState.mode === "apply" ? "Abono a cuota" : "Reversa de abono"}
+                    </label>
                     <input
                       className="form-control"
                       type="number"
@@ -706,13 +732,15 @@ export function FinanceLoansPage() {
                 </div>
                 <div className="finance-inline-toolbar finance-inline-toolbar--compact">
                   <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-                    Aplicar pago
+                    {paymentFormState.mode === "apply" ? "Aplicar pago" : "Aplicar reversa"}
                   </button>
                   <button
                     className="btn btn-outline-secondary"
                     type="button"
                     disabled={isSubmitting}
-                    onClick={() => setPaymentFormState({ installmentId: null, paidAmount: "", note: "" })}
+                    onClick={() =>
+                      setPaymentFormState({ mode: "apply", installmentId: null, paidAmount: "", note: "" })
+                    }
                   >
                     Cancelar
                   </button>
@@ -754,19 +782,34 @@ export function FinanceLoansPage() {
                           </span>
                         </td>
                         <td>
-                          {installment.installment_status !== "paid" ? (
-                            <button
-                              className="btn btn-sm btn-outline-primary"
-                              type="button"
-                              onClick={() => startInstallmentPayment(installment)}
-                            >
-                              {paymentFormState.installmentId === installment.id
-                                ? "Editando pago"
-                                : "Registrar pago"}
-                            </button>
-                          ) : (
-                            <span className="text-secondary">cerrada</span>
-                          )}
+                          <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+                            {installment.installment_status !== "paid" ? (
+                              <button
+                                className="btn btn-sm btn-outline-primary"
+                                type="button"
+                                onClick={() => startInstallmentPayment(installment)}
+                              >
+                                {paymentFormState.installmentId === installment.id &&
+                                paymentFormState.mode === "apply"
+                                  ? "Editando pago"
+                                  : "Registrar pago"}
+                              </button>
+                            ) : (
+                              <span className="text-secondary">cerrada</span>
+                            )}
+                            {installment.paid_amount > 0 ? (
+                              <button
+                                className="btn btn-sm btn-outline-secondary"
+                                type="button"
+                                onClick={() => startInstallmentReversal(installment)}
+                              >
+                                {paymentFormState.installmentId === installment.id &&
+                                paymentFormState.mode === "reverse"
+                                  ? "Editando reversa"
+                                  : "Revertir"}
+                              </button>
+                            ) : null}
+                          </div>
                         </td>
                       </tr>
                     ))}

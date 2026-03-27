@@ -11,6 +11,7 @@ Estado actual:
 - la vista `Presupuestos` ya permite además filtrar por tipo, estado derivado e inactivos
 - la vista `Préstamos` ya permite registrar cartera prestada o recibida, definir cuotas base y revisar el cronograma generado
 - la vista `Préstamos` ya permite además aplicar abonos simples sobre una cuota del cronograma
+- la vista `Préstamos` ya permite además revertir parcial o totalmente un abono aplicado a una cuota
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend
 
 Pantallas disponibles:

@@ -87,6 +87,20 @@ export type TenantFinanceLoanInstallmentPaymentResponse = {
   };
 };
 
+export type TenantFinanceLoanInstallmentReversalRequest = {
+  reversed_amount: number;
+  note: string | null;
+};
+
+export type TenantFinanceLoanInstallmentReversalResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    loan: TenantFinanceLoan;
+    installment: TenantFinanceLoanInstallment;
+  };
+};
+
 export type TenantFinanceLoanWriteRequest = {
   name: string;
   loan_type: string;
@@ -161,6 +175,22 @@ export function applyTenantFinanceLoanInstallmentPayment(
 ) {
   return apiRequest<TenantFinanceLoanInstallmentPaymentResponse>(
     `/tenant/finance/loans/${loanId}/installments/${installmentId}/payment`,
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function reverseTenantFinanceLoanInstallmentPayment(
+  accessToken: string,
+  loanId: number,
+  installmentId: number,
+  payload: TenantFinanceLoanInstallmentReversalRequest
+) {
+  return apiRequest<TenantFinanceLoanInstallmentReversalResponse>(
+    `/tenant/finance/loans/${loanId}/installments/${installmentId}/payment/reversal`,
     {
       method: "PATCH",
       token: accessToken,

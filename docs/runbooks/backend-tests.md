@@ -199,6 +199,7 @@ Cobertura actual:
 - presupuestos mensuales por categoria, con comparacion `presupuesto vs real`
 - prestamos con resumen de cartera, filtros por tipo/estado y detalle de cronograma por cuotas
 - pagos manuales simples sobre cuotas de prestamos con recálculo de saldo pendiente
+- reversa simple de pagos sobre cuotas de prestamos
 - migraciones tenant del modulo hasta `0008_finance_loan_installments`
 - seeds idempotentes para moneda base, `CLP`, categorias y settings
 - repositories CRUD base del modulo y sus restricciones de unicidad/activacion

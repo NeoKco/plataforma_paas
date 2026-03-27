@@ -24,6 +24,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - `finance` ya expone una primera pantalla real de `Presupuestos` con lectura mensual `presupuesto vs real`
 - `finance` ya expone una pantalla real de `Préstamos` con cartera, cuotas base, próximo vencimiento y cronograma por préstamo
 - `finance` ya permite aplicar pagos manuales simples sobre cuotas del cronograma
+- `finance` ya permite revertir parcial o totalmente esos abonos sobre cuotas
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
 
@@ -40,7 +41,7 @@ Lo pendiente es sobre todo:
 - definir la convencion oficial para que los siguientes modulos nazcan como slices coherentes, tomando `finance` como modulo piloto
 - completar la vista moderna de transacciones con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes antes de abrir mas dominios grandes dentro de finance
 - endurecer la primera pantalla de `Presupuestos` antes de abrir reportes
-- endurecer pagos de `Préstamos` con amortizacion, reversa y operaciones masivas antes de darlo por base cerrada
+- endurecer pagos de `Préstamos` con amortizacion y operaciones masivas antes de darlo por base cerrada
 
 Nota de ejecucion:
 

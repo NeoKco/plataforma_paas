@@ -77,6 +77,7 @@ En esta fase quedaron listos:
 - primer slice real de `Préstamos` con cartera base, saldo pendiente y contraparte
 - cronograma inicial de `Préstamos` con cuotas generadas, proximo vencimiento y detalle por préstamo
 - pagos manuales simples sobre cuotas de `Préstamos`, con actualizacion de saldo pendiente y refresh del cronograma
+- reversa simple de abonos sobre cuotas de `Préstamos`, con devolucion del saldo al préstamo
 
 ## Archivos principales
 
@@ -108,6 +109,7 @@ En esta fase quedaron listos:
 - `GET|POST|PUT /tenant/finance/loans`
 - `GET /tenant/finance/loans/{loan_id}`
 - `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment`
+- `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment/reversal`
 - `GET|POST|PUT|PATCH /tenant/finance/accounts`
 - `GET|POST|PUT|PATCH /tenant/finance/categories`
 - `GET|POST|PUT|PATCH /tenant/finance/beneficiaries`
@@ -251,12 +253,13 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 9. primera vista real de `Préstamos` con cartera base y saldo pendiente
 10. cronograma inicial de `Préstamos` con detalle por cuotas, proximo vencimiento y lectura de avance
 11. pago manual simple sobre cuota, con recálculo del saldo pendiente del préstamo
+12. reversa simple de abonos sobre cuota, con ajuste inverso del saldo pendiente
 
 Lo siguiente recomendable ahora es:
 
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
-3. endurecer `Préstamos` con aplicacion de pagos mas rica: amortizacion avanzada, pagos masivos, reversa y enlace contable real
+3. endurecer `Préstamos` con aplicacion de pagos mas rica: amortizacion avanzada, pagos masivos y enlace contable real
 4. seguir con planificacion y reportes
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 6. abrir exportacion o vistas derivadas cuando el trabajo operativo del slice ya quede estable
