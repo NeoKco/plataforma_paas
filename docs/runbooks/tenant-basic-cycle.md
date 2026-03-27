@@ -315,6 +315,19 @@ Lo que sigue abierto aqui ya no es una falta de UI base, sino una decision de pr
 - definir recien despues, y solo si se vuelve necesario, una politica de baja dura para tenants provisionados o con historia real
 - evaluar mas adelante un flujo distinto de `reprovisionado profundo` para tenants que ya tienen DB materializada y requieren recomposicion mas invasiva
 
+Backlog corto de endurecimiento ya identificado:
+
+- agregar una prueba smoke/E2E del ciclo completo:
+  - crear
+  - provisionar
+  - archivar
+  - desprovisionar
+  - eliminar
+  - verificar aparicion en `Histórico tenants`
+- revisar y congelar permisos finos de la vista `Histórico tenants`
+- evaluar filtros mas ricos o exportacion basica del historico
+- recapturar el manual visual cuando la UX de `Tenants`, `Provisioning` y `Histórico tenants` deje de moverse
+
 ## 8. Validacion recomendada
 
 Cuando cambies este bloque, la validacion corta recomendada es:

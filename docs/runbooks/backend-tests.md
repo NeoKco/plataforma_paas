@@ -163,6 +163,11 @@ Cobertura adicional relevante:
 - selector real de usuarios tenant en `Tenants` para resetear contraseñas del portal sin asumir `admin@<slug>.local`
 - `GET /platform/tenants/{id}/users` devolviendo error controlado o quedando oculto en UI cuando el tenant ya fue desprovisionado
 
+Pendiente recomendado de cobertura:
+
+- smoke del ciclo completo `create -> provision -> archive -> deprovision -> delete -> tenant_history`
+- validacion de permisos de `tenant-history` por rol para que no se abra fuera del alcance esperado
+
 Suite puntual de seguridad:
 
 ```bash

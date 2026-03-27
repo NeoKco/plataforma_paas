@@ -61,6 +61,13 @@ La recomendacion actual es esta:
 - dejar `slug` como identificador estable salvo que despues exista una politica formal de cambio
 - no usar `restore` como mutacion informal de estados; ya existe como flujo explicito para tenants archivados
 
+Pendiente corto de endurecimiento antes o en paralelo a nuevos modulos:
+
+- smoke/E2E del lifecycle tenant completo hasta aparicion en `Histórico tenants`
+- congelar permisos finos de la vista historica para que quede acotada a operacion central
+- decidir si el historico necesita exportacion o filtros adicionales antes de crecer en volumen
+- recaptura visual del bloque tenant cuando la UX ya se considere estable
+
 ## Etapa 0. Base de Proyecto
 
 Estado: `Completado`
