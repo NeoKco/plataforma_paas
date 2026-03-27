@@ -203,9 +203,11 @@ Motivo:
 - ya existe un borrado seguro y muy acotado
 - solo aplica a tenants `archived`
 - exige que no exista configuracion DB tenant materializada
-- bloquea tenants con historial de billing
+- antes del borrado guarda un archivo historico minimo en `platform_control.tenant_retirement_archives`
+- ese archivo conserva snapshot de identidad, estado final, estado billing, cantidades de eventos y actor del borrado
+- despues de archivar ese resumen, elimina la fila viva del tenant y su historial operativo asociado
 - despues de desprovisionar ya no bloquea solo por tener jobs tecnicos historicos de provisioning
-- esta pensado para altas descartadas, tenants de prueba o casos que no deben conservarse despues de retirar su infraestructura tecnica
+- esta pensado para altas descartadas, tenants de prueba o casos que no deben conservarse despues de retirar su infraestructura tecnica, incluso si tuvieron billing history
 
 ### restauracion
 
@@ -243,7 +245,7 @@ Motivo:
 - policy history
 - contexto de auditoria
 
-Por eso el borrado actual sigue siendo deliberadamente estrecho y `archive` se mantiene como salida principal.
+Por eso el borrado actual sigue siendo deliberadamente estrecho, `archive` se mantiene como salida principal y la auditoria minima del retiro queda resumida en `tenant_retirement_archives` en vez de exigir conservar la DB tenant completa.
 
 ## 7. Flujo correcto de retiro
 
@@ -254,6 +256,7 @@ Cuando un tenant ya no debe seguir existiendo pero aun conserva infraestructura 
 3. esperar o ejecutar el job `deprovision_tenant_database`
 4. verificar que `db_configured=false`
 5. usar `Eliminar tenant` si el caso realmente requiere borrado definitivo
+6. el borrado guarda un snapshot minimo en `tenant_retirement_archives` antes de remover el tenant vivo del catalogo
 
 Lectura operativa:
 
