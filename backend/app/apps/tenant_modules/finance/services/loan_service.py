@@ -113,6 +113,50 @@ class FinanceLoanService:
         tenant_db.refresh(loan)
         return loan
 
+    def apply_installment_payment(
+        self,
+        tenant_db: Session,
+        *,
+        loan_id: int,
+        installment_id: int,
+        paid_amount: float,
+        paid_at: date | None = None,
+        note: str | None = None,
+    ) -> tuple[dict, dict]:
+        if paid_amount <= 0:
+            raise ValueError("El pago aplicado a la cuota debe ser mayor que cero")
+
+        loan = self._get_loan_or_raise(tenant_db, loan_id)
+        installment = self.installment_repository.get_by_id(tenant_db, installment_id)
+        if installment is None or installment.loan_id != loan.id:
+            raise ValueError("La cuota del préstamo solicitada no existe")
+
+        next_paid_amount = round(installment.paid_amount + paid_amount, 2)
+        if next_paid_amount > installment.planned_amount:
+            raise ValueError("El pago supera el monto planificado de la cuota")
+
+        previous_principal_paid = min(installment.paid_amount, installment.principal_amount)
+        next_principal_paid = min(next_paid_amount, installment.principal_amount)
+        principal_delta = round(next_principal_paid - previous_principal_paid, 2)
+
+        installment.paid_amount = next_paid_amount
+        installment.paid_at = paid_at or date.today()
+        if note is not None:
+            installment.note = note.strip() or None
+
+        loan.current_balance = round(max(loan.current_balance - principal_delta, 0.0), 2)
+
+        tenant_db.add(installment)
+        tenant_db.add(loan)
+        tenant_db.commit()
+        tenant_db.refresh(installment)
+        tenant_db.refresh(loan)
+
+        installments = self.installment_repository.list_by_loan(tenant_db, loan.id)
+        loan_row = self._build_loan_row(tenant_db, loan, installments=installments)
+        installment_row = self._build_installment_row(installment)
+        return loan_row, installment_row
+
     def _build_loan_row(
         self,
         tenant_db: Session,

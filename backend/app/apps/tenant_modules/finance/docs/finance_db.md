@@ -105,7 +105,8 @@ Tablas base ya creadas en `Lote 1`:
 ### `finance_loan_installments`
 - cuotas generadas por prestamo con numero, vencimiento y montos de capital/interes
 - conserva avance de pago simple por cuota y estado derivado (`pending`, `partial`, `overdue`, `paid`)
-- base para aplicar pagos reales y conciliacion del cronograma
+- ya soporta abonos manuales simples por cuota
+- sigue pendiente una capa mas rica de amortizacion avanzada, reversa y enlace contable real
 
 ## Reglas estructurales de esta fase
 
@@ -115,5 +116,5 @@ Tablas base ya creadas en `Lote 1`:
 
 Pendiente siguiente:
 - endurecer lectura de presupuestos y estados operativos derivados
-- aplicar pagos reales sobre el cronograma de prestamos
+- endurecer el pago sobre cronograma de prestamos con casos mas ricos
 - planificacion y reportes

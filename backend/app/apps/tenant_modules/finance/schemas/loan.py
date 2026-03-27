@@ -66,6 +66,12 @@ class FinanceLoanInstallmentItemResponse(BaseModel):
     updated_at: datetime
 
 
+class FinanceLoanInstallmentPaymentRequest(BaseModel):
+    paid_amount: float
+    paid_at: date | None = None
+    note: str | None = None
+
+
 class FinanceLoansSummaryData(BaseModel):
     total_items: int
     active_items: int
@@ -91,3 +97,12 @@ class FinanceLoanDetailResponse(FinanceResponseBase):
 
 class FinanceLoanMutationResponse(FinanceResponseBase):
     data: FinanceLoanItemResponse
+
+
+class FinanceLoanInstallmentPaymentData(BaseModel):
+    loan: FinanceLoanItemResponse
+    installment: FinanceLoanInstallmentItemResponse
+
+
+class FinanceLoanInstallmentPaymentResponse(FinanceResponseBase):
+    data: FinanceLoanInstallmentPaymentData

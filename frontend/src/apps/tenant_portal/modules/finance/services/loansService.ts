@@ -72,6 +72,21 @@ export type TenantFinanceLoanDetailResponse = {
   };
 };
 
+export type TenantFinanceLoanInstallmentPaymentRequest = {
+  paid_amount: number;
+  paid_at: string | null;
+  note: string | null;
+};
+
+export type TenantFinanceLoanInstallmentPaymentResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    loan: TenantFinanceLoan;
+    installment: TenantFinanceLoanInstallment;
+  };
+};
+
 export type TenantFinanceLoanWriteRequest = {
   name: string;
   loan_type: string;
@@ -136,4 +151,20 @@ export function getTenantFinanceLoanDetail(accessToken: string, loanId: number) 
   return apiRequest<TenantFinanceLoanDetailResponse>(`/tenant/finance/loans/${loanId}`, {
     token: accessToken,
   });
+}
+
+export function applyTenantFinanceLoanInstallmentPayment(
+  accessToken: string,
+  loanId: number,
+  installmentId: number,
+  payload: TenantFinanceLoanInstallmentPaymentRequest
+) {
+  return apiRequest<TenantFinanceLoanInstallmentPaymentResponse>(
+    `/tenant/finance/loans/${loanId}/installments/${installmentId}/payment`,
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: payload,
+    }
+  );
 }

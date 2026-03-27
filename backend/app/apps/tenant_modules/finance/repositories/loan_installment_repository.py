@@ -4,6 +4,27 @@ from app.apps.tenant_modules.finance.models import FinanceLoanInstallment
 
 
 class FinanceLoanInstallmentRepository:
+    def save(
+        self,
+        tenant_db: Session,
+        installment: FinanceLoanInstallment,
+    ) -> FinanceLoanInstallment:
+        tenant_db.add(installment)
+        tenant_db.commit()
+        tenant_db.refresh(installment)
+        return installment
+
+    def get_by_id(
+        self,
+        tenant_db: Session,
+        installment_id: int,
+    ) -> FinanceLoanInstallment | None:
+        return (
+            tenant_db.query(FinanceLoanInstallment)
+            .filter(FinanceLoanInstallment.id == installment_id)
+            .first()
+        )
+
     def replace_for_loan(
         self,
         tenant_db: Session,

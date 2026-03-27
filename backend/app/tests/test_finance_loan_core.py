@@ -164,6 +164,44 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         self.assertEqual(installments[1]["installment"].due_date, date(2027, 4, 15))
         self.assertEqual(installments[0]["installment_status"], "pending")
 
+    def test_apply_installment_payment_updates_installment_and_loan_balance(self) -> None:
+        currency = self._seed_currency()
+        loan = self.loan_service.create_loan(
+            self.db,
+            FinanceLoanCreateRequest(
+                name="Credito laptop",
+                loan_type="borrowed",
+                counterparty_name="Banco Pago",
+                currency_id=currency.id,
+                principal_amount=1000.0,
+                current_balance=1000.0,
+                interest_rate=20.0,
+                installments_count=5,
+                payment_frequency="monthly",
+                start_date=date(2027, 1, 10),
+                due_date=date(2027, 5, 10),
+                note=None,
+                is_active=True,
+            ),
+        )
+
+        loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        installment = installments[0]["installment"]
+
+        updated_loan_row, updated_installment_row = self.loan_service.apply_installment_payment(
+            self.db,
+            loan_id=loan.id,
+            installment_id=installment.id,
+            paid_amount=200.0,
+            note="Pago inicial",
+        )
+
+        self.assertEqual(updated_installment_row["installment"].paid_amount, 200.0)
+        self.assertEqual(updated_installment_row["installment_status"], "partial")
+        self.assertEqual(updated_installment_row["installment"].note, "Pago inicial")
+        self.assertEqual(updated_loan_row["loan"].current_balance, 800.0)
+        self.assertEqual(updated_loan_row["installments_paid"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

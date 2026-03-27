@@ -11,6 +11,9 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceLoanDetailData,
     FinanceLoanDetailResponse,
     FinanceLoanInstallmentItemResponse,
+    FinanceLoanInstallmentPaymentData,
+    FinanceLoanInstallmentPaymentRequest,
+    FinanceLoanInstallmentPaymentResponse,
     FinanceLoanItemResponse,
     FinanceLoanMutationResponse,
     FinanceLoansResponse,
@@ -113,6 +116,40 @@ def get_finance_loan_detail(
         data=FinanceLoanDetailData(
             loan=_build_loan_item(loan_row),
             installments=[_build_installment_item(item) for item in installments],
+        ),
+    )
+
+
+@router.patch(
+    "/{loan_id}/installments/{installment_id}/payment",
+    response_model=FinanceLoanInstallmentPaymentResponse,
+)
+def apply_finance_loan_installment_payment(
+    loan_id: int,
+    installment_id: int,
+    payload: FinanceLoanInstallmentPaymentRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceLoanInstallmentPaymentResponse:
+    try:
+        loan_row, installment_row = loan_service.apply_installment_payment(
+            tenant_db,
+            loan_id=loan_id,
+            installment_id=installment_id,
+            paid_amount=payload.paid_amount,
+            paid_at=payload.paid_at,
+            note=payload.note,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceLoanInstallmentPaymentResponse(
+        success=True,
+        message="Pago aplicado a la cuota correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=FinanceLoanInstallmentPaymentData(
+            loan=_build_loan_item(loan_row),
+            installment=_build_installment_item(installment_row),
         ),
     )
 

@@ -22,6 +22,7 @@ from app.apps.tenant_modules.finance.api.budgets import (
     update_finance_budget,
 )
 from app.apps.tenant_modules.finance.api.loans import (
+    apply_finance_loan_installment_payment,
     create_finance_loan,
     get_finance_loan_detail,
     list_finance_loans,
@@ -34,6 +35,7 @@ __all__ = [
     "router",
     "create_finance_entry",
     "create_finance_loan",
+    "apply_finance_loan_installment_payment",
     "create_finance_budget",
     "budget_service",
     "finance_account_balances",

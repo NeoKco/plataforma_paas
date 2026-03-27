@@ -13,12 +13,14 @@ import {
   type TenantFinanceCurrency,
 } from "../services/currenciesService";
 import {
+  applyTenantFinanceLoanInstallmentPayment,
   createTenantFinanceLoan,
   getTenantFinanceLoanDetail,
   getTenantFinanceLoans,
   updateTenantFinanceLoan,
   type TenantFinanceLoan,
   type TenantFinanceLoanDetailResponse,
+  type TenantFinanceLoanInstallment,
   type TenantFinanceLoansResponse,
 } from "../services/loansService";
 
@@ -41,6 +43,12 @@ type LoanFormState = {
 type ActionFeedback = {
   type: "success" | "error";
   message: string;
+};
+
+type InstallmentPaymentFormState = {
+  installmentId: number | null;
+  paidAmount: string;
+  note: string;
 };
 
 const DEFAULT_FORM_STATE: LoanFormState = {
@@ -68,6 +76,11 @@ export function FinanceLoansPage() {
   const [loanDetail, setLoanDetail] = useState<TenantFinanceLoanDetailResponse["data"] | null>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [loanDetailError, setLoanDetailError] = useState<string | null>(null);
+  const [paymentFormState, setPaymentFormState] = useState<InstallmentPaymentFormState>({
+    installmentId: null,
+    paidAmount: "",
+    note: "",
+  });
   const [filterLoanType, setFilterLoanType] = useState("");
   const [filterLoanStatus, setFilterLoanStatus] = useState("");
   const [includeInactive, setIncludeInactive] = useState(true);
@@ -99,6 +112,10 @@ export function FinanceLoansPage() {
   useEffect(() => {
     void loadLoanDetail();
   }, [session?.accessToken, selectedLoanId]);
+
+  useEffect(() => {
+    setPaymentFormState({ installmentId: null, paidAmount: "", note: "" });
+  }, [selectedLoanId]);
 
   async function loadLoanWorkspace() {
     if (!session?.accessToken) {
@@ -220,6 +237,52 @@ export function FinanceLoansPage() {
       await loadLoanWorkspace();
       setSelectedLoanId(response.data.id);
       resetForm();
+      setActionFeedback({ type: "success", message: response.message });
+    } catch (rawError) {
+      setActionFeedback({
+        type: "error",
+        message: getApiErrorDisplayMessage(rawError as ApiError),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function startInstallmentPayment(installment: TenantFinanceLoanInstallment) {
+    const remainingAmount = Math.max(
+      Number((installment.planned_amount - installment.paid_amount).toFixed(2)),
+      0
+    );
+    setPaymentFormState({
+      installmentId: installment.id,
+      paidAmount: remainingAmount > 0 ? String(remainingAmount) : "",
+      note: installment.note || "",
+    });
+  }
+
+  async function handleInstallmentPaymentSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session?.accessToken || selectedLoanId == null || paymentFormState.installmentId == null) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionFeedback(null);
+
+    try {
+      const response = await applyTenantFinanceLoanInstallmentPayment(
+        session.accessToken,
+        selectedLoanId,
+        paymentFormState.installmentId,
+        {
+          paid_amount: Number.parseFloat(paymentFormState.paidAmount),
+          paid_at: null,
+          note: paymentFormState.note.trim() || null,
+        }
+      );
+      await loadLoanWorkspace();
+      await loadLoanDetail();
+      setPaymentFormState({ installmentId: null, paidAmount: "", note: "" });
       setActionFeedback({ type: "success", message: response.message });
     } catch (rawError) {
       setActionFeedback({
@@ -578,7 +641,7 @@ export function FinanceLoansPage() {
 
       <PanelCard
         title="Cronograma del préstamo"
-        subtitle="Detalle por cuota para lectura operacional rápida. El siguiente backlog será registrar pagos reales sobre este cronograma."
+        subtitle="Detalle por cuota para lectura operacional rápida y aplicación manual de pagos simples sobre el cronograma."
       >
         {selectedLoanId == null ? (
           <div className="text-secondary">
@@ -607,6 +670,56 @@ export function FinanceLoansPage() {
               />
             </div>
 
+            {paymentFormState.installmentId != null ? (
+              <form className="d-grid gap-3" onSubmit={handleInstallmentPaymentSubmit}>
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">Abono a cuota</label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={paymentFormState.paidAmount}
+                      onChange={(event) =>
+                        setPaymentFormState((current) => ({
+                          ...current,
+                          paidAmount: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Nota operativa</label>
+                    <input
+                      className="form-control"
+                      value={paymentFormState.note}
+                      onChange={(event) =>
+                        setPaymentFormState((current) => ({
+                          ...current,
+                          note: event.target.value,
+                        }))
+                      }
+                      placeholder="Ej: abono recibido por transferencia"
+                    />
+                  </div>
+                </div>
+                <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
+                    Aplicar pago
+                  </button>
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => setPaymentFormState({ installmentId: null, paidAmount: "", note: "" })}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            ) : null}
+
             {loanDetail.installments.length > 0 ? (
               <div className="table-responsive">
                 <table className="table table-hover align-middle mb-0">
@@ -619,6 +732,7 @@ export function FinanceLoansPage() {
                       <th>Interés</th>
                       <th>Pagado</th>
                       <th>Estado</th>
+                      <th>Acción</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -638,6 +752,21 @@ export function FinanceLoansPage() {
                           >
                             {displayInstallmentStatus(installment.installment_status)}
                           </span>
+                        </td>
+                        <td>
+                          {installment.installment_status !== "paid" ? (
+                            <button
+                              className="btn btn-sm btn-outline-primary"
+                              type="button"
+                              onClick={() => startInstallmentPayment(installment)}
+                            >
+                              {paymentFormState.installmentId === installment.id
+                                ? "Editando pago"
+                                : "Registrar pago"}
+                            </button>
+                          ) : (
+                            <span className="text-secondary">cerrada</span>
+                          )}
                         </td>
                       </tr>
                     ))}
