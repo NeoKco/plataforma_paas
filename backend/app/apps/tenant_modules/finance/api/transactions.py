@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
@@ -7,12 +9,21 @@ from app.apps.tenant_modules.finance.dependencies import (
     require_finance_read,
 )
 from app.apps.tenant_modules.finance.schemas import (
+    FinanceAccountBalanceItem,
+    FinanceAccountBalancesResponse,
     FinanceEntriesResponse,
     FinanceEntryCreateRequest,
     FinanceEntryItemResponse,
     FinanceEntryMutationResponse,
     FinanceSummaryData,
     FinanceSummaryResponse,
+    FinanceTransactionAuditItemResponse,
+    FinanceTransactionCreateRequest,
+    FinanceTransactionDetailData,
+    FinanceTransactionDetailResponse,
+    FinanceTransactionItemResponse,
+    FinanceTransactionMutationResponse,
+    FinanceTransactionsResponse,
     FinanceUsageData,
     FinanceUsageResponse,
 )
@@ -47,6 +58,59 @@ def _build_finance_entry_item(entry) -> FinanceEntryItemResponse:
     )
 
 
+def _build_finance_transaction_item(entry) -> FinanceTransactionItemResponse:
+    return FinanceTransactionItemResponse(
+        id=entry.id,
+        transaction_type=entry.transaction_type,
+        account_id=entry.account_id,
+        target_account_id=entry.target_account_id,
+        category_id=entry.category_id,
+        beneficiary_id=entry.beneficiary_id,
+        person_id=entry.person_id,
+        project_id=entry.project_id,
+        currency_id=entry.currency_id,
+        loan_id=entry.loan_id,
+        amount=entry.amount,
+        amount_in_base_currency=entry.amount_in_base_currency,
+        exchange_rate=entry.exchange_rate,
+        discount_amount=entry.discount_amount,
+        amortization_months=entry.amortization_months,
+        transaction_at=entry.transaction_at,
+        alternative_date=entry.alternative_date,
+        description=entry.description,
+        notes=entry.notes,
+        is_favorite=entry.is_favorite,
+        favorite_flag=entry.favorite_flag,
+        is_reconciled=entry.is_reconciled,
+        reconciled_at=entry.reconciled_at,
+        is_template_origin=entry.is_template_origin,
+        source_type=entry.source_type,
+        source_id=entry.source_id,
+        created_by_user_id=entry.created_by_user_id,
+        updated_by_user_id=entry.updated_by_user_id,
+        created_at=entry.created_at,
+        updated_at=entry.updated_at,
+    )
+
+
+def _build_finance_transaction_audit_item(event) -> FinanceTransactionAuditItemResponse:
+    payload = None
+    if event.payload_json:
+        try:
+            payload = json.loads(event.payload_json)
+        except json.JSONDecodeError:
+            payload = {"raw_payload": event.payload_json}
+
+    return FinanceTransactionAuditItemResponse(
+        id=event.id,
+        event_type=event.event_type,
+        actor_user_id=event.actor_user_id,
+        summary=event.summary,
+        payload=payload,
+        created_at=event.created_at,
+    )
+
+
 @router.get("/entries", response_model=FinanceEntriesResponse)
 def list_finance_entries(
     current_user=Depends(require_finance_read),
@@ -60,6 +124,72 @@ def list_finance_entries(
         requested_by=_build_tenant_user_context(current_user),
         total=len(entries),
         data=[_build_finance_entry_item(entry) for entry in entries],
+    )
+
+
+@router.get("/transactions", response_model=FinanceTransactionsResponse)
+def list_finance_transactions(
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTransactionsResponse:
+    entries = finance_service.list_transactions(tenant_db)
+
+    return FinanceTransactionsResponse(
+        success=True,
+        message="Transacciones financieras recuperadas correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        total=len(entries),
+        data=[_build_finance_transaction_item(entry) for entry in entries],
+    )
+
+
+@router.post("/transactions", response_model=FinanceTransactionMutationResponse)
+def create_finance_transaction(
+    payload: FinanceTransactionCreateRequest,
+    current_user=Depends(require_finance_create),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTransactionMutationResponse:
+    try:
+        transaction = finance_service.create_transaction(
+            tenant_db,
+            payload,
+            created_by_user_id=current_user["user_id"],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceTransactionMutationResponse(
+        success=True,
+        message="Transaccion financiera creada correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        data=_build_finance_transaction_item(transaction),
+    )
+
+
+@router.get("/transactions/{transaction_id}", response_model=FinanceTransactionDetailResponse)
+def get_finance_transaction_detail(
+    transaction_id: int,
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTransactionDetailResponse:
+    try:
+        transaction, audit_events = finance_service.get_transaction_detail(
+            tenant_db,
+            transaction_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceTransactionDetailResponse(
+        success=True,
+        message="Detalle de transaccion recuperado correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        data=FinanceTransactionDetailData(
+            transaction=_build_finance_transaction_item(transaction),
+            audit_events=[
+                _build_finance_transaction_audit_item(event) for event in audit_events
+            ],
+        ),
     )
 
 
@@ -106,6 +236,33 @@ def create_finance_entry(
         message="Movimiento financiero creado correctamente",
         requested_by=_build_tenant_user_context(current_user),
         data=_build_finance_entry_item(entry),
+    )
+
+
+@router.get("/account-balances", response_model=FinanceAccountBalancesResponse)
+def finance_account_balances(
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceAccountBalancesResponse:
+    accounts = finance_service.account_repository.list_all(tenant_db, include_inactive=True)
+    balances = finance_service.get_account_balances(tenant_db)
+
+    return FinanceAccountBalancesResponse(
+        success=True,
+        message="Balances por cuenta recuperados correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        total=len(accounts),
+        data=[
+            FinanceAccountBalanceItem(
+                account_id=account.id,
+                account_name=account.name,
+                account_type=account.account_type,
+                currency_id=account.currency_id,
+                balance=balances.get(account.id, 0.0),
+                is_balance_hidden=account.is_balance_hidden,
+            )
+            for account in accounts
+        ],
     )
 
 

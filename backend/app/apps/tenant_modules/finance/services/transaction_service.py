@@ -234,6 +234,24 @@ class FinanceService:
     def list_entries(self, tenant_db: Session) -> list[FinanceTransaction]:
         return self.transaction_repository.list_all(tenant_db)
 
+    def list_transactions(self, tenant_db: Session) -> list[FinanceTransaction]:
+        return self.transaction_repository.list_all(tenant_db)
+
+    def get_transaction_detail(
+        self,
+        tenant_db: Session,
+        transaction_id: int,
+    ) -> tuple[FinanceTransaction, list]:
+        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        if transaction is None:
+            raise ValueError("La transaccion financiera no existe")
+
+        audit_events = self.transaction_audit_repository.list_by_transaction(
+            tenant_db,
+            transaction_id=transaction_id,
+        )
+        return transaction, audit_events
+
     def get_summary(self, tenant_db: Session) -> dict[str, float]:
         entries = self.transaction_repository.list_all(tenant_db)
         total_income = sum(

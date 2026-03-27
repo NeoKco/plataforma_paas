@@ -86,9 +86,40 @@ class FinanceTransactionItemResponse(BaseModel):
     updated_at: datetime
 
 
+class FinanceTransactionMutationResponse(FinanceResponseBase):
+    data: FinanceTransactionItemResponse
+
+
+class FinanceTransactionsResponse(FinanceResponseBase):
+    total: int
+    data: list[FinanceTransactionItemResponse]
+
+
+class FinanceTransactionAuditItemResponse(BaseModel):
+    id: int
+    event_type: str
+    actor_user_id: int | None = None
+    summary: str
+    payload: dict | None = None
+    created_at: datetime
+
+
+class FinanceTransactionDetailData(BaseModel):
+    transaction: FinanceTransactionItemResponse
+    audit_events: list[FinanceTransactionAuditItemResponse]
+
+
+class FinanceTransactionDetailResponse(FinanceResponseBase):
+    data: FinanceTransactionDetailData
+
+
 class FinanceAccountBalanceItem(BaseModel):
     account_id: int
+    account_name: str
+    account_type: str
+    currency_id: int
     balance: float
+    is_balance_hidden: bool = False
 
 
 class FinanceAccountBalancesResponse(FinanceResponseBase):

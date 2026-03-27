@@ -15,12 +15,19 @@ from app.tests.fixtures import (  # noqa: E402
 set_test_environment()
 
 from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
+    create_finance_transaction,
     create_finance_entry,
+    finance_account_balances,
     finance_usage,
     finance_summary,
+    get_finance_transaction_detail,
+    list_finance_transactions,
     list_finance_entries,
 )
-from app.apps.tenant_modules.finance.schemas import FinanceEntryCreateRequest  # noqa: E402
+from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
+    FinanceEntryCreateRequest,
+    FinanceTransactionCreateRequest,
+)
 from app.apps.tenant_modules.finance.services.finance_service import (  # noqa: E402
     FinanceService,
     FinanceUsageLimitExceededError,
@@ -152,6 +159,28 @@ class TenantFinanceServiceTestCase(unittest.TestCase):
 
         self.assertIn("finance.entries.monthly.income", str(exc.exception))
 
+    def test_get_transaction_detail_returns_transaction_and_audit_events(self) -> None:
+        transaction = SimpleNamespace(id=10, description="Pago proveedor")
+        audit_events = [SimpleNamespace(id=91, summary="Creada")]
+
+        class FakeEntryRepository:
+            def get_by_id(self, tenant_db, transaction_id):
+                return transaction if transaction_id == 10 else None
+
+        class FakeAuditRepository:
+            def list_by_transaction(self, tenant_db, transaction_id):
+                return audit_events if transaction_id == 10 else []
+
+        service = FinanceService(
+            entry_repository=FakeEntryRepository(),
+            transaction_audit_repository=FakeAuditRepository(),
+        )
+
+        loaded_transaction, loaded_events = service.get_transaction_detail(object(), 10)
+
+        self.assertIs(loaded_transaction, transaction)
+        self.assertEqual(loaded_events, audit_events)
+
 
 class TenantFinanceRoutesTestCase(unittest.TestCase):
     def _current_user(self, role: str = "manager") -> dict:
@@ -215,6 +244,209 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             create_entry_mock.call_args.kwargs["max_monthly_entries_by_type"],
             {"income": 30, "expense": None},
         )
+
+    def test_list_finance_transactions_returns_modern_rows(self) -> None:
+        transactions = [
+            SimpleNamespace(
+                id=7,
+                transaction_type="income",
+                account_id=1,
+                target_account_id=None,
+                category_id=2,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=1,
+                loan_id=None,
+                amount=1250.0,
+                amount_in_base_currency=1250.0,
+                exchange_rate=1.0,
+                discount_amount=0.0,
+                amortization_months=None,
+                transaction_at="2026-03-27T12:00:00+00:00",
+                alternative_date=None,
+                description="Cobro arriendo",
+                notes="marzo",
+                is_favorite=False,
+                favorite_flag=False,
+                is_reconciled=True,
+                reconciled_at="2026-03-27T12:00:00+00:00",
+                is_template_origin=False,
+                source_type=None,
+                source_id=None,
+                created_by_user_id=8,
+                updated_by_user_id=8,
+                created_at="2026-03-27T12:00:00+00:00",
+                updated_at="2026-03-27T12:00:00+00:00",
+            )
+        ]
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.list_transactions",
+            return_value=transactions,
+        ):
+            response = list_finance_transactions(
+                current_user=self._current_user(role="operator"),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.total, 1)
+        self.assertEqual(response.data[0].description, "Cobro arriendo")
+
+    def test_create_finance_transaction_returns_created_transaction(self) -> None:
+        transaction = SimpleNamespace(
+            id=12,
+            transaction_type="expense",
+            account_id=1,
+            target_account_id=None,
+            category_id=2,
+            beneficiary_id=None,
+            person_id=None,
+            project_id=None,
+            currency_id=1,
+            loan_id=None,
+            amount=300.0,
+            amount_in_base_currency=300.0,
+            exchange_rate=1.0,
+            discount_amount=0.0,
+            amortization_months=None,
+            transaction_at="2026-03-27T13:00:00+00:00",
+            alternative_date=None,
+            description="Compra insumos",
+            notes=None,
+            is_favorite=False,
+            favorite_flag=False,
+            is_reconciled=False,
+            reconciled_at=None,
+            is_template_origin=False,
+            source_type=None,
+            source_id=None,
+            created_by_user_id=5,
+            updated_by_user_id=5,
+            created_at="2026-03-27T13:00:00+00:00",
+            updated_at="2026-03-27T13:00:00+00:00",
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.create_transaction",
+            return_value=transaction,
+        ) as create_transaction_mock:
+            response = create_finance_transaction(
+                payload=FinanceTransactionCreateRequest(
+                    transaction_type="expense",
+                    account_id=1,
+                    target_account_id=None,
+                    category_id=2,
+                    beneficiary_id=None,
+                    person_id=None,
+                    project_id=None,
+                    currency_id=1,
+                    loan_id=None,
+                    amount=300.0,
+                    discount_amount=0.0,
+                    exchange_rate=1.0,
+                    amortization_months=None,
+                    transaction_at="2026-03-27T13:00:00+00:00",
+                    alternative_date=None,
+                    description="Compra insumos",
+                    notes=None,
+                    is_favorite=False,
+                    is_reconciled=False,
+                    tag_ids=None,
+                ),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.transaction_type, "expense")
+        self.assertEqual(create_transaction_mock.call_args.kwargs["created_by_user_id"], 1)
+
+    def test_get_finance_transaction_detail_returns_audit_history(self) -> None:
+        transaction = SimpleNamespace(
+            id=14,
+            transaction_type="transfer",
+            account_id=1,
+            target_account_id=2,
+            category_id=None,
+            beneficiary_id=None,
+            person_id=None,
+            project_id=None,
+            currency_id=1,
+            loan_id=None,
+            amount=80.0,
+            amount_in_base_currency=80.0,
+            exchange_rate=1.0,
+            discount_amount=0.0,
+            amortization_months=None,
+            transaction_at="2026-03-27T14:00:00+00:00",
+            alternative_date=None,
+            description="Traspaso caja",
+            notes=None,
+            is_favorite=False,
+            favorite_flag=False,
+            is_reconciled=False,
+            reconciled_at=None,
+            is_template_origin=False,
+            source_type=None,
+            source_id=None,
+            created_by_user_id=9,
+            updated_by_user_id=9,
+            created_at="2026-03-27T14:00:00+00:00",
+            updated_at="2026-03-27T14:00:00+00:00",
+        )
+        audit_events = [
+            SimpleNamespace(
+                id=1,
+                event_type="transaction.created",
+                actor_user_id=9,
+                summary="Transaccion creada",
+                payload_json='{"amount": 80}',
+                created_at="2026-03-27T14:00:00+00:00",
+            )
+        ]
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.get_transaction_detail",
+            return_value=(transaction, audit_events),
+        ):
+            response = get_finance_transaction_detail(
+                transaction_id=14,
+                current_user=self._current_user(role="operator"),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.transaction.id, 14)
+        self.assertEqual(response.data.audit_events[0].payload, {"amount": 80})
+
+    def test_finance_account_balances_returns_named_accounts(self) -> None:
+        accounts = [
+            SimpleNamespace(
+                id=1,
+                name="Caja principal",
+                account_type="cash",
+                currency_id=1,
+                is_balance_hidden=False,
+            )
+        ]
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.account_repository.list_all",
+            return_value=accounts,
+        ), patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.get_account_balances",
+            return_value={1: 980.5},
+        ):
+            response = finance_account_balances(
+                current_user=self._current_user(role="operator"),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data[0].account_name, "Caja principal")
+        self.assertEqual(response.data[0].balance, 980.5)
 
     def test_create_finance_entry_returns_403_when_plan_limit_is_reached(self) -> None:
         with patch(

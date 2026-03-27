@@ -1,17 +1,25 @@
 from app.apps.tenant_modules.finance.api.router import router
 from app.apps.tenant_modules.finance.api.transactions import (
+    create_finance_transaction,
     create_finance_entry,
+    finance_account_balances,
     finance_service,
     finance_summary,
     finance_usage,
+    get_finance_transaction_detail,
+    list_finance_transactions,
     list_finance_entries,
 )
 
 __all__ = [
+    "create_finance_transaction",
     "router",
     "create_finance_entry",
+    "finance_account_balances",
     "finance_service",
     "finance_summary",
     "finance_usage",
+    "get_finance_transaction_detail",
+    "list_finance_transactions",
     "list_finance_entries",
 ]
