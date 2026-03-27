@@ -6,6 +6,23 @@ from app.apps.tenant_modules.finance.models.transaction_audit import FinanceTran
 
 
 class FinanceTransactionAuditRepository:
+    def build_event(
+        self,
+        *,
+        transaction_id: int,
+        event_type: str,
+        actor_user_id: int | None,
+        summary: str,
+        payload: dict | None = None,
+    ) -> FinanceTransactionAudit:
+        return FinanceTransactionAudit(
+            transaction_id=transaction_id,
+            event_type=event_type,
+            actor_user_id=actor_user_id,
+            summary=summary,
+            payload_json=json.dumps(payload) if payload else None,
+        )
+
     def save_event(
         self,
         tenant_db: Session,
@@ -16,12 +33,12 @@ class FinanceTransactionAuditRepository:
         summary: str,
         payload: dict | None = None,
     ) -> FinanceTransactionAudit:
-        event = FinanceTransactionAudit(
+        event = self.build_event(
             transaction_id=transaction_id,
             event_type=event_type,
             actor_user_id=actor_user_id,
             summary=summary,
-            payload_json=json.dumps(payload) if payload else None,
+            payload=payload,
         )
         tenant_db.add(event)
         tenant_db.commit()

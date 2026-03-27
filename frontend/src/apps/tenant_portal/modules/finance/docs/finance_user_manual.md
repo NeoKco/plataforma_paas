@@ -14,6 +14,8 @@ Estado actual:
 - la vista `Préstamos` ya permite elegir cómo se reparte ese abono entre interés y capital
 - la vista `Préstamos` ya permite además revertir parcial o totalmente un abono aplicado a una cuota
 - la vista `Préstamos` ya permite además seleccionar varias cuotas y aplicar pago o reversa en lote
+- al revertir un abono, la vista ahora exige elegir un motivo estructurado y lo deja visible por cuota
+- cada pago o reversa de cuota ya deja además una transacción financiera enlazada al préstamo
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend
 
 Pantallas disponibles:

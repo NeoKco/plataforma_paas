@@ -1,5 +1,5 @@
 from calendar import monthrange
-from datetime import date
+from datetime import date, datetime, time, timezone
 
 from sqlalchemy.orm import Session
 
@@ -11,22 +11,35 @@ from app.apps.tenant_modules.finance.repositories import (
 )
 from app.apps.tenant_modules.finance.schemas import (
     FinanceLoanCreateRequest,
+    FinanceTransactionCreateRequest,
     FinanceLoanUpdateRequest,
 )
+from app.apps.tenant_modules.finance.services.transaction_service import FinanceService
 
 
 class FinanceLoanService:
+    VALID_REVERSAL_REASON_CODES = {
+        "operator_error",
+        "duplicate_payment",
+        "payment_bounce",
+        "customer_request",
+        "migration_adjustment",
+        "other",
+    }
+
     def __init__(
         self,
         loan_repository: FinanceLoanRepository | None = None,
         currency_repository: FinanceCurrencyRepository | None = None,
         installment_repository: FinanceLoanInstallmentRepository | None = None,
+        finance_service: FinanceService | None = None,
     ) -> None:
         self.loan_repository = loan_repository or FinanceLoanRepository()
         self.currency_repository = currency_repository or FinanceCurrencyRepository()
         self.installment_repository = (
             installment_repository or FinanceLoanInstallmentRepository()
         )
+        self.finance_service = finance_service or FinanceService()
 
     def list_loans(
         self,
@@ -123,6 +136,7 @@ class FinanceLoanService:
         paid_at: date | None = None,
         allocation_mode: str = "interest_first",
         note: str | None = None,
+        actor_user_id: int | None = None,
     ) -> tuple[dict, dict]:
         if paid_amount <= 0:
             raise ValueError("El pago aplicado a la cuota debe ser mayor que cero")
@@ -140,6 +154,16 @@ class FinanceLoanService:
             paid_at=paid_at,
             allocation_mode=allocation_mode,
             note=note,
+        )
+        self._stage_installment_accounting_transaction(
+            tenant_db,
+            loan=loan,
+            installment=installment,
+            amount=paid_amount,
+            action_type="payment",
+            note=note,
+            action_date=paid_at,
+            actor_user_id=actor_user_id,
         )
 
         tenant_db.add(installment)
@@ -160,10 +184,13 @@ class FinanceLoanService:
         loan_id: int,
         installment_id: int,
         reversed_amount: float,
+        reversal_reason_code: str,
         note: str | None = None,
+        actor_user_id: int | None = None,
     ) -> tuple[dict, dict]:
         if reversed_amount <= 0:
             raise ValueError("La reversa aplicada a la cuota debe ser mayor que cero")
+        self._validate_reversal_reason_code(reversal_reason_code)
 
         loan = self._get_loan_or_raise(tenant_db, loan_id)
         installment = self.installment_repository.get_by_id(tenant_db, installment_id)
@@ -173,7 +200,19 @@ class FinanceLoanService:
             loan=loan,
             installment=installment,
             reversed_amount=reversed_amount,
+            reversal_reason_code=reversal_reason_code,
             note=note,
+        )
+        self._stage_installment_accounting_transaction(
+            tenant_db,
+            loan=loan,
+            installment=installment,
+            amount=reversed_amount,
+            action_type="reversal",
+            note=note,
+            action_date=installment.paid_at or date.today(),
+            actor_user_id=actor_user_id,
+            reversal_reason_code=reversal_reason_code,
         )
 
         tenant_db.add(installment)
@@ -198,6 +237,7 @@ class FinanceLoanService:
         paid_at: date | None = None,
         allocation_mode: str = "interest_first",
         note: str | None = None,
+        actor_user_id: int | None = None,
     ) -> tuple[dict, list[int]]:
         if allocation_mode not in {"interest_first", "principal_first", "proportional"}:
             raise ValueError("El modo de amortizacion del pago no es valido")
@@ -225,6 +265,16 @@ class FinanceLoanService:
                 allocation_mode=allocation_mode,
                 note=note,
             )
+            self._stage_installment_accounting_transaction(
+                tenant_db,
+                loan=loan,
+                installment=installment,
+                amount=amount_to_apply,
+                action_type="payment",
+                note=note,
+                action_date=paid_at,
+                actor_user_id=actor_user_id,
+            )
             tenant_db.add(installment)
 
         tenant_db.add(loan)
@@ -243,7 +293,9 @@ class FinanceLoanService:
         installment_ids: list[int],
         amount_mode: str = "full_paid",
         reversed_amount: float | None = None,
+        reversal_reason_code: str = "other",
         note: str | None = None,
+        actor_user_id: int | None = None,
     ) -> tuple[dict, list[int]]:
         if amount_mode not in {"full_paid", "fixed_per_installment"}:
             raise ValueError("El modo de monto para reversa en lote no es valido")
@@ -251,6 +303,7 @@ class FinanceLoanService:
             reversed_amount is None or reversed_amount <= 0
         ):
             raise ValueError("El monto fijo por cuota para reversa debe ser mayor que cero")
+        self._validate_reversal_reason_code(reversal_reason_code)
 
         loan, installments = self._get_loan_and_installments_for_batch(
             tenant_db,
@@ -267,7 +320,19 @@ class FinanceLoanService:
                 loan=loan,
                 installment=installment,
                 reversed_amount=amount_to_reverse,
+                reversal_reason_code=reversal_reason_code,
                 note=note,
+            )
+            self._stage_installment_accounting_transaction(
+                tenant_db,
+                loan=loan,
+                installment=installment,
+                amount=amount_to_reverse,
+                action_type="reversal",
+                note=note,
+                action_date=installment.paid_at or date.today(),
+                actor_user_id=actor_user_id,
+                reversal_reason_code=reversal_reason_code,
             )
             tenant_db.add(installment)
 
@@ -452,6 +517,7 @@ class FinanceLoanService:
             installment.paid_interest_amount + interest_delta, 2
         )
         installment.paid_at = paid_at or date.today()
+        installment.reversal_reason_code = None
         if note is not None:
             installment.note = note.strip() or None
         loan.current_balance = round(max(loan.current_balance - principal_delta, 0.0), 2)
@@ -462,6 +528,7 @@ class FinanceLoanService:
         loan: FinanceLoan,
         installment: FinanceLoanInstallment,
         reversed_amount: float,
+        reversal_reason_code: str,
         note: str | None,
     ) -> None:
         if reversed_amount <= 0:
@@ -482,6 +549,7 @@ class FinanceLoanService:
             installment.paid_interest_amount - interest_delta, 2
         )
         installment.paid_at = installment.paid_at if next_paid_amount > 0 else None
+        installment.reversal_reason_code = reversal_reason_code
         if note is not None:
             installment.note = note.strip() or None
         loan.current_balance = round(loan.current_balance + principal_delta, 2)
@@ -506,6 +574,105 @@ class FinanceLoanService:
         if any(installment.loan_id != loan.id for installment in installments):
             raise ValueError("Todas las cuotas del lote deben pertenecer al mismo préstamo")
         return loan, installments
+
+    def _validate_reversal_reason_code(self, reversal_reason_code: str) -> None:
+        if reversal_reason_code not in self.VALID_REVERSAL_REASON_CODES:
+            raise ValueError("El codigo de motivo de reversa no es valido")
+
+    def _stage_installment_accounting_transaction(
+        self,
+        tenant_db: Session,
+        *,
+        loan: FinanceLoan,
+        installment: FinanceLoanInstallment,
+        amount: float,
+        action_type: str,
+        note: str | None,
+        action_date: date | None,
+        actor_user_id: int | None,
+        reversal_reason_code: str | None = None,
+    ) -> None:
+        effective_date = action_date or date.today()
+        transaction_type = self._build_installment_transaction_type(
+            loan_type=loan.loan_type,
+            action_type=action_type,
+        )
+        description = self._build_installment_transaction_description(
+            loan=loan,
+            installment=installment,
+            action_type=action_type,
+        )
+        notes = note.strip() if note and note.strip() else None
+        if reversal_reason_code:
+            notes = (
+                f"{notes} | motivo={reversal_reason_code}"
+                if notes
+                else f"motivo={reversal_reason_code}"
+            )
+        self.finance_service.stage_system_transaction(
+            tenant_db,
+            FinanceTransactionCreateRequest(
+                transaction_type=transaction_type,
+                account_id=None,
+                target_account_id=None,
+                category_id=None,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=loan.currency_id,
+                loan_id=loan.id,
+                amount=amount,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime.combine(
+                    effective_date,
+                    time.min,
+                    tzinfo=timezone.utc,
+                ),
+                alternative_date=effective_date,
+                description=description,
+                notes=notes,
+                is_favorite=False,
+                is_reconciled=False,
+                tag_ids=None,
+            ),
+            actor_user_id=actor_user_id,
+            source_type=f"loan_installment_{action_type}",
+            source_id=installment.id,
+            event_type=f"transaction.created.loan_installment_{action_type}",
+            summary=(
+                "Transaccion financiera generada por pago de cuota"
+                if action_type == "payment"
+                else "Transaccion financiera generada por reversa de cuota"
+            ),
+            audit_payload={
+                "loan_id": loan.id,
+                "installment_id": installment.id,
+                "reversal_reason_code": reversal_reason_code,
+            },
+            allow_accountless=True,
+        )
+
+    def _build_installment_transaction_type(
+        self,
+        *,
+        loan_type: str,
+        action_type: str,
+    ) -> str:
+        if loan_type == "borrowed":
+            return "expense" if action_type == "payment" else "income"
+        return "income" if action_type == "payment" else "expense"
+
+    def _build_installment_transaction_description(
+        self,
+        *,
+        loan: FinanceLoan,
+        installment: FinanceLoanInstallment,
+        action_type: str,
+    ) -> str:
+        action_label = "Pago cuota" if action_type == "payment" else "Reversa cuota"
+        return f"{action_label} {installment.installment_number} - {loan.name}"
 
     def _split_amount(self, amount: float, chunks: int) -> list[float]:
         base = round(amount / chunks, 2)

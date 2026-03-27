@@ -43,7 +43,7 @@ Lo pendiente es sobre todo:
 - definir la convencion oficial para que los siguientes modulos nazcan como slices coherentes, tomando `finance` como modulo piloto
 - completar la vista moderna de transacciones con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes antes de abrir mas dominios grandes dentro de finance
 - endurecer la primera pantalla de `Presupuestos` antes de abrir reportes
-- endurecer pagos de `Préstamos` con razones estructuradas de reversa y enlace contable antes de darlo por base cerrada
+- enriquecer pagos de `Préstamos` con cuenta origen y lectura contable derivada antes de darlo por base cerrada
 
 Nota de ejecucion:
 

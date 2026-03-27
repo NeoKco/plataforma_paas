@@ -876,6 +876,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 paid_principal_amount=100.0,
                 paid_interest_amount=10.0,
                 paid_at=date(2026, 3, 1),
+                reversal_reason_code=None,
                 note=None,
                 created_at="2026-03-27T16:00:00+00:00",
                 updated_at="2026-03-27T16:00:00+00:00",
@@ -938,6 +939,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 paid_principal_amount=40.0,
                 paid_interest_amount=10.0,
                 paid_at=date(2026, 4, 1),
+                reversal_reason_code=None,
                 note="Abono parcial",
                 created_at="2026-03-27T16:00:00+00:00",
                 updated_at="2026-03-27T16:00:00+00:00",
@@ -967,6 +969,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.installment.paid_principal_amount, 40.0)
         self.assertEqual(response.data.installment.paid_interest_amount, 10.0)
         self.assertEqual(apply_payment_mock.call_args.kwargs["paid_amount"], 50.0)
+        self.assertEqual(apply_payment_mock.call_args.kwargs["actor_user_id"], 1)
         self.assertEqual(
             apply_payment_mock.call_args.kwargs["allocation_mode"], "interest_first"
         )
@@ -1011,6 +1014,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 paid_principal_amount=50.0,
                 paid_interest_amount=10.0,
                 paid_at=date(2026, 4, 1),
+                reversal_reason_code="operator_error",
                 note="Reversa parcial",
                 created_at="2026-03-27T16:00:00+00:00",
                 updated_at="2026-03-27T16:00:00+00:00",
@@ -1027,6 +1031,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 installment_id=22,
                 payload=FinanceLoanInstallmentReversalRequest(
                     reversed_amount=40.0,
+                    reversal_reason_code="operator_error",
                     note="Reversa parcial",
                 ),
                 current_user=self._current_user(),
@@ -1038,7 +1043,13 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.installment.installment_status, "partial")
         self.assertEqual(response.data.installment.paid_principal_amount, 50.0)
         self.assertEqual(response.data.installment.paid_interest_amount, 10.0)
+        self.assertEqual(response.data.installment.reversal_reason_code, "operator_error")
         self.assertEqual(reverse_payment_mock.call_args.kwargs["reversed_amount"], 40.0)
+        self.assertEqual(reverse_payment_mock.call_args.kwargs["actor_user_id"], 1)
+        self.assertEqual(
+            reverse_payment_mock.call_args.kwargs["reversal_reason_code"],
+            "operator_error",
+        )
 
     def test_apply_finance_loan_installment_payment_batch_returns_affected_rows(self) -> None:
         loan_row = {
@@ -1090,6 +1101,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.affected_count, 2)
         self.assertEqual(response.data.installment_ids, [21, 22])
         self.assertEqual(response.data.loan.current_balance, 700.0)
+        self.assertEqual(apply_payment_batch_mock.call_args.kwargs["actor_user_id"], 1)
         self.assertEqual(apply_payment_batch_mock.call_args.kwargs["amount_mode"], "full_remaining")
 
     def test_reverse_finance_loan_installment_payment_batch_returns_affected_rows(self) -> None:
@@ -1130,6 +1142,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     installment_ids=[21, 22],
                     amount_mode="fixed_per_installment",
                     reversed_amount=40.0,
+                    reversal_reason_code="duplicate_payment",
                     note="Reversa batch",
                 ),
                 current_user=self._current_user(),
@@ -1140,9 +1153,14 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.affected_count, 2)
         self.assertEqual(response.data.installment_ids, [21, 22])
         self.assertEqual(response.data.loan.current_balance, 780.0)
+        self.assertEqual(reverse_payment_batch_mock.call_args.kwargs["actor_user_id"], 1)
         self.assertEqual(
             reverse_payment_batch_mock.call_args.kwargs["amount_mode"],
             "fixed_per_installment",
+        )
+        self.assertEqual(
+            reverse_payment_batch_mock.call_args.kwargs["reversal_reason_code"],
+            "duplicate_payment",
         )
 
     def test_update_finance_transaction_favorite_returns_mutated_transaction(self) -> None:

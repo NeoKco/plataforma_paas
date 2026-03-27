@@ -46,9 +46,11 @@
 - esa misma pantalla ya muestra capital pagado e interes pagado por cuota
 - esa misma pantalla ya permite revertir parcial o totalmente un abono ya aplicado sobre una cuota
 - esa misma pantalla ya permite seleccionar varias cuotas y operar pago o reversa en lote
+- esa misma pantalla ya exige motivo estructurado al revertir y muestra ese motivo en el cronograma
+- esa misma pantalla ya dispara el enlace contable minimo: pago/reversa crean transacciones enlazadas
 
 Pendiente inmediato:
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
 - endurecer `Presupuestos` con lectura agregada mas densa antes de abrir reportes
-- endurecer el pago de cuotas de `Préstamos` con razones estructuradas de reversa y enlace contable antes de considerarlo un dominio cerrado
+- enriquecer el pago de cuotas de `Préstamos` con cuenta origen y lectura contable derivada antes de considerarlo un dominio cerrado

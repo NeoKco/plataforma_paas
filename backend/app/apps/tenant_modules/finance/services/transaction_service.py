@@ -2,7 +2,11 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.finance.models import FinanceAccount, FinanceCurrency, FinanceTransaction
+from app.apps.tenant_modules.finance.models import (
+    FinanceAccount,
+    FinanceCurrency,
+    FinanceTransaction,
+)
 from app.apps.tenant_modules.finance.repositories import (
     FinanceAccountRepository,
     FinanceCurrencyRepository,
@@ -150,38 +154,76 @@ class FinanceService:
         payload: FinanceTransactionCreateRequest,
         *,
         created_by_user_id: int | None = None,
+        source_type: str | None = None,
+        source_id: int | None = None,
+        event_type: str = "transaction.created",
+        summary: str = "Transaccion financiera creada",
+        audit_payload: dict | None = None,
+        allow_accountless: bool = False,
+    ) -> FinanceTransaction:
+        transaction = self.stage_system_transaction(
+            tenant_db,
+            payload,
+            actor_user_id=created_by_user_id,
+            source_type=source_type,
+            source_id=source_id,
+            event_type=event_type,
+            summary=summary,
+            audit_payload=audit_payload,
+            allow_accountless=allow_accountless,
+        )
+        tenant_db.commit()
+        tenant_db.refresh(transaction)
+        return transaction
+
+    def stage_system_transaction(
+        self,
+        tenant_db: Session,
+        payload: FinanceTransactionCreateRequest,
+        *,
+        actor_user_id: int | None = None,
+        source_type: str | None = None,
+        source_id: int | None = None,
+        event_type: str = "transaction.created",
+        summary: str = "Transaccion financiera creada",
+        audit_payload: dict | None = None,
+        allow_accountless: bool = False,
     ) -> FinanceTransaction:
         transaction_values = self._build_transaction_values(
             tenant_db,
             payload,
             current_transaction=None,
+            allow_accountless=allow_accountless,
         )
         transaction = FinanceTransaction(
             **transaction_values,
             is_template_origin=False,
             planner_id=None,
             template_id=None,
-            source_type=None,
-            source_id=None,
-            created_by_user_id=created_by_user_id,
-            updated_by_user_id=created_by_user_id,
+            source_type=source_type,
+            source_id=source_id,
+            created_by_user_id=actor_user_id,
+            updated_by_user_id=actor_user_id,
         )
-        saved = self.transaction_repository.save(tenant_db, transaction)
-        self.transaction_audit_repository.save_event(
-            tenant_db,
-            transaction_id=saved.id,
-            event_type="transaction.created",
-            actor_user_id=created_by_user_id,
-            summary="Transaccion financiera creada",
-            payload={
-                "transaction_type": transaction_values["transaction_type"],
-                "account_id": transaction_values["account_id"],
-                "target_account_id": transaction_values["target_account_id"],
-                "currency_id": transaction_values["currency_id"],
-                "amount": transaction_values["amount"],
-            },
+        tenant_db.add(transaction)
+        tenant_db.flush()
+        tenant_db.add(
+            self.transaction_audit_repository.build_event(
+                transaction_id=transaction.id,
+                event_type=event_type,
+                actor_user_id=actor_user_id,
+                summary=summary,
+                payload={
+                    "transaction_type": transaction_values["transaction_type"],
+                    "account_id": transaction_values["account_id"],
+                    "target_account_id": transaction_values["target_account_id"],
+                    "currency_id": transaction_values["currency_id"],
+                    "amount": transaction_values["amount"],
+                    **(audit_payload or {}),
+                },
+            )
         )
-        return saved
+        return transaction
 
     def update_transaction(
         self,
@@ -382,6 +424,7 @@ class FinanceService:
         payload: FinanceTransactionCreateRequest | FinanceTransactionUpdateRequest,
         *,
         current_transaction: FinanceTransaction | None,
+        allow_accountless: bool = False,
     ) -> dict:
         normalized_type = payload.transaction_type.strip().lower()
         if normalized_type not in {"income", "expense", "transfer"}:
@@ -395,7 +438,7 @@ class FinanceService:
         source_account = self._get_account_if_present(tenant_db, payload.account_id)
         target_account = self._get_account_if_present(tenant_db, payload.target_account_id)
 
-        if payload.account_id is None:
+        if payload.account_id is None and not allow_accountless:
             raise ValueError("La transaccion requiere una cuenta origen")
 
         if normalized_type == "transfer":

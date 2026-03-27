@@ -15,6 +15,7 @@ from migrations.tenant import v0006_finance_budgets
 from migrations.tenant import v0007_finance_loans
 from migrations.tenant import v0008_finance_loan_installments
 from migrations.tenant import v0009_finance_loan_installment_payment_split
+from migrations.tenant import v0010_finance_loan_installment_reversal_reason
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -139,6 +140,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0007_finance_loans",
                 "0008_finance_loan_installments",
                 "0009_finance_loan_installment_payment_split",
+                "0010_finance_loan_installment_reversal_reason",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -169,6 +171,7 @@ class MigrationFlowTestCase(unittest.TestCase):
         }
         self.assertIn("paid_principal_amount", installment_columns)
         self.assertIn("paid_interest_amount", installment_columns)
+        self.assertIn("reversal_reason_code", installment_columns)
 
         with engine.connect() as conn:
             currency_rows = conn.execute(
@@ -217,6 +220,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0007_finance_loans",
                 "0008_finance_loan_installments",
                 "0009_finance_loan_installment_payment_split",
+                "0010_finance_loan_installment_reversal_reason",
             ],
         )
 
@@ -351,6 +355,23 @@ class MigrationFlowTestCase(unittest.TestCase):
         }
         self.assertIn("paid_principal_amount", installment_columns)
         self.assertIn("paid_interest_amount", installment_columns)
+
+    def test_finance_loan_installment_reversal_reason_migration_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            v0003_finance_catalogs.upgrade(conn)
+            v0007_finance_loans.upgrade(conn)
+            v0008_finance_loan_installments.upgrade(conn)
+            v0009_finance_loan_installment_payment_split.upgrade(conn)
+            v0010_finance_loan_installment_reversal_reason.upgrade(conn)
+            v0010_finance_loan_installment_reversal_reason.upgrade(conn)
+
+        installment_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("finance_loan_installments")
+        }
+        self.assertIn("reversal_reason_code", installment_columns)
 
 
 if __name__ == "__main__":

@@ -81,6 +81,8 @@ En esta fase quedaron listos:
 - tracking separado de capital pagado e interes pagado en el cronograma
 - reversa parcial o total de abonos sobre cuotas de `Préstamos`, con devolucion del capital revertido al saldo del préstamo
 - pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
+- razones estructuradas de reversa sobre cuotas, tanto individual como batch
+- enlace contable minimo de cuotas: cada pago o reversa genera una transaccion en `finance_transactions`
 
 ## Archivos principales
 
@@ -261,12 +263,14 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 12. asignacion configurable del pago entre interes y capital con tracking separado por cuota
 13. reversa parcial o total de abonos sobre cuota, con ajuste inverso del saldo pendiente segun capital revertido
 14. pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
+15. motivos estructurados de reversa sobre cuotas, visibles en cronograma y persistidos en DB
+16. enlace contable minimo desde cuotas hacia `finance_transactions` por `loan_id`, `source_type` y `source_id`
 
 Lo siguiente recomendable ahora es:
 
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
-3. endurecer `Préstamos` con razones estructuradas de reversa y enlace contable real
+3. enriquecer el enlace contable de `Préstamos` con cuenta origen y lectura derivada mas densa
 4. seguir con planificacion y reportes
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 6. abrir exportacion o vistas derivadas cuando el trabajo operativo del slice ya quede estable

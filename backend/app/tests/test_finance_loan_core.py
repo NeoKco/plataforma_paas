@@ -6,6 +6,7 @@ os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
 
 from app.apps.tenant_modules.finance.models.currency import FinanceCurrency  # noqa: E402
+from app.apps.tenant_modules.finance.models.transaction import FinanceTransaction  # noqa: E402
 from app.apps.tenant_modules.finance.schemas import FinanceLoanCreateRequest  # noqa: E402
 from app.apps.tenant_modules.finance.services.loan_service import (  # noqa: E402
     FinanceLoanService,
@@ -203,6 +204,12 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         self.assertEqual(updated_installment_row["installment"].note, "Pago inicial")
         self.assertEqual(updated_loan_row["loan"].current_balance, 840.0)
         self.assertEqual(updated_loan_row["installments_paid"], 0)
+        transactions = self.db.query(FinanceTransaction).order_by(FinanceTransaction.id.asc()).all()
+        self.assertEqual(len(transactions), 1)
+        self.assertEqual(transactions[0].transaction_type, "expense")
+        self.assertEqual(transactions[0].loan_id, loan.id)
+        self.assertEqual(transactions[0].source_type, "loan_installment_payment")
+        self.assertEqual(transactions[0].source_id, installment.id)
 
     def test_reverse_installment_payment_restores_installment_and_loan_balance(self) -> None:
         currency = self._seed_currency()
@@ -240,15 +247,27 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
             loan_id=loan.id,
             installment_id=installment.id,
             reversed_amount=50.0,
+            reversal_reason_code="operator_error",
             note="Reversa parcial",
         )
 
         self.assertEqual(updated_installment_row["installment"].paid_amount, 100.0)
         self.assertEqual(updated_installment_row["installment"].paid_principal_amount, 70.0)
         self.assertEqual(updated_installment_row["installment"].paid_interest_amount, 30.0)
+        self.assertEqual(
+            updated_installment_row["installment"].reversal_reason_code,
+            "operator_error",
+        )
         self.assertEqual(updated_installment_row["installment"].note, "Reversa parcial")
         self.assertEqual(updated_installment_row["installment_status"], "partial")
         self.assertEqual(updated_loan_row["loan"].current_balance, 830.0)
+        transactions = self.db.query(FinanceTransaction).order_by(FinanceTransaction.id.asc()).all()
+        self.assertEqual(len(transactions), 2)
+        self.assertEqual(transactions[0].transaction_type, "expense")
+        self.assertEqual(transactions[0].source_type, "loan_installment_payment")
+        self.assertEqual(transactions[1].transaction_type, "income")
+        self.assertEqual(transactions[1].source_type, "loan_installment_reversal")
+        self.assertEqual(transactions[1].source_id, installment.id)
 
     def test_apply_installment_payment_supports_principal_first_allocation(self) -> None:
         currency = self._seed_currency()
@@ -361,6 +380,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
             installment_ids=[installments[0]["installment"].id, installments[1]["installment"].id],
             amount_mode="fixed_per_installment",
             reversed_amount=50.0,
+            reversal_reason_code="duplicate_payment",
             note="Reversa lote",
         )
 
@@ -370,7 +390,53 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         self.assertEqual(refreshed_installments[0]["installment"].paid_amount, 190.0)
         self.assertEqual(refreshed_installments[0]["installment"].paid_principal_amount, 150.0)
         self.assertEqual(refreshed_installments[0]["installment"].paid_interest_amount, 40.0)
+        self.assertEqual(
+            refreshed_installments[0]["installment"].reversal_reason_code,
+            "duplicate_payment",
+        )
         self.assertEqual(refreshed_installments[1]["installment"].paid_amount, 190.0)
+
+    def test_reverse_installment_payment_rejects_invalid_reason_code(self) -> None:
+        currency = self._seed_currency()
+        loan = self.loan_service.create_loan(
+            self.db,
+            FinanceLoanCreateRequest(
+                name="Credito motivo invalido",
+                loan_type="borrowed",
+                counterparty_name="Banco Test",
+                currency_id=currency.id,
+                principal_amount=500.0,
+                current_balance=500.0,
+                interest_rate=12.0,
+                installments_count=2,
+                payment_frequency="monthly",
+                start_date=date(2027, 1, 1),
+                due_date=date(2027, 2, 1),
+                note=None,
+                is_active=True,
+            ),
+        )
+        _loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        installment = installments[0]["installment"]
+        self.loan_service.apply_installment_payment(
+            self.db,
+            loan_id=loan.id,
+            installment_id=installment.id,
+            paid_amount=100.0,
+            note="Pago previo",
+        )
+
+        with self.assertRaisesRegex(
+            ValueError, "El codigo de motivo de reversa no es valido"
+        ):
+            self.loan_service.reverse_installment_payment(
+                self.db,
+                loan_id=loan.id,
+                installment_id=installment.id,
+                reversed_amount=50.0,
+                reversal_reason_code="not_valid",
+                note="Reversa invalida",
+            )
 
 
 if __name__ == "__main__":

@@ -41,9 +41,11 @@ Alcance de esta fase:
 - tracking por cuota de capital pagado e interés pagado
 - reversa parcial o total de abonos sobre cuotas
 - pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
+- razones estructuradas de reversa sobre cuotas
+- enlace contable minimo: pagos y reversas de cuotas ya generan transacciones reales enlazadas al préstamo
 
 Pendiente inmediato:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura mas densa y estados operativos mas ricos
-- endurecer pagos de `Préstamos` con razones estructuradas de reversa y enlace contable
+- enriquecer el enlace contable de `Préstamos`
 - `Lote 7` prestamos, planificacion y reportes

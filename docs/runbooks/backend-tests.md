@@ -202,7 +202,9 @@ Cobertura actual:
 - asignacion del pago entre capital e interes
 - reversa parcial o total de pagos sobre cuotas de prestamos
 - pagos y reversiones en lote sobre cuotas de prestamos
-- migraciones tenant del modulo hasta `0009_finance_loan_installment_payment_split`
+- validacion de motivos estructurados de reversa sobre cuotas
+- enlace contable minimo desde cuotas hacia `finance_transactions`
+- migraciones tenant del modulo hasta `0010_finance_loan_installment_reversal_reason`
 - seeds idempotentes para moneda base, `CLP`, categorias y settings
 - repositories CRUD base del modulo y sus restricciones de unicidad/activacion
 - validaciones de servicio para cuentas, categorias y moneda base

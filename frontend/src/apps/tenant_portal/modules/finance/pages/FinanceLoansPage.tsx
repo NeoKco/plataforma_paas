@@ -53,6 +53,7 @@ type InstallmentPaymentFormState = {
   installmentId: number | null;
   paidAmount: string;
   allocationMode: string;
+  reversalReasonCode: string;
   note: string;
 };
 
@@ -61,6 +62,7 @@ type InstallmentBatchFormState = {
   amountMode: string;
   amount: string;
   allocationMode: string;
+  reversalReasonCode: string;
   note: string;
 };
 
@@ -94,6 +96,7 @@ export function FinanceLoansPage() {
     installmentId: null,
     paidAmount: "",
     allocationMode: "interest_first",
+    reversalReasonCode: "operator_error",
     note: "",
   });
   const [selectedInstallmentIds, setSelectedInstallmentIds] = useState<number[]>([]);
@@ -102,6 +105,7 @@ export function FinanceLoansPage() {
     amountMode: "full_remaining",
     amount: "",
     allocationMode: "interest_first",
+    reversalReasonCode: "operator_error",
     note: "",
   });
   const [filterLoanType, setFilterLoanType] = useState("");
@@ -142,6 +146,7 @@ export function FinanceLoansPage() {
       installmentId: null,
       paidAmount: "",
       allocationMode: "interest_first",
+      reversalReasonCode: "operator_error",
       note: "",
     });
     setSelectedInstallmentIds([]);
@@ -150,6 +155,7 @@ export function FinanceLoansPage() {
       amountMode: "full_remaining",
       amount: "",
       allocationMode: "interest_first",
+      reversalReasonCode: "operator_error",
       note: "",
     });
   }, [selectedLoanId]);
@@ -295,6 +301,7 @@ export function FinanceLoansPage() {
       installmentId: installment.id,
       paidAmount: remainingAmount > 0 ? String(remainingAmount) : "",
       allocationMode: "interest_first",
+      reversalReasonCode: installment.reversal_reason_code || "operator_error",
       note: installment.note || "",
     });
   }
@@ -305,6 +312,7 @@ export function FinanceLoansPage() {
       installmentId: installment.id,
       paidAmount: installment.paid_amount > 0 ? String(installment.paid_amount) : "",
       allocationMode: "interest_first",
+      reversalReasonCode: installment.reversal_reason_code || "operator_error",
       note: installment.note || "",
     });
   }
@@ -338,6 +346,7 @@ export function FinanceLoansPage() {
               paymentFormState.installmentId,
               {
                 reversed_amount: Number.parseFloat(paymentFormState.paidAmount),
+                reversal_reason_code: paymentFormState.reversalReasonCode,
                 note: paymentFormState.note.trim() || null,
               }
             );
@@ -348,6 +357,7 @@ export function FinanceLoansPage() {
         installmentId: null,
         paidAmount: "",
         allocationMode: "interest_first",
+        reversalReasonCode: "operator_error",
         note: "",
       });
       setActionFeedback({ type: "success", message: response.message });
@@ -398,6 +408,7 @@ export function FinanceLoansPage() {
                   batchFormState.amountMode === "fixed_per_installment"
                     ? Number.parseFloat(batchFormState.amount)
                     : null,
+                reversal_reason_code: batchFormState.reversalReasonCode,
                 note: batchFormState.note.trim() || null,
               }
             );
@@ -409,6 +420,7 @@ export function FinanceLoansPage() {
         amountMode: "full_remaining",
         amount: "",
         allocationMode: "interest_first",
+        reversalReasonCode: "operator_error",
         note: "",
       });
       setActionFeedback({
@@ -863,6 +875,7 @@ export function FinanceLoansPage() {
                             event.target.value === "apply"
                               ? "full_remaining"
                               : "full_paid",
+                          reversalReasonCode: "operator_error",
                         }))
                       }
                     >
@@ -917,22 +930,42 @@ export function FinanceLoansPage() {
                     />
                   </div>
                   <div>
-                    <label className="form-label">Modo amortización</label>
-                    <select
-                      className="form-select"
-                      value={batchFormState.allocationMode}
-                      disabled={batchFormState.mode === "reverse"}
-                      onChange={(event) =>
-                        setBatchFormState((current) => ({
-                          ...current,
-                          allocationMode: event.target.value,
-                        }))
-                      }
-                    >
-                      <option value="interest_first">Interés primero</option>
-                      <option value="principal_first">Capital primero</option>
-                      <option value="proportional">Proporcional</option>
-                    </select>
+                    <label className="form-label">
+                      {batchFormState.mode === "apply" ? "Modo amortización" : "Motivo reversa"}
+                    </label>
+                    {batchFormState.mode === "apply" ? (
+                      <select
+                        className="form-select"
+                        value={batchFormState.allocationMode}
+                        onChange={(event) =>
+                          setBatchFormState((current) => ({
+                            ...current,
+                            allocationMode: event.target.value,
+                          }))
+                        }
+                      >
+                        <option value="interest_first">Interés primero</option>
+                        <option value="principal_first">Capital primero</option>
+                        <option value="proportional">Proporcional</option>
+                      </select>
+                    ) : (
+                      <select
+                        className="form-select"
+                        value={batchFormState.reversalReasonCode}
+                        onChange={(event) =>
+                          setBatchFormState((current) => ({
+                            ...current,
+                            reversalReasonCode: event.target.value,
+                          }))
+                        }
+                      >
+                        {REVERSAL_REASON_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                 </div>
 
@@ -970,6 +1003,7 @@ export function FinanceLoansPage() {
                         amountMode: "full_remaining",
                         amount: "",
                         allocationMode: "interest_first",
+                        reversalReasonCode: "operator_error",
                         note: "",
                       });
                     }}
@@ -1002,22 +1036,42 @@ export function FinanceLoansPage() {
                     />
                   </div>
                   <div>
-                    <label className="form-label">Modo amortización</label>
-                    <select
-                      className="form-select"
-                      value={paymentFormState.allocationMode}
-                      onChange={(event) =>
-                        setPaymentFormState((current) => ({
-                          ...current,
-                          allocationMode: event.target.value,
-                        }))
-                      }
-                      disabled={paymentFormState.mode === "reverse"}
-                    >
-                      <option value="interest_first">Interés primero</option>
-                      <option value="principal_first">Capital primero</option>
-                      <option value="proportional">Proporcional</option>
-                    </select>
+                    <label className="form-label">
+                      {paymentFormState.mode === "apply" ? "Modo amortización" : "Motivo reversa"}
+                    </label>
+                    {paymentFormState.mode === "apply" ? (
+                      <select
+                        className="form-select"
+                        value={paymentFormState.allocationMode}
+                        onChange={(event) =>
+                          setPaymentFormState((current) => ({
+                            ...current,
+                            allocationMode: event.target.value,
+                          }))
+                        }
+                      >
+                        <option value="interest_first">Interés primero</option>
+                        <option value="principal_first">Capital primero</option>
+                        <option value="proportional">Proporcional</option>
+                      </select>
+                    ) : (
+                      <select
+                        className="form-select"
+                        value={paymentFormState.reversalReasonCode}
+                        onChange={(event) =>
+                          setPaymentFormState((current) => ({
+                            ...current,
+                            reversalReasonCode: event.target.value,
+                          }))
+                        }
+                      >
+                        {REVERSAL_REASON_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                 </div>
                 <div className="tenant-inline-form-grid">
@@ -1050,6 +1104,7 @@ export function FinanceLoansPage() {
                         installmentId: null,
                         paidAmount: "",
                         allocationMode: "interest_first",
+                        reversalReasonCode: "operator_error",
                         note: "",
                       })
                     }
@@ -1084,6 +1139,7 @@ export function FinanceLoansPage() {
                       <th>Pagado</th>
                       <th>Capital pagado</th>
                       <th>Interés pagado</th>
+                      <th>Motivo reversa</th>
                       <th>Estado</th>
                       <th>Acción</th>
                     </tr>
@@ -1107,6 +1163,7 @@ export function FinanceLoansPage() {
                         <td>{formatMoney(installment.paid_amount)}</td>
                         <td>{formatMoney(installment.paid_principal_amount)}</td>
                         <td>{formatMoney(installment.paid_interest_amount)}</td>
+                        <td>{displayReversalReason(installment.reversal_reason_code)}</td>
                         <td>
                           <span
                             className={`status-badge ${installmentStatusBadgeClass(
@@ -1239,6 +1296,22 @@ function installmentStatusBadgeClass(value: string): string {
 
 function formatShortDate(value: string): string {
   return new Date(`${value}T00:00:00`).toLocaleDateString();
+}
+
+const REVERSAL_REASON_OPTIONS = [
+  { value: "operator_error", label: "Error operativo" },
+  { value: "duplicate_payment", label: "Pago duplicado" },
+  { value: "payment_bounce", label: "Pago rechazado" },
+  { value: "customer_request", label: "Solicitud cliente" },
+  { value: "migration_adjustment", label: "Ajuste migración" },
+  { value: "other", label: "Otro" },
+];
+
+function displayReversalReason(value: string | null): string {
+  if (!value) {
+    return "n/a";
+  }
+  return REVERSAL_REASON_OPTIONS.find((option) => option.value === value)?.label || value;
 }
 
 function DetailField({ label, value }: { label: string; value: ReactNode }) {

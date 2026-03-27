@@ -355,7 +355,8 @@ backend/
 │       ├── v0006_finance_budgets.py
 │       ├── v0007_finance_loans.py
 │       ├── v0008_finance_loan_installments.py
-│       └── v0009_finance_loan_installment_payment_split.py
+│       ├── v0009_finance_loan_installment_payment_split.py
+│       └── v0010_finance_loan_installment_reversal_reason.py
 ```
 
 ## Frontend en Estado Actual

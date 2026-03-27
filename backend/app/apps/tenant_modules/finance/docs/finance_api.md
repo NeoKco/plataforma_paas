@@ -125,6 +125,10 @@ Estado actual de `Lote 6`:
 - ya existe `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment/reversal` para revertir parcial o totalmente un abono aplicado a una cuota
 - ya existe `PATCH /tenant/finance/loans/{loan_id}/installments/payment/reversal/batch` para revertir en lote cuotas seleccionadas del mismo préstamo
 - la reversa batch ya admite `amount_mode = full_paid | fixed_per_installment`
+- la reversa individual y batch ahora exigen `reversal_reason_code`
+- el detalle de cuota ya expone `reversal_reason_code`
+- pagos y reversas sobre cuotas ahora generan una transaccion real en `finance_transactions`
+- esa transaccion queda enlazada por `loan_id`, `source_type` (`loan_installment_payment|loan_installment_reversal`) y `source_id`
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Préstamos`
 
 Nucleo transaccional ya disponible en backend:
@@ -139,5 +143,5 @@ Nucleo transaccional ya disponible en backend:
 Pendiente:
 - enriquecer `budgets` con lectura mas densa por categoria y estados operativos mas ricos
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
-- endurecer pagos de `loans` con razones estructuradas de reversa y enlace contable antes de enlazarlo a reportes
+- enriquecer el enlace contable de `loans` con cuenta origen y lectura derivada mas densa
 - endpoints de planificacion y reportes

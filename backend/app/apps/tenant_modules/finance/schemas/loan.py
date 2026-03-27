@@ -62,6 +62,7 @@ class FinanceLoanInstallmentItemResponse(BaseModel):
     paid_principal_amount: float
     paid_interest_amount: float
     paid_at: date | None = None
+    reversal_reason_code: str | None = None
     installment_status: str
     note: str | None = None
     created_at: datetime
@@ -77,6 +78,7 @@ class FinanceLoanInstallmentPaymentRequest(BaseModel):
 
 class FinanceLoanInstallmentReversalRequest(BaseModel):
     reversed_amount: float
+    reversal_reason_code: str
     note: str | None = None
 
 
@@ -93,6 +95,7 @@ class FinanceLoanInstallmentReversalBatchRequest(BaseModel):
     installment_ids: list[int]
     amount_mode: str = "full_paid"
     reversed_amount: float | None = None
+    reversal_reason_code: str
     note: str | None = None
 
 

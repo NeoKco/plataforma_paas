@@ -59,6 +59,7 @@ export type TenantFinanceLoanInstallment = {
   paid_principal_amount: number;
   paid_interest_amount: number;
   paid_at: string | null;
+  reversal_reason_code: string | null;
   installment_status: string;
   note: string | null;
   created_at: string;
@@ -92,6 +93,7 @@ export type TenantFinanceLoanInstallmentPaymentResponse = {
 
 export type TenantFinanceLoanInstallmentReversalRequest = {
   reversed_amount: number;
+  reversal_reason_code: string;
   note: string | null;
 };
 
@@ -127,6 +129,7 @@ export type TenantFinanceLoanInstallmentReversalBatchRequest = {
   installment_ids: number[];
   amount_mode: string;
   reversed_amount: number | null;
+  reversal_reason_code: string;
   note: string | null;
 };
 

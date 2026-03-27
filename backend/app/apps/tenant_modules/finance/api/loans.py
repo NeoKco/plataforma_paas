@@ -76,6 +76,7 @@ def _build_installment_item(row: dict) -> FinanceLoanInstallmentItemResponse:
         paid_principal_amount=installment.paid_principal_amount,
         paid_interest_amount=installment.paid_interest_amount,
         paid_at=installment.paid_at,
+        reversal_reason_code=installment.reversal_reason_code,
         installment_status=row["installment_status"],
         note=installment.note,
         created_at=installment.created_at,
@@ -149,6 +150,7 @@ def apply_finance_loan_installment_payment_batch(
             paid_at=payload.paid_at,
             allocation_mode=payload.allocation_mode,
             note=payload.note,
+            actor_user_id=current_user["user_id"],
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -185,6 +187,7 @@ def apply_finance_loan_installment_payment(
             paid_at=payload.paid_at,
             allocation_mode=payload.allocation_mode,
             note=payload.note,
+            actor_user_id=current_user["user_id"],
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -217,7 +220,9 @@ def reverse_finance_loan_installment_payment_batch(
             installment_ids=payload.installment_ids,
             amount_mode=payload.amount_mode,
             reversed_amount=payload.reversed_amount,
+            reversal_reason_code=payload.reversal_reason_code,
             note=payload.note,
+            actor_user_id=current_user["user_id"],
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -251,7 +256,9 @@ def reverse_finance_loan_installment_payment(
             loan_id=loan_id,
             installment_id=installment_id,
             reversed_amount=payload.reversed_amount,
+            reversal_reason_code=payload.reversal_reason_code,
             note=payload.note,
+            actor_user_id=current_user["user_id"],
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

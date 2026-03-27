@@ -23,5 +23,6 @@ Estado actual:
 - `Préstamos` ya expone un cronograma inicial por cuotas y ya permite aplicar o revertir pagos manuales sobre cuotas, con reparto configurable entre interés y capital
 - el cronograma ya muestra capital pagado e interés pagado por cuota
 - el cronograma ya permite además selección múltiple y operación batch de pago o reversa
-- todavía siguen pendientes las razones estructuradas de reversa y el enlace contable real
+- la reversa individual y batch ya exige motivo estructurado y lo deja visible en el cronograma
+- cada pago o reversa de cuota ya genera además una transacción financiera enlazada al préstamo
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo

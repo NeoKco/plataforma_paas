@@ -9,6 +9,7 @@ Estado actual:
 - existe `0007_finance_loans` como migracion base de cartera de prestamos
 - existe `0008_finance_loan_installments` como migracion de cronograma y cuotas
 - existe `0009_finance_loan_installment_payment_split` como migracion de split capital/interes pagado por cuota
+- existe `0010_finance_loan_installment_reversal_reason` como migracion del motivo estructurado de reversa por cuota
 
 Objetivo contractual:
 - ampliar el esquema tenant del modulo segun el roadmap maestro
@@ -110,7 +111,8 @@ Tablas base ya creadas en `Lote 1`:
 - ya conserva `paid_principal_amount` y `paid_interest_amount` para separar capital e interes pagado
 - ya soporta asignacion del pago por `interest_first`, `principal_first` o `proportional`
 - ya soporta reversa parcial o total de esos abonos
-- sigue pendiente una capa mas rica de lotes, razones estructuradas de reversa y enlace contable real
+- ya conserva `reversal_reason_code` para reversas estructuradas
+- ya enlaza pagos y reversas de cuotas con `finance_transactions` por `loan_id`, `source_type` y `source_id`
 
 ## Reglas estructurales de esta fase
 
@@ -120,5 +122,5 @@ Tablas base ya creadas en `Lote 1`:
 
 Pendiente siguiente:
 - endurecer lectura de presupuestos y estados operativos derivados
-- endurecer el pago sobre cronograma de prestamos con lotes y enlace contable
+- enriquecer el pago sobre cronograma de prestamos con cuenta origen y lectura contable derivada
 - planificacion y reportes

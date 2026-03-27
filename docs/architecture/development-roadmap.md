@@ -238,6 +238,8 @@ Resultado actual:
 - ya existe asignacion configurable del pago entre interes y capital, con tracking separado por cuota
 - ya existe reversa parcial o total de esos pagos sobre cuotas
 - ya existen pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
+- ya existen razones estructuradas de reversa sobre cuotas, tanto individual como batch
+- ya existe enlace contable minimo: cada pago o reversa de cuota genera una transaccion real enlazada al préstamo
 - `CLP` ya forma parte de las monedas semilla del modulo
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
@@ -252,7 +254,7 @@ Falta para cerrarlo:
 
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura agregada y estados operativos mas ricos
-- endurecer `Préstamos` con pagos mas ricos: razones estructuradas de reversa y enlace contable
+- enriquecer `Préstamos` con cuenta origen y lectura contable derivada mas densa
 - ejecutar `Lote 7` y siguientes del roadmap maestro para planificacion y reportes
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande

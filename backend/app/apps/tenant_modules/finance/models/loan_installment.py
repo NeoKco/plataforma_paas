@@ -48,6 +48,7 @@ class FinanceLoanInstallment(TenantBase):
     paid_principal_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     paid_interest_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     paid_at: Mapped[Date | None] = mapped_column(Date, nullable=True)
+    reversal_reason_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),
