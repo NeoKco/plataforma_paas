@@ -31,6 +31,7 @@ El worker actual:
 - puede exportar el resumen actual de `provisioning` a un textfile Prometheus si esta habilitado
 - esa exportacion externa ya incluye tambien alertas activas de provisioning
 - persiste snapshots por tenant y una traza resumida del ciclo, correlacionadas por `capture_key`
+- procesa tanto alta tecnica de tenant como retiro tecnico cuando existen jobs compatibles
 
 No es todavia una cola distribuida. Es una base simple y operable para sacar trabajo largo fuera de la request.
 
@@ -102,16 +103,40 @@ cd /home/felipe/platform_paas/backend
   --job-type create_tenant_database
 ```
 
+```bash
+cd /home/felipe/platform_paas/backend
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+  app/scripts/run_provisioning_worker.py \
+  --once \
+  --job-type deprovision_tenant_database
+```
+
 Uso por perfil:
 
 ```bash
 cd /home/felipe/platform_paas/backend
-WORKER_PROFILES="default=create_tenant_database;sync=sync_tenant_schema" \
+WORKER_PROFILES="default=create_tenant_database,deprovision_tenant_database;sync=sync_tenant_schema" \
 /home/felipe/platform_paas/platform_paas_venv/bin/python \
   app/scripts/run_provisioning_worker.py \
   --once \
   --profile default
 ```
+
+## Job Types Relevantes
+
+Hoy los `job_type` operativos principales son:
+
+- `create_tenant_database`
+- `deprovision_tenant_database`
+- `sync_tenant_schema`
+
+Lectura practica:
+
+- `create_tenant_database` materializa DB tenant, rol tecnico, esquema y secreto tecnico
+- `deprovision_tenant_database` retira DB tenant, rol tecnico y secretos tecnicos asociados
+- `sync_tenant_schema` aplica migraciones sobre una DB tenant ya existente
+
+Si usas perfiles o filtros por `job_type`, debes incluir `deprovision_tenant_database` en los workers que vayan a procesar retiros tecnicos. Si no lo haces, el job puede quedar `pending` hasta que lo ejecutes manualmente.
 
 Modo continuo:
 
@@ -201,6 +226,7 @@ Notas operativas:
 - si se pasan `--job-type` y `--profile`, el filtro explicito gana
 - la unidad instanciada `platform-paas-provisioning-worker@<perfil>.timer` sirve para dejar un worker estable por perfil
 - el instalador `install_provisioning_worker_profile_units.sh` sirve para dejar timers distintos por perfil sin editar unidades a mano
+- si tu perfil `default` solo conoce `create_tenant_database`, debes ampliarlo para que tambien procese `deprovision_tenant_database` cuando quieras retiro tecnico automatico desde `Tenants`
 - `WORKER_JOB_TYPE_PRIORITIES` usa formato `job_a=10;job_b=20` y menor numero significa mayor prioridad
 - hoy el orden del ciclo ya no sale de pasos aislados sino de un `selection_strategy=composite_score`
 - ese score combina envejecimiento del backlog, prioridad por clase de tenant, prioridad por `job_type` y antiguedad de espera

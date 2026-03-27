@@ -14,6 +14,9 @@ from app.apps.platform_control.models.provisioning_job import ProvisioningJob
 from app.apps.platform_control.models.tenant_billing_sync_event import (
     TenantBillingSyncEvent,
 )
+from app.apps.platform_control.models.tenant_retirement_archive import (
+    TenantRetirementArchive,
+)
 from app.apps.platform_control.models.tenant_policy_change_event import (
     TenantPolicyChangeEvent,
 )
@@ -157,6 +160,44 @@ class TenantService:
             status="pending",
         )
 
+    def request_deprovision_tenant(
+        self,
+        db: Session,
+        tenant_id: int,
+    ) -> ProvisioningJob:
+        tenant = self.tenant_repository.get_by_id(db, tenant_id)
+        if not tenant:
+            raise ValueError("Tenant not found")
+
+        if tenant.status != "archived":
+            raise ValueError("Only archived tenants can be deprovisioned")
+
+        db_configured = bool(
+            getattr(tenant, "db_name", None)
+            and getattr(tenant, "db_user", None)
+            and getattr(tenant, "db_host", None)
+            and getattr(tenant, "db_port", None)
+        )
+        if not db_configured:
+            raise ValueError("Tenant database configuration is already empty")
+
+        active_job = (
+            db.query(ProvisioningJob)
+            .filter(ProvisioningJob.tenant_id == tenant.id)
+            .filter(ProvisioningJob.status.in_(["pending", "retry_pending", "running"]))
+            .order_by(ProvisioningJob.id.desc())
+            .first()
+        )
+        if active_job:
+            raise ValueError("Tenant already has a live provisioning job")
+
+        return self.provisioning_dispatch_service.enqueue_job(
+            db=db,
+            tenant_id=tenant.id,
+            job_type="deprovision_tenant_database",
+            status="pending",
+        )
+
     def update_basic_identity(
         self,
         db: Session,
@@ -285,16 +326,6 @@ class TenantService:
         )
         if not has_db_config:
             raise ValueError("Tenant database configuration is already empty")
-
-        active_job = (
-            db.query(ProvisioningJob)
-            .filter(ProvisioningJob.tenant_id == tenant.id)
-            .filter(ProvisioningJob.status.in_(["pending", "retry_pending", "running"]))
-            .order_by(ProvisioningJob.id.desc())
-            .first()
-        )
-        if active_job:
-            raise ValueError("Tenant already has a live provisioning job")
 
         bootstrap = PostgresBootstrapService(
             admin_host=settings.CONTROL_DB_HOST,
@@ -464,7 +495,14 @@ class TenantService:
         )
         return self.tenant_repository.save(db, tenant)
 
-    def delete_tenant(self, db: Session, tenant_id: int) -> Tenant:
+    def delete_tenant(
+        self,
+        db: Session,
+        tenant_id: int,
+        *,
+        deleted_by_user_id: int | None = None,
+        deleted_by_email: str | None = None,
+    ) -> Tenant:
         tenant = self.tenant_repository.get_by_id(db, tenant_id)
         if not tenant:
             raise ValueError("Tenant not found")
@@ -487,17 +525,133 @@ class TenantService:
             .filter(TenantBillingSyncEvent.tenant_id == tenant_id)
             .count()
         )
-        if billing_events > 0:
-            raise ValueError("Tenants with billing history cannot be deleted")
+        policy_events = (
+            db.query(TenantPolicyChangeEvent)
+            .filter(TenantPolicyChangeEvent.tenant_id == tenant_id)
+            .count()
+        )
+        provisioning_jobs = (
+            db.query(ProvisioningJob)
+            .filter(ProvisioningJob.tenant_id == tenant_id)
+            .count()
+        )
+
+        db.add(
+            self._build_tenant_retirement_archive(
+                tenant,
+                billing_events_count=billing_events,
+                policy_events_count=policy_events,
+                provisioning_jobs_count=provisioning_jobs,
+                deleted_by_user_id=deleted_by_user_id,
+                deleted_by_email=deleted_by_email,
+            )
+        )
 
         db.query(ProvisioningJob).filter(ProvisioningJob.tenant_id == tenant_id).delete(
             synchronize_session=False
         )
+        db.query(TenantBillingSyncEvent).filter(
+            TenantBillingSyncEvent.tenant_id == tenant_id
+        ).delete(synchronize_session=False)
         db.query(TenantPolicyChangeEvent).filter(
             TenantPolicyChangeEvent.tenant_id == tenant_id
         ).delete(synchronize_session=False)
         self.tenant_repository.delete(db, tenant)
         return tenant
+
+    def _build_tenant_retirement_archive(
+        self,
+        tenant: Tenant,
+        *,
+        billing_events_count: int,
+        policy_events_count: int,
+        provisioning_jobs_count: int,
+        deleted_by_user_id: int | None = None,
+        deleted_by_email: str | None = None,
+    ) -> TenantRetirementArchive:
+        summary = {
+            "tenant": {
+                "id": tenant.id,
+                "name": tenant.name,
+                "slug": tenant.slug,
+                "tenant_type": tenant.tenant_type,
+                "plan_code": getattr(tenant, "plan_code", None),
+                "status": tenant.status,
+                "status_reason": getattr(tenant, "status_reason", None),
+                "billing_provider": getattr(tenant, "billing_provider", None),
+                "billing_provider_customer_id": getattr(
+                    tenant, "billing_provider_customer_id", None
+                ),
+                "billing_provider_subscription_id": getattr(
+                    tenant, "billing_provider_subscription_id", None
+                ),
+                "billing_status": getattr(tenant, "billing_status", None),
+                "billing_status_reason": getattr(tenant, "billing_status_reason", None),
+                "billing_current_period_ends_at": getattr(
+                    tenant, "billing_current_period_ends_at", None
+                ),
+                "billing_grace_until": getattr(tenant, "billing_grace_until", None),
+                "maintenance_mode": getattr(tenant, "maintenance_mode", False),
+                "maintenance_reason": getattr(tenant, "maintenance_reason", None),
+                "maintenance_scopes": getattr(tenant, "maintenance_scopes", None),
+                "maintenance_access_mode": getattr(
+                    tenant, "maintenance_access_mode", None
+                ),
+                "api_read_requests_per_minute": getattr(
+                    tenant, "api_read_requests_per_minute", None
+                ),
+                "api_write_requests_per_minute": getattr(
+                    tenant, "api_write_requests_per_minute", None
+                ),
+                "module_limits_json": getattr(tenant, "module_limits_json", None),
+                "tenant_schema_version": getattr(tenant, "tenant_schema_version", None),
+                "tenant_schema_synced_at": getattr(
+                    tenant, "tenant_schema_synced_at", None
+                ),
+                "tenant_db_credentials_rotated_at": getattr(
+                    tenant, "tenant_db_credentials_rotated_at", None
+                ),
+                "created_at": getattr(tenant, "created_at", None),
+            },
+            "retirement": {
+                "billing_events_count": billing_events_count,
+                "policy_events_count": policy_events_count,
+                "provisioning_jobs_count": provisioning_jobs_count,
+                "deleted_by_user_id": deleted_by_user_id,
+                "deleted_by_email": deleted_by_email,
+            },
+        }
+        return TenantRetirementArchive(
+            original_tenant_id=tenant.id,
+            tenant_slug=tenant.slug,
+            tenant_name=tenant.name,
+            tenant_type=tenant.tenant_type,
+            plan_code=getattr(tenant, "plan_code", None),
+            tenant_status=tenant.status,
+            tenant_status_reason=getattr(tenant, "status_reason", None),
+            billing_provider=getattr(tenant, "billing_provider", None),
+            billing_provider_customer_id=getattr(
+                tenant, "billing_provider_customer_id", None
+            ),
+            billing_provider_subscription_id=getattr(
+                tenant, "billing_provider_subscription_id", None
+            ),
+            billing_status=getattr(tenant, "billing_status", None),
+            billing_status_reason=getattr(tenant, "billing_status_reason", None),
+            billing_events_count=billing_events_count,
+            policy_events_count=policy_events_count,
+            provisioning_jobs_count=provisioning_jobs_count,
+            deleted_by_user_id=deleted_by_user_id,
+            deleted_by_email=deleted_by_email,
+            tenant_created_at=getattr(tenant, "created_at", None),
+            summary_json=json.dumps(summary, sort_keys=True, default=self._json_default),
+        )
+
+    @staticmethod
+    def _json_default(value):
+        if isinstance(value, datetime):
+            return value.isoformat()
+        return str(value)
 
     def set_plan(
         self,

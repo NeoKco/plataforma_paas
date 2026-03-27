@@ -14,6 +14,7 @@ from app.apps.platform_control.repositories.provisioning_job_repository import (
     ProvisioningJobRepository,
 )
 from app.apps.platform_control.repositories.tenant_repository import TenantRepository
+from app.apps.platform_control.services.tenant_service import TenantService
 from app.apps.provisioning.services.tenant_db_bootstrap_service import (
     TenantDatabaseBootstrapService,
 )
@@ -32,6 +33,9 @@ class ProvisioningService:
         "bootstrap_database": "postgres_database_bootstrap_failed",
         "bootstrap_tenant_schema": "tenant_schema_bootstrap_failed",
         "store_tenant_secret": "tenant_secret_store_failed",
+        "deprovision_tenant_database": "tenant_database_drop_failed",
+        "deprovision_tenant_role": "tenant_role_drop_failed",
+        "deprovision_tenant_secret": "tenant_secret_clear_failed",
         "persist_completion": "provisioning_completion_persist_failed",
     }
 
@@ -40,6 +44,7 @@ class ProvisioningService:
         tenant_repository: TenantRepository | None = None,
         provisioning_job_repository: ProvisioningJobRepository | None = None,
         provisioning_dispatch_service: ProvisioningDispatchService | None = None,
+        tenant_service: TenantService | None = None,
         tenant_secret_service: TenantSecretService | None = None,
         logging_service: LoggingService | None = None,
     ):
@@ -53,6 +58,7 @@ class ProvisioningService:
                 provisioning_job_repository=self.provisioning_job_repository,
             )
         )
+        self.tenant_service = tenant_service or TenantService()
         self.tenant_secret_service = tenant_secret_service or TenantSecretService()
         self.logging_service = logging_service or LoggingService(
             logger_name="platform_paas.ops"
@@ -74,11 +80,9 @@ class ProvisioningService:
         if not tenant:
             raise ValueError("Tenant not found")
 
-        db_name = f"tenant_{tenant.slug.replace('-', '_')}"
-        db_user = f"user_{tenant.slug.replace('-', '_')}"
-        db_password = self._generate_password()
         started_at = time_started = datetime.now(timezone.utc)
         current_stage = "mark_running"
+        provisioning_output: dict | None = None
 
         try:
             job.status = "running"
@@ -88,44 +92,18 @@ class ProvisioningService:
             job.error_code = None
             db.commit()
 
-            current_stage = "bootstrap_role"
-            bootstrap = PostgresBootstrapService(
-                admin_host=settings.CONTROL_DB_HOST,
-                admin_port=settings.CONTROL_DB_PORT,
-                admin_db_name="postgres",
-                admin_user="postgres",
-                admin_password=settings.POSTGRES_ADMIN_PASSWORD,
-            )
-
-            bootstrap.create_role_if_not_exists(db_user, db_password)
-            current_stage = "bootstrap_database"
-            bootstrap.create_database_if_not_exists(db_name, db_user)
-
-            current_stage = "bootstrap_tenant_schema"
-            tenant_bootstrap = TenantDatabaseBootstrapService()
-            tenant_bootstrap.bootstrap(
-                host=settings.CONTROL_DB_HOST,
-                port=settings.CONTROL_DB_PORT,
-                database=db_name,
-                username=db_user,
-                password=db_password,
-                tenant_name=tenant.name,
-                tenant_slug=tenant.slug,
-                tenant_type=tenant.tenant_type,
-            )
-
-            tenant.db_name = db_name
-            tenant.db_user = db_user
-            tenant.db_host = settings.CONTROL_DB_HOST
-            tenant.db_port = settings.CONTROL_DB_PORT
-            tenant.status = "active"
-
-            current_stage = "store_tenant_secret"
-            env_var_name = self.tenant_secret_service.store_tenant_db_password(
-                tenant_slug=tenant.slug,
-                password=db_password,
-                env_path=Path(settings.BASE_DIR) / ".env",
-            )
+            if job.job_type == "create_tenant_database":
+                provisioning_output = self._run_create_tenant_database(
+                    db=db,
+                    tenant=tenant,
+                )
+            elif job.job_type == "deprovision_tenant_database":
+                provisioning_output = self._run_deprovision_tenant_database(
+                    db=db,
+                    tenant=tenant,
+                )
+            else:
+                raise ValueError("Unsupported provisioning job type")
 
             job.status = "completed"
             job.error_code = None
@@ -142,34 +120,40 @@ class ProvisioningService:
                 started_at=time_started,
             )
 
-            print("==== TENANT DB CREATED ====")
-            print(f"Tenant: {tenant.slug}")
-            print(f"DB Name: {db_name}")
-            print(f"DB User: {db_user}")
-            print(
-                "DB Password saved in env var: "
-                f"{env_var_name}="
-                f"{self.tenant_secret_service.mask_secret(db_password)}"
-            )
-            print("Tenant admin email: admin@{0}.local".format(tenant.slug))
-            print("Tenant admin password: TenantAdmin123! (bootstrap de desarrollo)")
-            print("===========================")
+            if job.job_type == "create_tenant_database" and provisioning_output is not None:
+                print("==== TENANT DB CREATED ====")
+                print(f"Tenant: {tenant.slug}")
+                print(f"DB Name: {provisioning_output['db_name']}")
+                print(f"DB User: {provisioning_output['db_user']}")
+                print(
+                    "DB Password saved in env var: "
+                    f"{provisioning_output['env_var_name']}="
+                    f"{self.tenant_secret_service.mask_secret(provisioning_output['db_password'])}"
+                )
+                print("Tenant admin email: admin@{0}.local".format(tenant.slug))
+                print("Tenant admin password: TenantAdmin123! (bootstrap de desarrollo)")
+                print("===========================")
 
             return job
 
         except Exception as exc:
+            current_stage = getattr(exc, "_provisioning_stage", current_stage)
             job.error_code = self._classify_error_code(current_stage)
             job.error_message = str(exc)
             if job.attempts >= job.max_attempts:
                 job.status = "failed"
-                tenant.status = "error"
+                if self._should_mark_tenant_error_on_failure(job.job_type):
+                    tenant.status = "error"
                 job.next_retry_at = None
             else:
                 job.status = "retry_pending"
                 job.next_retry_at = datetime.now(timezone.utc) + timedelta(
                     seconds=self._calculate_retry_delay_seconds(job.attempts)
                 )
-                if tenant.status != "active":
+                if (
+                    self._should_reset_tenant_to_pending_on_retry(job.job_type)
+                    and tenant.status != "active"
+                ):
                     tenant.status = "pending"
             db.commit()
             self.provisioning_job_repository.refresh(db, job)
@@ -208,7 +192,8 @@ class ProvisioningService:
             job.attempts = 0
 
         if tenant.status != "active":
-            tenant.status = "pending"
+            if self._should_reset_tenant_to_pending_on_retry(job.job_type):
+                tenant.status = "pending"
 
         db.commit()
         self.provisioning_job_repository.refresh(db, job)
@@ -269,6 +254,79 @@ class ProvisioningService:
         base = max(settings.WORKER_RETRY_BASE_SECONDS, 1)
         delay = base * (2 ** max(attempt_number - 1, 0))
         return min(delay, settings.WORKER_MAX_RETRY_SECONDS)
+
+    def _should_mark_tenant_error_on_failure(self, job_type: str) -> bool:
+        return job_type == "create_tenant_database"
+
+    def _should_reset_tenant_to_pending_on_retry(self, job_type: str) -> bool:
+        return job_type == "create_tenant_database"
+
+    def _run_create_tenant_database(self, db: Session, tenant: Tenant) -> dict:
+        db_name = f"tenant_{tenant.slug.replace('-', '_')}"
+        db_user = f"user_{tenant.slug.replace('-', '_')}"
+        db_password = self._generate_password()
+
+        current_stage = "bootstrap_role"
+        bootstrap = PostgresBootstrapService(
+            admin_host=settings.CONTROL_DB_HOST,
+            admin_port=settings.CONTROL_DB_PORT,
+            admin_db_name="postgres",
+            admin_user="postgres",
+            admin_password=settings.POSTGRES_ADMIN_PASSWORD,
+        )
+
+        try:
+            bootstrap.create_role_if_not_exists(db_user, db_password)
+            current_stage = "bootstrap_database"
+            bootstrap.create_database_if_not_exists(db_name, db_user)
+
+            current_stage = "bootstrap_tenant_schema"
+            tenant_bootstrap = TenantDatabaseBootstrapService()
+            tenant_bootstrap.bootstrap(
+                host=settings.CONTROL_DB_HOST,
+                port=settings.CONTROL_DB_PORT,
+                database=db_name,
+                username=db_user,
+                password=db_password,
+                tenant_name=tenant.name,
+                tenant_slug=tenant.slug,
+                tenant_type=tenant.tenant_type,
+            )
+
+            tenant.db_name = db_name
+            tenant.db_user = db_user
+            tenant.db_host = settings.CONTROL_DB_HOST
+            tenant.db_port = settings.CONTROL_DB_PORT
+            tenant.status = "active"
+
+            current_stage = "store_tenant_secret"
+            env_var_name = self.tenant_secret_service.store_tenant_db_password(
+                tenant_slug=tenant.slug,
+                password=db_password,
+                env_path=Path(settings.BASE_DIR) / ".env",
+            )
+            return {
+                "db_name": db_name,
+                "db_user": db_user,
+                "db_password": db_password,
+                "env_var_name": env_var_name,
+            }
+        except Exception as exc:
+            setattr(exc, "_provisioning_stage", current_stage)
+            raise
+
+    def _run_deprovision_tenant_database(self, db: Session, tenant: Tenant) -> dict:
+        try:
+            return self.tenant_service.deprovision_tenant(db=db, tenant_id=tenant.id)
+        except Exception as exc:
+            detail = str(exc)
+            if "drop database" in detail.lower():
+                setattr(exc, "_provisioning_stage", "deprovision_tenant_database")
+            elif "drop role" in detail.lower():
+                setattr(exc, "_provisioning_stage", "deprovision_tenant_role")
+            elif "secret" in detail.lower() or "password" in detail.lower():
+                setattr(exc, "_provisioning_stage", "deprovision_tenant_secret")
+            raise
 
     def _log_job_result(
         self,

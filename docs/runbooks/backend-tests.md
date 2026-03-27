@@ -151,11 +151,14 @@ Cobertura adicional relevante:
 - hardening de runtime para que passwords bootstrap tenant de demo o demasiado cortas no pasen en `production`
 - `GET /platform/security-posture` para no perder la lectura operativa de seguridad en `Settings`
 - rotacion formal de credenciales tecnicas tenant, incluyendo rollback seguro si la nueva password no valida
+- desprovisionado tecnico de tenants archivados mediante job `deprovision_tenant_database`
 - construccion segura de URLs PostgreSQL cuando las credenciales contienen caracteres reservados como `@`, `:` o `/`
 - arranque backend aplicando migraciones de control automaticamente cuando la plataforma ya esta instalada, para no romper `Tenants` por columnas nuevas aun no migradas
 - validacion temprana de conexion tenant para que credenciales DB rotas se traduzcan a error operativo controlado y no a `500` crudo
 - login tenant degradando a error operativo controlado cuando la credencial tecnica de la DB tenant ya no coincide con PostgreSQL
 - rotacion de credenciales tecnicas tenant devolviendo detalle operativo accionable cuando falta el rol, falta la base o la validacion de la nueva password se revierte
+- borrado seguro devolviendo `400/404` con motivo legible en vez de dejar escapar `500`
+- selector real de usuarios tenant en `Tenants` para resetear contraseñas del portal sin asumir `admin@<slug>.local`
 
 Suite puntual de seguridad:
 
@@ -234,7 +237,9 @@ Cobertura actual:
   - alta
   - edicion basica
   - archive
+  - request de desprovisionado tecnico como job de provisioning
   - restore formal sobre tenants archivados
+  - delete seguro solo despues de retirar configuracion DB tenant
 
 Ejecucion:
 
@@ -258,6 +263,25 @@ Cobertura actual:
 Requisito:
 
 - definir `PGTEST_HOST`
+
+## Suites Puntuales Relevantes para Lifecycle Tenant
+
+Cuando toques lifecycle, provisioning o retiro tecnico de tenants, conviene correr como minimo:
+
+```bash
+cd /home/felipe/platform_paas/backend
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest \
+  app.tests.test_platform_flow \
+  app.tests.test_provisioning_worker
+```
+
+Cobertura relevante de ese bloque:
+
+- enqueue de `create_tenant_database`
+- enqueue de `deprovision_tenant_database`
+- worker procesando ambos `job_type`
+- reintentos y estados `retry_pending` o `failed`
+- reglas de borrado seguro despues de desprovisionar
 - definir `PGTEST_ADMIN_USER`
 - definir `PGTEST_ADMIN_PASSWORD`
 - opcionalmente `PGTEST_PORT` y `PGTEST_ADMIN_DB`

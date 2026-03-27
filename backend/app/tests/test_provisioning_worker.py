@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timezone
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 from app.tests.fixtures import set_test_environment
 
@@ -1178,10 +1178,12 @@ class ProvisioningServiceRetryTestCase(unittest.TestCase):
         attempts: int = 0,
         max_attempts: int = 3,
         status: str = "pending",
+        job_type: str = "create_tenant_database",
     ):
         return SimpleNamespace(
             id=1,
             tenant_id=1,
+            job_type=job_type,
             status=status,
             attempts=attempts,
             max_attempts=max_attempts,
@@ -1302,6 +1304,99 @@ class ProvisioningServiceRetryTestCase(unittest.TestCase):
         self.assertIsNone(job.next_retry_at)
         self.assertEqual(tenant.status, "error")
         self.assertEqual(finalized_jobs, [("failed", None)])
+
+    def test_run_deprovision_job_marks_completed_without_changing_archived_status(self) -> None:
+        job = self._build_job(job_type="deprovision_tenant_database")
+        tenant = self._build_tenant()
+        tenant.status = "archived"
+
+        class FakeDb:
+            def commit(self):
+                pass
+
+        class FakeProvisioningJobRepository:
+            def get_by_id(self, db, job_id):
+                return job
+
+            def refresh(self, db, job_obj):
+                return None
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+        fake_tenant_service = MagicMock()
+        fake_tenant_service.deprovision_tenant.return_value = {
+            "tenant": tenant,
+            "dropped_database": True,
+            "dropped_role": True,
+        }
+
+        service = ProvisioningService(
+            tenant_repository=FakeTenantRepository(),
+            provisioning_job_repository=FakeProvisioningJobRepository(),
+            provisioning_dispatch_service=SimpleNamespace(finalize_job=lambda job: None),
+            tenant_service=fake_tenant_service,
+            tenant_secret_service=SimpleNamespace(),
+            logging_service=MagicMock(),
+        )
+
+        result = service.run_job(FakeDb(), 1)
+
+        self.assertIs(result, job)
+        self.assertEqual(job.status, "completed")
+        self.assertEqual(tenant.status, "archived")
+        fake_tenant_service.deprovision_tenant.assert_called_once_with(
+            db=ANY,
+            tenant_id=tenant.id,
+        )
+
+    def test_requeue_failed_deprovision_job_keeps_archived_status(self) -> None:
+        job = self._build_job(
+            attempts=3,
+            max_attempts=3,
+            status="failed",
+            job_type="deprovision_tenant_database",
+        )
+        job.error_code = "tenant_database_drop_failed"
+        job.error_message = "drop failed"
+        tenant = self._build_tenant()
+        tenant.status = "archived"
+        requeued_job_ids: list[int] = []
+
+        class FakeDb:
+            def commit(self):
+                pass
+
+        class FakeProvisioningJobRepository:
+            def get_by_id(self, db, job_id):
+                return job
+
+            def refresh(self, db, job_obj):
+                return None
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+        service = ProvisioningService(
+            tenant_repository=FakeTenantRepository(),
+            provisioning_job_repository=FakeProvisioningJobRepository(),
+            provisioning_dispatch_service=SimpleNamespace(
+                requeue_dead_letter_job=lambda db, job_id, due_at=None: requeued_job_ids.append(
+                    (job_id, due_at)
+                )
+            ),
+            tenant_secret_service=SimpleNamespace(),
+            logging_service=MagicMock(),
+        )
+
+        result = service.requeue_failed_job(FakeDb(), 1)
+
+        self.assertIs(result, job)
+        self.assertEqual(job.status, "pending")
+        self.assertEqual(tenant.status, "archived")
+        self.assertEqual(len(requeued_job_ids), 1)
 
     def test_calculate_retry_delay_is_capped(self) -> None:
         service = ProvisioningService(

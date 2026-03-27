@@ -55,7 +55,7 @@ export function getPlatformActionSuccessMessage(
     "identity-tenant": "La identidad básica del tenant fue actualizada correctamente.",
     "archive-tenant": "El tenant fue archivado correctamente.",
     "deprovision-tenant":
-      "La infraestructura técnica del tenant fue desprovisionada correctamente.",
+      "Se creó un job para desprovisionar la infraestructura técnica del tenant.",
     "restore-tenant": "El tenant fue restaurado correctamente.",
     "delete-tenant": "El tenant fue eliminado correctamente.",
     "create-platform-user": "El usuario de plataforma fue creado correctamente.",

@@ -89,7 +89,8 @@ Prioridad actual del producto:
 - la politica vigente ya es:
   - `slug` estable
   - `archive` como baja operativa correcta
-  - `delete` fisico fuera de UI por ahora
+  - `desprovision` como retiro tecnico explicito
+  - `delete` solo despues de retirar infraestructura tecnica
   - `restore` solo como flujo explicito, no como cambio improvisado de estado
 - dentro de esa base tenant ya se consideran practicamente cerrados estos bordes:
   - limites totales de usuarios
@@ -151,6 +152,7 @@ Politica operativa vigente:
 
 - `slug` estable
 - `archive` como salida basica
+- `desprovision` ya existe como accion explicita para tenants archivados que aun conservan DB/credenciales tecnicas
 - `delete` ya existe solo como borrado seguro y muy acotado para tenants archivados sin DB tenant materializada ni historial comercial
 - `restore` ya existe como accion formal solo para tenants archivados
 
@@ -161,8 +163,12 @@ Lectura importante:
 - el detalle del tenant ya muestra un bloque `Provisioning` con el ultimo job y su estado
 - el detalle tenant ya muestra tambien si la base esta al dia de migraciones o si el esquema quedo atrasado
 - si la DB tenant ya existe, el detalle tambien deja rotar la credencial tecnica de la base tenant
+- si el tenant esta `archived` y aun conserva infraestructura tecnica, el detalle ya deja pedir `Desprovisionar tenant`
+- esa accion no destruye cosas dentro de la request HTTP: crea un job `deprovision_tenant_database`
+- el worker de provisioning debe conocer tambien ese `job_type` si quieres que el retiro tecnico ocurra automaticamente
 - desde ahi puedes entender si el tenant sigue `pending`, si necesita retry o si ya quedo listo
 - si un tenant quedo `active` pero sin configuracion DB tenant completa, la consola ya no ofrece entrar al portal y expone `Reprovisionar tenant`
+- si un tenant archivado ya fue desprovisionado y no debe conservarse, la consola ya puede ofrecer `Eliminar tenant`
 - el acceso rapido al `tenant_portal` solo corresponde cuando el tenant ya esta `active`, con provisioning completado y configuracion DB tenant valida
 - si un tenant queda bloqueado por lifecycle o billing, `Tenants` y el login tenant ya intentan explicarlo con lenguaje operativo en vez de depender del detalle crudo del backend
 - la conectividad PostgreSQL ya no depende de interpolar `username:password@host` a mano; la plataforma usa builders seguros para que passwords con caracteres reservados no rompan readiness, provisioning ni rotacion tecnica

@@ -323,6 +323,7 @@ export function TenantsPage() {
     setSelectedProvisioningJob(null);
     setTenantPortalUsers([]);
     let tenantStatus: string | null = null;
+    let tenantDbConfigured = false;
 
     try {
       const [tenantResponse, accessPolicyResponse] = await Promise.all([
@@ -332,6 +333,7 @@ export function TenantsPage() {
       setSelectedTenant(tenantResponse);
       setAccessPolicy(accessPolicyResponse);
       tenantStatus = tenantResponse.status;
+      tenantDbConfigured = tenantResponse.db_configured;
 
       if (tenantResponse.db_configured) {
         try {
@@ -425,13 +427,17 @@ export function TenantsPage() {
       setProvisioningJobError(rawError as ApiError);
     }
 
-    try {
-      const tenantUsersResponse = await listPlatformTenantUsers(
-        session.accessToken,
-        tenantId
-      );
-      setTenantPortalUsers(tenantUsersResponse.data);
-    } catch (_rawError) {
+    if (tenantDbConfigured) {
+      try {
+        const tenantUsersResponse = await listPlatformTenantUsers(
+          session.accessToken,
+          tenantId
+        );
+        setTenantPortalUsers(tenantUsersResponse.data);
+      } catch (_rawError) {
+        setTenantPortalUsers([]);
+      }
+    } else {
       setTenantPortalUsers([]);
     }
 
@@ -1132,16 +1138,17 @@ export function TenantsPage() {
       confirmLabel: "Desprovisionar tenant",
       tone: "danger",
       action: async () => {
-        const response = await deprovisionPlatformTenant(
+        const job = await deprovisionPlatformTenant(
           session.accessToken,
           selectedTenantId
         );
         return {
-          message: "La infraestructura técnica del tenant fue desprovisionada correctamente.",
+          message: "Se creó un job para desprovisionar la infraestructura técnica del tenant.",
           details: [
-            `Base eliminada: ${response.dropped_database ? "sí" : "no"}`,
-            `Rol técnico eliminado: ${response.dropped_role ? "sí" : "no"}`,
-            "Las credenciales técnicas y la configuración DB del tenant fueron limpiadas.",
+            `Job: #${job.id}`,
+            `Tipo: ${formatProvisioningJobType(job.job_type)}`,
+            `Estado inicial: ${displayPlatformCode(job.status)}`,
+            "La ejecución real se procesa por el worker de provisioning o puede lanzarse manualmente desde esta misma ficha.",
           ],
         };
       },
@@ -2699,6 +2706,7 @@ function selectLatestProvisioningJob(
 function formatProvisioningJobType(value: string): string {
   const knownLabels: Record<string, string> = {
     create_tenant_database: "Crear base del tenant",
+    deprovision_tenant_database: "Desprovisionar base del tenant",
     sync_tenant_schema: "Sincronizar esquema tenant",
   };
 

@@ -13,6 +13,7 @@ Desde `Tenants` hoy ya puedes:
 - filtrar tenants por estado, billing y tipo
 - editar identidad basica del tenant
 - archivar tenant como baja operativa segura
+- desprovisionar tenant archivado mediante un job tecnico explicito
 - eliminar tenant de forma definitiva solo en modo seguro y acotado
 - abrir el portal tenant solo cuando el tenant ya esta realmente listo
 - operar estado, mantenimiento, billing, plan, limites y sincronizacion de esquema
@@ -27,6 +28,7 @@ Auditoria visible actual:
 - restore de tenant archivado
 - borrado seguro de tenant archivado
 - reprovisionado de tenant inconsistente
+- solicitud de desprovisionado tecnico de tenant archivado
 
 Las mutaciones finas de estado, billing, mantenimiento, limites y plan siguen quedando visibles ademas en el historial de politica del tenant.
 
@@ -121,6 +123,14 @@ Si hace:
 - dejarlo fuera de la operacion normal
 - conservar trazabilidad y capacidad de auditoria
 
+No hace:
+
+- eliminar la base tenant
+- eliminar el rol tecnico PostgreSQL
+- limpiar secretos tecnicos
+
+Esa parte ahora se resuelve con una accion separada y explicita: `Desprovisionar tenant`.
+
 ![Tenant archivado desde consola](../assets/app-visual-manual/04d-tenants-archived-result.png)
 
 ## 4b. Restaurar tenant archivado
@@ -170,6 +180,23 @@ Motivo:
 - `archive` es la baja operativa correcta en esta etapa
 - un tenant archivado sale de la operacion normal sin perder historia ni trazabilidad
 - la consola debe seguir priorizando esta salida por sobre cualquier borrado duro
+- `archive` no desprovisiona infraestructura tecnica en segundo plano
+- si el tenant ya no debe conservar DB ni credenciales tecnicas, el paso correcto siguiente es `Desprovisionar tenant`
+
+### `desprovision`
+
+- `desprovision` ya existe como accion explicita solo para tenants `archived`
+- no corre directamente dentro de la request HTTP
+- la consola crea un job `deprovision_tenant_database`
+- ese job lo procesa el worker de provisioning o puede ejecutarse manualmente desde la ficha del tenant
+- al completarse:
+  - elimina la base tenant si existe
+  - elimina el rol tecnico tenant si existe
+  - limpia `TENANT_DB_PASSWORD__<SLUG>` y secretos bootstrap relacionados
+  - limpia `db_name`, `db_user`, `db_host`, `db_port`
+  - limpia tracking tecnico como schema version y timestamp de rotacion
+- desprovisionar no elimina la fila del tenant en `platform_control`
+- desprovisionar tampoco equivale a restaurar ni a borrar
 
 ### `delete`
 
@@ -177,8 +204,8 @@ Motivo:
 - solo aplica a tenants `archived`
 - exige que no exista configuracion DB tenant materializada
 - bloquea tenants con historial de billing
-- bloquea tenants con provisioning completado
-- esta pensado para altas descartadas, tenants de prueba o casos que no deben conservarse
+- despues de desprovisionar ya no bloquea solo por tener jobs tecnicos historicos de provisioning
+- esta pensado para altas descartadas, tenants de prueba o casos que no deben conservarse despues de retirar su infraestructura tecnica
 
 ### restauracion
 
@@ -217,6 +244,22 @@ Motivo:
 - contexto de auditoria
 
 Por eso el borrado actual sigue siendo deliberadamente estrecho y `archive` se mantiene como salida principal.
+
+## 7. Flujo correcto de retiro
+
+Cuando un tenant ya no debe seguir existiendo pero aun conserva infraestructura tecnica, el flujo correcto ahora es:
+
+1. `Archivar tenant`
+2. `Desprovisionar tenant`
+3. esperar o ejecutar el job `deprovision_tenant_database`
+4. verificar que `db_configured=false`
+5. usar `Eliminar tenant` si el caso realmente requiere borrado definitivo
+
+Lectura operativa:
+
+- `Archivar` = retiro reversible de negocio
+- `Desprovisionar` = retiro tecnico de infraestructura
+- `Eliminar` = borrado definitivo del registro cuando ya no queda infraestructura tenant materializada
 
 ## 7. Estado actual del bloque basico
 

@@ -779,8 +779,11 @@ class PlatformServicesTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             service.delete_tenant(db=object(), tenant_id=1)
 
-    def test_tenant_service_rejects_delete_for_archived_tenant_with_billing_history(self) -> None:
+    def test_tenant_service_archives_billing_history_before_delete(self) -> None:
         tenant = build_tenant_record_stub(status="archived")
+        tenant.id = 1
+        deleted_targets: list[int] = []
+        added_archives: list[object] = []
 
         class FakeQuery:
             def __init__(self, model_name: str):
@@ -794,23 +797,52 @@ class PlatformServicesTestCase(unittest.TestCase):
             def count(self):
                 if self.model_name == "TenantBillingSyncEvent":
                     return 1
+                if self.model_name == "TenantPolicyChangeEvent":
+                    return 2
+                if self.model_name == "ProvisioningJob":
+                    return 3
                 return 0
 
             def delete(self, synchronize_session=False):
-                return 0
+                return 1
 
         class FakeDb:
             def query(self, model):
                 return FakeQuery(model.__name__)
 
+            def add(self, item):
+                added_archives.append(item)
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+            def delete(self, db, target):
+                deleted_targets.append(target.id)
+
         service = TenantService(
-            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant)
+            tenant_repository=FakeTenantRepository()
         )
 
-        with self.assertRaises(ValueError):
-            service.delete_tenant(db=FakeDb(), tenant_id=1)
+        result = service.delete_tenant(
+            db=FakeDb(),
+            tenant_id=1,
+            deleted_by_user_id=99,
+            deleted_by_email="admin@platform.local",
+        )
 
-    def test_tenant_service_rejects_deprovision_for_non_archived_tenant(self) -> None:
+        self.assertIs(result, tenant)
+        self.assertEqual(deleted_targets, [1])
+        self.assertEqual(len(added_archives), 1)
+        self.assertEqual(added_archives[0].original_tenant_id, 1)
+        self.assertEqual(added_archives[0].billing_events_count, 1)
+        self.assertEqual(added_archives[0].policy_events_count, 2)
+        self.assertEqual(added_archives[0].provisioning_jobs_count, 3)
+        self.assertEqual(added_archives[0].deleted_by_user_id, 99)
+        self.assertEqual(added_archives[0].deleted_by_email, "admin@platform.local")
+        self.assertIn('"billing_events_count": 1', added_archives[0].summary_json)
+
+    def test_tenant_service_rejects_deprovision_request_for_non_archived_tenant(self) -> None:
         tenant = build_tenant_record_stub(status="active")
         tenant.db_name = "tenant_empresa_demo"
         tenant.db_user = "user_empresa_demo"
@@ -821,11 +853,45 @@ class PlatformServicesTestCase(unittest.TestCase):
         )
 
         with self.assertRaises(ValueError) as exc:
-            service.deprovision_tenant(db=MagicMock(), tenant_id=1)
+            service.request_deprovision_tenant(db=MagicMock(), tenant_id=1)
 
         self.assertEqual(
             str(exc.exception),
             "Only archived tenants can be deprovisioned",
+        )
+
+    def test_tenant_service_enqueues_deprovision_for_archived_tenant_with_db(self) -> None:
+        tenant = build_tenant_record_stub(status="archived", tenant_slug="empresa-demo")
+        tenant.id = 1
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+        db = MagicMock()
+        query = db.query.return_value
+        query.filter.return_value = query
+        query.order_by.return_value = query
+        query.first.return_value = None
+        dispatch = MagicMock()
+        dispatch.enqueue_job.return_value = SimpleNamespace(
+            id=31,
+            tenant_id=1,
+            job_type="deprovision_tenant_database",
+            status="pending",
+        )
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant),
+            provisioning_dispatch_service=dispatch,
+        )
+
+        result = service.request_deprovision_tenant(db=db, tenant_id=1)
+
+        self.assertEqual(result.id, 31)
+        dispatch.enqueue_job.assert_called_once_with(
+            db=db,
+            tenant_id=1,
+            job_type="deprovision_tenant_database",
+            status="pending",
         )
 
     def test_tenant_service_deprovisions_archived_tenant_and_clears_db_config(self) -> None:
@@ -885,6 +951,7 @@ class PlatformServicesTestCase(unittest.TestCase):
         tenant.id = 1
         deleted_targets: list[int] = []
         deleted_queries: list[tuple[str, bool]] = []
+        added_archives: list[object] = []
 
         class FakeQuery:
             def __init__(self, model_name: str):
@@ -906,6 +973,9 @@ class PlatformServicesTestCase(unittest.TestCase):
             def query(self, model):
                 return FakeQuery(model.__name__)
 
+            def add(self, item):
+                added_archives.append(item)
+
         class FakeTenantRepository:
             def get_by_id(self, db, tenant_id):
                 return tenant
@@ -919,10 +989,12 @@ class PlatformServicesTestCase(unittest.TestCase):
 
         self.assertIs(result, tenant)
         self.assertEqual(deleted_targets, [tenant.id])
+        self.assertEqual(len(added_archives), 1)
         self.assertEqual(
             deleted_queries,
             [
                 ("ProvisioningJob", False),
+                ("TenantBillingSyncEvent", False),
                 ("TenantPolicyChangeEvent", False),
             ],
         )
@@ -931,6 +1003,7 @@ class PlatformServicesTestCase(unittest.TestCase):
         tenant = build_tenant_record_stub(status="archived")
         tenant.id = 1
         deleted_targets: list[int] = []
+        added_archives: list[object] = []
 
         class FakeQuery:
             def __init__(self, model_name: str):
@@ -953,6 +1026,9 @@ class PlatformServicesTestCase(unittest.TestCase):
             def query(self, model):
                 return FakeQuery(model.__name__)
 
+            def add(self, item):
+                added_archives.append(item)
+
         class FakeTenantRepository:
             def get_by_id(self, db, tenant_id):
                 return tenant
@@ -966,6 +1042,7 @@ class PlatformServicesTestCase(unittest.TestCase):
 
         self.assertIs(result, tenant)
         self.assertEqual(deleted_targets, [1])
+        self.assertEqual(len(added_archives), 1)
 
     def test_tenant_service_rejects_reprovision_for_archived_tenant(self) -> None:
         tenant = build_tenant_record_stub(status="archived")
@@ -5286,26 +5363,28 @@ class PlatformRoutesTestCase(unittest.TestCase):
         )
 
     def test_deprovision_tenant_returns_schema(self) -> None:
-        tenant = build_tenant_record_stub(
-            tenant_name="Empresa Demo",
-            tenant_slug="empresa-demo",
-            status="archived",
+        job = SimpleNamespace(
+            id=33,
+            tenant_id=5,
+            job_type="deprovision_tenant_database",
+            status="pending",
+            attempts=0,
+            max_attempts=3,
+            error_code=None,
+            error_message=None,
+            next_retry_at=None,
         )
-        tenant.id = 5
 
         with patch(
-            "app.apps.platform_control.api.tenant_routes._capture_tenant_snapshot",
-            return_value={"status": "archived"},
+            "app.apps.platform_control.api.tenant_routes.tenant_service.request_deprovision_tenant",
+            return_value=job,
         ), patch(
-            "app.apps.platform_control.api.tenant_routes.tenant_service.deprovision_tenant",
-            return_value={
-                "tenant": tenant,
-                "dropped_database": True,
-                "dropped_role": True,
-            },
+            "app.apps.platform_control.api.tenant_routes.tenant_service.tenant_repository.get_by_id",
+            return_value=build_tenant_record_stub(
+                tenant_slug="empresa-demo",
+                status="archived",
+            ),
         ), patch(
-            "app.apps.platform_control.api.tenant_routes._record_tenant_policy_event",
-        ) as record_mock, patch(
             "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
         ) as audit_mock:
             response = deprovision_tenant(
@@ -5314,20 +5393,15 @@ class PlatformRoutesTestCase(unittest.TestCase):
                 _token=self._token_payload(),
             )
 
-        self.assertTrue(response.success)
+        self.assertEqual(response.id, 33)
         self.assertEqual(response.tenant_id, 5)
-        self.assertEqual(response.tenant_slug, "empresa-demo")
-        self.assertTrue(response.dropped_database)
-        self.assertTrue(response.dropped_role)
-        record_mock.assert_called_once()
+        self.assertEqual(response.job_type, "deprovision_tenant_database")
+        self.assertEqual(response.status, "pending")
         audit_mock.assert_called_once()
 
     def test_deprovision_tenant_returns_400_when_business_rule_blocks_action(self) -> None:
         with patch(
-            "app.apps.platform_control.api.tenant_routes._capture_tenant_snapshot",
-            return_value={"status": "archived"},
-        ), patch(
-            "app.apps.platform_control.api.tenant_routes.tenant_service.deprovision_tenant",
+            "app.apps.platform_control.api.tenant_routes.tenant_service.request_deprovision_tenant",
             side_effect=ValueError("Only archived tenants can be deprovisioned"),
         ):
             with self.assertRaises(HTTPException) as exc:
@@ -5483,6 +5557,38 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.total, 2)
         self.assertEqual(response.data[0].email, "manager@condominio-demo.local")
+
+    def test_list_tenant_portal_users_returns_400_when_tenant_db_is_not_configured(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Provisioning Demo",
+            tenant_slug="empresa-provisioning-demo",
+            status="archived",
+        )
+        tenant.id = 4
+        tenant.db_name = None
+        tenant.db_user = None
+        tenant.db_host = None
+        tenant.db_port = None
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.tenant_repository.get_by_id",
+            return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes._open_platform_tenant_db",
+            side_effect=ValueError("Tenant database configuration is incomplete"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                list_tenant_portal_users(
+                    tenant_id=4,
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertEqual(
+            exc.exception.detail,
+            "Tenant database configuration is incomplete",
+        )
 
     def test_create_tenant_logs_audit_event(self) -> None:
         tenant = build_tenant_record_stub(

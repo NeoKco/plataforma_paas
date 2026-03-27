@@ -13,3 +13,6 @@ from app.apps.platform_control.models.tenant_policy_change_event import (
 from app.apps.platform_control.models.tenant_billing_sync_event import (
     TenantBillingSyncEvent,
 )
+from app.apps.platform_control.models.tenant_retirement_archive import (
+    TenantRetirementArchive,
+)
