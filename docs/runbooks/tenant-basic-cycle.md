@@ -21,6 +21,8 @@ Desde `Tenants` hoy ya puedes:
 - reiniciar la contraseña de usuarios del portal tenant desde plataforma
 - revisar si el esquema tenant esta al dia sin entrar a SQL manual
 - consultar el archivo historico de tenants retirados sin mezclarlos con el catalogo vivo
+- inspeccionar el detalle funcional del snapshot de retiro: policy efectiva, límites, billing reciente, policy history reciente y jobs técnicos recientes
+- abrir y cerrar ese detalle historico bajo demanda desde `Ver detalle` y `Ocultar detalle`, sin dejarlo expandido por defecto
 - validar el ciclo tambien contra PostgreSQL real cuando cambian passwords tecnicas o builders de conexion
 
 Auditoria visible actual:
@@ -199,6 +201,8 @@ Motivo:
   - limpia tracking tecnico como schema version y timestamp de rotacion
 - desprovisionar no elimina la fila del tenant en `platform_control`
 - desprovisionar tampoco equivale a restaurar ni a borrar
+- despues de desprovisionar, la consola ya no intenta leer usuarios del portal tenant desde una DB inexistente
+- por eso el bloque de usuarios/reset del portal debe ocultarse cuando `db_configured=false`
 
 ### `delete`
 
@@ -207,6 +211,12 @@ Motivo:
 - exige que no exista configuracion DB tenant materializada
 - antes del borrado guarda un archivo historico minimo en `platform_control.tenant_retirement_archives`
 - ese archivo conserva snapshot de identidad, estado final, estado billing, cantidades de eventos y actor del borrado
+- ademas conserva un snapshot funcional resumido con:
+  - policy efectiva al retiro
+  - limites efectivos
+  - billing reciente
+  - policy history reciente
+  - jobs tecnicos recientes
 - despues de archivar ese resumen, elimina la fila viva del tenant y su historial operativo asociado
 - despues de desprovisionar ya no bloquea solo por tener jobs tecnicos historicos de provisioning
 - esta pensado para altas descartadas, tenants de prueba o casos que no deben conservarse despues de retirar su infraestructura tecnica, incluso si tuvieron billing history
@@ -265,6 +275,27 @@ Lectura operativa:
 - `Archivar` = retiro reversible de negocio
 - `Desprovisionar` = retiro tecnico de infraestructura
 - `Eliminar` = borrado definitivo del registro cuando ya no queda infraestructura tenant materializada
+
+## 7b. Archivo historico en UI
+
+La columna izquierda de `Tenants` ya muestra un bloque `Archivo histórico`.
+
+Comportamiento actual esperado:
+
+- lista solo tenants ya retirados del catalogo vivo
+- permite filtrar por nombre, slug, actor o billing
+- `Ver detalle` abre el snapshot del retirado seleccionado
+- `Ocultar detalle` colapsa el panel y deja la lista visible sin detalle expandido
+- el detalle no debe autoabrirse al cargar la pantalla
+
+El detalle historico actual muestra:
+
+- identidad resumida del tenant retirado
+- fecha y actor del borrado
+- billing final
+- policy efectiva al retiro
+- limites efectivos al retiro
+- tablas resumidas de billing reciente, policy history reciente y jobs tecnicos recientes
 
 ## 7. Estado actual del bloque basico
 
@@ -336,6 +367,7 @@ El flujo se considera sano si:
 - `archive` funciona como baja operativa
 - `restore` no reaparece como cambio informal de lifecycle
 - el tenant vuelve con el estado destino elegido
+- el archivo historico deja abrir y cerrar el detalle del retiro sin quedar expandido por defecto
 
 ### Cuando repetir esta validacion
 

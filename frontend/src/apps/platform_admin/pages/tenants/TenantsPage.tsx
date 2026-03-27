@@ -357,15 +357,13 @@ export function TenantsPage() {
         { limit: 100 }
       );
       setRetirementArchives(response.data);
-      const nextSelectedArchiveId = response.data.some(
-        (archive) => archive.id === selectedRetirementArchiveId
-      )
-        ? selectedRetirementArchiveId
-        : response.data[0]?.id ?? null;
-      setSelectedRetirementArchiveId(nextSelectedArchiveId);
-      if (nextSelectedArchiveId !== null) {
-        await loadRetirementArchiveDetail(nextSelectedArchiveId);
+      const hasSelectedArchive =
+        selectedRetirementArchiveId !== null &&
+        response.data.some((archive) => archive.id === selectedRetirementArchiveId);
+      if (hasSelectedArchive && selectedRetirementArchiveId !== null) {
+        await loadRetirementArchiveDetail(selectedRetirementArchiveId);
       } else {
+        setSelectedRetirementArchiveId(null);
         setSelectedRetirementArchive(null);
         setSelectedRetirementSummary(null);
         setRetirementArchiveDetailError(null);
@@ -1588,12 +1586,21 @@ export function TenantsPage() {
                           className="btn btn-outline-secondary btn-sm"
                           type="button"
                           onClick={() => {
+                            if (selectedRetirementArchiveId === row.id) {
+                              setSelectedRetirementArchiveId(null);
+                              setSelectedRetirementArchive(null);
+                              setSelectedRetirementSummary(null);
+                              setRetirementArchiveDetailError(null);
+                              return;
+                            }
                             setSelectedRetirementArchiveId(row.id);
                             void loadRetirementArchiveDetail(row.id);
                           }}
                           disabled={isRetirementArchiveDetailLoading}
                         >
-                          Ver detalle
+                          {selectedRetirementArchiveId === row.id
+                            ? "Ocultar detalle"
+                            : "Ver detalle"}
                         </button>
                       ),
                     },
