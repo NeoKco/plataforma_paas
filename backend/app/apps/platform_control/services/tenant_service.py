@@ -538,6 +538,7 @@ class TenantService:
 
         db.add(
             self._build_tenant_retirement_archive(
+                db,
                 tenant,
                 billing_events_count=billing_events,
                 policy_events_count=policy_events,
@@ -561,6 +562,7 @@ class TenantService:
 
     def _build_tenant_retirement_archive(
         self,
+        db: Session,
         tenant: Tenant,
         *,
         billing_events_count: int,
@@ -569,6 +571,22 @@ class TenantService:
         deleted_by_user_id: int | None = None,
         deleted_by_email: str | None = None,
     ) -> TenantRetirementArchive:
+        access_policy = self.get_tenant_access_policy(tenant)
+        recent_billing_events = self._list_recent_billing_events(
+            db,
+            tenant_id=tenant.id,
+            limit=10,
+        )
+        recent_policy_events = self._list_recent_policy_events(
+            db,
+            tenant_id=tenant.id,
+            limit=10,
+        )
+        recent_provisioning_jobs = self._list_recent_provisioning_jobs(
+            db,
+            tenant_id=tenant.id,
+            limit=10,
+        )
         summary = {
             "tenant": {
                 "id": tenant.id,
@@ -612,6 +630,18 @@ class TenantService:
                     tenant, "tenant_db_credentials_rotated_at", None
                 ),
                 "created_at": getattr(tenant, "created_at", None),
+                "effective_module_limits": self.get_effective_module_limits(tenant),
+                "effective_module_limit_sources": self.get_effective_module_limit_sources(
+                    tenant
+                ),
+                "maintenance_scopes_effective": self.get_tenant_maintenance_scopes(tenant),
+            },
+            "access_policy": {
+                "allowed": access_policy.allowed,
+                "status_code": access_policy.status_code,
+                "detail": access_policy.detail,
+                "blocking_source": access_policy.blocking_source,
+                "billing_in_grace": access_policy.billing_in_grace,
             },
             "retirement": {
                 "billing_events_count": billing_events_count,
@@ -619,6 +649,9 @@ class TenantService:
                 "provisioning_jobs_count": provisioning_jobs_count,
                 "deleted_by_user_id": deleted_by_user_id,
                 "deleted_by_email": deleted_by_email,
+                "recent_billing_events": recent_billing_events,
+                "recent_policy_events": recent_policy_events,
+                "recent_provisioning_jobs": recent_provisioning_jobs,
             },
         }
         return TenantRetirementArchive(
@@ -646,6 +679,118 @@ class TenantService:
             tenant_created_at=getattr(tenant, "created_at", None),
             summary_json=json.dumps(summary, sort_keys=True, default=self._json_default),
         )
+
+    def _list_recent_billing_events(
+        self,
+        db: Session,
+        *,
+        tenant_id: int,
+        limit: int = 10,
+    ) -> list[dict]:
+        query = db.query(TenantBillingSyncEvent).filter(
+            TenantBillingSyncEvent.tenant_id == tenant_id
+        )
+        rows = self._safe_query_recent_rows(
+            query,
+            order_by_attr="recorded_at",
+            limit=limit,
+        )
+        return [
+            {
+                "id": row.id,
+                "provider": row.provider,
+                "event_type": row.event_type,
+                "processing_result": row.processing_result,
+                "billing_status": row.billing_status,
+                "provider_customer_id": row.provider_customer_id,
+                "provider_subscription_id": row.provider_subscription_id,
+                "recorded_at": row.recorded_at,
+            }
+            for row in rows
+        ]
+
+    def _list_recent_policy_events(
+        self,
+        db: Session,
+        *,
+        tenant_id: int,
+        limit: int = 10,
+    ) -> list[dict]:
+        query = db.query(TenantPolicyChangeEvent).filter(
+            TenantPolicyChangeEvent.tenant_id == tenant_id
+        )
+        rows = self._safe_query_recent_rows(
+            query,
+            order_by_attr="recorded_at",
+            limit=limit,
+        )
+        serialized: list[dict] = []
+        for row in rows:
+            try:
+                changed_fields = json.loads(row.changed_fields_json)
+            except (TypeError, ValueError, json.JSONDecodeError):
+                changed_fields = []
+            serialized.append(
+                {
+                    "id": row.id,
+                    "event_type": row.event_type,
+                    "actor_email": row.actor_email,
+                    "actor_role": row.actor_role,
+                    "changed_fields": changed_fields,
+                    "recorded_at": row.recorded_at,
+                }
+            )
+        return serialized
+
+    def _list_recent_provisioning_jobs(
+        self,
+        db: Session,
+        *,
+        tenant_id: int,
+        limit: int = 10,
+    ) -> list[dict]:
+        query = db.query(ProvisioningJob).filter(ProvisioningJob.tenant_id == tenant_id)
+        rows = self._safe_query_recent_rows(
+            query,
+            order_by_attr="created_at",
+            limit=limit,
+        )
+        return [
+            {
+                "id": row.id,
+                "job_type": row.job_type,
+                "status": row.status,
+                "attempts": row.attempts,
+                "max_attempts": row.max_attempts,
+                "error_code": row.error_code,
+                "created_at": row.created_at,
+                "last_attempt_at": row.last_attempt_at,
+            }
+            for row in rows
+        ]
+
+    def _safe_query_recent_rows(
+        self,
+        query,
+        *,
+        order_by_attr: str,
+        limit: int,
+    ) -> list:
+        try:
+            column_expr = getattr(query.column_descriptions[0]["entity"], order_by_attr)
+        except Exception:
+            column_expr = None
+
+        try:
+            if column_expr is not None and hasattr(query, "order_by"):
+                query = query.order_by(column_expr.desc())
+            if hasattr(query, "limit"):
+                query = query.limit(limit)
+            if hasattr(query, "all"):
+                return list(query.all())
+        except Exception:
+            return []
+        return []
 
     @staticmethod
     def _json_default(value):

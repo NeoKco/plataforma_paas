@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import json
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import desc, or_, text
@@ -54,6 +55,7 @@ from app.apps.platform_control.schemas import (
     TenantPortalUsersResponse,
     TenantRetirementArchiveItemResponse,
     TenantRetirementArchiveListResponse,
+    TenantRetirementArchiveDetailResponse,
 )
 from app.apps.platform_control.models.tenant_retirement_archive import (
     TenantRetirementArchive,
@@ -554,6 +556,36 @@ def list_tenant_retirement_archives(
         limit=normalized_limit,
         search=normalized_search or None,
         data=[_build_tenant_retirement_archive_item(row) for row in rows],
+    )
+
+
+@router.get(
+    "/retirement-archives/{archive_id}",
+    response_model=TenantRetirementArchiveDetailResponse,
+)
+def get_tenant_retirement_archive(
+    archive_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantRetirementArchiveDetailResponse:
+    archive = (
+        db.query(TenantRetirementArchive)
+        .filter(TenantRetirementArchive.id == archive_id)
+        .first()
+    )
+    if archive is None:
+        raise HTTPException(status_code=404, detail="Tenant retirement archive not found")
+
+    try:
+        summary = json.loads(archive.summary_json)
+    except (TypeError, ValueError, json.JSONDecodeError):
+        summary = {}
+
+    return TenantRetirementArchiveDetailResponse(
+        success=True,
+        message="Detalle del archivo histórico recuperado correctamente",
+        data=_build_tenant_retirement_archive_item(archive),
+        summary=summary,
     )
 
 

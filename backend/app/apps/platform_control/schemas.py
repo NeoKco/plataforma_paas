@@ -697,6 +697,13 @@ class TenantRetirementArchiveListResponse(BaseModel):
     data: list[TenantRetirementArchiveItemResponse]
 
 
+class TenantRetirementArchiveDetailResponse(BaseModel):
+    success: bool
+    message: str
+    data: TenantRetirementArchiveItemResponse
+    summary: dict
+
+
 class TenantPolicyChangeEventResponse(BaseModel):
     id: int
     tenant_id: int

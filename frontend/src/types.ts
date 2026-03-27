@@ -372,6 +372,13 @@ export type PlatformTenantRetirementArchiveListResponse = {
   data: PlatformTenantRetirementArchiveItem[];
 };
 
+export type PlatformTenantRetirementArchiveDetailResponse = {
+  success: boolean;
+  message: string;
+  data: PlatformTenantRetirementArchiveItem;
+  summary: Record<string, unknown>;
+};
+
 export type PlatformTenantDeprovisionResponse = {
   success: boolean;
   message: string;

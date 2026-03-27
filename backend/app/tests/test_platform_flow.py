@@ -75,6 +75,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     get_tenant_module_usage,
     list_tenant_portal_users,
     list_tenant_retirement_archives,
+    get_tenant_retirement_archive,
     get_tenant_schema_status,
     list_tenants,
     get_tenant_access_policy,
@@ -119,6 +120,7 @@ from app.apps.platform_control.schemas import (  # noqa: E402
     TenantRestoreRequest,
     TenantPortalUserPasswordResetRequest,
     TenantPortalUsersResponse,
+    TenantRetirementArchiveDetailResponse,
     TenantRetirementArchiveListResponse,
     TenantStatusUpdateRequest,
 )
@@ -843,6 +845,9 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertEqual(added_archives[0].deleted_by_user_id, 99)
         self.assertEqual(added_archives[0].deleted_by_email, "admin@platform.local")
         self.assertIn('"billing_events_count": 1', added_archives[0].summary_json)
+        self.assertIn('"recent_billing_events"', added_archives[0].summary_json)
+        self.assertIn('"recent_policy_events"', added_archives[0].summary_json)
+        self.assertIn('"recent_provisioning_jobs"', added_archives[0].summary_json)
 
     def test_tenant_service_rejects_deprovision_request_for_non_archived_tenant(self) -> None:
         tenant = build_tenant_record_stub(status="active")
@@ -5639,6 +5644,52 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.total, 1)
         self.assertEqual(response.data[0].tenant_slug, "empresa-provisioning-demo")
+
+    def test_get_tenant_retirement_archive_returns_detail_schema(self) -> None:
+        archive = SimpleNamespace(
+            id=7,
+            original_tenant_id=4,
+            tenant_slug="empresa-provisioning-demo",
+            tenant_name="Empresa Provisioning Demo",
+            tenant_type="empresa",
+            plan_code="mensual",
+            tenant_status="archived",
+            billing_provider="stripe",
+            billing_status="active",
+            billing_events_count=4,
+            policy_events_count=6,
+            provisioning_jobs_count=2,
+            deleted_by_email="admin@platform.local",
+            tenant_created_at=datetime(2026, 3, 20, 12, 0, tzinfo=timezone.utc),
+            deleted_at=datetime(2026, 3, 26, 15, 0, tzinfo=timezone.utc),
+            summary_json='{"access_policy":{"allowed":false},"retirement":{"recent_billing_events":[{"event_type":"invoice.paid"}]}}',
+        )
+
+        class FakeQuery:
+            def filter(self, *args, **kwargs):
+                return self
+
+            def first(self):
+                return archive
+
+        class FakeDb:
+            def query(self, _model):
+                return FakeQuery()
+
+        response = get_tenant_retirement_archive(
+            archive_id=7,
+            db=FakeDb(),
+            _token=self._token_payload(),
+        )
+
+        self.assertIsInstance(response, TenantRetirementArchiveDetailResponse)
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.id, 7)
+        self.assertFalse(response.summary["access_policy"]["allowed"])
+        self.assertEqual(
+            response.summary["retirement"]["recent_billing_events"][0]["event_type"],
+            "invoice.paid",
+        )
 
     def test_create_tenant_logs_audit_event(self) -> None:
         tenant = build_tenant_record_stub(

@@ -12,6 +12,7 @@ import type {
   PlatformTenantDbCredentialsRotateResponse,
   PlatformTenantPortalUsersResponse,
   PlatformTenantRetirementArchiveListResponse,
+  PlatformTenantRetirementArchiveDetailResponse,
   PlatformTenantUserPasswordResetRequest,
   PlatformTenantUserPasswordResetResponse,
   PlatformUserCreateRequest,
@@ -230,6 +231,18 @@ export function listPlatformTenantRetirementArchives(
   const suffix = query.toString() ? `?${query.toString()}` : "";
   return apiRequest<PlatformTenantRetirementArchiveListResponse>(
     `/platform/tenants/retirement-archives${suffix}`,
+    {
+      token: accessToken,
+    }
+  );
+}
+
+export function getPlatformTenantRetirementArchive(
+  accessToken: string,
+  archiveId: number
+) {
+  return apiRequest<PlatformTenantRetirementArchiveDetailResponse>(
+    `/platform/tenants/retirement-archives/${archiveId}`,
     {
       token: accessToken,
     }
