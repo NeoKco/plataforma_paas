@@ -88,6 +88,7 @@ Prioridad actual del producto:
 - `tenant_portal` ya expone una primera pantalla moderna de `Transacciones` sobre ese nucleo, con balances por cuenta, detalle operacional, filtros reales y edicion completa
 - `tenant_portal` ya expone tambien una primera pantalla real de `Presupuestos`, con lectura mensual `presupuesto vs real` por categoria
 - `tenant_portal` ya expone una primera pantalla real de `Préstamos` con cartera, contraparte, saldo pendiente y cronograma base de cuotas
+- `tenant_portal` ya expone una primera pantalla real de `Planificación` con lectura mensual de flujo, vencimientos y foco presupuestario
 - `tenant_portal` ya expone una primera pantalla real de `Reportes` con overview mensual consolidado
 - esa misma pantalla ya permite aplicar pagos manuales sobre cuotas del cronograma con reparto configurable entre interes y capital
 - esa misma pantalla ya permite revertir esos abonos de forma parcial o total

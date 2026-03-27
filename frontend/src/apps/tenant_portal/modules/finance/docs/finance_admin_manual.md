@@ -25,5 +25,6 @@ Estado actual:
 - el cronograma ya permite además selección múltiple y operación batch de pago o reversa
 - la reversa individual y batch ya exige motivo estructurado y lo deja visible en el cronograma
 - cada pago o reversa de cuota ya genera además una transacción financiera enlazada al préstamo
+- `Planificación` ya ofrece una lectura mensual operativa cruzando días con movimiento, cuotas del mes y presión presupuestaria
 - `Reportes` ya ofrece un overview mensual con lectura cruzada de transacciones, presupuestos y préstamos
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo

@@ -23,6 +23,7 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     create_finance_transaction,
     create_finance_entry,
     finance_account_balances,
+    get_finance_planning_overview,
     get_finance_reports_overview,
     finance_usage,
     finance_summary,
@@ -967,6 +968,74 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.budget_snapshot.total_budgeted, 300.0)
         self.assertEqual(response.data.loan_snapshot.borrowed_balance, 700.0)
         self.assertEqual(response.data.top_expense_categories[0].category_name, "General Expense")
+
+    def test_get_finance_planning_overview_returns_monthly_payload(self) -> None:
+        overview = {
+            "period_month": date(2026, 5, 1),
+            "summary": {
+                "period_month": date(2026, 5, 1),
+                "total_income": 500.0,
+                "total_expense": 120.0,
+                "net_total": 380.0,
+                "total_transactions": 2,
+                "due_installments_count": 1,
+                "pending_installments_count": 1,
+                "expected_loan_cashflow": 220.0,
+                "total_budgeted": 300.0,
+                "total_actual": 120.0,
+                "total_variance": 180.0,
+            },
+            "calendar_days": [
+                {
+                    "day": date(2026, 5, 3),
+                    "income_total": 500.0,
+                    "expense_total": 0.0,
+                    "net_total": 500.0,
+                    "transaction_count": 1,
+                    "due_installments_count": 0,
+                }
+            ],
+            "loan_due_items": [
+                {
+                    "loan_id": 4,
+                    "loan_name": "Prestamo operativo",
+                    "loan_type": "borrowed",
+                    "installment_id": 21,
+                    "installment_number": 1,
+                    "due_date": date(2026, 5, 1),
+                    "planned_amount": 220.0,
+                    "paid_amount": 0.0,
+                    "remaining_amount": 220.0,
+                    "installment_status": "pending",
+                }
+            ],
+            "budget_focus": [
+                {
+                    "category_id": 2,
+                    "category_name": "General Expense",
+                    "category_type": "expense",
+                    "planned_amount": 300.0,
+                    "actual_amount": 120.0,
+                    "variance_amount": 180.0,
+                    "budget_status": "within_budget",
+                }
+            ],
+        }
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.planning_service.get_monthly_overview",
+            return_value=overview,
+        ):
+            response = get_finance_planning_overview(
+                period_month=date(2026, 5, 1),
+                current_user=self._current_user(role="operator"),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.summary.total_income, 500.0)
+        self.assertEqual(response.data.loan_due_items[0].loan_name, "Prestamo operativo")
+        self.assertEqual(response.data.budget_focus[0].budget_status, "within_budget")
 
     def test_apply_finance_loan_installment_payment_returns_mutated_rows(self) -> None:
         loan_row = {

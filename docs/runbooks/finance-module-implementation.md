@@ -83,6 +83,8 @@ En esta fase quedaron listos:
 - pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
 - razones estructuradas de reversa sobre cuotas, tanto individual como batch
 - enlace contable minimo de cuotas: cada pago o reversa genera una transaccion en `finance_transactions`
+- primera pantalla real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
+- primera pantalla real de `Reportes` con overview mensual consolidado
 
 ## Archivos principales
 
@@ -90,19 +92,28 @@ En esta fase quedaron listos:
 - `backend/app/apps/tenant_modules/finance/repositories/entry_repository.py`
 - `backend/app/apps/tenant_modules/finance/services/transaction_service.py`
 - `backend/app/apps/tenant_modules/finance/services/budget_service.py`
+- `backend/app/apps/tenant_modules/finance/services/loan_service.py`
+- `backend/app/apps/tenant_modules/finance/services/planning_service.py`
+- `backend/app/apps/tenant_modules/finance/services/reports_service.py`
 - `backend/app/apps/tenant_modules/finance/services/finance_service.py`
 - `backend/app/apps/tenant_modules/finance/schemas/__init__.py`
 - `backend/app/apps/tenant_modules/finance/api/router.py`
 - `backend/app/apps/tenant_modules/finance/api/transactions.py`
 - `backend/app/apps/tenant_modules/finance/api/budgets.py`
 - `backend/app/apps/tenant_modules/finance/api/loans.py`
+- `backend/app/apps/tenant_modules/finance/api/planning.py`
+- `backend/app/apps/tenant_modules/finance/api/reports.py`
 - `backend/app/tests/test_tenant_finance_flow.py`
 - `backend/app/tests/test_finance_budget_core.py`
 - `backend/app/tests/test_finance_loan_core.py`
+- `backend/app/tests/test_finance_planning_core.py`
+- `backend/app/tests/test_finance_reports_core.py`
 - `frontend/src/apps/tenant_portal/modules/finance/routes.tsx`
 - `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx`
 - `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceBudgetsPage.tsx`
 - `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceLoansPage.tsx`
+- `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceCalendarPage.tsx`
+- `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceReportsPage.tsx`
 - `frontend/src/apps/tenant_portal/pages/finance/TenantFinancePageLegacy.tsx`
 
 ## Endpoints
@@ -117,6 +128,8 @@ En esta fase quedaron listos:
 - `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment`
 - `PATCH /tenant/finance/loans/{loan_id}/installments/payment/reversal/batch`
 - `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment/reversal`
+- `GET /tenant/finance/planning/overview`
+- `GET /tenant/finance/reports/overview`
 - `GET|POST|PUT|PATCH /tenant/finance/accounts`
 - `GET|POST|PUT|PATCH /tenant/finance/categories`
 - `GET|POST|PUT|PATCH /tenant/finance/beneficiaries`
@@ -267,15 +280,16 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 15. motivos estructurados de reversa sobre cuotas, visibles en cronograma y persistidos en DB
 16. enlace contable minimo desde cuotas hacia `finance_transactions` por `loan_id`, `source_type` y `source_id`
 17. primera vista real de `Reportes` con overview mensual de transacciones, presupuestos y préstamos
+18. primera vista real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
 
 Lo siguiente recomendable ahora es:
 
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
 3. enriquecer el enlace contable de `Préstamos` con cuenta origen y lectura derivada mas densa
-4. abrir planificacion real, ahora que `Reportes` ya tiene una primera lectura operativa
+4. densificar `Reportes` y abrir exportacion cuando `Planificación` ya entregue lectura operativa estable
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
-6. abrir exportacion o vistas derivadas cuando el trabajo operativo del slice ya quede estable
+6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable
 
 ## Convencion relacionada
 

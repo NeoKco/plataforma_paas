@@ -43,10 +43,11 @@ Alcance de esta fase:
 - pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
 - razones estructuradas de reversa sobre cuotas
 - enlace contable minimo: pagos y reversas de cuotas ya generan transacciones reales enlazadas al préstamo
+- primera vista real de `Planificación` con lectura mensual de flujo, vencimientos y foco presupuestario
 - primera vista real de `Reportes` con overview mensual consolidado
 
 Pendiente inmediato:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura mas densa y estados operativos mas ricos
 - enriquecer el enlace contable de `Préstamos`
-- seguir `Lote 7` con planificacion real y reportes mas densos
+- seguir `Lote 7` con reportes mas densos y exportables

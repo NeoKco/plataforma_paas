@@ -119,6 +119,23 @@ Regla recomendada:
 - cuando una suite necesite stubs simples o contexto autenticado, debe partir desde `fixtures.py`
 - solo crear builders locales si la estructura de prueba es realmente especifica del caso
 
+## Finance Slices Relevantes
+
+Suites utiles para el estado actual de `finance`:
+
+- `app.tests.test_tenant_finance_flow`
+- `app.tests.test_finance_reports_core`
+- `app.tests.test_finance_planning_core`
+- `app.tests.test_finance_loan_core`
+- `app.tests.test_migration_flow`
+
+Cobertura visible actual:
+
+- overview mensual de `Reportes`
+- overview mensual de `Planificación`
+- cartera y cronograma de `Préstamos`
+- pagos, reversas y enlace contable minimo sobre cuotas
+
 ## Suite Tenant
 
 Archivo:

@@ -16,6 +16,7 @@ Estado actual:
 - la vista `Préstamos` ya permite además seleccionar varias cuotas y aplicar pago o reversa en lote
 - al revertir un abono, la vista ahora exige elegir un motivo estructurado y lo deja visible por cuota
 - cada pago o reversa de cuota ya deja además una transacción financiera enlazada al préstamo
+- la vista `Planificación` ya permite revisar días con señal operativa, cuotas por vencer y foco presupuestario del mes
 - la vista `Reportes` ya permite revisar el consolidado mensual de transacciones, presupuestos y cartera
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend
 
@@ -23,6 +24,7 @@ Pantallas disponibles:
 - `Transacciones`
 - `Presupuestos`
 - `Préstamos`
+- `Planificación`
 - `Reportes`
 - `Cuentas`
 - `Categorías`

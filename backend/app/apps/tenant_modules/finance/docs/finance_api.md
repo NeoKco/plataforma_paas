@@ -20,6 +20,8 @@ API vigente en el arranque:
 - `GET /tenant/finance/loans/{loan_id}`
 - `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment`
 - `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment/reversal`
+- `GET /tenant/finance/planning/overview`
+- `GET /tenant/finance/reports/overview`
 - `GET /tenant/finance/account-balances`
 - `GET /tenant/finance/summary`
 - `GET /tenant/finance/usage`
@@ -129,8 +131,10 @@ Estado actual de `Lote 6`:
 - el detalle de cuota ya expone `reversal_reason_code`
 - pagos y reversas sobre cuotas ahora generan una transaccion real en `finance_transactions`
 - esa transaccion queda enlazada por `loan_id`, `source_type` (`loan_installment_payment|loan_installment_reversal`) y `source_id`
+- ya existe `GET /tenant/finance/planning/overview` para lectura mensual de flujo operativo
+- `tenant_portal` ya consume ese contrato en la primera pantalla real de `Planificación`
 - ya existe `GET /tenant/finance/reports/overview` para recuperar lectura mensual consolidada
-- `tenant_portal` ya consume ese contrato en la primera pantalla real de `Préstamos`
+- `tenant_portal` ya consume ese contrato en la primera pantalla real de `Reportes`
 
 Nucleo transaccional ya disponible en backend:
 - tabla `finance_transactions`
@@ -140,10 +144,11 @@ Nucleo transaccional ya disponible en backend:
 - tabla `finance_budgets`
 - tabla `finance_loans`
 - tabla `finance_loan_installments`
+- lectura mensual operativa expuesta por API en `planning/overview`
 - lectura mensual consolidada expuesta por API en `reports/overview`
 
 Pendiente:
 - enriquecer `budgets` con lectura mas densa por categoria y estados operativos mas ricos
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
 - enriquecer el enlace contable de `loans` con cuenta origen y lectura derivada mas densa
-- endpoints de planificacion y reportes mas densos o exportables
+- reportes mas densos o exportables
