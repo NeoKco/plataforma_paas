@@ -35,9 +35,10 @@ Alcance de esta fase:
 - filtros de `Presupuestos` por tipo, estado derivado e inclusion de inactivos
 - primer slice real de `Préstamos` con cartera básica, saldo pendiente y contraparte
 - contrato backend propio para crear, listar y editar préstamos
+- cronograma inicial de `Préstamos` con cuotas generadas, detalle por préstamo y próximo vencimiento
 
 Pendiente inmediato:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura mas densa y estados operativos mas ricos
-- endurecer `Préstamos` con cuotas, cronograma y pagos aplicados
+- aplicar pagos reales y conciliacion sobre el cronograma de `Préstamos`
 - `Lote 7` prestamos, planificacion y reportes

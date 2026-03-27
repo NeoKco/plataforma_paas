@@ -13,6 +13,7 @@ from migrations.tenant import v0004_finance_seed_clp
 from migrations.tenant import v0005_finance_transactions
 from migrations.tenant import v0006_finance_budgets
 from migrations.tenant import v0007_finance_loans
+from migrations.tenant import v0008_finance_loan_installments
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -135,6 +136,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0005_finance_transactions",
                 "0006_finance_budgets",
                 "0007_finance_loans",
+                "0008_finance_loan_installments",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -157,6 +159,7 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("finance_transaction_audit", tables)
         self.assertIn("finance_budgets", tables)
         self.assertIn("finance_loans", tables)
+        self.assertIn("finance_loan_installments", tables)
         self.assertIn("tenant_schema_migrations", tables)
 
         with engine.connect() as conn:
@@ -204,6 +207,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0005_finance_transactions",
                 "0006_finance_budgets",
                 "0007_finance_loans",
+                "0008_finance_loan_installments",
             ],
         )
 
@@ -305,6 +309,22 @@ class MigrationFlowTestCase(unittest.TestCase):
             v0007_finance_loans.upgrade(conn)
 
         self.assertIn("finance_loans", set(inspect(engine).get_table_names()))
+
+    def test_finance_loan_installments_migration_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            v0003_finance_catalogs.upgrade(conn)
+            v0007_finance_loans.upgrade(conn)
+            v0008_finance_loan_installments.upgrade(conn)
+            v0008_finance_loan_installments.upgrade(conn)
+
+        loan_columns = {
+            column["name"] for column in inspect(engine).get_columns("finance_loans")
+        }
+        self.assertIn("installments_count", loan_columns)
+        self.assertIn("payment_frequency", loan_columns)
+        self.assertIn("finance_loan_installments", set(inspect(engine).get_table_names()))
 
 
 if __name__ == "__main__":

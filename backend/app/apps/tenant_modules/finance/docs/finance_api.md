@@ -17,6 +17,7 @@ API vigente en el arranque:
 - `GET /tenant/finance/loans`
 - `POST /tenant/finance/loans`
 - `PUT /tenant/finance/loans/{loan_id}`
+- `GET /tenant/finance/loans/{loan_id}`
 - `GET /tenant/finance/account-balances`
 - `GET /tenant/finance/summary`
 - `GET /tenant/finance/usage`
@@ -112,7 +113,8 @@ Estado actual de `Lote 6`:
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Presupuestos`
 - ya existen `GET|POST /tenant/finance/loans`
 - ya existe `PUT /tenant/finance/loans/{loan_id}` para editar un préstamo existente
-- `GET /tenant/finance/loans` ya expone cartera básica con saldo pendiente, capital inicial y filtros por tipo/estado
+- ya existe `GET /tenant/finance/loans/{loan_id}` para recuperar cronograma y detalle operativo de cuotas
+- `GET /tenant/finance/loans` ya expone cartera con saldo pendiente, capital inicial, proximo vencimiento y avance de cuotas
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Préstamos`
 
 Nucleo transaccional ya disponible en backend:
@@ -122,9 +124,10 @@ Nucleo transaccional ya disponible en backend:
 - tabla `finance_transaction_audit`
 - tabla `finance_budgets`
 - tabla `finance_loans`
+- tabla `finance_loan_installments`
 
 Pendiente:
 - enriquecer `budgets` con lectura mas densa por categoria y estados operativos mas ricos
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
-- endurecer `loans` con cuotas, cronograma y conciliacion de pagos antes de enlazarlo a reportes
+- aplicar pagos reales y conciliacion sobre cuotas de `loans` antes de enlazarlo a reportes
 - endpoints de planificacion y reportes

@@ -19,6 +19,6 @@ Estado actual:
 - ya existe una pantalla operativa de `Presupuestos` con lectura mensual por categoria
 - `Presupuestos` ya permite alta y edicion de montos, nota y estado activo, usando comparacion contra la ejecucion real del mes
 - `Presupuestos` ya permite filtrar por tipo, estado derivado e inclusion de inactivos
-- ya existe una pantalla operativa de `Préstamos` con cartera base por contraparte, capital, saldo y moneda
-- `Préstamos` todavia no modela cuotas ni amortizacion detallada; este primer slice solo abre cartera y saldo
+- ya existe una pantalla operativa de `Préstamos` con cartera por contraparte, capital, saldo, cuotas y moneda
+- `Préstamos` ya expone un cronograma inicial por cuotas, aunque todavía no aplica pagos reales ni amortización avanzada
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo

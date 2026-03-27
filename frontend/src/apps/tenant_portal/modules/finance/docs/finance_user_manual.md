@@ -9,7 +9,7 @@ Estado actual:
 - la conciliación ya puede dejar nota operativa y exige confirmación antes de aplicar el cambio
 - la vista `Presupuestos` ya permite cargar un monto mensual por categoría y compararlo contra la ejecución real del mes
 - la vista `Presupuestos` ya permite además filtrar por tipo, estado derivado e inactivos
-- la vista `Préstamos` ya permite registrar cartera básica prestada o recibida y revisar el saldo pendiente
+- la vista `Préstamos` ya permite registrar cartera prestada o recibida, definir cuotas base y revisar el cronograma generado
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend
 
 Pantallas disponibles:

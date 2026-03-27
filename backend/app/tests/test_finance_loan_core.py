@@ -133,6 +133,37 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         self.assertEqual(len(lent_rows), 1)
         self.assertEqual(lent_rows[0]["loan"].loan_type, "lent")
 
+    def test_create_loan_generates_monthly_installments_and_detail(self) -> None:
+        currency = self._seed_currency()
+        loan = self.loan_service.create_loan(
+            self.db,
+            FinanceLoanCreateRequest(
+                name="Crédito oficina",
+                loan_type="borrowed",
+                counterparty_name="Banco Tres",
+                currency_id=currency.id,
+                principal_amount=1200.0,
+                current_balance=1200.0,
+                interest_rate=12.0,
+                installments_count=4,
+                payment_frequency="monthly",
+                start_date=date(2027, 3, 15),
+                due_date=date(2027, 6, 15),
+                note=None,
+                is_active=True,
+            ),
+        )
+
+        loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+
+        self.assertEqual(loan_row["installments_total"], 4)
+        self.assertEqual(loan_row["installments_paid"], 0)
+        self.assertEqual(loan_row["next_due_date"], date(2027, 3, 15))
+        self.assertEqual(len(installments), 4)
+        self.assertEqual(installments[0]["installment"].due_date, date(2027, 3, 15))
+        self.assertEqual(installments[1]["installment"].due_date, date(2027, 4, 15))
+        self.assertEqual(installments[0]["installment_status"], "pending")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -197,8 +197,8 @@ Cobertura actual:
 - balances por cuenta expuestos por API
 - filtros por transaccion, edicion completa, filtro por favoritas y operaciones batch de favorito/conciliacion con nota opcional
 - presupuestos mensuales por categoria, con comparacion `presupuesto vs real`
-- prestamos base con resumen de cartera y filtros por tipo/estado
-- migraciones tenant del modulo hasta `0007_finance_loans`
+- prestamos con resumen de cartera, filtros por tipo/estado y detalle de cronograma por cuotas
+- migraciones tenant del modulo hasta `0008_finance_loan_installments`
 - seeds idempotentes para moneda base, `CLP`, categorias y settings
 - repositories CRUD base del modulo y sus restricciones de unicidad/activacion
 - validaciones de servicio para cuentas, categorias y moneda base

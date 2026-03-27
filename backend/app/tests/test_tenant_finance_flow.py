@@ -23,6 +23,7 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     finance_account_balances,
     finance_usage,
     finance_summary,
+    get_finance_loan_detail,
     get_finance_transaction_detail,
     list_finance_budgets,
     list_finance_loans,
@@ -662,6 +663,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     principal_amount=1000.0,
                     current_balance=700.0,
                     interest_rate=7.5,
+                    installments_count=12,
+                    payment_frequency="monthly",
                     start_date=date(2026, 3, 1),
                     due_date=date(2027, 3, 1),
                     note="Renegociado",
@@ -672,6 +675,9 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 "currency_code": "USD",
                 "loan_status": "open",
                 "paid_amount": 300.0,
+                "next_due_date": date(2026, 4, 1),
+                "installments_total": 12,
+                "installments_paid": 3,
             }
         ]
         summary = {
@@ -709,6 +715,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     principal_amount=500.0,
                     current_balance=250.0,
                     interest_rate=None,
+                    installments_count=10,
+                    payment_frequency="monthly",
                     start_date=date(2026, 3, 1),
                     due_date=None,
                     note=None,
@@ -719,6 +727,9 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 "currency_code": "USD",
                 "loan_status": "open",
                 "paid_amount": 250.0,
+                "next_due_date": date(2026, 4, 1),
+                "installments_total": 10,
+                "installments_paid": 5,
             }
         ]
 
@@ -738,6 +749,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     principal_amount=500.0,
                     current_balance=250.0,
                     interest_rate=None,
+                    installments_count=10,
+                    payment_frequency="monthly",
                     start_date=date(2026, 3, 1),
                     due_date=None,
                     note=None,
@@ -749,6 +762,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertEqual(response.data.current_balance, 250.0)
+        self.assertEqual(response.data.installments_total, 10)
 
     def test_update_finance_loan_returns_updated_row(self) -> None:
         loan = SimpleNamespace(id=3)
@@ -763,6 +777,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     principal_amount=1000.0,
                     current_balance=650.0,
                     interest_rate=7.0,
+                    installments_count=8,
+                    payment_frequency="monthly",
                     start_date=date(2026, 3, 1),
                     due_date=None,
                     note="Actualizado",
@@ -773,6 +789,9 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 "currency_code": "USD",
                 "loan_status": "open",
                 "paid_amount": 350.0,
+                "next_due_date": date(2026, 4, 1),
+                "installments_total": 8,
+                "installments_paid": 2,
             }
         ]
 
@@ -793,6 +812,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     principal_amount=1000.0,
                     current_balance=650.0,
                     interest_rate=7.0,
+                    installments_count=8,
+                    payment_frequency="monthly",
                     start_date=date(2026, 3, 1),
                     due_date=None,
                     note="Actualizado",
@@ -804,6 +825,68 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertEqual(response.data.paid_amount, 350.0)
+        self.assertEqual(response.data.installments_paid, 2)
+
+    def test_get_finance_loan_detail_returns_installments(self) -> None:
+        loan_row = {
+            "loan": SimpleNamespace(
+                id=4,
+                name="Crédito equipo",
+                loan_type="borrowed",
+                counterparty_name="Banco Norte",
+                currency_id=1,
+                principal_amount=1200.0,
+                current_balance=900.0,
+                interest_rate=6.5,
+                installments_count=12,
+                payment_frequency="monthly",
+                start_date=date(2026, 3, 1),
+                due_date=date(2027, 2, 1),
+                note=None,
+                is_active=True,
+                created_at="2026-03-27T16:00:00+00:00",
+                updated_at="2026-03-27T16:00:00+00:00",
+            ),
+            "currency_code": "USD",
+            "loan_status": "open",
+            "paid_amount": 300.0,
+            "next_due_date": date(2026, 4, 1),
+            "installments_total": 12,
+            "installments_paid": 3,
+        }
+        installments = [
+            {
+                "installment": SimpleNamespace(
+                    id=21,
+                    loan_id=4,
+                    installment_number=1,
+                    due_date=date(2026, 3, 1),
+                    planned_amount=110.0,
+                    principal_amount=100.0,
+                    interest_amount=10.0,
+                    paid_amount=110.0,
+                    paid_at=date(2026, 3, 1),
+                    note=None,
+                    created_at="2026-03-27T16:00:00+00:00",
+                    updated_at="2026-03-27T16:00:00+00:00",
+                ),
+                "installment_status": "paid",
+            }
+        ]
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.loan_service.get_loan_detail",
+            return_value=(loan_row, installments),
+        ):
+            response = get_finance_loan_detail(
+                loan_id=4,
+                current_user=self._current_user(role="operator"),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.loan.installments_total, 12)
+        self.assertEqual(response.data.installments[0].installment_status, "paid")
 
     def test_update_finance_transaction_favorite_returns_mutated_transaction(self) -> None:
         transaction = SimpleNamespace(

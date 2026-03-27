@@ -6,6 +6,7 @@ Cobertura actual:
 - integracion tenant existente
 - migraciones tenant `0001`, `0002`, `0003`, `0004`, `0005` y `0006`
 - migracion tenant `0007_finance_loans`
+- migracion tenant `0008_finance_loan_installments`
 - idempotencia de seeds base del modulo
 - seed idempotente de `CLP`
 - repositories CRUD base de catalogos
@@ -21,11 +22,11 @@ Cobertura actual:
   - integridad de balances por cuenta
 - integracion SQLite real del balance por cuentas
 - core de presupuestos por categoria y mes, incluyendo comparacion `presupuesto vs real`
-- core de prestamos con resumen de cartera y filtros por tipo/estado
+- core de prestamos con resumen de cartera, filtros por tipo/estado y generacion de cronograma mensual
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
 - pruebas de lectura mas rica de presupuestos
-- pruebas de cuotas, cronogramas y pagos de prestamos
+- pruebas de pagos aplicados y conciliacion real de cuotas de prestamos
 - pruebas de reportes

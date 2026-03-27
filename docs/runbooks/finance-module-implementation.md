@@ -75,6 +75,7 @@ En esta fase quedaron listos:
 - primera pantalla real de `Presupuestos` con lectura `presupuesto vs real`
 - filtros de `Presupuestos` por tipo, estado derivado e inclusion de inactivos
 - primer slice real de `Préstamos` con cartera base, saldo pendiente y contraparte
+- cronograma inicial de `Préstamos` con cuotas generadas, proximo vencimiento y detalle por préstamo
 
 ## Archivos principales
 
@@ -104,6 +105,7 @@ En esta fase quedaron listos:
 - `GET /tenant/finance/summary`
 - `GET|POST|PUT /tenant/finance/budgets`
 - `GET|POST|PUT /tenant/finance/loans`
+- `GET /tenant/finance/loans/{loan_id}`
 - `GET|POST|PUT|PATCH /tenant/finance/accounts`
 - `GET|POST|PUT|PATCH /tenant/finance/categories`
 - `GET|POST|PUT|PATCH /tenant/finance/beneficiaries`
@@ -137,6 +139,7 @@ La persistencia transicional del modulo queda asi:
 - `finance_transactions` pasa a ser la tabla central real del modulo
 - `finance_budgets` abre la primera capa de planificacion mensual del modulo
 - `finance_loans` abre la primera capa de cartera de prestamos del modulo
+- `finance_loan_installments` abre el primer cronograma versionado de cuotas por prestamo
 
 Campos legacy principales:
 
@@ -183,6 +186,8 @@ Campos base de préstamos:
 - `principal_amount`
 - `current_balance`
 - `interest_rate`
+- `installments_count`
+- `payment_frequency`
 - `start_date`
 - `due_date`
 - `is_active`
@@ -242,12 +247,13 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 7. primera vista real de `Presupuestos` por mes y categoria, con comparacion presupuesto vs ejecucion
 8. filtros de `Presupuestos` por tipo, estado e inactivos
 9. primera vista real de `Préstamos` con cartera base y saldo pendiente
+10. cronograma inicial de `Préstamos` con detalle por cuotas, proximo vencimiento y lectura de avance
 
 Lo siguiente recomendable ahora es:
 
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
-3. endurecer `Préstamos` con cuotas, cronograma y pagos aplicados
+3. aplicar pagos reales sobre cuotas de `Préstamos` y reflejar conciliacion de cronograma
 4. seguir con planificacion y reportes
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 6. abrir exportacion o vistas derivadas cuando el trabajo operativo del slice ya quede estable

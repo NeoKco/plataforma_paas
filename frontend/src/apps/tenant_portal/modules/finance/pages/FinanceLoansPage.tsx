@@ -14,9 +14,11 @@ import {
 } from "../services/currenciesService";
 import {
   createTenantFinanceLoan,
+  getTenantFinanceLoanDetail,
   getTenantFinanceLoans,
   updateTenantFinanceLoan,
   type TenantFinanceLoan,
+  type TenantFinanceLoanDetailResponse,
   type TenantFinanceLoansResponse,
 } from "../services/loansService";
 
@@ -28,6 +30,8 @@ type LoanFormState = {
   principalAmount: string;
   currentBalance: string;
   interestRate: string;
+  installmentsCount: string;
+  paymentFrequency: string;
   startDate: string;
   dueDate: string;
   note: string;
@@ -47,6 +51,8 @@ const DEFAULT_FORM_STATE: LoanFormState = {
   principalAmount: "",
   currentBalance: "",
   interestRate: "",
+  installmentsCount: "",
+  paymentFrequency: "monthly",
   startDate: buildTodayDateValue(),
   dueDate: "",
   note: "",
@@ -58,6 +64,10 @@ export function FinanceLoansPage() {
   const [loansResponse, setLoansResponse] = useState<TenantFinanceLoansResponse | null>(null);
   const [currencies, setCurrencies] = useState<TenantFinanceCurrency[]>([]);
   const [editingLoanId, setEditingLoanId] = useState<number | null>(null);
+  const [selectedLoanId, setSelectedLoanId] = useState<number | null>(null);
+  const [loanDetail, setLoanDetail] = useState<TenantFinanceLoanDetailResponse["data"] | null>(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [loanDetailError, setLoanDetailError] = useState<string | null>(null);
   const [filterLoanType, setFilterLoanType] = useState("");
   const [filterLoanStatus, setFilterLoanStatus] = useState("");
   const [includeInactive, setIncludeInactive] = useState(true);
@@ -85,6 +95,10 @@ export function FinanceLoansPage() {
       }));
     }
   }, [activeCurrencies, formState.currencyId]);
+
+  useEffect(() => {
+    void loadLoanDetail();
+  }, [session?.accessToken, selectedLoanId]);
 
   async function loadLoanWorkspace() {
     if (!session?.accessToken) {
@@ -118,6 +132,27 @@ export function FinanceLoansPage() {
     setIsLoading(false);
   }
 
+  async function loadLoanDetail() {
+    if (!session?.accessToken || selectedLoanId == null) {
+      setLoanDetail(null);
+      setLoanDetailError(null);
+      setIsDetailLoading(false);
+      return;
+    }
+
+    setIsDetailLoading(true);
+    setLoanDetailError(null);
+    try {
+      const response = await getTenantFinanceLoanDetail(session.accessToken, selectedLoanId);
+      setLoanDetail(response.data);
+    } catch (rawError) {
+      setLoanDetail(null);
+      setLoanDetailError(getApiErrorDisplayMessage(rawError as ApiError));
+    } finally {
+      setIsDetailLoading(false);
+    }
+  }
+
   function resetForm() {
     setEditingLoanId(null);
     const baseCurrency = activeCurrencies.find((currency) => currency.is_base);
@@ -138,11 +173,14 @@ export function FinanceLoansPage() {
       principalAmount: String(loan.principal_amount),
       currentBalance: String(loan.current_balance),
       interestRate: loan.interest_rate == null ? "" : String(loan.interest_rate),
+      installmentsCount: loan.installments_count == null ? "" : String(loan.installments_count),
+      paymentFrequency: loan.payment_frequency,
       startDate: loan.start_date,
       dueDate: loan.due_date || "",
       note: loan.note || "",
       isActive: loan.is_active,
     });
+    setSelectedLoanId(loan.id);
     setActionFeedback(null);
   }
 
@@ -166,6 +204,10 @@ export function FinanceLoansPage() {
         interest_rate: formState.interestRate.trim()
           ? Number.parseFloat(formState.interestRate)
           : null,
+        installments_count: formState.installmentsCount.trim()
+          ? Number.parseInt(formState.installmentsCount, 10)
+          : null,
+        payment_frequency: formState.paymentFrequency,
         start_date: formState.startDate,
         due_date: formState.dueDate || null,
         note: formState.note.trim() || null,
@@ -176,6 +218,7 @@ export function FinanceLoansPage() {
         : await createTenantFinanceLoan(session.accessToken, payload);
 
       await loadLoanWorkspace();
+      setSelectedLoanId(response.data.id);
       resetForm();
       setActionFeedback({ type: "success", message: response.message });
     } catch (rawError) {
@@ -317,6 +360,35 @@ export function FinanceLoansPage() {
                 />
               </div>
               <div>
+                <label className="form-label">Cuotas</label>
+                <input
+                  className="form-control"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={formState.installmentsCount}
+                  onChange={(event) =>
+                    setFormState((current) => ({ ...current, installmentsCount: event.target.value }))
+                  }
+                  placeholder="Ej: 12"
+                />
+              </div>
+            </div>
+
+            <div className="tenant-inline-form-grid">
+              <div>
+                <label className="form-label">Frecuencia</label>
+                <select
+                  className="form-select"
+                  value={formState.paymentFrequency}
+                  onChange={(event) =>
+                    setFormState((current) => ({ ...current, paymentFrequency: event.target.value }))
+                  }
+                >
+                  <option value="monthly">Mensual</option>
+                </select>
+              </div>
+              <div>
                 <label className="form-label">Activo</label>
                 <select
                   className="form-select"
@@ -450,6 +522,8 @@ export function FinanceLoansPage() {
                   <th>Capital</th>
                   <th>Saldo</th>
                   <th>Pagado</th>
+                  <th>Cuotas</th>
+                  <th>Próxima</th>
                   <th>Moneda</th>
                   <th>Estado</th>
                   <th>Acción</th>
@@ -464,6 +538,8 @@ export function FinanceLoansPage() {
                     <td>{formatMoney(loan.principal_amount)}</td>
                     <td>{formatMoney(loan.current_balance)}</td>
                     <td>{formatMoney(loan.paid_amount)}</td>
+                    <td>{loan.installments_total > 0 ? `${loan.installments_paid}/${loan.installments_total}` : "sin plan"}</td>
+                    <td>{loan.next_due_date ? formatShortDate(loan.next_due_date) : "n/a"}</td>
                     <td>{loan.currency_code}</td>
                     <td>
                       <span className={`status-badge ${loanStatusBadgeClass(loan.loan_status)}`}>
@@ -471,13 +547,24 @@ export function FinanceLoansPage() {
                       </span>
                     </td>
                     <td>
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        type="button"
-                        onClick={() => startEditingLoan(loan)}
-                      >
-                        Editar
-                      </button>
+                      <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+                        <button
+                          className="btn btn-sm btn-outline-primary"
+                          type="button"
+                          onClick={() => startEditingLoan(loan)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-secondary"
+                          type="button"
+                          onClick={() =>
+                            setSelectedLoanId((current) => (current === loan.id ? null : loan.id))
+                          }
+                        >
+                          {selectedLoanId === loan.id ? "Ocultar" : "Cronograma"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -487,6 +574,83 @@ export function FinanceLoansPage() {
         ) : (
           <div className="text-secondary">No hay préstamos para el filtro seleccionado.</div>
         )}
+      </PanelCard>
+
+      <PanelCard
+        title="Cronograma del préstamo"
+        subtitle="Detalle por cuota para lectura operacional rápida. El siguiente backlog será registrar pagos reales sobre este cronograma."
+      >
+        {selectedLoanId == null ? (
+          <div className="text-secondary">
+            Selecciona un préstamo en la cartera para revisar su cronograma.
+          </div>
+        ) : isDetailLoading ? (
+          <LoadingBlock label="Cargando cronograma..." />
+        ) : loanDetailError ? (
+          <div className="text-danger">{loanDetailError}</div>
+        ) : loanDetail ? (
+          <div className="d-grid gap-3">
+            <div className="tenant-detail-grid">
+              <DetailField label="Préstamo" value={loanDetail.loan.name} />
+              <DetailField label="Contraparte" value={loanDetail.loan.counterparty_name} />
+              <DetailField
+                label="Plan de cuotas"
+                value={
+                  loanDetail.loan.installments_total > 0
+                    ? `${loanDetail.loan.installments_paid}/${loanDetail.loan.installments_total}`
+                    : "sin cronograma"
+                }
+              />
+              <DetailField
+                label="Próximo vencimiento"
+                value={loanDetail.loan.next_due_date ? formatShortDate(loanDetail.loan.next_due_date) : "n/a"}
+              />
+            </div>
+
+            {loanDetail.installments.length > 0 ? (
+              <div className="table-responsive">
+                <table className="table table-hover align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Vence</th>
+                      <th>Planificada</th>
+                      <th>Capital</th>
+                      <th>Interés</th>
+                      <th>Pagado</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loanDetail.installments.map((installment) => (
+                      <tr key={installment.id}>
+                        <td>{installment.installment_number}</td>
+                        <td>{formatShortDate(installment.due_date)}</td>
+                        <td>{formatMoney(installment.planned_amount)}</td>
+                        <td>{formatMoney(installment.principal_amount)}</td>
+                        <td>{formatMoney(installment.interest_amount)}</td>
+                        <td>{formatMoney(installment.paid_amount)}</td>
+                        <td>
+                          <span
+                            className={`status-badge ${installmentStatusBadgeClass(
+                              installment.installment_status
+                            )}`}
+                          >
+                            {displayInstallmentStatus(installment.installment_status)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-secondary">
+                Este préstamo todavía no tiene cronograma porque no se definió cantidad de cuotas.
+              </div>
+            )}
+          </div>
+        ) : null}
       </PanelCard>
     </div>
   );
@@ -527,6 +691,22 @@ function displayLoanStatus(value: string): string {
   return value;
 }
 
+function displayInstallmentStatus(value: string): string {
+  if (value === "paid") {
+    return "pagada";
+  }
+  if (value === "partial") {
+    return "parcial";
+  }
+  if (value === "overdue") {
+    return "vencida";
+  }
+  if (value === "pending") {
+    return "pendiente";
+  }
+  return value;
+}
+
 function loanStatusBadgeClass(value: string): string {
   if (value === "open") {
     return "status-badge--warning";
@@ -535,6 +715,23 @@ function loanStatusBadgeClass(value: string): string {
     return "status-badge--success";
   }
   return "status-badge--neutral";
+}
+
+function installmentStatusBadgeClass(value: string): string {
+  if (value === "paid") {
+    return "status-badge--success";
+  }
+  if (value === "partial") {
+    return "status-badge--warning";
+  }
+  if (value === "overdue") {
+    return "status-badge--danger";
+  }
+  return "status-badge--neutral";
+}
+
+function formatShortDate(value: string): string {
+  return new Date(`${value}T00:00:00`).toLocaleDateString();
 }
 
 function DetailField({ label, value }: { label: string; value: ReactNode }) {

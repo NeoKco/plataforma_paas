@@ -7,6 +7,7 @@ Estado actual:
 - existe `0005_finance_transactions` como migracion del nucleo transaccional real
 - existe `0006_finance_budgets` como migracion base de presupuestos mensuales
 - existe `0007_finance_loans` como migracion base de cartera de prestamos
+- existe `0008_finance_loan_installments` como migracion de cronograma y cuotas
 
 Objetivo contractual:
 - ampliar el esquema tenant del modulo segun el roadmap maestro
@@ -30,6 +31,7 @@ Tablas base ya creadas en `Lote 1`:
 - `finance_transaction_audit`
 - `finance_budgets`
 - `finance_loans`
+- `finance_loan_installments`
 
 ## Seeds idempotentes iniciales
 
@@ -98,7 +100,12 @@ Tablas base ya creadas en `Lote 1`:
 ### `finance_loans`
 - cartera base de prestamos prestados o recibidos
 - conserva contraparte, capital inicial, saldo pendiente, moneda y fechas clave
-- base para abrir luego cuotas, cronograma, intereses y conciliacion de pagos
+- ya incluye `installments_count` y `payment_frequency` para generar un cronograma base
+
+### `finance_loan_installments`
+- cuotas generadas por prestamo con numero, vencimiento y montos de capital/interes
+- conserva avance de pago simple por cuota y estado derivado (`pending`, `partial`, `overdue`, `paid`)
+- base para aplicar pagos reales y conciliacion del cronograma
 
 ## Reglas estructurales de esta fase
 
@@ -108,5 +115,5 @@ Tablas base ya creadas en `Lote 1`:
 
 Pendiente siguiente:
 - endurecer lectura de presupuestos y estados operativos derivados
-- endurecer prestamos con cuotas y cronograma
+- aplicar pagos reales sobre el cronograma de prestamos
 - planificacion y reportes
