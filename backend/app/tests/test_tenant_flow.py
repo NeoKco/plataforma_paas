@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from fastapi import HTTPException
+from sqlalchemy.exc import OperationalError
 
 from app.tests.fixtures import (  # noqa: E402
     build_tenant_context,
@@ -202,6 +203,47 @@ class TenantSessionManagerTestCase(unittest.TestCase):
             next(get_tenant_db(request))
 
         self.assertEqual(exc.exception.status_code, 403)
+
+    def test_get_tenant_db_translates_operational_error_to_service_unavailable(self) -> None:
+        request = SimpleNamespace(
+            state=SimpleNamespace(
+                tenant_slug="empresa-bootstrap",
+                token_scope="tenant",
+            )
+        )
+        fake_control_db = FakeSession()
+        fake_tenant = SimpleNamespace(
+            slug="empresa-bootstrap",
+            status="active",
+            status_reason=None,
+        )
+
+        class BrokenTenantSession(FakeSession):
+            def execute(self, *_args, **_kwargs):
+                raise OperationalError(
+                    "SELECT 1",
+                    {},
+                    Exception("password authentication failed"),
+                )
+
+        fake_service = SimpleNamespace(
+            get_tenant_by_slug=lambda db, tenant_slug: fake_tenant,
+            get_tenant_session=lambda tenant: (lambda: BrokenTenantSession()),
+        )
+
+        with patch(
+            "app.common.db.session_manager.ControlSessionLocal",
+            return_value=fake_control_db,
+        ), patch(
+            "app.common.db.session_manager.TenantConnectionService",
+            return_value=fake_service,
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                next(get_tenant_db(request))
+
+        self.assertEqual(exc.exception.status_code, 503)
+        self.assertEqual(exc.exception.detail, "Tenant unavailable due to operational error")
+        self.assertTrue(fake_control_db.closed)
 
 
 class TenantMiddlewareMaintenanceTestCase(unittest.TestCase):
@@ -1683,6 +1725,41 @@ class TenantRoutesTestCase(unittest.TestCase):
 
         self.assertEqual(exc.exception.status_code, 423)
         audit_log.assert_called_once()
+
+    def test_tenant_login_translates_operational_error_to_service_unavailable(self) -> None:
+        tenant = SimpleNamespace(
+            slug="empresa-bootstrap",
+            status="active",
+            status_reason=None,
+        )
+
+        class BrokenTenantSession(FakeSession):
+            def execute(self, *_args, **_kwargs):
+                raise OperationalError(
+                    "SELECT 1",
+                    {},
+                    Exception("password authentication failed"),
+                )
+
+        with patch(
+            "app.apps.tenant_modules.core.api.auth_routes.TenantConnectionService.get_tenant_by_slug",
+            return_value=tenant,
+        ), patch(
+            "app.apps.tenant_modules.core.api.auth_routes.TenantConnectionService.get_tenant_session",
+            return_value=lambda: BrokenTenantSession(),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                tenant_login(
+                    payload=TenantLoginRequest(
+                        tenant_slug="empresa-bootstrap",
+                        email="admin@empresa-bootstrap.local",
+                        password="TenantAdmin123!",
+                    ),
+                    control_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 503)
+        self.assertEqual(exc.exception.detail, "Tenant unavailable due to operational error")
 
     def test_tenant_refresh_returns_token_pair(self) -> None:
         with patch(

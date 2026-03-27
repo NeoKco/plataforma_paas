@@ -152,6 +152,32 @@ class TenantSecretServiceTestCase(unittest.TestCase):
         self.assertEqual(env_var, "TENANT_DB_PASSWORD__EMPRESA_BOOTSTRAP")
         self.assertEqual(resolved, "SuperSecret123!")
 
+    def test_resolve_tenant_db_password_prefers_env_file_over_stale_process_env(self) -> None:
+        service = TenantSecretService()
+        env_var = "TENANT_DB_PASSWORD__EMPRESA_DEMO"
+        previous_value = os.environ.get(env_var)
+        os.environ[env_var] = "stale-process-secret"
+
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                env_path = Path(temp_dir) / ".env"
+                env_path.write_text(
+                    "TENANT_DB_PASSWORD__EMPRESA_DEMO=fresh-file-secret\n",
+                    encoding="utf-8",
+                )
+
+                resolved = service.resolve_tenant_db_password(
+                    "empresa-demo",
+                    SimpleNamespace(BASE_DIR=Path(temp_dir)),
+                )
+        finally:
+            if previous_value is None:
+                os.environ.pop(env_var, None)
+            else:
+                os.environ[env_var] = previous_value
+
+        self.assertEqual(resolved, "fresh-file-secret")
+
     def test_mask_secret_keeps_last_characters_only(self) -> None:
         service = TenantSecretService()
 

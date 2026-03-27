@@ -11,12 +11,17 @@ class TenantSecretService:
 
     def resolve_tenant_db_password(self, tenant_slug: str, current_settings) -> str:
         normalized_slug = tenant_slug.upper().replace("-", "_")
+        env_path = Path(getattr(current_settings, "BASE_DIR", BASE_DIR)) / ".env"
         candidates = [
             self.build_tenant_db_password_env_var_name(tenant_slug),
             f"TENANT_BOOTSTRAP_DB_PASSWORD_{normalized_slug}",
         ]
 
         for env_var in candidates:
+            env_file_value = self._read_env_var_from_file(env_path, env_var)
+            if env_file_value:
+                return env_file_value
+
             env_value = os.getenv(env_var)
             if env_value:
                 return env_value
@@ -24,13 +29,6 @@ class TenantSecretService:
             setting_value = getattr(current_settings, env_var, None)
             if setting_value:
                 return setting_value
-
-            env_file_value = self._read_env_var_from_file(
-                Path(getattr(current_settings, "BASE_DIR", BASE_DIR)) / ".env",
-                env_var,
-            )
-            if env_file_value:
-                return env_file_value
 
         raise ValueError("Tenant DB password not configured for this tenant")
 

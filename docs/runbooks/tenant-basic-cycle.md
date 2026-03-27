@@ -58,6 +58,7 @@ Lectura practica:
 - el mismo detalle ya deja ver si el esquema tenant esta al dia o si quedaron migraciones pendientes
 - desde ese bloque ya puede abrirse la pantalla global de `Provisioning` o ejecutar/reintentar el job segun su estado
 - si un tenant quedo con historial `completed` pero sigue sin DB tenant configurada, el bloque ahora tambien expone `Reprovisionar tenant`
+- si la credencial tecnica tenant ya no coincide con PostgreSQL, el portal tenant y el uso por modulo deben degradar a aviso operativo en vez de caer con error crudo
 - el acceso rapido a `tenant_portal` ya debe reservarse para tenants `active` con provisioning completado
 
 ![Formulario de alta y catalogo tenant](../assets/app-visual-manual/04a-tenants-create-form-catalog.png)
@@ -192,6 +193,11 @@ Motivo:
 - si el tenant queda bloqueado por lifecycle o billing, `Tenants` y `tenant_portal` deben mostrar una explicacion operativa clara en vez de dejar el detalle crudo del backend
 - si la DB tenant existe pero el esquema queda atrasado, `Tenants` ya deja visible version actual, ultima version disponible, cantidad de migraciones pendientes y ultima sincronizacion
 - si la DB tenant ya existe, `Tenants` tambien deja rotar la credencial tecnica de la base tenant sin afectar usuarios del portal
+- si la credencial tecnica tenant queda desalineada:
+  - el login tenant debe devolver un error operativo controlado
+  - `Uso por modulo` debe indicar que primero debes rotar o reprovisionar la credencial tecnica de la base tenant
+  - ese camino ya no debe caer con `500` crudo por `password authentication failed`
+  - si la rotacion devuelve `role not found` o `database not found`, el siguiente camino correcto es `Reprovisionar tenant`
 
 ## 6. Que no conviene hacer todavia
 

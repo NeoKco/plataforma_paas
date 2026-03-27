@@ -167,6 +167,7 @@ Lectura importante:
 - si un tenant queda bloqueado por lifecycle o billing, `Tenants` y el login tenant ya intentan explicarlo con lenguaje operativo en vez de depender del detalle crudo del backend
 - la conectividad PostgreSQL ya no depende de interpolar `username:password@host` a mano; la plataforma usa builders seguros para que passwords con caracteres reservados no rompan readiness, provisioning ni rotacion tecnica
 - la base de control tambien debe mantenerse al dia con sus migraciones; la plataforma ya intenta aplicarlas automaticamente al arrancar cuando la instalacion ya existe
+- si la credencial tecnica tenant queda desalineada con PostgreSQL, el login tenant ya debe caer como error operativo controlado y `Uso por módulo` debe pedir rotar o reprovisionar esa credencial antes de seguir
 
 ### `Usuarios de plataforma`
 

@@ -1597,6 +1597,16 @@ export function TenantsPage() {
                 ) : null}
                 {selectedTenantSummary.db_configured ? (
                   <>
+                    {actionFeedback?.scope === "rotate-tenant-db-credentials" ? (
+                      <div
+                        className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
+                      >
+                        <strong>
+                          {getPlatformActionFeedbackLabel(actionFeedback.scope)}:
+                        </strong>{" "}
+                        {actionFeedback.message}
+                      </div>
+                    ) : null}
                     <div className="tenant-detail-grid">
                       <DetailField
                         label="Última rotación credenciales DB"

@@ -165,7 +165,11 @@ Si el cambio toca especificamente el ciclo basico del tenant:
    - restaurar tenant
 7. si la DB tenant ya existe y algo sigue raro:
    - revisar en `Tenants` la lectura de esquema tenant antes de asumir que faltan tablas o que el provisioning no corrió
-8. si el cambio toca passwords tecnicas, builders de conexion o PostgreSQL:
+8. si `Uso por módulo` o el login tenant fallan con error operativo:
+   - revisar si la credencial técnica tenant quedó desalineada con PostgreSQL
+   - si el tenant ya tiene DB materializada, usar `Rotar credenciales tecnicas`
+   - si además la DB quedó inconsistente o incompleta, considerar `Reprovisionar tenant`
+9. si el cambio toca passwords tecnicas, builders de conexion o PostgreSQL:
    - correr `app.tests.test_db_url_factory`
    - si el entorno local lo permite, correr tambien `app.tests.test_tenant_postgres_integration_flow` y `app.tests.test_platform_postgres_integration_flow`
 

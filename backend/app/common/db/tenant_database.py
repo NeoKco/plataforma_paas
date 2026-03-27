@@ -1,3 +1,4 @@
+from sqlalchemy.engine import URL
 from sqlalchemy.orm import sessionmaker
 
 from app.common.config.settings import settings
@@ -11,15 +12,13 @@ def build_tenant_database_url(
     database: str,
     username: str,
     password: str,
-) -> str:
-    return str(
-        build_postgres_url(
-            host=host,
-            port=port,
-            database=database,
-            username=username,
-            password=password,
-        )
+) -> URL:
+    return build_postgres_url(
+        host=host,
+        port=port,
+        database=database,
+        username=username,
+        password=password,
     )
 
 

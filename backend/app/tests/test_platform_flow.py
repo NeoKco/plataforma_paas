@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from fastapi import HTTPException
+from sqlalchemy.exc import OperationalError
 
 from app.tests.fixtures import (  # noqa: E402
     build_platform_context,
@@ -4304,6 +4305,56 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data[5].module_key, "finance.entries.monthly")
         self.assertEqual(response.data[6].module_key, "finance.entries.monthly.income")
 
+    def test_get_tenant_module_usage_translates_invalid_db_credentials(self) -> None:
+        tenant = build_tenant_record_stub(plan_code="pro")
+        tenant.id = 1
+        tenant.status = "active"
+
+        class BrokenTenantDb:
+            def execute(self, *_args, **_kwargs):
+                raise OperationalError(
+                    "SELECT 1",
+                    {},
+                    Exception("password authentication failed"),
+                )
+
+            def close(self):
+                return None
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.tenant_repository.get_by_id",
+            return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.get_tenant_access_policy",
+            return_value=SimpleNamespace(billing_in_grace=False),
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.get_effective_module_limits",
+            return_value={},
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.get_effective_module_limit_sources",
+            return_value={},
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_connection_service.get_tenant_session",
+            return_value=lambda: BrokenTenantDb(),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                get_tenant_module_usage(
+                    tenant_id=1,
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 503)
+        self.assertEqual(
+            exc.exception.detail,
+            "Tenant database access failed. Rotate or reprovision tenant DB credentials before requesting module usage.",
+        )
+
     def test_update_tenant_billing_returns_schema(self) -> None:
         grace_until = datetime.now(timezone.utc) + timedelta(days=2)
         previous_tenant = build_tenant_record_stub(billing_status="active")
@@ -5073,6 +5124,50 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.rotated_at, rotated_at)
         record_mock.assert_called_once()
         audit_mock.assert_called_once()
+
+    def test_rotate_tenant_db_credentials_translates_missing_role_to_actionable_error(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.tenant_routes._capture_tenant_snapshot",
+            return_value={"status": "active"},
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.rotate_tenant_db_credentials",
+            side_effect=ValueError("Tenant database role not found"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                rotate_tenant_db_credentials(
+                    tenant_id=5,
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 409)
+        self.assertEqual(
+            exc.exception.detail,
+            "Tenant database role not found. Reprovision tenant database before rotating technical credentials.",
+        )
+
+    def test_rotate_tenant_db_credentials_translates_validation_restore_error(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.tenant_routes._capture_tenant_snapshot",
+            return_value={"status": "active"},
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.rotate_tenant_db_credentials",
+            side_effect=ValueError(
+                "Rotated credentials failed validation and the previous password was restored"
+            ),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                rotate_tenant_db_credentials(
+                    tenant_id=5,
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 409)
+        self.assertEqual(
+            exc.exception.detail,
+            "The rotated tenant credentials could not be validated and the previous password was restored. Verify PostgreSQL admin access and tenant database reachability before retrying.",
+        )
 
     def test_create_tenant_logs_audit_event(self) -> None:
         tenant = build_tenant_record_stub(

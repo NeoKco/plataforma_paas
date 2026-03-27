@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.core.schemas import (
@@ -22,6 +24,24 @@ router = APIRouter(prefix="/tenant/auth", tags=["tenant-auth"])
 auth_token_service = AuthTokenService()
 auth_audit_service = AuthAuditService()
 tenant_service = TenantService()
+
+
+def _raise_tenant_operational_http_error(exc: Exception) -> None:
+    detail = str(exc).lower()
+
+    if (
+        "password authentication failed" in detail
+        or "autentificación password falló" in detail
+        or "authentication failed" in detail
+        or "connection refused" in detail
+        or "could not connect to server" in detail
+    ):
+        raise HTTPException(
+            status_code=503,
+            detail="Tenant unavailable due to operational error",
+        ) from exc
+
+    raise exc
 
 
 @router.post("/login", response_model=TenantLoginResponse)
@@ -61,16 +81,23 @@ def tenant_login(
     try:
         tenant_session_factory = connection_service.get_tenant_session(tenant)
         tenant_db = tenant_session_factory()
+        if hasattr(tenant_db, "execute"):
+            tenant_db.execute(text("SELECT 1"))
+    except OperationalError as exc:
+        _raise_tenant_operational_http_error(exc)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     try:
         auth_service = TenantAuthService()
-        user = auth_service.login(
-            tenant_db=tenant_db,
-            email=payload.email,
-            password=payload.password,
-        )
+        try:
+            user = auth_service.login(
+                tenant_db=tenant_db,
+                email=payload.email,
+                password=payload.password,
+            )
+        except OperationalError as exc:
+            _raise_tenant_operational_http_error(exc)
 
         if not user:
             auth_audit_service.log_event(

@@ -153,6 +153,9 @@ Cobertura adicional relevante:
 - rotacion formal de credenciales tecnicas tenant, incluyendo rollback seguro si la nueva password no valida
 - construccion segura de URLs PostgreSQL cuando las credenciales contienen caracteres reservados como `@`, `:` o `/`
 - arranque backend aplicando migraciones de control automaticamente cuando la plataforma ya esta instalada, para no romper `Tenants` por columnas nuevas aun no migradas
+- validacion temprana de conexion tenant para que credenciales DB rotas se traduzcan a error operativo controlado y no a `500` crudo
+- login tenant degradando a error operativo controlado cuando la credencial tecnica de la DB tenant ya no coincide con PostgreSQL
+- rotacion de credenciales tecnicas tenant devolviendo detalle operativo accionable cuando falta el rol, falta la base o la validacion de la nueva password se revierte
 
 Suite puntual de seguridad:
 
@@ -187,6 +190,7 @@ Cobertura actual:
 - rutas de detalle y `reorder` para catalogos principales
 - backfill desde `finance_entries` hacia `finance_transactions`
 - reglas del core transaccional para transferencias, moneda no base y balances por cuenta
+- degradacion operativa de `Uso por módulo` cuando la credencial tecnica tenant ya no coincide con PostgreSQL
 
 Ejecucion:
 

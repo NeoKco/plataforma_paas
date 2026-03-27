@@ -125,6 +125,41 @@ def _raise_tenant_schema_http_error(exc: Exception) -> None:
     raise exc
 
 
+def _raise_tenant_db_credentials_rotation_http_error(exc: ValueError) -> None:
+    detail = str(exc)
+
+    if detail == "Tenant database role not found":
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Tenant database role not found. Reprovision tenant database before "
+                "rotating technical credentials."
+            ),
+        ) from exc
+
+    if detail == "Tenant database not found":
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Tenant database not found. Reprovision tenant database before "
+                "rotating technical credentials."
+            ),
+        ) from exc
+
+    if detail == "Rotated credentials failed validation and the previous password was restored":
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "The rotated tenant credentials could not be validated and the previous "
+                "password was restored. Verify PostgreSQL admin access and tenant "
+                "database reachability before retrying."
+            ),
+        ) from exc
+
+    status_code = 404 if detail == "Tenant not found" else 400
+    raise HTTPException(status_code=status_code, detail=detail) from exc
+
+
 def _build_tenant_response(tenant) -> TenantResponse:
     return TenantResponse(
         id=tenant.id,
@@ -609,9 +644,7 @@ def rotate_tenant_db_credentials(
     try:
         result = tenant_service.rotate_tenant_db_credentials(db=db, tenant_id=tenant_id)
     except ValueError as exc:
-        detail = str(exc)
-        status_code = 404 if detail == "Tenant not found" else 400
-        raise HTTPException(status_code=status_code, detail=detail) from exc
+        _raise_tenant_db_credentials_rotation_http_error(exc)
 
     tenant = result["tenant"]
     _record_tenant_policy_event(
