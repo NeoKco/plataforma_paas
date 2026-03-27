@@ -61,16 +61,27 @@ platform_paas/
 │   ├── public/
 │   └── src/
 │       ├── apps/
-│       │   └── platform_admin/
+│       │   ├── platform_admin/
+│       │   │   ├── layout/
+│       │   │   ├── pages/
+│       │   │   │   ├── activity/
+│       │   │   │   ├── auth/
+│       │   │   │   ├── billing/
+│       │   │   │   ├── dashboard/
+│       │   │   │   ├── install/
+│       │   │   │   ├── provisioning/
+│       │   │   │   ├── settings/
+│       │   │   │   ├── tenant_history/
+│       │   │   │   ├── tenants/
+│       │   │   │   └── users/
+│       │   │   └── routes/
+│       │   └── tenant_portal/
 │       │       ├── layout/
+│       │       ├── modules/
+│       │       │   └── finance/
 │       │       ├── pages/
-│       │       │   ├── auth/
-│       │       │   ├── billing/
-│       │       │   ├── dashboard/
-│       │       │   ├── provisioning/
-│       │       │   ├── settings/
-│       │       │   └── tenants/
-│       │       └── routes/
+│       │       ├── routes/
+│       │       └── store/
 │       ├── components/
 │       │   ├── common/
 │       │   ├── data-display/
@@ -206,7 +217,8 @@ backend/
 │   │   │   │   ├── provisioning_worker_cycle_trace.py
 │   │   │   │   ├── tenant.py
 │   │   │   │   ├── tenant_billing_sync_event.py
-│   │   │   │   └── tenant_policy_change_event.py
+│   │   │   │   ├── tenant_policy_change_event.py
+│   │   │   │   └── tenant_retirement_archive.py
 │   │   │   ├── repositories/
 │   │   │   │   ├── auth_audit_event_repository.py
 │   │   │   │   ├── auth_token_repository.py
@@ -258,11 +270,12 @@ backend/
 │   │       │   ├── permissions.py
 │   │       │   └── schemas.py
 │   │       ├── finance/
-│   │       │   ├── api/routes.py
-│   │       │   ├── models/entry.py
-│   │       │   ├── repositories/entry_repository.py
-│   │       │   ├── services/finance_service.py
-│   │       │   └── schemas.py
+│   │       │   ├── api/
+│   │       │   ├── docs/
+│   │       │   ├── models/
+│   │       │   ├── repositories/
+│   │       │   ├── services/
+│   │       │   └── schemas/
 │   │       ├── condos/
 │   │       ├── iot/
 │   │       ├── integrations/
@@ -331,15 +344,19 @@ backend/
 │   │   ├── v0007_tenant_maintenance_policy.py
 │   │   ├── v0008_provisioning_metric_snapshots.py
 │   │   ├── v0009_provisioning_worker_cycle_traces.py
-│   │   └── v0010_provisioning_operational_alerts.py
+│   │   ├── v0010_provisioning_operational_alerts.py
+│   │   └── v0024_tenant_retirement_archives.py
 │   └── tenant/
 │       ├── v0001_core.py
-│       └── v0002_finance_entries.py
+│       ├── v0002_finance_entries.py
+│       ├── v0003_finance_catalogs.py
+│       ├── v0004_finance_seed_clp.py
+│       └── v0005_finance_transactions.py
 ```
 
 ## Frontend en Estado Actual
 
-El frontend ya no esta vacio: existe una base real de `platform_admin` alineada con el backend cerrado.
+El frontend ya no esta vacio: existe una base real de `platform_admin` y `tenant_portal` alineada con el backend ya operativo.
 
 ```text
 frontend/
@@ -349,21 +366,32 @@ frontend/
 ├── index.html
 └── src/
     ├── apps/
-    │   └── platform_admin/
+    │   ├── platform_admin/
+    │   │   ├── layout/
+    │   │   │   ├── AppShell.tsx
+    │   │   │   ├── SidebarNav.tsx
+    │   │   │   └── Topbar.tsx
+    │   │   ├── pages/
+    │   │   │   ├── activity/PlatformActivityPage.tsx
+    │   │   │   ├── auth/LoginPage.tsx
+    │   │   │   ├── billing/BillingPage.tsx
+    │   │   │   ├── dashboard/DashboardPage.tsx
+    │   │   │   ├── install/InstallPage.tsx
+    │   │   │   ├── provisioning/ProvisioningPage.tsx
+    │   │   │   ├── settings/SettingsPage.tsx
+    │   │   │   ├── tenant_history/TenantHistoryPage.tsx
+    │   │   │   ├── tenants/TenantsPage.tsx
+    │   │   │   └── users/PlatformUsersPage.tsx
+    │   │   └── routes/
+    │   │       ├── AppRouter.tsx
+    │   │       └── RequireAuth.tsx
+    │   └── tenant_portal/
     │       ├── layout/
-    │       │   ├── AppShell.tsx
-    │       │   ├── SidebarNav.tsx
-    │       │   └── Topbar.tsx
+    │       ├── modules/
+    │       │   └── finance/
     │       ├── pages/
-    │       │   ├── auth/LoginPage.tsx
-    │       │   ├── billing/BillingPage.tsx
-    │       │   ├── dashboard/DashboardPage.tsx
-    │       │   ├── provisioning/ProvisioningPage.tsx
-    │       │   ├── settings/SettingsPage.tsx
-    │       │   └── tenants/TenantsPage.tsx
-    │       └── routes/
-    │           ├── AppRouter.tsx
-    │           └── RequireAuth.tsx
+    │       ├── routes/
+    │       └── store/
     ├── components/
     │   ├── common/
     │   │   ├── PageHeader.tsx
@@ -390,9 +418,9 @@ frontend/
 
 Hoy esta base cubre:
 
-- `F1`: auth y shell base
-- `F2`: consumo inicial de `GET /platform/capabilities`
-- placeholders operativos para `tenants`, `provisioning`, `billing` y `settings`
+- `platform_admin` ya operable con `Resumen`, `Usuarios de plataforma`, `Actividad`, `Tenants`, `Provisioning`, `Facturación`, `Configuración` y `Histórico tenants`
+- `tenant_portal` ya operable con login, overview, usuarios y slice `finance`
+- `finance` ya no es solo placeholder: ya tiene catálogos, settings y primera pantalla moderna de `Transacciones` sobre `finance_transactions`
 
 ## Documentacion en Estado Actual
 
@@ -447,7 +475,7 @@ docs/
 - `backend/app/common/`: componentes compartidos, autenticacion, base de datos, seguridad, middleware y observabilidad.
 - `backend/app/tests/`: suites unitarias, de integracion, smoke HTTP, seguridad y observabilidad.
 - `backend/migrations/`: migraciones versionadas de control DB y tenant DB.
-- `frontend/`: estructura preparada para las interfaces web.
+- `frontend/`: interfaces web reales de `platform_admin` y `tenant_portal`, ya con slice moderno de `finance` y vista propia `Histórico tenants`.
 - `docs/`: documentacion organizada por tema, ya con arquitectura, API y runbooks reales.
 - `infra/`: soporte de infraestructura, entorno, nginx, postgres y servicios; ya incluye plantillas base por entorno, backend, backup local y sincronizacion externa.
 - `.github/workflows/`: automatizacion del repositorio; hoy ya incluye un workflow base de pruebas backend.

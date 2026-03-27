@@ -81,6 +81,10 @@
   align-items: center;
 }
 
+.finance-inline-toolbar--compact {
+  gap: 0.5rem;
+}
+
 .finance-status-pill {
   display: inline-flex;
   align-items: center;
@@ -111,6 +115,13 @@
 .finance-transaction-layout {
   display: grid;
   gap: 1rem;
+}
+
+.finance-filter-grid {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 }
 
 .finance-balance-list {

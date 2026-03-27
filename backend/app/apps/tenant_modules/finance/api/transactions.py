@@ -21,8 +21,10 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceTransactionCreateRequest,
     FinanceTransactionDetailData,
     FinanceTransactionDetailResponse,
+    FinanceTransactionFavoriteUpdateRequest,
     FinanceTransactionItemResponse,
     FinanceTransactionMutationResponse,
+    FinanceTransactionReconciliationUpdateRequest,
     FinanceTransactionsResponse,
     FinanceUsageData,
     FinanceUsageResponse,
@@ -129,10 +131,22 @@ def list_finance_entries(
 
 @router.get("/transactions", response_model=FinanceTransactionsResponse)
 def list_finance_transactions(
+    transaction_type: str | None = None,
+    account_id: int | None = None,
+    category_id: int | None = None,
+    is_reconciled: bool | None = None,
+    search: str | None = None,
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceTransactionsResponse:
-    entries = finance_service.list_transactions(tenant_db)
+    entries = finance_service.list_transactions_filtered(
+        tenant_db,
+        transaction_type=transaction_type,
+        account_id=account_id,
+        category_id=category_id,
+        is_reconciled=is_reconciled,
+        search=search,
+    )
 
     return FinanceTransactionsResponse(
         success=True,
@@ -190,6 +204,62 @@ def get_finance_transaction_detail(
                 _build_finance_transaction_audit_item(event) for event in audit_events
             ],
         ),
+    )
+
+
+@router.patch(
+    "/transactions/{transaction_id}/favorite",
+    response_model=FinanceTransactionMutationResponse,
+)
+def update_finance_transaction_favorite(
+    transaction_id: int,
+    payload: FinanceTransactionFavoriteUpdateRequest,
+    current_user=Depends(require_finance_create),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTransactionMutationResponse:
+    try:
+        transaction = finance_service.update_transaction_favorite(
+            tenant_db,
+            transaction_id,
+            is_favorite=payload.is_favorite,
+            actor_user_id=current_user["user_id"],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceTransactionMutationResponse(
+        success=True,
+        message="Favorito de transaccion actualizado correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        data=_build_finance_transaction_item(transaction),
+    )
+
+
+@router.patch(
+    "/transactions/{transaction_id}/reconciliation",
+    response_model=FinanceTransactionMutationResponse,
+)
+def update_finance_transaction_reconciliation(
+    transaction_id: int,
+    payload: FinanceTransactionReconciliationUpdateRequest,
+    current_user=Depends(require_finance_create),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTransactionMutationResponse:
+    try:
+        transaction = finance_service.update_transaction_reconciliation(
+            tenant_db,
+            transaction_id,
+            is_reconciled=payload.is_reconciled,
+            actor_user_id=current_user["user_id"],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceTransactionMutationResponse(
+        success=True,
+        message="Estado de conciliacion actualizado correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        data=_build_finance_transaction_item(transaction),
     )
 
 

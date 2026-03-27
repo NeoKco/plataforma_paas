@@ -128,7 +128,9 @@ Arranque real ya completado:
 - slice frontend propio bajo `tenant_portal/modules/finance`
 - router agregador del modulo
 - placeholders de vistas futuras
-- compatibilidad con la vista actual de movimientos para no romper operacion
+- primera pantalla moderna de `Transacciones` sobre `finance_transactions`
+- balances por cuenta y detalle operacional con auditoria reciente
+- compatibilidad legacy de `/entries` para no romper operacion mientras se completa el modulo
 
 Eso no significa que `finance` sea necesariamente el dominio final mas importante del producto.
 

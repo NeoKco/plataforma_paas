@@ -206,6 +206,56 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
         self.assertEqual(balances[banco.id], 80.0)
         self.assertEqual(sum(balances.values()), 330.0)
 
+    def test_can_filter_transactions_and_toggle_operational_flags(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+
+        created = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=45.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Pago de limpieza",
+                notes="mantencion mensual",
+            ),
+            created_by_user_id=1,
+        )
+
+        filtered = self.service.list_transactions_filtered(
+            self.db,
+            transaction_type="expense",
+            account_id=caja.id,
+            is_reconciled=False,
+            search="limpieza",
+        )
+        self.assertEqual(len(filtered), 1)
+        self.assertEqual(filtered[0].id, created.id)
+
+        favorited = self.service.update_transaction_favorite(
+            self.db,
+            created.id,
+            is_favorite=True,
+            actor_user_id=2,
+        )
+        reconciled = self.service.update_transaction_reconciliation(
+            self.db,
+            created.id,
+            is_reconciled=True,
+            actor_user_id=3,
+        )
+
+        self.assertTrue(favorited.is_favorite)
+        self.assertTrue(reconciled.is_reconciled)
+        self.assertIsNotNone(reconciled.reconciled_at)
+
 
 if __name__ == "__main__":
     unittest.main()

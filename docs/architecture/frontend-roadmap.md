@@ -35,7 +35,7 @@ Lo pendiente es sobre todo:
 - endurecimiento de bordes y automatizacion
 - cierre visual y operativo de algunos detalles
 - definir la convencion oficial para que los siguientes modulos nazcan como slices coherentes, tomando `finance` como modulo piloto
-- profundizar la vista moderna de transacciones con filtros, edicion y conciliacion antes de abrir mas dominios grandes dentro de finance
+- completar la vista moderna de transacciones con edicion plena y mesas de trabajo mas ricas para conciliacion/favoritos antes de abrir mas dominios grandes dentro de finance
 
 Nota de ejecucion:
 

@@ -237,6 +237,25 @@ class FinanceService:
     def list_transactions(self, tenant_db: Session) -> list[FinanceTransaction]:
         return self.transaction_repository.list_all(tenant_db)
 
+    def list_transactions_filtered(
+        self,
+        tenant_db: Session,
+        *,
+        transaction_type: str | None = None,
+        account_id: int | None = None,
+        category_id: int | None = None,
+        is_reconciled: bool | None = None,
+        search: str | None = None,
+    ) -> list[FinanceTransaction]:
+        return self.transaction_repository.list_filtered(
+            tenant_db,
+            transaction_type=transaction_type,
+            account_id=account_id,
+            category_id=category_id,
+            is_reconciled=is_reconciled,
+            search=search,
+        )
+
     def get_transaction_detail(
         self,
         tenant_db: Session,
@@ -251,6 +270,62 @@ class FinanceService:
             transaction_id=transaction_id,
         )
         return transaction, audit_events
+
+    def update_transaction_favorite(
+        self,
+        tenant_db: Session,
+        transaction_id: int,
+        *,
+        is_favorite: bool,
+        actor_user_id: int | None = None,
+    ) -> FinanceTransaction:
+        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        if transaction is None:
+            raise ValueError("La transaccion financiera no existe")
+
+        transaction.is_favorite = is_favorite
+        transaction.favorite_flag = is_favorite
+        transaction.updated_by_user_id = actor_user_id
+        saved = self.transaction_repository.persist(tenant_db, transaction)
+        self.transaction_audit_repository.save_event(
+            tenant_db,
+            transaction_id=saved.id,
+            event_type="transaction.favorite.updated",
+            actor_user_id=actor_user_id,
+            summary="Favorito de transaccion actualizado",
+            payload={"is_favorite": is_favorite},
+        )
+        return saved
+
+    def update_transaction_reconciliation(
+        self,
+        tenant_db: Session,
+        transaction_id: int,
+        *,
+        is_reconciled: bool,
+        actor_user_id: int | None = None,
+    ) -> FinanceTransaction:
+        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        if transaction is None:
+            raise ValueError("La transaccion financiera no existe")
+
+        transaction.is_reconciled = is_reconciled
+        transaction.reconciled_at = (
+            datetime.now(timezone.utc)
+            if is_reconciled
+            else None
+        )
+        transaction.updated_by_user_id = actor_user_id
+        saved = self.transaction_repository.persist(tenant_db, transaction)
+        self.transaction_audit_repository.save_event(
+            tenant_db,
+            transaction_id=saved.id,
+            event_type="transaction.reconciliation.updated",
+            actor_user_id=actor_user_id,
+            summary="Estado de conciliacion actualizado",
+            payload={"is_reconciled": is_reconciled},
+        )
+        return saved
 
     def get_summary(self, tenant_db: Session) -> dict[str, float]:
         entries = self.transaction_repository.list_all(tenant_db)

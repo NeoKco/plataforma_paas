@@ -21,6 +21,8 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     finance_usage,
     finance_summary,
     get_finance_transaction_detail,
+    update_finance_transaction_favorite,
+    update_finance_transaction_reconciliation,
     list_finance_transactions,
     list_finance_entries,
 )
@@ -282,7 +284,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         ]
 
         with patch(
-            "app.apps.tenant_modules.finance.api.routes.finance_service.list_transactions",
+            "app.apps.tenant_modules.finance.api.routes.finance_service.list_transactions_filtered",
             return_value=transactions,
         ):
             response = list_finance_transactions(
@@ -293,6 +295,28 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.total, 1)
         self.assertEqual(response.data[0].description, "Cobro arriendo")
+
+    def test_list_finance_transactions_forwards_filters(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.list_transactions_filtered",
+            return_value=[],
+        ) as list_transactions_mock:
+            response = list_finance_transactions(
+                transaction_type="expense",
+                account_id=4,
+                category_id=9,
+                is_reconciled=False,
+                search="mantencion",
+                current_user=self._current_user(role="operator"),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(list_transactions_mock.call_args.kwargs["transaction_type"], "expense")
+        self.assertEqual(list_transactions_mock.call_args.kwargs["account_id"], 4)
+        self.assertEqual(list_transactions_mock.call_args.kwargs["category_id"], 9)
+        self.assertFalse(list_transactions_mock.call_args.kwargs["is_reconciled"])
+        self.assertEqual(list_transactions_mock.call_args.kwargs["search"], "mantencion")
 
     def test_create_finance_transaction_returns_created_transaction(self) -> None:
         transaction = SimpleNamespace(
@@ -447,6 +471,102 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.data[0].account_name, "Caja principal")
         self.assertEqual(response.data[0].balance, 980.5)
+
+    def test_update_finance_transaction_favorite_returns_mutated_transaction(self) -> None:
+        transaction = SimpleNamespace(
+            id=21,
+            transaction_type="expense",
+            account_id=1,
+            target_account_id=None,
+            category_id=None,
+            beneficiary_id=None,
+            person_id=None,
+            project_id=None,
+            currency_id=1,
+            loan_id=None,
+            amount=150.0,
+            amount_in_base_currency=150.0,
+            exchange_rate=1.0,
+            discount_amount=0.0,
+            amortization_months=None,
+            transaction_at="2026-03-27T15:00:00+00:00",
+            alternative_date=None,
+            description="Factura agua",
+            notes=None,
+            is_favorite=True,
+            favorite_flag=True,
+            is_reconciled=False,
+            reconciled_at=None,
+            is_template_origin=False,
+            source_type=None,
+            source_id=None,
+            created_by_user_id=1,
+            updated_by_user_id=1,
+            created_at="2026-03-27T15:00:00+00:00",
+            updated_at="2026-03-27T15:00:00+00:00",
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.update_transaction_favorite",
+            return_value=transaction,
+        ):
+            response = update_finance_transaction_favorite(
+                transaction_id=21,
+                payload=SimpleNamespace(is_favorite=True),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertTrue(response.data.is_favorite)
+
+    def test_update_finance_transaction_reconciliation_returns_mutated_transaction(self) -> None:
+        transaction = SimpleNamespace(
+            id=22,
+            transaction_type="income",
+            account_id=1,
+            target_account_id=None,
+            category_id=None,
+            beneficiary_id=None,
+            person_id=None,
+            project_id=None,
+            currency_id=1,
+            loan_id=None,
+            amount=200.0,
+            amount_in_base_currency=200.0,
+            exchange_rate=1.0,
+            discount_amount=0.0,
+            amortization_months=None,
+            transaction_at="2026-03-27T15:10:00+00:00",
+            alternative_date=None,
+            description="Cobro",
+            notes=None,
+            is_favorite=False,
+            favorite_flag=False,
+            is_reconciled=True,
+            reconciled_at="2026-03-27T15:11:00+00:00",
+            is_template_origin=False,
+            source_type=None,
+            source_id=None,
+            created_by_user_id=1,
+            updated_by_user_id=1,
+            created_at="2026-03-27T15:10:00+00:00",
+            updated_at="2026-03-27T15:11:00+00:00",
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.update_transaction_reconciliation",
+            return_value=transaction,
+        ):
+            response = update_finance_transaction_reconciliation(
+                transaction_id=22,
+                payload=SimpleNamespace(is_reconciled=True),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertTrue(response.data.is_reconciled)
 
     def test_create_finance_entry_returns_403_when_plan_limit_is_reached(self) -> None:
         with patch(

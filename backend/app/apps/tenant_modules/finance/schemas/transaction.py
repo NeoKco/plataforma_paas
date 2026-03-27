@@ -53,6 +53,14 @@ class FinanceTransactionCreateRequest(BaseModel):
     tag_ids: list[int] | None = None
 
 
+class FinanceTransactionFiltersRequest(BaseModel):
+    transaction_type: str | None = None
+    account_id: int | None = None
+    category_id: int | None = None
+    is_reconciled: bool | None = None
+    search: str | None = None
+
+
 class FinanceTransactionItemResponse(BaseModel):
     id: int
     transaction_type: str
@@ -111,6 +119,14 @@ class FinanceTransactionDetailData(BaseModel):
 
 class FinanceTransactionDetailResponse(FinanceResponseBase):
     data: FinanceTransactionDetailData
+
+
+class FinanceTransactionFavoriteUpdateRequest(BaseModel):
+    is_favorite: bool
+
+
+class FinanceTransactionReconciliationUpdateRequest(BaseModel):
+    is_reconciled: bool
 
 
 class FinanceAccountBalanceItem(BaseModel):

@@ -29,12 +29,16 @@ import {
   getTenantFinanceTransactionDetail,
   getTenantFinanceTransactions,
   getTenantFinanceUsage,
+  updateTenantFinanceTransactionFavorite,
+  updateTenantFinanceTransactionReconciliation,
   type TenantFinanceAccountBalance,
+  type TenantFinanceTransactionFilters,
   type TenantFinanceSummaryResponse,
   type TenantFinanceTransaction,
   type TenantFinanceTransactionDetailResponse,
   type TenantFinanceUsageResponse,
 } from "../services/transactionsService";
+import { useTransactionFilters } from "../hooks/useTransactionFilters";
 
 type ActionFeedback = {
   type: "success" | "error";
@@ -93,6 +97,19 @@ export function FinanceTransactionsPage() {
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
+  const { filters, setFilters } = useTransactionFilters<{
+    transactionType: string;
+    accountId: string;
+    categoryId: string;
+    reconciliation: string;
+    search: string;
+  }>({
+    transactionType: "",
+    accountId: "",
+    categoryId: "",
+    reconciliation: "",
+    search: "",
+  });
 
   const summary = summaryResponse?.data;
   const usage = usageResponse?.data;
@@ -125,7 +142,14 @@ export function FinanceTransactionsPage() {
 
   useEffect(() => {
     void loadFinanceWorkspace();
-  }, [session?.accessToken]);
+  }, [
+    session?.accessToken,
+    filters.transactionType,
+    filters.accountId,
+    filters.categoryId,
+    filters.reconciliation,
+    filters.search,
+  ]);
 
   useEffect(() => {
     if (!formState.currencyId && baseCurrency) {
@@ -152,7 +176,7 @@ export function FinanceTransactionsPage() {
     setUsageError(null);
 
     const results = await Promise.allSettled([
-      getTenantFinanceTransactions(session.accessToken),
+      getTenantFinanceTransactions(session.accessToken, buildApiFilters(filters)),
       getTenantFinanceSummary(session.accessToken),
       getTenantFinanceUsage(session.accessToken),
       getTenantFinanceAccountBalances(session.accessToken),
@@ -207,6 +231,25 @@ export function FinanceTransactionsPage() {
     setIsLoading(false);
   }
 
+  async function runRowAction(action: () => Promise<void>) {
+    setIsActionSubmitting(true);
+    setActionFeedback(null);
+    try {
+      await action();
+      await loadFinanceWorkspace();
+      if (selectedTransactionId) {
+        await fetchTransactionDetail(selectedTransactionId);
+      }
+    } catch (rawError) {
+      setActionFeedback({
+        type: "error",
+        message: getApiErrorDisplayMessage(rawError as ApiError),
+      });
+    } finally {
+      setIsActionSubmitting(false);
+    }
+  }
+
   async function loadTransactionDetail(transactionId: number) {
     if (!session?.accessToken) {
       return;
@@ -220,6 +263,14 @@ export function FinanceTransactionsPage() {
     }
 
     setSelectedTransactionId(transactionId);
+    await fetchTransactionDetail(transactionId);
+  }
+
+  async function fetchTransactionDetail(transactionId: number) {
+    if (!session?.accessToken) {
+      return;
+    }
+
     setSelectedTransactionDetail(null);
     setDetailError(null);
     setIsDetailLoading(true);
@@ -284,7 +335,7 @@ export function FinanceTransactionsPage() {
       }));
       setActionFeedback({ type: "success", message: response.message });
       setSelectedTransactionId(response.data.id);
-      await loadTransactionDetail(response.data.id);
+      await fetchTransactionDetail(response.data.id);
     } catch (rawError) {
       setActionFeedback({
         type: "error",
@@ -293,6 +344,34 @@ export function FinanceTransactionsPage() {
     } finally {
       setIsActionSubmitting(false);
     }
+  }
+
+  async function handleToggleFavorite(transaction: TenantFinanceTransaction) {
+    if (!session?.accessToken) {
+      return;
+    }
+    await runRowAction(async () => {
+      const response = await updateTenantFinanceTransactionFavorite(
+        session.accessToken,
+        transaction.id,
+        !transaction.is_favorite
+      );
+      setActionFeedback({ type: "success", message: response.message });
+    });
+  }
+
+  async function handleToggleReconciliation(transaction: TenantFinanceTransaction) {
+    if (!session?.accessToken) {
+      return;
+    }
+    await runRowAction(async () => {
+      const response = await updateTenantFinanceTransactionReconciliation(
+        session.accessToken,
+        transaction.id,
+        !transaction.is_reconciled
+      );
+      setActionFeedback({ type: "success", message: response.message });
+    });
   }
 
   return (
@@ -644,6 +723,89 @@ export function FinanceTransactionsPage() {
           title="Transacciones recientes"
           subtitle="La tabla ya lee finance_transactions y no la capa legacy de entries."
         >
+          <div className="finance-filter-grid">
+            <div>
+              <label className="form-label">Buscar</label>
+              <input
+                className="form-control"
+                value={filters.search}
+                onChange={(event) =>
+                  setFilters((current) => ({ ...current, search: event.target.value }))
+                }
+                placeholder="Descripción o notas"
+              />
+            </div>
+            <div>
+              <label className="form-label">Tipo</label>
+              <select
+                className="form-select"
+                value={filters.transactionType}
+                onChange={(event) =>
+                  setFilters((current) => ({
+                    ...current,
+                    transactionType: event.target.value,
+                  }))
+                }
+              >
+                <option value="">Todos</option>
+                <option value="income">Ingresos</option>
+                <option value="expense">Egresos</option>
+                <option value="transfer">Transferencias</option>
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Cuenta</label>
+              <select
+                className="form-select"
+                value={filters.accountId}
+                onChange={(event) =>
+                  setFilters((current) => ({ ...current, accountId: event.target.value }))
+                }
+              >
+                <option value="">Todas</option>
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Categoría</label>
+              <select
+                className="form-select"
+                value={filters.categoryId}
+                onChange={(event) =>
+                  setFilters((current) => ({ ...current, categoryId: event.target.value }))
+                }
+              >
+                <option value="">Todas</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Conciliación</label>
+              <select
+                className="form-select"
+                value={filters.reconciliation}
+                onChange={(event) =>
+                  setFilters((current) => ({
+                    ...current,
+                    reconciliation: event.target.value,
+                  }))
+                }
+              >
+                <option value="">Todas</option>
+                <option value="pending">Pendientes</option>
+                <option value="done">Conciliadas</option>
+              </select>
+            </div>
+          </div>
+
           {transactions.length > 0 ? (
             <div className="table-responsive">
               <table className="table table-hover align-middle mb-0">
@@ -657,6 +819,7 @@ export function FinanceTransactionsPage() {
                     <th>Categoría</th>
                     <th>Monto</th>
                     <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -699,6 +862,34 @@ export function FinanceTransactionsPage() {
                           ) : (
                             <span className="status-badge status-badge--neutral">pendiente</span>
                           )}
+                        </td>
+                        <td>
+                          <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+                            <button
+                              className={`btn btn-sm ${
+                                transaction.is_favorite
+                                  ? "btn-outline-warning"
+                                  : "btn-outline-secondary"
+                              }`}
+                              type="button"
+                              disabled={isActionSubmitting}
+                              onClick={() => void handleToggleFavorite(transaction)}
+                            >
+                              {transaction.is_favorite ? "Quitar favorita" : "Favorita"}
+                            </button>
+                            <button
+                              className={`btn btn-sm ${
+                                transaction.is_reconciled
+                                  ? "btn-outline-secondary"
+                                  : "btn-outline-success"
+                              }`}
+                              type="button"
+                              disabled={isActionSubmitting}
+                              onClick={() => void handleToggleReconciliation(transaction)}
+                            >
+                              {transaction.is_reconciled ? "Desconciliar" : "Conciliar"}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -909,4 +1100,25 @@ function DetailField({
       <div className="tenant-detail__value">{value}</div>
     </div>
   );
+}
+
+function buildApiFilters(filters: {
+  transactionType: string;
+  accountId: string;
+  categoryId: string;
+  reconciliation: string;
+  search: string;
+}): TenantFinanceTransactionFilters {
+  return {
+    transactionType: filters.transactionType || undefined,
+    accountId: filters.accountId ? Number(filters.accountId) : null,
+    categoryId: filters.categoryId ? Number(filters.categoryId) : null,
+    isReconciled:
+      filters.reconciliation === "done"
+        ? true
+        : filters.reconciliation === "pending"
+          ? false
+          : null,
+    search: filters.search || undefined,
+  };
 }

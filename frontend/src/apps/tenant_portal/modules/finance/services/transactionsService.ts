@@ -113,10 +113,41 @@ export type TenantFinanceTransactionWriteRequest = {
   tag_ids: number[] | null;
 };
 
-export function getTenantFinanceTransactions(accessToken: string) {
-  return apiRequest<TenantFinanceTransactionsResponse>("/tenant/finance/transactions", {
-    token: accessToken,
-  });
+export type TenantFinanceTransactionFilters = {
+  transactionType?: string;
+  accountId?: number | null;
+  categoryId?: number | null;
+  isReconciled?: boolean | null;
+  search?: string;
+};
+
+export function getTenantFinanceTransactions(
+  accessToken: string,
+  filters: TenantFinanceTransactionFilters = {}
+) {
+  const params = new URLSearchParams();
+  if (filters.transactionType) {
+    params.set("transaction_type", filters.transactionType);
+  }
+  if (filters.accountId != null) {
+    params.set("account_id", String(filters.accountId));
+  }
+  if (filters.categoryId != null) {
+    params.set("category_id", String(filters.categoryId));
+  }
+  if (filters.isReconciled != null) {
+    params.set("is_reconciled", filters.isReconciled ? "true" : "false");
+  }
+  if (filters.search?.trim()) {
+    params.set("search", filters.search.trim());
+  }
+  const query = params.toString();
+  return apiRequest<TenantFinanceTransactionsResponse>(
+    `/tenant/finance/transactions${query ? `?${query}` : ""}`,
+    {
+      token: accessToken,
+    }
+  );
 }
 
 export function createTenantFinanceTransaction(
@@ -150,6 +181,36 @@ export function getTenantFinanceAccountBalances(accessToken: string) {
     "/tenant/finance/account-balances",
     {
       token: accessToken,
+    }
+  );
+}
+
+export function updateTenantFinanceTransactionFavorite(
+  accessToken: string,
+  transactionId: number,
+  isFavorite: boolean
+) {
+  return apiRequest<TenantFinanceTransactionMutationResponse>(
+    `/tenant/finance/transactions/${transactionId}/favorite`,
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: { is_favorite: isFavorite },
+    }
+  );
+}
+
+export function updateTenantFinanceTransactionReconciliation(
+  accessToken: string,
+  transactionId: number,
+  isReconciled: boolean
+) {
+  return apiRequest<TenantFinanceTransactionMutationResponse>(
+    `/tenant/finance/transactions/${transactionId}/reconciliation`,
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: { is_reconciled: isReconciled },
     }
   );
 }

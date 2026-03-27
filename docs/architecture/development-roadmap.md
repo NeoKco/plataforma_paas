@@ -240,7 +240,7 @@ Resultado actual:
 
 Falta para cerrarlo:
 
-- profundizar `Lote 6` con filtros, edicion y conciliacion sobre transacciones existentes
+- completar `Lote 6` con edicion plena de transacciones y vistas mas ricas de trabajo sobre conciliacion/favoritos
 - ejecutar `Lote 7` y siguientes del roadmap maestro para prestamos, planificacion y reportes
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande

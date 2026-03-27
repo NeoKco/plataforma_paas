@@ -193,6 +193,8 @@ Cobertura actual:
 - permisos finos de finance
 - validaciones del `FinanceService`
 - listado, creacion y resumen del modulo
+- listado, creacion y detalle moderno de `transactions`
+- balances por cuenta expuestos por API
 - migraciones tenant del modulo hasta `0005_finance_transactions`
 - seeds idempotentes para moneda base, `CLP`, categorias y settings
 - repositories CRUD base del modulo y sus restricciones de unicidad/activacion

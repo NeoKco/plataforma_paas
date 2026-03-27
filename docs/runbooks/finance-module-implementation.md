@@ -65,6 +65,8 @@ En esta fase quedaron listos:
 - vista tenant real de transacciones sobre `finance_transactions`
 - panel de detalle operacional por transaccion seleccionada
 - balances por cuenta visibles desde la UI tenant
+- filtros operativos por tipo, cuenta, categoria, conciliacion y texto
+- acciones rapidas para marcar favorita o conciliada una transaccion existente
 
 ## Archivos principales
 
@@ -196,8 +198,8 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 
 Lo siguiente recomendable ahora es:
 
-1. filtros operativos y busqueda sobre transacciones
-2. edicion, conciliacion y favoritos sobre transacciones existentes
+1. edicion completa de transacciones existentes
+2. ampliar conciliacion y favoritos con vistas de trabajo mas ricas
 3. seguir con prestamos, planificacion y reportes
 
 ## Convencion relacionada

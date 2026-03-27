@@ -3,6 +3,10 @@
 API vigente en el arranque:
 - `GET /tenant/finance/entries`
 - `POST /tenant/finance/entries`
+- `GET /tenant/finance/transactions`
+- `POST /tenant/finance/transactions`
+- `GET /tenant/finance/transactions/{transaction_id}`
+- `GET /tenant/finance/account-balances`
 - `GET /tenant/finance/summary`
 - `GET /tenant/finance/usage`
 - `GET /tenant/finance/accounts`
@@ -77,7 +81,13 @@ Estado tras `Lote 5`:
 - `/tenant/finance/entries` se mantiene como contrato legacy
 - internamente, esas rutas ya persisten y leen desde `finance_transactions`
 - el backfill desde `finance_entries` a `finance_transactions` queda cubierto por migracion
-- el siguiente paso API ya no es romper `/entries`, sino abrir endpoints ricos de transacciones sobre la nueva tabla
+- el siguiente paso API ya no era romper `/entries`, sino abrir endpoints ricos de transacciones sobre la nueva tabla
+
+Estado tras la primera parte de `Lote 6`:
+- ya existen `GET|POST /tenant/finance/transactions`
+- ya existe `GET /tenant/finance/transactions/{transaction_id}` con auditoria reciente
+- ya existe `GET /tenant/finance/account-balances`
+- `tenant_portal` ya consume ese contrato moderno en la pantalla principal de `Transacciones`
 
 Nucleo transaccional ya disponible en backend:
 - tabla `finance_transactions`
@@ -87,4 +97,4 @@ Nucleo transaccional ya disponible en backend:
 
 Pendiente:
 - endpoints de prestamos, presupuestos, conciliacion y reportes
-- endpoints ricos de `transactions` y balances por cuenta
+- filtros, edicion y conciliacion sobre transacciones existentes
