@@ -14,4 +14,5 @@ Estado actual:
 - la pantalla principal de `Transacciones` ya usa el contrato moderno sobre `finance_transactions`
 - esa pantalla ya muestra balances por cuenta y detalle operacional con auditoría reciente
 - esa misma pantalla ya permite filtrar, editar, marcar favorita y conciliar transacciones existentes
+- esa misma pantalla ya permite tambien seleccion multiple y acciones por lote para favoritas o conciliacion
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo

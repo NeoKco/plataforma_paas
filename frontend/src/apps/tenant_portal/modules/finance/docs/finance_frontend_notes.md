@@ -32,7 +32,8 @@
 - ya existe detalle operacional por transaccion y balances por cuenta
 - ya existen filtros operativos y acciones rapidas de favorito/conciliacion
 - ya existe modo edicion completo dentro de la misma pantalla de `Transacciones`
+- ya existe seleccion multiple y lote basico para favoritas/conciliacion
 
 Pendiente inmediato:
-- enriquecer la experiencia de conciliacion y favoritos
-- abrir mesas de trabajo mas densas para conciliacion o lotes
+- enriquecer la experiencia de conciliacion con mesas de trabajo mas guiadas
+- evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas

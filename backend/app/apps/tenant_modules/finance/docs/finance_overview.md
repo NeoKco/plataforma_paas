@@ -27,7 +27,8 @@ Alcance de esta fase:
 - pantalla tenant operativa sobre `finance_transactions`
 - filtros operativos y toggles rapidos de favorito/conciliacion
 - edicion completa de transacciones existentes sobre el mismo contrato moderno
+- mesa de trabajo basica con seleccion multiple y acciones por lote para favoritas/conciliacion
 
 Pendiente inmediato:
-- completar `Lote 6` con vistas mas ricas de conciliacion y favoritos
+- completar `Lote 6` con conciliacion asistida mas rica
 - `Lote 7` prestamos, planificacion y reportes
