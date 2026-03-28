@@ -53,7 +53,7 @@ Lo pendiente es sobre todo:
 - seguir endureciendo `Préstamos` solo si el negocio exige mejor lectura de contrapartida, cruces más densos o exportaciones aún más contables
 - consolidar la adopción visible del auto-sync post-deploy en consola operativa, ahora que ya existe el follow-up automático post-provisioning, la acción masiva desde `Provisioning` y la integración al wrapper de release/verify
 - `finance` ya tiene una primera capa visual propia con iconografía semántica, bloques `spotlight` y charts livianos en `Reportes` y `Planificación`; si se sigue por ahí debe ser para densidad adicional, no para abrir esa base desde cero
-- el `design system` transversal del PaaS ya quedó arrancado con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid`, `AppTableWrap`, `AppForm` y primitives compartidas; `finance` ya adoptó esa base en catálogos y formularios principales, `Overview` + `Users` ya entraron como segundo bloque de migración visible y `platform_admin` ya empezó a absorberla en `Usuarios de plataforma`, `Configuración`, `Facturación` y la capa alta de `Tenants`
+- el `design system` transversal del PaaS ya quedó arrancado con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid`, `AppTableWrap`, `AppForm` y primitives compartidas; `finance` ya adoptó esa base en catálogos y formularios principales, `Overview` + `Users` ya entraron como segundo bloque de migración visible y `platform_admin` ya la absorbió en `Usuarios de plataforma`, `Configuración`, `Facturación` y el bloque operativo central de `Tenants`
 - cerrar una internacionalizacion transversal real del frontend, continuando desde el avance ya aplicado en `finance`, `Overview` y `Users` para eliminar copy hardcodeado del resto de pantallas y helpers compartidos
 
 Nota de ejecucion:
@@ -182,7 +182,7 @@ Avance actual:
 
 ## Etapa F4. Acciones Administrativas de Tenant
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -232,6 +232,7 @@ Avance actual:
 - `Tenants` ya pide confirmacion previa para acciones administrativas sensibles
 - `Tenants` ya oculta el bloque de usuarios/reset del portal cuando el tenant fue desprovisionado y ya no existe DB tenant operable
 - `Tenants` ya deja un acceso corto a `Histórico tenants` en vez de mezclar auditoria de retirados dentro de la misma columna operativa
+- `Tenants` ya usa la misma capa compartida de formularios, toolbar y badges en alta, filtros y operación central, sin depender de tantos layouts manuales por bloque
 
 Pendientes finos conocidos:
 

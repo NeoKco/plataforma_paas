@@ -7,7 +7,13 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
 import { AppBadge } from "../../../../design-system/AppBadge";
-import { AppToolbar } from "../../../../design-system/AppLayout";
+import {
+  AppCheckGrid,
+  AppForm,
+  AppFormActions,
+  AppFormField,
+} from "../../../../design-system/AppForm";
+import { AppFilterGrid, AppToolbar } from "../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../services/api";
@@ -1298,130 +1304,137 @@ export function TenantsPage() {
             title="Crear tenant"
             subtitle="Alta operativa básica: nombre, slug, tipo y plan inicial para disparar provisioning."
           >
-            <form className="tenant-action-form tenant-create-form" onSubmit={handleCreateTenantSubmit}>
-              <FieldHelpLabel
-                label="Nombre visible"
-                help="Nombre con el que el operador reconocerá el tenant en la consola."
-              />
-              <input
-                className="form-control"
-                value={createTenantName}
-                onChange={(event) => {
-                  const nextName = event.target.value;
-                  setCreateTenantName(nextName);
-                  if (!createTenantSlugTouched) {
-                    setCreateTenantSlug(slugifyTenantName(nextName));
-                  }
-                }}
-                placeholder="Ej: Empresa Centro"
-                required
-              />
-              <FieldHelpLabel
-                label="Slug"
-                help="Identificador estable del tenant. Conviene definirlo bien al inicio porque se usa en portal tenant, bootstrap y referencias técnicas."
-              />
-              <input
-                className="form-control"
-                value={createTenantSlug}
-                onChange={(event) => {
-                  setCreateTenantSlugTouched(true);
-                  setCreateTenantSlug(slugifyTenantName(event.target.value));
-                }}
-                placeholder="empresa-centro"
-                required
-              />
-              <div className="tenant-inline-form-grid">
-                <div>
-                  <FieldHelpLabel
-                    label="Tipo de tenant"
-                    help="Clasifica el tenant según su vertical principal. Puedes empezar por empresa o condominio."
-                  />
-                  <select
-                    className="form-select"
-                    value={createTenantType}
-                    onChange={(event) => setCreateTenantType(event.target.value)}
-                  >
-                    {tenantTypeOptions.map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <FieldHelpLabel
-                    label="Plan inicial"
-                    help="Puedes partir sin plan o asignar uno desde el alta para que el tenant nazca con su política base."
-                  />
-                  <select
-                    className="form-select"
-                    value={createTenantPlanCode}
-                    onChange={(event) => setCreateTenantPlanCode(event.target.value)}
-                  >
-                    <option value="">Sin plan</option>
-                    {planOptions.map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <AppForm
+              className="tenant-action-form tenant-create-form"
+              onSubmit={handleCreateTenantSubmit}
+            >
+              <AppFormField fullWidth>
+                <FieldHelpLabel
+                  label="Nombre visible"
+                  help="Nombre con el que el operador reconocerá el tenant en la consola."
+                />
+                <input
+                  className="form-control"
+                  value={createTenantName}
+                  onChange={(event) => {
+                    const nextName = event.target.value;
+                    setCreateTenantName(nextName);
+                    if (!createTenantSlugTouched) {
+                      setCreateTenantSlug(slugifyTenantName(nextName));
+                    }
+                  }}
+                  placeholder="Ej: Empresa Centro"
+                  required
+                />
+              </AppFormField>
+              <AppFormField fullWidth>
+                <FieldHelpLabel
+                  label="Slug"
+                  help="Identificador estable del tenant. Conviene definirlo bien al inicio porque se usa en portal tenant, bootstrap y referencias técnicas."
+                />
+                <input
+                  className="form-control"
+                  value={createTenantSlug}
+                  onChange={(event) => {
+                    setCreateTenantSlugTouched(true);
+                    setCreateTenantSlug(slugifyTenantName(event.target.value));
+                  }}
+                  placeholder="empresa-centro"
+                  required
+                />
+              </AppFormField>
+              <AppFormField>
+                <FieldHelpLabel
+                  label="Tipo de tenant"
+                  help="Clasifica el tenant según su vertical principal. Puedes empezar por empresa o condominio."
+                />
+                <select
+                  className="form-select"
+                  value={createTenantType}
+                  onChange={(event) => setCreateTenantType(event.target.value)}
+                >
+                  {tenantTypeOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </AppFormField>
+              <AppFormField>
+                <FieldHelpLabel
+                  label="Plan inicial"
+                  help="Puedes partir sin plan o asignar uno desde el alta para que el tenant nazca con su política base."
+                />
+                <select
+                  className="form-select"
+                  value={createTenantPlanCode}
+                  onChange={(event) => setCreateTenantPlanCode(event.target.value)}
+                >
+                  <option value="">Sin plan</option>
+                  {planOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </AppFormField>
+              <div className="app-form-field app-form-field--full">
+                <p className="tenant-help-text mt-2 mb-0">
+                  Al crear el tenant se dispara provisioning para preparar su base tenant y
+                  dejar el acceso bootstrap listo.
+                </p>
               </div>
-              <p className="tenant-help-text mt-2">
-                Al crear el tenant se dispara provisioning para preparar su base tenant y
-                dejar el acceso bootstrap listo.
-              </p>
-              <button
-                className="btn btn-primary mt-3"
-                type="submit"
-                disabled={
-                  isActionSubmitting ||
-                  !createTenantName.trim() ||
-                  !createTenantSlug.trim()
-                }
-              >
-                Crear tenant
-              </button>
-            </form>
+              <AppFormActions>
+                <button
+                  className="btn btn-primary"
+                  type="submit"
+                  disabled={
+                    isActionSubmitting ||
+                    !createTenantName.trim() ||
+                    !createTenantSlug.trim()
+                  }
+                >
+                  Crear tenant
+                </button>
+              </AppFormActions>
+            </AppForm>
           </PanelCard>
 
           <PanelCard
             title="Catálogo de tenants"
             subtitle="Busca, filtra y selecciona tenants para entrar a su operación central."
           >
-            <div className="tenant-catalog-filters">
+            <AppFilterGrid className="tenant-catalog-filters">
               <input
                 className="form-control"
                 value={catalogSearch}
                 onChange={(event) => setCatalogSearch(event.target.value)}
                 placeholder="Buscar por nombre, slug o tipo"
               />
-              <div className="tenant-inline-form-grid">
-                <select
-                  className="form-select"
-                  value={catalogStatusFilter}
-                  onChange={(event) => setCatalogStatusFilter(event.target.value)}
-                >
-                  <option value="">Todos los estados</option>
-                  {(capabilities?.tenant_statuses || []).map((value) => (
-                    <option key={value} value={value}>
-                      {displayPlatformCode(value)}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="form-select"
-                  value={catalogBillingFilter}
-                  onChange={(event) => setCatalogBillingFilter(event.target.value)}
-                >
-                  <option value="">Toda la facturación</option>
-                  {(capabilities?.tenant_billing_statuses || []).map((value) => (
-                    <option key={value} value={value}>
-                      {displayPlatformCode(value)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <select
+                className="form-select"
+                value={catalogStatusFilter}
+                onChange={(event) => setCatalogStatusFilter(event.target.value)}
+              >
+                <option value="">Todos los estados</option>
+                {(capabilities?.tenant_statuses || []).map((value) => (
+                  <option key={value} value={value}>
+                    {displayPlatformCode(value)}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="form-select"
+                value={catalogBillingFilter}
+                onChange={(event) => setCatalogBillingFilter(event.target.value)}
+              >
+                <option value="">Toda la facturación</option>
+                {(capabilities?.tenant_billing_statuses || []).map((value) => (
+                  <option key={value} value={value}>
+                    {displayPlatformCode(value)}
+                  </option>
+                ))}
+              </select>
               <select
                 className="form-select"
                 value={catalogTypeFilter}
@@ -1434,7 +1447,7 @@ export function TenantsPage() {
                   </option>
                 ))}
               </select>
-            </div>
+            </AppFilterGrid>
 
             {isListLoading ? <LoadingBlock label="Cargando tenants..." /> : null}
 
@@ -1911,637 +1924,711 @@ export function TenantsPage() {
 
                 <div className="tenant-action-grid">
                   {selectedTenantSummary.status === "archived" ? (
-                    <form className="tenant-action-form" onSubmit={handleRestoreTenantSubmit}>
+                    <AppForm className="tenant-action-form" onSubmit={handleRestoreTenantSubmit}>
                       <h3 className="tenant-action-form__title">Restauración</h3>
+                      <AppFormField fullWidth>
+                        <FieldHelpLabel
+                          label="Estado destino"
+                          help="La restauración no cambia el slug ni elimina historial. Solo reabre el tenant archivado en el lifecycle que definas aquí."
+                        />
+                        <select
+                          className="form-select"
+                          value={restoreTargetStatus}
+                          onChange={(event) => setRestoreTargetStatus(event.target.value)}
+                        >
+                          {["pending", "active", "suspended"].map((value) => (
+                            <option key={value} value={value}>
+                              {displayPlatformCode(value)}
+                            </option>
+                          ))}
+                        </select>
+                      </AppFormField>
+                      <AppFormField fullWidth>
+                        <FieldHelpLabel
+                          label="Motivo de restauración"
+                          help="Úsalo para dejar trazabilidad operativa de por qué el tenant vuelve a abrirse."
+                        />
+                        <textarea
+                          className="form-control"
+                          rows={3}
+                          value={restoreReason}
+                          onChange={(event) => setRestoreReason(event.target.value)}
+                          placeholder="Ej: Reactivación operativa autorizada"
+                        />
+                      </AppFormField>
+                      <div className="app-form-field app-form-field--full">
+                        <div className="tenant-inline-note">
+                          La restauración es explícita y no equivale a editar el estado a mano.
+                        </div>
+                      </div>
+                      <div className="app-form-field app-form-field--full">
+                        <div className="tenant-inline-note">
+                          Si este tenant archivado todavía conserva base o credenciales técnicas,
+                          primero usa `Desprovisionar tenant`. Cuando ya no tenga configuración
+                          DB y no deba conservarse, podrás usar `Eliminar tenant` para removerlo
+                          definitivamente.
+                        </div>
+                      </div>
+                      <AppFormActions>
+                        <button className="btn btn-primary" type="submit" disabled={isActionSubmitting}>
+                          Restaurar tenant
+                        </button>
+                      </AppFormActions>
+                    </AppForm>
+                  ) : null}
+
+                  <AppForm className="tenant-action-form" onSubmit={handleIdentitySubmit}>
+                    <h3 className="tenant-action-form__title">Identidad básica</h3>
+                    <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Estado destino"
-                        help="La restauración no cambia el slug ni elimina historial. Solo reabre el tenant archivado en el lifecycle que definas aquí."
+                        label="Nombre visible"
+                        help="Este nombre se usa en catálogo, detalle y operación diaria del tenant."
+                      />
+                      <input
+                        className="form-control"
+                        value={identityName}
+                        onChange={(event) => setIdentityName(event.target.value)}
+                      />
+                    </AppFormField>
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Tipo de tenant"
+                        help="Clasifica operativamente el tenant sin tocar su slug ni su historial técnico."
                       />
                       <select
                         className="form-select"
-                        value={restoreTargetStatus}
-                        onChange={(event) => setRestoreTargetStatus(event.target.value)}
+                        value={identityTenantType}
+                        onChange={(event) => setIdentityTenantType(event.target.value)}
                       >
-                        {["pending", "active", "suspended"].map((value) => (
+                        {tenantTypeOptions.map((value) => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                    </AppFormField>
+                    <div className="app-form-field app-form-field--full">
+                      <div className="tenant-inline-note">
+                        El slug se mantiene estable para no romper accesos, bootstrap ni referencias
+                        técnicas.
+                      </div>
+                    </div>
+                    <AppFormActions>
+                      <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={isActionSubmitting || !identityName.trim()}
+                      >
+                        Actualizar identidad básica
+                      </button>
+                    </AppFormActions>
+                  </AppForm>
+
+                  <AppForm className="tenant-action-form" onSubmit={handleStatusSubmit}>
+                    <h3 className="tenant-action-form__title">Estado</h3>
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Estado lifecycle"
+                        help="Controla el estado operativo general del tenant. Puede habilitar, suspender, archivar o dejar pendiente su operación."
+                      />
+                      <select
+                        className="form-select"
+                        value={statusValue}
+                        onChange={(event) => setStatusValue(event.target.value)}
+                      >
+                        {(capabilities?.tenant_statuses || []).map((value) => (
                           <option key={value} value={value}>
                             {displayPlatformCode(value)}
                           </option>
                         ))}
                       </select>
+                    </AppFormField>
+                    <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Motivo de restauración"
-                        help="Úsalo para dejar trazabilidad operativa de por qué el tenant vuelve a abrirse."
+                        label="Motivo"
+                        help="Úsalo para dejar contexto operativo visible cuando cambias el estado del tenant."
                       />
                       <textarea
                         className="form-control"
                         rows={3}
-                        value={restoreReason}
-                        onChange={(event) => setRestoreReason(event.target.value)}
-                        placeholder="Ej: Reactivación operativa autorizada"
+                        value={statusReason}
+                        onChange={(event) => setStatusReason(event.target.value)}
                       />
-                      <div className="tenant-inline-note mt-3">
-                        La restauración es explícita y no equivale a editar el estado a mano.
-                      </div>
-                      <div className="tenant-inline-note mt-3">
-                        Si este tenant archivado todavía conserva base o credenciales técnicas,
-                        primero usa `Desprovisionar tenant`. Cuando ya no tenga configuración
-                        DB y no deba conservarse, podrás usar `Eliminar tenant` para removerlo
-                        definitivamente.
-                      </div>
-                      <button className="btn btn-primary mt-3" type="submit" disabled={isActionSubmitting}>
-                        Restaurar tenant
+                    </AppFormField>
+                    <AppFormActions>
+                      <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={isActionSubmitting}
+                      >
+                        Actualizar estado
                       </button>
-                    </form>
-                  ) : null}
+                    </AppFormActions>
+                  </AppForm>
 
-                  <form className="tenant-action-form" onSubmit={handleIdentitySubmit}>
-                    <h3 className="tenant-action-form__title">Identidad básica</h3>
-                    <FieldHelpLabel
-                      label="Nombre visible"
-                      help="Este nombre se usa en catálogo, detalle y operación diaria del tenant."
-                    />
-                    <input
-                      className="form-control"
-                      value={identityName}
-                      onChange={(event) => setIdentityName(event.target.value)}
-                    />
-                    <FieldHelpLabel
-                      label="Tipo de tenant"
-                      help="Clasifica operativamente el tenant sin tocar su slug ni su historial técnico."
-                    />
-                    <select
-                      className="form-select"
-                      value={identityTenantType}
-                      onChange={(event) => setIdentityTenantType(event.target.value)}
-                    >
-                      {tenantTypeOptions.map((value) => (
-                        <option key={value} value={value}>
-                          {value}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="tenant-inline-note mt-3">
-                      El slug se mantiene estable para no romper accesos, bootstrap ni referencias
-                      técnicas.
-                    </div>
-                    <button
-                      className="btn btn-primary mt-3"
-                      type="submit"
-                      disabled={isActionSubmitting || !identityName.trim()}
-                    >
-                      Actualizar identidad básica
-                    </button>
-                  </form>
-
-                  <form className="tenant-action-form" onSubmit={handleStatusSubmit}>
-                    <h3 className="tenant-action-form__title">Estado</h3>
-                    <FieldHelpLabel
-                      label="Estado lifecycle"
-                      help="Controla el estado operativo general del tenant. Puede habilitar, suspender, archivar o dejar pendiente su operación."
-                    />
-                    <select
-                      className="form-select"
-                      value={statusValue}
-                      onChange={(event) => setStatusValue(event.target.value)}
-                    >
-                      {(capabilities?.tenant_statuses || []).map((value) => (
-                        <option key={value} value={value}>
-                          {displayPlatformCode(value)}
-                        </option>
-                      ))}
-                    </select>
-                    <FieldHelpLabel
-                      label="Motivo"
-                      help="Úsalo para dejar contexto operativo visible cuando cambias el estado del tenant."
-                    />
-                    <textarea
-                      className="form-control"
-                      rows={3}
-                      value={statusReason}
-                      onChange={(event) => setStatusReason(event.target.value)}
-                    />
-                    <button
-                      className="btn btn-primary mt-3"
-                      type="submit"
-                      disabled={isActionSubmitting}
-                    >
-                      Actualizar estado
-                    </button>
-                  </form>
-
-                  <form className="tenant-action-form" onSubmit={handleMaintenanceSubmit}>
+                  <AppForm className="tenant-action-form" onSubmit={handleMaintenanceSubmit}>
                     <h3 className="tenant-action-form__title">Mantenimiento</h3>
-                    <div className="form-check mb-3">
-                      <input
-                        id="maintenance-mode"
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={maintenanceMode}
-                        onChange={(event) => setMaintenanceMode(event.target.checked)}
-                      />
-                      <label className="form-check-label" htmlFor="maintenance-mode">
-                        Habilitar mantenimiento manual
-                      </label>
-                    </div>
-                    <p className="tenant-help-text mb-3">
-                      Activa una ventana manual cuando necesites restringir temporalmente el uso
-                      del tenant o de módulos específicos.
-                    </p>
-                    <FieldHelpLabel
-                      label="Modo de acceso"
-                      help="Define si durante el mantenimiento se bloquean solo escrituras o todo el acceso del tenant."
-                      placement="left"
-                    />
-                    <select
-                      className="form-select"
-                      value={maintenanceAccessMode}
-                      onChange={(event) => setMaintenanceAccessMode(event.target.value)}
-                    >
-                      {(capabilities?.maintenance_access_modes || []).map((value) => (
-                        <option key={value} value={value}>
-                          {displayMaintenanceAccessMode(value)}
-                        </option>
-                      ))}
-                    </select>
-                    <FieldHelpLabel
-                      label="Scopes"
-                      help="Elige si el mantenimiento aplica a todo el tenant o solo a áreas puntuales como core, users o finance."
-                      placement="left"
-                    />
-                    <div className="tenant-scope-list">
-                      {(capabilities?.maintenance_scopes || []).map((scope) => (
-                        <label key={scope} className="form-check tenant-scope-list__item">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            checked={maintenanceScopes.includes(scope)}
-                            onChange={() => setMaintenanceScopes(toggleScope(maintenanceScopes, scope))}
-                          />
-                          <span className="form-check-label">{scope}</span>
+                    <div className="app-form-field app-form-field--full">
+                      <div className="form-check mb-0">
+                        <input
+                          id="maintenance-mode"
+                          className="form-check-input"
+                          type="checkbox"
+                          checked={maintenanceMode}
+                          onChange={(event) => setMaintenanceMode(event.target.checked)}
+                        />
+                        <label className="form-check-label" htmlFor="maintenance-mode">
+                          Habilitar mantenimiento manual
                         </label>
-                      ))}
-                    </div>
-                    <div className="tenant-inline-form-grid mt-3">
-                      <div>
-                        <FieldHelpLabel
-                          label="Comienza"
-                          help="Marca cuándo parte la ventana de mantenimiento. Si no ajustas la hora, se guardará 00:00."
-                          placement="left"
-                        />
-                        <div className="tenant-date-time-stack">
-                          <input
-                            className="form-control"
-                            type="date"
-                            value={splitLocalDateTime(maintenanceStartsAt).date}
-                            onChange={(event) =>
-                              setMaintenanceStartsAt(
-                                mergeLocalDateTime(
-                                  maintenanceStartsAt,
-                                  "date",
-                                  event.target.value
-                                )
-                              )
-                            }
-                          />
-                          <input
-                            className="form-control"
-                            type="time"
-                            value={splitLocalDateTime(maintenanceStartsAt).time}
-                            onChange={(event) =>
-                              setMaintenanceStartsAt(
-                                mergeLocalDateTime(
-                                  maintenanceStartsAt,
-                                  "time",
-                                  event.target.value
-                                )
-                              )
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <FieldHelpLabel
-                          label="Termina"
-                          help="Marca cuándo termina la ventana de mantenimiento. Si no ajustas la hora, se guardará 00:00."
-                          placement="left"
-                        />
-                        <div className="tenant-date-time-stack">
-                          <input
-                            className="form-control"
-                            type="date"
-                            value={splitLocalDateTime(maintenanceEndsAt).date}
-                            onChange={(event) =>
-                              setMaintenanceEndsAt(
-                                mergeLocalDateTime(
-                                  maintenanceEndsAt,
-                                  "date",
-                                  event.target.value
-                                )
-                              )
-                            }
-                          />
-                          <input
-                            className="form-control"
-                            type="time"
-                            value={splitLocalDateTime(maintenanceEndsAt).time}
-                            onChange={(event) =>
-                              setMaintenanceEndsAt(
-                                mergeLocalDateTime(
-                                  maintenanceEndsAt,
-                                  "time",
-                                  event.target.value
-                                )
-                              )
-                            }
-                          />
-                        </div>
                       </div>
                     </div>
-                    <FieldHelpLabel
-                      label="Motivo"
-                      help="Describe brevemente el motivo operativo del mantenimiento para dejar trazabilidad visible."
-                    />
-                    <textarea
-                      className="form-control"
-                      rows={3}
-                      value={maintenanceReason}
-                      onChange={(event) => setMaintenanceReason(event.target.value)}
-                    />
-                    <button
-                      className="btn btn-primary mt-3"
-                      type="submit"
-                      disabled={isActionSubmitting}
-                    >
-                      Actualizar mantenimiento
-                    </button>
-                  </form>
+                    <div className="app-form-field app-form-field--full">
+                      <p className="tenant-help-text mb-0">
+                        Activa una ventana manual cuando necesites restringir temporalmente el uso
+                        del tenant o de módulos específicos.
+                      </p>
+                    </div>
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Modo de acceso"
+                        help="Define si durante el mantenimiento se bloquean solo escrituras o todo el acceso del tenant."
+                        placement="left"
+                      />
+                      <select
+                        className="form-select"
+                        value={maintenanceAccessMode}
+                        onChange={(event) => setMaintenanceAccessMode(event.target.value)}
+                      >
+                        {(capabilities?.maintenance_access_modes || []).map((value) => (
+                          <option key={value} value={value}>
+                            {displayMaintenanceAccessMode(value)}
+                          </option>
+                        ))}
+                      </select>
+                    </AppFormField>
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Scopes"
+                        help="Elige si el mantenimiento aplica a todo el tenant o solo a áreas puntuales como core, users o finance."
+                        placement="left"
+                      />
+                      <AppCheckGrid className="tenant-scope-list">
+                        {(capabilities?.maintenance_scopes || []).map((scope) => (
+                          <label key={scope} className="form-check tenant-scope-list__item">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              checked={maintenanceScopes.includes(scope)}
+                              onChange={() => setMaintenanceScopes(toggleScope(maintenanceScopes, scope))}
+                            />
+                            <span className="form-check-label">{scope}</span>
+                          </label>
+                        ))}
+                      </AppCheckGrid>
+                    </AppFormField>
+                    <AppFormField>
+                      <FieldHelpLabel
+                        label="Comienza"
+                        help="Marca cuándo parte la ventana de mantenimiento. Si no ajustas la hora, se guardará 00:00."
+                        placement="left"
+                      />
+                      <div className="tenant-date-time-stack">
+                        <input
+                          className="form-control"
+                          type="date"
+                          value={splitLocalDateTime(maintenanceStartsAt).date}
+                          onChange={(event) =>
+                            setMaintenanceStartsAt(
+                              mergeLocalDateTime(
+                                maintenanceStartsAt,
+                                "date",
+                                event.target.value
+                              )
+                            )
+                          }
+                        />
+                        <input
+                          className="form-control"
+                          type="time"
+                          value={splitLocalDateTime(maintenanceStartsAt).time}
+                          onChange={(event) =>
+                            setMaintenanceStartsAt(
+                              mergeLocalDateTime(
+                                maintenanceStartsAt,
+                                "time",
+                                event.target.value
+                              )
+                            )
+                          }
+                        />
+                      </div>
+                    </AppFormField>
+                    <AppFormField>
+                      <FieldHelpLabel
+                        label="Termina"
+                        help="Marca cuándo termina la ventana de mantenimiento. Si no ajustas la hora, se guardará 00:00."
+                        placement="left"
+                      />
+                      <div className="tenant-date-time-stack">
+                        <input
+                          className="form-control"
+                          type="date"
+                          value={splitLocalDateTime(maintenanceEndsAt).date}
+                          onChange={(event) =>
+                            setMaintenanceEndsAt(
+                              mergeLocalDateTime(
+                                maintenanceEndsAt,
+                                "date",
+                                event.target.value
+                              )
+                            )
+                          }
+                        />
+                        <input
+                          className="form-control"
+                          type="time"
+                          value={splitLocalDateTime(maintenanceEndsAt).time}
+                          onChange={(event) =>
+                            setMaintenanceEndsAt(
+                              mergeLocalDateTime(
+                                maintenanceEndsAt,
+                                "time",
+                                event.target.value
+                              )
+                            )
+                          }
+                        />
+                      </div>
+                    </AppFormField>
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Motivo"
+                        help="Describe brevemente el motivo operativo del mantenimiento para dejar trazabilidad visible."
+                      />
+                      <textarea
+                        className="form-control"
+                        rows={3}
+                        value={maintenanceReason}
+                        onChange={(event) => setMaintenanceReason(event.target.value)}
+                      />
+                    </AppFormField>
+                    <AppFormActions>
+                      <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={isActionSubmitting}
+                      >
+                        Actualizar mantenimiento
+                      </button>
+                    </AppFormActions>
+                  </AppForm>
 
-                  <form className="tenant-action-form" onSubmit={handleBillingSubmit}>
+                  <AppForm className="tenant-action-form" onSubmit={handleBillingSubmit}>
                     <h3 className="tenant-action-form__title">Facturación</h3>
-                    <FieldHelpLabel
-                      label="Estado billing"
-                      help="Representa el estado comercial del tenant frente a cobro y suscripción: trialing, active, past_due, suspended o canceled."
-                    />
-                    <select
-                      className="form-select"
-                      value={billingStatus}
-                      onChange={(event) => setBillingStatus(event.target.value)}
-                    >
-                      <option value="">ninguno</option>
-                      {(capabilities?.tenant_billing_statuses || []).map((value) => (
-                        <option key={value} value={value}>
-                          {displayPlatformCode(value)}
-                        </option>
-                      ))}
-                    </select>
-                    <FieldHelpLabel
-                      label="Motivo"
-                      help="Deja una explicación visible del cambio de facturación o del estado comercial actual."
-                    />
-                    <textarea
-                      className="form-control"
-                      rows={3}
-                      value={billingReason}
-                      onChange={(event) => setBillingReason(event.target.value)}
-                    />
-                    <div className="tenant-inline-form-grid mt-3">
-                      <div>
-                        <FieldHelpLabel
-                          label="Fin período actual"
-                          help="Usa fecha y hora local del cierre de período. Si no ajustas la hora, se guardará 00:00."
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Estado billing"
+                        help="Representa el estado comercial del tenant frente a cobro y suscripción: trialing, active, past_due, suspended o canceled."
+                      />
+                      <select
+                        className="form-select"
+                        value={billingStatus}
+                        onChange={(event) => setBillingStatus(event.target.value)}
+                      >
+                        <option value="">ninguno</option>
+                        {(capabilities?.tenant_billing_statuses || []).map((value) => (
+                          <option key={value} value={value}>
+                            {displayPlatformCode(value)}
+                          </option>
+                        ))}
+                      </select>
+                    </AppFormField>
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Motivo"
+                        help="Deja una explicación visible del cambio de facturación o del estado comercial actual."
+                      />
+                      <textarea
+                        className="form-control"
+                        rows={3}
+                        value={billingReason}
+                        onChange={(event) => setBillingReason(event.target.value)}
+                      />
+                    </AppFormField>
+                    <AppFormField>
+                      <FieldHelpLabel
+                        label="Fin período actual"
+                        help="Usa fecha y hora local del cierre de período. Si no ajustas la hora, se guardará 00:00."
+                      />
+                      <div className="tenant-date-time-stack">
+                        <input
+                          className="form-control"
+                          type="date"
+                          value={splitLocalDateTime(billingCurrentPeriodEndsAt).date}
+                          onChange={(event) =>
+                            setBillingCurrentPeriodEndsAt(
+                              mergeLocalDateTime(
+                                billingCurrentPeriodEndsAt,
+                                "date",
+                                event.target.value
+                              )
+                            )
+                          }
                         />
-                        <div className="tenant-date-time-stack">
-                          <input
-                            className="form-control"
-                            type="date"
-                            value={splitLocalDateTime(billingCurrentPeriodEndsAt).date}
-                            onChange={(event) =>
-                              setBillingCurrentPeriodEndsAt(
-                                mergeLocalDateTime(
-                                  billingCurrentPeriodEndsAt,
-                                  "date",
-                                  event.target.value
-                                )
+                        <input
+                          className="form-control"
+                          type="time"
+                          value={splitLocalDateTime(billingCurrentPeriodEndsAt).time}
+                          onChange={(event) =>
+                            setBillingCurrentPeriodEndsAt(
+                              mergeLocalDateTime(
+                                billingCurrentPeriodEndsAt,
+                                "time",
+                                event.target.value
                               )
-                            }
-                          />
-                          <input
-                            className="form-control"
-                            type="time"
-                            value={splitLocalDateTime(billingCurrentPeriodEndsAt).time}
-                            onChange={(event) =>
-                              setBillingCurrentPeriodEndsAt(
-                                mergeLocalDateTime(
-                                  billingCurrentPeriodEndsAt,
-                                  "time",
-                                  event.target.value
-                                )
-                              )
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <FieldHelpLabel
-                          label="Gracia hasta"
-                          help="Úsalo cuando el tenant sigue operativo por una ventana temporal pese a estar past_due. Si no ajustas la hora, se guardará 00:00."
+                            )
+                          }
                         />
-                        <div className="tenant-date-time-stack">
-                          <input
-                            className="form-control"
-                            type="date"
-                            value={splitLocalDateTime(billingGraceUntil).date}
-                            onChange={(event) =>
-                              setBillingGraceUntil(
-                                mergeLocalDateTime(
-                                  billingGraceUntil,
-                                  "date",
-                                  event.target.value
-                                )
-                              )
-                            }
-                          />
-                          <input
-                            className="form-control"
-                            type="time"
-                            value={splitLocalDateTime(billingGraceUntil).time}
-                            onChange={(event) =>
-                              setBillingGraceUntil(
-                                mergeLocalDateTime(
-                                  billingGraceUntil,
-                                  "time",
-                                  event.target.value
-                                )
-                              )
-                            }
-                          />
-                        </div>
                       </div>
-                    </div>
-                    <button
-                      className="btn btn-primary mt-3"
-                      type="submit"
-                      disabled={isActionSubmitting}
-                    >
-                      Actualizar facturación
-                    </button>
-                  </form>
+                    </AppFormField>
+                    <AppFormField>
+                      <FieldHelpLabel
+                        label="Gracia hasta"
+                        help="Úsalo cuando el tenant sigue operativo por una ventana temporal pese a estar past_due. Si no ajustas la hora, se guardará 00:00."
+                      />
+                      <div className="tenant-date-time-stack">
+                        <input
+                          className="form-control"
+                          type="date"
+                          value={splitLocalDateTime(billingGraceUntil).date}
+                          onChange={(event) =>
+                            setBillingGraceUntil(
+                              mergeLocalDateTime(
+                                billingGraceUntil,
+                                "date",
+                                event.target.value
+                              )
+                            )
+                          }
+                        />
+                        <input
+                          className="form-control"
+                          type="time"
+                          value={splitLocalDateTime(billingGraceUntil).time}
+                          onChange={(event) =>
+                            setBillingGraceUntil(
+                              mergeLocalDateTime(
+                                billingGraceUntil,
+                                "time",
+                                event.target.value
+                              )
+                            )
+                          }
+                        />
+                      </div>
+                    </AppFormField>
+                    <AppFormActions>
+                      <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={isActionSubmitting}
+                      >
+                        Actualizar facturación
+                      </button>
+                    </AppFormActions>
+                  </AppForm>
 
-                  <form className="tenant-action-form" onSubmit={handlePlanSubmit}>
+                  <AppForm className="tenant-action-form" onSubmit={handlePlanSubmit}>
                     <h3 className="tenant-action-form__title">Plan</h3>
-                    <FieldHelpLabel
-                      label="Código de plan"
-                      help="Selecciona uno de los planes válidos que conoce el backend. Si eliges vacío, el tenant queda sin plan."
-                      placement="left"
-                    />
-                    <select
-                      className="form-select"
-                      value={planCode}
-                      onChange={(event) => setPlanCode(event.target.value)}
-                    >
-                      <option value="">Sin plan</option>
-                      {planOptions.map((value) => (
-                        <option key={value} value={value}>
-                          {value}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="tenant-help-text mt-2">
-                      Solo puedes aplicar planes definidos en la política de backend. Si no
-                      seleccionas ninguno, el tenant opera sin plan asociado.
-                    </p>
-                    <button
-                      className="btn btn-primary mt-3"
-                      type="submit"
-                      disabled={isActionSubmitting}
-                    >
-                      Actualizar plan
-                    </button>
-                  </form>
-
-                  <form className="tenant-action-form" onSubmit={handleRateLimitSubmit}>
-                    <h3 className="tenant-action-form__title">Límites de tasa</h3>
-                    <div className="tenant-inline-form-grid">
-                      <div>
-                        <FieldHelpLabel
-                          label="Lecturas req/min"
-                          help="Override específico para el máximo de lecturas por minuto. Vacío hereda; `0` deja sin límite."
-                        />
-                        <input
-                          className="form-control"
-                          type="number"
-                          min="0"
-                          value={readRateLimit}
-                          onChange={(event) => setReadRateLimit(event.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <FieldHelpLabel
-                          label="Escrituras req/min"
-                          help="Override específico para el máximo de escrituras por minuto. Vacío hereda; `0` deja sin límite."
-                        />
-                        <input
-                          className="form-control"
-                          type="number"
-                          min="0"
-                          value={writeRateLimit}
-                          onChange={(event) => setWriteRateLimit(event.target.value)}
-                        />
-                      </div>
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Código de plan"
+                        help="Selecciona uno de los planes válidos que conoce el backend. Si eliges vacío, el tenant queda sin plan."
+                        placement="left"
+                      />
+                      <select
+                        className="form-select"
+                        value={planCode}
+                        onChange={(event) => setPlanCode(event.target.value)}
+                      >
+                        <option value="">Sin plan</option>
+                        {planOptions.map((value) => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                    </AppFormField>
+                    <div className="app-form-field app-form-field--full">
+                      <p className="tenant-help-text mt-2 mb-0">
+                        Solo puedes aplicar planes definidos en la política de backend. Si no
+                        seleccionas ninguno, el tenant opera sin plan asociado.
+                      </p>
                     </div>
-                    <p className="tenant-help-text mt-2">
-                      Déjalo vacío para volver al plan o a la configuración global. Usa `0`
-                      para quitar el límite de esa categoría.
-                    </p>
-                    <button
-                      className="btn btn-primary mt-3"
-                      type="submit"
-                      disabled={isActionSubmitting}
-                    >
-                      Actualizar límites de tasa
-                    </button>
-                  </form>
+                    <AppFormActions>
+                      <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={isActionSubmitting}
+                      >
+                        Actualizar plan
+                      </button>
+                    </AppFormActions>
+                  </AppForm>
 
-                  <form
+                  <AppForm className="tenant-action-form" onSubmit={handleRateLimitSubmit}>
+                    <h3 className="tenant-action-form__title">Límites de tasa</h3>
+                    <AppFormField>
+                      <FieldHelpLabel
+                        label="Lecturas req/min"
+                        help="Override específico para el máximo de lecturas por minuto. Vacío hereda; `0` deja sin límite."
+                      />
+                      <input
+                        className="form-control"
+                        type="number"
+                        min="0"
+                        value={readRateLimit}
+                        onChange={(event) => setReadRateLimit(event.target.value)}
+                      />
+                    </AppFormField>
+                    <AppFormField>
+                      <FieldHelpLabel
+                        label="Escrituras req/min"
+                        help="Override específico para el máximo de escrituras por minuto. Vacío hereda; `0` deja sin límite."
+                      />
+                      <input
+                        className="form-control"
+                        type="number"
+                        min="0"
+                        value={writeRateLimit}
+                        onChange={(event) => setWriteRateLimit(event.target.value)}
+                      />
+                    </AppFormField>
+                    <div className="app-form-field app-form-field--full">
+                      <p className="tenant-help-text mt-2 mb-0">
+                        Déjalo vacío para volver al plan o a la configuración global. Usa `0`
+                        para quitar el límite de esa categoría.
+                      </p>
+                    </div>
+                    <AppFormActions>
+                      <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={isActionSubmitting}
+                      >
+                        Actualizar límites de tasa
+                      </button>
+                    </AppFormActions>
+                  </AppForm>
+
+                  <AppForm
                     className="tenant-action-form"
                     onSubmit={handleBillingIdentitySubmit}
                   >
                     <h3 className="tenant-action-form__title">Identidad de billing</h3>
-                    <FieldHelpLabel
-                      label="Proveedor"
-                      help="Proveedor externo que gestiona la suscripción o cobro del tenant."
-                      placement="left"
-                    />
-                    <select
-                      className="form-select"
-                      value={billingProvider}
-                      onChange={(event) => setBillingProvider(event.target.value)}
-                    >
-                      <option value="">ninguno</option>
-                      {(capabilities?.billing_providers || []).map((value) => (
-                        <option key={value} value={value}>
-                          {value}
-                        </option>
-                      ))}
-                    </select>
-                    <FieldHelpLabel
-                      label="Customer ID"
-                      help="Identificador del cliente dentro del proveedor de billing."
-                      placement="left"
-                    />
-                    <input
-                      className="form-control"
-                      value={billingProviderCustomerId}
-                      onChange={(event) =>
-                        setBillingProviderCustomerId(event.target.value)
-                      }
-                    />
-                    <FieldHelpLabel
-                      label="Subscription ID"
-                      help="Identificador de la suscripción o contrato activo en el proveedor de billing."
-                      placement="left"
-                    />
-                    <input
-                      className="form-control"
-                      value={billingProviderSubscriptionId}
-                      onChange={(event) =>
-                        setBillingProviderSubscriptionId(event.target.value)
-                      }
-                    />
-                    <button
-                      className="btn btn-primary mt-3"
-                      type="submit"
-                      disabled={isActionSubmitting}
-                    >
-                      Actualizar identidad de billing
-                    </button>
-                  </form>
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Proveedor"
+                        help="Proveedor externo que gestiona la suscripción o cobro del tenant."
+                        placement="left"
+                      />
+                      <select
+                        className="form-select"
+                        value={billingProvider}
+                        onChange={(event) => setBillingProvider(event.target.value)}
+                      >
+                        <option value="">ninguno</option>
+                        {(capabilities?.billing_providers || []).map((value) => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                    </AppFormField>
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Customer ID"
+                        help="Identificador del cliente dentro del proveedor de billing."
+                        placement="left"
+                      />
+                      <input
+                        className="form-control"
+                        value={billingProviderCustomerId}
+                        onChange={(event) =>
+                          setBillingProviderCustomerId(event.target.value)
+                        }
+                      />
+                    </AppFormField>
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Subscription ID"
+                        help="Identificador de la suscripción o contrato activo en el proveedor de billing."
+                        placement="left"
+                      />
+                      <input
+                        className="form-control"
+                        value={billingProviderSubscriptionId}
+                        onChange={(event) =>
+                          setBillingProviderSubscriptionId(event.target.value)
+                        }
+                      />
+                    </AppFormField>
+                    <AppFormActions>
+                      <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={isActionSubmitting}
+                      >
+                        Actualizar identidad de billing
+                      </button>
+                    </AppFormActions>
+                  </AppForm>
 
-                  <form className="tenant-action-form" onSubmit={handleModuleLimitsSubmit}>
+                  <AppForm className="tenant-action-form" onSubmit={handleModuleLimitsSubmit}>
                     <h3 className="tenant-action-form__title">Límites por módulo</h3>
-                    <p className="tenant-help-text mb-3">
-                      Vacío limpia el override tenant para esa clave. `0` significa ilimitado
-                      para ese override.
-                    </p>
-                    <div className="tenant-module-limit-grid">
-                      {moduleLimitKeys.map((key) => (
-                        <div key={key} className="tenant-module-limit-row">
-                          <label className="form-label">
-                            <span className="tenant-module-limit-key">
-                              <code>{key}</code>
-                            </span>
-                            {moduleLimitCapabilityMap.get(key)?.description ? (
-                              <span className="tenant-module-limit-description">
-                                {moduleLimitCapabilityMap.get(key)?.description}
-                              </span>
-                            ) : null}
-                          </label>
-                          <input
-                            className="form-control"
-                            type="number"
-                            min="0"
-                            value={moduleLimitDrafts[key] || ""}
-                            onChange={(event) =>
-                              setModuleLimitDrafts((current) => ({
-                                ...current,
-                                [key]: event.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                      ))}
+                    <div className="app-form-field app-form-field--full">
+                      <p className="tenant-help-text mb-0">
+                        Vacío limpia el override tenant para esa clave. `0` significa ilimitado
+                        para ese override.
+                      </p>
                     </div>
-                    <button
-                      className="btn btn-primary mt-3"
-                      type="submit"
-                      disabled={isActionSubmitting}
-                    >
-                      Actualizar límites por módulo
-                    </button>
-                  </form>
+                    <AppFormField fullWidth>
+                      <div className="tenant-module-limit-grid">
+                        {moduleLimitKeys.map((key) => (
+                          <div key={key} className="tenant-module-limit-row">
+                            <label className="form-label">
+                              <span className="tenant-module-limit-key">
+                                <code>{key}</code>
+                              </span>
+                              {moduleLimitCapabilityMap.get(key)?.description ? (
+                                <span className="tenant-module-limit-description">
+                                  {moduleLimitCapabilityMap.get(key)?.description}
+                                </span>
+                              ) : null}
+                            </label>
+                            <input
+                              className="form-control"
+                              type="number"
+                              min="0"
+                              value={moduleLimitDrafts[key] || ""}
+                              onChange={(event) =>
+                                setModuleLimitDrafts((current) => ({
+                                  ...current,
+                                  [key]: event.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </AppFormField>
+                    <AppFormActions>
+                      <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={isActionSubmitting}
+                      >
+                        Actualizar límites por módulo
+                      </button>
+                    </AppFormActions>
+                  </AppForm>
 
-                  <form className="tenant-action-form" onSubmit={handleTenantSchemaSync}>
+                  <AppForm className="tenant-action-form" onSubmit={handleTenantSchemaSync}>
                     <h3 className="tenant-action-form__title">Esquema tenant</h3>
-                    <p className="tenant-help-text mb-3">
-                      Ejecuta la sincronización de migraciones tenant cuando falten tablas
-                      como <code>finance_entries</code> o la base tenant aún no esté al día.
-                    </p>
-                    <button
-                      className="btn btn-primary"
-                      type="submit"
-                      disabled={isActionSubmitting}
-                    >
-                      Sincronizar esquema tenant
-                    </button>
-                  </form>
+                    <div className="app-form-field app-form-field--full">
+                      <p className="tenant-help-text mb-0">
+                        Ejecuta la sincronización de migraciones tenant cuando falten tablas
+                        como <code>finance_entries</code> o la base tenant aún no esté al día.
+                      </p>
+                    </div>
+                    <AppFormActions>
+                      <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={isActionSubmitting}
+                      >
+                        Sincronizar esquema tenant
+                      </button>
+                    </AppFormActions>
+                  </AppForm>
 
-                  <form
+                  <AppForm
                     className="tenant-action-form"
                     onSubmit={handleResetTenantPortalPassword}
                   >
                     <h3 className="tenant-action-form__title">
                       Acceso portal tenant
                     </h3>
-                    <p className="tenant-help-text mb-3">
-                      Usa este bloque para reiniciar la contraseña de un usuario del
-                      portal tenant cuando la olvidó. No cambia la credencial técnica
-                      de la base tenant.
-                    </p>
-                    <FieldHelpLabel
-                      label="Usuario portal tenant"
-                      help="Selecciona un usuario real cargado desde la base tenant actual. Esto evita intentar reinicios sobre correos que no existen."
-                      placement="left"
-                    />
-                    <select
-                      className="form-select"
-                      required
-                      value={tenantPortalResetEmail}
-                      onChange={(event) => setTenantPortalResetEmail(event.target.value)}
-                    >
-                      <option value="">
-                        {tenantPortalUsers.length > 0
-                          ? "Selecciona un usuario tenant"
-                          : "No hay usuarios tenant disponibles"}
-                      </option>
-                      {tenantPortalUsers.map((user) => (
-                        <option key={user.id} value={user.email}>
-                          {`${user.email} · ${user.role} · ${
-                            user.is_active ? "activo" : "inactivo"
-                          }`}
+                    <div className="app-form-field app-form-field--full">
+                      <p className="tenant-help-text mb-0">
+                        Usa este bloque para reiniciar la contraseña de un usuario del
+                        portal tenant cuando la olvidó. No cambia la credencial técnica
+                        de la base tenant.
+                      </p>
+                    </div>
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Usuario portal tenant"
+                        help="Selecciona un usuario real cargado desde la base tenant actual. Esto evita intentar reinicios sobre correos que no existen."
+                        placement="left"
+                      />
+                      <select
+                        className="form-select"
+                        required
+                        value={tenantPortalResetEmail}
+                        onChange={(event) => setTenantPortalResetEmail(event.target.value)}
+                      >
+                        <option value="">
+                          {tenantPortalUsers.length > 0
+                            ? "Selecciona un usuario tenant"
+                            : "No hay usuarios tenant disponibles"}
                         </option>
-                      ))}
-                    </select>
-                    <p className="tenant-help-text mb-3">
-                      La lista se carga desde la base tenant activa. Si no aparecen
-                      usuarios, revisa el acceso técnico del tenant o su bootstrap de
-                      usuarios.
-                    </p>
-                    <FieldHelpLabel
-                      label="Nueva contraseña portal"
-                      help="La nueva contraseña se aplica al usuario tenant indicado y no toca la contraseña técnica de la DB."
-                      placement="left"
-                    />
-                    <input
-                      className="form-control"
-                      type="password"
-                      required
-                      value={tenantPortalResetPassword}
-                      onChange={(event) =>
-                        setTenantPortalResetPassword(event.target.value)
-                      }
-                    />
-                    <button
-                      className="btn btn-primary mt-3"
-                      type="submit"
-                      disabled={
-                        isActionSubmitting ||
-                        !tenantPortalResetEmail ||
-                        !tenantPortalResetPassword
-                      }
-                    >
-                      Reiniciar contraseña portal
-                    </button>
-                  </form>
+                        {tenantPortalUsers.map((user) => (
+                          <option key={user.id} value={user.email}>
+                            {`${user.email} · ${user.role} · ${
+                              user.is_active ? "activo" : "inactivo"
+                            }`}
+                          </option>
+                        ))}
+                      </select>
+                    </AppFormField>
+                    <div className="app-form-field app-form-field--full">
+                      <p className="tenant-help-text mb-0">
+                        La lista se carga desde la base tenant activa. Si no aparecen
+                        usuarios, revisa el acceso técnico del tenant o su bootstrap de
+                        usuarios.
+                      </p>
+                    </div>
+                    <AppFormField fullWidth>
+                      <FieldHelpLabel
+                        label="Nueva contraseña portal"
+                        help="La nueva contraseña se aplica al usuario tenant indicado y no toca la contraseña técnica de la DB."
+                        placement="left"
+                      />
+                      <input
+                        className="form-control"
+                        type="password"
+                        required
+                        value={tenantPortalResetPassword}
+                        onChange={(event) =>
+                          setTenantPortalResetPassword(event.target.value)
+                        }
+                      />
+                    </AppFormField>
+                    <AppFormActions>
+                      <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={
+                          isActionSubmitting ||
+                          !tenantPortalResetEmail ||
+                          !tenantPortalResetPassword
+                        }
+                      >
+                        Reiniciar contraseña portal
+                      </button>
+                    </AppFormActions>
+                  </AppForm>
                 </div>
               </PanelCard>
 
