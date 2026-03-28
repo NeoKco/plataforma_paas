@@ -1,21 +1,50 @@
 import { NavLink } from "react-router-dom";
-
-const NAV_ITEMS = [
-  { to: "/tenant-portal/finance", label: "Movimientos" },
-  { to: "/tenant-portal/finance/budgets", label: "Presupuestos" },
-  { to: "/tenant-portal/finance/loans", label: "Préstamos" },
-  { to: "/tenant-portal/finance/calendar", label: "Planificación" },
-  { to: "/tenant-portal/finance/reports", label: "Reportes" },
-  { to: "/tenant-portal/finance/accounts", label: "Cuentas" },
-  { to: "/tenant-portal/finance/categories", label: "Categorías" },
-  { to: "/tenant-portal/finance/tools", label: "Catálogos" },
-  { to: "/tenant-portal/finance/settings", label: "Configuración" },
-];
+import { useLanguage } from "../../../../../../store/language-context";
 
 export function FinanceModuleNav() {
+  const { language } = useLanguage();
+  const navItems = [
+    {
+      to: "/tenant-portal/finance",
+      label: language === "es" ? "Movimientos" : "Transactions",
+    },
+    {
+      to: "/tenant-portal/finance/budgets",
+      label: language === "es" ? "Presupuestos" : "Budgets",
+    },
+    {
+      to: "/tenant-portal/finance/loans",
+      label: language === "es" ? "Préstamos" : "Loans",
+    },
+    {
+      to: "/tenant-portal/finance/calendar",
+      label: language === "es" ? "Planificación" : "Planning",
+    },
+    {
+      to: "/tenant-portal/finance/reports",
+      label: language === "es" ? "Reportes" : "Reports",
+    },
+    {
+      to: "/tenant-portal/finance/accounts",
+      label: language === "es" ? "Cuentas" : "Accounts",
+    },
+    {
+      to: "/tenant-portal/finance/categories",
+      label: language === "es" ? "Categorías" : "Categories",
+    },
+    {
+      to: "/tenant-portal/finance/tools",
+      label: language === "es" ? "Catálogos" : "Catalogs",
+    },
+    {
+      to: "/tenant-portal/finance/settings",
+      label: language === "es" ? "Configuración" : "Settings",
+    },
+  ];
+
   return (
     <div className="finance-module-nav">
-      {NAV_ITEMS.map((item) => (
+      {navItems.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}

@@ -1,5 +1,7 @@
 import type { TenantFinanceAccountWriteRequest } from "../services/accountsService";
 import type { TenantFinanceCurrency } from "../services/currenciesService";
+import { useLanguage } from "../../../../../store/language-context";
+import { getFinanceAccountTypeLabel } from "../utils/presentation";
 
 type AccountFormProps = {
   value: TenantFinanceAccountWriteRequest;
@@ -24,6 +26,7 @@ export function AccountForm({
   onSubmit,
   onCancel,
 }: AccountFormProps) {
+  const { language } = useLanguage();
   return (
     <form
       className="finance-form-grid"
@@ -33,7 +36,7 @@ export function AccountForm({
       }}
     >
       <div>
-        <label className="form-label">Nombre</label>
+        <label className="form-label">{language === "es" ? "Nombre" : "Name"}</label>
         <input
           className="form-control"
           value={value.name}
@@ -41,7 +44,7 @@ export function AccountForm({
         />
       </div>
       <div>
-        <label className="form-label">Código</label>
+        <label className="form-label">{language === "es" ? "Código" : "Code"}</label>
         <input
           className="form-control"
           value={value.code ?? ""}
@@ -49,7 +52,7 @@ export function AccountForm({
         />
       </div>
       <div>
-        <label className="form-label">Tipo</label>
+        <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
         <select
           className="form-select"
           value={value.account_type}
@@ -57,13 +60,13 @@ export function AccountForm({
         >
           {ACCOUNT_TYPES.map((accountType) => (
             <option key={accountType} value={accountType}>
-              {accountType}
+              {getFinanceAccountTypeLabel(accountType, language)}
             </option>
           ))}
         </select>
       </div>
       <div>
-        <label className="form-label">Moneda</label>
+        <label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label>
         <select
           className="form-select"
           value={value.currency_id}
@@ -79,7 +82,9 @@ export function AccountForm({
         </select>
       </div>
       <div>
-        <label className="form-label">Cuenta padre</label>
+        <label className="form-label">
+          {language === "es" ? "Cuenta padre" : "Parent account"}
+        </label>
         <select
           className="form-select"
           value={value.parent_account_id ?? ""}
@@ -92,7 +97,9 @@ export function AccountForm({
             })
           }
         >
-          <option value="">Sin cuenta padre</option>
+          <option value="">
+            {language === "es" ? "Sin cuenta padre" : "No parent account"}
+          </option>
           {parentAccounts.map((account) => (
             <option key={account.id} value={account.id}>
               {account.name}
@@ -101,7 +108,9 @@ export function AccountForm({
         </select>
       </div>
       <div>
-        <label className="form-label">Saldo inicial</label>
+        <label className="form-label">
+          {language === "es" ? "Saldo inicial" : "Opening balance"}
+        </label>
         <input
           className="form-control"
           type="number"
@@ -113,7 +122,7 @@ export function AccountForm({
         />
       </div>
       <div>
-        <label className="form-label">Orden</label>
+        <label className="form-label">{language === "es" ? "Orden" : "Sort order"}</label>
         <input
           className="form-control"
           type="number"
@@ -133,7 +142,7 @@ export function AccountForm({
             onChange={(event) => onChange({ ...value, is_favorite: event.target.checked })}
           />
           <label className="form-check-label" htmlFor="finance-account-favorite">
-            Favorita
+            {language === "es" ? "Favorita" : "Favorite"}
           </label>
         </div>
         <div className="form-check">
@@ -147,7 +156,7 @@ export function AccountForm({
             }
           />
           <label className="form-check-label" htmlFor="finance-account-hidden">
-            Ocultar saldo
+            {language === "es" ? "Ocultar saldo" : "Hide balance"}
           </label>
         </div>
       </div>
@@ -157,7 +166,7 @@ export function AccountForm({
         </button>
         {onCancel ? (
           <button className="btn btn-outline-secondary" type="button" onClick={onCancel}>
-            Cancelar
+            {language === "es" ? "Cancelar" : "Cancel"}
           </button>
         ) : null}
       </div>

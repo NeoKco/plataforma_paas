@@ -5,6 +5,7 @@ import { DataTableCard } from "../../../../../components/data-display/DataTableC
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
+import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
@@ -17,6 +18,10 @@ import {
   type TenantFinanceCategory,
   type TenantFinanceCategoryWriteRequest,
 } from "../services/categoriesService";
+import {
+  getActiveStateLabel,
+  getFinanceCategoryTypeLabel,
+} from "../utils/presentation";
 
 function buildDefaultForm(): TenantFinanceCategoryWriteRequest {
   return {
@@ -33,6 +38,7 @@ function buildDefaultForm(): TenantFinanceCategoryWriteRequest {
 
 export function FinanceCategoriesPage() {
   const { session } = useTenantAuth();
+  const { language } = useLanguage();
   const [categories, setCategories] = useState<TenantFinanceCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -132,15 +138,19 @@ export function FinanceCategoriesPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Finance"
-        title="Categorías"
-        description="Gestiona categorías jerárquicas para ingresos, egresos y transferencias."
+        title={language === "es" ? "Categorías" : "Categories"}
+        description={
+          language === "es"
+            ? "Gestiona categorías jerárquicas para ingresos, egresos y transferencias."
+            : "Manage hierarchical categories for income, expenses, and transfers."
+        }
         actions={
           <>
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadCategories()}>
-              Recargar
+              {language === "es" ? "Recargar" : "Reload"}
             </button>
             <button className="btn btn-primary" type="button" onClick={startCreate}>
-              Nueva categoría
+              {language === "es" ? "Nueva categoría" : "New category"}
             </button>
           </>
         }
@@ -150,22 +160,54 @@ export function FinanceCategoriesPage() {
       {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
       {error ? (
         <ErrorState
-          title="No se pudieron cargar las categorías"
+          title={
+            language === "es"
+              ? "No se pudieron cargar las categorías"
+              : "Categories could not be loaded"
+          }
           detail={getApiErrorDisplayMessage(error)}
           requestId={error.payload?.request_id}
         />
       ) : null}
-      {isLoading ? <LoadingBlock label="Cargando categorías financieras..." /> : null}
+      {isLoading ? (
+        <LoadingBlock
+          label={
+            language === "es"
+              ? "Cargando categorías financieras..."
+              : "Loading financial categories..."
+          }
+        />
+      ) : null}
 
       <div className="finance-catalog-layout">
         <PanelCard
-          title={editingCategoryId ? "Editar categoría" : "Nueva categoría"}
-          subtitle="Mantén la jerarquía y el tipo de cada categoría."
+          title={
+            editingCategoryId
+              ? language === "es"
+                ? "Editar categoría"
+                : "Edit category"
+              : language === "es"
+                ? "Nueva categoría"
+                : "New category"
+          }
+          subtitle={
+            language === "es"
+              ? "Mantén la jerarquía y el tipo de cada categoría."
+              : "Maintain the hierarchy and type of each category."
+          }
         >
           <CategoryForm
             value={form}
             categories={categories.filter((category) => category.id !== editingCategoryId)}
-            submitLabel={editingCategoryId ? "Guardar cambios" : "Crear categoría"}
+            submitLabel={
+              editingCategoryId
+                ? language === "es"
+                  ? "Guardar cambios"
+                  : "Save changes"
+                : language === "es"
+                  ? "Crear categoría"
+                  : "Create category"
+            }
             isSubmitting={isSubmitting}
             onChange={setForm}
             onSubmit={handleSubmit}
@@ -174,41 +216,47 @@ export function FinanceCategoriesPage() {
         </PanelCard>
 
         <DataTableCard
-          title="Catálogo de categorías"
-          subtitle="Vista consolidada de categorías y relaciones padre-hijo."
+          title={language === "es" ? "Catálogo de categorías" : "Categories catalog"}
+          subtitle={
+            language === "es"
+              ? "Vista consolidada de categorías y relaciones padre-hijo."
+              : "Consolidated view of categories and parent-child relationships."
+          }
           rows={categories}
           columns={[
             {
               key: "name",
-              header: "Categoría",
+              header: language === "es" ? "Categoría" : "Category",
               render: (category) => (
                 <div>
                   <div className="fw-semibold">{category.name}</div>
                   <div className="text-secondary small">
-                    {categoryById.get(category.parent_category_id ?? 0)?.name || "sin padre"}
+                    {categoryById.get(category.parent_category_id ?? 0)?.name ||
+                      (language === "es" ? "sin padre" : "no parent")}
                   </div>
                 </div>
               ),
             },
             {
               key: "type",
-              header: "Tipo",
-              render: (category) => category.category_type,
+              header: language === "es" ? "Tipo" : "Type",
+              render: (category) =>
+                getFinanceCategoryTypeLabel(category.category_type, language),
             },
             {
               key: "status",
-              header: "Estado",
+              header: language === "es" ? "Estado" : "Status",
               render: (category) => (
                 <span
                   className={`finance-status-pill${category.is_active ? " is-active" : " is-inactive"}`}
                 >
-                  {category.is_active ? "activa" : "inactiva"}
+                  {getActiveStateLabel(category.is_active, language)}
                 </span>
               ),
             },
             {
               key: "actions",
-              header: "Acciones",
+              header: language === "es" ? "Acciones" : "Actions",
               render: (category) => (
                 <div className="d-flex gap-2">
                   <button
@@ -216,14 +264,20 @@ export function FinanceCategoriesPage() {
                     type="button"
                     onClick={() => startEdit(category)}
                   >
-                    Editar
+                    {language === "es" ? "Editar" : "Edit"}
                   </button>
                   <button
                     className="btn btn-sm btn-outline-secondary"
                     type="button"
                     onClick={() => void handleToggle(category)}
                   >
-                    {category.is_active ? "Desactivar" : "Activar"}
+                    {category.is_active
+                      ? language === "es"
+                        ? "Desactivar"
+                        : "Deactivate"
+                      : language === "es"
+                        ? "Activar"
+                        : "Activate"}
                   </button>
                 </div>
               ),

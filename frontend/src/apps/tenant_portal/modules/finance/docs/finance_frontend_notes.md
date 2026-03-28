@@ -68,8 +68,11 @@
 - `Reportes` ya permite además rankear por `Etiqueta`
 - cuando `finance` detecta schema incompleto, la UI ya explica para que sirve actualizar la estructura del modulo
 - `tenant admin` ya puede disparar esa sincronizacion desde el mismo portal, sin depender solo de `Platform Admin`
+- `Cuentas`, `Categorías`, `Configuración` y formularios auxiliares ya consumen `useLanguage` y dejan de exponer enums crudos como `cash`, `bank`, `income` o `expense`
+- `Configuración > Monedas` ya expone explícitamente cómo cambiar la moneda base del módulo y aclara que la base anterior se limpia automáticamente
 
 Pendiente inmediato:
+- terminar la internacionalización del resto de páginas grandes del módulo para que el selector `Español/Inglés` gobierne todo el copy visible
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
 - endurecer `Presupuestos` con lectura agregada mas densa

@@ -1,4 +1,6 @@
 import type { TenantFinanceCategoryWriteRequest, TenantFinanceCategory } from "../services/categoriesService";
+import { useLanguage } from "../../../../../store/language-context";
+import { getFinanceCategoryTypeLabel } from "../utils/presentation";
 
 type CategoryFormProps = {
   value: TenantFinanceCategoryWriteRequest;
@@ -21,6 +23,7 @@ export function CategoryForm({
   onSubmit,
   onCancel,
 }: CategoryFormProps) {
+  const { language } = useLanguage();
   const parentOptions = categories.filter(
     (category) => category.category_type === value.category_type
   );
@@ -34,7 +37,7 @@ export function CategoryForm({
       }}
     >
       <div>
-        <label className="form-label">Nombre</label>
+        <label className="form-label">{language === "es" ? "Nombre" : "Name"}</label>
         <input
           className="form-control"
           value={value.name}
@@ -42,7 +45,7 @@ export function CategoryForm({
         />
       </div>
       <div>
-        <label className="form-label">Tipo</label>
+        <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
         <select
           className="form-select"
           value={value.category_type}
@@ -50,13 +53,15 @@ export function CategoryForm({
         >
           {CATEGORY_TYPES.map((categoryType) => (
             <option key={categoryType} value={categoryType}>
-              {categoryType}
+              {getFinanceCategoryTypeLabel(categoryType, language)}
             </option>
           ))}
         </select>
       </div>
       <div>
-        <label className="form-label">Categoría padre</label>
+        <label className="form-label">
+          {language === "es" ? "Categoría padre" : "Parent category"}
+        </label>
         <select
           className="form-select"
           value={value.parent_category_id ?? ""}
@@ -69,7 +74,9 @@ export function CategoryForm({
             })
           }
         >
-          <option value="">Sin categoría padre</option>
+          <option value="">
+            {language === "es" ? "Sin categoría padre" : "No parent category"}
+          </option>
           {parentOptions.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
@@ -78,7 +85,7 @@ export function CategoryForm({
         </select>
       </div>
       <div>
-        <label className="form-label">Color</label>
+        <label className="form-label">{language === "es" ? "Color" : "Color"}</label>
         <input
           className="form-control"
           value={value.color ?? ""}
@@ -87,7 +94,7 @@ export function CategoryForm({
         />
       </div>
       <div className="finance-form-grid finance-form-grid--full">
-        <label className="form-label">Nota</label>
+        <label className="form-label">{language === "es" ? "Nota" : "Note"}</label>
         <textarea
           className="form-control"
           rows={3}
@@ -101,7 +108,7 @@ export function CategoryForm({
         </button>
         {onCancel ? (
           <button className="btn btn-outline-secondary" type="button" onClick={onCancel}>
-            Cancelar
+            {language === "es" ? "Cancelar" : "Cancel"}
           </button>
         ) : null}
       </div>

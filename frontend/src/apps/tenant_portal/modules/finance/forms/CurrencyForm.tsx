@@ -3,6 +3,7 @@ import type {
   TenantFinanceExchangeRateWriteRequest,
   TenantFinanceCurrency,
 } from "../services/currenciesService";
+import { useLanguage } from "../../../../../store/language-context";
 
 type CurrencyFormProps = {
   value: TenantFinanceCurrencyWriteRequest;
@@ -21,33 +22,34 @@ export function CurrencyForm({
   onSubmit,
   onCancel,
 }: CurrencyFormProps) {
+  const { language } = useLanguage();
   return (
     <form className="finance-form-grid" onSubmit={(event) => { event.preventDefault(); onSubmit(); }}>
       <div>
-        <label className="form-label">Código</label>
+        <label className="form-label">{language === "es" ? "Código" : "Code"}</label>
         <input className="form-control" value={value.code} onChange={(event) => onChange({ ...value, code: event.target.value })} />
       </div>
       <div>
-        <label className="form-label">Nombre</label>
+        <label className="form-label">{language === "es" ? "Nombre" : "Name"}</label>
         <input className="form-control" value={value.name} onChange={(event) => onChange({ ...value, name: event.target.value })} />
       </div>
       <div>
-        <label className="form-label">Símbolo</label>
+        <label className="form-label">{language === "es" ? "Símbolo" : "Symbol"}</label>
         <input className="form-control" value={value.symbol} onChange={(event) => onChange({ ...value, symbol: event.target.value })} />
       </div>
       <div>
-        <label className="form-label">Decimales</label>
+        <label className="form-label">{language === "es" ? "Decimales" : "Decimals"}</label>
         <input className="form-control" type="number" value={value.decimal_places} onChange={(event) => onChange({ ...value, decimal_places: Number.parseInt(event.target.value || "0", 10) })} />
       </div>
       <div className="finance-form-grid finance-form-grid--full">
         <div className="form-check">
           <input id="finance-currency-base" className="form-check-input" type="checkbox" checked={value.is_base} onChange={(event) => onChange({ ...value, is_base: event.target.checked })} />
-          <label className="form-check-label" htmlFor="finance-currency-base">Moneda base</label>
+          <label className="form-check-label" htmlFor="finance-currency-base">{language === "es" ? "Moneda base" : "Base currency"}</label>
         </div>
       </div>
       <div className="finance-form-actions">
         <button className="btn btn-primary" type="submit" disabled={isSubmitting}>{submitLabel}</button>
-        {onCancel ? <button className="btn btn-outline-secondary" type="button" onClick={onCancel}>Cancelar</button> : null}
+        {onCancel ? <button className="btn btn-outline-secondary" type="button" onClick={onCancel}>{language === "es" ? "Cancelar" : "Cancel"}</button> : null}
       </div>
     </form>
   );
@@ -72,35 +74,36 @@ export function ExchangeRateForm({
   onSubmit,
   onCancel,
 }: ExchangeRateFormProps) {
+  const { language } = useLanguage();
   return (
     <form className="finance-form-grid" onSubmit={(event) => { event.preventDefault(); onSubmit(); }}>
       <div>
-        <label className="form-label">Moneda origen</label>
+        <label className="form-label">{language === "es" ? "Moneda origen" : "Source currency"}</label>
         <select className="form-select" value={value.source_currency_id} onChange={(event) => onChange({ ...value, source_currency_id: Number.parseInt(event.target.value, 10) })}>
           {currencies.map((currency) => <option key={currency.id} value={currency.id}>{currency.code}</option>)}
         </select>
       </div>
       <div>
-        <label className="form-label">Moneda destino</label>
+        <label className="form-label">{language === "es" ? "Moneda destino" : "Target currency"}</label>
         <select className="form-select" value={value.target_currency_id} onChange={(event) => onChange({ ...value, target_currency_id: Number.parseInt(event.target.value, 10) })}>
           {currencies.map((currency) => <option key={currency.id} value={currency.id}>{currency.code}</option>)}
         </select>
       </div>
       <div>
-        <label className="form-label">Tasa</label>
+        <label className="form-label">{language === "es" ? "Tasa" : "Rate"}</label>
         <input className="form-control" type="number" step="0.000001" value={value.rate} onChange={(event) => onChange({ ...value, rate: Number.parseFloat(event.target.value || "0") })} />
       </div>
       <div>
-        <label className="form-label">Fecha efectiva</label>
+        <label className="form-label">{language === "es" ? "Fecha efectiva" : "Effective date"}</label>
         <input className="form-control" type="datetime-local" value={value.effective_at} onChange={(event) => onChange({ ...value, effective_at: event.target.value })} />
       </div>
       <div className="finance-form-grid finance-form-grid--full">
-        <label className="form-label">Fuente</label>
+        <label className="form-label">{language === "es" ? "Fuente" : "Source"}</label>
         <input className="form-control" value={value.source ?? ""} onChange={(event) => onChange({ ...value, source: event.target.value || null })} />
       </div>
       <div className="finance-form-actions">
         <button className="btn btn-primary" type="submit" disabled={isSubmitting}>{submitLabel}</button>
-        {onCancel ? <button className="btn btn-outline-secondary" type="button" onClick={onCancel}>Cancelar</button> : null}
+        {onCancel ? <button className="btn btn-outline-secondary" type="button" onClick={onCancel}>{language === "es" ? "Cancelar" : "Cancel"}</button> : null}
       </div>
     </form>
   );

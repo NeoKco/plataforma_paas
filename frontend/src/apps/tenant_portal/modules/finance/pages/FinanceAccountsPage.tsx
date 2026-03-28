@@ -5,6 +5,7 @@ import { DataTableCard } from "../../../../../components/data-display/DataTableC
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
+import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
@@ -21,6 +22,10 @@ import {
   getTenantFinanceCurrencies,
   type TenantFinanceCurrency,
 } from "../services/currenciesService";
+import {
+  getActiveStateLabel,
+  getFinanceAccountTypeLabel,
+} from "../utils/presentation";
 
 function buildDefaultForm(currencyId: number | null): TenantFinanceAccountWriteRequest {
   return {
@@ -41,6 +46,7 @@ function buildDefaultForm(currencyId: number | null): TenantFinanceAccountWriteR
 
 export function FinanceAccountsPage() {
   const { session } = useTenantAuth();
+  const { language } = useLanguage();
   const [accounts, setAccounts] = useState<TenantFinanceAccount[]>([]);
   const [currencies, setCurrencies] = useState<TenantFinanceCurrency[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -171,16 +177,20 @@ export function FinanceAccountsPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow="Finance"
-        title="Cuentas"
-        description="Administra las cuentas financieras visibles del tenant."
+        eyebrow={language === "es" ? "Finance" : "Finance"}
+        title={language === "es" ? "Cuentas" : "Accounts"}
+        description={
+          language === "es"
+            ? "Administra las cuentas financieras visibles del tenant."
+            : "Manage the financial accounts visible for this tenant."
+        }
         actions={
           <>
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadAccounts()}>
-              Recargar
+              {language === "es" ? "Recargar" : "Reload"}
             </button>
             <button className="btn btn-primary" type="button" onClick={startCreate}>
-              Nueva cuenta
+              {language === "es" ? "Nueva cuenta" : "New account"}
             </button>
           </>
         }
@@ -190,23 +200,55 @@ export function FinanceAccountsPage() {
       {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
       {error ? (
         <ErrorState
-          title="No se pudieron cargar las cuentas"
+          title={
+            language === "es"
+              ? "No se pudieron cargar las cuentas"
+              : "Accounts could not be loaded"
+          }
           detail={getApiErrorDisplayMessage(error)}
           requestId={error.payload?.request_id}
         />
       ) : null}
-      {isLoading ? <LoadingBlock label="Cargando cuentas financieras..." /> : null}
+      {isLoading ? (
+        <LoadingBlock
+          label={
+            language === "es"
+              ? "Cargando cuentas financieras..."
+              : "Loading financial accounts..."
+          }
+        />
+      ) : null}
 
       <div className="finance-catalog-layout">
         <PanelCard
-          title={editingAccountId ? "Editar cuenta" : "Nueva cuenta"}
-          subtitle="Define nombre, tipo, moneda y jerarquía de la cuenta."
+          title={
+            editingAccountId
+              ? language === "es"
+                ? "Editar cuenta"
+                : "Edit account"
+              : language === "es"
+                ? "Nueva cuenta"
+                : "New account"
+          }
+          subtitle={
+            language === "es"
+              ? "Define nombre, tipo, moneda y jerarquía de la cuenta."
+              : "Define name, type, currency, and account hierarchy."
+          }
         >
           <AccountForm
             value={form}
             currencies={currencies}
             parentAccounts={parentAccounts}
-            submitLabel={editingAccountId ? "Guardar cambios" : "Crear cuenta"}
+            submitLabel={
+              editingAccountId
+                ? language === "es"
+                  ? "Guardar cambios"
+                  : "Save changes"
+                : language === "es"
+                  ? "Crear cuenta"
+                  : "Create account"
+            }
             isSubmitting={isSubmitting}
             onChange={setForm}
             onSubmit={handleSubmit}
@@ -215,44 +257,51 @@ export function FinanceAccountsPage() {
         </PanelCard>
 
         <DataTableCard
-          title="Catálogo de cuentas"
-          subtitle="Cuentas activas e inactivas visibles para el módulo."
+          title={language === "es" ? "Catálogo de cuentas" : "Accounts catalog"}
+          subtitle={
+            language === "es"
+              ? "Cuentas activas e inactivas visibles para el módulo."
+              : "Active and inactive accounts visible to the module."
+          }
           rows={accounts}
           columns={[
             {
               key: "name",
-              header: "Cuenta",
+              header: language === "es" ? "Cuenta" : "Account",
               render: (account) => (
                 <div>
                   <div className="fw-semibold">{account.name}</div>
-                  <div className="text-secondary small">{account.code || "sin código"}</div>
+                  <div className="text-secondary small">
+                    {account.code || (language === "es" ? "sin código" : "no code")}
+                  </div>
                 </div>
               ),
             },
             {
               key: "type",
-              header: "Tipo",
-              render: (account) => account.account_type,
+              header: language === "es" ? "Tipo" : "Type",
+              render: (account) =>
+                getFinanceAccountTypeLabel(account.account_type, language),
             },
             {
               key: "currency",
-              header: "Moneda",
+              header: language === "es" ? "Moneda" : "Currency",
               render: (account) => currencyById.get(account.currency_id)?.code || account.currency_id,
             },
             {
               key: "status",
-              header: "Estado",
+              header: language === "es" ? "Estado" : "Status",
               render: (account) => (
                 <span
                   className={`finance-status-pill${account.is_active ? " is-active" : " is-inactive"}`}
                 >
-                  {account.is_active ? "activa" : "inactiva"}
+                  {getActiveStateLabel(account.is_active, language)}
                 </span>
               ),
             },
             {
               key: "actions",
-              header: "Acciones",
+              header: language === "es" ? "Acciones" : "Actions",
               render: (account) => (
                 <div className="d-flex gap-2">
                   <button
@@ -260,14 +309,20 @@ export function FinanceAccountsPage() {
                     type="button"
                     onClick={() => startEdit(account)}
                   >
-                    Editar
+                    {language === "es" ? "Editar" : "Edit"}
                   </button>
                   <button
                     className="btn btn-sm btn-outline-secondary"
                     type="button"
                     onClick={() => void handleToggle(account)}
                   >
-                    {account.is_active ? "Desactivar" : "Activar"}
+                    {account.is_active
+                      ? language === "es"
+                        ? "Desactivar"
+                        : "Deactivate"
+                      : language === "es"
+                        ? "Activar"
+                        : "Activate"}
                   </button>
                 </div>
               ),
