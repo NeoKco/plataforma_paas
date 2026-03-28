@@ -41,6 +41,26 @@ export type TenantFinanceReportLoanSnapshot = {
   settled_items: number;
 };
 
+export type TenantFinanceReportDailyCashflowItem = {
+  day: string;
+  income_total: number;
+  expense_total: number;
+  net_total: number;
+  transaction_count: number;
+};
+
+export type TenantFinanceReportBudgetVarianceItem = {
+  category_id: number;
+  category_name: string;
+  category_type: string;
+  budget_status: string;
+  planned_amount: number;
+  actual_amount: number;
+  variance_amount: number;
+  utilization_ratio: number | null;
+  is_active: boolean;
+};
+
 export type TenantFinanceReportOverviewResponse = {
   success: boolean;
   message: string;
@@ -51,6 +71,8 @@ export type TenantFinanceReportOverviewResponse = {
     loan_snapshot: TenantFinanceReportLoanSnapshot;
     top_income_categories: TenantFinanceReportCategoryAmount[];
     top_expense_categories: TenantFinanceReportCategoryAmount[];
+    daily_cashflow: TenantFinanceReportDailyCashflowItem[];
+    budget_variances: TenantFinanceReportBudgetVarianceItem[];
   };
 };
 

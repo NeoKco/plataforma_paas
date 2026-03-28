@@ -33,10 +33,11 @@ Cobertura actual:
 - enlace contable minimo desde cuotas hacia `finance_transactions`
 - planificacion overview con calendario operativo, cuotas por vencer y foco presupuestario
 - reportes overview con agregados mensuales de transacciones, presupuestos y préstamos
+- serie diaria de caja y desvíos presupuestarios priorizados dentro de `reportes overview`
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
 - pruebas de lectura mas rica de presupuestos
 - pruebas mas ricas del enlace contable de cuotas de prestamos con cuenta origen y lectura derivada
-- pruebas de reportes mas densos o exportables
+- pruebas de exportacion y comparativas de reportes

@@ -46,6 +46,26 @@ class FinanceReportLoanSnapshot(BaseModel):
     settled_items: int
 
 
+class FinanceReportDailyCashflowItem(BaseModel):
+    day: date
+    income_total: float
+    expense_total: float
+    net_total: float
+    transaction_count: int
+
+
+class FinanceReportBudgetVarianceItem(BaseModel):
+    category_id: int
+    category_name: str
+    category_type: str
+    budget_status: str
+    planned_amount: float
+    actual_amount: float
+    variance_amount: float
+    utilization_ratio: float | None
+    is_active: bool
+
+
 class FinanceReportOverviewData(BaseModel):
     period_month: date
     transaction_snapshot: FinanceReportTransactionSnapshot
@@ -53,6 +73,8 @@ class FinanceReportOverviewData(BaseModel):
     loan_snapshot: FinanceReportLoanSnapshot
     top_income_categories: list[FinanceReportCategoryAmountItem]
     top_expense_categories: list[FinanceReportCategoryAmountItem]
+    daily_cashflow: list[FinanceReportDailyCashflowItem]
+    budget_variances: list[FinanceReportBudgetVarianceItem]
 
 
 class FinanceReportOverviewResponse(FinanceResponseBase):

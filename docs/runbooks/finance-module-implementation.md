@@ -85,6 +85,7 @@ En esta fase quedaron listos:
 - enlace contable minimo de cuotas: cada pago o reversa genera una transaccion en `finance_transactions`
 - primera pantalla real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
 - primera pantalla real de `Reportes` con overview mensual consolidado
+- `Reportes` ya incluye pulso diario de caja y ranking corto de desvíos presupuestarios
 - manejo controlado de schema incompleto en vistas de `finance`, sin `500` crudo
 - self-service de sincronizacion de estructura desde el propio `tenant_portal` para `tenant admin`
 
@@ -169,6 +170,7 @@ La persistencia transicional del modulo queda asi:
 - `finance_reports` abre la primera lectura consolidada mensual del modulo
 - `finance_loans` abre la primera capa de cartera de prestamos del modulo
 - `finance_loan_installments` abre el primer cronograma versionado de cuotas por prestamo
+- `reports/overview` ya consolida snapshot, top categorias, serie diaria y desvíos presupuestarios
 
 Campos legacy principales:
 
@@ -297,7 +299,7 @@ Lo siguiente recomendable ahora es:
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
 3. enriquecer el enlace contable de `Préstamos` con cuenta origen y lectura derivada mas densa
-4. densificar `Reportes` y abrir exportacion cuando `Planificación` ya entregue lectura operativa estable
+4. abrir exportacion y comparativas en `Reportes` ahora que la lectura diaria y los desvíos base ya existen
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable
 7. mover la sincronizacion tenant-side a job de provisioning o worker dedicado, en vez de ejecutarla inline

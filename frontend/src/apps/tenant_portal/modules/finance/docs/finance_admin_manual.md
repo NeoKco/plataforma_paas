@@ -27,6 +27,7 @@ Estado actual:
 - cada pago o reversa de cuota ya genera además una transacción financiera enlazada al préstamo
 - `Planificación` ya ofrece una lectura mensual operativa cruzando días con movimiento, cuotas del mes y presión presupuestaria
 - `Reportes` ya ofrece un overview mensual con lectura cruzada de transacciones, presupuestos y préstamos
+- `Reportes` ya agrega serie diaria de caja y un corte corto de categorías con mayor desvío presupuestario
 - cuando el schema `finance` del tenant queda atrasado, el portal ya muestra explicación operativa y CTA para actualizar estructura
 - `tenant admin` ya puede revisar estado y sincronizar estructura desde el propio portal, sin depender solo de `Platform Admin`
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo

@@ -11,7 +11,9 @@ import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
 import {
   getTenantFinanceReportOverview,
+  type TenantFinanceReportBudgetVarianceItem,
   type TenantFinanceReportCategoryAmount,
+  type TenantFinanceReportDailyCashflowItem,
   type TenantFinanceReportOverviewResponse,
 } from "../services/reportsService";
 
@@ -216,6 +218,22 @@ export function FinanceReportsPage() {
           <CategoryAmountList items={overview?.top_expense_categories || []} emptyLabel="Sin egresos categorizados en el período." />
         </PanelCard>
       </div>
+
+      <div className="finance-report-grid">
+        <PanelCard
+          title="Pulso diario de caja"
+          subtitle="Serie corta para ver qué días concentraron flujo y presión operativa."
+        >
+          <DailyCashflowList items={overview?.daily_cashflow || []} />
+        </PanelCard>
+
+        <PanelCard
+          title="Desvíos presupuestarios"
+          subtitle="Categorías con mayor diferencia entre plan y real para priorizar revisión."
+        >
+          <BudgetVarianceTable items={overview?.budget_variances || []} />
+        </PanelCard>
+      </div>
     </div>
   );
 }
@@ -246,6 +264,91 @@ function CategoryAmountList({
   );
 }
 
+function DailyCashflowList({
+  items,
+}: {
+  items: TenantFinanceReportDailyCashflowItem[];
+}) {
+  if (items.length === 0) {
+    return (
+      <p className="tenant-muted-text mb-0">
+        Sin actividad diaria relevante en el período.
+      </p>
+    );
+  }
+
+  return (
+    <div className="finance-balance-list">
+      {items.map((item) => (
+        <div key={item.day} className="finance-balance-list__item">
+          <div>
+            <div className="finance-balance-list__title">
+              {formatDay(item.day)}
+            </div>
+            <div className="tenant-muted-text">
+              {item.transaction_count} movimientos · Ing. {formatMoney(item.income_total)} · Egr.{" "}
+              {formatMoney(item.expense_total)}
+            </div>
+          </div>
+          <div className="finance-balance-list__value">
+            {formatSignedMoney(item.net_total)}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function BudgetVarianceTable({
+  items,
+}: {
+  items: TenantFinanceReportBudgetVarianceItem[];
+}) {
+  if (items.length === 0) {
+    return (
+      <p className="tenant-muted-text mb-0">
+        Sin desvíos presupuestarios para el período seleccionado.
+      </p>
+    );
+  }
+
+  return (
+    <div className="table-responsive">
+      <table className="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Estado</th>
+            <th className="text-end">Plan</th>
+            <th className="text-end">Real</th>
+            <th className="text-end">Desvío</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => (
+            <tr key={item.category_id}>
+              <td>
+                <div className="fw-semibold">{item.category_name}</div>
+                <div className="tenant-muted-text">
+                  {item.category_type} · {item.is_active ? "activa" : "inactiva"}
+                </div>
+              </td>
+              <td>
+                <span className={buildBudgetStatusClassName(item.budget_status)}>
+                  {buildBudgetStatusLabel(item.budget_status)}
+                </span>
+              </td>
+              <td className="text-end">{formatMoney(item.planned_amount)}</td>
+              <td className="text-end">{formatMoney(item.actual_amount)}</td>
+              <td className="text-end">{formatSignedMoney(item.variance_amount)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function ReportLine({ label, value }: { label: string; value: string }) {
   return (
     <>
@@ -271,4 +374,37 @@ function formatMoney(value: number) {
     currency: "USD",
     minimumFractionDigits: 2,
   }).format(value);
+}
+
+function formatSignedMoney(value: number) {
+  const formatted = formatMoney(Math.abs(value));
+  return value > 0 ? `+${formatted}` : value < 0 ? `-${formatted}` : formatted;
+}
+
+function formatDay(day: string) {
+  return new Intl.DateTimeFormat("es-CL", {
+    day: "2-digit",
+    month: "short",
+  }).format(new Date(`${day}T00:00:00`));
+}
+
+function buildBudgetStatusLabel(status: string) {
+  switch (status) {
+    case "over_budget":
+      return "sobre presupuesto";
+    case "within_budget":
+      return "dentro";
+    case "unused":
+      return "sin uso";
+    case "inactive":
+      return "inactiva";
+    default:
+      return status;
+  }
+}
+
+function buildBudgetStatusClassName(status: string) {
+  return `finance-status-pill ${
+    status === "over_budget" ? "is-inactive" : "is-active"
+  }`;
 }

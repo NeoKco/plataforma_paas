@@ -953,6 +953,35 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     "total_amount": 120.0,
                 }
             ],
+            "daily_cashflow": [
+                {
+                    "day": date(2026, 4, 5),
+                    "income_total": 500.0,
+                    "expense_total": 0.0,
+                    "net_total": 500.0,
+                    "transaction_count": 1,
+                },
+                {
+                    "day": date(2026, 4, 7),
+                    "income_total": 0.0,
+                    "expense_total": 120.0,
+                    "net_total": -120.0,
+                    "transaction_count": 1,
+                },
+            ],
+            "budget_variances": [
+                {
+                    "category_id": 2,
+                    "category_name": "General Expense",
+                    "category_type": "expense",
+                    "budget_status": "within_budget",
+                    "planned_amount": 300.0,
+                    "actual_amount": 120.0,
+                    "variance_amount": 180.0,
+                    "utilization_ratio": 0.4,
+                    "is_active": True,
+                }
+            ],
         }
 
         with patch(
@@ -970,6 +999,11 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.budget_snapshot.total_budgeted, 300.0)
         self.assertEqual(response.data.loan_snapshot.borrowed_balance, 700.0)
         self.assertEqual(response.data.top_expense_categories[0].category_name, "General Expense")
+        self.assertEqual(response.data.daily_cashflow[0].transaction_count, 1)
+        self.assertEqual(
+            response.data.budget_variances[0].budget_status,
+            "within_budget",
+        )
 
     def test_get_finance_planning_overview_returns_monthly_payload(self) -> None:
         overview = {

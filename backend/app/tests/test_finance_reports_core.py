@@ -167,6 +167,25 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
         self.assertEqual(overview["top_income_categories"][0]["category_name"], "General Income")
         self.assertEqual(len(overview["top_expense_categories"]), 1)
         self.assertEqual(overview["top_expense_categories"][0]["category_name"], "General Expense")
+        self.assertEqual(len(overview["daily_cashflow"]), 2)
+        self.assertEqual(overview["daily_cashflow"][0]["day"], date(2026, 4, 5))
+        self.assertEqual(overview["daily_cashflow"][0]["income_total"], 500.0)
+        self.assertEqual(overview["daily_cashflow"][0]["net_total"], 500.0)
+        self.assertEqual(overview["daily_cashflow"][1]["day"], date(2026, 4, 7))
+        self.assertEqual(overview["daily_cashflow"][1]["expense_total"], 120.0)
+        self.assertEqual(len(overview["budget_variances"]), 1)
+        self.assertEqual(
+            overview["budget_variances"][0]["category_name"],
+            "General Expense",
+        )
+        self.assertEqual(
+            overview["budget_variances"][0]["budget_status"],
+            "within_budget",
+        )
+        self.assertEqual(
+            overview["budget_variances"][0]["variance_amount"],
+            180.0,
+        )
 
 
 if __name__ == "__main__":

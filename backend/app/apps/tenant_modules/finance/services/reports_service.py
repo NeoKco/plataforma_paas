@@ -138,6 +138,8 @@ class FinanceReportsService:
                 categories=categories,
                 category_type="expense",
             ),
+            "daily_cashflow": self._build_daily_cashflow(transactions=transactions),
+            "budget_variances": self._build_budget_variances(budget_rows=budget_rows),
         }
 
     def _build_top_categories(
@@ -171,6 +173,89 @@ class FinanceReportsService:
             )
         rows.sort(key=lambda item: (-item["total_amount"], item["category_name"]))
         return rows[:5]
+
+    def _build_daily_cashflow(
+        self,
+        *,
+        transactions: list,
+    ) -> list[dict]:
+        totals_by_day: dict[date, dict[str, float | int]] = {}
+
+        for transaction in transactions:
+            day = self._normalize_datetime(transaction.transaction_at).date()
+            bucket = totals_by_day.setdefault(
+                day,
+                {
+                    "income_total": 0.0,
+                    "expense_total": 0.0,
+                    "transaction_count": 0,
+                },
+            )
+            amount = round(float(transaction.amount), 2)
+            if transaction.transaction_type == "income":
+                bucket["income_total"] = round(bucket["income_total"] + amount, 2)
+            elif transaction.transaction_type == "expense":
+                bucket["expense_total"] = round(bucket["expense_total"] + amount, 2)
+            bucket["transaction_count"] = int(bucket["transaction_count"]) + 1
+
+        rows: list[dict] = []
+        for day, bucket in sorted(totals_by_day.items()):
+            income_total = round(float(bucket["income_total"]), 2)
+            expense_total = round(float(bucket["expense_total"]), 2)
+            rows.append(
+                {
+                    "day": day,
+                    "income_total": income_total,
+                    "expense_total": expense_total,
+                    "net_total": round(income_total - expense_total, 2),
+                    "transaction_count": int(bucket["transaction_count"]),
+                }
+            )
+        return rows
+
+    def _build_budget_variances(
+        self,
+        *,
+        budget_rows: list[dict],
+    ) -> list[dict]:
+        rows: list[dict] = []
+        for row in budget_rows:
+            budget = row["budget"]
+            rows.append(
+                {
+                    "category_id": budget.category_id,
+                    "category_name": row["category_name"],
+                    "category_type": row["category_type"],
+                    "budget_status": row["budget_status"],
+                    "planned_amount": round(float(budget.amount), 2),
+                    "actual_amount": round(float(row["actual_amount"]), 2),
+                    "variance_amount": round(float(row["variance_amount"]), 2),
+                    "utilization_ratio": (
+                        None
+                        if row["utilization_ratio"] is None
+                        else round(float(row["utilization_ratio"]), 4)
+                    ),
+                    "is_active": bool(budget.is_active),
+                }
+            )
+
+        rows.sort(
+            key=lambda item: (
+                -self._budget_status_priority(item["budget_status"]),
+                -abs(float(item["variance_amount"])),
+                item["category_name"].lower(),
+            )
+        )
+        return rows[:8]
+
+    def _budget_status_priority(self, status: str) -> int:
+        priorities = {
+            "over_budget": 4,
+            "within_budget": 3,
+            "unused": 2,
+            "inactive": 1,
+        }
+        return priorities.get(status, 0)
 
     def _month_start(self, period_month: date) -> datetime:
         return datetime.combine(period_month, time.min, tzinfo=timezone.utc)
