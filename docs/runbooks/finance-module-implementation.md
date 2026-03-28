@@ -95,6 +95,8 @@ En esta fase quedaron listos:
 - `Reportes` ya permite elegir explícitamente el mes contra el que se compara el overview, no solo el corte anterior
 - `Reportes` ya compara también el horizonte visible completo contra un horizonte equivalente cerrado en el mes comparado
 - `Reportes` ya agrega comparativa de acumulado anual (`enero -> mes`) contra el mes comparado
+- `Reportes` ya permite releer top categorías con dimensión analítica `período | horizonte | acumulado anual`
+- `Reportes` ya exporta CSV y JSON enriquecidos con comparativas, top categorías y resúmenes ejecutivos
 - manejo controlado de schema incompleto en vistas de `finance`, sin `500` crudo
 - self-service de sincronizacion de estructura desde el propio `tenant_portal` para `tenant admin`
 

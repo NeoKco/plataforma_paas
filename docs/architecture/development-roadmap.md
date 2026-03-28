@@ -252,6 +252,8 @@ Resultado actual:
 - `Reportes` ya permite elegir explícitamente el mes de comparación del overview
 - `Reportes` ya compara además el horizonte visible completo contra otro horizonte equivalente
 - `Reportes` ya compara además el acumulado anual `enero -> mes` contra el período comparado
+- `Reportes` ya permite releer top categorías por dimensión analítica (`período`, `horizonte`, `acumulado anual`)
+- `Reportes` ya exporta CSV y JSON enriquecidos con comparativas y cortes ejecutivos
 - cuando el schema `finance` del tenant esta incompleto, esas vistas ya degradan a error controlado y no a `500`
 - `tenant_portal` ya permite a `tenant admin` sincronizar estructura desde el propio tenant sin volver a `Platform Admin`
 - `CLP` ya forma parte de las monedas semilla del modulo
@@ -271,7 +273,7 @@ Falta para cerrarlo:
 - enriquecer `Préstamos` con cuenta origen y lectura contable derivada mas densa
 - mover la sincronizacion tenant-side de schema a job/worker en vez de inline
 - agregar auto-sync post-provisioning y post-deploy para evitar sincronizacion manual por uso
-- seguir `Lote 7` con exportaciones adicionales enriquecidas y comparativas más profundas entre rangos arbitrarios, acumulados específicos o cortes por dimension analitica
+- seguir `Lote 7` con exportaciones adicionales aún más ricas y comparativas más profundas entre rangos arbitrarios o cortes analíticos adicionales por entidad/categoría
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 

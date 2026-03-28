@@ -141,6 +141,8 @@ Cobertura visible actual:
 - resumen multi-período del horizonte dentro de `Reportes`
 - comparativa del horizonte completo contra un rango equivalente dentro de `Reportes`
 - comparativa de acumulado anual `enero -> mes` dentro de `Reportes`
+- lectura de top categorías por dimensión analítica dentro de `Reportes`
+- exportación enriquecida CSV/JSON desde `Reportes`
 - overview mensual de `Planificación`
 - cartera y cronograma de `Préstamos`
 - pagos, reversas y enlace contable minimo sobre cuotas

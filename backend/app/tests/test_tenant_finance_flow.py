@@ -907,6 +907,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         overview = {
             "period_month": date(2026, 4, 1),
             "movement_scope": "all",
+            "analysis_scope": "period",
             "budget_category_scope": "all",
             "budget_status_filter": "all",
             "transaction_snapshot": {
@@ -1087,6 +1088,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 period_month=date(2026, 4, 1),
                 trend_months=6,
                 movement_scope="all",
+                analysis_scope="period",
                 budget_category_scope="all",
                 budget_status_filter="all",
                 current_user=self._current_user(role="operator"),
@@ -1113,6 +1115,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(response.data.monthly_trend[-1].net_balance, 380.0)
         self.assertEqual(response.data.movement_scope, "all")
+        self.assertEqual(response.data.analysis_scope, "period")
         self.assertEqual(response.data.budget_category_scope, "all")
         self.assertEqual(response.data.trend_summary.best_net_balance, 380.0)
         self.assertEqual(
@@ -1130,6 +1133,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             return_value={
                 "period_month": date(2026, 4, 1),
                 "movement_scope": "all",
+                "analysis_scope": "period",
                 "budget_category_scope": "all",
                 "budget_status_filter": "all",
                 "transaction_snapshot": {
@@ -1245,6 +1249,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 compare_period_month=date(2026, 2, 1),
                 trend_months=12,
                 movement_scope="favorites",
+                analysis_scope="year_to_date",
                 budget_category_scope="expense",
                 budget_status_filter="over_budget",
                 current_user=self._current_user(role="operator"),
@@ -1255,6 +1260,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(kwargs["compare_period_month"], date(2026, 2, 1))
         self.assertEqual(kwargs["trend_months"], 12)
         self.assertEqual(kwargs["movement_scope"], "favorites")
+        self.assertEqual(kwargs["analysis_scope"], "year_to_date")
         self.assertEqual(kwargs["budget_category_scope"], "expense")
         self.assertEqual(kwargs["budget_status_filter"], "over_budget")
 

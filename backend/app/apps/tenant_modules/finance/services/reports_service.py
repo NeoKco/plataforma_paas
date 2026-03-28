@@ -33,6 +33,7 @@ class FinanceReportsService:
         compare_period_month: date | None = None,
         trend_months: int = 6,
         movement_scope: str = "all",
+        analysis_scope: str = "period",
         budget_category_scope: str = "all",
         budget_status_filter: str = "all",
     ) -> dict:
@@ -47,6 +48,10 @@ class FinanceReportsService:
         }:
             raise ValueError(
                 "movement_scope must be one of all, reconciled, unreconciled, favorites or loan_linked"
+            )
+        if analysis_scope not in {"period", "horizon", "year_to_date"}:
+            raise ValueError(
+                "analysis_scope must be one of period, horizon or year_to_date"
             )
         if budget_category_scope not in {"all", "income", "expense"}:
             raise ValueError("budget_category_scope must be one of all, income or expense")
@@ -231,22 +236,38 @@ class FinanceReportsService:
             budget_status_filter=budget_status_filter,
         )
         trend_summary = self._build_trend_summary(monthly_trend)
+        analysis_transactions = self._build_analysis_transactions(
+            all_transactions=all_transactions,
+            current_period_month=normalized_period_month,
+            trend_months=trend_months,
+            movement_scope=movement_scope,
+            analysis_scope=analysis_scope,
+        )
 
         return {
             "period_month": normalized_period_month,
             "movement_scope": movement_scope,
+            "analysis_scope": analysis_scope,
             "budget_category_scope": budget_category_scope,
             "budget_status_filter": budget_status_filter,
             "transaction_snapshot": transaction_snapshot,
             "budget_snapshot": budget_snapshot,
             "loan_snapshot": loan_snapshot,
             "top_income_categories": self._build_top_categories(
-                transactions=income_transactions,
+                transactions=[
+                    transaction
+                    for transaction in analysis_transactions
+                    if transaction.transaction_type == "income"
+                ],
                 categories=categories,
                 category_type="income",
             ),
             "top_expense_categories": self._build_top_categories(
-                transactions=expense_transactions,
+                transactions=[
+                    transaction
+                    for transaction in analysis_transactions
+                    if transaction.transaction_type == "expense"
+                ],
                 categories=categories,
                 category_type="expense",
             ),
@@ -326,6 +347,36 @@ class FinanceReportsService:
                 comparison_trend=compare_ytd_trend,
             ),
         }
+
+    def _build_analysis_transactions(
+        self,
+        *,
+        all_transactions: list,
+        current_period_month: date,
+        trend_months: int,
+        movement_scope: str,
+        analysis_scope: str,
+    ) -> list:
+        if analysis_scope == "period":
+            starts_at = self._month_start(current_period_month)
+        elif analysis_scope == "horizon":
+            first_period_month = self._build_trailing_months(
+                current_period_month, count=trend_months
+            )[0]
+            starts_at = self._month_start(first_period_month)
+        else:
+            starts_at = self._month_start(current_period_month.replace(month=1, day=1))
+
+        ends_at = self._next_month_start(current_period_month)
+        transactions = [
+            transaction
+            for transaction in all_transactions
+            if starts_at <= self._normalize_datetime(transaction.transaction_at) < ends_at
+        ]
+        return self._filter_transactions_by_scope(
+            transactions,
+            movement_scope=movement_scope,
+        )
 
     def _build_top_categories(
         self,

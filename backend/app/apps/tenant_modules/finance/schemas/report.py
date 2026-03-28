@@ -154,6 +154,7 @@ class FinanceReportYearToDateComparison(BaseModel):
 class FinanceReportOverviewData(BaseModel):
     period_month: date
     movement_scope: str
+    analysis_scope: str
     budget_category_scope: str
     budget_status_filter: str
     transaction_snapshot: FinanceReportTransactionSnapshot

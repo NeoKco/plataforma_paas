@@ -37,6 +37,8 @@ Estado actual:
 - `Reportes` ya permite además elegir explícitamente el mes comparado desde la misma vista
 - `Reportes` ya compara también el horizonte visible completo contra otro rango equivalente para lectura ejecutiva
 - `Reportes` ya compara también el acumulado anual `enero -> mes` contra el período comparado
+- `Reportes` ya permite además releer top categorías con dimensión analítica `período | horizonte | acumulado anual`
+- `Reportes` ya exporta CSV y JSON enriquecidos con comparativas y bloques ejecutivos para soporte
 - cuando el schema `finance` del tenant queda atrasado, el portal ya muestra explicación operativa y CTA para actualizar estructura
 - `tenant admin` ya puede revisar estado y sincronizar estructura desde el propio portal, sin depender solo de `Platform Admin`
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo

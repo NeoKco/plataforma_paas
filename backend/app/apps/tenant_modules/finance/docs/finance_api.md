@@ -143,6 +143,7 @@ Estado actual de `Lote 6`:
 - `reports/overview` ya acepta `compare_period_month=YYYY-MM-01` para reemplazar el mes comparado por defecto
 - `reports/overview` ya acepta `trend_months=3|6|12` para ajustar la tendencia devuelta
 - `reports/overview` ya acepta `movement_scope=all|reconciled|unreconciled|favorites|loan_linked`
+- `reports/overview` ya acepta `analysis_scope=period|horizon|year_to_date` para releer top categorias con otro corte
 - `reports/overview` ya acepta `budget_category_scope=all|income|expense`
 - `reports/overview` ya acepta `budget_status_filter=all|over_budget|within_budget|unused|inactive`
 - el overview ya devuelve `trend_summary` con promedio, mejor/peor mes y delta contra el primer mes del horizonte
@@ -166,5 +167,5 @@ Pendiente:
 - enriquecer `budgets` con lectura mas densa por categoria y estados operativos mas ricos
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
 - enriquecer el enlace contable de `loans` con cuenta origen y lectura derivada mas densa
-- exportaciones adicionales, comparativas más profundas entre rangos arbitrarios, acumulados específicos o cortes por dimensión analítica y lectura contable mas densa sobre el overview ya existente
+- exportaciones adicionales aún más ricas, comparativas más profundas entre rangos arbitrarios o cortes analíticos adicionales por entidad/categoría y lectura contable mas densa sobre el overview ya existente
 - mover la sincronizacion tenant-side de schema a ejecucion asincrona y dejar auto-sync post-provisioning/post-deploy

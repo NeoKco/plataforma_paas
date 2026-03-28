@@ -55,9 +55,11 @@ Alcance de esta fase:
 - `Reportes` ya permite elegir explícitamente el mes contra el que comparar el overview
 - `Reportes` ya compara también el horizonte completo visible contra otro horizonte equivalente
 - `Reportes` ya compara también el acumulado anual `enero -> mes` contra el período comparado
+- `Reportes` ya permite releer top categorías por dimensión analítica (`período`, `horizonte`, `acumulado anual`)
+- `Reportes` ya exporta CSV y JSON enriquecidos con comparativas, top categorías y resúmenes ejecutivos
 
 Pendiente inmediato:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura mas densa y estados operativos mas ricos
 - enriquecer el enlace contable de `Préstamos`
-- seguir `Lote 7` con exportaciones más completas, comparativas más profundas entre rangos arbitrarios, acumulados específicos o cortes por dimensión analítica y lectura analitica mas profunda
+- seguir `Lote 7` con exportaciones aún más completas, comparativas más profundas entre rangos arbitrarios o cortes analíticos adicionales por entidad/categoría y lectura analitica mas profunda

@@ -42,10 +42,12 @@ Cobertura actual:
 - resumen multi-período del horizonte dentro de `reportes overview`
 - comparativa del horizonte completo contra un rango equivalente dentro de `reportes overview`
 - comparativa de acumulado anual `enero -> mes` dentro de `reportes overview`
+- lectura de top categorías por dimensión analítica dentro de `reportes overview`
+- exportación enriquecida CSV/JSON desde `reportes overview`
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
 - pruebas de lectura mas rica de presupuestos
 - pruebas mas ricas del enlace contable de cuotas de prestamos con cuenta origen y lectura derivada
-- pruebas de exportaciones adicionales y comparativas más profundas entre rangos arbitrarios, acumulados específicos o cortes por dimensión analítica en reportes
+- pruebas de exportaciones aún más ricas y comparativas más profundas entre rangos arbitrarios o cortes analíticos adicionales por entidad/categoría en reportes

@@ -32,6 +32,9 @@ export function FinanceReportsPage() {
   const [movementScope, setMovementScope] = useState<
     "all" | "reconciled" | "unreconciled" | "favorites" | "loan_linked"
   >("all");
+  const [analysisScope, setAnalysisScope] = useState<
+    "period" | "horizon" | "year_to_date"
+  >("period");
   const [budgetCategoryScope, setBudgetCategoryScope] = useState<
     "all" | "income" | "expense"
   >("all");
@@ -51,6 +54,7 @@ export function FinanceReportsPage() {
     comparePeriodMonth,
     trendMonths,
     movementScope,
+    analysisScope,
     budgetCategoryScope,
     budgetStatusFilter,
   ]);
@@ -69,6 +73,7 @@ export function FinanceReportsPage() {
         buildPeriodMonthIso(comparePeriodMonth),
         trendMonths,
         movementScope,
+        analysisScope,
         budgetCategoryScope,
         budgetStatusFilter
       );
@@ -156,6 +161,22 @@ export function FinanceReportsPage() {
             </select>
           </div>
           <div>
+            <label className="form-label">Lectura categorías</label>
+            <select
+              className="form-select"
+              value={analysisScope}
+              onChange={(event) =>
+                setAnalysisScope(
+                  event.target.value as "period" | "horizon" | "year_to_date"
+                )
+              }
+            >
+              <option value="period">Período</option>
+              <option value="horizon">Horizonte</option>
+              <option value="year_to_date">Acumulado anual</option>
+            </select>
+          </div>
+          <div>
             <label className="form-label">Categoría presupuesto</label>
             <select
               className="form-select"
@@ -203,7 +224,7 @@ export function FinanceReportsPage() {
               }
               disabled={!overview}
             >
-              Exportar CSV
+              Exportar CSV enriquecido
             </button>
           </div>
           <div className="pt-4">
@@ -215,7 +236,7 @@ export function FinanceReportsPage() {
               }
               disabled={!overview}
             >
-              Exportar JSON
+              Exportar JSON enriquecido
             </button>
           </div>
         </div>
@@ -359,14 +380,18 @@ export function FinanceReportsPage() {
 
         <PanelCard
           title="Top categorías ingreso"
-          subtitle="Mayores ingresos del período por categoría."
+          subtitle={`Mayores ingresos por categoría según lectura ${buildAnalysisScopeLabel(
+            overview?.analysis_scope || analysisScope
+          )}.`}
         >
           <CategoryAmountList items={overview?.top_income_categories || []} emptyLabel="Sin ingresos categorizados en el período." />
         </PanelCard>
 
         <PanelCard
           title="Top categorías egreso"
-          subtitle="Mayores egresos del período por categoría."
+          subtitle={`Mayores egresos por categoría según lectura ${buildAnalysisScopeLabel(
+            overview?.analysis_scope || analysisScope
+          )}.`}
         >
           <CategoryAmountList items={overview?.top_expense_categories || []} emptyLabel="Sin egresos categorizados en el período." />
         </PanelCard>
@@ -855,6 +880,7 @@ function exportOverviewCsv(
     ["periodo", "mes", overview.period_month],
     ["periodo", "comparar_contra", comparePeriodMonth],
     ["periodo", "foco_movimientos", overview.movement_scope],
+    ["periodo", "lectura_categorias", overview.analysis_scope],
     ["periodo", "foco_presupuesto_tipo", overview.budget_category_scope],
     ["periodo", "foco_presupuesto_estado", overview.budget_status_filter],
     ["transacciones", "ingresos", String(overview.transaction_snapshot.total_income)],
@@ -866,7 +892,93 @@ function exportOverviewCsv(
     ["presupuestos", "desviacion", String(overview.budget_snapshot.total_variance)],
     ["prestamos", "saldo_tomado", String(overview.loan_snapshot.borrowed_balance)],
     ["prestamos", "saldo_prestado", String(overview.loan_snapshot.lent_balance)],
+    [
+      "comparativa_periodo",
+      "mes_comparado",
+      overview.period_comparison.compare_period_month,
+    ],
+    [
+      "comparativa_periodo",
+      "delta_ingresos",
+      String(overview.period_comparison.income_delta),
+    ],
+    [
+      "comparativa_periodo",
+      "delta_egresos",
+      String(overview.period_comparison.expense_delta),
+    ],
+    [
+      "comparativa_periodo",
+      "delta_balance",
+      String(overview.period_comparison.net_balance_delta),
+    ],
+    [
+      "comparativa_horizonte",
+      "rango_actual",
+      `${overview.horizon_comparison.current_first_period_month}|${overview.horizon_comparison.current_last_period_month}`,
+    ],
+    [
+      "comparativa_horizonte",
+      "rango_comparado",
+      `${overview.horizon_comparison.compare_first_period_month}|${overview.horizon_comparison.compare_last_period_month}`,
+    ],
+    [
+      "comparativa_horizonte",
+      "delta_ingresos",
+      String(overview.horizon_comparison.total_income_delta_vs_compare),
+    ],
+    [
+      "comparativa_horizonte",
+      "delta_egresos",
+      String(overview.horizon_comparison.total_expense_delta_vs_compare),
+    ],
+    [
+      "comparativa_horizonte",
+      "delta_balance",
+      String(overview.horizon_comparison.total_net_balance_delta_vs_compare),
+    ],
+    [
+      "acumulado_anual",
+      "rango_actual",
+      `${overview.year_to_date_comparison.current_first_period_month}|${overview.year_to_date_comparison.current_last_period_month}`,
+    ],
+    [
+      "acumulado_anual",
+      "rango_comparado",
+      `${overview.year_to_date_comparison.compare_first_period_month}|${overview.year_to_date_comparison.compare_last_period_month}`,
+    ],
+    [
+      "acumulado_anual",
+      "delta_ingresos",
+      String(overview.year_to_date_comparison.total_income_delta_vs_compare),
+    ],
+    [
+      "acumulado_anual",
+      "delta_egresos",
+      String(overview.year_to_date_comparison.total_expense_delta_vs_compare),
+    ],
+    [
+      "acumulado_anual",
+      "delta_balance",
+      String(overview.year_to_date_comparison.total_net_balance_delta_vs_compare),
+    ],
   ];
+
+  overview.top_income_categories.forEach((item) => {
+    rows.push([
+      "top_ingresos",
+      item.category_name,
+      `${item.category_type}|${item.total_amount}`,
+    ]);
+  });
+
+  overview.top_expense_categories.forEach((item) => {
+    rows.push([
+      "top_egresos",
+      item.category_name,
+      `${item.category_type}|${item.total_amount}`,
+    ]);
+  });
 
   overview.daily_cashflow.forEach((item) => {
     rows.push([
@@ -928,8 +1040,24 @@ function exportOverviewJson(
     [
       JSON.stringify(
         {
+          exported_at: new Date().toISOString(),
           period_month: periodMonth,
           compare_period_month: comparePeriodMonth,
+          analysis_scope: overview.analysis_scope,
+          export_sections: [
+            "transaction_snapshot",
+            "budget_snapshot",
+            "loan_snapshot",
+            "top_income_categories",
+            "top_expense_categories",
+            "daily_cashflow",
+            "budget_variances",
+            "period_comparison",
+            "monthly_trend",
+            "trend_summary",
+            "horizon_comparison",
+            "year_to_date_comparison",
+          ],
           data: overview,
         },
         null,
@@ -967,6 +1095,17 @@ function buildMovementScopeLabel(scope: string) {
       return "ligado a préstamos";
     default:
       return "general";
+  }
+}
+
+function buildAnalysisScopeLabel(scope: string) {
+  switch (scope) {
+    case "horizon":
+      return "horizonte";
+    case "year_to_date":
+      return "acumulado anual";
+    default:
+      return "período";
   }
 }
 
