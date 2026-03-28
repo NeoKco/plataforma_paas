@@ -23,6 +23,9 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceBudgetGuidedAdjustmentResponse,
     FinanceBudgetItemResponse,
     FinanceBudgetMutationResponse,
+    FinanceBudgetTemplateApplyData,
+    FinanceBudgetTemplateApplyRequest,
+    FinanceBudgetTemplateApplyResponse,
     FinanceBudgetsResponse,
     FinanceBudgetsSummaryData,
     FinanceBudgetUpdateRequest,
@@ -89,6 +92,27 @@ def clone_finance_budgets(
         message="Presupuestos financieros clonados correctamente",
         requested_by=build_finance_requested_by(current_user),
         data=FinanceBudgetCloneData(**result),
+    )
+
+
+@router.post("/template-apply", response_model=FinanceBudgetTemplateApplyResponse)
+def apply_finance_budget_template(
+    payload: FinanceBudgetTemplateApplyRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceBudgetTemplateApplyResponse:
+    try:
+        result = budget_service.apply_template(tenant_db, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
+
+    return FinanceBudgetTemplateApplyResponse(
+        success=True,
+        message="Plantilla presupuestaria aplicada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=FinanceBudgetTemplateApplyData(**result),
     )
 
 

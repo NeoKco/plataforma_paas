@@ -94,6 +94,25 @@ export type TenantFinanceBudgetGuidedAdjustmentResponse = {
   };
 };
 
+export type TenantFinanceBudgetTemplateApplyRequest = {
+  target_period_month: string;
+  template_mode: string;
+  overwrite_existing: boolean;
+};
+
+export type TenantFinanceBudgetTemplateApplyResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    target_period_month: string;
+    template_mode: string;
+    source_period_month: string | null;
+    cloned_count: number;
+    updated_count: number;
+    skipped_count: number;
+  };
+};
+
 export type TenantFinanceBudgetWriteRequest = {
   period_month: string;
   category_id: number;
@@ -170,6 +189,20 @@ export function applyTenantFinanceBudgetGuidedAdjustment(
 ) {
   return apiRequest<TenantFinanceBudgetGuidedAdjustmentResponse>(
     `/tenant/finance/budgets/${budgetId}/guided-adjustment`,
+    {
+      method: "POST",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function applyTenantFinanceBudgetTemplate(
+  accessToken: string,
+  payload: TenantFinanceBudgetTemplateApplyRequest
+) {
+  return apiRequest<TenantFinanceBudgetTemplateApplyResponse>(
+    "/tenant/finance/budgets/template-apply",
     {
       method: "POST",
       token: accessToken,

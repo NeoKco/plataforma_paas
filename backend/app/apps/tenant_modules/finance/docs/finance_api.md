@@ -14,6 +14,7 @@ API vigente en el arranque:
 - `GET /tenant/finance/budgets`
 - `POST /tenant/finance/budgets`
 - `POST /tenant/finance/budgets/clone`
+- `POST /tenant/finance/budgets/template-apply`
 - `POST /tenant/finance/budgets/{budget_id}/guided-adjustment`
 - `PUT /tenant/finance/budgets/{budget_id}`
 - `GET /tenant/finance/loans`
@@ -122,6 +123,8 @@ Estado actual de `Lote 6`:
 - `GET /tenant/finance/budgets` ya devuelve `focus_items` para priorizar categorias por desvio y atencion operativa
 - cada `focus_item` ya devuelve `recommended_action` para guiar la intervencion operativa en frontend
 - ya existe `POST /tenant/finance/budgets/clone` para copiar presupuestos desde un mes origen a otro destino, con sobrescritura opcional
+- ya existe `POST /tenant/finance/budgets/template-apply` para sembrar el mes visible desde una plantilla operativa
+- ese endpoint ya soporta `previous_month`, `same_month_last_year` y `rolling_actual_average_3m`
 - ya existe `POST /tenant/finance/budgets/{budget_id}/guided-adjustment` para aplicar acciones guiadas sobre presupuestos priorizados
 - ese endpoint ya soporta alinear al real, alinear al real con margen y desactivar automáticamente presupuestos sin ejecución
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Presupuestos`

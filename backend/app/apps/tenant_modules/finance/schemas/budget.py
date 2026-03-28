@@ -28,6 +28,12 @@ class FinanceBudgetGuidedAdjustmentRequest(BaseModel):
     margin_percent: float | None = None
 
 
+class FinanceBudgetTemplateApplyRequest(BaseModel):
+    target_period_month: date
+    template_mode: str
+    overwrite_existing: bool = False
+
+
 class FinanceBudgetItemResponse(BaseModel):
     id: int
     period_month: date
@@ -82,6 +88,19 @@ class FinanceBudgetGuidedAdjustmentData(BaseModel):
 
 class FinanceBudgetGuidedAdjustmentResponse(FinanceResponseBase):
     data: FinanceBudgetGuidedAdjustmentData
+
+
+class FinanceBudgetTemplateApplyData(BaseModel):
+    target_period_month: date
+    template_mode: str
+    source_period_month: date | None = None
+    cloned_count: int
+    updated_count: int
+    skipped_count: int
+
+
+class FinanceBudgetTemplateApplyResponse(FinanceResponseBase):
+    data: FinanceBudgetTemplateApplyData
 
 
 class FinanceBudgetsSummaryData(BaseModel):

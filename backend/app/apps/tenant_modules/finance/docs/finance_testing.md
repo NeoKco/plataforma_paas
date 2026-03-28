@@ -29,6 +29,7 @@ Cobertura actual:
 - recomendacion operativa en `focus_items` de presupuestos
 - clonacion intermensual de presupuestos con sobrescritura opcional
 - ajustes guiados de presupuestos priorizados, incluyendo alineacion al real con margen y desactivacion de categorias sin uso
+- plantillas operativas de presupuestos usando mes anterior, mismo mes del año anterior y promedio real de 3 meses
 - core de prestamos con resumen de cartera, filtros por tipo/estado y generacion de cronograma mensual
 - aplicacion de pagos sobre cuotas de prestamos y recálculo de saldo pendiente
 - asignacion avanzada del pago entre capital e interes

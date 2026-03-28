@@ -21,6 +21,7 @@ import {
 } from "../services/currenciesService";
 import {
   applyTenantFinanceBudgetGuidedAdjustment,
+  applyTenantFinanceBudgetTemplate,
   cloneTenantFinanceBudgets,
   createTenantFinanceBudget,
   getTenantFinanceBudgets,
@@ -75,6 +76,8 @@ export function FinanceBudgetsPage() {
   const [includeInactive, setIncludeInactive] = useState(true);
   const [cloneSourceMonth, setCloneSourceMonth] = useState(buildPreviousMonthValue(buildMonthValue()));
   const [cloneOverwriteExisting, setCloneOverwriteExisting] = useState(false);
+  const [templateMode, setTemplateMode] = useState("previous_month");
+  const [templateOverwriteExisting, setTemplateOverwriteExisting] = useState(false);
   const [formState, setFormState] = useState<BudgetFormState>(DEFAULT_FORM_STATE);
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -305,6 +308,35 @@ export function FinanceBudgetsPage() {
       );
       await loadBudgetWorkspace();
       setActionFeedback({ type: "success", message: response.message });
+    } catch (rawError) {
+      setActionFeedback({
+        type: "error",
+        message: getApiErrorDisplayMessage(rawError as ApiError),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleApplyTemplate() {
+    if (!session?.accessToken) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionFeedback(null);
+
+    try {
+      const response = await applyTenantFinanceBudgetTemplate(session.accessToken, {
+        target_period_month: buildPeriodMonthIso(filterMonth),
+        template_mode: templateMode,
+        overwrite_existing: templateOverwriteExisting,
+      });
+      await loadBudgetWorkspace();
+      setActionFeedback({
+        type: "success",
+        message: `${response.message} (${language === "es" ? "creados" : "created"}: ${response.data.cloned_count}, ${language === "es" ? "actualizados" : "updated"}: ${response.data.updated_count}, ${language === "es" ? "omitidos" : "skipped"}: ${response.data.skipped_count})`,
+      });
     } catch (rawError) {
       setActionFeedback({
         type: "error",
@@ -635,6 +667,50 @@ export function FinanceBudgetsPage() {
                 onClick={() => void handleCloneBudgets()}
               >
                 {language === "es" ? "Clonar al mes visible" : "Clone into visible month"}
+              </button>
+            </div>
+            <div className="tenant-inline-form-grid">
+              <div>
+                <label className="form-label">{language === "es" ? "Plantilla sugerida" : "Suggested template"}</label>
+                <select
+                  className="form-select"
+                  value={templateMode}
+                  onChange={(event) => setTemplateMode(event.target.value)}
+                >
+                  <option value="previous_month">
+                    {language === "es" ? "Mes anterior" : "Previous month"}
+                  </option>
+                  <option value="same_month_last_year">
+                    {language === "es" ? "Mismo mes año anterior" : "Same month last year"}
+                  </option>
+                  <option value="rolling_actual_average_3m">
+                    {language === "es" ? "Promedio real últimos 3 meses" : "Actual average last 3 months"}
+                  </option>
+                </select>
+              </div>
+              <div className="d-flex align-items-end">
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="finance-budgets-template-overwrite-existing"
+                    checked={templateOverwriteExisting}
+                    onChange={(event) => setTemplateOverwriteExisting(event.target.checked)}
+                  />
+                  <label className="form-check-label" htmlFor="finance-budgets-template-overwrite-existing">
+                    {language === "es" ? "Sobrescribir con plantilla" : "Overwrite with template"}
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+              <button
+                className="btn btn-outline-secondary"
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => void handleApplyTemplate()}
+              >
+                {language === "es" ? "Aplicar plantilla al mes visible" : "Apply template to visible month"}
               </button>
             </div>
           </div>

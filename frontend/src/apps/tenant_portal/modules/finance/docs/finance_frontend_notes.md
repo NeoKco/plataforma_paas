@@ -73,12 +73,13 @@
 - `Presupuestos`, `Planificación` y `Reportes` ya toman la moneda base activa para el formateo visual de montos
 - `Préstamos` ya usa moneda base en resúmenes, pero mantiene `currency_code` del préstamo en tabla y cronograma
 - `Presupuestos` ya permite clonar un mes origen y aplicar ajustes guiados desde `Foco presupuestario` sin bajar a la tabla completa
+- `Presupuestos` ya permite además aplicar plantillas operativas al mes visible sin salir de la vista
 
 Pendiente inmediato:
 - revisar y cerrar copy residual de exportaciones, confirmaciones y mensajes largos para lograr paridad completa `Español/Inglés`
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
-- enriquecer `Presupuestos` con plantillas o ajustes guiados mas ricos sobre categorias priorizadas, mas alla de editar/activar/desactivar, clonar entre meses y alinear al real
+- enriquecer `Presupuestos` con plantillas mas ricas o presets configurables por tenant, mas alla de editar/activar/desactivar, clonar entre meses, alinear al real y aplicar plantillas operativas base
 - abrir comparativas aún más profundas sobre rangos arbitrarios o cortes analíticos adicionales por proyectos/terceros en `Reportes`, ahora que ya existe resumen multi-período
 - enriquecer la UX de tags con chips, filtros y mejor lectura en tabla/detalle
 - enriquecer `Préstamos` con lectura contable derivada más rica, exportable y con mejor relación visual con cuentas

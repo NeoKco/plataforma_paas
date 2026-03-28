@@ -11,6 +11,7 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceBudgetCloneRequest,
     FinanceBudgetCreateRequest,
     FinanceBudgetGuidedAdjustmentRequest,
+    FinanceBudgetTemplateApplyRequest,
     FinanceBudgetUpdateRequest,
 )
 
@@ -168,6 +169,132 @@ class FinanceBudgetService:
         if not source_budgets:
             raise ValueError("No existen presupuestos en el periodo origen indicado")
 
+        cloned_count, updated_count, skipped_count = self._apply_seed_budgets(
+            tenant_db,
+            target_period_month=target_period_month,
+            source_budgets=source_budgets,
+            overwrite_existing=payload.overwrite_existing,
+        )
+
+        return {
+            "source_period_month": source_period_month,
+            "target_period_month": target_period_month,
+            "cloned_count": cloned_count,
+            "updated_count": updated_count,
+            "skipped_count": skipped_count,
+        }
+
+    def apply_template(
+        self,
+        tenant_db: Session,
+        payload: FinanceBudgetTemplateApplyRequest,
+    ) -> dict:
+        target_period_month = self._normalize_period_month(payload.target_period_month)
+        template_mode = payload.template_mode.strip().lower()
+
+        if template_mode == "previous_month":
+            source_period_month = self._shift_month(target_period_month, -1)
+            source_budgets = self.budget_repository.list_by_period_month(
+                tenant_db,
+                source_period_month,
+                include_inactive=True,
+            )
+            if not source_budgets:
+                raise ValueError("No existen presupuestos en el mes anterior para usar como plantilla")
+            cloned_count, updated_count, skipped_count = self._apply_seed_budgets(
+                tenant_db,
+                target_period_month=target_period_month,
+                source_budgets=source_budgets,
+                overwrite_existing=payload.overwrite_existing,
+            )
+            return {
+                "target_period_month": target_period_month,
+                "template_mode": template_mode,
+                "source_period_month": source_period_month,
+                "cloned_count": cloned_count,
+                "updated_count": updated_count,
+                "skipped_count": skipped_count,
+            }
+
+        if template_mode == "same_month_last_year":
+            source_period_month = self._shift_month(target_period_month, -12)
+            source_budgets = self.budget_repository.list_by_period_month(
+                tenant_db,
+                source_period_month,
+                include_inactive=True,
+            )
+            if not source_budgets:
+                raise ValueError("No existen presupuestos en el mismo mes del año anterior para usar como plantilla")
+            cloned_count, updated_count, skipped_count = self._apply_seed_budgets(
+                tenant_db,
+                target_period_month=target_period_month,
+                source_budgets=source_budgets,
+                overwrite_existing=payload.overwrite_existing,
+            )
+            return {
+                "target_period_month": target_period_month,
+                "template_mode": template_mode,
+                "source_period_month": source_period_month,
+                "cloned_count": cloned_count,
+                "updated_count": updated_count,
+                "skipped_count": skipped_count,
+            }
+
+        if template_mode == "rolling_actual_average_3m":
+            categories = [
+                category
+                for category in self.category_repository.list_all(
+                    tenant_db,
+                    include_inactive=False,
+                )
+                if category.category_type in {"income", "expense"}
+            ]
+            seed_budgets: list[FinanceBudget] = []
+            for category in categories:
+                average_amount = self._average_actual_amount_last_months(
+                    tenant_db,
+                    period_month=target_period_month,
+                    category_id=category.id,
+                    months=3,
+                )
+                if average_amount <= 0:
+                    continue
+                seed_budgets.append(
+                    FinanceBudget(
+                        period_month=target_period_month,
+                        category_id=category.id,
+                        amount=average_amount,
+                        note=None,
+                        is_active=category.is_active,
+                    )
+                )
+            if not seed_budgets:
+                raise ValueError("No existe histórico suficiente para construir una plantilla promedio de 3 meses")
+            cloned_count, updated_count, skipped_count = self._apply_seed_budgets(
+                tenant_db,
+                target_period_month=target_period_month,
+                source_budgets=seed_budgets,
+                overwrite_existing=payload.overwrite_existing,
+            )
+            return {
+                "target_period_month": target_period_month,
+                "template_mode": template_mode,
+                "source_period_month": None,
+                "cloned_count": cloned_count,
+                "updated_count": updated_count,
+                "skipped_count": skipped_count,
+            }
+
+        raise ValueError("template_mode no soportado")
+
+    def _apply_seed_budgets(
+        self,
+        tenant_db: Session,
+        *,
+        target_period_month: date,
+        source_budgets: list[FinanceBudget],
+        overwrite_existing: bool,
+    ) -> tuple[int, int, int]:
         cloned_count = 0
         updated_count = 0
         skipped_count = 0
@@ -195,7 +322,7 @@ class FinanceBudgetService:
                 cloned_count += 1
                 continue
 
-            if not payload.overwrite_existing:
+            if not overwrite_existing:
                 skipped_count += 1
                 continue
 
@@ -205,13 +332,7 @@ class FinanceBudgetService:
             self.budget_repository.save(tenant_db, existing_budget)
             updated_count += 1
 
-        return {
-            "source_period_month": source_period_month,
-            "target_period_month": target_period_month,
-            "cloned_count": cloned_count,
-            "updated_count": updated_count,
-            "skipped_count": skipped_count,
-        }
+        return cloned_count, updated_count, skipped_count
 
     def apply_guided_adjustment(
         self,
@@ -347,6 +468,29 @@ class FinanceBudgetService:
         return datetime.combine(period_month, time.min, tzinfo=timezone.utc)
 
     def _next_month_start(self, period_month: date) -> datetime:
-        provisional = period_month.replace(day=28) + timedelta(days=4)
-        next_month = provisional.replace(day=1)
+        next_month = self._shift_month(period_month, 1)
         return datetime.combine(next_month, time.min, tzinfo=timezone.utc)
+
+    def _shift_month(self, period_month: date, months_delta: int) -> date:
+        month_index = (period_month.year * 12 + (period_month.month - 1)) + months_delta
+        target_year, target_month_index = divmod(month_index, 12)
+        return date(target_year, target_month_index + 1, 1)
+
+    def _average_actual_amount_last_months(
+        self,
+        tenant_db: Session,
+        *,
+        period_month: date,
+        category_id: int,
+        months: int,
+    ) -> float:
+        total_amount = 0.0
+        for offset in range(1, months + 1):
+            source_period = self._shift_month(period_month, -offset)
+            actual_amounts = self.budget_repository.aggregate_actual_amounts_by_category(
+                tenant_db,
+                starts_at=self._month_start(source_period),
+                ends_at=self._next_month_start(source_period),
+            )
+            total_amount += float(actual_amounts.get(category_id, 0.0))
+        return round(total_amount / months, 2)

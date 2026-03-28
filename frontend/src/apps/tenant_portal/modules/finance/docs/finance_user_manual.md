@@ -13,6 +13,7 @@ Estado actual:
 - desde `Foco presupuestario` ya puedes además editar rápido o activar/desactivar el presupuesto sugerido
 - la vista `Presupuestos` ya permite además clonar el presupuesto de otro mes hacia el mes visible, con sobrescritura opcional
 - desde `Foco presupuestario` ya puedes además aplicar ajustes guiados, como alinear al real con margen o desactivar categorias sin uso
+- la vista `Presupuestos` ya permite además aplicar plantillas operativas al mes visible usando `mes anterior`, `mismo mes año anterior` o `promedio real 3 meses`
 - la vista `Préstamos` ya permite registrar cartera prestada o recibida, definir cuotas base y revisar el cronograma generado
 - la vista `Préstamos` ya permite además aplicar abonos sobre una cuota del cronograma
 - la vista `Préstamos` ya permite elegir cómo se reparte ese abono entre interés y capital

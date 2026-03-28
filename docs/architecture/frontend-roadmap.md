@@ -46,7 +46,7 @@ Lo pendiente es sobre todo:
 - cierre visual y operativo de algunos detalles
 - definir la convencion oficial para que los siguientes modulos nazcan como slices coherentes, tomando `finance` como modulo piloto
 - completar la vista moderna de transacciones con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes antes de abrir mas dominios grandes dentro de finance
-- seguir enriqueciendo `Presupuestos`, ahora que ya tiene lectura mensual, contadores operativos, foco priorizado, acciones rapidas, clonacion intermensual y ajustes guiados
+- seguir enriqueciendo `Presupuestos`, ahora que ya tiene lectura mensual, contadores operativos, foco priorizado, acciones rapidas, clonacion intermensual, ajustes guiados y plantillas operativas
 - abrir comparativas aún más profundas sobre rangos arbitrarios, cortes analíticos adicionales por proyectos/terceros y exportaciones más densas en `Reportes`
 - enriquecer la UX de tags en `Transacciones` con chips, filtros y mejor lectura del detalle
 - endurecer `Préstamos` con lectura contable derivada más rica, mejor contexto de cuenta y mejor explotación operativa del detalle

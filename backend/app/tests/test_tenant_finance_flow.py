@@ -18,6 +18,7 @@ set_test_environment()
 
 from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     apply_finance_budget_guided_adjustment,
+    apply_finance_budget_template,
     apply_finance_loan_installment_payment,
     apply_finance_loan_installment_payment_batch,
     clone_finance_budgets,
@@ -50,6 +51,7 @@ from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceBudgetCloneRequest,
     FinanceBudgetCreateRequest,
     FinanceBudgetGuidedAdjustmentRequest,
+    FinanceBudgetTemplateApplyRequest,
     FinanceEntryCreateRequest,
     FinanceLoanCreateRequest,
     FinanceLoanInstallmentPaymentBatchRequest,
@@ -743,6 +745,33 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.data.adjustment_mode, "align_to_actual_with_margin")
         self.assertEqual(response.data.budget.amount, 165.0)
+
+    def test_apply_finance_budget_template_returns_counts(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.budget_service.apply_template",
+            return_value={
+                "target_period_month": date(2026, 3, 1),
+                "template_mode": "previous_month",
+                "source_period_month": date(2026, 2, 1),
+                "cloned_count": 2,
+                "updated_count": 1,
+                "skipped_count": 0,
+            },
+        ):
+            response = apply_finance_budget_template(
+                payload=FinanceBudgetTemplateApplyRequest(
+                    target_period_month=date(2026, 3, 1),
+                    template_mode="previous_month",
+                    overwrite_existing=True,
+                ),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.template_mode, "previous_month")
+        self.assertEqual(response.data.cloned_count, 2)
+        self.assertEqual(response.data.updated_count, 1)
 
     def test_list_finance_loans_returns_rows(self) -> None:
         rows = [

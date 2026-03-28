@@ -79,6 +79,7 @@ En esta fase quedaron listos:
 - `Presupuestos` ya permite editar y activar/desactivar rápido desde el propio `Foco presupuestario`
 - `Presupuestos` ya permite clonar presupuestos desde otro mes hacia el mes visible, con sobrescritura opcional
 - `Presupuestos` ya permite aplicar ajustes guiados desde `Foco presupuestario`, por ejemplo alinear al real con margen o desactivar categorias sin uso
+- `Presupuestos` ya permite aplicar plantillas operativas sobre el mes visible, incluyendo `mes anterior`, `mismo mes año anterior` y `promedio real 3 meses`
 - primer slice real de `Préstamos` con cartera base, saldo pendiente y contraparte
 - cronograma inicial de `Préstamos` con cuotas generadas, proximo vencimiento y detalle por préstamo
 - pagos manuales sobre cuotas de `Préstamos`, con actualizacion de saldo pendiente y refresh del cronograma

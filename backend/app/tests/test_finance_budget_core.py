@@ -11,6 +11,7 @@ from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceBudgetCloneRequest,
     FinanceBudgetCreateRequest,
     FinanceBudgetGuidedAdjustmentRequest,
+    FinanceBudgetTemplateApplyRequest,
     FinanceTransactionCreateRequest,
 )
 from app.apps.tenant_modules.finance.services.budget_service import (  # noqa: E402
@@ -446,6 +447,96 @@ class FinanceBudgetCoreTestCase(unittest.TestCase):
         self.assertEqual(adjustment_mode, "deactivate_unused")
         self.assertFalse(updated_budget.is_active)
         self.assertEqual(updated_budget.amount, 80.0)
+
+    def test_apply_template_can_clone_previous_month_budgets(self) -> None:
+        self._seed_currency()
+        category = self._seed_category(name="Operación", category_type="expense")
+
+        self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 2, 1),
+                category_id=category.id,
+                amount=420.0,
+                note="Base febrero",
+                is_active=True,
+            ),
+        )
+
+        result = self.budget_service.apply_template(
+            self.db,
+            FinanceBudgetTemplateApplyRequest(
+                target_period_month=date(2026, 3, 1),
+                template_mode="previous_month",
+                overwrite_existing=False,
+            ),
+        )
+
+        rows, summary, _focus_items = self.budget_service.list_budgets(
+            self.db,
+            period_month=date(2026, 3, 1),
+            include_inactive=True,
+        )
+
+        self.assertEqual(result["template_mode"], "previous_month")
+        self.assertEqual(result["source_period_month"], date(2026, 2, 1))
+        self.assertEqual(result["cloned_count"], 1)
+        self.assertEqual(summary["total_budgeted"], 420.0)
+        self.assertEqual(rows[0]["budget"].note, "Base febrero")
+
+    def test_apply_template_can_seed_budget_from_three_month_average(self) -> None:
+        currency = self._seed_currency()
+        account = self._seed_account(currency.id)
+        category = self._seed_category(name="Servicios", category_type="expense")
+
+        for transaction_month, amount in ((3, 120.0), (4, 180.0), (5, 300.0)):
+            self.finance_service.create_transaction(
+                tenant_db=self.db,
+                payload=FinanceTransactionCreateRequest(
+                    transaction_type="expense",
+                    account_id=account.id,
+                    target_account_id=None,
+                    category_id=category.id,
+                    beneficiary_id=None,
+                    person_id=None,
+                    project_id=None,
+                    currency_id=currency.id,
+                    loan_id=None,
+                    amount=amount,
+                    discount_amount=0.0,
+                    exchange_rate=1.0,
+                    amortization_months=None,
+                    transaction_at=datetime(2026, transaction_month, 15, tzinfo=timezone.utc),
+                    alternative_date=None,
+                    description=f"Mes {transaction_month}",
+                    notes=None,
+                    is_favorite=False,
+                    is_reconciled=False,
+                    tag_ids=None,
+                ),
+                created_by_user_id=1,
+            )
+
+        result = self.budget_service.apply_template(
+            self.db,
+            FinanceBudgetTemplateApplyRequest(
+                target_period_month=date(2026, 6, 1),
+                template_mode="rolling_actual_average_3m",
+                overwrite_existing=False,
+            ),
+        )
+
+        rows, summary, _focus_items = self.budget_service.list_budgets(
+            self.db,
+            period_month=date(2026, 6, 1),
+            include_inactive=True,
+        )
+
+        self.assertEqual(result["template_mode"], "rolling_actual_average_3m")
+        self.assertIsNone(result["source_period_month"])
+        self.assertEqual(result["cloned_count"], 1)
+        self.assertEqual(rows[0]["budget"].amount, 200.0)
+        self.assertEqual(summary["total_budgeted"], 200.0)
 
 
 if __name__ == "__main__":

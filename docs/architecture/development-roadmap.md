@@ -233,6 +233,7 @@ Resultado actual:
 - `Presupuestos` ya permite intervenir sobre esas categorias priorizadas con edicion y activacion/desactivacion rapida
 - `Presupuestos` ya permite clonar un mes origen hacia otro mes destino con sobrescritura opcional por categoria
 - `Presupuestos` ya permite aplicar ajustes guiados sobre categorias priorizadas, incluyendo alineacion al real con margen y desactivacion por falta de uso
+- `Presupuestos` ya permite aplicar plantillas operativas sobre el mes destino, incluyendo mes anterior, mismo mes del año anterior y promedio real de 3 meses
 - existe migracion tenant versionada para `finance_budgets`
 - ya existe un slice real de `Préstamos` con cartera, saldo pendiente, filtros por tipo/estado, proximo vencimiento y cronograma por cuotas
 - existe migracion tenant versionada para `finance_loans`
@@ -279,7 +280,7 @@ Resultado actual:
 Falta para cerrarlo:
 
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
-- seguir enriqueciendo `Presupuestos` con acciones mas ricas sobre categorias prioritarias, por ejemplo ajustes guiados o plantillas
+- seguir enriqueciendo `Presupuestos` con presets configurables o plantillas mas ricas por tenant, ahora que ya existen ajustes guiados y plantillas operativas base
 - enriquecer `Préstamos` con lectura contable derivada mas densa, mejor contexto de cuenta y relación más rica con categorías/exportación
 - enriquecer la UX de tags en `Transacciones` con chips, filtros y mejor lectura en tabla/detalle
 - mover la sincronizacion tenant-side de schema a job/worker en vez de inline
