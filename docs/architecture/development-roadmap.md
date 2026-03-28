@@ -300,7 +300,7 @@ Backlog opcional post-cierre:
 - seguir `Reportes` y `Planificación` con visualizaciones mas densas o cortes analíticos adicionales solo si aparecen necesidades reales; la primera capa de charts ya quedó aplicada
 - la base visual local de `finance` ya quedó sembrada con iconografia semantica, bloques `spotlight` y charts livianos; el pendiente ya no es esa capa inicial, sino elevarla a sistema transversal del PaaS
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
-- el trabajo transversal de `design system` ya quedó iniciado en frontend con iconografia común, `spotlight` genérico, badges, layouts, formularios y wrappers de tabla reutilizables; `finance` ya sirve como primer bloque real de adopción también en catálogos y formularios, `Overview`/`Users` ya abrieron la segunda capa visible y `platform_admin` ya empezó la tercera en `Usuarios de plataforma` y `Configuración`
+- el trabajo transversal de `design system` ya quedó iniciado en frontend con iconografia común, `spotlight` genérico, badges, layouts, formularios y wrappers de tabla reutilizables; `finance` ya sirve como primer bloque real de adopción también en catálogos y formularios, `Overview`/`Users` ya abrieron la segunda capa visible y `platform_admin` ya empezó la tercera en `Usuarios de plataforma`, `Configuración`, `Facturación` y la capa superior de `Tenants`
 - dejar, tambien como trabajo transversal posterior, una internacionalizacion real del sistema porque fuera de `finance` todavia existen pantallas y helpers compartidos con copy parcialmente hardcodeado
 
 ## Etapa 9. Calidad Tecnica Base

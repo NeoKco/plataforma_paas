@@ -6,6 +6,13 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
+import {
+  AppForm,
+  AppFormActions,
+  AppFormField,
+} from "../../../../design-system/AppForm";
+import { AppBadge } from "../../../../design-system/AppBadge";
+import { AppToolbar } from "../../../../design-system/AppLayout";
 import { EmptyState } from "../../../../components/feedback/EmptyState";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
@@ -430,17 +437,20 @@ export function BillingPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Plataforma"
+        icon="billing"
         title="Facturación"
         description="Monitoreo global y flujos de reconcile por tenant para eventos de sync billing ya persistidos por backend."
         actions={
-          <button
-            type="button"
-            className="btn btn-outline-primary"
-            onClick={() => void refreshAll()}
-            disabled={isLoading || isActionSubmitting}
-          >
-            Recargar datos
-          </button>
+          <AppToolbar compact>
+            <button
+              type="button"
+              className="btn btn-outline-primary"
+              onClick={() => void refreshAll()}
+              disabled={isLoading || isActionSubmitting}
+            >
+              Recargar datos
+            </button>
+          </AppToolbar>
         }
       />
 
@@ -474,11 +484,11 @@ export function BillingPage() {
       {isLoading ? <LoadingBlock label="Cargando operación de facturación..." /> : null}
 
       <div className="billing-overview-grid">
-        <MetricCard label="Filas resumen global" value={overview.totalPlatformSummaryRows} />
-        <MetricCard label="Alertas activas" value={overview.totalActiveAlerts} />
-        <MetricCard label="Filas historial alertas" value={overview.totalAlertHistoryRows} />
-        <MetricCard label="Eventos tenant" value={overview.totalTenantEvents} />
-        <MetricCard label="Filas resumen tenant" value={overview.totalTenantSummaryRows} />
+        <MetricCard label="Filas resumen global" icon="overview" tone="default" value={overview.totalPlatformSummaryRows} />
+        <MetricCard label="Alertas activas" icon="activity" tone="warning" value={overview.totalActiveAlerts} />
+        <MetricCard label="Filas historial alertas" icon="reports" tone="info" value={overview.totalAlertHistoryRows} />
+        <MetricCard label="Eventos tenant" icon="billing" tone="success" value={overview.totalTenantEvents} />
+        <MetricCard label="Filas resumen tenant" icon="tenants" tone="default" value={overview.totalTenantSummaryRows} />
       </div>
 
       <PanelCard
@@ -502,12 +512,12 @@ export function BillingPage() {
       </PanelCard>
 
       <PanelCard
+        icon="catalogs"
         title="Filtros de facturación"
         subtitle="El mismo set de filtros alimenta el resumen global, las alertas activas y el workspace del tenant seleccionado."
       >
-        <form className="billing-filter-grid" onSubmit={handleFilterSubmit}>
-          <div>
-            <label className="form-label">Tenant</label>
+        <AppForm className="billing-filter-grid" onSubmit={handleFilterSubmit}>
+          <AppFormField label="Tenant">
             <select
               className="form-select"
               value={selectedTenantId ?? ""}
@@ -524,9 +534,8 @@ export function BillingPage() {
                 </option>
               ))}
             </select>
-          </div>
-          <div>
-            <label className="form-label">Proveedor</label>
+          </AppFormField>
+          <AppFormField label="Proveedor">
             <select
               className="form-select"
               value={providerFilter}
@@ -539,9 +548,8 @@ export function BillingPage() {
                 </option>
               ))}
             </select>
-          </div>
-          <div>
-            <label className="form-label">Resultado de procesamiento</label>
+          </AppFormField>
+          <AppFormField label="Resultado de procesamiento">
             <select
               className="form-select"
               value={processingResultFilter}
@@ -554,9 +562,8 @@ export function BillingPage() {
                 </option>
               ))}
             </select>
-          </div>
-          <div>
-            <label className="form-label">Tipo de evento</label>
+          </AppFormField>
+          <AppFormField label="Tipo de evento">
             <input
               className="form-control"
               list="billing-event-type-options"
@@ -568,9 +575,8 @@ export function BillingPage() {
                 <option key={value} value={value} />
               ))}
             </datalist>
-          </div>
-          <div>
-            <label className="form-label">Límite historial</label>
+          </AppFormField>
+          <AppFormField label="Límite historial">
             <input
               className="form-control"
               type="number"
@@ -578,8 +584,8 @@ export function BillingPage() {
               value={eventLimit}
               onChange={(event) => setEventLimit(event.target.value)}
             />
-          </div>
-          <div className="billing-filter-actions">
+          </AppFormField>
+          <AppFormActions className="billing-filter-actions">
             <button
               type="submit"
               className="btn btn-primary"
@@ -587,8 +593,8 @@ export function BillingPage() {
             >
               Aplicar filtros
             </button>
-          </div>
-        </form>
+          </AppFormActions>
+        </AppForm>
       </PanelCard>
 
       {platformError ? (
@@ -749,6 +755,7 @@ export function BillingPage() {
           ) : null}
 
           <PanelCard
+            icon="billing"
             title={`Espacio tenant de billing: ${selectedTenant.name}`}
             subtitle="Historial de eventos y reconciliación sobre el stream persistido de billing sync."
           >
@@ -804,9 +811,9 @@ export function BillingPage() {
                 ]}
               />
 
-              <form className="tenant-action-form" onSubmit={handleBatchReconcile}>
+              <AppForm className="tenant-action-form" onSubmit={handleBatchReconcile}>
                 <h3 className="tenant-action-form__title">Reconcile en lote</h3>
-                <label className="form-label">Límite</label>
+                <AppFormField label="Límite">
                 <input
                   className="form-control"
                   type="number"
@@ -814,9 +821,13 @@ export function BillingPage() {
                   value={batchLimit}
                   onChange={(event) => setBatchLimit(event.target.value)}
                 />
-                <p className="tenant-help-text mt-3">
+                </AppFormField>
+                <AppFormField fullWidth>
+                  <p className="tenant-help-text mt-3">
                   Reconciliar eventos recientes persistidos usando el set actual de filtros del tenant.
-                </p>
+                  </p>
+                </AppFormField>
+                <AppFormActions>
                 <button
                   type="submit"
                   className="btn btn-primary mt-3"
@@ -824,7 +835,8 @@ export function BillingPage() {
                 >
                   Reconciliar eventos filtrados
                 </button>
-              </form>
+                </AppFormActions>
+              </AppForm>
             </div>
           ) : null}
 
@@ -864,14 +876,16 @@ export function BillingPage() {
                     key: "actions",
                     header: "Acciones",
                     render: (row) => (
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() => handleSingleReconcile(row.id)}
-                        disabled={isActionSubmitting}
-                      >
-                        Reconciliar
-                      </button>
+                      <AppToolbar compact>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => handleSingleReconcile(row.id)}
+                          disabled={isActionSubmitting}
+                        >
+                          Reconciliar
+                        </button>
+                      </AppToolbar>
                     ),
                   },
                 ]}
@@ -921,13 +935,13 @@ function DetailField({
 
 function SeverityBadge({ value }: { value: string }) {
   const normalized = value.trim().toLowerCase();
-  const className =
+  const tone =
     normalized === "critical" || normalized === "error"
-      ? "status-badge status-badge--danger"
+      ? "danger"
       : normalized === "warning"
-        ? "status-badge status-badge--warning"
-        : "status-badge status-badge--info";
-  return <span className={className}>{normalized}</span>;
+        ? "warning"
+        : "info";
+  return <AppBadge tone={tone}>{normalized}</AppBadge>;
 }
 
 function normalizeNullableString(value: string): string | null {

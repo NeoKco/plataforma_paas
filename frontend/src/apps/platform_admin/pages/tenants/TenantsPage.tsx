@@ -6,6 +6,8 @@ import { PanelCard } from "../../../../components/common/PanelCard";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
+import { AppBadge } from "../../../../design-system/AppBadge";
+import { AppToolbar } from "../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../services/api";
@@ -1271,12 +1273,15 @@ export function TenantsPage() {
 
       <PageHeader
         eyebrow="Plataforma"
+        icon="tenants"
         title="Tenants"
         description="Vista operativa sobre lifecycle tenant, billing, mantenimiento, política de acceso y uso actual por módulo."
         actions={
-          <Link className="btn btn-outline-primary" to="/tenant-history">
-            Abrir histórico
-          </Link>
+          <AppToolbar compact>
+            <Link className="btn btn-outline-primary" to="/tenant-history">
+              Abrir histórico
+            </Link>
+          </AppToolbar>
         }
       />
 
@@ -1633,15 +1638,9 @@ export function TenantsPage() {
                     <DetailField
                       label="Permitido"
                       value={
-                        <span
-                          className={`status-badge ${
-                            accessPolicy.access_allowed
-                              ? "status-badge--success"
-                              : "status-badge--danger"
-                          }`}
-                        >
+                        <AppBadge tone={accessPolicy.access_allowed ? "success" : "danger"}>
                           {accessPolicy.access_allowed ? "permitido" : "bloqueado"}
-                        </span>
+                        </AppBadge>
                       }
                     />
                     <DetailField
@@ -2602,9 +2601,9 @@ export function TenantsPage() {
                       header: "Estado",
                       render: (row) =>
                         row.at_limit ? (
-                          <span className="status-badge status-badge--warning">al_límite</span>
+                          <AppBadge tone="warning">al-límite</AppBadge>
                         ) : (
-                          <span className="status-badge status-badge--success">ok</span>
+                          <AppBadge tone="success">ok</AppBadge>
                         ),
                     },
                   ]}
