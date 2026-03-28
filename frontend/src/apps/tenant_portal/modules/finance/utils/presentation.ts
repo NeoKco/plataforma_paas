@@ -1,5 +1,34 @@
 import type { Language } from "../../../../../store/language-context";
 
+export type FinanceModuleKey =
+  | "transactions"
+  | "budgets"
+  | "loans"
+  | "planning"
+  | "reports"
+  | "accounts"
+  | "categories"
+  | "catalogs"
+  | "settings";
+
+export function getFinanceModuleLabel(
+  moduleKey: FinanceModuleKey,
+  language: Language
+): string {
+  const labels: Record<FinanceModuleKey, { es: string; en: string }> = {
+    transactions: { es: "Movimientos", en: "Transactions" },
+    budgets: { es: "Presupuestos", en: "Budgets" },
+    loans: { es: "Préstamos", en: "Loans" },
+    planning: { es: "Planificación", en: "Planning" },
+    reports: { es: "Reportes", en: "Reports" },
+    accounts: { es: "Cuentas", en: "Accounts" },
+    categories: { es: "Categorías", en: "Categories" },
+    catalogs: { es: "Catálogos", en: "Catalogs" },
+    settings: { es: "Configuración", en: "Settings" },
+  };
+  return labels[moduleKey][language];
+}
+
 export function getFinanceAccountTypeLabel(
   accountType: string,
   language: Language

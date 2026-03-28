@@ -53,6 +53,8 @@ Estado actual:
 - `Presupuestos`, `Planificación` y `Reportes` ya leen la moneda base activa del tenant al mostrar montos visibles
 - en `Préstamos`, los resúmenes agregados ya usan la moneda base del tenant, mientras que el detalle de cada préstamo y su cronograma siguen mostrando la moneda propia del préstamo
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend
+- `Planificación` y `Reportes` ya muestran además una primera lectura visual con bloques destacados y gráficos para no depender solo de tablas
+- la navegación del módulo ya usa iconos consistentes entre vistas para hacer más evidente el cambio entre secciones
 
 Pantallas disponibles:
 - `Transacciones`
@@ -66,6 +68,6 @@ Pantallas disponibles:
 - `Configuración`
 
 Pendiente visible:
-- revisar copy residual de exportaciones, confirmaciones y mensajes largos para asegurar paridad completa `Español/Inglés` en todo el módulo
-- dejar gráficos reales para `Reportes` o `Planificación` solo como mejora posterior, no como requisito para usar el módulo
+- seguir puliendo copy residual de exportaciones, confirmaciones y mensajes largos para asegurar paridad completa `Español/Inglés` en todo el módulo
+- si el uso real lo pide, densificar más los gráficos ya presentes en `Reportes` o `Planificación`
 - posibles mejoras adicionales de lotes inteligentes, presets más ricos o exportaciones más densas quedan como backlog opcional

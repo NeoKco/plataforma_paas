@@ -191,5 +191,5 @@ Nucleo transaccional ya disponible en backend:
 Backlog opcional post-cierre:
 - lotes mas inteligentes sobre filtro activo o reglas asistidas adicionales solo si la operación real lo exige
 - seguir endureciendo la lectura derivada de `loans` con cruces contables más densos si el dominio exige contrapartida/categoría explícita
-- comparativas aún más densas del overview solo si el uso real exige nuevos cortes ejecutivos o soportes exportables adicionales
-- dejar gráficos reales para `Reportes` o `Planificación` como mejora posterior, no como parte del cierre funcional actual
+- comparativas y cortes aún más densos del overview solo si el uso real exige nuevos soportes ejecutivos
+- densificar las visualizaciones ya presentes en `Reportes` o `Planificación` solo si el uso real justifica nuevos charts o lecturas gráficas adicionales

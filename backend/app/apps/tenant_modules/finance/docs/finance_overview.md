@@ -66,5 +66,4 @@ Backlog opcional posterior al cierre:
 - lotes inteligentes o reglas asistidas adicionales en `Transacciones` solo si la operación real lo pide
 - presets mas ricos por tenant en `Presupuestos` si luego se justifican
 - lectura contable mas densa en `Préstamos` solo si el dominio exige mayor profundidad
-- comparativas aun mas profundas en `Reportes` solo si aparecen nuevas necesidades reales
-- gráficos reales en `Reportes` o `Planificación` como mejora posterior, no como parte del cierre funcional actual
+- comparativas y visualizaciones aun mas profundas en `Reportes` o `Planificación` solo si aparecen nuevas necesidades reales

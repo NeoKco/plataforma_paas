@@ -130,8 +130,9 @@ Checklist de cierre cubierto:
 - transacciones modernas con filtros, edición, etiquetas, conciliación y auditoría reciente
 - presupuestos con lectura mensual, foco priorizado, clonación, ajustes guiados y plantillas operativas
 - préstamos con cronograma, pagos y reversas individuales o batch, cuenta origen, lectura contable derivada y exportación
-- planificación con overview operativo mensual
-- reportes con comparativas, rankings, exportaciones enriquecidas y foco analítico por dimensión
+- planificación con overview operativo mensual, `spotlight` visual y chart de señales/foco
+- reportes con comparativas, rankings, exportaciones enriquecidas, foco analítico por dimensión y charts reales para pulso, tendencia y desvíos
+- base visual inicial del módulo ya sembrada con navegación iconográfica, bloques `spotlight` y componentes de charting liviano
 - manejo controlado de schema incompleto desde UI/API
 - sincronización de schema tenant visible desde portal, follow-up post-provisioning y corrida masiva post-deploy ya integrada al wrapper de release
 
@@ -140,8 +141,7 @@ Lo que queda ya no bloquea cierre funcional del módulo. Pasa a backlog opcional
 Pendiente posterior al cierre de `finance`:
 
 - usar el propio modulo `finance` como primer bloque de adopcion del futuro `design system` transversal del PaaS
-- ese trabajo queda secuenciado para despues del cierre funcional del modulo y debe incluir iconografia semantica comun para modulos, navegacion y entidades
-- pendiente explícito: dejar la primera capa de gráficos reales de `finance` para despues del cierre funcional del modulo; el punto natural sigue siendo `Reportes` y luego `Planificación`
+- ese trabajo debe partir desde la base ya sembrada en `finance` y extenderla de forma consistente a shells, componentes e iconografia comun del resto del producto
 - cerrar una internacionalizacion transversal real del sistema, continuando desde el avance ya hecho dentro del propio `finance`
 
 Backlog opcional del propio módulo:
@@ -149,7 +149,7 @@ Backlog opcional del propio módulo:
 - lotes inteligentes o reglas asistidas adicionales en `Transacciones` si la operación real lo pide
 - presets configurables por tenant o plantillas más ricas en `Presupuestos`
 - exportaciones más contables o contrapartida/categoría más densa en `Préstamos`
-- cortes analíticos adicionales o comparativas más ejecutivas en `Reportes`
+- charts más densos, cortes analíticos adicionales o comparativas más ejecutivas en `Reportes` y `Planificación`
 
 ## Archivos principales
 

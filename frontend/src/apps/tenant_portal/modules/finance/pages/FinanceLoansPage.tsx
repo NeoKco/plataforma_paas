@@ -630,12 +630,16 @@ export function FinanceLoansPage() {
           <form className="d-grid gap-3" onSubmit={handleSubmit}>
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Nombre</label>
+                <label className="form-label">{language === "es" ? "Nombre" : "Name"}</label>
                 <input
                   className="form-control"
                   value={formState.name}
                   onChange={(event) => setFormState((current) => ({ ...current, name: event.target.value }))}
-                  placeholder="Ej: Crédito vehículo"
+                  placeholder={
+                    language === "es"
+                      ? "Ej: crédito vehículo"
+                      : "Ex: vehicle loan"
+                  }
                 />
               </div>
               <div>
@@ -660,7 +664,7 @@ export function FinanceLoansPage() {
                   onChange={(event) =>
                     setFormState((current) => ({ ...current, counterpartyName: event.target.value }))
                   }
-                  placeholder="Ej: Banco Sur"
+                  placeholder={language === "es" ? "Ej: Banco Sur" : "Ex: South Bank"}
                 />
               </div>
               <div>
@@ -752,7 +756,7 @@ export function FinanceLoansPage() {
                   onChange={(event) =>
                     setFormState((current) => ({ ...current, installmentsCount: event.target.value }))
                   }
-                  placeholder="Ej: 12"
+                  placeholder={language === "es" ? "Ej: 12" : "Ex: 12"}
                 />
               </div>
             </div>
@@ -813,7 +817,11 @@ export function FinanceLoansPage() {
                 rows={3}
                 value={formState.note}
                 onChange={(event) => setFormState((current) => ({ ...current, note: event.target.value }))}
-                placeholder="Ej: renegociado en marzo o con cuota variable"
+                placeholder={
+                  language === "es"
+                    ? "Ej: renegociado en marzo o con cuota variable"
+                    : "Ex: renegotiated in March or with variable installment"
+                }
               />
             </div>
 
@@ -1046,18 +1054,24 @@ export function FinanceLoansPage() {
                     }
                   />
                   <DetailField
-                    label="Acción sugerida"
+                    label={language === "es" ? "Acción sugerida" : "Suggested action"}
                     value={
                       selectedInstallmentIds.length > 0
-                        ? "lista para ejecutar"
-                        : "selecciona cuotas del cronograma"
+                        ? language === "es"
+                          ? "lista para ejecutar"
+                          : "ready to run"
+                        : language === "es"
+                          ? "selecciona cuotas del cronograma"
+                          : "select installments from the schedule"
                     }
                   />
                 </div>
 
                 <div className="tenant-inline-form-grid">
                   <div>
-                    <label className="form-label">Operación en lote</label>
+                    <label className="form-label">
+                      {language === "es" ? "Operación en lote" : "Batch operation"}
+                    </label>
                     <select
                       className="form-select"
                       value={batchFormState.mode}
@@ -1078,7 +1092,9 @@ export function FinanceLoansPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="form-label">Monto por cuota</label>
+                    <label className="form-label">
+                      {language === "es" ? "Monto por cuota" : "Amount per installment"}
+                    </label>
                     <select
                       className="form-select"
                       value={batchFormState.amountMode}
@@ -1091,13 +1107,21 @@ export function FinanceLoansPage() {
                     >
                       {batchFormState.mode === "apply" ? (
                         <>
-                          <option value="full_remaining">Saldo pendiente</option>
-                          <option value="fixed_per_installment">Monto fijo</option>
+                          <option value="full_remaining">
+                            {language === "es" ? "Saldo pendiente" : "Remaining balance"}
+                          </option>
+                          <option value="fixed_per_installment">
+                            {language === "es" ? "Monto fijo" : "Fixed amount"}
+                          </option>
                         </>
                       ) : (
                         <>
-                          <option value="full_paid">Total pagado</option>
-                          <option value="fixed_per_installment">Monto fijo</option>
+                          <option value="full_paid">
+                            {language === "es" ? "Total pagado" : "Total paid"}
+                          </option>
+                          <option value="fixed_per_installment">
+                            {language === "es" ? "Monto fijo" : "Fixed amount"}
+                          </option>
                         </>
                       )}
                     </select>
@@ -1106,7 +1130,9 @@ export function FinanceLoansPage() {
 
                 <div className="tenant-inline-form-grid">
                   <div>
-                    <label className="form-label">Monto fijo</label>
+                    <label className="form-label">
+                      {language === "es" ? "Monto fijo" : "Fixed amount"}
+                    </label>
                     <input
                       className="form-control"
                       type="number"
@@ -1120,7 +1146,11 @@ export function FinanceLoansPage() {
                           amount: event.target.value,
                         }))
                       }
-                      placeholder="Solo si eliges monto fijo"
+                      placeholder={
+                        language === "es"
+                          ? "Solo si eliges monto fijo"
+                          : "Only if you choose a fixed amount"
+                      }
                     />
                   </div>
                   <div>
@@ -1183,9 +1213,15 @@ export function FinanceLoansPage() {
                           }))
                         }
                       >
-                        <option value="interest_first">Interés primero</option>
-                        <option value="principal_first">Capital primero</option>
-                        <option value="proportional">Proporcional</option>
+                        <option value="interest_first">
+                          {language === "es" ? "Interés primero" : "Interest first"}
+                        </option>
+                        <option value="principal_first">
+                          {language === "es" ? "Capital primero" : "Principal first"}
+                        </option>
+                        <option value="proportional">
+                          {language === "es" ? "Proporcional" : "Proportional"}
+                        </option>
                       </select>
                     ) : (
                       <select
@@ -1219,7 +1255,11 @@ export function FinanceLoansPage() {
                         note: event.target.value,
                       }))
                     }
-                    placeholder="Ej: abono grupal confirmado por tesorería"
+                    placeholder={
+                      language === "es"
+                        ? "Ej: abono grupal confirmado por tesorería"
+                        : "Ex: batch payment confirmed by treasury"
+                    }
                   />
                 </div>
 
@@ -1343,9 +1383,15 @@ export function FinanceLoansPage() {
                           }))
                         }
                       >
-                        <option value="interest_first">Interés primero</option>
-                        <option value="principal_first">Capital primero</option>
-                        <option value="proportional">Proporcional</option>
+                        <option value="interest_first">
+                          {language === "es" ? "Interés primero" : "Interest first"}
+                        </option>
+                        <option value="principal_first">
+                          {language === "es" ? "Capital primero" : "Principal first"}
+                        </option>
+                        <option value="proportional">
+                          {language === "es" ? "Proporcional" : "Proportional"}
+                        </option>
                       </select>
                     ) : (
                       <select
@@ -1379,7 +1425,11 @@ export function FinanceLoansPage() {
                           note: event.target.value,
                         }))
                       }
-                      placeholder="Ej: abono recibido por transferencia"
+                      placeholder={
+                        language === "es"
+                          ? "Ej: abono recibido por transferencia"
+                          : "Ex: payment received by transfer"
+                      }
                     />
                   </div>
                 </div>

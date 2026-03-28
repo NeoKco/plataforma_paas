@@ -297,11 +297,11 @@ Backlog opcional post-cierre:
 - evaluar si `Transacciones` necesita una segunda iteracion de lotes inteligentes o reglas asistidas adicionales sobre el filtro activo
 - seguir enriqueciendo `Presupuestos` con presets configurables o plantillas mas ricas por tenant si el uso real lo exige
 - seguir endureciendo `Préstamos` con exportaciones contables mas densas, mejor lectura de contrapartida y eventual cruce con categorías si el dominio lo pide
-- seguir `Reportes` con comparativas todavía mas densas o cortes analíticos adicionales solo si aparecen necesidades reales
-- pendiente explícito: dejar los primeros graficos reales de `finance` como backlog deliberado; el punto mas natural sigue siendo `Reportes` y luego `Planificación`
+- seguir `Reportes` y `Planificación` con visualizaciones mas densas o cortes analíticos adicionales solo si aparecen necesidades reales; la primera capa de charts ya quedó aplicada
+- la base visual local de `finance` ya quedó sembrada con iconografia semantica, bloques `spotlight` y charts livianos; el pendiente ya no es esa capa inicial, sino elevarla a sistema transversal del PaaS
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
-- dejar, ya fuera del cierre de `finance`, la construccion de un `design system` completo del PaaS con adopcion inicial en el propio `finance`, incluyendo iconografia semantica comun
-- dejar, tambien como trabajo transversal posterior, una internacionalizacion real del sistema porque todavia existen pantallas y helpers compartidos con copy parcialmente hardcodeado
+- dejar, ya fuera del cierre de `finance`, la construccion de un `design system` completo del PaaS tomando esta base de `finance` como semilla y extendiendola al resto del producto
+- dejar, tambien como trabajo transversal posterior, una internacionalizacion real del sistema porque fuera de `finance` todavia existen pantallas y helpers compartidos con copy parcialmente hardcodeado
 
 ## Etapa 9. Calidad Tecnica Base
 
@@ -516,7 +516,7 @@ Resultado actual:
 Falta para cerrarlo:
 
 - decidir el siguiente modulo real despues de `finance`
-- solo despues de cerrar `finance`, abrir el trabajo transversal de `design system` y usar `finance` como primer modulo donde se aplique de forma integral
+- abrir el trabajo transversal de `design system` y usar `finance` como primer modulo donde se aplique de forma integral, partiendo desde la base visual ya sembrada en el propio modulo
 - seguir limpiando internacionalizacion transversal fuera de `finance`, porque todavia quedan pantallas y helpers con copy mezclado o localmente hardcodeado
 
 ## Etapa 15. Registro y Activacion de Modulos

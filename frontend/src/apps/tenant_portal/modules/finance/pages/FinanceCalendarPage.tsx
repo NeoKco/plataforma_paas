@@ -8,8 +8,11 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceHorizontalBarChart } from "../components/charts/FinanceHorizontalBarChart";
+import { FinanceMultiSeriesChart } from "../components/charts/FinanceMultiSeriesChart";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
+import { FinanceSpotlight } from "../components/common/FinanceSpotlight";
 import {
   getTenantFinanceCurrencies,
   type TenantFinanceCurrency,
@@ -82,6 +85,39 @@ export function FinanceCalendarPage() {
 
       <FinanceModuleNav />
 
+      <FinanceSpotlight
+        icon="planning"
+        eyebrow={language === "es" ? "Lectura operativa" : "Operational reading"}
+        title={
+          language === "es"
+            ? "Radar mensual de flujo y vencimientos"
+            : "Monthly radar of flow and due dates"
+        }
+        description={
+          language === "es"
+            ? "Concentra señales diarias, cuotas por vencer y presión presupuestaria en una sola vista para priorizar trabajo del mes."
+            : "Concentrates daily signals, due installments, and budget pressure in a single view to prioritize the month."
+        }
+        stats={[
+          {
+            label: language === "es" ? "Mes" : "Month",
+            value: formatMonth(periodMonth, language),
+          },
+          {
+            label: language === "es" ? "Señales" : "Signals",
+            value: String(overview?.calendar_days.length || 0),
+          },
+          {
+            label: language === "es" ? "Cuotas" : "Installments",
+            value: String(summary?.due_installments_count || 0),
+          },
+          {
+            label: language === "es" ? "Foco" : "Focus",
+            value: String(overview?.budget_focus.length || 0),
+          },
+        ]}
+      />
+
       <PanelCard
         title={language === "es" ? "Periodo de planificación" : "Planning period"}
         subtitle={
@@ -90,7 +126,7 @@ export function FinanceCalendarPage() {
             : "First real planning slice: operational view of the current or selected month."
         }
       >
-        <div className="finance-inline-toolbar">
+        <div className="finance-filter-grid">
           <div>
             <label className="form-label">{language === "es" ? "Mes" : "Month"}</label>
             <input
@@ -186,6 +222,31 @@ export function FinanceCalendarPage() {
               : "Only days with transactions or due installments are listed."
           }
         >
+          <FinanceMultiSeriesChart
+            emptyLabel={
+              language === "es"
+                ? "No hay días con señal operativa para el mes seleccionado."
+                : "There are no days with operational signal for the selected month."
+            }
+            points={buildPlanningChartPoints(overview?.calendar_days || [], language)}
+            series={[
+              {
+                key: "income",
+                label: language === "es" ? "Ingresos" : "Income",
+                color: "#24704f",
+              },
+              {
+                key: "expense",
+                label: language === "es" ? "Egresos" : "Expenses",
+                color: "#a12837",
+              },
+              {
+                key: "net",
+                label: language === "es" ? "Balance" : "Balance",
+                color: "#1256cc",
+              },
+            ]}
+          />
           <PlanningDayList items={overview?.calendar_days || []} language={language} currencyCode={baseCurrencyCode} />
         </PanelCard>
       </div>
@@ -210,6 +271,15 @@ export function FinanceCalendarPage() {
               : "Categories with the largest absolute variance to focus the review."
           }
         >
+          <FinanceHorizontalBarChart
+            emptyLabel={
+              language === "es"
+                ? "No hay presupuestos activos para construir foco operativo."
+                : "There are no active budgets to build an operational focus."
+            }
+            formatValue={(value) => formatMoney(value, language, baseCurrencyCode)}
+            items={buildBudgetFocusChartItems(overview?.budget_focus || [], language)}
+          />
           <PlanningBudgetFocusList items={overview?.budget_focus || []} language={language} currencyCode={baseCurrencyCode} />
         </PanelCard>
       </div>
@@ -366,6 +436,34 @@ function buildPeriodMonthIso(monthValue: string) {
   return `${monthValue}-01`;
 }
 
+function buildPlanningChartPoints(
+  items: TenantFinancePlanningDayItem[],
+  language: "es" | "en"
+) {
+  return items.map((item) => ({
+    label: formatDayShort(item.day, language),
+    values: {
+      income: item.income_total,
+      expense: item.expense_total,
+      net: item.net_total,
+    },
+  }));
+}
+
+function buildBudgetFocusChartItems(
+  items: TenantFinancePlanningBudgetFocusItem[],
+  language: "es" | "en"
+) {
+  return items.slice(0, 6).map((item) => ({
+    label: item.category_name,
+    value: item.variance_amount,
+    caption: `${getFinanceCategoryTypeLabel(item.category_type, language)} · ${displayBudgetStatus(
+      item.budget_status,
+      language
+    )}`,
+  }));
+}
+
 function formatMoney(value: number, language: "es" | "en", currencyCode: string) {
   return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
@@ -378,6 +476,20 @@ function formatDate(value: string, language: "es" | "en") {
   return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
     dateStyle: "medium",
   }).format(new Date(`${value}T00:00:00`));
+}
+
+function formatDayShort(value: string, language: "es" | "en") {
+  return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(`${value}T00:00:00`));
+}
+
+function formatMonth(value: string, language: "es" | "en") {
+  return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${value}-01T00:00:00`));
 }
 
 function displayLoanType(value: string, language: "es" | "en") {

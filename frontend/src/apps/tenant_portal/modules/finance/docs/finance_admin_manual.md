@@ -62,8 +62,10 @@ Estado actual:
 - `Presupuestos`, `Planificación` y `Reportes` ya formatean los montos visibles con la moneda base activa del tenant
 - `Préstamos` ya usa la moneda base en métricas agregadas, pero conserva la moneda propia del préstamo en filas y cronograma para no mezclar símbolos sobre importes nativos
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo
+- `Planificación` y `Reportes` ya incorporan una primera capa visual con bloques destacados y charts livianos para lectura operativa
+- la navegación secundaria del módulo ya usa iconografía semántica consistente entre vistas
 
 Pendiente administrativo:
-- cerrar auditoría fina de copy residual en exportaciones, confirmaciones, badges y mensajes largos para asegurar paridad completa entre `Español/Inglés`
-- dejar gráficos y enriquecimientos más densos del módulo como backlog opcional posterior al cierre
-- usar `finance` como primer bloque de adopción del futuro `design system` transversal del PaaS
+- seguir puliendo copy residual en exportaciones, confirmaciones, badges y mensajes largos para asegurar paridad completa entre `Español/Inglés`
+- dejar charts más densos y otros enriquecimientos del módulo como backlog opcional posterior al cierre
+- usar `finance` como primer bloque de adopción del futuro `design system` transversal del PaaS, reutilizando la base visual ya sembrada

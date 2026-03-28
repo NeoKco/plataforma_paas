@@ -8,8 +8,11 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceHorizontalBarChart } from "../components/charts/FinanceHorizontalBarChart";
+import { FinanceMultiSeriesChart } from "../components/charts/FinanceMultiSeriesChart";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
+import { FinanceSpotlight } from "../components/common/FinanceSpotlight";
 import {
   getTenantFinanceCurrencies,
   type TenantFinanceCurrency,
@@ -134,6 +137,39 @@ export function FinanceReportsPage() {
 
       <FinanceModuleNav />
 
+      <FinanceSpotlight
+        icon="reports"
+        eyebrow={language === "es" ? "Lectura ejecutiva" : "Executive reading"}
+        title={
+          language === "es"
+            ? "Panel analítico del cierre mensual"
+            : "Analytical panel for the monthly close"
+        }
+        description={
+          language === "es"
+            ? "Cruza período, comparación, dimensión y foco operativo en una misma lectura para no depender solo de tablas exportables."
+            : "Cross period, comparison, dimension, and operational focus in a single reading so you do not depend only on exported tables."
+        }
+        stats={[
+          {
+            label: language === "es" ? "Período" : "Period",
+            value: formatMonthLabel(buildPeriodMonthIso(periodMonth), language),
+          },
+          {
+            label: language === "es" ? "Comparado" : "Compared",
+            value: formatMonthLabel(buildPeriodMonthIso(comparePeriodMonth), language),
+          },
+          {
+            label: language === "es" ? "Dimensión" : "Dimension",
+            value: buildAnalysisDimensionLabel(analysisDimension, language),
+          },
+          {
+            label: language === "es" ? "Foco" : "Focus",
+            value: buildMovementScopeLabel(movementScope, language),
+          },
+        ]}
+      />
+
       <PanelCard
         title={language === "es" ? "Periodo de análisis" : "Analysis period"}
         subtitle={
@@ -142,7 +178,7 @@ export function FinanceReportsPage() {
             : "First reporting slice: monthly operational overview to close the module's base reading."
         }
       >
-        <div className="finance-inline-toolbar">
+        <div className="finance-filter-grid">
           <div>
             <label className="form-label">{language === "es" ? "Mes" : "Month"}</label>
             <input
@@ -568,6 +604,31 @@ export function FinanceReportsPage() {
           title={language === "es" ? "Pulso diario de caja" : "Daily cash pulse"}
           subtitle={language === "es" ? "Serie corta para ver qué días concentraron flujo y presión operativa." : "Short series to see which days concentrated flow and operational pressure."}
         >
+          <FinanceMultiSeriesChart
+            emptyLabel={
+              language === "es"
+                ? "Sin actividad diaria relevante en el período."
+                : "No relevant daily activity for the selected period."
+            }
+            points={buildDailyCashflowChartPoints(overview?.daily_cashflow || [], language)}
+            series={[
+              {
+                key: "income",
+                label: language === "es" ? "Ingresos" : "Income",
+                color: "#24704f",
+              },
+              {
+                key: "expense",
+                label: language === "es" ? "Egresos" : "Expenses",
+                color: "#a12837",
+              },
+              {
+                key: "net",
+                label: language === "es" ? "Balance" : "Balance",
+                color: "#1256cc",
+              },
+            ]}
+          />
           <DailyCashflowList
             items={overview?.daily_cashflow || []}
             currencyCode={baseCurrencyCode}
@@ -579,6 +640,18 @@ export function FinanceReportsPage() {
           title={language === "es" ? "Desvíos presupuestarios" : "Budget variances"}
           subtitle={language === "es" ? "Categorías con mayor diferencia entre plan y real para priorizar revisión." : "Categories with the largest difference between plan and actual to prioritize review."}
         >
+          <FinanceHorizontalBarChart
+            emptyLabel={
+              language === "es"
+                ? "Sin desvíos presupuestarios para el período seleccionado."
+                : "No budget variances for the selected period."
+            }
+            formatValue={(value) => formatSignedMoney(value, baseCurrencyCode, language)}
+            items={buildBudgetVarianceBarItems(
+              overview?.budget_variances || [],
+              language
+            )}
+          />
           <BudgetVarianceTable
             items={overview?.budget_variances || []}
             currencyCode={baseCurrencyCode}
@@ -591,6 +664,31 @@ export function FinanceReportsPage() {
         title={language === "es" ? "Tendencia reciente" : "Recent trend"}
         subtitle={language === "es" ? "Lectura corta de 6 meses para no perder contexto entre cambios de período." : "Short reading across 6 months to keep context between period changes."}
       >
+        <FinanceMultiSeriesChart
+          emptyLabel={
+            language === "es"
+              ? "Sin tendencia disponible para este tenant."
+              : "No trend available for this tenant."
+          }
+          points={buildMonthlyTrendChartPoints(overview?.monthly_trend || [], language)}
+          series={[
+            {
+              key: "income",
+              label: language === "es" ? "Ingresos" : "Income",
+              color: "#24704f",
+            },
+            {
+              key: "expense",
+              label: language === "es" ? "Egresos" : "Expenses",
+              color: "#a12837",
+            },
+            {
+              key: "net",
+              label: language === "es" ? "Balance" : "Balance",
+              color: "#1256cc",
+            },
+          ]}
+        />
         <MonthlyTrendTable
           items={overview?.monthly_trend || []}
           currencyCode={baseCurrencyCode}
@@ -1238,6 +1336,53 @@ function buildPreviousMonthValue(dateValue = new Date()) {
   return `${year}-${month}`;
 }
 
+function buildDailyCashflowChartPoints(
+  items: TenantFinanceReportDailyCashflowItem[],
+  language: "es" | "en"
+) {
+  return items.map((item) => ({
+    label: formatShortDay(item.day, language),
+    values: {
+      income: item.income_total,
+      expense: item.expense_total,
+      net: item.net_total,
+    },
+  }));
+}
+
+function buildMonthlyTrendChartPoints(
+  items: TenantFinanceReportMonthlyTrendItem[],
+  language: "es" | "en"
+) {
+  return items.map((item) => ({
+    label: formatCompactMonthLabel(item.period_month, language),
+    values: {
+      income: item.total_income,
+      expense: item.total_expense,
+      net: item.net_balance,
+    },
+  }));
+}
+
+function buildBudgetVarianceBarItems(
+  items: TenantFinanceReportBudgetVarianceItem[],
+  language: "es" | "en"
+) {
+  return items.slice(0, 6).map((item) => ({
+    label: item.category_name,
+    value: item.variance_amount,
+    caption: `${buildBudgetStatusLabel(item.budget_status, language)} · ${
+      item.is_active
+        ? language === "es"
+          ? "activa"
+          : "active"
+        : language === "es"
+          ? "inactiva"
+          : "inactive"
+    }`,
+  }));
+}
+
 function buildPeriodMonthIso(monthValue: string) {
   return `${monthValue}-01`;
 }
@@ -1274,10 +1419,23 @@ function formatDay(day: string, language: "es" | "en") {
   }).format(new Date(`${day}T00:00:00`));
 }
 
+function formatShortDay(day: string, language: "es" | "en") {
+  return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
+    day: "numeric",
+    month: "short",
+  }).format(new Date(`${day}T00:00:00`));
+}
+
 function formatMonthLabel(monthIso: string, language: "es" | "en" = "es") {
   return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
     month: "short",
     year: "numeric",
+  }).format(new Date(`${monthIso}T00:00:00`));
+}
+
+function formatCompactMonthLabel(monthIso: string, language: "es" | "en" = "es") {
+  return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
+    month: "short",
   }).format(new Date(`${monthIso}T00:00:00`));
 }
 
