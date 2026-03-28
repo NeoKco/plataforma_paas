@@ -210,7 +210,7 @@ Resultado actual:
 
 ## Etapa 8. Primer Modulo Tenant Real
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -281,18 +281,27 @@ Resultado actual:
 - `platform` ya expone un catalogo de capacidades backend para que frontend y soporte descubran estados, modulos y claves de cuota sin hardcodearlos
 - ese catalogo ya incluye metadatos estructurados por cuota para que frontend no tenga que inferir labels, recursos o segmentaciones
 
-Falta para cerrarlo:
+Checklist de cierre funcional ya cubierto:
+
+- catálogos, configuración, monedas y tipos de cambio operativos
+- núcleo transaccional moderno con filtros, edición, etiquetas, conciliación individual y batch
+- `Presupuestos` con lectura mensual, foco priorizado, clonación, ajustes guiados y plantillas operativas
+- `Préstamos` con cronograma, pagos/reversas, batch, cuenta origen, lectura contable derivada y exportación
+- `Planificación` con lectura operativa mensual
+- `Reportes` con overview consolidado, comparativas, rankings y exportaciones enriquecidas
+- manejo controlado de schema incompleto y self-service tenant-side para sincronización
+- auto-sync post-provisioning y post-deploy ya integrado al flujo operativo
+
+Backlog opcional post-cierre:
 
 - evaluar si `Transacciones` necesita una segunda iteracion de lotes inteligentes o reglas asistidas adicionales sobre el filtro activo
-- seguir enriqueciendo `Presupuestos` con presets configurables o plantillas mas ricas por tenant, ahora que ya existen ajustes guiados y plantillas operativas base
+- seguir enriqueciendo `Presupuestos` con presets configurables o plantillas mas ricas por tenant si el uso real lo exige
 - seguir endureciendo `Préstamos` con exportaciones contables mas densas, mejor lectura de contrapartida y eventual cruce con categorías si el dominio lo pide
-- consolidar el uso real del auto-sync post-deploy ahora que ya quedó integrado al wrapper de release/verify, dejando la operación manual desde `Provisioning` como apoyo y no como paso obligatorio
-- seguir `Lote 7` con comparativas todavía mas densas, cortes analíticos adicionales si aparecen necesidades reales y lecturas exportables más ejecutivas
-- dejar los primeros graficos reales de `finance` como pendiente deliberado hasta cerrar el modulo funcionalmente; el punto mas natural sigue siendo `Reportes` y luego `Planificación`
-- validaciones y casos de uso de negocio mas ricos
+- seguir `Reportes` con comparativas todavía mas densas o cortes analíticos adicionales solo si aparecen necesidades reales
+- dejar los primeros graficos reales de `finance` como backlog deliberado; el punto mas natural sigue siendo `Reportes` y luego `Planificación`
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
-- dejar pendiente, para despues del cierre funcional de `finance`, la construccion de un `design system` completo del PaaS con adopcion inicial en el propio `finance`, incluyendo iconografia semantica comun
-- dejar pendiente una internacionalizacion transversal real del sistema, porque hoy todavia existen pantallas y helpers compartidos con copy parcialmente hardcodeado
+- dejar, ya fuera del cierre de `finance`, la construccion de un `design system` completo del PaaS con adopcion inicial en el propio `finance`, incluyendo iconografia semantica comun
+- dejar, tambien como trabajo transversal posterior, una internacionalizacion real del sistema porque todavia existen pantallas y helpers compartidos con copy parcialmente hardcodeado
 
 ## Etapa 9. Calidad Tecnica Base
 
@@ -487,7 +496,7 @@ Objetivo:
 
 Orden sugerido:
 
-1. cerrar `finance`
+1. tomar `finance` como modulo base ya cerrado y referencia para los siguientes slices
 2. luego `condos`
 3. despues `iot`
 
@@ -502,10 +511,10 @@ Resultado actual:
 - `finance` ya no es solo una idea: existe modulo backend funcional, migraciones, enforcement de limites, vistas tenant y visibilidad operativa desde plataforma
 - ya existen pruebas manuales y runbooks guiados sobre `finance`, billing y efectos de limites en el portal tenant
 - `tenant_portal` ya corrigio el cambio de idioma en `Overview` y `Users`, y el frontend ya dejo resuelto el warning de bundle principal grande con code-splitting por ruta
+- `finance` ya puede tratarse como modulo funcionalmente cerrado para pasar a backlog opcional y preparar trabajo transversal posterior
 
 Falta para cerrarlo:
 
-- cerrar mejor casos de negocio de `finance`
 - decidir el siguiente modulo real despues de `finance`
 - solo despues de cerrar `finance`, abrir el trabajo transversal de `design system` y usar `finance` como primer modulo donde se aplique de forma integral
 - seguir limpiando internacionalizacion transversal fuera de `finance`, porque todavia quedan pantallas y helpers con copy mezclado o localmente hardcodeado

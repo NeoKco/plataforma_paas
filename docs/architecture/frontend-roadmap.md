@@ -34,6 +34,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
 - el frontend ya usa code-splitting por ruta para `platform_admin`, `tenant_portal` y `finance`, reduciendo el bundle inicial y eliminando la advertencia de chunk principal > `500 kB`
+- `finance` ya puede considerarse funcionalmente cerrado como slice base del portal tenant; lo que queda es backlog opcional o trabajo transversal posterior
 
 Lo que queda pendiente ya no es abrir el frontend desde cero.
 
@@ -46,10 +47,10 @@ Lo pendiente es sobre todo:
 - endurecimiento de bordes y automatizacion
 - cierre visual y operativo de algunos detalles
 - definir la convencion oficial para que los siguientes modulos nazcan como slices coherentes, tomando `finance` como modulo piloto
-- seguir enriqueciendo `Presupuestos`, ahora que ya tiene lectura mensual, contadores operativos, foco priorizado, acciones rapidas, clonacion intermensual, ajustes guiados y plantillas operativas
-- seguir endureciendo `Reportes` con comparativas todavía más densas y exportaciones de soporte si el uso real lo justifica, ahora que ya existe comparación por dimensión activa
+- seguir enriqueciendo `Presupuestos` solo si el uso real justifica presets configurables o plantillas más ricas por tenant
+- seguir endureciendo `Reportes` solo si el uso real justifica comparativas todavía más densas y exportaciones de soporte adicionales
 - evaluar una segunda iteracion de `Transacciones` con lotes inteligentes sobre filtro activo o reglas asistidas adicionales solo si la operación real lo pide
-- seguir endureciendo `Préstamos` con mejor lectura de contrapartida, cruces más densos si el negocio lo exige y posibles exportaciones aún más contables
+- seguir endureciendo `Préstamos` solo si el negocio exige mejor lectura de contrapartida, cruces más densos o exportaciones aún más contables
 - consolidar la adopción visible del auto-sync post-deploy en consola operativa, ahora que ya existe el follow-up automático post-provisioning, la acción masiva desde `Provisioning` y la integración al wrapper de release/verify
 - dejar los primeros gráficos reales de `finance` como pendiente posterior al cierre funcional del módulo; el punto natural sigue siendo `Reportes` y luego `Planificación`
 - una vez cerrado `finance`, abrir un `design system` transversal del PaaS y aplicar la primera migracion completa precisamente sobre `finance`, incluyendo sistema comun de iconos por modulo y entidad
@@ -74,6 +75,7 @@ El objetivo ahora es este:
 - dejar el frontend listo para crecer sin retrabajo grande antes de abrir nuevos modulos
 - tratar `finance` como modulo base visible del SaaS antes de abrir otros dominios tenant
 - mantener `tenant_portal/modules/finance` como estructura canonica para la evolucion del modulo
+- tratar `finance` como primer slice cerrado que luego será migrado al `design system` transversal, no como módulo todavía abierto por defecto
 
 ## Principio rector
 

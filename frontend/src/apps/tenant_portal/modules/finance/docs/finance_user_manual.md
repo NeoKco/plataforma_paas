@@ -1,6 +1,7 @@
 # Finance User Manual
 
 Estado actual:
+- el módulo ya puede considerarse funcionalmente cerrado para operación base del tenant
 - módulo base del SaaS en arranque
 - pantalla vigente de transacciones ya montada sobre el núcleo moderno
 - vistas operativas de cuentas, categorías, catálogos auxiliares y configuración financiera
@@ -66,3 +67,5 @@ Pantallas disponibles:
 
 Pendiente visible:
 - revisar copy residual de exportaciones, confirmaciones y mensajes largos para asegurar paridad completa `Español/Inglés` en todo el módulo
+- dejar gráficos reales para `Reportes` o `Planificación` solo como mejora posterior, no como requisito para usar el módulo
+- posibles mejoras adicionales de lotes inteligentes, presets más ricos o exportaciones más densas quedan como backlog opcional

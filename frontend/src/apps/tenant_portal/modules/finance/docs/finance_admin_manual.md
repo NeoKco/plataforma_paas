@@ -7,6 +7,7 @@ Este documento irá consolidando:
 - operaciones administrativas de tenant asociadas a finance
 
 Estado actual:
+- el módulo ya puede considerarse funcionalmente cerrado para operación base y soporte del tenant
 - ya existen catálogos operativos para cuentas, categorías, beneficiarios, personas, proyectos, etiquetas, monedas, tipos de cambio y settings
 - `CLP` queda sembrada como moneda disponible desde las migraciones base
 - las pantallas actuales todavía asumen permisos simples `tenant.finance.read` y `tenant.finance.create`
@@ -64,3 +65,5 @@ Estado actual:
 
 Pendiente administrativo:
 - cerrar auditoría fina de copy residual en exportaciones, confirmaciones, badges y mensajes largos para asegurar paridad completa entre `Español/Inglés`
+- dejar gráficos y enriquecimientos más densos del módulo como backlog opcional posterior al cierre
+- usar `finance` como primer bloque de adopción del futuro `design system` transversal del PaaS

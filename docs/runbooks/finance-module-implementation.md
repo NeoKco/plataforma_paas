@@ -120,11 +120,36 @@ En esta fase quedaron listos:
 - existe ademas el script operativo `backend/app/scripts/enqueue_active_tenant_schema_sync.py` para la misma tarea
 - el wrapper de release/verify backend ya dispara ese auto-sync post-deploy por defecto, dejando la operacion manual como respaldo operativo
 
+## Estado de cierre funcional
+
+`finance` ya puede tratarse como modulo funcionalmente cerrado dentro de la etapa actual del PaaS.
+
+Checklist de cierre cubierto:
+
+- catálogos, configuración y moneda base ya operativos
+- transacciones modernas con filtros, edición, etiquetas, conciliación y auditoría reciente
+- presupuestos con lectura mensual, foco priorizado, clonación, ajustes guiados y plantillas operativas
+- préstamos con cronograma, pagos y reversas individuales o batch, cuenta origen, lectura contable derivada y exportación
+- planificación con overview operativo mensual
+- reportes con comparativas, rankings, exportaciones enriquecidas y foco analítico por dimensión
+- manejo controlado de schema incompleto desde UI/API
+- sincronización de schema tenant visible desde portal, follow-up post-provisioning y corrida masiva post-deploy ya integrada al wrapper de release
+
+Lo que queda ya no bloquea cierre funcional del módulo. Pasa a backlog opcional o a trabajo transversal posterior.
+
 Pendiente posterior al cierre de `finance`:
 
 - usar el propio modulo `finance` como primer bloque de adopcion del futuro `design system` transversal del PaaS
 - ese trabajo queda secuenciado para despues del cierre funcional del modulo y debe incluir iconografia semantica comun para modulos, navegacion y entidades
 - dejar la primera capa de gráficos reales de `finance` para despues del cierre funcional del modulo; el punto natural sigue siendo `Reportes` y luego `Planificación`
+- cerrar una internacionalizacion transversal real del sistema, continuando desde el avance ya hecho dentro del propio `finance`
+
+Backlog opcional del propio módulo:
+
+- lotes inteligentes o reglas asistidas adicionales en `Transacciones` si la operación real lo pide
+- presets configurables por tenant o plantillas más ricas en `Presupuestos`
+- exportaciones más contables o contrapartida/categoría más densa en `Préstamos`
+- cortes analíticos adicionales o comparativas más ejecutivas en `Reportes`
 
 ## Archivos principales
 
@@ -334,14 +359,10 @@ Ademas, el propio `tenant_portal` ya permite a un `admin` del tenant:
 
 Lo siguiente recomendable ahora es:
 
-1. evaluar una segunda iteracion de conciliacion asistida con lotes mas inteligentes, agrupacion y revision visual mas densa solo si la operación real lo exige
-2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
-3. profundizar `Reportes` solo si luego se necesitan comparativas todavía mas densas, cortes adicionales por entidad o exportaciones de soporte más ejecutivas
-4. endurecer `Préstamos` solo si luego se requiere lectura de contrapartida/categoría o exportación contable mas formal
-5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual, como siguiente mejora opcional de `Transacciones`
-6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable
-7. consolidar la lectura operativa del auto-sync post-deploy y dejar la corrida manual desde `Provisioning`/script solo como respaldo
-8. dejar los primeros gráficos reales para `Reportes` y, si luego aporta, para `Planificación`
+1. declarar `finance` como módulo base ya cerrado y usarlo como referencia para nuevos módulos tenant
+2. abrir después el `design system` transversal del PaaS, aplicándolo primero sobre `finance`
+3. atacar luego la internacionalización transversal real del frontend
+4. dejar gráficos y mejoras opcionales del módulo como backlog posterior, no como bloqueo del cierre
 
 ## Convencion relacionada
 
