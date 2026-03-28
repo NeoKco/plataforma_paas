@@ -5,6 +5,12 @@ import { MetricCard } from "../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
+import {
+  AppForm,
+  AppFormActions,
+  AppFormField,
+} from "../../../../design-system/AppForm";
+import { AppToolbar } from "../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import {
@@ -413,8 +419,16 @@ export function PlatformUsersPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Plataforma"
+        icon="users"
         title="Usuarios de plataforma"
         description="Gobierna quién puede entrar a la consola central, con qué rol y con qué estado operativo."
+        actions={
+          <AppToolbar compact>
+            <button className="btn btn-outline-secondary" type="button" onClick={() => void loadUsers()}>
+              Recargar
+            </button>
+          </AppToolbar>
+        }
       />
 
       {isLoading ? <LoadingBlock label="Cargando usuarios de plataforma..." /> : null}
@@ -429,11 +443,13 @@ export function PlatformUsersPage() {
       {!isLoading ? (
         <>
           <div className="dashboard-overview-grid">
-            <MetricCard label="Usuarios totales" value={overview.totalUsers} />
-            <MetricCard label="Usuarios activos" value={overview.activeUsers} />
-            <MetricCard label="Usuarios inactivos" value={overview.inactiveUsers} />
+            <MetricCard label="Usuarios totales" icon="users" tone="default" value={overview.totalUsers} />
+            <MetricCard label="Usuarios activos" icon="overview" tone="success" value={overview.activeUsers} />
+            <MetricCard label="Usuarios inactivos" icon="settings" tone="warning" value={overview.inactiveUsers} />
             <MetricCard
               label="Superadministradores activos"
+              icon="dashboard"
+              tone="info"
               value={overview.activeSuperadmins}
               hint="La política actual recomienda y ahora exige operar con uno solo activo."
             />
@@ -450,6 +466,7 @@ export function PlatformUsersPage() {
 
           <div className="settings-grid">
             <PanelCard
+              icon="users"
               title="Alta de usuario de plataforma"
               subtitle="Crea otro operador para la consola central con una contraseña inicial controlada."
             >
@@ -459,13 +476,16 @@ export function PlatformUsersPage() {
                   y `admin` pueden crear usuarios de plataforma.
                 </p>
               ) : (
-                <form className="d-grid gap-3" onSubmit={handleCreateUser}>
+                <AppForm onSubmit={handleCreateUser}>
+                  <AppFormField label="Nombre completo">
                   <input
                     className="form-control"
                     value={createFullName}
                     onChange={(event) => setCreateFullName(event.target.value)}
                     placeholder="Nombre completo"
                   />
+                  </AppFormField>
+                  <AppFormField label="Correo de acceso">
                   <input
                     className="form-control"
                     type="email"
@@ -473,7 +493,8 @@ export function PlatformUsersPage() {
                     onChange={(event) => setCreateEmail(event.target.value)}
                     placeholder="Correo de acceso"
                   />
-                  <div className="tenant-inline-form-grid">
+                  </AppFormField>
+                  <AppFormField label="Rol">
                     <select
                       className="form-select"
                       value={createRole}
@@ -483,8 +504,10 @@ export function PlatformUsersPage() {
                         <option key={role} value={role}>
                           {displayPlatformCode(role)}
                         </option>
-                      ))}
-                    </select>
+                        ))}
+                      </select>
+                  </AppFormField>
+                  <AppFormField label="Estado inicial">
                     <select
                       className="form-select"
                       value={createIsActive ? "active" : "inactive"}
@@ -495,7 +518,8 @@ export function PlatformUsersPage() {
                       <option value="active">activo</option>
                       <option value="inactive">inactivo</option>
                     </select>
-                  </div>
+                  </AppFormField>
+                  <AppFormField label="Contraseña inicial">
                   <input
                     className="form-control"
                     type="password"
@@ -503,11 +527,15 @@ export function PlatformUsersPage() {
                     onChange={(event) => setCreatePassword(event.target.value)}
                     placeholder="Contraseña inicial"
                   />
+                  </AppFormField>
+                  <AppFormField fullWidth>
                   <p className="tenant-help-text">
                     {currentPlatformRole === "superadmin"
                       ? "Usa `admin` para gestión operativa de usuarios y `support` para apoyo diario. `superadmin` queda reservado como cuenta raíz única y no se crea desde este flujo."
                       : "Como administrador, desde aquí solo puedes crear usuarios `support`."}
                   </p>
+                  </AppFormField>
+                  <AppFormActions>
                   <button
                     className="btn btn-primary"
                     type="submit"
@@ -520,11 +548,13 @@ export function PlatformUsersPage() {
                   >
                     Crear usuario
                   </button>
-                </form>
+                  </AppFormActions>
+                </AppForm>
               )}
             </PanelCard>
 
             <PanelCard
+              icon="catalogs"
               title="Catálogo de usuarios de plataforma"
               subtitle="Busca, filtra y selecciona operadores para revisar su acceso."
             >
@@ -618,6 +648,7 @@ export function PlatformUsersPage() {
           {selectedUser ? (
             <div className="tenant-action-grid">
               <PanelCard
+                icon="users"
                 title={selectedUser.full_name}
                 subtitle="Identidad básica y rol operativo del usuario de plataforma seleccionado."
               >
@@ -637,7 +668,8 @@ export function PlatformUsersPage() {
                   />
                 </div>
 
-                <form className="d-grid gap-3" onSubmit={handleUpdateUser}>
+                <AppForm onSubmit={handleUpdateUser}>
+                  <AppFormField label="Nombre completo">
                   <input
                     className="form-control"
                     value={editFullName}
@@ -645,6 +677,8 @@ export function PlatformUsersPage() {
                     placeholder="Nombre completo"
                     disabled={!canEditSelectedUser || isActionSubmitting}
                   />
+                  </AppFormField>
+                  <AppFormField label="Rol">
                   <select
                     className="form-select"
                     value={editRole}
@@ -655,15 +689,19 @@ export function PlatformUsersPage() {
                       <option key={role} value={role}>
                         {displayPlatformCode(role)}
                       </option>
-                    ))}
-                  </select>
+                      ))}
+                    </select>
+                  </AppFormField>
                   {!canEditSelectedUser ? (
-                    <p className="tenant-help-text">
+                    <AppFormField fullWidth>
+                      <p className="tenant-help-text">
                       {selectedUser.role === "superadmin"
                         ? "La cuenta superadministradora no se crea ni se elimina desde aquí. Si existen superadministradores heredados, solo un superadministrador puede degradarlos o desactivarlos manteniendo siempre uno activo."
                         : "Tu rol actual no puede editar la identidad o el rol de este usuario."}
-                    </p>
+                      </p>
+                    </AppFormField>
                   ) : null}
+                  <AppFormActions>
                   <button
                     className="btn btn-primary"
                     type="submit"
@@ -675,11 +713,13 @@ export function PlatformUsersPage() {
                   >
                     Guardar identidad
                   </button>
-                </form>
+                  </AppFormActions>
+                </AppForm>
               </PanelCard>
 
               <div className="d-grid gap-4">
                 <PanelCard
+                  icon="settings"
                   title="Estado operativo"
                   subtitle="Activa o desactiva el acceso de este usuario a la consola de plataforma."
                 >
@@ -700,10 +740,12 @@ export function PlatformUsersPage() {
                 </PanelCard>
 
                 <PanelCard
+                  icon="settings"
                   title="Contraseña inicial"
                   subtitle="Reemplaza la contraseña actual por una nueva clave controlada desde plataforma."
                 >
-                  <form className="d-grid gap-3" onSubmit={handleResetPassword}>
+                  <AppForm onSubmit={handleResetPassword}>
+                    <AppFormField label="Nueva contraseña">
                     <input
                       className="form-control"
                       type="password"
@@ -712,6 +754,8 @@ export function PlatformUsersPage() {
                       placeholder="Nueva contraseña"
                       disabled={!canResetSelectedUserPassword || isActionSubmitting}
                     />
+                    </AppFormField>
+                    <AppFormActions>
                     <button
                       className="btn btn-primary"
                       type="submit"
@@ -723,10 +767,12 @@ export function PlatformUsersPage() {
                     >
                       Actualizar contraseña
                     </button>
-                  </form>
+                    </AppFormActions>
+                  </AppForm>
                 </PanelCard>
 
                 <PanelCard
+                  icon="activity"
                   title="Eliminar usuario"
                   subtitle="Borra de forma definitiva cuentas no críticas de plataforma."
                 >

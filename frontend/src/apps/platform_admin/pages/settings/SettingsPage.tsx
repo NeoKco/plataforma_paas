@@ -4,6 +4,7 @@ import { MetricCard } from "../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
+import { AppToolbar } from "../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import {
@@ -67,97 +68,94 @@ export function SettingsPage() {
     return getDefaultApiBaseUrl();
   }, []);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadSettings() {
-      if (!session?.accessToken) {
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-      setRootRecoveryStatusError(null);
-      setSecurityPostureError(null);
-
-      try {
-        const [
-          capabilitiesResult,
-          rootRecoveryResult,
-          platformUsersResult,
-          securityPostureResult,
-        ] =
-          await Promise.allSettled([
-            getPlatformCapabilities(session.accessToken),
-            getPlatformRootRecoveryStatus(session.accessToken),
-            listPlatformUsers(session.accessToken),
-            getPlatformSecurityPosture(session.accessToken),
-          ]);
-        if (isMounted) {
-          if (capabilitiesResult.status === "fulfilled") {
-            setCapabilities(capabilitiesResult.value);
-          } else {
-            setCapabilities(null);
-          }
-
-          if (platformUsersResult.status === "fulfilled") {
-            setPlatformUsers(platformUsersResult.value.data);
-          } else {
-            setPlatformUsers([]);
-          }
-
-          if (rootRecoveryResult.status === "fulfilled") {
-            setRootRecoveryStatus(rootRecoveryResult.value);
-          } else {
-            setRootRecoveryStatus(null);
-            setRootRecoveryStatusError(rootRecoveryResult.reason as ApiError);
-          }
-
-          if (securityPostureResult.status === "fulfilled") {
-            setSecurityPosture(securityPostureResult.value);
-          } else {
-            setSecurityPosture(null);
-            setSecurityPostureError(securityPostureResult.reason as ApiError);
-          }
-
-          if (
-            capabilitiesResult.status === "rejected" &&
-            platformUsersResult.status === "rejected" &&
-            securityPostureResult.status === "rejected"
-          ) {
-            throw capabilitiesResult.reason;
-          }
-        }
-      } catch (rawError) {
-        if (isMounted) {
-          setError(rawError as ApiError);
-          setCapabilities(null);
-          setRootRecoveryStatus(null);
-          setSecurityPosture(null);
-          setPlatformUsers([]);
-          setRootRecoveryStatusError(null);
-          setSecurityPostureError(null);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
+  async function loadSettings() {
+    if (!session?.accessToken) {
+      return;
     }
 
-    void loadSettings();
+    setIsLoading(true);
+    setError(null);
+    setRootRecoveryStatusError(null);
+    setSecurityPostureError(null);
 
-    return () => {
-      isMounted = false;
-    };
+    try {
+      const [
+        capabilitiesResult,
+        rootRecoveryResult,
+        platformUsersResult,
+        securityPostureResult,
+      ] =
+        await Promise.allSettled([
+          getPlatformCapabilities(session.accessToken),
+          getPlatformRootRecoveryStatus(session.accessToken),
+          listPlatformUsers(session.accessToken),
+          getPlatformSecurityPosture(session.accessToken),
+        ]);
+
+      if (capabilitiesResult.status === "fulfilled") {
+        setCapabilities(capabilitiesResult.value);
+      } else {
+        setCapabilities(null);
+      }
+
+      if (platformUsersResult.status === "fulfilled") {
+        setPlatformUsers(platformUsersResult.value.data);
+      } else {
+        setPlatformUsers([]);
+      }
+
+      if (rootRecoveryResult.status === "fulfilled") {
+        setRootRecoveryStatus(rootRecoveryResult.value);
+      } else {
+        setRootRecoveryStatus(null);
+        setRootRecoveryStatusError(rootRecoveryResult.reason as ApiError);
+      }
+
+      if (securityPostureResult.status === "fulfilled") {
+        setSecurityPosture(securityPostureResult.value);
+      } else {
+        setSecurityPosture(null);
+        setSecurityPostureError(securityPostureResult.reason as ApiError);
+      }
+
+      if (
+        capabilitiesResult.status === "rejected" &&
+        platformUsersResult.status === "rejected" &&
+        securityPostureResult.status === "rejected"
+      ) {
+        throw capabilitiesResult.reason;
+      }
+    } catch (rawError) {
+      setError(rawError as ApiError);
+      setCapabilities(null);
+      setRootRecoveryStatus(null);
+      setSecurityPosture(null);
+      setPlatformUsers([]);
+      setRootRecoveryStatusError(null);
+      setSecurityPostureError(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadSettings();
   }, [session?.accessToken]);
 
   return (
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Plataforma"
+        icon="settings"
         title="Configuración"
         description="Referencia rápida del entorno visible, la sesión actual y los catálogos que la consola consume desde backend."
+        actions={
+          <AppToolbar compact>
+            <button className="btn btn-outline-secondary" type="button" onClick={() => void loadSettings()}>
+              Recargar
+            </button>
+          </AppToolbar>
+        }
       />
 
       {isLoading ? <LoadingBlock label="Cargando configuración de plataforma..." /> : null}
@@ -171,31 +169,43 @@ export function SettingsPage() {
       <div className="settings-overview-grid">
         <MetricCard
           label="Estados tenant"
+          icon="tenants"
+          tone="default"
           value={overview.tenantStatuses}
           hint="Opciones visibles de lifecycle disponibles en la API."
         />
         <MetricCard
           label="Estados de facturación"
+          icon="billing"
+          tone="info"
           value={overview.billingStatuses}
           hint="Estados de billing que hoy entiende la consola."
         />
         <MetricCard
           label="Scopes de mantenimiento"
+          icon="activity"
+          tone="warning"
           value={overview.maintenanceScopes}
           hint="Ámbitos que se pueden restringir por mantenimiento."
         />
         <MetricCard
           label="Claves de límites"
+          icon="catalogs"
+          tone="success"
           value={overview.moduleLimitKeys}
           hint="Claves de cuota y uso visibles para operación."
         />
         <MetricCard
           label="Proveedores de billing"
+          icon="billing"
+          tone="default"
           value={overview.billingProviders}
           hint="Orígenes de eventos de facturación soportados."
         />
         <MetricCard
           label="Backends de despacho"
+          icon="provisioning"
+          tone="info"
           value={overview.dispatchBackends}
           hint="Mecanismos de ejecución visibles para provisioning."
         />
@@ -203,6 +213,7 @@ export function SettingsPage() {
 
       <div className="settings-grid">
         <PanelCard
+          icon="overview"
           title="Entorno y sesión actual"
           subtitle="Lectura rápida para validar con qué sesión y con qué dirección de API crees estar operando."
         >
@@ -229,6 +240,7 @@ export function SettingsPage() {
         </PanelCard>
 
         <PanelCard
+          icon="catalogs"
           title="Reglas de trabajo de la consola"
           subtitle="Guías cortas para no romper el patrón backend-driven al seguir construyendo pantallas."
         >
@@ -241,6 +253,7 @@ export function SettingsPage() {
         </PanelCard>
 
         <PanelCard
+          icon="users"
           title="Instalación y cuenta raíz"
           subtitle="Resumen operativo del ciclo de vida de la cuenta superadministradora y de la recuperación raíz."
         >
@@ -294,6 +307,7 @@ export function SettingsPage() {
         </PanelCard>
 
         <PanelCard
+          icon="activity"
           title="Postura de secretos y runtime"
           subtitle="Lectura segura de hallazgos de configuración sin exponer valores sensibles."
         >
@@ -334,6 +348,7 @@ export function SettingsPage() {
         </PanelCard>
 
         <PanelCard
+          icon="users"
           title="Gobernanza de acceso"
           subtitle="Resumen corto de operadores de plataforma visibles hoy desde la consola."
         >
@@ -400,7 +415,7 @@ export function SettingsPage() {
           />
 
           <div className="settings-grid">
-            <PanelCard title="Enumeraciones">
+            <PanelCard icon="catalogs" title="Enumeraciones">
               <div className="settings-token-list">
                 <SettingsTokenGroup
                   title="Estados tenant"
@@ -422,6 +437,7 @@ export function SettingsPage() {
             </PanelCard>
 
             <PanelCard
+              icon="overview"
               title="Alcance actual del frontend"
               subtitle="Lo que hoy ya puede operar un superadmin sin salir de la UI."
             >
