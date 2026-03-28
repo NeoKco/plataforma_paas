@@ -139,6 +139,7 @@ Estado actual de `Lote 6`:
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Reportes`
 - ese overview ya incluye snapshot mensual, top categorias, serie diaria de caja y desvíos presupuestarios priorizados
 - ese mismo overview ya incluye comparativa contra el mes anterior para transacciones y presupuesto
+- ese mismo overview ya incluye una tendencia mensual corta de 6 meses
 - cuando una vista de `finance` detecta schema incompleto, la API ya responde error controlado accionable en vez de `500` crudo
 - `tenant admin` ya puede revisar y sincronizar schema desde `GET /tenant/schema-status` y `POST /tenant/sync-schema`
 
@@ -157,5 +158,5 @@ Pendiente:
 - enriquecer `budgets` con lectura mas densa por categoria y estados operativos mas ricos
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
 - enriquecer el enlace contable de `loans` con cuenta origen y lectura derivada mas densa
-- exportaciones adicionales, comparativas más profundas entre periodos y lectura contable mas densa sobre el overview ya existente
+- exportaciones adicionales, comparativas más profundas entre periodos, filtros analíticos y lectura contable mas densa sobre el overview ya existente
 - mover la sincronizacion tenant-side de schema a ejecucion asincrona y dejar auto-sync post-provisioning/post-deploy

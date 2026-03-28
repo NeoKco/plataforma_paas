@@ -1000,6 +1000,28 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 "actual_delta": 70.0,
                 "variance_delta": 30.0,
             },
+            "monthly_trend": [
+                {
+                    "period_month": date(2025, 11, 1),
+                    "total_income": 0.0,
+                    "total_expense": 0.0,
+                    "net_balance": 0.0,
+                    "total_transactions": 0,
+                    "total_budgeted": 0.0,
+                    "total_actual": 0.0,
+                    "total_variance": 0.0,
+                },
+                {
+                    "period_month": date(2026, 4, 1),
+                    "total_income": 500.0,
+                    "total_expense": 120.0,
+                    "net_balance": 380.0,
+                    "total_transactions": 2,
+                    "total_budgeted": 300.0,
+                    "total_actual": 120.0,
+                    "total_variance": 180.0,
+                },
+            ],
         }
 
         with patch(
@@ -1026,6 +1048,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             response.data.period_comparison.previous_period_month,
             date(2026, 3, 1),
         )
+        self.assertEqual(response.data.monthly_trend[-1].net_balance, 380.0)
 
     def test_get_finance_planning_overview_returns_monthly_payload(self) -> None:
         overview = {

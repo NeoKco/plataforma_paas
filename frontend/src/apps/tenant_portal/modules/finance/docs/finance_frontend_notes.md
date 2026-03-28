@@ -52,6 +52,7 @@
 - ya existe una pantalla real de `Reportes` con overview mensual consolidado
 - esa misma pantalla de `Reportes` ya muestra pulso diario de caja y una tabla corta de desvíos presupuestarios
 - esa misma pantalla ya compara el período visible contra el mes anterior y permite exportar CSV básico
+- esa misma pantalla ya muestra además una tendencia corta de 6 meses para lectura reciente
 - cuando `finance` detecta schema incompleto, la UI ya explica para que sirve actualizar la estructura del modulo
 - `tenant admin` ya puede disparar esa sincronizacion desde el mismo portal, sin depender solo de `Platform Admin`
 
@@ -59,7 +60,7 @@ Pendiente inmediato:
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
 - endurecer `Presupuestos` con lectura agregada mas densa
-- abrir exportaciones adicionales y comparativas multi-período en `Reportes`, ahora que ya existe la base CSV y la comparación corta
+- abrir exportaciones adicionales, comparativas multi-período más ricas y filtros analíticos en `Reportes`, ahora que ya existe tendencia base
 - enriquecer el pago de cuotas de `Préstamos` con cuenta origen y lectura contable derivada antes de considerarlo un dominio cerrado
 - mover la sincronizacion tenant-side a flujo asíncrono visible y no inline
 - reducir este caso con auto-sync post-provisioning y post-deploy

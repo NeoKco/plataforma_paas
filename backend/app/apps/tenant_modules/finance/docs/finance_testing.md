@@ -35,10 +35,11 @@ Cobertura actual:
 - reportes overview con agregados mensuales de transacciones, presupuestos y préstamos
 - serie diaria de caja y desvíos presupuestarios priorizados dentro de `reportes overview`
 - comparativa contra el mes anterior dentro de `reportes overview`
+- tendencia mensual corta dentro de `reportes overview`
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
 - pruebas de lectura mas rica de presupuestos
 - pruebas mas ricas del enlace contable de cuotas de prestamos con cuenta origen y lectura derivada
-- pruebas de exportaciones adicionales y comparativas multi-período de reportes
+- pruebas de exportaciones adicionales, comparativas multi-período más ricas y filtros analíticos de reportes

@@ -87,6 +87,7 @@ En esta fase quedaron listos:
 - primera pantalla real de `Reportes` con overview mensual consolidado
 - `Reportes` ya incluye pulso diario de caja y ranking corto de desvíos presupuestarios
 - `Reportes` ya incluye comparativa contra el mes anterior y exportación CSV básica del overview
+- `Reportes` ya incluye tendencia mensual corta de 6 meses dentro del mismo overview
 - manejo controlado de schema incompleto en vistas de `finance`, sin `500` crudo
 - self-service de sincronizacion de estructura desde el propio `tenant_portal` para `tenant admin`
 
@@ -300,7 +301,7 @@ Lo siguiente recomendable ahora es:
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
 3. enriquecer el enlace contable de `Préstamos` con cuenta origen y lectura derivada mas densa
-4. profundizar `Reportes` con comparativas más ricas y exportaciones adicionales, ahora que ya existe exportación CSV básica
+4. profundizar `Reportes` con exportaciones adicionales, comparativas multi-período más ricas y filtros analíticos, ahora que ya existe tendencia mensual base
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable
 7. mover la sincronizacion tenant-side a job de provisioning o worker dedicado, en vez de ejecutarla inline

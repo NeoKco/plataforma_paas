@@ -85,6 +85,17 @@ class FinanceReportPeriodComparison(BaseModel):
     variance_delta: float
 
 
+class FinanceReportMonthlyTrendItem(BaseModel):
+    period_month: date
+    total_income: float
+    total_expense: float
+    net_balance: float
+    total_transactions: int
+    total_budgeted: float
+    total_actual: float
+    total_variance: float
+
+
 class FinanceReportOverviewData(BaseModel):
     period_month: date
     transaction_snapshot: FinanceReportTransactionSnapshot
@@ -95,6 +106,7 @@ class FinanceReportOverviewData(BaseModel):
     daily_cashflow: list[FinanceReportDailyCashflowItem]
     budget_variances: list[FinanceReportBudgetVarianceItem]
     period_comparison: FinanceReportPeriodComparison
+    monthly_trend: list[FinanceReportMonthlyTrendItem]
 
 
 class FinanceReportOverviewResponse(FinanceResponseBase):

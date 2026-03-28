@@ -258,6 +258,12 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
         self.assertEqual(overview["period_comparison"]["expense_delta"], 70.0)
         self.assertEqual(overview["period_comparison"]["transaction_delta"], 0)
         self.assertEqual(overview["period_comparison"]["budgeted_delta"], 100.0)
+        self.assertEqual(len(overview["monthly_trend"]), 6)
+        self.assertEqual(overview["monthly_trend"][-1]["period_month"], date(2026, 4, 1))
+        self.assertEqual(overview["monthly_trend"][-1]["total_income"], 500.0)
+        self.assertEqual(overview["monthly_trend"][-1]["total_expense"], 120.0)
+        self.assertEqual(overview["monthly_trend"][-2]["period_month"], date(2026, 3, 1))
+        self.assertEqual(overview["monthly_trend"][-2]["total_budgeted"], 200.0)
 
 
 if __name__ == "__main__":

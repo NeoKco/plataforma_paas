@@ -14,6 +14,7 @@ import {
   type TenantFinanceReportBudgetVarianceItem,
   type TenantFinanceReportCategoryAmount,
   type TenantFinanceReportDailyCashflowItem,
+  type TenantFinanceReportMonthlyTrendItem,
   type TenantFinanceReportOverviewResponse,
   type TenantFinanceReportPeriodComparison,
 } from "../services/reportsService";
@@ -252,6 +253,13 @@ export function FinanceReportsPage() {
           <BudgetVarianceTable items={overview?.budget_variances || []} />
         </PanelCard>
       </div>
+
+      <PanelCard
+        title="Tendencia reciente"
+        subtitle="Lectura corta de 6 meses para no perder contexto entre cambios de período."
+      >
+        <MonthlyTrendTable items={overview?.monthly_trend || []} />
+      </PanelCard>
     </div>
   );
 }
@@ -410,6 +418,51 @@ function PeriodComparisonPanel({
   );
 }
 
+function MonthlyTrendTable({
+  items,
+}: {
+  items: TenantFinanceReportMonthlyTrendItem[];
+}) {
+  if (items.length === 0) {
+    return (
+      <p className="tenant-muted-text mb-0">
+        Sin tendencia disponible para este tenant.
+      </p>
+    );
+  }
+
+  return (
+    <div className="table-responsive">
+      <table className="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Mes</th>
+            <th className="text-end">Ingresos</th>
+            <th className="text-end">Egresos</th>
+            <th className="text-end">Balance</th>
+            <th className="text-end">Trans.</th>
+            <th className="text-end">Presup.</th>
+            <th className="text-end">Real</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => (
+            <tr key={item.period_month}>
+              <td className="fw-semibold">{formatMonthLabel(item.period_month)}</td>
+              <td className="text-end">{formatMoney(item.total_income)}</td>
+              <td className="text-end">{formatMoney(item.total_expense)}</td>
+              <td className="text-end">{formatSignedMoney(item.net_balance)}</td>
+              <td className="text-end">{item.total_transactions}</td>
+              <td className="text-end">{formatMoney(item.total_budgeted)}</td>
+              <td className="text-end">{formatMoney(item.total_actual)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function ReportLine({ label, value }: { label: string; value: string }) {
   return (
     <>
@@ -516,6 +569,14 @@ function exportOverviewCsv(
       "desvio_presupuesto",
       item.category_name,
       `${item.category_type}|${item.budget_status}|${item.planned_amount}|${item.actual_amount}|${item.variance_amount}`,
+    ]);
+  });
+
+  overview.monthly_trend.forEach((item) => {
+    rows.push([
+      "tendencia_mensual",
+      item.period_month,
+      `${item.total_income}|${item.total_expense}|${item.net_balance}|${item.total_transactions}|${item.total_budgeted}|${item.total_actual}|${item.total_variance}`,
     ]);
   });
 

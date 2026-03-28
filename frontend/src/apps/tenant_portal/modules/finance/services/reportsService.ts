@@ -80,6 +80,17 @@ export type TenantFinanceReportPeriodComparison = {
   variance_delta: number;
 };
 
+export type TenantFinanceReportMonthlyTrendItem = {
+  period_month: string;
+  total_income: number;
+  total_expense: number;
+  net_balance: number;
+  total_transactions: number;
+  total_budgeted: number;
+  total_actual: number;
+  total_variance: number;
+};
+
 export type TenantFinanceReportOverviewResponse = {
   success: boolean;
   message: string;
@@ -93,6 +104,7 @@ export type TenantFinanceReportOverviewResponse = {
     daily_cashflow: TenantFinanceReportDailyCashflowItem[];
     budget_variances: TenantFinanceReportBudgetVarianceItem[];
     period_comparison: TenantFinanceReportPeriodComparison;
+    monthly_trend: TenantFinanceReportMonthlyTrendItem[];
   };
 };
 

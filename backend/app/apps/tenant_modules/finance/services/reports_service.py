@@ -227,6 +227,11 @@ class FinanceReportsService:
                     2,
                 ),
             },
+            "monthly_trend": self._build_monthly_trend(
+                tenant_db=tenant_db,
+                all_transactions=all_transactions,
+                current_period_month=normalized_period_month,
+            ),
         }
 
     def _build_top_categories(
@@ -344,6 +349,59 @@ class FinanceReportsService:
         }
         return priorities.get(status, 0)
 
+    def _build_monthly_trend(
+        self,
+        *,
+        tenant_db: Session,
+        all_transactions: list,
+        current_period_month: date,
+    ) -> list[dict]:
+        months = self._build_trailing_months(current_period_month, count=6)
+        rows: list[dict] = []
+
+        for month in months:
+            starts_at = self._month_start(month)
+            ends_at = self._next_month_start(month)
+            month_transactions = [
+                transaction
+                for transaction in all_transactions
+                if starts_at <= self._normalize_datetime(transaction.transaction_at) < ends_at
+            ]
+            income_total = round(
+                sum(
+                    item.amount
+                    for item in month_transactions
+                    if item.transaction_type == "income"
+                ),
+                2,
+            )
+            expense_total = round(
+                sum(
+                    item.amount
+                    for item in month_transactions
+                    if item.transaction_type == "expense"
+                ),
+                2,
+            )
+            _, budget_summary = self.budget_service.list_budgets(
+                tenant_db,
+                period_month=month,
+                include_inactive=True,
+            )
+            rows.append(
+                {
+                    "period_month": month,
+                    "total_income": income_total,
+                    "total_expense": expense_total,
+                    "net_balance": round(income_total - expense_total, 2),
+                    "total_transactions": len(month_transactions),
+                    "total_budgeted": round(float(budget_summary["total_budgeted"]), 2),
+                    "total_actual": round(float(budget_summary["total_actual"]), 2),
+                    "total_variance": round(float(budget_summary["total_variance"]), 2),
+                }
+            )
+        return rows
+
     def _month_start(self, period_month: date) -> datetime:
         return datetime.combine(period_month, time.min, tzinfo=timezone.utc)
 
@@ -355,6 +413,15 @@ class FinanceReportsService:
     def _previous_month_start(self, period_month: date) -> date:
         previous_month_last_day = period_month - timedelta(days=1)
         return previous_month_last_day.replace(day=1)
+
+    def _build_trailing_months(self, current_period_month: date, *, count: int) -> list[date]:
+        months: list[date] = []
+        cursor = current_period_month
+        for _ in range(count):
+            months.append(cursor)
+            cursor = self._previous_month_start(cursor)
+        months.reverse()
+        return months
 
     def _normalize_datetime(self, value: datetime) -> datetime:
         if value.tzinfo is None:
