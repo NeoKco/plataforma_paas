@@ -22,6 +22,7 @@ import {
 export function FinanceReportsPage() {
   const { session } = useTenantAuth();
   const [periodMonth, setPeriodMonth] = useState(buildMonthValue());
+  const [trendMonths, setTrendMonths] = useState<3 | 6 | 12>(6);
   const [overview, setOverview] =
     useState<TenantFinanceReportOverviewResponse["data"] | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -29,7 +30,7 @@ export function FinanceReportsPage() {
 
   useEffect(() => {
     void loadOverview();
-  }, [session?.accessToken, periodMonth]);
+  }, [session?.accessToken, periodMonth, trendMonths]);
 
   async function loadOverview() {
     if (!session?.accessToken) {
@@ -41,7 +42,8 @@ export function FinanceReportsPage() {
     try {
       const response = await getTenantFinanceReportOverview(
         session.accessToken,
-        buildPeriodMonthIso(periodMonth)
+        buildPeriodMonthIso(periodMonth),
+        trendMonths
       );
       setOverview(response.data);
     } catch (rawError) {
@@ -80,6 +82,20 @@ export function FinanceReportsPage() {
               onChange={(event) => setPeriodMonth(event.target.value)}
             />
           </div>
+          <div>
+            <label className="form-label">Tendencia</label>
+            <select
+              className="form-select"
+              value={String(trendMonths)}
+              onChange={(event) =>
+                setTrendMonths(Number(event.target.value) as 3 | 6 | 12)
+              }
+            >
+              <option value="3">3 meses</option>
+              <option value="6">6 meses</option>
+              <option value="12">12 meses</option>
+            </select>
+          </div>
           <div className="pt-4">
             <button
               className="btn btn-outline-primary"
@@ -88,6 +104,16 @@ export function FinanceReportsPage() {
               disabled={!overview}
             >
               Exportar CSV
+            </button>
+          </div>
+          <div className="pt-4">
+            <button
+              className="btn btn-outline-secondary"
+              type="button"
+              onClick={() => exportOverviewJson(overview, periodMonth)}
+              disabled={!overview}
+            >
+              Exportar JSON
             </button>
           </div>
         </div>
@@ -588,6 +614,25 @@ function exportOverviewCsv(
   const link = document.createElement("a");
   link.href = url;
   link.download = `finance-report-${periodMonth}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportOverviewJson(
+  overview: TenantFinanceReportOverviewResponse["data"] | null,
+  periodMonth: string
+) {
+  if (!overview) {
+    return;
+  }
+
+  const blob = new Blob([JSON.stringify(overview, null, 2)], {
+    type: "application/json;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `finance-report-${periodMonth}.json`;
   link.click();
   URL.revokeObjectURL(url);
 }

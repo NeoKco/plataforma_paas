@@ -135,6 +135,7 @@ Cobertura visible actual:
 - serie diaria de caja y desvíos presupuestarios dentro de `Reportes`
 - comparativa contra el mes anterior dentro de `Reportes`
 - tendencia mensual corta dentro de `Reportes`
+- horizonte configurable `3/6/12` meses dentro de `Reportes`
 - overview mensual de `Planificación`
 - cartera y cronograma de `Préstamos`
 - pagos, reversas y enlace contable minimo sobre cuotas

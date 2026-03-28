@@ -25,6 +25,7 @@ reports_service = FinanceReportsService()
 @router.get("/overview", response_model=FinanceReportOverviewResponse)
 def get_finance_reports_overview(
     period_month: date,
+    trend_months: int = 6,
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceReportOverviewResponse:
@@ -32,6 +33,7 @@ def get_finance_reports_overview(
         overview = reports_service.get_overview(
             tenant_db,
             period_month=period_month,
+            trend_months=trend_months,
         )
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)

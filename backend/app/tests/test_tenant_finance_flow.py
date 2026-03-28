@@ -1030,6 +1030,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         ):
             response = get_finance_reports_overview(
                 period_month=date(2026, 4, 1),
+                trend_months=6,
                 current_user=self._current_user(role="operator"),
                 tenant_db=object(),
             )
@@ -1049,6 +1050,77 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             date(2026, 3, 1),
         )
         self.assertEqual(response.data.monthly_trend[-1].net_balance, 380.0)
+
+    def test_get_finance_reports_overview_forwards_trend_months(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.reports_service.get_overview",
+            return_value={
+                "period_month": date(2026, 4, 1),
+                "transaction_snapshot": {
+                    "period_month": date(2026, 4, 1),
+                    "total_income": 0.0,
+                    "total_expense": 0.0,
+                    "net_balance": 0.0,
+                    "total_transactions": 0,
+                    "reconciled_count": 0,
+                    "unreconciled_count": 0,
+                    "favorite_count": 0,
+                    "loan_linked_count": 0,
+                },
+                "budget_snapshot": {
+                    "period_month": date(2026, 4, 1),
+                    "total_budgeted": 0.0,
+                    "total_actual": 0.0,
+                    "total_variance": 0.0,
+                    "total_items": 0,
+                    "over_budget_count": 0,
+                    "within_budget_count": 0,
+                    "inactive_count": 0,
+                    "unused_count": 0,
+                },
+                "loan_snapshot": {
+                    "borrowed_balance": 0.0,
+                    "lent_balance": 0.0,
+                    "total_principal": 0.0,
+                    "total_items": 0,
+                    "active_items": 0,
+                    "open_items": 0,
+                    "settled_items": 0,
+                },
+                "top_income_categories": [],
+                "top_expense_categories": [],
+                "daily_cashflow": [],
+                "budget_variances": [],
+                "period_comparison": {
+                    "current_period_month": date(2026, 4, 1),
+                    "previous_period_month": date(2026, 3, 1),
+                    "previous_income": 0.0,
+                    "previous_expense": 0.0,
+                    "previous_net_balance": 0.0,
+                    "previous_transactions": 0,
+                    "previous_budgeted": 0.0,
+                    "previous_actual": 0.0,
+                    "previous_variance": 0.0,
+                    "income_delta": 0.0,
+                    "expense_delta": 0.0,
+                    "net_balance_delta": 0.0,
+                    "transaction_delta": 0,
+                    "budgeted_delta": 0.0,
+                    "actual_delta": 0.0,
+                    "variance_delta": 0.0,
+                },
+                "monthly_trend": [],
+            },
+        ) as get_overview_mock:
+            get_finance_reports_overview(
+                period_month=date(2026, 4, 1),
+                trend_months=12,
+                current_user=self._current_user(role="operator"),
+                tenant_db=object(),
+            )
+
+        _, kwargs = get_overview_mock.call_args
+        self.assertEqual(kwargs["trend_months"], 12)
 
     def test_get_finance_planning_overview_returns_monthly_payload(self) -> None:
         overview = {

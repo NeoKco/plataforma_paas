@@ -265,6 +265,23 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
         self.assertEqual(overview["monthly_trend"][-2]["period_month"], date(2026, 3, 1))
         self.assertEqual(overview["monthly_trend"][-2]["total_budgeted"], 200.0)
 
+    def test_reports_overview_respects_requested_trend_months(self) -> None:
+        overview = self.reports_service.get_overview(
+            self.db,
+            period_month=date(2026, 4, 1),
+            trend_months=3,
+        )
+
+        self.assertEqual(len(overview["monthly_trend"]), 3)
+
+    def test_reports_overview_rejects_invalid_trend_months(self) -> None:
+        with self.assertRaises(ValueError):
+            self.reports_service.get_overview(
+                self.db,
+                period_month=date(2026, 4, 1),
+                trend_months=5,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -110,10 +110,12 @@ export type TenantFinanceReportOverviewResponse = {
 
 export function getTenantFinanceReportOverview(
   accessToken: string,
-  periodMonth: string
+  periodMonth: string,
+  trendMonths = 6
 ) {
   const params = new URLSearchParams();
   params.set("period_month", periodMonth);
+  params.set("trend_months", String(trendMonths));
   return apiRequest<TenantFinanceReportOverviewResponse>(
     `/tenant/finance/reports/overview?${params.toString()}`,
     {

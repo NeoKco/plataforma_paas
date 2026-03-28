@@ -36,10 +36,11 @@ Cobertura actual:
 - serie diaria de caja y desvíos presupuestarios priorizados dentro de `reportes overview`
 - comparativa contra el mes anterior dentro de `reportes overview`
 - tendencia mensual corta dentro de `reportes overview`
+- horizonte configurable `3/6/12` meses dentro de `reportes overview`
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
 - pruebas de lectura mas rica de presupuestos
 - pruebas mas ricas del enlace contable de cuotas de prestamos con cuenta origen y lectura derivada
-- pruebas de exportaciones adicionales, comparativas multi-período más ricas y filtros analíticos de reportes
+- pruebas de exportaciones adicionales y filtros analíticos más ricos de reportes

@@ -30,7 +30,10 @@ class FinanceReportsService:
         tenant_db: Session,
         *,
         period_month: date,
+        trend_months: int = 6,
     ) -> dict:
+        if trend_months not in {3, 6, 12}:
+            raise ValueError("trend_months must be one of 3, 6 or 12")
         normalized_period_month = period_month.replace(day=1)
         starts_at = self._month_start(normalized_period_month)
         ends_at = self._next_month_start(normalized_period_month)
@@ -231,6 +234,7 @@ class FinanceReportsService:
                 tenant_db=tenant_db,
                 all_transactions=all_transactions,
                 current_period_month=normalized_period_month,
+                trend_months=trend_months,
             ),
         }
 
@@ -355,8 +359,9 @@ class FinanceReportsService:
         tenant_db: Session,
         all_transactions: list,
         current_period_month: date,
+        trend_months: int,
     ) -> list[dict]:
-        months = self._build_trailing_months(current_period_month, count=6)
+        months = self._build_trailing_months(current_period_month, count=trend_months)
         rows: list[dict] = []
 
         for month in months:
