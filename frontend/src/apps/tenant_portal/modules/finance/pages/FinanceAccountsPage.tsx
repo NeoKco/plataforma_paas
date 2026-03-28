@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../../components/data-display/DataTableCard";
+import { AppBadge } from "../../../../../design-system/AppBadge";
+import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
@@ -186,14 +188,14 @@ export function FinanceAccountsPage() {
             : "Manage the financial accounts visible for this tenant."
         }
         actions={
-          <>
+          <AppToolbar compact>
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadAccounts()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
             <button className="btn btn-primary" type="button" onClick={startCreate}>
               {language === "es" ? "Nueva cuenta" : "New account"}
             </button>
-          </>
+          </AppToolbar>
         }
       />
       <FinanceModuleNav />
@@ -293,18 +295,16 @@ export function FinanceAccountsPage() {
               key: "status",
               header: language === "es" ? "Estado" : "Status",
               render: (account) => (
-                <span
-                  className={`finance-status-pill${account.is_active ? " is-active" : " is-inactive"}`}
-                >
+                <AppBadge tone={account.is_active ? "success" : "warning"}>
                   {getActiveStateLabel(account.is_active, language)}
-                </span>
+                </AppBadge>
               ),
             },
             {
               key: "actions",
               header: language === "es" ? "Acciones" : "Actions",
               render: (account) => (
-                <div className="d-flex gap-2">
+                <AppToolbar compact>
                   <button
                     className="btn btn-sm btn-outline-primary"
                     type="button"
@@ -325,7 +325,7 @@ export function FinanceAccountsPage() {
                         ? "Activar"
                         : "Activate"}
                   </button>
-                </div>
+                </AppToolbar>
               ),
             },
           ]}

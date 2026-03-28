@@ -53,7 +53,7 @@ Lo pendiente es sobre todo:
 - seguir endureciendo `Préstamos` solo si el negocio exige mejor lectura de contrapartida, cruces más densos o exportaciones aún más contables
 - consolidar la adopción visible del auto-sync post-deploy en consola operativa, ahora que ya existe el follow-up automático post-provisioning, la acción masiva desde `Provisioning` y la integración al wrapper de release/verify
 - `finance` ya tiene una primera capa visual propia con iconografía semántica, bloques `spotlight` y charts livianos en `Reportes` y `Planificación`; si se sigue por ahí debe ser para densidad adicional, no para abrir esa base desde cero
-- el `design system` transversal del PaaS ya quedó arrancado con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid` y primitives compartidas; el siguiente tramo es profundizar la migración integral de `finance` y luego expandirla al resto del frontend
+- el `design system` transversal del PaaS ya quedó arrancado con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid`, `AppTableWrap`, `AppForm` y primitives compartidas; `finance` ya empezó además la adopción de formularios y tablas de catálogo sobre esa base
 - cerrar una internacionalizacion transversal real del frontend, continuando desde el avance ya aplicado en `finance`, `Overview` y `Users` para eliminar copy hardcodeado del resto de pantallas y helpers compartidos
 
 Nota de ejecucion:

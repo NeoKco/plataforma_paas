@@ -1,4 +1,9 @@
 import type { TenantFinanceCategoryWriteRequest, TenantFinanceCategory } from "../services/categoriesService";
+import {
+  AppForm,
+  AppFormActions,
+  AppFormField,
+} from "../../../../../design-system/AppForm";
 import { useLanguage } from "../../../../../store/language-context";
 import { getFinanceCategoryTypeLabel } from "../utils/presentation";
 
@@ -29,23 +34,20 @@ export function CategoryForm({
   );
 
   return (
-    <form
-      className="finance-form-grid"
+    <AppForm
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
       }}
     >
-      <div>
-        <label className="form-label">{language === "es" ? "Nombre" : "Name"}</label>
+      <AppFormField label={language === "es" ? "Nombre" : "Name"}>
         <input
           className="form-control"
           value={value.name}
           onChange={(event) => onChange({ ...value, name: event.target.value })}
         />
-      </div>
-      <div>
-        <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
+      </AppFormField>
+      <AppFormField label={language === "es" ? "Tipo" : "Type"}>
         <select
           className="form-select"
           value={value.category_type}
@@ -57,11 +59,8 @@ export function CategoryForm({
             </option>
           ))}
         </select>
-      </div>
-      <div>
-        <label className="form-label">
-          {language === "es" ? "Categoría padre" : "Parent category"}
-        </label>
+      </AppFormField>
+      <AppFormField label={language === "es" ? "Categoría padre" : "Parent category"}>
         <select
           className="form-select"
           value={value.parent_category_id ?? ""}
@@ -83,26 +82,24 @@ export function CategoryForm({
             </option>
           ))}
         </select>
-      </div>
-      <div>
-        <label className="form-label">{language === "es" ? "Color" : "Color"}</label>
+      </AppFormField>
+      <AppFormField label={language === "es" ? "Color" : "Color"}>
         <input
           className="form-control"
           value={value.color ?? ""}
           onChange={(event) => onChange({ ...value, color: event.target.value || null })}
           placeholder="#0d6efd"
         />
-      </div>
-      <div className="finance-form-grid finance-form-grid--full">
-        <label className="form-label">{language === "es" ? "Nota" : "Note"}</label>
+      </AppFormField>
+      <AppFormField label={language === "es" ? "Nota" : "Note"} fullWidth>
         <textarea
           className="form-control"
           rows={3}
           value={value.note ?? ""}
           onChange={(event) => onChange({ ...value, note: event.target.value || null })}
         />
-      </div>
-      <div className="finance-form-actions">
+      </AppFormField>
+      <AppFormActions>
         <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
           {submitLabel}
         </button>
@@ -111,7 +108,7 @@ export function CategoryForm({
             {language === "es" ? "Cancelar" : "Cancel"}
           </button>
         ) : null}
-      </div>
-    </form>
+      </AppFormActions>
+    </AppForm>
   );
 }

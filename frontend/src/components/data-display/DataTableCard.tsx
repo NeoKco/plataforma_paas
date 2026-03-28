@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AppTableWrap } from "../../design-system/AppLayout";
 import { useLanguage } from "../../store/language-context";
 
 type Column<T> = {
@@ -42,7 +43,7 @@ export function DataTableCard<T>({
           </span>
         </div>
       </div>
-      <div className="table-responsive">
+      <AppTableWrap>
         <table className="table table-hover align-middle mb-0 data-table-card__table">
           <thead>
             <tr>
@@ -61,7 +62,7 @@ export function DataTableCard<T>({
             ))}
           </tbody>
         </table>
-      </div>
+      </AppTableWrap>
     </div>
   );
 }

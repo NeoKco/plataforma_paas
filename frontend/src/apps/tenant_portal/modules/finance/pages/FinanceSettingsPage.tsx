@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../../components/data-display/DataTableCard";
+import { AppBadge } from "../../../../../design-system/AppBadge";
+import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
@@ -205,14 +207,14 @@ export function FinanceSettingsPage() {
             : "Manage currencies, exchange rates, and base module settings."
         }
         actions={
-          <>
+          <AppToolbar compact>
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
             <button className="btn btn-primary" type="button" onClick={resetForms}>
               {language === "es" ? "Nuevo registro" : "New record"}
             </button>
-          </>
+          </AppToolbar>
         }
       />
       <FinanceModuleNav />
@@ -356,18 +358,16 @@ export function FinanceSettingsPage() {
                 key: "status",
                 header: language === "es" ? "Estado" : "Status",
                 render: (currency: TenantFinanceCurrency) => (
-                  <span
-                    className={`finance-status-pill${currency.is_active ? " is-active" : " is-inactive"}`}
-                  >
+                  <AppBadge tone={currency.is_active ? "success" : "warning"}>
                     {getActiveStateLabel(currency.is_active, language)}
-                  </span>
+                  </AppBadge>
                 ),
               },
               {
                 key: "actions",
                 header: language === "es" ? "Acciones" : "Actions",
                 render: (currency: TenantFinanceCurrency) => (
-                  <div className="d-flex gap-2">
+                  <AppToolbar compact>
                     <button
                       className="btn btn-sm btn-outline-primary"
                       type="button"
@@ -399,7 +399,7 @@ export function FinanceSettingsPage() {
                           ? "Activar"
                           : "Activate"}
                     </button>
-                  </div>
+                  </AppToolbar>
                 ),
               },
             ]}
@@ -461,18 +461,16 @@ export function FinanceSettingsPage() {
                 key: "status",
                 header: language === "es" ? "Estado" : "Status",
                 render: (setting: TenantFinanceSetting) => (
-                  <span
-                    className={`finance-status-pill${setting.is_active ? " is-active" : " is-inactive"}`}
-                  >
+                  <AppBadge tone={setting.is_active ? "success" : "warning"}>
                     {getSimpleStateLabel(setting.is_active, language)}
-                  </span>
+                  </AppBadge>
                 ),
               },
               {
                 key: "actions",
                 header: language === "es" ? "Acciones" : "Actions",
                 render: (setting: TenantFinanceSetting) => (
-                  <div className="d-flex gap-2">
+                  <AppToolbar compact>
                     <button
                       className="btn btn-sm btn-outline-primary"
                       type="button"
@@ -500,7 +498,7 @@ export function FinanceSettingsPage() {
                           ? "Activar"
                           : "Activate"}
                     </button>
-                  </div>
+                  </AppToolbar>
                 ),
               },
             ]}

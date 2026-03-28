@@ -1,5 +1,11 @@
 import type { TenantFinanceAccountWriteRequest } from "../services/accountsService";
 import type { TenantFinanceCurrency } from "../services/currenciesService";
+import {
+  AppCheckGrid,
+  AppForm,
+  AppFormActions,
+  AppFormField,
+} from "../../../../../design-system/AppForm";
 import { useLanguage } from "../../../../../store/language-context";
 import { getFinanceAccountTypeLabel } from "../utils/presentation";
 
@@ -28,31 +34,27 @@ export function AccountForm({
 }: AccountFormProps) {
   const { language } = useLanguage();
   return (
-    <form
-      className="finance-form-grid"
+    <AppForm
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
       }}
     >
-      <div>
-        <label className="form-label">{language === "es" ? "Nombre" : "Name"}</label>
+      <AppFormField label={language === "es" ? "Nombre" : "Name"}>
         <input
           className="form-control"
           value={value.name}
           onChange={(event) => onChange({ ...value, name: event.target.value })}
         />
-      </div>
-      <div>
-        <label className="form-label">{language === "es" ? "Código" : "Code"}</label>
+      </AppFormField>
+      <AppFormField label={language === "es" ? "Código" : "Code"}>
         <input
           className="form-control"
           value={value.code ?? ""}
           onChange={(event) => onChange({ ...value, code: event.target.value || null })}
         />
-      </div>
-      <div>
-        <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
+      </AppFormField>
+      <AppFormField label={language === "es" ? "Tipo" : "Type"}>
         <select
           className="form-select"
           value={value.account_type}
@@ -64,9 +66,8 @@ export function AccountForm({
             </option>
           ))}
         </select>
-      </div>
-      <div>
-        <label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label>
+      </AppFormField>
+      <AppFormField label={language === "es" ? "Moneda" : "Currency"}>
         <select
           className="form-select"
           value={value.currency_id}
@@ -80,11 +81,8 @@ export function AccountForm({
             </option>
           ))}
         </select>
-      </div>
-      <div>
-        <label className="form-label">
-          {language === "es" ? "Cuenta padre" : "Parent account"}
-        </label>
+      </AppFormField>
+      <AppFormField label={language === "es" ? "Cuenta padre" : "Parent account"}>
         <select
           className="form-select"
           value={value.parent_account_id ?? ""}
@@ -106,11 +104,8 @@ export function AccountForm({
             </option>
           ))}
         </select>
-      </div>
-      <div>
-        <label className="form-label">
-          {language === "es" ? "Saldo inicial" : "Opening balance"}
-        </label>
+      </AppFormField>
+      <AppFormField label={language === "es" ? "Saldo inicial" : "Opening balance"}>
         <input
           className="form-control"
           type="number"
@@ -120,9 +115,8 @@ export function AccountForm({
             onChange({ ...value, opening_balance: Number.parseFloat(event.target.value || "0") })
           }
         />
-      </div>
-      <div>
-        <label className="form-label">{language === "es" ? "Orden" : "Sort order"}</label>
+      </AppFormField>
+      <AppFormField label={language === "es" ? "Orden" : "Sort order"}>
         <input
           className="form-control"
           type="number"
@@ -131,36 +125,38 @@ export function AccountForm({
             onChange({ ...value, sort_order: Number.parseInt(event.target.value || "100", 10) })
           }
         />
-      </div>
-      <div className="finance-form-grid finance-form-grid--full">
-        <div className="form-check">
-          <input
-            id="finance-account-favorite"
-            className="form-check-input"
-            type="checkbox"
-            checked={value.is_favorite}
-            onChange={(event) => onChange({ ...value, is_favorite: event.target.checked })}
-          />
-          <label className="form-check-label" htmlFor="finance-account-favorite">
-            {language === "es" ? "Favorita" : "Favorite"}
-          </label>
-        </div>
-        <div className="form-check">
-          <input
-            id="finance-account-hidden"
-            className="form-check-input"
-            type="checkbox"
-            checked={value.is_balance_hidden}
-            onChange={(event) =>
-              onChange({ ...value, is_balance_hidden: event.target.checked })
-            }
-          />
-          <label className="form-check-label" htmlFor="finance-account-hidden">
-            {language === "es" ? "Ocultar saldo" : "Hide balance"}
-          </label>
-        </div>
-      </div>
-      <div className="finance-form-actions">
+      </AppFormField>
+      <AppFormField fullWidth>
+        <AppCheckGrid>
+          <div className="form-check">
+            <input
+              id="finance-account-favorite"
+              className="form-check-input"
+              type="checkbox"
+              checked={value.is_favorite}
+              onChange={(event) => onChange({ ...value, is_favorite: event.target.checked })}
+            />
+            <label className="form-check-label" htmlFor="finance-account-favorite">
+              {language === "es" ? "Favorita" : "Favorite"}
+            </label>
+          </div>
+          <div className="form-check">
+            <input
+              id="finance-account-hidden"
+              className="form-check-input"
+              type="checkbox"
+              checked={value.is_balance_hidden}
+              onChange={(event) =>
+                onChange({ ...value, is_balance_hidden: event.target.checked })
+              }
+            />
+            <label className="form-check-label" htmlFor="finance-account-hidden">
+              {language === "es" ? "Ocultar saldo" : "Hide balance"}
+            </label>
+          </div>
+        </AppCheckGrid>
+      </AppFormField>
+      <AppFormActions>
         <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
           {submitLabel}
         </button>
@@ -169,7 +165,7 @@ export function AccountForm({
             {language === "es" ? "Cancelar" : "Cancel"}
           </button>
         ) : null}
-      </div>
-    </form>
+      </AppFormActions>
+    </AppForm>
   );
 }

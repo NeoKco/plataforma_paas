@@ -374,6 +374,33 @@ code {
   color: #153e8c;
 }
 
+.app-form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.app-form-field {
+  min-width: 0;
+}
+
+.app-form-field--full {
+  grid-column: 1 / -1;
+}
+
+.app-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  grid-column: 1 / -1;
+}
+
+.app-check-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, max-content));
+}
+
 .data-table-card__header {
   align-items: center;
   display: flex;
