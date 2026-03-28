@@ -45,7 +45,7 @@ class FinancePlanningService:
             for transaction in self.transaction_repository.list_all(tenant_db)
             if starts_at <= self._normalize_datetime(transaction.transaction_at) < ends_at
         ]
-        budget_rows, budget_summary = self.budget_service.list_budgets(
+        budget_rows, budget_summary, _budget_focus_items = self.budget_service.list_budgets(
             tenant_db,
             period_month=normalized_period_month,
             include_inactive=True,

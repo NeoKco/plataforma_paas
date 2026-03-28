@@ -189,14 +189,14 @@ class FinanceReportsService:
             previous_transactions,
             movement_scope=movement_scope,
         )
-        budget_rows, budget_summary = self.budget_service.list_budgets(
+        budget_rows, budget_summary, _budget_focus_items = self.budget_service.list_budgets(
             tenant_db,
             period_month=normalized_period_month,
             include_inactive=True,
             category_type=None if budget_category_scope == "all" else budget_category_scope,
             budget_status=None if budget_status_filter == "all" else budget_status_filter,
         )
-        _, previous_budget_summary = self.budget_service.list_budgets(
+        _, previous_budget_summary, _previous_budget_focus_items = self.budget_service.list_budgets(
             tenant_db,
             period_month=comparison_period_month,
             include_inactive=True,
@@ -901,7 +901,7 @@ class FinanceReportsService:
                 ),
                 2,
             )
-            _, budget_summary = self.budget_service.list_budgets(
+            _, budget_summary, _budget_focus_items = self.budget_service.list_budgets(
                 tenant_db,
                 period_month=month,
                 include_inactive=True,
