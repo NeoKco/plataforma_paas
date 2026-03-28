@@ -15,6 +15,16 @@ export type TenantFinanceReportDimensionAmount = {
   total_amount: number;
 };
 
+export type TenantFinanceReportDimensionDelta = {
+  entity_type: string;
+  entity_id: number | null;
+  entity_name: string;
+  transaction_type: string;
+  current_total_amount: number;
+  compare_total_amount: number;
+  delta_amount: number;
+};
+
 export type TenantFinanceReportTransactionSnapshot = {
   period_month: string;
   total_income: number;
@@ -173,6 +183,17 @@ export type TenantFinanceReportCustomRangeComparison = {
   total_net_balance_delta_vs_custom: number;
 };
 
+export type TenantFinanceReportDimensionComparison = {
+  current_label: string;
+  compare_label: string;
+  current_first_period_month: string | null;
+  current_last_period_month: string | null;
+  compare_first_period_month: string | null;
+  compare_last_period_month: string | null;
+  income_deltas: TenantFinanceReportDimensionDelta[];
+  expense_deltas: TenantFinanceReportDimensionDelta[];
+};
+
 export type TenantFinanceReportOverviewResponse = {
   success: boolean;
   message: string;
@@ -198,6 +219,7 @@ export type TenantFinanceReportOverviewResponse = {
     horizon_comparison: TenantFinanceReportHorizonComparison;
     year_to_date_comparison: TenantFinanceReportYearToDateComparison;
     custom_range_comparison: TenantFinanceReportCustomRangeComparison | null;
+    dimension_comparison: TenantFinanceReportDimensionComparison;
   };
 };
 

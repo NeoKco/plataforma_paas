@@ -168,6 +168,7 @@ Estado actual de `Lote 6`:
 - el overview ya devuelve `year_to_date_comparison` para comparar `enero -> mes` contra `enero -> compare_period_month`
 - el overview ya devuelve `custom_range_comparison` cuando se define un rango manual
 - el overview ya devuelve `top_income_breakdown` y `top_expense_breakdown` según la dimensión analítica elegida
+- el overview ya devuelve `dimension_comparison` para contrastar esa misma dimensión activa contra el período comparado
 - cuando una vista de `finance` detecta schema incompleto, la API ya responde error controlado accionable en vez de `500` crudo
 - `tenant admin` ya puede revisar y sincronizar schema desde `GET /tenant/schema-status` y `POST /tenant/sync-schema`
 
@@ -187,5 +188,5 @@ Pendiente:
 - enriquecer `budgets` con acciones mas ricas sobre categorias priorizadas, como ajustes guiados o plantillas
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
 - seguir endureciendo la lectura derivada de `loans` con cruces contables más densos si el dominio exige contrapartida/categoría explícita
-- comparativas más profundas sobre rangos arbitrarios, cortes analíticos adicionales por proyectos/terceros y lectura contable mas densa sobre el overview ya existente
+- comparativas aún más densas del overview solo si el uso real exige nuevos cortes ejecutivos o soportes exportables adicionales
 - mover la sincronizacion tenant-side de schema a ejecucion asincrona y dejar auto-sync post-provisioning/post-deploy

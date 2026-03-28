@@ -108,6 +108,7 @@ En esta fase quedaron listos:
 - `Reportes` ya exporta CSV y JSON enriquecidos con comparativas, top categorías y resúmenes ejecutivos
 - `Reportes` ya permite además comparar la lectura activa contra un rango arbitrario definido por `desde/hasta`
 - `Reportes` ya permite rankear ingresos y egresos por dimensión analítica (`categoría`, `cuenta`, `proyecto`, `beneficiario`, `persona`)
+- `Reportes` ya compara además la dimensión activa contra el período comparado para detectar entidades que ganan o pierden peso
 - las transacciones ya persisten `tag_ids` de forma real en `finance_transaction_tags`
 - `Reportes` ya permite además rankear por `etiqueta`
 - manejo controlado de schema incompleto en vistas de `finance`, sin `500` crudo
@@ -327,7 +328,7 @@ Lo siguiente recomendable ahora es:
 
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
-3. profundizar `Reportes` con comparativas todavía mas densas, cortes adicionales por entidad y exportaciones de soporte si el uso real lo pide
+3. profundizar `Reportes` solo si luego se necesitan comparativas todavía mas densas, cortes adicionales por entidad o exportaciones de soporte más ejecutivas
 4. endurecer `Préstamos` solo si luego se requiere lectura de contrapartida/categoría o exportación contable mas formal
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable

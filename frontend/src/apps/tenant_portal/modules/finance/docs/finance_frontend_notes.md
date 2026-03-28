@@ -63,6 +63,7 @@
 - esa misma pantalla ya compara también el acumulado anual `enero -> mes` contra el período comparado
 - esa misma pantalla ya permite releer top categorías por `período`, `horizonte` o `acumulado anual`
 - esa misma pantalla ya exporta CSV y JSON enriquecidos con comparativas, top categorías y resúmenes ejecutivos
+- esa misma pantalla ya compara además la dimensión activa contra el período comparado para detectar entidades que ganan o pierden peso
 - esa misma pantalla ya permite además comparar la lectura activa contra un rango arbitrario `desde/hasta`
 - esa misma pantalla ya permite además rankear por `categoría`, `cuenta`, `proyecto`, `beneficiario` o `persona`
 - la pantalla de `Transacciones` ya permite asignar varias etiquetas al registrar o editar un movimiento
@@ -81,7 +82,7 @@ Pendiente inmediato:
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
 - enriquecer `Presupuestos` con plantillas mas ricas o presets configurables por tenant, mas alla de editar/activar/desactivar, clonar entre meses, alinear al real y aplicar plantillas operativas base
-- abrir comparativas aún más profundas sobre rangos arbitrarios o cortes analíticos adicionales por proyectos/terceros en `Reportes`, ahora que ya existe resumen multi-período
+- seguir endureciendo `Reportes` solo si luego se necesitan comparativas todavía más densas o exportaciones ejecutivas adicionales
 - enriquecer la UX de tags con chips, filtros y mejor lectura en tabla/detalle
 - seguir endureciendo `Préstamos` con una lectura todavía más contable si luego hace falta mostrar contrapartida/categoría o exportaciones de soporte más densas
 - mover la sincronizacion tenant-side a flujo asíncrono visible y no inline

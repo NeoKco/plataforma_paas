@@ -374,6 +374,142 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
             "Sin etiqueta",
         )
 
+    def test_reports_build_dimension_comparison_against_compare_period(self) -> None:
+        currency = self._seed_currency()
+        recurring_category = self._seed_category("Recurring", "income")
+        seasonal_category = self._seed_category("Seasonal", "income")
+
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=None,
+                target_account_id=None,
+                category_id=recurring_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=100.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 3, 3, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Recurring march",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=True,
+                tag_ids=None,
+            ),
+            allow_accountless=True,
+        )
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=None,
+                target_account_id=None,
+                category_id=seasonal_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=40.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 3, 4, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Seasonal march",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=True,
+                tag_ids=None,
+            ),
+            allow_accountless=True,
+        )
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=None,
+                target_account_id=None,
+                category_id=recurring_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=180.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 4, 3, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Recurring april",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=True,
+                tag_ids=None,
+            ),
+            allow_accountless=True,
+        )
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=None,
+                target_account_id=None,
+                category_id=seasonal_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=20.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 4, 4, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Seasonal april",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=True,
+                tag_ids=None,
+            ),
+            allow_accountless=True,
+        )
+
+        overview = self.reports_service.get_overview(
+            self.db,
+            period_month=date(2026, 4, 1),
+            compare_period_month=date(2026, 3, 1),
+            analysis_dimension="category",
+            analysis_scope="period",
+        )
+
+        self.assertEqual(overview["dimension_comparison"]["current_label"], "periodo")
+        self.assertEqual(
+            overview["dimension_comparison"]["income_deltas"][0]["entity_name"],
+            "Recurring",
+        )
+        self.assertEqual(
+            overview["dimension_comparison"]["income_deltas"][0]["delta_amount"],
+            80.0,
+        )
+        self.assertEqual(
+            overview["dimension_comparison"]["income_deltas"][1]["entity_name"],
+            "Seasonal",
+        )
+        self.assertEqual(
+            overview["dimension_comparison"]["income_deltas"][1]["delta_amount"],
+            -20.0,
+        )
+
     def test_reports_overview_respects_requested_trend_months(self) -> None:
         overview = self.reports_service.get_overview(
             self.db,

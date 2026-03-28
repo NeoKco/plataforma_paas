@@ -53,6 +53,7 @@ Cobertura actual:
 - exportación enriquecida CSV/JSON desde `reportes overview`
 - comparativa contra rango arbitrario manual dentro de `reportes overview`
 - ranking por entidad analítica (`categoría`, `cuenta`, `proyecto`, `beneficiario`, `persona`) dentro de `reportes overview`
+- comparativa por dimensión activa contra el período comparado dentro de `reportes overview`
 - resumen y contexto ampliado de lectura derivada en detalle de `prestamos`
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
@@ -60,5 +61,5 @@ Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
 - pruebas de acciones mas ricas de presupuestos sobre categorias priorizadas, mas alla de edicion/activacion rapida y clonacion intermensual
 - pruebas mas densas de `Préstamos` si luego se agregan cruces contables extra como contrapartida/categoría
-- pruebas de comparativas aún más profundas sobre rangos arbitrarios y cortes analíticos adicionales por proyectos/terceros en reportes
+- pruebas de futuros cortes analíticos adicionales en reportes si aparecen nuevas necesidades reales
 - pruebas de persistencia real de `tag_ids` y ranking por `etiqueta`

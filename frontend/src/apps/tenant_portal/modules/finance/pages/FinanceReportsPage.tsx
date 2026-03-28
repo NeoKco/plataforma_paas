@@ -18,6 +18,8 @@ import {
   getTenantFinanceReportOverview,
   type TenantFinanceReportBudgetVarianceItem,
   type TenantFinanceReportCategoryAmount,
+  type TenantFinanceReportDimensionComparison,
+  type TenantFinanceReportDimensionDelta,
   type TenantFinanceReportDimensionAmount,
   type TenantFinanceReportCustomRangeComparison,
   type TenantFinanceReportDailyCashflowItem,
@@ -478,6 +480,27 @@ export function FinanceReportsPage() {
         >
           <PeriodComparisonPanel
             comparison={overview?.period_comparison || null}
+            currencyCode={baseCurrencyCode}
+            language={language}
+          />
+        </PanelCard>
+
+        <PanelCard
+          title={language === "es" ? "Comparativa por dimensión" : "Dimension comparison"}
+          subtitle={
+            language === "es"
+              ? `Qué ${buildAnalysisDimensionLabel(
+                  overview?.analysis_dimension || analysisDimension,
+                  language
+                )} ganó o perdió peso frente al período comparado.`
+              : `Which ${buildAnalysisDimensionLabel(
+                  overview?.analysis_dimension || analysisDimension,
+                  language
+                )} gained or lost weight versus the compared period.`
+          }
+        >
+          <DimensionComparisonPanel
+            comparison={overview?.dimension_comparison || null}
             currencyCode={baseCurrencyCode}
             language={language}
           />
@@ -1084,6 +1107,115 @@ function CustomRangeComparisonPanel({
   );
 }
 
+function DimensionComparisonPanel({
+  comparison,
+  currencyCode,
+  language,
+}: {
+  comparison: TenantFinanceReportDimensionComparison | null;
+  currencyCode: string;
+  language: "es" | "en";
+}) {
+  if (!comparison) {
+    return (
+      <p className="tenant-muted-text mb-0">
+        {language === "es"
+          ? "Sin comparativa analítica para la dimensión seleccionada."
+          : "No analytical comparison for the selected dimension."}
+      </p>
+    );
+  }
+
+  return (
+    <div className="d-grid gap-3">
+      <div className="tenant-muted-text">
+        {language === "es" ? "Actual" : "Current"}:{" "}
+        {buildAnalysisScopeLabel(comparison.current_label, language)} ·{" "}
+        {buildPeriodRangeLabel(
+          comparison.current_first_period_month,
+          comparison.current_last_period_month,
+          language
+        )}
+        {" · "}
+        {language === "es" ? "Comparado" : "Compared"}:{" "}
+        {buildAnalysisScopeLabel(comparison.compare_label, language)} ·{" "}
+        {buildPeriodRangeLabel(
+          comparison.compare_first_period_month,
+          comparison.compare_last_period_month,
+          language
+        )}
+      </div>
+      <div className="finance-report-grid">
+        <div>
+          <div className="tenant-detail__label mb-2">
+            {language === "es" ? "Ingresos con mayor cambio" : "Income biggest changes"}
+          </div>
+          <DimensionDeltaList
+            items={comparison.income_deltas}
+            currencyCode={currencyCode}
+            language={language}
+          />
+        </div>
+        <div>
+          <div className="tenant-detail__label mb-2">
+            {language === "es" ? "Egresos con mayor cambio" : "Expense biggest changes"}
+          </div>
+          <DimensionDeltaList
+            items={comparison.expense_deltas}
+            currencyCode={currencyCode}
+            language={language}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DimensionDeltaList({
+  items,
+  currencyCode,
+  language,
+}: {
+  items: TenantFinanceReportDimensionDelta[];
+  currencyCode: string;
+  language: "es" | "en";
+}) {
+  if (items.length === 0) {
+    return (
+      <p className="tenant-muted-text mb-0">
+        {language === "es"
+          ? "Sin cambios relevantes para este corte."
+          : "No relevant changes for this view."}
+      </p>
+    );
+  }
+
+  return (
+    <div className="finance-balance-list">
+      {items.map((item) => (
+        <div
+          key={`${item.transaction_type}-${item.entity_type}-${item.entity_id ?? "none"}-${item.entity_name}`}
+          className="finance-balance-list__item"
+        >
+          <div>
+            <div className="finance-balance-list__title">{item.entity_name}</div>
+            <div className="tenant-muted-text">
+              {language === "es" ? "Actual" : "Current"}{" "}
+              {formatMoney(item.current_total_amount, currencyCode, language)}
+              {" · "}
+              {language === "es" ? "Comparado" : "Compared"}{" "}
+              {formatMoney(item.compare_total_amount, currencyCode, language)}
+            </div>
+          </div>
+          <div className="finance-balance-list__value">
+            {formatSignedMoney(item.delta_amount, currencyCode, language)}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ReportLine({ label, value }: { label: string; value: string }) {
   return (
     <>
@@ -1299,6 +1431,22 @@ function exportOverviewCsv(
     ]);
   }
 
+  overview.dimension_comparison.income_deltas.forEach((item) => {
+    rows.push([
+      "comparativa_dimension_ingresos",
+      item.entity_name,
+      `${item.entity_type}|${item.current_total_amount}|${item.compare_total_amount}|${item.delta_amount}`,
+    ]);
+  });
+
+  overview.dimension_comparison.expense_deltas.forEach((item) => {
+    rows.push([
+      "comparativa_dimension_egresos",
+      item.entity_name,
+      `${item.entity_type}|${item.current_total_amount}|${item.compare_total_amount}|${item.delta_amount}`,
+    ]);
+  });
+
   overview.top_income_breakdown.forEach((item) => {
     rows.push([
       "top_ingresos",
@@ -1398,6 +1546,7 @@ function exportOverviewJson(
             "horizon_comparison",
             "year_to_date_comparison",
             "custom_range_comparison",
+            "dimension_comparison",
           ],
           data: overview,
         },

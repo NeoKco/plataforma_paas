@@ -40,6 +40,7 @@ Estado actual:
 - la vista `Reportes` ya exporta CSV y JSON enriquecidos con comparativas y bloques ejecutivos
 - la vista `Reportes` ya permite además comparar la lectura activa contra un rango manual `desde/hasta`
 - la vista `Reportes` ya permite además rankear por `categoría`, `cuenta`, `proyecto`, `beneficiario` o `persona`
+- la vista `Reportes` ya compara además esa dimensión activa contra el período comparado para mostrar qué entidad ganó o perdió peso
 - la vista `Transacciones` ya permite asignar varias etiquetas al crear o editar un movimiento
 - la vista `Reportes` ya permite además rankear por `etiqueta`
 - si una vista nueva del modulo detecta que faltan tablas o cambios de estructura, ahora explica el problema en pantalla

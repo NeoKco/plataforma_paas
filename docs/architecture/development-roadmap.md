@@ -264,6 +264,7 @@ Resultado actual:
 - `Reportes` ya exporta CSV y JSON enriquecidos con comparativas y cortes ejecutivos
 - `Reportes` ya permite además comparar la lectura activa contra un rango arbitrario de meses
 - `Reportes` ya permite además rankear por entidad operativa (`categoría`, `cuenta`, `proyecto`, `beneficiario`, `persona`)
+- `Reportes` ya compara además la dimensión analítica activa contra el período comparado, mostrando ganadores/perdedores por entidad
 - `finance_transactions` ya persiste `tag_ids` de forma real en `finance_transaction_tags`
 - `Reportes` ya permite además rankear por `etiqueta`
 - cuando el schema `finance` del tenant esta incompleto, esas vistas ya degradan a error controlado y no a `500`
@@ -286,7 +287,7 @@ Falta para cerrarlo:
 - enriquecer la UX de tags en `Transacciones` con chips, filtros y mejor lectura en tabla/detalle
 - mover la sincronizacion tenant-side de schema a job/worker en vez de inline
 - agregar auto-sync post-provisioning y post-deploy para evitar sincronizacion manual por uso
-- seguir `Lote 7` con comparativas más profundas sobre rangos arbitrarios, cortes analíticos adicionales por proyectos/terceros y lecturas exportables más densas
+- seguir `Lote 7` con comparativas todavía mas densas, cortes analíticos adicionales si aparecen necesidades reales y lecturas exportables más ejecutivas
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 - dejar pendiente, para despues del cierre funcional de `finance`, la construccion de un `design system` completo del PaaS con adopcion inicial en el propio `finance`, incluyendo iconografia semantica comun

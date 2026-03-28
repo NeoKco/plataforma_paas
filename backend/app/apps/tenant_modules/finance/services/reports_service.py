@@ -337,11 +337,62 @@ class FinanceReportsService:
             movement_scope=movement_scope,
             analysis_scope=analysis_scope,
         )
+        compare_analysis_transactions = self._build_analysis_transactions(
+            all_transactions=all_transactions,
+            current_period_month=comparison_period_month,
+            trend_months=trend_months,
+            movement_scope=movement_scope,
+            analysis_scope=analysis_scope,
+        )
         analysis_transaction_tag_ids = (
             self.transaction_tag_repository.list_tag_ids_by_transaction_ids(
                 tenant_db,
                 [transaction.id for transaction in analysis_transactions],
             )
+        )
+        compare_analysis_transaction_tag_ids = (
+            self.transaction_tag_repository.list_tag_ids_by_transaction_ids(
+                tenant_db,
+                [transaction.id for transaction in compare_analysis_transactions],
+            )
+        )
+        compare_analysis_summary = self._build_current_analysis_summary(
+            analysis_scope=analysis_scope,
+            period_month=comparison_period_month,
+            period_summary={
+                "total_income": round(
+                    sum(
+                        item.amount
+                        for item in compare_analysis_transactions
+                        if item.transaction_type == "income"
+                    ),
+                    2,
+                ),
+                "total_expense": round(
+                    sum(
+                        item.amount
+                        for item in compare_analysis_transactions
+                        if item.transaction_type == "expense"
+                    ),
+                    2,
+                ),
+                "net_balance": round(
+                    sum(
+                        item.amount
+                        for item in compare_analysis_transactions
+                        if item.transaction_type == "income"
+                    )
+                    - sum(
+                        item.amount
+                        for item in compare_analysis_transactions
+                        if item.transaction_type == "expense"
+                    ),
+                    2,
+                ),
+            },
+            trend_months=trend_months,
+            trend_summary=self._build_trend_summary(comparison_monthly_trend),
+            year_to_date_trend=compare_ytd_trend,
         )
 
         return {
@@ -489,6 +540,21 @@ class FinanceReportsService:
                 budget_status_filter=budget_status_filter,
                 current_analysis_summary=current_analysis_summary,
             ),
+            "dimension_comparison": self._build_dimension_comparison(
+                current_analysis_summary=current_analysis_summary,
+                compare_analysis_summary=compare_analysis_summary,
+                current_transactions=analysis_transactions,
+                compare_transactions=compare_analysis_transactions,
+                analysis_dimension=analysis_dimension,
+                accounts=accounts,
+                beneficiaries=beneficiaries,
+                categories=categories,
+                people=people,
+                projects=projects,
+                tags=tags,
+                current_transaction_tag_ids=analysis_transaction_tag_ids,
+                compare_transaction_tag_ids=compare_analysis_transaction_tag_ids,
+            ),
         }
 
     def _build_analysis_transactions(
@@ -567,6 +633,45 @@ class FinanceReportsService:
         transaction_tag_ids: dict[int, list[int]],
         transaction_type: str,
     ) -> list[dict]:
+        totals_by_entity = self._collect_dimension_totals(
+            transactions=transactions,
+            analysis_dimension=analysis_dimension,
+            accounts=accounts,
+            beneficiaries=beneficiaries,
+            categories=categories,
+            people=people,
+            projects=projects,
+            tags=tags,
+            transaction_tag_ids=transaction_tag_ids,
+        )
+
+        rows: list[dict] = []
+        for (entity_type, entity_id, entity_name), total_amount in totals_by_entity.items():
+            rows.append(
+                {
+                    "entity_type": entity_type,
+                    "entity_id": entity_id,
+                    "entity_name": entity_name,
+                    "transaction_type": transaction_type,
+                    "total_amount": round(total_amount, 2),
+                }
+            )
+        rows.sort(key=lambda item: (-item["total_amount"], item["entity_name"]))
+        return rows[:5]
+
+    def _collect_dimension_totals(
+        self,
+        *,
+        transactions: list,
+        analysis_dimension: str,
+        accounts: dict,
+        beneficiaries: dict,
+        categories: dict,
+        people: dict,
+        projects: dict,
+        tags: dict,
+        transaction_tag_ids: dict[int, list[int]],
+    ) -> dict[tuple[str, int | None, str], float]:
         totals_by_entity: dict[tuple[str, int | None, str], float] = {}
         for transaction in transactions:
             if analysis_dimension == "tag":
@@ -608,19 +713,132 @@ class FinanceReportsService:
                 totals_by_entity.get(key, 0.0) + float(transaction.amount),
                 2,
             )
+        return totals_by_entity
 
+    def _build_dimension_comparison(
+        self,
+        *,
+        current_analysis_summary: dict,
+        compare_analysis_summary: dict,
+        current_transactions: list,
+        compare_transactions: list,
+        analysis_dimension: str,
+        accounts: dict,
+        beneficiaries: dict,
+        categories: dict,
+        people: dict,
+        projects: dict,
+        tags: dict,
+        current_transaction_tag_ids: dict[int, list[int]],
+        compare_transaction_tag_ids: dict[int, list[int]],
+    ) -> dict:
+        income_deltas = self._build_dimension_delta_items(
+            current_transactions=[
+                item for item in current_transactions if item.transaction_type == "income"
+            ],
+            compare_transactions=[
+                item for item in compare_transactions if item.transaction_type == "income"
+            ],
+            analysis_dimension=analysis_dimension,
+            accounts=accounts,
+            beneficiaries=beneficiaries,
+            categories=categories,
+            people=people,
+            projects=projects,
+            tags=tags,
+            current_transaction_tag_ids=current_transaction_tag_ids,
+            compare_transaction_tag_ids=compare_transaction_tag_ids,
+            transaction_type="income",
+        )
+        expense_deltas = self._build_dimension_delta_items(
+            current_transactions=[
+                item for item in current_transactions if item.transaction_type == "expense"
+            ],
+            compare_transactions=[
+                item for item in compare_transactions if item.transaction_type == "expense"
+            ],
+            analysis_dimension=analysis_dimension,
+            accounts=accounts,
+            beneficiaries=beneficiaries,
+            categories=categories,
+            people=people,
+            projects=projects,
+            tags=tags,
+            current_transaction_tag_ids=current_transaction_tag_ids,
+            compare_transaction_tag_ids=compare_transaction_tag_ids,
+            transaction_type="expense",
+        )
+        return {
+            "current_label": current_analysis_summary["label"],
+            "compare_label": compare_analysis_summary["label"],
+            "current_first_period_month": current_analysis_summary["first_period_month"],
+            "current_last_period_month": current_analysis_summary["last_period_month"],
+            "compare_first_period_month": compare_analysis_summary["first_period_month"],
+            "compare_last_period_month": compare_analysis_summary["last_period_month"],
+            "income_deltas": income_deltas,
+            "expense_deltas": expense_deltas,
+        }
+
+    def _build_dimension_delta_items(
+        self,
+        *,
+        current_transactions: list,
+        compare_transactions: list,
+        analysis_dimension: str,
+        accounts: dict,
+        beneficiaries: dict,
+        categories: dict,
+        people: dict,
+        projects: dict,
+        tags: dict,
+        current_transaction_tag_ids: dict[int, list[int]],
+        compare_transaction_tag_ids: dict[int, list[int]],
+        transaction_type: str,
+    ) -> list[dict]:
+        current_totals = self._collect_dimension_totals(
+            transactions=current_transactions,
+            analysis_dimension=analysis_dimension,
+            accounts=accounts,
+            beneficiaries=beneficiaries,
+            categories=categories,
+            people=people,
+            projects=projects,
+            tags=tags,
+            transaction_tag_ids=current_transaction_tag_ids,
+        )
+        compare_totals = self._collect_dimension_totals(
+            transactions=compare_transactions,
+            analysis_dimension=analysis_dimension,
+            accounts=accounts,
+            beneficiaries=beneficiaries,
+            categories=categories,
+            people=people,
+            projects=projects,
+            tags=tags,
+            transaction_tag_ids=compare_transaction_tag_ids,
+        )
+        keys = set(current_totals.keys()) | set(compare_totals.keys())
         rows: list[dict] = []
-        for (entity_type, entity_id, entity_name), total_amount in totals_by_entity.items():
+        for entity_type, entity_id, entity_name in keys:
+            current_total = round(current_totals.get((entity_type, entity_id, entity_name), 0.0), 2)
+            compare_total = round(compare_totals.get((entity_type, entity_id, entity_name), 0.0), 2)
+            delta_amount = round(current_total - compare_total, 2)
+            if current_total == 0 and compare_total == 0:
+                continue
             rows.append(
                 {
                     "entity_type": entity_type,
                     "entity_id": entity_id,
                     "entity_name": entity_name,
                     "transaction_type": transaction_type,
-                    "total_amount": round(total_amount, 2),
+                    "current_total_amount": current_total,
+                    "compare_total_amount": compare_total,
+                    "delta_amount": delta_amount,
                 }
             )
-        rows.sort(key=lambda item: (-item["total_amount"], item["entity_name"]))
+        rows.sort(
+            key=lambda item: (-abs(item["delta_amount"]), -item["current_total_amount"], item["entity_name"])
+        )
         return rows[:5]
 
     def _resolve_transaction_dimension(

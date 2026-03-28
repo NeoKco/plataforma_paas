@@ -1244,6 +1244,36 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 "total_expense_delta_vs_custom": 70.0,
                 "total_net_balance_delta_vs_custom": 130.0,
             },
+            "dimension_comparison": {
+                "current_label": "periodo",
+                "compare_label": "periodo",
+                "current_first_period_month": date(2026, 4, 1),
+                "current_last_period_month": date(2026, 4, 1),
+                "compare_first_period_month": date(2026, 3, 1),
+                "compare_last_period_month": date(2026, 3, 1),
+                "income_deltas": [
+                    {
+                        "entity_type": "category",
+                        "entity_id": 1,
+                        "entity_name": "General Income",
+                        "transaction_type": "income",
+                        "current_total_amount": 500.0,
+                        "compare_total_amount": 300.0,
+                        "delta_amount": 200.0,
+                    }
+                ],
+                "expense_deltas": [
+                    {
+                        "entity_type": "category",
+                        "entity_id": 2,
+                        "entity_name": "General Expense",
+                        "transaction_type": "expense",
+                        "current_total_amount": 120.0,
+                        "compare_total_amount": 50.0,
+                        "delta_amount": 70.0,
+                    }
+                ],
+            },
         }
 
         with patch(
@@ -1283,6 +1313,10 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.monthly_trend[-1].net_balance, 380.0)
         self.assertEqual(response.data.movement_scope, "all")
         self.assertEqual(response.data.analysis_scope, "period")
+        self.assertEqual(
+            response.data.dimension_comparison.income_deltas[0].delta_amount,
+            200.0,
+        )
         self.assertEqual(response.data.analysis_dimension, "category")
         self.assertEqual(response.data.budget_category_scope, "all")
         self.assertEqual(response.data.trend_summary.best_net_balance, 380.0)
@@ -1418,6 +1452,16 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     "total_net_balance_delta_vs_compare": 0.0,
                 },
                 "custom_range_comparison": None,
+                "dimension_comparison": {
+                    "current_label": "year_to_date",
+                    "compare_label": "year_to_date",
+                    "current_first_period_month": None,
+                    "current_last_period_month": None,
+                    "compare_first_period_month": None,
+                    "compare_last_period_month": None,
+                    "income_deltas": [],
+                    "expense_deltas": [],
+                },
             },
         ) as get_overview_mock:
             get_finance_reports_overview(

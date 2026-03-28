@@ -20,6 +20,16 @@ class FinanceReportDimensionAmountItem(BaseModel):
     total_amount: float
 
 
+class FinanceReportDimensionDeltaItem(BaseModel):
+    entity_type: str
+    entity_id: int | None
+    entity_name: str
+    transaction_type: str
+    current_total_amount: float
+    compare_total_amount: float
+    delta_amount: float
+
+
 class FinanceReportTransactionSnapshot(BaseModel):
     period_month: date
     total_income: float
@@ -178,6 +188,17 @@ class FinanceReportCustomRangeComparison(BaseModel):
     total_net_balance_delta_vs_custom: float
 
 
+class FinanceReportDimensionComparison(BaseModel):
+    current_label: str
+    compare_label: str
+    current_first_period_month: date | None
+    current_last_period_month: date | None
+    compare_first_period_month: date | None
+    compare_last_period_month: date | None
+    income_deltas: list[FinanceReportDimensionDeltaItem]
+    expense_deltas: list[FinanceReportDimensionDeltaItem]
+
+
 class FinanceReportOverviewData(BaseModel):
     period_month: date
     movement_scope: str
@@ -200,6 +221,7 @@ class FinanceReportOverviewData(BaseModel):
     horizon_comparison: FinanceReportHorizonComparison
     year_to_date_comparison: FinanceReportYearToDateComparison
     custom_range_comparison: FinanceReportCustomRangeComparison | None
+    dimension_comparison: FinanceReportDimensionComparison
 
 
 class FinanceReportOverviewResponse(FinanceResponseBase):
