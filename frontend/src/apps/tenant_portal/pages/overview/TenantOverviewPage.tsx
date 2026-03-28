@@ -4,6 +4,8 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
+import { AppBadge } from "../../../../design-system/AppBadge";
+import { AppToolbar } from "../../../../design-system/AppLayout";
 import { EmptyState } from "../../../../components/feedback/EmptyState";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
@@ -37,51 +39,41 @@ export function TenantOverviewPage() {
     };
   }, [tenantInfo?.tenant]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadOverview() {
-      if (!session?.accessToken) {
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-      setModuleUsageError(null);
-
-      const results = await Promise.allSettled([
-        getTenantInfo(session.accessToken),
-        getTenantModuleUsage(session.accessToken),
-      ]);
-
-      if (!isMounted) {
-        return;
-      }
-
-      const [infoResult, usageResult] = results;
-
-      if (infoResult.status === "fulfilled") {
-        setTenantInfo(infoResult.value);
-      } else {
-        setTenantInfo(null);
-        setError(infoResult.reason as ApiError);
-      }
-
-      if (usageResult.status === "fulfilled") {
-        setModuleUsage(usageResult.value);
-      } else {
-        setModuleUsage(null);
-        setModuleUsageError(usageResult.reason as ApiError);
-      }
-
-      setIsLoading(false);
+  async function loadOverview() {
+    if (!session?.accessToken) {
+      return;
     }
 
-    void loadOverview();
+    setIsLoading(true);
+    setError(null);
+    setModuleUsageError(null);
 
-    return () => {
-      isMounted = false;
-    };
+    const results = await Promise.allSettled([
+      getTenantInfo(session.accessToken),
+      getTenantModuleUsage(session.accessToken),
+    ]);
+
+    const [infoResult, usageResult] = results;
+
+    if (infoResult.status === "fulfilled") {
+      setTenantInfo(infoResult.value);
+    } else {
+      setTenantInfo(null);
+      setError(infoResult.reason as ApiError);
+    }
+
+    if (usageResult.status === "fulfilled") {
+      setModuleUsage(usageResult.value);
+    } else {
+      setModuleUsage(null);
+      setModuleUsageError(usageResult.reason as ApiError);
+    }
+
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
+    void loadOverview();
   }, [session?.accessToken]);
 
   const tenant = tenantInfo?.tenant;
@@ -90,6 +82,7 @@ export function TenantOverviewPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow={language === "es" ? "Espacio" : "Workspace"}
+        icon="overview"
         title={
           tenant?.tenant_name ||
           session?.tenantSlug ||
@@ -99,6 +92,13 @@ export function TenantOverviewPage() {
           language === "es"
             ? "Vista general del estado actual de tu espacio, sus límites efectivos y los módulos disponibles."
             : "General view of your workspace, its effective limits, and the modules available."
+        }
+        actions={
+          <AppToolbar compact>
+            <button className="btn btn-outline-secondary" type="button" onClick={() => void loadOverview()}>
+              {language === "es" ? "Recargar" : "Reload"}
+            </button>
+          </AppToolbar>
         }
       />
 
@@ -129,27 +129,36 @@ export function TenantOverviewPage() {
           <div className="tenant-portal-metrics">
             <MetricCard
               label={language === "es" ? "Módulos habilitados" : "Enabled modules"}
+              icon="catalogs"
+              tone="info"
               value={overview.enabledModules}
               hint={language === "es" ? "Cantidad activa hoy" : "Currently active"}
             />
             <MetricCard
               label={language === "es" ? "Claves de límites" : "Limit keys"}
+              icon="settings"
+              tone="default"
               value={overview.moduleLimitKeys}
               hint={language === "es" ? "Cuotas con regla efectiva" : "Quotas with an effective rule"}
             />
             <MetricCard
               label={language === "es" ? "Lecturas rpm efectivas" : "Effective read rpm"}
+              icon="reports"
+              tone="success"
               value={overview.apiReadLimit}
               hint={language === "es" ? "Límite vigente de lectura" : "Current read limit"}
             />
             <MetricCard
               label={language === "es" ? "Escrituras rpm efectivas" : "Effective write rpm"}
+              icon="transactions"
+              tone="warning"
               value={overview.apiWriteLimit}
               hint={language === "es" ? "Límite vigente de escritura" : "Current write limit"}
             />
           </div>
 
           <PanelCard
+            icon="settings"
             title={language === "es" ? "Postura del tenant" : "Tenant posture"}
             subtitle={
               language === "es"
@@ -196,7 +205,7 @@ export function TenantOverviewPage() {
           </PanelCard>
 
           <div className="tenant-portal-split tenant-portal-split--overview">
-            <PanelCard title={language === "es" ? "Módulos habilitados" : "Enabled modules"}>
+            <PanelCard icon="catalogs" title={language === "es" ? "Módulos habilitados" : "Enabled modules"}>
               <div className="settings-token-chips">
                 {(tenant.effective_enabled_modules || []).length > 0 ? (
                   tenant.effective_enabled_modules?.map((value) => (
@@ -221,7 +230,7 @@ export function TenantOverviewPage() {
               </div>
             </PanelCard>
 
-            <PanelCard title={language === "es" ? "Usuario actual" : "Current user"}>
+            <PanelCard icon="users" title={language === "es" ? "Usuario actual" : "Current user"}>
               <div className="tenant-detail-grid">
                 <DetailField label="Email" value={tenantInfo?.user.email || "n/a"} />
                 <DetailField
@@ -285,13 +294,13 @@ export function TenantOverviewPage() {
                   header: language === "es" ? "Estado" : "Status",
                   render: (row) =>
                     row.at_limit ? (
-                      <span className="status-badge status-badge--warning">
+                      <AppBadge tone="warning">
                         {language === "es" ? "al límite" : "at limit"}
-                      </span>
+                      </AppBadge>
                     ) : (
-                      <span className="status-badge status-badge--success">
+                      <AppBadge tone="success">
                         {language === "es" ? "ok" : "ok"}
-                      </span>
+                      </AppBadge>
                     ),
                 },
               ]}

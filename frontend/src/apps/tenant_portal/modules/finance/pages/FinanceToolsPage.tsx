@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../../components/data-display/DataTableCard";
+import { AppBadge } from "../../../../../design-system/AppBadge";
+import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
@@ -245,14 +247,14 @@ export function FinanceToolsPage() {
             : "Manage reusable beneficiaries, people, projects, and tags."
         }
         actions={
-          <>
+          <AppToolbar compact>
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
             <button className="btn btn-primary" type="button" onClick={resetForm}>
               {language === "es" ? "Nuevo registro" : "New record"}
             </button>
-          </>
+          </AppToolbar>
         }
       />
       <FinanceModuleNav />
@@ -363,18 +365,16 @@ export function FinanceToolsPage() {
                 key: "status",
                 header: language === "es" ? "Estado" : "Status",
                 render: (item: TenantFinanceBeneficiary) => (
-                  <span
-                    className={`finance-status-pill${item.is_active ? " is-active" : " is-inactive"}`}
-                  >
+                  <AppBadge tone={item.is_active ? "success" : "warning"}>
                     {getActiveStateLabel(item.is_active, language)}
-                  </span>
+                  </AppBadge>
                 ),
               },
               {
                 key: "actions",
                 header: language === "es" ? "Acciones" : "Actions",
                 render: (item: TenantFinanceBeneficiary) => (
-                  <div className="d-flex gap-2">
+                  <AppToolbar compact>
                     <button
                       className="btn btn-sm btn-outline-primary"
                       type="button"
@@ -395,7 +395,7 @@ export function FinanceToolsPage() {
                           ? "Activar"
                           : "Activate"}
                     </button>
-                  </div>
+                  </AppToolbar>
                 ),
               },
             ]}
@@ -422,18 +422,16 @@ export function FinanceToolsPage() {
                 key: "status",
                 header: language === "es" ? "Estado" : "Status",
                 render: (item: TenantFinancePerson) => (
-                  <span
-                    className={`finance-status-pill${item.is_active ? " is-active" : " is-inactive"}`}
-                  >
+                  <AppBadge tone={item.is_active ? "success" : "warning"}>
                     {getActiveStateLabel(item.is_active, language)}
-                  </span>
+                  </AppBadge>
                 ),
               },
               {
                 key: "actions",
                 header: language === "es" ? "Acciones" : "Actions",
                 render: (item: TenantFinancePerson) => (
-                  <div className="d-flex gap-2">
+                  <AppToolbar compact>
                     <button
                       className="btn btn-sm btn-outline-primary"
                       type="button"
@@ -454,7 +452,7 @@ export function FinanceToolsPage() {
                           ? "Activar"
                           : "Activate"}
                     </button>
-                  </div>
+                  </AppToolbar>
                 ),
               },
             ]}
@@ -481,18 +479,16 @@ export function FinanceToolsPage() {
                 key: "status",
                 header: language === "es" ? "Estado" : "Status",
                 render: (item: TenantFinanceProject) => (
-                  <span
-                    className={`finance-status-pill${item.is_active ? " is-active" : " is-inactive"}`}
-                  >
+                  <AppBadge tone={item.is_active ? "success" : "warning"}>
                     {getActiveStateLabel(item.is_active, language)}
-                  </span>
+                  </AppBadge>
                 ),
               },
               {
                 key: "actions",
                 header: language === "es" ? "Acciones" : "Actions",
                 render: (item: TenantFinanceProject) => (
-                  <div className="d-flex gap-2">
+                  <AppToolbar compact>
                     <button
                       className="btn btn-sm btn-outline-primary"
                       type="button"
@@ -513,7 +509,7 @@ export function FinanceToolsPage() {
                           ? "Activar"
                           : "Activate"}
                     </button>
-                  </div>
+                  </AppToolbar>
                 ),
               },
             ]}
@@ -540,18 +536,16 @@ export function FinanceToolsPage() {
                 key: "status",
                 header: language === "es" ? "Estado" : "Status",
                 render: (item: TenantFinanceTag) => (
-                  <span
-                    className={`finance-status-pill${item.is_active ? " is-active" : " is-inactive"}`}
-                  >
+                  <AppBadge tone={item.is_active ? "success" : "warning"}>
                     {getActiveStateLabel(item.is_active, language)}
-                  </span>
+                  </AppBadge>
                 ),
               },
               {
                 key: "actions",
                 header: language === "es" ? "Acciones" : "Actions",
                 render: (item: TenantFinanceTag) => (
-                  <div className="d-flex gap-2">
+                  <AppToolbar compact>
                     <button
                       className="btn btn-sm btn-outline-primary"
                       type="button"
@@ -572,7 +566,7 @@ export function FinanceToolsPage() {
                           ? "Activar"
                           : "Activate"}
                     </button>
-                  </div>
+                  </AppToolbar>
                 ),
               },
             ]}

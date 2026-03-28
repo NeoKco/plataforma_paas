@@ -141,7 +141,7 @@ Lo que queda ya no bloquea cierre funcional del módulo. Pasa a backlog opcional
 Pendiente posterior al cierre de `finance`:
 
 - profundizar la adopcion del `design system` transversal ya iniciado en frontend usando `finance` como primer bloque real de migracion integral
-- ese trabajo ya arranco con iconografia comun, `spotlight` generico, badges, layouts, formularios y wrappers de tabla reutilizables; `finance` ya empezó además la migracion de catalogos sobre esa base y lo siguiente es expandirla al resto del producto
+- ese trabajo ya arranco con iconografia comun, `spotlight` generico, badges, layouts, formularios y wrappers de tabla reutilizables; `finance` ya empezó además la migracion de catalogos sobre esa base, incluyendo `Catálogos auxiliares`, y lo siguiente es expandirla al resto del producto
 - cerrar una internacionalizacion transversal real del sistema, continuando desde el avance ya hecho dentro del propio `finance`
 
 Backlog opcional del propio módulo:

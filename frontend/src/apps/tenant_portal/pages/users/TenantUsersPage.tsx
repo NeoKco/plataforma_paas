@@ -5,6 +5,12 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
+import {
+  AppForm,
+  AppFormActions,
+  AppFormField,
+} from "../../../../design-system/AppForm";
+import { AppToolbar } from "../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import {
@@ -140,6 +146,10 @@ export function TenantUsersPage() {
     }
   }
 
+  function handleHeaderReload() {
+    void loadUsers();
+  }
+
   useEffect(() => {
     void loadUsers();
   }, [session?.accessToken]);
@@ -214,11 +224,19 @@ export function TenantUsersPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow={language === "es" ? "Espacio" : "Workspace"}
+        icon="users"
         title={language === "es" ? "Usuarios" : "Users"}
         description={
           language === "es"
             ? "Gestiona las personas que pueden entrar a tu espacio y el estado de sus cuentas."
             : "Manage the people who can access your workspace and the status of their accounts."
+        }
+        actions={
+          <AppToolbar compact>
+            <button className="btn btn-outline-secondary" type="button" onClick={handleHeaderReload}>
+              {language === "es" ? "Recargar" : "Reload"}
+            </button>
+          </AppToolbar>
         }
       />
 
@@ -242,10 +260,10 @@ export function TenantUsersPage() {
       ) : null}
 
       <div className="tenant-portal-metrics">
-        <MetricCard label={language === "es" ? "Usuarios totales" : "Total users"} value={overview.totalUsers} hint={language === "es" ? "Cuentas visibles" : "Visible accounts"} />
-        <MetricCard label={language === "es" ? "Usuarios activos" : "Active users"} value={overview.activeUsers} hint={language === "es" ? "Con acceso habilitado" : "With access enabled"} />
-        <MetricCard label={language === "es" ? "Usuarios inactivos" : "Inactive users"} value={overview.inactiveUsers} hint={language === "es" ? "Sin acceso actual" : "Without current access"} />
-        <MetricCard label={language === "es" ? "Administradores" : "Admins"} value={overview.adminUsers} hint={language === "es" ? "Con rol admin" : "With admin role"} />
+        <MetricCard label={language === "es" ? "Usuarios totales" : "Total users"} icon="users" tone="default" value={overview.totalUsers} hint={language === "es" ? "Cuentas visibles" : "Visible accounts"} />
+        <MetricCard label={language === "es" ? "Usuarios activos" : "Active users"} icon="overview" tone="success" value={overview.activeUsers} hint={language === "es" ? "Con acceso habilitado" : "With access enabled"} />
+        <MetricCard label={language === "es" ? "Usuarios inactivos" : "Inactive users"} icon="settings" tone="warning" value={overview.inactiveUsers} hint={language === "es" ? "Sin acceso actual" : "Without current access"} />
+        <MetricCard label={language === "es" ? "Administradores" : "Admins"} icon="dashboard" tone="info" value={overview.adminUsers} hint={language === "es" ? "Con rol admin" : "With admin role"} />
       </div>
 
       {error ? (
@@ -258,6 +276,7 @@ export function TenantUsersPage() {
 
       <div className="tenant-portal-split tenant-portal-split--users">
         <PanelCard
+          icon="users"
           title={language === "es" ? "Crear usuario" : "Create user"}
           subtitle={
             language === "es"
@@ -265,18 +284,16 @@ export function TenantUsersPage() {
               : "Fill in the initial access data for a new account."
           }
         >
-          <form className="d-grid gap-3" onSubmit={handleCreateUser}>
-            <div>
-              <label className="form-label">{language === "es" ? "Nombre completo" : "Full name"}</label>
+          <AppForm onSubmit={handleCreateUser}>
+            <AppFormField label={language === "es" ? "Nombre completo" : "Full name"}>
               <input
                 className="form-control"
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
                 placeholder={language === "es" ? "Ej: María Pérez" : "Example: Maria Perez"}
               />
-            </div>
-            <div>
-              <label className="form-label">Email</label>
+            </AppFormField>
+            <AppFormField label="Email">
               <input
                 className="form-control"
                 type="email"
@@ -284,9 +301,8 @@ export function TenantUsersPage() {
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder={language === "es" ? "Ej: maria@empresa-demo.local" : "Example: maria@empresa-demo.local"}
               />
-            </div>
-            <div>
-              <label className="form-label">{language === "es" ? "Contraseña" : "Password"}</label>
+            </AppFormField>
+            <AppFormField label={language === "es" ? "Contraseña" : "Password"}>
               <input
                 className="form-control"
                 type="password"
@@ -294,10 +310,8 @@ export function TenantUsersPage() {
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder={language === "es" ? "Define una contraseña inicial" : "Define an initial password"}
               />
-            </div>
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Rol" : "Role"}</label>
+            </AppFormField>
+            <AppFormField label={language === "es" ? "Rol" : "Role"}>
                 <select
                   className="form-select"
                   value={role}
@@ -309,9 +323,8 @@ export function TenantUsersPage() {
                     </option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Estado inicial" : "Initial status"}</label>
+            </AppFormField>
+            <AppFormField label={language === "es" ? "Estado inicial" : "Initial status"}>
                 <select
                   className="form-select"
                   value={isActive ? "active" : "inactive"}
@@ -320,19 +333,21 @@ export function TenantUsersPage() {
                   <option value="active">{language === "es" ? "activo" : "active"}</option>
                   <option value="inactive">{language === "es" ? "inactivo" : "inactive"}</option>
                 </select>
-              </div>
-            </div>
-            <button
-              className="btn btn-primary"
-              type="submit"
-              disabled={isActionSubmitting}
-            >
-              {language === "es" ? "Crear usuario" : "Create user"}
-            </button>
-          </form>
+            </AppFormField>
+            <AppFormActions>
+              <button
+                className="btn btn-primary"
+                type="submit"
+                disabled={isActionSubmitting}
+              >
+                {language === "es" ? "Crear usuario" : "Create user"}
+              </button>
+            </AppFormActions>
+          </AppForm>
         </PanelCard>
 
         <PanelCard
+          icon="settings"
           title={language === "es" ? "Operador actual" : "Current operator"}
           subtitle={
             language === "es"
@@ -383,20 +398,22 @@ export function TenantUsersPage() {
               key: "actions",
               header: language === "es" ? "Acciones" : "Actions",
               render: (row) => (
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-primary"
-                  onClick={() => handleToggleStatus(row)}
-                  disabled={isActionSubmitting}
-                >
-                  {row.is_active
-                    ? language === "es"
-                      ? "Desactivar"
-                      : "Deactivate"
-                    : language === "es"
-                      ? "Activar"
-                      : "Activate"}
-                </button>
+                <AppToolbar compact>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() => handleToggleStatus(row)}
+                    disabled={isActionSubmitting}
+                  >
+                    {row.is_active
+                      ? language === "es"
+                        ? "Desactivar"
+                        : "Deactivate"
+                      : language === "es"
+                        ? "Activar"
+                        : "Activate"}
+                  </button>
+                </AppToolbar>
               ),
             },
           ]}
