@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
+import { AppFilterGrid } from "../../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
@@ -127,7 +128,7 @@ export function FinanceCalendarPage() {
             : "First real planning slice: operational view of the current or selected month."
         }
       >
-        <div className="finance-filter-grid">
+        <AppFilterGrid>
           <div>
             <label className="form-label">{language === "es" ? "Mes" : "Month"}</label>
             <input
@@ -137,7 +138,7 @@ export function FinanceCalendarPage() {
               onChange={(event) => setPeriodMonth(event.target.value)}
             />
           </div>
-        </div>
+        </AppFilterGrid>
       </PanelCard>
 
       {isLoading ? (

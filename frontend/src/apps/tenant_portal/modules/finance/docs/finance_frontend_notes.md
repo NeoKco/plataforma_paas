@@ -81,7 +81,7 @@
 - la navegación secundaria de `finance` ya usa iconografía semántica propia del módulo
 - `Planificación` y `Reportes` ya exponen una primera capa visual con bloques `spotlight` y charts reales sin depender de una librería externa pesada
 - esa misma base visual queda como semilla de la futura migración al `design system` transversal del PaaS
-- el `design system` ya quedó además arrancado fuera del módulo con `AppIcon`, `AppSpotlight` y primitives compartidas para `PageHeader`, `PanelCard` y `MetricCard`
+- el `design system` ya quedó además arrancado fuera del módulo con `AppIcon`, `AppSpotlight`, `AppBadge`, layouts reutilizables y primitives compartidas para `PageHeader`, `PanelCard` y `MetricCard`
 - la navegación lateral de `platform_admin` y `tenant_portal` ya consume esa iconografía común como primera adopción transversal
 
 Backlog posterior al cierre:

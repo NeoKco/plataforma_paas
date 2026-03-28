@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
+import { AppFilterGrid } from "../../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
@@ -179,7 +180,7 @@ export function FinanceReportsPage() {
             : "First reporting slice: monthly operational overview to close the module's base reading."
         }
       >
-        <div className="finance-filter-grid">
+        <AppFilterGrid>
           <div>
             <label className="form-label">{language === "es" ? "Mes" : "Month"}</label>
             <input
@@ -357,7 +358,7 @@ export function FinanceReportsPage() {
               {language === "es" ? "Exportar JSON enriquecido" : "Export enriched JSON"}
             </button>
           </div>
-        </div>
+        </AppFilterGrid>
       </PanelCard>
 
       {isLoading ? (

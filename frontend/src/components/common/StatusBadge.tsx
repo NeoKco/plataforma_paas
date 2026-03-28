@@ -1,33 +1,37 @@
+import { AppBadge, type AppBadgeTone } from "../../design-system/AppBadge";
 import { displayPlatformCode } from "../../utils/platform-labels";
 import { useLanguage } from "../../store/language-context";
 
-const STATUS_CLASS_MAP: Record<string, string> = {
-  active: "status-badge status-badge--success",
-  allowed: "status-badge status-badge--success",
-  income: "status-badge status-badge--success",
-  reconciled: "status-badge status-badge--success",
-  trialing: "status-badge status-badge--info",
-  completed: "status-badge status-badge--success",
-  pending: "status-badge status-badge--warning",
-  retry_pending: "status-badge status-badge--warning",
-  past_due: "status-badge status-badge--warning",
-  expense: "status-badge status-badge--warning",
-  inactive: "status-badge status-badge--warning",
-  running: "status-badge status-badge--info",
-  suspended: "status-badge status-badge--danger",
-  failed: "status-badge status-badge--danger",
-  error: "status-badge status-badge--danger",
-  blocked: "status-badge status-badge--danger",
-  canceled: "status-badge status-badge--neutral",
-  archived: "status-badge status-badge--neutral",
-  duplicate: "status-badge status-badge--neutral",
-  ignored: "status-badge status-badge--neutral",
+const STATUS_TONE_MAP: Record<string, AppBadgeTone> = {
+  active: "success",
+  allowed: "success",
+  income: "success",
+  reconciled: "success",
+  trialing: "info",
+  completed: "success",
+  pending: "warning",
+  retry_pending: "warning",
+  past_due: "warning",
+  expense: "warning",
+  inactive: "warning",
+  running: "info",
+  suspended: "danger",
+  failed: "danger",
+  error: "danger",
+  blocked: "danger",
+  canceled: "neutral",
+  archived: "neutral",
+  duplicate: "neutral",
+  ignored: "neutral",
 };
 
 export function StatusBadge({ value }: { value: string }) {
   const { language } = useLanguage();
   const normalized = value.trim().toLowerCase();
-  const className =
-    STATUS_CLASS_MAP[normalized] || "status-badge status-badge--neutral";
-  return <span className={className}>{displayPlatformCode(normalized, language)}</span>;
+  const tone = STATUS_TONE_MAP[normalized] || "neutral";
+  return (
+    <AppBadge tone={tone}>
+      {displayPlatformCode(normalized, language)}
+    </AppBadge>
+  );
 }

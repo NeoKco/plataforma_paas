@@ -4,6 +4,8 @@ import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../../components/common/StatusBadge";
+import { AppBadge } from "../../../../../design-system/AppBadge";
+import { AppFilterGrid, AppTableWrap, AppToolbar } from "../../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
@@ -799,7 +801,7 @@ export function FinanceTransactionsPage() {
               </div>
             ) : null}
 
-            <div className="finance-inline-toolbar">
+            <AppToolbar>
               <label className="form-check d-flex align-items-center gap-2 mb-0">
                 <input
                   className="form-check-input"
@@ -828,9 +830,9 @@ export function FinanceTransactionsPage() {
                 />
                 <span className="form-check-label">{language === "es" ? "Favorita" : "Favorite"}</span>
               </label>
-            </div>
+            </AppToolbar>
 
-            <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+            <AppToolbar compact>
               <button className="btn btn-primary" type="submit" disabled={isActionSubmitting}>
                 {editingTransactionId
                   ? language === "es"
@@ -850,7 +852,7 @@ export function FinanceTransactionsPage() {
                   {language === "es" ? "Cancelar edición" : "Cancel editing"}
                 </button>
               ) : null}
-            </div>
+            </AppToolbar>
           </form>
         </PanelCard>
 
@@ -922,9 +924,9 @@ export function FinanceTransactionsPage() {
                 label={language === "es" ? "Estado" : "Status"}
                 value={
                   usage.at_limit ? (
-                    <span className="status-badge status-badge--warning">{language === "es" ? "al límite" : "at limit"}</span>
+                    <AppBadge tone="warning">{language === "es" ? "al límite" : "at limit"}</AppBadge>
                   ) : (
-                    <span className="status-badge status-badge--success">ok</span>
+                    <AppBadge tone="success">ok</AppBadge>
                   )
                 }
               />
@@ -952,7 +954,7 @@ export function FinanceTransactionsPage() {
             />
           </div>
 
-          <div className="finance-filter-grid">
+          <AppFilterGrid>
             <div>
               <label className="form-label">{language === "es" ? "Buscar" : "Search"}</label>
               <input
@@ -1068,9 +1070,9 @@ export function FinanceTransactionsPage() {
                 <option value="done">{language === "es" ? "Conciliadas" : "Reconciled"}</option>
               </select>
             </div>
-          </div>
+          </AppFilterGrid>
 
-          <div className="finance-inline-toolbar finance-inline-toolbar--compact mb-3">
+          <AppToolbar compact className="mb-3">
             <button
               className="btn btn-outline-secondary btn-sm"
               type="button"
@@ -1112,7 +1114,7 @@ export function FinanceTransactionsPage() {
             >
               {language === "es" ? "Limpiar filtros" : "Clear filters"}
             </button>
-          </div>
+          </AppToolbar>
 
           {selectedTransactionIds.length > 0 ? (
             <div className="tenant-action-feedback tenant-action-feedback--success">
@@ -1181,7 +1183,7 @@ export function FinanceTransactionsPage() {
                   </span>
                 </label>
               </div>
-              <div className="finance-inline-toolbar finance-inline-toolbar--compact mt-2">
+              <AppToolbar compact className="mt-2">
                 <button
                   className="btn btn-outline-warning btn-sm"
                   type="button"
@@ -1233,12 +1235,12 @@ export function FinanceTransactionsPage() {
                 >
                   {language === "es" ? "Limpiar selección" : "Clear selection"}
                 </button>
-              </div>
+              </AppToolbar>
             </div>
           ) : null}
 
           {transactions.length > 0 ? (
-            <div className="table-responsive">
+            <AppTableWrap>
               <table className="table table-hover align-middle mb-0">
                 <thead>
                   <tr>
@@ -1315,13 +1317,13 @@ export function FinanceTransactionsPage() {
                         <td>{formatMoney(transaction.amount, currency?.code, language)}</td>
                         <td>
                           {transaction.is_reconciled ? (
-                            <span className="status-badge status-badge--success">{language === "es" ? "conciliada" : "reconciled"}</span>
+                            <AppBadge tone="success">{language === "es" ? "conciliada" : "reconciled"}</AppBadge>
                           ) : (
-                            <span className="status-badge status-badge--neutral">{language === "es" ? "pendiente" : "pending"}</span>
+                            <AppBadge tone="neutral">{language === "es" ? "pendiente" : "pending"}</AppBadge>
                           )}
                         </td>
                         <td>
-                          <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+                          <AppToolbar compact>
                             <button
                               className="btn btn-sm btn-outline-primary"
                               type="button"
@@ -1366,14 +1368,14 @@ export function FinanceTransactionsPage() {
                                   ? "Conciliar"
                                   : "Reconcile"}
                             </button>
-                          </div>
+                          </AppToolbar>
                         </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
-            </div>
+            </AppTableWrap>
           ) : (
             <div className="text-secondary">
               {language === "es"
@@ -1765,9 +1767,9 @@ function renderTransactionTagChips(
       ? `${tag.name}${tag.is_active ? "" : language === "es" ? " · inactiva" : " · inactive"}`
       : `#${tagId}`;
     return (
-      <span key={tagId} className="status-badge status-badge--neutral">
+      <AppBadge key={tagId} tone="neutral">
         {label}
-      </span>
+      </AppBadge>
     );
   });
 }

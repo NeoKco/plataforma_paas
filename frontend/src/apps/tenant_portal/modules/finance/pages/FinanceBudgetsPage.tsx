@@ -3,6 +3,8 @@ import type { FormEvent, ReactNode } from "react";
 import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
+import { AppBadge, type AppBadgeTone } from "../../../../../design-system/AppBadge";
+import { AppTableWrap, AppToolbar } from "../../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
@@ -549,7 +551,7 @@ export function FinanceBudgetsPage() {
               />
             </div>
 
-            <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+            <AppToolbar compact>
               <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
                 {editingBudgetId
                   ? language === "es"
@@ -569,7 +571,7 @@ export function FinanceBudgetsPage() {
                   {language === "es" ? "Cancelar edición" : "Cancel editing"}
                 </button>
               ) : null}
-            </div>
+            </AppToolbar>
           </form>
         </PanelCard>
 
@@ -672,7 +674,7 @@ export function FinanceBudgetsPage() {
                 </div>
               </div>
             </div>
-            <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+            <AppToolbar compact>
               <button
                 className="btn btn-outline-primary"
                 type="button"
@@ -681,7 +683,7 @@ export function FinanceBudgetsPage() {
               >
                 {language === "es" ? "Clonar al mes visible" : "Clone into visible month"}
               </button>
-            </div>
+            </AppToolbar>
             <div className="tenant-inline-form-grid">
               <div>
                 <label className="form-label">{language === "es" ? "Plantilla sugerida" : "Suggested template"}</label>
@@ -716,7 +718,7 @@ export function FinanceBudgetsPage() {
                 </div>
               </div>
             </div>
-            <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+            <AppToolbar compact>
               <button
                 className="btn btn-outline-secondary"
                 type="button"
@@ -725,7 +727,7 @@ export function FinanceBudgetsPage() {
               >
                 {language === "es" ? "Aplicar plantilla al mes visible" : "Apply template to visible month"}
               </button>
-            </div>
+            </AppToolbar>
           </div>
         </PanelCard>
       </div>
@@ -739,7 +741,7 @@ export function FinanceBudgetsPage() {
         }
       >
         {budgetsResponse && budgetsResponse.focus_items.length > 0 ? (
-          <div className="table-responsive">
+          <AppTableWrap>
             <table className="table table-hover align-middle mb-0">
               <thead>
                 <tr>
@@ -765,12 +767,12 @@ export function FinanceBudgetsPage() {
                     <td>{formatMoney(budget.variance_amount, language, baseCurrencyCode)}</td>
                     <td>{formatPercent(budget.utilization_ratio)}</td>
                     <td>
-                      <span className={`status-badge ${budgetStatusBadgeClass(budget.budget_status)}`}>
+                      <AppBadge tone={budgetStatusBadgeTone(budget.budget_status)}>
                         {displayBudgetStatus(budget.budget_status, language)}
-                      </span>
+                      </AppBadge>
                     </td>
                     <td>
-                      <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+                      <AppToolbar compact>
                         <button
                           className="btn btn-sm btn-outline-primary"
                           type="button"
@@ -802,13 +804,13 @@ export function FinanceBudgetsPage() {
                               ? "Activar"
                               : "Activate"}
                         </button>
-                      </div>
+                      </AppToolbar>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </AppTableWrap>
         ) : (
           <div className="text-secondary">
             {language === "es"
@@ -853,9 +855,9 @@ export function FinanceBudgetsPage() {
                     <td>{formatMoney(budget.variance_amount, language, baseCurrencyCode)}</td>
                     <td>{formatPercent(budget.utilization_ratio)}</td>
                     <td>
-                      <span className={`status-badge ${budgetStatusBadgeClass(budget.budget_status)}`}>
+                      <AppBadge tone={budgetStatusBadgeTone(budget.budget_status)}>
                         {displayBudgetStatus(budget.budget_status, language)}
-                      </span>
+                      </AppBadge>
                     </td>
                     <td>
                       <button
@@ -977,17 +979,17 @@ function displayGuidedAdjustmentLabel(
   return language === "es" ? "Aplicar ajuste" : "Apply adjustment";
 }
 
-function budgetStatusBadgeClass(value: string): string {
+function budgetStatusBadgeTone(value: string): AppBadgeTone {
   if (value === "over_budget") {
-    return "status-badge--danger";
+    return "danger";
   }
   if (value === "within_budget") {
-    return "status-badge--success";
+    return "success";
   }
   if (value === "unused") {
-    return "status-badge--warning";
+    return "warning";
   }
-  return "status-badge--neutral";
+  return "neutral";
 }
 
 function DetailField({

@@ -3,6 +3,8 @@ import type { FormEvent, ReactNode } from "react";
 import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
+import { AppBadge, type AppBadgeTone } from "../../../../../design-system/AppBadge";
+import { AppTableWrap, AppToolbar } from "../../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
@@ -833,7 +835,7 @@ export function FinanceLoansPage() {
               />
             </div>
 
-            <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+            <AppToolbar compact>
               <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
                 {editingLoanId
                   ? language === "es"
@@ -853,7 +855,7 @@ export function FinanceLoansPage() {
                   {language === "es" ? "Cancelar edición" : "Cancel editing"}
                 </button>
               ) : null}
-            </div>
+            </AppToolbar>
           </form>
         </PanelCard>
 
@@ -924,7 +926,7 @@ export function FinanceLoansPage() {
         }
       >
         {loansResponse && loansResponse.data.length > 0 ? (
-          <div className="table-responsive">
+          <AppTableWrap>
             <table className="table table-hover align-middle mb-0">
               <thead>
                 <tr>
@@ -956,12 +958,12 @@ export function FinanceLoansPage() {
                     <td>{loan.next_due_date ? formatShortDate(loan.next_due_date, language) : "n/a"}</td>
                     <td>{loan.currency_code}</td>
                     <td>
-                      <span className={`status-badge ${loanStatusBadgeClass(loan.loan_status)}`}>
+                      <AppBadge tone={loanStatusBadgeTone(loan.loan_status)}>
                         {displayLoanStatus(loan.loan_status, language)}
-                      </span>
+                      </AppBadge>
                     </td>
                     <td>
-                      <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+                      <AppToolbar compact>
                         <button
                           className="btn btn-sm btn-outline-primary"
                           type="button"
@@ -984,13 +986,13 @@ export function FinanceLoansPage() {
                               ? "Cronograma"
                               : "Schedule"}
                         </button>
-                      </div>
+                      </AppToolbar>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </AppTableWrap>
         ) : (
           <div className="text-secondary">
             {language === "es" ? "No hay préstamos para el filtro seleccionado." : "No loans match the selected filter."}
@@ -1477,7 +1479,7 @@ export function FinanceLoansPage() {
             ) : null}
 
             {loanDetail.installments.length > 0 ? (
-              <div className="table-responsive">
+              <AppTableWrap>
                 <table className="table table-hover align-middle mb-0">
                   <thead>
                     <tr>
@@ -1526,16 +1528,12 @@ export function FinanceLoansPage() {
                         <td>{formatMoney(installment.paid_interest_amount, loanDetail.loan.currency_code, language)}</td>
                         <td>{displayReversalReason(installment.reversal_reason_code, language)}</td>
                         <td>
-                          <span
-                            className={`status-badge ${installmentStatusBadgeClass(
-                              installment.installment_status
-                            )}`}
-                          >
+                          <AppBadge tone={installmentStatusBadgeTone(installment.installment_status)}>
                             {displayInstallmentStatus(installment.installment_status, language)}
-                          </span>
+                          </AppBadge>
                         </td>
                         <td>
-                          <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+                          <AppToolbar compact>
                             {installment.installment_status !== "paid" ? (
                               <button
                                 className="btn btn-sm btn-outline-primary"
@@ -1559,9 +1557,9 @@ export function FinanceLoansPage() {
                                 className="btn btn-sm btn-outline-secondary"
                                 type="button"
                                 onClick={() => startInstallmentReversal(installment)}
-                              >
-                                {paymentFormState.installmentId === installment.id &&
-                                paymentFormState.mode === "reverse"
+                                >
+                                  {paymentFormState.installmentId === installment.id &&
+                                  paymentFormState.mode === "reverse"
                                   ? language === "es"
                                     ? "Editando reversa"
                                     : "Editing reversal"
@@ -1570,13 +1568,13 @@ export function FinanceLoansPage() {
                                     : "Reverse"}
                               </button>
                             ) : null}
-                          </div>
+                          </AppToolbar>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </AppTableWrap>
             ) : (
               <div className="text-secondary">
                 {language === "es"
@@ -1759,27 +1757,27 @@ function displayInstallmentStatus(value: string, language: "es" | "en"): string 
   return value;
 }
 
-function loanStatusBadgeClass(value: string): string {
+function loanStatusBadgeTone(value: string): AppBadgeTone {
   if (value === "open") {
-    return "status-badge--warning";
+    return "warning";
   }
   if (value === "settled") {
-    return "status-badge--success";
+    return "success";
   }
-  return "status-badge--neutral";
+  return "neutral";
 }
 
-function installmentStatusBadgeClass(value: string): string {
+function installmentStatusBadgeTone(value: string): AppBadgeTone {
   if (value === "paid") {
-    return "status-badge--success";
+    return "success";
   }
   if (value === "partial") {
-    return "status-badge--warning";
+    return "warning";
   }
   if (value === "overdue") {
-    return "status-badge--danger";
+    return "danger";
   }
-  return "status-badge--neutral";
+  return "neutral";
 }
 
 function formatShortDate(value: string, language: "es" | "en"): string {
