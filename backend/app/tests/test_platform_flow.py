@@ -1493,6 +1493,69 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertEqual(tenant.tenant_schema_version, "0002_finance_entries")
         self.assertEqual(result["tenant"], tenant)
 
+    def test_tenant_service_requests_schema_sync_as_provisioning_job(self) -> None:
+        tenant = build_tenant_record_stub(status="active")
+        tenant.id = 7
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+
+        queued_job = SimpleNamespace(
+            id=15,
+            tenant_id=tenant.id,
+            job_type="sync_tenant_schema",
+            status="pending",
+        )
+        dispatch_calls: list[dict] = []
+
+        class FakeQuery:
+            def filter(self, *args, **kwargs):
+                return self
+
+            def order_by(self, *args, **kwargs):
+                return self
+
+            def first(self):
+                return None
+
+        class FakeDb:
+            def query(self, model):
+                return FakeQuery()
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                self.last_tenant_id = tenant_id
+                return tenant
+
+        fake_connection_service = SimpleNamespace(
+            get_tenant_database_credentials=lambda tenant_obj: {
+                "host": tenant_obj.db_host,
+                "port": tenant_obj.db_port,
+                "database": tenant_obj.db_name,
+                "username": tenant_obj.db_user,
+                "password": "secret",
+            }
+        )
+
+        def enqueue_job(**kwargs):
+            dispatch_calls.append(kwargs)
+            return queued_job
+
+        service = TenantService(
+            tenant_repository=FakeTenantRepository(),
+            tenant_connection_service=fake_connection_service,
+            provisioning_dispatch_service=SimpleNamespace(enqueue_job=enqueue_job),
+        )
+
+        result = service.request_tenant_schema_sync(db=FakeDb(), tenant_id=tenant.id)
+
+        self.assertIs(result, queued_job)
+        self.assertEqual(len(dispatch_calls), 1)
+        self.assertEqual(dispatch_calls[0]["tenant_id"], tenant.id)
+        self.assertEqual(dispatch_calls[0]["job_type"], "sync_tenant_schema")
+        self.assertEqual(dispatch_calls[0]["status"], "pending")
+
     def test_tenant_service_updates_billing_state(self) -> None:
         tenant = build_tenant_record_stub(
             billing_status=None,

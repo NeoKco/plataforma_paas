@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getApiErrorDisplayMessage } from "../../../../../../services/api";
 import {
   getTenantSchemaStatus,
@@ -6,7 +6,7 @@ import {
 } from "../../../../../../services/tenant-api";
 import { useLanguage } from "../../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../../store/tenant-auth-context";
-import type { ApiError } from "../../../../../../types";
+import type { ApiError, TenantSchemaJobData } from "../../../../../../types";
 
 type FinanceSchemaSyncCalloutProps = {
   error: ApiError | null;
@@ -31,12 +31,17 @@ export function FinanceSchemaSyncCallout({
     latestAvailableVersion: string | null;
     pendingCount: number;
     lastAppliedAt: string | null;
+    latestJob: TenantSchemaJobData | null;
   } | null>(null);
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
+  const handledCompletedJobIdRef = useRef<number | null>(null);
+  const handledFailedJobKeyRef = useRef<string | null>(null);
 
   const schemaIncomplete = isFinanceSchemaIncompleteError(error);
   const accessToken = session?.accessToken || null;
   const canSyncFromTenant = session?.role === "admin" && !!accessToken;
+  const liveSchemaJob = statusSummary?.latestJob || null;
+  const hasLiveSchemaJob = isLiveSchemaJob(liveSchemaJob);
 
   useEffect(() => {
     if (!schemaIncomplete || !canSyncFromTenant) {
@@ -61,6 +66,7 @@ export function FinanceSchemaSyncCallout({
           latestAvailableVersion: response.latest_available_version,
           pendingCount: response.pending_count,
           lastAppliedAt: response.last_applied_at,
+          latestJob: response.latest_job,
         });
       } catch {
         if (!cancelled) {
@@ -78,6 +84,81 @@ export function FinanceSchemaSyncCallout({
       cancelled = true;
     };
   }, [accessToken, canSyncFromTenant, schemaIncomplete]);
+
+  useEffect(() => {
+    if (
+      !schemaIncomplete ||
+      !canSyncFromTenant ||
+      !accessToken ||
+      !hasLiveSchemaJob
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    const intervalId = window.setInterval(async () => {
+      try {
+        const response = await getTenantSchemaStatus(accessToken);
+        if (cancelled) {
+          return;
+        }
+        setStatusSummary({
+          currentVersion: response.current_version,
+          latestAvailableVersion: response.latest_available_version,
+          pendingCount: response.pending_count,
+          lastAppliedAt: response.last_applied_at,
+          latestJob: response.latest_job,
+        });
+      } catch {
+        if (!cancelled) {
+          setStatusSummary((current) => current);
+        }
+      }
+    }, 4000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [accessToken, canSyncFromTenant, hasLiveSchemaJob, schemaIncomplete]);
+
+  useEffect(() => {
+    if (!liveSchemaJob) {
+      return;
+    }
+
+    if (
+      liveSchemaJob.status === "completed" &&
+      handledCompletedJobIdRef.current !== liveSchemaJob.job_id
+    ) {
+      handledCompletedJobIdRef.current = liveSchemaJob.job_id;
+      setActionFeedback({
+        type: "success",
+        message:
+          language === "es"
+            ? "La sincronización terminó correctamente. Se recargará la vista."
+            : "Schema sync completed successfully. The view will reload.",
+      });
+      void Promise.resolve(onSynced()).catch(() => undefined);
+      return;
+    }
+
+    const failedJobKey = `${liveSchemaJob.job_id}:${liveSchemaJob.attempts}`;
+    if (
+      liveSchemaJob.status === "failed" &&
+      handledFailedJobKeyRef.current !== failedJobKey
+    ) {
+      handledFailedJobKeyRef.current = failedJobKey;
+      setActionFeedback({
+        type: "error",
+        message:
+          liveSchemaJob.error_message ||
+          (language === "es"
+            ? "La sincronización del esquema falló y requiere revisión."
+            : "Schema sync failed and requires review."),
+      });
+    }
+  }, [language, liveSchemaJob, onSynced]);
 
   if (!schemaIncomplete) {
     return null;
@@ -98,19 +179,15 @@ export function FinanceSchemaSyncCallout({
         latestAvailableVersion: response.latest_available_version,
         pendingCount: response.pending_count,
         lastAppliedAt: response.last_applied_at,
+        latestJob: response.queued_job,
       });
       setActionFeedback({
         type: "success",
         message:
-          response.applied_now.length > 0
-            ? language === "es"
-              ? `Se aplicaron ${response.applied_now.length} cambios de estructura y la vista se recargará.`
-              : `${response.applied_now.length} schema changes were applied and the view will reload.`
-            : language === "es"
-              ? "La estructura ya quedó al día y la vista se recargará."
-              : "The schema is already up to date and the view will reload.",
+          language === "es"
+            ? "La sincronización quedó en cola. Esta tarjeta seguirá monitoreando el job."
+            : "Schema sync was queued. This card will keep monitoring the job.",
       });
-      await onSynced();
     } catch (rawError) {
       setActionFeedback({
         type: "error",
@@ -161,6 +238,30 @@ export function FinanceSchemaSyncCallout({
             {language === "es" ? "Última sincronización:" : "Last sync:"}{" "}
             <strong>{statusSummary.lastAppliedAt ? formatDateTime(statusSummary.lastAppliedAt, language) : "n/a"}</strong>
           </div>
+          {statusSummary.latestJob ? (
+            <>
+              <div>
+                {language === "es" ? "Job actual:" : "Current job:"}{" "}
+                <strong>#{statusSummary.latestJob.job_id}</strong>
+              </div>
+              <div>
+                {language === "es" ? "Estado job:" : "Job status:"}{" "}
+                <strong>{formatJobStatus(statusSummary.latestJob.status, language)}</strong>
+              </div>
+              <div>
+                {language === "es" ? "Intentos:" : "Attempts:"}{" "}
+                <strong>
+                  {statusSummary.latestJob.attempts}/{statusSummary.latestJob.max_attempts}
+                </strong>
+              </div>
+              {statusSummary.latestJob.next_retry_at ? (
+                <div>
+                  {language === "es" ? "Próximo reintento:" : "Next retry:"}{" "}
+                  <strong>{formatDateTime(statusSummary.latestJob.next_retry_at, language)}</strong>
+                </div>
+              ) : null}
+            </>
+          ) : null}
         </div>
       ) : null}
 
@@ -176,18 +277,24 @@ export function FinanceSchemaSyncCallout({
             type="button"
             className="btn btn-primary"
             onClick={() => void handleSync()}
-            disabled={isSyncing}
+            disabled={isSyncing || hasLiveSchemaJob}
           >
-            {isSyncing
+            {isSyncing || hasLiveSchemaJob
               ? language === "es"
-                ? "Actualizando estructura..."
-                : "Updating schema..."
+                ? "Sincronización en curso..."
+                : "Schema sync in progress..."
               : language === "es"
                 ? "Actualizar estructura del módulo"
                 : "Update module schema"}
           </button>
           <span className="small text-warning-emphasis">
-            {language === "es" ? "Disponible solo para admin del tenant." : "Available only for the tenant admin."}
+            {hasLiveSchemaJob
+              ? language === "es"
+                ? "Ya existe un job activo de sincronización para este tenant."
+                : "There is already an active schema sync job for this tenant."
+              : language === "es"
+                ? "Disponible solo para admin del tenant."
+                : "Available only for the tenant admin."}
           </span>
         </div>
       ) : (
@@ -198,6 +305,14 @@ export function FinanceSchemaSyncCallout({
         </p>
       )}
     </div>
+  );
+}
+
+function isLiveSchemaJob(job: TenantSchemaJobData | null) {
+  return (
+    job?.status === "pending" ||
+    job?.status === "retry_pending" ||
+    job?.status === "running"
   );
 }
 
@@ -218,4 +333,21 @@ function formatDateTime(value: string, language: "es" | "en") {
     dateStyle: "short",
     timeStyle: "short",
   }).format(parsed);
+}
+
+function formatJobStatus(status: string, language: "es" | "en") {
+  switch (status) {
+    case "pending":
+      return language === "es" ? "pendiente" : "pending";
+    case "retry_pending":
+      return language === "es" ? "reintento pendiente" : "retry pending";
+    case "running":
+      return language === "es" ? "ejecutando" : "running";
+    case "completed":
+      return language === "es" ? "completado" : "completed";
+    case "failed":
+      return language === "es" ? "fallido" : "failed";
+    default:
+      return status;
+  }
 }

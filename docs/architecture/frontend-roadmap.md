@@ -30,7 +30,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - `finance` ya permite selección múltiple y operación batch sobre cuotas del cronograma
 - `finance` ya expone en `Préstamos` una lectura contable derivada más rica, con resumen operativo y exportación CSV/JSON desde el detalle
 - `finance` ya explica desde la propia UI para que sirve sincronizar estructura cuando el schema del tenant quedó atrasado
-- `tenant admin` ya puede lanzar esa sincronizacion desde el propio `tenant_portal`
+- `tenant admin` ya puede lanzar esa sincronizacion desde el propio `tenant_portal`, verla como job activo y esperar su cierre sin ejecucion inline
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
 - el frontend ya usa code-splitting por ruta para `platform_admin`, `tenant_portal` y `finance`, reduciendo el bundle inicial y eliminando la advertencia de chunk principal > `500 kB`
@@ -50,8 +50,8 @@ Lo pendiente es sobre todo:
 - seguir endureciendo `Reportes` con comparativas todavía más densas y exportaciones de soporte si el uso real lo justifica, ahora que ya existe comparación por dimensión activa
 - evaluar una segunda iteracion de `Transacciones` con lotes inteligentes sobre filtro activo o reglas asistidas adicionales solo si la operación real lo pide
 - seguir endureciendo `Préstamos` con mejor lectura de contrapartida, cruces más densos si el negocio lo exige y posibles exportaciones aún más contables
-- mover la sincronizacion tenant-side a un flujo asíncrono con job visible en vez de ejecutarla inline
 - sumar auto-sync post-provisioning/post-deploy para reducir friccion operativa
+- dejar los primeros gráficos reales de `finance` como pendiente posterior al cierre funcional del módulo; el punto natural sigue siendo `Reportes` y luego `Planificación`
 - una vez cerrado `finance`, abrir un `design system` transversal del PaaS y aplicar la primera migracion completa precisamente sobre `finance`, incluyendo sistema comun de iconos por modulo y entidad
 - cerrar una internacionalizacion transversal real del frontend, continuando desde el fix ya aplicado en `Overview` y `Users` para eliminar copy hardcodeado del resto de pantallas y helpers compartidos
 

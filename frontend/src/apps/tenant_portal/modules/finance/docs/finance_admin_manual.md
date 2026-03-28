@@ -54,7 +54,7 @@ Estado actual:
 - `Transacciones` ya permite además filtrar por `Etiqueta` y mostrar chips visibles en tabla y detalle
 - `Reportes` ya permite además rankear por `etiqueta`
 - cuando el schema `finance` del tenant queda atrasado, el portal ya muestra explicación operativa y CTA para actualizar estructura
-- `tenant admin` ya puede revisar estado y sincronizar estructura desde el propio portal, sin depender solo de `Platform Admin`
+- `tenant admin` ya puede revisar estado y sincronizar estructura desde el propio portal, dejando el trabajo en cola y monitoreando el job sin depender solo de `Platform Admin`
 - `Cuentas`, `Categorías`, `Catálogos`, `Configuración`, `Transacciones`, `Presupuestos`, `Préstamos`, `Planificación` y `Reportes`, junto con los formularios auxiliares visibles del slice, ya respetan el selector de idioma en la lectura principal y traducen etiquetas de dominio como tipo de cuenta o tipo de categoría
 - la moneda base del módulo se gobierna desde `Finanzas > Configuración > Monedas`; al marcar una nueva base, la anterior se desactiva como base automáticamente
 - el cambio de moneda base no reprocesa automáticamente histórico ya persistido en transacciones

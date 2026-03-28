@@ -1351,6 +1351,47 @@ class ProvisioningServiceRetryTestCase(unittest.TestCase):
             tenant_id=tenant.id,
         )
 
+    def test_run_sync_schema_job_marks_completed(self) -> None:
+        job = self._build_job(job_type="sync_tenant_schema")
+        tenant = self._build_tenant()
+
+        class FakeDb:
+            def commit(self):
+                pass
+
+        class FakeProvisioningJobRepository:
+            def get_by_id(self, db, job_id):
+                return job
+
+            def refresh(self, db, job_obj):
+                return None
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+        fake_tenant_service = MagicMock()
+        fake_tenant_service.sync_tenant_schema.return_value = tenant
+
+        service = ProvisioningService(
+            tenant_repository=FakeTenantRepository(),
+            provisioning_job_repository=FakeProvisioningJobRepository(),
+            provisioning_dispatch_service=SimpleNamespace(finalize_job=lambda job: None),
+            tenant_service=fake_tenant_service,
+            tenant_secret_service=SimpleNamespace(),
+            logging_service=MagicMock(),
+        )
+
+        result = service.run_job(FakeDb(), 1)
+
+        self.assertIs(result, job)
+        self.assertEqual(job.status, "completed")
+        self.assertEqual(job.error_code, None)
+        fake_tenant_service.sync_tenant_schema.assert_called_once_with(
+            db=ANY,
+            tenant_id=tenant.id,
+        )
+
     def test_requeue_failed_deprovision_job_keeps_archived_status(self) -> None:
         job = self._build_job(
             attempts=3,

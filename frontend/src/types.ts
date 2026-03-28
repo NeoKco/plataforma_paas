@@ -238,6 +238,7 @@ export type TenantSchemaStatusResponse = {
   pending_count: number;
   pending_versions: string[];
   last_applied_at: string | null;
+  latest_job: TenantSchemaJobData | null;
 };
 
 export type TenantSchemaSyncResponse = {
@@ -249,6 +250,20 @@ export type TenantSchemaSyncResponse = {
   pending_count: number;
   last_applied_at: string | null;
   applied_now: string[];
+  queued_job: TenantSchemaJobData | null;
+};
+
+export type TenantSchemaJobData = {
+  job_id: number;
+  job_type: string;
+  status: string;
+  attempts: number;
+  max_attempts: number;
+  error_code: string | null;
+  error_message: string | null;
+  created_at: string | null;
+  last_attempt_at: string | null;
+  next_retry_at: string | null;
 };
 
 export type PlatformTenant = {

@@ -56,6 +56,7 @@ Cobertura actual:
 - comparativa por dimensión activa contra el período comparado dentro de `reportes overview`
 - resumen y contexto ampliado de lectura derivada en detalle de `prestamos`
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
+- contratos tenant de `schema-status` y `sync-schema` cubiertos en suites complementarias de `tenant/platform`, incluyendo `latest_job`, `queued_job` y ejecucion asíncrona sobre `provisioning_jobs`
 
 Pendiente por lotes:
 - pruebas de una segunda iteracion de conciliacion asistida solo si luego aparecen lotes mas inteligentes o reglas adicionales

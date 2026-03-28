@@ -114,12 +114,13 @@ En esta fase quedaron listos:
 - las transacciones ya persisten `tag_ids` de forma real en `finance_transaction_tags`
 - `Reportes` ya permite además rankear por `etiqueta`
 - manejo controlado de schema incompleto en vistas de `finance`, sin `500` crudo
-- self-service de sincronizacion de estructura desde el propio `tenant_portal` para `tenant admin`
+- self-service de sincronizacion de estructura desde el propio `tenant_portal` para `tenant admin`, ahora como job visible y no como ejecucion inline
 
 Pendiente posterior al cierre de `finance`:
 
 - usar el propio modulo `finance` como primer bloque de adopcion del futuro `design system` transversal del PaaS
 - ese trabajo queda secuenciado para despues del cierre funcional del modulo y debe incluir iconografia semantica comun para modulos, navegacion y entidades
+- dejar la primera capa de gráficos reales de `finance` para despues del cierre funcional del modulo; el punto natural sigue siendo `Reportes` y luego `Planificación`
 
 ## Archivos principales
 
@@ -300,8 +301,9 @@ Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el te
 Ademas, el propio `tenant_portal` ya permite a un `admin` del tenant:
 
 - revisar el estado actual del esquema con `GET /tenant/schema-status`
-- ejecutar la sincronizacion con `POST /tenant/sync-schema`
-- disparar esa accion desde las vistas de `finance` cuando la API detecta schema incompleto
+- encolar la sincronizacion con `POST /tenant/sync-schema`
+- ver el `latest_job` asociado y esperar el cierre desde la propia tarjeta de error del modulo
+- disparar esa accion desde las vistas de `finance` cuando la API detecta schema incompleto, sin bloquear la UI en ejecucion inline
 
 ## Siguiente iteracion recomendable
 
@@ -334,8 +336,8 @@ Lo siguiente recomendable ahora es:
 4. endurecer `Préstamos` solo si luego se requiere lectura de contrapartida/categoría o exportación contable mas formal
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual, como siguiente mejora opcional de `Transacciones`
 6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable
-7. mover la sincronizacion tenant-side a job de provisioning o worker dedicado, en vez de ejecutarla inline
-8. agregar auto-sync post-provisioning y post-deploy para reducir al minimo la sincronizacion manual tenant por tenant
+7. agregar auto-sync post-provisioning y post-deploy para reducir al minimo la sincronizacion manual tenant por tenant
+8. dejar los primeros gráficos reales para `Reportes` y, si luego aporta, para `Planificación`
 
 ## Convencion relacionada
 

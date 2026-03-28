@@ -45,7 +45,7 @@ Estado actual:
 - la vista `Transacciones` ya permite además filtrar por una etiqueta y releerlas como chips en tabla y detalle
 - la vista `Reportes` ya permite además rankear por `etiqueta`
 - si una vista nueva del modulo detecta que faltan tablas o cambios de estructura, ahora explica el problema en pantalla
-- si eres `admin` del tenant, ahora puedes usar `Actualizar estructura del módulo` desde el propio portal para aplicar migraciones pendientes
+- si eres `admin` del tenant, ahora puedes usar `Actualizar estructura del módulo` desde el propio portal para encolar la sincronización y seguir el job hasta que cierre
 - `Cuentas`, `Categorías`, `Catálogos`, `Configuración`, `Transacciones`, `Presupuestos`, `Préstamos`, `Planificación` y `Reportes`, junto con los formularios auxiliares visibles del slice, ya respetan el selector `Español/Inglés` en la lectura principal sin mostrar valores internos crudos como `cash`, `income` o `expense`
 - para cambiar la moneda base, entra a `Finanzas > Configuración > Monedas`, edita o crea la moneda deseada y marca `Moneda base`; la base anterior se desmarca automáticamente
 - cambiar la moneda base no recalcula automáticamente transacciones históricas ya persistidas; esas mantienen su `exchange_rate` y `amount_in_base_currency` originales

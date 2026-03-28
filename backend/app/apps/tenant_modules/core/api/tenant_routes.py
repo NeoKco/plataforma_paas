@@ -9,6 +9,7 @@ from app.apps.tenant_modules.core.schemas import (
     TenantInfoResponse,
     TenantMeDbResponse,
     TenantMeResponse,
+    TenantSchemaJobData,
     TenantSchemaStatusResponse,
     TenantSchemaSyncResponse,
     TenantModuleUsageItemResponse,
@@ -57,6 +58,23 @@ def _build_tenant_user_context(context: dict) -> TenantUserContextResponse:
         tenant_slug=context["tenant_slug"],
         token_scope=context["token_scope"],
         maintenance_mode=context.get("maintenance_mode", False),
+    )
+
+
+def _build_tenant_schema_job(job) -> TenantSchemaJobData | None:
+    if job is None:
+        return None
+    return TenantSchemaJobData(
+        job_id=job.id,
+        job_type=job.job_type,
+        status=job.status,
+        attempts=job.attempts,
+        max_attempts=job.max_attempts,
+        error_code=job.error_code,
+        error_message=job.error_message,
+        created_at=getattr(job, "created_at", None),
+        last_attempt_at=getattr(job, "last_attempt_at", None),
+        next_retry_at=getattr(job, "next_retry_at", None),
     )
 
 
@@ -356,6 +374,7 @@ def tenant_schema_status(
         pending_count=schema_status.get("pending_count", 0),
         pending_versions=schema_status.get("pending_versions", []),
         last_applied_at=schema_status.get("last_applied_at"),
+        latest_job=_build_tenant_schema_job(schema_status.get("latest_job")),
     )
 
 
@@ -367,7 +386,7 @@ def tenant_sync_schema(
     tenant = _get_current_platform_tenant(control_db, current_user["tenant_slug"])
 
     try:
-        synced_tenant = tenant_service.sync_tenant_schema(
+        queued_job = tenant_service.request_tenant_schema_sync(
             db=control_db,
             tenant_id=tenant.id,
         )
@@ -382,14 +401,15 @@ def tenant_sync_schema(
 
     return TenantSchemaSyncResponse(
         success=True,
-        message="Estructura tenant sincronizada correctamente",
+        message="Sincronizacion de estructura tenant encolada correctamente",
         requested_by=_build_tenant_user_context(current_user),
-        tenant_slug=synced_tenant.slug,
+        tenant_slug=tenant.slug,
         current_version=schema_status.get("current_version"),
         latest_available_version=schema_status.get("latest_available_version"),
         pending_count=schema_status.get("pending_count", 0),
         last_applied_at=schema_status.get("last_applied_at"),
-        applied_now=schema_status.get("applied_now", []),
+        applied_now=[],
+        queued_job=_build_tenant_schema_job(queued_job),
     )
 
 

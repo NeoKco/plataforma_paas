@@ -236,6 +236,33 @@ class TenantService:
         self._apply_schema_tracking(tenant, status)
         return self.tenant_repository.save(db, tenant)
 
+    def request_tenant_schema_sync(self, db: Session, tenant_id: int) -> ProvisioningJob:
+        tenant = self.tenant_repository.get_by_id(db, tenant_id)
+        if not tenant:
+            raise ValueError("Tenant not found")
+
+        if tenant.status != "active":
+            raise ValueError("Tenant must be active to sync schema")
+
+        self.tenant_connection_service.get_tenant_database_credentials(tenant)
+
+        active_job = (
+            db.query(ProvisioningJob)
+            .filter(ProvisioningJob.tenant_id == tenant.id)
+            .filter(ProvisioningJob.status.in_(["pending", "retry_pending", "running"]))
+            .order_by(ProvisioningJob.id.desc())
+            .first()
+        )
+        if active_job:
+            raise ValueError("Tenant already has a live provisioning job")
+
+        return self.provisioning_dispatch_service.enqueue_job(
+            db=db,
+            tenant_id=tenant.id,
+            job_type="sync_tenant_schema",
+            status="pending",
+        )
+
     def get_tenant_schema_status(self, db: Session, tenant_id: int) -> dict:
         tenant = self.tenant_repository.get_by_id(db, tenant_id)
         if not tenant:
@@ -247,7 +274,11 @@ class TenantService:
         status = self.tenant_schema_service.get_schema_status(**credentials)
         self._apply_schema_tracking(tenant, status)
         self.tenant_repository.save(db, tenant)
-        return {"tenant": tenant, **status}
+        return {
+            "tenant": tenant,
+            "latest_job": self._get_latest_schema_sync_job(db, tenant_id=tenant_id),
+            **status,
+        }
 
     def rotate_tenant_db_credentials(self, db: Session, tenant_id: int) -> dict:
         tenant = self.tenant_repository.get_by_id(db, tenant_id)
@@ -780,6 +811,29 @@ class TenantService:
             }
             for row in rows
         ]
+
+    def _get_latest_schema_sync_job(
+        self,
+        db: Session,
+        *,
+        tenant_id: int,
+    ) -> ProvisioningJob | None:
+        if not hasattr(db, "query"):
+            return None
+        try:
+            return (
+                db.query(ProvisioningJob)
+                .filter(ProvisioningJob.tenant_id == tenant_id)
+                .filter(
+                    ProvisioningJob.job_type.in_(
+                        ["sync_tenant_schema", "repair_tenant_schema"]
+                    )
+                )
+                .order_by(ProvisioningJob.id.desc())
+                .first()
+            )
+        except Exception:
+            return None
 
     def _safe_query_recent_rows(
         self,

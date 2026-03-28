@@ -1486,6 +1486,18 @@ class TenantRoutesTestCase(unittest.TestCase):
                     "0010_finance_loan_installment_reversal_reason",
                 ],
                 "last_applied_at": datetime.now(timezone.utc),
+                "latest_job": SimpleNamespace(
+                    id=91,
+                    job_type="sync_tenant_schema",
+                    status="running",
+                    attempts=1,
+                    max_attempts=3,
+                    error_code=None,
+                    error_message=None,
+                    created_at=datetime.now(timezone.utc),
+                    last_attempt_at=datetime.now(timezone.utc),
+                    next_retry_at=None,
+                ),
             },
         ):
             response = tenant_schema_status(
@@ -1496,6 +1508,9 @@ class TenantRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.tenant_slug, "empresa-bootstrap")
         self.assertEqual(response.pending_count, 2)
+        self.assertIsNotNone(response.latest_job)
+        self.assertEqual(response.latest_job.job_id, 91)
+        self.assertEqual(response.latest_job.status, "running")
 
     def test_tenant_sync_schema_syncs_current_tenant(self) -> None:
         tenant = build_tenant_record_stub()
@@ -1508,8 +1523,19 @@ class TenantRoutesTestCase(unittest.TestCase):
             return_value=tenant,
         ), patch(
             "app.apps.tenant_modules.core.api.tenant_routes."
-            "tenant_service.sync_tenant_schema",
-            return_value=tenant,
+            "tenant_service.request_tenant_schema_sync",
+            return_value=SimpleNamespace(
+                id=77,
+                job_type="sync_tenant_schema",
+                status="pending",
+                attempts=0,
+                max_attempts=3,
+                error_code=None,
+                error_message=None,
+                created_at=datetime.now(timezone.utc),
+                last_attempt_at=None,
+                next_retry_at=None,
+            ),
         ), patch(
             "app.apps.tenant_modules.core.api.tenant_routes."
             "tenant_service.get_tenant_schema_status",
@@ -1519,10 +1545,7 @@ class TenantRoutesTestCase(unittest.TestCase):
                 "latest_available_version": "0010_finance_loan_installment_reversal_reason",
                 "pending_count": 0,
                 "last_applied_at": datetime.now(timezone.utc),
-                "applied_now": [
-                    "0009_finance_loan_installment_payment_split",
-                    "0010_finance_loan_installment_reversal_reason",
-                ],
+                "latest_job": None,
             },
         ):
             response = tenant_sync_schema(
@@ -1533,7 +1556,9 @@ class TenantRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.tenant_slug, "empresa-bootstrap")
         self.assertEqual(response.pending_count, 0)
-        self.assertEqual(len(response.applied_now), 2)
+        self.assertEqual(response.applied_now, [])
+        self.assertIsNotNone(response.queued_job)
+        self.assertEqual(response.queued_job.job_id, 77)
 
     def test_tenant_module_usage_returns_usage_rows(self) -> None:
         with patch(

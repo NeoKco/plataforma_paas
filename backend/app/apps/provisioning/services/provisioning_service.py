@@ -32,6 +32,7 @@ class ProvisioningService:
         "bootstrap_role": "postgres_role_bootstrap_failed",
         "bootstrap_database": "postgres_database_bootstrap_failed",
         "bootstrap_tenant_schema": "tenant_schema_bootstrap_failed",
+        "sync_tenant_schema": "tenant_schema_sync_failed",
         "store_tenant_secret": "tenant_secret_store_failed",
         "deprovision_tenant_database": "tenant_database_drop_failed",
         "deprovision_tenant_role": "tenant_role_drop_failed",
@@ -99,6 +100,11 @@ class ProvisioningService:
                 )
             elif job.job_type == "deprovision_tenant_database":
                 provisioning_output = self._run_deprovision_tenant_database(
+                    db=db,
+                    tenant=tenant,
+                )
+            elif job.job_type == "sync_tenant_schema":
+                provisioning_output = self._run_sync_tenant_schema(
                     db=db,
                     tenant=tenant,
                 )
@@ -260,6 +266,27 @@ class ProvisioningService:
 
     def _should_reset_tenant_to_pending_on_retry(self, job_type: str) -> bool:
         return job_type == "create_tenant_database"
+
+    def _run_sync_tenant_schema(self, db: Session, tenant: Tenant) -> dict:
+        current_stage = "sync_tenant_schema"
+        try:
+            synced_tenant = self.tenant_service.sync_tenant_schema(db=db, tenant_id=tenant.id)
+            return {
+                "tenant_id": getattr(synced_tenant, "id", tenant.id),
+                "tenant_schema_version": getattr(
+                    synced_tenant,
+                    "tenant_schema_version",
+                    None,
+                ),
+                "tenant_schema_synced_at": getattr(
+                    synced_tenant,
+                    "tenant_schema_synced_at",
+                    None,
+                ),
+            }
+        except Exception as exc:
+            setattr(exc, "_provisioning_stage", current_stage)
+            raise
 
     def _run_create_tenant_database(self, db: Session, tenant: Tenant) -> dict:
         db_name = f"tenant_{tenant.slug.replace('-', '_')}"

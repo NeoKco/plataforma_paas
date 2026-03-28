@@ -268,7 +268,7 @@ Resultado actual:
 - `finance_transactions` ya persiste `tag_ids` de forma real en `finance_transaction_tags`
 - `Reportes` ya permite además rankear por `etiqueta`
 - cuando el schema `finance` del tenant esta incompleto, esas vistas ya degradan a error controlado y no a `500`
-- `tenant_portal` ya permite a `tenant admin` sincronizar estructura desde el propio tenant sin volver a `Platform Admin`
+- `tenant_portal` ya permite a `tenant admin` encolar y monitorear la sincronizacion de estructura desde el propio tenant, usando `provisioning_jobs` en vez de ejecucion inline
 - `CLP` ya forma parte de las monedas semilla del modulo
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
@@ -284,9 +284,9 @@ Falta para cerrarlo:
 - evaluar si `Transacciones` necesita una segunda iteracion de lotes inteligentes o reglas asistidas adicionales sobre el filtro activo
 - seguir enriqueciendo `Presupuestos` con presets configurables o plantillas mas ricas por tenant, ahora que ya existen ajustes guiados y plantillas operativas base
 - seguir endureciendo `Préstamos` con exportaciones contables mas densas, mejor lectura de contrapartida y eventual cruce con categorías si el dominio lo pide
-- mover la sincronizacion tenant-side de schema a job/worker en vez de inline
 - agregar auto-sync post-provisioning y post-deploy para evitar sincronizacion manual por uso
 - seguir `Lote 7` con comparativas todavía mas densas, cortes analíticos adicionales si aparecen necesidades reales y lecturas exportables más ejecutivas
+- dejar los primeros graficos reales de `finance` como pendiente deliberado hasta cerrar el modulo funcionalmente; el punto mas natural sigue siendo `Reportes` y luego `Planificación`
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 - dejar pendiente, para despues del cierre funcional de `finance`, la construccion de un `design system` completo del PaaS con adopcion inicial en el propio `finance`, incluyendo iconografia semantica comun

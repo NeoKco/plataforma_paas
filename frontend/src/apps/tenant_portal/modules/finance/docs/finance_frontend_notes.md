@@ -71,7 +71,7 @@
 - la pantalla de `Transacciones` ya permite además filtrar por `Etiqueta` y releer esos `tags` como chips en tabla y detalle
 - `Reportes` ya permite además rankear por `Etiqueta`
 - cuando `finance` detecta schema incompleto, la UI ya explica para que sirve actualizar la estructura del modulo
-- `tenant admin` ya puede disparar esa sincronizacion desde el mismo portal, sin depender solo de `Platform Admin`
+- `tenant admin` ya puede disparar esa sincronizacion desde el mismo portal, ver el job asociado y esperar el cierre sin depender solo de `Platform Admin`
 - `Cuentas`, `Categorías`, `Catálogos`, `Configuración`, `Transacciones`, `Presupuestos`, `Préstamos`, `Planificación` y `Reportes`, junto con formularios auxiliares, ya consumen `useLanguage` en la lectura principal y dejan de exponer enums crudos como `cash`, `bank`, `income` o `expense`
 - `Configuración > Monedas` ya expone explícitamente cómo cambiar la moneda base del módulo y aclara que la base anterior se limpia automáticamente
 - `Presupuestos`, `Planificación` y `Reportes` ya toman la moneda base activa para el formateo visual de montos
@@ -85,5 +85,5 @@ Pendiente inmediato:
 - enriquecer `Presupuestos` con plantillas mas ricas o presets configurables por tenant, mas alla de editar/activar/desactivar, clonar entre meses, alinear al real y aplicar plantillas operativas base
 - seguir endureciendo `Reportes` solo si luego se necesitan comparativas todavía más densas o exportaciones ejecutivas adicionales
 - seguir endureciendo `Préstamos` con una lectura todavía más contable si luego hace falta mostrar contrapartida/categoría o exportaciones de soporte más densas
-- mover la sincronizacion tenant-side a flujo asíncrono visible y no inline
 - reducir este caso con auto-sync post-provisioning y post-deploy
+- dejar la primera capa de gráficos reales como pendiente deliberado hasta cerrar el módulo; el punto natural sigue siendo `Reportes` y luego `Planificación`

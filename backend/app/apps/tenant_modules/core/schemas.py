@@ -200,6 +200,19 @@ class TenantUserMutationResponse(BaseModel):
     data: TenantUsersItemResponse
 
 
+class TenantSchemaJobData(BaseModel):
+    job_id: int
+    job_type: str
+    status: str
+    attempts: int = 0
+    max_attempts: int = 3
+    error_code: str | None = None
+    error_message: str | None = None
+    created_at: datetime | None = None
+    last_attempt_at: datetime | None = None
+    next_retry_at: datetime | None = None
+
+
 class TenantSchemaStatusResponse(BaseModel):
     success: bool
     message: str
@@ -210,6 +223,7 @@ class TenantSchemaStatusResponse(BaseModel):
     pending_count: int = 0
     pending_versions: list[str] = []
     last_applied_at: datetime | None = None
+    latest_job: TenantSchemaJobData | None = None
 
 
 class TenantSchemaSyncResponse(BaseModel):
@@ -222,3 +236,4 @@ class TenantSchemaSyncResponse(BaseModel):
     pending_count: int = 0
     last_applied_at: datetime | None = None
     applied_now: list[str] = []
+    queued_job: TenantSchemaJobData | None = None
