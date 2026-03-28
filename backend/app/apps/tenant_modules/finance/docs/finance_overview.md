@@ -50,9 +50,10 @@ Alcance de esta fase:
 - `Reportes` ya agrega una tendencia mensual corta de 6 meses para lectura reciente
 - `Reportes` ya permite ajustar la tendencia a `3`, `6` o `12` meses y exportar JSON base
 - `Reportes` ya permite foco analítico de movimientos para releer el mismo overview
+- `Reportes` ya permite además releer el bloque presupuestario por tipo y por estado
 
 Pendiente inmediato:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura mas densa y estados operativos mas ricos
 - enriquecer el enlace contable de `Préstamos`
-- seguir `Lote 7` con filtros analíticos más ricos por presupuesto/categoría, exportaciones más completas, comparativas multi-período y lectura analitica mas profunda
+- seguir `Lote 7` con comparativas multi-período más profundas, exportaciones más completas y lectura analitica mas profunda

@@ -907,6 +907,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         overview = {
             "period_month": date(2026, 4, 1),
             "movement_scope": "all",
+            "budget_category_scope": "all",
+            "budget_status_filter": "all",
             "transaction_snapshot": {
                 "period_month": date(2026, 4, 1),
                 "total_income": 500.0,
@@ -1033,6 +1035,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 period_month=date(2026, 4, 1),
                 trend_months=6,
                 movement_scope="all",
+                budget_category_scope="all",
+                budget_status_filter="all",
                 current_user=self._current_user(role="operator"),
                 tenant_db=object(),
             )
@@ -1053,6 +1057,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(response.data.monthly_trend[-1].net_balance, 380.0)
         self.assertEqual(response.data.movement_scope, "all")
+        self.assertEqual(response.data.budget_category_scope, "all")
 
     def test_get_finance_reports_overview_forwards_trend_months(self) -> None:
         with patch(
@@ -1060,6 +1065,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             return_value={
                 "period_month": date(2026, 4, 1),
                 "movement_scope": "all",
+                "budget_category_scope": "all",
+                "budget_status_filter": "all",
                 "transaction_snapshot": {
                     "period_month": date(2026, 4, 1),
                     "total_income": 0.0,
@@ -1120,6 +1127,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 period_month=date(2026, 4, 1),
                 trend_months=12,
                 movement_scope="favorites",
+                budget_category_scope="expense",
+                budget_status_filter="over_budget",
                 current_user=self._current_user(role="operator"),
                 tenant_db=object(),
             )
@@ -1127,6 +1136,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         _, kwargs = get_overview_mock.call_args
         self.assertEqual(kwargs["trend_months"], 12)
         self.assertEqual(kwargs["movement_scope"], "favorites")
+        self.assertEqual(kwargs["budget_category_scope"], "expense")
+        self.assertEqual(kwargs["budget_status_filter"], "over_budget")
 
     def test_get_finance_planning_overview_returns_monthly_payload(self) -> None:
         overview = {

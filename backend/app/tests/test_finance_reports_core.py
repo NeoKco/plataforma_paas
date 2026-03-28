@@ -219,6 +219,8 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
 
         self.assertEqual(overview["period_month"], date(2026, 4, 1))
         self.assertEqual(overview["movement_scope"], "all")
+        self.assertEqual(overview["budget_category_scope"], "all")
+        self.assertEqual(overview["budget_status_filter"], "all")
         self.assertEqual(overview["transaction_snapshot"]["total_income"], 500.0)
         self.assertEqual(overview["transaction_snapshot"]["total_expense"], 120.0)
         self.assertEqual(overview["transaction_snapshot"]["net_balance"], 380.0)
@@ -361,6 +363,84 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
                 self.db,
                 period_month=date(2026, 4, 1),
                 movement_scope="invalid",
+            )
+
+    def test_reports_overview_filters_budgets_by_category_type(self) -> None:
+        currency = self._seed_currency()
+        income_category = self._seed_category("General Income", "income")
+        expense_category = self._seed_category("General Expense", "expense")
+        self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 4, 1),
+                category_id=income_category.id,
+                amount=900.0,
+                note=None,
+                is_active=True,
+            ),
+        )
+        self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 4, 1),
+                category_id=expense_category.id,
+                amount=300.0,
+                note=None,
+                is_active=True,
+            ),
+        )
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=None,
+                target_account_id=None,
+                category_id=expense_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=120.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 4, 7, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Gasto abril",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=False,
+                tag_ids=None,
+            ),
+            allow_accountless=True,
+        )
+
+        overview = self.reports_service.get_overview(
+            self.db,
+            period_month=date(2026, 4, 1),
+            budget_category_scope="expense",
+        )
+
+        self.assertEqual(overview["budget_category_scope"], "expense")
+        self.assertEqual(overview["budget_snapshot"]["total_budgeted"], 300.0)
+        self.assertEqual(overview["budget_snapshot"]["total_actual"], 120.0)
+        self.assertEqual(len(overview["budget_variances"]), 1)
+        self.assertEqual(overview["budget_variances"][0]["category_type"], "expense")
+
+    def test_reports_overview_rejects_invalid_budget_filters(self) -> None:
+        with self.assertRaises(ValueError):
+            self.reports_service.get_overview(
+                self.db,
+                period_month=date(2026, 4, 1),
+                budget_category_scope="invalid",
+            )
+
+        with self.assertRaises(ValueError):
+            self.reports_service.get_overview(
+                self.db,
+                period_month=date(2026, 4, 1),
+                budget_status_filter="invalid",
             )
 
 

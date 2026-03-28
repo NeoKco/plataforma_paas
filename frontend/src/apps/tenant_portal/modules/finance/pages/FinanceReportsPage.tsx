@@ -26,6 +26,12 @@ export function FinanceReportsPage() {
   const [movementScope, setMovementScope] = useState<
     "all" | "reconciled" | "unreconciled" | "favorites" | "loan_linked"
   >("all");
+  const [budgetCategoryScope, setBudgetCategoryScope] = useState<
+    "all" | "income" | "expense"
+  >("all");
+  const [budgetStatusFilter, setBudgetStatusFilter] = useState<
+    "all" | "over_budget" | "within_budget" | "unused" | "inactive"
+  >("all");
   const [overview, setOverview] =
     useState<TenantFinanceReportOverviewResponse["data"] | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -33,7 +39,14 @@ export function FinanceReportsPage() {
 
   useEffect(() => {
     void loadOverview();
-  }, [session?.accessToken, periodMonth, trendMonths, movementScope]);
+  }, [
+    session?.accessToken,
+    periodMonth,
+    trendMonths,
+    movementScope,
+    budgetCategoryScope,
+    budgetStatusFilter,
+  ]);
 
   async function loadOverview() {
     if (!session?.accessToken) {
@@ -47,7 +60,9 @@ export function FinanceReportsPage() {
         session.accessToken,
         buildPeriodMonthIso(periodMonth),
         trendMonths,
-        movementScope
+        movementScope,
+        budgetCategoryScope,
+        budgetStatusFilter
       );
       setOverview(response.data);
     } catch (rawError) {
@@ -121,6 +136,45 @@ export function FinanceReportsPage() {
               <option value="unreconciled">Pendientes</option>
               <option value="favorites">Favoritas</option>
               <option value="loan_linked">Ligados a préstamos</option>
+            </select>
+          </div>
+          <div>
+            <label className="form-label">Categoría presupuesto</label>
+            <select
+              className="form-select"
+              value={budgetCategoryScope}
+              onChange={(event) =>
+                setBudgetCategoryScope(
+                  event.target.value as "all" | "income" | "expense"
+                )
+              }
+            >
+              <option value="all">Todas</option>
+              <option value="income">Ingreso</option>
+              <option value="expense">Egreso</option>
+            </select>
+          </div>
+          <div>
+            <label className="form-label">Estado presupuesto</label>
+            <select
+              className="form-select"
+              value={budgetStatusFilter}
+              onChange={(event) =>
+                setBudgetStatusFilter(
+                  event.target.value as
+                    | "all"
+                    | "over_budget"
+                    | "within_budget"
+                    | "unused"
+                    | "inactive"
+                )
+              }
+            >
+              <option value="all">Todos</option>
+              <option value="over_budget">Sobre presupuesto</option>
+              <option value="within_budget">Dentro</option>
+              <option value="unused">Sin uso</option>
+              <option value="inactive">Inactiva</option>
             </select>
           </div>
           <div className="pt-4">
@@ -211,7 +265,11 @@ export function FinanceReportsPage() {
 
         <PanelCard
           title="Presupuesto vs real"
-          subtitle="Resumen agregado del mes sobre categorías presupuestadas."
+          subtitle={`Resumen agregado del mes sobre presupuesto ${buildBudgetScopeLabel(
+            overview?.budget_category_scope || budgetCategoryScope
+          )} y estado ${buildBudgetStatusFilterLabel(
+            overview?.budget_status_filter || budgetStatusFilter
+          )}.`}
         >
           <dl className="finance-report-definition-list">
             <ReportLine
@@ -601,6 +659,8 @@ function exportOverviewCsv(
     ["Seccion", "Clave", "Valor"],
     ["periodo", "mes", overview.period_month],
     ["periodo", "foco_movimientos", overview.movement_scope],
+    ["periodo", "foco_presupuesto_tipo", overview.budget_category_scope],
+    ["periodo", "foco_presupuesto_estado", overview.budget_status_filter],
     ["transacciones", "ingresos", String(overview.transaction_snapshot.total_income)],
     ["transacciones", "egresos", String(overview.transaction_snapshot.total_expense)],
     ["transacciones", "balance_neto", String(overview.transaction_snapshot.net_balance)],
@@ -686,5 +746,31 @@ function buildMovementScopeLabel(scope: string) {
       return "ligado a préstamos";
     default:
       return "general";
+  }
+}
+
+function buildBudgetScopeLabel(scope: string) {
+  switch (scope) {
+    case "income":
+      return "de ingresos";
+    case "expense":
+      return "de egresos";
+    default:
+      return "general";
+  }
+}
+
+function buildBudgetStatusFilterLabel(status: string) {
+  switch (status) {
+    case "over_budget":
+      return "sobre presupuesto";
+    case "within_budget":
+      return "dentro";
+    case "unused":
+      return "sin uso";
+    case "inactive":
+      return "inactiva";
+    default:
+      return "todos";
   }
 }

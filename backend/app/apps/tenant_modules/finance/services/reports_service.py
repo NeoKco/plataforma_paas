@@ -32,6 +32,8 @@ class FinanceReportsService:
         period_month: date,
         trend_months: int = 6,
         movement_scope: str = "all",
+        budget_category_scope: str = "all",
+        budget_status_filter: str = "all",
     ) -> dict:
         if trend_months not in {3, 6, 12}:
             raise ValueError("trend_months must be one of 3, 6 or 12")
@@ -44,6 +46,18 @@ class FinanceReportsService:
         }:
             raise ValueError(
                 "movement_scope must be one of all, reconciled, unreconciled, favorites or loan_linked"
+            )
+        if budget_category_scope not in {"all", "income", "expense"}:
+            raise ValueError("budget_category_scope must be one of all, income or expense")
+        if budget_status_filter not in {
+            "all",
+            "over_budget",
+            "within_budget",
+            "unused",
+            "inactive",
+        }:
+            raise ValueError(
+                "budget_status_filter must be one of all, over_budget, within_budget, unused or inactive"
             )
         normalized_period_month = period_month.replace(day=1)
         starts_at = self._month_start(normalized_period_month)
@@ -83,11 +97,15 @@ class FinanceReportsService:
             tenant_db,
             period_month=normalized_period_month,
             include_inactive=True,
+            category_type=None if budget_category_scope == "all" else budget_category_scope,
+            budget_status=None if budget_status_filter == "all" else budget_status_filter,
         )
         _, previous_budget_summary = self.budget_service.list_budgets(
             tenant_db,
             period_month=previous_period_month,
             include_inactive=True,
+            category_type=None if budget_category_scope == "all" else budget_category_scope,
+            budget_status=None if budget_status_filter == "all" else budget_status_filter,
         )
         loan_rows, loan_summary = self.loan_service.list_loans(
             tenant_db,
@@ -174,6 +192,8 @@ class FinanceReportsService:
         return {
             "period_month": normalized_period_month,
             "movement_scope": movement_scope,
+            "budget_category_scope": budget_category_scope,
+            "budget_status_filter": budget_status_filter,
             "transaction_snapshot": transaction_snapshot,
             "budget_snapshot": budget_snapshot,
             "loan_snapshot": loan_snapshot,
@@ -256,6 +276,8 @@ class FinanceReportsService:
                 current_period_month=normalized_period_month,
                 trend_months=trend_months,
                 movement_scope=movement_scope,
+                budget_category_scope=budget_category_scope,
+                budget_status_filter=budget_status_filter,
             ),
         }
 
@@ -382,6 +404,8 @@ class FinanceReportsService:
         current_period_month: date,
         trend_months: int,
         movement_scope: str,
+        budget_category_scope: str,
+        budget_status_filter: str,
     ) -> list[dict]:
         months = self._build_trailing_months(current_period_month, count=trend_months)
         rows: list[dict] = []
@@ -418,6 +442,8 @@ class FinanceReportsService:
                 tenant_db,
                 period_month=month,
                 include_inactive=True,
+                category_type=None if budget_category_scope == "all" else budget_category_scope,
+                budget_status=None if budget_status_filter == "all" else budget_status_filter,
             )
             rows.append(
                 {

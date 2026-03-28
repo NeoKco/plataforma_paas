@@ -247,6 +247,7 @@ Resultado actual:
 - `Reportes` ya muestra tendencia mensual corta de 6 meses
 - `Reportes` ya permite horizonte configurable `3/6/12` meses y exportación JSON base
 - `Reportes` ya permite foco analítico de movimientos sobre el mismo overview
+- `Reportes` ya permite foco presupuestario por tipo y estado
 - cuando el schema `finance` del tenant esta incompleto, esas vistas ya degradan a error controlado y no a `500`
 - `tenant_portal` ya permite a `tenant admin` sincronizar estructura desde el propio tenant sin volver a `Platform Admin`
 - `CLP` ya forma parte de las monedas semilla del modulo
@@ -266,7 +267,7 @@ Falta para cerrarlo:
 - enriquecer `Préstamos` con cuenta origen y lectura contable derivada mas densa
 - mover la sincronizacion tenant-side de schema a job/worker en vez de inline
 - agregar auto-sync post-provisioning y post-deploy para evitar sincronizacion manual por uso
-- seguir `Lote 7` con filtros analíticos más ricos por presupuesto/categoría, exportaciones adicionales y comparativas multi-período más profundas
+- seguir `Lote 7` con comparativas multi-período más profundas y exportaciones adicionales enriquecidas
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 

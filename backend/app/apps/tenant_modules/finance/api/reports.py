@@ -27,6 +27,8 @@ def get_finance_reports_overview(
     period_month: date,
     trend_months: int = 6,
     movement_scope: str = "all",
+    budget_category_scope: str = "all",
+    budget_status_filter: str = "all",
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceReportOverviewResponse:
@@ -36,6 +38,8 @@ def get_finance_reports_overview(
             period_month=period_month,
             trend_months=trend_months,
             movement_scope=movement_scope,
+            budget_category_scope=budget_category_scope,
+            budget_status_filter=budget_status_filter,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

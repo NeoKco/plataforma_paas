@@ -99,6 +99,8 @@ class FinanceReportMonthlyTrendItem(BaseModel):
 class FinanceReportOverviewData(BaseModel):
     period_month: date
     movement_scope: str
+    budget_category_scope: str
+    budget_status_filter: str
     transaction_snapshot: FinanceReportTransactionSnapshot
     budget_snapshot: FinanceReportBudgetSnapshot
     loan_snapshot: FinanceReportLoanSnapshot

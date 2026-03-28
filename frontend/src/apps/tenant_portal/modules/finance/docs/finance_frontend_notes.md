@@ -55,6 +55,7 @@
 - esa misma pantalla ya muestra además una tendencia corta de 6 meses para lectura reciente
 - esa misma pantalla ya permite elegir horizonte `3/6/12 meses` y exportar JSON además de CSV
 - esa misma pantalla ya permite releer el overview con foco `todos/conciliados/pendientes/favoritas/préstamos`
+- esa misma pantalla ya permite además filtrar el bloque presupuestario por tipo y por estado
 - cuando `finance` detecta schema incompleto, la UI ya explica para que sirve actualizar la estructura del modulo
 - `tenant admin` ya puede disparar esa sincronizacion desde el mismo portal, sin depender solo de `Platform Admin`
 
@@ -62,7 +63,7 @@ Pendiente inmediato:
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
 - endurecer `Presupuestos` con lectura agregada mas densa
-- abrir filtros analíticos más ricos por presupuesto/categoría y exportaciones adicionales en `Reportes`, ahora que ya existe foco de movimientos
+- abrir comparativas multi-período más profundas y exportaciones adicionales en `Reportes`, ahora que ya existe foco de movimientos y de presupuesto
 - enriquecer el pago de cuotas de `Préstamos` con cuenta origen y lectura contable derivada antes de considerarlo un dominio cerrado
 - mover la sincronizacion tenant-side a flujo asíncrono visible y no inline
 - reducir este caso con auto-sync post-provisioning y post-deploy
