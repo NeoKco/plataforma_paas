@@ -33,7 +33,6 @@ Reglas agregadas en `Lote 3`:
 - los settings validan `setting_key` y `setting_value` no vacios
 - cuando un `commit()` falla, el repositorio hace `rollback()` para no dejar la sesion contaminada
 
-Pendiente:
 Reglas agregadas en `Lote 5`:
 - el nucleo real del modulo se mueve a `finance_transactions`
 - `transfer` exige cuenta destino y no permite misma cuenta origen/destino
@@ -45,8 +44,15 @@ Reglas agregadas en `Lote 5`:
 - el balance por cuenta se calcula desde saldo inicial + ingresos - gastos +/- transferencias
 - la API legacy `/entries` sigue viva, pero ya escribe auditoria y persiste sobre `finance_transactions`
 
-Pendiente:
-- validacion explicita de relaciones opcionales enriquecidas (`beneficiary`, `person`, `project`, `loan`)
-- prestamos
-- conciliacion operativa
-- plantillas y programacion recurrente
+Reglas agregadas en el cierre funcional del modulo:
+- la conciliacion operativa individual y batch exige `reason_code` estructurado
+- `Presupuestos` ya admite estados derivados, foco priorizado, clonacion, ajustes guiados y plantillas operativas
+- `Préstamos` ya admite pagos y reversas individuales o batch, con motivo estructurado de reversa
+- los pagos y reversas de cuotas generan transacciones reales enlazadas al préstamo
+- `Préstamos` ya puede fijar `account_id` como cuenta origen por préstamo o por operación
+- cuando el schema tenant esta incompleto, las vistas del modulo degradan a error controlado y la sincronizacion pasa por job visible
+
+Backlog opcional:
+- validacion o explotacion mas rica de relaciones opcionales (`beneficiary`, `person`, `project`, `loan`) solo si el uso real lo exige
+- presets mas avanzados o programacion recurrente si luego se formaliza ese dominio
+- cruces contables mas densos en `Préstamos` o `Reportes` si el negocio pide mayor profundidad

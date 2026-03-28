@@ -426,6 +426,7 @@ Hoy esta base cubre:
 - `platform_admin` ya operable con `Resumen`, `Usuarios de plataforma`, `Actividad`, `Tenants`, `Provisioning`, `Facturación`, `Configuración` y `Histórico tenants`
 - `tenant_portal` ya operable con login, overview, usuarios y slice `finance`
 - `finance` ya no es solo placeholder: ya tiene catálogos, settings, pantalla moderna de `Transacciones` con persistencia real de etiquetas, primera pantalla real de `Presupuestos`, una pantalla real de `Préstamos` con cronograma base y pagos con split capital/interes, una pantalla real de `Planificación`, una primera pantalla real de `Reportes` con ranking por etiqueta y callout reutilizable para sincronizacion de estructura cuando el schema tenant quedó atrasado
+- en el estado actual, `finance` ya puede considerarse funcionalmente cerrado como modulo base del portal tenant; lo restante queda como backlog opcional o trabajo transversal posterior
 
 ## Documentacion en Estado Actual
 

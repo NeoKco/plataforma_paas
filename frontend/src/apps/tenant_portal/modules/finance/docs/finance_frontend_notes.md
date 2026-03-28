@@ -79,11 +79,11 @@
 - `Presupuestos` ya permite clonar un mes origen y aplicar ajustes guiados desde `Foco presupuestario` sin bajar a la tabla completa
 - `Presupuestos` ya permite además aplicar plantillas operativas al mes visible sin salir de la vista
 
-Pendiente inmediato:
+Backlog posterior al cierre:
 - revisar y cerrar copy residual de exportaciones, confirmaciones y mensajes largos para lograr paridad completa `Español/Inglés`
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
 - enriquecer `Presupuestos` con plantillas mas ricas o presets configurables por tenant, mas alla de editar/activar/desactivar, clonar entre meses, alinear al real y aplicar plantillas operativas base
 - seguir endureciendo `Reportes` solo si luego se necesitan comparativas todavía más densas o exportaciones ejecutivas adicionales
 - seguir endureciendo `Préstamos` con una lectura todavía más contable si luego hace falta mostrar contrapartida/categoría o exportaciones de soporte más densas
 - consolidar la operación visible del auto-sync post-deploy ahora que `Provisioning` ya puede encolar sync masivo para tenants activos y el wrapper de release ya dispara la corrida por defecto
-- dejar la primera capa de gráficos reales como pendiente deliberado hasta cerrar el módulo; el punto natural sigue siendo `Reportes` y luego `Planificación`
+- dejar la primera capa de gráficos reales como pendiente deliberado posterior al cierre del módulo; el punto natural sigue siendo `Reportes` y luego `Planificación`

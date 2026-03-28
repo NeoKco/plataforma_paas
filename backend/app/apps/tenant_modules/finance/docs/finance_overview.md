@@ -3,7 +3,7 @@
 Estado actual:
 - `finance` queda definido como modulo base del SaaS.
 - este modulo actua como piloto para la convencion modular futura.
-- el arranque actual ya cubre `Lote 0`, `Lote 1`, `Lote 2`, `Lote 3`, `Lote 4`, `Lote 5` y el tramo operativo actual de `Lote 6` del plan maestro.
+- el arranque actual ya cubre `Lote 0`, `Lote 1`, `Lote 2`, `Lote 3`, `Lote 4`, `Lote 5` y el cierre funcional del tramo operativo de `Lote 6` del plan maestro.
 
 Alcance de esta fase:
 - estructura backend y frontend del modulo
@@ -62,9 +62,9 @@ Alcance de esta fase:
 - las transacciones ya persisten tags reales en `finance_transaction_tags`
 - `Reportes` ya permite además rankear por `etiqueta`
 
-Pendiente inmediato:
-- completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
-- endurecer `Presupuestos` con lectura mas densa y estados operativos mas ricos
-- enriquecer el enlace contable de `Préstamos`
-- seguir `Lote 7` con comparativas aún más profundas sobre rangos arbitrarios, cortes analíticos adicionales por proyectos/terceros y lectura analitica mas profunda
-- enriquecer la UX de tags en `Transacciones` con chips, filtros y mejor lectura visual
+Backlog opcional posterior al cierre:
+- lotes inteligentes o reglas asistidas adicionales en `Transacciones` solo si la operación real lo pide
+- presets mas ricos por tenant en `Presupuestos` si luego se justifican
+- lectura contable mas densa en `Préstamos` solo si el dominio exige mayor profundidad
+- comparativas aun mas profundas en `Reportes` solo si aparecen nuevas necesidades reales
+- gráficos reales en `Reportes` o `Planificación` como mejora posterior, no como parte del cierre funcional actual

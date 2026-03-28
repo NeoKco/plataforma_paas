@@ -46,7 +46,7 @@ Se considera cerrado como referencia tecnica el modulo `finance` en su alcance a
 - cuotas por stock y por mes
 - cuotas segmentadas por tipo de movimiento
 
-Esto alcanza para validar la arquitectura modular del backend, aunque no significa que `finance` este funcionalmente terminado como producto final.
+Esto alcanza para validar la arquitectura modular del backend y, en el estado actual del proyecto, `finance` ya puede tratarse como modulo funcionalmente cerrado dentro de su alcance vigente; lo que queda pasa a backlog opcional o a trabajo transversal posterior.
 
 ### 4. Capa tecnica transversal
 
@@ -80,7 +80,7 @@ Se considera cerrada la base operativa de `provisioning` para esta etapa:
 Quedan explicitamente fuera de este cierre:
 
 - nuevos modulos de negocio grandes
-- enriquecimiento funcional profundo de `finance`
+- enriquecimiento funcional profundo de `finance` mas alla del alcance ya cerrado
 - billing con multiples proveedores o reconciliacion avanzada completa
 - observabilidad externa mas rica que la base actual
 - secret manager real
@@ -121,9 +121,9 @@ En el estado actual del proyecto, esas condiciones ya se cumplen.
 La recomendacion desde este documento es:
 
 1. considerar cerrado el backend base actual
-2. permitir solo ajustes backend guiados por uso real
-3. pasar a frontend de plataforma primero
-4. despues abrir frontend tenant
+2. tratar `finance` como modulo de referencia ya cerrado en su alcance actual
+3. permitir solo ajustes backend guiados por uso real
+4. seguir con trabajo transversal o con nuevos modulos
 
 ## Resumen ejecutivo
 

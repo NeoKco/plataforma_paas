@@ -188,8 +188,8 @@ Nucleo transaccional ya disponible en backend:
 - lectura mensual operativa expuesta por API en `planning/overview`
 - lectura mensual consolidada expuesta por API en `reports/overview`
 
-Pendiente:
-- enriquecer `budgets` con acciones mas ricas sobre categorias priorizadas, como ajustes guiados o plantillas
+Backlog opcional post-cierre:
 - lotes mas inteligentes sobre filtro activo o reglas asistidas adicionales solo si la operación real lo exige
 - seguir endureciendo la lectura derivada de `loans` con cruces contables más densos si el dominio exige contrapartida/categoría explícita
 - comparativas aún más densas del overview solo si el uso real exige nuevos cortes ejecutivos o soportes exportables adicionales
+- dejar gráficos reales para `Reportes` o `Planificación` como mejora posterior, no como parte del cierre funcional actual
