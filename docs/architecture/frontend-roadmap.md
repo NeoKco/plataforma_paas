@@ -28,6 +28,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - `finance` ya permite elegir reparto del pago entre interés y capital
 - `finance` ya permite revertir parcial o totalmente esos abonos sobre cuotas
 - `finance` ya permite selección múltiple y operación batch sobre cuotas del cronograma
+- `finance` ya expone en `Préstamos` una lectura contable derivada más rica, con resumen operativo y exportación CSV/JSON desde el detalle
 - `finance` ya explica desde la propia UI para que sirve sincronizar estructura cuando el schema del tenant quedó atrasado
 - `tenant admin` ya puede lanzar esa sincronizacion desde el propio `tenant_portal`
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad
@@ -49,7 +50,7 @@ Lo pendiente es sobre todo:
 - seguir enriqueciendo `Presupuestos`, ahora que ya tiene lectura mensual, contadores operativos, foco priorizado, acciones rapidas, clonacion intermensual, ajustes guiados y plantillas operativas
 - abrir comparativas aún más profundas sobre rangos arbitrarios, cortes analíticos adicionales por proyectos/terceros y exportaciones más densas en `Reportes`
 - enriquecer la UX de tags en `Transacciones` con chips, filtros y mejor lectura del detalle
-- endurecer `Préstamos` con lectura contable derivada más rica, mejor contexto de cuenta y mejor explotación operativa del detalle
+- seguir endureciendo `Préstamos` con mejor lectura de contrapartida, cruces más densos si el negocio lo exige y posibles exportaciones aún más contables
 - mover la sincronizacion tenant-side a un flujo asíncrono con job visible en vez de ejecutarla inline
 - sumar auto-sync post-provisioning/post-deploy para reducir friccion operativa
 - una vez cerrado `finance`, abrir un `design system` transversal del PaaS y aplicar la primera migracion completa precisamente sobre `finance`, incluyendo sistema comun de iconos por modulo y entidad

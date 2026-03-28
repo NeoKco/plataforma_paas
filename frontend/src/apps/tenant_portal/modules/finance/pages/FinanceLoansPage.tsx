@@ -519,6 +519,38 @@ export function FinanceLoansPage() {
   }
 
   const summary = loansResponse?.summary;
+  const detailAccountingSummary = loanDetail?.accounting_summary;
+
+  function handleExportAccountingCsv() {
+    if (!loanDetail) {
+      return;
+    }
+    const csv = buildLoanAccountingCsv(loanDetail, baseCurrencyCode, language);
+    downloadTextFile(
+      csv,
+      `finance-loan-accounting-${loanDetail.loan.id}.csv`,
+      "text/csv;charset=utf-8;"
+    );
+  }
+
+  function handleExportAccountingJson() {
+    if (!loanDetail) {
+      return;
+    }
+    const payload = {
+      exported_at: new Date().toISOString(),
+      loan_id: loanDetail.loan.id,
+      loan_name: loanDetail.loan.name,
+      base_currency_code: baseCurrencyCode,
+      accounting_summary: loanDetail.accounting_summary,
+      accounting_transactions: loanDetail.accounting_transactions,
+    };
+    downloadTextFile(
+      JSON.stringify(payload, null, 2),
+      `finance-loan-accounting-${loanDetail.loan.id}.json`,
+      "application/json;charset=utf-8;"
+    );
+  }
 
   return (
     <div className="d-grid gap-4">
@@ -1495,21 +1527,79 @@ export function FinanceLoansPage() {
               </div>
             )}
 
-            <div className="d-grid gap-2">
-              <div className="tenant-detail__label">
-                {language === "es"
-                  ? "Lectura contable derivada"
-                  : "Derived accounting reading"}
+            <div className="d-grid gap-3">
+              <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div className="tenant-detail__label">
+                  {language === "es"
+                    ? "Lectura contable derivada"
+                    : "Derived accounting reading"}
+                </div>
+                <div className="d-flex flex-wrap gap-2">
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    onClick={handleExportAccountingCsv}
+                    disabled={loanDetail.accounting_transactions.length === 0}
+                  >
+                    {language === "es" ? "Exportar CSV" : "Export CSV"}
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    onClick={handleExportAccountingJson}
+                    disabled={loanDetail.accounting_transactions.length === 0}
+                  >
+                    {language === "es" ? "Exportar JSON" : "Export JSON"}
+                  </button>
+                </div>
               </div>
+              {detailAccountingSummary ? (
+                <div className="tenant-inline-form-grid">
+                  <DetailField
+                    label={language === "es" ? "Movimientos" : "Entries"}
+                    value={detailAccountingSummary.total_items}
+                  />
+                  <DetailField
+                    label={language === "es" ? "Pagos" : "Payments"}
+                    value={detailAccountingSummary.payment_items}
+                  />
+                  <DetailField
+                    label={language === "es" ? "Reversas" : "Reversals"}
+                    value={detailAccountingSummary.reversal_items}
+                  />
+                  <DetailField
+                    label={language === "es" ? "Efecto neto base" : "Base net effect"}
+                    value={formatMoney(
+                      detailAccountingSummary.net_cash_effect_in_base_currency,
+                      baseCurrencyCode,
+                      language
+                    )}
+                  />
+                  <DetailField
+                    label={language === "es" ? "Sin conciliar" : "Unreconciled"}
+                    value={detailAccountingSummary.unreconciled_items}
+                  />
+                  <DetailField
+                    label={language === "es" ? "Último movimiento" : "Last entry"}
+                    value={
+                      detailAccountingSummary.last_transaction_at
+                        ? formatDateTime(detailAccountingSummary.last_transaction_at, language)
+                        : "n/a"
+                    }
+                  />
+                </div>
+              ) : null}
               {loanDetail.accounting_transactions.length > 0 ? (
                 <div className="table-responsive">
                   <table className="table table-hover align-middle mb-0">
                     <thead>
                       <tr>
                         <th>{language === "es" ? "Fecha" : "Date"}</th>
+                        <th>{language === "es" ? "Acción" : "Action"}</th>
                         <th>{language === "es" ? "Tipo" : "Type"}</th>
                         <th>{language === "es" ? "Cuenta" : "Account"}</th>
                         <th>{language === "es" ? "Monto" : "Amount"}</th>
+                        <th>{language === "es" ? "Monto base" : "Base amount"}</th>
                         <th>{language === "es" ? "Descripción" : "Description"}</th>
                         <th>{language === "es" ? "Conciliada" : "Reconciled"}</th>
                       </tr>
@@ -1518,10 +1608,23 @@ export function FinanceLoansPage() {
                       {loanDetail.accounting_transactions.map((transaction) => (
                         <tr key={transaction.id}>
                           <td>{formatDateTime(transaction.transaction_at, language)}</td>
+                          <td>{displayDerivedActionType(transaction.action_type, language)}</td>
                           <td>{displayTransactionType(transaction.transaction_type, language)}</td>
                           <td>{displayDerivedAccount(transaction, language)}</td>
                           <td>{formatMoney(transaction.amount, transaction.currency_code, language)}</td>
-                          <td>{transaction.description}</td>
+                          <td>
+                            {formatMoney(
+                              transaction.amount_in_base_currency ?? transaction.amount,
+                              baseCurrencyCode,
+                              language
+                            )}
+                          </td>
+                          <td>
+                            <div>{transaction.description}</div>
+                            {transaction.notes ? (
+                              <div className="text-secondary small">{transaction.notes}</div>
+                            ) : null}
+                          </td>
                           <td>{language === "es" ? (transaction.is_reconciled ? "sí" : "no") : transaction.is_reconciled ? "yes" : "no"}</td>
                         </tr>
                       ))}
@@ -1651,6 +1754,16 @@ function displayDerivedAccount(
     : transaction.account_name;
 }
 
+function displayDerivedActionType(value: string, language: "es" | "en"): string {
+  if (value === "payment") {
+    return language === "es" ? "pago" : "payment";
+  }
+  if (value === "reversal") {
+    return language === "es" ? "reversa" : "reversal";
+  }
+  return language === "es" ? "derivado" : "derived";
+}
+
 function displayTransactionType(value: string, language: "es" | "en"): string {
   if (value === "income") {
     return language === "es" ? "ingreso" : "income";
@@ -1662,6 +1775,75 @@ function displayTransactionType(value: string, language: "es" | "en"): string {
     return language === "es" ? "transferencia" : "transfer";
   }
   return value;
+}
+
+function buildLoanAccountingCsv(
+  loanDetail: TenantFinanceLoanDetailResponse["data"],
+  baseCurrencyCode: string,
+  language: "es" | "en"
+): string {
+  const rows = [
+    [
+      "loan_id",
+      "loan_name",
+      "transaction_id",
+      "transaction_at",
+      "alternative_date",
+      "action_type",
+      "transaction_type",
+      "account",
+      "currency",
+      "amount",
+      "base_currency",
+      "amount_in_base_currency",
+      "exchange_rate",
+      "description",
+      "notes",
+      "source_type",
+      "source_id",
+      "is_reconciled",
+    ],
+    ...loanDetail.accounting_transactions.map((transaction) => [
+      String(loanDetail.loan.id),
+      loanDetail.loan.name,
+      String(transaction.id),
+      formatDateTime(transaction.transaction_at, language),
+      transaction.alternative_date ?? "",
+      displayDerivedActionType(transaction.action_type, language),
+      displayTransactionType(transaction.transaction_type, language),
+      displayDerivedAccount(transaction, language),
+      transaction.currency_code,
+      transaction.amount.toFixed(2),
+      baseCurrencyCode,
+      String((transaction.amount_in_base_currency ?? transaction.amount).toFixed(2)),
+      transaction.exchange_rate == null ? "" : String(transaction.exchange_rate),
+      transaction.description,
+      transaction.notes ?? "",
+      transaction.source_type ?? "",
+      transaction.source_id == null ? "" : String(transaction.source_id),
+      transaction.is_reconciled ? "true" : "false",
+    ]),
+  ];
+  return rows
+    .map((row) => row.map((value) => escapeCsvValue(value)).join(","))
+    .join("\n");
+}
+
+function escapeCsvValue(value: string): string {
+  const normalized = value.split('"').join('""');
+  return /[",\n]/.test(normalized) ? `"${normalized}"` : normalized;
+}
+
+function downloadTextFile(content: string, filename: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 const REVERSAL_REASON_OPTIONS = [

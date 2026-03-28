@@ -15,6 +15,7 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceLoanDetailData,
     FinanceLoanDetailResponse,
     FinanceLoanDerivedTransactionItemResponse,
+    FinanceLoanDerivedTransactionsSummaryData,
     FinanceLoanInstallmentBatchMutationData,
     FinanceLoanInstallmentBatchMutationResponse,
     FinanceLoanInstallmentItemResponse,
@@ -96,6 +97,7 @@ def _build_derived_transaction_item(row: dict) -> FinanceLoanDerivedTransactionI
     transaction = row["transaction"]
     return FinanceLoanDerivedTransactionItemResponse(
         id=transaction.id,
+        action_type=row["action_type"],
         transaction_type=transaction.transaction_type,
         account_id=transaction.account_id,
         account_name=row.get("account_name"),
@@ -103,12 +105,15 @@ def _build_derived_transaction_item(row: dict) -> FinanceLoanDerivedTransactionI
         currency_id=transaction.currency_id,
         currency_code=row["currency_code"],
         amount=transaction.amount,
+        amount_in_base_currency=transaction.amount_in_base_currency,
+        exchange_rate=transaction.exchange_rate,
         description=transaction.description,
         notes=transaction.notes,
         source_type=transaction.source_type,
         source_id=transaction.source_id,
         is_reconciled=transaction.is_reconciled,
         transaction_at=transaction.transaction_at,
+        alternative_date=transaction.alternative_date,
     )
 
 
@@ -146,9 +151,11 @@ def get_finance_loan_detail(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceLoanDetailResponse:
     try:
-        loan_row, installments, accounting_transactions = loan_service.get_loan_detail(
-            tenant_db,
-            loan_id,
+        loan_row, installments, accounting_transactions, accounting_summary = (
+            loan_service.get_loan_detail(
+                tenant_db,
+                loan_id,
+            )
         )
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -162,6 +169,9 @@ def get_finance_loan_detail(
         data=FinanceLoanDetailData(
             loan=_build_loan_item(loan_row),
             installments=[_build_installment_item(item) for item in installments],
+            accounting_summary=FinanceLoanDerivedTransactionsSummaryData(
+                **accounting_summary
+            ),
             accounting_transactions=[
                 _build_derived_transaction_item(item) for item in accounting_transactions
             ],

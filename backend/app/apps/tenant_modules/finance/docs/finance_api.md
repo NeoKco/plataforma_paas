@@ -147,6 +147,7 @@ Estado actual de `Lote 6`:
 - pagos y reversas sobre cuotas ahora generan una transaccion real en `finance_transactions`
 - esa transaccion queda enlazada por `loan_id`, `source_type` (`loan_installment_payment|loan_installment_reversal`) y `source_id`
 - `GET /tenant/finance/loans/{loan_id}` ya devuelve `accounting_transactions` para lectura contable derivada reciente
+- ese detalle ya devuelve ademas `accounting_summary`, junto con `action_type`, `amount_in_base_currency`, `exchange_rate` y `alternative_date` por movimiento derivado
 - ya existe `GET /tenant/finance/planning/overview` para lectura mensual de flujo operativo
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Planificación`
 - ya existe `GET /tenant/finance/reports/overview` para recuperar lectura mensual consolidada
@@ -185,6 +186,6 @@ Nucleo transaccional ya disponible en backend:
 Pendiente:
 - enriquecer `budgets` con acciones mas ricas sobre categorias priorizadas, como ajustes guiados o plantillas
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
-- enriquecer la lectura derivada de `loans` con mejor contexto contable, categorías y exportación más rica
+- seguir endureciendo la lectura derivada de `loans` con cruces contables más densos si el dominio exige contrapartida/categoría explícita
 - comparativas más profundas sobre rangos arbitrarios, cortes analíticos adicionales por proyectos/terceros y lectura contable mas densa sobre el overview ya existente
 - mover la sincronizacion tenant-side de schema a ejecucion asincrona y dejar auto-sync post-provisioning/post-deploy

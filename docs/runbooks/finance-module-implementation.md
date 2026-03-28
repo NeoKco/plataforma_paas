@@ -91,6 +91,7 @@ En esta fase quedaron listos:
 - enlace contable minimo de cuotas: cada pago o reversa genera una transaccion en `finance_transactions`
 - `Préstamos` ya permite definir una cuenta origen por préstamo y reutilizarla al operar cuotas
 - pagos y reversas de cuotas ya pueden usar cuenta origen explícita y el detalle del préstamo ya expone lectura contable derivada reciente
+- esa lectura derivada de `Préstamos` ya resume pagos, reversas, conciliación y efecto neto base, además de exportar CSV/JSON desde la propia vista
 - primera pantalla real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
 - primera pantalla real de `Reportes` con overview mensual consolidado
 - `Reportes` ya incluye pulso diario de caja y ranking corto de desvíos presupuestarios
@@ -326,8 +327,8 @@ Lo siguiente recomendable ahora es:
 
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
-3. endurecer la lectura contable de `Préstamos` con mejor contexto derivado, exportación y relación más rica con cuentas/categorías
-4. profundizar `Reportes` con exportaciones enriquecidas y comparativas contra período arbitrario, ahora que ya existe resumen multi-período del horizonte
+3. profundizar `Reportes` con comparativas todavía mas densas, cortes adicionales por entidad y exportaciones de soporte si el uso real lo pide
+4. endurecer `Préstamos` solo si luego se requiere lectura de contrapartida/categoría o exportación contable mas formal
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable
 7. mover la sincronizacion tenant-side a job de provisioning o worker dedicado, en vez de ejecutarla inline

@@ -32,6 +32,7 @@ Estado actual:
 - cada pago o reversa de cuota ya genera además una transacción financiera enlazada al préstamo
 - `Préstamos` ya permite definir una cuenta origen por préstamo y reutilizarla o sobrescribirla al operar cuotas
 - el detalle del préstamo ya expone una lectura contable derivada reciente para soporte y revisión operativa
+- esa lectura derivada ya incluye resumen operativo y exportación CSV/JSON desde la misma vista de detalle
 - `Planificación` ya ofrece una lectura mensual operativa cruzando días con movimiento, cuotas del mes y presión presupuestaria
 - `Reportes` ya ofrece un overview mensual con lectura cruzada de transacciones, presupuestos y préstamos
 - `Reportes` ya agrega serie diaria de caja y un corte corto de categorías con mayor desvío presupuestario

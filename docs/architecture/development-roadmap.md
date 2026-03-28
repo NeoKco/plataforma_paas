@@ -247,6 +247,7 @@ Resultado actual:
 - ya existe enlace contable minimo: cada pago o reversa de cuota genera una transaccion real enlazada al préstamo
 - `Préstamos` ya permite definir cuenta origen por préstamo u operación de cuota
 - `GET /tenant/finance/loans/{loan_id}` ya expone lectura contable derivada reciente enlazada al préstamo
+- esa lectura derivada de `Préstamos` ya incluye resumen contable, efecto neto base y exportación operativa CSV/JSON desde la UI
 - ya existe una primera vista real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
 - ya existe una primera vista real de `Reportes` con overview mensual de transacciones, presupuestos y préstamos
 - `Reportes` ya muestra serie diaria de caja y desvíos presupuestarios priorizados dentro del mismo overview
@@ -281,7 +282,7 @@ Falta para cerrarlo:
 
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - seguir enriqueciendo `Presupuestos` con presets configurables o plantillas mas ricas por tenant, ahora que ya existen ajustes guiados y plantillas operativas base
-- enriquecer `Préstamos` con lectura contable derivada mas densa, mejor contexto de cuenta y relación más rica con categorías/exportación
+- seguir endureciendo `Préstamos` con exportaciones contables mas densas, mejor lectura de contrapartida y eventual cruce con categorías si el dominio lo pide
 - enriquecer la UX de tags en `Transacciones` con chips, filtros y mejor lectura en tabla/detalle
 - mover la sincronizacion tenant-side de schema a job/worker en vez de inline
 - agregar auto-sync post-provisioning y post-deploy para evitar sincronizacion manual por uso

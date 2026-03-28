@@ -1001,7 +1001,25 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
 
         with patch(
             "app.apps.tenant_modules.finance.api.routes.loan_service.get_loan_detail",
-            return_value=(loan_row, installments, []),
+            return_value=(
+                loan_row,
+                installments,
+                [],
+                {
+                    "total_items": 0,
+                    "payment_items": 0,
+                    "reversal_items": 0,
+                    "reconciled_items": 0,
+                    "unreconciled_items": 0,
+                    "total_inflow": 0.0,
+                    "total_outflow": 0.0,
+                    "net_cash_effect": 0.0,
+                    "total_inflow_in_base_currency": 0.0,
+                    "total_outflow_in_base_currency": 0.0,
+                    "net_cash_effect_in_base_currency": 0.0,
+                    "last_transaction_at": None,
+                },
+            ),
         ):
             response = get_finance_loan_detail(
                 loan_id=4,
@@ -1012,6 +1030,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.data.loan.installments_total, 12)
         self.assertEqual(response.data.installments[0].installment_status, "paid")
+        self.assertEqual(response.data.accounting_summary.total_items, 0)
 
     def test_get_finance_reports_overview_returns_consolidated_payload(self) -> None:
         overview = {

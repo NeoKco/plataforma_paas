@@ -75,12 +75,29 @@ export type TenantFinanceLoanDetailResponse = {
   data: {
     loan: TenantFinanceLoan;
     installments: TenantFinanceLoanInstallment[];
+    accounting_summary: TenantFinanceLoanDerivedTransactionsSummary;
     accounting_transactions: TenantFinanceLoanDerivedTransaction[];
   };
 };
 
+export type TenantFinanceLoanDerivedTransactionsSummary = {
+  total_items: number;
+  payment_items: number;
+  reversal_items: number;
+  reconciled_items: number;
+  unreconciled_items: number;
+  total_inflow: number;
+  total_outflow: number;
+  net_cash_effect: number;
+  total_inflow_in_base_currency: number;
+  total_outflow_in_base_currency: number;
+  net_cash_effect_in_base_currency: number;
+  last_transaction_at: string | null;
+};
+
 export type TenantFinanceLoanDerivedTransaction = {
   id: number;
+  action_type: string;
   transaction_type: string;
   account_id: number | null;
   account_name: string | null;
@@ -88,12 +105,15 @@ export type TenantFinanceLoanDerivedTransaction = {
   currency_id: number;
   currency_code: string;
   amount: number;
+  amount_in_base_currency: number | null;
+  exchange_rate: number | null;
   description: string;
   notes: string | null;
   source_type: string | null;
   source_id: number | null;
   is_reconciled: boolean;
   transaction_at: string;
+  alternative_date: string | null;
 };
 
 export type TenantFinanceLoanInstallmentPaymentRequest = {

@@ -48,6 +48,7 @@
 - esa misma pantalla ya permite seleccionar varias cuotas y operar pago o reversa en lote
 - esa misma pantalla ya exige motivo estructurado al revertir y muestra ese motivo en el cronograma
 - esa misma pantalla ya dispara el enlace contable minimo: pago/reversa crean transacciones enlazadas
+- esa misma pantalla ya resume la lectura contable derivada y permite exportarla en CSV/JSON desde el detalle del préstamo
 - ya existe una pantalla real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
 - ya existe una pantalla real de `Reportes` con overview mensual consolidado
 - esa misma pantalla de `Reportes` ya muestra pulso diario de caja y una tabla corta de desvíos presupuestarios
@@ -82,6 +83,6 @@ Pendiente inmediato:
 - enriquecer `Presupuestos` con plantillas mas ricas o presets configurables por tenant, mas alla de editar/activar/desactivar, clonar entre meses, alinear al real y aplicar plantillas operativas base
 - abrir comparativas aún más profundas sobre rangos arbitrarios o cortes analíticos adicionales por proyectos/terceros en `Reportes`, ahora que ya existe resumen multi-período
 - enriquecer la UX de tags con chips, filtros y mejor lectura en tabla/detalle
-- enriquecer `Préstamos` con lectura contable derivada más rica, exportable y con mejor relación visual con cuentas
+- seguir endureciendo `Préstamos` con una lectura todavía más contable si luego hace falta mostrar contrapartida/categoría o exportaciones de soporte más densas
 - mover la sincronizacion tenant-side a flujo asíncrono visible y no inline
 - reducir este caso con auto-sync post-provisioning y post-deploy

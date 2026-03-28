@@ -123,6 +123,7 @@ class FinanceLoansResponse(FinanceResponseBase):
 
 class FinanceLoanDerivedTransactionItemResponse(BaseModel):
     id: int
+    action_type: str
     transaction_type: str
     account_id: int | None = None
     account_name: str | None = None
@@ -130,17 +131,36 @@ class FinanceLoanDerivedTransactionItemResponse(BaseModel):
     currency_id: int
     currency_code: str
     amount: float
+    amount_in_base_currency: float | None = None
+    exchange_rate: float | None = None
     description: str
     notes: str | None = None
     source_type: str | None = None
     source_id: int | None = None
     is_reconciled: bool = False
     transaction_at: datetime
+    alternative_date: date | None = None
+
+
+class FinanceLoanDerivedTransactionsSummaryData(BaseModel):
+    total_items: int
+    payment_items: int
+    reversal_items: int
+    reconciled_items: int
+    unreconciled_items: int
+    total_inflow: float
+    total_outflow: float
+    net_cash_effect: float
+    total_inflow_in_base_currency: float
+    total_outflow_in_base_currency: float
+    net_cash_effect_in_base_currency: float
+    last_transaction_at: datetime | None = None
 
 
 class FinanceLoanDetailData(BaseModel):
     loan: FinanceLoanItemResponse
     installments: list[FinanceLoanInstallmentItemResponse]
+    accounting_summary: FinanceLoanDerivedTransactionsSummaryData
     accounting_transactions: list[FinanceLoanDerivedTransactionItemResponse]
 
 

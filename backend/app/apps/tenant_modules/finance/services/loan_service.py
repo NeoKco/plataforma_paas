@@ -100,7 +100,7 @@ class FinanceLoanService:
         self,
         tenant_db: Session,
         loan_id: int,
-    ) -> tuple[dict, list[dict], list[dict]]:
+    ) -> tuple[dict, list[dict], list[dict], dict]:
         loan = self._get_loan_or_raise(tenant_db, loan_id)
         installments = self.installment_repository.list_by_loan(tenant_db, loan.id)
         loan_row = self._build_loan_row(tenant_db, loan, installments=installments)
@@ -109,7 +109,8 @@ class FinanceLoanService:
             for installment in installments
         ]
         transaction_rows = self._build_transaction_rows_for_loan(tenant_db, loan.id)
-        return loan_row, installment_rows, transaction_rows
+        transaction_summary = self._build_transaction_summary(transaction_rows)
+        return loan_row, installment_rows, transaction_rows, transaction_summary
 
     def create_loan(
         self,
@@ -463,12 +464,87 @@ class FinanceLoanService:
             rows.append(
                 {
                     "transaction": transaction,
+                    "action_type": self._build_transaction_action_type(transaction.source_type),
                     "account_name": account.name if account else None,
                     "account_code": account.code if account else None,
                     "currency_code": currency.code,
                 }
             )
         return rows
+
+    def _build_transaction_summary(self, transaction_rows: list[dict]) -> dict:
+        payment_items = 0
+        reversal_items = 0
+        reconciled_items = 0
+        total_inflow = 0.0
+        total_outflow = 0.0
+        total_inflow_in_base_currency = 0.0
+        total_outflow_in_base_currency = 0.0
+        last_transaction_at = None
+
+        for row in transaction_rows:
+            transaction = row["transaction"]
+            action_type = row["action_type"]
+            signed_amount = self._build_signed_transaction_amount(
+                transaction.transaction_type,
+                transaction.amount,
+            )
+            base_amount = (
+                transaction.amount_in_base_currency
+                if transaction.amount_in_base_currency is not None
+                else transaction.amount
+            )
+            signed_base_amount = self._build_signed_transaction_amount(
+                transaction.transaction_type,
+                base_amount,
+            )
+
+            if action_type == "payment":
+                payment_items += 1
+            elif action_type == "reversal":
+                reversal_items += 1
+
+            if transaction.is_reconciled:
+                reconciled_items += 1
+
+            if signed_amount >= 0:
+                total_inflow = round(total_inflow + signed_amount, 2)
+            else:
+                total_outflow = round(total_outflow + abs(signed_amount), 2)
+
+            if signed_base_amount >= 0:
+                total_inflow_in_base_currency = round(
+                    total_inflow_in_base_currency + signed_base_amount, 2
+                )
+            else:
+                total_outflow_in_base_currency = round(
+                    total_outflow_in_base_currency + abs(signed_base_amount), 2
+                )
+
+            if (
+                last_transaction_at is None
+                or transaction.transaction_at > last_transaction_at
+            ):
+                last_transaction_at = transaction.transaction_at
+
+        total_items = len(transaction_rows)
+        return {
+            "total_items": total_items,
+            "payment_items": payment_items,
+            "reversal_items": reversal_items,
+            "reconciled_items": reconciled_items,
+            "unreconciled_items": total_items - reconciled_items,
+            "total_inflow": total_inflow,
+            "total_outflow": total_outflow,
+            "net_cash_effect": round(total_inflow - total_outflow, 2),
+            "total_inflow_in_base_currency": total_inflow_in_base_currency,
+            "total_outflow_in_base_currency": total_outflow_in_base_currency,
+            "net_cash_effect_in_base_currency": round(
+                total_inflow_in_base_currency - total_outflow_in_base_currency,
+                2,
+            ),
+            "last_transaction_at": last_transaction_at,
+        }
 
     def _sync_installments(self, tenant_db: Session, loan: FinanceLoan) -> None:
         installments = self._build_installments_for_loan(loan)
@@ -755,6 +831,24 @@ class FinanceLoanService:
     ) -> str:
         action_label = "Pago cuota" if action_type == "payment" else "Reversa cuota"
         return f"{action_label} {installment.installment_number} - {loan.name}"
+
+    def _build_transaction_action_type(self, source_type: str | None) -> str:
+        if source_type == "loan_installment_payment":
+            return "payment"
+        if source_type == "loan_installment_reversal":
+            return "reversal"
+        return "derived"
+
+    def _build_signed_transaction_amount(
+        self,
+        transaction_type: str,
+        amount: float,
+    ) -> float:
+        if transaction_type == "expense":
+            return round(-abs(amount), 2)
+        if transaction_type == "income":
+            return round(abs(amount), 2)
+        return 0.0
 
     def _split_amount(self, amount: float, chunks: int) -> list[float]:
         base = round(amount / chunks, 2)

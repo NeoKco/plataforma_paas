@@ -176,7 +176,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
             ),
         )
 
-        loan_row, installments, accounting_transactions = self.loan_service.get_loan_detail(
+        loan_row, installments, accounting_transactions, accounting_summary = self.loan_service.get_loan_detail(
             self.db, loan.id
         )
 
@@ -188,6 +188,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         self.assertEqual(installments[1]["installment"].due_date, date(2027, 4, 15))
         self.assertEqual(installments[0]["installment_status"], "pending")
         self.assertEqual(accounting_transactions, [])
+        self.assertEqual(accounting_summary["total_items"], 0)
 
     def test_apply_installment_payment_updates_installment_and_loan_balance(self) -> None:
         currency = self._seed_currency()
@@ -212,7 +213,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
             ),
         )
 
-        loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
+        loan_row, installments, _transactions, _summary = self.loan_service.get_loan_detail(self.db, loan.id)
         installment = installments[0]["installment"]
 
         updated_loan_row, updated_installment_row = self.loan_service.apply_installment_payment(
@@ -237,12 +238,16 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         self.assertEqual(transactions[0].account_id, account.id)
         self.assertEqual(transactions[0].source_type, "loan_installment_payment")
         self.assertEqual(transactions[0].source_id, installment.id)
-        refreshed_loan_row, _installments, accounting_transactions = self.loan_service.get_loan_detail(
+        refreshed_loan_row, _installments, accounting_transactions, accounting_summary = self.loan_service.get_loan_detail(
             self.db, loan.id
         )
         self.assertEqual(refreshed_loan_row["account_name"], "Caja operativa")
         self.assertEqual(len(accounting_transactions), 1)
+        self.assertEqual(accounting_transactions[0]["action_type"], "payment")
         self.assertEqual(accounting_transactions[0]["account_name"], "Caja operativa")
+        self.assertEqual(accounting_summary["payment_items"], 1)
+        self.assertEqual(accounting_summary["total_outflow"], 200.0)
+        self.assertEqual(accounting_summary["net_cash_effect"], -200.0)
 
     def test_apply_installment_payment_requires_source_account(self) -> None:
         currency = self._seed_currency()
@@ -265,7 +270,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
             ),
         )
 
-        _loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, installments, _transactions, _summary = self.loan_service.get_loan_detail(self.db, loan.id)
         installment = installments[0]["installment"]
 
         with self.assertRaisesRegex(
@@ -302,7 +307,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 is_active=True,
             ),
         )
-        _loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, installments, _transactions, _summary = self.loan_service.get_loan_detail(self.db, loan.id)
         installment = installments[0]["installment"]
 
         self.loan_service.apply_installment_payment(
@@ -363,7 +368,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 is_active=True,
             ),
         )
-        _loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, installments, _transactions, _summary = self.loan_service.get_loan_detail(self.db, loan.id)
         installment = installments[0]["installment"]
 
         updated_loan_row, updated_installment_row = self.loan_service.apply_installment_payment(
@@ -401,7 +406,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 is_active=True,
             ),
         )
-        _loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, installments, _transactions, _summary = self.loan_service.get_loan_detail(self.db, loan.id)
 
         updated_loan_row, affected_ids = self.loan_service.apply_installment_payment_batch(
             self.db,
@@ -412,7 +417,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
             note="Pago lote",
         )
 
-        _loan_row, refreshed_installments, _transactions = self.loan_service.get_loan_detail(
+        _loan_row, refreshed_installments, _transactions, _summary = self.loan_service.get_loan_detail(
             self.db, loan.id
         )
         self.assertEqual(len(affected_ids), 2)
@@ -444,7 +449,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 is_active=True,
             ),
         )
-        _loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, installments, _transactions, _summary = self.loan_service.get_loan_detail(self.db, loan.id)
         self.loan_service.apply_installment_payment_batch(
             self.db,
             loan_id=loan.id,
@@ -464,7 +469,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
             note="Reversa lote",
         )
 
-        _loan_row, refreshed_installments, _transactions = self.loan_service.get_loan_detail(
+        _loan_row, refreshed_installments, _transactions, _summary = self.loan_service.get_loan_detail(
             self.db, loan.id
         )
         self.assertEqual(len(affected_ids), 2)
@@ -500,7 +505,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 is_active=True,
             ),
         )
-        _loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, installments, _transactions, _summary = self.loan_service.get_loan_detail(self.db, loan.id)
         installment = installments[0]["installment"]
         self.loan_service.apply_installment_payment(
             self.db,
