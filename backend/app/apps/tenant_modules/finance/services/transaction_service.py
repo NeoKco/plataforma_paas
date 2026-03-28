@@ -34,6 +34,14 @@ class FinanceService:
     MODULE_LIMIT_KEY = FINANCE_ENTRIES_LIMIT_KEY
     MONTHLY_MODULE_LIMIT_KEY = FINANCE_ENTRIES_MONTHLY_LIMIT_KEY
     MONTHLY_TYPE_MODULE_LIMIT_KEYS = FINANCE_ENTRIES_MONTHLY_TYPE_LIMIT_KEYS
+    RECONCILIATION_REASON_CODES = {
+        "operator_review",
+        "bank_statement_match",
+        "cash_closure",
+        "loan_crosscheck",
+        "migration_cleanup",
+        "other",
+    }
 
     def __init__(
         self,
@@ -304,6 +312,7 @@ class FinanceService:
         transaction_type: str | None = None,
         account_id: int | None = None,
         category_id: int | None = None,
+        tag_id: int | None = None,
         is_favorite: bool | None = None,
         is_reconciled: bool | None = None,
         search: str | None = None,
@@ -313,6 +322,7 @@ class FinanceService:
             transaction_type=transaction_type,
             account_id=account_id,
             category_id=category_id,
+            tag_id=tag_id,
             is_favorite=is_favorite,
             is_reconciled=is_reconciled,
             search=search,
@@ -369,6 +379,7 @@ class FinanceService:
         transaction_id: int,
         *,
         is_reconciled: bool,
+        reason_code: str | None = None,
         note: str | None = None,
         actor_user_id: int | None = None,
     ) -> FinanceTransaction:
@@ -376,6 +387,7 @@ class FinanceService:
         if transaction is None:
             raise ValueError("La transaccion financiera no existe")
 
+        normalized_reason_code = self._normalize_reconciliation_reason_code(reason_code)
         transaction.is_reconciled = is_reconciled
         transaction.reconciled_at = datetime.now(timezone.utc) if is_reconciled else None
         transaction.updated_by_user_id = actor_user_id
@@ -389,6 +401,7 @@ class FinanceService:
             summary="Estado de conciliacion actualizado",
             payload={
                 "is_reconciled": is_reconciled,
+                "reason_code": normalized_reason_code,
                 "note": note.strip() if note and note.strip() else None,
             },
         )
@@ -426,12 +439,14 @@ class FinanceService:
         transaction_ids: list[int],
         *,
         is_reconciled: bool,
+        reason_code: str | None = None,
         note: str | None = None,
         actor_user_id: int | None = None,
     ) -> list[FinanceTransaction]:
         transactions = self._get_transactions_for_batch(tenant_db, transaction_ids)
         effective_reconciled_at = datetime.now(timezone.utc) if is_reconciled else None
         normalized_note = note.strip() if note and note.strip() else None
+        normalized_reason_code = self._normalize_reconciliation_reason_code(reason_code)
         for transaction in transactions:
             transaction.is_reconciled = is_reconciled
             transaction.reconciled_at = effective_reconciled_at
@@ -444,6 +459,7 @@ class FinanceService:
                 summary="Estado de conciliacion actualizado en lote",
                 payload={
                     "is_reconciled": is_reconciled,
+                    "reason_code": normalized_reason_code,
                     "note": normalized_note,
                 },
             )
@@ -562,6 +578,16 @@ class FinanceService:
                 "tag_ids",
                 list(tag_ids_by_transaction_id.get(transaction.id, [])),
             )
+
+    def _normalize_reconciliation_reason_code(self, reason_code: str | None) -> str | None:
+        if reason_code is None:
+            return None
+        normalized = reason_code.strip().lower()
+        if not normalized:
+            return None
+        if normalized not in self.RECONCILIATION_REASON_CODES:
+            raise ValueError("El motivo de conciliacion no es valido")
+        return normalized
 
     def _get_transactions_for_batch(
         self,

@@ -34,6 +34,7 @@
 - ya existe modo edicion completo dentro de la misma pantalla de `Transacciones`
 - ya existe seleccion multiple y lote basico para favoritas/conciliacion
 - ya existe nota opcional y confirmacion explicita para conciliacion desde la mesa de trabajo
+- la mesa de trabajo de `Transacciones` ya exige además un motivo estructurado de conciliacion y lo envia tanto en modo individual como batch
 - ya existe una primera pantalla real de `Presupuestos`
 - esa pantalla ya permite leer el mes actual o seleccionado, crear un presupuesto y editarlo
 - la UI ya compara `presupuesto`, `ejecucion real`, `variacion` y `uso %` por categoria
@@ -67,6 +68,7 @@
 - esa misma pantalla ya permite además comparar la lectura activa contra un rango arbitrario `desde/hasta`
 - esa misma pantalla ya permite además rankear por `categoría`, `cuenta`, `proyecto`, `beneficiario` o `persona`
 - la pantalla de `Transacciones` ya permite asignar varias etiquetas al registrar o editar un movimiento
+- la pantalla de `Transacciones` ya permite además filtrar por `Etiqueta` y releer esos `tags` como chips en tabla y detalle
 - `Reportes` ya permite además rankear por `Etiqueta`
 - cuando `finance` detecta schema incompleto, la UI ya explica para que sirve actualizar la estructura del modulo
 - `tenant admin` ya puede disparar esa sincronizacion desde el mismo portal, sin depender solo de `Platform Admin`
@@ -79,11 +81,9 @@
 
 Pendiente inmediato:
 - revisar y cerrar copy residual de exportaciones, confirmaciones y mensajes largos para lograr paridad completa `Español/Inglés`
-- enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
 - enriquecer `Presupuestos` con plantillas mas ricas o presets configurables por tenant, mas alla de editar/activar/desactivar, clonar entre meses, alinear al real y aplicar plantillas operativas base
 - seguir endureciendo `Reportes` solo si luego se necesitan comparativas todavía más densas o exportaciones ejecutivas adicionales
-- enriquecer la UX de tags con chips, filtros y mejor lectura en tabla/detalle
 - seguir endureciendo `Préstamos` con una lectura todavía más contable si luego hace falta mostrar contrapartida/categoría o exportaciones de soporte más densas
 - mover la sincronizacion tenant-side a flujo asíncrono visible y no inline
 - reducir este caso con auto-sync post-provisioning y post-deploy

@@ -61,6 +61,7 @@ class FinanceTransactionFiltersRequest(BaseModel):
     transaction_type: str | None = None
     account_id: int | None = None
     category_id: int | None = None
+    tag_id: int | None = None
     is_favorite: bool | None = None
     is_reconciled: bool | None = None
     search: str | None = None
@@ -133,6 +134,7 @@ class FinanceTransactionFavoriteUpdateRequest(BaseModel):
 
 class FinanceTransactionReconciliationUpdateRequest(BaseModel):
     is_reconciled: bool
+    reason_code: str | None = None
     note: str | None = None
 
 
@@ -144,6 +146,7 @@ class FinanceTransactionFavoriteBatchUpdateRequest(BaseModel):
 class FinanceTransactionReconciliationBatchUpdateRequest(BaseModel):
     transaction_ids: list[int]
     is_reconciled: bool
+    reason_code: str | None = None
     note: str | None = None
 
 

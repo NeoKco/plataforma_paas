@@ -15,7 +15,7 @@ Estado actual:
 - esa pantalla ya muestra balances por cuenta y detalle operacional con auditoría reciente
 - esa misma pantalla ya permite filtrar, editar, marcar favorita y conciliar transacciones existentes
 - esa misma pantalla ya permite tambien seleccion multiple y acciones por lote para favoritas o conciliacion
-- las operaciones de conciliacion ya aceptan nota opcional y pasan por confirmacion explicita
+- las operaciones de conciliacion ya aceptan `reason_code`, nota opcional y pasan por confirmacion explicita
 - ya existe una pantalla operativa de `Presupuestos` con lectura mensual por categoria
 - `Presupuestos` ya permite alta y edicion de montos, nota y estado activo, usando comparacion contra la ejecucion real del mes
 - `Presupuestos` ya permite filtrar por tipo, estado derivado e inclusion de inactivos
@@ -51,6 +51,7 @@ Estado actual:
 - `Reportes` ya permite además rankear por entidad operativa (`categoría`, `cuenta`, `proyecto`, `beneficiario`, `persona`)
 - `Reportes` ya compara además esa dimensión activa contra el período comparado para mostrar ganadores y perdedores por entidad
 - `Transacciones` ya permite además persistir varias etiquetas por movimiento
+- `Transacciones` ya permite además filtrar por `Etiqueta` y mostrar chips visibles en tabla y detalle
 - `Reportes` ya permite además rankear por `etiqueta`
 - cuando el schema `finance` del tenant queda atrasado, el portal ya muestra explicación operativa y CTA para actualizar estructura
 - `tenant admin` ya puede revisar estado y sincronizar estructura desde el propio portal, sin depender solo de `Platform Admin`

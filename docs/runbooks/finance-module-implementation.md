@@ -72,6 +72,8 @@ En esta fase quedaron listos:
 - filtro explicito por favoritas y mesa de trabajo basica con seleccion multiple
 - acciones por lote para favoritas y conciliacion desde la tabla principal
 - conciliacion guiada con nota opcional, confirmacion explicita y auditoria reciente enriquecida
+- `Transacciones` ya admite filtro por `etiqueta` y muestra `tags` visibles en tabla y detalle operacional
+- la conciliacion individual y batch ya persiste `reason_code` estructurado además de la nota operativa
 - primera pantalla real de `Presupuestos` con lectura `presupuesto vs real`
 - filtros de `Presupuestos` por tipo, estado derivado e inclusion de inactivos
 - `Presupuestos` ya expone contadores por estado operativo (`sobre`, `dentro`, `sin uso`, `inactiva`)
@@ -326,11 +328,11 @@ Ademas, el propio `tenant_portal` ya permite a un `admin` del tenant:
 
 Lo siguiente recomendable ahora es:
 
-1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
+1. evaluar una segunda iteracion de conciliacion asistida con lotes mas inteligentes, agrupacion y revision visual mas densa solo si la operación real lo exige
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
 3. profundizar `Reportes` solo si luego se necesitan comparativas todavía mas densas, cortes adicionales por entidad o exportaciones de soporte más ejecutivas
 4. endurecer `Préstamos` solo si luego se requiere lectura de contrapartida/categoría o exportación contable mas formal
-5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
+5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual, como siguiente mejora opcional de `Transacciones`
 6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable
 7. mover la sincronizacion tenant-side a job de provisioning o worker dedicado, en vez de ejecutarla inline
 8. agregar auto-sync post-provisioning y post-deploy para reducir al minimo la sincronizacion manual tenant por tenant

@@ -118,6 +118,7 @@ export type TenantFinanceTransactionFilters = {
   transactionType?: string;
   accountId?: number | null;
   categoryId?: number | null;
+  tagId?: number | null;
   isFavorite?: boolean | null;
   isReconciled?: boolean | null;
   search?: string;
@@ -145,6 +146,9 @@ export function getTenantFinanceTransactions(
   }
   if (filters.categoryId != null) {
     params.set("category_id", String(filters.categoryId));
+  }
+  if (filters.tagId != null) {
+    params.set("tag_id", String(filters.tagId));
   }
   if (filters.isFavorite != null) {
     params.set("is_favorite", filters.isFavorite ? "true" : "false");
@@ -248,14 +252,19 @@ export function updateTenantFinanceTransactionReconciliation(
   accessToken: string,
   transactionId: number,
   isReconciled: boolean,
-  note?: string
+  note?: string,
+  reasonCode?: string
 ) {
   return apiRequest<TenantFinanceTransactionMutationResponse>(
     `/tenant/finance/transactions/${transactionId}/reconciliation`,
     {
       method: "PATCH",
       token: accessToken,
-      body: { is_reconciled: isReconciled, note: note || null },
+      body: {
+        is_reconciled: isReconciled,
+        note: note || null,
+        reason_code: reasonCode || null,
+      },
     }
   );
 }
@@ -264,7 +273,8 @@ export function updateTenantFinanceTransactionsReconciliationBatch(
   accessToken: string,
   transactionIds: number[],
   isReconciled: boolean,
-  note?: string
+  note?: string,
+  reasonCode?: string
 ) {
   return apiRequest<TenantFinanceTransactionBatchMutationResponse>(
     "/tenant/finance/transactions/reconciliation/batch",
@@ -275,6 +285,7 @@ export function updateTenantFinanceTransactionsReconciliationBatch(
         transaction_ids: transactionIds,
         is_reconciled: isReconciled,
         note: note || null,
+        reason_code: reasonCode || null,
       },
     }
   );

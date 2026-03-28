@@ -1,3 +1,4 @@
+import json
 import os
 import unittest
 from datetime import datetime, timezone
@@ -390,6 +391,92 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
         self.assertEqual(len(favorites), 2)
         self.assertTrue(all(transaction.is_favorite for transaction in favorites))
         self.assertTrue(all(transaction.is_reconciled for transaction in favorites))
+
+    def test_reconciliation_audit_persists_reason_code(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+
+        created = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=35.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Pago conciliable",
+            ),
+            created_by_user_id=1,
+        )
+
+        self.service.update_transaction_reconciliation(
+            self.db,
+            created.id,
+            is_reconciled=True,
+            reason_code="bank_statement_match",
+            note="match diario",
+            actor_user_id=3,
+        )
+
+        _transaction, audit_events = self.service.get_transaction_detail(self.db, created.id)
+        reconciliation_event = next(
+            event
+            for event in audit_events
+            if event.event_type == "transaction.reconciliation.updated"
+        )
+        payload = json.loads(reconciliation_event.payload_json)
+
+        self.assertEqual(payload["reason_code"], "bank_statement_match")
+        self.assertEqual(payload["note"], "match diario")
+
+    def test_can_filter_transactions_by_tag(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+        urgent = self._seed_tag(name="Urgente", sort_order=10)
+        taxes = self._seed_tag(name="Impuestos", sort_order=20)
+
+        tagged = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=90.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Pago con tag",
+                tag_ids=[urgent.id],
+            ),
+            created_by_user_id=1,
+        )
+        self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=45.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Pago con otro tag",
+                tag_ids=[taxes.id],
+            ),
+            created_by_user_id=1,
+        )
+
+        filtered = self.service.list_transactions_filtered(self.db, tag_id=urgent.id)
+
+        self.assertEqual(len(filtered), 1)
+        self.assertEqual(filtered[0].id, tagged.id)
+        self.assertEqual(filtered[0].tag_ids, [urgent.id])
 
     def test_persists_transaction_tag_ids_on_create_and_update(self) -> None:
         usd = self._seed_currency(code="USD", is_base=True, sort_order=10)

@@ -140,6 +140,7 @@ def list_finance_transactions(
     transaction_type: str | None = None,
     account_id: int | None = None,
     category_id: int | None = None,
+    tag_id: int | None = None,
     is_favorite: bool | None = None,
     is_reconciled: bool | None = None,
     search: str | None = None,
@@ -151,6 +152,7 @@ def list_finance_transactions(
         transaction_type=transaction_type,
         account_id=account_id,
         category_id=category_id,
+        tag_id=tag_id,
         is_favorite=is_favorite,
         is_reconciled=is_reconciled,
         search=search,
@@ -315,6 +317,7 @@ def update_finance_transaction_reconciliation(
             tenant_db,
             transaction_id,
             is_reconciled=payload.is_reconciled,
+            reason_code=getattr(payload, "reason_code", None),
             note=getattr(payload, "note", None),
             actor_user_id=current_user["user_id"],
         )
@@ -343,6 +346,7 @@ def update_finance_transactions_reconciliation_batch(
             tenant_db,
             payload.transaction_ids,
             is_reconciled=payload.is_reconciled,
+            reason_code=getattr(payload, "reason_code", None),
             note=getattr(payload, "note", None),
             actor_user_id=current_user["user_id"],
         )

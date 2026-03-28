@@ -21,7 +21,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - `finance` ya tiene slice frontend propio en `tenant_portal/modules/finance`
 - la ruta `/tenant-portal/finance` ya queda servida desde ese slice, preservando la vista actual de movimientos como base operativa
 - `finance` ya expone frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
-- `finance` ya expone una primera pantalla moderna de transacciones sobre `finance_transactions`, con balances por cuenta, panel de detalle operacional, filtros reales, modo edicion sobre la misma vista y una mesa de trabajo guiada con seleccion multiple, nota y confirmacion para favoritas/conciliacion
+- `finance` ya expone una primera pantalla moderna de transacciones sobre `finance_transactions`, con balances por cuenta, panel de detalle operacional, filtros reales, modo edicion sobre la misma vista y una mesa de trabajo guiada con seleccion multiple, nota, motivo estructurado y confirmacion para favoritas/conciliacion
 - `finance` ya expone una primera pantalla real de `Presupuestos` con lectura mensual `presupuesto vs real`
 - `finance` ya expone una pantalla real de `Préstamos` con cartera, cuotas base, próximo vencimiento y cronograma por préstamo
 - `finance` ya permite aplicar pagos manuales sobre cuotas del cronograma
@@ -46,10 +46,9 @@ Lo pendiente es sobre todo:
 - endurecimiento de bordes y automatizacion
 - cierre visual y operativo de algunos detalles
 - definir la convencion oficial para que los siguientes modulos nazcan como slices coherentes, tomando `finance` como modulo piloto
-- completar la vista moderna de transacciones con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes antes de abrir mas dominios grandes dentro de finance
 - seguir enriqueciendo `Presupuestos`, ahora que ya tiene lectura mensual, contadores operativos, foco priorizado, acciones rapidas, clonacion intermensual, ajustes guiados y plantillas operativas
 - seguir endureciendo `Reportes` con comparativas todavía más densas y exportaciones de soporte si el uso real lo justifica, ahora que ya existe comparación por dimensión activa
-- enriquecer la UX de tags en `Transacciones` con chips, filtros y mejor lectura del detalle
+- evaluar una segunda iteracion de `Transacciones` con lotes inteligentes sobre filtro activo o reglas asistidas adicionales solo si la operación real lo pide
 - seguir endureciendo `Préstamos` con mejor lectura de contrapartida, cruces más densos si el negocio lo exige y posibles exportaciones aún más contables
 - mover la sincronizacion tenant-side a un flujo asíncrono con job visible en vez de ejecutarla inline
 - sumar auto-sync post-provisioning/post-deploy para reducir friccion operativa

@@ -227,7 +227,7 @@ Resultado actual:
 - el `Lote 3` ya dejo servicios, endpoints CRUD base, endpoints de detalle y `reorder` para catalogos, settings y exchange rates
 - el `Lote 4` ya dejo frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
 - el `Lote 5` ya dejo `finance_transactions` como nucleo transaccional real, con backfill idempotente desde `finance_entries`
-- el `Lote 6` ya abrio la primera vista moderna de transacciones sobre `finance_transactions`, con balances por cuenta, detalle operacional con auditoria reciente, filtros reales, edicion completa de transacciones existentes y una mesa de trabajo guiada para conciliacion/favoritos con seleccion multiple, nota y confirmacion
+- el `Lote 6` ya abrio la primera vista moderna de transacciones sobre `finance_transactions`, con balances por cuenta, detalle operacional con auditoria reciente, filtros reales, edicion completa de transacciones existentes y una mesa de trabajo guiada para conciliacion/favoritos con seleccion multiple, nota, motivo estructurado y confirmacion
 - ya existe una primera vista real de `Presupuestos` por mes y categoria con comparacion presupuesto vs ejecucion real
 - `Presupuestos` ya muestra contadores por estado operativo y un foco priorizado de categorias que requieren atencion
 - `Presupuestos` ya permite intervenir sobre esas categorias priorizadas con edicion y activacion/desactivacion rapida
@@ -281,10 +281,9 @@ Resultado actual:
 
 Falta para cerrarlo:
 
-- completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
+- evaluar si `Transacciones` necesita una segunda iteracion de lotes inteligentes o reglas asistidas adicionales sobre el filtro activo
 - seguir enriqueciendo `Presupuestos` con presets configurables o plantillas mas ricas por tenant, ahora que ya existen ajustes guiados y plantillas operativas base
 - seguir endureciendo `Préstamos` con exportaciones contables mas densas, mejor lectura de contrapartida y eventual cruce con categorías si el dominio lo pide
-- enriquecer la UX de tags en `Transacciones` con chips, filtros y mejor lectura en tabla/detalle
 - mover la sincronizacion tenant-side de schema a job/worker en vez de inline
 - agregar auto-sync post-provisioning y post-deploy para evitar sincronizacion manual por uso
 - seguir `Lote 7` con comparativas todavía mas densas, cortes analíticos adicionales si aparecen necesidades reales y lecturas exportables más ejecutivas

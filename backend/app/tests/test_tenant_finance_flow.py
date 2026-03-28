@@ -337,6 +337,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 transaction_type="expense",
                 account_id=4,
                 category_id=9,
+                tag_id=5,
                 is_favorite=True,
                 is_reconciled=False,
                 search="mantencion",
@@ -348,6 +349,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(list_transactions_mock.call_args.kwargs["transaction_type"], "expense")
         self.assertEqual(list_transactions_mock.call_args.kwargs["account_id"], 4)
         self.assertEqual(list_transactions_mock.call_args.kwargs["category_id"], 9)
+        self.assertEqual(list_transactions_mock.call_args.kwargs["tag_id"], 5)
         self.assertTrue(list_transactions_mock.call_args.kwargs["is_favorite"])
         self.assertFalse(list_transactions_mock.call_args.kwargs["is_reconciled"])
         self.assertEqual(list_transactions_mock.call_args.kwargs["search"], "mantencion")
@@ -2020,16 +2022,22 @@ class TenantFinanceRouteOrderTestCase(unittest.TestCase):
         with patch(
             "app.apps.tenant_modules.finance.api.routes.finance_service.update_transaction_reconciliation",
             return_value=transaction,
-        ):
+        ) as update_mock:
             response = update_finance_transaction_reconciliation(
                 transaction_id=22,
-                payload=SimpleNamespace(is_reconciled=True),
+                payload=SimpleNamespace(
+                    is_reconciled=True,
+                    reason_code="operator_review",
+                    note="ok",
+                ),
                 current_user=self._current_user(),
                 tenant_db=object(),
             )
 
         self.assertTrue(response.success)
         self.assertTrue(response.data.is_reconciled)
+        self.assertEqual(update_mock.call_args.kwargs["reason_code"], "operator_review")
+        self.assertEqual(update_mock.call_args.kwargs["note"], "ok")
 
     def test_update_finance_transactions_reconciliation_batch_returns_affected_ids(self) -> None:
         transactions = [SimpleNamespace(id=31), SimpleNamespace(id=32), SimpleNamespace(id=33)]
@@ -2037,9 +2045,14 @@ class TenantFinanceRouteOrderTestCase(unittest.TestCase):
         with patch(
             "app.apps.tenant_modules.finance.api.routes.finance_service.update_transactions_reconciliation_batch",
             return_value=transactions,
-        ):
+        ) as update_mock:
             response = update_finance_transactions_reconciliation_batch(
-                payload=SimpleNamespace(transaction_ids=[31, 32, 33], is_reconciled=True),
+                payload=SimpleNamespace(
+                    transaction_ids=[31, 32, 33],
+                    is_reconciled=True,
+                    reason_code="cash_closure",
+                    note="cierre",
+                ),
                 current_user=self._current_user(),
                 tenant_db=object(),
             )
@@ -2047,6 +2060,8 @@ class TenantFinanceRouteOrderTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.data.affected_count, 3)
         self.assertEqual(response.data.transaction_ids, [31, 32, 33])
+        self.assertEqual(update_mock.call_args.kwargs["reason_code"], "cash_closure")
+        self.assertEqual(update_mock.call_args.kwargs["note"], "cierre")
 
     def test_create_finance_entry_returns_403_when_plan_limit_is_reached(self) -> None:
         with patch(

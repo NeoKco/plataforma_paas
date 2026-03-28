@@ -5,6 +5,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.finance.models.transaction import FinanceTransaction
+from app.apps.tenant_modules.finance.models.transaction_tag import FinanceTransactionTag
 
 
 class FinanceTransactionRepository:
@@ -28,6 +29,7 @@ class FinanceTransactionRepository:
         transaction_type: str | None = None,
         account_id: int | None = None,
         category_id: int | None = None,
+        tag_id: int | None = None,
         is_favorite: bool | None = None,
         is_reconciled: bool | None = None,
         search: str | None = None,
@@ -47,6 +49,11 @@ class FinanceTransactionRepository:
             )
         if category_id is not None:
             query = query.filter(FinanceTransaction.category_id == category_id)
+        if tag_id is not None:
+            query = query.join(
+                FinanceTransactionTag,
+                FinanceTransactionTag.transaction_id == FinanceTransaction.id,
+            ).filter(FinanceTransactionTag.tag_id == tag_id)
         if is_favorite is not None:
             query = query.filter(FinanceTransaction.is_favorite == is_favorite)
         if is_reconciled is not None:

@@ -109,11 +109,11 @@ Estado actual de `Lote 6`:
 - ya existe `PUT /tenant/finance/transactions/{transaction_id}` para editar una transaccion existente
 - ya existe `GET /tenant/finance/transactions/{transaction_id}` con auditoria reciente
 - ya existe `GET /tenant/finance/account-balances`
-- `GET /tenant/finance/transactions` ya admite filtros por tipo, cuenta, categoria, favorita, conciliacion y texto
+- `GET /tenant/finance/transactions` ya admite filtros por tipo, cuenta, categoria, etiqueta, favorita, conciliacion y texto
 - ya existen `PATCH /tenant/finance/transactions/{transaction_id}/favorite`
-- ya existen `PATCH /tenant/finance/transactions/{transaction_id}/reconciliation` con nota opcional
+- ya existen `PATCH /tenant/finance/transactions/{transaction_id}/reconciliation` con `reason_code` y nota opcional
 - ya existen `PATCH /tenant/finance/transactions/favorite/batch`
-- ya existen `PATCH /tenant/finance/transactions/reconciliation/batch` con nota opcional
+- ya existen `PATCH /tenant/finance/transactions/reconciliation/batch` con `reason_code` y nota opcional
 - `tenant_portal` ya consume ese contrato moderno en la pantalla principal de `Transacciones`
 - ya existen `GET|POST /tenant/finance/budgets`
 - ya existe `PUT /tenant/finance/budgets/{budget_id}` para editar un presupuesto mensual existente
@@ -186,7 +186,7 @@ Nucleo transaccional ya disponible en backend:
 
 Pendiente:
 - enriquecer `budgets` con acciones mas ricas sobre categorias priorizadas, como ajustes guiados o plantillas
-- conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
+- lotes mas inteligentes sobre filtro activo o reglas asistidas adicionales solo si la operación real lo exige
 - seguir endureciendo la lectura derivada de `loans` con cruces contables más densos si el dominio exige contrapartida/categoría explícita
 - comparativas aún más densas del overview solo si el uso real exige nuevos cortes ejecutivos o soportes exportables adicionales
 - mover la sincronizacion tenant-side de schema a ejecucion asincrona y dejar auto-sync post-provisioning/post-deploy

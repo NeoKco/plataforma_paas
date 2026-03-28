@@ -106,6 +106,8 @@ export function FinanceTransactionsPage() {
   const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null);
   const [formState, setFormState] = useState<TransactionFormState>(DEFAULT_FORM_STATE);
   const [reconciliationNote, setReconciliationNote] = useState("");
+  const [reconciliationReasonCode, setReconciliationReasonCode] =
+    useState<ReconciliationReasonCode>("operator_review");
   const [reconciliationConfirmation, setReconciliationConfirmation] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [detailError, setDetailError] = useState<ApiError | null>(null);
@@ -118,6 +120,7 @@ export function FinanceTransactionsPage() {
     transactionType: string;
     accountId: string;
     categoryId: string;
+    tagId: string;
     favorite: string;
     reconciliation: string;
     search: string;
@@ -125,6 +128,7 @@ export function FinanceTransactionsPage() {
     transactionType: "",
     accountId: "",
     categoryId: "",
+    tagId: "",
     favorite: "",
     reconciliation: "",
     search: "",
@@ -142,6 +146,7 @@ export function FinanceTransactionsPage() {
     () => new Map(categories.map((category) => [category.id, category])),
     [categories]
   );
+  const tagMap = useMemo(() => new Map(tags.map((tag) => [tag.id, tag])), [tags]);
   const currencyMap = useMemo(
     () => new Map(currencies.map((currency) => [currency.id, currency])),
     [currencies]
@@ -166,6 +171,7 @@ export function FinanceTransactionsPage() {
     filters.transactionType,
     filters.accountId,
     filters.categoryId,
+    filters.tagId,
     filters.favorite,
     filters.reconciliation,
     filters.search,
@@ -389,7 +395,8 @@ export function FinanceTransactionsPage() {
         session.accessToken,
         transaction.id,
         nextState,
-        reconciliationNote
+        reconciliationNote,
+        reconciliationReasonCode
       );
       setActionFeedback({ type: "success", message: response.message });
     });
@@ -431,11 +438,13 @@ export function FinanceTransactionsPage() {
         session.accessToken,
         selectedTransactionIds,
         isReconciled,
-        reconciliationNote
+        reconciliationNote,
+        reconciliationReasonCode
       );
       setActionFeedback({ type: "success", message: response.message });
       setSelectedTransactionIds([]);
       setReconciliationNote("");
+      setReconciliationReasonCode("operator_review");
       setReconciliationConfirmation(false);
     });
   }
@@ -1000,6 +1009,24 @@ export function FinanceTransactionsPage() {
               </select>
             </div>
             <div>
+              <label className="form-label">{language === "es" ? "Etiqueta" : "Tag"}</label>
+              <select
+                className="form-select"
+                value={filters.tagId}
+                onChange={(event) =>
+                  setFilters((current) => ({ ...current, tagId: event.target.value }))
+                }
+              >
+                <option value="">{language === "es" ? "Todas" : "All"}</option>
+                {tags.map((tag) => (
+                  <option key={tag.id} value={tag.id}>
+                    {tag.name}
+                    {tag.is_active ? "" : language === "es" ? " · inactiva" : " · inactive"}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className="form-label">{language === "es" ? "Favorita" : "Favorite"}</label>
               <select
                 className="form-select"
@@ -1068,6 +1095,7 @@ export function FinanceTransactionsPage() {
                   transactionType: "",
                   accountId: "",
                   categoryId: "",
+                  tagId: "",
                   favorite: "",
                   reconciliation: "",
                   search: "",
@@ -1102,6 +1130,31 @@ export function FinanceTransactionsPage() {
                     {language === "es"
                       ? "La nota queda visible en la auditoría reciente de cada transacción conciliada."
                       : "The note remains visible in the recent audit trail of each reconciled transaction."}
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <label className="form-label">
+                    {language === "es" ? "Motivo de conciliación" : "Reconciliation reason"}
+                  </label>
+                  <select
+                    className="form-select"
+                    value={reconciliationReasonCode}
+                    onChange={(event) =>
+                      setReconciliationReasonCode(
+                        event.target.value as ReconciliationReasonCode
+                      )
+                    }
+                  >
+                    {RECONCILIATION_REASON_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {displayReconciliationReason(option.value, language)}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="form-text">
+                    {language === "es"
+                      ? "El motivo tipado también queda guardado en la auditoría del movimiento."
+                      : "The typed reason is also stored in the transaction audit trail."}
                   </div>
                 </div>
                 <label className="form-check d-flex align-items-center gap-2 mt-3 mb-0">
@@ -1241,7 +1294,14 @@ export function FinanceTransactionsPage() {
                         <td>
                           <StatusBadge value={displayTransactionType(transaction.transaction_type, language)} />
                         </td>
-                        <td>{transaction.description}</td>
+                        <td>
+                          <div>{transaction.description}</div>
+                          {transaction.tag_ids.length > 0 ? (
+                            <div className="d-flex flex-wrap gap-1 mt-1">
+                              {renderTransactionTagChips(transaction.tag_ids, tagMap, language)}
+                            </div>
+                          ) : null}
+                        </td>
                         <td>{account?.name || "—"}</td>
                         <td>{category?.name || "—"}</td>
                         <td>{formatMoney(transaction.amount, currency?.code, language)}</td>
@@ -1407,6 +1467,25 @@ export function FinanceTransactionsPage() {
               </div>
 
               <div>
+                <div className="tenant-detail__label mb-2">
+                  {language === "es" ? "Etiquetas" : "Tags"}
+                </div>
+                {selectedTransactionDetail.transaction.tag_ids.length > 0 ? (
+                  <div className="d-flex flex-wrap gap-2">
+                    {renderTransactionTagChips(
+                      selectedTransactionDetail.transaction.tag_ids,
+                      tagMap,
+                      language
+                    )}
+                  </div>
+                ) : (
+                  <div className="tenant-detail__value">
+                    {language === "es" ? "sin etiquetas" : "no tags"}
+                  </div>
+                )}
+              </div>
+
+              <div>
                 <div className="tenant-detail__label mb-2">{language === "es" ? "Auditoría reciente" : "Recent audit trail"}</div>
                 {selectedTransactionDetail.audit_events.length > 0 ? (
                   <div className="finance-audit-list">
@@ -1542,6 +1621,7 @@ function buildApiFilters(filters: {
   transactionType: string;
   accountId: string;
   categoryId: string;
+  tagId: string;
   favorite: string;
   reconciliation: string;
   search: string;
@@ -1550,6 +1630,7 @@ function buildApiFilters(filters: {
     transactionType: filters.transactionType || undefined,
     accountId: filters.accountId ? Number(filters.accountId) : null,
     categoryId: filters.categoryId ? Number(filters.categoryId) : null,
+    tagId: filters.tagId ? Number(filters.tagId) : null,
     isFavorite:
       filters.favorite === "yes"
         ? true
@@ -1624,4 +1705,61 @@ function buildTransactionFormState(
     isReconciled: transaction.is_reconciled,
     isFavorite: transaction.is_favorite,
   };
+}
+
+type ReconciliationReasonCode =
+  | "operator_review"
+  | "bank_statement_match"
+  | "cash_closure"
+  | "loan_crosscheck"
+  | "migration_cleanup"
+  | "other";
+
+const RECONCILIATION_REASON_OPTIONS: Array<{ value: ReconciliationReasonCode }> = [
+  { value: "operator_review" },
+  { value: "bank_statement_match" },
+  { value: "cash_closure" },
+  { value: "loan_crosscheck" },
+  { value: "migration_cleanup" },
+  { value: "other" },
+];
+
+function displayReconciliationReason(
+  value: ReconciliationReasonCode,
+  language: "es" | "en" = "es"
+): string {
+  if (value === "operator_review") {
+    return language === "es" ? "revisión operativa" : "operator review";
+  }
+  if (value === "bank_statement_match") {
+    return language === "es" ? "match con cartola" : "bank statement match";
+  }
+  if (value === "cash_closure") {
+    return language === "es" ? "cierre de caja" : "cash closure";
+  }
+  if (value === "loan_crosscheck") {
+    return language === "es" ? "cruce con préstamo" : "loan cross-check";
+  }
+  if (value === "migration_cleanup") {
+    return language === "es" ? "ajuste post migración" : "migration cleanup";
+  }
+  return language === "es" ? "otro" : "other";
+}
+
+function renderTransactionTagChips(
+  tagIds: number[],
+  tagMap: Map<number, TenantFinanceTag>,
+  language: "es" | "en" = "es"
+) {
+  return tagIds.map((tagId) => {
+    const tag = tagMap.get(tagId);
+    const label = tag
+      ? `${tag.name}${tag.is_active ? "" : language === "es" ? " · inactiva" : " · inactive"}`
+      : `#${tagId}`;
+    return (
+      <span key={tagId} className="status-badge status-badge--neutral">
+        {label}
+      </span>
+    );
+  });
 }

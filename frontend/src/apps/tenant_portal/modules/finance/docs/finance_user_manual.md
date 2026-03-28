@@ -6,7 +6,7 @@ Estado actual:
 - vistas operativas de cuentas, categorías, catálogos auxiliares y configuración financiera
 - la vista principal ya permite crear, filtrar y editar transacciones, además de revisar balances y auditoría reciente
 - la vista principal ya permite también seleccionar varias transacciones y operar favoritas o conciliación por lote
-- la conciliación ya puede dejar nota operativa y exige confirmación antes de aplicar el cambio
+- la conciliación ya puede dejar nota operativa, exige elegir un motivo estructurado y pide confirmación antes de aplicar el cambio
 - la vista `Presupuestos` ya permite cargar un monto mensual por categoría y compararlo contra la ejecución real del mes
 - la vista `Presupuestos` ya permite además filtrar por tipo, estado derivado e inactivos
 - la vista `Presupuestos` ya muestra contadores por estado operativo y un bloque `Foco presupuestario` con categorias que requieren atencion
@@ -42,6 +42,7 @@ Estado actual:
 - la vista `Reportes` ya permite además rankear por `categoría`, `cuenta`, `proyecto`, `beneficiario` o `persona`
 - la vista `Reportes` ya compara además esa dimensión activa contra el período comparado para mostrar qué entidad ganó o perdió peso
 - la vista `Transacciones` ya permite asignar varias etiquetas al crear o editar un movimiento
+- la vista `Transacciones` ya permite además filtrar por una etiqueta y releerlas como chips en tabla y detalle
 - la vista `Reportes` ya permite además rankear por `etiqueta`
 - si una vista nueva del modulo detecta que faltan tablas o cambios de estructura, ahora explica el problema en pantalla
 - si eres `admin` del tenant, ahora puedes usar `Actualizar estructura del módulo` desde el propio portal para aplicar migraciones pendientes

@@ -58,8 +58,8 @@ Cobertura actual:
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:
-- pruebas de reconciliacion mas guiada y lotes asistidos
+- pruebas de una segunda iteracion de conciliacion asistida solo si luego aparecen lotes mas inteligentes o reglas adicionales
 - pruebas de acciones mas ricas de presupuestos sobre categorias priorizadas, mas alla de edicion/activacion rapida y clonacion intermensual
 - pruebas mas densas de `Préstamos` si luego se agregan cruces contables extra como contrapartida/categoría
 - pruebas de futuros cortes analíticos adicionales en reportes si aparecen nuevas necesidades reales
-- pruebas de persistencia real de `tag_ids` y ranking por `etiqueta`
+- pruebas de nuevos usos de `tag_ids` si luego aparecen reglas mas complejas o cortes analíticos adicionales
