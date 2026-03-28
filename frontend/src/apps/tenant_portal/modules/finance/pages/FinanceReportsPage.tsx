@@ -122,19 +122,27 @@ export function FinanceReportsPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Finance"
-        title="Reportes"
-        description="Lectura mensual consolidada de transacciones, presupuestos y cartera de préstamos."
+        title={language === "es" ? "Reportes" : "Reports"}
+        description={
+          language === "es"
+            ? "Lectura mensual consolidada de transacciones, presupuestos y cartera de préstamos."
+            : "Consolidated monthly view of transactions, budgets, and loan portfolio."
+        }
       />
 
       <FinanceModuleNav />
 
       <PanelCard
-        title="Periodo de análisis"
-        subtitle="Primer slice de reportes: overview operativo mensual para cerrar lectura base del módulo."
+        title={language === "es" ? "Periodo de análisis" : "Analysis period"}
+        subtitle={
+          language === "es"
+            ? "Primer slice de reportes: overview operativo mensual para cerrar lectura base del módulo."
+            : "First reporting slice: monthly operational overview to close the module's base reading."
+        }
       >
         <div className="finance-inline-toolbar">
           <div>
-            <label className="form-label">Mes</label>
+            <label className="form-label">{language === "es" ? "Mes" : "Month"}</label>
             <input
               className="form-control"
               type="month"
@@ -143,7 +151,7 @@ export function FinanceReportsPage() {
             />
           </div>
           <div>
-            <label className="form-label">Tendencia</label>
+            <label className="form-label">{language === "es" ? "Tendencia" : "Trend"}</label>
             <select
               className="form-select"
               value={String(trendMonths)}
@@ -151,13 +159,13 @@ export function FinanceReportsPage() {
                 setTrendMonths(Number(event.target.value) as 3 | 6 | 12)
               }
             >
-              <option value="3">3 meses</option>
-              <option value="6">6 meses</option>
-              <option value="12">12 meses</option>
+              <option value="3">{language === "es" ? "3 meses" : "3 months"}</option>
+              <option value="6">{language === "es" ? "6 meses" : "6 months"}</option>
+              <option value="12">{language === "es" ? "12 meses" : "12 months"}</option>
             </select>
           </div>
           <div>
-            <label className="form-label">Comparar contra</label>
+            <label className="form-label">{language === "es" ? "Comparar contra" : "Compare against"}</label>
             <input
               className="form-control"
               type="month"
@@ -166,7 +174,7 @@ export function FinanceReportsPage() {
             />
           </div>
           <div>
-            <label className="form-label">Foco movimientos</label>
+            <label className="form-label">{language === "es" ? "Foco movimientos" : "Movement focus"}</label>
             <select
               className="form-select"
               value={movementScope}
@@ -181,15 +189,15 @@ export function FinanceReportsPage() {
                 )
               }
             >
-              <option value="all">Todos</option>
-              <option value="reconciled">Conciliados</option>
-              <option value="unreconciled">Pendientes</option>
-              <option value="favorites">Favoritas</option>
-              <option value="loan_linked">Ligados a préstamos</option>
+              <option value="all">{language === "es" ? "Todos" : "All"}</option>
+              <option value="reconciled">{language === "es" ? "Conciliados" : "Reconciled"}</option>
+              <option value="unreconciled">{language === "es" ? "Pendientes" : "Pending"}</option>
+              <option value="favorites">{language === "es" ? "Favoritas" : "Favorites"}</option>
+              <option value="loan_linked">{language === "es" ? "Ligados a préstamos" : "Loan-linked"}</option>
             </select>
           </div>
           <div>
-            <label className="form-label">Lectura categorías</label>
+            <label className="form-label">{language === "es" ? "Lectura categorías" : "Category reading"}</label>
             <select
               className="form-select"
               value={analysisScope}
@@ -199,13 +207,13 @@ export function FinanceReportsPage() {
                 )
               }
             >
-              <option value="period">Período</option>
-              <option value="horizon">Horizonte</option>
-              <option value="year_to_date">Acumulado anual</option>
+              <option value="period">{language === "es" ? "Período" : "Period"}</option>
+              <option value="horizon">{language === "es" ? "Horizonte" : "Horizon"}</option>
+              <option value="year_to_date">{language === "es" ? "Acumulado anual" : "Year to date"}</option>
             </select>
           </div>
           <div>
-            <label className="form-label">Dimensión ranking</label>
+            <label className="form-label">{language === "es" ? "Dimensión ranking" : "Ranking dimension"}</label>
             <select
               className="form-select"
               value={analysisDimension}
@@ -221,16 +229,16 @@ export function FinanceReportsPage() {
                 )
               }
             >
-              <option value="category">Categoría</option>
-              <option value="account">Cuenta</option>
-              <option value="project">Proyecto</option>
-              <option value="beneficiary">Beneficiario</option>
-              <option value="person">Persona</option>
-              <option value="tag">Etiqueta</option>
+              <option value="category">{language === "es" ? "Categoría" : "Category"}</option>
+              <option value="account">{language === "es" ? "Cuenta" : "Account"}</option>
+              <option value="project">{language === "es" ? "Proyecto" : "Project"}</option>
+              <option value="beneficiary">{language === "es" ? "Beneficiario" : "Beneficiary"}</option>
+              <option value="person">{language === "es" ? "Persona" : "Person"}</option>
+              <option value="tag">{language === "es" ? "Etiqueta" : "Tag"}</option>
             </select>
           </div>
           <div>
-            <label className="form-label">Rango arbitrario desde</label>
+            <label className="form-label">{language === "es" ? "Rango arbitrario desde" : "Custom range from"}</label>
             <input
               className="form-control"
               type="month"
@@ -239,7 +247,7 @@ export function FinanceReportsPage() {
             />
           </div>
           <div>
-            <label className="form-label">Rango arbitrario hasta</label>
+            <label className="form-label">{language === "es" ? "Rango arbitrario hasta" : "Custom range to"}</label>
             <input
               className="form-control"
               type="month"
@@ -248,7 +256,7 @@ export function FinanceReportsPage() {
             />
           </div>
           <div>
-            <label className="form-label">Categoría presupuesto</label>
+            <label className="form-label">{language === "es" ? "Categoría presupuesto" : "Budget category"}</label>
             <select
               className="form-select"
               value={budgetCategoryScope}
@@ -258,13 +266,13 @@ export function FinanceReportsPage() {
                 )
               }
             >
-              <option value="all">Todas</option>
-              <option value="income">Ingreso</option>
-              <option value="expense">Egreso</option>
+              <option value="all">{language === "es" ? "Todas" : "All"}</option>
+              <option value="income">{language === "es" ? "Ingreso" : "Income"}</option>
+              <option value="expense">{language === "es" ? "Egreso" : "Expense"}</option>
             </select>
           </div>
           <div>
-            <label className="form-label">Estado presupuesto</label>
+            <label className="form-label">{language === "es" ? "Estado presupuesto" : "Budget status"}</label>
             <select
               className="form-select"
               value={budgetStatusFilter}
@@ -279,11 +287,11 @@ export function FinanceReportsPage() {
                 )
               }
             >
-              <option value="all">Todos</option>
-              <option value="over_budget">Sobre presupuesto</option>
-              <option value="within_budget">Dentro</option>
-              <option value="unused">Sin uso</option>
-              <option value="inactive">Inactiva</option>
+              <option value="all">{language === "es" ? "Todos" : "All"}</option>
+              <option value="over_budget">{language === "es" ? "Sobre presupuesto" : "Over budget"}</option>
+              <option value="within_budget">{language === "es" ? "Dentro" : "Within budget"}</option>
+              <option value="unused">{language === "es" ? "Sin uso" : "Unused"}</option>
+              <option value="inactive">{language === "es" ? "Inactiva" : "Inactive"}</option>
             </select>
           </div>
           <div className="pt-4">
@@ -295,7 +303,7 @@ export function FinanceReportsPage() {
               }
               disabled={!overview}
             >
-              Exportar CSV enriquecido
+              {language === "es" ? "Exportar CSV enriquecido" : "Export enriched CSV"}
             </button>
           </div>
           <div className="pt-4">
@@ -307,18 +315,20 @@ export function FinanceReportsPage() {
               }
               disabled={!overview}
             >
-              Exportar JSON enriquecido
+              {language === "es" ? "Exportar JSON enriquecido" : "Export enriched JSON"}
             </button>
           </div>
         </div>
       </PanelCard>
 
-      {isLoading ? <LoadingBlock label="Cargando reporte financiero..." /> : null}
+      {isLoading ? (
+        <LoadingBlock label={language === "es" ? "Cargando reporte financiero..." : "Loading financial report..."} />
+      ) : null}
 
       {error ? (
         <div className="d-grid gap-3">
           <ErrorState
-            title="Reportes no disponibles"
+            title={language === "es" ? "Reportes no disponibles" : "Reports unavailable"}
             detail={error.payload?.detail || getApiErrorDisplayMessage(error)}
             requestId={error.payload?.request_id}
           />
@@ -328,113 +338,133 @@ export function FinanceReportsPage() {
 
       <div className="tenant-portal-metrics">
         <MetricCard
-          label="Ingresos"
+          label={language === "es" ? "Ingresos" : "Income"}
           value={formatMoney(transactionSnapshot?.total_income || 0, baseCurrencyCode, language)}
-          hint="Ingreso del período"
+          hint={language === "es" ? "Ingreso del período" : "Income for the period"}
         />
         <MetricCard
-          label="Egresos"
+          label={language === "es" ? "Egresos" : "Expenses"}
           value={formatMoney(transactionSnapshot?.total_expense || 0, baseCurrencyCode, language)}
-          hint="Egreso del período"
+          hint={language === "es" ? "Egreso del período" : "Expense for the period"}
         />
         <MetricCard
-          label="Balance neto"
+          label={language === "es" ? "Balance neto" : "Net balance"}
           value={formatMoney(transactionSnapshot?.net_balance || 0, baseCurrencyCode, language)}
-          hint="Ingreso menos egreso"
+          hint={language === "es" ? "Ingreso menos egreso" : "Income minus expense"}
         />
         <MetricCard
-          label="Transacciones"
+          label={language === "es" ? "Transacciones" : "Transactions"}
           value={transactionSnapshot?.total_transactions || 0}
-          hint="Filtradas por mes"
+          hint={language === "es" ? "Filtradas por mes" : "Filtered by month"}
         />
       </div>
 
       <div className="finance-report-grid">
         <PanelCard
-          title="Actividad del período"
-          subtitle={`Salud operativa del movimiento mensual bajo foco ${buildMovementScopeLabel(
-            overview?.movement_scope || movementScope
-          )}.`}
+          title={language === "es" ? "Actividad del período" : "Period activity"}
+          subtitle={
+            language === "es"
+              ? `Salud operativa del movimiento mensual bajo foco ${buildMovementScopeLabel(
+                  overview?.movement_scope || movementScope,
+                  language
+                )}.`
+              : `Operational health of monthly movements under ${buildMovementScopeLabel(
+                  overview?.movement_scope || movementScope,
+                  language
+                )} focus.`
+          }
         >
           <dl className="finance-report-definition-list">
             <ReportLine
-              label="Conciliadas"
+              label={language === "es" ? "Conciliadas" : "Reconciled"}
               value={String(transactionSnapshot?.reconciled_count || 0)}
             />
             <ReportLine
-              label="Pendientes conciliación"
+              label={language === "es" ? "Pendientes conciliación" : "Pending reconciliation"}
               value={String(transactionSnapshot?.unreconciled_count || 0)}
             />
             <ReportLine
-              label="Favoritas"
+              label={language === "es" ? "Favoritas" : "Favorites"}
               value={String(transactionSnapshot?.favorite_count || 0)}
             />
             <ReportLine
-              label="Ligadas a préstamos"
+              label={language === "es" ? "Ligadas a préstamos" : "Linked to loans"}
               value={String(transactionSnapshot?.loan_linked_count || 0)}
             />
           </dl>
         </PanelCard>
 
         <PanelCard
-          title="Presupuesto vs real"
-          subtitle={`Resumen agregado del mes sobre presupuesto ${buildBudgetScopeLabel(
-            overview?.budget_category_scope || budgetCategoryScope
-          )} y estado ${buildBudgetStatusFilterLabel(
-            overview?.budget_status_filter || budgetStatusFilter
-          )}.`}
+          title={language === "es" ? "Presupuesto vs real" : "Budget vs actual"}
+          subtitle={
+            language === "es"
+              ? `Resumen agregado del mes sobre presupuesto ${buildBudgetScopeLabel(
+                  overview?.budget_category_scope || budgetCategoryScope,
+                  language
+                )} y estado ${buildBudgetStatusFilterLabel(
+                  overview?.budget_status_filter || budgetStatusFilter,
+                  language
+                )}.`
+              : `Monthly aggregate summary for ${buildBudgetScopeLabel(
+                  overview?.budget_category_scope || budgetCategoryScope,
+                  language
+                )} budget and ${buildBudgetStatusFilterLabel(
+                  overview?.budget_status_filter || budgetStatusFilter,
+                  language
+                )} status.`
+          }
         >
           <dl className="finance-report-definition-list">
             <ReportLine
-              label="Presupuestado"
+              label={language === "es" ? "Presupuestado" : "Budgeted"}
               value={formatMoney(budgetSnapshot?.total_budgeted || 0, baseCurrencyCode, language)}
             />
             <ReportLine
-              label="Real"
+              label={language === "es" ? "Real" : "Actual"}
               value={formatMoney(budgetSnapshot?.total_actual || 0, baseCurrencyCode, language)}
             />
             <ReportLine
-              label="Desviación"
+              label={language === "es" ? "Desviación" : "Variance"}
               value={formatMoney(budgetSnapshot?.total_variance || 0, baseCurrencyCode, language)}
             />
             <ReportLine
-              label="Sobre presupuesto"
+              label={language === "es" ? "Sobre presupuesto" : "Over budget"}
               value={String(budgetSnapshot?.over_budget_count || 0)}
             />
             <ReportLine
-              label="Dentro de presupuesto"
+              label={language === "es" ? "Dentro de presupuesto" : "Within budget"}
               value={String(budgetSnapshot?.within_budget_count || 0)}
             />
             <ReportLine
-              label="Sin uso"
+              label={language === "es" ? "Sin uso" : "Unused"}
               value={String(budgetSnapshot?.unused_count || 0)}
             />
           </dl>
         </PanelCard>
 
         <PanelCard
-          title="Cartera de préstamos"
-          subtitle="Snapshot actual de préstamos prestados o recibidos."
+          title={language === "es" ? "Cartera de préstamos" : "Loan portfolio"}
+          subtitle={language === "es" ? "Snapshot actual de préstamos prestados o recibidos." : "Current snapshot of borrowed or lent loans."}
         >
           <dl className="finance-report-definition-list">
             <ReportLine
-              label="Saldo tomado"
+              label={language === "es" ? "Saldo tomado" : "Borrowed balance"}
               value={formatMoney(loanSnapshot?.borrowed_balance || 0, baseCurrencyCode, language)}
             />
             <ReportLine
-              label="Saldo prestado"
+              label={language === "es" ? "Saldo prestado" : "Lent balance"}
               value={formatMoney(loanSnapshot?.lent_balance || 0, baseCurrencyCode, language)}
             />
             <ReportLine
-              label="Capital total"
+              label={language === "es" ? "Capital total" : "Total principal"}
               value={formatMoney(loanSnapshot?.total_principal || 0, baseCurrencyCode, language)}
             />
             <ReportLine
-              label="Abiertos"
+              label={language === "es" ? "Abiertos" : "Open"}
               value={String(loanSnapshot?.open_items || 0)}
             />
             <ReportLine
-              label="Liquidados"
+              label={language === "es" ? "Liquidados" : "Settled"}
               value={String(loanSnapshot?.settled_items || 0)}
             />
           </dl>
@@ -443,8 +473,8 @@ export function FinanceReportsPage() {
 
       <div className="finance-report-grid">
         <PanelCard
-          title="Comparativa contra otro período"
-          subtitle="Diferencia del período visible frente al mes de comparación seleccionado."
+          title={language === "es" ? "Comparativa contra otro período" : "Comparison against another period"}
+          subtitle={language === "es" ? "Diferencia del período visible frente al mes de comparación seleccionado." : "Difference between the visible period and the selected comparison month."}
         >
           <PeriodComparisonPanel
             comparison={overview?.period_comparison || null}
@@ -454,32 +484,56 @@ export function FinanceReportsPage() {
         </PanelCard>
 
         <PanelCard
-          title="Top categorías ingreso"
-          subtitle={`Mayores ingresos por ${buildAnalysisDimensionLabel(
-            overview?.analysis_dimension || analysisDimension
-          )} según lectura ${buildAnalysisScopeLabel(
-            overview?.analysis_scope || analysisScope
-          )}.`}
+          title={language === "es" ? "Top categorías ingreso" : "Top income breakdown"}
+          subtitle={
+            language === "es"
+              ? `Mayores ingresos por ${buildAnalysisDimensionLabel(
+                  overview?.analysis_dimension || analysisDimension,
+                  language
+                )} según lectura ${buildAnalysisScopeLabel(
+                  overview?.analysis_scope || analysisScope,
+                  language
+                )}.`
+              : `Top income by ${buildAnalysisDimensionLabel(
+                  overview?.analysis_dimension || analysisDimension,
+                  language
+                )} for ${buildAnalysisScopeLabel(
+                  overview?.analysis_scope || analysisScope,
+                  language
+                )} view.`
+          }
         >
           <DimensionAmountList
             items={overview?.top_income_breakdown || []}
-            emptyLabel="Sin ingresos analíticos para la lectura seleccionada."
+            emptyLabel={language === "es" ? "Sin ingresos analíticos para la lectura seleccionada." : "No analytical income for the selected view."}
             currencyCode={baseCurrencyCode}
             language={language}
           />
         </PanelCard>
 
         <PanelCard
-          title="Top categorías egreso"
-          subtitle={`Mayores egresos por ${buildAnalysisDimensionLabel(
-            overview?.analysis_dimension || analysisDimension
-          )} según lectura ${buildAnalysisScopeLabel(
-            overview?.analysis_scope || analysisScope
-          )}.`}
+          title={language === "es" ? "Top categorías egreso" : "Top expense breakdown"}
+          subtitle={
+            language === "es"
+              ? `Mayores egresos por ${buildAnalysisDimensionLabel(
+                  overview?.analysis_dimension || analysisDimension,
+                  language
+                )} según lectura ${buildAnalysisScopeLabel(
+                  overview?.analysis_scope || analysisScope,
+                  language
+                )}.`
+              : `Top expenses by ${buildAnalysisDimensionLabel(
+                  overview?.analysis_dimension || analysisDimension,
+                  language
+                )} for ${buildAnalysisScopeLabel(
+                  overview?.analysis_scope || analysisScope,
+                  language
+                )} view.`
+          }
         >
           <DimensionAmountList
             items={overview?.top_expense_breakdown || []}
-            emptyLabel="Sin egresos analíticos para la lectura seleccionada."
+            emptyLabel={language === "es" ? "Sin egresos analíticos para la lectura seleccionada." : "No analytical expenses for the selected view."}
             currencyCode={baseCurrencyCode}
             language={language}
           />
@@ -488,8 +542,8 @@ export function FinanceReportsPage() {
 
       <div className="finance-report-grid">
         <PanelCard
-          title="Pulso diario de caja"
-          subtitle="Serie corta para ver qué días concentraron flujo y presión operativa."
+          title={language === "es" ? "Pulso diario de caja" : "Daily cash pulse"}
+          subtitle={language === "es" ? "Serie corta para ver qué días concentraron flujo y presión operativa." : "Short series to see which days concentrated flow and operational pressure."}
         >
           <DailyCashflowList
             items={overview?.daily_cashflow || []}
@@ -499,8 +553,8 @@ export function FinanceReportsPage() {
         </PanelCard>
 
         <PanelCard
-          title="Desvíos presupuestarios"
-          subtitle="Categorías con mayor diferencia entre plan y real para priorizar revisión."
+          title={language === "es" ? "Desvíos presupuestarios" : "Budget variances"}
+          subtitle={language === "es" ? "Categorías con mayor diferencia entre plan y real para priorizar revisión." : "Categories with the largest difference between plan and actual to prioritize review."}
         >
           <BudgetVarianceTable
             items={overview?.budget_variances || []}
@@ -511,8 +565,8 @@ export function FinanceReportsPage() {
       </div>
 
       <PanelCard
-        title="Tendencia reciente"
-        subtitle="Lectura corta de 6 meses para no perder contexto entre cambios de período."
+        title={language === "es" ? "Tendencia reciente" : "Recent trend"}
+        subtitle={language === "es" ? "Lectura corta de 6 meses para no perder contexto entre cambios de período." : "Short reading across 6 months to keep context between period changes."}
       >
         <MonthlyTrendTable
           items={overview?.monthly_trend || []}
@@ -522,8 +576,8 @@ export function FinanceReportsPage() {
       </PanelCard>
 
       <PanelCard
-        title="Resumen del horizonte"
-        subtitle="Comparativa ejecutiva del rango seleccionado para no depender solo de la tabla mensual."
+        title={language === "es" ? "Resumen del horizonte" : "Horizon summary"}
+        subtitle={language === "es" ? "Comparativa ejecutiva del rango seleccionado para no depender solo de la tabla mensual." : "Executive comparison for the selected range so you do not depend only on the monthly table."}
       >
         <TrendSummaryPanel
           summary={overview?.trend_summary || null}
@@ -533,8 +587,8 @@ export function FinanceReportsPage() {
       </PanelCard>
 
       <PanelCard
-        title="Comparativa del horizonte"
-        subtitle="Contrasta el rango visible completo contra otro rango equivalente cerrado en el mes comparado."
+        title={language === "es" ? "Comparativa del horizonte" : "Horizon comparison"}
+        subtitle={language === "es" ? "Contrasta el rango visible completo contra otro rango equivalente cerrado en el mes comparado." : "Compare the full visible range against another equivalent range ending in the compared month."}
       >
         <HorizonComparisonPanel
           comparison={overview?.horizon_comparison || null}
@@ -544,8 +598,8 @@ export function FinanceReportsPage() {
       </PanelCard>
 
       <PanelCard
-        title="Acumulado anual"
-        subtitle="Compara enero -> mes visible contra enero -> mes comparado para lectura ejecutiva anual."
+        title={language === "es" ? "Acumulado anual" : "Year-to-date"}
+        subtitle={language === "es" ? "Compara enero -> mes visible contra enero -> mes comparado para lectura ejecutiva anual." : "Compare January to visible month against January to compared month for annual executive reading."}
       >
         <YearToDateComparisonPanel
           comparison={overview?.year_to_date_comparison || null}
@@ -555,8 +609,8 @@ export function FinanceReportsPage() {
       </PanelCard>
 
       <PanelCard
-        title="Comparativa rango arbitrario"
-        subtitle="Contrasta la lectura activa actual contra un rango manual de meses si fue definido."
+        title={language === "es" ? "Comparativa rango arbitrario" : "Custom range comparison"}
+        subtitle={language === "es" ? "Contrasta la lectura activa actual contra un rango manual de meses si fue definido." : "Compare the current active reading against a manual month range if defined."}
       >
         <CustomRangeComparisonPanel
           comparison={overview?.custom_range_comparison || null}
@@ -618,7 +672,7 @@ function DimensionAmountList({
         >
           <div>
             <div className="finance-balance-list__title">{item.entity_name}</div>
-            <div className="tenant-muted-text">{buildAnalysisDimensionLabel(item.entity_type)}</div>
+            <div className="tenant-muted-text">{buildAnalysisDimensionLabel(item.entity_type, language)}</div>
           </div>
           <div className="finance-balance-list__value">
             {formatMoney(item.total_amount, currencyCode, language)}
@@ -641,7 +695,7 @@ function DailyCashflowList({
   if (items.length === 0) {
     return (
       <p className="tenant-muted-text mb-0">
-        Sin actividad diaria relevante en el período.
+        {language === "es" ? "Sin actividad diaria relevante en el período." : "No relevant daily activity for the selected period."}
       </p>
     );
   }
@@ -652,10 +706,10 @@ function DailyCashflowList({
         <div key={item.day} className="finance-balance-list__item">
           <div>
             <div className="finance-balance-list__title">
-              {formatDay(item.day)}
+              {formatDay(item.day, language)}
             </div>
             <div className="tenant-muted-text">
-              {item.transaction_count} movimientos · Ing. {formatMoney(item.income_total, currencyCode, language)} · Egr.{" "}
+              {item.transaction_count} {language === "es" ? "movimientos" : "transactions"} · {language === "es" ? "Inc." : "Inc."} {formatMoney(item.income_total, currencyCode, language)} · {language === "es" ? "Exp." : "Exp."}{" "}
               {formatMoney(item.expense_total, currencyCode, language)}
             </div>
           </div>
@@ -680,7 +734,7 @@ function BudgetVarianceTable({
   if (items.length === 0) {
     return (
       <p className="tenant-muted-text mb-0">
-        Sin desvíos presupuestarios para el período seleccionado.
+        {language === "es" ? "Sin desvíos presupuestarios para el período seleccionado." : "No budget variances for the selected period."}
       </p>
     );
   }
@@ -690,11 +744,11 @@ function BudgetVarianceTable({
       <table className="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th>Categoría</th>
-            <th>Estado</th>
-            <th className="text-end">Plan</th>
-            <th className="text-end">Real</th>
-            <th className="text-end">Desvío</th>
+            <th>{language === "es" ? "Categoría" : "Category"}</th>
+            <th>{language === "es" ? "Estado" : "Status"}</th>
+            <th className="text-end">{language === "es" ? "Plan" : "Plan"}</th>
+            <th className="text-end">{language === "es" ? "Real" : "Actual"}</th>
+            <th className="text-end">{language === "es" ? "Desvío" : "Variance"}</th>
           </tr>
         </thead>
         <tbody>
@@ -703,12 +757,12 @@ function BudgetVarianceTable({
               <td>
                 <div className="fw-semibold">{item.category_name}</div>
                 <div className="tenant-muted-text">
-                  {item.category_type} · {item.is_active ? "activa" : "inactiva"}
+                  {item.category_type} · {item.is_active ? (language === "es" ? "activa" : "active") : language === "es" ? "inactiva" : "inactive"}
                 </div>
               </td>
               <td>
                 <span className={buildBudgetStatusClassName(item.budget_status)}>
-                  {buildBudgetStatusLabel(item.budget_status)}
+                  {buildBudgetStatusLabel(item.budget_status, language)}
                 </span>
               </td>
               <td className="text-end">{formatMoney(item.planned_amount, currencyCode, language)}</td>
@@ -734,7 +788,7 @@ function PeriodComparisonPanel({
   if (!comparison) {
     return (
       <p className="tenant-muted-text mb-0">
-        Sin comparativa disponible para el período seleccionado.
+        {language === "es" ? "Sin comparativa disponible para el período seleccionado." : "No comparison available for the selected period."}
       </p>
     );
   }
@@ -742,32 +796,32 @@ function PeriodComparisonPanel({
   return (
     <dl className="finance-report-definition-list">
       <ReportLine
-        label={`Ingresos vs ${formatMonthLabel(comparison.compare_period_month)}`}
+        label={`${language === "es" ? "Ingresos vs" : "Income vs"} ${formatMonthLabel(comparison.compare_period_month, language)}`}
         value={formatSignedMoney(comparison.income_delta, currencyCode, language)}
       />
       <ReportLine
-        label={`Egresos vs ${formatMonthLabel(comparison.compare_period_month)}`}
+        label={`${language === "es" ? "Egresos vs" : "Expenses vs"} ${formatMonthLabel(comparison.compare_period_month, language)}`}
         value={formatSignedMoney(comparison.expense_delta, currencyCode, language)}
       />
       <ReportLine
-        label="Balance neto"
+        label={language === "es" ? "Balance neto" : "Net balance"}
         value={formatSignedMoney(comparison.net_balance_delta, currencyCode, language)}
       />
       <ReportLine
-        label="Transacciones"
+        label={language === "es" ? "Transacciones" : "Transactions"}
         value={formatSignedInteger(comparison.transaction_delta)}
       />
       <ReportLine
-        label="Presupuestado"
+        label={language === "es" ? "Presupuestado" : "Budgeted"}
         value={formatSignedMoney(comparison.budgeted_delta, currencyCode, language)}
       />
       <ReportLine
-        label="Desviación presup."
+        label={language === "es" ? "Desviación presup." : "Budget variance"}
         value={formatSignedMoney(comparison.variance_delta, currencyCode, language)}
       />
       <ReportLine
-        label="Período comparado"
-        value={formatMonthLabel(comparison.compare_period_month)}
+        label={language === "es" ? "Período comparado" : "Compared period"}
+        value={formatMonthLabel(comparison.compare_period_month, language)}
       />
     </dl>
   );
@@ -785,7 +839,7 @@ function MonthlyTrendTable({
   if (items.length === 0) {
     return (
       <p className="tenant-muted-text mb-0">
-        Sin tendencia disponible para este tenant.
+        {language === "es" ? "Sin tendencia disponible para este tenant." : "No trend available for this tenant."}
       </p>
     );
   }
@@ -795,19 +849,19 @@ function MonthlyTrendTable({
       <table className="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th>Mes</th>
-            <th className="text-end">Ingresos</th>
-            <th className="text-end">Egresos</th>
-            <th className="text-end">Balance</th>
-            <th className="text-end">Trans.</th>
-            <th className="text-end">Presup.</th>
-            <th className="text-end">Real</th>
+            <th>{language === "es" ? "Mes" : "Month"}</th>
+            <th className="text-end">{language === "es" ? "Ingresos" : "Income"}</th>
+            <th className="text-end">{language === "es" ? "Egresos" : "Expenses"}</th>
+            <th className="text-end">{language === "es" ? "Balance" : "Balance"}</th>
+            <th className="text-end">{language === "es" ? "Trans." : "Txns."}</th>
+            <th className="text-end">{language === "es" ? "Presup." : "Budget"}</th>
+            <th className="text-end">{language === "es" ? "Real" : "Actual"}</th>
           </tr>
         </thead>
         <tbody>
           {items.map((item) => (
             <tr key={item.period_month}>
-              <td className="fw-semibold">{formatMonthLabel(item.period_month)}</td>
+              <td className="fw-semibold">{formatMonthLabel(item.period_month, language)}</td>
               <td className="text-end">{formatMoney(item.total_income, currencyCode, language)}</td>
               <td className="text-end">{formatMoney(item.total_expense, currencyCode, language)}</td>
               <td className="text-end">{formatSignedMoney(item.net_balance, currencyCode, language)}</td>
@@ -834,7 +888,7 @@ function TrendSummaryPanel({
   if (!summary || summary.months_covered === 0) {
     return (
       <p className="tenant-muted-text mb-0">
-        Sin resumen comparativo para el horizonte seleccionado.
+        {language === "es" ? "Sin resumen comparativo para el horizonte seleccionado." : "No summary available for the selected horizon."}
       </p>
     );
   }
@@ -842,31 +896,31 @@ function TrendSummaryPanel({
   return (
     <dl className="finance-report-definition-list">
       <ReportLine
-        label="Meses cubiertos"
+        label={language === "es" ? "Meses cubiertos" : "Months covered"}
         value={String(summary.months_covered)}
       />
       <ReportLine
-        label="Ingreso promedio"
+        label={language === "es" ? "Ingreso promedio" : "Average income"}
         value={formatMoney(summary.average_income, currencyCode, language)}
       />
       <ReportLine
-        label="Egreso promedio"
+        label={language === "es" ? "Egreso promedio" : "Average expense"}
         value={formatMoney(summary.average_expense, currencyCode, language)}
       />
       <ReportLine
-        label="Balance promedio"
+        label={language === "es" ? "Balance promedio" : "Average balance"}
         value={formatSignedMoney(summary.average_net_balance, currencyCode, language)}
       />
       <ReportLine
-        label="Mejor mes"
+        label={language === "es" ? "Mejor mes" : "Best month"}
         value={buildTrendMonthValue(summary.best_period_month, summary.best_net_balance, currencyCode, language)}
       />
       <ReportLine
-        label="Peor mes"
+        label={language === "es" ? "Peor mes" : "Worst month"}
         value={buildTrendMonthValue(summary.worst_period_month, summary.worst_net_balance, currencyCode, language)}
       />
       <ReportLine
-        label="Delta vs primer mes"
+        label={language === "es" ? "Delta vs primer mes" : "Delta vs first month"}
         value={formatSignedMoney(summary.net_balance_delta_vs_first, currencyCode, language)}
       />
     </dl>
@@ -885,7 +939,7 @@ function HorizonComparisonPanel({
   if (!comparison || comparison.compare_months_covered === 0) {
     return (
       <p className="tenant-muted-text mb-0">
-        Sin comparativa de horizonte para el rango seleccionado.
+        {language === "es" ? "Sin comparativa de horizonte para el rango seleccionado." : "No horizon comparison for the selected range."}
       </p>
     );
   }
@@ -893,33 +947,35 @@ function HorizonComparisonPanel({
   return (
     <dl className="finance-report-definition-list">
       <ReportLine
-        label="Horizonte actual"
+        label={language === "es" ? "Horizonte actual" : "Current horizon"}
         value={buildPeriodRangeLabel(
           comparison.current_first_period_month,
-          comparison.current_last_period_month
+          comparison.current_last_period_month,
+          language
         )}
       />
       <ReportLine
-        label="Horizonte comparado"
+        label={language === "es" ? "Horizonte comparado" : "Compared horizon"}
         value={buildPeriodRangeLabel(
           comparison.compare_first_period_month,
-          comparison.compare_last_period_month
+          comparison.compare_last_period_month,
+          language
         )}
       />
       <ReportLine
-        label="Ingreso total vs rango"
+        label={language === "es" ? "Ingreso total vs rango" : "Total income vs range"}
         value={formatSignedMoney(comparison.total_income_delta_vs_compare, currencyCode, language)}
       />
       <ReportLine
-        label="Egreso total vs rango"
+        label={language === "es" ? "Egreso total vs rango" : "Total expense vs range"}
         value={formatSignedMoney(comparison.total_expense_delta_vs_compare, currencyCode, language)}
       />
       <ReportLine
-        label="Balance total vs rango"
+        label={language === "es" ? "Balance total vs rango" : "Total balance vs range"}
         value={formatSignedMoney(comparison.total_net_balance_delta_vs_compare, currencyCode, language)}
       />
       <ReportLine
-        label="Promedio balance vs rango"
+        label={language === "es" ? "Promedio balance vs rango" : "Average balance vs range"}
         value={formatSignedMoney(comparison.average_net_balance_delta_vs_compare, currencyCode, language)}
       />
     </dl>
@@ -938,7 +994,7 @@ function YearToDateComparisonPanel({
   if (!comparison || comparison.current_months_covered === 0) {
     return (
       <p className="tenant-muted-text mb-0">
-        Sin acumulado anual disponible para el período seleccionado.
+        {language === "es" ? "Sin acumulado anual disponible para el período seleccionado." : "No year-to-date data for the selected period."}
       </p>
     );
   }
@@ -946,29 +1002,31 @@ function YearToDateComparisonPanel({
   return (
     <dl className="finance-report-definition-list">
       <ReportLine
-        label="Acumulado actual"
+        label={language === "es" ? "Acumulado actual" : "Current YTD"}
         value={buildPeriodRangeLabel(
           comparison.current_first_period_month,
-          comparison.current_last_period_month
+          comparison.current_last_period_month,
+          language
         )}
       />
       <ReportLine
-        label="Acumulado comparado"
+        label={language === "es" ? "Acumulado comparado" : "Compared YTD"}
         value={buildPeriodRangeLabel(
           comparison.compare_first_period_month,
-          comparison.compare_last_period_month
+          comparison.compare_last_period_month,
+          language
         )}
       />
       <ReportLine
-        label="Ingresos YTD vs comparado"
+        label={language === "es" ? "Ingresos YTD vs comparado" : "YTD income vs compared"}
         value={formatSignedMoney(comparison.total_income_delta_vs_compare, currencyCode, language)}
       />
       <ReportLine
-        label="Egresos YTD vs comparado"
+        label={language === "es" ? "Egresos YTD vs comparado" : "YTD expenses vs compared"}
         value={formatSignedMoney(comparison.total_expense_delta_vs_compare, currencyCode, language)}
       />
       <ReportLine
-        label="Balance YTD vs comparado"
+        label={language === "es" ? "Balance YTD vs comparado" : "YTD balance vs compared"}
         value={formatSignedMoney(comparison.total_net_balance_delta_vs_compare, currencyCode, language)}
       />
     </dl>
@@ -987,7 +1045,7 @@ function CustomRangeComparisonPanel({
   if (!comparison) {
     return (
       <p className="tenant-muted-text mb-0">
-        Define `desde` y `hasta` para comparar contra un rango arbitrario.
+        {language === "es" ? "Define `desde` y `hasta` para comparar contra un rango arbitrario." : "Set `from` and `to` to compare against a custom range."}
       </p>
     );
   }
@@ -995,29 +1053,31 @@ function CustomRangeComparisonPanel({
   return (
     <dl className="finance-report-definition-list">
       <ReportLine
-        label="Lectura actual"
-        value={`${buildAnalysisScopeLabel(comparison.current_label)} · ${buildPeriodRangeLabel(
+        label={language === "es" ? "Lectura actual" : "Current reading"}
+        value={`${buildAnalysisScopeLabel(comparison.current_label, language)} · ${buildPeriodRangeLabel(
           comparison.current_first_period_month,
-          comparison.current_last_period_month
+          comparison.current_last_period_month,
+          language
         )}`}
       />
       <ReportLine
-        label="Rango arbitrario"
+        label={language === "es" ? "Rango arbitrario" : "Custom range"}
         value={buildPeriodRangeLabel(
           comparison.custom_first_period_month,
-          comparison.custom_last_period_month
+          comparison.custom_last_period_month,
+          language
         )}
       />
       <ReportLine
-        label="Ingresos vs rango"
+        label={language === "es" ? "Ingresos vs rango" : "Income vs range"}
         value={formatSignedMoney(comparison.total_income_delta_vs_custom, currencyCode, language)}
       />
       <ReportLine
-        label="Egresos vs rango"
+        label={language === "es" ? "Egresos vs rango" : "Expenses vs range"}
         value={formatSignedMoney(comparison.total_expense_delta_vs_custom, currencyCode, language)}
       />
       <ReportLine
-        label="Balance vs rango"
+        label={language === "es" ? "Balance vs rango" : "Balance vs range"}
         value={formatSignedMoney(comparison.total_net_balance_delta_vs_custom, currencyCode, language)}
       />
     </dl>
@@ -1075,30 +1135,30 @@ function formatSignedInteger(value: number) {
   return value > 0 ? `+${value}` : String(value);
 }
 
-function formatDay(day: string) {
-  return new Intl.DateTimeFormat("es-CL", {
+function formatDay(day: string, language: "es" | "en") {
+  return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
     day: "2-digit",
     month: "short",
   }).format(new Date(`${day}T00:00:00`));
 }
 
-function formatMonthLabel(monthIso: string) {
-  return new Intl.DateTimeFormat("es-CL", {
+function formatMonthLabel(monthIso: string, language: "es" | "en" = "es") {
+  return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
     month: "short",
     year: "numeric",
   }).format(new Date(`${monthIso}T00:00:00`));
 }
 
-function buildBudgetStatusLabel(status: string) {
+function buildBudgetStatusLabel(status: string, language: "es" | "en") {
   switch (status) {
     case "over_budget":
-      return "sobre presupuesto";
+      return language === "es" ? "sobre presupuesto" : "over budget";
     case "within_budget":
-      return "dentro";
+      return language === "es" ? "dentro" : "within";
     case "unused":
-      return "sin uso";
+      return language === "es" ? "sin uso" : "unused";
     case "inactive":
-      return "inactiva";
+      return language === "es" ? "inactiva" : "inactive";
     default:
       return status;
   }
@@ -1364,46 +1424,51 @@ function escapeCsvValue(value: string) {
   return value;
 }
 
-function buildMovementScopeLabel(scope: string) {
+function buildMovementScopeLabel(scope: string, language: "es" | "en") {
   switch (scope) {
     case "reconciled":
-      return "conciliado";
+      return language === "es" ? "conciliado" : "reconciled";
     case "unreconciled":
-      return "pendiente";
+      return language === "es" ? "pendiente" : "pending";
     case "favorites":
-      return "favoritas";
+      return language === "es" ? "favoritas" : "favorites";
     case "loan_linked":
-      return "ligado a préstamos";
+      return language === "es" ? "ligado a préstamos" : "loan-linked";
     default:
-      return "general";
+      return language === "es" ? "general" : "general";
   }
 }
 
-function buildAnalysisScopeLabel(scope: string) {
+function buildAnalysisScopeLabel(scope: string, language: "es" | "en") {
   switch (scope) {
     case "horizon":
-      return "horizonte";
+      return language === "es" ? "horizonte" : "horizon";
     case "year_to_date":
-      return "acumulado anual";
+      return language === "es" ? "acumulado anual" : "year to date";
     case "periodo":
-      return "período";
+    case "period":
+      return language === "es" ? "período" : "period";
     default:
-      return "período";
+      return language === "es" ? "período" : "period";
   }
 }
 
-function buildAnalysisDimensionLabel(dimension: string) {
+function buildAnalysisDimensionLabel(dimension: string, language: "es" | "en") {
   switch (dimension) {
+    case "category":
+      return language === "es" ? "categoría" : "category";
     case "account":
-      return "cuenta";
+      return language === "es" ? "cuenta" : "account";
     case "project":
-      return "proyecto";
+      return language === "es" ? "proyecto" : "project";
     case "beneficiary":
-      return "beneficiario";
+      return language === "es" ? "beneficiario" : "beneficiary";
     case "person":
-      return "persona";
+      return language === "es" ? "persona" : "person";
+    case "tag":
+      return language === "es" ? "etiqueta" : "tag";
     default:
-      return "categoría";
+      return language === "es" ? "categoría" : "category";
   }
 }
 
@@ -1414,43 +1479,44 @@ function buildTrendMonthValue(
   language: "es" | "en"
 ) {
   if (!monthIso || amount === null) {
-    return "n/d";
+    return language === "es" ? "n/d" : "n/a";
   }
-  return `${formatMonthLabel(monthIso)} · ${formatSignedMoney(amount, currencyCode, language)}`;
+  return `${formatMonthLabel(monthIso, language)} · ${formatSignedMoney(amount, currencyCode, language)}`;
 }
 
 function buildPeriodRangeLabel(
   firstMonthIso: string | null,
-  lastMonthIso: string | null
+  lastMonthIso: string | null,
+  language: "es" | "en"
 ) {
   if (!firstMonthIso || !lastMonthIso) {
-    return "n/d";
+    return language === "es" ? "n/d" : "n/a";
   }
-  return `${formatMonthLabel(firstMonthIso)} -> ${formatMonthLabel(lastMonthIso)}`;
+  return `${formatMonthLabel(firstMonthIso, language)} -> ${formatMonthLabel(lastMonthIso, language)}`;
 }
 
-function buildBudgetScopeLabel(scope: string) {
+function buildBudgetScopeLabel(scope: string, language: "es" | "en") {
   switch (scope) {
     case "income":
-      return "de ingresos";
+      return language === "es" ? "de ingresos" : "income";
     case "expense":
-      return "de egresos";
+      return language === "es" ? "de egresos" : "expense";
     default:
-      return "general";
+      return language === "es" ? "general" : "general";
   }
 }
 
-function buildBudgetStatusFilterLabel(status: string) {
+function buildBudgetStatusFilterLabel(status: string, language: "es" | "en") {
   switch (status) {
     case "over_budget":
-      return "sobre presupuesto";
+      return language === "es" ? "sobre presupuesto" : "over budget";
     case "within_budget":
-      return "dentro";
+      return language === "es" ? "dentro" : "within";
     case "unused":
-      return "sin uso";
+      return language === "es" ? "sin uso" : "unused";
     case "inactive":
-      return "inactiva";
+      return language === "es" ? "inactiva" : "inactive";
     default:
-      return "todos";
+      return language === "es" ? "todos" : "all";
   }
 }

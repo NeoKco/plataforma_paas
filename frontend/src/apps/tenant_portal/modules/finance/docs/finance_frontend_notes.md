@@ -68,13 +68,13 @@
 - `Reportes` ya permite además rankear por `Etiqueta`
 - cuando `finance` detecta schema incompleto, la UI ya explica para que sirve actualizar la estructura del modulo
 - `tenant admin` ya puede disparar esa sincronizacion desde el mismo portal, sin depender solo de `Platform Admin`
-- `Cuentas`, `Categorías`, `Catálogos`, `Configuración`, `Presupuestos` y `Planificación`, junto con formularios auxiliares, ya consumen `useLanguage` y dejan de exponer enums crudos como `cash`, `bank`, `income` o `expense`
+- `Cuentas`, `Categorías`, `Catálogos`, `Configuración`, `Transacciones`, `Presupuestos`, `Préstamos`, `Planificación` y `Reportes`, junto con formularios auxiliares, ya consumen `useLanguage` en la lectura principal y dejan de exponer enums crudos como `cash`, `bank`, `income` o `expense`
 - `Configuración > Monedas` ya expone explícitamente cómo cambiar la moneda base del módulo y aclara que la base anterior se limpia automáticamente
 - `Presupuestos`, `Planificación` y `Reportes` ya toman la moneda base activa para el formateo visual de montos
 - `Préstamos` ya usa moneda base en resúmenes, pero mantiene `currency_code` del préstamo en tabla y cronograma
 
 Pendiente inmediato:
-- terminar la internacionalización de `Transacciones`, `Préstamos` y `Reportes` para que el selector `Español/Inglés` gobierne todo el copy visible del módulo
+- revisar y cerrar copy residual de exportaciones, confirmaciones y mensajes largos para lograr paridad completa `Español/Inglés`
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
 - endurecer `Presupuestos` con lectura agregada mas densa

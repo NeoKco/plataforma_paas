@@ -6,6 +6,7 @@ import { PanelCard } from "../../../../../components/common/PanelCard";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
+import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
@@ -86,6 +87,7 @@ const DEFAULT_FORM_STATE: LoanFormState = {
 
 export function FinanceLoansPage() {
   const { session } = useTenantAuth();
+  const { language } = useLanguage();
   const [loansResponse, setLoansResponse] = useState<TenantFinanceLoansResponse | null>(null);
   const [currencies, setCurrencies] = useState<TenantFinanceCurrency[]>([]);
   const [editingLoanId, setEditingLoanId] = useState<number | null>(null);
@@ -467,31 +469,53 @@ export function FinanceLoansPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Finance"
-        title="Préstamos"
-        description="Gestiona dinero prestado o recibido, con saldo pendiente, contraparte y lectura rápida de cartera."
+        title={language === "es" ? "Préstamos" : "Loans"}
+        description={
+          language === "es"
+            ? "Gestiona dinero prestado o recibido, con saldo pendiente, contraparte y lectura rápida de cartera."
+            : "Manage borrowed or lent money, with outstanding balance, counterparty, and a quick portfolio view."
+        }
       />
 
       <FinanceModuleNav />
 
       {actionFeedback ? (
         <div className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}>
-          <strong>Préstamos:</strong> {actionFeedback.message}
+          <strong>{language === "es" ? "Préstamos:" : "Loans:"}</strong> {actionFeedback.message}
         </div>
       ) : null}
 
-      {isLoading ? <LoadingBlock label="Cargando préstamos..." /> : null}
+      {isLoading ? (
+        <LoadingBlock label={language === "es" ? "Cargando préstamos..." : "Loading loans..."} />
+      ) : null}
 
       <div className="tenant-portal-metrics">
-        <MetricCard label="Capital total" value={formatMoney(summary?.total_principal || 0, baseCurrencyCode)} hint="Monto inicial visible" />
-        <MetricCard label="Saldo prestado" value={formatMoney(summary?.lent_balance || 0, baseCurrencyCode)} hint="Por cobrar a terceros" />
-        <MetricCard label="Saldo recibido" value={formatMoney(summary?.borrowed_balance || 0, baseCurrencyCode)} hint="Por pagar a terceros" />
-        <MetricCard label="Activos" value={summary?.active_items || 0} hint="Préstamos abiertos" />
+        <MetricCard
+          label={language === "es" ? "Capital total" : "Total principal"}
+          value={formatMoney(summary?.total_principal || 0, baseCurrencyCode, language)}
+          hint={language === "es" ? "Monto inicial visible" : "Visible opening amount"}
+        />
+        <MetricCard
+          label={language === "es" ? "Saldo prestado" : "Lent balance"}
+          value={formatMoney(summary?.lent_balance || 0, baseCurrencyCode, language)}
+          hint={language === "es" ? "Por cobrar a terceros" : "Outstanding from third parties"}
+        />
+        <MetricCard
+          label={language === "es" ? "Saldo recibido" : "Borrowed balance"}
+          value={formatMoney(summary?.borrowed_balance || 0, baseCurrencyCode, language)}
+          hint={language === "es" ? "Por pagar a terceros" : "Outstanding to third parties"}
+        />
+        <MetricCard
+          label={language === "es" ? "Activos" : "Active"}
+          value={summary?.active_items || 0}
+          hint={language === "es" ? "Préstamos abiertos" : "Open loans"}
+        />
       </div>
 
       {error ? (
         <div className="d-grid gap-3">
           <ErrorState
-            title="Préstamos no disponibles"
+            title={language === "es" ? "Préstamos no disponibles" : "Loans unavailable"}
             detail={error.payload?.detail || error.message}
             requestId={error.payload?.request_id}
           />
@@ -501,8 +525,20 @@ export function FinanceLoansPage() {
 
       <div className="tenant-portal-split tenant-portal-split--finance">
         <PanelCard
-          title={editingLoanId ? "Editar préstamo" : "Registrar préstamo"}
-          subtitle="Primer corte: cartera básica con saldo pendiente y contraparte, sin abrir todavía amortización avanzada."
+          title={
+            editingLoanId
+              ? language === "es"
+                ? "Editar préstamo"
+                : "Edit loan"
+              : language === "es"
+                ? "Registrar préstamo"
+                : "Create loan"
+          }
+          subtitle={
+            language === "es"
+              ? "Primer corte: cartera básica con saldo pendiente y contraparte, sin abrir todavía amortización avanzada."
+              : "First slice: basic portfolio with outstanding balance and counterparty, before opening advanced amortization."
+          }
         >
           <form className="d-grid gap-3" onSubmit={handleSubmit}>
             <div className="tenant-inline-form-grid">
@@ -516,21 +552,21 @@ export function FinanceLoansPage() {
                 />
               </div>
               <div>
-                <label className="form-label">Tipo</label>
+                <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
                 <select
                   className="form-select"
                   value={formState.loanType}
                   onChange={(event) => setFormState((current) => ({ ...current, loanType: event.target.value }))}
                 >
-                  <option value="borrowed">Recibido</option>
-                  <option value="lent">Prestado</option>
+                  <option value="borrowed">{language === "es" ? "Recibido" : "Borrowed"}</option>
+                  <option value="lent">{language === "es" ? "Prestado" : "Lent"}</option>
                 </select>
               </div>
             </div>
 
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Contraparte</label>
+                <label className="form-label">{language === "es" ? "Contraparte" : "Counterparty"}</label>
                 <input
                   className="form-control"
                   value={formState.counterpartyName}
@@ -541,13 +577,13 @@ export function FinanceLoansPage() {
                 />
               </div>
               <div>
-                <label className="form-label">Moneda</label>
+                <label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label>
                 <select
                   className="form-select"
                   value={formState.currencyId}
                   onChange={(event) => setFormState((current) => ({ ...current, currencyId: event.target.value }))}
                 >
-                  <option value="">Selecciona una moneda</option>
+                  <option value="">{language === "es" ? "Selecciona una moneda" : "Select a currency"}</option>
                   {activeCurrencies.map((currency) => (
                     <option key={currency.id} value={currency.id}>
                       {currency.code} · {currency.name}
@@ -559,7 +595,7 @@ export function FinanceLoansPage() {
 
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Capital inicial</label>
+                <label className="form-label">{language === "es" ? "Capital inicial" : "Opening principal"}</label>
                 <input
                   className="form-control"
                   type="number"
@@ -570,7 +606,7 @@ export function FinanceLoansPage() {
                 />
               </div>
               <div>
-                <label className="form-label">Saldo pendiente</label>
+                <label className="form-label">{language === "es" ? "Saldo pendiente" : "Outstanding balance"}</label>
                 <input
                   className="form-control"
                   type="number"
@@ -584,7 +620,7 @@ export function FinanceLoansPage() {
 
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Tasa interés %</label>
+                <label className="form-label">{language === "es" ? "Tasa interés %" : "Interest rate %"}</label>
                 <input
                   className="form-control"
                   type="number"
@@ -595,7 +631,7 @@ export function FinanceLoansPage() {
                 />
               </div>
               <div>
-                <label className="form-label">Cuotas</label>
+                <label className="form-label">{language === "es" ? "Cuotas" : "Installments"}</label>
                 <input
                   className="form-control"
                   type="number"
@@ -612,7 +648,7 @@ export function FinanceLoansPage() {
 
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Frecuencia</label>
+                <label className="form-label">{language === "es" ? "Frecuencia" : "Frequency"}</label>
                 <select
                   className="form-select"
                   value={formState.paymentFrequency}
@@ -620,11 +656,11 @@ export function FinanceLoansPage() {
                     setFormState((current) => ({ ...current, paymentFrequency: event.target.value }))
                   }
                 >
-                  <option value="monthly">Mensual</option>
+                  <option value="monthly">{language === "es" ? "Mensual" : "Monthly"}</option>
                 </select>
               </div>
               <div>
-                <label className="form-label">Activo</label>
+                <label className="form-label">{language === "es" ? "Activo" : "Active"}</label>
                 <select
                   className="form-select"
                   value={formState.isActive ? "true" : "false"}
@@ -632,7 +668,7 @@ export function FinanceLoansPage() {
                     setFormState((current) => ({ ...current, isActive: event.target.value === "true" }))
                   }
                 >
-                  <option value="true">Sí</option>
+                  <option value="true">{language === "es" ? "Sí" : "Yes"}</option>
                   <option value="false">No</option>
                 </select>
               </div>
@@ -640,7 +676,7 @@ export function FinanceLoansPage() {
 
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Inicio</label>
+                <label className="form-label">{language === "es" ? "Inicio" : "Start date"}</label>
                 <input
                   className="form-control"
                   type="date"
@@ -649,7 +685,7 @@ export function FinanceLoansPage() {
                 />
               </div>
               <div>
-                <label className="form-label">Vencimiento</label>
+                <label className="form-label">{language === "es" ? "Vencimiento" : "Due date"}</label>
                 <input
                   className="form-control"
                   type="date"
@@ -660,7 +696,7 @@ export function FinanceLoansPage() {
             </div>
 
             <div>
-              <label className="form-label">Nota</label>
+              <label className="form-label">{language === "es" ? "Nota" : "Note"}</label>
               <textarea
                 className="form-control"
                 rows={3}
@@ -672,7 +708,13 @@ export function FinanceLoansPage() {
 
             <div className="finance-inline-toolbar finance-inline-toolbar--compact">
               <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-                {editingLoanId ? "Guardar cambios" : "Registrar préstamo"}
+                {editingLoanId
+                  ? language === "es"
+                    ? "Guardar cambios"
+                    : "Save changes"
+                  : language === "es"
+                    ? "Registrar préstamo"
+                    : "Create loan"}
               </button>
               {editingLoanId ? (
                 <button
@@ -681,7 +723,7 @@ export function FinanceLoansPage() {
                   disabled={isSubmitting}
                   onClick={resetForm}
                 >
-                  Cancelar edición
+                  {language === "es" ? "Cancelar edición" : "Cancel editing"}
                 </button>
               ) : null}
             </div>
@@ -689,34 +731,38 @@ export function FinanceLoansPage() {
         </PanelCard>
 
         <PanelCard
-          title="Lectura de cartera"
-          subtitle="Filtra por tipo o estado para separar deuda recibida, deuda prestada y cartera ya liquidada."
+          title={language === "es" ? "Lectura de cartera" : "Portfolio reading"}
+          subtitle={
+            language === "es"
+              ? "Filtra por tipo o estado para separar deuda recibida, deuda prestada y cartera ya liquidada."
+              : "Filter by type or status to separate borrowed debt, lent debt, and settled portfolio."
+          }
         >
           <div className="d-grid gap-3">
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Tipo</label>
+                <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
                 <select
                   className="form-select"
                   value={filterLoanType}
                   onChange={(event) => setFilterLoanType(event.target.value)}
                 >
-                  <option value="">Todos</option>
-                  <option value="borrowed">Recibidos</option>
-                  <option value="lent">Prestados</option>
+                  <option value="">{language === "es" ? "Todos" : "All"}</option>
+                  <option value="borrowed">{language === "es" ? "Recibidos" : "Borrowed"}</option>
+                  <option value="lent">{language === "es" ? "Prestados" : "Lent"}</option>
                 </select>
               </div>
               <div>
-                <label className="form-label">Estado</label>
+                <label className="form-label">{language === "es" ? "Estado" : "Status"}</label>
                 <select
                   className="form-select"
                   value={filterLoanStatus}
                   onChange={(event) => setFilterLoanStatus(event.target.value)}
                 >
-                  <option value="">Todos</option>
-                  <option value="open">Abiertos</option>
-                  <option value="settled">Liquidados</option>
-                  <option value="inactive">Inactivos</option>
+                  <option value="">{language === "es" ? "Todos" : "All"}</option>
+                  <option value="open">{language === "es" ? "Abiertos" : "Open"}</option>
+                  <option value="settled">{language === "es" ? "Liquidados" : "Settled"}</option>
+                  <option value="inactive">{language === "es" ? "Inactivos" : "Inactive"}</option>
                 </select>
               </div>
             </div>
@@ -729,56 +775,60 @@ export function FinanceLoansPage() {
                 onChange={(event) => setIncludeInactive(event.target.checked)}
               />
               <label className="form-check-label" htmlFor="finance-loans-include-inactive">
-                Incluir inactivos
+                {language === "es" ? "Incluir inactivos" : "Include inactive"}
               </label>
             </div>
             <div className="tenant-detail-grid">
-              <DetailField label="Capital visible" value={formatMoney(summary?.total_principal || 0, baseCurrencyCode)} />
-              <DetailField label="Prestado" value={formatMoney(summary?.lent_balance || 0, baseCurrencyCode)} />
-              <DetailField label="Recibido" value={formatMoney(summary?.borrowed_balance || 0, baseCurrencyCode)} />
-              <DetailField label="Ítems" value={summary?.total_items || 0} />
+              <DetailField label={language === "es" ? "Capital visible" : "Visible principal"} value={formatMoney(summary?.total_principal || 0, baseCurrencyCode, language)} />
+              <DetailField label={language === "es" ? "Prestado" : "Lent"} value={formatMoney(summary?.lent_balance || 0, baseCurrencyCode, language)} />
+              <DetailField label={language === "es" ? "Recibido" : "Borrowed"} value={formatMoney(summary?.borrowed_balance || 0, baseCurrencyCode, language)} />
+              <DetailField label={language === "es" ? "Ítems" : "Items"} value={summary?.total_items || 0} />
             </div>
           </div>
         </PanelCard>
       </div>
 
       <PanelCard
-        title="Cartera de préstamos"
-        subtitle="Lectura básica de capital, saldo y estado para abrir después conciliación de cuotas y cronograma."
+        title={language === "es" ? "Cartera de préstamos" : "Loan portfolio"}
+        subtitle={
+          language === "es"
+            ? "Lectura básica de capital, saldo y estado para abrir después conciliación de cuotas y cronograma."
+            : "Basic view of principal, balance, and status before deeper installment reconciliation and schedule work."
+        }
       >
         {loansResponse && loansResponse.data.length > 0 ? (
           <div className="table-responsive">
             <table className="table table-hover align-middle mb-0">
               <thead>
                 <tr>
-                  <th>Nombre</th>
-                  <th>Tipo</th>
-                  <th>Contraparte</th>
-                  <th>Capital</th>
-                  <th>Saldo</th>
-                  <th>Pagado</th>
-                  <th>Cuotas</th>
-                  <th>Próxima</th>
-                  <th>Moneda</th>
-                  <th>Estado</th>
-                  <th>Acción</th>
+                  <th>{language === "es" ? "Nombre" : "Name"}</th>
+                  <th>{language === "es" ? "Tipo" : "Type"}</th>
+                  <th>{language === "es" ? "Contraparte" : "Counterparty"}</th>
+                  <th>{language === "es" ? "Capital" : "Principal"}</th>
+                  <th>{language === "es" ? "Saldo" : "Balance"}</th>
+                  <th>{language === "es" ? "Pagado" : "Paid"}</th>
+                  <th>{language === "es" ? "Cuotas" : "Installments"}</th>
+                  <th>{language === "es" ? "Próxima" : "Next due"}</th>
+                  <th>{language === "es" ? "Moneda" : "Currency"}</th>
+                  <th>{language === "es" ? "Estado" : "Status"}</th>
+                  <th>{language === "es" ? "Acción" : "Action"}</th>
                 </tr>
               </thead>
               <tbody>
                 {loansResponse.data.map((loan) => (
                   <tr key={loan.id}>
                     <td>{loan.name}</td>
-                    <td>{displayLoanType(loan.loan_type)}</td>
+                    <td>{displayLoanType(loan.loan_type, language)}</td>
                     <td>{loan.counterparty_name}</td>
-                    <td>{formatMoney(loan.principal_amount, loan.currency_code)}</td>
-                    <td>{formatMoney(loan.current_balance, loan.currency_code)}</td>
-                    <td>{formatMoney(loan.paid_amount, loan.currency_code)}</td>
-                    <td>{loan.installments_total > 0 ? `${loan.installments_paid}/${loan.installments_total}` : "sin plan"}</td>
-                    <td>{loan.next_due_date ? formatShortDate(loan.next_due_date) : "n/a"}</td>
+                    <td>{formatMoney(loan.principal_amount, loan.currency_code, language)}</td>
+                    <td>{formatMoney(loan.current_balance, loan.currency_code, language)}</td>
+                    <td>{formatMoney(loan.paid_amount, loan.currency_code, language)}</td>
+                    <td>{loan.installments_total > 0 ? `${loan.installments_paid}/${loan.installments_total}` : language === "es" ? "sin plan" : "no plan"}</td>
+                    <td>{loan.next_due_date ? formatShortDate(loan.next_due_date, language) : "n/a"}</td>
                     <td>{loan.currency_code}</td>
                     <td>
                       <span className={`status-badge ${loanStatusBadgeClass(loan.loan_status)}`}>
-                        {displayLoanStatus(loan.loan_status)}
+                        {displayLoanStatus(loan.loan_status, language)}
                       </span>
                     </td>
                     <td>
@@ -788,7 +838,7 @@ export function FinanceLoansPage() {
                           type="button"
                           onClick={() => startEditingLoan(loan)}
                         >
-                          Editar
+                          {language === "es" ? "Editar" : "Edit"}
                         </button>
                         <button
                           className="btn btn-sm btn-outline-secondary"
@@ -797,7 +847,13 @@ export function FinanceLoansPage() {
                             setSelectedLoanId((current) => (current === loan.id ? null : loan.id))
                           }
                         >
-                          {selectedLoanId === loan.id ? "Ocultar" : "Cronograma"}
+                          {selectedLoanId === loan.id
+                            ? language === "es"
+                              ? "Ocultar"
+                              : "Hide"
+                            : language === "es"
+                              ? "Cronograma"
+                              : "Schedule"}
                         </button>
                       </div>
                     </td>
@@ -807,38 +863,48 @@ export function FinanceLoansPage() {
             </table>
           </div>
         ) : (
-          <div className="text-secondary">No hay préstamos para el filtro seleccionado.</div>
+          <div className="text-secondary">
+            {language === "es" ? "No hay préstamos para el filtro seleccionado." : "No loans match the selected filter."}
+          </div>
         )}
       </PanelCard>
 
       <PanelCard
-        title="Cronograma del préstamo"
-        subtitle="Detalle por cuota para lectura operacional rápida y aplicación manual de pagos simples sobre el cronograma."
+        title={language === "es" ? "Cronograma del préstamo" : "Loan schedule"}
+        subtitle={
+          language === "es"
+            ? "Detalle por cuota para lectura operacional rápida y aplicación manual de pagos simples sobre el cronograma."
+            : "Installment detail for quick operational reading and simple manual payments on the schedule."
+        }
       >
         {selectedLoanId == null ? (
           <div className="text-secondary">
-            Selecciona un préstamo en la cartera para revisar su cronograma.
+            {language === "es"
+              ? "Selecciona un préstamo en la cartera para revisar su cronograma."
+              : "Select a loan from the portfolio to review its schedule."}
           </div>
         ) : isDetailLoading ? (
-          <LoadingBlock label="Cargando cronograma..." />
+          <LoadingBlock label={language === "es" ? "Cargando cronograma..." : "Loading schedule..."} />
         ) : loanDetailError ? (
           <div className="text-danger">{loanDetailError}</div>
         ) : loanDetail ? (
           <div className="d-grid gap-3">
             <div className="tenant-detail-grid">
-              <DetailField label="Préstamo" value={loanDetail.loan.name} />
-              <DetailField label="Contraparte" value={loanDetail.loan.counterparty_name} />
+              <DetailField label={language === "es" ? "Préstamo" : "Loan"} value={loanDetail.loan.name} />
+              <DetailField label={language === "es" ? "Contraparte" : "Counterparty"} value={loanDetail.loan.counterparty_name} />
               <DetailField
-                label="Plan de cuotas"
+                label={language === "es" ? "Plan de cuotas" : "Installment plan"}
                 value={
                   loanDetail.loan.installments_total > 0
                     ? `${loanDetail.loan.installments_paid}/${loanDetail.loan.installments_total}`
-                    : "sin cronograma"
+                    : language === "es"
+                      ? "sin cronograma"
+                      : "no schedule"
                 }
               />
               <DetailField
-                label="Próximo vencimiento"
-                value={loanDetail.loan.next_due_date ? formatShortDate(loanDetail.loan.next_due_date) : "n/a"}
+                label={language === "es" ? "Próximo vencimiento" : "Next due date"}
+                value={loanDetail.loan.next_due_date ? formatShortDate(loanDetail.loan.next_due_date, language) : "n/a"}
               />
             </div>
 
@@ -851,7 +917,7 @@ export function FinanceLoansPage() {
                     value={batchFormState.mode === "apply" ? "pago" : "reversa"}
                   />
                   <DetailField
-                    label="Monto lote"
+                    label={language === "es" ? "Monto lote" : "Batch amount"}
                     value={
                       batchFormState.mode === "apply"
                         ? batchFormState.amountMode === "full_remaining"
@@ -890,8 +956,8 @@ export function FinanceLoansPage() {
                         }))
                       }
                     >
-                      <option value="apply">Aplicar pago</option>
-                      <option value="reverse">Aplicar reversa</option>
+                      <option value="apply">{language === "es" ? "Aplicar pago" : "Apply payment"}</option>
+                      <option value="reverse">{language === "es" ? "Aplicar reversa" : "Apply reversal"}</option>
                     </select>
                   </div>
                   <div>
@@ -942,7 +1008,13 @@ export function FinanceLoansPage() {
                   </div>
                   <div>
                     <label className="form-label">
-                      {batchFormState.mode === "apply" ? "Modo amortización" : "Motivo reversa"}
+                      {batchFormState.mode === "apply"
+                        ? language === "es"
+                          ? "Modo amortización"
+                          : "Amortization mode"
+                        : language === "es"
+                          ? "Motivo reversa"
+                          : "Reversal reason"}
                     </label>
                     {batchFormState.mode === "apply" ? (
                       <select
@@ -972,7 +1044,7 @@ export function FinanceLoansPage() {
                       >
                         {REVERSAL_REASON_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>
-                            {option.label}
+                            {displayReversalReason(option.value, language)}
                           </option>
                         ))}
                       </select>
@@ -981,7 +1053,7 @@ export function FinanceLoansPage() {
                 </div>
 
                 <div>
-                  <label className="form-label">Nota operativa lote</label>
+                  <label className="form-label">{language === "es" ? "Nota operativa lote" : "Batch operation note"}</label>
                   <input
                     className="form-control"
                     value={batchFormState.note}
@@ -1001,7 +1073,13 @@ export function FinanceLoansPage() {
                     type="submit"
                     disabled={isSubmitting || selectedInstallmentIds.length === 0}
                   >
-                    {batchFormState.mode === "apply" ? "Aplicar pago en lote" : "Aplicar reversa en lote"}
+                    {batchFormState.mode === "apply"
+                      ? language === "es"
+                        ? "Aplicar pago en lote"
+                        : "Apply batch payment"
+                      : language === "es"
+                        ? "Aplicar reversa en lote"
+                        : "Apply batch reversal"}
                   </button>
                   <button
                     className="btn btn-outline-secondary"
@@ -1019,7 +1097,7 @@ export function FinanceLoansPage() {
                       });
                     }}
                   >
-                    Limpiar lote
+                    {language === "es" ? "Limpiar lote" : "Clear batch"}
                   </button>
                 </div>
               </form>
@@ -1048,7 +1126,13 @@ export function FinanceLoansPage() {
                   </div>
                   <div>
                     <label className="form-label">
-                      {paymentFormState.mode === "apply" ? "Modo amortización" : "Motivo reversa"}
+                      {paymentFormState.mode === "apply"
+                        ? language === "es"
+                          ? "Modo amortización"
+                          : "Amortization mode"
+                        : language === "es"
+                          ? "Motivo reversa"
+                          : "Reversal reason"}
                     </label>
                     {paymentFormState.mode === "apply" ? (
                       <select
@@ -1078,7 +1162,7 @@ export function FinanceLoansPage() {
                       >
                         {REVERSAL_REASON_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>
-                            {option.label}
+                            {displayReversalReason(option.value, language)}
                           </option>
                         ))}
                       </select>
@@ -1087,7 +1171,7 @@ export function FinanceLoansPage() {
                 </div>
                 <div className="tenant-inline-form-grid">
                   <div>
-                    <label className="form-label">Nota operativa</label>
+                    <label className="form-label">{language === "es" ? "Nota operativa" : "Operation note"}</label>
                     <input
                       className="form-control"
                       value={paymentFormState.note}
@@ -1103,7 +1187,13 @@ export function FinanceLoansPage() {
                 </div>
                 <div className="finance-inline-toolbar finance-inline-toolbar--compact">
                   <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-                    {paymentFormState.mode === "apply" ? "Aplicar pago" : "Aplicar reversa"}
+                    {paymentFormState.mode === "apply"
+                      ? language === "es"
+                        ? "Aplicar pago"
+                        : "Apply payment"
+                      : language === "es"
+                        ? "Aplicar reversa"
+                        : "Apply reversal"}
                   </button>
                   <button
                     className="btn btn-outline-secondary"
@@ -1143,16 +1233,16 @@ export function FinanceLoansPage() {
                         />
                       </th>
                       <th>#</th>
-                      <th>Vence</th>
-                      <th>Planificada</th>
-                      <th>Capital</th>
-                      <th>Interés</th>
-                      <th>Pagado</th>
-                      <th>Capital pagado</th>
-                      <th>Interés pagado</th>
-                      <th>Motivo reversa</th>
-                      <th>Estado</th>
-                      <th>Acción</th>
+                      <th>{language === "es" ? "Vence" : "Due"}</th>
+                      <th>{language === "es" ? "Planificada" : "Planned"}</th>
+                      <th>{language === "es" ? "Capital" : "Principal"}</th>
+                      <th>{language === "es" ? "Interés" : "Interest"}</th>
+                      <th>{language === "es" ? "Pagado" : "Paid"}</th>
+                      <th>{language === "es" ? "Capital pagado" : "Principal paid"}</th>
+                      <th>{language === "es" ? "Interés pagado" : "Interest paid"}</th>
+                      <th>{language === "es" ? "Motivo reversa" : "Reversal reason"}</th>
+                      <th>{language === "es" ? "Estado" : "Status"}</th>
+                      <th>{language === "es" ? "Acción" : "Action"}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1167,21 +1257,21 @@ export function FinanceLoansPage() {
                           />
                         </td>
                         <td>{installment.installment_number}</td>
-                        <td>{formatShortDate(installment.due_date)}</td>
-                        <td>{formatMoney(installment.planned_amount, loanDetail.loan.currency_code)}</td>
-                        <td>{formatMoney(installment.principal_amount, loanDetail.loan.currency_code)}</td>
-                        <td>{formatMoney(installment.interest_amount, loanDetail.loan.currency_code)}</td>
-                        <td>{formatMoney(installment.paid_amount, loanDetail.loan.currency_code)}</td>
-                        <td>{formatMoney(installment.paid_principal_amount, loanDetail.loan.currency_code)}</td>
-                        <td>{formatMoney(installment.paid_interest_amount, loanDetail.loan.currency_code)}</td>
-                        <td>{displayReversalReason(installment.reversal_reason_code)}</td>
+                        <td>{formatShortDate(installment.due_date, language)}</td>
+                        <td>{formatMoney(installment.planned_amount, loanDetail.loan.currency_code, language)}</td>
+                        <td>{formatMoney(installment.principal_amount, loanDetail.loan.currency_code, language)}</td>
+                        <td>{formatMoney(installment.interest_amount, loanDetail.loan.currency_code, language)}</td>
+                        <td>{formatMoney(installment.paid_amount, loanDetail.loan.currency_code, language)}</td>
+                        <td>{formatMoney(installment.paid_principal_amount, loanDetail.loan.currency_code, language)}</td>
+                        <td>{formatMoney(installment.paid_interest_amount, loanDetail.loan.currency_code, language)}</td>
+                        <td>{displayReversalReason(installment.reversal_reason_code, language)}</td>
                         <td>
                           <span
                             className={`status-badge ${installmentStatusBadgeClass(
                               installment.installment_status
                             )}`}
                           >
-                            {displayInstallmentStatus(installment.installment_status)}
+                            {displayInstallmentStatus(installment.installment_status, language)}
                           </span>
                         </td>
                         <td>
@@ -1194,11 +1284,15 @@ export function FinanceLoansPage() {
                               >
                                 {paymentFormState.installmentId === installment.id &&
                                 paymentFormState.mode === "apply"
-                                  ? "Editando pago"
-                                  : "Registrar pago"}
+                                  ? language === "es"
+                                    ? "Editando pago"
+                                    : "Editing payment"
+                                  : language === "es"
+                                    ? "Registrar pago"
+                                    : "Record payment"}
                               </button>
                             ) : (
-                              <span className="text-secondary">cerrada</span>
+                              <span className="text-secondary">{language === "es" ? "cerrada" : "closed"}</span>
                             )}
                             {installment.paid_amount > 0 ? (
                               <button
@@ -1208,8 +1302,12 @@ export function FinanceLoansPage() {
                               >
                                 {paymentFormState.installmentId === installment.id &&
                                 paymentFormState.mode === "reverse"
-                                  ? "Editando reversa"
-                                  : "Revertir"}
+                                  ? language === "es"
+                                    ? "Editando reversa"
+                                    : "Editing reversal"
+                                  : language === "es"
+                                    ? "Revertir"
+                                    : "Reverse"}
                               </button>
                             ) : null}
                           </div>
@@ -1221,7 +1319,9 @@ export function FinanceLoansPage() {
               </div>
             ) : (
               <div className="text-secondary">
-                Este préstamo todavía no tiene cronograma porque no se definió cantidad de cuotas.
+                {language === "es"
+                  ? "Este préstamo todavía no tiene cronograma porque no se definió cantidad de cuotas."
+                  : "This loan does not have a schedule yet because the installment count was not defined."}
               </div>
             )}
           </div>
@@ -1235,49 +1335,49 @@ function buildTodayDateValue() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function formatMoney(value: number, currencyCode: string): string {
-  return new Intl.NumberFormat(undefined, {
+function formatMoney(value: number, currencyCode: string, language: "es" | "en"): string {
+  return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
     currency: currencyCode,
     maximumFractionDigits: 2,
   }).format(value);
 }
 
-function displayLoanType(value: string): string {
+function displayLoanType(value: string, language: "es" | "en"): string {
   if (value === "borrowed") {
-    return "recibido";
+    return language === "es" ? "recibido" : "borrowed";
   }
   if (value === "lent") {
-    return "prestado";
+    return language === "es" ? "prestado" : "lent";
   }
   return value;
 }
 
-function displayLoanStatus(value: string): string {
+function displayLoanStatus(value: string, language: "es" | "en"): string {
   if (value === "open") {
-    return "abierto";
+    return language === "es" ? "abierto" : "open";
   }
   if (value === "settled") {
-    return "liquidado";
+    return language === "es" ? "liquidado" : "settled";
   }
   if (value === "inactive") {
-    return "inactivo";
+    return language === "es" ? "inactivo" : "inactive";
   }
   return value;
 }
 
-function displayInstallmentStatus(value: string): string {
+function displayInstallmentStatus(value: string, language: "es" | "en"): string {
   if (value === "paid") {
-    return "pagada";
+    return language === "es" ? "pagada" : "paid";
   }
   if (value === "partial") {
-    return "parcial";
+    return language === "es" ? "parcial" : "partial";
   }
   if (value === "overdue") {
-    return "vencida";
+    return language === "es" ? "vencida" : "overdue";
   }
   if (value === "pending") {
-    return "pendiente";
+    return language === "es" ? "pendiente" : "pending";
   }
   return value;
 }
@@ -1305,8 +1405,8 @@ function installmentStatusBadgeClass(value: string): string {
   return "status-badge--neutral";
 }
 
-function formatShortDate(value: string): string {
-  return new Date(`${value}T00:00:00`).toLocaleDateString();
+function formatShortDate(value: string, language: "es" | "en"): string {
+  return new Date(`${value}T00:00:00`).toLocaleDateString(language === "es" ? "es-CL" : "en-US");
 }
 
 const REVERSAL_REASON_OPTIONS = [
@@ -1318,11 +1418,26 @@ const REVERSAL_REASON_OPTIONS = [
   { value: "other", label: "Otro" },
 ];
 
-function displayReversalReason(value: string | null): string {
+function displayReversalReason(value: string | null, language: "es" | "en"): string {
   if (!value) {
     return "n/a";
   }
-  return REVERSAL_REASON_OPTIONS.find((option) => option.value === value)?.label || value;
+  switch (value) {
+    case "operator_error":
+      return language === "es" ? "Error operativo" : "Operator error";
+    case "duplicate_payment":
+      return language === "es" ? "Pago duplicado" : "Duplicate payment";
+    case "payment_bounce":
+      return language === "es" ? "Pago rechazado" : "Returned payment";
+    case "customer_request":
+      return language === "es" ? "Solicitud cliente" : "Customer request";
+    case "migration_adjustment":
+      return language === "es" ? "Ajuste migración" : "Migration adjustment";
+    case "other":
+      return language === "es" ? "Otro" : "Other";
+    default:
+      return value;
+  }
 }
 
 function DetailField({ label, value }: { label: string; value: ReactNode }) {

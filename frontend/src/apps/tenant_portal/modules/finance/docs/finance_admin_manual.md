@@ -45,7 +45,7 @@ Estado actual:
 - `Reportes` ya permite además rankear por `etiqueta`
 - cuando el schema `finance` del tenant queda atrasado, el portal ya muestra explicación operativa y CTA para actualizar estructura
 - `tenant admin` ya puede revisar estado y sincronizar estructura desde el propio portal, sin depender solo de `Platform Admin`
-- `Cuentas`, `Categorías`, `Catálogos`, `Configuración`, `Presupuestos` y `Planificación`, junto con los formularios auxiliares visibles del slice, ya respetan el selector de idioma y traducen etiquetas de dominio como tipo de cuenta o tipo de categoría
+- `Cuentas`, `Categorías`, `Catálogos`, `Configuración`, `Transacciones`, `Presupuestos`, `Préstamos`, `Planificación` y `Reportes`, junto con los formularios auxiliares visibles del slice, ya respetan el selector de idioma en la lectura principal y traducen etiquetas de dominio como tipo de cuenta o tipo de categoría
 - la moneda base del módulo se gobierna desde `Finanzas > Configuración > Monedas`; al marcar una nueva base, la anterior se desactiva como base automáticamente
 - el cambio de moneda base no reprocesa automáticamente histórico ya persistido en transacciones
 - `Presupuestos`, `Planificación` y `Reportes` ya formatean los montos visibles con la moneda base activa del tenant
@@ -53,4 +53,4 @@ Estado actual:
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo
 
 Pendiente administrativo:
-- completar la internacionalización real de las pantallas grandes del módulo (`Transacciones`, `Préstamos`, `Reportes`) para que el selector `Español/Inglés` cambie todo el copy visible y no solo el slice ya cubierto
+- cerrar auditoría fina de copy residual en exportaciones, confirmaciones, badges y mensajes largos para asegurar paridad completa entre `Español/Inglés`

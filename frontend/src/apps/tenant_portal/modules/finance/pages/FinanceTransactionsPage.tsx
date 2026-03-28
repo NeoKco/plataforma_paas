@@ -7,6 +7,7 @@ import { StatusBadge } from "../../../../../components/common/StatusBadge";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
+import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { displayPlatformCode } from "../../../../../utils/platform-labels";
 import type { ApiError } from "../../../../../types";
@@ -87,6 +88,7 @@ const DEFAULT_FORM_STATE: TransactionFormState = {
 
 export function FinanceTransactionsPage() {
   const { session } = useTenantAuth();
+  const { language } = useLanguage();
   const [transactions, setTransactions] = useState<TenantFinanceTransaction[]>([]);
   const [summaryResponse, setSummaryResponse] =
     useState<TenantFinanceSummaryResponse | null>(null);
@@ -372,8 +374,12 @@ export function FinanceTransactionsPage() {
     const nextState = !transaction.is_reconciled;
     const confirmed = window.confirm(
       nextState
-        ? "¿Confirmas conciliar esta transacción?"
-        : "¿Confirmas quitar la conciliación de esta transacción?"
+        ? language === "es"
+          ? "¿Confirmas conciliar esta transacción?"
+          : "Do you confirm reconciling this transaction?"
+        : language === "es"
+          ? "¿Confirmas quitar la conciliación de esta transacción?"
+          : "Do you confirm removing reconciliation from this transaction?"
     );
     if (!confirmed) {
       return;
@@ -410,8 +416,12 @@ export function FinanceTransactionsPage() {
     }
     const confirmed = window.confirm(
       isReconciled
-        ? `¿Confirmas conciliar ${selectedTransactionIds.length} transacciones seleccionadas?`
-        : `¿Confirmas quitar la conciliación de ${selectedTransactionIds.length} transacciones seleccionadas?`
+        ? language === "es"
+          ? `¿Confirmas conciliar ${selectedTransactionIds.length} transacciones seleccionadas?`
+          : `Do you confirm reconciling ${selectedTransactionIds.length} selected transactions?`
+        : language === "es"
+          ? `¿Confirmas quitar la conciliación de ${selectedTransactionIds.length} transacciones seleccionadas?`
+          : `Do you confirm removing reconciliation from ${selectedTransactionIds.length} selected transactions?`
     );
     if (!confirmed) {
       return;
@@ -488,47 +498,53 @@ export function FinanceTransactionsPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow="Espacio"
-        title="Transacciones financieras"
-        description="Opera el núcleo real de finance con balances por cuenta y trazabilidad reciente."
+        eyebrow={language === "es" ? "Espacio" : "Workspace"}
+        title={language === "es" ? "Transacciones financieras" : "Financial transactions"}
+        description={
+          language === "es"
+            ? "Opera el núcleo real de finance con balances por cuenta y trazabilidad reciente."
+            : "Operate the real finance core with account balances and recent traceability."
+        }
       />
 
       <FinanceModuleNav />
 
       {actionFeedback ? (
         <div className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}>
-          <strong>Transacciones:</strong> {actionFeedback.message}
+          <strong>{language === "es" ? "Transacciones:" : "Transactions:"}</strong> {actionFeedback.message}
         </div>
       ) : null}
 
-      {isLoading ? <LoadingBlock label="Cargando transacciones financieras..." /> : null}
+      {isLoading ? (
+        <LoadingBlock label={language === "es" ? "Cargando transacciones financieras..." : "Loading financial transactions..."} />
+      ) : null}
 
       <div className="tenant-portal-metrics">
         <MetricCard
-          label="Transacciones"
+          label={language === "es" ? "Transacciones" : "Transactions"}
           value={summary?.total_entries || 0}
-          hint="Movimientos persistidos en finance_transactions"
+          hint={language === "es" ? "Movimientos persistidos en finance_transactions" : "Entries persisted in finance_transactions"}
         />
         <MetricCard
-          label="Ingresos"
-          value={formatMoney(summary?.total_income || 0, baseCurrency?.code)}
-          hint="Acumulado visible"
+          label={language === "es" ? "Ingresos" : "Income"}
+          value={formatMoney(summary?.total_income || 0, baseCurrency?.code, language)}
+          hint={language === "es" ? "Acumulado visible" : "Visible total"}
         />
         <MetricCard
-          label="Egresos"
-          value={formatMoney(summary?.total_expense || 0, baseCurrency?.code)}
-          hint="Acumulado visible"
+          label={language === "es" ? "Egresos" : "Expenses"}
+          value={formatMoney(summary?.total_expense || 0, baseCurrency?.code, language)}
+          hint={language === "es" ? "Acumulado visible" : "Visible total"}
         />
         <MetricCard
-          label="Balance"
-          value={formatMoney(summary?.balance || 0, baseCurrency?.code)}
-          hint="Resultado actual"
+          label={language === "es" ? "Balance" : "Balance"}
+          value={formatMoney(summary?.balance || 0, baseCurrency?.code, language)}
+          hint={language === "es" ? "Resultado actual" : "Current result"}
         />
       </div>
 
       {error ? (
         <ErrorState
-          title="Transacciones de finance no disponibles"
+          title={language === "es" ? "Transacciones de finance no disponibles" : "Finance transactions unavailable"}
           detail={error.payload?.detail || error.message}
           requestId={error.payload?.request_id}
         />
@@ -536,22 +552,29 @@ export function FinanceTransactionsPage() {
 
       <div className="tenant-portal-split tenant-portal-split--finance">
         <PanelCard
-          title={editingTransactionId ? "Editar transacción" : "Registrar transacción"}
+          title={editingTransactionId ? (language === "es" ? "Editar transacción" : "Edit transaction") : language === "es" ? "Registrar transacción" : "Create transaction"}
           subtitle={
             editingTransactionId
-              ? "Ajusta el movimiento seleccionado sin salir de la vista operativa."
-              : "Usa el contrato moderno de finance_transactions para ingresos, egresos y transferencias."
+              ? language === "es"
+                ? "Ajusta el movimiento seleccionado sin salir de la vista operativa."
+                : "Adjust the selected movement without leaving the operational view."
+              : language === "es"
+                ? "Usa el contrato moderno de finance_transactions para ingresos, egresos y transferencias."
+                : "Use the modern finance_transactions contract for income, expenses, and transfers."
           }
         >
           {editingTransactionId ? (
             <div className="tenant-action-feedback tenant-action-feedback--success">
-              <strong>Edición activa:</strong> estás modificando la transacción #{editingTransactionId}.
+              <strong>{language === "es" ? "Edición activa:" : "Active edit:"}</strong>{" "}
+              {language === "es"
+                ? `estás modificando la transacción #${editingTransactionId}.`
+                : `you are editing transaction #${editingTransactionId}.`}
             </div>
           ) : null}
           <form className="d-grid gap-3" onSubmit={handleCreateTransaction}>
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Tipo</label>
+                <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
                 <select
                   className="form-select"
                   value={formState.transactionType}
@@ -566,13 +589,13 @@ export function FinanceTransactionsPage() {
                     }))
                   }
                 >
-                  <option value="income">Ingreso</option>
-                  <option value="expense">Egreso</option>
-                  <option value="transfer">Transferencia</option>
+                  <option value="income">{language === "es" ? "Ingreso" : "Income"}</option>
+                  <option value="expense">{language === "es" ? "Egreso" : "Expense"}</option>
+                  <option value="transfer">{language === "es" ? "Transferencia" : "Transfer"}</option>
                 </select>
               </div>
               <div>
-                <label className="form-label">Cuenta origen</label>
+                <label className="form-label">{language === "es" ? "Cuenta origen" : "Source account"}</label>
                 <select
                   className="form-select"
                   value={formState.accountId}
@@ -580,7 +603,7 @@ export function FinanceTransactionsPage() {
                     setFormState((current) => ({ ...current, accountId: event.target.value }))
                   }
                 >
-                  <option value="">Selecciona una cuenta</option>
+                  <option value="">{language === "es" ? "Selecciona una cuenta" : "Select an account"}</option>
                   {accounts.map((account) => (
                     <option key={account.id} value={account.id}>
                       {account.name}
@@ -593,7 +616,7 @@ export function FinanceTransactionsPage() {
             <div className="tenant-inline-form-grid">
               {formState.transactionType === "transfer" ? (
                 <div>
-                  <label className="form-label">Cuenta destino</label>
+                  <label className="form-label">{language === "es" ? "Cuenta destino" : "Target account"}</label>
                   <select
                     className="form-select"
                     value={formState.targetAccountId}
@@ -604,7 +627,7 @@ export function FinanceTransactionsPage() {
                       }))
                     }
                   >
-                    <option value="">Selecciona una cuenta destino</option>
+                    <option value="">{language === "es" ? "Selecciona una cuenta destino" : "Select a target account"}</option>
                     {accounts
                       .filter((account) => String(account.id) !== formState.accountId)
                       .map((account) => (
@@ -616,7 +639,7 @@ export function FinanceTransactionsPage() {
                 </div>
               ) : (
                 <div>
-                  <label className="form-label">Categoría</label>
+                  <label className="form-label">{language === "es" ? "Categoría" : "Category"}</label>
                   <select
                     className="form-select"
                     value={formState.categoryId}
@@ -624,7 +647,7 @@ export function FinanceTransactionsPage() {
                       setFormState((current) => ({ ...current, categoryId: event.target.value }))
                     }
                   >
-                    <option value="">Sin categoría</option>
+                    <option value="">{language === "es" ? "Sin categoría" : "No category"}</option>
                     {filteredCategories.map((category) => (
                       <option key={category.id} value={category.id}>
                         {category.name}
@@ -634,7 +657,7 @@ export function FinanceTransactionsPage() {
                 </div>
               )}
               <div>
-                <label className="form-label">Moneda</label>
+                <label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label>
                 <select
                   className="form-select"
                   value={formState.currencyId}
@@ -642,7 +665,7 @@ export function FinanceTransactionsPage() {
                     setFormState((current) => ({ ...current, currencyId: event.target.value }))
                   }
                 >
-                  <option value="">Selecciona una moneda</option>
+                  <option value="">{language === "es" ? "Selecciona una moneda" : "Select a currency"}</option>
                   {currencies.map((currency) => (
                     <option key={currency.id} value={currency.id}>
                       {currency.code} · {currency.name}
@@ -654,7 +677,7 @@ export function FinanceTransactionsPage() {
 
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Monto</label>
+                <label className="form-label">{language === "es" ? "Monto" : "Amount"}</label>
                 <input
                   className="form-control"
                   type="number"
@@ -668,7 +691,7 @@ export function FinanceTransactionsPage() {
                 />
               </div>
               <div>
-                <label className="form-label">Fecha y hora</label>
+                <label className="form-label">{language === "es" ? "Fecha y hora" : "Date and time"}</label>
                 <input
                   className="form-control"
                   type="datetime-local"
@@ -685,7 +708,7 @@ export function FinanceTransactionsPage() {
 
             {selectedCurrencyRequiresExchangeRate(baseCurrency, formState.currencyId) ? (
               <div>
-                <label className="form-label">Tipo de cambio</label>
+                <label className="form-label">{language === "es" ? "Tipo de cambio" : "Exchange rate"}</label>
                 <input
                   className="form-control"
                   type="number"
@@ -698,13 +721,13 @@ export function FinanceTransactionsPage() {
                       exchangeRate: event.target.value,
                     }))
                   }
-                  placeholder="Ej: 950.25"
+                  placeholder={language === "es" ? "Ej: 950.25" : "Ex: 950.25"}
                 />
               </div>
             ) : null}
 
             <div>
-              <label className="form-label">Descripción</label>
+              <label className="form-label">{language === "es" ? "Descripción" : "Description"}</label>
               <input
                 className="form-control"
                 value={formState.description}
@@ -714,12 +737,12 @@ export function FinanceTransactionsPage() {
                     description: event.target.value,
                   }))
                 }
-                placeholder="Ej: Pago proveedor de mantención"
+                placeholder={language === "es" ? "Ej: Pago proveedor de mantención" : "Ex: Maintenance supplier payment"}
               />
             </div>
 
             <div>
-              <label className="form-label">Notas</label>
+              <label className="form-label">{language === "es" ? "Notas" : "Notes"}</label>
               <textarea
                 className="form-control"
                 rows={3}
@@ -727,13 +750,13 @@ export function FinanceTransactionsPage() {
                 onChange={(event) =>
                   setFormState((current) => ({ ...current, notes: event.target.value }))
                 }
-                placeholder="Contexto adicional del movimiento"
+                placeholder={language === "es" ? "Contexto adicional del movimiento" : "Additional movement context"}
               />
             </div>
 
             {formState.transactionType !== "transfer" ? (
               <div>
-                <label className="form-label">Etiquetas</label>
+                <label className="form-label">{language === "es" ? "Etiquetas" : "Tags"}</label>
                 <select
                   className="form-select"
                   multiple
@@ -747,12 +770,14 @@ export function FinanceTransactionsPage() {
                 >
                   {tags.map((tag) => (
                     <option key={tag.id} value={String(tag.id)}>
-                      {tag.name}{tag.is_active ? "" : " · inactiva"}
+                      {tag.name}{tag.is_active ? "" : language === "es" ? " · inactiva" : " · inactive"}
                     </option>
                   ))}
                 </select>
                 <div className="form-text">
-                  Usa Ctrl o Cmd para seleccionar varias etiquetas sobre el mismo movimiento.
+                  {language === "es"
+                    ? "Usa Ctrl o Cmd para seleccionar varias etiquetas sobre el mismo movimiento."
+                    : "Use Ctrl or Cmd to select multiple tags for the same movement."}
                 </div>
               </div>
             ) : null}
@@ -770,7 +795,7 @@ export function FinanceTransactionsPage() {
                     }))
                   }
                 />
-                <span className="form-check-label">Marcar conciliada</span>
+                <span className="form-check-label">{language === "es" ? "Marcar conciliada" : "Mark reconciled"}</span>
               </label>
               <label className="form-check d-flex align-items-center gap-2 mb-0">
                 <input
@@ -784,13 +809,19 @@ export function FinanceTransactionsPage() {
                     }))
                   }
                 />
-                <span className="form-check-label">Favorita</span>
+                <span className="form-check-label">{language === "es" ? "Favorita" : "Favorite"}</span>
               </label>
             </div>
 
             <div className="finance-inline-toolbar finance-inline-toolbar--compact">
               <button className="btn btn-primary" type="submit" disabled={isActionSubmitting}>
-                {editingTransactionId ? "Guardar cambios" : "Registrar transacción"}
+                {editingTransactionId
+                  ? language === "es"
+                    ? "Guardar cambios"
+                    : "Save changes"
+                  : language === "es"
+                    ? "Registrar transacción"
+                    : "Create transaction"}
               </button>
               {editingTransactionId ? (
                 <button
@@ -799,7 +830,7 @@ export function FinanceTransactionsPage() {
                   disabled={isActionSubmitting}
                   onClick={resetFormForCreate}
                 >
-                  Cancelar edición
+                  {language === "es" ? "Cancelar edición" : "Cancel editing"}
                 </button>
               ) : null}
             </div>
@@ -807,8 +838,12 @@ export function FinanceTransactionsPage() {
         </PanelCard>
 
         <PanelCard
-          title="Balances por cuenta"
-          subtitle="Lectura rápida del saldo operativo calculado sobre saldo inicial y transacciones."
+          title={language === "es" ? "Balances por cuenta" : "Account balances"}
+          subtitle={
+            language === "es"
+              ? "Lectura rápida del saldo operativo calculado sobre saldo inicial y transacciones."
+              : "Quick operational balance view calculated from opening balance and transactions."
+          }
         >
           {accountBalances.length > 0 ? (
             <div className="finance-balance-list">
@@ -825,8 +860,10 @@ export function FinanceTransactionsPage() {
                     <div className="text-end">
                       <div className="finance-balance-list__value">
                         {item.is_balance_hidden
-                          ? "oculto"
-                          : formatMoney(item.balance, currency?.code)}
+                          ? language === "es"
+                            ? "oculto"
+                            : "hidden"
+                          : formatMoney(item.balance, currency?.code, language)}
                       </div>
                       <div className="small text-secondary">
                         {currency?.code || `#${item.currency_id}`}
@@ -837,38 +874,38 @@ export function FinanceTransactionsPage() {
               })}
             </div>
           ) : (
-            <div className="text-secondary">Aún no hay cuentas activas para calcular balances.</div>
+            <div className="text-secondary">{language === "es" ? "Aún no hay cuentas activas para calcular balances." : "There are no active accounts yet to calculate balances."}</div>
           )}
 
           <hr />
 
           {usageError ? (
             <ErrorState
-              title="Uso de finance no disponible"
+              title={language === "es" ? "Uso de finance no disponible" : "Finance usage unavailable"}
               detail={usageError.payload?.detail || usageError.message}
               requestId={usageError.payload?.request_id}
             />
           ) : usage ? (
             <div className="tenant-detail-grid">
-              <DetailField label="Clave de módulo" value={<code>{usage.module_key}</code>} />
-              <DetailField label="Usado" value={usage.used_entries} />
+              <DetailField label={language === "es" ? "Clave de módulo" : "Module key"} value={<code>{usage.module_key}</code>} />
+              <DetailField label={language === "es" ? "Usado" : "Used"} value={usage.used_entries} />
               <DetailField
-                label="Límite"
-                value={usage.unlimited ? "ilimitado" : usage.max_entries ?? "—"}
+                label={language === "es" ? "Límite" : "Limit"}
+                value={usage.unlimited ? (language === "es" ? "ilimitado" : "unlimited") : usage.max_entries ?? "—"}
               />
               <DetailField
-                label="Restante"
+                label={language === "es" ? "Restante" : "Remaining"}
                 value={usage.unlimited ? "—" : usage.remaining_entries ?? "—"}
               />
               <DetailField
-                label="Fuente"
-                value={usage.limit_source ? displayPlatformCode(usage.limit_source) : "ninguna"}
+                label={language === "es" ? "Fuente" : "Source"}
+                value={usage.limit_source ? displayPlatformCode(usage.limit_source) : language === "es" ? "ninguna" : "none"}
               />
               <DetailField
-                label="Estado"
+                label={language === "es" ? "Estado" : "Status"}
                 value={
                   usage.at_limit ? (
-                    <span className="status-badge status-badge--warning">al límite</span>
+                    <span className="status-badge status-badge--warning">{language === "es" ? "al límite" : "at limit"}</span>
                   ) : (
                     <span className="status-badge status-badge--success">ok</span>
                   )
@@ -881,33 +918,37 @@ export function FinanceTransactionsPage() {
 
       <div className="finance-transaction-layout">
         <PanelCard
-          title="Transacciones recientes"
-          subtitle="La tabla ya lee finance_transactions y no la capa legacy de entries."
+          title={language === "es" ? "Transacciones recientes" : "Recent transactions"}
+          subtitle={
+            language === "es"
+              ? "La tabla ya lee finance_transactions y no la capa legacy de entries."
+              : "The table now reads finance_transactions and no longer the legacy entries layer."
+          }
         >
           <div className="tenant-detail-grid mb-3">
-            <DetailField label="Favoritas visibles" value={favoriteTransactionsCount} />
-            <DetailField label="Pendientes conciliación" value={pendingReconciliationCount} />
-            <DetailField label="Seleccionadas" value={selectedTransactionIds.length} />
+            <DetailField label={language === "es" ? "Favoritas visibles" : "Visible favorites"} value={favoriteTransactionsCount} />
+            <DetailField label={language === "es" ? "Pendientes conciliación" : "Pending reconciliation"} value={pendingReconciliationCount} />
+            <DetailField label={language === "es" ? "Seleccionadas" : "Selected"} value={selectedTransactionIds.length} />
             <DetailField
-              label="Favoritas seleccionadas"
+              label={language === "es" ? "Favoritas seleccionadas" : "Selected favorites"}
               value={selectedFavoritesCount}
             />
           </div>
 
           <div className="finance-filter-grid">
             <div>
-              <label className="form-label">Buscar</label>
+              <label className="form-label">{language === "es" ? "Buscar" : "Search"}</label>
               <input
                 className="form-control"
                 value={filters.search}
                 onChange={(event) =>
                   setFilters((current) => ({ ...current, search: event.target.value }))
                 }
-                placeholder="Descripción o notas"
+                placeholder={language === "es" ? "Descripción o notas" : "Description or notes"}
               />
             </div>
             <div>
-              <label className="form-label">Tipo</label>
+              <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
               <select
                 className="form-select"
                 value={filters.transactionType}
@@ -918,14 +959,14 @@ export function FinanceTransactionsPage() {
                   }))
                 }
               >
-                <option value="">Todos</option>
-                <option value="income">Ingresos</option>
-                <option value="expense">Egresos</option>
-                <option value="transfer">Transferencias</option>
+                <option value="">{language === "es" ? "Todos" : "All"}</option>
+                <option value="income">{language === "es" ? "Ingresos" : "Income"}</option>
+                <option value="expense">{language === "es" ? "Egresos" : "Expenses"}</option>
+                <option value="transfer">{language === "es" ? "Transferencias" : "Transfers"}</option>
               </select>
             </div>
             <div>
-              <label className="form-label">Cuenta</label>
+              <label className="form-label">{language === "es" ? "Cuenta" : "Account"}</label>
               <select
                 className="form-select"
                 value={filters.accountId}
@@ -933,7 +974,7 @@ export function FinanceTransactionsPage() {
                   setFilters((current) => ({ ...current, accountId: event.target.value }))
                 }
               >
-                <option value="">Todas</option>
+                <option value="">{language === "es" ? "Todas" : "All"}</option>
                 {accounts.map((account) => (
                   <option key={account.id} value={account.id}>
                     {account.name}
@@ -942,7 +983,7 @@ export function FinanceTransactionsPage() {
               </select>
             </div>
             <div>
-              <label className="form-label">Categoría</label>
+              <label className="form-label">{language === "es" ? "Categoría" : "Category"}</label>
               <select
                 className="form-select"
                 value={filters.categoryId}
@@ -950,7 +991,7 @@ export function FinanceTransactionsPage() {
                   setFilters((current) => ({ ...current, categoryId: event.target.value }))
                 }
               >
-                <option value="">Todas</option>
+                <option value="">{language === "es" ? "Todas" : "All"}</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -959,7 +1000,7 @@ export function FinanceTransactionsPage() {
               </select>
             </div>
             <div>
-              <label className="form-label">Favorita</label>
+              <label className="form-label">{language === "es" ? "Favorita" : "Favorite"}</label>
               <select
                 className="form-select"
                 value={filters.favorite}
@@ -970,13 +1011,13 @@ export function FinanceTransactionsPage() {
                   }))
                 }
               >
-                <option value="">Todas</option>
-                <option value="yes">Favoritas</option>
-                <option value="no">No favoritas</option>
+                <option value="">{language === "es" ? "Todas" : "All"}</option>
+                <option value="yes">{language === "es" ? "Favoritas" : "Favorites"}</option>
+                <option value="no">{language === "es" ? "No favoritas" : "Not favorites"}</option>
               </select>
             </div>
             <div>
-              <label className="form-label">Conciliación</label>
+              <label className="form-label">{language === "es" ? "Conciliación" : "Reconciliation"}</label>
               <select
                 className="form-select"
                 value={filters.reconciliation}
@@ -987,9 +1028,9 @@ export function FinanceTransactionsPage() {
                   }))
                 }
               >
-                <option value="">Todas</option>
-                <option value="pending">Pendientes</option>
-                <option value="done">Conciliadas</option>
+                <option value="">{language === "es" ? "Todas" : "All"}</option>
+                <option value="pending">{language === "es" ? "Pendientes" : "Pending"}</option>
+                <option value="done">{language === "es" ? "Conciliadas" : "Reconciled"}</option>
               </select>
             </div>
           </div>
@@ -1005,7 +1046,7 @@ export function FinanceTransactionsPage() {
                 }))
               }
             >
-              Solo favoritas
+              {language === "es" ? "Solo favoritas" : "Favorites only"}
             </button>
             <button
               className="btn btn-outline-secondary btn-sm"
@@ -1017,7 +1058,7 @@ export function FinanceTransactionsPage() {
                 }))
               }
             >
-              Pendientes conciliación
+              {language === "es" ? "Pendientes conciliación" : "Pending reconciliation"}
             </button>
             <button
               className="btn btn-outline-secondary btn-sm"
@@ -1033,32 +1074,34 @@ export function FinanceTransactionsPage() {
                 })
               }
             >
-              Limpiar filtros
+              {language === "es" ? "Limpiar filtros" : "Clear filters"}
             </button>
           </div>
 
           {selectedTransactionIds.length > 0 ? (
             <div className="tenant-action-feedback tenant-action-feedback--success">
-              <strong>Mesa de trabajo:</strong> {selectedTransactionIds.length} transacciones seleccionadas.
+              <strong>{language === "es" ? "Mesa de trabajo:" : "Workbench:"}</strong> {selectedTransactionIds.length} {language === "es" ? "transacciones seleccionadas." : "selected transactions."}
               {" "}
-              {selectedPendingReconciliationCount} pendientes de conciliación.
+              {selectedPendingReconciliationCount} {language === "es" ? "pendientes de conciliación." : "pending reconciliation."}
               <div className="finance-reconciliation-workspace mt-3">
                 <div className="tenant-detail-grid">
-                  <DetailField label="Pendientes seleccionadas" value={selectedPendingReconciliationCount} />
-                  <DetailField label="Ya conciliadas" value={selectedReconciledCount} />
-                  <DetailField label="Favoritas seleccionadas" value={selectedFavoritesCount} />
+                  <DetailField label={language === "es" ? "Pendientes seleccionadas" : "Selected pending"} value={selectedPendingReconciliationCount} />
+                  <DetailField label={language === "es" ? "Ya conciliadas" : "Already reconciled"} value={selectedReconciledCount} />
+                  <DetailField label={language === "es" ? "Favoritas seleccionadas" : "Selected favorites"} value={selectedFavoritesCount} />
                 </div>
                 <div className="mt-3">
-                  <label className="form-label">Nota de conciliación</label>
+                  <label className="form-label">{language === "es" ? "Nota de conciliación" : "Reconciliation note"}</label>
                   <textarea
                     className="form-control"
                     rows={3}
                     value={reconciliationNote}
                     onChange={(event) => setReconciliationNote(event.target.value)}
-                    placeholder="Ej: revisión operativa validada contra cartola del día"
+                    placeholder={language === "es" ? "Ej: revisión operativa validada contra cartola del día" : "Ex: operational review validated against today's statement"}
                   />
                   <div className="form-text">
-                    La nota queda visible en la auditoría reciente de cada transacción conciliada.
+                    {language === "es"
+                      ? "La nota queda visible en la auditoría reciente de cada transacción conciliada."
+                      : "The note remains visible in the recent audit trail of each reconciled transaction."}
                   </div>
                 </div>
                 <label className="form-check d-flex align-items-center gap-2 mt-3 mb-0">
@@ -1071,7 +1114,9 @@ export function FinanceTransactionsPage() {
                     }
                   />
                   <span className="form-check-label">
-                    Confirmo que revisé la selección antes de operar conciliación en lote.
+                    {language === "es"
+                      ? "Confirmo que revisé la selección antes de operar conciliación en lote."
+                      : "I confirm that I reviewed the selection before running batch reconciliation."}
                   </span>
                 </label>
               </div>
@@ -1082,7 +1127,7 @@ export function FinanceTransactionsPage() {
                   disabled={isActionSubmitting}
                   onClick={() => void handleBatchFavorite(true)}
                 >
-                  Marcar favoritas
+                  {language === "es" ? "Marcar favoritas" : "Mark favorites"}
                 </button>
                 <button
                   className="btn btn-outline-secondary btn-sm"
@@ -1090,7 +1135,7 @@ export function FinanceTransactionsPage() {
                   disabled={isActionSubmitting}
                   onClick={() => void handleBatchFavorite(false)}
                 >
-                  Quitar favoritas
+                  {language === "es" ? "Quitar favoritas" : "Remove favorites"}
                 </button>
                 <button
                   className="btn btn-outline-success btn-sm"
@@ -1102,7 +1147,7 @@ export function FinanceTransactionsPage() {
                   }
                   onClick={() => void handleBatchReconciliation(true)}
                 >
-                  Conciliar lote
+                  {language === "es" ? "Conciliar lote" : "Reconcile batch"}
                 </button>
                 <button
                   className="btn btn-outline-secondary btn-sm"
@@ -1114,7 +1159,7 @@ export function FinanceTransactionsPage() {
                   }
                   onClick={() => void handleBatchReconciliation(false)}
                 >
-                  Desconciliar lote
+                  {language === "es" ? "Desconciliar lote" : "Unreconcile batch"}
                 </button>
                 <button
                   className="btn btn-outline-secondary btn-sm"
@@ -1125,7 +1170,7 @@ export function FinanceTransactionsPage() {
                     setReconciliationConfirmation(false);
                   }}
                 >
-                  Limpiar selección
+                  {language === "es" ? "Limpiar selección" : "Clear selection"}
                 </button>
               </div>
             </div>
@@ -1148,15 +1193,15 @@ export function FinanceTransactionsPage() {
                         onChange={toggleVisibleSelection}
                       />
                     </th>
-                    <th>Detalle</th>
-                    <th>Fecha</th>
-                    <th>Tipo</th>
-                    <th>Descripción</th>
-                    <th>Cuenta</th>
-                    <th>Categoría</th>
-                    <th>Monto</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                    <th>{language === "es" ? "Detalle" : "Detail"}</th>
+                    <th>{language === "es" ? "Fecha" : "Date"}</th>
+                    <th>{language === "es" ? "Tipo" : "Type"}</th>
+                    <th>{language === "es" ? "Descripción" : "Description"}</th>
+                    <th>{language === "es" ? "Cuenta" : "Account"}</th>
+                    <th>{language === "es" ? "Categoría" : "Category"}</th>
+                    <th>{language === "es" ? "Monto" : "Amount"}</th>
+                    <th>{language === "es" ? "Estado" : "Status"}</th>
+                    <th>{language === "es" ? "Acciones" : "Actions"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1189,22 +1234,22 @@ export function FinanceTransactionsPage() {
                             type="button"
                             onClick={() => void loadTransactionDetail(transaction.id)}
                           >
-                            {isSelected ? "Ocultar" : "Ver"}
+                            {isSelected ? (language === "es" ? "Ocultar" : "Hide") : language === "es" ? "Ver" : "View"}
                           </button>
                         </td>
-                        <td>{formatDateTime(transaction.transaction_at)}</td>
+                        <td>{formatDateTime(transaction.transaction_at, language)}</td>
                         <td>
-                          <StatusBadge value={displayTransactionType(transaction.transaction_type)} />
+                          <StatusBadge value={displayTransactionType(transaction.transaction_type, language)} />
                         </td>
                         <td>{transaction.description}</td>
                         <td>{account?.name || "—"}</td>
                         <td>{category?.name || "—"}</td>
-                        <td>{formatMoney(transaction.amount, currency?.code)}</td>
+                        <td>{formatMoney(transaction.amount, currency?.code, language)}</td>
                         <td>
                           {transaction.is_reconciled ? (
-                            <span className="status-badge status-badge--success">conciliada</span>
+                            <span className="status-badge status-badge--success">{language === "es" ? "conciliada" : "reconciled"}</span>
                           ) : (
-                            <span className="status-badge status-badge--neutral">pendiente</span>
+                            <span className="status-badge status-badge--neutral">{language === "es" ? "pendiente" : "pending"}</span>
                           )}
                         </td>
                         <td>
@@ -1215,7 +1260,7 @@ export function FinanceTransactionsPage() {
                               disabled={isActionSubmitting}
                               onClick={() => startEditingTransaction(transaction)}
                             >
-                              Editar
+                              {language === "es" ? "Editar" : "Edit"}
                             </button>
                             <button
                               className={`btn btn-sm ${
@@ -1227,7 +1272,13 @@ export function FinanceTransactionsPage() {
                               disabled={isActionSubmitting}
                               onClick={() => void handleToggleFavorite(transaction)}
                             >
-                              {transaction.is_favorite ? "Quitar favorita" : "Favorita"}
+                              {transaction.is_favorite
+                                ? language === "es"
+                                  ? "Quitar favorita"
+                                  : "Remove favorite"
+                                : language === "es"
+                                  ? "Favorita"
+                                  : "Favorite"}
                             </button>
                             <button
                               className={`btn btn-sm ${
@@ -1239,7 +1290,13 @@ export function FinanceTransactionsPage() {
                               disabled={isActionSubmitting}
                               onClick={() => void handleToggleReconciliation(transaction)}
                             >
-                              {transaction.is_reconciled ? "Desconciliar" : "Conciliar"}
+                              {transaction.is_reconciled
+                                ? language === "es"
+                                  ? "Desconciliar"
+                                  : "Unreconcile"
+                                : language === "es"
+                                  ? "Conciliar"
+                                  : "Reconcile"}
                             </button>
                           </div>
                         </td>
@@ -1251,19 +1308,25 @@ export function FinanceTransactionsPage() {
             </div>
           ) : (
             <div className="text-secondary">
-              Aún no se registran transacciones en el núcleo moderno de finance.
+              {language === "es"
+                ? "Aún no se registran transacciones en el núcleo moderno de finance."
+                : "No transactions have been recorded yet in the modern finance core."}
             </div>
           )}
         </PanelCard>
 
         <PanelCard
-          title="Detalle operacional"
-          subtitle="Al seleccionar una transacción puedes revisar su trazabilidad reciente."
+          title={language === "es" ? "Detalle operacional" : "Operational detail"}
+          subtitle={
+            language === "es"
+              ? "Al seleccionar una transacción puedes revisar su trazabilidad reciente."
+              : "Select a transaction to review its recent traceability."
+          }
         >
-          {isDetailLoading ? <LoadingBlock label="Cargando detalle de la transacción..." /> : null}
+          {isDetailLoading ? <LoadingBlock label={language === "es" ? "Cargando detalle de la transacción..." : "Loading transaction detail..."} /> : null}
           {detailError ? (
             <ErrorState
-              title="Detalle no disponible"
+              title={language === "es" ? "Detalle no disponible" : "Detail unavailable"}
               detail={detailError.payload?.detail || detailError.message}
               requestId={detailError.payload?.request_id}
             />
@@ -1273,13 +1336,14 @@ export function FinanceTransactionsPage() {
             <div className="d-grid gap-3">
               <div className="tenant-detail-grid">
                 <DetailField
-                  label="Tipo"
+                  label={language === "es" ? "Tipo" : "Type"}
                   value={displayTransactionType(
-                    selectedTransactionDetail.transaction.transaction_type
+                    selectedTransactionDetail.transaction.transaction_type,
+                    language
                   )}
                 />
                 <DetailField
-                  label="Cuenta origen"
+                  label={language === "es" ? "Cuenta origen" : "Source account"}
                   value={
                     selectedTransactionDetail.transaction.account_id
                       ? accountMap.get(selectedTransactionDetail.transaction.account_id)?.name || "—"
@@ -1287,7 +1351,7 @@ export function FinanceTransactionsPage() {
                   }
                 />
                 <DetailField
-                  label="Cuenta destino"
+                  label={language === "es" ? "Cuenta destino" : "Target account"}
                   value={
                     selectedTransactionDetail.transaction.target_account_id
                       ? accountMap.get(selectedTransactionDetail.transaction.target_account_id)?.name ||
@@ -1296,7 +1360,7 @@ export function FinanceTransactionsPage() {
                   }
                 />
                 <DetailField
-                  label="Categoría"
+                  label={language === "es" ? "Categoría" : "Category"}
                   value={
                     selectedTransactionDetail.transaction.category_id
                       ? categoryMap.get(selectedTransactionDetail.transaction.category_id)?.name || "—"
@@ -1304,20 +1368,21 @@ export function FinanceTransactionsPage() {
                   }
                 />
                 <DetailField
-                  label="Monto"
+                  label={language === "es" ? "Monto" : "Amount"}
                   value={formatMoney(
                     selectedTransactionDetail.transaction.amount,
-                    currencyMap.get(selectedTransactionDetail.transaction.currency_id)?.code
+                    currencyMap.get(selectedTransactionDetail.transaction.currency_id)?.code,
+                    language
                   )}
                 />
                 <DetailField
-                  label="Registrada en"
-                  value={formatDateTime(selectedTransactionDetail.transaction.transaction_at)}
+                  label={language === "es" ? "Registrada en" : "Recorded at"}
+                  value={formatDateTime(selectedTransactionDetail.transaction.transaction_at, language)}
                 />
               </div>
 
               <div>
-                <div className="tenant-detail__label">Descripción</div>
+                <div className="tenant-detail__label">{language === "es" ? "Descripción" : "Description"}</div>
                 <div className="tenant-detail__value">
                   {selectedTransactionDetail.transaction.description}
                 </div>
@@ -1330,19 +1395,19 @@ export function FinanceTransactionsPage() {
                   disabled={isActionSubmitting}
                   onClick={() => startEditingTransaction(selectedTransactionDetail.transaction)}
                 >
-                  Editar esta transacción
+                  {language === "es" ? "Editar esta transacción" : "Edit this transaction"}
                 </button>
               </div>
 
               <div>
-                <div className="tenant-detail__label">Notas</div>
+                <div className="tenant-detail__label">{language === "es" ? "Notas" : "Notes"}</div>
                 <div className="tenant-detail__value">
-                  {selectedTransactionDetail.transaction.notes || "sin notas"}
+                  {selectedTransactionDetail.transaction.notes || (language === "es" ? "sin notas" : "no notes")}
                 </div>
               </div>
 
               <div>
-                <div className="tenant-detail__label mb-2">Auditoría reciente</div>
+                <div className="tenant-detail__label mb-2">{language === "es" ? "Auditoría reciente" : "Recent audit trail"}</div>
                 {selectedTransactionDetail.audit_events.length > 0 ? (
                   <div className="finance-audit-list">
                     {selectedTransactionDetail.audit_events.map((event) => (
@@ -1350,7 +1415,7 @@ export function FinanceTransactionsPage() {
                         <div className="d-flex justify-content-between gap-3">
                           <strong>{displayPlatformCode(event.event_type)}</strong>
                           <span className="small text-secondary">
-                            {formatDateTime(event.created_at)}
+                            {formatDateTime(event.created_at, language)}
                           </span>
                         </div>
                         <div>{event.summary}</div>
@@ -1364,14 +1429,18 @@ export function FinanceTransactionsPage() {
                   </div>
                 ) : (
                   <div className="text-secondary">
-                    Esta transacción aún no tiene eventos de auditoría adicionales.
+                    {language === "es"
+                      ? "Esta transacción aún no tiene eventos de auditoría adicionales."
+                      : "This transaction does not have additional audit events yet."}
                   </div>
                 )}
               </div>
             </div>
           ) : !isDetailLoading && !detailError ? (
             <div className="text-secondary">
-              Selecciona una transacción para revisar cuentas, montos y auditoría.
+              {language === "es"
+                ? "Selecciona una transacción para revisar cuentas, montos y auditoría."
+                : "Select a transaction to review accounts, amounts, and audit trail."}
             </div>
           ) : null}
         </PanelCard>
@@ -1413,33 +1482,33 @@ function buildIsoFromDateTimeLocal(value: string) {
   return new Date(value).toISOString();
 }
 
-function formatMoney(value: number, currencyCode = "USD"): string {
-  return new Intl.NumberFormat(undefined, {
+function formatMoney(value: number, currencyCode = "USD", language: "es" | "en" = "es"): string {
+  return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
     currency: currencyCode,
     maximumFractionDigits: 2,
   }).format(value);
 }
 
-function formatDateTime(value: string | null): string {
+function formatDateTime(value: string | null, language: "es" | "en" = "es"): string {
   if (!value) {
     return "—";
   }
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value));
 }
 
-function displayTransactionType(value: string): string {
+function displayTransactionType(value: string, language: "es" | "en" = "es"): string {
   if (value === "income") {
-    return "ingreso";
+    return language === "es" ? "ingreso" : "income";
   }
   if (value === "expense") {
-    return "egreso";
+    return language === "es" ? "egreso" : "expense";
   }
   if (value === "transfer") {
-    return "transferencia";
+    return language === "es" ? "transferencia" : "transfer";
   }
   return value;
 }
