@@ -124,7 +124,9 @@ export function FinanceSchemaSyncCallout({
   return (
     <div className="rounded-3 border border-warning-subtle bg-warning-subtle p-4 d-grid gap-3">
       <div>
-        <h3 className="h6 mb-2 text-warning-emphasis">Actualizar estructura del módulo</h3>
+        <h3 className="h6 mb-2 text-warning-emphasis">
+          {language === "es" ? "Actualizar estructura del módulo" : "Update module schema"}
+        </h3>
         <p className="mb-2 text-warning-emphasis">
           {language === "es"
             ? "Esta acción aplica las migraciones pendientes del tenant para crear o ajustar tablas, columnas e índices que necesita la versión actual del módulo."

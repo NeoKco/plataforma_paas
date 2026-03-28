@@ -6,6 +6,7 @@ import { PanelCard } from "../../../../../components/common/PanelCard";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
+import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
@@ -15,12 +16,17 @@ import {
   type TenantFinanceCategory,
 } from "../services/categoriesService";
 import {
+  getTenantFinanceCurrencies,
+  type TenantFinanceCurrency,
+} from "../services/currenciesService";
+import {
   createTenantFinanceBudget,
   getTenantFinanceBudgets,
   updateTenantFinanceBudget,
   type TenantFinanceBudget,
   type TenantFinanceBudgetsResponse,
 } from "../services/budgetsService";
+import { getFinanceCategoryTypeLabel } from "../utils/presentation";
 
 type BudgetFormState = {
   periodMonth: string;
@@ -45,9 +51,11 @@ const DEFAULT_FORM_STATE: BudgetFormState = {
 
 export function FinanceBudgetsPage() {
   const { session } = useTenantAuth();
+  const { language } = useLanguage();
   const [budgetsResponse, setBudgetsResponse] =
     useState<TenantFinanceBudgetsResponse | null>(null);
   const [categories, setCategories] = useState<TenantFinanceCategory[]>([]);
+  const [currencies, setCurrencies] = useState<TenantFinanceCurrency[]>([]);
   const [editingBudgetId, setEditingBudgetId] = useState<number | null>(null);
   const [filterMonth, setFilterMonth] = useState(buildMonthValue());
   const [filterCategoryType, setFilterCategoryType] = useState("");
@@ -68,6 +76,10 @@ export function FinanceBudgetsPage() {
       ),
     [categories]
   );
+  const baseCurrencyCode =
+    currencies.find((currency) => currency.is_base)?.code ||
+    currencies[0]?.code ||
+    "USD";
 
   useEffect(() => {
     void loadBudgetWorkspace();
@@ -97,13 +109,19 @@ export function FinanceBudgetsPage() {
         budgetStatus: filterBudgetStatus || undefined,
       }),
       getTenantFinanceCategories(session.accessToken, { includeInactive: false }),
+      getTenantFinanceCurrencies(session.accessToken, false),
     ]);
 
-    const [budgetsResult, categoriesResult] = results;
+    const [budgetsResult, categoriesResult, currenciesResult] = results;
 
-    if (budgetsResult.status === "rejected" && categoriesResult.status === "rejected") {
+    if (
+      budgetsResult.status === "rejected" &&
+      categoriesResult.status === "rejected" &&
+      currenciesResult.status === "rejected"
+    ) {
       setBudgetsResponse(null);
       setCategories([]);
+      setCurrencies([]);
       setError(budgetsResult.reason as ApiError);
       setIsLoading(false);
       return;
@@ -111,6 +129,7 @@ export function FinanceBudgetsPage() {
 
     setBudgetsResponse(budgetsResult.status === "fulfilled" ? budgetsResult.value : null);
     setCategories(categoriesResult.status === "fulfilled" ? categoriesResult.value.data : []);
+    setCurrencies(currenciesResult.status === "fulfilled" ? currenciesResult.value.data : []);
     setIsLoading(false);
   }
 
@@ -176,31 +195,53 @@ export function FinanceBudgetsPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Finance"
-        title="Presupuestos"
-        description="Define metas mensuales por categoría y compara rápidamente lo presupuestado contra lo ejecutado."
+        title={language === "es" ? "Presupuestos" : "Budgets"}
+        description={
+          language === "es"
+            ? "Define metas mensuales por categoría y compara rápidamente lo presupuestado contra lo ejecutado."
+            : "Set monthly targets by category and quickly compare budgeted versus actual execution."
+        }
       />
 
       <FinanceModuleNav />
 
       {actionFeedback ? (
         <div className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}>
-          <strong>Presupuestos:</strong> {actionFeedback.message}
+          <strong>{language === "es" ? "Presupuestos:" : "Budgets:"}</strong> {actionFeedback.message}
         </div>
       ) : null}
 
-      {isLoading ? <LoadingBlock label="Cargando presupuestos..." /> : null}
+      {isLoading ? (
+        <LoadingBlock label={language === "es" ? "Cargando presupuestos..." : "Loading budgets..."} />
+      ) : null}
 
       <div className="tenant-portal-metrics">
-        <MetricCard label="Presupuestado" value={formatMoney(summary?.total_budgeted || 0)} hint="Total del filtro visible" />
-        <MetricCard label="Ejecutado" value={formatMoney(summary?.total_actual || 0)} hint="Real acumulado por categoría" />
-        <MetricCard label="Desviación" value={formatMoney(summary?.total_variance || 0)} hint="Presupuesto menos real" />
-        <MetricCard label="Ítems" value={summary?.total_items || 0} hint="Presupuestos del filtro" />
+        <MetricCard
+          label={language === "es" ? "Presupuestado" : "Budgeted"}
+          value={formatMoney(summary?.total_budgeted || 0, language, baseCurrencyCode)}
+          hint={language === "es" ? "Total del filtro visible" : "Total for the visible filter"}
+        />
+        <MetricCard
+          label={language === "es" ? "Ejecutado" : "Actual"}
+          value={formatMoney(summary?.total_actual || 0, language, baseCurrencyCode)}
+          hint={language === "es" ? "Real acumulado por categoría" : "Actual accumulated by category"}
+        />
+        <MetricCard
+          label={language === "es" ? "Desviación" : "Variance"}
+          value={formatMoney(summary?.total_variance || 0, language, baseCurrencyCode)}
+          hint={language === "es" ? "Presupuesto menos real" : "Budget minus actual"}
+        />
+        <MetricCard
+          label={language === "es" ? "Ítems" : "Items"}
+          value={summary?.total_items || 0}
+          hint={language === "es" ? "Presupuestos del filtro" : "Budgets in the filter"}
+        />
       </div>
 
       {error ? (
         <div className="d-grid gap-3">
           <ErrorState
-            title="Presupuestos no disponibles"
+            title={language === "es" ? "Presupuestos no disponibles" : "Budgets unavailable"}
             detail={error.payload?.detail || error.message}
             requestId={error.payload?.request_id}
           />
@@ -210,13 +251,17 @@ export function FinanceBudgetsPage() {
 
       <div className="tenant-portal-split tenant-portal-split--finance">
         <PanelCard
-          title={editingBudgetId ? "Editar presupuesto" : "Registrar presupuesto"}
-          subtitle="Primer corte: presupuesto mensual por categoría con comparación contra gasto o ingreso real."
+          title={editingBudgetId ? (language === "es" ? "Editar presupuesto" : "Edit budget") : (language === "es" ? "Registrar presupuesto" : "Create budget")}
+          subtitle={
+            language === "es"
+              ? "Primer corte: presupuesto mensual por categoría con comparación contra gasto o ingreso real."
+              : "First slice: monthly budget by category with comparison against actual expense or income."
+          }
         >
           <form className="d-grid gap-3" onSubmit={handleSubmit}>
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Mes</label>
+                <label className="form-label">{language === "es" ? "Mes" : "Month"}</label>
                 <input
                   className="form-control"
                   type="month"
@@ -227,7 +272,7 @@ export function FinanceBudgetsPage() {
                 />
               </div>
               <div>
-                <label className="form-label">Categoría</label>
+                <label className="form-label">{language === "es" ? "Categoría" : "Category"}</label>
                 <select
                   className="form-select"
                   value={formState.categoryId}
@@ -235,10 +280,10 @@ export function FinanceBudgetsPage() {
                     setFormState((current) => ({ ...current, categoryId: event.target.value }))
                   }
                 >
-                  <option value="">Selecciona una categoría</option>
+                  <option value="">{language === "es" ? "Selecciona una categoría" : "Select a category"}</option>
                   {categoriesForBudgets.map((category) => (
                     <option key={category.id} value={category.id}>
-                      {category.name} · {displayCategoryType(category.category_type)}
+                      {category.name} · {displayCategoryType(category.category_type, language)}
                     </option>
                   ))}
                 </select>
@@ -247,7 +292,7 @@ export function FinanceBudgetsPage() {
 
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Monto presupuestado</label>
+                <label className="form-label">{language === "es" ? "Monto presupuestado" : "Budget amount"}</label>
                 <input
                   className="form-control"
                   type="number"
@@ -260,7 +305,7 @@ export function FinanceBudgetsPage() {
                 />
               </div>
               <div>
-                <label className="form-label">Activo</label>
+                <label className="form-label">{language === "es" ? "Activo" : "Active"}</label>
                 <select
                   className="form-select"
                   value={formState.isActive ? "true" : "false"}
@@ -271,14 +316,14 @@ export function FinanceBudgetsPage() {
                     }))
                   }
                 >
-                  <option value="true">Sí</option>
-                  <option value="false">No</option>
+                  <option value="true">{language === "es" ? "Sí" : "Yes"}</option>
+                  <option value="false">{language === "es" ? "No" : "No"}</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="form-label">Nota</label>
+              <label className="form-label">{language === "es" ? "Nota" : "Note"}</label>
               <textarea
                 className="form-control"
                 rows={3}
@@ -286,13 +331,23 @@ export function FinanceBudgetsPage() {
                 onChange={(event) =>
                   setFormState((current) => ({ ...current, note: event.target.value }))
                 }
-                placeholder="Ej: tope aprobado para marketing de marzo"
+                placeholder={
+                  language === "es"
+                    ? "Ej: tope aprobado para marketing de marzo"
+                    : "Example: approved marketing cap for March"
+                }
               />
             </div>
 
             <div className="finance-inline-toolbar finance-inline-toolbar--compact">
               <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-                {editingBudgetId ? "Guardar cambios" : "Registrar presupuesto"}
+                {editingBudgetId
+                  ? language === "es"
+                    ? "Guardar cambios"
+                    : "Save changes"
+                  : language === "es"
+                    ? "Registrar presupuesto"
+                    : "Create budget"}
               </button>
               {editingBudgetId ? (
                 <button
@@ -301,7 +356,7 @@ export function FinanceBudgetsPage() {
                   disabled={isSubmitting}
                   onClick={resetForm}
                 >
-                  Cancelar edición
+                  {language === "es" ? "Cancelar edición" : "Cancel editing"}
                 </button>
               ) : null}
             </div>
@@ -309,13 +364,17 @@ export function FinanceBudgetsPage() {
         </PanelCard>
 
         <PanelCard
-          title="Lectura del período"
-          subtitle="Filtra por tipo o estado para concentrarte en categorías con desviación, inactivas o sin uso."
+          title={language === "es" ? "Lectura del período" : "Period view"}
+          subtitle={
+            language === "es"
+              ? "Filtra por tipo o estado para concentrarte en categorías con desviación, inactivas o sin uso."
+              : "Filter by type or status to focus on categories with variance, inactive entries, or no usage."
+          }
         >
           <div className="d-grid gap-3">
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Mes visible</label>
+                <label className="form-label">{language === "es" ? "Mes visible" : "Visible month"}</label>
                 <input
                   className="form-control"
                   type="month"
@@ -324,31 +383,31 @@ export function FinanceBudgetsPage() {
                 />
               </div>
               <div>
-                <label className="form-label">Tipo</label>
+                <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
                 <select
                   className="form-select"
                   value={filterCategoryType}
                   onChange={(event) => setFilterCategoryType(event.target.value)}
                 >
-                  <option value="">Todos</option>
-                  <option value="income">Ingresos</option>
-                  <option value="expense">Egresos</option>
+                  <option value="">{language === "es" ? "Todos" : "All"}</option>
+                  <option value="income">{language === "es" ? "Ingresos" : "Income"}</option>
+                  <option value="expense">{language === "es" ? "Egresos" : "Expense"}</option>
                 </select>
               </div>
             </div>
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Estado derivado</label>
+                <label className="form-label">{language === "es" ? "Estado derivado" : "Derived status"}</label>
                 <select
                   className="form-select"
                   value={filterBudgetStatus}
                   onChange={(event) => setFilterBudgetStatus(event.target.value)}
                 >
-                  <option value="">Todos</option>
-                  <option value="within_budget">Dentro del presupuesto</option>
-                  <option value="over_budget">Sobre el presupuesto</option>
-                  <option value="unused">Sin ejecución</option>
-                  <option value="inactive">Inactivo</option>
+                  <option value="">{language === "es" ? "Todos" : "All"}</option>
+                  <option value="within_budget">{language === "es" ? "Dentro del presupuesto" : "Within budget"}</option>
+                  <option value="over_budget">{language === "es" ? "Sobre el presupuesto" : "Over budget"}</option>
+                  <option value="unused">{language === "es" ? "Sin ejecución" : "Unused"}</option>
+                  <option value="inactive">{language === "es" ? "Inactivo" : "Inactive"}</option>
                 </select>
               </div>
               <div className="d-flex align-items-end">
@@ -361,60 +420,64 @@ export function FinanceBudgetsPage() {
                     onChange={(event) => setIncludeInactive(event.target.checked)}
                   />
                   <label className="form-check-label" htmlFor="finance-budgets-include-inactive">
-                    Incluir inactivos
+                    {language === "es" ? "Incluir inactivos" : "Include inactive"}
                   </label>
                 </div>
               </div>
             </div>
             <div className="tenant-detail-grid">
-              <DetailField label="Presupuestado" value={formatMoney(summary?.total_budgeted || 0)} />
-              <DetailField label="Ejecutado" value={formatMoney(summary?.total_actual || 0)} />
-              <DetailField label="Desviación" value={formatMoney(summary?.total_variance || 0)} />
-              <DetailField label="Filas" value={summary?.total_items || 0} />
+              <DetailField label={language === "es" ? "Presupuestado" : "Budgeted"} value={formatMoney(summary?.total_budgeted || 0, language, baseCurrencyCode)} />
+              <DetailField label={language === "es" ? "Ejecutado" : "Actual"} value={formatMoney(summary?.total_actual || 0, language, baseCurrencyCode)} />
+              <DetailField label={language === "es" ? "Desviación" : "Variance"} value={formatMoney(summary?.total_variance || 0, language, baseCurrencyCode)} />
+              <DetailField label={language === "es" ? "Filas" : "Rows"} value={summary?.total_items || 0} />
             </div>
             <div className="tenant-detail-grid">
-              <DetailField label="Ingreso presup." value={formatMoney(summary?.income_budgeted || 0)} />
-              <DetailField label="Ingreso real" value={formatMoney(summary?.income_actual || 0)} />
-              <DetailField label="Egreso presup." value={formatMoney(summary?.expense_budgeted || 0)} />
-              <DetailField label="Egreso real" value={formatMoney(summary?.expense_actual || 0)} />
+              <DetailField label={language === "es" ? "Ingreso presup." : "Budgeted income"} value={formatMoney(summary?.income_budgeted || 0, language, baseCurrencyCode)} />
+              <DetailField label={language === "es" ? "Ingreso real" : "Actual income"} value={formatMoney(summary?.income_actual || 0, language, baseCurrencyCode)} />
+              <DetailField label={language === "es" ? "Egreso presup." : "Budgeted expense"} value={formatMoney(summary?.expense_budgeted || 0, language, baseCurrencyCode)} />
+              <DetailField label={language === "es" ? "Egreso real" : "Actual expense"} value={formatMoney(summary?.expense_actual || 0, language, baseCurrencyCode)} />
             </div>
           </div>
         </PanelCard>
       </div>
 
       <PanelCard
-        title="Presupuesto vs ejecución"
-        subtitle="Comparación mensual por categoría, con estado derivado para leer rápido qué necesita atención."
+        title={language === "es" ? "Presupuesto vs ejecución" : "Budget vs actual"}
+        subtitle={
+          language === "es"
+            ? "Comparación mensual por categoría, con estado derivado para leer rápido qué necesita atención."
+            : "Monthly comparison by category, with derived status to quickly spot what needs attention."
+        }
       >
         {budgetsResponse && budgetsResponse.data.length > 0 ? (
           <div className="table-responsive">
             <table className="table table-hover align-middle mb-0">
               <thead>
                 <tr>
-                  <th>Mes</th>
-                  <th>Categoría</th>
-                  <th>Tipo</th>
-                  <th>Presupuesto</th>
-                  <th>Real</th>
-                  <th>Desviación</th>
-                  <th>Uso</th>
-                  <th>Estado</th>
-                  <th>Acción</th>
+                  <th>{language === "es" ? "Mes" : "Month"}</th>
+                  <th>{language === "es" ? "Categoría" : "Category"}</th>
+                  <th>{language === "es" ? "Tipo" : "Type"}</th>
+                  <th>{language === "es" ? "Presupuesto" : "Budget"}</th>
+                  <th>{language === "es" ? "Real" : "Actual"}</th>
+                  <th>{language === "es" ? "Desviación" : "Variance"}</th>
+                  <th>{language === "es" ? "Uso" : "Usage"}</th>
+                  <th>{language === "es" ? "Estado" : "Status"}</th>
+                  <th>{language === "es" ? "Acción" : "Action"}</th>
                 </tr>
               </thead>
               <tbody>
                 {budgetsResponse.data.map((budget) => (
                   <tr key={budget.id}>
-                    <td>{formatMonthLabel(budget.period_month)}</td>
+                    <td>{formatMonthLabel(budget.period_month, language)}</td>
                     <td>{budget.category_name}</td>
-                    <td>{displayCategoryType(budget.category_type)}</td>
-                    <td>{formatMoney(budget.amount)}</td>
-                    <td>{formatMoney(budget.actual_amount)}</td>
-                    <td>{formatMoney(budget.variance_amount)}</td>
+                    <td>{displayCategoryType(budget.category_type, language)}</td>
+                    <td>{formatMoney(budget.amount, language, baseCurrencyCode)}</td>
+                    <td>{formatMoney(budget.actual_amount, language, baseCurrencyCode)}</td>
+                    <td>{formatMoney(budget.variance_amount, language, baseCurrencyCode)}</td>
                     <td>{formatPercent(budget.utilization_ratio)}</td>
                     <td>
                       <span className={`status-badge ${budgetStatusBadgeClass(budget.budget_status)}`}>
-                        {displayBudgetStatus(budget.budget_status)}
+                        {displayBudgetStatus(budget.budget_status, language)}
                       </span>
                     </td>
                     <td>
@@ -423,7 +486,7 @@ export function FinanceBudgetsPage() {
                         type="button"
                         onClick={() => startEditingBudget(budget)}
                       >
-                        Editar
+                        {language === "es" ? "Editar" : "Edit"}
                       </button>
                     </td>
                   </tr>
@@ -433,7 +496,9 @@ export function FinanceBudgetsPage() {
           </div>
         ) : (
           <div className="text-secondary">
-            No hay presupuestos para el filtro seleccionado.
+            {language === "es"
+              ? "No hay presupuestos para el filtro seleccionado."
+              : "There are no budgets for the selected filter."}
           </div>
         )}
       </PanelCard>
@@ -453,10 +518,10 @@ function buildPeriodMonthIso(value: string) {
   return `${value}-01`;
 }
 
-function formatMoney(value: number): string {
-  return new Intl.NumberFormat(undefined, {
+function formatMoney(value: number, language: "es" | "en", currencyCode: string): string {
+  return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
-    currency: "USD",
+    currency: currencyCode,
     maximumFractionDigits: 2,
   }).format(value);
 }
@@ -468,29 +533,29 @@ function formatPercent(value: number | null): string {
   return `${(value * 100).toFixed(0)}%`;
 }
 
-function formatMonthLabel(value: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatMonthLabel(value: string, language: "es" | "en"): string {
+  return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
     month: "short",
     year: "numeric",
   }).format(new Date(value));
 }
 
-function displayCategoryType(value: string): string {
-  return value === "income" ? "ingreso" : value === "expense" ? "egreso" : value;
+function displayCategoryType(value: string, language: "es" | "en"): string {
+  return getFinanceCategoryTypeLabel(value, language);
 }
 
-function displayBudgetStatus(value: string): string {
+function displayBudgetStatus(value: string, language: "es" | "en"): string {
   if (value === "over_budget") {
-    return "sobre presupuesto";
+    return language === "es" ? "sobre presupuesto" : "over budget";
   }
   if (value === "within_budget") {
-    return "dentro del presupuesto";
+    return language === "es" ? "dentro del presupuesto" : "within budget";
   }
   if (value === "unused") {
-    return "sin ejecución";
+    return language === "es" ? "sin ejecución" : "unused";
   }
   if (value === "inactive") {
-    return "inactivo";
+    return language === "es" ? "inactivo" : "inactive";
   }
   return value;
 }

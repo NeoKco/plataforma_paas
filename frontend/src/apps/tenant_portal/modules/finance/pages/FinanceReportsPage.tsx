@@ -5,10 +5,15 @@ import { PanelCard } from "../../../../../components/common/PanelCard";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
+import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
+import {
+  getTenantFinanceCurrencies,
+  type TenantFinanceCurrency,
+} from "../services/currenciesService";
 import {
   getTenantFinanceReportOverview,
   type TenantFinanceReportBudgetVarianceItem,
@@ -26,6 +31,7 @@ import {
 
 export function FinanceReportsPage() {
   const { session } = useTenantAuth();
+  const { language } = useLanguage();
   const [periodMonth, setPeriodMonth] = useState(buildMonthValue());
   const [comparePeriodMonth, setComparePeriodMonth] = useState(
     buildPreviousMonthValue()
@@ -50,8 +56,13 @@ export function FinanceReportsPage() {
   >("all");
   const [overview, setOverview] =
     useState<TenantFinanceReportOverviewResponse["data"] | null>(null);
+  const [currencies, setCurrencies] = useState<TenantFinanceCurrency[]>([]);
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const baseCurrencyCode =
+    currencies.find((currency) => currency.is_base)?.code ||
+    currencies[0]?.code ||
+    "USD";
 
   useEffect(() => {
     void loadOverview();
@@ -77,20 +88,24 @@ export function FinanceReportsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getTenantFinanceReportOverview(
-        session.accessToken,
-        buildPeriodMonthIso(periodMonth),
-        buildPeriodMonthIso(comparePeriodMonth),
-        customCompareStartMonth ? buildPeriodMonthIso(customCompareStartMonth) : null,
-        customCompareEndMonth ? buildPeriodMonthIso(customCompareEndMonth) : null,
-        trendMonths,
-        movementScope,
-        analysisScope,
-        analysisDimension,
-        budgetCategoryScope,
-        budgetStatusFilter
-      );
-      setOverview(response.data);
+      const [overviewResponse, currenciesResponse] = await Promise.all([
+        getTenantFinanceReportOverview(
+          session.accessToken,
+          buildPeriodMonthIso(periodMonth),
+          buildPeriodMonthIso(comparePeriodMonth),
+          customCompareStartMonth ? buildPeriodMonthIso(customCompareStartMonth) : null,
+          customCompareEndMonth ? buildPeriodMonthIso(customCompareEndMonth) : null,
+          trendMonths,
+          movementScope,
+          analysisScope,
+          analysisDimension,
+          budgetCategoryScope,
+          budgetStatusFilter
+        ),
+        getTenantFinanceCurrencies(session.accessToken, false),
+      ]);
+      setOverview(overviewResponse.data);
+      setCurrencies(currenciesResponse.data);
     } catch (rawError) {
       setOverview(null);
       setError(rawError as ApiError);
@@ -314,17 +329,17 @@ export function FinanceReportsPage() {
       <div className="tenant-portal-metrics">
         <MetricCard
           label="Ingresos"
-          value={formatMoney(transactionSnapshot?.total_income || 0)}
+          value={formatMoney(transactionSnapshot?.total_income || 0, baseCurrencyCode, language)}
           hint="Ingreso del período"
         />
         <MetricCard
           label="Egresos"
-          value={formatMoney(transactionSnapshot?.total_expense || 0)}
+          value={formatMoney(transactionSnapshot?.total_expense || 0, baseCurrencyCode, language)}
           hint="Egreso del período"
         />
         <MetricCard
           label="Balance neto"
-          value={formatMoney(transactionSnapshot?.net_balance || 0)}
+          value={formatMoney(transactionSnapshot?.net_balance || 0, baseCurrencyCode, language)}
           hint="Ingreso menos egreso"
         />
         <MetricCard
@@ -372,15 +387,15 @@ export function FinanceReportsPage() {
           <dl className="finance-report-definition-list">
             <ReportLine
               label="Presupuestado"
-              value={formatMoney(budgetSnapshot?.total_budgeted || 0)}
+              value={formatMoney(budgetSnapshot?.total_budgeted || 0, baseCurrencyCode, language)}
             />
             <ReportLine
               label="Real"
-              value={formatMoney(budgetSnapshot?.total_actual || 0)}
+              value={formatMoney(budgetSnapshot?.total_actual || 0, baseCurrencyCode, language)}
             />
             <ReportLine
               label="Desviación"
-              value={formatMoney(budgetSnapshot?.total_variance || 0)}
+              value={formatMoney(budgetSnapshot?.total_variance || 0, baseCurrencyCode, language)}
             />
             <ReportLine
               label="Sobre presupuesto"
@@ -404,15 +419,15 @@ export function FinanceReportsPage() {
           <dl className="finance-report-definition-list">
             <ReportLine
               label="Saldo tomado"
-              value={formatMoney(loanSnapshot?.borrowed_balance || 0)}
+              value={formatMoney(loanSnapshot?.borrowed_balance || 0, baseCurrencyCode, language)}
             />
             <ReportLine
               label="Saldo prestado"
-              value={formatMoney(loanSnapshot?.lent_balance || 0)}
+              value={formatMoney(loanSnapshot?.lent_balance || 0, baseCurrencyCode, language)}
             />
             <ReportLine
               label="Capital total"
-              value={formatMoney(loanSnapshot?.total_principal || 0)}
+              value={formatMoney(loanSnapshot?.total_principal || 0, baseCurrencyCode, language)}
             />
             <ReportLine
               label="Abiertos"
@@ -431,7 +446,11 @@ export function FinanceReportsPage() {
           title="Comparativa contra otro período"
           subtitle="Diferencia del período visible frente al mes de comparación seleccionado."
         >
-          <PeriodComparisonPanel comparison={overview?.period_comparison || null} />
+          <PeriodComparisonPanel
+            comparison={overview?.period_comparison || null}
+            currencyCode={baseCurrencyCode}
+            language={language}
+          />
         </PanelCard>
 
         <PanelCard
@@ -442,7 +461,12 @@ export function FinanceReportsPage() {
             overview?.analysis_scope || analysisScope
           )}.`}
         >
-          <DimensionAmountList items={overview?.top_income_breakdown || []} emptyLabel="Sin ingresos analíticos para la lectura seleccionada." />
+          <DimensionAmountList
+            items={overview?.top_income_breakdown || []}
+            emptyLabel="Sin ingresos analíticos para la lectura seleccionada."
+            currencyCode={baseCurrencyCode}
+            language={language}
+          />
         </PanelCard>
 
         <PanelCard
@@ -453,7 +477,12 @@ export function FinanceReportsPage() {
             overview?.analysis_scope || analysisScope
           )}.`}
         >
-          <DimensionAmountList items={overview?.top_expense_breakdown || []} emptyLabel="Sin egresos analíticos para la lectura seleccionada." />
+          <DimensionAmountList
+            items={overview?.top_expense_breakdown || []}
+            emptyLabel="Sin egresos analíticos para la lectura seleccionada."
+            currencyCode={baseCurrencyCode}
+            language={language}
+          />
         </PanelCard>
       </div>
 
@@ -462,14 +491,22 @@ export function FinanceReportsPage() {
           title="Pulso diario de caja"
           subtitle="Serie corta para ver qué días concentraron flujo y presión operativa."
         >
-          <DailyCashflowList items={overview?.daily_cashflow || []} />
+          <DailyCashflowList
+            items={overview?.daily_cashflow || []}
+            currencyCode={baseCurrencyCode}
+            language={language}
+          />
         </PanelCard>
 
         <PanelCard
           title="Desvíos presupuestarios"
           subtitle="Categorías con mayor diferencia entre plan y real para priorizar revisión."
         >
-          <BudgetVarianceTable items={overview?.budget_variances || []} />
+          <BudgetVarianceTable
+            items={overview?.budget_variances || []}
+            currencyCode={baseCurrencyCode}
+            language={language}
+          />
         </PanelCard>
       </div>
 
@@ -477,35 +514,55 @@ export function FinanceReportsPage() {
         title="Tendencia reciente"
         subtitle="Lectura corta de 6 meses para no perder contexto entre cambios de período."
       >
-        <MonthlyTrendTable items={overview?.monthly_trend || []} />
+        <MonthlyTrendTable
+          items={overview?.monthly_trend || []}
+          currencyCode={baseCurrencyCode}
+          language={language}
+        />
       </PanelCard>
 
       <PanelCard
         title="Resumen del horizonte"
         subtitle="Comparativa ejecutiva del rango seleccionado para no depender solo de la tabla mensual."
       >
-        <TrendSummaryPanel summary={overview?.trend_summary || null} />
+        <TrendSummaryPanel
+          summary={overview?.trend_summary || null}
+          currencyCode={baseCurrencyCode}
+          language={language}
+        />
       </PanelCard>
 
       <PanelCard
         title="Comparativa del horizonte"
         subtitle="Contrasta el rango visible completo contra otro rango equivalente cerrado en el mes comparado."
       >
-        <HorizonComparisonPanel comparison={overview?.horizon_comparison || null} />
+        <HorizonComparisonPanel
+          comparison={overview?.horizon_comparison || null}
+          currencyCode={baseCurrencyCode}
+          language={language}
+        />
       </PanelCard>
 
       <PanelCard
         title="Acumulado anual"
         subtitle="Compara enero -> mes visible contra enero -> mes comparado para lectura ejecutiva anual."
       >
-        <YearToDateComparisonPanel comparison={overview?.year_to_date_comparison || null} />
+        <YearToDateComparisonPanel
+          comparison={overview?.year_to_date_comparison || null}
+          currencyCode={baseCurrencyCode}
+          language={language}
+        />
       </PanelCard>
 
       <PanelCard
         title="Comparativa rango arbitrario"
         subtitle="Contrasta la lectura activa actual contra un rango manual de meses si fue definido."
       >
-        <CustomRangeComparisonPanel comparison={overview?.custom_range_comparison || null} />
+        <CustomRangeComparisonPanel
+          comparison={overview?.custom_range_comparison || null}
+          currencyCode={baseCurrencyCode}
+          language={language}
+        />
       </PanelCard>
     </div>
   );
@@ -540,9 +597,13 @@ function CategoryAmountList({
 function DimensionAmountList({
   items,
   emptyLabel,
+  currencyCode,
+  language,
 }: {
   items: TenantFinanceReportDimensionAmount[];
   emptyLabel: string;
+  currencyCode: string;
+  language: "es" | "en";
 }) {
   if (items.length === 0) {
     return <p className="tenant-muted-text mb-0">{emptyLabel}</p>;
@@ -559,7 +620,9 @@ function DimensionAmountList({
             <div className="finance-balance-list__title">{item.entity_name}</div>
             <div className="tenant-muted-text">{buildAnalysisDimensionLabel(item.entity_type)}</div>
           </div>
-          <div className="finance-balance-list__value">{formatMoney(item.total_amount)}</div>
+          <div className="finance-balance-list__value">
+            {formatMoney(item.total_amount, currencyCode, language)}
+          </div>
         </div>
       ))}
     </div>
@@ -568,8 +631,12 @@ function DimensionAmountList({
 
 function DailyCashflowList({
   items,
+  currencyCode,
+  language,
 }: {
   items: TenantFinanceReportDailyCashflowItem[];
+  currencyCode: string;
+  language: "es" | "en";
 }) {
   if (items.length === 0) {
     return (
@@ -588,12 +655,12 @@ function DailyCashflowList({
               {formatDay(item.day)}
             </div>
             <div className="tenant-muted-text">
-              {item.transaction_count} movimientos · Ing. {formatMoney(item.income_total)} · Egr.{" "}
-              {formatMoney(item.expense_total)}
+              {item.transaction_count} movimientos · Ing. {formatMoney(item.income_total, currencyCode, language)} · Egr.{" "}
+              {formatMoney(item.expense_total, currencyCode, language)}
             </div>
           </div>
           <div className="finance-balance-list__value">
-            {formatSignedMoney(item.net_total)}
+            {formatSignedMoney(item.net_total, currencyCode, language)}
           </div>
         </div>
       ))}
@@ -603,8 +670,12 @@ function DailyCashflowList({
 
 function BudgetVarianceTable({
   items,
+  currencyCode,
+  language,
 }: {
   items: TenantFinanceReportBudgetVarianceItem[];
+  currencyCode: string;
+  language: "es" | "en";
 }) {
   if (items.length === 0) {
     return (
@@ -640,9 +711,9 @@ function BudgetVarianceTable({
                   {buildBudgetStatusLabel(item.budget_status)}
                 </span>
               </td>
-              <td className="text-end">{formatMoney(item.planned_amount)}</td>
-              <td className="text-end">{formatMoney(item.actual_amount)}</td>
-              <td className="text-end">{formatSignedMoney(item.variance_amount)}</td>
+              <td className="text-end">{formatMoney(item.planned_amount, currencyCode, language)}</td>
+              <td className="text-end">{formatMoney(item.actual_amount, currencyCode, language)}</td>
+              <td className="text-end">{formatSignedMoney(item.variance_amount, currencyCode, language)}</td>
             </tr>
           ))}
         </tbody>
@@ -653,8 +724,12 @@ function BudgetVarianceTable({
 
 function PeriodComparisonPanel({
   comparison,
+  currencyCode,
+  language,
 }: {
   comparison: TenantFinanceReportPeriodComparison | null;
+  currencyCode: string;
+  language: "es" | "en";
 }) {
   if (!comparison) {
     return (
@@ -668,15 +743,15 @@ function PeriodComparisonPanel({
     <dl className="finance-report-definition-list">
       <ReportLine
         label={`Ingresos vs ${formatMonthLabel(comparison.compare_period_month)}`}
-        value={formatSignedMoney(comparison.income_delta)}
+        value={formatSignedMoney(comparison.income_delta, currencyCode, language)}
       />
       <ReportLine
         label={`Egresos vs ${formatMonthLabel(comparison.compare_period_month)}`}
-        value={formatSignedMoney(comparison.expense_delta)}
+        value={formatSignedMoney(comparison.expense_delta, currencyCode, language)}
       />
       <ReportLine
         label="Balance neto"
-        value={formatSignedMoney(comparison.net_balance_delta)}
+        value={formatSignedMoney(comparison.net_balance_delta, currencyCode, language)}
       />
       <ReportLine
         label="Transacciones"
@@ -684,11 +759,11 @@ function PeriodComparisonPanel({
       />
       <ReportLine
         label="Presupuestado"
-        value={formatSignedMoney(comparison.budgeted_delta)}
+        value={formatSignedMoney(comparison.budgeted_delta, currencyCode, language)}
       />
       <ReportLine
         label="Desviación presup."
-        value={formatSignedMoney(comparison.variance_delta)}
+        value={formatSignedMoney(comparison.variance_delta, currencyCode, language)}
       />
       <ReportLine
         label="Período comparado"
@@ -700,8 +775,12 @@ function PeriodComparisonPanel({
 
 function MonthlyTrendTable({
   items,
+  currencyCode,
+  language,
 }: {
   items: TenantFinanceReportMonthlyTrendItem[];
+  currencyCode: string;
+  language: "es" | "en";
 }) {
   if (items.length === 0) {
     return (
@@ -729,12 +808,12 @@ function MonthlyTrendTable({
           {items.map((item) => (
             <tr key={item.period_month}>
               <td className="fw-semibold">{formatMonthLabel(item.period_month)}</td>
-              <td className="text-end">{formatMoney(item.total_income)}</td>
-              <td className="text-end">{formatMoney(item.total_expense)}</td>
-              <td className="text-end">{formatSignedMoney(item.net_balance)}</td>
+              <td className="text-end">{formatMoney(item.total_income, currencyCode, language)}</td>
+              <td className="text-end">{formatMoney(item.total_expense, currencyCode, language)}</td>
+              <td className="text-end">{formatSignedMoney(item.net_balance, currencyCode, language)}</td>
               <td className="text-end">{item.total_transactions}</td>
-              <td className="text-end">{formatMoney(item.total_budgeted)}</td>
-              <td className="text-end">{formatMoney(item.total_actual)}</td>
+              <td className="text-end">{formatMoney(item.total_budgeted, currencyCode, language)}</td>
+              <td className="text-end">{formatMoney(item.total_actual, currencyCode, language)}</td>
             </tr>
           ))}
         </tbody>
@@ -745,8 +824,12 @@ function MonthlyTrendTable({
 
 function TrendSummaryPanel({
   summary,
+  currencyCode,
+  language,
 }: {
   summary: TenantFinanceReportTrendSummary | null;
+  currencyCode: string;
+  language: "es" | "en";
 }) {
   if (!summary || summary.months_covered === 0) {
     return (
@@ -764,27 +847,27 @@ function TrendSummaryPanel({
       />
       <ReportLine
         label="Ingreso promedio"
-        value={formatMoney(summary.average_income)}
+        value={formatMoney(summary.average_income, currencyCode, language)}
       />
       <ReportLine
         label="Egreso promedio"
-        value={formatMoney(summary.average_expense)}
+        value={formatMoney(summary.average_expense, currencyCode, language)}
       />
       <ReportLine
         label="Balance promedio"
-        value={formatSignedMoney(summary.average_net_balance)}
+        value={formatSignedMoney(summary.average_net_balance, currencyCode, language)}
       />
       <ReportLine
         label="Mejor mes"
-        value={buildTrendMonthValue(summary.best_period_month, summary.best_net_balance)}
+        value={buildTrendMonthValue(summary.best_period_month, summary.best_net_balance, currencyCode, language)}
       />
       <ReportLine
         label="Peor mes"
-        value={buildTrendMonthValue(summary.worst_period_month, summary.worst_net_balance)}
+        value={buildTrendMonthValue(summary.worst_period_month, summary.worst_net_balance, currencyCode, language)}
       />
       <ReportLine
         label="Delta vs primer mes"
-        value={formatSignedMoney(summary.net_balance_delta_vs_first)}
+        value={formatSignedMoney(summary.net_balance_delta_vs_first, currencyCode, language)}
       />
     </dl>
   );
@@ -792,8 +875,12 @@ function TrendSummaryPanel({
 
 function HorizonComparisonPanel({
   comparison,
+  currencyCode,
+  language,
 }: {
   comparison: TenantFinanceReportHorizonComparison | null;
+  currencyCode: string;
+  language: "es" | "en";
 }) {
   if (!comparison || comparison.compare_months_covered === 0) {
     return (
@@ -821,19 +908,19 @@ function HorizonComparisonPanel({
       />
       <ReportLine
         label="Ingreso total vs rango"
-        value={formatSignedMoney(comparison.total_income_delta_vs_compare)}
+        value={formatSignedMoney(comparison.total_income_delta_vs_compare, currencyCode, language)}
       />
       <ReportLine
         label="Egreso total vs rango"
-        value={formatSignedMoney(comparison.total_expense_delta_vs_compare)}
+        value={formatSignedMoney(comparison.total_expense_delta_vs_compare, currencyCode, language)}
       />
       <ReportLine
         label="Balance total vs rango"
-        value={formatSignedMoney(comparison.total_net_balance_delta_vs_compare)}
+        value={formatSignedMoney(comparison.total_net_balance_delta_vs_compare, currencyCode, language)}
       />
       <ReportLine
         label="Promedio balance vs rango"
-        value={formatSignedMoney(comparison.average_net_balance_delta_vs_compare)}
+        value={formatSignedMoney(comparison.average_net_balance_delta_vs_compare, currencyCode, language)}
       />
     </dl>
   );
@@ -841,8 +928,12 @@ function HorizonComparisonPanel({
 
 function YearToDateComparisonPanel({
   comparison,
+  currencyCode,
+  language,
 }: {
   comparison: TenantFinanceReportYearToDateComparison | null;
+  currencyCode: string;
+  language: "es" | "en";
 }) {
   if (!comparison || comparison.current_months_covered === 0) {
     return (
@@ -870,15 +961,15 @@ function YearToDateComparisonPanel({
       />
       <ReportLine
         label="Ingresos YTD vs comparado"
-        value={formatSignedMoney(comparison.total_income_delta_vs_compare)}
+        value={formatSignedMoney(comparison.total_income_delta_vs_compare, currencyCode, language)}
       />
       <ReportLine
         label="Egresos YTD vs comparado"
-        value={formatSignedMoney(comparison.total_expense_delta_vs_compare)}
+        value={formatSignedMoney(comparison.total_expense_delta_vs_compare, currencyCode, language)}
       />
       <ReportLine
         label="Balance YTD vs comparado"
-        value={formatSignedMoney(comparison.total_net_balance_delta_vs_compare)}
+        value={formatSignedMoney(comparison.total_net_balance_delta_vs_compare, currencyCode, language)}
       />
     </dl>
   );
@@ -886,8 +977,12 @@ function YearToDateComparisonPanel({
 
 function CustomRangeComparisonPanel({
   comparison,
+  currencyCode,
+  language,
 }: {
   comparison: TenantFinanceReportCustomRangeComparison | null;
+  currencyCode: string;
+  language: "es" | "en";
 }) {
   if (!comparison) {
     return (
@@ -915,15 +1010,15 @@ function CustomRangeComparisonPanel({
       />
       <ReportLine
         label="Ingresos vs rango"
-        value={formatSignedMoney(comparison.total_income_delta_vs_custom)}
+        value={formatSignedMoney(comparison.total_income_delta_vs_custom, currencyCode, language)}
       />
       <ReportLine
         label="Egresos vs rango"
-        value={formatSignedMoney(comparison.total_expense_delta_vs_custom)}
+        value={formatSignedMoney(comparison.total_expense_delta_vs_custom, currencyCode, language)}
       />
       <ReportLine
         label="Balance vs rango"
-        value={formatSignedMoney(comparison.total_net_balance_delta_vs_custom)}
+        value={formatSignedMoney(comparison.total_net_balance_delta_vs_custom, currencyCode, language)}
       />
     </dl>
   );
@@ -955,16 +1050,24 @@ function buildPeriodMonthIso(monthValue: string) {
   return `${monthValue}-01`;
 }
 
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("es-CL", {
+function formatMoney(
+  value: number,
+  currencyCode = "USD",
+  language: "es" | "en" = "es"
+) {
+  return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
-    currency: "USD",
+    currency: currencyCode,
     minimumFractionDigits: 2,
   }).format(value);
 }
 
-function formatSignedMoney(value: number) {
-  const formatted = formatMoney(Math.abs(value));
+function formatSignedMoney(
+  value: number,
+  currencyCode = "USD",
+  language: "es" | "en" = "es"
+) {
+  const formatted = formatMoney(Math.abs(value), currencyCode, language);
   return value > 0 ? `+${formatted}` : value < 0 ? `-${formatted}` : formatted;
 }
 
@@ -1304,11 +1407,16 @@ function buildAnalysisDimensionLabel(dimension: string) {
   }
 }
 
-function buildTrendMonthValue(monthIso: string | null, amount: number | null) {
+function buildTrendMonthValue(
+  monthIso: string | null,
+  amount: number | null,
+  currencyCode: string,
+  language: "es" | "en"
+) {
   if (!monthIso || amount === null) {
     return "n/d";
   }
-  return `${formatMonthLabel(monthIso)} · ${formatSignedMoney(amount)}`;
+  return `${formatMonthLabel(monthIso)} · ${formatSignedMoney(amount, currencyCode, language)}`;
 }
 
 function buildPeriodRangeLabel(

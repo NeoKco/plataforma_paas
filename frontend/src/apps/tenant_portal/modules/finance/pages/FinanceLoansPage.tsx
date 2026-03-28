@@ -123,6 +123,10 @@ export function FinanceLoansPage() {
     () => currencies.filter((currency) => currency.is_active),
     [currencies]
   );
+  const baseCurrencyCode =
+    activeCurrencies.find((currency) => currency.is_base)?.code ||
+    activeCurrencies[0]?.code ||
+    "USD";
 
   useEffect(() => {
     void loadLoanWorkspace();
@@ -478,9 +482,9 @@ export function FinanceLoansPage() {
       {isLoading ? <LoadingBlock label="Cargando préstamos..." /> : null}
 
       <div className="tenant-portal-metrics">
-        <MetricCard label="Capital total" value={formatMoney(summary?.total_principal || 0)} hint="Monto inicial visible" />
-        <MetricCard label="Saldo prestado" value={formatMoney(summary?.lent_balance || 0)} hint="Por cobrar a terceros" />
-        <MetricCard label="Saldo recibido" value={formatMoney(summary?.borrowed_balance || 0)} hint="Por pagar a terceros" />
+        <MetricCard label="Capital total" value={formatMoney(summary?.total_principal || 0, baseCurrencyCode)} hint="Monto inicial visible" />
+        <MetricCard label="Saldo prestado" value={formatMoney(summary?.lent_balance || 0, baseCurrencyCode)} hint="Por cobrar a terceros" />
+        <MetricCard label="Saldo recibido" value={formatMoney(summary?.borrowed_balance || 0, baseCurrencyCode)} hint="Por pagar a terceros" />
         <MetricCard label="Activos" value={summary?.active_items || 0} hint="Préstamos abiertos" />
       </div>
 
@@ -729,9 +733,9 @@ export function FinanceLoansPage() {
               </label>
             </div>
             <div className="tenant-detail-grid">
-              <DetailField label="Capital visible" value={formatMoney(summary?.total_principal || 0)} />
-              <DetailField label="Prestado" value={formatMoney(summary?.lent_balance || 0)} />
-              <DetailField label="Recibido" value={formatMoney(summary?.borrowed_balance || 0)} />
+              <DetailField label="Capital visible" value={formatMoney(summary?.total_principal || 0, baseCurrencyCode)} />
+              <DetailField label="Prestado" value={formatMoney(summary?.lent_balance || 0, baseCurrencyCode)} />
+              <DetailField label="Recibido" value={formatMoney(summary?.borrowed_balance || 0, baseCurrencyCode)} />
               <DetailField label="Ítems" value={summary?.total_items || 0} />
             </div>
           </div>
@@ -766,9 +770,9 @@ export function FinanceLoansPage() {
                     <td>{loan.name}</td>
                     <td>{displayLoanType(loan.loan_type)}</td>
                     <td>{loan.counterparty_name}</td>
-                    <td>{formatMoney(loan.principal_amount)}</td>
-                    <td>{formatMoney(loan.current_balance)}</td>
-                    <td>{formatMoney(loan.paid_amount)}</td>
+                    <td>{formatMoney(loan.principal_amount, loan.currency_code)}</td>
+                    <td>{formatMoney(loan.current_balance, loan.currency_code)}</td>
+                    <td>{formatMoney(loan.paid_amount, loan.currency_code)}</td>
                     <td>{loan.installments_total > 0 ? `${loan.installments_paid}/${loan.installments_total}` : "sin plan"}</td>
                     <td>{loan.next_due_date ? formatShortDate(loan.next_due_date) : "n/a"}</td>
                     <td>{loan.currency_code}</td>
@@ -1164,12 +1168,12 @@ export function FinanceLoansPage() {
                         </td>
                         <td>{installment.installment_number}</td>
                         <td>{formatShortDate(installment.due_date)}</td>
-                        <td>{formatMoney(installment.planned_amount)}</td>
-                        <td>{formatMoney(installment.principal_amount)}</td>
-                        <td>{formatMoney(installment.interest_amount)}</td>
-                        <td>{formatMoney(installment.paid_amount)}</td>
-                        <td>{formatMoney(installment.paid_principal_amount)}</td>
-                        <td>{formatMoney(installment.paid_interest_amount)}</td>
+                        <td>{formatMoney(installment.planned_amount, loanDetail.loan.currency_code)}</td>
+                        <td>{formatMoney(installment.principal_amount, loanDetail.loan.currency_code)}</td>
+                        <td>{formatMoney(installment.interest_amount, loanDetail.loan.currency_code)}</td>
+                        <td>{formatMoney(installment.paid_amount, loanDetail.loan.currency_code)}</td>
+                        <td>{formatMoney(installment.paid_principal_amount, loanDetail.loan.currency_code)}</td>
+                        <td>{formatMoney(installment.paid_interest_amount, loanDetail.loan.currency_code)}</td>
                         <td>{displayReversalReason(installment.reversal_reason_code)}</td>
                         <td>
                           <span
@@ -1231,10 +1235,10 @@ function buildTodayDateValue() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function formatMoney(value: number): string {
+function formatMoney(value: number, currencyCode: string): string {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
-    currency: "USD",
+    currency: currencyCode,
     maximumFractionDigits: 2,
   }).format(value);
 }

@@ -36,9 +36,11 @@ Estado actual:
 - la vista `Reportes` ya permite además rankear por `etiqueta`
 - si una vista nueva del modulo detecta que faltan tablas o cambios de estructura, ahora explica el problema en pantalla
 - si eres `admin` del tenant, ahora puedes usar `Actualizar estructura del módulo` desde el propio portal para aplicar migraciones pendientes
-- `Cuentas`, `Categorías`, `Configuración` y los formularios auxiliares visibles del slice ya respetan el selector `Español/Inglés` sin mostrar valores internos crudos como `cash`, `income` o `expense`
+- `Cuentas`, `Categorías`, `Catálogos`, `Configuración`, `Presupuestos` y `Planificación`, junto con los formularios auxiliares visibles del slice, ya respetan el selector `Español/Inglés` sin mostrar valores internos crudos como `cash`, `income` o `expense`
 - para cambiar la moneda base, entra a `Finanzas > Configuración > Monedas`, edita o crea la moneda deseada y marca `Moneda base`; la base anterior se desmarca automáticamente
 - cambiar la moneda base no recalcula automáticamente transacciones históricas ya persistidas; esas mantienen su `exchange_rate` y `amount_in_base_currency` originales
+- `Presupuestos`, `Planificación` y `Reportes` ya leen la moneda base activa del tenant al mostrar montos visibles
+- en `Préstamos`, los resúmenes agregados ya usan la moneda base del tenant, mientras que el detalle de cada préstamo y su cronograma siguen mostrando la moneda propia del préstamo
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend
 
 Pantallas disponibles:
@@ -53,4 +55,4 @@ Pantallas disponibles:
 - `Configuración`
 
 Pendiente visible:
-- las pantallas grandes de `Transacciones`, `Presupuestos`, `Préstamos`, `Planificación`, `Reportes` y `Catálogos` todavía requieren una pasada completa de internacionalización para que todo el copy cambie íntegramente entre español e inglés
+- las pantallas grandes de `Transacciones`, `Préstamos` y `Reportes` todavía requieren una pasada completa de internacionalización para que todo el copy cambie íntegramente entre español e inglés

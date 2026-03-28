@@ -5,6 +5,7 @@ import { DataTableCard } from "../../../../../components/data-display/DataTableC
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
+import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
@@ -44,11 +45,13 @@ import {
   type TenantFinanceTag,
   type TenantFinanceTagWriteRequest,
 } from "../services/tagsService";
+import { getActiveStateLabel } from "../utils/presentation";
 
 type ToolTab = "beneficiaries" | "people" | "projects" | "tags";
 
 export function FinanceToolsPage() {
   const { session } = useTenantAuth();
+  const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState<ToolTab>("beneficiaries");
   const [beneficiaries, setBeneficiaries] = useState<TenantFinanceBeneficiary[]>([]);
   const [people, setPeople] = useState<TenantFinancePerson[]>([]);
@@ -234,15 +237,19 @@ export function FinanceToolsPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Finance"
-        title="Catálogos auxiliares"
-        description="Administra beneficiarios, personas, proyectos y etiquetas reutilizables."
+        title={language === "es" ? "Catálogos auxiliares" : "Supporting catalogs"}
+        description={
+          language === "es"
+            ? "Administra beneficiarios, personas, proyectos y etiquetas reutilizables."
+            : "Manage reusable beneficiaries, people, projects, and tags."
+        }
         actions={
           <>
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
-              Recargar
+              {language === "es" ? "Recargar" : "Reload"}
             </button>
             <button className="btn btn-primary" type="button" onClick={resetForm}>
-              Nuevo registro
+              {language === "es" ? "Nuevo registro" : "New record"}
             </button>
           </>
         }
@@ -251,19 +258,25 @@ export function FinanceToolsPage() {
       {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
       {error ? (
         <ErrorState
-          title="No se pudieron cargar los catálogos auxiliares"
+          title={
+            language === "es"
+              ? "No se pudieron cargar los catálogos auxiliares"
+              : "Supporting catalogs could not be loaded"
+          }
           detail={getApiErrorDisplayMessage(error)}
           requestId={error.payload?.request_id}
         />
       ) : null}
-      {isLoading ? <LoadingBlock label="Cargando catálogos auxiliares..." /> : null}
+      {isLoading ? (
+        <LoadingBlock label={language === "es" ? "Cargando catálogos auxiliares..." : "Loading supporting catalogs..."} />
+      ) : null}
 
       <div className="finance-tab-strip">
         {[
-          ["beneficiaries", "Beneficiarios"],
-          ["people", "Personas"],
-          ["projects", "Proyectos"],
-          ["tags", "Etiquetas"],
+          ["beneficiaries", language === "es" ? "Beneficiarios" : "Beneficiaries"],
+          ["people", language === "es" ? "Personas" : "People"],
+          ["projects", language === "es" ? "Proyectos" : "Projects"],
+          ["tags", language === "es" ? "Etiquetas" : "Tags"],
         ].map(([key, label]) => (
           <button
             key={key}
@@ -281,13 +294,17 @@ export function FinanceToolsPage() {
 
       <div className="finance-catalog-layout">
         <PanelCard
-          title={editingId ? "Editar registro" : "Nuevo registro"}
-          subtitle="Cada catálogo alimenta filtros y asociaciones futuras de transacciones."
+          title={editingId ? (language === "es" ? "Editar registro" : "Edit record") : (language === "es" ? "Nuevo registro" : "New record")}
+          subtitle={
+            language === "es"
+              ? "Cada catálogo alimenta filtros y asociaciones futuras de transacciones."
+              : "Each catalog feeds future transaction filters and associations."
+          }
         >
           {activeTab === "beneficiaries" ? (
             <BeneficiaryForm
               value={beneficiaryForm}
-              submitLabel={editingId ? "Guardar cambios" : "Crear beneficiario"}
+              submitLabel={editingId ? (language === "es" ? "Guardar cambios" : "Save changes") : (language === "es" ? "Crear beneficiario" : "Create beneficiary")}
               isSubmitting={isSubmitting}
               onChange={setBeneficiaryForm}
               onSubmit={submitCurrent}
@@ -296,7 +313,7 @@ export function FinanceToolsPage() {
           ) : activeTab === "people" ? (
             <PersonForm
               value={personForm}
-              submitLabel={editingId ? "Guardar cambios" : "Crear persona"}
+              submitLabel={editingId ? (language === "es" ? "Guardar cambios" : "Save changes") : (language === "es" ? "Crear persona" : "Create person")}
               isSubmitting={isSubmitting}
               onChange={setPersonForm}
               onSubmit={submitCurrent}
@@ -305,7 +322,7 @@ export function FinanceToolsPage() {
           ) : activeTab === "projects" ? (
             <ProjectForm
               value={projectForm}
-              submitLabel={editingId ? "Guardar cambios" : "Crear proyecto"}
+              submitLabel={editingId ? (language === "es" ? "Guardar cambios" : "Save changes") : (language === "es" ? "Crear proyecto" : "Create project")}
               isSubmitting={isSubmitting}
               onChange={setProjectForm}
               onSubmit={submitCurrent}
@@ -314,7 +331,7 @@ export function FinanceToolsPage() {
           ) : (
             <TagForm
               value={tagForm}
-              submitLabel={editingId ? "Guardar cambios" : "Crear etiqueta"}
+              submitLabel={editingId ? (language === "es" ? "Guardar cambios" : "Save changes") : (language === "es" ? "Crear etiqueta" : "Create tag")}
               isSubmitting={isSubmitting}
               onChange={setTagForm}
               onSubmit={submitCurrent}
@@ -325,36 +342,36 @@ export function FinanceToolsPage() {
 
         {activeTab === "beneficiaries" ? (
           <DataTableCard
-            title="Registros"
-            subtitle="Beneficiarios o terceros para futuras transacciones."
+            title={language === "es" ? "Registros" : "Records"}
+            subtitle={language === "es" ? "Beneficiarios o terceros para futuras transacciones." : "Beneficiaries or third parties for future transactions."}
             rows={beneficiaries}
             columns={[
               {
                 key: "name",
-                header: "Nombre",
+                header: language === "es" ? "Nombre" : "Name",
                 render: (item: TenantFinanceBeneficiary) => (
                   <span className="fw-semibold">{item.name}</span>
                 ),
               },
               {
                 key: "secondary",
-                header: "Detalle",
+                header: language === "es" ? "Detalle" : "Detail",
                 render: (item: TenantFinanceBeneficiary) => item.note || item.icon || "—",
               },
               {
                 key: "status",
-                header: "Estado",
+                header: language === "es" ? "Estado" : "Status",
                 render: (item: TenantFinanceBeneficiary) => (
                   <span
                     className={`finance-status-pill${item.is_active ? " is-active" : " is-inactive"}`}
                   >
-                    {item.is_active ? "activo" : "inactivo"}
+                    {getActiveStateLabel(item.is_active, language)}
                   </span>
                 ),
               },
               {
                 key: "actions",
-                header: "Acciones",
+                header: language === "es" ? "Acciones" : "Actions",
                 render: (item: TenantFinanceBeneficiary) => (
                   <div className="d-flex gap-2">
                     <button
@@ -362,14 +379,20 @@ export function FinanceToolsPage() {
                       type="button"
                       onClick={() => startEdit(item)}
                     >
-                      Editar
+                      {language === "es" ? "Editar" : "Edit"}
                     </button>
                     <button
                       className="btn btn-sm btn-outline-secondary"
                       type="button"
                       onClick={() => void toggleCurrent(item.id, item.is_active)}
                     >
-                      {item.is_active ? "Desactivar" : "Activar"}
+                      {item.is_active
+                        ? language === "es"
+                          ? "Desactivar"
+                          : "Deactivate"
+                        : language === "es"
+                          ? "Activar"
+                          : "Activate"}
                     </button>
                   </div>
                 ),
@@ -380,34 +403,34 @@ export function FinanceToolsPage() {
 
         {activeTab === "people" ? (
           <DataTableCard
-            title="Registros"
-            subtitle="Personas relacionadas con movimientos o reportes."
+            title={language === "es" ? "Registros" : "Records"}
+            subtitle={language === "es" ? "Personas relacionadas con movimientos o reportes." : "People linked to transactions or reports."}
             rows={people}
             columns={[
               {
                 key: "name",
-                header: "Nombre",
+                header: language === "es" ? "Nombre" : "Name",
                 render: (item: TenantFinancePerson) => <span className="fw-semibold">{item.name}</span>,
               },
               {
                 key: "secondary",
-                header: "Detalle",
+                header: language === "es" ? "Detalle" : "Detail",
                 render: (item: TenantFinancePerson) => item.note || item.icon || "—",
               },
               {
                 key: "status",
-                header: "Estado",
+                header: language === "es" ? "Estado" : "Status",
                 render: (item: TenantFinancePerson) => (
                   <span
                     className={`finance-status-pill${item.is_active ? " is-active" : " is-inactive"}`}
                   >
-                    {item.is_active ? "activo" : "inactivo"}
+                    {getActiveStateLabel(item.is_active, language)}
                   </span>
                 ),
               },
               {
                 key: "actions",
-                header: "Acciones",
+                header: language === "es" ? "Acciones" : "Actions",
                 render: (item: TenantFinancePerson) => (
                   <div className="d-flex gap-2">
                     <button
@@ -415,14 +438,20 @@ export function FinanceToolsPage() {
                       type="button"
                       onClick={() => startEdit(item)}
                     >
-                      Editar
+                      {language === "es" ? "Editar" : "Edit"}
                     </button>
                     <button
                       className="btn btn-sm btn-outline-secondary"
                       type="button"
                       onClick={() => void toggleCurrent(item.id, item.is_active)}
                     >
-                      {item.is_active ? "Desactivar" : "Activar"}
+                      {item.is_active
+                        ? language === "es"
+                          ? "Desactivar"
+                          : "Deactivate"
+                        : language === "es"
+                          ? "Activar"
+                          : "Activate"}
                     </button>
                   </div>
                 ),
@@ -433,34 +462,34 @@ export function FinanceToolsPage() {
 
         {activeTab === "projects" ? (
           <DataTableCard
-            title="Registros"
-            subtitle="Proyectos o centros de costo reutilizables."
+            title={language === "es" ? "Registros" : "Records"}
+            subtitle={language === "es" ? "Proyectos o centros de costo reutilizables." : "Reusable projects or cost centers."}
             rows={projects}
             columns={[
               {
                 key: "name",
-                header: "Nombre",
+                header: language === "es" ? "Nombre" : "Name",
                 render: (item: TenantFinanceProject) => <span className="fw-semibold">{item.name}</span>,
               },
               {
                 key: "secondary",
-                header: "Detalle",
+                header: language === "es" ? "Detalle" : "Detail",
                 render: (item: TenantFinanceProject) => item.code || item.note || "—",
               },
               {
                 key: "status",
-                header: "Estado",
+                header: language === "es" ? "Estado" : "Status",
                 render: (item: TenantFinanceProject) => (
                   <span
                     className={`finance-status-pill${item.is_active ? " is-active" : " is-inactive"}`}
                   >
-                    {item.is_active ? "activo" : "inactivo"}
+                    {getActiveStateLabel(item.is_active, language)}
                   </span>
                 ),
               },
               {
                 key: "actions",
-                header: "Acciones",
+                header: language === "es" ? "Acciones" : "Actions",
                 render: (item: TenantFinanceProject) => (
                   <div className="d-flex gap-2">
                     <button
@@ -468,14 +497,20 @@ export function FinanceToolsPage() {
                       type="button"
                       onClick={() => startEdit(item)}
                     >
-                      Editar
+                      {language === "es" ? "Editar" : "Edit"}
                     </button>
                     <button
                       className="btn btn-sm btn-outline-secondary"
                       type="button"
                       onClick={() => void toggleCurrent(item.id, item.is_active)}
                     >
-                      {item.is_active ? "Desactivar" : "Activar"}
+                      {item.is_active
+                        ? language === "es"
+                          ? "Desactivar"
+                          : "Deactivate"
+                        : language === "es"
+                          ? "Activar"
+                          : "Activate"}
                     </button>
                   </div>
                 ),
@@ -486,34 +521,34 @@ export function FinanceToolsPage() {
 
         {activeTab === "tags" ? (
           <DataTableCard
-            title="Registros"
-            subtitle="Etiquetas simples para clasificación futura."
+            title={language === "es" ? "Registros" : "Records"}
+            subtitle={language === "es" ? "Etiquetas simples para clasificación futura." : "Simple tags for future classification."}
             rows={tags}
             columns={[
               {
                 key: "name",
-                header: "Nombre",
+                header: language === "es" ? "Nombre" : "Name",
                 render: (item: TenantFinanceTag) => <span className="fw-semibold">{item.name}</span>,
               },
               {
                 key: "secondary",
-                header: "Detalle",
+                header: language === "es" ? "Detalle" : "Detail",
                 render: (item: TenantFinanceTag) => item.color || "—",
               },
               {
                 key: "status",
-                header: "Estado",
+                header: language === "es" ? "Estado" : "Status",
                 render: (item: TenantFinanceTag) => (
                   <span
                     className={`finance-status-pill${item.is_active ? " is-active" : " is-inactive"}`}
                   >
-                    {item.is_active ? "activo" : "inactivo"}
+                    {getActiveStateLabel(item.is_active, language)}
                   </span>
                 ),
               },
               {
                 key: "actions",
-                header: "Acciones",
+                header: language === "es" ? "Acciones" : "Actions",
                 render: (item: TenantFinanceTag) => (
                   <div className="d-flex gap-2">
                     <button
@@ -521,14 +556,20 @@ export function FinanceToolsPage() {
                       type="button"
                       onClick={() => startEdit(item)}
                     >
-                      Editar
+                      {language === "es" ? "Editar" : "Edit"}
                     </button>
                     <button
                       className="btn btn-sm btn-outline-secondary"
                       type="button"
                       onClick={() => void toggleCurrent(item.id, item.is_active)}
                     >
-                      {item.is_active ? "Desactivar" : "Activar"}
+                      {item.is_active
+                        ? language === "es"
+                          ? "Desactivar"
+                          : "Deactivate"
+                        : language === "es"
+                          ? "Activar"
+                          : "Activate"}
                     </button>
                   </div>
                 ),
