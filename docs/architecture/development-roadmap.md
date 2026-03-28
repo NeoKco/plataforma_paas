@@ -242,6 +242,8 @@ Resultado actual:
 - ya existe enlace contable minimo: cada pago o reversa de cuota genera una transaccion real enlazada al préstamo
 - ya existe una primera vista real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
 - ya existe una primera vista real de `Reportes` con overview mensual de transacciones, presupuestos y préstamos
+- cuando el schema `finance` del tenant esta incompleto, esas vistas ya degradan a error controlado y no a `500`
+- `tenant_portal` ya permite a `tenant admin` sincronizar estructura desde el propio tenant sin volver a `Platform Admin`
 - `CLP` ya forma parte de las monedas semilla del modulo
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
@@ -257,6 +259,8 @@ Falta para cerrarlo:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura agregada y estados operativos mas ricos
 - enriquecer `Préstamos` con cuenta origen y lectura contable derivada mas densa
+- mover la sincronizacion tenant-side de schema a job/worker en vez de inline
+- agregar auto-sync post-provisioning y post-deploy para evitar sincronizacion manual por uso
 - seguir `Lote 7` con reportes mas densos, exportacion y comparativas
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande

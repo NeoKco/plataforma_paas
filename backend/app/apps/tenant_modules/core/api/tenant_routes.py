@@ -9,6 +9,8 @@ from app.apps.tenant_modules.core.schemas import (
     TenantInfoResponse,
     TenantMeDbResponse,
     TenantMeResponse,
+    TenantSchemaStatusResponse,
+    TenantSchemaSyncResponse,
     TenantModuleUsageItemResponse,
     TenantModuleUsageResponse,
     TenantUserCreateRequest,
@@ -21,6 +23,9 @@ from app.apps.tenant_modules.core.schemas import (
     TenantUsersItemResponse,
     TenantUsersResponse,
 )
+from app.apps.tenant_modules.core.services.tenant_connection_service import (
+    TenantConnectionService,
+)
 from app.apps.tenant_modules.core.services.module_usage_service import (
     TenantModuleUsageService,
 )
@@ -28,17 +33,20 @@ from app.apps.tenant_modules.core.services.tenant_data_service import (
     TenantDataService,
     TenantUserLimitExceededError,
 )
+from app.apps.platform_control.services.tenant_service import TenantService
 from app.common.auth.dependencies import (
     get_current_tenant_context,
     require_tenant_admin,
     require_tenant_permission,
 )
 from app.common.config.settings import settings
-from app.common.db.session_manager import get_tenant_db
+from app.common.db.session_manager import get_control_db, get_tenant_db
 
 router = APIRouter(prefix="/tenant", tags=["Tenant Protected"])
 tenant_data_service = TenantDataService()
 tenant_module_usage_service = TenantModuleUsageService()
+tenant_service = TenantService()
+tenant_connection_service = TenantConnectionService()
 
 
 def _build_tenant_user_context(context: dict) -> TenantUserContextResponse:
@@ -60,6 +68,13 @@ def _build_tenant_user_item(user) -> TenantUsersItemResponse:
         role=user.role,
         is_active=user.is_active,
     )
+
+
+def _get_current_platform_tenant(control_db: Session, tenant_slug: str):
+    tenant = tenant_connection_service.get_tenant_by_slug(control_db, tenant_slug)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    return tenant
 
 
 @router.get("/health", response_model=TenantHealthResponse)
@@ -311,6 +326,70 @@ def tenant_info(
             role=request.state.tenant_role,
         ),
         token_scope=request.state.token_scope,
+    )
+
+
+@router.get("/schema-status", response_model=TenantSchemaStatusResponse)
+def tenant_schema_status(
+    current_user=Depends(require_tenant_admin),
+    control_db: Session = Depends(get_control_db),
+) -> TenantSchemaStatusResponse:
+    tenant = _get_current_platform_tenant(control_db, current_user["tenant_slug"])
+
+    try:
+        schema_status = tenant_service.get_tenant_schema_status(
+            db=control_db,
+            tenant_id=tenant.id,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    return TenantSchemaStatusResponse(
+        success=True,
+        message="Estado de esquema tenant recuperado correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        tenant_slug=tenant.slug,
+        current_version=schema_status.get("current_version"),
+        latest_available_version=schema_status.get("latest_available_version"),
+        pending_count=schema_status.get("pending_count", 0),
+        pending_versions=schema_status.get("pending_versions", []),
+        last_applied_at=schema_status.get("last_applied_at"),
+    )
+
+
+@router.post("/sync-schema", response_model=TenantSchemaSyncResponse)
+def tenant_sync_schema(
+    current_user=Depends(require_tenant_admin),
+    control_db: Session = Depends(get_control_db),
+) -> TenantSchemaSyncResponse:
+    tenant = _get_current_platform_tenant(control_db, current_user["tenant_slug"])
+
+    try:
+        synced_tenant = tenant_service.sync_tenant_schema(
+            db=control_db,
+            tenant_id=tenant.id,
+        )
+        schema_status = tenant_service.get_tenant_schema_status(
+            db=control_db,
+            tenant_id=tenant.id,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    return TenantSchemaSyncResponse(
+        success=True,
+        message="Estructura tenant sincronizada correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        tenant_slug=synced_tenant.slug,
+        current_version=schema_status.get("current_version"),
+        latest_available_version=schema_status.get("latest_available_version"),
+        pending_count=schema_status.get("pending_count", 0),
+        last_applied_at=schema_status.get("last_applied_at"),
+        applied_now=schema_status.get("applied_now", []),
     )
 
 

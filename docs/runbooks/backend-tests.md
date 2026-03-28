@@ -135,6 +135,8 @@ Cobertura visible actual:
 - overview mensual de `Planificación`
 - cartera y cronograma de `Préstamos`
 - pagos, reversas y enlace contable minimo sobre cuotas
+- degradacion controlada cuando `finance` encuentra schema tenant incompleto
+- orden correcto de rutas de `exchange-rates` antes de la ruta dinamica por `currency_id`
 
 ## Suite Tenant
 
@@ -151,6 +153,7 @@ Cobertura actual:
 - rutas tenant basicas
 - CRUD basico de usuarios tenant
 - respuestas tipadas con schemas
+- estado y sincronizacion de schema desde el propio `tenant_portal` para `tenant admin`
 
 Ejecucion:
 

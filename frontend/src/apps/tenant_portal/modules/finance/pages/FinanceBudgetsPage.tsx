@@ -9,6 +9,7 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
+import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
 import {
   getTenantFinanceCategories,
   type TenantFinanceCategory,
@@ -197,11 +198,14 @@ export function FinanceBudgetsPage() {
       </div>
 
       {error ? (
-        <ErrorState
-          title="Presupuestos no disponibles"
-          detail={error.payload?.detail || error.message}
-          requestId={error.payload?.request_id}
-        />
+        <div className="d-grid gap-3">
+          <ErrorState
+            title="Presupuestos no disponibles"
+            detail={error.payload?.detail || error.message}
+            requestId={error.payload?.request_id}
+          />
+          <FinanceSchemaSyncCallout error={error} onSynced={loadBudgetWorkspace} />
+        </div>
       ) : null}
 
       <div className="tenant-portal-split tenant-portal-split--finance">

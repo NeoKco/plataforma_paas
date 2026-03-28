@@ -425,7 +425,7 @@ Hoy esta base cubre:
 
 - `platform_admin` ya operable con `Resumen`, `Usuarios de plataforma`, `Actividad`, `Tenants`, `Provisioning`, `Facturación`, `Configuración` y `Histórico tenants`
 - `tenant_portal` ya operable con login, overview, usuarios y slice `finance`
-- `finance` ya no es solo placeholder: ya tiene catálogos, settings, pantalla moderna de `Transacciones`, primera pantalla real de `Presupuestos`, una pantalla real de `Préstamos` con cronograma base y pagos con split capital/interes, una pantalla real de `Planificación` y una primera pantalla real de `Reportes`
+- `finance` ya no es solo placeholder: ya tiene catálogos, settings, pantalla moderna de `Transacciones`, primera pantalla real de `Presupuestos`, una pantalla real de `Préstamos` con cronograma base y pagos con split capital/interes, una pantalla real de `Planificación`, una primera pantalla real de `Reportes` y callout reutilizable para sincronizacion de estructura cuando el schema tenant quedó atrasado
 
 ## Documentacion en Estado Actual
 

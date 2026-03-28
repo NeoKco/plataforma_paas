@@ -50,6 +50,8 @@
 - esa misma pantalla ya dispara el enlace contable minimo: pago/reversa crean transacciones enlazadas
 - ya existe una pantalla real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
 - ya existe una pantalla real de `Reportes` con overview mensual consolidado
+- cuando `finance` detecta schema incompleto, la UI ya explica para que sirve actualizar la estructura del modulo
+- `tenant admin` ya puede disparar esa sincronizacion desde el mismo portal, sin depender solo de `Platform Admin`
 
 Pendiente inmediato:
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
@@ -57,3 +59,5 @@ Pendiente inmediato:
 - endurecer `Presupuestos` con lectura agregada mas densa
 - densificar `Reportes` y abrir exportacion cuando la nueva lectura de `Planificación` ya quede estable
 - enriquecer el pago de cuotas de `Préstamos` con cuenta origen y lectura contable derivada antes de considerarlo un dominio cerrado
+- mover la sincronizacion tenant-side a flujo asíncrono visible y no inline
+- reducir este caso con auto-sync post-provisioning y post-deploy

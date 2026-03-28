@@ -18,6 +18,8 @@ Estado actual:
 - cada pago o reversa de cuota ya deja además una transacción financiera enlazada al préstamo
 - la vista `Planificación` ya permite revisar días con señal operativa, cuotas por vencer y foco presupuestario del mes
 - la vista `Reportes` ya permite revisar el consolidado mensual de transacciones, presupuestos y cartera
+- si una vista nueva del modulo detecta que faltan tablas o cambios de estructura, ahora explica el problema en pantalla
+- si eres `admin` del tenant, ahora puedes usar `Actualizar estructura del módulo` desde el propio portal para aplicar migraciones pendientes
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend
 
 Pantallas disponibles:

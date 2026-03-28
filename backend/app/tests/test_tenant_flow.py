@@ -24,6 +24,8 @@ from app.apps.tenant_modules.core.api.tenant_routes import (  # noqa: E402
     tenant_me,
     tenant_me_db,
     tenant_module_usage,
+    tenant_schema_status,
+    tenant_sync_schema,
     tenant_update_user,
     tenant_update_user_status,
     tenant_user_detail,
@@ -1461,6 +1463,77 @@ class TenantRoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(response.tenant.effective_api_read_requests_per_minute, 7)
         self.assertEqual(response.tenant.effective_api_write_requests_per_minute, 2)
+
+    def test_tenant_schema_status_returns_schema_for_current_tenant(self) -> None:
+        tenant = build_tenant_record_stub()
+        tenant.id = 1
+        tenant.slug = "empresa-bootstrap"
+
+        with patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_connection_service.get_tenant_by_slug",
+            return_value=tenant,
+        ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_service.get_tenant_schema_status",
+            return_value={
+                "tenant": tenant,
+                "current_version": "0005_finance_transactions",
+                "latest_available_version": "0010_finance_loan_installment_reversal_reason",
+                "pending_count": 2,
+                "pending_versions": [
+                    "0009_finance_loan_installment_payment_split",
+                    "0010_finance_loan_installment_reversal_reason",
+                ],
+                "last_applied_at": datetime.now(timezone.utc),
+            },
+        ):
+            response = tenant_schema_status(
+                current_user=self._current_user(),
+                control_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.tenant_slug, "empresa-bootstrap")
+        self.assertEqual(response.pending_count, 2)
+
+    def test_tenant_sync_schema_syncs_current_tenant(self) -> None:
+        tenant = build_tenant_record_stub()
+        tenant.id = 1
+        tenant.slug = "empresa-bootstrap"
+
+        with patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_connection_service.get_tenant_by_slug",
+            return_value=tenant,
+        ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_service.sync_tenant_schema",
+            return_value=tenant,
+        ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_service.get_tenant_schema_status",
+            return_value={
+                "tenant": tenant,
+                "current_version": "0010_finance_loan_installment_reversal_reason",
+                "latest_available_version": "0010_finance_loan_installment_reversal_reason",
+                "pending_count": 0,
+                "last_applied_at": datetime.now(timezone.utc),
+                "applied_now": [
+                    "0009_finance_loan_installment_payment_split",
+                    "0010_finance_loan_installment_reversal_reason",
+                ],
+            },
+        ):
+            response = tenant_sync_schema(
+                current_user=self._current_user(),
+                control_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.tenant_slug, "empresa-bootstrap")
+        self.assertEqual(response.pending_count, 0)
+        self.assertEqual(len(response.applied_now), 2)
 
     def test_tenant_module_usage_returns_usage_rows(self) -> None:
         with patch(

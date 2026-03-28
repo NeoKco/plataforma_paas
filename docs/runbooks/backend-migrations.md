@@ -89,6 +89,8 @@ Hoy las migraciones tambien entran por estas vias:
 - el provisioning de un tenant nuevo ya usa ese servicio
 - `POST /platform/tenants/{tenant_id}/sync-schema` permite sincronizar una tenant DB existente
 - `GET /platform/tenants/{tenant_id}/schema-status` deja leer version actual, ultima version disponible y migraciones pendientes
+- `POST /tenant/sync-schema` ya deja a un `tenant admin` sincronizar su propio esquema desde el portal
+- `GET /tenant/schema-status` ya deja leer ese estado desde el propio tenant
 
 ## Trazabilidad actual por tenant
 
@@ -111,6 +113,7 @@ Importante:
 
 - `sync-schema` solo funciona si el tenant ya tiene completa su configuracion de DB
 - si falta `db_host`, `db_port`, `db_name` o `db_user`, primero hay que ejecutar el provisioning `create_tenant_database`
+- la via tenant-side actual ejecuta la sincronizacion inline; como backlog queda moverla a job asíncrono y sumar auto-sync post-provisioning/post-deploy
 
 ## Limitaciones actuales
 

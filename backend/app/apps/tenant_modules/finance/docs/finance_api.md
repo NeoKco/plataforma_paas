@@ -22,6 +22,8 @@ API vigente en el arranque:
 - `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment/reversal`
 - `GET /tenant/finance/planning/overview`
 - `GET /tenant/finance/reports/overview`
+- `GET /tenant/schema-status`
+- `POST /tenant/sync-schema`
 - `GET /tenant/finance/account-balances`
 - `GET /tenant/finance/summary`
 - `GET /tenant/finance/usage`
@@ -135,6 +137,8 @@ Estado actual de `Lote 6`:
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Planificación`
 - ya existe `GET /tenant/finance/reports/overview` para recuperar lectura mensual consolidada
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Reportes`
+- cuando una vista de `finance` detecta schema incompleto, la API ya responde error controlado accionable en vez de `500` crudo
+- `tenant admin` ya puede revisar y sincronizar schema desde `GET /tenant/schema-status` y `POST /tenant/sync-schema`
 
 Nucleo transaccional ya disponible en backend:
 - tabla `finance_transactions`
@@ -152,3 +156,4 @@ Pendiente:
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
 - enriquecer el enlace contable de `loans` con cuenta origen y lectura derivada mas densa
 - reportes mas densos o exportables
+- mover la sincronizacion tenant-side de schema a ejecucion asincrona y dejar auto-sync post-provisioning/post-deploy

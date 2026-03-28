@@ -198,3 +198,27 @@ class TenantUserMutationResponse(BaseModel):
     message: str
     requested_by: TenantUserContextResponse
     data: TenantUsersItemResponse
+
+
+class TenantSchemaStatusResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    tenant_slug: str
+    current_version: str | None = None
+    latest_available_version: str | None = None
+    pending_count: int = 0
+    pending_versions: list[str] = []
+    last_applied_at: datetime | None = None
+
+
+class TenantSchemaSyncResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    tenant_slug: str
+    current_version: str | None = None
+    latest_available_version: str | None = None
+    pending_count: int = 0
+    last_applied_at: datetime | None = None
+    applied_now: list[str] = []

@@ -9,6 +9,7 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
+import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
 import {
   getTenantFinanceCurrencies,
   type TenantFinanceCurrency,
@@ -484,11 +485,14 @@ export function FinanceLoansPage() {
       </div>
 
       {error ? (
-        <ErrorState
-          title="Préstamos no disponibles"
-          detail={error.payload?.detail || error.message}
-          requestId={error.payload?.request_id}
-        />
+        <div className="d-grid gap-3">
+          <ErrorState
+            title="Préstamos no disponibles"
+            detail={error.payload?.detail || error.message}
+            requestId={error.payload?.request_id}
+          />
+          <FinanceSchemaSyncCallout error={error} onSynced={loadLoanWorkspace} />
+        </div>
       ) : null}
 
       <div className="tenant-portal-split tenant-portal-split--finance">

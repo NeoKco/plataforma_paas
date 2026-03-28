@@ -6,6 +6,8 @@ import type {
   TenantInfoResponse,
   TenantLoginResponse,
   TenantModuleUsageResponse,
+  TenantSchemaStatusResponse,
+  TenantSchemaSyncResponse,
   TenantUserMutationResponse,
   TenantUsersResponse,
 } from "../types";
@@ -57,6 +59,19 @@ export function getTenantModuleUsage(accessToken: string) {
 
 export function getTenantUsers(accessToken: string) {
   return apiRequest<TenantUsersResponse>("/tenant/users", {
+    token: accessToken,
+  });
+}
+
+export function getTenantSchemaStatus(accessToken: string) {
+  return apiRequest<TenantSchemaStatusResponse>("/tenant/schema-status", {
+    token: accessToken,
+  });
+}
+
+export function syncTenantSchema(accessToken: string) {
+  return apiRequest<TenantSchemaSyncResponse>("/tenant/sync-schema", {
+    method: "POST",
     token: accessToken,
   });
 }

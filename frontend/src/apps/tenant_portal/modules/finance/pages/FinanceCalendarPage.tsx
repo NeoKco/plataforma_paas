@@ -8,6 +8,7 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
+import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
 import {
   getTenantFinancePlanningOverview,
   type TenantFinancePlanningBudgetFocusItem,
@@ -81,11 +82,14 @@ export function FinanceCalendarPage() {
       {isLoading ? <LoadingBlock label="Cargando planificación financiera..." /> : null}
 
       {error ? (
-        <ErrorState
-          title="Planificación no disponible"
-          detail={error.payload?.detail || getApiErrorDisplayMessage(error)}
-          requestId={error.payload?.request_id}
-        />
+        <div className="d-grid gap-3">
+          <ErrorState
+            title="Planificación no disponible"
+            detail={error.payload?.detail || getApiErrorDisplayMessage(error)}
+            requestId={error.payload?.request_id}
+          />
+          <FinanceSchemaSyncCallout error={error} onSynced={loadOverview} />
+        </div>
       ) : null}
 
       <div className="tenant-portal-metrics">

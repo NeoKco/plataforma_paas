@@ -229,6 +229,28 @@ export type TenantLoginResponse = {
   role: string;
 };
 
+export type TenantSchemaStatusResponse = {
+  success: boolean;
+  message: string;
+  tenant_slug: string;
+  current_version: string | null;
+  latest_available_version: string | null;
+  pending_count: number;
+  pending_versions: string[];
+  last_applied_at: string | null;
+};
+
+export type TenantSchemaSyncResponse = {
+  success: boolean;
+  message: string;
+  tenant_slug: string;
+  current_version: string | null;
+  latest_available_version: string | null;
+  pending_count: number;
+  last_applied_at: string | null;
+  applied_now: string[];
+};
+
 export type PlatformTenant = {
   id: number;
   name: string;

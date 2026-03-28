@@ -85,6 +85,8 @@ En esta fase quedaron listos:
 - enlace contable minimo de cuotas: cada pago o reversa genera una transaccion en `finance_transactions`
 - primera pantalla real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
 - primera pantalla real de `Reportes` con overview mensual consolidado
+- manejo controlado de schema incompleto en vistas de `finance`, sin `500` crudo
+- self-service de sincronizacion de estructura desde el propio `tenant_portal` para `tenant admin`
 
 ## Archivos principales
 
@@ -130,6 +132,8 @@ En esta fase quedaron listos:
 - `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment/reversal`
 - `GET /tenant/finance/planning/overview`
 - `GET /tenant/finance/reports/overview`
+- `GET /tenant/schema-status`
+- `POST /tenant/sync-schema`
 - `GET|POST|PUT|PATCH /tenant/finance/accounts`
 - `GET|POST|PUT|PATCH /tenant/finance/categories`
 - `GET|POST|PUT|PATCH /tenant/finance/beneficiaries`
@@ -259,6 +263,12 @@ La plataforma expone una ruta administrativa para sincronizar esquema sobre un t
 
 Eso permite crear tablas nuevas, como `finance_entries`, sin reprovisionar el tenant completo.
 
+Ademas, el propio `tenant_portal` ya permite a un `admin` del tenant:
+
+- revisar el estado actual del esquema con `GET /tenant/schema-status`
+- ejecutar la sincronizacion con `POST /tenant/sync-schema`
+- disparar esa accion desde las vistas de `finance` cuando la API detecta schema incompleto
+
 ## Siguiente iteracion recomendable
 
 `Lote 6` ya quedo abierto sobre un slice operativo mas completo:
@@ -290,6 +300,8 @@ Lo siguiente recomendable ahora es:
 4. densificar `Reportes` y abrir exportacion cuando `Planificación` ya entregue lectura operativa estable
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable
+7. mover la sincronizacion tenant-side a job de provisioning o worker dedicado, en vez de ejecutarla inline
+8. agregar auto-sync post-provisioning y post-deploy para reducir al minimo la sincronizacion manual tenant por tenant
 
 ## Convencion relacionada
 

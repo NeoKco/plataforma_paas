@@ -8,6 +8,7 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
+import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
 import {
   getTenantFinanceReportOverview,
   type TenantFinanceReportCategoryAmount,
@@ -81,11 +82,14 @@ export function FinanceReportsPage() {
       {isLoading ? <LoadingBlock label="Cargando reporte financiero..." /> : null}
 
       {error ? (
-        <ErrorState
-          title="Reportes no disponibles"
-          detail={error.payload?.detail || getApiErrorDisplayMessage(error)}
-          requestId={error.payload?.request_id}
-        />
+        <div className="d-grid gap-3">
+          <ErrorState
+            title="Reportes no disponibles"
+            detail={error.payload?.detail || getApiErrorDisplayMessage(error)}
+            requestId={error.payload?.request_id}
+          />
+          <FinanceSchemaSyncCallout error={error} onSynced={loadOverview} />
+        </div>
       ) : null}
 
       <div className="tenant-portal-metrics">
