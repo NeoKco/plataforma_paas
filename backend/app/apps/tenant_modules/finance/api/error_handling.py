@@ -7,8 +7,12 @@ def raise_finance_schema_http_error(exc: Exception) -> None:
     if (
         "no such table" in detail
         or "undefinedtable" in detail
+        or "undefinedcolumn" in detail
         or "no existe la relación" in detail
+        or "no existe la columna" in detail
+        or "no such column" in detail
         or "relation " in detail
+        or "column " in detail
     ):
         raise HTTPException(
             status_code=400,

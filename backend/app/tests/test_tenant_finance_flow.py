@@ -1432,6 +1432,46 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(exc.exception.status_code, 400)
         self.assertIn("esquema finance del tenant está incompleto", exc.exception.detail)
 
+    def test_get_finance_planning_overview_returns_controlled_error_when_schema_has_missing_column(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.planning_service.get_monthly_overview",
+            side_effect=ProgrammingError(
+                "SELECT finance_loans.account_id FROM finance_loans",
+                {},
+                Exception("UndefinedColumn: finance_loans.account_id"),
+            ),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                get_finance_planning_overview(
+                    period_month=date(2026, 3, 1),
+                    current_user=self._current_user(role="operator"),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertIn("esquema finance del tenant está incompleto", exc.exception.detail)
+
+    def test_list_finance_loans_returns_controlled_error_when_schema_has_missing_column(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.finance.api.loans.loan_service.list_loans",
+            side_effect=ProgrammingError(
+                "SELECT finance_loans.account_id FROM finance_loans",
+                {},
+                Exception("UndefinedColumn: finance_loans.account_id"),
+            ),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                list_finance_loans(
+                    include_inactive=True,
+                    loan_type=None,
+                    loan_status=None,
+                    current_user=self._current_user(role="operator"),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertIn("esquema finance del tenant está incompleto", exc.exception.detail)
+
 
 class TenantFinanceRouteOrderTestCase(unittest.TestCase):
     def _current_user(self, role: str = "manager") -> dict:
