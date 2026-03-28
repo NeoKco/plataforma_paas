@@ -298,7 +298,7 @@ Backlog opcional post-cierre:
 - seguir enriqueciendo `Presupuestos` con presets configurables o plantillas mas ricas por tenant si el uso real lo exige
 - seguir endureciendo `Préstamos` con exportaciones contables mas densas, mejor lectura de contrapartida y eventual cruce con categorías si el dominio lo pide
 - seguir `Reportes` con comparativas todavía mas densas o cortes analíticos adicionales solo si aparecen necesidades reales
-- dejar los primeros graficos reales de `finance` como backlog deliberado; el punto mas natural sigue siendo `Reportes` y luego `Planificación`
+- pendiente explícito: dejar los primeros graficos reales de `finance` como backlog deliberado; el punto mas natural sigue siendo `Reportes` y luego `Planificación`
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 - dejar, ya fuera del cierre de `finance`, la construccion de un `design system` completo del PaaS con adopcion inicial en el propio `finance`, incluyendo iconografia semantica comun
 - dejar, tambien como trabajo transversal posterior, una internacionalizacion real del sistema porque todavia existen pantallas y helpers compartidos con copy parcialmente hardcodeado

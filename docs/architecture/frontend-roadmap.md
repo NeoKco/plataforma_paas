@@ -52,7 +52,7 @@ Lo pendiente es sobre todo:
 - evaluar una segunda iteracion de `Transacciones` con lotes inteligentes sobre filtro activo o reglas asistidas adicionales solo si la operación real lo pide
 - seguir endureciendo `Préstamos` solo si el negocio exige mejor lectura de contrapartida, cruces más densos o exportaciones aún más contables
 - consolidar la adopción visible del auto-sync post-deploy en consola operativa, ahora que ya existe el follow-up automático post-provisioning, la acción masiva desde `Provisioning` y la integración al wrapper de release/verify
-- dejar los primeros gráficos reales de `finance` como pendiente posterior al cierre funcional del módulo; el punto natural sigue siendo `Reportes` y luego `Planificación`
+- pendiente explícito: dejar los primeros gráficos reales de `finance` como trabajo posterior al cierre funcional del módulo; el punto natural sigue siendo `Reportes` y luego `Planificación`
 - una vez cerrado `finance`, abrir un `design system` transversal del PaaS y aplicar la primera migracion completa precisamente sobre `finance`, incluyendo sistema comun de iconos por modulo y entidad
 - cerrar una internacionalizacion transversal real del frontend, continuando desde el fix ya aplicado en `Overview` y `Users` para eliminar copy hardcodeado del resto de pantallas y helpers compartidos
 

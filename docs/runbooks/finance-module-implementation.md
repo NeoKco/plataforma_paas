@@ -141,7 +141,7 @@ Pendiente posterior al cierre de `finance`:
 
 - usar el propio modulo `finance` como primer bloque de adopcion del futuro `design system` transversal del PaaS
 - ese trabajo queda secuenciado para despues del cierre funcional del modulo y debe incluir iconografia semantica comun para modulos, navegacion y entidades
-- dejar la primera capa de gráficos reales de `finance` para despues del cierre funcional del modulo; el punto natural sigue siendo `Reportes` y luego `Planificación`
+- pendiente explícito: dejar la primera capa de gráficos reales de `finance` para despues del cierre funcional del modulo; el punto natural sigue siendo `Reportes` y luego `Planificación`
 - cerrar una internacionalizacion transversal real del sistema, continuando desde el avance ya hecho dentro del propio `finance`
 
 Backlog opcional del propio módulo:
