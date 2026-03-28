@@ -14,6 +14,7 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceLoanCreateRequest,
     FinanceLoanDetailData,
     FinanceLoanDetailResponse,
+    FinanceLoanDerivedTransactionItemResponse,
     FinanceLoanInstallmentBatchMutationData,
     FinanceLoanInstallmentBatchMutationResponse,
     FinanceLoanInstallmentItemResponse,
@@ -48,6 +49,9 @@ def _build_loan_item(row: dict) -> FinanceLoanItemResponse:
         counterparty_name=loan.counterparty_name,
         currency_id=loan.currency_id,
         currency_code=row["currency_code"],
+        account_id=getattr(loan, "account_id", None),
+        account_name=row.get("account_name"),
+        account_code=row.get("account_code"),
         principal_amount=loan.principal_amount,
         current_balance=loan.current_balance,
         paid_amount=row["paid_amount"],
@@ -88,6 +92,26 @@ def _build_installment_item(row: dict) -> FinanceLoanInstallmentItemResponse:
     )
 
 
+def _build_derived_transaction_item(row: dict) -> FinanceLoanDerivedTransactionItemResponse:
+    transaction = row["transaction"]
+    return FinanceLoanDerivedTransactionItemResponse(
+        id=transaction.id,
+        transaction_type=transaction.transaction_type,
+        account_id=transaction.account_id,
+        account_name=row.get("account_name"),
+        account_code=row.get("account_code"),
+        currency_id=transaction.currency_id,
+        currency_code=row["currency_code"],
+        amount=transaction.amount,
+        description=transaction.description,
+        notes=transaction.notes,
+        source_type=transaction.source_type,
+        source_id=transaction.source_id,
+        is_reconciled=transaction.is_reconciled,
+        transaction_at=transaction.transaction_at,
+    )
+
+
 @router.get("", response_model=FinanceLoansResponse)
 def list_finance_loans(
     include_inactive: bool = True,
@@ -122,7 +146,10 @@ def get_finance_loan_detail(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceLoanDetailResponse:
     try:
-        loan_row, installments = loan_service.get_loan_detail(tenant_db, loan_id)
+        loan_row, installments, accounting_transactions = loan_service.get_loan_detail(
+            tenant_db,
+            loan_id,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except (ProgrammingError, OperationalError) as exc:
@@ -135,6 +162,9 @@ def get_finance_loan_detail(
         data=FinanceLoanDetailData(
             loan=_build_loan_item(loan_row),
             installments=[_build_installment_item(item) for item in installments],
+            accounting_transactions=[
+                _build_derived_transaction_item(item) for item in accounting_transactions
+            ],
         ),
     )
 
@@ -156,6 +186,7 @@ def apply_finance_loan_installment_payment_batch(
             installment_ids=payload.installment_ids,
             amount_mode=payload.amount_mode,
             paid_amount=payload.paid_amount,
+            account_id=payload.account_id,
             paid_at=payload.paid_at,
             allocation_mode=payload.allocation_mode,
             note=payload.note,
@@ -195,6 +226,7 @@ def apply_finance_loan_installment_payment(
             loan_id=loan_id,
             installment_id=installment_id,
             paid_amount=payload.paid_amount,
+            account_id=payload.account_id,
             paid_at=payload.paid_at,
             allocation_mode=payload.allocation_mode,
             note=payload.note,
@@ -233,6 +265,7 @@ def reverse_finance_loan_installment_payment_batch(
             installment_ids=payload.installment_ids,
             amount_mode=payload.amount_mode,
             reversed_amount=payload.reversed_amount,
+            account_id=payload.account_id,
             reversal_reason_code=payload.reversal_reason_code,
             note=payload.note,
             actor_user_id=current_user["user_id"],
@@ -271,6 +304,7 @@ def reverse_finance_loan_installment_payment(
             loan_id=loan_id,
             installment_id=installment_id,
             reversed_amount=payload.reversed_amount,
+            account_id=payload.account_id,
             reversal_reason_code=payload.reversal_reason_code,
             note=payload.note,
             actor_user_id=current_user["user_id"],

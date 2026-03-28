@@ -36,6 +36,12 @@ class FinanceLoan(TenantBase):
         nullable=False,
         index=True,
     )
+    account_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("finance_accounts.id"),
+        nullable=True,
+        index=True,
+    )
     principal_amount: Mapped[float] = mapped_column(Float, nullable=False)
     current_balance: Mapped[float] = mapped_column(Float, nullable=False)
     interest_rate: Mapped[float | None] = mapped_column(Float, nullable=True)

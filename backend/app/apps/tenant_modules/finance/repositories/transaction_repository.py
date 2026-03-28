@@ -65,6 +65,25 @@ class FinanceTransactionRepository:
             FinanceTransaction.id.desc(),
         ).all()
 
+    def list_by_loan(
+        self,
+        tenant_db: Session,
+        loan_id: int,
+        *,
+        limit: int | None = None,
+    ) -> list[FinanceTransaction]:
+        query = (
+            tenant_db.query(FinanceTransaction)
+            .filter(FinanceTransaction.loan_id == loan_id)
+            .order_by(
+                FinanceTransaction.transaction_at.desc(),
+                FinanceTransaction.id.desc(),
+            )
+        )
+        if limit is not None:
+            query = query.limit(limit)
+        return query.all()
+
     def count_all(self, tenant_db: Session) -> int:
         return tenant_db.query(FinanceTransaction).count()
 

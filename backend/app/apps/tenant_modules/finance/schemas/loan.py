@@ -10,6 +10,7 @@ class FinanceLoanCreateRequest(BaseModel):
     loan_type: str
     counterparty_name: str
     currency_id: int
+    account_id: int | None = None
     principal_amount: float
     current_balance: float
     interest_rate: float | None = None
@@ -33,6 +34,9 @@ class FinanceLoanItemResponse(BaseModel):
     counterparty_name: str
     currency_id: int
     currency_code: str
+    account_id: int | None = None
+    account_name: str | None = None
+    account_code: str | None = None
     principal_amount: float
     current_balance: float
     paid_amount: float
@@ -71,6 +75,7 @@ class FinanceLoanInstallmentItemResponse(BaseModel):
 
 class FinanceLoanInstallmentPaymentRequest(BaseModel):
     paid_amount: float
+    account_id: int | None = None
     paid_at: date | None = None
     allocation_mode: str = "interest_first"
     note: str | None = None
@@ -78,6 +83,7 @@ class FinanceLoanInstallmentPaymentRequest(BaseModel):
 
 class FinanceLoanInstallmentReversalRequest(BaseModel):
     reversed_amount: float
+    account_id: int | None = None
     reversal_reason_code: str
     note: str | None = None
 
@@ -86,6 +92,7 @@ class FinanceLoanInstallmentPaymentBatchRequest(BaseModel):
     installment_ids: list[int]
     amount_mode: str = "full_remaining"
     paid_amount: float | None = None
+    account_id: int | None = None
     paid_at: date | None = None
     allocation_mode: str = "interest_first"
     note: str | None = None
@@ -95,6 +102,7 @@ class FinanceLoanInstallmentReversalBatchRequest(BaseModel):
     installment_ids: list[int]
     amount_mode: str = "full_paid"
     reversed_amount: float | None = None
+    account_id: int | None = None
     reversal_reason_code: str
     note: str | None = None
 
@@ -113,9 +121,27 @@ class FinanceLoansResponse(FinanceResponseBase):
     data: list[FinanceLoanItemResponse]
 
 
+class FinanceLoanDerivedTransactionItemResponse(BaseModel):
+    id: int
+    transaction_type: str
+    account_id: int | None = None
+    account_name: str | None = None
+    account_code: str | None = None
+    currency_id: int
+    currency_code: str
+    amount: float
+    description: str
+    notes: str | None = None
+    source_type: str | None = None
+    source_id: int | None = None
+    is_reconciled: bool = False
+    transaction_at: datetime
+
+
 class FinanceLoanDetailData(BaseModel):
     loan: FinanceLoanItemResponse
     installments: list[FinanceLoanInstallmentItemResponse]
+    accounting_transactions: list[FinanceLoanDerivedTransactionItemResponse]
 
 
 class FinanceLoanDetailResponse(FinanceResponseBase):

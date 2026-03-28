@@ -5,9 +5,11 @@ from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.finance.models import FinanceLoan, FinanceLoanInstallment
 from app.apps.tenant_modules.finance.repositories import (
+    FinanceAccountRepository,
     FinanceCurrencyRepository,
     FinanceLoanInstallmentRepository,
     FinanceLoanRepository,
+    FinanceTransactionRepository,
 )
 from app.apps.tenant_modules.finance.schemas import (
     FinanceLoanCreateRequest,
@@ -31,13 +33,19 @@ class FinanceLoanService:
         self,
         loan_repository: FinanceLoanRepository | None = None,
         currency_repository: FinanceCurrencyRepository | None = None,
+        account_repository: FinanceAccountRepository | None = None,
         installment_repository: FinanceLoanInstallmentRepository | None = None,
+        transaction_repository: FinanceTransactionRepository | None = None,
         finance_service: FinanceService | None = None,
     ) -> None:
         self.loan_repository = loan_repository or FinanceLoanRepository()
         self.currency_repository = currency_repository or FinanceCurrencyRepository()
+        self.account_repository = account_repository or FinanceAccountRepository()
         self.installment_repository = (
             installment_repository or FinanceLoanInstallmentRepository()
+        )
+        self.transaction_repository = (
+            transaction_repository or FinanceTransactionRepository()
         )
         self.finance_service = finance_service or FinanceService()
 
@@ -88,7 +96,11 @@ class FinanceLoanService:
         }
         return rows, summary
 
-    def get_loan_detail(self, tenant_db: Session, loan_id: int) -> tuple[dict, list[dict]]:
+    def get_loan_detail(
+        self,
+        tenant_db: Session,
+        loan_id: int,
+    ) -> tuple[dict, list[dict], list[dict]]:
         loan = self._get_loan_or_raise(tenant_db, loan_id)
         installments = self.installment_repository.list_by_loan(tenant_db, loan.id)
         loan_row = self._build_loan_row(tenant_db, loan, installments=installments)
@@ -96,7 +108,8 @@ class FinanceLoanService:
             self._build_installment_row(installment)
             for installment in installments
         ]
-        return loan_row, installment_rows
+        transaction_rows = self._build_transaction_rows_for_loan(tenant_db, loan.id)
+        return loan_row, installment_rows, transaction_rows
 
     def create_loan(
         self,
@@ -133,6 +146,7 @@ class FinanceLoanService:
         loan_id: int,
         installment_id: int,
         paid_amount: float,
+        account_id: int | None = None,
         paid_at: date | None = None,
         allocation_mode: str = "interest_first",
         note: str | None = None,
@@ -147,6 +161,11 @@ class FinanceLoanService:
         installment = self.installment_repository.get_by_id(tenant_db, installment_id)
         if installment is None or installment.loan_id != loan.id:
             raise ValueError("La cuota del préstamo solicitada no existe")
+        resolved_account = self._resolve_account_for_operation(
+            tenant_db,
+            loan=loan,
+            account_id=account_id,
+        )
         self._apply_payment_to_installment(
             loan=loan,
             installment=installment,
@@ -160,6 +179,7 @@ class FinanceLoanService:
             loan=loan,
             installment=installment,
             amount=paid_amount,
+            account_id=resolved_account.id,
             action_type="payment",
             note=note,
             action_date=paid_at,
@@ -184,6 +204,7 @@ class FinanceLoanService:
         loan_id: int,
         installment_id: int,
         reversed_amount: float,
+        account_id: int | None = None,
         reversal_reason_code: str,
         note: str | None = None,
         actor_user_id: int | None = None,
@@ -196,6 +217,11 @@ class FinanceLoanService:
         installment = self.installment_repository.get_by_id(tenant_db, installment_id)
         if installment is None or installment.loan_id != loan.id:
             raise ValueError("La cuota del préstamo solicitada no existe")
+        resolved_account = self._resolve_account_for_operation(
+            tenant_db,
+            loan=loan,
+            account_id=account_id,
+        )
         self._reverse_payment_on_installment(
             loan=loan,
             installment=installment,
@@ -208,6 +234,7 @@ class FinanceLoanService:
             loan=loan,
             installment=installment,
             amount=reversed_amount,
+            account_id=resolved_account.id,
             action_type="reversal",
             note=note,
             action_date=installment.paid_at or date.today(),
@@ -234,6 +261,7 @@ class FinanceLoanService:
         installment_ids: list[int],
         amount_mode: str = "full_remaining",
         paid_amount: float | None = None,
+        account_id: int | None = None,
         paid_at: date | None = None,
         allocation_mode: str = "interest_first",
         note: str | None = None,
@@ -250,6 +278,11 @@ class FinanceLoanService:
             tenant_db,
             loan_id=loan_id,
             installment_ids=installment_ids,
+        )
+        resolved_account = self._resolve_account_for_operation(
+            tenant_db,
+            loan=loan,
+            account_id=account_id,
         )
         for installment in installments:
             amount_to_apply = (
@@ -270,6 +303,7 @@ class FinanceLoanService:
                 loan=loan,
                 installment=installment,
                 amount=amount_to_apply,
+                account_id=resolved_account.id,
                 action_type="payment",
                 note=note,
                 action_date=paid_at,
@@ -293,6 +327,7 @@ class FinanceLoanService:
         installment_ids: list[int],
         amount_mode: str = "full_paid",
         reversed_amount: float | None = None,
+        account_id: int | None = None,
         reversal_reason_code: str = "other",
         note: str | None = None,
         actor_user_id: int | None = None,
@@ -309,6 +344,11 @@ class FinanceLoanService:
             tenant_db,
             loan_id=loan_id,
             installment_ids=installment_ids,
+        )
+        resolved_account = self._resolve_account_for_operation(
+            tenant_db,
+            loan=loan,
+            account_id=account_id,
         )
         for installment in installments:
             amount_to_reverse = (
@@ -328,6 +368,7 @@ class FinanceLoanService:
                 loan=loan,
                 installment=installment,
                 amount=amount_to_reverse,
+                account_id=resolved_account.id,
                 action_type="reversal",
                 note=note,
                 action_date=installment.paid_at or date.today(),
@@ -352,6 +393,11 @@ class FinanceLoanService:
         installments: list[FinanceLoanInstallment],
     ) -> dict:
         currency = self._get_currency_or_raise(tenant_db, loan.currency_id)
+        account = (
+            self._get_account_or_raise(tenant_db, loan.account_id)
+            if loan.account_id is not None
+            else None
+        )
         paid_amount = max(loan.principal_amount - loan.current_balance, 0.0)
         installment_rows = [self._build_installment_row(item) for item in installments]
         next_due = next(
@@ -368,6 +414,8 @@ class FinanceLoanService:
         return {
             "loan": loan,
             "currency_code": currency.code,
+            "account_name": account.name if account else None,
+            "account_code": account.code if account else None,
             "loan_status": self._build_loan_status(
                 current_balance=loan.current_balance,
                 is_active=loan.is_active,
@@ -387,6 +435,40 @@ class FinanceLoanService:
                 paid_amount=installment.paid_amount,
             ),
         }
+
+    def _build_transaction_rows_for_loan(
+        self,
+        tenant_db: Session,
+        loan_id: int,
+    ) -> list[dict]:
+        transactions = self.transaction_repository.list_by_loan(
+            tenant_db,
+            loan_id,
+            limit=20,
+        )
+        account_cache: dict[int, object] = {}
+        currency_cache: dict[int, object] = {}
+        rows: list[dict] = []
+        for transaction in transactions:
+            account = None
+            if transaction.account_id is not None:
+                account = account_cache.get(transaction.account_id)
+                if account is None:
+                    account = self._get_account_or_raise(tenant_db, transaction.account_id)
+                    account_cache[transaction.account_id] = account
+            currency = currency_cache.get(transaction.currency_id)
+            if currency is None:
+                currency = self._get_currency_or_raise(tenant_db, transaction.currency_id)
+                currency_cache[transaction.currency_id] = currency
+            rows.append(
+                {
+                    "transaction": transaction,
+                    "account_name": account.name if account else None,
+                    "account_code": account.code if account else None,
+                    "currency_code": currency.code,
+                }
+            )
+        return rows
 
     def _sync_installments(self, tenant_db: Session, loan: FinanceLoan) -> None:
         installments = self._build_installments_for_loan(loan)
@@ -586,6 +668,7 @@ class FinanceLoanService:
         loan: FinanceLoan,
         installment: FinanceLoanInstallment,
         amount: float,
+        account_id: int,
         action_type: str,
         note: str | None,
         action_date: date | None,
@@ -613,7 +696,7 @@ class FinanceLoanService:
             tenant_db,
             FinanceTransactionCreateRequest(
                 transaction_type=transaction_type,
-                account_id=None,
+                account_id=account_id,
                 target_account_id=None,
                 category_id=None,
                 beneficiary_id=None,
@@ -651,7 +734,6 @@ class FinanceLoanService:
                 "installment_id": installment.id,
                 "reversal_reason_code": reversal_reason_code,
             },
-            allow_accountless=True,
         )
 
     def _build_installment_transaction_type(
@@ -698,11 +780,36 @@ class FinanceLoanService:
             raise ValueError("El préstamo financiero solicitado no existe")
         return loan
 
+    def _get_account_or_raise(self, tenant_db: Session, account_id: int):
+        account = self.account_repository.get_by_id(tenant_db, account_id)
+        if account is None:
+            raise ValueError("La cuenta financiera solicitada no existe")
+        return account
+
     def _get_currency_or_raise(self, tenant_db: Session, currency_id: int):
         currency = self.currency_repository.get_by_id(tenant_db, currency_id)
         if currency is None:
             raise ValueError("La moneda financiera solicitada no existe")
         return currency
+
+    def _resolve_account_for_operation(
+        self,
+        tenant_db: Session,
+        *,
+        loan: FinanceLoan,
+        account_id: int | None,
+    ):
+        resolved_account_id = account_id if account_id is not None else loan.account_id
+        if resolved_account_id is None:
+            raise ValueError(
+                "Debes definir una cuenta origen en el préstamo o en la operación"
+            )
+        account = self._get_account_or_raise(tenant_db, resolved_account_id)
+        if account.currency_id != loan.currency_id:
+            raise ValueError(
+                "La cuenta origen usada en la operación debe usar la misma moneda del préstamo"
+            )
+        return account
 
     def _normalize_payload(
         self,
@@ -713,6 +820,7 @@ class FinanceLoanService:
             "loan_type": payload.loan_type,
             "counterparty_name": payload.counterparty_name.strip(),
             "currency_id": payload.currency_id,
+            "account_id": payload.account_id,
             "principal_amount": payload.principal_amount,
             "current_balance": payload.current_balance,
             "interest_rate": payload.interest_rate,
@@ -744,6 +852,12 @@ class FinanceLoanService:
         if payload["due_date"] and payload["due_date"] < payload["start_date"]:
             raise ValueError("El vencimiento no puede ser anterior al inicio del préstamo")
         self._get_currency_or_raise(tenant_db, payload["currency_id"])
+        if payload["account_id"] is not None:
+            account = self._get_account_or_raise(tenant_db, payload["account_id"])
+            if account.currency_id != payload["currency_id"]:
+                raise ValueError(
+                    "La cuenta origen del préstamo debe usar la misma moneda del préstamo"
+                )
 
     def _build_loan_status(
         self,

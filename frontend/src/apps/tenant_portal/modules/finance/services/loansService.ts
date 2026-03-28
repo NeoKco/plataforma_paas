@@ -8,6 +8,9 @@ export type TenantFinanceLoan = {
   counterparty_name: string;
   currency_id: number;
   currency_code: string;
+  account_id: number | null;
+  account_name: string | null;
+  account_code: string | null;
   principal_amount: number;
   current_balance: number;
   paid_amount: number;
@@ -72,11 +75,30 @@ export type TenantFinanceLoanDetailResponse = {
   data: {
     loan: TenantFinanceLoan;
     installments: TenantFinanceLoanInstallment[];
+    accounting_transactions: TenantFinanceLoanDerivedTransaction[];
   };
+};
+
+export type TenantFinanceLoanDerivedTransaction = {
+  id: number;
+  transaction_type: string;
+  account_id: number | null;
+  account_name: string | null;
+  account_code: string | null;
+  currency_id: number;
+  currency_code: string;
+  amount: number;
+  description: string;
+  notes: string | null;
+  source_type: string | null;
+  source_id: number | null;
+  is_reconciled: boolean;
+  transaction_at: string;
 };
 
 export type TenantFinanceLoanInstallmentPaymentRequest = {
   paid_amount: number;
+  account_id: number | null;
   paid_at: string | null;
   allocation_mode: string;
   note: string | null;
@@ -93,6 +115,7 @@ export type TenantFinanceLoanInstallmentPaymentResponse = {
 
 export type TenantFinanceLoanInstallmentReversalRequest = {
   reversed_amount: number;
+  account_id: number | null;
   reversal_reason_code: string;
   note: string | null;
 };
@@ -120,6 +143,7 @@ export type TenantFinanceLoanInstallmentPaymentBatchRequest = {
   installment_ids: number[];
   amount_mode: string;
   paid_amount: number | null;
+  account_id: number | null;
   paid_at: string | null;
   allocation_mode: string;
   note: string | null;
@@ -129,6 +153,7 @@ export type TenantFinanceLoanInstallmentReversalBatchRequest = {
   installment_ids: number[];
   amount_mode: string;
   reversed_amount: number | null;
+  account_id: number | null;
   reversal_reason_code: string;
   note: string | null;
 };
@@ -138,6 +163,7 @@ export type TenantFinanceLoanWriteRequest = {
   loan_type: string;
   counterparty_name: string;
   currency_id: number;
+  account_id: number | null;
   principal_amount: number;
   current_balance: number;
   interest_rate: number | null;

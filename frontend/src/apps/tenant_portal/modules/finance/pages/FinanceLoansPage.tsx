@@ -12,6 +12,10 @@ import type { ApiError } from "../../../../../types";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
 import {
+  getTenantFinanceAccounts,
+  type TenantFinanceAccount,
+} from "../services/accountsService";
+import {
   getTenantFinanceCurrencies,
   type TenantFinanceCurrency,
 } from "../services/currenciesService";
@@ -35,6 +39,7 @@ type LoanFormState = {
   loanType: string;
   counterpartyName: string;
   currencyId: string;
+  accountId: string;
   principalAmount: string;
   currentBalance: string;
   interestRate: string;
@@ -55,6 +60,7 @@ type InstallmentPaymentFormState = {
   mode: "apply" | "reverse";
   installmentId: number | null;
   paidAmount: string;
+  accountId: string;
   allocationMode: string;
   reversalReasonCode: string;
   note: string;
@@ -64,6 +70,7 @@ type InstallmentBatchFormState = {
   mode: "apply" | "reverse";
   amountMode: string;
   amount: string;
+  accountId: string;
   allocationMode: string;
   reversalReasonCode: string;
   note: string;
@@ -74,6 +81,7 @@ const DEFAULT_FORM_STATE: LoanFormState = {
   loanType: "borrowed",
   counterpartyName: "",
   currencyId: "",
+  accountId: "",
   principalAmount: "",
   currentBalance: "",
   interestRate: "",
@@ -90,6 +98,7 @@ export function FinanceLoansPage() {
   const { language } = useLanguage();
   const [loansResponse, setLoansResponse] = useState<TenantFinanceLoansResponse | null>(null);
   const [currencies, setCurrencies] = useState<TenantFinanceCurrency[]>([]);
+  const [accounts, setAccounts] = useState<TenantFinanceAccount[]>([]);
   const [editingLoanId, setEditingLoanId] = useState<number | null>(null);
   const [selectedLoanId, setSelectedLoanId] = useState<number | null>(null);
   const [loanDetail, setLoanDetail] = useState<TenantFinanceLoanDetailResponse["data"] | null>(null);
@@ -99,6 +108,7 @@ export function FinanceLoansPage() {
     mode: "apply",
     installmentId: null,
     paidAmount: "",
+    accountId: "",
     allocationMode: "interest_first",
     reversalReasonCode: "operator_error",
     note: "",
@@ -108,6 +118,7 @@ export function FinanceLoansPage() {
     mode: "apply",
     amountMode: "full_remaining",
     amount: "",
+    accountId: "",
     allocationMode: "interest_first",
     reversalReasonCode: "operator_error",
     note: "",
@@ -129,6 +140,16 @@ export function FinanceLoansPage() {
     activeCurrencies.find((currency) => currency.is_base)?.code ||
     activeCurrencies[0]?.code ||
     "USD";
+  const availableAccounts = useMemo(() => {
+    const selectedAccountId = formState.accountId ? Number(formState.accountId) : null;
+    const selectedCurrencyId = formState.currencyId ? Number(formState.currencyId) : null;
+    return accounts.filter((account) => {
+      const isSelected = selectedAccountId != null && account.id === selectedAccountId;
+      const currencyMatches =
+        selectedCurrencyId == null || account.currency_id === selectedCurrencyId;
+      return currencyMatches && (account.is_active || isSelected);
+    });
+  }, [accounts, formState.accountId, formState.currencyId]);
 
   useEffect(() => {
     void loadLoanWorkspace();
@@ -145,6 +166,16 @@ export function FinanceLoansPage() {
   }, [activeCurrencies, formState.currencyId]);
 
   useEffect(() => {
+    if (!formState.accountId) {
+      return;
+    }
+    const selectedAccountId = Number(formState.accountId);
+    if (!availableAccounts.some((account) => account.id === selectedAccountId)) {
+      setFormState((current) => ({ ...current, accountId: "" }));
+    }
+  }, [availableAccounts, formState.accountId]);
+
+  useEffect(() => {
     void loadLoanDetail();
   }, [session?.accessToken, selectedLoanId]);
 
@@ -153,6 +184,7 @@ export function FinanceLoansPage() {
       mode: "apply",
       installmentId: null,
       paidAmount: "",
+      accountId: "",
       allocationMode: "interest_first",
       reversalReasonCode: "operator_error",
       note: "",
@@ -162,6 +194,7 @@ export function FinanceLoansPage() {
       mode: "apply",
       amountMode: "full_remaining",
       amount: "",
+      accountId: "",
       allocationMode: "interest_first",
       reversalReasonCode: "operator_error",
       note: "",
@@ -183,13 +216,19 @@ export function FinanceLoansPage() {
         loanStatus: filterLoanStatus || undefined,
       }),
       getTenantFinanceCurrencies(session.accessToken, false),
+      getTenantFinanceAccounts(session.accessToken, true),
     ]);
 
-    const [loansResult, currenciesResult] = results;
+    const [loansResult, currenciesResult, accountsResult] = results;
 
-    if (loansResult.status === "rejected" && currenciesResult.status === "rejected") {
+    if (
+      loansResult.status === "rejected" &&
+      currenciesResult.status === "rejected" &&
+      accountsResult.status === "rejected"
+    ) {
       setLoansResponse(null);
       setCurrencies([]);
+      setAccounts([]);
       setError(loansResult.reason as ApiError);
       setIsLoading(false);
       return;
@@ -197,6 +236,7 @@ export function FinanceLoansPage() {
 
     setLoansResponse(loansResult.status === "fulfilled" ? loansResult.value : null);
     setCurrencies(currenciesResult.status === "fulfilled" ? currenciesResult.value.data : []);
+    setAccounts(accountsResult.status === "fulfilled" ? accountsResult.value.data : []);
     setIsLoading(false);
   }
 
@@ -227,6 +267,7 @@ export function FinanceLoansPage() {
     setFormState({
       ...DEFAULT_FORM_STATE,
       currencyId: baseCurrency ? String(baseCurrency.id) : activeCurrencies[0] ? String(activeCurrencies[0].id) : "",
+      accountId: "",
       startDate: buildTodayDateValue(),
     });
   }
@@ -238,6 +279,7 @@ export function FinanceLoansPage() {
       loanType: loan.loan_type,
       counterpartyName: loan.counterparty_name,
       currencyId: String(loan.currency_id),
+      accountId: loan.account_id == null ? "" : String(loan.account_id),
       principalAmount: String(loan.principal_amount),
       currentBalance: String(loan.current_balance),
       interestRate: loan.interest_rate == null ? "" : String(loan.interest_rate),
@@ -267,6 +309,7 @@ export function FinanceLoansPage() {
         loan_type: formState.loanType,
         counterparty_name: formState.counterpartyName.trim(),
         currency_id: Number(formState.currencyId),
+        account_id: formState.accountId ? Number(formState.accountId) : null,
         principal_amount: Number.parseFloat(formState.principalAmount),
         current_balance: Number.parseFloat(formState.currentBalance),
         interest_rate: formState.interestRate.trim()
@@ -308,6 +351,7 @@ export function FinanceLoansPage() {
       mode: "apply",
       installmentId: installment.id,
       paidAmount: remainingAmount > 0 ? String(remainingAmount) : "",
+      accountId: loanDetail?.loan.account_id == null ? "" : String(loanDetail.loan.account_id),
       allocationMode: "interest_first",
       reversalReasonCode: installment.reversal_reason_code || "operator_error",
       note: installment.note || "",
@@ -319,6 +363,7 @@ export function FinanceLoansPage() {
       mode: "reverse",
       installmentId: installment.id,
       paidAmount: installment.paid_amount > 0 ? String(installment.paid_amount) : "",
+      accountId: loanDetail?.loan.account_id == null ? "" : String(loanDetail.loan.account_id),
       allocationMode: "interest_first",
       reversalReasonCode: installment.reversal_reason_code || "operator_error",
       note: installment.note || "",
@@ -343,6 +388,9 @@ export function FinanceLoansPage() {
               paymentFormState.installmentId,
               {
                 paid_amount: Number.parseFloat(paymentFormState.paidAmount),
+                account_id: paymentFormState.accountId
+                  ? Number(paymentFormState.accountId)
+                  : null,
                 paid_at: null,
                 allocation_mode: paymentFormState.allocationMode,
                 note: paymentFormState.note.trim() || null,
@@ -354,6 +402,9 @@ export function FinanceLoansPage() {
               paymentFormState.installmentId,
               {
                 reversed_amount: Number.parseFloat(paymentFormState.paidAmount),
+                account_id: paymentFormState.accountId
+                  ? Number(paymentFormState.accountId)
+                  : null,
                 reversal_reason_code: paymentFormState.reversalReasonCode,
                 note: paymentFormState.note.trim() || null,
               }
@@ -364,6 +415,7 @@ export function FinanceLoansPage() {
         mode: "apply",
         installmentId: null,
         paidAmount: "",
+        accountId: response.data.loan.account_id == null ? "" : String(response.data.loan.account_id),
         allocationMode: "interest_first",
         reversalReasonCode: "operator_error",
         note: "",
@@ -401,6 +453,7 @@ export function FinanceLoansPage() {
                   batchFormState.amountMode === "fixed_per_installment"
                     ? Number.parseFloat(batchFormState.amount)
                     : null,
+                account_id: batchFormState.accountId ? Number(batchFormState.accountId) : null,
                 paid_at: null,
                 allocation_mode: batchFormState.allocationMode,
                 note: batchFormState.note.trim() || null,
@@ -416,6 +469,7 @@ export function FinanceLoansPage() {
                   batchFormState.amountMode === "fixed_per_installment"
                     ? Number.parseFloat(batchFormState.amount)
                     : null,
+                account_id: batchFormState.accountId ? Number(batchFormState.accountId) : null,
                 reversal_reason_code: batchFormState.reversalReasonCode,
                 note: batchFormState.note.trim() || null,
               }
@@ -427,6 +481,7 @@ export function FinanceLoansPage() {
         mode: "apply",
         amountMode: "full_remaining",
         amount: "",
+        accountId: response.data.loan.account_id == null ? "" : String(response.data.loan.account_id),
         allocationMode: "interest_first",
         reversalReasonCode: "operator_error",
         note: "",
@@ -591,6 +646,30 @@ export function FinanceLoansPage() {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label className="form-label">
+                {language === "es" ? "Cuenta origen" : "Source account"}
+              </label>
+              <select
+                className="form-select"
+                value={formState.accountId}
+                onChange={(event) =>
+                  setFormState((current) => ({ ...current, accountId: event.target.value }))
+                }
+              >
+                <option value="">
+                  {language === "es"
+                    ? "Sin cuenta fija; se pedirá al operar cuotas"
+                    : "No fixed account; it will be requested when operating installments"}
+                </option>
+                {availableAccounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {buildAccountOptionLabel(account)}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="tenant-inline-form-grid">
@@ -804,6 +883,7 @@ export function FinanceLoansPage() {
                   <th>{language === "es" ? "Nombre" : "Name"}</th>
                   <th>{language === "es" ? "Tipo" : "Type"}</th>
                   <th>{language === "es" ? "Contraparte" : "Counterparty"}</th>
+                  <th>{language === "es" ? "Cuenta origen" : "Source account"}</th>
                   <th>{language === "es" ? "Capital" : "Principal"}</th>
                   <th>{language === "es" ? "Saldo" : "Balance"}</th>
                   <th>{language === "es" ? "Pagado" : "Paid"}</th>
@@ -820,6 +900,7 @@ export function FinanceLoansPage() {
                     <td>{loan.name}</td>
                     <td>{displayLoanType(loan.loan_type, language)}</td>
                     <td>{loan.counterparty_name}</td>
+                    <td>{displayLoanAccount(loan, language)}</td>
                     <td>{formatMoney(loan.principal_amount, loan.currency_code, language)}</td>
                     <td>{formatMoney(loan.current_balance, loan.currency_code, language)}</td>
                     <td>{formatMoney(loan.paid_amount, loan.currency_code, language)}</td>
@@ -892,6 +973,10 @@ export function FinanceLoansPage() {
             <div className="tenant-detail-grid">
               <DetailField label={language === "es" ? "Préstamo" : "Loan"} value={loanDetail.loan.name} />
               <DetailField label={language === "es" ? "Contraparte" : "Counterparty"} value={loanDetail.loan.counterparty_name} />
+              <DetailField
+                label={language === "es" ? "Cuenta origen" : "Source account"}
+                value={displayLoanAccount(loanDetail.loan, language)}
+              />
               <DetailField
                 label={language === "es" ? "Plan de cuotas" : "Installment plan"}
                 value={
@@ -1008,6 +1093,45 @@ export function FinanceLoansPage() {
                   </div>
                   <div>
                     <label className="form-label">
+                      {language === "es" ? "Cuenta operación" : "Operation account"}
+                    </label>
+                    <select
+                      className="form-select"
+                      value={batchFormState.accountId}
+                      onChange={(event) =>
+                        setBatchFormState((current) => ({
+                          ...current,
+                          accountId: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">
+                        {loanDetail.loan.account_id == null
+                          ? language === "es"
+                            ? "Selecciona una cuenta"
+                            : "Select an account"
+                          : language === "es"
+                            ? "Usar cuenta del préstamo"
+                            : "Use loan account"}
+                      </option>
+                      {accounts
+                        .filter(
+                          (account) =>
+                            account.currency_id === loanDetail.loan.currency_id &&
+                            (account.is_active || account.id === loanDetail.loan.account_id)
+                        )
+                        .map((account) => (
+                          <option key={account.id} value={account.id}>
+                            {buildAccountOptionLabel(account)}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">
                       {batchFormState.mode === "apply"
                         ? language === "es"
                           ? "Modo amortización"
@@ -1091,6 +1215,10 @@ export function FinanceLoansPage() {
                         mode: "apply",
                         amountMode: "full_remaining",
                         amount: "",
+                        accountId:
+                          loanDetail.loan.account_id == null
+                            ? ""
+                            : String(loanDetail.loan.account_id),
                         allocationMode: "interest_first",
                         reversalReasonCode: "operator_error",
                         note: "",
@@ -1124,6 +1252,44 @@ export function FinanceLoansPage() {
                       }
                     />
                   </div>
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Cuenta operación" : "Operation account"}
+                    </label>
+                    <select
+                      className="form-select"
+                      value={paymentFormState.accountId}
+                      onChange={(event) =>
+                        setPaymentFormState((current) => ({
+                          ...current,
+                          accountId: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">
+                        {loanDetail.loan.account_id == null
+                          ? language === "es"
+                            ? "Selecciona una cuenta"
+                            : "Select an account"
+                          : language === "es"
+                            ? "Usar cuenta del préstamo"
+                            : "Use loan account"}
+                      </option>
+                      {accounts
+                        .filter(
+                          (account) =>
+                            account.currency_id === loanDetail.loan.currency_id &&
+                            (account.is_active || account.id === loanDetail.loan.account_id)
+                        )
+                        .map((account) => (
+                          <option key={account.id} value={account.id}>
+                            {buildAccountOptionLabel(account)}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="tenant-inline-form-grid">
                   <div>
                     <label className="form-label">
                       {paymentFormState.mode === "apply"
@@ -1204,6 +1370,10 @@ export function FinanceLoansPage() {
                         mode: "apply",
                         installmentId: null,
                         paidAmount: "",
+                        accountId:
+                          loanDetail.loan.account_id == null
+                            ? ""
+                            : String(loanDetail.loan.account_id),
                         allocationMode: "interest_first",
                         reversalReasonCode: "operator_error",
                         note: "",
@@ -1324,6 +1494,48 @@ export function FinanceLoansPage() {
                   : "This loan does not have a schedule yet because the installment count was not defined."}
               </div>
             )}
+
+            <div className="d-grid gap-2">
+              <div className="tenant-detail__label">
+                {language === "es"
+                  ? "Lectura contable derivada"
+                  : "Derived accounting reading"}
+              </div>
+              {loanDetail.accounting_transactions.length > 0 ? (
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th>{language === "es" ? "Fecha" : "Date"}</th>
+                        <th>{language === "es" ? "Tipo" : "Type"}</th>
+                        <th>{language === "es" ? "Cuenta" : "Account"}</th>
+                        <th>{language === "es" ? "Monto" : "Amount"}</th>
+                        <th>{language === "es" ? "Descripción" : "Description"}</th>
+                        <th>{language === "es" ? "Conciliada" : "Reconciled"}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loanDetail.accounting_transactions.map((transaction) => (
+                        <tr key={transaction.id}>
+                          <td>{formatDateTime(transaction.transaction_at, language)}</td>
+                          <td>{displayTransactionType(transaction.transaction_type, language)}</td>
+                          <td>{displayDerivedAccount(transaction, language)}</td>
+                          <td>{formatMoney(transaction.amount, transaction.currency_code, language)}</td>
+                          <td>{transaction.description}</td>
+                          <td>{language === "es" ? (transaction.is_reconciled ? "sí" : "no") : transaction.is_reconciled ? "yes" : "no"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-secondary">
+                  {language === "es"
+                    ? "Todavía no hay transacciones derivadas registradas para este préstamo."
+                    : "There are no derived transactions recorded for this loan yet."}
+                </div>
+              )}
+            </div>
           </div>
         ) : null}
       </PanelCard>
