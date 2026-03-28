@@ -287,6 +287,7 @@ Falta para cerrarlo:
 - seguir `Lote 7` con comparativas más profundas sobre rangos arbitrarios, cortes analíticos adicionales por proyectos/terceros y lecturas exportables más densas
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
+- dejar pendiente, para despues del cierre funcional de `finance`, la construccion de un `design system` completo del PaaS con adopcion inicial en el propio `finance`, incluyendo iconografia semantica comun
 
 ## Etapa 9. Calidad Tecnica Base
 
@@ -500,6 +501,7 @@ Falta para cerrarlo:
 
 - cerrar mejor casos de negocio de `finance`
 - decidir el siguiente modulo real despues de `finance`
+- solo despues de cerrar `finance`, abrir el trabajo transversal de `design system` y usar `finance` como primer modulo donde se aplique de forma integral
 
 ## Etapa 15. Registro y Activacion de Modulos
 

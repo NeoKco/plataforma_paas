@@ -50,6 +50,7 @@ Lo pendiente es sobre todo:
 - endurecer `Préstamos` con lectura contable derivada más rica, mejor contexto de cuenta y mejor explotación operativa del detalle
 - mover la sincronizacion tenant-side a un flujo asíncrono con job visible en vez de ejecutarla inline
 - sumar auto-sync post-provisioning/post-deploy para reducir friccion operativa
+- una vez cerrado `finance`, abrir un `design system` transversal del PaaS y aplicar la primera migracion completa precisamente sobre `finance`, incluyendo sistema comun de iconos por modulo y entidad
 
 Nota de ejecucion:
 

@@ -111,6 +111,11 @@ En esta fase quedaron listos:
 - manejo controlado de schema incompleto en vistas de `finance`, sin `500` crudo
 - self-service de sincronizacion de estructura desde el propio `tenant_portal` para `tenant admin`
 
+Pendiente posterior al cierre de `finance`:
+
+- usar el propio modulo `finance` como primer bloque de adopcion del futuro `design system` transversal del PaaS
+- ese trabajo queda secuenciado para despues del cierre funcional del modulo y debe incluir iconografia semantica comun para modulos, navegacion y entidades
+
 ## Archivos principales
 
 - `backend/app/apps/tenant_modules/finance/models/entry.py`
