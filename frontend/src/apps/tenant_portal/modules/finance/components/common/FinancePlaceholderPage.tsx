@@ -13,7 +13,7 @@ export function FinancePlaceholderPage({
 
   return (
     <div className="d-grid gap-4">
-      <PageHeader eyebrow="Finance" title={title} description={description} />
+      <PageHeader eyebrow="Finance" icon="finance" title={title} description={description} />
       <PanelCard
         title={language === "es" ? "Vista en preparación" : "View in preparation"}
         subtitle={

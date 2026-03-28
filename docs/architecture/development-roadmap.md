@@ -300,7 +300,7 @@ Backlog opcional post-cierre:
 - seguir `Reportes` y `Planificación` con visualizaciones mas densas o cortes analíticos adicionales solo si aparecen necesidades reales; la primera capa de charts ya quedó aplicada
 - la base visual local de `finance` ya quedó sembrada con iconografia semantica, bloques `spotlight` y charts livianos; el pendiente ya no es esa capa inicial, sino elevarla a sistema transversal del PaaS
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
-- dejar, ya fuera del cierre de `finance`, la construccion de un `design system` completo del PaaS tomando esta base de `finance` como semilla y extendiendola al resto del producto
+- el trabajo transversal de `design system` ya quedó iniciado en frontend con iconografia común, `spotlight` genérico y primitives enriquecidas; lo que sigue es expandir esa base desde `finance` al resto del producto
 - dejar, tambien como trabajo transversal posterior, una internacionalizacion real del sistema porque fuera de `finance` todavia existen pantallas y helpers compartidos con copy parcialmente hardcodeado
 
 ## Etapa 9. Calidad Tecnica Base
@@ -516,7 +516,7 @@ Resultado actual:
 Falta para cerrarlo:
 
 - decidir el siguiente modulo real despues de `finance`
-- abrir el trabajo transversal de `design system` y usar `finance` como primer modulo donde se aplique de forma integral, partiendo desde la base visual ya sembrada en el propio modulo
+- seguir expandiendo el trabajo transversal de `design system` y usar `finance` como primer modulo donde se aplique de forma integral, partiendo desde la base visual ya sembrada y ya conectada a primitives compartidas
 - seguir limpiando internacionalizacion transversal fuera de `finance`, porque todavia quedan pantallas y helpers con copy mezclado o localmente hardcodeado
 
 ## Etapa 15. Registro y Activacion de Modulos

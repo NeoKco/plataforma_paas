@@ -75,6 +75,7 @@ export function FinanceCalendarPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Finance"
+        icon="planning"
         title={language === "es" ? "Planificación" : "Planning"}
         description={
           language === "es"
@@ -156,22 +157,29 @@ export function FinanceCalendarPage() {
 
       <div className="tenant-portal-metrics">
         <MetricCard
+          icon="income"
           label={language === "es" ? "Ingreso proyectado" : "Projected income"}
+          tone="success"
           value={formatMoney(summary?.total_income || 0, language, baseCurrencyCode)}
           hint={language === "es" ? "Movimiento real detectado en el mes" : "Actual activity detected in the month"}
         />
         <MetricCard
+          icon="expense"
           label={language === "es" ? "Egreso proyectado" : "Projected expense"}
+          tone="warning"
           value={formatMoney(summary?.total_expense || 0, language, baseCurrencyCode)}
           hint={language === "es" ? "Gasto real detectado en el mes" : "Actual spending detected in the month"}
         />
         <MetricCard
+          icon="planning"
           label={language === "es" ? "Cuotas por vencer" : "Installments due"}
           value={summary?.due_installments_count || 0}
           hint={language === "es" ? "Vencimientos del mes" : "Due dates in the month"}
         />
         <MetricCard
+          icon="loans"
           label={language === "es" ? "Flujo esperado préstamos" : "Expected loan flow"}
+          tone="info"
           value={formatMoney(summary?.expected_loan_cashflow || 0, language, baseCurrencyCode)}
           hint={language === "es" ? "Saldo pendiente de cuotas del mes" : "Outstanding installment balance for the month"}
         />

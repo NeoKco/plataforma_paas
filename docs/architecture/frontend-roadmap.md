@@ -53,7 +53,7 @@ Lo pendiente es sobre todo:
 - seguir endureciendo `Préstamos` solo si el negocio exige mejor lectura de contrapartida, cruces más densos o exportaciones aún más contables
 - consolidar la adopción visible del auto-sync post-deploy en consola operativa, ahora que ya existe el follow-up automático post-provisioning, la acción masiva desde `Provisioning` y la integración al wrapper de release/verify
 - `finance` ya tiene una primera capa visual propia con iconografía semántica, bloques `spotlight` y charts livianos en `Reportes` y `Planificación`; si se sigue por ahí debe ser para densidad adicional, no para abrir esa base desde cero
-- abrir ahora un `design system` transversal del PaaS y aplicar la primera migracion completa precisamente sobre `finance`, reutilizando esa base inicial e incluyendo sistema comun de iconos por modulo y entidad
+- el `design system` transversal del PaaS ya quedó arrancado con `AppIcon`, `AppSpotlight` y primitives compartidas; el siguiente tramo es profundizar la migración integral de `finance` y luego expandirla al resto del frontend
 - cerrar una internacionalizacion transversal real del frontend, continuando desde el avance ya aplicado en `finance`, `Overview` y `Users` para eliminar copy hardcodeado del resto de pantallas y helpers compartidos
 
 Nota de ejecucion:
@@ -75,7 +75,7 @@ El objetivo ahora es este:
 - dejar el frontend listo para crecer sin retrabajo grande antes de abrir nuevos modulos
 - tratar `finance` como modulo base visible del SaaS antes de abrir otros dominios tenant
 - mantener `tenant_portal/modules/finance` como estructura canonica para la evolucion del modulo
-- tratar `finance` como primer slice cerrado que luego será migrado al `design system` transversal, no como módulo todavía abierto por defecto
+- tratar `finance` como primer slice cerrado y ya en migracion inicial al `design system` transversal, no como módulo todavía abierto por defecto
 
 ## Principio rector
 

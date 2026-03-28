@@ -127,6 +127,7 @@ export function FinanceReportsPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Finance"
+        icon="reports"
         title={language === "es" ? "Reportes" : "Reports"}
         description={
           language === "es"
@@ -376,21 +377,28 @@ export function FinanceReportsPage() {
 
       <div className="tenant-portal-metrics">
         <MetricCard
+          icon="income"
           label={language === "es" ? "Ingresos" : "Income"}
+          tone="success"
           value={formatMoney(transactionSnapshot?.total_income || 0, baseCurrencyCode, language)}
           hint={language === "es" ? "Ingreso del período" : "Income for the period"}
         />
         <MetricCard
+          icon="expense"
           label={language === "es" ? "Egresos" : "Expenses"}
+          tone="warning"
           value={formatMoney(transactionSnapshot?.total_expense || 0, baseCurrencyCode, language)}
           hint={language === "es" ? "Egreso del período" : "Expense for the period"}
         />
         <MetricCard
+          icon="balance"
           label={language === "es" ? "Balance neto" : "Net balance"}
+          tone="info"
           value={formatMoney(transactionSnapshot?.net_balance || 0, baseCurrencyCode, language)}
           hint={language === "es" ? "Ingreso menos egreso" : "Income minus expense"}
         />
         <MetricCard
+          icon="transactions"
           label={language === "es" ? "Transacciones" : "Transactions"}
           value={transactionSnapshot?.total_transactions || 0}
           hint={language === "es" ? "Filtradas por mes" : "Filtered by month"}

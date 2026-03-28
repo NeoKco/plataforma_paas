@@ -508,6 +508,7 @@ export function FinanceTransactionsPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow={language === "es" ? "Espacio" : "Workspace"}
+        icon="transactions"
         title={language === "es" ? "Transacciones financieras" : "Financial transactions"}
         description={
           language === "es"
@@ -530,22 +531,29 @@ export function FinanceTransactionsPage() {
 
       <div className="tenant-portal-metrics">
         <MetricCard
+          icon="transactions"
           label={language === "es" ? "Transacciones" : "Transactions"}
           value={summary?.total_entries || 0}
           hint={language === "es" ? "Movimientos persistidos en finance_transactions" : "Entries persisted in finance_transactions"}
         />
         <MetricCard
+          icon="income"
           label={language === "es" ? "Ingresos" : "Income"}
+          tone="success"
           value={formatMoney(summary?.total_income || 0, baseCurrency?.code, language)}
           hint={language === "es" ? "Acumulado visible" : "Visible total"}
         />
         <MetricCard
+          icon="expense"
           label={language === "es" ? "Egresos" : "Expenses"}
+          tone="warning"
           value={formatMoney(summary?.total_expense || 0, baseCurrency?.code, language)}
           hint={language === "es" ? "Acumulado visible" : "Visible total"}
         />
         <MetricCard
+          icon="balance"
           label={language === "es" ? "Balance" : "Balance"}
+          tone="info"
           value={formatMoney(summary?.balance || 0, baseCurrency?.code, language)}
           hint={language === "es" ? "Resultado actual" : "Current result"}
         />

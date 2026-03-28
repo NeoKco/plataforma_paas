@@ -1,17 +1,33 @@
 import { NavLink } from "react-router-dom";
+import { AppIcon, type AppIconName } from "../../../design-system/AppIcon";
 import { useLanguage } from "../../../store/language-context";
 
 export function TenantSidebarNav() {
   const { language } = useLanguage();
   const navItems = [
-    { to: "/tenant-portal", label: language === "es" ? "Resumen" : "Overview" },
-    { to: "/tenant-portal/users", label: language === "es" ? "Usuarios" : "Users" },
-    { to: "/tenant-portal/finance", label: language === "es" ? "Finanzas" : "Finance" },
+    {
+      to: "/tenant-portal",
+      label: language === "es" ? "Resumen" : "Overview",
+      icon: "overview" as AppIconName,
+    },
+    {
+      to: "/tenant-portal/users",
+      label: language === "es" ? "Usuarios" : "Users",
+      icon: "users" as AppIconName,
+    },
+    {
+      to: "/tenant-portal/finance",
+      label: language === "es" ? "Finanzas" : "Finance",
+      icon: "finance" as AppIconName,
+    },
   ];
 
   return (
     <aside className="platform-sidebar">
       <div className="platform-sidebar__brand">
+        <div className="platform-sidebar__brand-mark">
+          <AppIcon name="finance" size={18} />
+        </div>
         <div className="platform-sidebar__eyebrow">Platform PaaS</div>
         <div className="platform-sidebar__title">
           {language === "es" ? "Portal Tenant" : "Tenant Portal"}
@@ -27,6 +43,9 @@ export function TenantSidebarNav() {
               `platform-sidebar__link${isActive ? " is-active" : ""}`
             }
           >
+            <span className="platform-sidebar__link-icon">
+              <AppIcon name={item.icon} size={16} />
+            </span>
             {item.label}
           </NavLink>
         ))}

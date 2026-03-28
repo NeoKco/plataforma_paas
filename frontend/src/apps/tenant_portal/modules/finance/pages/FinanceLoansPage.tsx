@@ -556,6 +556,7 @@ export function FinanceLoansPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Finance"
+        icon="loans"
         title={language === "es" ? "Préstamos" : "Loans"}
         description={
           language === "es"
@@ -578,21 +579,28 @@ export function FinanceLoansPage() {
 
       <div className="tenant-portal-metrics">
         <MetricCard
+          icon="budgets"
           label={language === "es" ? "Capital total" : "Total principal"}
+          tone="info"
           value={formatMoney(summary?.total_principal || 0, baseCurrencyCode, language)}
           hint={language === "es" ? "Monto inicial visible" : "Visible opening amount"}
         />
         <MetricCard
+          icon="income"
           label={language === "es" ? "Saldo prestado" : "Lent balance"}
+          tone="success"
           value={formatMoney(summary?.lent_balance || 0, baseCurrencyCode, language)}
           hint={language === "es" ? "Por cobrar a terceros" : "Outstanding from third parties"}
         />
         <MetricCard
+          icon="expense"
           label={language === "es" ? "Saldo recibido" : "Borrowed balance"}
+          tone="warning"
           value={formatMoney(summary?.borrowed_balance || 0, baseCurrencyCode, language)}
           hint={language === "es" ? "Por pagar a terceros" : "Outstanding to third parties"}
         />
         <MetricCard
+          icon="loans"
           label={language === "es" ? "Activos" : "Active"}
           value={summary?.active_items || 0}
           hint={language === "es" ? "Préstamos abiertos" : "Open loans"}

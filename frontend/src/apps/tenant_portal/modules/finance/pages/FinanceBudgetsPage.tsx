@@ -353,6 +353,7 @@ export function FinanceBudgetsPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Finance"
+        icon="budgets"
         title={language === "es" ? "Presupuestos" : "Budgets"}
         description={
           language === "es"
@@ -375,21 +376,27 @@ export function FinanceBudgetsPage() {
 
       <div className="tenant-portal-metrics">
         <MetricCard
+          icon="budgets"
           label={language === "es" ? "Presupuestado" : "Budgeted"}
+          tone="info"
           value={formatMoney(summary?.total_budgeted || 0, language, baseCurrencyCode)}
           hint={language === "es" ? "Total del filtro visible" : "Total for the visible filter"}
         />
         <MetricCard
+          icon="expense"
           label={language === "es" ? "Ejecutado" : "Actual"}
+          tone="warning"
           value={formatMoney(summary?.total_actual || 0, language, baseCurrencyCode)}
           hint={language === "es" ? "Real acumulado por categoría" : "Actual accumulated by category"}
         />
         <MetricCard
+          icon="balance"
           label={language === "es" ? "Desviación" : "Variance"}
           value={formatMoney(summary?.total_variance || 0, language, baseCurrencyCode)}
           hint={language === "es" ? "Presupuesto menos real" : "Budget minus actual"}
         />
         <MetricCard
+          icon="focus"
           label={language === "es" ? "Ítems" : "Items"}
           value={summary?.total_items || 0}
           hint={language === "es" ? "Presupuestos del filtro" : "Budgets in the filter"}
@@ -398,7 +405,9 @@ export function FinanceBudgetsPage() {
 
       <div className="tenant-portal-metrics">
         <MetricCard
+          icon="expense"
           label={language === "es" ? "Sobre presupuesto" : "Over budget"}
+          tone="danger"
           value={summary?.over_budget_items || 0}
           hint={
             language === "es"
@@ -407,7 +416,9 @@ export function FinanceBudgetsPage() {
           }
         />
         <MetricCard
+          icon="balance"
           label={language === "es" ? "Dentro" : "Within"}
+          tone="success"
           value={summary?.within_budget_items || 0}
           hint={
             language === "es"
@@ -416,6 +427,7 @@ export function FinanceBudgetsPage() {
           }
         />
         <MetricCard
+          icon="focus"
           label={language === "es" ? "Sin uso" : "Unused"}
           value={summary?.unused_items || 0}
           hint={
@@ -425,6 +437,7 @@ export function FinanceBudgetsPage() {
           }
         />
         <MetricCard
+          icon="settings"
           label={language === "es" ? "Inactivas" : "Inactive"}
           value={summary?.inactive_items || 0}
           hint={

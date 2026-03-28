@@ -178,6 +178,7 @@ export function FinanceAccountsPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow={language === "es" ? "Finance" : "Finance"}
+        icon="accounts"
         title={language === "es" ? "Cuentas" : "Accounts"}
         description={
           language === "es"

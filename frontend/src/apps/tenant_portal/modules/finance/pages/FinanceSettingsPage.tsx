@@ -197,6 +197,7 @@ export function FinanceSettingsPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Finance"
+        icon="settings"
         title={language === "es" ? "Configuración financiera" : "Financial settings"}
         description={
           language === "es"

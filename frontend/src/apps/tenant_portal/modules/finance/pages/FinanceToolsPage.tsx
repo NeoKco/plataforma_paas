@@ -237,6 +237,7 @@ export function FinanceToolsPage() {
     <div className="d-grid gap-4">
       <PageHeader
         eyebrow="Finance"
+        icon="catalogs"
         title={language === "es" ? "Catálogos auxiliares" : "Supporting catalogs"}
         description={
           language === "es"

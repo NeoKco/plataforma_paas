@@ -140,8 +140,8 @@ Lo que queda ya no bloquea cierre funcional del módulo. Pasa a backlog opcional
 
 Pendiente posterior al cierre de `finance`:
 
-- usar el propio modulo `finance` como primer bloque de adopcion del futuro `design system` transversal del PaaS
-- ese trabajo debe partir desde la base ya sembrada en `finance` y extenderla de forma consistente a shells, componentes e iconografia comun del resto del producto
+- profundizar la adopcion del `design system` transversal ya iniciado en frontend usando `finance` como primer bloque real de migracion integral
+- ese trabajo ya arranco con iconografia comun, `spotlight` generico y primitives compartidas; lo que sigue es expandirlo de forma consistente a shells, componentes e iconografia comun del resto del producto
 - cerrar una internacionalizacion transversal real del sistema, continuando desde el avance ya hecho dentro del propio `finance`
 
 Backlog opcional del propio módulo:
@@ -360,9 +360,9 @@ Ademas, el propio `tenant_portal` ya permite a un `admin` del tenant:
 Lo siguiente recomendable ahora es:
 
 1. declarar `finance` como módulo base ya cerrado y usarlo como referencia para nuevos módulos tenant
-2. abrir después el `design system` transversal del PaaS, aplicándolo primero sobre `finance`
+2. seguir expandiendo el `design system` transversal del PaaS, aplicándolo primero sobre `finance`
 3. atacar luego la internacionalización transversal real del frontend
-4. dejar gráficos y mejoras opcionales del módulo como backlog posterior, no como bloqueo del cierre
+4. dejar charts más densos y otras mejoras opcionales del módulo como backlog posterior, no como bloqueo del cierre
 
 ## Convencion relacionada
 
