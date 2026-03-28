@@ -906,6 +906,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
     def test_get_finance_reports_overview_returns_consolidated_payload(self) -> None:
         overview = {
             "period_month": date(2026, 4, 1),
+            "movement_scope": "all",
             "transaction_snapshot": {
                 "period_month": date(2026, 4, 1),
                 "total_income": 500.0,
@@ -1031,6 +1032,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             response = get_finance_reports_overview(
                 period_month=date(2026, 4, 1),
                 trend_months=6,
+                movement_scope="all",
                 current_user=self._current_user(role="operator"),
                 tenant_db=object(),
             )
@@ -1050,12 +1052,14 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             date(2026, 3, 1),
         )
         self.assertEqual(response.data.monthly_trend[-1].net_balance, 380.0)
+        self.assertEqual(response.data.movement_scope, "all")
 
     def test_get_finance_reports_overview_forwards_trend_months(self) -> None:
         with patch(
             "app.apps.tenant_modules.finance.api.routes.reports_service.get_overview",
             return_value={
                 "period_month": date(2026, 4, 1),
+                "movement_scope": "all",
                 "transaction_snapshot": {
                     "period_month": date(2026, 4, 1),
                     "total_income": 0.0,
@@ -1115,12 +1119,14 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             get_finance_reports_overview(
                 period_month=date(2026, 4, 1),
                 trend_months=12,
+                movement_scope="favorites",
                 current_user=self._current_user(role="operator"),
                 tenant_db=object(),
             )
 
         _, kwargs = get_overview_mock.call_args
         self.assertEqual(kwargs["trend_months"], 12)
+        self.assertEqual(kwargs["movement_scope"], "favorites")
 
     def test_get_finance_planning_overview_returns_monthly_payload(self) -> None:
         overview = {

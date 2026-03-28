@@ -1,6 +1,6 @@
 from datetime import date
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
 
@@ -26,6 +26,7 @@ reports_service = FinanceReportsService()
 def get_finance_reports_overview(
     period_month: date,
     trend_months: int = 6,
+    movement_scope: str = "all",
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceReportOverviewResponse:
@@ -34,7 +35,10 @@ def get_finance_reports_overview(
             tenant_db,
             period_month=period_month,
             trend_months=trend_months,
+            movement_scope=movement_scope,
         )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
     return FinanceReportOverviewResponse(

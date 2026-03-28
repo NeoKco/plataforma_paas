@@ -31,9 +31,20 @@ class FinanceReportsService:
         *,
         period_month: date,
         trend_months: int = 6,
+        movement_scope: str = "all",
     ) -> dict:
         if trend_months not in {3, 6, 12}:
             raise ValueError("trend_months must be one of 3, 6 or 12")
+        if movement_scope not in {
+            "all",
+            "reconciled",
+            "unreconciled",
+            "favorites",
+            "loan_linked",
+        }:
+            raise ValueError(
+                "movement_scope must be one of all, reconciled, unreconciled, favorites or loan_linked"
+            )
         normalized_period_month = period_month.replace(day=1)
         starts_at = self._month_start(normalized_period_month)
         ends_at = self._next_month_start(normalized_period_month)
@@ -53,6 +64,10 @@ class FinanceReportsService:
             for transaction in all_transactions
             if starts_at <= self._normalize_datetime(transaction.transaction_at) < ends_at
         ]
+        transactions = self._filter_transactions_by_scope(
+            transactions,
+            movement_scope=movement_scope,
+        )
         previous_transactions = [
             transaction
             for transaction in all_transactions
@@ -60,6 +75,10 @@ class FinanceReportsService:
             <= self._normalize_datetime(transaction.transaction_at)
             < previous_ends_at
         ]
+        previous_transactions = self._filter_transactions_by_scope(
+            previous_transactions,
+            movement_scope=movement_scope,
+        )
         budget_rows, budget_summary = self.budget_service.list_budgets(
             tenant_db,
             period_month=normalized_period_month,
@@ -154,6 +173,7 @@ class FinanceReportsService:
 
         return {
             "period_month": normalized_period_month,
+            "movement_scope": movement_scope,
             "transaction_snapshot": transaction_snapshot,
             "budget_snapshot": budget_snapshot,
             "loan_snapshot": loan_snapshot,
@@ -235,6 +255,7 @@ class FinanceReportsService:
                 all_transactions=all_transactions,
                 current_period_month=normalized_period_month,
                 trend_months=trend_months,
+                movement_scope=movement_scope,
             ),
         }
 
@@ -360,6 +381,7 @@ class FinanceReportsService:
         all_transactions: list,
         current_period_month: date,
         trend_months: int,
+        movement_scope: str,
     ) -> list[dict]:
         months = self._build_trailing_months(current_period_month, count=trend_months)
         rows: list[dict] = []
@@ -372,6 +394,10 @@ class FinanceReportsService:
                 for transaction in all_transactions
                 if starts_at <= self._normalize_datetime(transaction.transaction_at) < ends_at
             ]
+            month_transactions = self._filter_transactions_by_scope(
+                month_transactions,
+                movement_scope=movement_scope,
+            )
             income_total = round(
                 sum(
                     item.amount
@@ -406,6 +432,24 @@ class FinanceReportsService:
                 }
             )
         return rows
+
+    def _filter_transactions_by_scope(
+        self,
+        transactions: list,
+        *,
+        movement_scope: str,
+    ) -> list:
+        if movement_scope == "all":
+            return transactions
+        if movement_scope == "reconciled":
+            return [item for item in transactions if item.is_reconciled]
+        if movement_scope == "unreconciled":
+            return [item for item in transactions if not item.is_reconciled]
+        if movement_scope == "favorites":
+            return [item for item in transactions if item.is_favorite]
+        if movement_scope == "loan_linked":
+            return [item for item in transactions if item.loan_id is not None]
+        return transactions
 
     def _month_start(self, period_month: date) -> datetime:
         return datetime.combine(period_month, time.min, tzinfo=timezone.utc)

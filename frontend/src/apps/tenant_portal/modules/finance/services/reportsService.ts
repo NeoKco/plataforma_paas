@@ -96,6 +96,7 @@ export type TenantFinanceReportOverviewResponse = {
   message: string;
   data: {
     period_month: string;
+    movement_scope: string;
     transaction_snapshot: TenantFinanceReportTransactionSnapshot;
     budget_snapshot: TenantFinanceReportBudgetSnapshot;
     loan_snapshot: TenantFinanceReportLoanSnapshot;
@@ -111,11 +112,13 @@ export type TenantFinanceReportOverviewResponse = {
 export function getTenantFinanceReportOverview(
   accessToken: string,
   periodMonth: string,
-  trendMonths = 6
+  trendMonths = 6,
+  movementScope = "all"
 ) {
   const params = new URLSearchParams();
   params.set("period_month", periodMonth);
   params.set("trend_months", String(trendMonths));
+  params.set("movement_scope", movementScope);
   return apiRequest<TenantFinanceReportOverviewResponse>(
     `/tenant/finance/reports/overview?${params.toString()}`,
     {

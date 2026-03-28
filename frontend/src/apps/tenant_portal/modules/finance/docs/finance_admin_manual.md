@@ -31,6 +31,7 @@ Estado actual:
 - `Reportes` ya agrega comparativa contra el mes anterior y exportación CSV básica desde la propia vista
 - `Reportes` ya agrega una tendencia corta de 6 meses para comparar el período en contexto
 - `Reportes` ya permite además cambiar el horizonte a `3/6/12` meses y exportar JSON base para soporte
+- `Reportes` ya permite además filtrar el overview por foco de movimientos para soporte operativo
 - cuando el schema `finance` del tenant queda atrasado, el portal ya muestra explicación operativa y CTA para actualizar estructura
 - `tenant admin` ya puede revisar estado y sincronizar estructura desde el propio portal, sin depender solo de `Platform Admin`
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo

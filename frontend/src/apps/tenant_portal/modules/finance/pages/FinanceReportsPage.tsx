@@ -23,6 +23,9 @@ export function FinanceReportsPage() {
   const { session } = useTenantAuth();
   const [periodMonth, setPeriodMonth] = useState(buildMonthValue());
   const [trendMonths, setTrendMonths] = useState<3 | 6 | 12>(6);
+  const [movementScope, setMovementScope] = useState<
+    "all" | "reconciled" | "unreconciled" | "favorites" | "loan_linked"
+  >("all");
   const [overview, setOverview] =
     useState<TenantFinanceReportOverviewResponse["data"] | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -30,7 +33,7 @@ export function FinanceReportsPage() {
 
   useEffect(() => {
     void loadOverview();
-  }, [session?.accessToken, periodMonth, trendMonths]);
+  }, [session?.accessToken, periodMonth, trendMonths, movementScope]);
 
   async function loadOverview() {
     if (!session?.accessToken) {
@@ -43,7 +46,8 @@ export function FinanceReportsPage() {
       const response = await getTenantFinanceReportOverview(
         session.accessToken,
         buildPeriodMonthIso(periodMonth),
-        trendMonths
+        trendMonths,
+        movementScope
       );
       setOverview(response.data);
     } catch (rawError) {
@@ -94,6 +98,29 @@ export function FinanceReportsPage() {
               <option value="3">3 meses</option>
               <option value="6">6 meses</option>
               <option value="12">12 meses</option>
+            </select>
+          </div>
+          <div>
+            <label className="form-label">Foco movimientos</label>
+            <select
+              className="form-select"
+              value={movementScope}
+              onChange={(event) =>
+                setMovementScope(
+                  event.target.value as
+                    | "all"
+                    | "reconciled"
+                    | "unreconciled"
+                    | "favorites"
+                    | "loan_linked"
+                )
+              }
+            >
+              <option value="all">Todos</option>
+              <option value="reconciled">Conciliados</option>
+              <option value="unreconciled">Pendientes</option>
+              <option value="favorites">Favoritas</option>
+              <option value="loan_linked">Ligados a préstamos</option>
             </select>
           </div>
           <div className="pt-4">
@@ -158,7 +185,9 @@ export function FinanceReportsPage() {
       <div className="finance-report-grid">
         <PanelCard
           title="Actividad del período"
-          subtitle="Salud operativa del movimiento mensual."
+          subtitle={`Salud operativa del movimiento mensual bajo foco ${buildMovementScopeLabel(
+            overview?.movement_scope || movementScope
+          )}.`}
         >
           <dl className="finance-report-definition-list">
             <ReportLine
@@ -571,6 +600,7 @@ function exportOverviewCsv(
   const rows: string[][] = [
     ["Seccion", "Clave", "Valor"],
     ["periodo", "mes", overview.period_month],
+    ["periodo", "foco_movimientos", overview.movement_scope],
     ["transacciones", "ingresos", String(overview.transaction_snapshot.total_income)],
     ["transacciones", "egresos", String(overview.transaction_snapshot.total_expense)],
     ["transacciones", "balance_neto", String(overview.transaction_snapshot.net_balance)],
@@ -642,4 +672,19 @@ function escapeCsvValue(value: string) {
     return `"${value.split("\"").join("\"\"")}"`;
   }
   return value;
+}
+
+function buildMovementScopeLabel(scope: string) {
+  switch (scope) {
+    case "reconciled":
+      return "conciliado";
+    case "unreconciled":
+      return "pendiente";
+    case "favorites":
+      return "favoritas";
+    case "loan_linked":
+      return "ligado a préstamos";
+    default:
+      return "general";
+  }
 }
