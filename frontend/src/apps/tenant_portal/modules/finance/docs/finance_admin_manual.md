@@ -41,6 +41,8 @@ Estado actual:
 - `Reportes` ya exporta CSV y JSON enriquecidos con comparativas y bloques ejecutivos para soporte
 - `Reportes` ya permite además contrastar la lectura activa contra un rango arbitrario manual
 - `Reportes` ya permite además rankear por entidad operativa (`categoría`, `cuenta`, `proyecto`, `beneficiario`, `persona`)
+- `Transacciones` ya permite además persistir varias etiquetas por movimiento
+- `Reportes` ya permite además rankear por `etiqueta`
 - cuando el schema `finance` del tenant queda atrasado, el portal ya muestra explicación operativa y CTA para actualizar estructura
 - `tenant admin` ya puede revisar estado y sincronizar estructura desde el propio portal, sin depender solo de `Platform Admin`
 - la compatibilidad legacy de `/entries` se mantiene para no romper integraciones antiguas mientras madura el resto del módulo

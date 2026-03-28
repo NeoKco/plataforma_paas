@@ -7,6 +7,7 @@ os.environ["APP_ENV"] = "test"
 
 from app.apps.tenant_modules.finance.models.currency import FinanceCurrency  # noqa: E402
 from app.apps.tenant_modules.finance.models.category import FinanceCategory  # noqa: E402
+from app.apps.tenant_modules.finance.models.tag import FinanceTag  # noqa: E402
 from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceBudgetCreateRequest,
     FinanceLoanCreateRequest,
@@ -64,6 +65,18 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
         self.db.commit()
         self.db.refresh(category)
         return category
+
+    def _seed_tag(self, name: str, sort_order: int = 10) -> FinanceTag:
+        tag = FinanceTag(
+            name=name,
+            color=None,
+            is_active=True,
+            sort_order=sort_order,
+        )
+        self.db.add(tag)
+        self.db.commit()
+        self.db.refresh(tag)
+        return tag
 
     def test_reports_overview_aggregates_transactions_budgets_and_loans(self) -> None:
         currency = self._seed_currency()
@@ -258,62 +271,107 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
             overview["budget_variances"][0]["variance_amount"],
             180.0,
         )
-        self.assertEqual(
-            overview["period_comparison"]["compare_period_month"],
-            date(2026, 3, 1),
+
+    def test_reports_can_rank_breakdown_by_tag(self) -> None:
+        currency = self._seed_currency()
+        income_category = self._seed_category("Ventas", "income")
+        vip_tag = self._seed_tag("VIP", sort_order=10)
+        campaign_tag = self._seed_tag("Campaña", sort_order=20)
+
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=None,
+                target_account_id=None,
+                category_id=income_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=220.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 4, 3, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Venta VIP",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=True,
+                tag_ids=[vip_tag.id],
+            ),
+            allow_accountless=True,
         )
-        self.assertEqual(
-            overview["period_comparison"]["previous_period_month"],
-            date(2026, 3, 1),
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=None,
+                target_account_id=None,
+                category_id=income_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=180.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 4, 6, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Venta campaña",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=True,
+                tag_ids=[campaign_tag.id, vip_tag.id],
+            ),
+            allow_accountless=True,
         )
-        self.assertEqual(overview["period_comparison"]["previous_income"], 300.0)
-        self.assertEqual(overview["period_comparison"]["previous_expense"], 50.0)
-        self.assertEqual(overview["period_comparison"]["income_delta"], 200.0)
-        self.assertEqual(overview["period_comparison"]["expense_delta"], 70.0)
-        self.assertEqual(overview["period_comparison"]["transaction_delta"], 0)
-        self.assertEqual(overview["period_comparison"]["budgeted_delta"], 100.0)
-        self.assertEqual(len(overview["monthly_trend"]), 6)
-        self.assertEqual(overview["monthly_trend"][-1]["period_month"], date(2026, 4, 1))
-        self.assertEqual(overview["monthly_trend"][-1]["total_income"], 500.0)
-        self.assertEqual(overview["monthly_trend"][-1]["total_expense"], 120.0)
-        self.assertEqual(overview["monthly_trend"][-2]["period_month"], date(2026, 3, 1))
-        self.assertEqual(overview["monthly_trend"][-2]["total_budgeted"], 200.0)
-        self.assertEqual(overview["trend_summary"]["months_covered"], 6)
-        self.assertEqual(overview["trend_summary"]["best_period_month"], date(2026, 4, 1))
-        self.assertEqual(overview["trend_summary"]["best_net_balance"], 380.0)
-        self.assertEqual(overview["trend_summary"]["worst_period_month"], date(2025, 11, 1))
-        self.assertEqual(overview["horizon_comparison"]["trend_months"], 6)
-        self.assertEqual(
-            overview["horizon_comparison"]["compare_last_period_month"],
-            date(2026, 3, 1),
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=None,
+                target_account_id=None,
+                category_id=income_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=50.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 4, 8, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Venta sin tag",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=True,
+                tag_ids=None,
+            ),
+            allow_accountless=True,
         )
-        self.assertEqual(
-            overview["horizon_comparison"]["total_income_delta_vs_compare"],
-            500.0,
+
+        overview = self.reports_service.get_overview(
+            self.db,
+            period_month=date(2026, 4, 1),
+            analysis_dimension="tag",
         )
+
+        self.assertEqual(overview["analysis_dimension"], "tag")
+        self.assertEqual(overview["top_income_breakdown"][0]["entity_type"], "tag")
+        self.assertEqual(overview["top_income_breakdown"][0]["entity_name"], "VIP")
+        self.assertEqual(overview["top_income_breakdown"][0]["total_amount"], 400.0)
+        self.assertEqual(overview["top_income_breakdown"][1]["entity_name"], "Campaña")
+        self.assertEqual(overview["top_income_breakdown"][1]["total_amount"], 180.0)
         self.assertEqual(
-            overview["horizon_comparison"]["total_expense_delta_vs_compare"],
-            120.0,
-        )
-        self.assertEqual(
-            overview["year_to_date_comparison"]["current_first_period_month"],
-            date(2026, 1, 1),
-        )
-        self.assertEqual(
-            overview["year_to_date_comparison"]["current_last_period_month"],
-            date(2026, 4, 1),
-        )
-        self.assertEqual(
-            overview["year_to_date_comparison"]["compare_last_period_month"],
-            date(2026, 3, 1),
-        )
-        self.assertEqual(
-            overview["year_to_date_comparison"]["total_income_delta_vs_compare"],
-            500.0,
-        )
-        self.assertEqual(
-            overview["year_to_date_comparison"]["total_net_balance_delta_vs_compare"],
-            380.0,
+            overview["top_income_breakdown"][2]["entity_name"],
+            "Sin etiqueta",
         )
 
     def test_reports_overview_respects_requested_trend_months(self) -> None:

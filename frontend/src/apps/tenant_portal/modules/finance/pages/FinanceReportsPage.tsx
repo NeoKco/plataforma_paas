@@ -40,7 +40,7 @@ export function FinanceReportsPage() {
     "period" | "horizon" | "year_to_date"
   >("period");
   const [analysisDimension, setAnalysisDimension] = useState<
-    "category" | "account" | "project" | "beneficiary" | "person"
+    "category" | "account" | "project" | "beneficiary" | "person" | "tag"
   >("category");
   const [budgetCategoryScope, setBudgetCategoryScope] = useState<
     "all" | "income" | "expense"
@@ -202,6 +202,7 @@ export function FinanceReportsPage() {
                     | "project"
                     | "beneficiary"
                     | "person"
+                    | "tag"
                 )
               }
             >
@@ -210,6 +211,7 @@ export function FinanceReportsPage() {
               <option value="project">Proyecto</option>
               <option value="beneficiary">Beneficiario</option>
               <option value="person">Persona</option>
+              <option value="tag">Etiqueta</option>
             </select>
           </div>
           <div>

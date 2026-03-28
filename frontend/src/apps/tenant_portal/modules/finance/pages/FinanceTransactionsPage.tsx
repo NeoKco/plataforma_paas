@@ -24,6 +24,10 @@ import {
   type TenantFinanceCurrency,
 } from "../services/currenciesService";
 import {
+  getTenantFinanceTags,
+  type TenantFinanceTag,
+} from "../services/tagsService";
+import {
   createTenantFinanceTransaction,
   getTenantFinanceAccountBalances,
   getTenantFinanceSummary,
@@ -54,6 +58,7 @@ type TransactionFormState = {
   accountId: string;
   targetAccountId: string;
   categoryId: string;
+  tagIds: string[];
   currencyId: string;
   amount: string;
   exchangeRate: string;
@@ -69,6 +74,7 @@ const DEFAULT_FORM_STATE: TransactionFormState = {
   accountId: "",
   targetAccountId: "",
   categoryId: "",
+  tagIds: [],
   currencyId: "",
   amount: "",
   exchangeRate: "",
@@ -89,6 +95,7 @@ export function FinanceTransactionsPage() {
   const [accountBalances, setAccountBalances] = useState<TenantFinanceAccountBalance[]>([]);
   const [accounts, setAccounts] = useState<TenantFinanceAccount[]>([]);
   const [categories, setCategories] = useState<TenantFinanceCategory[]>([]);
+  const [tags, setTags] = useState<TenantFinanceTag[]>([]);
   const [currencies, setCurrencies] = useState<TenantFinanceCurrency[]>([]);
   const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([]);
   const [selectedTransactionId, setSelectedTransactionId] = useState<number | null>(null);
@@ -193,6 +200,7 @@ export function FinanceTransactionsPage() {
       getTenantFinanceAccountBalances(session.accessToken),
       getTenantFinanceAccounts(session.accessToken, false),
       getTenantFinanceCategories(session.accessToken, { includeInactive: false }),
+      getTenantFinanceTags(session.accessToken),
       getTenantFinanceCurrencies(session.accessToken, false),
     ]);
 
@@ -203,6 +211,7 @@ export function FinanceTransactionsPage() {
       balancesResult,
       accountsResult,
       categoriesResult,
+      tagsResult,
       currenciesResult,
     ] = results;
 
@@ -217,6 +226,7 @@ export function FinanceTransactionsPage() {
       setAccountBalances([]);
       setAccounts([]);
       setCategories([]);
+      setTags([]);
       setCurrencies([]);
       setError(transactionsResult.reason as ApiError);
       setIsLoading(false);
@@ -245,6 +255,7 @@ export function FinanceTransactionsPage() {
     setAccountBalances(balancesResult.status === "fulfilled" ? balancesResult.value.data : []);
     setAccounts(accountsResult.status === "fulfilled" ? accountsResult.value.data : []);
     setCategories(categoriesResult.status === "fulfilled" ? categoriesResult.value.data : []);
+    setTags(tagsResult.status === "fulfilled" ? tagsResult.value.data : []);
     setCurrencies(currenciesResult.status === "fulfilled" ? currenciesResult.value.data : []);
     setIsLoading(false);
   }
@@ -551,6 +562,7 @@ export function FinanceTransactionsPage() {
                       targetAccountId:
                         event.target.value === "transfer" ? current.targetAccountId : "",
                       categoryId: event.target.value === "transfer" ? "" : current.categoryId,
+                      tagIds: event.target.value === "transfer" ? [] : current.tagIds,
                     }))
                   }
                 >
@@ -718,6 +730,32 @@ export function FinanceTransactionsPage() {
                 placeholder="Contexto adicional del movimiento"
               />
             </div>
+
+            {formState.transactionType !== "transfer" ? (
+              <div>
+                <label className="form-label">Etiquetas</label>
+                <select
+                  className="form-select"
+                  multiple
+                  value={formState.tagIds}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      tagIds: Array.from(event.target.selectedOptions, (option) => option.value),
+                    }))
+                  }
+                >
+                  {tags.map((tag) => (
+                    <option key={tag.id} value={String(tag.id)}>
+                      {tag.name}{tag.is_active ? "" : " · inactiva"}
+                    </option>
+                  ))}
+                </select>
+                <div className="form-text">
+                  Usa Ctrl o Cmd para seleccionar varias etiquetas sobre el mismo movimiento.
+                </div>
+              </div>
+            ) : null}
 
             <div className="finance-inline-toolbar">
               <label className="form-check d-flex align-items-center gap-2 mb-0">
@@ -1488,7 +1526,12 @@ function buildTransactionWritePayload(
     notes: normalizeNullableString(formState.notes),
     is_favorite: formState.isFavorite,
     is_reconciled: formState.isReconciled,
-    tag_ids: null,
+    tag_ids:
+      formState.transactionType === "transfer"
+        ? null
+        : formState.tagIds.length > 0
+          ? formState.tagIds.map((tagId) => Number(tagId))
+          : null,
   };
 }
 
@@ -1502,6 +1545,7 @@ function buildTransactionFormState(
       ? String(transaction.target_account_id)
       : "",
     categoryId: transaction.category_id ? String(transaction.category_id) : "",
+    tagIds: transaction.tag_ids.map((tagId) => String(tagId)),
     currencyId: String(transaction.currency_id),
     amount: String(transaction.amount),
     exchangeRate: transaction.exchange_rate ? String(transaction.exchange_rate) : "",

@@ -8,7 +8,9 @@ from app.apps.tenant_modules.finance.repositories import (
     FinanceCategoryRepository,
     FinancePersonRepository,
     FinanceProjectRepository,
+    FinanceTagRepository,
     FinanceTransactionRepository,
+    FinanceTransactionTagRepository,
 )
 from app.apps.tenant_modules.finance.services.budget_service import FinanceBudgetService
 from app.apps.tenant_modules.finance.services.loan_service import FinanceLoanService
@@ -23,6 +25,8 @@ class FinanceReportsService:
         category_repository: FinanceCategoryRepository | None = None,
         person_repository: FinancePersonRepository | None = None,
         project_repository: FinanceProjectRepository | None = None,
+        tag_repository: FinanceTagRepository | None = None,
+        transaction_tag_repository: FinanceTransactionTagRepository | None = None,
         budget_service: FinanceBudgetService | None = None,
         loan_service: FinanceLoanService | None = None,
     ) -> None:
@@ -36,6 +40,10 @@ class FinanceReportsService:
         self.category_repository = category_repository or FinanceCategoryRepository()
         self.person_repository = person_repository or FinancePersonRepository()
         self.project_repository = project_repository or FinanceProjectRepository()
+        self.tag_repository = tag_repository or FinanceTagRepository()
+        self.transaction_tag_repository = (
+            transaction_tag_repository or FinanceTransactionTagRepository()
+        )
         self.budget_service = budget_service or FinanceBudgetService()
         self.loan_service = loan_service or FinanceLoanService()
 
@@ -76,9 +84,10 @@ class FinanceReportsService:
             "project",
             "beneficiary",
             "person",
+            "tag",
         }:
             raise ValueError(
-                "analysis_dimension must be one of category, account, project, beneficiary or person"
+                "analysis_dimension must be one of category, account, project, beneficiary, person or tag"
             )
         if (custom_compare_start_month is None) != (custom_compare_end_month is None):
             raise ValueError(
@@ -150,6 +159,12 @@ class FinanceReportsService:
         projects = {
             project.id: project
             for project in self.project_repository.list_all(
+                tenant_db, include_inactive=True
+            )
+        }
+        tags = {
+            tag.id: tag
+            for tag in self.tag_repository.list_all(
                 tenant_db, include_inactive=True
             )
         }
@@ -322,6 +337,12 @@ class FinanceReportsService:
             movement_scope=movement_scope,
             analysis_scope=analysis_scope,
         )
+        analysis_transaction_tag_ids = (
+            self.transaction_tag_repository.list_tag_ids_by_transaction_ids(
+                tenant_db,
+                [transaction.id for transaction in analysis_transactions],
+            )
+        )
 
         return {
             "period_month": normalized_period_month,
@@ -363,6 +384,8 @@ class FinanceReportsService:
                 categories=categories,
                 people=people,
                 projects=projects,
+                tags=tags,
+                transaction_tag_ids=analysis_transaction_tag_ids,
                 transaction_type="income",
             ),
             "top_expense_breakdown": self._build_dimension_breakdown(
@@ -377,6 +400,8 @@ class FinanceReportsService:
                 categories=categories,
                 people=people,
                 projects=projects,
+                tags=tags,
+                transaction_tag_ids=analysis_transaction_tag_ids,
                 transaction_type="expense",
             ),
             "daily_cashflow": self._build_daily_cashflow(transactions=transactions),
@@ -538,10 +563,33 @@ class FinanceReportsService:
         categories: dict,
         people: dict,
         projects: dict,
+        tags: dict,
+        transaction_tag_ids: dict[int, list[int]],
         transaction_type: str,
     ) -> list[dict]:
         totals_by_entity: dict[tuple[str, int | None, str], float] = {}
         for transaction in transactions:
+            if analysis_dimension == "tag":
+                tag_ids = transaction_tag_ids.get(transaction.id, [])
+                if not tag_ids:
+                    key = ("tag", None, "Sin etiqueta")
+                    totals_by_entity[key] = round(
+                        totals_by_entity.get(key, 0.0) + float(transaction.amount),
+                        2,
+                    )
+                    continue
+                for tag_id in tag_ids:
+                    tag = tags.get(tag_id)
+                    key = (
+                        "tag",
+                        tag_id,
+                        tag.name if tag is not None else f"Etiqueta #{tag_id}",
+                    )
+                    totals_by_entity[key] = round(
+                        totals_by_entity.get(key, 0.0) + float(transaction.amount),
+                        2,
+                    )
+                continue
             entity_key = self._resolve_transaction_dimension(
                 transaction=transaction,
                 analysis_dimension=analysis_dimension,

@@ -145,6 +145,8 @@ Cobertura visible actual:
 - exportación enriquecida CSV/JSON desde `Reportes`
 - comparativa contra rango arbitrario manual dentro de `Reportes`
 - ranking por entidad analítica dentro de `Reportes`
+- persistencia real de `tag_ids` en transacciones
+- ranking por `etiqueta` dentro de `Reportes`
 - overview mensual de `Planificación`
 - cartera y cronograma de `Préstamos`
 - pagos, reversas y enlace contable minimo sobre cuotas

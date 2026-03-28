@@ -7,6 +7,7 @@ os.environ["APP_ENV"] = "test"
 
 from app.apps.tenant_modules.finance.models.account import FinanceAccount  # noqa: E402
 from app.apps.tenant_modules.finance.models.currency import FinanceCurrency  # noqa: E402
+from app.apps.tenant_modules.finance.models.tag import FinanceTag  # noqa: E402
 from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceTransactionCreateRequest,
     FinanceTransactionUpdateRequest,
@@ -62,6 +63,18 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
         self.db.commit()
         self.db.refresh(account)
         return account
+
+    def _seed_tag(self, *, name: str, sort_order: int = 10) -> FinanceTag:
+        tag = FinanceTag(
+            name=name,
+            color=None,
+            is_active=True,
+            sort_order=sort_order,
+        )
+        self.db.add(tag)
+        self.db.commit()
+        self.db.refresh(tag)
+        return tag
 
     def test_rejects_transfer_with_same_account(self) -> None:
         usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
@@ -377,6 +390,116 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
         self.assertEqual(len(favorites), 2)
         self.assertTrue(all(transaction.is_favorite for transaction in favorites))
         self.assertTrue(all(transaction.is_reconciled for transaction in favorites))
+
+    def test_persists_transaction_tag_ids_on_create_and_update(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+        urgent = self._seed_tag(name="Urgente", sort_order=10)
+        taxes = self._seed_tag(name="Impuestos", sort_order=20)
+
+        created = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                target_account_id=None,
+                category_id=None,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=usd.id,
+                loan_id=None,
+                amount=90.0,
+                discount_amount=0.0,
+                exchange_rate=1.0,
+                amortization_months=None,
+                transaction_at=datetime.now(timezone.utc),
+                alternative_date=None,
+                description="Pago con etiquetas",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=False,
+                tag_ids=[urgent.id, taxes.id],
+            ),
+            created_by_user_id=1,
+        )
+        self.assertEqual(created.tag_ids, [urgent.id, taxes.id])
+
+        updated = self.service.update_transaction(
+            tenant_db=self.db,
+            transaction_id=created.id,
+            payload=FinanceTransactionUpdateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                target_account_id=None,
+                category_id=None,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=usd.id,
+                loan_id=None,
+                amount=95.0,
+                discount_amount=0.0,
+                exchange_rate=1.0,
+                amortization_months=None,
+                transaction_at=datetime.now(timezone.utc),
+                alternative_date=None,
+                description="Pago con etiquetas actualizado",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=False,
+                tag_ids=[taxes.id],
+            ),
+            actor_user_id=2,
+        )
+        self.assertEqual(updated.tag_ids, [taxes.id])
+
+        detail_transaction, _ = self.service.get_transaction_detail(self.db, created.id)
+        self.assertEqual(detail_transaction.tag_ids, [taxes.id])
+
+    def test_rejects_unknown_tag_ids(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            self.service.create_transaction(
+                tenant_db=self.db,
+                payload=FinanceTransactionCreateRequest(
+                    transaction_type="expense",
+                    account_id=caja.id,
+                    target_account_id=None,
+                    category_id=None,
+                    beneficiary_id=None,
+                    person_id=None,
+                    project_id=None,
+                    currency_id=usd.id,
+                    loan_id=None,
+                    amount=12.0,
+                    discount_amount=0.0,
+                    exchange_rate=1.0,
+                    amortization_months=None,
+                    transaction_at=datetime.now(timezone.utc),
+                    alternative_date=None,
+                    description="Pago invalido",
+                    notes=None,
+                    is_favorite=False,
+                    is_reconciled=False,
+                    tag_ids=[9999],
+                ),
+                created_by_user_id=1,
+            )
+
+        self.assertIn("etiquetas", str(exc.exception))
 
 
 if __name__ == "__main__":

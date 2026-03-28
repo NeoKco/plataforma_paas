@@ -39,6 +39,7 @@ export type TenantFinanceTransaction = {
   source_id: number | null;
   created_by_user_id: number | null;
   updated_by_user_id: number | null;
+  tag_ids: number[];
   created_at: string;
   updated_at: string;
 };

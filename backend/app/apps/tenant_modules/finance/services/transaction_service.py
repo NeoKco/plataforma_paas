@@ -10,8 +10,10 @@ from app.apps.tenant_modules.finance.models import (
 from app.apps.tenant_modules.finance.repositories import (
     FinanceAccountRepository,
     FinanceCurrencyRepository,
+    FinanceTagRepository,
     FinanceTransactionAuditRepository,
     FinanceTransactionRepository,
+    FinanceTransactionTagRepository,
 )
 from app.apps.tenant_modules.finance.schemas import (
     FinanceTransactionCreateRequest,
@@ -39,7 +41,9 @@ class FinanceService:
         entry_repository=None,
         currency_repository: FinanceCurrencyRepository | None = None,
         account_repository: FinanceAccountRepository | None = None,
+        tag_repository: FinanceTagRepository | None = None,
         transaction_audit_repository: FinanceTransactionAuditRepository | None = None,
+        transaction_tag_repository: FinanceTransactionTagRepository | None = None,
     ):
         # `entry_repository` se mantiene como alias legacy para no romper tests
         # ni puntos de integración que aún no migran a `transaction_repository`.
@@ -48,8 +52,12 @@ class FinanceService:
         )
         self.currency_repository = currency_repository or FinanceCurrencyRepository()
         self.account_repository = account_repository or FinanceAccountRepository()
+        self.tag_repository = tag_repository or FinanceTagRepository()
         self.transaction_audit_repository = (
             transaction_audit_repository or FinanceTransactionAuditRepository()
+        )
+        self.transaction_tag_repository = (
+            transaction_tag_repository or FinanceTransactionTagRepository()
         )
 
     def create_entry(
@@ -174,6 +182,7 @@ class FinanceService:
         )
         tenant_db.commit()
         tenant_db.refresh(transaction)
+        self._attach_tag_ids(tenant_db, [transaction])
         return transaction
 
     def stage_system_transaction(
@@ -207,6 +216,12 @@ class FinanceService:
         )
         tenant_db.add(transaction)
         tenant_db.flush()
+        normalized_tag_ids = self._normalize_tag_ids(tenant_db, payload.tag_ids)
+        self.transaction_tag_repository.replace_for_transaction(
+            tenant_db,
+            transaction.id,
+            normalized_tag_ids,
+        )
         tenant_db.add(
             self.transaction_audit_repository.build_event(
                 transaction_id=transaction.id,
@@ -219,10 +234,12 @@ class FinanceService:
                     "target_account_id": transaction_values["target_account_id"],
                     "currency_id": transaction_values["currency_id"],
                     "amount": transaction_values["amount"],
+                    "tag_ids": normalized_tag_ids,
                     **(audit_payload or {}),
                 },
             )
         )
+        setattr(transaction, "tag_ids", normalized_tag_ids)
         return transaction
 
     def update_transaction(
@@ -244,6 +261,12 @@ class FinanceService:
         )
         for field, value in transaction_values.items():
             setattr(transaction, field, value)
+        normalized_tag_ids = self._normalize_tag_ids(tenant_db, payload.tag_ids)
+        self.transaction_tag_repository.replace_for_transaction(
+            tenant_db,
+            transaction.id,
+            normalized_tag_ids,
+        )
         transaction.updated_by_user_id = actor_user_id
         saved = self.transaction_repository.persist(tenant_db, transaction)
         self.transaction_audit_repository.save_event(
@@ -258,15 +281,21 @@ class FinanceService:
                 "target_account_id": transaction_values["target_account_id"],
                 "currency_id": transaction_values["currency_id"],
                 "amount": transaction_values["amount"],
+                "tag_ids": normalized_tag_ids,
             },
         )
+        setattr(saved, "tag_ids", normalized_tag_ids)
         return saved
 
     def list_entries(self, tenant_db: Session) -> list[FinanceTransaction]:
-        return self.transaction_repository.list_all(tenant_db)
+        entries = self.transaction_repository.list_all(tenant_db)
+        self._attach_tag_ids(tenant_db, entries)
+        return entries
 
     def list_transactions(self, tenant_db: Session) -> list[FinanceTransaction]:
-        return self.transaction_repository.list_all(tenant_db)
+        transactions = self.transaction_repository.list_all(tenant_db)
+        self._attach_tag_ids(tenant_db, transactions)
+        return transactions
 
     def list_transactions_filtered(
         self,
@@ -279,7 +308,7 @@ class FinanceService:
         is_reconciled: bool | None = None,
         search: str | None = None,
     ) -> list[FinanceTransaction]:
-        return self.transaction_repository.list_filtered(
+        transactions = self.transaction_repository.list_filtered(
             tenant_db,
             transaction_type=transaction_type,
             account_id=account_id,
@@ -288,6 +317,8 @@ class FinanceService:
             is_reconciled=is_reconciled,
             search=search,
         )
+        self._attach_tag_ids(tenant_db, transactions)
+        return transactions
 
     def get_transaction_detail(
         self,
@@ -302,6 +333,7 @@ class FinanceService:
             tenant_db,
             transaction_id=transaction_id,
         )
+        self._attach_tag_ids(tenant_db, [transaction])
         return transaction, audit_events
 
     def update_transaction_favorite(
@@ -320,6 +352,7 @@ class FinanceService:
         transaction.favorite_flag = is_favorite
         transaction.updated_by_user_id = actor_user_id
         saved = self.transaction_repository.persist(tenant_db, transaction)
+        self._attach_tag_ids(tenant_db, [saved])
         self.transaction_audit_repository.save_event(
             tenant_db,
             transaction_id=saved.id,
@@ -347,6 +380,7 @@ class FinanceService:
         transaction.reconciled_at = datetime.now(timezone.utc) if is_reconciled else None
         transaction.updated_by_user_id = actor_user_id
         saved = self.transaction_repository.persist(tenant_db, transaction)
+        self._attach_tag_ids(tenant_db, [saved])
         self.transaction_audit_repository.save_event(
             tenant_db,
             transaction_id=saved.id,
@@ -492,6 +526,42 @@ class FinanceService:
             "is_reconciled": payload.is_reconciled,
             "reconciled_at": reconciled_at,
         }
+
+    def _normalize_tag_ids(
+        self,
+        tenant_db: Session,
+        tag_ids: list[int] | None,
+    ) -> list[int]:
+        normalized_tag_ids = list(dict.fromkeys(tag_ids or []))
+        for tag_id in normalized_tag_ids:
+            if self.tag_repository.get_by_id(tenant_db, tag_id) is None:
+                raise ValueError("Una o mas etiquetas financieras no existen")
+        return normalized_tag_ids
+
+    def _attach_tag_ids(
+        self,
+        tenant_db: Session,
+        transactions: list[FinanceTransaction],
+    ) -> None:
+        if not transactions:
+            return
+        if not hasattr(tenant_db, "query"):
+            for transaction in transactions:
+                setattr(transaction, "tag_ids", list(getattr(transaction, "tag_ids", []) or []))
+            return
+
+        tag_ids_by_transaction_id = (
+            self.transaction_tag_repository.list_tag_ids_by_transaction_ids(
+                tenant_db,
+                [transaction.id for transaction in transactions if transaction.id is not None],
+            )
+        )
+        for transaction in transactions:
+            setattr(
+                transaction,
+                "tag_ids",
+                list(tag_ids_by_transaction_id.get(transaction.id, [])),
+            )
 
     def _get_transactions_for_batch(
         self,

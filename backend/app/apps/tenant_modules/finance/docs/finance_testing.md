@@ -52,4 +52,5 @@ Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
 - pruebas de lectura mas rica de presupuestos
 - pruebas mas ricas del enlace contable de cuotas de prestamos con cuenta origen y lectura derivada
-- pruebas de comparativas aún más profundas sobre rangos arbitrarios y cortes analíticos adicionales por etiquetas/proyectos/terceros en reportes
+- pruebas de comparativas aún más profundas sobre rangos arbitrarios y cortes analíticos adicionales por proyectos/terceros en reportes
+- pruebas de persistencia real de `tag_ids` y ranking por `etiqueta`

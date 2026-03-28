@@ -95,6 +95,7 @@ def _build_finance_transaction_item(entry) -> FinanceTransactionItemResponse:
         source_id=entry.source_id,
         created_by_user_id=entry.created_by_user_id,
         updated_by_user_id=entry.updated_by_user_id,
+        tag_ids=list(getattr(entry, "tag_ids", []) or []),
         created_at=entry.created_at,
         updated_at=entry.updated_at,
     )

@@ -99,6 +99,8 @@ En esta fase quedaron listos:
 - `Reportes` ya exporta CSV y JSON enriquecidos con comparativas, top categorías y resúmenes ejecutivos
 - `Reportes` ya permite además comparar la lectura activa contra un rango arbitrario definido por `desde/hasta`
 - `Reportes` ya permite rankear ingresos y egresos por dimensión analítica (`categoría`, `cuenta`, `proyecto`, `beneficiario`, `persona`)
+- las transacciones ya persisten `tag_ids` de forma real en `finance_transaction_tags`
+- `Reportes` ya permite además rankear por `etiqueta`
 - manejo controlado de schema incompleto en vistas de `finance`, sin `500` crudo
 - self-service de sincronizacion de estructura desde el propio `tenant_portal` para `tenant admin`
 

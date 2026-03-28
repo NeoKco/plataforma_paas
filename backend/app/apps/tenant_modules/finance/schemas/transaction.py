@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.apps.tenant_modules.finance.schemas.common import FinanceResponseBase
 
@@ -95,6 +95,7 @@ class FinanceTransactionItemResponse(BaseModel):
     source_id: int | None = None
     created_by_user_id: int | None = None
     updated_by_user_id: int | None = None
+    tag_ids: list[int] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 

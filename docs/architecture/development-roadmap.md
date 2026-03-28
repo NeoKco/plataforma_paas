@@ -256,6 +256,8 @@ Resultado actual:
 - `Reportes` ya exporta CSV y JSON enriquecidos con comparativas y cortes ejecutivos
 - `Reportes` ya permite además comparar la lectura activa contra un rango arbitrario de meses
 - `Reportes` ya permite además rankear por entidad operativa (`categoría`, `cuenta`, `proyecto`, `beneficiario`, `persona`)
+- `finance_transactions` ya persiste `tag_ids` de forma real en `finance_transaction_tags`
+- `Reportes` ya permite además rankear por `etiqueta`
 - cuando el schema `finance` del tenant esta incompleto, esas vistas ya degradan a error controlado y no a `500`
 - `tenant_portal` ya permite a `tenant admin` sincronizar estructura desde el propio tenant sin volver a `Platform Admin`
 - `CLP` ya forma parte de las monedas semilla del modulo
@@ -273,9 +275,10 @@ Falta para cerrarlo:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura agregada y estados operativos mas ricos
 - enriquecer `Préstamos` con cuenta origen y lectura contable derivada mas densa
+- enriquecer la UX de tags en `Transacciones` con chips, filtros y mejor lectura en tabla/detalle
 - mover la sincronizacion tenant-side de schema a job/worker en vez de inline
 - agregar auto-sync post-provisioning y post-deploy para evitar sincronizacion manual por uso
-- seguir `Lote 7` con comparativas más profundas sobre rangos arbitrarios, cortes analíticos adicionales por etiquetas/proyectos/terceros y lecturas exportables más densas
+- seguir `Lote 7` con comparativas más profundas sobre rangos arbitrarios, cortes analíticos adicionales por proyectos/terceros y lecturas exportables más densas
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 
