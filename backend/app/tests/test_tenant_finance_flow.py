@@ -1078,6 +1078,24 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 "total_expense_delta_vs_compare": 70.0,
                 "total_net_balance_delta_vs_compare": 130.0,
             },
+            "custom_range_comparison": {
+                "current_label": "periodo",
+                "current_first_period_month": date(2026, 4, 1),
+                "current_last_period_month": date(2026, 4, 1),
+                "current_months_covered": 1,
+                "current_total_income": 500.0,
+                "current_total_expense": 120.0,
+                "current_total_net_balance": 380.0,
+                "custom_first_period_month": date(2026, 3, 1),
+                "custom_last_period_month": date(2026, 3, 1),
+                "custom_months_covered": 1,
+                "custom_total_income": 300.0,
+                "custom_total_expense": 50.0,
+                "custom_total_net_balance": 250.0,
+                "total_income_delta_vs_custom": 200.0,
+                "total_expense_delta_vs_custom": 70.0,
+                "total_net_balance_delta_vs_custom": 130.0,
+            },
         }
 
         with patch(
@@ -1124,6 +1142,10 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(
             response.data.year_to_date_comparison.compare_last_period_month,
+            date(2026, 3, 1),
+        )
+        self.assertEqual(
+            response.data.custom_range_comparison.custom_last_period_month,
             date(2026, 3, 1),
         )
 
@@ -1242,11 +1264,14 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     "total_expense_delta_vs_compare": 0.0,
                     "total_net_balance_delta_vs_compare": 0.0,
                 },
+                "custom_range_comparison": None,
             },
         ) as get_overview_mock:
             get_finance_reports_overview(
                 period_month=date(2026, 4, 1),
                 compare_period_month=date(2026, 2, 1),
+                custom_compare_start_month=date(2025, 12, 1),
+                custom_compare_end_month=date(2026, 2, 1),
                 trend_months=12,
                 movement_scope="favorites",
                 analysis_scope="year_to_date",
@@ -1258,6 +1283,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
 
         _, kwargs = get_overview_mock.call_args
         self.assertEqual(kwargs["compare_period_month"], date(2026, 2, 1))
+        self.assertEqual(kwargs["custom_compare_start_month"], date(2025, 12, 1))
+        self.assertEqual(kwargs["custom_compare_end_month"], date(2026, 2, 1))
         self.assertEqual(kwargs["trend_months"], 12)
         self.assertEqual(kwargs["movement_scope"], "favorites")
         self.assertEqual(kwargs["analysis_scope"], "year_to_date")

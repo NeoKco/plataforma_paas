@@ -26,6 +26,8 @@ reports_service = FinanceReportsService()
 def get_finance_reports_overview(
     period_month: date,
     compare_period_month: date | None = None,
+    custom_compare_start_month: date | None = None,
+    custom_compare_end_month: date | None = None,
     trend_months: int = 6,
     movement_scope: str = "all",
     analysis_scope: str = "period",
@@ -39,6 +41,8 @@ def get_finance_reports_overview(
             tenant_db,
             period_month=period_month,
             compare_period_month=compare_period_month,
+            custom_compare_start_month=custom_compare_start_month,
+            custom_compare_end_month=custom_compare_end_month,
             trend_months=trend_months,
             movement_scope=movement_scope,
             analysis_scope=analysis_scope,

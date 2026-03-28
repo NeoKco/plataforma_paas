@@ -569,6 +569,141 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
         self.assertEqual(overview["top_income_categories"][0]["total_amount"], 800.0)
         self.assertEqual(overview["top_expense_categories"][0]["total_amount"], 120.0)
 
+    def test_reports_overview_builds_custom_range_comparison(self) -> None:
+        currency = self._seed_currency()
+        income_category = self._seed_category("General Income", "income")
+        expense_category = self._seed_category("General Expense", "expense")
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=None,
+                target_account_id=None,
+                category_id=income_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=300.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 3, 6, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Venta marzo",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=True,
+                tag_ids=None,
+            ),
+            allow_accountless=True,
+        )
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=None,
+                target_account_id=None,
+                category_id=expense_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=50.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 3, 8, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Gasto marzo",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=True,
+                tag_ids=None,
+            ),
+            allow_accountless=True,
+        )
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=None,
+                target_account_id=None,
+                category_id=income_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=500.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 4, 5, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Venta abril",
+                notes=None,
+                is_favorite=True,
+                is_reconciled=True,
+                tag_ids=None,
+            ),
+            allow_accountless=True,
+        )
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=None,
+                target_account_id=None,
+                category_id=expense_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=120.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 4, 7, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Gasto abril",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=False,
+                tag_ids=None,
+            ),
+            allow_accountless=True,
+        )
+
+        overview = self.reports_service.get_overview(
+            self.db,
+            period_month=date(2026, 4, 1),
+            analysis_scope="period",
+            custom_compare_start_month=date(2026, 3, 1),
+            custom_compare_end_month=date(2026, 3, 1),
+        )
+
+        self.assertIsNotNone(overview["custom_range_comparison"])
+        self.assertEqual(
+            overview["custom_range_comparison"]["current_label"],
+            "periodo",
+        )
+        self.assertEqual(
+            overview["custom_range_comparison"]["custom_first_period_month"],
+            date(2026, 3, 1),
+        )
+        self.assertEqual(
+            overview["custom_range_comparison"]["total_income_delta_vs_custom"],
+            200.0,
+        )
+        self.assertEqual(
+            overview["custom_range_comparison"]["total_net_balance_delta_vs_custom"],
+            130.0,
+        )
+
     def test_reports_overview_rejects_invalid_trend_months(self) -> None:
         with self.assertRaises(ValueError):
             self.reports_service.get_overview(
@@ -662,6 +797,21 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
                 self.db,
                 period_month=date(2026, 4, 1),
                 analysis_scope="invalid",
+            )
+
+        with self.assertRaises(ValueError):
+            self.reports_service.get_overview(
+                self.db,
+                period_month=date(2026, 4, 1),
+                custom_compare_start_month=date(2026, 3, 1),
+            )
+
+        with self.assertRaises(ValueError):
+            self.reports_service.get_overview(
+                self.db,
+                period_month=date(2026, 4, 1),
+                custom_compare_start_month=date(2026, 4, 1),
+                custom_compare_end_month=date(2026, 3, 1),
             )
 
     def test_reports_overview_filters_budgets_by_category_type(self) -> None:

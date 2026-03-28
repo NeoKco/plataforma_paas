@@ -62,6 +62,7 @@
 - esa misma pantalla ya compara también el acumulado anual `enero -> mes` contra el período comparado
 - esa misma pantalla ya permite releer top categorías por `período`, `horizonte` o `acumulado anual`
 - esa misma pantalla ya exporta CSV y JSON enriquecidos con comparativas, top categorías y resúmenes ejecutivos
+- esa misma pantalla ya permite además comparar la lectura activa contra un rango arbitrario `desde/hasta`
 - cuando `finance` detecta schema incompleto, la UI ya explica para que sirve actualizar la estructura del modulo
 - `tenant admin` ya puede disparar esa sincronizacion desde el mismo portal, sin depender solo de `Platform Admin`
 
@@ -69,7 +70,7 @@ Pendiente inmediato:
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
 - endurecer `Presupuestos` con lectura agregada mas densa
-- abrir exportaciones aún más completas y comparativas más profundas entre rangos arbitrarios o cortes analíticos adicionales por entidad/categoría en `Reportes`, ahora que ya existe resumen multi-período
+- abrir comparativas aún más profundas sobre rangos arbitrarios o cortes analíticos adicionales por entidad/categoría en `Reportes`, ahora que ya existe resumen multi-período
 - enriquecer el pago de cuotas de `Préstamos` con cuenta origen y lectura contable derivada antes de considerarlo un dominio cerrado
 - mover la sincronizacion tenant-side a flujo asíncrono visible y no inline
 - reducir este caso con auto-sync post-provisioning y post-deploy

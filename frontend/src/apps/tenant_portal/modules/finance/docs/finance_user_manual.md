@@ -30,6 +30,7 @@ Estado actual:
 - la vista `Reportes` ya compara también el acumulado anual `enero -> mes` contra el período comparado
 - la vista `Reportes` ya permite releer top categorías por `período`, `horizonte` o `acumulado anual`
 - la vista `Reportes` ya exporta CSV y JSON enriquecidos con comparativas y bloques ejecutivos
+- la vista `Reportes` ya permite además comparar la lectura activa contra un rango manual `desde/hasta`
 - si una vista nueva del modulo detecta que faltan tablas o cambios de estructura, ahora explica el problema en pantalla
 - si eres `admin` del tenant, ahora puedes usar `Actualizar estructura del módulo` desde el propio portal para aplicar migraciones pendientes
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend

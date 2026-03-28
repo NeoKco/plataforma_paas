@@ -146,6 +146,25 @@ export type TenantFinanceReportYearToDateComparison = {
   total_net_balance_delta_vs_compare: number;
 };
 
+export type TenantFinanceReportCustomRangeComparison = {
+  current_label: string;
+  current_first_period_month: string | null;
+  current_last_period_month: string | null;
+  current_months_covered: number;
+  current_total_income: number;
+  current_total_expense: number;
+  current_total_net_balance: number;
+  custom_first_period_month: string | null;
+  custom_last_period_month: string | null;
+  custom_months_covered: number;
+  custom_total_income: number;
+  custom_total_expense: number;
+  custom_total_net_balance: number;
+  total_income_delta_vs_custom: number;
+  total_expense_delta_vs_custom: number;
+  total_net_balance_delta_vs_custom: number;
+};
+
 export type TenantFinanceReportOverviewResponse = {
   success: boolean;
   message: string;
@@ -167,6 +186,7 @@ export type TenantFinanceReportOverviewResponse = {
     trend_summary: TenantFinanceReportTrendSummary;
     horizon_comparison: TenantFinanceReportHorizonComparison;
     year_to_date_comparison: TenantFinanceReportYearToDateComparison;
+    custom_range_comparison: TenantFinanceReportCustomRangeComparison | null;
   };
 };
 
@@ -174,6 +194,8 @@ export function getTenantFinanceReportOverview(
   accessToken: string,
   periodMonth: string,
   comparePeriodMonth: string | null = null,
+  customCompareStartMonth: string | null = null,
+  customCompareEndMonth: string | null = null,
   trendMonths = 6,
   movementScope = "all",
   analysisScope = "period",
@@ -184,6 +206,12 @@ export function getTenantFinanceReportOverview(
   params.set("period_month", periodMonth);
   if (comparePeriodMonth) {
     params.set("compare_period_month", comparePeriodMonth);
+  }
+  if (customCompareStartMonth) {
+    params.set("custom_compare_start_month", customCompareStartMonth);
+  }
+  if (customCompareEndMonth) {
+    params.set("custom_compare_end_month", customCompareEndMonth);
   }
   params.set("trend_months", String(trendMonths));
   params.set("movement_scope", movementScope);

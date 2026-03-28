@@ -151,6 +151,25 @@ class FinanceReportYearToDateComparison(BaseModel):
     total_net_balance_delta_vs_compare: float
 
 
+class FinanceReportCustomRangeComparison(BaseModel):
+    current_label: str
+    current_first_period_month: date | None
+    current_last_period_month: date | None
+    current_months_covered: int
+    current_total_income: float
+    current_total_expense: float
+    current_total_net_balance: float
+    custom_first_period_month: date | None
+    custom_last_period_month: date | None
+    custom_months_covered: int
+    custom_total_income: float
+    custom_total_expense: float
+    custom_total_net_balance: float
+    total_income_delta_vs_custom: float
+    total_expense_delta_vs_custom: float
+    total_net_balance_delta_vs_custom: float
+
+
 class FinanceReportOverviewData(BaseModel):
     period_month: date
     movement_scope: str
@@ -169,6 +188,7 @@ class FinanceReportOverviewData(BaseModel):
     trend_summary: FinanceReportTrendSummary
     horizon_comparison: FinanceReportHorizonComparison
     year_to_date_comparison: FinanceReportYearToDateComparison
+    custom_range_comparison: FinanceReportCustomRangeComparison | None
 
 
 class FinanceReportOverviewResponse(FinanceResponseBase):

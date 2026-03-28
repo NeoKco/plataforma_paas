@@ -44,10 +44,11 @@ Cobertura actual:
 - comparativa de acumulado anual `enero -> mes` dentro de `reportes overview`
 - lectura de top categorías por dimensión analítica dentro de `reportes overview`
 - exportación enriquecida CSV/JSON desde `reportes overview`
+- comparativa contra rango arbitrario manual dentro de `reportes overview`
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
 - pruebas de lectura mas rica de presupuestos
 - pruebas mas ricas del enlace contable de cuotas de prestamos con cuenta origen y lectura derivada
-- pruebas de exportaciones aún más ricas y comparativas más profundas entre rangos arbitrarios o cortes analíticos adicionales por entidad/categoría en reportes
+- pruebas de comparativas aún más profundas sobre rangos arbitrarios y cortes analíticos adicionales por entidad/categoría en reportes

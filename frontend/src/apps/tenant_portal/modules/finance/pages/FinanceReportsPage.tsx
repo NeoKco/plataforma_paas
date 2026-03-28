@@ -13,6 +13,7 @@ import {
   getTenantFinanceReportOverview,
   type TenantFinanceReportBudgetVarianceItem,
   type TenantFinanceReportCategoryAmount,
+  type TenantFinanceReportCustomRangeComparison,
   type TenantFinanceReportDailyCashflowItem,
   type TenantFinanceReportMonthlyTrendItem,
   type TenantFinanceReportOverviewResponse,
@@ -28,6 +29,8 @@ export function FinanceReportsPage() {
   const [comparePeriodMonth, setComparePeriodMonth] = useState(
     buildPreviousMonthValue()
   );
+  const [customCompareStartMonth, setCustomCompareStartMonth] = useState("");
+  const [customCompareEndMonth, setCustomCompareEndMonth] = useState("");
   const [trendMonths, setTrendMonths] = useState<3 | 6 | 12>(6);
   const [movementScope, setMovementScope] = useState<
     "all" | "reconciled" | "unreconciled" | "favorites" | "loan_linked"
@@ -52,6 +55,8 @@ export function FinanceReportsPage() {
     session?.accessToken,
     periodMonth,
     comparePeriodMonth,
+    customCompareStartMonth,
+    customCompareEndMonth,
     trendMonths,
     movementScope,
     analysisScope,
@@ -71,6 +76,8 @@ export function FinanceReportsPage() {
         session.accessToken,
         buildPeriodMonthIso(periodMonth),
         buildPeriodMonthIso(comparePeriodMonth),
+        customCompareStartMonth ? buildPeriodMonthIso(customCompareStartMonth) : null,
+        customCompareEndMonth ? buildPeriodMonthIso(customCompareEndMonth) : null,
         trendMonths,
         movementScope,
         analysisScope,
@@ -175,6 +182,24 @@ export function FinanceReportsPage() {
               <option value="horizon">Horizonte</option>
               <option value="year_to_date">Acumulado anual</option>
             </select>
+          </div>
+          <div>
+            <label className="form-label">Rango arbitrario desde</label>
+            <input
+              className="form-control"
+              type="month"
+              value={customCompareStartMonth}
+              onChange={(event) => setCustomCompareStartMonth(event.target.value)}
+            />
+          </div>
+          <div>
+            <label className="form-label">Rango arbitrario hasta</label>
+            <input
+              className="form-control"
+              type="month"
+              value={customCompareEndMonth}
+              onChange={(event) => setCustomCompareEndMonth(event.target.value)}
+            />
           </div>
           <div>
             <label className="form-label">Categoría presupuesto</label>
@@ -439,6 +464,13 @@ export function FinanceReportsPage() {
         subtitle="Compara enero -> mes visible contra enero -> mes comparado para lectura ejecutiva anual."
       >
         <YearToDateComparisonPanel comparison={overview?.year_to_date_comparison || null} />
+      </PanelCard>
+
+      <PanelCard
+        title="Comparativa rango arbitrario"
+        subtitle="Contrasta la lectura activa actual contra un rango manual de meses si fue definido."
+      >
+        <CustomRangeComparisonPanel comparison={overview?.custom_range_comparison || null} />
       </PanelCard>
     </div>
   );
@@ -788,6 +820,51 @@ function YearToDateComparisonPanel({
   );
 }
 
+function CustomRangeComparisonPanel({
+  comparison,
+}: {
+  comparison: TenantFinanceReportCustomRangeComparison | null;
+}) {
+  if (!comparison) {
+    return (
+      <p className="tenant-muted-text mb-0">
+        Define `desde` y `hasta` para comparar contra un rango arbitrario.
+      </p>
+    );
+  }
+
+  return (
+    <dl className="finance-report-definition-list">
+      <ReportLine
+        label="Lectura actual"
+        value={`${buildAnalysisScopeLabel(comparison.current_label)} · ${buildPeriodRangeLabel(
+          comparison.current_first_period_month,
+          comparison.current_last_period_month
+        )}`}
+      />
+      <ReportLine
+        label="Rango arbitrario"
+        value={buildPeriodRangeLabel(
+          comparison.custom_first_period_month,
+          comparison.custom_last_period_month
+        )}
+      />
+      <ReportLine
+        label="Ingresos vs rango"
+        value={formatSignedMoney(comparison.total_income_delta_vs_custom)}
+      />
+      <ReportLine
+        label="Egresos vs rango"
+        value={formatSignedMoney(comparison.total_expense_delta_vs_custom)}
+      />
+      <ReportLine
+        label="Balance vs rango"
+        value={formatSignedMoney(comparison.total_net_balance_delta_vs_custom)}
+      />
+    </dl>
+  );
+}
+
 function ReportLine({ label, value }: { label: string; value: string }) {
   return (
     <>
@@ -879,6 +956,8 @@ function exportOverviewCsv(
     ["Seccion", "Clave", "Valor"],
     ["periodo", "mes", overview.period_month],
     ["periodo", "comparar_contra", comparePeriodMonth],
+    ["periodo", "rango_arbitrario_desde", overview.custom_range_comparison?.custom_first_period_month || ""],
+    ["periodo", "rango_arbitrario_hasta", overview.custom_range_comparison?.custom_last_period_month || ""],
     ["periodo", "foco_movimientos", overview.movement_scope],
     ["periodo", "lectura_categorias", overview.analysis_scope],
     ["periodo", "foco_presupuesto_tipo", overview.budget_category_scope],
@@ -964,6 +1043,34 @@ function exportOverviewCsv(
     ],
   ];
 
+  if (overview.custom_range_comparison) {
+    rows.push([
+      "comparativa_rango",
+      "rango_actual",
+      `${overview.custom_range_comparison.current_first_period_month}|${overview.custom_range_comparison.current_last_period_month}`,
+    ]);
+    rows.push([
+      "comparativa_rango",
+      "rango_custom",
+      `${overview.custom_range_comparison.custom_first_period_month}|${overview.custom_range_comparison.custom_last_period_month}`,
+    ]);
+    rows.push([
+      "comparativa_rango",
+      "delta_ingresos",
+      String(overview.custom_range_comparison.total_income_delta_vs_custom),
+    ]);
+    rows.push([
+      "comparativa_rango",
+      "delta_egresos",
+      String(overview.custom_range_comparison.total_expense_delta_vs_custom),
+    ]);
+    rows.push([
+      "comparativa_rango",
+      "delta_balance",
+      String(overview.custom_range_comparison.total_net_balance_delta_vs_custom),
+    ]);
+  }
+
   overview.top_income_categories.forEach((item) => {
     rows.push([
       "top_ingresos",
@@ -1043,6 +1150,10 @@ function exportOverviewJson(
           exported_at: new Date().toISOString(),
           period_month: periodMonth,
           compare_period_month: comparePeriodMonth,
+          custom_compare_start_month:
+            overview.custom_range_comparison?.custom_first_period_month || null,
+          custom_compare_end_month:
+            overview.custom_range_comparison?.custom_last_period_month || null,
           analysis_scope: overview.analysis_scope,
           export_sections: [
             "transaction_snapshot",
@@ -1057,6 +1168,7 @@ function exportOverviewJson(
             "trend_summary",
             "horizon_comparison",
             "year_to_date_comparison",
+            "custom_range_comparison",
           ],
           data: overview,
         },
@@ -1104,6 +1216,8 @@ function buildAnalysisScopeLabel(scope: string) {
       return "horizonte";
     case "year_to_date":
       return "acumulado anual";
+    case "periodo":
+      return "período";
     default:
       return "período";
   }
