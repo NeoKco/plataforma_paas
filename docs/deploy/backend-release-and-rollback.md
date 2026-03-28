@@ -30,6 +30,7 @@ Ese flujo:
 - ejecuta pruebas backend base
 - reinicia el servicio objetivo
 - verifica `systemd` y `/health` antes de dar el deploy por bueno
+- encola ademas auto-sync masivo de schema tenant para tenants activos con DB configurada
 
 ## Rollback Manual en Servidor
 
@@ -93,6 +94,7 @@ Que hace la plantilla:
 - usar tags para production cuando sea posible
 - probar primero la ref en `staging`
 - no considerar exitoso un deploy si falla la verificacion post-deploy
+- no considerar exitoso un deploy si falla el auto-sync post-deploy cuando ese paso esta habilitado
 - si una release falla por codigo, usar rollback a la tag previa
 - si la falla es de datos o migraciones, evaluar restore antes de solo hacer rollback de codigo
 

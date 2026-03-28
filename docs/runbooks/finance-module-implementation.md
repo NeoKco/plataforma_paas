@@ -118,6 +118,7 @@ En esta fase quedaron listos:
 - el provisioning inicial ya deja encolado un follow-up `sync_tenant_schema` al cerrar `create_tenant_database`
 - `platform` ya puede encolar sync masivo post-deploy sobre tenants activos con `POST /platform/tenants/schema-sync/bulk`
 - existe ademas el script operativo `backend/app/scripts/enqueue_active_tenant_schema_sync.py` para la misma tarea
+- el wrapper de release/verify backend ya dispara ese auto-sync post-deploy por defecto, dejando la operacion manual como respaldo operativo
 
 Pendiente posterior al cierre de `finance`:
 
@@ -339,7 +340,7 @@ Lo siguiente recomendable ahora es:
 4. endurecer `Préstamos` solo si luego se requiere lectura de contrapartida/categoría o exportación contable mas formal
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual, como siguiente mejora opcional de `Transacciones`
 6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable
-7. integrar el auto-sync post-deploy al wrapper de release/verify para que deje de depender de una corrida operativa manual
+7. consolidar la lectura operativa del auto-sync post-deploy y dejar la corrida manual desde `Provisioning`/script solo como respaldo
 8. dejar los primeros gráficos reales para `Reportes` y, si luego aporta, para `Planificación`
 
 ## Convencion relacionada

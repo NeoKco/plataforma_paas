@@ -124,6 +124,7 @@ Ese script:
 - corre pruebas backend base sin smoke HTTP ni PostgreSQL
 - reinicia el servicio `systemd`
 - verifica el healthcheck antes de terminar
+- encola auto-sync post-deploy de schema tenant para tenants activos con DB configurada
 
 Variables ajustables del script:
 
@@ -133,6 +134,8 @@ Variables ajustables del script:
 - `ENV_FILE`
 - `EXPECTED_APP_ENV`
 - `HEALTHCHECK_URL`
+- `BACKEND_AUTO_SYNC_POST_DEPLOY`
+- `BACKEND_AUTO_SYNC_LIMIT`
 
 Ejemplo:
 
@@ -144,6 +147,14 @@ Ejemplo usando archivo de entorno explicito:
 
 ```bash
 PROJECT_ROOT=/opt/platform_paas ENV_FILE=/opt/platform_paas/.env bash deploy/deploy_backend.sh
+```
+
+Ejemplo deshabilitando el auto-sync masivo post-deploy:
+
+```bash
+PROJECT_ROOT=/opt/platform_paas \
+BACKEND_AUTO_SYNC_POST_DEPLOY=false \
+bash deploy/deploy_backend.sh
 ```
 
 Wrappers por entorno:
@@ -173,6 +184,7 @@ sudo journalctl -u platform-paas-backend -n 50 --no-pager
 - para procesar `provisioning_jobs` fuera de HTTP, usar `infra/systemd/platform-paas-provisioning-worker.timer`
 - para separar cadencias por perfil de worker, usar `deploy/install_provisioning_worker_profile_units.sh`
 - el deploy ahora falla rapido si faltan variables criticas o si el entorno no coincide con el wrapper usado
+- el verify post-deploy ahora tambien puede dejar ya encolado el sync de schema tenant sin depender de una corrida manual posterior
 
 ## Siguiente Evolucion Natural
 

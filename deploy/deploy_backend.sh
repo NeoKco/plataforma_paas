@@ -9,6 +9,8 @@ ENV_FILE="${ENV_FILE:-$PROJECT_ROOT/.env}"
 EXPECTED_APP_ENV="${EXPECTED_APP_ENV:-}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HEALTHCHECK_URL="${HEALTHCHECK_URL:-http://127.0.0.1/health}"
+BACKEND_AUTO_SYNC_POST_DEPLOY="${BACKEND_AUTO_SYNC_POST_DEPLOY:-true}"
+BACKEND_AUTO_SYNC_LIMIT="${BACKEND_AUTO_SYNC_LIMIT:-100}"
 
 echo "Deploying backend from $PROJECT_ROOT"
 
@@ -36,4 +38,11 @@ fi
 
 sudo systemctl restart "$SERVICE_NAME"
 sudo systemctl status "$SERVICE_NAME" --no-pager
+export PROJECT_ROOT
+export VENV_PYTHON
+export SERVICE_NAME
+export HEALTHCHECK_URL
+export BACKEND_AUTO_SYNC_POST_DEPLOY
+export BACKEND_AUTO_SYNC_LIMIT
+
 bash "$SCRIPT_DIR/verify_backend_deploy.sh"

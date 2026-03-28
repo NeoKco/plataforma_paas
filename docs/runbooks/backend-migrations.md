@@ -117,6 +117,7 @@ Importante:
 - el provisioning inicial ya deja encolado un follow-up `sync_tenant_schema`
 - para post-deploy masivo ya existe `POST /platform/tenants/schema-sync/bulk`
 - como respaldo operativo también existe `backend/app/scripts/enqueue_active_tenant_schema_sync.py`
+- el wrapper `deploy/verify_backend_deploy.sh` ya ejecuta esa corrida masiva post-deploy por defecto, salvo que `BACKEND_AUTO_SYNC_POST_DEPLOY=false`
 
 ## Limitaciones actuales
 

@@ -286,7 +286,7 @@ Falta para cerrarlo:
 - evaluar si `Transacciones` necesita una segunda iteracion de lotes inteligentes o reglas asistidas adicionales sobre el filtro activo
 - seguir enriqueciendo `Presupuestos` con presets configurables o plantillas mas ricas por tenant, ahora que ya existen ajustes guiados y plantillas operativas base
 - seguir endureciendo `Préstamos` con exportaciones contables mas densas, mejor lectura de contrapartida y eventual cruce con categorías si el dominio lo pide
-- integrar el auto-sync post-deploy al wrapper de release/verify para que no dependa de correr la operación masiva manualmente
+- consolidar el uso real del auto-sync post-deploy ahora que ya quedó integrado al wrapper de release/verify, dejando la operación manual desde `Provisioning` como apoyo y no como paso obligatorio
 - seguir `Lote 7` con comparativas todavía mas densas, cortes analíticos adicionales si aparecen necesidades reales y lecturas exportables más ejecutivas
 - dejar los primeros graficos reales de `finance` como pendiente deliberado hasta cerrar el modulo funcionalmente; el punto mas natural sigue siendo `Reportes` y luego `Planificación`
 - validaciones y casos de uso de negocio mas ricos
