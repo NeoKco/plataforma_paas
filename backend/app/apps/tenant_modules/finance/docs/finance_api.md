@@ -118,6 +118,7 @@ Estado actual de `Lote 6`:
 - `GET /tenant/finance/budgets` ya admite filtros por tipo de categoria, estado derivado y visibilidad de inactivos
 - `GET /tenant/finance/budgets` ya devuelve contadores por estado operativo (`over_budget`, `within_budget`, `unused`, `inactive`)
 - `GET /tenant/finance/budgets` ya devuelve `focus_items` para priorizar categorias por desvio y atencion operativa
+- cada `focus_item` ya devuelve `recommended_action` para guiar la intervencion operativa en frontend
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Presupuestos`
 - ya existen `GET|POST /tenant/finance/loans`
 - ya existe `PUT /tenant/finance/loans/{loan_id}` para editar un préstamo existente
@@ -174,7 +175,7 @@ Nucleo transaccional ya disponible en backend:
 - lectura mensual consolidada expuesta por API en `reports/overview`
 
 Pendiente:
-- enriquecer `budgets` con acciones y lecturas mas ricas sobre categorias priorizadas
+- enriquecer `budgets` con acciones mas ricas sobre categorias priorizadas, como clonacion intermensual o ajustes guiados
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
 - enriquecer la lectura derivada de `loans` con mejor contexto contable, categorías y exportación más rica
 - comparativas más profundas sobre rangos arbitrarios, cortes analíticos adicionales por proyectos/terceros y lectura contable mas densa sobre el overview ya existente

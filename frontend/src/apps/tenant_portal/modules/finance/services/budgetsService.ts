@@ -39,10 +39,12 @@ export type TenantFinanceBudgetFocusItem = {
   category_name: string;
   category_type: string;
   budget_status: string;
+  recommended_action: string;
   amount: number;
   actual_amount: number;
   variance_amount: number;
   utilization_ratio: number | null;
+  is_active: boolean;
 };
 
 export type TenantFinanceBudgetsResponse = {

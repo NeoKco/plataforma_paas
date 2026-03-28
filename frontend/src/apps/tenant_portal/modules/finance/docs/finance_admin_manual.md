@@ -20,6 +20,7 @@ Estado actual:
 - `Presupuestos` ya permite alta y edicion de montos, nota y estado activo, usando comparacion contra la ejecucion real del mes
 - `Presupuestos` ya permite filtrar por tipo, estado derivado e inclusion de inactivos
 - `Presupuestos` ya expone contadores operativos y un bloque de foco para priorizar categorias con mayor desvio o sin uso
+- ese foco ya deja intervenir rapido con edicion o activacion/desactivacion sin bajar a la tabla completa
 - ya existe una pantalla operativa de `Préstamos` con cartera por contraparte, capital, saldo, cuotas y moneda
 - `Préstamos` ya expone un cronograma inicial por cuotas y ya permite aplicar o revertir pagos manuales sobre cuotas, con reparto configurable entre interés y capital
 - el cronograma ya muestra capital pagado e interés pagado por cuota

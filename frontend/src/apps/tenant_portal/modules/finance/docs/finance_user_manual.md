@@ -10,6 +10,7 @@ Estado actual:
 - la vista `Presupuestos` ya permite cargar un monto mensual por categoría y compararlo contra la ejecución real del mes
 - la vista `Presupuestos` ya permite además filtrar por tipo, estado derivado e inactivos
 - la vista `Presupuestos` ya muestra contadores por estado operativo y un bloque `Foco presupuestario` con categorias que requieren atencion
+- desde `Foco presupuestario` ya puedes además editar rápido o activar/desactivar el presupuesto sugerido
 - la vista `Préstamos` ya permite registrar cartera prestada o recibida, definir cuotas base y revisar el cronograma generado
 - la vista `Préstamos` ya permite además aplicar abonos sobre una cuota del cronograma
 - la vista `Préstamos` ya permite elegir cómo se reparte ese abono entre interés y capital

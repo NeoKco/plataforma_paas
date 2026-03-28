@@ -26,6 +26,7 @@ Cobertura actual:
 - integracion SQLite real del balance por cuentas
 - core de presupuestos por categoria y mes, incluyendo comparacion `presupuesto vs real`
 - lectura enriquecida de presupuestos con contadores operativos y foco priorizado de categorias
+- recomendacion operativa en `focus_items` de presupuestos
 - core de prestamos con resumen de cartera, filtros por tipo/estado y generacion de cronograma mensual
 - aplicacion de pagos sobre cuotas de prestamos y recálculo de saldo pendiente
 - asignacion avanzada del pago entre capital e interes
@@ -53,7 +54,7 @@ Cobertura actual:
 
 Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
-- pruebas de acciones mas ricas de presupuestos sobre categorias priorizadas
+- pruebas de acciones mas ricas de presupuestos sobre categorias priorizadas, mas alla de edicion/activacion rapida
 - pruebas mas ricas de lectura derivada de cuotas de prestamos con exportación/contexto contable ampliado
 - pruebas de comparativas aún más profundas sobre rangos arbitrarios y cortes analíticos adicionales por proyectos/terceros en reportes
 - pruebas de persistencia real de `tag_ids` y ranking por `etiqueta`

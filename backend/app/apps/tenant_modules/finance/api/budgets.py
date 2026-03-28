@@ -56,10 +56,12 @@ def _build_budget_focus_item(row: dict) -> FinanceBudgetFocusItemResponse:
         category_name=row["category_name"],
         category_type=row["category_type"],
         budget_status=row["budget_status"],
+        recommended_action=row["recommended_action"],
         amount=budget.amount,
         actual_amount=row["actual_amount"],
         variance_amount=row["variance_amount"],
         utilization_ratio=row["utilization_ratio"],
+        is_active=budget.is_active,
     )
 
 

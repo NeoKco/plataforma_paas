@@ -24,6 +24,7 @@ import {
   getTenantFinanceBudgets,
   updateTenantFinanceBudget,
   type TenantFinanceBudget,
+  type TenantFinanceBudgetFocusItem,
   type TenantFinanceBudgetsResponse,
 } from "../services/budgetsService";
 import { getFinanceCategoryTypeLabel } from "../utils/presentation";
@@ -187,6 +188,46 @@ export function FinanceBudgetsPage() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function handleFocusToggleActive(item: TenantFinanceBudgetFocusItem) {
+    if (!session?.accessToken || !budgetsResponse) {
+      return;
+    }
+    const matchedBudget = budgetsResponse.data.find((budget) => budget.id === item.id);
+    if (!matchedBudget) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionFeedback(null);
+
+    try {
+      const response = await updateTenantFinanceBudget(session.accessToken, matchedBudget.id, {
+        period_month: matchedBudget.period_month,
+        category_id: matchedBudget.category_id,
+        amount: matchedBudget.amount,
+        note: matchedBudget.note,
+        is_active: !matchedBudget.is_active,
+      });
+      await loadBudgetWorkspace();
+      setActionFeedback({ type: "success", message: response.message });
+    } catch (rawError) {
+      setActionFeedback({
+        type: "error",
+        message: getApiErrorDisplayMessage(rawError as ApiError),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleFocusEdit(item: TenantFinanceBudgetFocusItem) {
+    const matchedBudget = budgetsResponse?.data.find((budget) => budget.id === item.id);
+    if (!matchedBudget) {
+      return;
+    }
+    startEditingBudget(matchedBudget);
   }
 
   const summary = budgetsResponse?.summary;
@@ -495,11 +536,13 @@ export function FinanceBudgetsPage() {
                 <tr>
                   <th>{language === "es" ? "Categoría" : "Category"}</th>
                   <th>{language === "es" ? "Tipo" : "Type"}</th>
+                  <th>{language === "es" ? "Sugerencia" : "Suggestion"}</th>
                   <th>{language === "es" ? "Presupuesto" : "Budget"}</th>
                   <th>{language === "es" ? "Real" : "Actual"}</th>
                   <th>{language === "es" ? "Desviación" : "Variance"}</th>
                   <th>{language === "es" ? "Uso" : "Usage"}</th>
                   <th>{language === "es" ? "Estado" : "Status"}</th>
+                  <th>{language === "es" ? "Acción" : "Action"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -507,6 +550,7 @@ export function FinanceBudgetsPage() {
                   <tr key={`focus-${budget.id}`}>
                     <td>{budget.category_name}</td>
                     <td>{displayCategoryType(budget.category_type, language)}</td>
+                    <td>{displayRecommendedAction(budget.recommended_action, language)}</td>
                     <td>{formatMoney(budget.amount, language, baseCurrencyCode)}</td>
                     <td>{formatMoney(budget.actual_amount, language, baseCurrencyCode)}</td>
                     <td>{formatMoney(budget.variance_amount, language, baseCurrencyCode)}</td>
@@ -515,6 +559,31 @@ export function FinanceBudgetsPage() {
                       <span className={`status-badge ${budgetStatusBadgeClass(budget.budget_status)}`}>
                         {displayBudgetStatus(budget.budget_status, language)}
                       </span>
+                    </td>
+                    <td>
+                      <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+                        <button
+                          className="btn btn-sm btn-outline-primary"
+                          type="button"
+                          onClick={() => handleFocusEdit(budget)}
+                        >
+                          {language === "es" ? "Editar" : "Edit"}
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-secondary"
+                          type="button"
+                          disabled={isSubmitting}
+                          onClick={() => handleFocusToggleActive(budget)}
+                        >
+                          {budget.is_active
+                            ? language === "es"
+                              ? "Desactivar"
+                              : "Deactivate"
+                            : language === "es"
+                              ? "Activar"
+                              : "Activate"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -645,6 +714,22 @@ function displayBudgetStatus(value: string, language: "es" | "en"): string {
   }
   if (value === "inactive") {
     return language === "es" ? "inactivo" : "inactive";
+  }
+  return value;
+}
+
+function displayRecommendedAction(value: string, language: "es" | "en"): string {
+  if (value === "adjust_amount") {
+    return language === "es" ? "ajustar monto" : "adjust amount";
+  }
+  if (value === "review_usage") {
+    return language === "es" ? "revisar uso" : "review usage";
+  }
+  if (value === "activate_budget") {
+    return language === "es" ? "activar presupuesto" : "activate budget";
+  }
+  if (value === "keep_tracking") {
+    return language === "es" ? "seguir monitoreo" : "keep tracking";
   }
   return value;
 }

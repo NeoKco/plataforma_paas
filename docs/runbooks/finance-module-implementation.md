@@ -76,6 +76,7 @@ En esta fase quedaron listos:
 - filtros de `Presupuestos` por tipo, estado derivado e inclusion de inactivos
 - `Presupuestos` ya expone contadores por estado operativo (`sobre`, `dentro`, `sin uso`, `inactiva`)
 - `Presupuestos` ya expone un bloque `Foco presupuestario` con categorias priorizadas por variacion y estado
+- `Presupuestos` ya permite editar y activar/desactivar rápido desde el propio `Foco presupuestario`
 - primer slice real de `Préstamos` con cartera base, saldo pendiente y contraparte
 - cronograma inicial de `Préstamos` con cuotas generadas, proximo vencimiento y detalle por préstamo
 - pagos manuales sobre cuotas de `Préstamos`, con actualizacion de saldo pendiente y refresh del cronograma

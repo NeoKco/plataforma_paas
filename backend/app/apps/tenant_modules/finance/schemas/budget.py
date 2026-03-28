@@ -40,10 +40,12 @@ class FinanceBudgetFocusItemResponse(BaseModel):
     category_name: str
     category_type: str
     budget_status: str
+    recommended_action: str
     amount: float
     actual_amount: float
     variance_amount: float
     utilization_ratio: float | None = None
+    is_active: bool
 
 
 class FinanceBudgetMutationResponse(FinanceResponseBase):

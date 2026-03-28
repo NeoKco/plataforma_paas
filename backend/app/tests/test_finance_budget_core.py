@@ -143,6 +143,7 @@ class FinanceBudgetCoreTestCase(unittest.TestCase):
         self.assertEqual(summary["over_budget_items"], 0)
         self.assertEqual(len(focus_items), 1)
         self.assertEqual(focus_items[0]["category_name"], "Marketing")
+        self.assertEqual(focus_items[0]["recommended_action"], "keep_tracking")
 
     def test_budget_filters_support_status_and_category_type(self) -> None:
         self._seed_currency()
@@ -190,6 +191,7 @@ class FinanceBudgetCoreTestCase(unittest.TestCase):
         self.assertEqual(income_rows[0]["category_type"], "income")
         self.assertEqual(income_summary["inactive_items"], 1)
         self.assertEqual(focus_items[0]["budget_status"], "inactive")
+        self.assertEqual(focus_items[0]["recommended_action"], "activate_budget")
 
     def test_budget_focus_prioritizes_over_budget_before_other_statuses(self) -> None:
         currency = self._seed_currency()
@@ -254,6 +256,7 @@ class FinanceBudgetCoreTestCase(unittest.TestCase):
         self.assertEqual(summary["unused_items"], 1)
         self.assertEqual(focus_items[0]["category_name"], "Marketing")
         self.assertEqual(focus_items[0]["budget_status"], "over_budget")
+        self.assertEqual(focus_items[0]["recommended_action"], "adjust_amount")
 
 
 if __name__ == "__main__":

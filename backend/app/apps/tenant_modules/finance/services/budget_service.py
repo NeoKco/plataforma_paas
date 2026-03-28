@@ -62,6 +62,9 @@ class FinanceBudgetService:
                     "category_name": category.name,
                     "category_type": category.category_type,
                     "budget_status": derived_budget_status,
+                    "recommended_action": self._build_recommended_action(
+                        derived_budget_status
+                    ),
                     "actual_amount": actual_amount,
                     "variance_amount": variance_amount,
                     "utilization_ratio": utilization_ratio,
@@ -217,6 +220,15 @@ class FinanceBudgetService:
         if value == "inactive":
             return 2
         return 3
+
+    def _build_recommended_action(self, budget_status: str) -> str:
+        if budget_status == "over_budget":
+            return "adjust_amount"
+        if budget_status == "unused":
+            return "review_usage"
+        if budget_status == "inactive":
+            return "activate_budget"
+        return "keep_tracking"
 
     def _month_start(self, period_month: date) -> datetime:
         return datetime.combine(period_month, time.min, tzinfo=timezone.utc)
