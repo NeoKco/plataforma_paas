@@ -497,12 +497,14 @@ Resultado actual:
 
 - `finance` ya no es solo una idea: existe modulo backend funcional, migraciones, enforcement de limites, vistas tenant y visibilidad operativa desde plataforma
 - ya existen pruebas manuales y runbooks guiados sobre `finance`, billing y efectos de limites en el portal tenant
+- `tenant_portal` ya corrigio el cambio de idioma en `Overview` y `Users`, y el frontend ya dejo resuelto el warning de bundle principal grande con code-splitting por ruta
 
 Falta para cerrarlo:
 
 - cerrar mejor casos de negocio de `finance`
 - decidir el siguiente modulo real despues de `finance`
 - solo despues de cerrar `finance`, abrir el trabajo transversal de `design system` y usar `finance` como primer modulo donde se aplique de forma integral
+- seguir limpiando internacionalizacion transversal fuera de `finance`, porque todavia quedan pantallas y helpers con copy mezclado o localmente hardcodeado
 
 ## Etapa 15. Registro y Activacion de Modulos
 

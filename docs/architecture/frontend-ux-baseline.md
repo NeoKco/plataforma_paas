@@ -31,6 +31,12 @@ La UI arranca en español y conserva selector de idioma.
 
 Esto ya debe asumirse como baseline.
 
+Eso no significa que baste con mostrar el selector:
+
+- cada pantalla visible debe consumir el idioma activo
+- los helpers compartidos no deben forzar español por defecto cuando el contexto ya conoce el idioma
+- `Overview` y `Users` ya quedaron corregidas bajo ese criterio y deben tomarse como referencia para el resto
+
 ### 3. `Platform Admin` es la puerta de entrada principal
 
 Hoy el recorrido real empieza por:
@@ -74,6 +80,15 @@ Esto ya empezo a estabilizarse con una capa comun de labels para:
 - roles y tipos visibles en `tenant_portal`
 
 La regla correcta ya no es mostrar el codigo crudo primero, sino el label entendible y dejar el codigo tecnico solo cuando de verdad aporta.
+
+Esto aplica tambien a:
+
+- badges de estado
+- feedback de acciones
+- tablas genericas
+- mensajes de acceso o bloqueo
+
+Si un componente compartido rompe ese criterio, el problema ya no es solo de la pantalla que lo consume sino de la base comun del frontend.
 
 ### 7. La sesion no debe quedar abierta indefinidamente
 

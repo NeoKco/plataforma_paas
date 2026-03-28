@@ -17,6 +17,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - `Actividad` ya no solo muestra accesos: ahora tambien expone cambios administrativos recientes sobre tenants
 - `Actividad` ya permite leer senales operativas breves y filtrar cambios tenant por tipo de evento y actor
 - existe `tenant_portal` con login, resumen, usuarios y finanzas
+- `Overview` y `Users` del `tenant_portal` ya respetan el selector de idioma en su lectura principal
 - `finance` ya tiene slice frontend propio en `tenant_portal/modules/finance`
 - la ruta `/tenant-portal/finance` ya queda servida desde ese slice, preservando la vista actual de movimientos como base operativa
 - `finance` ya expone frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
@@ -31,6 +32,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - `tenant admin` ya puede lanzar esa sincronizacion desde el propio `tenant_portal`
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
+- el frontend ya usa code-splitting por ruta para `platform_admin`, `tenant_portal` y `finance`, reduciendo el bundle inicial y eliminando la advertencia de chunk principal > `500 kB`
 
 Lo que queda pendiente ya no es abrir el frontend desde cero.
 
@@ -51,7 +53,7 @@ Lo pendiente es sobre todo:
 - mover la sincronizacion tenant-side a un flujo asíncrono con job visible en vez de ejecutarla inline
 - sumar auto-sync post-provisioning/post-deploy para reducir friccion operativa
 - una vez cerrado `finance`, abrir un `design system` transversal del PaaS y aplicar la primera migracion completa precisamente sobre `finance`, incluyendo sistema comun de iconos por modulo y entidad
-- cerrar una internacionalizacion transversal real del frontend, empezando por eliminar copy hardcodeado en helpers compartidos y pantallas base como `Overview` y `Users`
+- cerrar una internacionalizacion transversal real del frontend, continuando desde el fix ya aplicado en `Overview` y `Users` para eliminar copy hardcodeado del resto de pantallas y helpers compartidos
 
 Nota de ejecucion:
 
@@ -68,6 +70,7 @@ El objetivo ahora es este:
 - cerrar experiencia operativa y consistencia visual del bloque basico tenant
 - seguir consumiendo backend como fuente de verdad
 - endurecer mensajes, estados y catalogos visibles
+- preservar code-splitting por ruta para que los nuevos slices no vuelvan a inflar el chunk inicial
 - dejar el frontend listo para crecer sin retrabajo grande antes de abrir nuevos modulos
 - tratar `finance` como modulo base visible del SaaS antes de abrir otros dominios tenant
 - mantener `tenant_portal/modules/finance` como estructura canonica para la evolucion del modulo

@@ -1,53 +1,51 @@
 import { Navigate, createBrowserRouter, RouterProvider } from "react-router-dom";
-import { LoginPage } from "../pages/auth/LoginPage";
-import { PlatformRootRecoveryPage } from "../pages/auth/PlatformRootRecoveryPage";
-import { DashboardPage } from "../pages/dashboard/DashboardPage";
-import { PlatformActivityPage } from "../pages/activity/PlatformActivityPage";
-import { TenantsPage } from "../pages/tenants/TenantsPage";
-import { ProvisioningPage } from "../pages/provisioning/ProvisioningPage";
-import { BillingPage } from "../pages/billing/BillingPage";
-import { SettingsPage } from "../pages/settings/SettingsPage";
-import { TenantHistoryPage } from "../pages/tenant_history/TenantHistoryPage";
-import { InstallPage } from "../pages/install/InstallPage";
-import { PlatformUsersPage } from "../pages/users/PlatformUsersPage";
 import { RequireAuth } from "./RequireAuth";
 import { RequireInstalled } from "./RequireInstalled";
 import { RequirePlatformRoles } from "./RequirePlatformRoles";
 import { financeTenantPortalRoutes } from "../../tenant_portal/modules/finance";
 import { RequireTenantAuth } from "../../tenant_portal/routes/RequireTenantAuth";
-import { TenantLoginPage } from "../../tenant_portal/pages/auth/TenantLoginPage";
-import { TenantOverviewPage } from "../../tenant_portal/pages/overview/TenantOverviewPage";
-import { TenantUsersPage } from "../../tenant_portal/pages/users/TenantUsersPage";
+import { LoadingBlock } from "../../../components/feedback/LoadingBlock";
 import { useAuth } from "../../../store/auth-context";
-
-function PlatformHomeRoute() {
-  const { session } = useAuth();
-  if (session?.role === "admin" || session?.role === "support") {
-    return <Navigate to="/users" replace />;
-  }
-  return <DashboardPage />;
-}
 
 const router = createBrowserRouter([
   {
     path: "/install",
-    element: <InstallPage />,
+    lazy: async () => {
+      const module = await import("../pages/install/InstallPage");
+      return {
+        element: (
+          <RequireInstalled>
+            <module.InstallPage />
+          </RequireInstalled>
+        ),
+      };
+    },
   },
   {
     path: "/login",
-    element: (
-      <RequireInstalled>
-        <LoginPage />
-      </RequireInstalled>
-    ),
+    lazy: async () => {
+      const module = await import("../pages/auth/LoginPage");
+      return {
+        element: (
+          <RequireInstalled>
+            <module.LoginPage />
+          </RequireInstalled>
+        ),
+      };
+    },
   },
   {
     path: "/login/root-recovery",
-    element: (
-      <RequireInstalled>
-        <PlatformRootRecoveryPage />
-      </RequireInstalled>
-    ),
+    lazy: async () => {
+      const module = await import("../pages/auth/PlatformRootRecoveryPage");
+      return {
+        element: (
+          <RequireInstalled>
+            <module.PlatformRootRecoveryPage />
+          </RequireInstalled>
+        ),
+      };
+    },
   },
   {
     path: "/",
@@ -57,31 +55,95 @@ const router = createBrowserRouter([
       </RequireInstalled>
     ),
     children: [
-      { index: true, element: <PlatformHomeRoute /> },
+      {
+        index: true,
+        lazy: async () => {
+          const module = await import("../pages/dashboard/DashboardPage");
+
+          function PlatformHomeRoute() {
+            const { session } = useAuth();
+            if (session?.role === "admin" || session?.role === "support") {
+              return <Navigate to="/users" replace />;
+            }
+            return <module.DashboardPage />;
+          }
+
+          return { Component: PlatformHomeRoute };
+        },
+      },
       {
         element: <RequirePlatformRoles allowedRoles={["superadmin", "admin"]} />,
-        children: [{ path: "activity", element: <PlatformActivityPage /> }],
+        children: [
+          {
+            path: "activity",
+            lazy: async () => {
+              const module = await import("../pages/activity/PlatformActivityPage");
+              return { Component: module.PlatformActivityPage };
+            },
+          },
+        ],
       },
-      { path: "users", element: <PlatformUsersPage /> },
+      {
+        path: "users",
+        lazy: async () => {
+          const module = await import("../pages/users/PlatformUsersPage");
+          return { Component: module.PlatformUsersPage };
+        },
+      },
       {
         element: <RequirePlatformRoles allowedRoles={["superadmin"]} redirectTo="/users" />,
         children: [
-          { path: "tenants", element: <TenantsPage /> },
-          { path: "tenant-history", element: <TenantHistoryPage /> },
-          { path: "provisioning", element: <ProvisioningPage /> },
-          { path: "billing", element: <BillingPage /> },
-          { path: "settings", element: <SettingsPage /> },
+          {
+            path: "tenants",
+            lazy: async () => {
+              const module = await import("../pages/tenants/TenantsPage");
+              return { Component: module.TenantsPage };
+            },
+          },
+          {
+            path: "tenant-history",
+            lazy: async () => {
+              const module = await import("../pages/tenant_history/TenantHistoryPage");
+              return { Component: module.TenantHistoryPage };
+            },
+          },
+          {
+            path: "provisioning",
+            lazy: async () => {
+              const module = await import("../pages/provisioning/ProvisioningPage");
+              return { Component: module.ProvisioningPage };
+            },
+          },
+          {
+            path: "billing",
+            lazy: async () => {
+              const module = await import("../pages/billing/BillingPage");
+              return { Component: module.BillingPage };
+            },
+          },
+          {
+            path: "settings",
+            lazy: async () => {
+              const module = await import("../pages/settings/SettingsPage");
+              return { Component: module.SettingsPage };
+            },
+          },
         ],
       },
     ],
   },
   {
     path: "/tenant-portal/login",
-    element: (
-      <RequireInstalled>
-        <TenantLoginPage />
-      </RequireInstalled>
-    ),
+    lazy: async () => {
+      const module = await import("../../tenant_portal/pages/auth/TenantLoginPage");
+      return {
+        element: (
+          <RequireInstalled>
+            <module.TenantLoginPage />
+          </RequireInstalled>
+        ),
+      };
+    },
   },
   {
     path: "/tenant-portal",
@@ -91,8 +153,20 @@ const router = createBrowserRouter([
       </RequireInstalled>
     ),
     children: [
-      { index: true, element: <TenantOverviewPage /> },
-      { path: "users", element: <TenantUsersPage /> },
+      {
+        index: true,
+        lazy: async () => {
+          const module = await import("../../tenant_portal/pages/overview/TenantOverviewPage");
+          return { Component: module.TenantOverviewPage };
+        },
+      },
+      {
+        path: "users",
+        lazy: async () => {
+          const module = await import("../../tenant_portal/pages/users/TenantUsersPage");
+          return { Component: module.TenantUsersPage };
+        },
+      },
       {
         path: "finance",
         children: financeTenantPortalRoutes,
@@ -102,5 +176,10 @@ const router = createBrowserRouter([
 ]);
 
 export function AppRouter() {
-  return <RouterProvider router={router} />;
+  return (
+    <RouterProvider
+      router={router}
+      fallbackElement={<LoadingBlock label="Loading workspace..." />}
+    />
+  );
 }
