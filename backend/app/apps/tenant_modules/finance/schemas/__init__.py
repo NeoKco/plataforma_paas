@@ -94,6 +94,7 @@ from app.apps.tenant_modules.finance.schemas.report import (
     FinanceReportOverviewResponse,
     FinanceReportPeriodComparison,
     FinanceReportTransactionSnapshot,
+    FinanceReportTrendSummary,
 )
 from app.apps.tenant_modules.finance.schemas.reconciliation import (
     FinanceExchangeRateMutationResponse,
@@ -227,6 +228,7 @@ __all__ = [
     "FinanceReportOverviewResponse",
     "FinanceReportPeriodComparison",
     "FinanceReportTransactionSnapshot",
+    "FinanceReportTrendSummary",
     "FinanceReorderItemRequest",
     "FinanceReorderRequest",
     "FinanceResponseBase",

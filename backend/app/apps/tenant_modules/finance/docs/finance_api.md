@@ -144,6 +144,7 @@ Estado actual de `Lote 6`:
 - `reports/overview` ya acepta `movement_scope=all|reconciled|unreconciled|favorites|loan_linked`
 - `reports/overview` ya acepta `budget_category_scope=all|income|expense`
 - `reports/overview` ya acepta `budget_status_filter=all|over_budget|within_budget|unused|inactive`
+- el overview ya devuelve `trend_summary` con promedio, mejor/peor mes y delta contra el primer mes del horizonte
 - cuando una vista de `finance` detecta schema incompleto, la API ya responde error controlado accionable en vez de `500` crudo
 - `tenant admin` ya puede revisar y sincronizar schema desde `GET /tenant/schema-status` y `POST /tenant/sync-schema`
 
@@ -162,5 +163,5 @@ Pendiente:
 - enriquecer `budgets` con lectura mas densa por categoria y estados operativos mas ricos
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
 - enriquecer el enlace contable de `loans` con cuenta origen y lectura derivada mas densa
-- exportaciones adicionales, comparativas más profundas entre periodos y lectura contable mas densa sobre el overview ya existente
+- exportaciones adicionales, comparativas contra período arbitrario y lectura contable mas densa sobre el overview ya existente
 - mover la sincronizacion tenant-side de schema a ejecucion asincrona y dejar auto-sync post-provisioning/post-deploy

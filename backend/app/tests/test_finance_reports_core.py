@@ -267,6 +267,10 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
         self.assertEqual(overview["monthly_trend"][-1]["total_expense"], 120.0)
         self.assertEqual(overview["monthly_trend"][-2]["period_month"], date(2026, 3, 1))
         self.assertEqual(overview["monthly_trend"][-2]["total_budgeted"], 200.0)
+        self.assertEqual(overview["trend_summary"]["months_covered"], 6)
+        self.assertEqual(overview["trend_summary"]["best_period_month"], date(2026, 4, 1))
+        self.assertEqual(overview["trend_summary"]["best_net_balance"], 380.0)
+        self.assertEqual(overview["trend_summary"]["worst_period_month"], date(2025, 11, 1))
 
     def test_reports_overview_respects_requested_trend_months(self) -> None:
         overview = self.reports_service.get_overview(

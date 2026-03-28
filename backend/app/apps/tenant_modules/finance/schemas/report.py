@@ -96,6 +96,23 @@ class FinanceReportMonthlyTrendItem(BaseModel):
     total_variance: float
 
 
+class FinanceReportTrendSummary(BaseModel):
+    months_covered: int
+    first_period_month: date | None
+    last_period_month: date | None
+    total_income: float
+    total_expense: float
+    total_net_balance: float
+    average_income: float
+    average_expense: float
+    average_net_balance: float
+    best_period_month: date | None
+    best_net_balance: float | None
+    worst_period_month: date | None
+    worst_net_balance: float | None
+    net_balance_delta_vs_first: float
+
+
 class FinanceReportOverviewData(BaseModel):
     period_month: date
     movement_scope: str
@@ -110,6 +127,7 @@ class FinanceReportOverviewData(BaseModel):
     budget_variances: list[FinanceReportBudgetVarianceItem]
     period_comparison: FinanceReportPeriodComparison
     monthly_trend: list[FinanceReportMonthlyTrendItem]
+    trend_summary: FinanceReportTrendSummary
 
 
 class FinanceReportOverviewResponse(FinanceResponseBase):

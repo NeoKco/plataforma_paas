@@ -91,6 +91,23 @@ export type TenantFinanceReportMonthlyTrendItem = {
   total_variance: number;
 };
 
+export type TenantFinanceReportTrendSummary = {
+  months_covered: number;
+  first_period_month: string | null;
+  last_period_month: string | null;
+  total_income: number;
+  total_expense: number;
+  total_net_balance: number;
+  average_income: number;
+  average_expense: number;
+  average_net_balance: number;
+  best_period_month: string | null;
+  best_net_balance: number | null;
+  worst_period_month: string | null;
+  worst_net_balance: number | null;
+  net_balance_delta_vs_first: number;
+};
+
 export type TenantFinanceReportOverviewResponse = {
   success: boolean;
   message: string;
@@ -108,6 +125,7 @@ export type TenantFinanceReportOverviewResponse = {
     budget_variances: TenantFinanceReportBudgetVarianceItem[];
     period_comparison: TenantFinanceReportPeriodComparison;
     monthly_trend: TenantFinanceReportMonthlyTrendItem[];
+    trend_summary: TenantFinanceReportTrendSummary;
   };
 };
 

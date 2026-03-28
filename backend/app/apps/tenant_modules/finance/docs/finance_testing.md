@@ -39,10 +39,11 @@ Cobertura actual:
 - horizonte configurable `3/6/12` meses dentro de `reportes overview`
 - foco analítico de movimientos dentro de `reportes overview`
 - foco presupuestario por tipo y estado dentro de `reportes overview`
+- resumen multi-período del horizonte dentro de `reportes overview`
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
 - pruebas de lectura mas rica de presupuestos
 - pruebas mas ricas del enlace contable de cuotas de prestamos con cuenta origen y lectura derivada
-- pruebas de comparativas multi-período más profundas y exportaciones adicionales de reportes
+- pruebas de exportaciones adicionales y comparativas contra período arbitrario de reportes

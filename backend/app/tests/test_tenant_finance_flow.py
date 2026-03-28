@@ -1025,6 +1025,22 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     "total_variance": 180.0,
                 },
             ],
+            "trend_summary": {
+                "months_covered": 2,
+                "first_period_month": date(2025, 11, 1),
+                "last_period_month": date(2026, 4, 1),
+                "total_income": 500.0,
+                "total_expense": 120.0,
+                "total_net_balance": 380.0,
+                "average_income": 250.0,
+                "average_expense": 60.0,
+                "average_net_balance": 190.0,
+                "best_period_month": date(2026, 4, 1),
+                "best_net_balance": 380.0,
+                "worst_period_month": date(2025, 11, 1),
+                "worst_net_balance": 0.0,
+                "net_balance_delta_vs_first": 380.0,
+            },
         }
 
         with patch(
@@ -1058,6 +1074,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.monthly_trend[-1].net_balance, 380.0)
         self.assertEqual(response.data.movement_scope, "all")
         self.assertEqual(response.data.budget_category_scope, "all")
+        self.assertEqual(response.data.trend_summary.best_net_balance, 380.0)
 
     def test_get_finance_reports_overview_forwards_trend_months(self) -> None:
         with patch(
@@ -1121,6 +1138,22 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     "variance_delta": 0.0,
                 },
                 "monthly_trend": [],
+                "trend_summary": {
+                    "months_covered": 0,
+                    "first_period_month": None,
+                    "last_period_month": None,
+                    "total_income": 0.0,
+                    "total_expense": 0.0,
+                    "total_net_balance": 0.0,
+                    "average_income": 0.0,
+                    "average_expense": 0.0,
+                    "average_net_balance": 0.0,
+                    "best_period_month": None,
+                    "best_net_balance": None,
+                    "worst_period_month": None,
+                    "worst_net_balance": None,
+                    "net_balance_delta_vs_first": 0.0,
+                },
             },
         ) as get_overview_mock:
             get_finance_reports_overview(

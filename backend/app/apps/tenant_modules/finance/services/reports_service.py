@@ -189,6 +189,16 @@ class FinanceReportsService:
             ),
         }
 
+        monthly_trend = self._build_monthly_trend(
+            tenant_db=tenant_db,
+            all_transactions=all_transactions,
+            current_period_month=normalized_period_month,
+            trend_months=trend_months,
+            movement_scope=movement_scope,
+            budget_category_scope=budget_category_scope,
+            budget_status_filter=budget_status_filter,
+        )
+
         return {
             "period_month": normalized_period_month,
             "movement_scope": movement_scope,
@@ -270,15 +280,8 @@ class FinanceReportsService:
                     2,
                 ),
             },
-            "monthly_trend": self._build_monthly_trend(
-                tenant_db=tenant_db,
-                all_transactions=all_transactions,
-                current_period_month=normalized_period_month,
-                trend_months=trend_months,
-                movement_scope=movement_scope,
-                budget_category_scope=budget_category_scope,
-                budget_status_filter=budget_status_filter,
-            ),
+            "monthly_trend": monthly_trend,
+            "trend_summary": self._build_trend_summary(monthly_trend),
         }
 
     def _build_top_categories(
@@ -458,6 +461,57 @@ class FinanceReportsService:
                 }
             )
         return rows
+
+    def _build_trend_summary(self, monthly_trend: list[dict]) -> dict:
+        if not monthly_trend:
+            return {
+                "months_covered": 0,
+                "first_period_month": None,
+                "last_period_month": None,
+                "total_income": 0.0,
+                "total_expense": 0.0,
+                "total_net_balance": 0.0,
+                "average_income": 0.0,
+                "average_expense": 0.0,
+                "average_net_balance": 0.0,
+                "best_period_month": None,
+                "best_net_balance": None,
+                "worst_period_month": None,
+                "worst_net_balance": None,
+                "net_balance_delta_vs_first": 0.0,
+            }
+
+        months_covered = len(monthly_trend)
+        total_income = round(sum(item["total_income"] for item in monthly_trend), 2)
+        total_expense = round(sum(item["total_expense"] for item in monthly_trend), 2)
+        total_net_balance = round(
+            sum(item["net_balance"] for item in monthly_trend),
+            2,
+        )
+        best_month = max(monthly_trend, key=lambda item: item["net_balance"])
+        worst_month = min(monthly_trend, key=lambda item: item["net_balance"])
+        first_month = monthly_trend[0]
+        last_month = monthly_trend[-1]
+
+        return {
+            "months_covered": months_covered,
+            "first_period_month": first_month["period_month"],
+            "last_period_month": last_month["period_month"],
+            "total_income": total_income,
+            "total_expense": total_expense,
+            "total_net_balance": total_net_balance,
+            "average_income": round(total_income / months_covered, 2),
+            "average_expense": round(total_expense / months_covered, 2),
+            "average_net_balance": round(total_net_balance / months_covered, 2),
+            "best_period_month": best_month["period_month"],
+            "best_net_balance": round(float(best_month["net_balance"]), 2),
+            "worst_period_month": worst_month["period_month"],
+            "worst_net_balance": round(float(worst_month["net_balance"]), 2),
+            "net_balance_delta_vs_first": round(
+                float(last_month["net_balance"]) - float(first_month["net_balance"]),
+                2,
+            ),
+        }
 
     def _filter_transactions_by_scope(
         self,

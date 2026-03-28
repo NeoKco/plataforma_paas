@@ -24,6 +24,7 @@ Estado actual:
 - la vista `Reportes` ya permite elegir tendencia de `3`, `6` o `12` meses y exportar JSON base
 - la vista `Reportes` ya permite además enfocar el análisis en conciliados, pendientes, favoritas o movimientos ligados a préstamos
 - la vista `Reportes` ya permite además filtrar el resumen de presupuestos por tipo y por estado
+- la vista `Reportes` ya resume el horizonte con promedio, mejor/peor mes y delta contra el primer mes
 - si una vista nueva del modulo detecta que faltan tablas o cambios de estructura, ahora explica el problema en pantalla
 - si eres `admin` del tenant, ahora puedes usar `Actualizar estructura del módulo` desde el propio portal para aplicar migraciones pendientes
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend

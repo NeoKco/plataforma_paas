@@ -91,6 +91,7 @@ En esta fase quedaron listos:
 - `Reportes` ya permite elegir horizonte de tendencia (`3`, `6` o `12` meses) y exportar JSON además de CSV
 - `Reportes` ya permite foco analítico de movimientos (`todos`, `conciliados`, `pendientes`, `favoritas`, `ligados a préstamos`)
 - `Reportes` ya permite foco presupuestario por tipo (`ingreso/egreso`) y por estado (`sobre`, `dentro`, `sin uso`, `inactiva`)
+- `Reportes` ya incluye resumen del horizonte seleccionado con promedio, mejor/peor mes y delta contra el primer mes
 - manejo controlado de schema incompleto en vistas de `finance`, sin `500` crudo
 - self-service de sincronizacion de estructura desde el propio `tenant_portal` para `tenant admin`
 
@@ -304,7 +305,7 @@ Lo siguiente recomendable ahora es:
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
 3. enriquecer el enlace contable de `Préstamos` con cuenta origen y lectura derivada mas densa
-4. profundizar `Reportes` con comparativas multi-período más profundas y exportaciones enriquecidas, ahora que ya existe foco de movimientos y foco presupuestario
+4. profundizar `Reportes` con exportaciones enriquecidas y comparativas contra período arbitrario, ahora que ya existe resumen multi-período del horizonte
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable
 7. mover la sincronizacion tenant-side a job de provisioning o worker dedicado, en vez de ejecutarla inline

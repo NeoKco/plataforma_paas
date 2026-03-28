@@ -17,6 +17,7 @@ import {
   type TenantFinanceReportMonthlyTrendItem,
   type TenantFinanceReportOverviewResponse,
   type TenantFinanceReportPeriodComparison,
+  type TenantFinanceReportTrendSummary,
 } from "../services/reportsService";
 
 export function FinanceReportsPage() {
@@ -373,6 +374,13 @@ export function FinanceReportsPage() {
       >
         <MonthlyTrendTable items={overview?.monthly_trend || []} />
       </PanelCard>
+
+      <PanelCard
+        title="Resumen del horizonte"
+        subtitle="Comparativa ejecutiva del rango seleccionado para no depender solo de la tabla mensual."
+      >
+        <TrendSummaryPanel summary={overview?.trend_summary || null} />
+      </PanelCard>
     </div>
   );
 }
@@ -576,6 +584,53 @@ function MonthlyTrendTable({
   );
 }
 
+function TrendSummaryPanel({
+  summary,
+}: {
+  summary: TenantFinanceReportTrendSummary | null;
+}) {
+  if (!summary || summary.months_covered === 0) {
+    return (
+      <p className="tenant-muted-text mb-0">
+        Sin resumen comparativo para el horizonte seleccionado.
+      </p>
+    );
+  }
+
+  return (
+    <dl className="finance-report-definition-list">
+      <ReportLine
+        label="Meses cubiertos"
+        value={String(summary.months_covered)}
+      />
+      <ReportLine
+        label="Ingreso promedio"
+        value={formatMoney(summary.average_income)}
+      />
+      <ReportLine
+        label="Egreso promedio"
+        value={formatMoney(summary.average_expense)}
+      />
+      <ReportLine
+        label="Balance promedio"
+        value={formatSignedMoney(summary.average_net_balance)}
+      />
+      <ReportLine
+        label="Mejor mes"
+        value={buildTrendMonthValue(summary.best_period_month, summary.best_net_balance)}
+      />
+      <ReportLine
+        label="Peor mes"
+        value={buildTrendMonthValue(summary.worst_period_month, summary.worst_net_balance)}
+      />
+      <ReportLine
+        label="Delta vs primer mes"
+        value={formatSignedMoney(summary.net_balance_delta_vs_first)}
+      />
+    </dl>
+  );
+}
+
 function ReportLine({ label, value }: { label: string; value: string }) {
   return (
     <>
@@ -696,6 +751,17 @@ function exportOverviewCsv(
     ]);
   });
 
+  rows.push([
+    "resumen_horizonte",
+    "promedios",
+    `${overview.trend_summary.average_income}|${overview.trend_summary.average_expense}|${overview.trend_summary.average_net_balance}`,
+  ]);
+  rows.push([
+    "resumen_horizonte",
+    "mejor_peor",
+    `${overview.trend_summary.best_period_month}|${overview.trend_summary.best_net_balance}|${overview.trend_summary.worst_period_month}|${overview.trend_summary.worst_net_balance}|${overview.trend_summary.net_balance_delta_vs_first}`,
+  ]);
+
   const csv = rows
     .map((row) => row.map(escapeCsvValue).join(","))
     .join("\n");
@@ -747,6 +813,13 @@ function buildMovementScopeLabel(scope: string) {
     default:
       return "general";
   }
+}
+
+function buildTrendMonthValue(monthIso: string | null, amount: number | null) {
+  if (!monthIso || amount === null) {
+    return "n/d";
+  }
+  return `${formatMonthLabel(monthIso)} · ${formatSignedMoney(amount)}`;
 }
 
 function buildBudgetScopeLabel(scope: string) {
