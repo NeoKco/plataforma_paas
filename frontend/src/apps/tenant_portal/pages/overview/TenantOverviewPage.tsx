@@ -8,6 +8,7 @@ import { EmptyState } from "../../../../components/feedback/EmptyState";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { getTenantInfo, getTenantModuleUsage } from "../../../../services/tenant-api";
+import { useLanguage } from "../../../../store/language-context";
 import { useTenantAuth } from "../../../../store/tenant-auth-context";
 import {
   displayPlatformCode,
@@ -17,6 +18,7 @@ import type { ApiError, TenantInfoResponse, TenantModuleUsageResponse } from "..
 
 export function TenantOverviewPage() {
   const { session } = useTenantAuth();
+  const { language } = useLanguage();
   const [tenantInfo, setTenantInfo] = useState<TenantInfoResponse | null>(null);
   const [moduleUsage, setModuleUsage] = useState<TenantModuleUsageResponse | null>(
     null
@@ -87,16 +89,36 @@ export function TenantOverviewPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow="Espacio"
-        title={tenant?.tenant_name || session?.tenantSlug || "Resumen del tenant"}
-        description="Vista general del estado actual de tu espacio, sus límites efectivos y los módulos disponibles."
+        eyebrow={language === "es" ? "Espacio" : "Workspace"}
+        title={
+          tenant?.tenant_name ||
+          session?.tenantSlug ||
+          (language === "es" ? "Resumen del tenant" : "Tenant overview")
+        }
+        description={
+          language === "es"
+            ? "Vista general del estado actual de tu espacio, sus límites efectivos y los módulos disponibles."
+            : "General view of your workspace, its effective limits, and the modules available."
+        }
       />
 
-      {isLoading ? <LoadingBlock label="Cargando resumen del tenant..." /> : null}
+      {isLoading ? (
+        <LoadingBlock
+          label={
+            language === "es"
+              ? "Cargando resumen del tenant..."
+              : "Loading tenant overview..."
+          }
+        />
+      ) : null}
 
       {error ? (
         <ErrorState
-          title="Información del tenant no disponible"
+          title={
+            language === "es"
+              ? "Información del tenant no disponible"
+              : "Tenant information unavailable"
+          }
           detail={error.payload?.detail || error.message}
           requestId={error.payload?.request_id}
         />
@@ -106,102 +128,121 @@ export function TenantOverviewPage() {
         <>
           <div className="tenant-portal-metrics">
             <MetricCard
-              label="Módulos habilitados"
+              label={language === "es" ? "Módulos habilitados" : "Enabled modules"}
               value={overview.enabledModules}
-              hint="Cantidad activa hoy"
+              hint={language === "es" ? "Cantidad activa hoy" : "Currently active"}
             />
             <MetricCard
-              label="Claves de límites"
+              label={language === "es" ? "Claves de límites" : "Limit keys"}
               value={overview.moduleLimitKeys}
-              hint="Cuotas con regla efectiva"
+              hint={language === "es" ? "Cuotas con regla efectiva" : "Quotas with an effective rule"}
             />
             <MetricCard
-              label="Lecturas rpm efectivas"
+              label={language === "es" ? "Lecturas rpm efectivas" : "Effective read rpm"}
               value={overview.apiReadLimit}
-              hint="Límite vigente de lectura"
+              hint={language === "es" ? "Límite vigente de lectura" : "Current read limit"}
             />
             <MetricCard
-              label="Escrituras rpm efectivas"
+              label={language === "es" ? "Escrituras rpm efectivas" : "Effective write rpm"}
               value={overview.apiWriteLimit}
-              hint="Límite vigente de escritura"
+              hint={language === "es" ? "Límite vigente de escritura" : "Current write limit"}
             />
           </div>
 
           <PanelCard
-            title="Postura del tenant"
-            subtitle="Estado operativo actual aplicado a tu espacio."
+            title={language === "es" ? "Postura del tenant" : "Tenant posture"}
+            subtitle={
+              language === "es"
+                ? "Estado operativo actual aplicado a tu espacio."
+                : "Current operational state applied to your workspace."
+            }
           >
             <div className="tenant-detail-grid">
               <DetailField label="Slug" value={<code>{tenant.tenant_slug}</code>} />
               <DetailField
-                label="Tipo de tenant"
-                value={tenant.tenant_type ? displayPlatformCode(tenant.tenant_type) : "n/a"}
+                label={language === "es" ? "Tipo de tenant" : "Tenant type"}
+                value={tenant.tenant_type ? displayPlatformCode(tenant.tenant_type, language) : "n/a"}
               />
               <DetailField
-                label="Ciclo de vida"
+                label={language === "es" ? "Ciclo de vida" : "Lifecycle"}
                 value={<StatusBadge value={tenant.tenant_status || "unknown"} />}
               />
               <DetailField
-                label="Facturación"
+                label={language === "es" ? "Facturación" : "Billing"}
                 value={<StatusBadge value={tenant.billing_status || "unknown"} />}
               />
-              <DetailField label="Plan" value={tenant.plan_code || "sin plan"} />
               <DetailField
-                label="Acceso"
-                value={tenant.access_allowed ? "permitido" : "bloqueado"}
+                label={language === "es" ? "Plan" : "Plan"}
+                value={tenant.plan_code || (language === "es" ? "sin plan" : "no plan")}
               />
               <DetailField
-                label="Mantenimiento"
-                value={tenant.maintenance_mode ? "habilitado" : "apagado"}
+                label={language === "es" ? "Acceso" : "Access"}
+                value={tenant.access_allowed ? (language === "es" ? "permitido" : "allowed") : (language === "es" ? "bloqueado" : "blocked")}
               />
               <DetailField
-                label="Gracia billing"
-                value={tenant.billing_in_grace ? "sí" : "no"}
+                label={language === "es" ? "Mantenimiento" : "Maintenance"}
+                value={tenant.maintenance_mode ? (language === "es" ? "habilitado" : "enabled") : (language === "es" ? "apagado" : "off")}
+              />
+              <DetailField
+                label={language === "es" ? "Gracia billing" : "Billing grace"}
+                value={tenant.billing_in_grace ? (language === "es" ? "sí" : "yes") : (language === "es" ? "no" : "no")}
               />
             </div>
             {tenant.access_detail ? (
               <div className="tenant-inline-note">
-                {displayTenantAccessDetail(tenant.access_detail)}
+                {displayTenantAccessDetail(tenant.access_detail, language)}
               </div>
             ) : null}
           </PanelCard>
 
           <div className="tenant-portal-split tenant-portal-split--overview">
-            <PanelCard title="Módulos habilitados">
+            <PanelCard title={language === "es" ? "Módulos habilitados" : "Enabled modules"}>
               <div className="settings-token-chips">
                 {(tenant.effective_enabled_modules || []).length > 0 ? (
                   tenant.effective_enabled_modules?.map((value) => (
                     <span key={value} className="tenant-chip">
-                      {displayPlatformCode(value)}
+                      {displayPlatformCode(value, language)}
                     </span>
                   ))
                 ) : (
                   <EmptyState
-                    title="Todavía no hay módulos habilitados"
-                    detail="Este tenant aún no tiene módulos efectivos para operar desde el portal."
+                    title={
+                      language === "es"
+                        ? "Todavía no hay módulos habilitados"
+                        : "There are no enabled modules yet"
+                    }
+                    detail={
+                      language === "es"
+                        ? "Este tenant aún no tiene módulos efectivos para operar desde el portal."
+                        : "This tenant does not yet have effective modules to operate from the portal."
+                    }
                   />
                 )}
               </div>
             </PanelCard>
 
-            <PanelCard title="Usuario actual">
+            <PanelCard title={language === "es" ? "Usuario actual" : "Current user"}>
               <div className="tenant-detail-grid">
                 <DetailField label="Email" value={tenantInfo?.user.email || "n/a"} />
                 <DetailField
-                  label="Rol"
+                  label={language === "es" ? "Rol" : "Role"}
                   value={
-                    tenantInfo?.user.role ? displayPlatformCode(tenantInfo.user.role) : "n/a"
+                    tenantInfo?.user.role ? displayPlatformCode(tenantInfo.user.role, language) : "n/a"
                   }
                 />
-                <DetailField label="ID usuario" value={tenantInfo?.user.id || "n/a"} />
-                <DetailField label="Alcance del token" value={tenantInfo?.token_scope || "n/a"} />
+                <DetailField label={language === "es" ? "ID usuario" : "User ID"} value={tenantInfo?.user.id || "n/a"} />
+                <DetailField label={language === "es" ? "Alcance del token" : "Token scope"} value={tenantInfo?.token_scope || "n/a"} />
               </div>
             </PanelCard>
           </div>
 
           {moduleUsageError ? (
             <ErrorState
-              title="Uso tenant por módulo no disponible"
+              title={
+                language === "es"
+                  ? "Uso tenant por módulo no disponible"
+                  : "Tenant module usage unavailable"
+              }
               detail={moduleUsageError.payload?.detail || moduleUsageError.message}
               requestId={moduleUsageError.payload?.request_id}
             />
@@ -209,44 +250,48 @@ export function TenantOverviewPage() {
 
           {moduleUsage ? (
             <DataTableCard
-              title="Uso por módulo"
+              title={language === "es" ? "Uso por módulo" : "Usage by module"}
               rows={moduleUsage.data}
               columns={[
                 {
                   key: "module_key",
-                  header: "Clave de módulo",
+                  header: language === "es" ? "Clave de módulo" : "Module key",
                   render: (row) => <code>{row.module_key}</code>,
                 },
                 {
                   key: "used_units",
-                  header: "Usado",
+                  header: language === "es" ? "Usado" : "Used",
                   render: (row) => row.used_units,
                 },
                 {
                   key: "max_units",
-                  header: "Límite",
-                  render: (row) => (row.unlimited ? "ilimitado" : row.max_units ?? "—"),
+                  header: language === "es" ? "Límite" : "Limit",
+                  render: (row) => (row.unlimited ? (language === "es" ? "ilimitado" : "unlimited") : row.max_units ?? "—"),
                 },
                 {
                   key: "remaining_units",
-                  header: "Restante",
+                  header: language === "es" ? "Restante" : "Remaining",
                   render: (row) =>
                     row.unlimited ? "—" : row.remaining_units ?? "—",
                 },
                 {
                   key: "limit_source",
-                  header: "Fuente",
+                  header: language === "es" ? "Fuente" : "Source",
                   render: (row) =>
-                    row.limit_source ? displayPlatformCode(row.limit_source) : "ninguna",
+                    row.limit_source ? displayPlatformCode(row.limit_source, language) : language === "es" ? "ninguna" : "none",
                 },
                 {
                   key: "at_limit",
-                  header: "Estado",
+                  header: language === "es" ? "Estado" : "Status",
                   render: (row) =>
                     row.at_limit ? (
-                      <span className="status-badge status-badge--warning">al límite</span>
+                      <span className="status-badge status-badge--warning">
+                        {language === "es" ? "al límite" : "at limit"}
+                      </span>
                     ) : (
-                      <span className="status-badge status-badge--success">ok</span>
+                      <span className="status-badge status-badge--success">
+                        {language === "es" ? "ok" : "ok"}
+                      </span>
                     ),
                 },
               ]}
@@ -254,10 +299,18 @@ export function TenantOverviewPage() {
           ) : null}
         </>
       ) : !isLoading ? (
-        <PanelCard title="Resumen del tenant">
+        <PanelCard title={language === "es" ? "Resumen del tenant" : "Tenant overview"}>
           <EmptyState
-            title="No se pudo armar el resumen del tenant"
-            detail="La sesión actual no devolvió información suficiente para mostrar el contexto operativo del espacio."
+            title={
+              language === "es"
+                ? "No se pudo armar el resumen del tenant"
+                : "The tenant overview could not be built"
+            }
+            detail={
+              language === "es"
+                ? "La sesión actual no devolvió información suficiente para mostrar el contexto operativo del espacio."
+                : "The current session did not return enough information to display the workspace operational context."
+            }
           />
         </PanelCard>
       ) : null}

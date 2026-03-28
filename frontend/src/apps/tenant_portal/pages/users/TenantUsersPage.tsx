@@ -13,6 +13,7 @@ import {
   updateTenantUserStatus,
 } from "../../../../services/tenant-api";
 import { getApiErrorDisplayMessage } from "../../../../services/api";
+import { useLanguage } from "../../../../store/language-context";
 import { useTenantAuth } from "../../../../store/tenant-auth-context";
 import { getTenantPortalActionSuccessMessage } from "../../../../utils/action-feedback";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
@@ -26,56 +27,77 @@ type ActionFeedback = {
 
 const ROLE_OPTIONS = ["admin", "manager", "operator"];
 
-function displayUserRole(value: string): string {
-  return displayPlatformCode(value);
+function displayUserRole(value: string, language: "es" | "en"): string {
+  return displayPlatformCode(value, language);
 }
 
-function formatTenantUserActionError(scope: string, error: ApiError): string {
+function formatTenantUserActionError(
+  scope: string,
+  error: ApiError,
+  language: "es" | "en"
+): string {
   const message = getApiErrorDisplayMessage(error);
 
   if (message.includes("core.users.admin")) {
     if (scope.startsWith("user-status-")) {
-      return "No puedes habilitar otro administrador porque tu plan permite solo 1 administrador activo y ese cupo ya está en uso.";
+      return language === "es"
+        ? "No puedes habilitar otro administrador porque tu plan permite solo 1 administrador activo y ese cupo ya está en uso."
+        : "You cannot enable another admin because your plan allows only 1 active admin and that slot is already in use.";
     }
     if (scope === "create-user") {
-      return "No puedes crear otro administrador porque tu plan permite solo 1 administrador activo y ese cupo ya está en uso.";
+      return language === "es"
+        ? "No puedes crear otro administrador porque tu plan permite solo 1 administrador activo y ese cupo ya está en uso."
+        : "You cannot create another admin because your plan allows only 1 active admin and that slot is already in use.";
     }
-    return "Tu plan ya alcanzó el límite de administradores.";
+    return language === "es"
+      ? "Tu plan ya alcanzó el límite de administradores."
+      : "Your plan has already reached the admin limit.";
   }
 
   if (message.includes("core.users.active")) {
     if (scope.startsWith("user-status-")) {
-      return "No puedes habilitar otro usuario porque tu plan ya alcanzó el límite de usuarios activos.";
+      return language === "es"
+        ? "No puedes habilitar otro usuario porque tu plan ya alcanzó el límite de usuarios activos."
+        : "You cannot enable another user because your plan has already reached the active user limit.";
     }
     if (scope === "create-user") {
-      return "No puedes crear otro usuario activo porque tu plan ya alcanzó el límite de usuarios activos.";
+      return language === "es"
+        ? "No puedes crear otro usuario activo porque tu plan ya alcanzó el límite de usuarios activos."
+        : "You cannot create another active user because your plan has already reached the active user limit.";
     }
-    return "Tu plan ya alcanzó el límite de usuarios activos.";
+    return language === "es"
+      ? "Tu plan ya alcanzó el límite de usuarios activos."
+      : "Your plan has already reached the active user limit.";
   }
 
   if (message.includes("core.users.monthly")) {
-    return "Tu plan ya alcanzó el límite mensual de creación de usuarios.";
+    return language === "es"
+      ? "Tu plan ya alcanzó el límite mensual de creación de usuarios."
+      : "Your plan has already reached the monthly user creation limit.";
   }
 
   if (message.includes("core.users")) {
-    return "Tu plan ya alcanzó el límite total de usuarios.";
+    return language === "es"
+      ? "Tu plan ya alcanzó el límite total de usuarios."
+      : "Your plan has already reached the total user limit.";
   }
 
   return message;
 }
 
-function getActionFeedbackLabel(scope: string): string {
+function getActionFeedbackLabel(scope: string, language: "es" | "en"): string {
   if (scope.startsWith("user-status-")) {
-    return "Estado del usuario";
+    return language === "es" ? "Estado del usuario" : "User status";
   }
   if (scope === "create-user") {
-    return "Crear usuario";
+    return language === "es" ? "Crear usuario" : "Create user";
   }
   return scope;
 }
 
 export function TenantUsersPage() {
   const { session } = useTenantAuth();
+  const { language } = useLanguage();
   const [usersResponse, setUsersResponse] = useState<TenantUsersResponse | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -135,14 +157,14 @@ export function TenantUsersPage() {
       setActionFeedback({
         scope,
         type: "success",
-        message: getTenantPortalActionSuccessMessage(scope, result.message),
+        message: getTenantPortalActionSuccessMessage(scope, result.message, language),
       });
     } catch (rawError) {
       const typedError = rawError as ApiError;
       setActionFeedback({
         scope,
         type: "error",
-        message: formatTenantUserActionError(scope, typedError),
+        message: formatTenantUserActionError(scope, typedError, language),
       });
     } finally {
       setIsActionSubmitting(false);
@@ -191,32 +213,44 @@ export function TenantUsersPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow="Espacio"
-        title="Usuarios"
-        description="Gestiona las personas que pueden entrar a tu espacio y el estado de sus cuentas."
+        eyebrow={language === "es" ? "Espacio" : "Workspace"}
+        title={language === "es" ? "Usuarios" : "Users"}
+        description={
+          language === "es"
+            ? "Gestiona las personas que pueden entrar a tu espacio y el estado de sus cuentas."
+            : "Manage the people who can access your workspace and the status of their accounts."
+        }
       />
 
       {actionFeedback ? (
         <div
           className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
         >
-          <strong>{getActionFeedbackLabel(actionFeedback.scope)}:</strong>{" "}
+          <strong>{getActionFeedbackLabel(actionFeedback.scope, language)}:</strong>{" "}
           {actionFeedback.message}
         </div>
       ) : null}
 
-      {isLoading ? <LoadingBlock label="Cargando usuarios del tenant..." /> : null}
+      {isLoading ? (
+        <LoadingBlock
+          label={
+            language === "es"
+              ? "Cargando usuarios del tenant..."
+              : "Loading tenant users..."
+          }
+        />
+      ) : null}
 
       <div className="tenant-portal-metrics">
-        <MetricCard label="Usuarios totales" value={overview.totalUsers} hint="Cuentas visibles" />
-        <MetricCard label="Usuarios activos" value={overview.activeUsers} hint="Con acceso habilitado" />
-        <MetricCard label="Usuarios inactivos" value={overview.inactiveUsers} hint="Sin acceso actual" />
-        <MetricCard label="Administradores" value={overview.adminUsers} hint="Con rol admin" />
+        <MetricCard label={language === "es" ? "Usuarios totales" : "Total users"} value={overview.totalUsers} hint={language === "es" ? "Cuentas visibles" : "Visible accounts"} />
+        <MetricCard label={language === "es" ? "Usuarios activos" : "Active users"} value={overview.activeUsers} hint={language === "es" ? "Con acceso habilitado" : "With access enabled"} />
+        <MetricCard label={language === "es" ? "Usuarios inactivos" : "Inactive users"} value={overview.inactiveUsers} hint={language === "es" ? "Sin acceso actual" : "Without current access"} />
+        <MetricCard label={language === "es" ? "Administradores" : "Admins"} value={overview.adminUsers} hint={language === "es" ? "Con rol admin" : "With admin role"} />
       </div>
 
       {error ? (
         <ErrorState
-          title="Usuarios tenant no disponibles"
+          title={language === "es" ? "Usuarios tenant no disponibles" : "Tenant users unavailable"}
           detail={error.payload?.detail || error.message}
           requestId={error.payload?.request_id}
         />
@@ -224,17 +258,21 @@ export function TenantUsersPage() {
 
       <div className="tenant-portal-split tenant-portal-split--users">
         <PanelCard
-          title="Crear usuario"
-          subtitle="Completa los datos de acceso inicial para una nueva cuenta."
+          title={language === "es" ? "Crear usuario" : "Create user"}
+          subtitle={
+            language === "es"
+              ? "Completa los datos de acceso inicial para una nueva cuenta."
+              : "Fill in the initial access data for a new account."
+          }
         >
           <form className="d-grid gap-3" onSubmit={handleCreateUser}>
             <div>
-              <label className="form-label">Nombre completo</label>
+              <label className="form-label">{language === "es" ? "Nombre completo" : "Full name"}</label>
               <input
                 className="form-control"
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
-                placeholder="Ej: María Pérez"
+                placeholder={language === "es" ? "Ej: María Pérez" : "Example: Maria Perez"}
               />
             </div>
             <div>
@@ -244,22 +282,22 @@ export function TenantUsersPage() {
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="Ej: maria@empresa-demo.local"
+                placeholder={language === "es" ? "Ej: maria@empresa-demo.local" : "Example: maria@empresa-demo.local"}
               />
             </div>
             <div>
-              <label className="form-label">Contraseña</label>
+              <label className="form-label">{language === "es" ? "Contraseña" : "Password"}</label>
               <input
                 className="form-control"
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="Define una contraseña inicial"
+                placeholder={language === "es" ? "Define una contraseña inicial" : "Define an initial password"}
               />
             </div>
             <div className="tenant-inline-form-grid">
               <div>
-                <label className="form-label">Rol</label>
+                <label className="form-label">{language === "es" ? "Rol" : "Role"}</label>
                 <select
                   className="form-select"
                   value={role}
@@ -267,20 +305,20 @@ export function TenantUsersPage() {
                 >
                   {ROLE_OPTIONS.map((value) => (
                     <option key={value} value={value}>
-                      {displayUserRole(value)}
+                      {displayUserRole(value, language)}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="form-label">Estado inicial</label>
+                <label className="form-label">{language === "es" ? "Estado inicial" : "Initial status"}</label>
                 <select
                   className="form-select"
                   value={isActive ? "active" : "inactive"}
                   onChange={(event) => setIsActive(event.target.value === "active")}
                 >
-                  <option value="active">activo</option>
-                  <option value="inactive">inactivo</option>
+                  <option value="active">{language === "es" ? "activo" : "active"}</option>
+                  <option value="inactive">{language === "es" ? "inactivo" : "inactive"}</option>
                 </select>
               </div>
             </div>
@@ -289,35 +327,39 @@ export function TenantUsersPage() {
               type="submit"
               disabled={isActionSubmitting}
             >
-              Crear usuario
+              {language === "es" ? "Crear usuario" : "Create user"}
             </button>
           </form>
         </PanelCard>
 
         <PanelCard
-          title="Operador actual"
-          subtitle="Contexto de la sesión con la que estás operando este tenant."
+          title={language === "es" ? "Operador actual" : "Current operator"}
+          subtitle={
+            language === "es"
+              ? "Contexto de la sesión con la que estás operando este tenant."
+              : "Context for the session currently operating this tenant."
+          }
         >
           <div className="tenant-detail-grid">
             <DetailField label="Tenant" value={session?.tenantSlug || "n/a"} />
             <DetailField label="Email" value={session?.email || "n/a"} />
             <DetailField
-              label="Rol"
-              value={session?.role ? displayUserRole(session.role) : "n/a"}
+              label={language === "es" ? "Rol" : "Role"}
+              value={session?.role ? displayUserRole(session.role, language) : "n/a"}
             />
-            <DetailField label="ID usuario" value={session?.userId || "n/a"} />
+            <DetailField label={language === "es" ? "ID usuario" : "User ID"} value={session?.userId || "n/a"} />
           </div>
         </PanelCard>
       </div>
 
       {users.length > 0 ? (
         <DataTableCard
-          title="Usuarios del tenant"
+          title={language === "es" ? "Usuarios del tenant" : "Tenant users"}
           rows={users}
           columns={[
             {
               key: "full_name",
-              header: "Nombre completo",
+              header: language === "es" ? "Nombre completo" : "Full name",
               render: (row) => row.full_name,
             },
             {
@@ -327,19 +369,19 @@ export function TenantUsersPage() {
             },
             {
               key: "role",
-              header: "Rol",
-              render: (row) => displayUserRole(row.role),
+              header: language === "es" ? "Rol" : "Role",
+              render: (row) => displayUserRole(row.role, language),
             },
             {
               key: "is_active",
-              header: "Estado",
+              header: language === "es" ? "Estado" : "Status",
               render: (row) => (
                 <StatusBadge value={row.is_active ? "active" : "inactive"} />
               ),
             },
             {
               key: "actions",
-              header: "Acciones",
+              header: language === "es" ? "Acciones" : "Actions",
               render: (row) => (
                 <button
                   type="button"
@@ -347,16 +389,24 @@ export function TenantUsersPage() {
                   onClick={() => handleToggleStatus(row)}
                   disabled={isActionSubmitting}
                 >
-                  {row.is_active ? "Desactivar" : "Activar"}
+                  {row.is_active
+                    ? language === "es"
+                      ? "Desactivar"
+                      : "Deactivate"
+                    : language === "es"
+                      ? "Activar"
+                      : "Activate"}
                 </button>
               ),
             },
           ]}
         />
       ) : !isLoading && !error ? (
-        <PanelCard title="Usuarios del tenant">
+        <PanelCard title={language === "es" ? "Usuarios del tenant" : "Tenant users"}>
           <div className="text-secondary">
-            Aún no se devolvieron usuarios para este tenant.
+            {language === "es"
+              ? "Aún no se devolvieron usuarios para este tenant."
+              : "No users were returned for this tenant yet."}
           </div>
         </PanelCard>
       ) : null}

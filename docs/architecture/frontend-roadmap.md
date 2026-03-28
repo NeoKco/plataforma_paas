@@ -51,6 +51,7 @@ Lo pendiente es sobre todo:
 - mover la sincronizacion tenant-side a un flujo asíncrono con job visible en vez de ejecutarla inline
 - sumar auto-sync post-provisioning/post-deploy para reducir friccion operativa
 - una vez cerrado `finance`, abrir un `design system` transversal del PaaS y aplicar la primera migracion completa precisamente sobre `finance`, incluyendo sistema comun de iconos por modulo y entidad
+- cerrar una internacionalizacion transversal real del frontend, empezando por eliminar copy hardcodeado en helpers compartidos y pantallas base como `Overview` y `Users`
 
 Nota de ejecucion:
 

@@ -91,17 +91,30 @@ export function getPlatformActionSuccessMessage(
 
 export function getTenantPortalActionSuccessMessage(
   scope: string,
-  fallback?: string
+  fallback?: string,
+  language: Language = "es"
 ): string {
   if (scope === "create-user") {
-    return "El usuario fue creado correctamente.";
+    return language === "es"
+      ? "El usuario fue creado correctamente."
+      : "The user was created successfully.";
   }
   if (scope.startsWith("user-status-")) {
-    return "El estado del usuario fue actualizado correctamente.";
+    return language === "es"
+      ? "El estado del usuario fue actualizado correctamente."
+      : "The user status was updated successfully.";
   }
   if (scope === "create-entry") {
-    return "El movimiento fue registrado correctamente.";
+    return language === "es"
+      ? "El movimiento fue registrado correctamente."
+      : "The transaction was registered successfully.";
   }
 
-  return fallback || "La acción se completó correctamente.";
+  return (
+    fallback ||
+    (language === "es"
+      ? "La acción se completó correctamente."
+      : "The action completed successfully.")
+  );
 }
+import type { Language } from "../store/language-context";

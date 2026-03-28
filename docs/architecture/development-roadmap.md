@@ -288,6 +288,7 @@ Falta para cerrarlo:
 - validaciones y casos de uso de negocio mas ricos
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 - dejar pendiente, para despues del cierre funcional de `finance`, la construccion de un `design system` completo del PaaS con adopcion inicial en el propio `finance`, incluyendo iconografia semantica comun
+- dejar pendiente una internacionalizacion transversal real del sistema, porque hoy todavia existen pantallas y helpers compartidos con copy parcialmente hardcodeado
 
 ## Etapa 9. Calidad Tecnica Base
 

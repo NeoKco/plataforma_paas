@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useLanguage } from "../../store/language-context";
 
 type Column<T> = {
   key: string;
@@ -19,6 +20,8 @@ export function DataTableCard<T>({
   rows,
   columns,
 }: DataTableCardProps<T>) {
+  const { language } = useLanguage();
+
   return (
     <div className="panel-card data-table-card">
       <div className="panel-card__header">
@@ -28,7 +31,14 @@ export function DataTableCard<T>({
             {subtitle ? <p className="panel-card__subtitle mb-0">{subtitle}</p> : null}
           </div>
           <span className="data-table-card__meta">
-            {rows.length} {rows.length === 1 ? "fila" : "filas"}
+            {rows.length}{" "}
+            {language === "es"
+              ? rows.length === 1
+                ? "fila"
+                : "filas"
+              : rows.length === 1
+                ? "row"
+                : "rows"}
           </span>
         </div>
       </div>
