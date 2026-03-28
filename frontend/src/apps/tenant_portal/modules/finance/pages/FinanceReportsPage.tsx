@@ -13,6 +13,7 @@ import {
   getTenantFinanceReportOverview,
   type TenantFinanceReportBudgetVarianceItem,
   type TenantFinanceReportCategoryAmount,
+  type TenantFinanceReportDimensionAmount,
   type TenantFinanceReportCustomRangeComparison,
   type TenantFinanceReportDailyCashflowItem,
   type TenantFinanceReportMonthlyTrendItem,
@@ -38,6 +39,9 @@ export function FinanceReportsPage() {
   const [analysisScope, setAnalysisScope] = useState<
     "period" | "horizon" | "year_to_date"
   >("period");
+  const [analysisDimension, setAnalysisDimension] = useState<
+    "category" | "account" | "project" | "beneficiary" | "person"
+  >("category");
   const [budgetCategoryScope, setBudgetCategoryScope] = useState<
     "all" | "income" | "expense"
   >("all");
@@ -60,6 +64,7 @@ export function FinanceReportsPage() {
     trendMonths,
     movementScope,
     analysisScope,
+    analysisDimension,
     budgetCategoryScope,
     budgetStatusFilter,
   ]);
@@ -81,6 +86,7 @@ export function FinanceReportsPage() {
         trendMonths,
         movementScope,
         analysisScope,
+        analysisDimension,
         budgetCategoryScope,
         budgetStatusFilter
       );
@@ -181,6 +187,29 @@ export function FinanceReportsPage() {
               <option value="period">Período</option>
               <option value="horizon">Horizonte</option>
               <option value="year_to_date">Acumulado anual</option>
+            </select>
+          </div>
+          <div>
+            <label className="form-label">Dimensión ranking</label>
+            <select
+              className="form-select"
+              value={analysisDimension}
+              onChange={(event) =>
+                setAnalysisDimension(
+                  event.target.value as
+                    | "category"
+                    | "account"
+                    | "project"
+                    | "beneficiary"
+                    | "person"
+                )
+              }
+            >
+              <option value="category">Categoría</option>
+              <option value="account">Cuenta</option>
+              <option value="project">Proyecto</option>
+              <option value="beneficiary">Beneficiario</option>
+              <option value="person">Persona</option>
             </select>
           </div>
           <div>
@@ -405,20 +434,24 @@ export function FinanceReportsPage() {
 
         <PanelCard
           title="Top categorías ingreso"
-          subtitle={`Mayores ingresos por categoría según lectura ${buildAnalysisScopeLabel(
+          subtitle={`Mayores ingresos por ${buildAnalysisDimensionLabel(
+            overview?.analysis_dimension || analysisDimension
+          )} según lectura ${buildAnalysisScopeLabel(
             overview?.analysis_scope || analysisScope
           )}.`}
         >
-          <CategoryAmountList items={overview?.top_income_categories || []} emptyLabel="Sin ingresos categorizados en el período." />
+          <DimensionAmountList items={overview?.top_income_breakdown || []} emptyLabel="Sin ingresos analíticos para la lectura seleccionada." />
         </PanelCard>
 
         <PanelCard
           title="Top categorías egreso"
-          subtitle={`Mayores egresos por categoría según lectura ${buildAnalysisScopeLabel(
+          subtitle={`Mayores egresos por ${buildAnalysisDimensionLabel(
+            overview?.analysis_dimension || analysisDimension
+          )} según lectura ${buildAnalysisScopeLabel(
             overview?.analysis_scope || analysisScope
           )}.`}
         >
-          <CategoryAmountList items={overview?.top_expense_categories || []} emptyLabel="Sin egresos categorizados en el período." />
+          <DimensionAmountList items={overview?.top_expense_breakdown || []} emptyLabel="Sin egresos analíticos para la lectura seleccionada." />
         </PanelCard>
       </div>
 
@@ -494,6 +527,35 @@ function CategoryAmountList({
           <div>
             <div className="finance-balance-list__title">{item.category_name}</div>
             <div className="tenant-muted-text">{item.category_type}</div>
+          </div>
+          <div className="finance-balance-list__value">{formatMoney(item.total_amount)}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DimensionAmountList({
+  items,
+  emptyLabel,
+}: {
+  items: TenantFinanceReportDimensionAmount[];
+  emptyLabel: string;
+}) {
+  if (items.length === 0) {
+    return <p className="tenant-muted-text mb-0">{emptyLabel}</p>;
+  }
+
+  return (
+    <div className="finance-balance-list">
+      {items.map((item) => (
+        <div
+          key={`${item.transaction_type}-${item.entity_type}-${item.entity_id ?? "none"}-${item.entity_name}`}
+          className="finance-balance-list__item"
+        >
+          <div>
+            <div className="finance-balance-list__title">{item.entity_name}</div>
+            <div className="tenant-muted-text">{buildAnalysisDimensionLabel(item.entity_type)}</div>
           </div>
           <div className="finance-balance-list__value">{formatMoney(item.total_amount)}</div>
         </div>
@@ -960,6 +1022,7 @@ function exportOverviewCsv(
     ["periodo", "rango_arbitrario_hasta", overview.custom_range_comparison?.custom_last_period_month || ""],
     ["periodo", "foco_movimientos", overview.movement_scope],
     ["periodo", "lectura_categorias", overview.analysis_scope],
+    ["periodo", "dimension_ranking", overview.analysis_dimension],
     ["periodo", "foco_presupuesto_tipo", overview.budget_category_scope],
     ["periodo", "foco_presupuesto_estado", overview.budget_status_filter],
     ["transacciones", "ingresos", String(overview.transaction_snapshot.total_income)],
@@ -1071,19 +1134,19 @@ function exportOverviewCsv(
     ]);
   }
 
-  overview.top_income_categories.forEach((item) => {
+  overview.top_income_breakdown.forEach((item) => {
     rows.push([
       "top_ingresos",
-      item.category_name,
-      `${item.category_type}|${item.total_amount}`,
+      item.entity_name,
+      `${item.entity_type}|${item.total_amount}`,
     ]);
   });
 
-  overview.top_expense_categories.forEach((item) => {
+  overview.top_expense_breakdown.forEach((item) => {
     rows.push([
       "top_egresos",
-      item.category_name,
-      `${item.category_type}|${item.total_amount}`,
+      item.entity_name,
+      `${item.entity_type}|${item.total_amount}`,
     ]);
   });
 
@@ -1155,12 +1218,13 @@ function exportOverviewJson(
           custom_compare_end_month:
             overview.custom_range_comparison?.custom_last_period_month || null,
           analysis_scope: overview.analysis_scope,
+          analysis_dimension: overview.analysis_dimension,
           export_sections: [
             "transaction_snapshot",
             "budget_snapshot",
             "loan_snapshot",
-            "top_income_categories",
-            "top_expense_categories",
+            "top_income_breakdown",
+            "top_expense_breakdown",
             "daily_cashflow",
             "budget_variances",
             "period_comparison",
@@ -1220,6 +1284,21 @@ function buildAnalysisScopeLabel(scope: string) {
       return "período";
     default:
       return "período";
+  }
+}
+
+function buildAnalysisDimensionLabel(dimension: string) {
+  switch (dimension) {
+    case "account":
+      return "cuenta";
+    case "project":
+      return "proyecto";
+    case "beneficiary":
+      return "beneficiario";
+    case "person":
+      return "persona";
+    default:
+      return "categoría";
   }
 }
 

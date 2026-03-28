@@ -31,6 +31,7 @@ Estado actual:
 - la vista `Reportes` ya permite releer top categorías por `período`, `horizonte` o `acumulado anual`
 - la vista `Reportes` ya exporta CSV y JSON enriquecidos con comparativas y bloques ejecutivos
 - la vista `Reportes` ya permite además comparar la lectura activa contra un rango manual `desde/hasta`
+- la vista `Reportes` ya permite además rankear por `categoría`, `cuenta`, `proyecto`, `beneficiario` o `persona`
 - si una vista nueva del modulo detecta que faltan tablas o cambios de estructura, ahora explica el problema en pantalla
 - si eres `admin` del tenant, ahora puedes usar `Actualizar estructura del módulo` desde el propio portal para aplicar migraciones pendientes
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend

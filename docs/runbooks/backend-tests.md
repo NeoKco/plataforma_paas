@@ -144,6 +144,7 @@ Cobertura visible actual:
 - lectura de top categorías por dimensión analítica dentro de `Reportes`
 - exportación enriquecida CSV/JSON desde `Reportes`
 - comparativa contra rango arbitrario manual dentro de `Reportes`
+- ranking por entidad analítica dentro de `Reportes`
 - overview mensual de `Planificación`
 - cartera y cronograma de `Préstamos`
 - pagos, reversas y enlace contable minimo sobre cuotas

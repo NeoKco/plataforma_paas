@@ -58,9 +58,10 @@ Alcance de esta fase:
 - `Reportes` ya permite releer top categorías por dimensión analítica (`período`, `horizonte`, `acumulado anual`)
 - `Reportes` ya exporta CSV y JSON enriquecidos con comparativas, top categorías y resúmenes ejecutivos
 - `Reportes` ya permite además comparar la lectura activa contra un rango arbitrario definido manualmente
+- `Reportes` ya permite además rankear por entidad operativa (`categoría`, `cuenta`, `proyecto`, `beneficiario`, `persona`)
 
 Pendiente inmediato:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura mas densa y estados operativos mas ricos
 - enriquecer el enlace contable de `Préstamos`
-- seguir `Lote 7` con comparativas aún más profundas sobre rangos arbitrarios, cortes analíticos adicionales por entidad/categoría y lectura analitica mas profunda
+- seguir `Lote 7` con comparativas aún más profundas sobre rangos arbitrarios, cortes analíticos adicionales por etiquetas/proyectos/terceros y lectura analitica mas profunda

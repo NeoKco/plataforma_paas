@@ -220,6 +220,7 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
         self.assertEqual(overview["period_month"], date(2026, 4, 1))
         self.assertEqual(overview["movement_scope"], "all")
         self.assertEqual(overview["analysis_scope"], "period")
+        self.assertEqual(overview["analysis_dimension"], "category")
         self.assertEqual(overview["budget_category_scope"], "all")
         self.assertEqual(overview["budget_status_filter"], "all")
         self.assertEqual(overview["transaction_snapshot"]["total_income"], 500.0)
@@ -233,6 +234,11 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
         self.assertEqual(overview["top_income_categories"][0]["category_name"], "General Income")
         self.assertEqual(len(overview["top_expense_categories"]), 1)
         self.assertEqual(overview["top_expense_categories"][0]["category_name"], "General Expense")
+        self.assertEqual(len(overview["top_income_breakdown"]), 1)
+        self.assertEqual(overview["top_income_breakdown"][0]["entity_type"], "category")
+        self.assertEqual(overview["top_income_breakdown"][0]["entity_name"], "General Income")
+        self.assertEqual(len(overview["top_expense_breakdown"]), 1)
+        self.assertEqual(overview["top_expense_breakdown"][0]["entity_name"], "General Expense")
         self.assertEqual(len(overview["daily_cashflow"]), 2)
         self.assertEqual(overview["daily_cashflow"][0]["day"], date(2026, 4, 5))
         self.assertEqual(overview["daily_cashflow"][0]["income_total"], 500.0)
@@ -569,6 +575,95 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
         self.assertEqual(overview["top_income_categories"][0]["total_amount"], 800.0)
         self.assertEqual(overview["top_expense_categories"][0]["total_amount"], 120.0)
 
+    def test_reports_overview_builds_breakdown_for_account_dimension(self) -> None:
+        currency = self._seed_currency()
+        income_category = self._seed_category("General Income", "income")
+        expense_category = self._seed_category("General Expense", "expense")
+
+        from app.apps.tenant_modules.finance.models.account import FinanceAccount
+
+        account = FinanceAccount(
+            name="Caja principal",
+            code="CAJA",
+            account_type="cash",
+            currency_id=currency.id,
+            parent_account_id=None,
+            opening_balance=0.0,
+            opening_balance_at=None,
+            icon=None,
+            is_favorite=False,
+            is_balance_hidden=False,
+            is_active=True,
+            sort_order=10,
+        )
+        self.db.add(account)
+        self.db.commit()
+        self.db.refresh(account)
+
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=account.id,
+                target_account_id=None,
+                category_id=income_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=500.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 4, 5, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Venta abril",
+                notes=None,
+                is_favorite=True,
+                is_reconciled=True,
+                tag_ids=None,
+            ),
+            allow_accountless=True,
+        )
+        self.finance_service.create_transaction(
+            self.db,
+            FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=account.id,
+                target_account_id=None,
+                category_id=expense_category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=120.0,
+                discount_amount=0,
+                exchange_rate=1,
+                amortization_months=None,
+                transaction_at=datetime(2026, 4, 7, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Gasto abril",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=False,
+                tag_ids=None,
+            ),
+            allow_accountless=True,
+        )
+
+        overview = self.reports_service.get_overview(
+            self.db,
+            period_month=date(2026, 4, 1),
+            analysis_dimension="account",
+        )
+
+        self.assertEqual(overview["analysis_dimension"], "account")
+        self.assertEqual(overview["top_income_breakdown"][0]["entity_type"], "account")
+        self.assertEqual(overview["top_income_breakdown"][0]["entity_name"], "Caja principal")
+        self.assertEqual(overview["top_expense_breakdown"][0]["entity_name"], "Caja principal")
+
     def test_reports_overview_builds_custom_range_comparison(self) -> None:
         currency = self._seed_currency()
         income_category = self._seed_category("General Income", "income")
@@ -797,6 +892,13 @@ class FinanceReportsCoreTestCase(unittest.TestCase):
                 self.db,
                 period_month=date(2026, 4, 1),
                 analysis_scope="invalid",
+            )
+
+        with self.assertRaises(ValueError):
+            self.reports_service.get_overview(
+                self.db,
+                period_month=date(2026, 4, 1),
+                analysis_dimension="invalid",
             )
 
         with self.assertRaises(ValueError):

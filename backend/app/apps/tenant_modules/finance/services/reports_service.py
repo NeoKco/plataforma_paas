@@ -3,7 +3,11 @@ from datetime import date, datetime, time, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.finance.repositories import (
+    FinanceAccountRepository,
+    FinanceBeneficiaryRepository,
     FinanceCategoryRepository,
+    FinancePersonRepository,
+    FinanceProjectRepository,
     FinanceTransactionRepository,
 )
 from app.apps.tenant_modules.finance.services.budget_service import FinanceBudgetService
@@ -14,14 +18,24 @@ class FinanceReportsService:
     def __init__(
         self,
         transaction_repository: FinanceTransactionRepository | None = None,
+        account_repository: FinanceAccountRepository | None = None,
+        beneficiary_repository: FinanceBeneficiaryRepository | None = None,
         category_repository: FinanceCategoryRepository | None = None,
+        person_repository: FinancePersonRepository | None = None,
+        project_repository: FinanceProjectRepository | None = None,
         budget_service: FinanceBudgetService | None = None,
         loan_service: FinanceLoanService | None = None,
     ) -> None:
         self.transaction_repository = (
             transaction_repository or FinanceTransactionRepository()
         )
+        self.account_repository = account_repository or FinanceAccountRepository()
+        self.beneficiary_repository = (
+            beneficiary_repository or FinanceBeneficiaryRepository()
+        )
         self.category_repository = category_repository or FinanceCategoryRepository()
+        self.person_repository = person_repository or FinancePersonRepository()
+        self.project_repository = project_repository or FinanceProjectRepository()
         self.budget_service = budget_service or FinanceBudgetService()
         self.loan_service = loan_service or FinanceLoanService()
 
@@ -36,6 +50,7 @@ class FinanceReportsService:
         trend_months: int = 6,
         movement_scope: str = "all",
         analysis_scope: str = "period",
+        analysis_dimension: str = "category",
         budget_category_scope: str = "all",
         budget_status_filter: str = "all",
     ) -> dict:
@@ -54,6 +69,16 @@ class FinanceReportsService:
         if analysis_scope not in {"period", "horizon", "year_to_date"}:
             raise ValueError(
                 "analysis_scope must be one of period, horizon or year_to_date"
+            )
+        if analysis_dimension not in {
+            "category",
+            "account",
+            "project",
+            "beneficiary",
+            "person",
+        }:
+            raise ValueError(
+                "analysis_dimension must be one of category, account, project, beneficiary or person"
             )
         if (custom_compare_start_month is None) != (custom_compare_end_month is None):
             raise ValueError(
@@ -101,6 +126,30 @@ class FinanceReportsService:
         categories = {
             category.id: category
             for category in self.category_repository.list_all(
+                tenant_db, include_inactive=True
+            )
+        }
+        accounts = {
+            account.id: account
+            for account in self.account_repository.list_all(
+                tenant_db, include_inactive=True
+            )
+        }
+        beneficiaries = {
+            beneficiary.id: beneficiary
+            for beneficiary in self.beneficiary_repository.list_all(
+                tenant_db, include_inactive=True
+            )
+        }
+        people = {
+            person.id: person
+            for person in self.person_repository.list_all(
+                tenant_db, include_inactive=True
+            )
+        }
+        projects = {
+            project.id: project
+            for project in self.project_repository.list_all(
                 tenant_db, include_inactive=True
             )
         }
@@ -278,6 +327,7 @@ class FinanceReportsService:
             "period_month": normalized_period_month,
             "movement_scope": movement_scope,
             "analysis_scope": analysis_scope,
+            "analysis_dimension": analysis_dimension,
             "budget_category_scope": budget_category_scope,
             "budget_status_filter": budget_status_filter,
             "transaction_snapshot": transaction_snapshot,
@@ -300,6 +350,34 @@ class FinanceReportsService:
                 ],
                 categories=categories,
                 category_type="expense",
+            ),
+            "top_income_breakdown": self._build_dimension_breakdown(
+                transactions=[
+                    transaction
+                    for transaction in analysis_transactions
+                    if transaction.transaction_type == "income"
+                ],
+                analysis_dimension=analysis_dimension,
+                accounts=accounts,
+                beneficiaries=beneficiaries,
+                categories=categories,
+                people=people,
+                projects=projects,
+                transaction_type="income",
+            ),
+            "top_expense_breakdown": self._build_dimension_breakdown(
+                transactions=[
+                    transaction
+                    for transaction in analysis_transactions
+                    if transaction.transaction_type == "expense"
+                ],
+                analysis_dimension=analysis_dimension,
+                accounts=accounts,
+                beneficiaries=beneficiaries,
+                categories=categories,
+                people=people,
+                projects=projects,
+                transaction_type="expense",
             ),
             "daily_cashflow": self._build_daily_cashflow(transactions=transactions),
             "budget_variances": self._build_budget_variances(budget_rows=budget_rows),
@@ -449,6 +527,104 @@ class FinanceReportsService:
             )
         rows.sort(key=lambda item: (-item["total_amount"], item["category_name"]))
         return rows[:5]
+
+    def _build_dimension_breakdown(
+        self,
+        *,
+        transactions: list,
+        analysis_dimension: str,
+        accounts: dict,
+        beneficiaries: dict,
+        categories: dict,
+        people: dict,
+        projects: dict,
+        transaction_type: str,
+    ) -> list[dict]:
+        totals_by_entity: dict[tuple[str, int | None, str], float] = {}
+        for transaction in transactions:
+            entity_key = self._resolve_transaction_dimension(
+                transaction=transaction,
+                analysis_dimension=analysis_dimension,
+                accounts=accounts,
+                beneficiaries=beneficiaries,
+                categories=categories,
+                people=people,
+                projects=projects,
+            )
+            key = (
+                entity_key["entity_type"],
+                entity_key["entity_id"],
+                entity_key["entity_name"],
+            )
+            totals_by_entity[key] = round(
+                totals_by_entity.get(key, 0.0) + float(transaction.amount),
+                2,
+            )
+
+        rows: list[dict] = []
+        for (entity_type, entity_id, entity_name), total_amount in totals_by_entity.items():
+            rows.append(
+                {
+                    "entity_type": entity_type,
+                    "entity_id": entity_id,
+                    "entity_name": entity_name,
+                    "transaction_type": transaction_type,
+                    "total_amount": round(total_amount, 2),
+                }
+            )
+        rows.sort(key=lambda item: (-item["total_amount"], item["entity_name"]))
+        return rows[:5]
+
+    def _resolve_transaction_dimension(
+        self,
+        *,
+        transaction,
+        analysis_dimension: str,
+        accounts: dict,
+        beneficiaries: dict,
+        categories: dict,
+        people: dict,
+        projects: dict,
+    ) -> dict:
+        if analysis_dimension == "account":
+            account_id = transaction.account_id or transaction.target_account_id
+            account = accounts.get(account_id) if account_id is not None else None
+            return {
+                "entity_type": "account",
+                "entity_id": account_id,
+                "entity_name": account.name if account is not None else "Sin cuenta",
+            }
+        if analysis_dimension == "project":
+            project = projects.get(transaction.project_id) if transaction.project_id is not None else None
+            return {
+                "entity_type": "project",
+                "entity_id": transaction.project_id,
+                "entity_name": project.name if project is not None else "Sin proyecto",
+            }
+        if analysis_dimension == "beneficiary":
+            beneficiary = (
+                beneficiaries.get(transaction.beneficiary_id)
+                if transaction.beneficiary_id is not None
+                else None
+            )
+            return {
+                "entity_type": "beneficiary",
+                "entity_id": transaction.beneficiary_id,
+                "entity_name": beneficiary.name if beneficiary is not None else "Sin beneficiario",
+            }
+        if analysis_dimension == "person":
+            person = people.get(transaction.person_id) if transaction.person_id is not None else None
+            return {
+                "entity_type": "person",
+                "entity_id": transaction.person_id,
+                "entity_name": person.name if person is not None else "Sin persona",
+            }
+        category = categories.get(transaction.category_id) if transaction.category_id is not None else None
+        return {
+            "entity_type": "category",
+            "entity_id": transaction.category_id,
+            "entity_name": category.name if category is not None else "Sin categoria",
+        }
 
     def _build_current_analysis_summary(
         self,

@@ -31,6 +31,7 @@ def get_finance_reports_overview(
     trend_months: int = 6,
     movement_scope: str = "all",
     analysis_scope: str = "period",
+    analysis_dimension: str = "category",
     budget_category_scope: str = "all",
     budget_status_filter: str = "all",
     current_user=Depends(require_finance_read),
@@ -46,6 +47,7 @@ def get_finance_reports_overview(
             trend_months=trend_months,
             movement_scope=movement_scope,
             analysis_scope=analysis_scope,
+            analysis_dimension=analysis_dimension,
             budget_category_scope=budget_category_scope,
             budget_status_filter=budget_status_filter,
         )

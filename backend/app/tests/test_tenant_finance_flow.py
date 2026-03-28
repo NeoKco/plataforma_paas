@@ -908,6 +908,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             "period_month": date(2026, 4, 1),
             "movement_scope": "all",
             "analysis_scope": "period",
+            "analysis_dimension": "category",
             "budget_category_scope": "all",
             "budget_status_filter": "all",
             "transaction_snapshot": {
@@ -954,6 +955,24 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     "category_id": 2,
                     "category_name": "General Expense",
                     "category_type": "expense",
+                    "total_amount": 120.0,
+                }
+            ],
+            "top_income_breakdown": [
+                {
+                    "entity_type": "category",
+                    "entity_id": 1,
+                    "entity_name": "General Income",
+                    "transaction_type": "income",
+                    "total_amount": 500.0,
+                }
+            ],
+            "top_expense_breakdown": [
+                {
+                    "entity_type": "category",
+                    "entity_id": 2,
+                    "entity_name": "General Expense",
+                    "transaction_type": "expense",
                     "total_amount": 120.0,
                 }
             ],
@@ -1118,6 +1137,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.budget_snapshot.total_budgeted, 300.0)
         self.assertEqual(response.data.loan_snapshot.borrowed_balance, 700.0)
         self.assertEqual(response.data.top_expense_categories[0].category_name, "General Expense")
+        self.assertEqual(response.data.top_expense_breakdown[0].entity_name, "General Expense")
         self.assertEqual(response.data.daily_cashflow[0].transaction_count, 1)
         self.assertEqual(
             response.data.budget_variances[0].budget_status,
@@ -1134,6 +1154,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.monthly_trend[-1].net_balance, 380.0)
         self.assertEqual(response.data.movement_scope, "all")
         self.assertEqual(response.data.analysis_scope, "period")
+        self.assertEqual(response.data.analysis_dimension, "category")
         self.assertEqual(response.data.budget_category_scope, "all")
         self.assertEqual(response.data.trend_summary.best_net_balance, 380.0)
         self.assertEqual(
@@ -1156,6 +1177,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 "period_month": date(2026, 4, 1),
                 "movement_scope": "all",
                 "analysis_scope": "period",
+                "analysis_dimension": "category",
                 "budget_category_scope": "all",
                 "budget_status_filter": "all",
                 "transaction_snapshot": {
@@ -1191,6 +1213,8 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 },
                 "top_income_categories": [],
                 "top_expense_categories": [],
+                "top_income_breakdown": [],
+                "top_expense_breakdown": [],
                 "daily_cashflow": [],
                 "budget_variances": [],
                 "period_comparison": {
@@ -1275,6 +1299,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 trend_months=12,
                 movement_scope="favorites",
                 analysis_scope="year_to_date",
+                analysis_dimension="project",
                 budget_category_scope="expense",
                 budget_status_filter="over_budget",
                 current_user=self._current_user(role="operator"),
@@ -1288,6 +1313,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(kwargs["trend_months"], 12)
         self.assertEqual(kwargs["movement_scope"], "favorites")
         self.assertEqual(kwargs["analysis_scope"], "year_to_date")
+        self.assertEqual(kwargs["analysis_dimension"], "project")
         self.assertEqual(kwargs["budget_category_scope"], "expense")
         self.assertEqual(kwargs["budget_status_filter"], "over_budget")
 

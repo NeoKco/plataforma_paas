@@ -7,6 +7,14 @@ export type TenantFinanceReportCategoryAmount = {
   total_amount: number;
 };
 
+export type TenantFinanceReportDimensionAmount = {
+  entity_type: string;
+  entity_id: number | null;
+  entity_name: string;
+  transaction_type: string;
+  total_amount: number;
+};
+
 export type TenantFinanceReportTransactionSnapshot = {
   period_month: string;
   total_income: number;
@@ -172,6 +180,7 @@ export type TenantFinanceReportOverviewResponse = {
     period_month: string;
     movement_scope: string;
     analysis_scope: string;
+    analysis_dimension: string;
     budget_category_scope: string;
     budget_status_filter: string;
     transaction_snapshot: TenantFinanceReportTransactionSnapshot;
@@ -179,6 +188,8 @@ export type TenantFinanceReportOverviewResponse = {
     loan_snapshot: TenantFinanceReportLoanSnapshot;
     top_income_categories: TenantFinanceReportCategoryAmount[];
     top_expense_categories: TenantFinanceReportCategoryAmount[];
+    top_income_breakdown: TenantFinanceReportDimensionAmount[];
+    top_expense_breakdown: TenantFinanceReportDimensionAmount[];
     daily_cashflow: TenantFinanceReportDailyCashflowItem[];
     budget_variances: TenantFinanceReportBudgetVarianceItem[];
     period_comparison: TenantFinanceReportPeriodComparison;
@@ -199,6 +210,7 @@ export function getTenantFinanceReportOverview(
   trendMonths = 6,
   movementScope = "all",
   analysisScope = "period",
+  analysisDimension = "category",
   budgetCategoryScope = "all",
   budgetStatusFilter = "all"
 ) {
@@ -216,6 +228,7 @@ export function getTenantFinanceReportOverview(
   params.set("trend_months", String(trendMonths));
   params.set("movement_scope", movementScope);
   params.set("analysis_scope", analysisScope);
+  params.set("analysis_dimension", analysisDimension);
   params.set("budget_category_scope", budgetCategoryScope);
   params.set("budget_status_filter", budgetStatusFilter);
   return apiRequest<TenantFinanceReportOverviewResponse>(

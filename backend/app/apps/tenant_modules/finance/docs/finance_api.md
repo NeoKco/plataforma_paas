@@ -144,6 +144,7 @@ Estado actual de `Lote 6`:
 - `reports/overview` ya acepta `trend_months=3|6|12` para ajustar la tendencia devuelta
 - `reports/overview` ya acepta `movement_scope=all|reconciled|unreconciled|favorites|loan_linked`
 - `reports/overview` ya acepta `analysis_scope=period|horizon|year_to_date` para releer top categorias con otro corte
+- `reports/overview` ya acepta `analysis_dimension=category|account|project|beneficiary|person` para rankear por otra entidad
 - `reports/overview` ya acepta `custom_compare_start_month` y `custom_compare_end_month` para contrastar la lectura actual contra un rango manual
 - `reports/overview` ya acepta `budget_category_scope=all|income|expense`
 - `reports/overview` ya acepta `budget_status_filter=all|over_budget|within_budget|unused|inactive`
@@ -151,6 +152,7 @@ Estado actual de `Lote 6`:
 - el overview ya devuelve `horizon_comparison` para contrastar el horizonte visible contra otro horizonte equivalente cerrado en `compare_period_month`
 - el overview ya devuelve `year_to_date_comparison` para comparar `enero -> mes` contra `enero -> compare_period_month`
 - el overview ya devuelve `custom_range_comparison` cuando se define un rango manual
+- el overview ya devuelve `top_income_breakdown` y `top_expense_breakdown` según la dimensión analítica elegida
 - cuando una vista de `finance` detecta schema incompleto, la API ya responde error controlado accionable en vez de `500` crudo
 - `tenant admin` ya puede revisar y sincronizar schema desde `GET /tenant/schema-status` y `POST /tenant/sync-schema`
 
@@ -169,5 +171,5 @@ Pendiente:
 - enriquecer `budgets` con lectura mas densa por categoria y estados operativos mas ricos
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
 - enriquecer el enlace contable de `loans` con cuenta origen y lectura derivada mas densa
-- comparativas más profundas sobre rangos arbitrarios, cortes analíticos adicionales por entidad/categoría y lectura contable mas densa sobre el overview ya existente
+- comparativas más profundas sobre rangos arbitrarios, cortes analíticos adicionales por etiquetas/proyectos/terceros y lectura contable mas densa sobre el overview ya existente
 - mover la sincronizacion tenant-side de schema a ejecucion asincrona y dejar auto-sync post-provisioning/post-deploy

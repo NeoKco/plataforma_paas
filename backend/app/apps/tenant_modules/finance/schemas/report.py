@@ -12,6 +12,14 @@ class FinanceReportCategoryAmountItem(BaseModel):
     total_amount: float
 
 
+class FinanceReportDimensionAmountItem(BaseModel):
+    entity_type: str
+    entity_id: int | None
+    entity_name: str
+    transaction_type: str
+    total_amount: float
+
+
 class FinanceReportTransactionSnapshot(BaseModel):
     period_month: date
     total_income: float
@@ -174,6 +182,7 @@ class FinanceReportOverviewData(BaseModel):
     period_month: date
     movement_scope: str
     analysis_scope: str
+    analysis_dimension: str
     budget_category_scope: str
     budget_status_filter: str
     transaction_snapshot: FinanceReportTransactionSnapshot
@@ -181,6 +190,8 @@ class FinanceReportOverviewData(BaseModel):
     loan_snapshot: FinanceReportLoanSnapshot
     top_income_categories: list[FinanceReportCategoryAmountItem]
     top_expense_categories: list[FinanceReportCategoryAmountItem]
+    top_income_breakdown: list[FinanceReportDimensionAmountItem]
+    top_expense_breakdown: list[FinanceReportDimensionAmountItem]
     daily_cashflow: list[FinanceReportDailyCashflowItem]
     budget_variances: list[FinanceReportBudgetVarianceItem]
     period_comparison: FinanceReportPeriodComparison
