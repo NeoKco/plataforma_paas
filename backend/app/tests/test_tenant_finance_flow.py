@@ -982,6 +982,24 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     "is_active": True,
                 }
             ],
+            "period_comparison": {
+                "current_period_month": date(2026, 4, 1),
+                "previous_period_month": date(2026, 3, 1),
+                "previous_income": 300.0,
+                "previous_expense": 50.0,
+                "previous_net_balance": 250.0,
+                "previous_transactions": 2,
+                "previous_budgeted": 200.0,
+                "previous_actual": 50.0,
+                "previous_variance": 150.0,
+                "income_delta": 200.0,
+                "expense_delta": 70.0,
+                "net_balance_delta": 130.0,
+                "transaction_delta": 0,
+                "budgeted_delta": 100.0,
+                "actual_delta": 70.0,
+                "variance_delta": 30.0,
+            },
         }
 
         with patch(
@@ -1003,6 +1021,10 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(
             response.data.budget_variances[0].budget_status,
             "within_budget",
+        )
+        self.assertEqual(
+            response.data.period_comparison.previous_period_month,
+            date(2026, 3, 1),
         )
 
     def test_get_finance_planning_overview_returns_monthly_payload(self) -> None:

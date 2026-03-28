@@ -34,6 +34,9 @@ class FinanceReportsService:
         normalized_period_month = period_month.replace(day=1)
         starts_at = self._month_start(normalized_period_month)
         ends_at = self._next_month_start(normalized_period_month)
+        previous_period_month = self._previous_month_start(normalized_period_month)
+        previous_starts_at = self._month_start(previous_period_month)
+        previous_ends_at = self._next_month_start(previous_period_month)
 
         categories = {
             category.id: category
@@ -41,14 +44,27 @@ class FinanceReportsService:
                 tenant_db, include_inactive=True
             )
         }
+        all_transactions = self.transaction_repository.list_all(tenant_db)
         transactions = [
             transaction
-            for transaction in self.transaction_repository.list_all(tenant_db)
+            for transaction in all_transactions
             if starts_at <= self._normalize_datetime(transaction.transaction_at) < ends_at
+        ]
+        previous_transactions = [
+            transaction
+            for transaction in all_transactions
+            if previous_starts_at
+            <= self._normalize_datetime(transaction.transaction_at)
+            < previous_ends_at
         ]
         budget_rows, budget_summary = self.budget_service.list_budgets(
             tenant_db,
             period_month=normalized_period_month,
+            include_inactive=True,
+        )
+        _, previous_budget_summary = self.budget_service.list_budgets(
+            tenant_db,
+            period_month=previous_period_month,
             include_inactive=True,
         )
         loan_rows, loan_summary = self.loan_service.list_loans(
@@ -64,6 +80,16 @@ class FinanceReportsService:
         expense_transactions = [
             transaction
             for transaction in transactions
+            if transaction.transaction_type == "expense"
+        ]
+        previous_income_transactions = [
+            transaction
+            for transaction in previous_transactions
+            if transaction.transaction_type == "income"
+        ]
+        previous_expense_transactions = [
+            transaction
+            for transaction in previous_transactions
             if transaction.transaction_type == "expense"
         ]
 
@@ -140,6 +166,67 @@ class FinanceReportsService:
             ),
             "daily_cashflow": self._build_daily_cashflow(transactions=transactions),
             "budget_variances": self._build_budget_variances(budget_rows=budget_rows),
+            "period_comparison": {
+                "current_period_month": normalized_period_month,
+                "previous_period_month": previous_period_month,
+                "previous_income": round(
+                    sum(item.amount for item in previous_income_transactions), 2
+                ),
+                "previous_expense": round(
+                    sum(item.amount for item in previous_expense_transactions), 2
+                ),
+                "previous_net_balance": round(
+                    sum(item.amount for item in previous_income_transactions)
+                    - sum(item.amount for item in previous_expense_transactions),
+                    2,
+                ),
+                "previous_transactions": len(previous_transactions),
+                "previous_budgeted": round(
+                    float(previous_budget_summary["total_budgeted"]), 2
+                ),
+                "previous_actual": round(
+                    float(previous_budget_summary["total_actual"]), 2
+                ),
+                "previous_variance": round(
+                    float(previous_budget_summary["total_variance"]), 2
+                ),
+                "income_delta": round(
+                    transaction_snapshot["total_income"]
+                    - sum(item.amount for item in previous_income_transactions),
+                    2,
+                ),
+                "expense_delta": round(
+                    transaction_snapshot["total_expense"]
+                    - sum(item.amount for item in previous_expense_transactions),
+                    2,
+                ),
+                "net_balance_delta": round(
+                    transaction_snapshot["net_balance"]
+                    - (
+                        sum(item.amount for item in previous_income_transactions)
+                        - sum(item.amount for item in previous_expense_transactions)
+                    ),
+                    2,
+                ),
+                "transaction_delta": int(
+                    transaction_snapshot["total_transactions"] - len(previous_transactions)
+                ),
+                "budgeted_delta": round(
+                    budget_snapshot["total_budgeted"]
+                    - float(previous_budget_summary["total_budgeted"]),
+                    2,
+                ),
+                "actual_delta": round(
+                    budget_snapshot["total_actual"]
+                    - float(previous_budget_summary["total_actual"]),
+                    2,
+                ),
+                "variance_delta": round(
+                    budget_snapshot["total_variance"]
+                    - float(previous_budget_summary["total_variance"]),
+                    2,
+                ),
+            },
         }
 
     def _build_top_categories(
@@ -264,6 +351,10 @@ class FinanceReportsService:
         provisional = period_month.replace(day=28) + timedelta(days=4)
         next_month = provisional.replace(day=1)
         return datetime.combine(next_month, time.min, tzinfo=timezone.utc)
+
+    def _previous_month_start(self, period_month: date) -> date:
+        previous_month_last_day = period_month - timedelta(days=1)
+        return previous_month_last_day.replace(day=1)
 
     def _normalize_datetime(self, value: datetime) -> datetime:
         if value.tzinfo is None:

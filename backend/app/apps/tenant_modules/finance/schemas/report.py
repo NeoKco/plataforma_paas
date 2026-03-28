@@ -66,6 +66,25 @@ class FinanceReportBudgetVarianceItem(BaseModel):
     is_active: bool
 
 
+class FinanceReportPeriodComparison(BaseModel):
+    current_period_month: date
+    previous_period_month: date
+    previous_income: float
+    previous_expense: float
+    previous_net_balance: float
+    previous_transactions: int
+    previous_budgeted: float
+    previous_actual: float
+    previous_variance: float
+    income_delta: float
+    expense_delta: float
+    net_balance_delta: float
+    transaction_delta: int
+    budgeted_delta: float
+    actual_delta: float
+    variance_delta: float
+
+
 class FinanceReportOverviewData(BaseModel):
     period_month: date
     transaction_snapshot: FinanceReportTransactionSnapshot
@@ -75,6 +94,7 @@ class FinanceReportOverviewData(BaseModel):
     top_expense_categories: list[FinanceReportCategoryAmountItem]
     daily_cashflow: list[FinanceReportDailyCashflowItem]
     budget_variances: list[FinanceReportBudgetVarianceItem]
+    period_comparison: FinanceReportPeriodComparison
 
 
 class FinanceReportOverviewResponse(FinanceResponseBase):

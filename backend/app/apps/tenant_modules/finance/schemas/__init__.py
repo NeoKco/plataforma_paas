@@ -91,6 +91,7 @@ from app.apps.tenant_modules.finance.schemas.report import (
     FinanceReportLoanSnapshot,
     FinanceReportOverviewData,
     FinanceReportOverviewResponse,
+    FinanceReportPeriodComparison,
     FinanceReportTransactionSnapshot,
 )
 from app.apps.tenant_modules.finance.schemas.reconciliation import (
@@ -222,6 +223,7 @@ __all__ = [
     "FinanceReportLoanSnapshot",
     "FinanceReportOverviewData",
     "FinanceReportOverviewResponse",
+    "FinanceReportPeriodComparison",
     "FinanceReportTransactionSnapshot",
     "FinanceReorderItemRequest",
     "FinanceReorderRequest",

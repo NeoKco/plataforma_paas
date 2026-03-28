@@ -15,6 +15,7 @@ import {
   type TenantFinanceReportCategoryAmount,
   type TenantFinanceReportDailyCashflowItem,
   type TenantFinanceReportOverviewResponse,
+  type TenantFinanceReportPeriodComparison,
 } from "../services/reportsService";
 
 export function FinanceReportsPage() {
@@ -77,6 +78,16 @@ export function FinanceReportsPage() {
               value={periodMonth}
               onChange={(event) => setPeriodMonth(event.target.value)}
             />
+          </div>
+          <div className="pt-4">
+            <button
+              className="btn btn-outline-primary"
+              type="button"
+              onClick={() => exportOverviewCsv(overview, periodMonth)}
+              disabled={!overview}
+            >
+              Exportar CSV
+            </button>
           </div>
         </div>
       </PanelCard>
@@ -204,6 +215,13 @@ export function FinanceReportsPage() {
       </div>
 
       <div className="finance-report-grid">
+        <PanelCard
+          title="Comparativa contra mes anterior"
+          subtitle="Diferencia del período visible frente al corte inmediatamente anterior."
+        >
+          <PeriodComparisonPanel comparison={overview?.period_comparison || null} />
+        </PanelCard>
+
         <PanelCard
           title="Top categorías ingreso"
           subtitle="Mayores ingresos del período por categoría."
@@ -349,6 +367,49 @@ function BudgetVarianceTable({
   );
 }
 
+function PeriodComparisonPanel({
+  comparison,
+}: {
+  comparison: TenantFinanceReportPeriodComparison | null;
+}) {
+  if (!comparison) {
+    return (
+      <p className="tenant-muted-text mb-0">
+        Sin comparativa disponible para el período seleccionado.
+      </p>
+    );
+  }
+
+  return (
+    <dl className="finance-report-definition-list">
+      <ReportLine
+        label={`Ingresos vs ${formatMonthLabel(comparison.previous_period_month)}`}
+        value={formatSignedMoney(comparison.income_delta)}
+      />
+      <ReportLine
+        label={`Egresos vs ${formatMonthLabel(comparison.previous_period_month)}`}
+        value={formatSignedMoney(comparison.expense_delta)}
+      />
+      <ReportLine
+        label="Balance neto"
+        value={formatSignedMoney(comparison.net_balance_delta)}
+      />
+      <ReportLine
+        label="Transacciones"
+        value={formatSignedInteger(comparison.transaction_delta)}
+      />
+      <ReportLine
+        label="Presupuestado"
+        value={formatSignedMoney(comparison.budgeted_delta)}
+      />
+      <ReportLine
+        label="Desviación presup."
+        value={formatSignedMoney(comparison.variance_delta)}
+      />
+    </dl>
+  );
+}
+
 function ReportLine({ label, value }: { label: string; value: string }) {
   return (
     <>
@@ -381,11 +442,22 @@ function formatSignedMoney(value: number) {
   return value > 0 ? `+${formatted}` : value < 0 ? `-${formatted}` : formatted;
 }
 
+function formatSignedInteger(value: number) {
+  return value > 0 ? `+${value}` : String(value);
+}
+
 function formatDay(day: string) {
   return new Intl.DateTimeFormat("es-CL", {
     day: "2-digit",
     month: "short",
   }).format(new Date(`${day}T00:00:00`));
+}
+
+function formatMonthLabel(monthIso: string) {
+  return new Intl.DateTimeFormat("es-CL", {
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${monthIso}T00:00:00`));
 }
 
 function buildBudgetStatusLabel(status: string) {
@@ -407,4 +479,61 @@ function buildBudgetStatusClassName(status: string) {
   return `finance-status-pill ${
     status === "over_budget" ? "is-inactive" : "is-active"
   }`;
+}
+
+function exportOverviewCsv(
+  overview: TenantFinanceReportOverviewResponse["data"] | null,
+  periodMonth: string
+) {
+  if (!overview) {
+    return;
+  }
+
+  const rows: string[][] = [
+    ["Seccion", "Clave", "Valor"],
+    ["periodo", "mes", overview.period_month],
+    ["transacciones", "ingresos", String(overview.transaction_snapshot.total_income)],
+    ["transacciones", "egresos", String(overview.transaction_snapshot.total_expense)],
+    ["transacciones", "balance_neto", String(overview.transaction_snapshot.net_balance)],
+    ["transacciones", "total", String(overview.transaction_snapshot.total_transactions)],
+    ["presupuestos", "presupuestado", String(overview.budget_snapshot.total_budgeted)],
+    ["presupuestos", "real", String(overview.budget_snapshot.total_actual)],
+    ["presupuestos", "desviacion", String(overview.budget_snapshot.total_variance)],
+    ["prestamos", "saldo_tomado", String(overview.loan_snapshot.borrowed_balance)],
+    ["prestamos", "saldo_prestado", String(overview.loan_snapshot.lent_balance)],
+  ];
+
+  overview.daily_cashflow.forEach((item) => {
+    rows.push([
+      "pulso_diario",
+      item.day,
+      `${item.income_total}|${item.expense_total}|${item.net_total}|${item.transaction_count}`,
+    ]);
+  });
+
+  overview.budget_variances.forEach((item) => {
+    rows.push([
+      "desvio_presupuesto",
+      item.category_name,
+      `${item.category_type}|${item.budget_status}|${item.planned_amount}|${item.actual_amount}|${item.variance_amount}`,
+    ]);
+  });
+
+  const csv = rows
+    .map((row) => row.map(escapeCsvValue).join(","))
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `finance-report-${periodMonth}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function escapeCsvValue(value: string) {
+  if (value.includes(",") || value.includes("\"") || value.includes("\n")) {
+    return `"${value.split("\"").join("\"\"")}"`;
+  }
+  return value;
 }

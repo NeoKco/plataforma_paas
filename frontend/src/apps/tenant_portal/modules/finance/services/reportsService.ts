@@ -61,6 +61,25 @@ export type TenantFinanceReportBudgetVarianceItem = {
   is_active: boolean;
 };
 
+export type TenantFinanceReportPeriodComparison = {
+  current_period_month: string;
+  previous_period_month: string;
+  previous_income: number;
+  previous_expense: number;
+  previous_net_balance: number;
+  previous_transactions: number;
+  previous_budgeted: number;
+  previous_actual: number;
+  previous_variance: number;
+  income_delta: number;
+  expense_delta: number;
+  net_balance_delta: number;
+  transaction_delta: number;
+  budgeted_delta: number;
+  actual_delta: number;
+  variance_delta: number;
+};
+
 export type TenantFinanceReportOverviewResponse = {
   success: boolean;
   message: string;
@@ -73,6 +92,7 @@ export type TenantFinanceReportOverviewResponse = {
     top_expense_categories: TenantFinanceReportCategoryAmount[];
     daily_cashflow: TenantFinanceReportDailyCashflowItem[];
     budget_variances: TenantFinanceReportBudgetVarianceItem[];
+    period_comparison: TenantFinanceReportPeriodComparison;
   };
 };
 

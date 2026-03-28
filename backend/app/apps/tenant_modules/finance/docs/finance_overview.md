@@ -46,9 +46,10 @@ Alcance de esta fase:
 - primera vista real de `Planificación` con lectura mensual de flujo, vencimientos y foco presupuestario
 - primera vista real de `Reportes` con overview mensual consolidado
 - `Reportes` ya muestra pulso diario de caja y desvíos presupuestarios priorizados dentro del mismo overview
+- `Reportes` ya agrega comparativa contra el mes anterior y exportación CSV básica desde el portal
 
 Pendiente inmediato:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura mas densa y estados operativos mas ricos
 - enriquecer el enlace contable de `Préstamos`
-- seguir `Lote 7` con exportacion, comparativas entre periodos y lectura analitica mas profunda
+- seguir `Lote 7` con exportaciones más ricas, comparativas multi-período y lectura analitica mas profunda
