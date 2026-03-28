@@ -64,6 +64,7 @@ from app.apps.platform_control.api.routes import (  # noqa: E402
     ping_control_db,
 )
 from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
+    bulk_sync_tenant_schemas,
     create_tenant,
     deprovision_tenant,
     delete_tenant,
@@ -1555,6 +1556,79 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertEqual(dispatch_calls[0]["tenant_id"], tenant.id)
         self.assertEqual(dispatch_calls[0]["job_type"], "sync_tenant_schema")
         self.assertEqual(dispatch_calls[0]["status"], "pending")
+
+    def test_tenant_service_requests_bulk_schema_sync_for_active_tenants(self) -> None:
+        active_ready = build_tenant_record_stub(status="active")
+        active_ready.id = 7
+        active_ready.slug = "active-ready"
+        active_ready.db_name = "tenant_active_ready"
+        active_ready.db_user = "user_active_ready"
+        active_ready.db_host = "127.0.0.1"
+        active_ready.db_port = 5432
+
+        active_live_job = build_tenant_record_stub(status="active")
+        active_live_job.id = 8
+        active_live_job.slug = "active-live"
+        active_live_job.db_name = "tenant_active_live"
+        active_live_job.db_user = "user_active_live"
+        active_live_job.db_host = "127.0.0.1"
+        active_live_job.db_port = 5432
+
+        inactive = build_tenant_record_stub(status="archived")
+        inactive.id = 9
+        inactive.slug = "archived-tenant"
+
+        queued_jobs: list[dict] = []
+
+        class FakeQuery:
+            def filter(self, *args, **kwargs):
+                return self
+
+            def all(self):
+                return [SimpleNamespace(tenant_id=active_live_job.id)]
+
+        class FakeDb:
+            def query(self, model):
+                return FakeQuery()
+
+        class FakeTenantRepository:
+            def list_all(self, db):
+                return [active_ready, active_live_job, inactive]
+
+        fake_connection_service = SimpleNamespace(
+            get_tenant_database_credentials=lambda tenant_obj: {
+                "host": tenant_obj.db_host,
+                "port": tenant_obj.db_port,
+                "database": tenant_obj.db_name,
+                "username": tenant_obj.db_user,
+                "password": "secret",
+            }
+        )
+
+        def enqueue_job(**kwargs):
+            queued_jobs.append(kwargs)
+            return SimpleNamespace(
+                id=31,
+                tenant_id=kwargs["tenant_id"],
+                job_type=kwargs["job_type"],
+                status=kwargs["status"],
+            )
+
+        service = TenantService(
+            tenant_repository=FakeTenantRepository(),
+            tenant_connection_service=fake_connection_service,
+            provisioning_dispatch_service=SimpleNamespace(enqueue_job=enqueue_job),
+        )
+
+        result = service.request_bulk_tenant_schema_sync(db=FakeDb(), limit=50)
+
+        self.assertEqual(result["total_tenants"], 3)
+        self.assertEqual(result["eligible_tenants"], 2)
+        self.assertEqual(result["queued_jobs"], 1)
+        self.assertEqual(result["skipped_inactive"], 1)
+        self.assertEqual(result["skipped_live_jobs"], 1)
+        self.assertEqual(queued_jobs[0]["tenant_id"], active_ready.id)
+        self.assertEqual(queued_jobs[0]["job_type"], "sync_tenant_schema")
 
     def test_tenant_service_updates_billing_state(self) -> None:
         tenant = build_tenant_record_stub(
@@ -4206,6 +4280,47 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.tenant_slug, "empresa-bootstrap")
         self.assertEqual(response.current_version, "0002_finance_entries")
+
+    def test_bulk_sync_tenant_schemas_returns_summary(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.request_bulk_tenant_schema_sync",
+            return_value={
+                "limit": 100,
+                "total_tenants": 5,
+                "eligible_tenants": 3,
+                "queued_jobs": 2,
+                "skipped_inactive": 2,
+                "skipped_not_configured": 0,
+                "skipped_live_jobs": 1,
+                "skipped_invalid_credentials": 0,
+                "data": [
+                    {
+                        "tenant_id": 1,
+                        "tenant_slug": "empresa-bootstrap",
+                        "job_id": 71,
+                        "job_type": "sync_tenant_schema",
+                        "status": "pending",
+                    },
+                    {
+                        "tenant_id": 2,
+                        "tenant_slug": "condominio-demo",
+                        "job_id": 72,
+                        "job_type": "sync_tenant_schema",
+                        "status": "pending",
+                    },
+                ],
+            },
+        ):
+            response = bulk_sync_tenant_schemas(
+                limit=100,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.queued_jobs, 2)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0].tenant_slug, "empresa-bootstrap")
 
     def test_get_tenant_schema_status_returns_schema(self) -> None:
         tenant = build_tenant_record_stub()

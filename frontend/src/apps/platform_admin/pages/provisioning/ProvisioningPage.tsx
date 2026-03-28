@@ -15,6 +15,7 @@ import {
   getPlatformActionSuccessMessage,
 } from "../../../../utils/action-feedback";
 import {
+  bulkSyncPlatformTenantSchemas,
   getProvisioningCycleHistory,
   getProvisioningAlerts,
   getProvisioningBrokerDlq,
@@ -503,6 +504,26 @@ function handleRefresh() {
     });
   }
 
+  function handleBulkSchemaAutoSync() {
+    if (!session?.accessToken) {
+      return;
+    }
+
+    setPendingConfirmation({
+      scope: "bulk-sync-schema",
+      title: "Encolar auto-sync de esquema tenant",
+      description:
+        "Esta acción crea jobs de sincronización para tenants activos con base configurada y sin jobs vivos de provisioning.",
+      details: [
+        "Alcance: tenants activos con DB tenant lista.",
+        "Se omiten tenants sin base configurada, con credenciales inválidas o con jobs vivos.",
+        "Úsalo después de un deploy backend para empujar migraciones tenant sin esperar el primer error de uso.",
+      ],
+      confirmLabel: "Encolar auto-sync",
+      action: () => bulkSyncPlatformTenantSchemas(session.accessToken),
+    });
+  }
+
   return (
     <div className="d-grid gap-4">
       <PageHeader
@@ -510,14 +531,24 @@ function handleRefresh() {
         title="Provisioning"
         description="Vista operativa sobre jobs, backlog por tenant, alertas activas y recuperación por DLQ usando los contratos backend ya cerrados."
         actions={
-          <button
-            type="button"
-            className="btn btn-outline-primary"
-            onClick={handleRefresh}
-            disabled={isLoading || isActionSubmitting}
-          >
-            Recargar datos
-          </button>
+          <div className="d-flex gap-2 flex-wrap">
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={handleBulkSchemaAutoSync}
+              disabled={isLoading || isActionSubmitting}
+            >
+              Auto-sync esquemas
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline-primary"
+              onClick={handleRefresh}
+              disabled={isLoading || isActionSubmitting}
+            >
+              Recargar datos
+            </button>
+          </div>
         }
       />
 

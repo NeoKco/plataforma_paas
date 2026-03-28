@@ -85,5 +85,5 @@ Pendiente inmediato:
 - enriquecer `Presupuestos` con plantillas mas ricas o presets configurables por tenant, mas alla de editar/activar/desactivar, clonar entre meses, alinear al real y aplicar plantillas operativas base
 - seguir endureciendo `Reportes` solo si luego se necesitan comparativas todavía más densas o exportaciones ejecutivas adicionales
 - seguir endureciendo `Préstamos` con una lectura todavía más contable si luego hace falta mostrar contrapartida/categoría o exportaciones de soporte más densas
-- reducir este caso con auto-sync post-provisioning y post-deploy
+- consolidar la operación visible del auto-sync post-deploy ahora que `Provisioning` ya puede encolar sync masivo para tenants activos
 - dejar la primera capa de gráficos reales como pendiente deliberado hasta cerrar el módulo; el punto natural sigue siendo `Reportes` y luego `Planificación`

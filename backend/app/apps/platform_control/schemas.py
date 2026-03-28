@@ -587,6 +587,28 @@ class TenantSchemaStatusResponse(BaseModel):
     last_applied_at: datetime | None = None
 
 
+class TenantSchemaAutoSyncJobResponse(BaseModel):
+    tenant_id: int
+    tenant_slug: str
+    job_id: int
+    job_type: str
+    status: str
+
+
+class TenantSchemaAutoSyncResponse(BaseModel):
+    success: bool
+    message: str
+    limit: int
+    total_tenants: int
+    eligible_tenants: int
+    queued_jobs: int
+    skipped_inactive: int = 0
+    skipped_not_configured: int = 0
+    skipped_live_jobs: int = 0
+    skipped_invalid_credentials: int = 0
+    data: list[TenantSchemaAutoSyncJobResponse]
+
+
 class TenantDbCredentialsRotateResponse(BaseModel):
     success: bool
     message: str

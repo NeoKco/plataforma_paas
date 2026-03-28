@@ -1,6 +1,7 @@
 import secrets
 import string
 from datetime import datetime, timedelta, timezone
+import json
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -125,6 +126,12 @@ class ProvisioningService:
                 tenant=tenant,
                 started_at=time_started,
             )
+
+            if job.job_type == "create_tenant_database":
+                self._enqueue_post_provision_schema_sync(
+                    db=db,
+                    tenant=tenant,
+                )
 
             if job.job_type == "create_tenant_database" and provisioning_output is not None:
                 print("==== TENANT DB CREATED ====")
@@ -356,6 +363,29 @@ class ProvisioningService:
             elif "secret" in detail.lower() or "password" in detail.lower():
                 setattr(exc, "_provisioning_stage", "deprovision_tenant_secret")
             raise
+
+    def _enqueue_post_provision_schema_sync(
+        self,
+        *,
+        db: Session,
+        tenant: Tenant,
+    ) -> None:
+        try:
+            self.tenant_service.request_tenant_schema_sync(
+                db=db,
+                tenant_id=tenant.id,
+            )
+        except Exception as exc:
+            payload = {
+                "event": "provisioning_followup_enqueue_failed",
+                "followup_job_type": "sync_tenant_schema",
+                "source_job_type": "create_tenant_database",
+                "tenant_id": tenant.id,
+                "tenant_slug": tenant.slug,
+                "error_type": type(exc).__name__,
+                "error_message": str(exc),
+            }
+            self.logging_service.logger.warning(json.dumps(payload, sort_keys=True))
 
     def _log_job_result(
         self,

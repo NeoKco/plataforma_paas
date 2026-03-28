@@ -1305,6 +1305,64 @@ class ProvisioningServiceRetryTestCase(unittest.TestCase):
         self.assertEqual(tenant.status, "error")
         self.assertEqual(finalized_jobs, [("failed", None)])
 
+    def test_run_create_job_enqueues_followup_schema_sync(self) -> None:
+        job = self._build_job(job_type="create_tenant_database")
+        tenant = self._build_tenant()
+
+        class FakeDb:
+            def commit(self):
+                pass
+
+        class FakeProvisioningJobRepository:
+            def get_by_id(self, db, job_id):
+                return job
+
+            def refresh(self, db, job_obj):
+                return None
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+        fake_tenant_service = MagicMock()
+        fake_tenant_service.request_tenant_schema_sync.return_value = SimpleNamespace(
+            id=99,
+            tenant_id=tenant.id,
+            job_type="sync_tenant_schema",
+            status="pending",
+        )
+
+        service = ProvisioningService(
+            tenant_repository=FakeTenantRepository(),
+            provisioning_job_repository=FakeProvisioningJobRepository(),
+            provisioning_dispatch_service=SimpleNamespace(finalize_job=lambda job: None),
+            tenant_service=fake_tenant_service,
+            tenant_secret_service=SimpleNamespace(
+                store_tenant_db_password=lambda **kwargs: "TENANT_DB_PASSWORD_EMPRESA_BOOTSTRAP",
+                mask_secret=lambda value: value,
+            ),
+            logging_service=MagicMock(),
+        )
+
+        with patch(
+            "app.apps.provisioning.services.provisioning_service.PostgresBootstrapService"
+        ) as bootstrap_cls, patch(
+            "app.apps.provisioning.services.provisioning_service.TenantDatabaseBootstrapService"
+        ) as tenant_bootstrap_cls:
+            bootstrap_cls.return_value.create_role_if_not_exists.return_value = None
+            bootstrap_cls.return_value.create_database_if_not_exists.return_value = None
+            tenant_bootstrap_cls.return_value.bootstrap.return_value = None
+
+            result = service.run_job(FakeDb(), 1)
+
+        self.assertIs(result, job)
+        self.assertEqual(job.status, "completed")
+        self.assertEqual(tenant.status, "active")
+        fake_tenant_service.request_tenant_schema_sync.assert_called_once_with(
+            db=ANY,
+            tenant_id=tenant.id,
+        )
+
     def test_run_deprovision_job_marks_completed_without_changing_archived_status(self) -> None:
         job = self._build_job(job_type="deprovision_tenant_database")
         tenant = self._build_tenant()

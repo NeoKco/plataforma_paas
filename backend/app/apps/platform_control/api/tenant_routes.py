@@ -48,6 +48,8 @@ from app.apps.platform_control.schemas import (
     TenantResponse,
     TenantSchemaSyncResponse,
     TenantSchemaStatusResponse,
+    TenantSchemaAutoSyncResponse,
+    TenantSchemaAutoSyncJobResponse,
     TenantDbCredentialsRotateResponse,
     TenantPortalUserPasswordResetRequest,
     TenantPortalUserPasswordResetResponse,
@@ -733,6 +735,35 @@ def sync_tenant_schema(
         pending_count=schema_status.get("pending_count", 0),
         last_applied_at=schema_status.get("last_applied_at"),
         applied_now=schema_status.get("applied_now", []),
+    )
+
+
+@router.post("/schema-sync/bulk", response_model=TenantSchemaAutoSyncResponse)
+def bulk_sync_tenant_schemas(
+    limit: int = 100,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantSchemaAutoSyncResponse:
+    result = tenant_service.request_bulk_tenant_schema_sync(
+        db=db,
+        limit=limit,
+    )
+
+    return TenantSchemaAutoSyncResponse(
+        success=True,
+        message="Tenant schema auto-sync jobs queued successfully",
+        limit=result["limit"],
+        total_tenants=result["total_tenants"],
+        eligible_tenants=result["eligible_tenants"],
+        queued_jobs=result["queued_jobs"],
+        skipped_inactive=result["skipped_inactive"],
+        skipped_not_configured=result["skipped_not_configured"],
+        skipped_live_jobs=result["skipped_live_jobs"],
+        skipped_invalid_credentials=result["skipped_invalid_credentials"],
+        data=[
+            TenantSchemaAutoSyncJobResponse(**item)
+            for item in result.get("data", [])
+        ],
     )
 
 

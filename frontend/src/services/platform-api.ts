@@ -27,6 +27,7 @@ import type {
   PlatformTenantListResponse,
   PlatformTenantMaintenanceResponse,
   PlatformTenantModuleLimitsResponse,
+  PlatformTenantSchemaAutoSyncResponse,
   PlatformTenantSchemaSyncResponse,
   PlatformTenantSchemaStatusResponse,
   PlatformTenantModuleUsageSummary,
@@ -520,6 +521,27 @@ export function syncPlatformTenantSchema(
 ) {
   return apiRequest<PlatformTenantSchemaSyncResponse>(
     `/platform/tenants/${tenantId}/sync-schema`,
+    {
+      method: "POST",
+      token: accessToken,
+    }
+  );
+}
+
+export function bulkSyncPlatformTenantSchemas(
+  accessToken: string,
+  options: {
+    limit?: number;
+  } = {}
+) {
+  const params = new URLSearchParams();
+  if (options.limit !== undefined) {
+    params.set("limit", String(options.limit));
+  }
+  const query = params.toString();
+
+  return apiRequest<PlatformTenantSchemaAutoSyncResponse>(
+    `/platform/tenants/schema-sync/bulk${query ? `?${query}` : ""}`,
     {
       method: "POST",
       token: accessToken,

@@ -269,6 +269,8 @@ Resultado actual:
 - `Reportes` ya permite además rankear por `etiqueta`
 - cuando el schema `finance` del tenant esta incompleto, esas vistas ya degradan a error controlado y no a `500`
 - `tenant_portal` ya permite a `tenant admin` encolar y monitorear la sincronizacion de estructura desde el propio tenant, usando `provisioning_jobs` en vez de ejecucion inline
+- el provisioning inicial ya deja encolado un follow-up `sync_tenant_schema` al cerrar `create_tenant_database`
+- `platform` ya expone una operacion masiva para encolar `sync_tenant_schema` sobre tenants activos y existe un script operativo para usarla despues de deploy
 - `CLP` ya forma parte de las monedas semilla del modulo
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
@@ -284,7 +286,7 @@ Falta para cerrarlo:
 - evaluar si `Transacciones` necesita una segunda iteracion de lotes inteligentes o reglas asistidas adicionales sobre el filtro activo
 - seguir enriqueciendo `Presupuestos` con presets configurables o plantillas mas ricas por tenant, ahora que ya existen ajustes guiados y plantillas operativas base
 - seguir endureciendo `Préstamos` con exportaciones contables mas densas, mejor lectura de contrapartida y eventual cruce con categorías si el dominio lo pide
-- agregar auto-sync post-provisioning y post-deploy para evitar sincronizacion manual por uso
+- integrar el auto-sync post-deploy al wrapper de release/verify para que no dependa de correr la operación masiva manualmente
 - seguir `Lote 7` con comparativas todavía mas densas, cortes analíticos adicionales si aparecen necesidades reales y lecturas exportables más ejecutivas
 - dejar los primeros graficos reales de `finance` como pendiente deliberado hasta cerrar el modulo funcionalmente; el punto mas natural sigue siendo `Reportes` y luego `Planificación`
 - validaciones y casos de uso de negocio mas ricos

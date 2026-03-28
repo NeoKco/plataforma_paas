@@ -115,6 +115,9 @@ En esta fase quedaron listos:
 - `Reportes` ya permite además rankear por `etiqueta`
 - manejo controlado de schema incompleto en vistas de `finance`, sin `500` crudo
 - self-service de sincronizacion de estructura desde el propio `tenant_portal` para `tenant admin`, ahora como job visible y no como ejecucion inline
+- el provisioning inicial ya deja encolado un follow-up `sync_tenant_schema` al cerrar `create_tenant_database`
+- `platform` ya puede encolar sync masivo post-deploy sobre tenants activos con `POST /platform/tenants/schema-sync/bulk`
+- existe ademas el script operativo `backend/app/scripts/enqueue_active_tenant_schema_sync.py` para la misma tarea
 
 Pendiente posterior al cierre de `finance`:
 
@@ -336,7 +339,7 @@ Lo siguiente recomendable ahora es:
 4. endurecer `Préstamos` solo si luego se requiere lectura de contrapartida/categoría o exportación contable mas formal
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual, como siguiente mejora opcional de `Transacciones`
 6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable
-7. agregar auto-sync post-provisioning y post-deploy para reducir al minimo la sincronizacion manual tenant por tenant
+7. integrar el auto-sync post-deploy al wrapper de release/verify para que deje de depender de una corrida operativa manual
 8. dejar los primeros gráficos reales para `Reportes` y, si luego aporta, para `Planificación`
 
 ## Convencion relacionada

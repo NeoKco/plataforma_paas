@@ -263,6 +263,76 @@ class TenantService:
             status="pending",
         )
 
+    def request_bulk_tenant_schema_sync(
+        self,
+        db: Session,
+        *,
+        limit: int = 100,
+    ) -> dict:
+        normalized_limit = max(min(limit, 500), 1)
+        tenants = self.tenant_repository.list_all(db)
+        live_job_tenant_ids = self._get_live_provisioning_tenant_ids(db)
+
+        queued_items: list[dict] = []
+        eligible_tenants = 0
+        skipped_inactive = 0
+        skipped_not_configured = 0
+        skipped_live_jobs = 0
+        skipped_invalid_credentials = 0
+
+        for tenant in tenants:
+            if tenant.status != "active":
+                skipped_inactive += 1
+                continue
+
+            if not self._is_tenant_db_configured(tenant):
+                skipped_not_configured += 1
+                continue
+
+            eligible_tenants += 1
+
+            if tenant.id in live_job_tenant_ids:
+                skipped_live_jobs += 1
+                continue
+
+            try:
+                self.tenant_connection_service.get_tenant_database_credentials(tenant)
+            except Exception:
+                skipped_invalid_credentials += 1
+                continue
+
+            job = self.provisioning_dispatch_service.enqueue_job(
+                db=db,
+                tenant_id=tenant.id,
+                job_type="sync_tenant_schema",
+                status="pending",
+            )
+            queued_items.append(
+                {
+                    "tenant_id": tenant.id,
+                    "tenant_slug": tenant.slug,
+                    "job_id": job.id,
+                    "job_type": job.job_type,
+                    "status": job.status,
+                }
+            )
+            live_job_tenant_ids.add(tenant.id)
+
+            if len(queued_items) >= normalized_limit:
+                break
+
+        return {
+            "limit": normalized_limit,
+            "total_tenants": len(tenants),
+            "eligible_tenants": eligible_tenants,
+            "queued_jobs": len(queued_items),
+            "skipped_inactive": skipped_inactive,
+            "skipped_not_configured": skipped_not_configured,
+            "skipped_live_jobs": skipped_live_jobs,
+            "skipped_invalid_credentials": skipped_invalid_credentials,
+            "data": queued_items,
+        }
+
     def get_tenant_schema_status(self, db: Session, tenant_id: int) -> dict:
         tenant = self.tenant_repository.get_by_id(db, tenant_id)
         if not tenant:
@@ -834,6 +904,35 @@ class TenantService:
             )
         except Exception:
             return None
+
+    def _get_live_provisioning_tenant_ids(self, db: Session) -> set[int]:
+        if not hasattr(db, "query"):
+            return set()
+        try:
+            rows = (
+                db.query(ProvisioningJob.tenant_id)
+                .filter(ProvisioningJob.status.in_(["pending", "retry_pending", "running"]))
+                .all()
+            )
+        except Exception:
+            return set()
+
+        tenant_ids: set[int] = set()
+        for row in rows:
+            tenant_id = getattr(row, "tenant_id", None)
+            if tenant_id is None and isinstance(row, tuple) and row:
+                tenant_id = row[0]
+            if tenant_id is not None:
+                tenant_ids.add(int(tenant_id))
+        return tenant_ids
+
+    def _is_tenant_db_configured(self, tenant: Tenant) -> bool:
+        return bool(
+            getattr(tenant, "db_name", None)
+            and getattr(tenant, "db_user", None)
+            and getattr(tenant, "db_host", None)
+            and getattr(tenant, "db_port", None)
+        )
 
     def _safe_query_recent_rows(
         self,

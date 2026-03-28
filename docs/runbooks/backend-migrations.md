@@ -113,7 +113,10 @@ Importante:
 
 - `sync-schema` solo funciona si el tenant ya tiene completa su configuracion de DB
 - si falta `db_host`, `db_port`, `db_name` o `db_user`, primero hay que ejecutar el provisioning `create_tenant_database`
-- la via tenant-side actual ejecuta la sincronizacion inline; como backlog queda moverla a job asíncrono y sumar auto-sync post-provisioning/post-deploy
+- la via tenant-side ya encola un job asíncrono visible en vez de ejecutar inline
+- el provisioning inicial ya deja encolado un follow-up `sync_tenant_schema`
+- para post-deploy masivo ya existe `POST /platform/tenants/schema-sync/bulk`
+- como respaldo operativo también existe `backend/app/scripts/enqueue_active_tenant_schema_sync.py`
 
 ## Limitaciones actuales
 

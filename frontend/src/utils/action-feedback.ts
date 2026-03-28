@@ -26,6 +26,7 @@ export function getPlatformActionFeedbackLabel(scope: string): string {
     "billing-identity": "Identidad de facturación",
     "module-limits": "Límites por módulo",
     "sync-schema": "Esquema tenant",
+    "bulk-sync-schema": "Auto-sync de esquemas",
     "run-provisioning-job": "Ejecución de provisioning",
     "requeue-provisioning-job": "Reintento de provisioning",
     "requeue-dlq-batch": "Reencolado DLQ",
@@ -71,6 +72,8 @@ export function getPlatformActionSuccessMessage(
     "billing-identity": "La identidad de facturación fue actualizada correctamente.",
     "module-limits": "Los límites por módulo fueron actualizados correctamente.",
     "sync-schema": "La sincronización del esquema tenant fue lanzada correctamente.",
+    "bulk-sync-schema":
+      "Se encolaron jobs de sincronización de esquema para tenants activos.",
     "run-provisioning-job": "El job de provisioning fue ejecutado correctamente.",
     "requeue-provisioning-job":
       "El job de provisioning volvió a cola para un nuevo intento.",

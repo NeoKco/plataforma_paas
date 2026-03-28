@@ -173,6 +173,7 @@ Estado actual de `Lote 6`:
 - `tenant admin` ya puede revisar y sincronizar schema desde `GET /tenant/schema-status` y `POST /tenant/sync-schema`
 - `GET /tenant/schema-status` ya devuelve `latest_job` cuando existe un job reciente de `sync_tenant_schema|repair_tenant_schema`
 - `POST /tenant/sync-schema` ya encola el job y devuelve `queued_job`, en vez de ejecutar la sincronizacion inline dentro del request
+- `POST /platform/tenants/schema-sync/bulk` ya permite encolar sync masivo post-deploy para tenants activos con DB configurada
 
 Nucleo transaccional ya disponible en backend:
 - tabla `finance_transactions`
@@ -191,4 +192,4 @@ Pendiente:
 - lotes mas inteligentes sobre filtro activo o reglas asistidas adicionales solo si la operación real lo exige
 - seguir endureciendo la lectura derivada de `loans` con cruces contables más densos si el dominio exige contrapartida/categoría explícita
 - comparativas aún más densas del overview solo si el uso real exige nuevos cortes ejecutivos o soportes exportables adicionales
-- dejar auto-sync post-provisioning/post-deploy para reducir sincronizacion manual tenant por tenant
+- integrar el auto-sync post-deploy al wrapper de release para que no dependa de disparo manual desde plataforma o script

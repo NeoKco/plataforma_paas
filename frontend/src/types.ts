@@ -515,6 +515,28 @@ export type PlatformTenantSchemaStatusResponse = {
   last_applied_at: string | null;
 };
 
+export type PlatformTenantSchemaAutoSyncJob = {
+  tenant_id: number;
+  tenant_slug: string;
+  job_id: number;
+  job_type: string;
+  status: string;
+};
+
+export type PlatformTenantSchemaAutoSyncResponse = {
+  success: boolean;
+  message: string;
+  limit: number;
+  total_tenants: number;
+  eligible_tenants: number;
+  queued_jobs: number;
+  skipped_inactive: number;
+  skipped_not_configured: number;
+  skipped_live_jobs: number;
+  skipped_invalid_credentials: number;
+  data: PlatformTenantSchemaAutoSyncJob[];
+};
+
 export type PlatformTenantDbCredentialsRotateResponse = {
   success: boolean;
   message: string;
