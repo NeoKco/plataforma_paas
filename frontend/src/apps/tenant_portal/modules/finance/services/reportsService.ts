@@ -63,6 +63,7 @@ export type TenantFinanceReportBudgetVarianceItem = {
 
 export type TenantFinanceReportPeriodComparison = {
   current_period_month: string;
+  compare_period_month: string;
   previous_period_month: string;
   previous_income: number;
   previous_expense: number;
@@ -108,6 +109,43 @@ export type TenantFinanceReportTrendSummary = {
   net_balance_delta_vs_first: number;
 };
 
+export type TenantFinanceReportHorizonComparison = {
+  trend_months: number;
+  current_first_period_month: string | null;
+  current_last_period_month: string | null;
+  compare_first_period_month: string | null;
+  compare_last_period_month: string | null;
+  compare_months_covered: number;
+  compare_total_income: number;
+  compare_total_expense: number;
+  compare_total_net_balance: number;
+  compare_average_income: number;
+  compare_average_expense: number;
+  compare_average_net_balance: number;
+  total_income_delta_vs_compare: number;
+  total_expense_delta_vs_compare: number;
+  total_net_balance_delta_vs_compare: number;
+  average_net_balance_delta_vs_compare: number;
+};
+
+export type TenantFinanceReportYearToDateComparison = {
+  current_first_period_month: string | null;
+  current_last_period_month: string | null;
+  current_months_covered: number;
+  current_total_income: number;
+  current_total_expense: number;
+  current_total_net_balance: number;
+  compare_first_period_month: string | null;
+  compare_last_period_month: string | null;
+  compare_months_covered: number;
+  compare_total_income: number;
+  compare_total_expense: number;
+  compare_total_net_balance: number;
+  total_income_delta_vs_compare: number;
+  total_expense_delta_vs_compare: number;
+  total_net_balance_delta_vs_compare: number;
+};
+
 export type TenantFinanceReportOverviewResponse = {
   success: boolean;
   message: string;
@@ -126,12 +164,15 @@ export type TenantFinanceReportOverviewResponse = {
     period_comparison: TenantFinanceReportPeriodComparison;
     monthly_trend: TenantFinanceReportMonthlyTrendItem[];
     trend_summary: TenantFinanceReportTrendSummary;
+    horizon_comparison: TenantFinanceReportHorizonComparison;
+    year_to_date_comparison: TenantFinanceReportYearToDateComparison;
   };
 };
 
 export function getTenantFinanceReportOverview(
   accessToken: string,
   periodMonth: string,
+  comparePeriodMonth: string | null = null,
   trendMonths = 6,
   movementScope = "all",
   budgetCategoryScope = "all",
@@ -139,6 +180,9 @@ export function getTenantFinanceReportOverview(
 ) {
   const params = new URLSearchParams();
   params.set("period_month", periodMonth);
+  if (comparePeriodMonth) {
+    params.set("compare_period_month", comparePeriodMonth);
+  }
   params.set("trend_months", String(trendMonths));
   params.set("movement_scope", movementScope);
   params.set("budget_category_scope", budgetCategoryScope);

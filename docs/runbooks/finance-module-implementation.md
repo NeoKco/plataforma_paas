@@ -86,12 +86,15 @@ En esta fase quedaron listos:
 - primera pantalla real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
 - primera pantalla real de `Reportes` con overview mensual consolidado
 - `Reportes` ya incluye pulso diario de caja y ranking corto de desvíos presupuestarios
-- `Reportes` ya incluye comparativa contra el mes anterior y exportación CSV básica del overview
+- `Reportes` ya incluye comparativa contra un mes elegido por el usuario y exportación CSV básica del overview
 - `Reportes` ya incluye tendencia mensual corta de 6 meses dentro del mismo overview
 - `Reportes` ya permite elegir horizonte de tendencia (`3`, `6` o `12` meses) y exportar JSON además de CSV
 - `Reportes` ya permite foco analítico de movimientos (`todos`, `conciliados`, `pendientes`, `favoritas`, `ligados a préstamos`)
 - `Reportes` ya permite foco presupuestario por tipo (`ingreso/egreso`) y por estado (`sobre`, `dentro`, `sin uso`, `inactiva`)
 - `Reportes` ya incluye resumen del horizonte seleccionado con promedio, mejor/peor mes y delta contra el primer mes
+- `Reportes` ya permite elegir explícitamente el mes contra el que se compara el overview, no solo el corte anterior
+- `Reportes` ya compara también el horizonte visible completo contra un horizonte equivalente cerrado en el mes comparado
+- `Reportes` ya agrega comparativa de acumulado anual (`enero -> mes`) contra el mes comparado
 - manejo controlado de schema incompleto en vistas de `finance`, sin `500` crudo
 - self-service de sincronizacion de estructura desde el propio `tenant_portal` para `tenant admin`
 

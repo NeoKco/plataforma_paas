@@ -68,6 +68,7 @@ class FinanceReportBudgetVarianceItem(BaseModel):
 
 class FinanceReportPeriodComparison(BaseModel):
     current_period_month: date
+    compare_period_month: date
     previous_period_month: date
     previous_income: float
     previous_expense: float
@@ -113,6 +114,43 @@ class FinanceReportTrendSummary(BaseModel):
     net_balance_delta_vs_first: float
 
 
+class FinanceReportHorizonComparison(BaseModel):
+    trend_months: int
+    current_first_period_month: date | None
+    current_last_period_month: date | None
+    compare_first_period_month: date | None
+    compare_last_period_month: date | None
+    compare_months_covered: int
+    compare_total_income: float
+    compare_total_expense: float
+    compare_total_net_balance: float
+    compare_average_income: float
+    compare_average_expense: float
+    compare_average_net_balance: float
+    total_income_delta_vs_compare: float
+    total_expense_delta_vs_compare: float
+    total_net_balance_delta_vs_compare: float
+    average_net_balance_delta_vs_compare: float
+
+
+class FinanceReportYearToDateComparison(BaseModel):
+    current_first_period_month: date | None
+    current_last_period_month: date | None
+    current_months_covered: int
+    current_total_income: float
+    current_total_expense: float
+    current_total_net_balance: float
+    compare_first_period_month: date | None
+    compare_last_period_month: date | None
+    compare_months_covered: int
+    compare_total_income: float
+    compare_total_expense: float
+    compare_total_net_balance: float
+    total_income_delta_vs_compare: float
+    total_expense_delta_vs_compare: float
+    total_net_balance_delta_vs_compare: float
+
+
 class FinanceReportOverviewData(BaseModel):
     period_month: date
     movement_scope: str
@@ -128,6 +166,8 @@ class FinanceReportOverviewData(BaseModel):
     period_comparison: FinanceReportPeriodComparison
     monthly_trend: list[FinanceReportMonthlyTrendItem]
     trend_summary: FinanceReportTrendSummary
+    horizon_comparison: FinanceReportHorizonComparison
+    year_to_date_comparison: FinanceReportYearToDateComparison
 
 
 class FinanceReportOverviewResponse(FinanceResponseBase):

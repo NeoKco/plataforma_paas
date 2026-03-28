@@ -19,12 +19,15 @@ Estado actual:
 - la vista `Planificación` ya permite revisar días con señal operativa, cuotas por vencer y foco presupuestario del mes
 - la vista `Reportes` ya permite revisar el consolidado mensual de transacciones, presupuestos y cartera
 - la vista `Reportes` ya permite además revisar el pulso diario de caja y los principales desvíos presupuestarios del mes
-- la vista `Reportes` ya permite comparar contra el mes anterior y exportar un CSV básico del overview
+- la vista `Reportes` ya permite comparar contra un mes elegido y exportar un CSV básico del overview
 - la vista `Reportes` ya permite además revisar una tendencia reciente de 6 meses
 - la vista `Reportes` ya permite elegir tendencia de `3`, `6` o `12` meses y exportar JSON base
 - la vista `Reportes` ya permite además enfocar el análisis en conciliados, pendientes, favoritas o movimientos ligados a préstamos
 - la vista `Reportes` ya permite además filtrar el resumen de presupuestos por tipo y por estado
 - la vista `Reportes` ya resume el horizonte con promedio, mejor/peor mes y delta contra el primer mes
+- la vista `Reportes` ya permite elegir explícitamente el mes usado para la comparativa
+- la vista `Reportes` ya compara también el horizonte completo visible contra otro rango equivalente
+- la vista `Reportes` ya compara también el acumulado anual `enero -> mes` contra el período comparado
 - si una vista nueva del modulo detecta que faltan tablas o cambios de estructura, ahora explica el problema en pantalla
 - si eres `admin` del tenant, ahora puedes usar `Actualizar estructura del módulo` desde el propio portal para aplicar migraciones pendientes
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend

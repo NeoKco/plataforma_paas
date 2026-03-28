@@ -30,6 +30,7 @@ class FinanceReportsService:
         tenant_db: Session,
         *,
         period_month: date,
+        compare_period_month: date | None = None,
         trend_months: int = 6,
         movement_scope: str = "all",
         budget_category_scope: str = "all",
@@ -62,9 +63,13 @@ class FinanceReportsService:
         normalized_period_month = period_month.replace(day=1)
         starts_at = self._month_start(normalized_period_month)
         ends_at = self._next_month_start(normalized_period_month)
-        previous_period_month = self._previous_month_start(normalized_period_month)
-        previous_starts_at = self._month_start(previous_period_month)
-        previous_ends_at = self._next_month_start(previous_period_month)
+        comparison_period_month = (
+            compare_period_month.replace(day=1)
+            if compare_period_month is not None
+            else self._previous_month_start(normalized_period_month)
+        )
+        comparison_starts_at = self._month_start(comparison_period_month)
+        comparison_ends_at = self._next_month_start(comparison_period_month)
 
         categories = {
             category.id: category
@@ -85,9 +90,9 @@ class FinanceReportsService:
         previous_transactions = [
             transaction
             for transaction in all_transactions
-            if previous_starts_at
+            if comparison_starts_at
             <= self._normalize_datetime(transaction.transaction_at)
-            < previous_ends_at
+            < comparison_ends_at
         ]
         previous_transactions = self._filter_transactions_by_scope(
             previous_transactions,
@@ -102,7 +107,7 @@ class FinanceReportsService:
         )
         _, previous_budget_summary = self.budget_service.list_budgets(
             tenant_db,
-            period_month=previous_period_month,
+            period_month=comparison_period_month,
             include_inactive=True,
             category_type=None if budget_category_scope == "all" else budget_category_scope,
             budget_status=None if budget_status_filter == "all" else budget_status_filter,
@@ -198,6 +203,34 @@ class FinanceReportsService:
             budget_category_scope=budget_category_scope,
             budget_status_filter=budget_status_filter,
         )
+        comparison_monthly_trend = self._build_monthly_trend(
+            tenant_db=tenant_db,
+            all_transactions=all_transactions,
+            current_period_month=comparison_period_month,
+            trend_months=trend_months,
+            movement_scope=movement_scope,
+            budget_category_scope=budget_category_scope,
+            budget_status_filter=budget_status_filter,
+        )
+        current_ytd_trend = self._build_monthly_trend(
+            tenant_db=tenant_db,
+            all_transactions=all_transactions,
+            current_period_month=normalized_period_month,
+            trend_months=normalized_period_month.month,
+            movement_scope=movement_scope,
+            budget_category_scope=budget_category_scope,
+            budget_status_filter=budget_status_filter,
+        )
+        compare_ytd_trend = self._build_monthly_trend(
+            tenant_db=tenant_db,
+            all_transactions=all_transactions,
+            current_period_month=comparison_period_month,
+            trend_months=comparison_period_month.month,
+            movement_scope=movement_scope,
+            budget_category_scope=budget_category_scope,
+            budget_status_filter=budget_status_filter,
+        )
+        trend_summary = self._build_trend_summary(monthly_trend)
 
         return {
             "period_month": normalized_period_month,
@@ -221,7 +254,8 @@ class FinanceReportsService:
             "budget_variances": self._build_budget_variances(budget_rows=budget_rows),
             "period_comparison": {
                 "current_period_month": normalized_period_month,
-                "previous_period_month": previous_period_month,
+                "compare_period_month": comparison_period_month,
+                "previous_period_month": comparison_period_month,
                 "previous_income": round(
                     sum(item.amount for item in previous_income_transactions), 2
                 ),
@@ -281,7 +315,16 @@ class FinanceReportsService:
                 ),
             },
             "monthly_trend": monthly_trend,
-            "trend_summary": self._build_trend_summary(monthly_trend),
+            "trend_summary": trend_summary,
+            "horizon_comparison": self._build_horizon_comparison(
+                current_trend=monthly_trend,
+                current_summary=trend_summary,
+                comparison_trend=comparison_monthly_trend,
+            ),
+            "year_to_date_comparison": self._build_year_to_date_comparison(
+                current_trend=current_ytd_trend,
+                comparison_trend=compare_ytd_trend,
+            ),
         }
 
     def _build_top_categories(
@@ -509,6 +552,89 @@ class FinanceReportsService:
             "worst_net_balance": round(float(worst_month["net_balance"]), 2),
             "net_balance_delta_vs_first": round(
                 float(last_month["net_balance"]) - float(first_month["net_balance"]),
+                2,
+            ),
+        }
+
+    def _build_horizon_comparison(
+        self,
+        *,
+        current_trend: list[dict],
+        current_summary: dict,
+        comparison_trend: list[dict],
+    ) -> dict:
+        comparison_summary = self._build_trend_summary(comparison_trend)
+
+        return {
+            "trend_months": len(current_trend),
+            "current_first_period_month": current_summary["first_period_month"],
+            "current_last_period_month": current_summary["last_period_month"],
+            "compare_first_period_month": comparison_summary["first_period_month"],
+            "compare_last_period_month": comparison_summary["last_period_month"],
+            "compare_months_covered": comparison_summary["months_covered"],
+            "compare_total_income": comparison_summary["total_income"],
+            "compare_total_expense": comparison_summary["total_expense"],
+            "compare_total_net_balance": comparison_summary["total_net_balance"],
+            "compare_average_income": comparison_summary["average_income"],
+            "compare_average_expense": comparison_summary["average_expense"],
+            "compare_average_net_balance": comparison_summary["average_net_balance"],
+            "total_income_delta_vs_compare": round(
+                float(current_summary["total_income"])
+                - float(comparison_summary["total_income"]),
+                2,
+            ),
+            "total_expense_delta_vs_compare": round(
+                float(current_summary["total_expense"])
+                - float(comparison_summary["total_expense"]),
+                2,
+            ),
+            "total_net_balance_delta_vs_compare": round(
+                float(current_summary["total_net_balance"])
+                - float(comparison_summary["total_net_balance"]),
+                2,
+            ),
+            "average_net_balance_delta_vs_compare": round(
+                float(current_summary["average_net_balance"])
+                - float(comparison_summary["average_net_balance"]),
+                2,
+            ),
+        }
+
+    def _build_year_to_date_comparison(
+        self,
+        *,
+        current_trend: list[dict],
+        comparison_trend: list[dict],
+    ) -> dict:
+        current_summary = self._build_trend_summary(current_trend)
+        comparison_summary = self._build_trend_summary(comparison_trend)
+
+        return {
+            "current_first_period_month": current_summary["first_period_month"],
+            "current_last_period_month": current_summary["last_period_month"],
+            "current_months_covered": current_summary["months_covered"],
+            "current_total_income": current_summary["total_income"],
+            "current_total_expense": current_summary["total_expense"],
+            "current_total_net_balance": current_summary["total_net_balance"],
+            "compare_first_period_month": comparison_summary["first_period_month"],
+            "compare_last_period_month": comparison_summary["last_period_month"],
+            "compare_months_covered": comparison_summary["months_covered"],
+            "compare_total_income": comparison_summary["total_income"],
+            "compare_total_expense": comparison_summary["total_expense"],
+            "compare_total_net_balance": comparison_summary["total_net_balance"],
+            "total_income_delta_vs_compare": round(
+                float(current_summary["total_income"])
+                - float(comparison_summary["total_income"]),
+                2,
+            ),
+            "total_expense_delta_vs_compare": round(
+                float(current_summary["total_expense"])
+                - float(comparison_summary["total_expense"]),
+                2,
+            ),
+            "total_net_balance_delta_vs_compare": round(
+                float(current_summary["total_net_balance"])
+                - float(comparison_summary["total_net_balance"]),
                 2,
             ),
         }

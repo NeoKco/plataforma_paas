@@ -987,6 +987,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             ],
             "period_comparison": {
                 "current_period_month": date(2026, 4, 1),
+                "compare_period_month": date(2026, 3, 1),
                 "previous_period_month": date(2026, 3, 1),
                 "previous_income": 300.0,
                 "previous_expense": 50.0,
@@ -1041,6 +1042,41 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 "worst_net_balance": 0.0,
                 "net_balance_delta_vs_first": 380.0,
             },
+            "horizon_comparison": {
+                "trend_months": 2,
+                "current_first_period_month": date(2025, 11, 1),
+                "current_last_period_month": date(2026, 4, 1),
+                "compare_first_period_month": date(2025, 10, 1),
+                "compare_last_period_month": date(2026, 3, 1),
+                "compare_months_covered": 2,
+                "compare_total_income": 300.0,
+                "compare_total_expense": 50.0,
+                "compare_total_net_balance": 250.0,
+                "compare_average_income": 150.0,
+                "compare_average_expense": 25.0,
+                "compare_average_net_balance": 125.0,
+                "total_income_delta_vs_compare": 200.0,
+                "total_expense_delta_vs_compare": 70.0,
+                "total_net_balance_delta_vs_compare": 130.0,
+                "average_net_balance_delta_vs_compare": 65.0,
+            },
+            "year_to_date_comparison": {
+                "current_first_period_month": date(2026, 1, 1),
+                "current_last_period_month": date(2026, 4, 1),
+                "current_months_covered": 4,
+                "current_total_income": 500.0,
+                "current_total_expense": 120.0,
+                "current_total_net_balance": 380.0,
+                "compare_first_period_month": date(2026, 1, 1),
+                "compare_last_period_month": date(2026, 3, 1),
+                "compare_months_covered": 3,
+                "compare_total_income": 300.0,
+                "compare_total_expense": 50.0,
+                "compare_total_net_balance": 250.0,
+                "total_income_delta_vs_compare": 200.0,
+                "total_expense_delta_vs_compare": 70.0,
+                "total_net_balance_delta_vs_compare": 130.0,
+            },
         }
 
         with patch(
@@ -1068,6 +1104,10 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             "within_budget",
         )
         self.assertEqual(
+            response.data.period_comparison.compare_period_month,
+            date(2026, 3, 1),
+        )
+        self.assertEqual(
             response.data.period_comparison.previous_period_month,
             date(2026, 3, 1),
         )
@@ -1075,6 +1115,14 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.movement_scope, "all")
         self.assertEqual(response.data.budget_category_scope, "all")
         self.assertEqual(response.data.trend_summary.best_net_balance, 380.0)
+        self.assertEqual(
+            response.data.horizon_comparison.compare_last_period_month,
+            date(2026, 3, 1),
+        )
+        self.assertEqual(
+            response.data.year_to_date_comparison.compare_last_period_month,
+            date(2026, 3, 1),
+        )
 
     def test_get_finance_reports_overview_forwards_trend_months(self) -> None:
         with patch(
@@ -1121,6 +1169,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                 "budget_variances": [],
                 "period_comparison": {
                     "current_period_month": date(2026, 4, 1),
+                    "compare_period_month": date(2026, 3, 1),
                     "previous_period_month": date(2026, 3, 1),
                     "previous_income": 0.0,
                     "previous_expense": 0.0,
@@ -1154,10 +1203,46 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
                     "worst_net_balance": None,
                     "net_balance_delta_vs_first": 0.0,
                 },
+                "horizon_comparison": {
+                    "trend_months": 12,
+                    "current_first_period_month": None,
+                    "current_last_period_month": None,
+                    "compare_first_period_month": None,
+                    "compare_last_period_month": None,
+                    "compare_months_covered": 0,
+                    "compare_total_income": 0.0,
+                    "compare_total_expense": 0.0,
+                    "compare_total_net_balance": 0.0,
+                    "compare_average_income": 0.0,
+                    "compare_average_expense": 0.0,
+                    "compare_average_net_balance": 0.0,
+                    "total_income_delta_vs_compare": 0.0,
+                    "total_expense_delta_vs_compare": 0.0,
+                    "total_net_balance_delta_vs_compare": 0.0,
+                    "average_net_balance_delta_vs_compare": 0.0,
+                },
+                "year_to_date_comparison": {
+                    "current_first_period_month": None,
+                    "current_last_period_month": None,
+                    "current_months_covered": 0,
+                    "current_total_income": 0.0,
+                    "current_total_expense": 0.0,
+                    "current_total_net_balance": 0.0,
+                    "compare_first_period_month": None,
+                    "compare_last_period_month": None,
+                    "compare_months_covered": 0,
+                    "compare_total_income": 0.0,
+                    "compare_total_expense": 0.0,
+                    "compare_total_net_balance": 0.0,
+                    "total_income_delta_vs_compare": 0.0,
+                    "total_expense_delta_vs_compare": 0.0,
+                    "total_net_balance_delta_vs_compare": 0.0,
+                },
             },
         ) as get_overview_mock:
             get_finance_reports_overview(
                 period_month=date(2026, 4, 1),
+                compare_period_month=date(2026, 2, 1),
                 trend_months=12,
                 movement_scope="favorites",
                 budget_category_scope="expense",
@@ -1167,6 +1252,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             )
 
         _, kwargs = get_overview_mock.call_args
+        self.assertEqual(kwargs["compare_period_month"], date(2026, 2, 1))
         self.assertEqual(kwargs["trend_months"], 12)
         self.assertEqual(kwargs["movement_scope"], "favorites")
         self.assertEqual(kwargs["budget_category_scope"], "expense")

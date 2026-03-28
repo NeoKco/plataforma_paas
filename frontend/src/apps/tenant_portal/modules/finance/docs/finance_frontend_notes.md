@@ -51,12 +51,15 @@
 - ya existe una pantalla real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
 - ya existe una pantalla real de `Reportes` con overview mensual consolidado
 - esa misma pantalla de `Reportes` ya muestra pulso diario de caja y una tabla corta de desvíos presupuestarios
-- esa misma pantalla ya compara el período visible contra el mes anterior y permite exportar CSV básico
+- esa misma pantalla ya compara el período visible contra un mes elegido y permite exportar CSV básico
 - esa misma pantalla ya muestra además una tendencia corta de 6 meses para lectura reciente
 - esa misma pantalla ya permite elegir horizonte `3/6/12 meses` y exportar JSON además de CSV
 - esa misma pantalla ya permite releer el overview con foco `todos/conciliados/pendientes/favoritas/préstamos`
 - esa misma pantalla ya permite además filtrar el bloque presupuestario por tipo y por estado
 - esa misma pantalla ya resume el horizonte visible con promedio, mejor/peor mes y delta contra el primer mes
+- esa misma pantalla ya permite elegir explícitamente el mes comparado sin quedar atada al mes anterior
+- esa misma pantalla ya compara también el horizonte completo visible contra otro rango equivalente
+- esa misma pantalla ya compara también el acumulado anual `enero -> mes` contra el período comparado
 - cuando `finance` detecta schema incompleto, la UI ya explica para que sirve actualizar la estructura del modulo
 - `tenant admin` ya puede disparar esa sincronizacion desde el mismo portal, sin depender solo de `Platform Admin`
 
@@ -64,7 +67,7 @@ Pendiente inmediato:
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
 - endurecer `Presupuestos` con lectura agregada mas densa
-- abrir exportaciones más completas y comparativas contra período arbitrario en `Reportes`, ahora que ya existe resumen multi-período
+- abrir exportaciones más completas y comparativas más profundas entre rangos arbitrarios, acumulados específicos o cortes por dimensión analítica en `Reportes`, ahora que ya existe resumen multi-período
 - enriquecer el pago de cuotas de `Préstamos` con cuenta origen y lectura contable derivada antes de considerarlo un dominio cerrado
 - mover la sincronizacion tenant-side a flujo asíncrono visible y no inline
 - reducir este caso con auto-sync post-provisioning y post-deploy

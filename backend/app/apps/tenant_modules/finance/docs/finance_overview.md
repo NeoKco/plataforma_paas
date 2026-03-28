@@ -46,15 +46,18 @@ Alcance de esta fase:
 - primera vista real de `Planificación` con lectura mensual de flujo, vencimientos y foco presupuestario
 - primera vista real de `Reportes` con overview mensual consolidado
 - `Reportes` ya muestra pulso diario de caja y desvíos presupuestarios priorizados dentro del mismo overview
-- `Reportes` ya agrega comparativa contra el mes anterior y exportación CSV básica desde el portal
+- `Reportes` ya agrega comparativa contra un mes elegido y exportación CSV básica desde el portal
 - `Reportes` ya agrega una tendencia mensual corta de 6 meses para lectura reciente
 - `Reportes` ya permite ajustar la tendencia a `3`, `6` o `12` meses y exportar JSON base
 - `Reportes` ya permite foco analítico de movimientos para releer el mismo overview
 - `Reportes` ya permite además releer el bloque presupuestario por tipo y por estado
 - `Reportes` ya resume el horizonte con promedio, mejor/peor mes y delta contra el primer mes
+- `Reportes` ya permite elegir explícitamente el mes contra el que comparar el overview
+- `Reportes` ya compara también el horizonte completo visible contra otro horizonte equivalente
+- `Reportes` ya compara también el acumulado anual `enero -> mes` contra el período comparado
 
 Pendiente inmediato:
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
 - endurecer `Presupuestos` con lectura mas densa y estados operativos mas ricos
 - enriquecer el enlace contable de `Préstamos`
-- seguir `Lote 7` con exportaciones más completas, comparativas contra período arbitrario y lectura analitica mas profunda
+- seguir `Lote 7` con exportaciones más completas, comparativas más profundas entre rangos arbitrarios, acumulados específicos o cortes por dimensión analítica y lectura analitica mas profunda

@@ -17,12 +17,17 @@ import {
   type TenantFinanceReportMonthlyTrendItem,
   type TenantFinanceReportOverviewResponse,
   type TenantFinanceReportPeriodComparison,
+  type TenantFinanceReportHorizonComparison,
   type TenantFinanceReportTrendSummary,
+  type TenantFinanceReportYearToDateComparison,
 } from "../services/reportsService";
 
 export function FinanceReportsPage() {
   const { session } = useTenantAuth();
   const [periodMonth, setPeriodMonth] = useState(buildMonthValue());
+  const [comparePeriodMonth, setComparePeriodMonth] = useState(
+    buildPreviousMonthValue()
+  );
   const [trendMonths, setTrendMonths] = useState<3 | 6 | 12>(6);
   const [movementScope, setMovementScope] = useState<
     "all" | "reconciled" | "unreconciled" | "favorites" | "loan_linked"
@@ -43,6 +48,7 @@ export function FinanceReportsPage() {
   }, [
     session?.accessToken,
     periodMonth,
+    comparePeriodMonth,
     trendMonths,
     movementScope,
     budgetCategoryScope,
@@ -60,6 +66,7 @@ export function FinanceReportsPage() {
       const response = await getTenantFinanceReportOverview(
         session.accessToken,
         buildPeriodMonthIso(periodMonth),
+        buildPeriodMonthIso(comparePeriodMonth),
         trendMonths,
         movementScope,
         budgetCategoryScope,
@@ -115,6 +122,15 @@ export function FinanceReportsPage() {
               <option value="6">6 meses</option>
               <option value="12">12 meses</option>
             </select>
+          </div>
+          <div>
+            <label className="form-label">Comparar contra</label>
+            <input
+              className="form-control"
+              type="month"
+              value={comparePeriodMonth}
+              onChange={(event) => setComparePeriodMonth(event.target.value)}
+            />
           </div>
           <div>
             <label className="form-label">Foco movimientos</label>
@@ -182,7 +198,9 @@ export function FinanceReportsPage() {
             <button
               className="btn btn-outline-primary"
               type="button"
-              onClick={() => exportOverviewCsv(overview, periodMonth)}
+              onClick={() =>
+                exportOverviewCsv(overview, periodMonth, comparePeriodMonth)
+              }
               disabled={!overview}
             >
               Exportar CSV
@@ -192,7 +210,9 @@ export function FinanceReportsPage() {
             <button
               className="btn btn-outline-secondary"
               type="button"
-              onClick={() => exportOverviewJson(overview, periodMonth)}
+              onClick={() =>
+                exportOverviewJson(overview, periodMonth, comparePeriodMonth)
+              }
               disabled={!overview}
             >
               Exportar JSON
@@ -331,8 +351,8 @@ export function FinanceReportsPage() {
 
       <div className="finance-report-grid">
         <PanelCard
-          title="Comparativa contra mes anterior"
-          subtitle="Diferencia del período visible frente al corte inmediatamente anterior."
+          title="Comparativa contra otro período"
+          subtitle="Diferencia del período visible frente al mes de comparación seleccionado."
         >
           <PeriodComparisonPanel comparison={overview?.period_comparison || null} />
         </PanelCard>
@@ -380,6 +400,20 @@ export function FinanceReportsPage() {
         subtitle="Comparativa ejecutiva del rango seleccionado para no depender solo de la tabla mensual."
       >
         <TrendSummaryPanel summary={overview?.trend_summary || null} />
+      </PanelCard>
+
+      <PanelCard
+        title="Comparativa del horizonte"
+        subtitle="Contrasta el rango visible completo contra otro rango equivalente cerrado en el mes comparado."
+      >
+        <HorizonComparisonPanel comparison={overview?.horizon_comparison || null} />
+      </PanelCard>
+
+      <PanelCard
+        title="Acumulado anual"
+        subtitle="Compara enero -> mes visible contra enero -> mes comparado para lectura ejecutiva anual."
+      >
+        <YearToDateComparisonPanel comparison={overview?.year_to_date_comparison || null} />
       </PanelCard>
     </div>
   );
@@ -512,11 +546,11 @@ function PeriodComparisonPanel({
   return (
     <dl className="finance-report-definition-list">
       <ReportLine
-        label={`Ingresos vs ${formatMonthLabel(comparison.previous_period_month)}`}
+        label={`Ingresos vs ${formatMonthLabel(comparison.compare_period_month)}`}
         value={formatSignedMoney(comparison.income_delta)}
       />
       <ReportLine
-        label={`Egresos vs ${formatMonthLabel(comparison.previous_period_month)}`}
+        label={`Egresos vs ${formatMonthLabel(comparison.compare_period_month)}`}
         value={formatSignedMoney(comparison.expense_delta)}
       />
       <ReportLine
@@ -534,6 +568,10 @@ function PeriodComparisonPanel({
       <ReportLine
         label="Desviación presup."
         value={formatSignedMoney(comparison.variance_delta)}
+      />
+      <ReportLine
+        label="Período comparado"
+        value={formatMonthLabel(comparison.compare_period_month)}
       />
     </dl>
   );
@@ -631,6 +669,100 @@ function TrendSummaryPanel({
   );
 }
 
+function HorizonComparisonPanel({
+  comparison,
+}: {
+  comparison: TenantFinanceReportHorizonComparison | null;
+}) {
+  if (!comparison || comparison.compare_months_covered === 0) {
+    return (
+      <p className="tenant-muted-text mb-0">
+        Sin comparativa de horizonte para el rango seleccionado.
+      </p>
+    );
+  }
+
+  return (
+    <dl className="finance-report-definition-list">
+      <ReportLine
+        label="Horizonte actual"
+        value={buildPeriodRangeLabel(
+          comparison.current_first_period_month,
+          comparison.current_last_period_month
+        )}
+      />
+      <ReportLine
+        label="Horizonte comparado"
+        value={buildPeriodRangeLabel(
+          comparison.compare_first_period_month,
+          comparison.compare_last_period_month
+        )}
+      />
+      <ReportLine
+        label="Ingreso total vs rango"
+        value={formatSignedMoney(comparison.total_income_delta_vs_compare)}
+      />
+      <ReportLine
+        label="Egreso total vs rango"
+        value={formatSignedMoney(comparison.total_expense_delta_vs_compare)}
+      />
+      <ReportLine
+        label="Balance total vs rango"
+        value={formatSignedMoney(comparison.total_net_balance_delta_vs_compare)}
+      />
+      <ReportLine
+        label="Promedio balance vs rango"
+        value={formatSignedMoney(comparison.average_net_balance_delta_vs_compare)}
+      />
+    </dl>
+  );
+}
+
+function YearToDateComparisonPanel({
+  comparison,
+}: {
+  comparison: TenantFinanceReportYearToDateComparison | null;
+}) {
+  if (!comparison || comparison.current_months_covered === 0) {
+    return (
+      <p className="tenant-muted-text mb-0">
+        Sin acumulado anual disponible para el período seleccionado.
+      </p>
+    );
+  }
+
+  return (
+    <dl className="finance-report-definition-list">
+      <ReportLine
+        label="Acumulado actual"
+        value={buildPeriodRangeLabel(
+          comparison.current_first_period_month,
+          comparison.current_last_period_month
+        )}
+      />
+      <ReportLine
+        label="Acumulado comparado"
+        value={buildPeriodRangeLabel(
+          comparison.compare_first_period_month,
+          comparison.compare_last_period_month
+        )}
+      />
+      <ReportLine
+        label="Ingresos YTD vs comparado"
+        value={formatSignedMoney(comparison.total_income_delta_vs_compare)}
+      />
+      <ReportLine
+        label="Egresos YTD vs comparado"
+        value={formatSignedMoney(comparison.total_expense_delta_vs_compare)}
+      />
+      <ReportLine
+        label="Balance YTD vs comparado"
+        value={formatSignedMoney(comparison.total_net_balance_delta_vs_compare)}
+      />
+    </dl>
+  );
+}
+
 function ReportLine({ label, value }: { label: string; value: string }) {
   return (
     <>
@@ -643,6 +775,13 @@ function ReportLine({ label, value }: { label: string; value: string }) {
 function buildMonthValue(dateValue = new Date()) {
   const year = dateValue.getFullYear();
   const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+function buildPreviousMonthValue(dateValue = new Date()) {
+  const previousMonth = new Date(dateValue.getFullYear(), dateValue.getMonth() - 1, 1);
+  const year = previousMonth.getFullYear();
+  const month = String(previousMonth.getMonth() + 1).padStart(2, "0");
   return `${year}-${month}`;
 }
 
@@ -704,7 +843,8 @@ function buildBudgetStatusClassName(status: string) {
 
 function exportOverviewCsv(
   overview: TenantFinanceReportOverviewResponse["data"] | null,
-  periodMonth: string
+  periodMonth: string,
+  comparePeriodMonth: string
 ) {
   if (!overview) {
     return;
@@ -713,6 +853,7 @@ function exportOverviewCsv(
   const rows: string[][] = [
     ["Seccion", "Clave", "Valor"],
     ["periodo", "mes", overview.period_month],
+    ["periodo", "comparar_contra", comparePeriodMonth],
     ["periodo", "foco_movimientos", overview.movement_scope],
     ["periodo", "foco_presupuesto_tipo", overview.budget_category_scope],
     ["periodo", "foco_presupuesto_estado", overview.budget_status_filter],
@@ -776,15 +917,29 @@ function exportOverviewCsv(
 
 function exportOverviewJson(
   overview: TenantFinanceReportOverviewResponse["data"] | null,
-  periodMonth: string
+  periodMonth: string,
+  comparePeriodMonth: string
 ) {
   if (!overview) {
     return;
   }
 
-  const blob = new Blob([JSON.stringify(overview, null, 2)], {
-    type: "application/json;charset=utf-8;",
-  });
+  const blob = new Blob(
+    [
+      JSON.stringify(
+        {
+          period_month: periodMonth,
+          compare_period_month: comparePeriodMonth,
+          data: overview,
+        },
+        null,
+        2
+      ),
+    ],
+    {
+      type: "application/json;charset=utf-8;",
+    }
+  );
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -820,6 +975,16 @@ function buildTrendMonthValue(monthIso: string | null, amount: number | null) {
     return "n/d";
   }
   return `${formatMonthLabel(monthIso)} · ${formatSignedMoney(amount)}`;
+}
+
+function buildPeriodRangeLabel(
+  firstMonthIso: string | null,
+  lastMonthIso: string | null
+) {
+  if (!firstMonthIso || !lastMonthIso) {
+    return "n/d";
+  }
+  return `${formatMonthLabel(firstMonthIso)} -> ${formatMonthLabel(lastMonthIso)}`;
 }
 
 function buildBudgetScopeLabel(scope: string) {

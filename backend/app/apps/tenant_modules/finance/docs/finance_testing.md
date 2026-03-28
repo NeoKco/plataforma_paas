@@ -34,16 +34,18 @@ Cobertura actual:
 - planificacion overview con calendario operativo, cuotas por vencer y foco presupuestario
 - reportes overview con agregados mensuales de transacciones, presupuestos y préstamos
 - serie diaria de caja y desvíos presupuestarios priorizados dentro de `reportes overview`
-- comparativa contra el mes anterior dentro de `reportes overview`
+- comparativa contra un mes configurable dentro de `reportes overview`
 - tendencia mensual corta dentro de `reportes overview`
 - horizonte configurable `3/6/12` meses dentro de `reportes overview`
 - foco analítico de movimientos dentro de `reportes overview`
 - foco presupuestario por tipo y estado dentro de `reportes overview`
 - resumen multi-período del horizonte dentro de `reportes overview`
+- comparativa del horizonte completo contra un rango equivalente dentro de `reportes overview`
+- comparativa de acumulado anual `enero -> mes` dentro de `reportes overview`
 - integracion PostgreSQL real manteniendo compatibilidad legacy de `/entries`
 
 Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
 - pruebas de lectura mas rica de presupuestos
 - pruebas mas ricas del enlace contable de cuotas de prestamos con cuenta origen y lectura derivada
-- pruebas de exportaciones adicionales y comparativas contra período arbitrario de reportes
+- pruebas de exportaciones adicionales y comparativas más profundas entre rangos arbitrarios, acumulados específicos o cortes por dimensión analítica en reportes

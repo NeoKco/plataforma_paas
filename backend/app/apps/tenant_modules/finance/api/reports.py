@@ -25,6 +25,7 @@ reports_service = FinanceReportsService()
 @router.get("/overview", response_model=FinanceReportOverviewResponse)
 def get_finance_reports_overview(
     period_month: date,
+    compare_period_month: date | None = None,
     trend_months: int = 6,
     movement_scope: str = "all",
     budget_category_scope: str = "all",
@@ -36,6 +37,7 @@ def get_finance_reports_overview(
         overview = reports_service.get_overview(
             tenant_db,
             period_month=period_month,
+            compare_period_month=compare_period_month,
             trend_months=trend_months,
             movement_scope=movement_scope,
             budget_category_scope=budget_category_scope,
