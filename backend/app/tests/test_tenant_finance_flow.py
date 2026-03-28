@@ -601,11 +601,15 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             "income_actual": 0.0,
             "expense_budgeted": 500.0,
             "expense_actual": 200.0,
+            "over_budget_items": 0,
+            "within_budget_items": 1,
+            "unused_items": 0,
+            "inactive_items": 0,
         }
 
         with patch(
             "app.apps.tenant_modules.finance.api.routes.budget_service.list_budgets",
-            return_value=(rows, summary),
+            return_value=(rows, summary, rows),
         ):
             response = list_finance_budgets(
                 period_month=date(2026, 3, 8),
@@ -646,7 +650,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             return_value=budget,
         ), patch(
             "app.apps.tenant_modules.finance.api.routes.budget_service.list_budgets",
-            return_value=(rows, {}),
+            return_value=(rows, {}, rows),
         ):
             response = create_finance_budget(
                 payload=FinanceBudgetCreateRequest(
@@ -891,7 +895,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
 
         with patch(
             "app.apps.tenant_modules.finance.api.routes.loan_service.get_loan_detail",
-            return_value=(loan_row, installments),
+            return_value=(loan_row, installments, []),
         ):
             response = get_finance_loan_detail(
                 loan_id=4,

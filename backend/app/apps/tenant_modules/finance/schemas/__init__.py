@@ -14,6 +14,7 @@ from app.apps.tenant_modules.finance.schemas.beneficiary import (
 )
 from app.apps.tenant_modules.finance.schemas.budget import (
     FinanceBudgetCreateRequest,
+    FinanceBudgetFocusItemResponse,
     FinanceBudgetItemResponse,
     FinanceBudgetMutationResponse,
     FinanceBudgetsResponse,
@@ -160,6 +161,7 @@ __all__ = [
     "FinanceBeneficiaryMutationResponse",
     "FinanceBeneficiaryUpdateRequest",
     "FinanceBudgetCreateRequest",
+    "FinanceBudgetFocusItemResponse",
     "FinanceBudgetItemResponse",
     "FinanceBudgetMutationResponse",
     "FinanceBudgetsResponse",

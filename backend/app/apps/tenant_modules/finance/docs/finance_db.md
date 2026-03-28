@@ -98,11 +98,13 @@ Tablas base ya creadas en `Lote 1`:
 - presupuesto mensual por categoria
 - preparado para comparar monto presupuestado contra ejecucion real del mes
 - base para planificacion, alertas de desvio y reportes posteriores
+- ya alimenta contadores por estado operativo y bloques de foco presupuestario en la capa de servicio
 
 ### `finance_loans`
 - cartera base de prestamos prestados o recibidos
 - conserva contraparte, capital inicial, saldo pendiente, moneda y fechas clave
 - ya incluye `installments_count` y `payment_frequency` para generar un cronograma base
+- ya incluye `account_id` opcional para fijar la cuenta origen del préstamo
 
 ### `finance_loan_installments`
 - cuotas generadas por prestamo con numero, vencimiento y montos de capital/interes
@@ -113,6 +115,7 @@ Tablas base ya creadas en `Lote 1`:
 - ya soporta reversa parcial o total de esos abonos
 - ya conserva `reversal_reason_code` para reversas estructuradas
 - ya enlaza pagos y reversas de cuotas con `finance_transactions` por `loan_id`, `source_type` y `source_id`
+- esos enlaces ya usan `account_id` real cuando la operación o el préstamo define cuenta origen
 
 ## Reglas estructurales de esta fase
 
@@ -122,5 +125,5 @@ Tablas base ya creadas en `Lote 1`:
 
 Pendiente siguiente:
 - endurecer lectura de presupuestos y estados operativos derivados
-- enriquecer el pago sobre cronograma de prestamos con cuenta origen y lectura contable derivada
+- enriquecer la lectura derivada de prestamos con más contexto contable y cortes exportables
 - planificacion y reportes

@@ -9,6 +9,7 @@ Cobertura actual:
 - migracion tenant `0008_finance_loan_installments`
 - migracion tenant `0009_finance_loan_installment_payment_split`
 - migracion tenant `0010_finance_loan_installment_reversal_reason`
+- migracion tenant `0011_finance_loan_source_account`
 - idempotencia de seeds base del modulo
 - seed idempotente de `CLP`
 - repositories CRUD base de catalogos
@@ -24,6 +25,7 @@ Cobertura actual:
   - integridad de balances por cuenta
 - integracion SQLite real del balance por cuentas
 - core de presupuestos por categoria y mes, incluyendo comparacion `presupuesto vs real`
+- lectura enriquecida de presupuestos con contadores operativos y foco priorizado de categorias
 - core de prestamos con resumen de cartera, filtros por tipo/estado y generacion de cronograma mensual
 - aplicacion de pagos sobre cuotas de prestamos y recálculo de saldo pendiente
 - asignacion avanzada del pago entre capital e interes
@@ -31,6 +33,7 @@ Cobertura actual:
 - pagos y reversiones en lote sobre cuotas de prestamos
 - validacion de `reversal_reason_code` en reversas individuales y batch
 - enlace contable minimo desde cuotas hacia `finance_transactions`
+- validacion de cuenta origen por moneda en préstamos y lectura derivada de transacciones ligadas al préstamo
 - planificacion overview con calendario operativo, cuotas por vencer y foco presupuestario
 - reportes overview con agregados mensuales de transacciones, presupuestos y préstamos
 - serie diaria de caja y desvíos presupuestarios priorizados dentro de `reportes overview`
@@ -50,7 +53,7 @@ Cobertura actual:
 
 Pendiente por lotes:
 - pruebas de reconciliacion mas guiada y lotes asistidos
-- pruebas de lectura mas rica de presupuestos
-- pruebas mas ricas del enlace contable de cuotas de prestamos con cuenta origen y lectura derivada
+- pruebas de acciones mas ricas de presupuestos sobre categorias priorizadas
+- pruebas mas ricas de lectura derivada de cuotas de prestamos con exportación/contexto contable ampliado
 - pruebas de comparativas aún más profundas sobre rangos arbitrarios y cortes analíticos adicionales por proyectos/terceros en reportes
 - pruebas de persistencia real de `tag_ids` y ranking por `etiqueta`

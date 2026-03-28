@@ -77,9 +77,9 @@ Pendiente inmediato:
 - revisar y cerrar copy residual de exportaciones, confirmaciones y mensajes largos para lograr paridad completa `Español/Inglés`
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
-- endurecer `Presupuestos` con lectura agregada mas densa
+- enriquecer `Presupuestos` con acciones y lecturas mas ricas sobre categorias priorizadas
 - abrir comparativas aún más profundas sobre rangos arbitrarios o cortes analíticos adicionales por proyectos/terceros en `Reportes`, ahora que ya existe resumen multi-período
 - enriquecer la UX de tags con chips, filtros y mejor lectura en tabla/detalle
-- enriquecer el pago de cuotas de `Préstamos` con cuenta origen y lectura contable derivada antes de considerarlo un dominio cerrado
+- enriquecer `Préstamos` con lectura contable derivada más rica, exportable y con mejor relación visual con cuentas
 - mover la sincronizacion tenant-side a flujo asíncrono visible y no inline
 - reducir este caso con auto-sync post-provisioning y post-deploy

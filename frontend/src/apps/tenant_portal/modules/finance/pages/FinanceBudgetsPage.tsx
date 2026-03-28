@@ -238,6 +238,45 @@ export function FinanceBudgetsPage() {
         />
       </div>
 
+      <div className="tenant-portal-metrics">
+        <MetricCard
+          label={language === "es" ? "Sobre presupuesto" : "Over budget"}
+          value={summary?.over_budget_items || 0}
+          hint={
+            language === "es"
+              ? "Categorías que ya superaron el monto visible"
+              : "Categories already above the visible amount"
+          }
+        />
+        <MetricCard
+          label={language === "es" ? "Dentro" : "Within"}
+          value={summary?.within_budget_items || 0}
+          hint={
+            language === "es"
+              ? "Categorías activas aún dentro del rango"
+              : "Active categories still within range"
+          }
+        />
+        <MetricCard
+          label={language === "es" ? "Sin uso" : "Unused"}
+          value={summary?.unused_items || 0}
+          hint={
+            language === "es"
+              ? "Categorías sin ejecución en el período"
+              : "Categories without execution in the period"
+          }
+        />
+        <MetricCard
+          label={language === "es" ? "Inactivas" : "Inactive"}
+          value={summary?.inactive_items || 0}
+          hint={
+            language === "es"
+              ? "Presupuestos visibles pero desactivados"
+              : "Visible budgets that are disabled"
+          }
+        />
+      </div>
+
       {error ? (
         <div className="d-grid gap-3">
           <ErrorState
@@ -440,6 +479,56 @@ export function FinanceBudgetsPage() {
           </div>
         </PanelCard>
       </div>
+
+      <PanelCard
+        title={language === "es" ? "Foco presupuestario" : "Budget focus"}
+        subtitle={
+          language === "es"
+            ? "Lectura corta de categorías que requieren revisión primero en el período visible."
+            : "Short view of the categories that need review first in the visible period."
+        }
+      >
+        {budgetsResponse && budgetsResponse.focus_items.length > 0 ? (
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>{language === "es" ? "Categoría" : "Category"}</th>
+                  <th>{language === "es" ? "Tipo" : "Type"}</th>
+                  <th>{language === "es" ? "Presupuesto" : "Budget"}</th>
+                  <th>{language === "es" ? "Real" : "Actual"}</th>
+                  <th>{language === "es" ? "Desviación" : "Variance"}</th>
+                  <th>{language === "es" ? "Uso" : "Usage"}</th>
+                  <th>{language === "es" ? "Estado" : "Status"}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {budgetsResponse.focus_items.map((budget) => (
+                  <tr key={`focus-${budget.id}`}>
+                    <td>{budget.category_name}</td>
+                    <td>{displayCategoryType(budget.category_type, language)}</td>
+                    <td>{formatMoney(budget.amount, language, baseCurrencyCode)}</td>
+                    <td>{formatMoney(budget.actual_amount, language, baseCurrencyCode)}</td>
+                    <td>{formatMoney(budget.variance_amount, language, baseCurrencyCode)}</td>
+                    <td>{formatPercent(budget.utilization_ratio)}</td>
+                    <td>
+                      <span className={`status-badge ${budgetStatusBadgeClass(budget.budget_status)}`}>
+                        {displayBudgetStatus(budget.budget_status, language)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-secondary">
+            {language === "es"
+              ? "No hay categorías presupuestarias que priorizar con el filtro actual."
+              : "There are no budget categories to prioritize with the current filter."}
+          </div>
+        )}
+      </PanelCard>
 
       <PanelCard
         title={language === "es" ? "Presupuesto vs ejecución" : "Budget vs actual"}

@@ -74,6 +74,8 @@ En esta fase quedaron listos:
 - conciliacion guiada con nota opcional, confirmacion explicita y auditoria reciente enriquecida
 - primera pantalla real de `Presupuestos` con lectura `presupuesto vs real`
 - filtros de `Presupuestos` por tipo, estado derivado e inclusion de inactivos
+- `Presupuestos` ya expone contadores por estado operativo (`sobre`, `dentro`, `sin uso`, `inactiva`)
+- `Presupuestos` ya expone un bloque `Foco presupuestario` con categorias priorizadas por variacion y estado
 - primer slice real de `Préstamos` con cartera base, saldo pendiente y contraparte
 - cronograma inicial de `Préstamos` con cuotas generadas, proximo vencimiento y detalle por préstamo
 - pagos manuales sobre cuotas de `Préstamos`, con actualizacion de saldo pendiente y refresh del cronograma
@@ -83,6 +85,8 @@ En esta fase quedaron listos:
 - pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
 - razones estructuradas de reversa sobre cuotas, tanto individual como batch
 - enlace contable minimo de cuotas: cada pago o reversa genera una transaccion en `finance_transactions`
+- `Préstamos` ya permite definir una cuenta origen por préstamo y reutilizarla al operar cuotas
+- pagos y reversas de cuotas ya pueden usar cuenta origen explícita y el detalle del préstamo ya expone lectura contable derivada reciente
 - primera pantalla real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
 - primera pantalla real de `Reportes` con overview mensual consolidado
 - `Reportes` ya incluye pulso diario de caja y ranking corto de desvíos presupuestarios
@@ -313,7 +317,7 @@ Lo siguiente recomendable ahora es:
 
 1. ampliar la conciliacion asistida con motivos estructurados, agrupacion y revision visual mas densa
 2. endurecer `Presupuestos` con lectura agregada mas densa y estados operativos mas ricos
-3. enriquecer el enlace contable de `Préstamos` con cuenta origen y lectura derivada mas densa
+3. endurecer la lectura contable de `Préstamos` con mejor contexto derivado, exportación y relación más rica con cuentas/categorías
 4. profundizar `Reportes` con exportaciones enriquecidas y comparativas contra período arbitrario, ahora que ya existe resumen multi-período del horizonte
 5. evaluar lotes mas inteligentes sobre el filtro activo completo, no solo sobre seleccion manual
 6. abrir vistas derivadas o comparativas cuando el trabajo operativo del slice ya quede estable

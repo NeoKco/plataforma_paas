@@ -34,6 +34,18 @@ class FinanceBudgetItemResponse(BaseModel):
     updated_at: datetime
 
 
+class FinanceBudgetFocusItemResponse(BaseModel):
+    id: int
+    category_id: int
+    category_name: str
+    category_type: str
+    budget_status: str
+    amount: float
+    actual_amount: float
+    variance_amount: float
+    utilization_ratio: float | None = None
+
+
 class FinanceBudgetMutationResponse(FinanceResponseBase):
     data: FinanceBudgetItemResponse
 
@@ -48,9 +60,14 @@ class FinanceBudgetsSummaryData(BaseModel):
     income_actual: float
     expense_budgeted: float
     expense_actual: float
+    over_budget_items: int
+    within_budget_items: int
+    unused_items: int
+    inactive_items: int
 
 
 class FinanceBudgetsResponse(FinanceResponseBase):
     total: int
     summary: FinanceBudgetsSummaryData
+    focus_items: list[FinanceBudgetFocusItemResponse]
     data: list[FinanceBudgetItemResponse]

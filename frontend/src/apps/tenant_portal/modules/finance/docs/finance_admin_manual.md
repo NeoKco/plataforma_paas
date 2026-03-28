@@ -19,12 +19,15 @@ Estado actual:
 - ya existe una pantalla operativa de `Presupuestos` con lectura mensual por categoria
 - `Presupuestos` ya permite alta y edicion de montos, nota y estado activo, usando comparacion contra la ejecucion real del mes
 - `Presupuestos` ya permite filtrar por tipo, estado derivado e inclusion de inactivos
+- `Presupuestos` ya expone contadores operativos y un bloque de foco para priorizar categorias con mayor desvio o sin uso
 - ya existe una pantalla operativa de `Préstamos` con cartera por contraparte, capital, saldo, cuotas y moneda
 - `Préstamos` ya expone un cronograma inicial por cuotas y ya permite aplicar o revertir pagos manuales sobre cuotas, con reparto configurable entre interés y capital
 - el cronograma ya muestra capital pagado e interés pagado por cuota
 - el cronograma ya permite además selección múltiple y operación batch de pago o reversa
 - la reversa individual y batch ya exige motivo estructurado y lo deja visible en el cronograma
 - cada pago o reversa de cuota ya genera además una transacción financiera enlazada al préstamo
+- `Préstamos` ya permite definir una cuenta origen por préstamo y reutilizarla o sobrescribirla al operar cuotas
+- el detalle del préstamo ya expone una lectura contable derivada reciente para soporte y revisión operativa
 - `Planificación` ya ofrece una lectura mensual operativa cruzando días con movimiento, cuotas del mes y presión presupuestaria
 - `Reportes` ya ofrece un overview mensual con lectura cruzada de transacciones, presupuestos y préstamos
 - `Reportes` ya agrega serie diaria de caja y un corte corto de categorías con mayor desvío presupuestario

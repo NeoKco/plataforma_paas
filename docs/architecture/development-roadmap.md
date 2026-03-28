@@ -229,6 +229,7 @@ Resultado actual:
 - el `Lote 5` ya dejo `finance_transactions` como nucleo transaccional real, con backfill idempotente desde `finance_entries`
 - el `Lote 6` ya abrio la primera vista moderna de transacciones sobre `finance_transactions`, con balances por cuenta, detalle operacional con auditoria reciente, filtros reales, edicion completa de transacciones existentes y una mesa de trabajo guiada para conciliacion/favoritos con seleccion multiple, nota y confirmacion
 - ya existe una primera vista real de `Presupuestos` por mes y categoria con comparacion presupuesto vs ejecucion real
+- `Presupuestos` ya muestra contadores por estado operativo y un foco priorizado de categorias que requieren atencion
 - existe migracion tenant versionada para `finance_budgets`
 - ya existe un slice real de `Préstamos` con cartera, saldo pendiente, filtros por tipo/estado, proximo vencimiento y cronograma por cuotas
 - existe migracion tenant versionada para `finance_loans`
@@ -240,6 +241,8 @@ Resultado actual:
 - ya existen pagos y reversiones en lote sobre cuotas seleccionadas del mismo préstamo
 - ya existen razones estructuradas de reversa sobre cuotas, tanto individual como batch
 - ya existe enlace contable minimo: cada pago o reversa de cuota genera una transaccion real enlazada al préstamo
+- `Préstamos` ya permite definir cuenta origen por préstamo u operación de cuota
+- `GET /tenant/finance/loans/{loan_id}` ya expone lectura contable derivada reciente enlazada al préstamo
 - ya existe una primera vista real de `Planificación` con calendario operativo, cuotas del mes y foco presupuestario
 - ya existe una primera vista real de `Reportes` con overview mensual de transacciones, presupuestos y préstamos
 - `Reportes` ya muestra serie diaria de caja y desvíos presupuestarios priorizados dentro del mismo overview
@@ -273,8 +276,8 @@ Resultado actual:
 Falta para cerrarlo:
 
 - completar `Lote 6` con conciliacion asistida mas rica en motivos estructurados y lotes inteligentes
-- endurecer `Presupuestos` con lectura agregada y estados operativos mas ricos
-- enriquecer `Préstamos` con cuenta origen y lectura contable derivada mas densa
+- seguir enriqueciendo `Presupuestos` con acciones y lecturas mas ricas sobre categorias prioritarias
+- enriquecer `Préstamos` con lectura contable derivada mas densa, mejor contexto de cuenta y relación más rica con categorías/exportación
 - enriquecer la UX de tags en `Transacciones` con chips, filtros y mejor lectura en tabla/detalle
 - mover la sincronizacion tenant-side de schema a job/worker en vez de inline
 - agregar auto-sync post-provisioning y post-deploy para evitar sincronizacion manual por uso

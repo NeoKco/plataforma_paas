@@ -30,7 +30,7 @@ class FinanceBudgetService:
         include_inactive: bool = True,
         category_type: str | None = None,
         budget_status: str | None = None,
-    ) -> tuple[list[dict], dict]:
+    ) -> tuple[list[dict], dict, list[dict]]:
         normalized_period_month = self._normalize_period_month(period_month)
         budgets = self.budget_repository.list_by_period_month(
             tenant_db,
@@ -99,8 +99,28 @@ class FinanceBudgetService:
                 for item in rows
                 if item["category_type"] == "expense"
             ),
+            "over_budget_items": len(
+                [item for item in rows if item["budget_status"] == "over_budget"]
+            ),
+            "within_budget_items": len(
+                [item for item in rows if item["budget_status"] == "within_budget"]
+            ),
+            "unused_items": len(
+                [item for item in rows if item["budget_status"] == "unused"]
+            ),
+            "inactive_items": len(
+                [item for item in rows if item["budget_status"] == "inactive"]
+            ),
         }
-        return rows, summary
+        focus_items = sorted(
+            rows,
+            key=lambda item: (
+                self._budget_attention_priority(item["budget_status"]),
+                -abs(item["variance_amount"]),
+                item["category_name"].lower(),
+            ),
+        )[:5]
+        return rows, summary, focus_items
 
     def create_budget(
         self,
@@ -188,6 +208,15 @@ class FinanceBudgetService:
         if actual_amount > planned_amount:
             return "over_budget"
         return "within_budget"
+
+    def _budget_attention_priority(self, value: str) -> int:
+        if value == "over_budget":
+            return 0
+        if value == "unused":
+            return 1
+        if value == "inactive":
+            return 2
+        return 3
 
     def _month_start(self, period_month: date) -> datetime:
         return datetime.combine(period_month, time.min, tzinfo=timezone.utc)

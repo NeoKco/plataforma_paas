@@ -27,6 +27,22 @@ export type TenantFinanceBudgetsSummary = {
   income_actual: number;
   expense_budgeted: number;
   expense_actual: number;
+  over_budget_items: number;
+  within_budget_items: number;
+  unused_items: number;
+  inactive_items: number;
+};
+
+export type TenantFinanceBudgetFocusItem = {
+  id: number;
+  category_id: number;
+  category_name: string;
+  category_type: string;
+  budget_status: string;
+  amount: number;
+  actual_amount: number;
+  variance_amount: number;
+  utilization_ratio: number | null;
 };
 
 export type TenantFinanceBudgetsResponse = {
@@ -34,6 +50,7 @@ export type TenantFinanceBudgetsResponse = {
   message: string;
   total: number;
   summary: TenantFinanceBudgetsSummary;
+  focus_items: TenantFinanceBudgetFocusItem[];
   data: TenantFinanceBudget[];
 };
 

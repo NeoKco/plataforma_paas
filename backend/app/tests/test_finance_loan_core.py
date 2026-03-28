@@ -5,6 +5,7 @@ from datetime import date
 os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
 
+from app.apps.tenant_modules.finance.models.account import FinanceAccount  # noqa: E402
 from app.apps.tenant_modules.finance.models.currency import FinanceCurrency  # noqa: E402
 from app.apps.tenant_modules.finance.models.transaction import FinanceTransaction  # noqa: E402
 from app.apps.tenant_modules.finance.schemas import FinanceLoanCreateRequest  # noqa: E402
@@ -38,6 +39,26 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         self.db.commit()
         self.db.refresh(currency)
         return currency
+
+    def _seed_account(self, currency_id: int) -> FinanceAccount:
+        account = FinanceAccount(
+            name="Caja operativa",
+            code="CAJA-OP",
+            account_type="cash",
+            currency_id=currency_id,
+            parent_account_id=None,
+            opening_balance=0.0,
+            opening_balance_at=None,
+            icon=None,
+            is_favorite=False,
+            is_balance_hidden=False,
+            is_active=True,
+            sort_order=10,
+        )
+        self.db.add(account)
+        self.db.commit()
+        self.db.refresh(account)
+        return account
 
     def test_loan_summary_groups_borrowed_and_lent_balances(self) -> None:
         currency = self._seed_currency()
@@ -155,7 +176,9 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
             ),
         )
 
-        loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        loan_row, installments, accounting_transactions = self.loan_service.get_loan_detail(
+            self.db, loan.id
+        )
 
         self.assertEqual(loan_row["installments_total"], 4)
         self.assertEqual(loan_row["installments_paid"], 0)
@@ -164,9 +187,11 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         self.assertEqual(installments[0]["installment"].due_date, date(2027, 3, 15))
         self.assertEqual(installments[1]["installment"].due_date, date(2027, 4, 15))
         self.assertEqual(installments[0]["installment_status"], "pending")
+        self.assertEqual(accounting_transactions, [])
 
     def test_apply_installment_payment_updates_installment_and_loan_balance(self) -> None:
         currency = self._seed_currency()
+        account = self._seed_account(currency.id)
         loan = self.loan_service.create_loan(
             self.db,
             FinanceLoanCreateRequest(
@@ -174,6 +199,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 loan_type="borrowed",
                 counterparty_name="Banco Pago",
                 currency_id=currency.id,
+                account_id=account.id,
                 principal_amount=1000.0,
                 current_balance=1000.0,
                 interest_rate=20.0,
@@ -186,7 +212,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
             ),
         )
 
-        loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
         installment = installments[0]["installment"]
 
         updated_loan_row, updated_installment_row = self.loan_service.apply_installment_payment(
@@ -208,11 +234,55 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         self.assertEqual(len(transactions), 1)
         self.assertEqual(transactions[0].transaction_type, "expense")
         self.assertEqual(transactions[0].loan_id, loan.id)
+        self.assertEqual(transactions[0].account_id, account.id)
         self.assertEqual(transactions[0].source_type, "loan_installment_payment")
         self.assertEqual(transactions[0].source_id, installment.id)
+        refreshed_loan_row, _installments, accounting_transactions = self.loan_service.get_loan_detail(
+            self.db, loan.id
+        )
+        self.assertEqual(refreshed_loan_row["account_name"], "Caja operativa")
+        self.assertEqual(len(accounting_transactions), 1)
+        self.assertEqual(accounting_transactions[0]["account_name"], "Caja operativa")
+
+    def test_apply_installment_payment_requires_source_account(self) -> None:
+        currency = self._seed_currency()
+        loan = self.loan_service.create_loan(
+            self.db,
+            FinanceLoanCreateRequest(
+                name="Credito sin cuenta",
+                loan_type="borrowed",
+                counterparty_name="Banco Pago",
+                currency_id=currency.id,
+                principal_amount=1000.0,
+                current_balance=1000.0,
+                interest_rate=20.0,
+                installments_count=5,
+                payment_frequency="monthly",
+                start_date=date(2027, 1, 10),
+                due_date=date(2027, 5, 10),
+                note=None,
+                is_active=True,
+            ),
+        )
+
+        _loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
+        installment = installments[0]["installment"]
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Debes definir una cuenta origen en el préstamo o en la operación",
+        ):
+            self.loan_service.apply_installment_payment(
+                self.db,
+                loan_id=loan.id,
+                installment_id=installment.id,
+                paid_amount=200.0,
+                note="Pago sin cuenta",
+            )
 
     def test_reverse_installment_payment_restores_installment_and_loan_balance(self) -> None:
         currency = self._seed_currency()
+        account = self._seed_account(currency.id)
         loan = self.loan_service.create_loan(
             self.db,
             FinanceLoanCreateRequest(
@@ -220,6 +290,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 loan_type="borrowed",
                 counterparty_name="Banco Sur",
                 currency_id=currency.id,
+                account_id=account.id,
                 principal_amount=900.0,
                 current_balance=900.0,
                 interest_rate=10.0,
@@ -231,7 +302,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 is_active=True,
             ),
         )
-        _loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
         installment = installments[0]["installment"]
 
         self.loan_service.apply_installment_payment(
@@ -266,11 +337,13 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
         self.assertEqual(transactions[0].transaction_type, "expense")
         self.assertEqual(transactions[0].source_type, "loan_installment_payment")
         self.assertEqual(transactions[1].transaction_type, "income")
+        self.assertEqual(transactions[1].account_id, account.id)
         self.assertEqual(transactions[1].source_type, "loan_installment_reversal")
         self.assertEqual(transactions[1].source_id, installment.id)
 
     def test_apply_installment_payment_supports_principal_first_allocation(self) -> None:
         currency = self._seed_currency()
+        account = self._seed_account(currency.id)
         loan = self.loan_service.create_loan(
             self.db,
             FinanceLoanCreateRequest(
@@ -278,6 +351,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 loan_type="borrowed",
                 counterparty_name="Banco Mix",
                 currency_id=currency.id,
+                account_id=account.id,
                 principal_amount=1000.0,
                 current_balance=1000.0,
                 interest_rate=20.0,
@@ -289,7 +363,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 is_active=True,
             ),
         )
-        _loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
         installment = installments[0]["installment"]
 
         updated_loan_row, updated_installment_row = self.loan_service.apply_installment_payment(
@@ -307,6 +381,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
 
     def test_apply_installment_payment_batch_supports_full_remaining_mode(self) -> None:
         currency = self._seed_currency()
+        account = self._seed_account(currency.id)
         loan = self.loan_service.create_loan(
             self.db,
             FinanceLoanCreateRequest(
@@ -314,6 +389,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 loan_type="borrowed",
                 counterparty_name="Banco Batch",
                 currency_id=currency.id,
+                account_id=account.id,
                 principal_amount=1000.0,
                 current_balance=1000.0,
                 interest_rate=20.0,
@@ -325,7 +401,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 is_active=True,
             ),
         )
-        _loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
 
         updated_loan_row, affected_ids = self.loan_service.apply_installment_payment_batch(
             self.db,
@@ -336,7 +412,9 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
             note="Pago lote",
         )
 
-        _loan_row, refreshed_installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, refreshed_installments, _transactions = self.loan_service.get_loan_detail(
+            self.db, loan.id
+        )
         self.assertEqual(len(affected_ids), 2)
         self.assertEqual(updated_loan_row["loan"].current_balance, 600.0)
         self.assertEqual(refreshed_installments[0]["installment_status"], "paid")
@@ -346,6 +424,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
 
     def test_reverse_installment_payment_batch_supports_fixed_amount_per_installment(self) -> None:
         currency = self._seed_currency()
+        account = self._seed_account(currency.id)
         loan = self.loan_service.create_loan(
             self.db,
             FinanceLoanCreateRequest(
@@ -353,6 +432,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 loan_type="borrowed",
                 counterparty_name="Banco Batch",
                 currency_id=currency.id,
+                account_id=account.id,
                 principal_amount=1000.0,
                 current_balance=1000.0,
                 interest_rate=20.0,
@@ -364,7 +444,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 is_active=True,
             ),
         )
-        _loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
         self.loan_service.apply_installment_payment_batch(
             self.db,
             loan_id=loan.id,
@@ -384,7 +464,9 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
             note="Reversa lote",
         )
 
-        _loan_row, refreshed_installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, refreshed_installments, _transactions = self.loan_service.get_loan_detail(
+            self.db, loan.id
+        )
         self.assertEqual(len(affected_ids), 2)
         self.assertEqual(updated_loan_row["loan"].current_balance, 700.0)
         self.assertEqual(refreshed_installments[0]["installment"].paid_amount, 190.0)
@@ -398,6 +480,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
 
     def test_reverse_installment_payment_rejects_invalid_reason_code(self) -> None:
         currency = self._seed_currency()
+        account = self._seed_account(currency.id)
         loan = self.loan_service.create_loan(
             self.db,
             FinanceLoanCreateRequest(
@@ -405,6 +488,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 loan_type="borrowed",
                 counterparty_name="Banco Test",
                 currency_id=currency.id,
+                account_id=account.id,
                 principal_amount=500.0,
                 current_balance=500.0,
                 interest_rate=12.0,
@@ -416,7 +500,7 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 is_active=True,
             ),
         )
-        _loan_row, installments = self.loan_service.get_loan_detail(self.db, loan.id)
+        _loan_row, installments, _transactions = self.loan_service.get_loan_detail(self.db, loan.id)
         installment = installments[0]["installment"]
         self.loan_service.apply_installment_payment(
             self.db,
@@ -436,6 +520,45 @@ class FinanceLoanCoreTestCase(unittest.TestCase):
                 reversed_amount=50.0,
                 reversal_reason_code="not_valid",
                 note="Reversa invalida",
+            )
+
+    def test_create_loan_rejects_account_with_different_currency(self) -> None:
+        usd = self._seed_currency()
+        self.db.add(
+            FinanceCurrency(
+                code="EUR",
+                name="Euro",
+                symbol="€",
+                decimal_places=2,
+                is_base=False,
+                is_active=True,
+                sort_order=20,
+            )
+        )
+        self.db.commit()
+        eur = self.db.query(FinanceCurrency).filter(FinanceCurrency.code == "EUR").first()
+        account = self._seed_account(eur.id)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "La cuenta origen del préstamo debe usar la misma moneda del préstamo",
+        ):
+            self.loan_service.create_loan(
+                self.db,
+                FinanceLoanCreateRequest(
+                    name="Prestamo inconsistente",
+                    loan_type="borrowed",
+                    counterparty_name="Banco Error",
+                    currency_id=usd.id,
+                    account_id=account.id,
+                    principal_amount=100.0,
+                    current_balance=100.0,
+                    interest_rate=None,
+                    start_date=date(2027, 1, 1),
+                    due_date=None,
+                    note=None,
+                    is_active=True,
+                ),
             )
 
 

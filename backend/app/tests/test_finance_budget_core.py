@@ -121,7 +121,7 @@ class FinanceBudgetCoreTestCase(unittest.TestCase):
             created_by_user_id=1,
         )
 
-        rows, summary = self.budget_service.list_budgets(
+        rows, summary, focus_items = self.budget_service.list_budgets(
             self.db,
             period_month=date(2026, 3, 1),
             include_inactive=True,
@@ -139,6 +139,10 @@ class FinanceBudgetCoreTestCase(unittest.TestCase):
         self.assertEqual(summary["expense_actual"], 150.0)
         self.assertEqual(summary["income_budgeted"], 0.0)
         self.assertEqual(summary["income_actual"], 0.0)
+        self.assertEqual(summary["within_budget_items"], 1)
+        self.assertEqual(summary["over_budget_items"], 0)
+        self.assertEqual(len(focus_items), 1)
+        self.assertEqual(focus_items[0]["category_name"], "Marketing")
 
     def test_budget_filters_support_status_and_category_type(self) -> None:
         self._seed_currency()
@@ -166,13 +170,13 @@ class FinanceBudgetCoreTestCase(unittest.TestCase):
             ),
         )
 
-        over_budget_rows, _summary = self.budget_service.list_budgets(
+        over_budget_rows, over_budget_summary, _focus_items = self.budget_service.list_budgets(
             self.db,
             period_month=date(2026, 3, 1),
             include_inactive=True,
             budget_status="unused",
         )
-        income_rows, _summary = self.budget_service.list_budgets(
+        income_rows, income_summary, focus_items = self.budget_service.list_budgets(
             self.db,
             period_month=date(2026, 3, 1),
             include_inactive=True,
@@ -181,8 +185,75 @@ class FinanceBudgetCoreTestCase(unittest.TestCase):
 
         self.assertEqual(len(over_budget_rows), 1)
         self.assertEqual(over_budget_rows[0]["budget_status"], "unused")
+        self.assertEqual(over_budget_summary["unused_items"], 1)
         self.assertEqual(len(income_rows), 1)
         self.assertEqual(income_rows[0]["category_type"], "income")
+        self.assertEqual(income_summary["inactive_items"], 1)
+        self.assertEqual(focus_items[0]["budget_status"], "inactive")
+
+    def test_budget_focus_prioritizes_over_budget_before_other_statuses(self) -> None:
+        currency = self._seed_currency()
+        account = self._seed_account(currency.id)
+        marketing = self._seed_category(name="Marketing", category_type="expense")
+        operations = self._seed_category(name="Operación", category_type="expense")
+
+        self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 3, 1),
+                category_id=marketing.id,
+                amount=100.0,
+                note=None,
+                is_active=True,
+            ),
+        )
+        self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 3, 1),
+                category_id=operations.id,
+                amount=200.0,
+                note=None,
+                is_active=True,
+            ),
+        )
+        self.finance_service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=account.id,
+                target_account_id=None,
+                category_id=marketing.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=150.0,
+                discount_amount=0.0,
+                exchange_rate=1.0,
+                amortization_months=None,
+                transaction_at=datetime(2026, 3, 12, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Campaña alta",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=False,
+                tag_ids=None,
+            ),
+            created_by_user_id=1,
+        )
+
+        _rows, summary, focus_items = self.budget_service.list_budgets(
+            self.db,
+            period_month=date(2026, 3, 1),
+            include_inactive=True,
+        )
+
+        self.assertEqual(summary["over_budget_items"], 1)
+        self.assertEqual(summary["unused_items"], 1)
+        self.assertEqual(focus_items[0]["category_name"], "Marketing")
+        self.assertEqual(focus_items[0]["budget_status"], "over_budget")
 
 
 if __name__ == "__main__":

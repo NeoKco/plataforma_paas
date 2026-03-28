@@ -116,15 +116,19 @@ Estado actual de `Lote 6`:
 - ya existe `PUT /tenant/finance/budgets/{budget_id}` para editar un presupuesto mensual existente
 - `GET /tenant/finance/budgets` ya expone lectura `presupuesto vs real` por mes y categoria, con variacion y porcentaje de uso
 - `GET /tenant/finance/budgets` ya admite filtros por tipo de categoria, estado derivado y visibilidad de inactivos
+- `GET /tenant/finance/budgets` ya devuelve contadores por estado operativo (`over_budget`, `within_budget`, `unused`, `inactive`)
+- `GET /tenant/finance/budgets` ya devuelve `focus_items` para priorizar categorias por desvio y atencion operativa
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Presupuestos`
 - ya existen `GET|POST /tenant/finance/loans`
 - ya existe `PUT /tenant/finance/loans/{loan_id}` para editar un préstamo existente
 - ya existe `GET /tenant/finance/loans/{loan_id}` para recuperar cronograma y detalle operativo de cuotas
 - `GET /tenant/finance/loans` ya expone cartera con saldo pendiente, capital inicial, proximo vencimiento y avance de cuotas
+- `loans` ya admite `account_id` en alta/edición para fijar una cuenta origen del préstamo
 - ya existe `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment` para registrar abonos sobre una cuota y recalcular el saldo pendiente del préstamo
 - ya existe `PATCH /tenant/finance/loans/{loan_id}/installments/payment/batch` para aplicar pago sobre varias cuotas seleccionadas del mismo préstamo
 - ese endpoint ya admite `allocation_mode = interest_first | principal_first | proportional`
 - el lote ya admite `amount_mode = full_remaining | fixed_per_installment`
+- pagos y reversas de cuotas ya admiten `account_id` opcional por operación; si no se envía, reutilizan la cuenta origen del préstamo
 - el detalle de cuota ya expone `paid_principal_amount` y `paid_interest_amount`
 - ya existe `PATCH /tenant/finance/loans/{loan_id}/installments/{installment_id}/payment/reversal` para revertir parcial o totalmente un abono aplicado a una cuota
 - ya existe `PATCH /tenant/finance/loans/{loan_id}/installments/payment/reversal/batch` para revertir en lote cuotas seleccionadas del mismo préstamo
@@ -133,6 +137,7 @@ Estado actual de `Lote 6`:
 - el detalle de cuota ya expone `reversal_reason_code`
 - pagos y reversas sobre cuotas ahora generan una transaccion real en `finance_transactions`
 - esa transaccion queda enlazada por `loan_id`, `source_type` (`loan_installment_payment|loan_installment_reversal`) y `source_id`
+- `GET /tenant/finance/loans/{loan_id}` ya devuelve `accounting_transactions` para lectura contable derivada reciente
 - ya existe `GET /tenant/finance/planning/overview` para lectura mensual de flujo operativo
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Planificación`
 - ya existe `GET /tenant/finance/reports/overview` para recuperar lectura mensual consolidada
@@ -169,8 +174,8 @@ Nucleo transaccional ya disponible en backend:
 - lectura mensual consolidada expuesta por API en `reports/overview`
 
 Pendiente:
-- enriquecer `budgets` con lectura mas densa por categoria y estados operativos mas ricos
+- enriquecer `budgets` con acciones y lecturas mas ricas sobre categorias priorizadas
 - conciliacion asistida con motivos estructurados y lotes mas inteligentes sobre filtro activo
-- enriquecer el enlace contable de `loans` con cuenta origen y lectura derivada mas densa
+- enriquecer la lectura derivada de `loans` con mejor contexto contable, categorías y exportación más rica
 - comparativas más profundas sobre rangos arbitrarios, cortes analíticos adicionales por proyectos/terceros y lectura contable mas densa sobre el overview ya existente
 - mover la sincronizacion tenant-side de schema a ejecucion asincrona y dejar auto-sync post-provisioning/post-deploy

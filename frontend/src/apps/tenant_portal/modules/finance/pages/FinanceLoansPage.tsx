@@ -1547,6 +1547,10 @@ function buildTodayDateValue() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function buildAccountOptionLabel(account: TenantFinanceAccount): string {
+  return account.code ? `${account.name} (${account.code})` : account.name;
+}
+
 function formatMoney(value: number, currencyCode: string, language: "es" | "en"): string {
   return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
@@ -1619,6 +1623,45 @@ function installmentStatusBadgeClass(value: string): string {
 
 function formatShortDate(value: string, language: "es" | "en"): string {
   return new Date(`${value}T00:00:00`).toLocaleDateString(language === "es" ? "es-CL" : "en-US");
+}
+
+function formatDateTime(value: string, language: "es" | "en"): string {
+  return new Date(value).toLocaleString(language === "es" ? "es-CL" : "en-US");
+}
+
+function displayLoanAccount(
+  loan: Pick<TenantFinanceLoan, "account_name" | "account_code">,
+  language: "es" | "en"
+): string {
+  if (!loan.account_name) {
+    return language === "es" ? "sin definir" : "not defined";
+  }
+  return loan.account_code ? `${loan.account_name} (${loan.account_code})` : loan.account_name;
+}
+
+function displayDerivedAccount(
+  transaction: TenantFinanceLoanDetailResponse["data"]["accounting_transactions"][number],
+  language: "es" | "en"
+): string {
+  if (!transaction.account_name) {
+    return language === "es" ? "sin cuenta" : "no account";
+  }
+  return transaction.account_code
+    ? `${transaction.account_name} (${transaction.account_code})`
+    : transaction.account_name;
+}
+
+function displayTransactionType(value: string, language: "es" | "en"): string {
+  if (value === "income") {
+    return language === "es" ? "ingreso" : "income";
+  }
+  if (value === "expense") {
+    return language === "es" ? "egreso" : "expense";
+  }
+  if (value === "transfer") {
+    return language === "es" ? "transferencia" : "transfer";
+  }
+  return value;
 }
 
 const REVERSAL_REASON_OPTIONS = [

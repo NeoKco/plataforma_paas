@@ -14,6 +14,7 @@ from app.apps.tenant_modules.finance.dependencies import (
 )
 from app.apps.tenant_modules.finance.schemas import (
     FinanceBudgetCreateRequest,
+    FinanceBudgetFocusItemResponse,
     FinanceBudgetItemResponse,
     FinanceBudgetMutationResponse,
     FinanceBudgetsResponse,
@@ -47,6 +48,21 @@ def _build_budget_item(row: dict) -> FinanceBudgetItemResponse:
     )
 
 
+def _build_budget_focus_item(row: dict) -> FinanceBudgetFocusItemResponse:
+    budget = row["budget"]
+    return FinanceBudgetFocusItemResponse(
+        id=budget.id,
+        category_id=budget.category_id,
+        category_name=row["category_name"],
+        category_type=row["category_type"],
+        budget_status=row["budget_status"],
+        amount=budget.amount,
+        actual_amount=row["actual_amount"],
+        variance_amount=row["variance_amount"],
+        utilization_ratio=row["utilization_ratio"],
+    )
+
+
 @router.get("", response_model=FinanceBudgetsResponse)
 def list_finance_budgets(
     period_month: date,
@@ -57,7 +73,7 @@ def list_finance_budgets(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceBudgetsResponse:
     try:
-        rows, summary = budget_service.list_budgets(
+        rows, summary, focus_items = budget_service.list_budgets(
             tenant_db,
             period_month=period_month,
             include_inactive=include_inactive,
@@ -72,6 +88,7 @@ def list_finance_budgets(
         requested_by=build_finance_requested_by(current_user),
         total=len(rows),
         summary=FinanceBudgetsSummaryData(**summary),
+        focus_items=[_build_budget_focus_item(item) for item in focus_items],
         data=[_build_budget_item(row) for row in rows],
     )
 
@@ -84,7 +101,7 @@ def create_finance_budget(
 ) -> FinanceBudgetMutationResponse:
     try:
         budget = budget_service.create_budget(tenant_db, payload)
-        rows, _summary = budget_service.list_budgets(
+        rows, _summary, _focus_items = budget_service.list_budgets(
             tenant_db,
             period_month=budget.period_month,
             include_inactive=True,
@@ -112,7 +129,7 @@ def update_finance_budget(
 ) -> FinanceBudgetMutationResponse:
     try:
         budget = budget_service.update_budget(tenant_db, budget_id, payload)
-        rows, _summary = budget_service.list_budgets(
+        rows, _summary, _focus_items = budget_service.list_budgets(
             tenant_db,
             period_month=budget.period_month,
             include_inactive=True,
