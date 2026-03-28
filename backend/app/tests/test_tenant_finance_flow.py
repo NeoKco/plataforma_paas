@@ -17,6 +17,7 @@ from app.tests.fixtures import (  # noqa: E402
 set_test_environment()
 
 from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
+    apply_finance_budget_guided_adjustment,
     apply_finance_loan_installment_payment,
     apply_finance_loan_installment_payment_batch,
     clone_finance_budgets,
@@ -48,6 +49,7 @@ from app.apps.tenant_modules.finance.api.currencies import router as currencies_
 from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceBudgetCloneRequest,
     FinanceBudgetCreateRequest,
+    FinanceBudgetGuidedAdjustmentRequest,
     FinanceEntryCreateRequest,
     FinanceLoanCreateRequest,
     FinanceLoanInstallmentPaymentBatchRequest,
@@ -696,6 +698,51 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.cloned_count, 2)
         self.assertEqual(response.data.updated_count, 1)
         self.assertEqual(response.data.skipped_count, 3)
+
+    def test_apply_finance_budget_guided_adjustment_returns_updated_budget(self) -> None:
+        budget = SimpleNamespace(id=5, period_month=date(2026, 3, 1))
+        rows = [
+            {
+                "budget": SimpleNamespace(
+                    id=5,
+                    period_month=date(2026, 3, 1),
+                    category_id=9,
+                    amount=165.0,
+                    note="Marzo ajustado",
+                    is_active=True,
+                    created_at="2026-03-27T16:00:00+00:00",
+                    updated_at="2026-03-28T11:00:00+00:00",
+                ),
+                "category_name": "Marketing",
+                "category_type": "expense",
+                "budget_status": "within_budget",
+                "recommended_action": "keep_tracking",
+                "actual_amount": 150.0,
+                "variance_amount": 15.0,
+                "utilization_ratio": 0.91,
+            }
+        ]
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.budget_service.apply_guided_adjustment",
+            return_value=(budget, "align_to_actual_with_margin"),
+        ), patch(
+            "app.apps.tenant_modules.finance.api.routes.budget_service.list_budgets",
+            return_value=(rows, {}, rows),
+        ):
+            response = apply_finance_budget_guided_adjustment(
+                budget_id=5,
+                payload=FinanceBudgetGuidedAdjustmentRequest(
+                    adjustment_mode="align_to_actual_with_margin",
+                    margin_percent=10.0,
+                ),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.adjustment_mode, "align_to_actual_with_margin")
+        self.assertEqual(response.data.budget.amount, 165.0)
 
     def test_list_finance_loans_returns_rows(self) -> None:
         rows = [

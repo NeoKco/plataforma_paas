@@ -28,6 +28,7 @@ Cobertura actual:
 - lectura enriquecida de presupuestos con contadores operativos y foco priorizado de categorias
 - recomendacion operativa en `focus_items` de presupuestos
 - clonacion intermensual de presupuestos con sobrescritura opcional
+- ajustes guiados de presupuestos priorizados, incluyendo alineacion al real con margen y desactivacion de categorias sin uso
 - core de prestamos con resumen de cartera, filtros por tipo/estado y generacion de cronograma mensual
 - aplicacion de pagos sobre cuotas de prestamos y recálculo de saldo pendiente
 - asignacion avanzada del pago entre capital e interes

@@ -10,6 +10,7 @@ from app.apps.tenant_modules.finance.models.currency import FinanceCurrency  # n
 from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceBudgetCloneRequest,
     FinanceBudgetCreateRequest,
+    FinanceBudgetGuidedAdjustmentRequest,
     FinanceTransactionCreateRequest,
 )
 from app.apps.tenant_modules.finance.services.budget_service import (  # noqa: E402
@@ -363,6 +364,88 @@ class FinanceBudgetCoreTestCase(unittest.TestCase):
         self.assertEqual(overwritten["skipped_count"], 0)
         self.assertEqual(rows[0]["budget"].amount, 300.0)
         self.assertTrue(rows[0]["budget"].is_active)
+
+    def test_guided_adjustment_aligns_budget_to_actual_with_margin(self) -> None:
+        currency = self._seed_currency()
+        account = self._seed_account(currency.id)
+        category = self._seed_category(name="Marketing", category_type="expense")
+
+        budget = self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 3, 1),
+                category_id=category.id,
+                amount=100.0,
+                note="Cap inicial",
+                is_active=True,
+            ),
+        )
+        self.finance_service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=account.id,
+                target_account_id=None,
+                category_id=category.id,
+                beneficiary_id=None,
+                person_id=None,
+                project_id=None,
+                currency_id=currency.id,
+                loan_id=None,
+                amount=150.0,
+                discount_amount=0.0,
+                exchange_rate=1.0,
+                amortization_months=None,
+                transaction_at=datetime(2026, 3, 15, tzinfo=timezone.utc),
+                alternative_date=None,
+                description="Campaña marzo",
+                notes=None,
+                is_favorite=False,
+                is_reconciled=False,
+                tag_ids=None,
+            ),
+            created_by_user_id=1,
+        )
+
+        updated_budget, adjustment_mode = self.budget_service.apply_guided_adjustment(
+            self.db,
+            budget.id,
+            FinanceBudgetGuidedAdjustmentRequest(
+                adjustment_mode="align_to_actual_with_margin",
+                margin_percent=10.0,
+            ),
+        )
+
+        self.assertEqual(adjustment_mode, "align_to_actual_with_margin")
+        self.assertEqual(updated_budget.amount, 165.0)
+        self.assertTrue(updated_budget.is_active)
+
+    def test_guided_adjustment_can_deactivate_unused_budget(self) -> None:
+        self._seed_currency()
+        category = self._seed_category(name="Eventos", category_type="expense")
+
+        budget = self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 3, 1),
+                category_id=category.id,
+                amount=80.0,
+                note="Reserva",
+                is_active=True,
+            ),
+        )
+
+        updated_budget, adjustment_mode = self.budget_service.apply_guided_adjustment(
+            self.db,
+            budget.id,
+            FinanceBudgetGuidedAdjustmentRequest(
+                adjustment_mode="deactivate_unused",
+            ),
+        )
+
+        self.assertEqual(adjustment_mode, "deactivate_unused")
+        self.assertFalse(updated_budget.is_active)
+        self.assertEqual(updated_budget.amount, 80.0)
 
 
 if __name__ == "__main__":

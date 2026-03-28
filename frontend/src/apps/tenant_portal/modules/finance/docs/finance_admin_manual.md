@@ -22,6 +22,7 @@ Estado actual:
 - `Presupuestos` ya expone contadores operativos y un bloque de foco para priorizar categorias con mayor desvio o sin uso
 - ese foco ya deja intervenir rapido con edicion o activacion/desactivacion sin bajar a la tabla completa
 - `Presupuestos` ya permite clonar un periodo origen hacia el mes visible, con sobrescritura opcional de categorias ya existentes
+- `Presupuestos` ya permite además aplicar ajustes guiados desde el foco, por ejemplo alinear al real con margen o desactivar categorias sin ejecución
 - ya existe una pantalla operativa de `Préstamos` con cartera por contraparte, capital, saldo, cuotas y moneda
 - `Préstamos` ya expone un cronograma inicial por cuotas y ya permite aplicar o revertir pagos manuales sobre cuotas, con reparto configurable entre interés y capital
 - el cronograma ya muestra capital pagado e interés pagado por cuota

@@ -232,6 +232,7 @@ Resultado actual:
 - `Presupuestos` ya muestra contadores por estado operativo y un foco priorizado de categorias que requieren atencion
 - `Presupuestos` ya permite intervenir sobre esas categorias priorizadas con edicion y activacion/desactivacion rapida
 - `Presupuestos` ya permite clonar un mes origen hacia otro mes destino con sobrescritura opcional por categoria
+- `Presupuestos` ya permite aplicar ajustes guiados sobre categorias priorizadas, incluyendo alineacion al real con margen y desactivacion por falta de uso
 - existe migracion tenant versionada para `finance_budgets`
 - ya existe un slice real de `Préstamos` con cartera, saldo pendiente, filtros por tipo/estado, proximo vencimiento y cronograma por cuotas
 - existe migracion tenant versionada para `finance_loans`
