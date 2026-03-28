@@ -17,6 +17,17 @@ class FinanceBudgetUpdateRequest(FinanceBudgetCreateRequest):
     pass
 
 
+class FinanceBudgetCloneRequest(BaseModel):
+    source_period_month: date
+    target_period_month: date
+    overwrite_existing: bool = False
+
+
+class FinanceBudgetGuidedAdjustmentRequest(BaseModel):
+    adjustment_mode: str
+    margin_percent: float | None = None
+
+
 class FinanceBudgetItemResponse(BaseModel):
     id: int
     period_month: date
@@ -50,6 +61,27 @@ class FinanceBudgetFocusItemResponse(BaseModel):
 
 class FinanceBudgetMutationResponse(FinanceResponseBase):
     data: FinanceBudgetItemResponse
+
+
+class FinanceBudgetCloneData(BaseModel):
+    source_period_month: date
+    target_period_month: date
+    cloned_count: int
+    updated_count: int
+    skipped_count: int
+
+
+class FinanceBudgetCloneResponse(FinanceResponseBase):
+    data: FinanceBudgetCloneData
+
+
+class FinanceBudgetGuidedAdjustmentData(BaseModel):
+    adjustment_mode: str
+    budget: FinanceBudgetItemResponse
+
+
+class FinanceBudgetGuidedAdjustmentResponse(FinanceResponseBase):
+    data: FinanceBudgetGuidedAdjustmentData
 
 
 class FinanceBudgetsSummaryData(BaseModel):

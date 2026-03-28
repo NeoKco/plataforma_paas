@@ -77,7 +77,7 @@ Pendiente inmediato:
 - revisar y cerrar copy residual de exportaciones, confirmaciones y mensajes largos para lograr paridad completa `Español/Inglés`
 - enriquecer la experiencia de conciliacion con motivos estructurados y mesas de trabajo mas guiadas
 - evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
-- enriquecer `Presupuestos` con acciones mas ricas sobre categorias priorizadas, mas alla de editar/activar/desactivar desde el foco
+- enriquecer `Presupuestos` con acciones mas ricas sobre categorias priorizadas, mas alla de editar/activar/desactivar y clonar entre meses
 - abrir comparativas aún más profundas sobre rangos arbitrarios o cortes analíticos adicionales por proyectos/terceros en `Reportes`, ahora que ya existe resumen multi-período
 - enriquecer la UX de tags con chips, filtros y mejor lectura en tabla/detalle
 - enriquecer `Préstamos` con lectura contable derivada más rica, exportable y con mejor relación visual con cuentas

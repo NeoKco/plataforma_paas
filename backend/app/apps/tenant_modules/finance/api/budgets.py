@@ -13,8 +13,14 @@ from app.apps.tenant_modules.finance.dependencies import (
     require_finance_read,
 )
 from app.apps.tenant_modules.finance.schemas import (
+    FinanceBudgetCloneData,
+    FinanceBudgetCloneRequest,
+    FinanceBudgetCloneResponse,
     FinanceBudgetCreateRequest,
     FinanceBudgetFocusItemResponse,
+    FinanceBudgetGuidedAdjustmentData,
+    FinanceBudgetGuidedAdjustmentRequest,
+    FinanceBudgetGuidedAdjustmentResponse,
     FinanceBudgetItemResponse,
     FinanceBudgetMutationResponse,
     FinanceBudgetsResponse,
@@ -62,6 +68,62 @@ def _build_budget_focus_item(row: dict) -> FinanceBudgetFocusItemResponse:
         variance_amount=row["variance_amount"],
         utilization_ratio=row["utilization_ratio"],
         is_active=budget.is_active,
+    )
+
+
+@router.post("/clone", response_model=FinanceBudgetCloneResponse)
+def clone_finance_budgets(
+    payload: FinanceBudgetCloneRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceBudgetCloneResponse:
+    try:
+        result = budget_service.clone_budgets(tenant_db, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
+
+    return FinanceBudgetCloneResponse(
+        success=True,
+        message="Presupuestos financieros clonados correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=FinanceBudgetCloneData(**result),
+    )
+
+
+@router.post("/{budget_id}/guided-adjustment", response_model=FinanceBudgetGuidedAdjustmentResponse)
+def apply_finance_budget_guided_adjustment(
+    budget_id: int,
+    payload: FinanceBudgetGuidedAdjustmentRequest,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceBudgetGuidedAdjustmentResponse:
+    try:
+        budget, adjustment_mode = budget_service.apply_guided_adjustment(
+            tenant_db,
+            budget_id,
+            payload,
+        )
+        rows, _summary, _focus_items = budget_service.list_budgets(
+            tenant_db,
+            period_month=budget.period_month,
+            include_inactive=True,
+        )
+        row = next(item for item in rows if item["budget"].id == budget.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
+
+    return FinanceBudgetGuidedAdjustmentResponse(
+        success=True,
+        message="Ajuste guiado aplicado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=FinanceBudgetGuidedAdjustmentData(
+            adjustment_mode=adjustment_mode,
+            budget=_build_budget_item(row),
+        ),
     )
 
 

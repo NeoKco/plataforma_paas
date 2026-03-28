@@ -8,6 +8,7 @@ os.environ["APP_ENV"] = "test"
 from app.apps.tenant_modules.finance.models.account import FinanceAccount  # noqa: E402
 from app.apps.tenant_modules.finance.models.currency import FinanceCurrency  # noqa: E402
 from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
+    FinanceBudgetCloneRequest,
     FinanceBudgetCreateRequest,
     FinanceTransactionCreateRequest,
 )
@@ -257,6 +258,111 @@ class FinanceBudgetCoreTestCase(unittest.TestCase):
         self.assertEqual(focus_items[0]["category_name"], "Marketing")
         self.assertEqual(focus_items[0]["budget_status"], "over_budget")
         self.assertEqual(focus_items[0]["recommended_action"], "adjust_amount")
+
+    def test_clone_budgets_creates_missing_rows_in_target_month(self) -> None:
+        self._seed_currency()
+        marketing = self._seed_category(name="Marketing", category_type="expense")
+        sales = self._seed_category(name="Ventas", category_type="income")
+
+        self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 3, 1),
+                category_id=marketing.id,
+                amount=300.0,
+                note="Marketing marzo",
+                is_active=True,
+            ),
+        )
+        self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 3, 1),
+                category_id=sales.id,
+                amount=800.0,
+                note="Ventas marzo",
+                is_active=False,
+            ),
+        )
+
+        result = self.budget_service.clone_budgets(
+            self.db,
+            FinanceBudgetCloneRequest(
+                source_period_month=date(2026, 3, 1),
+                target_period_month=date(2026, 4, 1),
+                overwrite_existing=False,
+            ),
+        )
+
+        rows, summary, _focus_items = self.budget_service.list_budgets(
+            self.db,
+            period_month=date(2026, 4, 1),
+            include_inactive=True,
+        )
+
+        self.assertEqual(result["cloned_count"], 2)
+        self.assertEqual(result["updated_count"], 0)
+        self.assertEqual(result["skipped_count"], 0)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(summary["total_items"], 2)
+        self.assertEqual(rows[0]["budget"].period_month, date(2026, 4, 1))
+
+    def test_clone_budgets_can_overwrite_existing_rows(self) -> None:
+        self._seed_currency()
+        marketing = self._seed_category(name="Marketing", category_type="expense")
+
+        self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 3, 1),
+                category_id=marketing.id,
+                amount=300.0,
+                note="Marketing marzo",
+                is_active=True,
+            ),
+        )
+        self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 4, 1),
+                category_id=marketing.id,
+                amount=120.0,
+                note="Marketing abril",
+                is_active=False,
+            ),
+        )
+
+        skipped = self.budget_service.clone_budgets(
+            self.db,
+            FinanceBudgetCloneRequest(
+                source_period_month=date(2026, 3, 1),
+                target_period_month=date(2026, 4, 1),
+                overwrite_existing=False,
+            ),
+        )
+        self.assertEqual(skipped["cloned_count"], 0)
+        self.assertEqual(skipped["updated_count"], 0)
+        self.assertEqual(skipped["skipped_count"], 1)
+
+        overwritten = self.budget_service.clone_budgets(
+            self.db,
+            FinanceBudgetCloneRequest(
+                source_period_month=date(2026, 3, 1),
+                target_period_month=date(2026, 4, 1),
+                overwrite_existing=True,
+            ),
+        )
+        rows, _summary, _focus_items = self.budget_service.list_budgets(
+            self.db,
+            period_month=date(2026, 4, 1),
+            include_inactive=True,
+        )
+
+        self.assertEqual(overwritten["cloned_count"], 0)
+        self.assertEqual(overwritten["updated_count"], 1)
+        self.assertEqual(overwritten["skipped_count"], 0)
+        self.assertEqual(rows[0]["budget"].amount, 300.0)
+        self.assertTrue(rows[0]["budget"].is_active)
 
 
 if __name__ == "__main__":

@@ -16,7 +16,9 @@ from app.apps.tenant_modules.finance.api.transactions import (
     update_finance_transaction_reconciliation,
 )
 from app.apps.tenant_modules.finance.api.budgets import (
+    apply_finance_budget_guided_adjustment,
     budget_service,
+    clone_finance_budgets,
     create_finance_budget,
     list_finance_budgets,
     update_finance_budget,
@@ -48,7 +50,9 @@ __all__ = [
     "create_finance_loan",
     "apply_finance_loan_installment_payment",
     "apply_finance_loan_installment_payment_batch",
+    "apply_finance_budget_guided_adjustment",
     "create_finance_budget",
+    "clone_finance_budgets",
     "budget_service",
     "finance_account_balances",
     "finance_service",

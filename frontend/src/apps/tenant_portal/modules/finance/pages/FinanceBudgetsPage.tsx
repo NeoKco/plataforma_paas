@@ -20,6 +20,8 @@ import {
   type TenantFinanceCurrency,
 } from "../services/currenciesService";
 import {
+  applyTenantFinanceBudgetGuidedAdjustment,
+  cloneTenantFinanceBudgets,
   createTenantFinanceBudget,
   getTenantFinanceBudgets,
   updateTenantFinanceBudget,
@@ -50,6 +52,15 @@ const DEFAULT_FORM_STATE: BudgetFormState = {
   isActive: true,
 };
 
+function buildPreviousMonthValue(value: string) {
+  const [yearRaw, monthRaw] = value.split("-");
+  const year = Number.parseInt(yearRaw, 10);
+  const month = Number.parseInt(monthRaw, 10);
+  const date = new Date(Date.UTC(year, month - 1, 1));
+  date.setUTCMonth(date.getUTCMonth() - 1);
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
 export function FinanceBudgetsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
@@ -62,6 +73,8 @@ export function FinanceBudgetsPage() {
   const [filterCategoryType, setFilterCategoryType] = useState("");
   const [filterBudgetStatus, setFilterBudgetStatus] = useState("");
   const [includeInactive, setIncludeInactive] = useState(true);
+  const [cloneSourceMonth, setCloneSourceMonth] = useState(buildPreviousMonthValue(buildMonthValue()));
+  const [cloneOverwriteExisting, setCloneOverwriteExisting] = useState(false);
   const [formState, setFormState] = useState<BudgetFormState>(DEFAULT_FORM_STATE);
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,6 +107,15 @@ export function FinanceBudgetsPage() {
       }));
     }
   }, [categoriesForBudgets, formState.categoryId]);
+
+  useEffect(() => {
+    setCloneSourceMonth((current) => {
+      if (!current || current === filterMonth) {
+        return buildPreviousMonthValue(filterMonth);
+      }
+      return current;
+    });
+  }, [filterMonth]);
 
   async function loadBudgetWorkspace() {
     if (!session?.accessToken) {
@@ -228,6 +250,69 @@ export function FinanceBudgetsPage() {
       return;
     }
     startEditingBudget(matchedBudget);
+  }
+
+  async function handleCloneBudgets() {
+    if (!session?.accessToken) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionFeedback(null);
+
+    try {
+      const response = await cloneTenantFinanceBudgets(session.accessToken, {
+        source_period_month: buildPeriodMonthIso(cloneSourceMonth),
+        target_period_month: buildPeriodMonthIso(filterMonth),
+        overwrite_existing: cloneOverwriteExisting,
+      });
+      await loadBudgetWorkspace();
+      setActionFeedback({
+        type: "success",
+        message: `${response.message} (${language === "es" ? "creados" : "created"}: ${response.data.cloned_count}, ${language === "es" ? "actualizados" : "updated"}: ${response.data.updated_count}, ${language === "es" ? "omitidos" : "skipped"}: ${response.data.skipped_count})`,
+      });
+    } catch (rawError) {
+      setActionFeedback({
+        type: "error",
+        message: getApiErrorDisplayMessage(rawError as ApiError),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleFocusGuidedAdjustment(item: TenantFinanceBudgetFocusItem) {
+    if (!session?.accessToken) {
+      return;
+    }
+
+    const adjustmentMode = buildGuidedAdjustmentMode(item);
+    if (!adjustmentMode) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionFeedback(null);
+
+    try {
+      const response = await applyTenantFinanceBudgetGuidedAdjustment(
+        session.accessToken,
+        item.id,
+        {
+          adjustment_mode: adjustmentMode,
+          margin_percent: adjustmentMode === "align_to_actual_with_margin" ? 10 : undefined,
+        }
+      );
+      await loadBudgetWorkspace();
+      setActionFeedback({ type: "success", message: response.message });
+    } catch (rawError) {
+      setActionFeedback({
+        type: "error",
+        message: getApiErrorDisplayMessage(rawError as ApiError),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const summary = budgetsResponse?.summary;
@@ -517,6 +602,41 @@ export function FinanceBudgetsPage() {
               <DetailField label={language === "es" ? "Egreso presup." : "Budgeted expense"} value={formatMoney(summary?.expense_budgeted || 0, language, baseCurrencyCode)} />
               <DetailField label={language === "es" ? "Egreso real" : "Actual expense"} value={formatMoney(summary?.expense_actual || 0, language, baseCurrencyCode)} />
             </div>
+            <div className="tenant-inline-form-grid">
+              <div>
+                <label className="form-label">{language === "es" ? "Clonar desde" : "Clone from"}</label>
+                <input
+                  className="form-control"
+                  type="month"
+                  value={cloneSourceMonth}
+                  onChange={(event) => setCloneSourceMonth(event.target.value)}
+                />
+              </div>
+              <div className="d-flex align-items-end">
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="finance-budgets-overwrite-existing"
+                    checked={cloneOverwriteExisting}
+                    onChange={(event) => setCloneOverwriteExisting(event.target.checked)}
+                  />
+                  <label className="form-check-label" htmlFor="finance-budgets-overwrite-existing">
+                    {language === "es" ? "Sobrescribir categorías existentes" : "Overwrite existing categories"}
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="finance-inline-toolbar finance-inline-toolbar--compact">
+              <button
+                className="btn btn-outline-primary"
+                type="button"
+                disabled={isSubmitting || !cloneSourceMonth || cloneSourceMonth === filterMonth}
+                onClick={() => void handleCloneBudgets()}
+              >
+                {language === "es" ? "Clonar al mes visible" : "Clone into visible month"}
+              </button>
+            </div>
           </div>
         </PanelCard>
       </div>
@@ -569,6 +689,16 @@ export function FinanceBudgetsPage() {
                         >
                           {language === "es" ? "Editar" : "Edit"}
                         </button>
+                        {buildGuidedAdjustmentMode(budget) ? (
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            type="button"
+                            disabled={isSubmitting}
+                            onClick={() => void handleFocusGuidedAdjustment(budget)}
+                          >
+                            {displayGuidedAdjustmentLabel(budget, language)}
+                          </button>
+                        ) : null}
                         <button
                           className="btn btn-sm btn-outline-secondary"
                           type="button"
@@ -732,6 +862,30 @@ function displayRecommendedAction(value: string, language: "es" | "en"): string 
     return language === "es" ? "seguir monitoreo" : "keep tracking";
   }
   return value;
+}
+
+function buildGuidedAdjustmentMode(item: TenantFinanceBudgetFocusItem): string | null {
+  if (item.recommended_action === "adjust_amount") {
+    return "align_to_actual_with_margin";
+  }
+  if (item.recommended_action === "review_usage") {
+    return "deactivate_unused";
+  }
+  return null;
+}
+
+function displayGuidedAdjustmentLabel(
+  item: TenantFinanceBudgetFocusItem,
+  language: "es" | "en"
+): string {
+  const mode = buildGuidedAdjustmentMode(item);
+  if (mode === "align_to_actual_with_margin") {
+    return language === "es" ? "Ajustar al real +10%" : "Adjust to actual +10%";
+  }
+  if (mode === "deactivate_unused") {
+    return language === "es" ? "Desactivar sin uso" : "Deactivate unused";
+  }
+  return language === "es" ? "Aplicar ajuste" : "Apply adjustment";
 }
 
 function budgetStatusBadgeClass(value: string): string {

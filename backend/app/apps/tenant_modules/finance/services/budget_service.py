@@ -8,7 +8,9 @@ from app.apps.tenant_modules.finance.repositories import (
     FinanceCategoryRepository,
 )
 from app.apps.tenant_modules.finance.schemas import (
+    FinanceBudgetCloneRequest,
     FinanceBudgetCreateRequest,
+    FinanceBudgetGuidedAdjustmentRequest,
     FinanceBudgetUpdateRequest,
 )
 
@@ -148,6 +150,103 @@ class FinanceBudgetService:
             setattr(budget, field, value)
         return self.budget_repository.save(tenant_db, budget)
 
+    def clone_budgets(
+        self,
+        tenant_db: Session,
+        payload: FinanceBudgetCloneRequest,
+    ) -> dict:
+        source_period_month = self._normalize_period_month(payload.source_period_month)
+        target_period_month = self._normalize_period_month(payload.target_period_month)
+        if source_period_month == target_period_month:
+            raise ValueError("El periodo origen y destino deben ser distintos")
+
+        source_budgets = self.budget_repository.list_by_period_month(
+            tenant_db,
+            source_period_month,
+            include_inactive=True,
+        )
+        if not source_budgets:
+            raise ValueError("No existen presupuestos en el periodo origen indicado")
+
+        cloned_count = 0
+        updated_count = 0
+        skipped_count = 0
+
+        for source_budget in source_budgets:
+            category = self._get_category_or_raise(tenant_db, source_budget.category_id)
+            if category.category_type not in {"income", "expense"}:
+                skipped_count += 1
+                continue
+
+            existing_budget = self.budget_repository.get_by_period_month_and_category(
+                tenant_db,
+                target_period_month,
+                source_budget.category_id,
+            )
+            if existing_budget is None:
+                budget = FinanceBudget(
+                    period_month=target_period_month,
+                    category_id=source_budget.category_id,
+                    amount=source_budget.amount,
+                    note=source_budget.note,
+                    is_active=source_budget.is_active,
+                )
+                self.budget_repository.save(tenant_db, budget)
+                cloned_count += 1
+                continue
+
+            if not payload.overwrite_existing:
+                skipped_count += 1
+                continue
+
+            existing_budget.amount = source_budget.amount
+            existing_budget.note = source_budget.note
+            existing_budget.is_active = source_budget.is_active
+            self.budget_repository.save(tenant_db, existing_budget)
+            updated_count += 1
+
+        return {
+            "source_period_month": source_period_month,
+            "target_period_month": target_period_month,
+            "cloned_count": cloned_count,
+            "updated_count": updated_count,
+            "skipped_count": skipped_count,
+        }
+
+    def apply_guided_adjustment(
+        self,
+        tenant_db: Session,
+        budget_id: int,
+        payload: FinanceBudgetGuidedAdjustmentRequest,
+    ) -> tuple[FinanceBudget, str]:
+        budget = self._get_budget_or_raise(tenant_db, budget_id)
+        actual_amount = self._load_budget_actual_amount(
+            tenant_db,
+            period_month=budget.period_month,
+            category_id=budget.category_id,
+        )
+        adjustment_mode = payload.adjustment_mode
+
+        if adjustment_mode == "align_to_actual":
+            if actual_amount <= 0:
+                raise ValueError("No se puede alinear al real cuando el gasto o ingreso real es cero")
+            budget.amount = round(float(actual_amount), 2)
+        elif adjustment_mode == "align_to_actual_with_margin":
+            if actual_amount <= 0:
+                raise ValueError("No se puede aplicar margen cuando el gasto o ingreso real es cero")
+            margin_percent = payload.margin_percent if payload.margin_percent is not None else 10.0
+            if margin_percent < 0:
+                raise ValueError("El margen del ajuste guiado no puede ser negativo")
+            budget.amount = round(float(actual_amount) * (1 + (margin_percent / 100)), 2)
+        elif adjustment_mode == "deactivate_unused":
+            if actual_amount > 0:
+                raise ValueError("Solo puedes desactivar automáticamente presupuestos sin ejecución")
+            budget.is_active = False
+        else:
+            raise ValueError("adjustment_mode no soportado")
+
+        return self.budget_repository.save(tenant_db, budget), adjustment_mode
+
     def _get_budget_or_raise(self, tenant_db: Session, budget_id: int) -> FinanceBudget:
         budget = self.budget_repository.get_by_id(tenant_db, budget_id)
         if budget is None:
@@ -211,6 +310,20 @@ class FinanceBudgetService:
         if actual_amount > planned_amount:
             return "over_budget"
         return "within_budget"
+
+    def _load_budget_actual_amount(
+        self,
+        tenant_db: Session,
+        *,
+        period_month: date,
+        category_id: int,
+    ) -> float:
+        actual_amounts = self.budget_repository.aggregate_actual_amounts_by_category(
+            tenant_db,
+            starts_at=self._month_start(period_month),
+            ends_at=self._next_month_start(period_month),
+        )
+        return float(actual_amounts.get(category_id, 0.0))
 
     def _budget_attention_priority(self, value: str) -> int:
         if value == "over_budget":

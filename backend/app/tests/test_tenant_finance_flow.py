@@ -19,6 +19,7 @@ set_test_environment()
 from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     apply_finance_loan_installment_payment,
     apply_finance_loan_installment_payment_batch,
+    clone_finance_budgets,
     create_finance_budget,
     create_finance_loan,
     create_finance_transaction,
@@ -45,6 +46,7 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
 )
 from app.apps.tenant_modules.finance.api.currencies import router as currencies_router  # noqa: E402
 from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
+    FinanceBudgetCloneRequest,
     FinanceBudgetCreateRequest,
     FinanceEntryCreateRequest,
     FinanceLoanCreateRequest,
@@ -668,6 +670,32 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertEqual(response.data.amount, 500.0)
+
+    def test_clone_finance_budgets_returns_counts(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.budget_service.clone_budgets",
+            return_value={
+                "source_period_month": date(2026, 2, 1),
+                "target_period_month": date(2026, 3, 1),
+                "cloned_count": 2,
+                "updated_count": 1,
+                "skipped_count": 3,
+            },
+        ):
+            response = clone_finance_budgets(
+                payload=FinanceBudgetCloneRequest(
+                    source_period_month=date(2026, 2, 1),
+                    target_period_month=date(2026, 3, 1),
+                    overwrite_existing=True,
+                ),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.cloned_count, 2)
+        self.assertEqual(response.data.updated_count, 1)
+        self.assertEqual(response.data.skipped_count, 3)
 
     def test_list_finance_loans_returns_rows(self) -> None:
         rows = [

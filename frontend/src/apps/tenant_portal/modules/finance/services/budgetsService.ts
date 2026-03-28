@@ -62,6 +62,38 @@ export type TenantFinanceBudgetMutationResponse = {
   data: TenantFinanceBudget;
 };
 
+export type TenantFinanceBudgetCloneRequest = {
+  source_period_month: string;
+  target_period_month: string;
+  overwrite_existing: boolean;
+};
+
+export type TenantFinanceBudgetCloneResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    source_period_month: string;
+    target_period_month: string;
+    cloned_count: number;
+    updated_count: number;
+    skipped_count: number;
+  };
+};
+
+export type TenantFinanceBudgetGuidedAdjustmentRequest = {
+  adjustment_mode: string;
+  margin_percent?: number;
+};
+
+export type TenantFinanceBudgetGuidedAdjustmentResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    adjustment_mode: string;
+    budget: TenantFinanceBudget;
+  };
+};
+
 export type TenantFinanceBudgetWriteRequest = {
   period_month: string;
   category_id: number;
@@ -114,6 +146,32 @@ export function updateTenantFinanceBudget(
     `/tenant/finance/budgets/${budgetId}`,
     {
       method: "PUT",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function cloneTenantFinanceBudgets(
+  accessToken: string,
+  payload: TenantFinanceBudgetCloneRequest
+) {
+  return apiRequest<TenantFinanceBudgetCloneResponse>("/tenant/finance/budgets/clone", {
+    method: "POST",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function applyTenantFinanceBudgetGuidedAdjustment(
+  accessToken: string,
+  budgetId: number,
+  payload: TenantFinanceBudgetGuidedAdjustmentRequest
+) {
+  return apiRequest<TenantFinanceBudgetGuidedAdjustmentResponse>(
+    `/tenant/finance/budgets/${budgetId}/guided-adjustment`,
+    {
+      method: "POST",
       token: accessToken,
       body: payload,
     }
