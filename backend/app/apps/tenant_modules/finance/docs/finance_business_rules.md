@@ -46,6 +46,9 @@ Reglas agregadas en `Lote 5`:
 
 Reglas agregadas en el cierre funcional del modulo:
 - la conciliacion operativa individual y batch exige `reason_code` estructurado
+- una transaccion operativa no se borra fisicamente desde la UI; se anula para conservar trazabilidad
+- una transaccion anulada sale de lecturas activas, balances, presupuestos y reportes, pero sigue disponible para soporte y auditoria
+- las transacciones derivadas de cuotas de `Préstamos` no se anulan desde `Transacciones`; deben revertirse desde el propio dominio de `Préstamos`
 - `Presupuestos` ya admite estados derivados, foco priorizado, clonacion, ajustes guiados y plantillas operativas
 - `Préstamos` ya admite pagos y reversas individuales o batch, con motivo estructurado de reversa
 - los pagos y reversas de cuotas generan transacciones reales enlazadas al préstamo

@@ -20,6 +20,9 @@ Estado actual:
 - al abrir el detalle de una transacción ya se pueden cargar boletas, facturas o respaldos en `JPG/PNG/WEBP/PDF`
 - las imágenes se comprimen antes de subirse y el backend valida un tope final de `5 MB` por archivo
 - el mismo detalle ya permite descargar o eliminar adjuntos existentes
+- si una transacción se cargó por error, la vista ya ofrece `Anular` en vez de borrado físico
+- esa anulación conserva auditoría, deja la fila disponible para soporte y la excluye de balances, listados activos, presupuestos y reportes
+- las transacciones derivadas de cuotas de `Préstamos` no se anulan desde `Transacciones`; deben revertirse desde el propio préstamo
 - las operaciones de conciliacion ya aceptan `reason_code`, nota opcional y pasan por confirmacion explicita
 - ya existe una pantalla operativa de `Presupuestos` con lectura mensual por categoria
 - `Presupuestos` ya permite alta y edicion de montos, nota y estado activo, usando comparacion contra la ejecucion real del mes

@@ -36,6 +36,7 @@ export function FinanceSchemaSyncCallout({
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
   const handledCompletedJobIdRef = useRef<number | null>(null);
   const handledFailedJobKeyRef = useRef<string | null>(null);
+  const isPollingStatusRef = useRef(false);
 
   const schemaIncomplete = isFinanceSchemaIncompleteError(error);
   const accessToken = session?.accessToken || null;
@@ -97,7 +98,12 @@ export function FinanceSchemaSyncCallout({
 
     let cancelled = false;
     const intervalId = window.setInterval(async () => {
+      if (isPollingStatusRef.current) {
+        return;
+      }
+
       try {
+        isPollingStatusRef.current = true;
         const response = await getTenantSchemaStatus(accessToken);
         if (cancelled) {
           return;
@@ -113,12 +119,15 @@ export function FinanceSchemaSyncCallout({
         if (!cancelled) {
           setStatusSummary((current) => current);
         }
+      } finally {
+        isPollingStatusRef.current = false;
       }
-    }, 4000);
+    }, 15000);
 
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
+      isPollingStatusRef.current = false;
     };
   }, [accessToken, canSyncFromTenant, hasLiveSchemaJob, schemaIncomplete]);
 

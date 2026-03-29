@@ -27,6 +27,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - `finance` ya extiende esa misma convención de iconos controlados a `Cuentas`, `Beneficiarios` y `Personas`
 - `finance` ya expone una primera pantalla moderna de transacciones sobre `finance_transactions`, con balances por cuenta, panel de detalle operacional, filtros reales, modo edicion sobre la misma vista y una mesa de trabajo guiada con seleccion multiple, nota, motivo estructurado y confirmacion para favoritas/conciliacion
 - `finance` ya permite además adjuntar boletas, facturas o respaldos por transacción, con compresión previa de imágenes antes de subirlas y descarga/eliminación desde el mismo detalle
+- `finance` ya permite además anular transacciones erróneas sin borrado físico, conservando trazabilidad y excluyéndolas de balances, listados activos y reportes
 - `finance` ya expone una primera pantalla real de `Presupuestos` con lectura mensual `presupuesto vs real`
 - `finance` ya expone una pantalla real de `Préstamos` con cartera, cuotas base, próximo vencimiento y cronograma por préstamo
 - `finance` ya permite aplicar pagos manuales sobre cuotas del cronograma

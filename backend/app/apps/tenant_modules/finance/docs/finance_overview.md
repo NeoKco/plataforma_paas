@@ -66,3 +66,5 @@ Estado ampliado del cierre:
 - `Transacciones` ya permite adjuntar boletas, facturas u otros respaldos por transacción en `jpg/png/webp/pdf`
 - las imagenes pueden comprimirse desde el frontend antes de subirlas para no inflar almacenamiento ni tráfico
 - el detalle de transacción ya permite descargar o eliminar esos adjuntos
+- `Transacciones` ya permite además anular un movimiento sin borrado fisico, conservando trazabilidad para soporte y auditoria
+- las transacciones anuladas salen de balances, listados activos, presupuestos y reportes

@@ -11,6 +11,9 @@ Estado actual:
 - al guardar una transacción y abrir su detalle, ya puedes subir boletas, facturas o respaldos en `JPG/PNG/WEBP/PDF`
 - las imágenes se comprimen antes de subirse para no cargar de más la app ni el almacenamiento
 - desde el mismo detalle también puedes descargar o eliminar cada adjunto
+- si registraste una transacción por error, ahora puedes usar `Anular` en vez de borrarla físicamente
+- la anulación saca el movimiento de balances, listados activos, presupuestos y reportes, pero conserva su trazabilidad para soporte
+- si el movimiento viene de una cuota de `Préstamos`, no se anula desde `Transacciones`; en ese caso debes revertir la operación desde `Préstamos`
 - la conciliación ya puede dejar nota operativa, exige elegir un motivo estructurado y pide confirmación antes de aplicar el cambio
 - la vista `Presupuestos` ya permite cargar un monto mensual por categoría y compararlo contra la ejecución real del mes
 - la vista `Presupuestos` ya permite además filtrar por tipo, estado derivado e inactivos

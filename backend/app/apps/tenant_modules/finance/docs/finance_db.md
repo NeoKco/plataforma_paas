@@ -10,6 +10,8 @@ Estado actual:
 - existe `0008_finance_loan_installments` como migracion de cronograma y cuotas
 - existe `0009_finance_loan_installment_payment_split` como migracion de split capital/interes pagado por cuota
 - existe `0010_finance_loan_installment_reversal_reason` como migracion del motivo estructurado de reversa por cuota
+- existe `0011_finance_loan_source_account` como migracion de cuenta origen opcional por prestamo
+- existe `0012_finance_transaction_voids` como migracion de anulacion blanda para transacciones
 
 Objetivo contractual:
 - ampliar el esquema tenant del modulo segun el roadmap maestro
@@ -84,6 +86,8 @@ Tablas base ya creadas en `Lote 1`:
 - tabla central real del modulo para ingresos, gastos y transferencias
 - preparada para enlazar cuentas, categorias, terceros, proyectos, moneda y auditoria
 - conserva compatibilidad con `finance_entries` mediante backfill y API legacy
+- ya conserva tambien `is_voided`, `voided_at`, `void_reason` y `voided_by_user_id` para anular movimientos sin borrado fisico
+- las lecturas activas del modulo excluyen esas transacciones anuladas, pero la fila sigue disponible para detalle y soporte
 
 ### `finance_transaction_tags`
 - relacion N:M entre transacciones y etiquetas
@@ -126,6 +130,4 @@ Tablas base ya creadas en `Lote 1`:
 - seeds preparados para re-ejecucion segura
 
 Pendiente siguiente:
-- endurecer lectura de presupuestos y estados operativos derivados
-- enriquecer la lectura derivada de prestamos con más contexto contable y cortes exportables
-- planificacion y reportes
+- cualquier evolucion adicional sobre `finance` ya pasa a expansion nueva del dominio, no a pendiente estructural del cierre actual

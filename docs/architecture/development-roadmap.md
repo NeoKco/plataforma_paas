@@ -281,6 +281,7 @@ Resultado actual:
 - existe migracion tenant versionada para `finance_entries`
 - existe migracion tenant versionada para `finance_transactions`, `finance_transaction_tags`, `finance_transaction_attachments` y `finance_transaction_audit`
 - `finance` ya permite adjuntar boletas, facturas o respaldos por transaccion, con compresion previa de imagenes en frontend y descarga/eliminacion desde el detalle
+- existe migracion tenant versionada `v0012_finance_transaction_voids` y la UI ya permite anular transacciones sin borrado fisico, conservando trazabilidad y excluyendolas de lecturas activas
 - existe enforcement de `finance.entries`, `finance.entries.monthly`, cuotas segmentadas como `finance.entries.monthly.income`, `finance.entries.monthly.expense`, `core.users`, `core.users.active`, `core.users.monthly` y cuotas por rol como `core.users.admin` por plan, override tenant y billing grace
 - existe visibilidad operativa de uso vs limite desde `tenant` y desde `platform`
 - existe ya una vista generica de uso por modulo para preparar el mismo patron en futuros modulos
@@ -291,6 +292,7 @@ Checklist de cierre funcional ya cubierto:
 
 - catálogos, configuración, monedas y tipos de cambio operativos
 - núcleo transaccional moderno con filtros, edición, etiquetas, conciliación individual y batch
+- anulacion blanda de transacciones para corregir errores sin perder auditoria
 - `Presupuestos` con lectura mensual, foco priorizado, clonación, ajustes guiados y plantillas operativas
 - `Préstamos` con cronograma, pagos/reversas, batch, cuenta origen, lectura contable derivada y exportación
 - `Planificación` con lectura operativa mensual

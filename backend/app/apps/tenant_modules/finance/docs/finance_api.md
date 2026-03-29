@@ -9,6 +9,7 @@ API vigente en el arranque:
 - `GET /tenant/finance/transactions/{transaction_id}`
 - `PATCH /tenant/finance/transactions/{transaction_id}/favorite`
 - `PATCH /tenant/finance/transactions/{transaction_id}/reconciliation`
+- `PATCH /tenant/finance/transactions/{transaction_id}/void`
 - `PATCH /tenant/finance/transactions/favorite/batch`
 - `PATCH /tenant/finance/transactions/reconciliation/batch`
 - `GET /tenant/finance/budgets`
@@ -112,6 +113,9 @@ Estado actual de `Lote 6`:
 - `GET /tenant/finance/transactions` ya admite filtros por tipo, cuenta, categoria, etiqueta, favorita, conciliacion y texto
 - ya existen `PATCH /tenant/finance/transactions/{transaction_id}/favorite`
 - ya existen `PATCH /tenant/finance/transactions/{transaction_id}/reconciliation` con `reason_code` y nota opcional
+- ya existe `PATCH /tenant/finance/transactions/{transaction_id}/void` para anular sin borrado fisico, conservando trazabilidad y auditoria
+- las transacciones anuladas salen de lecturas activas, balances, presupuestos y reportes, pero siguen disponibles para detalle y soporte
+- las transacciones derivadas de cuotas de `Préstamos` no se anulan desde este endpoint; deben revertirse desde la vista de `Préstamos`
 - ya existen `PATCH /tenant/finance/transactions/favorite/batch`
 - ya existen `PATCH /tenant/finance/transactions/reconciliation/batch` con `reason_code` y nota opcional
 - `tenant_portal` ya consume ese contrato moderno en la pantalla principal de `Transacciones`
@@ -186,6 +190,7 @@ Nucleo transaccional ya disponible en backend:
 - ya existe `POST /tenant/finance/transactions/{transaction_id}/attachments` para cargar `jpg/png/webp/pdf`
 - ya existe `GET /tenant/finance/transactions/{transaction_id}/attachments/{attachment_id}/download`
 - ya existe `DELETE /tenant/finance/transactions/{transaction_id}/attachments/{attachment_id}`
+- ya existe `PATCH /tenant/finance/transactions/{transaction_id}/void` para marcar la transaccion como anulada sin eliminarla de la auditoria
 - tabla `finance_transaction_audit`
 - tabla `finance_budgets`
 - tabla `finance_loans`
