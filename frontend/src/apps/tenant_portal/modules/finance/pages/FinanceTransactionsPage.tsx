@@ -40,6 +40,7 @@ import {
   getTenantFinanceTransactions,
   getTenantFinanceUsage,
   uploadTenantFinanceTransactionAttachment,
+  voidTenantFinanceTransaction,
   updateTenantFinanceTransaction,
   updateTenantFinanceTransactionFavorite,
   updateTenantFinanceTransactionReconciliation,
@@ -562,6 +563,38 @@ export function FinanceTransactionsPage() {
         reconciliationNote,
         reconciliationReasonCode
       );
+      setActionFeedback({ type: "success", message: response.message });
+    });
+  }
+
+  async function handleVoidTransaction(transaction: TenantFinanceTransaction) {
+    if (!session?.accessToken) {
+      return;
+    }
+    const reason = window.prompt(
+      language === "es"
+        ? "Motivo de anulación (opcional):"
+        : "Void reason (optional):"
+    );
+    const confirmed = window.confirm(
+      language === "es"
+        ? `¿Confirmas anular la transacción "${transaction.description}"?`
+        : `Do you confirm voiding transaction "${transaction.description}"?`
+    );
+    if (!confirmed) {
+      return;
+    }
+    await runRowAction(async () => {
+      const response = await voidTenantFinanceTransaction(
+        session.accessToken,
+        transaction.id,
+        reason || undefined
+      );
+      if (selectedTransactionId === transaction.id) {
+        setSelectedTransactionId(null);
+        setSelectedTransactionDetail(null);
+        setDetailError(null);
+      }
       setActionFeedback({ type: "success", message: response.message });
     });
   }
@@ -1697,8 +1730,18 @@ export function FinanceTransactionsPage() {
                                   : "Unreconcile"
                                 : language === "es"
                                   ? "Conciliar"
-                                  : "Reconcile"}
+                                : "Reconcile"}
                             </button>
+                            {transaction.source_type?.startsWith("loan_installment_") ? null : (
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                type="button"
+                                disabled={isActionSubmitting}
+                                onClick={() => void handleVoidTransaction(transaction)}
+                              >
+                                {language === "es" ? "Anular" : "Void"}
+                              </button>
+                            )}
                           </AppToolbar>
                         </td>
                       </tr>

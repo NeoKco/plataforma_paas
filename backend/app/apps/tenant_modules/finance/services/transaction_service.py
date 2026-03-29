@@ -356,7 +356,8 @@ class FinanceService:
         transaction_id: int,
     ) -> tuple[FinanceTransaction, list, list[FinanceTransactionAttachment]]:
         transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
-        self._raise_if_missing_or_voided(transaction)
+        if transaction is None:
+            raise ValueError("La transaccion financiera no existe")
 
         audit_events = self.transaction_audit_repository.list_by_transaction(
             tenant_db,
@@ -803,7 +804,7 @@ class FinanceService:
     ) -> None:
         if transaction is None:
             raise ValueError("La transaccion financiera no existe")
-        if transaction.is_voided:
+        if getattr(transaction, "is_voided", False):
             raise ValueError("La transaccion financiera ya fue anulada")
 
     def _get_transactions_for_batch(
