@@ -7,6 +7,7 @@ Estado actual:
 - vistas operativas de cuentas, categorías, catálogos auxiliares y configuración financiera
 - la vista principal ya permite crear, filtrar y editar transacciones, además de revisar balances y auditoría reciente
 - la vista principal ya permite también seleccionar varias transacciones y operar favoritas o conciliación por lote
+- la vista principal ya permite además selección asistida sobre el filtro visible para armar lotes por `pendientes`, `préstamos`, `ingresos`, `egresos` o todos los visibles
 - la conciliación ya puede dejar nota operativa, exige elegir un motivo estructurado y pide confirmación antes de aplicar el cambio
 - la vista `Presupuestos` ya permite cargar un monto mensual por categoría y compararlo contra la ejecución real del mes
 - la vista `Presupuestos` ya permite además filtrar por tipo, estado derivado e inactivos
@@ -15,6 +16,7 @@ Estado actual:
 - la vista `Presupuestos` ya permite además clonar el presupuesto de otro mes hacia el mes visible, con sobrescritura opcional
 - desde `Foco presupuestario` ya puedes además aplicar ajustes guiados, como alinear al real con margen o desactivar categorias sin uso
 - la vista `Presupuestos` ya permite además aplicar plantillas operativas al mes visible usando `mes anterior`, `mismo mes año anterior` o `promedio real 3 meses`
+- esas plantillas ya pueden además escalarse por porcentaje y redondearse por múltiplo antes de persistirse
 - la vista `Préstamos` ya permite registrar cartera prestada o recibida, definir cuotas base y revisar el cronograma generado
 - la vista `Préstamos` ya permite además aplicar abonos sobre una cuota del cronograma
 - la vista `Préstamos` ya permite elegir cómo se reparte ese abono entre interés y capital
@@ -25,7 +27,9 @@ Estado actual:
 - la vista `Préstamos` ya permite definir una cuenta origen del préstamo y usarla al operar cuotas
 - el detalle del préstamo ya muestra una lectura contable derivada reciente con las transacciones generadas por pagos y reversas
 - esa misma lectura derivada ya resume pagos, reversas y efecto neto base, y además permite exportar CSV/JSON del préstamo visible
+- esa exportación ya incluye también contrapartida, tipo de préstamo, cuota asociada y efecto firmado en moneda base
 - la vista `Planificación` ya permite revisar días con señal operativa, cuotas por vencer y foco presupuestario del mes
+- la vista `Planificación` ya muestra además un bloque visual de presión operativa mensual para cruzar presupuesto, real, balance y flujo esperado de préstamos
 - la vista `Reportes` ya permite revisar el consolidado mensual de transacciones, presupuestos y cartera
 - la vista `Reportes` ya permite además revisar el pulso diario de caja y los principales desvíos presupuestarios del mes
 - la vista `Reportes` ya permite comparar contra un mes elegido y exportar un CSV básico del overview
@@ -42,6 +46,7 @@ Estado actual:
 - la vista `Reportes` ya permite además comparar la lectura activa contra un rango manual `desde/hasta`
 - la vista `Reportes` ya permite además rankear por `categoría`, `cuenta`, `proyecto`, `beneficiario` o `persona`
 - la vista `Reportes` ya compara además esa dimensión activa contra el período comparado para mostrar qué entidad ganó o perdió peso
+- la vista `Reportes` ya resume además deltas ejecutivos de período, horizonte y acumulado anual en un chart adicional
 - la vista `Transacciones` ya permite asignar varias etiquetas al crear o editar un movimiento
 - la vista `Transacciones` ya permite además filtrar por una etiqueta y releerlas como chips en tabla y detalle
 - la vista `Reportes` ya permite además rankear por `etiqueta`
@@ -71,5 +76,4 @@ Pantallas disponibles:
 
 Pendiente visible:
 - seguir puliendo copy residual de exportaciones, confirmaciones y mensajes largos para asegurar paridad completa `Español/Inglés` en todo el módulo
-- si el uso real lo pide, densificar más los gráficos ya presentes en `Reportes` o `Planificación`
-- posibles mejoras adicionales de lotes inteligentes, presets más ricos o exportaciones más densas quedan como backlog opcional
+- el alcance funcional/visual del módulo ya quedó cerrado; cualquier evolución futura desde aquí se considera expansión nueva y no pendiente del cierre

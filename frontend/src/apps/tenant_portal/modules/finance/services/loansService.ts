@@ -99,13 +99,18 @@ export type TenantFinanceLoanDerivedTransaction = {
   id: number;
   action_type: string;
   transaction_type: string;
+  loan_type: string;
+  counterparty_name: string;
+  installment_number: number | null;
   account_id: number | null;
   account_name: string | null;
   account_code: string | null;
   currency_id: number;
   currency_code: string;
   amount: number;
+  signed_amount: number;
   amount_in_base_currency: number | null;
+  signed_amount_in_base_currency: number;
   exchange_rate: number | null;
   description: string;
   notes: string | null;

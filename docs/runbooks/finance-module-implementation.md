@@ -140,7 +140,7 @@ Checklist de cierre cubierto:
 - manejo controlado de schema incompleto desde UI/API
 - sincronización de schema tenant visible desde portal, follow-up post-provisioning y corrida masiva post-deploy ya integrada al wrapper de release
 
-Lo que queda ya no bloquea cierre funcional del módulo. Pasa a backlog opcional o a trabajo transversal posterior.
+El módulo ya puede tratarse como cerrado también en su backlog opcional sugerido para el alcance actual. Lo que sigue pasa a trabajo transversal posterior o a una futura expansión de negocio, no a deuda pendiente del slice.
 
 Pendiente posterior al cierre de `finance`:
 
@@ -148,12 +148,12 @@ Pendiente posterior al cierre de `finance`:
 - ese trabajo ya arranco con iconografia comun, `spotlight` generico, badges, layouts, formularios y wrappers de tabla reutilizables; `finance` ya empezó además la migracion de catalogos sobre esa base, incluyendo `Catálogos auxiliares`, y lo siguiente es expandirla al resto del producto
 - cerrar una internacionalizacion transversal real del sistema, continuando desde el avance ya hecho dentro del propio `finance`
 
-Backlog opcional del propio módulo:
+Estado del cierre ampliado:
 
-- lotes inteligentes o reglas asistidas adicionales en `Transacciones` si la operación real lo pide
-- presets configurables por tenant o plantillas más ricas en `Presupuestos`
-- exportaciones más contables o contrapartida/categoría más densa en `Préstamos`
-- charts más densos, cortes analíticos adicionales o comparativas más ejecutivas en `Reportes` y `Planificación`
+- `Transacciones` ya incorpora selección asistida sobre el filtro visible para operar lotes por pendientes, préstamos, ingresos, egresos o visibles completos
+- `Presupuestos` ya soporta plantillas operativas con escala porcentual y redondeo por múltiplo, además de clonación y ajuste guiado
+- `Préstamos` ya devuelve lectura contable derivada más densa con contrapartida, tipo de préstamo, cuota asociada y efecto firmado en exportaciones/tabla
+- `Reportes` y `Planificación` ya cierran con charts comparativos adicionales para lectura ejecutiva del período, horizonte y presión mensual
 
 ## Archivos principales
 
@@ -366,7 +366,7 @@ Lo siguiente recomendable ahora es:
 1. declarar `finance` como módulo base ya cerrado y usarlo como referencia para nuevos módulos tenant
 2. seguir expandiendo el `design system` transversal del PaaS, aplicándolo primero sobre `finance`
 3. atacar luego la internacionalización transversal real del frontend
-4. dejar charts más densos y otras mejoras opcionales del módulo como backlog posterior, no como bloqueo del cierre
+4. tratar cualquier nueva evolución de `finance` como expansión posterior del dominio, no como deuda de cierre del módulo
 
 ## Convencion relacionada
 

@@ -98,6 +98,8 @@ export type TenantFinanceBudgetTemplateApplyRequest = {
   target_period_month: string;
   template_mode: string;
   overwrite_existing: boolean;
+  scale_percent?: number;
+  round_to_amount?: number;
 };
 
 export type TenantFinanceBudgetTemplateApplyResponse = {
@@ -107,6 +109,8 @@ export type TenantFinanceBudgetTemplateApplyResponse = {
     target_period_month: string;
     template_mode: string;
     source_period_month: string | null;
+    scale_percent: number | null;
+    round_to_amount: number | null;
     cloned_count: number;
     updated_count: number;
     skipped_count: number;

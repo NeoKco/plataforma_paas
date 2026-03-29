@@ -191,6 +191,13 @@ class FinanceBudgetService:
     ) -> dict:
         target_period_month = self._normalize_period_month(payload.target_period_month)
         template_mode = payload.template_mode.strip().lower()
+        scale_percent = payload.scale_percent
+        round_to_amount = payload.round_to_amount
+
+        if scale_percent is not None and scale_percent <= 0:
+            raise ValueError("scale_percent debe ser mayor que cero")
+        if round_to_amount is not None and round_to_amount <= 0:
+            raise ValueError("round_to_amount debe ser mayor que cero")
 
         if template_mode == "previous_month":
             source_period_month = self._shift_month(target_period_month, -1)
@@ -206,11 +213,15 @@ class FinanceBudgetService:
                 target_period_month=target_period_month,
                 source_budgets=source_budgets,
                 overwrite_existing=payload.overwrite_existing,
+                scale_percent=scale_percent,
+                round_to_amount=round_to_amount,
             )
             return {
                 "target_period_month": target_period_month,
                 "template_mode": template_mode,
                 "source_period_month": source_period_month,
+                "scale_percent": scale_percent,
+                "round_to_amount": round_to_amount,
                 "cloned_count": cloned_count,
                 "updated_count": updated_count,
                 "skipped_count": skipped_count,
@@ -230,11 +241,15 @@ class FinanceBudgetService:
                 target_period_month=target_period_month,
                 source_budgets=source_budgets,
                 overwrite_existing=payload.overwrite_existing,
+                scale_percent=scale_percent,
+                round_to_amount=round_to_amount,
             )
             return {
                 "target_period_month": target_period_month,
                 "template_mode": template_mode,
                 "source_period_month": source_period_month,
+                "scale_percent": scale_percent,
+                "round_to_amount": round_to_amount,
                 "cloned_count": cloned_count,
                 "updated_count": updated_count,
                 "skipped_count": skipped_count,
@@ -275,11 +290,15 @@ class FinanceBudgetService:
                 target_period_month=target_period_month,
                 source_budgets=seed_budgets,
                 overwrite_existing=payload.overwrite_existing,
+                scale_percent=scale_percent,
+                round_to_amount=round_to_amount,
             )
             return {
                 "target_period_month": target_period_month,
                 "template_mode": template_mode,
                 "source_period_month": None,
+                "scale_percent": scale_percent,
+                "round_to_amount": round_to_amount,
                 "cloned_count": cloned_count,
                 "updated_count": updated_count,
                 "skipped_count": skipped_count,
@@ -294,6 +313,8 @@ class FinanceBudgetService:
         target_period_month: date,
         source_budgets: list[FinanceBudget],
         overwrite_existing: bool,
+        scale_percent: float | None = None,
+        round_to_amount: float | None = None,
     ) -> tuple[int, int, int]:
         cloned_count = 0
         updated_count = 0
@@ -302,6 +323,15 @@ class FinanceBudgetService:
         for source_budget in source_budgets:
             category = self._get_category_or_raise(tenant_db, source_budget.category_id)
             if category.category_type not in {"income", "expense"}:
+                skipped_count += 1
+                continue
+
+            amount = self._transform_template_amount(
+                source_budget.amount,
+                scale_percent=scale_percent,
+                round_to_amount=round_to_amount,
+            )
+            if amount <= 0:
                 skipped_count += 1
                 continue
 
@@ -314,7 +344,7 @@ class FinanceBudgetService:
                 budget = FinanceBudget(
                     period_month=target_period_month,
                     category_id=source_budget.category_id,
-                    amount=source_budget.amount,
+                    amount=amount,
                     note=source_budget.note,
                     is_active=source_budget.is_active,
                 )
@@ -326,13 +356,27 @@ class FinanceBudgetService:
                 skipped_count += 1
                 continue
 
-            existing_budget.amount = source_budget.amount
+            existing_budget.amount = amount
             existing_budget.note = source_budget.note
             existing_budget.is_active = source_budget.is_active
             self.budget_repository.save(tenant_db, existing_budget)
             updated_count += 1
 
         return cloned_count, updated_count, skipped_count
+
+    def _transform_template_amount(
+        self,
+        amount: float,
+        *,
+        scale_percent: float | None,
+        round_to_amount: float | None,
+    ) -> float:
+        normalized = round(float(amount), 2)
+        if scale_percent is not None:
+            normalized = round(normalized * (scale_percent / 100.0), 2)
+        if round_to_amount is not None:
+            normalized = round(round(normalized / round_to_amount) * round_to_amount, 2)
+        return normalized
 
     def apply_guided_adjustment(
         self,

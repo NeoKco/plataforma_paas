@@ -32,6 +32,8 @@ class FinanceBudgetTemplateApplyRequest(BaseModel):
     target_period_month: date
     template_mode: str
     overwrite_existing: bool = False
+    scale_percent: float | None = None
+    round_to_amount: float | None = None
 
 
 class FinanceBudgetItemResponse(BaseModel):
@@ -94,6 +96,8 @@ class FinanceBudgetTemplateApplyData(BaseModel):
     target_period_month: date
     template_mode: str
     source_period_month: date | None = None
+    scale_percent: float | None = None
+    round_to_amount: float | None = None
     cloned_count: int
     updated_count: int
     skipped_count: int

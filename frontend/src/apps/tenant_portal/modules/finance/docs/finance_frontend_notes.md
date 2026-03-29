@@ -89,9 +89,6 @@
 
 Backlog posterior al cierre:
 - seguir puliendo copy residual de exportaciones, confirmaciones y mensajes largos para lograr paridad completa `Español/Inglés`
-- evaluar lotes mas inteligentes sobre el filtro activo o sobre reglas asistidas
-- enriquecer `Presupuestos` con plantillas mas ricas o presets configurables por tenant, mas alla de editar/activar/desactivar, clonar entre meses, alinear al real y aplicar plantillas operativas base
-- seguir endureciendo `Reportes` solo si luego se necesitan comparativas todavía más densas o exportaciones ejecutivas adicionales
-- seguir endureciendo `Préstamos` con una lectura todavía más contable si luego hace falta mostrar contrapartida/categoría o exportaciones de soporte más densas
+- la capa opcional sugerida del módulo ya quedó absorbida: `Transacciones` cerró selección asistida en lote, `Presupuestos` plantillas con escala/redondeo, `Préstamos` lectura/exportación contable más densa y `Reportes` + `Planificación` comparativas/charts adicionales
 - consolidar la operación visible del auto-sync post-deploy ahora que `Provisioning` ya puede encolar sync masivo para tenants activos y el wrapper de release ya dispara la corrida por defecto
-- densificar los charts ya presentes en `Reportes` o `Planificación` solo si luego hace falta una lectura visual más rica
+- cualquier evolución adicional en `finance` ya debe tratarse como expansión futura del negocio, no como pendiente del cierre actual

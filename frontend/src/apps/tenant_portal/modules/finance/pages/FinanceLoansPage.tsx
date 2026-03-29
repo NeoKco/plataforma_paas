@@ -1653,9 +1653,11 @@ export function FinanceLoansPage() {
                         <th>{language === "es" ? "Fecha" : "Date"}</th>
                         <th>{language === "es" ? "Acción" : "Action"}</th>
                         <th>{language === "es" ? "Tipo" : "Type"}</th>
+                        <th>{language === "es" ? "Cuota" : "Installment"}</th>
                         <th>{language === "es" ? "Cuenta" : "Account"}</th>
                         <th>{language === "es" ? "Monto" : "Amount"}</th>
                         <th>{language === "es" ? "Monto base" : "Base amount"}</th>
+                        <th>{language === "es" ? "Efecto base" : "Base effect"}</th>
                         <th>{language === "es" ? "Descripción" : "Description"}</th>
                         <th>{language === "es" ? "Conciliada" : "Reconciled"}</th>
                       </tr>
@@ -1666,6 +1668,11 @@ export function FinanceLoansPage() {
                           <td>{formatDateTime(transaction.transaction_at, language)}</td>
                           <td>{displayDerivedActionType(transaction.action_type, language)}</td>
                           <td>{displayTransactionType(transaction.transaction_type, language)}</td>
+                          <td>
+                            {transaction.installment_number != null
+                              ? `#${transaction.installment_number}`
+                              : "n/a"}
+                          </td>
                           <td>{displayDerivedAccount(transaction, language)}</td>
                           <td>{formatMoney(transaction.amount, transaction.currency_code, language)}</td>
                           <td>
@@ -1676,7 +1683,17 @@ export function FinanceLoansPage() {
                             )}
                           </td>
                           <td>
+                            {formatSignedMoney(
+                              transaction.signed_amount_in_base_currency,
+                              baseCurrencyCode,
+                              language
+                            )}
+                          </td>
+                          <td>
                             <div>{transaction.description}</div>
+                            <div className="text-secondary small">
+                              {displayLoanType(transaction.loan_type, language)} · {transaction.counterparty_name}
+                            </div>
                             {transaction.notes ? (
                               <div className="text-secondary small">{transaction.notes}</div>
                             ) : null}
@@ -1716,6 +1733,17 @@ function formatMoney(value: number, currencyCode: string, language: "es" | "en")
     currency: currencyCode,
     maximumFractionDigits: 2,
   }).format(value);
+}
+
+function formatSignedMoney(value: number, currencyCode: string, language: "es" | "en"): string {
+  const formatted = formatMoney(Math.abs(value), currencyCode, language);
+  if (value > 0) {
+    return `+${formatted}`;
+  }
+  if (value < 0) {
+    return `-${formatted}`;
+  }
+  return formatted;
 }
 
 function displayLoanType(value: string, language: "es" | "en"): string {
@@ -1845,13 +1873,18 @@ function buildLoanAccountingCsv(
       "transaction_id",
       "transaction_at",
       "alternative_date",
+      "loan_type",
+      "counterparty_name",
       "action_type",
       "transaction_type",
+      "installment_number",
       "account",
       "currency",
       "amount",
+      "signed_amount",
       "base_currency",
       "amount_in_base_currency",
+      "signed_amount_in_base_currency",
       "exchange_rate",
       "description",
       "notes",
@@ -1865,13 +1898,18 @@ function buildLoanAccountingCsv(
       String(transaction.id),
       formatDateTime(transaction.transaction_at, language),
       transaction.alternative_date ?? "",
+      displayLoanType(transaction.loan_type, language),
+      transaction.counterparty_name,
       displayDerivedActionType(transaction.action_type, language),
       displayTransactionType(transaction.transaction_type, language),
+      transaction.installment_number == null ? "" : String(transaction.installment_number),
       displayDerivedAccount(transaction, language),
       transaction.currency_code,
       transaction.amount.toFixed(2),
+      transaction.signed_amount.toFixed(2),
       baseCurrencyCode,
       String((transaction.amount_in_base_currency ?? transaction.amount).toFixed(2)),
+      transaction.signed_amount_in_base_currency.toFixed(2),
       transaction.exchange_rate == null ? "" : String(transaction.exchange_rate),
       transaction.description,
       transaction.notes ?? "",

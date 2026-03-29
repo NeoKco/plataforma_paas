@@ -299,10 +299,8 @@ Checklist de cierre funcional ya cubierto:
 
 Backlog opcional post-cierre:
 
-- evaluar si `Transacciones` necesita una segunda iteracion de lotes inteligentes o reglas asistidas adicionales sobre el filtro activo
-- seguir enriqueciendo `Presupuestos` con presets configurables o plantillas mas ricas por tenant si el uso real lo exige
-- seguir endureciendo `Préstamos` con exportaciones contables mas densas, mejor lectura de contrapartida y eventual cruce con categorías si el dominio lo pide
-- seguir `Reportes` y `Planificación` con visualizaciones mas densas o cortes analíticos adicionales solo si aparecen necesidades reales; la primera capa de charts ya quedó aplicada
+- el backlog opcional sugerido del propio módulo ya quedó absorbido en el alcance actual: `Transacciones` cerró lotes asistidos, `Presupuestos` cerró plantillas enriquecidas, `Préstamos` cerró exportación/lectura contable más densa y `Reportes` + `Planificación` cerraron comparativas/charts adicionales
+- cualquier nueva evolución de `finance` desde este punto pasa a tratarse como expansión de negocio nueva, no como pendiente del cierre del módulo
 - la base visual local de `finance` ya quedó sembrada con iconografia semantica, bloques `spotlight` y charts livianos; el pendiente ya no es esa capa inicial, sino elevarla a sistema transversal del PaaS
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 - el trabajo transversal de `design system` ya quedó aplicado sobre el frontend visible con iconografia común, `spotlight` genérico, badges, layouts, formularios y wrappers de tabla reutilizables; `finance` ya sirve como bloque de referencia, `Overview`/`Users` ya comparten esa base y `platform_admin` ya la absorbió en `Dashboard`, `Actividad`, `Usuarios de plataforma`, `Tenants`, `Histórico tenants`, `Provisioning`, `Billing`, `Configuración`, login, recuperación raíz e instalador
@@ -516,7 +514,7 @@ Resultado actual:
 - `finance` ya no es solo una idea: existe modulo backend funcional, migraciones, enforcement de limites, vistas tenant y visibilidad operativa desde plataforma
 - ya existen pruebas manuales y runbooks guiados sobre `finance`, billing y efectos de limites en el portal tenant
 - `tenant_portal` ya corrigio el cambio de idioma en `Overview`, `Users`, login y el borde legacy de finanzas; `platform_admin` ya absorbio la misma capa en guards, installer, login, recovery, `Dashboard`, `Actividad`, `Settings`, `Usuarios de plataforma`, `Histórico tenants`, `Billing`, `Provisioning` y la lectura principal de `Tenants`, y el frontend ya dejo resuelto el warning de bundle principal grande con code-splitting por ruta
-- `finance` ya puede tratarse como modulo funcionalmente cerrado para pasar a backlog opcional y preparar trabajo transversal posterior
+- `finance` ya puede tratarse como modulo cerrado en su alcance actual para preparar trabajo transversal posterior y habilitar la construcción de nuevos módulos tenant
 
 Falta para cerrarlo:
 

@@ -442,11 +442,16 @@ class FinanceLoanService:
         tenant_db: Session,
         loan_id: int,
     ) -> list[dict]:
+        loan = self._get_loan_or_raise(tenant_db, loan_id)
         transactions = self.transaction_repository.list_by_loan(
             tenant_db,
             loan_id,
             limit=20,
         )
+        installment_map = {
+            installment.id: installment.installment_number
+            for installment in self.installment_repository.list_by_loan(tenant_db, loan_id)
+        }
         account_cache: dict[int, object] = {}
         currency_cache: dict[int, object] = {}
         rows: list[dict] = []
@@ -461,13 +466,37 @@ class FinanceLoanService:
             if currency is None:
                 currency = self._get_currency_or_raise(tenant_db, transaction.currency_id)
                 currency_cache[transaction.currency_id] = currency
+            base_amount = (
+                transaction.amount_in_base_currency
+                if transaction.amount_in_base_currency is not None
+                else transaction.amount
+            )
+            signed_amount = self._build_signed_transaction_amount(
+                transaction.transaction_type,
+                transaction.amount,
+            )
+            signed_base_amount = self._build_signed_transaction_amount(
+                transaction.transaction_type,
+                base_amount,
+            )
             rows.append(
                 {
                     "transaction": transaction,
                     "action_type": self._build_transaction_action_type(transaction.source_type),
+                    "loan_type": loan.loan_type,
+                    "counterparty_name": loan.counterparty_name,
+                    "installment_number": (
+                        installment_map.get(transaction.source_id)
+                        if transaction.source_type
+                        in {"loan_installment_payment", "loan_installment_reversal"}
+                        and transaction.source_id is not None
+                        else None
+                    ),
                     "account_name": account.name if account else None,
                     "account_code": account.code if account else None,
                     "currency_code": currency.code,
+                    "signed_amount": signed_amount,
+                    "signed_amount_in_base_currency": signed_base_amount,
                 }
             )
         return rows

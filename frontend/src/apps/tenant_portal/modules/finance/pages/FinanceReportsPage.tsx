@@ -739,6 +739,25 @@ export function FinanceReportsPage() {
       </PanelCard>
 
       <PanelCard
+        title={language === "es" ? "Deltas ejecutivos" : "Executive deltas"}
+        subtitle={
+          language === "es"
+            ? "Resume en una sola vista cuánto mejoró o empeoró el período, el horizonte y el acumulado anual."
+            : "Summarizes in a single view how period, horizon, and year-to-date improved or deteriorated."
+        }
+      >
+        <FinanceHorizontalBarChart
+          emptyLabel={
+            language === "es"
+              ? "No hay comparativas suficientes para construir deltas ejecutivos."
+              : "There is not enough comparison data to build executive deltas."
+          }
+          formatValue={(value) => formatSignedMoney(value, baseCurrencyCode, language)}
+          items={buildExecutiveComparisonDeltaItems(overview, language)}
+        />
+      </PanelCard>
+
+      <PanelCard
         title={language === "es" ? "Comparativa rango arbitrario" : "Custom range comparison"}
         subtitle={language === "es" ? "Contrasta la lectura activa actual contra un rango manual de meses si fue definido." : "Compare the current active reading against a manual month range if defined."}
       >
@@ -1390,6 +1409,66 @@ function buildBudgetVarianceBarItems(
           : "inactive"
     }`,
   }));
+}
+
+function buildExecutiveComparisonDeltaItems(
+  overview: TenantFinanceReportOverviewResponse["data"] | null,
+  language: "es" | "en"
+) {
+  if (!overview) {
+    return [];
+  }
+
+  return [
+    {
+      label: language === "es" ? "Período · balance" : "Period · balance",
+      value: overview.period_comparison.net_balance_delta,
+      caption:
+        language === "es"
+          ? "vs mes comparado"
+          : "vs compared month",
+    },
+    {
+      label: language === "es" ? "Horizonte · balance" : "Horizon · balance",
+      value: overview.horizon_comparison.total_net_balance_delta_vs_compare,
+      caption:
+        language === "es"
+          ? "vs horizonte equivalente"
+          : "vs equivalent horizon",
+    },
+    {
+      label: language === "es" ? "Acumulado anual · balance" : "Year-to-date · balance",
+      value: overview.year_to_date_comparison.total_net_balance_delta_vs_compare,
+      caption:
+        language === "es"
+          ? "vs acumulado comparado"
+          : "vs compared accumulated range",
+    },
+    {
+      label: language === "es" ? "Período · ingresos" : "Period · income",
+      value: overview.period_comparison.income_delta,
+      caption:
+        language === "es"
+          ? "cambio de ingreso"
+          : "income delta",
+    },
+    {
+      label: language === "es" ? "Horizonte · egresos" : "Horizon · expenses",
+      value: overview.horizon_comparison.total_expense_delta_vs_compare,
+      caption:
+        language === "es"
+          ? "cambio de egreso"
+          : "expense delta",
+    },
+    {
+      label: language === "es" ? "Año acumulado · ingresos" : "Year-to-date · income",
+      value: overview.year_to_date_comparison.total_income_delta_vs_compare,
+      caption:
+        language === "es"
+          ? "cambio de ingreso anual"
+          : "annual income delta",
+    },
+  ];
 }
 
 function buildPeriodMonthIso(monthValue: string) {

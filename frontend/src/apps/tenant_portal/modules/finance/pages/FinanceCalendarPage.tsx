@@ -262,6 +262,25 @@ export function FinanceCalendarPage() {
 
       <div className="finance-report-grid">
         <PanelCard
+          title={language === "es" ? "Presión operativa del mes" : "Month operational pressure"}
+          subtitle={
+            language === "es"
+              ? "Cruza lectura neta, presupuesto, ejecución y flujo esperado de préstamos para decidir foco."
+              : "Crosses net reading, budget, execution, and expected loan flow to decide where to focus."
+          }
+        >
+          <FinanceHorizontalBarChart
+            emptyLabel={
+              language === "es"
+                ? "No hay suficiente información para construir presión operativa."
+                : "There is not enough information to build operational pressure."
+            }
+            formatValue={(value) => formatMoney(value, language, baseCurrencyCode)}
+            items={buildPlanningPressureChartItems(summary, language)}
+          />
+        </PanelCard>
+
+        <PanelCard
           title={language === "es" ? "Cuotas del mes" : "Installments in the month"}
           subtitle={
             language === "es"
@@ -471,6 +490,41 @@ function buildBudgetFocusChartItems(
       language
     )}`,
   }));
+}
+
+function buildPlanningPressureChartItems(
+  summary: TenantFinancePlanningOverviewResponse["data"]["summary"] | null | undefined,
+  language: "es" | "en"
+) {
+  if (!summary) {
+    return [];
+  }
+
+  return [
+    {
+      label: language === "es" ? "Balance neto" : "Net balance",
+      value: summary.net_total,
+      caption: language === "es" ? "lectura neta del mes" : "net reading for the month",
+    },
+    {
+      label: language === "es" ? "Presupuestado" : "Budgeted",
+      value: summary.total_budgeted,
+      caption: language === "es" ? "monto visible del mes" : "visible amount for the month",
+    },
+    {
+      label: language === "es" ? "Real" : "Actual",
+      value: summary.total_actual,
+      caption: language === "es" ? "ejecución acumulada" : "accumulated execution",
+    },
+    {
+      label: language === "es" ? "Flujo préstamos" : "Loan flow",
+      value: summary.expected_loan_cashflow,
+      caption:
+        language === "es"
+          ? "cuotas pendientes del mes"
+          : "outstanding installments in the month",
+    },
+  ];
 }
 
 function formatMoney(value: number, language: "es" | "en", currencyCode: string) {

@@ -16,6 +16,7 @@ Estado actual:
 - esa pantalla ya muestra balances por cuenta y detalle operacional con auditoría reciente
 - esa misma pantalla ya permite filtrar, editar, marcar favorita y conciliar transacciones existentes
 - esa misma pantalla ya permite tambien seleccion multiple y acciones por lote para favoritas o conciliacion
+- esa misma pantalla ya permite además selección asistida sobre el filtro visible para armar lotes por pendientes, préstamos, ingresos, egresos o visibles completos
 - las operaciones de conciliacion ya aceptan `reason_code`, nota opcional y pasan por confirmacion explicita
 - ya existe una pantalla operativa de `Presupuestos` con lectura mensual por categoria
 - `Presupuestos` ya permite alta y edicion de montos, nota y estado activo, usando comparacion contra la ejecucion real del mes
@@ -25,6 +26,7 @@ Estado actual:
 - `Presupuestos` ya permite clonar un periodo origen hacia el mes visible, con sobrescritura opcional de categorias ya existentes
 - `Presupuestos` ya permite además aplicar ajustes guiados desde el foco, por ejemplo alinear al real con margen o desactivar categorias sin ejecución
 - `Presupuestos` ya permite además aplicar plantillas operativas para sembrar el mes visible con base en histórico o meses comparables
+- esas plantillas ya aceptan además escala porcentual y redondeo por múltiplo antes de persistir el seed
 - ya existe una pantalla operativa de `Préstamos` con cartera por contraparte, capital, saldo, cuotas y moneda
 - `Préstamos` ya expone un cronograma inicial por cuotas y ya permite aplicar o revertir pagos manuales sobre cuotas, con reparto configurable entre interés y capital
 - el cronograma ya muestra capital pagado e interés pagado por cuota
@@ -34,7 +36,9 @@ Estado actual:
 - `Préstamos` ya permite definir una cuenta origen por préstamo y reutilizarla o sobrescribirla al operar cuotas
 - el detalle del préstamo ya expone una lectura contable derivada reciente para soporte y revisión operativa
 - esa lectura derivada ya incluye resumen operativo y exportación CSV/JSON desde la misma vista de detalle
+- esa exportación ya incorpora además contrapartida, tipo de préstamo, cuota asociada y efecto firmado en moneda base
 - `Planificación` ya ofrece una lectura mensual operativa cruzando días con movimiento, cuotas del mes y presión presupuestaria
+- `Planificación` ya incorpora además un chart de presión mensual para cruzar presupuesto, real, balance y flujo esperado de préstamos
 - `Reportes` ya ofrece un overview mensual con lectura cruzada de transacciones, presupuestos y préstamos
 - `Reportes` ya agrega serie diaria de caja y un corte corto de categorías con mayor desvío presupuestario
 - `Reportes` ya agrega comparativa contra un mes elegido y exportación CSV básica desde la propia vista
@@ -51,6 +55,7 @@ Estado actual:
 - `Reportes` ya permite además contrastar la lectura activa contra un rango arbitrario manual
 - `Reportes` ya permite además rankear por entidad operativa (`categoría`, `cuenta`, `proyecto`, `beneficiario`, `persona`)
 - `Reportes` ya compara además esa dimensión activa contra el período comparado para mostrar ganadores y perdedores por entidad
+- `Reportes` ya resume además deltas ejecutivos de período, horizonte y acumulado anual en una vista comparativa adicional
 - `Transacciones` ya permite además persistir varias etiquetas por movimiento
 - `Transacciones` ya permite además filtrar por `Etiqueta` y mostrar chips visibles en tabla y detalle
 - `Reportes` ya permite además rankear por `etiqueta`
@@ -69,5 +74,5 @@ Estado actual:
 
 Pendiente administrativo:
 - seguir puliendo copy residual en exportaciones, confirmaciones, badges y mensajes largos para asegurar paridad completa entre `Español/Inglés`
-- dejar charts más densos y otros enriquecimientos del módulo como backlog opcional posterior al cierre
 - usar `finance` como primer bloque de adopción del futuro `design system` transversal del PaaS, reutilizando la base visual ya sembrada
+- el backlog opcional sugerido del módulo ya quedó absorbido en el alcance actual; cualquier cambio adicional pasa a expansión nueva del dominio

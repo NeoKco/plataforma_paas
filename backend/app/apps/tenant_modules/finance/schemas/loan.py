@@ -125,13 +125,18 @@ class FinanceLoanDerivedTransactionItemResponse(BaseModel):
     id: int
     action_type: str
     transaction_type: str
+    loan_type: str
+    counterparty_name: str
+    installment_number: int | None = None
     account_id: int | None = None
     account_name: str | None = None
     account_code: str | None = None
     currency_id: int
     currency_code: str
     amount: float
+    signed_amount: float
     amount_in_base_currency: float | None = None
+    signed_amount_in_base_currency: float
     exchange_rate: float | None = None
     description: str
     notes: str | None = None

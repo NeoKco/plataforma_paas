@@ -125,6 +125,7 @@ Estado actual de `Lote 6`:
 - ya existe `POST /tenant/finance/budgets/clone` para copiar presupuestos desde un mes origen a otro destino, con sobrescritura opcional
 - ya existe `POST /tenant/finance/budgets/template-apply` para sembrar el mes visible desde una plantilla operativa
 - ese endpoint ya soporta `previous_month`, `same_month_last_year` y `rolling_actual_average_3m`
+- ese mismo endpoint ya admite además `scale_percent` y `round_to_amount` para escalar o redondear la plantilla aplicada antes de persistirla
 - ya existe `POST /tenant/finance/budgets/{budget_id}/guided-adjustment` para aplicar acciones guiadas sobre presupuestos priorizados
 - ese endpoint ya soporta alinear al real, alinear al real con margen y desactivar automáticamente presupuestos sin ejecución
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Presupuestos`
@@ -147,7 +148,7 @@ Estado actual de `Lote 6`:
 - pagos y reversas sobre cuotas ahora generan una transaccion real en `finance_transactions`
 - esa transaccion queda enlazada por `loan_id`, `source_type` (`loan_installment_payment|loan_installment_reversal`) y `source_id`
 - `GET /tenant/finance/loans/{loan_id}` ya devuelve `accounting_transactions` para lectura contable derivada reciente
-- ese detalle ya devuelve ademas `accounting_summary`, junto con `action_type`, `amount_in_base_currency`, `exchange_rate` y `alternative_date` por movimiento derivado
+- ese detalle ya devuelve ademas `accounting_summary`, junto con `action_type`, `amount_in_base_currency`, `signed_amount_in_base_currency`, `exchange_rate`, `alternative_date`, `loan_type`, `counterparty_name` e `installment_number` por movimiento derivado
 - ya existe `GET /tenant/finance/planning/overview` para lectura mensual de flujo operativo
 - `tenant_portal` ya consume ese contrato en la primera pantalla real de `Planificación`
 - ya existe `GET /tenant/finance/reports/overview` para recuperar lectura mensual consolidada

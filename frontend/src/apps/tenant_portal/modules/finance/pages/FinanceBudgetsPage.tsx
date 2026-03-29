@@ -80,6 +80,8 @@ export function FinanceBudgetsPage() {
   const [cloneOverwriteExisting, setCloneOverwriteExisting] = useState(false);
   const [templateMode, setTemplateMode] = useState("previous_month");
   const [templateOverwriteExisting, setTemplateOverwriteExisting] = useState(false);
+  const [templateScalePercent, setTemplateScalePercent] = useState("100");
+  const [templateRoundToAmount, setTemplateRoundToAmount] = useState("");
   const [formState, setFormState] = useState<BudgetFormState>(DEFAULT_FORM_STATE);
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -333,11 +335,17 @@ export function FinanceBudgetsPage() {
         target_period_month: buildPeriodMonthIso(filterMonth),
         template_mode: templateMode,
         overwrite_existing: templateOverwriteExisting,
+        scale_percent: templateScalePercent.trim()
+          ? Number.parseFloat(templateScalePercent)
+          : undefined,
+        round_to_amount: templateRoundToAmount.trim()
+          ? Number.parseFloat(templateRoundToAmount)
+          : undefined,
       });
       await loadBudgetWorkspace();
       setActionFeedback({
         type: "success",
-        message: `${response.message} (${language === "es" ? "creados" : "created"}: ${response.data.cloned_count}, ${language === "es" ? "actualizados" : "updated"}: ${response.data.updated_count}, ${language === "es" ? "omitidos" : "skipped"}: ${response.data.skipped_count})`,
+        message: `${response.message} (${language === "es" ? "creados" : "created"}: ${response.data.cloned_count}, ${language === "es" ? "actualizados" : "updated"}: ${response.data.updated_count}, ${language === "es" ? "omitidos" : "skipped"}: ${response.data.skipped_count}${response.data.scale_percent != null ? `, ${language === "es" ? "escala" : "scale"}: ${response.data.scale_percent}%` : ""}${response.data.round_to_amount != null ? `, ${language === "es" ? "redondeo" : "rounding"}: ${response.data.round_to_amount}` : ""})`,
       });
     } catch (rawError) {
       setActionFeedback({
@@ -702,6 +710,40 @@ export function FinanceBudgetsPage() {
                     {language === "es" ? "Promedio real últimos 3 meses" : "Actual average last 3 months"}
                   </option>
                 </select>
+              </div>
+              <div>
+                <label className="form-label">{language === "es" ? "Escalar %" : "Scale %"}</label>
+                <input
+                  className="form-control"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={templateScalePercent}
+                  onChange={(event) => setTemplateScalePercent(event.target.value)}
+                  placeholder="100"
+                />
+                <div className="form-text">
+                  {language === "es"
+                    ? "100 mantiene el monto; 110 agrega 10%; 90 reduce 10%."
+                    : "100 keeps the amount; 110 adds 10%; 90 reduces 10%."}
+                </div>
+              </div>
+              <div>
+                <label className="form-label">{language === "es" ? "Redondear a" : "Round to"}</label>
+                <input
+                  className="form-control"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={templateRoundToAmount}
+                  onChange={(event) => setTemplateRoundToAmount(event.target.value)}
+                  placeholder={language === "es" ? "Ej: 10, 50, 100" : "Ex: 10, 50, 100"}
+                />
+                <div className="form-text">
+                  {language === "es"
+                    ? "Opcional. Redondea cada presupuesto al múltiplo indicado."
+                    : "Optional. Rounds each budget to the given multiple."}
+                </div>
               </div>
               <div className="d-flex align-items-end">
                 <div className="form-check">

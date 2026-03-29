@@ -538,6 +538,43 @@ class FinanceBudgetCoreTestCase(unittest.TestCase):
         self.assertEqual(rows[0]["budget"].amount, 200.0)
         self.assertEqual(summary["total_budgeted"], 200.0)
 
+    def test_apply_template_supports_scale_and_rounding(self) -> None:
+        category = self._seed_category(name="Operación", category_type="expense")
+
+        self.budget_service.create_budget(
+            self.db,
+            FinanceBudgetCreateRequest(
+                period_month=date(2026, 2, 1),
+                category_id=category.id,
+                amount=420.0,
+                note="Base febrero",
+                is_active=True,
+            ),
+        )
+
+        result = self.budget_service.apply_template(
+            self.db,
+            FinanceBudgetTemplateApplyRequest(
+                target_period_month=date(2026, 3, 1),
+                template_mode="previous_month",
+                overwrite_existing=False,
+                scale_percent=110.0,
+                round_to_amount=50.0,
+            ),
+        )
+
+        rows, summary, _focus_items = self.budget_service.list_budgets(
+            self.db,
+            period_month=date(2026, 3, 1),
+            include_inactive=True,
+        )
+
+        self.assertEqual(result["scale_percent"], 110.0)
+        self.assertEqual(result["round_to_amount"], 50.0)
+        self.assertEqual(result["cloned_count"], 1)
+        self.assertEqual(rows[0]["budget"].amount, 450.0)
+        self.assertEqual(summary["total_budgeted"], 450.0)
+
 
 if __name__ == "__main__":
     unittest.main()

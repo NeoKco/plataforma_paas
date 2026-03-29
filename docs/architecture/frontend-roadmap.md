@@ -38,7 +38,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad
 - ya existe una capa comun de mensajes, estados vacios, labels y manejo de errores menos tecnicos
 - el frontend ya usa code-splitting por ruta para `platform_admin`, `tenant_portal` y `finance`, reduciendo el bundle inicial y eliminando la advertencia de chunk principal > `500 kB`
-- `finance` ya puede considerarse funcionalmente cerrado como slice base del portal tenant; lo que queda es backlog opcional o trabajo transversal posterior
+- `finance` ya puede considerarse cerrado en su alcance actual como slice base del portal tenant; desde aquí lo que sigue ya es trabajo transversal posterior o expansión nueva del dominio
 
 Lo que queda pendiente ya no es abrir el frontend desde cero.
 
@@ -51,10 +51,10 @@ Lo pendiente es sobre todo:
 - endurecimiento de bordes y automatizacion
 - cierre visual y operativo de algunos detalles
 - definir la convencion oficial para que los siguientes modulos nazcan como slices coherentes, tomando `finance` como modulo piloto
-- seguir enriqueciendo `Presupuestos` solo si el uso real justifica presets configurables o plantillas más ricas por tenant
-- seguir endureciendo `Reportes` solo si el uso real justifica comparativas todavía más densas y exportaciones de soporte adicionales
-- evaluar una segunda iteracion de `Transacciones` con lotes inteligentes sobre filtro activo o reglas asistidas adicionales solo si la operación real lo pide
-- seguir endureciendo `Préstamos` solo si el negocio exige mejor lectura de contrapartida, cruces más densos o exportaciones aún más contables
+- `Transacciones` ya cerró la selección asistida en lote sobre el filtro visible; cualquier iteración futura sería solo una expansión de negocio adicional
+- `Presupuestos` ya cerró plantillas operativas enriquecidas con escala y redondeo; cualquier preset por tenant queda fuera del alcance actual
+- `Préstamos` ya cerró una lectura/exportación contable más densa; cualquier profundización futura sería por necesidad contable nueva
+- `Reportes` y `Planificación` ya cerraron la capa de comparativas/charts prevista para este alcance; cualquier densidad adicional queda fuera del cierre actual
 - consolidar la adopción visible del auto-sync post-deploy en consola operativa, ahora que ya existe el follow-up automático post-provisioning, la acción masiva desde `Provisioning` y la integración al wrapper de release/verify
 - `finance` ya tiene una primera capa visual propia con iconografía semántica, bloques `spotlight` y charts livianos en `Reportes` y `Planificación`; si se sigue por ahí debe ser para densidad adicional, no para abrir esa base desde cero
 - el `design system` transversal del PaaS ya quedó aplicado sobre el frontend visible con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid`, `AppTableWrap`, `AppForm` y primitives compartidas; `finance` quedó como primer bloque integral, `Overview` + `Users` ya consumen la misma base, `platform_admin` ya la usa en `Dashboard`, `Actividad`, `Usuarios de plataforma`, `Tenants`, `Histórico tenants`, `Provisioning`, `Billing`, `Settings`, login, recuperación raíz e instalador, y el portal tenant ya absorbió también esa capa en login y el borde legacy de finanzas

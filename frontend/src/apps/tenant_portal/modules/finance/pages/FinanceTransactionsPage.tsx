@@ -476,11 +476,17 @@ export function FinanceTransactionsPage() {
   const selectedPendingReconciliationCount = selectedTransactions.filter(
     (transaction) => !transaction.is_reconciled
   ).length;
+  const selectedLoanLinkedCount = selectedTransactions.filter(
+    (transaction) => transaction.loan_id != null
+  ).length;
   const favoriteTransactionsCount = transactions.filter(
     (transaction) => transaction.is_favorite
   ).length;
   const pendingReconciliationCount = transactions.filter(
     (transaction) => !transaction.is_reconciled
+  ).length;
+  const loanLinkedTransactionsCount = transactions.filter(
+    (transaction) => transaction.loan_id != null
   ).length;
   const selectedReconciledCount = selectedTransactions.filter(
     (transaction) => transaction.is_reconciled
@@ -504,6 +510,54 @@ export function FinanceTransactionsPage() {
         ? current.filter((transactionId) => !visibleIds.includes(transactionId))
         : Array.from(new Set([...current, ...visibleIds]))
     );
+  }
+
+  function applySmartSelection(
+    mode:
+      | "all_visible"
+      | "favorites"
+      | "unreconciled"
+      | "reconciled"
+      | "loan_linked"
+      | "income"
+      | "expense"
+      | "clear"
+  ) {
+    if (mode === "clear") {
+      setSelectedTransactionIds([]);
+      setReconciliationConfirmation(false);
+      return;
+    }
+
+    const nextIds = transactions
+      .filter((transaction) => {
+        if (mode === "all_visible") {
+          return true;
+        }
+        if (mode === "favorites") {
+          return transaction.is_favorite;
+        }
+        if (mode === "unreconciled") {
+          return !transaction.is_reconciled;
+        }
+        if (mode === "reconciled") {
+          return transaction.is_reconciled;
+        }
+        if (mode === "loan_linked") {
+          return transaction.loan_id != null;
+        }
+        if (mode === "income") {
+          return transaction.transaction_type === "income";
+        }
+        if (mode === "expense") {
+          return transaction.transaction_type === "expense";
+        }
+        return false;
+      })
+      .map((transaction) => transaction.id);
+
+    setSelectedTransactionIds(nextIds);
+    setReconciliationConfirmation(false);
   }
 
   return (
@@ -1076,6 +1130,41 @@ export function FinanceTransactionsPage() {
             <button
               className="btn btn-outline-secondary btn-sm"
               type="button"
+              onClick={() => applySmartSelection("all_visible")}
+            >
+              {language === "es" ? "Seleccionar visibles" : "Select visible"}
+            </button>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
+              onClick={() => applySmartSelection("unreconciled")}
+            >
+              {language === "es" ? "Seleccionar pendientes" : "Select pending"}
+            </button>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
+              onClick={() => applySmartSelection("loan_linked")}
+            >
+              {language === "es" ? "Seleccionar préstamos" : "Select loans"}
+            </button>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
+              onClick={() => applySmartSelection("income")}
+            >
+              {language === "es" ? "Seleccionar ingresos" : "Select income"}
+            </button>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
+              onClick={() => applySmartSelection("expense")}
+            >
+              {language === "es" ? "Seleccionar egresos" : "Select expense"}
+            </button>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
               onClick={() =>
                 setFilters((current) => ({
                   ...current,
@@ -1116,6 +1205,16 @@ export function FinanceTransactionsPage() {
             </button>
           </AppToolbar>
 
+          <div className="tenant-detail-grid mb-3">
+            <DetailField label={language === "es" ? "Favoritas visibles" : "Visible favorites"} value={favoriteTransactionsCount} />
+            <DetailField label={language === "es" ? "Pendientes visibles" : "Visible pending"} value={pendingReconciliationCount} />
+            <DetailField label={language === "es" ? "Ligadas a préstamo" : "Loan-linked"} value={loanLinkedTransactionsCount} />
+            <DetailField
+              label={language === "es" ? "Ingreso / egreso" : "Income / expense"}
+              value={`${transactions.filter((transaction) => transaction.transaction_type === "income").length} / ${transactions.filter((transaction) => transaction.transaction_type === "expense").length}`}
+            />
+          </div>
+
           {selectedTransactionIds.length > 0 ? (
             <div className="tenant-action-feedback tenant-action-feedback--success">
               <strong>{language === "es" ? "Mesa de trabajo:" : "Workbench:"}</strong> {selectedTransactionIds.length} {language === "es" ? "transacciones seleccionadas." : "selected transactions."}
@@ -1126,6 +1225,7 @@ export function FinanceTransactionsPage() {
                   <DetailField label={language === "es" ? "Pendientes seleccionadas" : "Selected pending"} value={selectedPendingReconciliationCount} />
                   <DetailField label={language === "es" ? "Ya conciliadas" : "Already reconciled"} value={selectedReconciledCount} />
                   <DetailField label={language === "es" ? "Favoritas seleccionadas" : "Selected favorites"} value={selectedFavoritesCount} />
+                  <DetailField label={language === "es" ? "Ligadas a préstamo" : "Loan-linked"} value={selectedLoanLinkedCount} />
                 </div>
                 <div className="mt-3">
                   <label className="form-label">{language === "es" ? "Nota de conciliación" : "Reconciliation note"}</label>
@@ -1228,10 +1328,7 @@ export function FinanceTransactionsPage() {
                   className="btn btn-outline-secondary btn-sm"
                   type="button"
                   disabled={isActionSubmitting}
-                  onClick={() => {
-                    setSelectedTransactionIds([]);
-                    setReconciliationConfirmation(false);
-                  }}
+                  onClick={() => applySmartSelection("clear")}
                 >
                   {language === "es" ? "Limpiar selección" : "Clear selection"}
                 </button>
