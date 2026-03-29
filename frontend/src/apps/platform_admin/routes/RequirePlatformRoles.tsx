@@ -1,5 +1,9 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../../store/auth-context";
+import {
+  getPlatformDefaultRoute,
+  normalizePlatformAdminRole,
+} from "../access/platformRoleAccess";
 
 type RequirePlatformRolesProps = {
   allowedRoles: string[];
@@ -8,13 +12,13 @@ type RequirePlatformRolesProps = {
 
 export function RequirePlatformRoles({
   allowedRoles,
-  redirectTo = "/users",
+  redirectTo,
 }: RequirePlatformRolesProps) {
   const { session } = useAuth();
-  const currentRole = session?.role || "support";
+  const currentRole = normalizePlatformAdminRole(session?.role);
 
   if (!allowedRoles.includes(currentRole)) {
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to={redirectTo || getPlatformDefaultRoute(currentRole)} replace />;
   }
 
   return <Outlet />;

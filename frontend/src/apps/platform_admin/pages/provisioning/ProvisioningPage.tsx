@@ -626,6 +626,62 @@ function handleRefresh() {
             <button
               type="button"
               className="btn btn-outline-secondary"
+              onClick={() =>
+                downloadTextFile(
+                  buildProvisioningJobsCsv(filteredJobs, tenantSlugById, language),
+                  `provisioning-jobs-${jobOperationFilter}.csv`,
+                  "text/csv;charset=utf-8;"
+                )
+              }
+              disabled={filteredJobs.length === 0}
+            >
+              {language === "es" ? "Exportar CSV jobs" : "Export jobs CSV"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={() =>
+                downloadTextFile(
+                  JSON.stringify(
+                    buildProvisioningWorkspaceExportPayload({
+                      operationFilter: jobOperationFilter,
+                      dlqLimit,
+                      dlqJobType,
+                      dlqTenantSlug,
+                      dlqErrorCode,
+                      dlqErrorContains,
+                      dlqResetAttempts,
+                      dlqDelaySeconds,
+                      jobs: filteredJobs,
+                      metrics,
+                      metricsByJobType,
+                      metricsByErrorCode,
+                      cycleHistory,
+                      alerts,
+                      dlq,
+                    }),
+                    null,
+                    2
+                  ),
+                  "provisioning-workspace.json",
+                  "application/json;charset=utf-8;"
+                )
+              }
+              disabled={
+                filteredJobs.length === 0 &&
+                !metrics &&
+                !metricsByJobType &&
+                !metricsByErrorCode &&
+                !cycleHistory &&
+                !alerts &&
+                !dlq
+              }
+            >
+              {language === "es" ? "Exportar JSON" : "Export JSON"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
               onClick={handleBulkSchemaAutoSync}
               disabled={isLoading || isActionSubmitting}
             >
@@ -1883,4 +1939,111 @@ function buildDlqOptions(filters: {
     errorCode: normalizeNullableString(filters.errorCode),
     errorContains: normalizeNullableString(filters.errorContains),
   };
+}
+
+function buildProvisioningWorkspaceExportPayload({
+  operationFilter,
+  dlqLimit,
+  dlqJobType,
+  dlqTenantSlug,
+  dlqErrorCode,
+  dlqErrorContains,
+  dlqResetAttempts,
+  dlqDelaySeconds,
+  jobs,
+  metrics,
+  metricsByJobType,
+  metricsByErrorCode,
+  cycleHistory,
+  alerts,
+  dlq,
+}: {
+  operationFilter: string;
+  dlqLimit: string;
+  dlqJobType: string;
+  dlqTenantSlug: string;
+  dlqErrorCode: string;
+  dlqErrorContains: string;
+  dlqResetAttempts: boolean;
+  dlqDelaySeconds: string;
+  jobs: ProvisioningJob[];
+  metrics: ProvisioningJobMetricsResponse | null;
+  metricsByJobType: ProvisioningJobDetailedMetricsResponse | null;
+  metricsByErrorCode: ProvisioningJobErrorCodeMetricsResponse | null;
+  cycleHistory: ProvisioningWorkerCycleTraceHistoryResponse | null;
+  alerts: ProvisioningOperationalAlertsResponse | null;
+  dlq: ProvisioningBrokerDeadLetterResponse | null;
+}) {
+  return {
+    exported_at: new Date().toISOString(),
+    filters: {
+      operation: operationFilter,
+      dlq_limit: parsePositiveInteger(dlqLimit, 25),
+      dlq_job_type: normalizeNullableString(dlqJobType),
+      dlq_tenant_slug: normalizeNullableString(dlqTenantSlug),
+      dlq_error_code: normalizeNullableString(dlqErrorCode),
+      dlq_error_contains: normalizeNullableString(dlqErrorContains),
+      dlq_reset_attempts: dlqResetAttempts,
+      dlq_delay_seconds: parseNonNegativeInteger(dlqDelaySeconds, 0),
+    },
+    jobs,
+    metrics_by_tenant: metrics?.data || [],
+    metrics_by_job_type: metricsByJobType?.data || [],
+    metrics_by_error_code: metricsByErrorCode?.data || [],
+    cycle_history: cycleHistory?.data || [],
+    alerts: alerts?.data || [],
+    dlq_rows: dlq?.data || [],
+  };
+}
+
+function buildProvisioningJobsCsv(
+  rows: ProvisioningJob[],
+  tenantSlugById: Map<number, string>,
+  language: "es" | "en"
+): string {
+  const csvRows = [
+    [
+      "job_id",
+      "tenant_slug",
+      "operation_kind",
+      "job_type",
+      "status",
+      "attempts",
+      "max_attempts",
+      "error_code",
+      "next_retry_at",
+    ],
+    ...rows.map((row) => [
+      String(row.id),
+      tenantSlugById.get(row.tenant_id) || `tenant-${row.tenant_id}`,
+      formatProvisioningOperationKind(getProvisioningOperationKind(row.job_type)),
+      formatProvisioningJobType(row.job_type),
+      formatProvisioningCodeLabel(row.status),
+      String(row.attempts),
+      String(row.max_attempts),
+      row.error_code ? formatProvisioningCodeLabel(row.error_code) : "",
+      formatDateTime(row.next_retry_at),
+    ]),
+  ];
+
+  return csvRows
+    .map((row) => row.map((value) => escapeCsvValue(value)).join(","))
+    .join("\n");
+}
+
+function escapeCsvValue(value: string): string {
+  const normalized = value.split('"').join('""');
+  return /[",\n]/.test(normalized) ? `"${normalized}"` : normalized;
+}
+
+function downloadTextFile(content: string, filename: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }

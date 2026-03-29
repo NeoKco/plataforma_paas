@@ -56,6 +56,7 @@ Lo pendiente es sobre todo:
 - consolidar la adopción visible del auto-sync post-deploy en consola operativa, ahora que ya existe el follow-up automático post-provisioning, la acción masiva desde `Provisioning` y la integración al wrapper de release/verify
 - `finance` ya tiene una primera capa visual propia con iconografía semántica, bloques `spotlight` y charts livianos en `Reportes` y `Planificación`; si se sigue por ahí debe ser para densidad adicional, no para abrir esa base desde cero
 - el `design system` transversal del PaaS ya quedó aplicado sobre el frontend visible con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid`, `AppTableWrap`, `AppForm` y primitives compartidas; `finance` quedó como primer bloque integral, `Overview` + `Users` ya consumen la misma base, `platform_admin` ya la usa en `Dashboard`, `Actividad`, `Usuarios de plataforma`, `Tenants`, `Histórico tenants`, `Provisioning`, `Billing`, `Settings`, login, recuperación raíz e instalador, y el portal tenant ya absorbió también esa capa en login y el borde legacy de finanzas
+- la matriz visible de acceso por rol en `platform_admin` ya quedó centralizada para `SidebarNav`, redirecciones por ruta y gestión de `Usuarios de plataforma`, evitando permisos frontend dispersos entre páginas
 - la internacionalizacion transversal del frontend ya quedó resuelta en la superficie visible principal, helpers compartidos, formularios densos y estados operativos; lo que resta baja a editorial secundaria puntual, ayudas largas y futuras pantallas nuevas que se abran fuera del alcance actual
 - dejar como pendiente posterior un stack E2E browser para desarrollo local, enfocado en recorridos reales de `platform_admin` y `tenant_portal`, sin bloquear el cierre actual de producto
 
@@ -310,6 +311,7 @@ Avance actual:
 - `Provisioning` ya muestra fallos agregados por `error_code`
 - `Provisioning` ya muestra ciclos recientes del worker para distinguir backlog de ejecucion
 - `Provisioning` ya muestra un bloque corto de `Jobs que requieren accion` para decidir rapido si conviene ejecutar, esperar retry o reencolar
+- `Provisioning` ya permite exportar el catálogo visible de jobs en `CSV` y un snapshot operativo completo en `JSON`
 
 Lectura practica:
 
@@ -342,6 +344,7 @@ Avance actual:
 - `Billing` ya traduce mejor estados de facturacion y resultados de procesamiento para lectura operativa
 - `Billing` ya muestra un bloque corto de `Que revisar ahora` para separar alertas vivas, historial estabilizado y necesidad real de reconcile
 - `Billing` ya pide confirmacion previa antes de reconciliar un evento individual o un lote filtrado
+- `Billing` ya permite exportar el workspace visible en `JSON` y los eventos del tenant seleccionado en `CSV`
 
 Lectura practica:
 

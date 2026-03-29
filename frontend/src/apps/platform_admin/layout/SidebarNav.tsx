@@ -2,63 +2,74 @@ import { NavLink } from "react-router-dom";
 import { AppIcon, type AppIconName } from "../../../design-system/AppIcon";
 import { useLanguage } from "../../../store/language-context";
 import { useAuth } from "../../../store/auth-context";
+import {
+  canAccessPlatformNavItem,
+  normalizePlatformAdminRole,
+  type PlatformNavKey,
+} from "../access/platformRoleAccess";
 
 export function SidebarNav() {
   const { language } = useLanguage();
   const { session } = useAuth();
-  const currentRole = session?.role || "support";
-  const commonNavItems = [
+  const currentRole = normalizePlatformAdminRole(session?.role);
+  const navItems: Array<{
+    key: PlatformNavKey;
+    to: string;
+    label: string;
+    icon: AppIconName;
+  }> = [
     {
-      to: "/users",
-      label: language === "es" ? "Usuarios plataforma" : "Platform Users",
-      icon: "users" as AppIconName,
-    },
-  ];
-  const adminNavItems = [
-    {
-      to: "/activity",
-      label: language === "es" ? "Actividad" : "Activity",
-      icon: "activity" as AppIconName,
-    },
-  ];
-  const superadminOnlyItems = [
-    {
+      key: "dashboard",
       to: "/",
       label: language === "es" ? "Resumen" : "Dashboard",
-      icon: "dashboard" as AppIconName,
+      icon: "dashboard",
     },
     {
+      key: "users",
+      to: "/users",
+      label: language === "es" ? "Usuarios plataforma" : "Platform Users",
+      icon: "users",
+    },
+    {
+      key: "activity",
+      to: "/activity",
+      label: language === "es" ? "Actividad" : "Activity",
+      icon: "activity",
+    },
+    {
+      key: "tenants",
       to: "/tenants",
       label: language === "es" ? "Tenants" : "Tenants",
-      icon: "tenants" as AppIconName,
+      icon: "tenants",
     },
     {
+      key: "tenant-history",
       to: "/tenant-history",
       label: language === "es" ? "Histórico tenants" : "Tenant History",
-      icon: "tenant-history" as AppIconName,
+      icon: "tenant-history",
     },
     {
+      key: "provisioning",
       to: "/provisioning",
       label: language === "es" ? "Provisioning" : "Provisioning",
-      icon: "provisioning" as AppIconName,
+      icon: "provisioning",
     },
     {
+      key: "billing",
       to: "/billing",
       label: language === "es" ? "Facturación" : "Billing",
-      icon: "billing" as AppIconName,
+      icon: "billing",
     },
     {
+      key: "settings",
       to: "/settings",
       label: language === "es" ? "Configuración" : "Settings",
-      icon: "settings" as AppIconName,
+      icon: "settings",
     },
   ];
-  const visibleNavItems =
-    currentRole === "superadmin"
-      ? [superadminOnlyItems[0], ...commonNavItems, ...adminNavItems, ...superadminOnlyItems.slice(1)]
-      : currentRole === "admin"
-        ? [...commonNavItems, ...adminNavItems]
-        : commonNavItems;
+  const visibleNavItems = navItems.filter((item) =>
+    canAccessPlatformNavItem(currentRole, item.key)
+  );
 
   return (
     <aside className="platform-sidebar">

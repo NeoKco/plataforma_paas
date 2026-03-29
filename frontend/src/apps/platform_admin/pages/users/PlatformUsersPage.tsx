@@ -30,6 +30,12 @@ import {
 import { getCurrentLocale } from "../../../../utils/i18n";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
 import type { ApiError, PlatformUser } from "../../../../types";
+import {
+  canCreatePlatformUserRole,
+  canManagePlatformUser,
+  getEditablePlatformUserRoles,
+  normalizePlatformAdminRole,
+} from "../../access/platformRoleAccess";
 
 type ActionFeedback = {
   scope: string;
@@ -103,7 +109,7 @@ export function PlatformUsersPage() {
   const [deleteCandidate, setDeleteCandidate] = useState<PlatformUser | null>(null);
 
   const selectedUser = users.find((user) => user.id === selectedUserId) || null;
-  const currentPlatformRole = session?.role || "support";
+  const currentPlatformRole = normalizePlatformAdminRole(session?.role);
 
   const filteredUsers = useMemo(() => {
     const search = catalogSearch.trim().toLowerCase();
@@ -142,41 +148,15 @@ export function PlatformUsersPage() {
     users.find((user) => user.email === session?.email)?.id ?? null;
 
   function canCreateRole(role: string): boolean {
-    if (currentPlatformRole === "superadmin") {
-      return role === "admin" || role === "support";
-    }
-    if (currentPlatformRole === "admin") {
-      return role === "support";
-    }
-    return false;
+    return canCreatePlatformUserRole(currentPlatformRole, role);
   }
 
   function canManageSelectedUser(user: PlatformUser | null): boolean {
-    if (!user) {
-      return false;
-    }
-    if (currentPlatformRole === "superadmin") {
-      return true;
-    }
-    if (currentPlatformRole === "admin") {
-      return user.role === "support";
-    }
-    return false;
+    return canManagePlatformUser(currentPlatformRole, user?.role);
   }
 
   function getEditableRoleOptions(user: PlatformUser | null): string[] {
-    if (!user) {
-      return [];
-    }
-    if (currentPlatformRole === "superadmin") {
-      return user.role === "superadmin"
-        ? ["superadmin", "admin", "support"]
-        : ["admin", "support"];
-    }
-    if (currentPlatformRole === "admin" && user.role === "support") {
-      return ["support"];
-    }
-    return [];
+    return getEditablePlatformUserRoles(currentPlatformRole, user?.role);
   }
 
   const creatableRoles = PLATFORM_ROLE_OPTIONS.filter(canCreateRole);
@@ -185,8 +165,7 @@ export function PlatformUsersPage() {
   const canToggleSelectedUser = canManageSelectedUser(selectedUser);
   const canResetSelectedUserPassword =
     Boolean(selectedUser) &&
-    (currentPlatformRole === "superadmin" ||
-      (currentPlatformRole === "admin" && selectedUser?.role === "support"));
+    canManagePlatformUser(currentPlatformRole, selectedUser?.role);
   const canDeleteSelectedUser =
     Boolean(selectedUser) &&
     selectedUser?.role !== "superadmin" &&

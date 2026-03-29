@@ -6,6 +6,7 @@ import { financeTenantPortalRoutes } from "../../tenant_portal/modules/finance";
 import { RequireTenantAuth } from "../../tenant_portal/routes/RequireTenantAuth";
 import { LoadingBlock } from "../../../components/feedback/LoadingBlock";
 import { useAuth } from "../../../store/auth-context";
+import { getPlatformDefaultRoute } from "../access/platformRoleAccess";
 
 const router = createBrowserRouter([
   {
@@ -62,8 +63,9 @@ const router = createBrowserRouter([
 
           function PlatformHomeRoute() {
             const { session } = useAuth();
-            if (session?.role === "admin" || session?.role === "support") {
-              return <Navigate to="/users" replace />;
+            const homeRoute = getPlatformDefaultRoute(session?.role);
+            if (homeRoute !== "/") {
+              return <Navigate to={homeRoute} replace />;
             }
             return <module.DashboardPage />;
           }
@@ -91,7 +93,7 @@ const router = createBrowserRouter([
         },
       },
       {
-        element: <RequirePlatformRoles allowedRoles={["superadmin"]} redirectTo="/users" />,
+        element: <RequirePlatformRoles allowedRoles={["superadmin"]} />,
         children: [
           {
             path: "tenants",

@@ -66,6 +66,8 @@ Pendiente corto de endurecimiento antes o en paralelo a nuevos modulos:
 - smoke/E2E del lifecycle tenant completo hasta aparicion en `Histórico tenants` ya cubierto en backend sobre control DB + tenant DB de prueba, incluyendo create, provision, login tenant, archive, restore, deprovision, delete y validacion del archivo historico
 - permisos finos de la vista historica ya congelados en pruebas para mantener `tenant-history` acotado a operacion central `superadmin`
 - `tenant-history` ya expone filtros server-side y exportacion `CSV/JSON` para no depender solo de filtrado en memoria cuando el archivo crezca
+- `Billing` y `Provisioning` ya permiten exportar snapshots operativos del estado visible para soporte y trazabilidad sin copiar filas manualmente desde la UI
+- la superficie visible de `platform_admin` ya usa una matriz de acceso por rol centralizada para navegación, redirecciones y edición de usuarios de plataforma
 - dejar como trabajo posterior un stack E2E browser para desarrollo local, idealmente sobre flujos `platform_admin` y `tenant_portal`, sin mezclarlo con la regresion backend ya cubierta
 - recaptura visual del bloque tenant cuando la UX ya se considere estable
 

@@ -471,6 +471,56 @@ export function BillingPage() {
           <AppToolbar compact>
             <button
               type="button"
+              className="btn btn-outline-secondary"
+              onClick={() =>
+                downloadTextFile(
+                  buildTenantBillingEventsCsv(tenantEvents?.data || [], language),
+                  `billing-tenant-events-${selectedTenant?.slug || "none"}.csv`,
+                  "text/csv;charset=utf-8;"
+                )
+              }
+              disabled={!tenantEvents || tenantEvents.data.length === 0}
+            >
+              {language === "es" ? "Exportar CSV tenant" : "Export tenant CSV"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={() =>
+                downloadTextFile(
+                  JSON.stringify(
+                    buildBillingWorkspaceExportPayload({
+                      selectedTenantSlug: selectedTenant?.slug || null,
+                      providerFilter,
+                      eventTypeFilter,
+                      processingResultFilter,
+                      eventLimit,
+                      batchLimit,
+                      platformSummary,
+                      platformAlerts,
+                      platformAlertHistory,
+                      tenantSummary,
+                      tenantEvents,
+                    }),
+                    null,
+                    2
+                  ),
+                  "billing-workspace.json",
+                  "application/json;charset=utf-8;"
+                )
+              }
+              disabled={
+                !platformSummary &&
+                !platformAlerts &&
+                !platformAlertHistory &&
+                !tenantSummary &&
+                !tenantEvents
+              }
+            >
+              {language === "es" ? "Exportar JSON" : "Export JSON"}
+            </button>
+            <button
+              type="button"
               className="btn btn-outline-primary"
               onClick={() => void refreshAll()}
               disabled={isLoading || isActionSubmitting}
@@ -1109,4 +1159,96 @@ function formatDateTime(value: string | null): string {
     return value;
   }
   return parsed.toLocaleString(getCurrentLocale(language));
+}
+
+function buildBillingWorkspaceExportPayload({
+  selectedTenantSlug,
+  providerFilter,
+  eventTypeFilter,
+  processingResultFilter,
+  eventLimit,
+  batchLimit,
+  platformSummary,
+  platformAlerts,
+  platformAlertHistory,
+  tenantSummary,
+  tenantEvents,
+}: {
+  selectedTenantSlug: string | null;
+  providerFilter: string;
+  eventTypeFilter: string;
+  processingResultFilter: string;
+  eventLimit: string;
+  batchLimit: string;
+  platformSummary: PlatformBillingSyncSummaryResponse | null;
+  platformAlerts: PlatformBillingAlertsResponse | null;
+  platformAlertHistory: PlatformBillingAlertHistoryResponse | null;
+  tenantSummary: TenantBillingSyncSummaryResponse | null;
+  tenantEvents: TenantBillingSyncHistoryResponse | null;
+}) {
+  return {
+    exported_at: new Date().toISOString(),
+    filters: {
+      selected_tenant_slug: selectedTenantSlug,
+      provider: normalizeNullableString(providerFilter),
+      event_type: normalizeNullableString(eventTypeFilter),
+      processing_result: normalizeNullableString(processingResultFilter),
+      event_limit: parsePositiveInteger(eventLimit, 20),
+      batch_limit: parsePositiveInteger(batchLimit, 10),
+    },
+    platform_summary: platformSummary?.data || [],
+    platform_alerts: platformAlerts?.data || [],
+    platform_alert_history: platformAlertHistory?.data || [],
+    tenant_summary: tenantSummary?.data || [],
+    tenant_events: tenantEvents?.data || [],
+  };
+}
+
+function buildTenantBillingEventsCsv(
+  rows: TenantBillingSyncHistoryResponse["data"],
+  language: "es" | "en"
+): string {
+  const csvRows = [
+    [
+      "recorded_at",
+      "provider",
+      "event_type",
+      "processing_result",
+      "billing_status",
+      "provider_event_id",
+      "provider_customer_id",
+      "provider_subscription_id",
+    ],
+    ...rows.map((row) => [
+      formatDateTime(row.recorded_at),
+      row.provider,
+      row.event_type,
+      displayPlatformCode(row.processing_result, language),
+      row.billing_status ? displayPlatformCode(row.billing_status, language) : "",
+      row.provider_event_id,
+      row.provider_customer_id || "",
+      row.provider_subscription_id || "",
+    ]),
+  ];
+
+  return csvRows
+    .map((row) => row.map((value) => escapeCsvValue(value)).join(","))
+    .join("\n");
+}
+
+function escapeCsvValue(value: string): string {
+  const normalized = value.split('"').join('""');
+  return /[",\n]/.test(normalized) ? `"${normalized}"` : normalized;
+}
+
+function downloadTextFile(content: string, filename: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
