@@ -356,7 +356,10 @@ export function TenantUsersPage() {
           }
         >
           <div className="tenant-detail-grid">
-            <DetailField label="Tenant" value={session?.tenantSlug || "n/a"} />
+            <DetailField
+              label={language === "es" ? "Tenant" : "Tenant"}
+              value={session?.tenantSlug || "n/a"}
+            />
             <DetailField label="Email" value={session?.email || "n/a"} />
             <DetailField
               label={language === "es" ? "Rol" : "Role"}

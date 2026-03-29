@@ -168,54 +168,84 @@ export function ProvisioningPage() {
     if (activeDeprovisionJobs > 0) {
       signals.push({
         key: "deprovision-jobs",
-        title: `${activeDeprovisionJobs} retiros técnicos siguen abiertos`,
+        title:
+          language === "es"
+            ? `${activeDeprovisionJobs} retiros técnicos siguen abiertos`
+            : `${activeDeprovisionJobs} technical retirements are still open`,
         detail:
-          "No los leas como backlog normal de altas. Revisa si hay tenants archivados esperando liberar infraestructura antes de intentar borrarlos del catálogo.",
+          language === "es"
+            ? "No los leas como backlog normal de altas. Revisa si hay tenants archivados esperando liberar infraestructura antes de intentar borrarlos del catálogo."
+            : "Do not read them as normal onboarding backlog. Check whether archived tenants are waiting to release infrastructure before trying to delete them from the catalog.",
       });
     }
 
     if (dlq?.total_jobs) {
       signals.push({
         key: "dlq-jobs",
-        title: `${dlq.total_jobs} filas quedaron en DLQ`,
+        title:
+          language === "es"
+            ? `${dlq.total_jobs} filas quedaron en DLQ`
+            : `${dlq.total_jobs} rows landed in the DLQ`,
         detail:
-          "Usa los filtros DLQ para aislar una familia de fallos y reencola solo el subconjunto necesario en vez de devolver toda la cola.",
+          language === "es"
+            ? "Usa los filtros DLQ para aislar una familia de fallos y reencola solo el subconjunto necesario en vez de devolver toda la cola."
+            : "Use the DLQ filters to isolate one failure family and requeue only the required subset instead of returning the whole queue.",
       });
     }
 
     if (retryJobCount > 0) {
       signals.push({
         key: "retry-jobs",
-        title: `${retryJobCount} jobs esperan reintento`,
+        title:
+          language === "es"
+            ? `${retryJobCount} jobs esperan reintento`
+            : `${retryJobCount} jobs are waiting for retry`,
         detail:
-          "No están muertos: puedes esperar el próximo ciclo del worker o forzar ejecución ahora si necesitas acelerar la recuperación.",
+          language === "es"
+            ? "No están muertos: puedes esperar el próximo ciclo del worker o forzar ejecución ahora si necesitas acelerar la recuperación."
+            : "They are not dead: you can wait for the next worker cycle or force execution now if you need to speed up recovery.",
       });
     }
 
     if (pendingJobCount > 0) {
       signals.push({
         key: "pending-jobs",
-        title: `${pendingJobCount} jobs siguen en cola`,
+        title:
+          language === "es"
+            ? `${pendingJobCount} jobs siguen en cola`
+            : `${pendingJobCount} jobs are still queued`,
         detail:
-          "Esto suele indicar backlog normal. Si el alta de un tenant es urgente, puedes ejecutar el job manualmente desde la consola.",
+          language === "es"
+            ? "Esto suele indicar backlog normal. Si el alta de un tenant es urgente, puedes ejecutar el job manualmente desde la consola."
+            : "This usually indicates normal backlog. If onboarding a tenant is urgent, you can run the job manually from the console.",
       });
     }
 
     if (latestCycle?.stopped_due_to_failure_limit) {
       signals.push({
         key: "failure-limit",
-        title: "El último ciclo del worker se detuvo por límite de fallos",
+        title:
+          language === "es"
+            ? "El último ciclo del worker se detuvo por límite de fallos"
+            : "The latest worker cycle stopped due to the failure limit",
         detail:
-          "La corrida reciente cortó procesamiento para no seguir acumulando errores. Revisa los jobs fallidos y los códigos de error antes de reintentar masivamente.",
+          language === "es"
+            ? "La corrida reciente cortó procesamiento para no seguir acumulando errores. Revisa los jobs fallidos y los códigos de error antes de reintentar masivamente."
+            : "The recent run stopped processing to avoid accumulating more errors. Review failed jobs and error codes before retrying in bulk.",
       });
     }
 
     if ((latestCycle?.failed_count || 0) > 0 && failedJobCount === 0) {
       signals.push({
         key: "cycle-failed-count",
-        title: `${latestCycle?.failed_count || 0} fallos en el último ciclo`,
+        title:
+          language === "es"
+            ? `${latestCycle?.failed_count || 0} fallos en el último ciclo`
+            : `${latestCycle?.failed_count || 0} failures in the latest cycle`,
         detail:
-          "Aunque no haya jobs marcados como fallidos definitivos, el worker sí vio errores recientes. Revisa alertas activas y familias de error para evitar deuda silenciosa.",
+          language === "es"
+            ? "Aunque no haya jobs marcados como fallidos definitivos, el worker sí vio errores recientes. Revisa alertas activas y familias de error para evitar deuda silenciosa."
+            : "Even if no jobs are marked as permanently failed, the worker did see recent errors. Review active alerts and error families to avoid silent debt.",
       });
     }
 
@@ -556,9 +586,14 @@ function handleRefresh() {
 
     setPendingConfirmation({
       scope: "bulk-sync-schema",
-      title: "Encolar auto-sync de esquema tenant",
+      title:
+        language === "es"
+          ? "Encolar auto-sync de esquema tenant"
+          : "Queue tenant schema auto-sync",
       description:
-        "Esta acción crea jobs de sincronización para tenants activos con base configurada y sin jobs vivos de provisioning.",
+        language === "es"
+          ? "Esta acción crea jobs de sincronización para tenants activos con base configurada y sin jobs vivos de provisioning."
+          : "This action creates sync jobs for active tenants with configured databases and no live provisioning jobs.",
       details: [
         language === "es"
           ? "Alcance: tenants activos con DB tenant lista."
@@ -748,7 +783,12 @@ function handleRefresh() {
         <MetricCard label={language === "es" ? "Jobs en ejecución" : "Running jobs"} icon="provisioning" tone="info" value={overview.runningJobs} />
         <MetricCard label={language === "es" ? "Jobs fallidos" : "Failed jobs"} icon="focus" tone="danger" value={overview.failedJobs} />
         <MetricCard label={language === "es" ? "Alertas activas" : "Active alerts"} icon="pulse" tone="warning" value={overview.activeAlerts} />
-        <MetricCard label="DLQ rows" icon="activity" tone="warning" value={overview.dlqJobs} />
+        <MetricCard
+          label={language === "es" ? "Filas DLQ" : "DLQ rows"}
+          icon="activity"
+          tone="warning"
+          value={overview.dlqJobs}
+        />
       </div>
 
       <PanelCard
@@ -784,10 +824,10 @@ function handleRefresh() {
                 <tr>
                   <th>Job</th>
                   <th>Tenant</th>
-                  <th>Operación</th>
-                  <th>Estado</th>
-                  <th>Acción recomendada</th>
-                  <th>Siguiente paso</th>
+                  <th>{language === "es" ? "Operación" : "Operation"}</th>
+                  <th>{language === "es" ? "Estado" : "Status"}</th>
+                  <th>{language === "es" ? "Acción recomendada" : "Recommended action"}</th>
+                  <th>{language === "es" ? "Siguiente paso" : "Next step"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -806,7 +846,7 @@ function handleRefresh() {
                           onClick={() => handleSingleRequeue(job.id)}
                           disabled={isActionSubmitting}
                         >
-                          Reencolar
+                          {language === "es" ? "Reencolar" : "Requeue"}
                         </button>
                       ) : (
                         <button
@@ -815,7 +855,7 @@ function handleRefresh() {
                           onClick={() => handleRunNow(job)}
                           disabled={isActionSubmitting}
                         >
-                          Ejecutar ahora
+                          {language === "es" ? "Ejecutar ahora" : "Run now"}
                         </button>
                       )}
                     </td>
@@ -909,31 +949,35 @@ function handleRefresh() {
             title={language === "es" ? "Jobs de provisioning" : "Provisioning jobs"}
           subtitle={
             jobOperationFilter === "all"
-              ? "Catálogo completo de jobs técnicos."
-              : `Vista filtrada por ${formatProvisioningOperationFilterLabel(jobOperationFilter)}.`
+              ? language === "es"
+                ? "Catálogo completo de jobs técnicos."
+                : "Complete catalog of technical jobs."
+              : language === "es"
+                ? `Vista filtrada por ${formatProvisioningOperationFilterLabel(jobOperationFilter)}.`
+                : `Filtered view by ${formatProvisioningOperationFilterLabel(jobOperationFilter)}.`
           }
           rows={filteredJobs}
           columns={[
             {
               key: "id",
-              header: "Job",
+              header: language === "es" ? "Job" : "Job",
               render: (row) => <code>#{row.id}</code>,
             },
             {
               key: "tenant_id",
-              header: "Tenant",
+              header: language === "es" ? "Tenant" : "Tenant",
               render: (row) => (
                 <code>{tenantSlugById.get(row.tenant_id) || `tenant-${row.tenant_id}`}</code>
               ),
             },
             {
               key: "operation",
-              header: "Operación",
+              header: language === "es" ? "Operación" : "Operation",
               render: (row) => <ProvisioningOperationBadge jobType={row.job_type} />,
             },
             {
               key: "job_type",
-              header: "Tipo de job",
+              header: language === "es" ? "Tipo de job" : "Job type",
               render: (row) => (
                 <ProvisioningCodeCell
                   label={formatProvisioningJobType(row.job_type)}
@@ -943,17 +987,17 @@ function handleRefresh() {
             },
             {
               key: "status",
-              header: "Estado",
+              header: language === "es" ? "Estado" : "Status",
               render: (row) => <StatusBadge value={row.status} />,
             },
             {
               key: "attempts",
-              header: "Intentos",
+              header: language === "es" ? "Intentos" : "Attempts",
               render: (row) => `${row.attempts}/${row.max_attempts}`,
             },
             {
               key: "error_code",
-              header: "Código de error",
+              header: language === "es" ? "Código de error" : "Error code",
               render: (row) =>
                 row.error_code ? (
                   <ProvisioningCodeCell
@@ -966,12 +1010,12 @@ function handleRefresh() {
             },
             {
               key: "next_retry_at",
-              header: "Próximo reintento",
+              header: language === "es" ? "Próximo reintento" : "Next retry",
               render: (row) => formatDateTime(row.next_retry_at),
             },
               {
                 key: "actions",
-                header: "Acciones",
+                header: language === "es" ? "Acciones" : "Actions",
                 render: (row) =>
                   row.status === "failed" ? (
                     <button
@@ -980,7 +1024,7 @@ function handleRefresh() {
                       onClick={() => handleSingleRequeue(row.id)}
                       disabled={isActionSubmitting}
                     >
-                      Reencolar
+                      {language === "es" ? "Reencolar" : "Requeue"}
                     </button>
                   ) : row.status === "pending" || row.status === "retry_pending" ? (
                     <button
@@ -989,7 +1033,7 @@ function handleRefresh() {
                       onClick={() => handleRunNow(row)}
                       disabled={isActionSubmitting}
                     >
-                      Ejecutar ahora
+                      {language === "es" ? "Ejecutar ahora" : "Run now"}
                     </button>
                   ) : (
                     "—"
@@ -1000,23 +1044,35 @@ function handleRefresh() {
       ) : !jobsError && !isLoading ? (
         <PanelCard
           icon="provisioning"
-          title="Jobs de provisioning"
+          title={language === "es" ? "Jobs de provisioning" : "Provisioning jobs"}
           subtitle={
             jobs.length === 0
-              ? "El backend no devolvió jobs en el catálogo actual."
-              : "El filtro actual no dejó jobs visibles en la tabla."
+              ? language === "es"
+                ? "El backend no devolvió jobs en el catálogo actual."
+                : "The backend did not return jobs in the current catalog."
+              : language === "es"
+                ? "El filtro actual no dejó jobs visibles en la tabla."
+                : "The current filter left no visible jobs in the table."
           }
         >
           <EmptyState
             title={
               jobs.length === 0
-                ? "Todavía no hay jobs de provisioning"
-                : "No hay jobs para la operación filtrada"
+                ? language === "es"
+                  ? "Todavía no hay jobs de provisioning"
+                  : "There are no provisioning jobs yet"
+                : language === "es"
+                  ? "No hay jobs para la operación filtrada"
+                  : "There are no jobs for the filtered operation"
             }
             detail={
               jobs.length === 0
-                ? "Esto suele pasar cuando aún no se crean tenants nuevos o cuando no hubo automatizaciones pendientes en este entorno."
-                : "Prueba con otra operación o vuelve a `Todas` para recuperar el catálogo completo."
+                ? language === "es"
+                  ? "Esto suele pasar cuando aún no se crean tenants nuevos o cuando no hubo automatizaciones pendientes en este entorno."
+                  : "This usually happens when no new tenants have been created yet or there were no pending automations in this environment."
+                : language === "es"
+                  ? "Prueba con otra operación o vuelve a `Todas` para recuperar el catálogo completo."
+                  : "Try another operation or return to `All` to recover the full catalog."
             }
           />
         </PanelCard>
@@ -1042,32 +1098,32 @@ function handleRefresh() {
             columns={[
               {
                 key: "tenant_slug",
-                header: "Tenant",
+                header: language === "es" ? "Tenant" : "Tenant",
                 render: (row) => <code>{row.tenant_slug}</code>,
               },
               {
                 key: "total_jobs",
-                header: "Total",
+                header: language === "es" ? "Total" : "Total",
                 render: (row) => row.total_jobs,
               },
               {
                 key: "pending_jobs",
-                header: "Pendientes",
+                header: language === "es" ? "Pendientes" : "Pending",
                 render: (row) => row.pending_jobs,
               },
               {
                 key: "retry_pending_jobs",
-                header: "Reintento",
+                header: language === "es" ? "Reintento" : "Retrying",
                 render: (row) => row.retry_pending_jobs,
               },
               {
                 key: "failed_jobs",
-                header: "Fallidos",
+                header: language === "es" ? "Fallidos" : "Failed",
                 render: (row) => row.failed_jobs,
               },
               {
                 key: "max_attempts_seen",
-                header: "Máx. intentos",
+                header: language === "es" ? "Máx. intentos" : "Max attempts",
                 render: (row) => row.max_attempts_seen,
               },
             ]}
@@ -1080,32 +1136,32 @@ function handleRefresh() {
               columns={[
                 {
                   key: "tenant_slug",
-                  header: "Tenant",
+                  header: language === "es" ? "Tenant" : "Tenant",
                 render: (row) => <code>{row.tenant_slug}</code>,
               },
-              {
-                key: "job_type",
-                header: "Tipo de job",
-                render: (row) => (
-                  <ProvisioningCodeCell
-                    label={formatProvisioningJobType(row.job_type)}
+                {
+                  key: "job_type",
+                  header: language === "es" ? "Tipo de job" : "Job type",
+                  render: (row) => (
+                    <ProvisioningCodeCell
+                      label={formatProvisioningJobType(row.job_type)}
                     code={row.job_type}
                   />
                 ),
               },
                 {
                   key: "total_jobs",
-                  header: "Total",
+                  header: language === "es" ? "Total" : "Total",
                   render: (row) => row.total_jobs,
                 },
                 {
                   key: "running_jobs",
-                  header: "En ejecución",
+                  header: language === "es" ? "En ejecución" : "Running",
                   render: (row) => row.running_jobs,
                 },
                 {
                   key: "failed_jobs",
-                  header: "Fallidos",
+                  header: language === "es" ? "Fallidos" : "Failed",
                   render: (row) => row.failed_jobs,
                 },
               ]}
@@ -1124,12 +1180,12 @@ function handleRefresh() {
               columns={[
                 {
                   key: "tenant_slug",
-                  header: "Tenant",
+                  header: language === "es" ? "Tenant" : "Tenant",
                   render: (row) => <code>{row.tenant_slug}</code>,
                 },
                 {
                   key: "error_code",
-                  header: "Código de error",
+                  header: language === "es" ? "Código de error" : "Error code",
                   render: (row) => (
                     <ProvisioningCodeCell
                       label={formatProvisioningCodeLabel(row.error_code)}
@@ -1139,17 +1195,17 @@ function handleRefresh() {
                 },
                 {
                   key: "total_jobs",
-                  header: "Total",
+                  header: language === "es" ? "Total" : "Total",
                   render: (row) => row.total_jobs,
                 },
                 {
                   key: "retry_pending_jobs",
-                  header: "Reintento",
+                  header: language === "es" ? "Reintento" : "Retrying",
                   render: (row) => row.retry_pending_jobs,
                 },
                 {
                   key: "failed_jobs",
-                  header: "Fallidos",
+                  header: language === "es" ? "Fallidos" : "Failed",
                   render: (row) => row.failed_jobs,
                 },
               ]}
@@ -1178,12 +1234,12 @@ function handleRefresh() {
             columns={[
               {
                 key: "severity",
-                header: "Severidad",
+                header: language === "es" ? "Severidad" : "Severity",
                 render: (row) => <SeverityBadge value={row.severity} />,
               },
               {
                 key: "alert_code",
-                header: "Alerta",
+                header: language === "es" ? "Alerta" : "Alert",
                 render: (row) => (
                   <ProvisioningCodeCell
                     label={formatProvisioningAlertCode(row.alert_code)}
@@ -1193,22 +1249,22 @@ function handleRefresh() {
               },
               {
                 key: "tenant_slug",
-                header: "Tenant",
+                header: language === "es" ? "Tenant" : "Tenant",
                 render: (row) => row.tenant_slug || "—",
               },
               {
                 key: "worker_profile",
-                  header: "Worker",
+                header: language === "es" ? "Worker" : "Worker",
                 render: (row) => row.worker_profile || "—",
               },
               {
                 key: "message",
-                header: "Mensaje",
+                header: language === "es" ? "Mensaje" : "Message",
                 render: (row) => row.message,
               },
               {
                 key: "captured_at",
-                header: "Capturada en",
+                header: language === "es" ? "Capturada en" : "Captured at",
                 render: (row) => formatDateTime(row.captured_at),
               },
             ]}
@@ -1250,11 +1306,17 @@ function handleRefresh() {
       >
         <div className="provisioning-dlq-grid">
           <AppForm className="tenant-action-form" onSubmit={handleDlqFilterSubmit}>
-            <h3 className="tenant-action-form__title">Filtros DLQ</h3>
+            <h3 className="tenant-action-form__title">
+              {language === "es" ? "Filtros DLQ" : "DLQ filters"}
+            </h3>
             <AppFormField>
                 <FieldHelpLabel
-                  label="Límite"
-                  help="Máximo de filas DLQ que quieres inspeccionar en la consulta actual."
+                  label={language === "es" ? "Límite" : "Limit"}
+                  help={
+                    language === "es"
+                      ? "Máximo de filas DLQ que quieres inspeccionar en la consulta actual."
+                      : "Maximum number of DLQ rows you want to inspect in the current query."
+                  }
                 />
                 <input
                   className="form-control"
@@ -1266,8 +1328,12 @@ function handleRefresh() {
             </AppFormField>
             <AppFormField>
                 <FieldHelpLabel
-                  label="Tipo de job"
-                  help="Filtra por operación interna de provisioning, por ejemplo crear base tenant, sincronizar esquema o retirar infraestructura técnica."
+                  label={language === "es" ? "Tipo de job" : "Job type"}
+                  help={
+                    language === "es"
+                      ? "Filtra por operación interna de provisioning, por ejemplo crear base tenant, sincronizar esquema o retirar infraestructura técnica."
+                      : "Filter by internal provisioning operation, for example create tenant DB, sync schema or retire technical infrastructure."
+                  }
                 />
                 <input
                   className="form-control"
@@ -1283,8 +1349,12 @@ function handleRefresh() {
             </AppFormField>
             <AppFormField>
                 <FieldHelpLabel
-                  label="Slug tenant"
-                  help="Código técnico del tenant sobre el que quieres revisar filas DLQ."
+                  label={language === "es" ? "Slug tenant" : "Tenant slug"}
+                  help={
+                    language === "es"
+                      ? "Código técnico del tenant sobre el que quieres revisar filas DLQ."
+                      : "Technical code of the tenant whose DLQ rows you want to review."
+                  }
                 />
                 <input
                   className="form-control"
@@ -1294,8 +1364,12 @@ function handleRefresh() {
             </AppFormField>
             <AppFormField>
                 <FieldHelpLabel
-                  label="Código de error"
-                  help="Usa el código interno cuando quieras acotar una familia específica de fallos."
+                  label={language === "es" ? "Código de error" : "Error code"}
+                  help={
+                    language === "es"
+                      ? "Usa el código interno cuando quieras acotar una familia específica de fallos."
+                      : "Use the internal code when you want to narrow a specific failure family."
+                  }
                 />
                 <input
                   className="form-control"
@@ -1305,8 +1379,12 @@ function handleRefresh() {
             </AppFormField>
             <AppFormField fullWidth>
               <FieldHelpLabel
-                label="Error contiene"
-                help="Busca un texto dentro del mensaje de error para aislar casos similares."
+                label={language === "es" ? "Error contiene" : "Error contains"}
+                help={
+                  language === "es"
+                    ? "Busca un texto dentro del mensaje de error para aislar casos similares."
+                    : "Search for text inside the error message to isolate similar cases."
+                }
               />
               <input
                 className="form-control"
@@ -1320,17 +1398,23 @@ function handleRefresh() {
                 className="btn btn-outline-primary"
                 disabled={isLoading || isActionSubmitting}
               >
-                Aplicar filtros
+                {language === "es" ? "Aplicar filtros" : "Apply filters"}
               </button>
             </AppFormActions>
           </AppForm>
 
           <AppForm className="tenant-action-form" onSubmit={handleDlqBatchRequeue}>
-            <h3 className="tenant-action-form__title">Reencolado en lote</h3>
+            <h3 className="tenant-action-form__title">
+              {language === "es" ? "Reencolado en lote" : "Batch requeue"}
+            </h3>
             <AppFormField>
                 <FieldHelpLabel
-                  label="Límite"
-                  help="Cantidad máxima de filas filtradas que se van a devolver a la cola."
+                  label={language === "es" ? "Límite" : "Limit"}
+                  help={
+                    language === "es"
+                      ? "Cantidad máxima de filas filtradas que se van a devolver a la cola."
+                      : "Maximum amount of filtered rows that will be returned to the queue."
+                  }
                   placement="left"
                 />
                 <input
@@ -1343,8 +1427,12 @@ function handleRefresh() {
             </AppFormField>
             <AppFormField>
                 <FieldHelpLabel
-                  label="Segundos de demora"
-                  help="Espera opcional antes de volver a entregar el job al worker."
+                  label={language === "es" ? "Segundos de demora" : "Delay seconds"}
+                  help={
+                    language === "es"
+                      ? "Espera opcional antes de volver a entregar el job al worker."
+                      : "Optional wait before handing the job back to the worker."
+                  }
                   placement="left"
                 />
                 <input
@@ -1365,14 +1453,15 @@ function handleRefresh() {
                   onChange={(event) => setDlqResetAttempts(event.target.checked)}
                 />
                 <label className="form-check-label" htmlFor="dlq-reset-attempts">
-                  Reiniciar intentos al reencolar
+                  {language === "es" ? "Reiniciar intentos al reencolar" : "Reset attempts when requeuing"}
                 </label>
               </div>
             </div>
             <div className="app-form-field app-form-field--full">
               <p className="tenant-help-text mt-0 mb-0">
-                La acción en lote reutiliza el set actual de filtros, así que puedes reprocesar
-                una porción focalizada del DLQ en vez de toda la cola.
+                {language === "es"
+                  ? "La acción en lote reutiliza el set actual de filtros, así que puedes reprocesar una porción focalizada del DLQ en vez de toda la cola."
+                  : "The batch action reuses the current filter set, so you can reprocess a focused slice of the DLQ instead of the whole queue."}
               </p>
             </div>
             <AppFormActions>
@@ -1381,7 +1470,7 @@ function handleRefresh() {
                 className="btn btn-primary"
                 disabled={isActionSubmitting}
               >
-                Reencolar filas DLQ filtradas
+                {language === "es" ? "Reencolar filas DLQ filtradas" : "Requeue filtered DLQ rows"}
               </button>
             </AppFormActions>
           </AppForm>
@@ -1404,12 +1493,12 @@ function handleRefresh() {
             columns={[
               {
                 key: "job_id",
-                header: "Job",
+                header: language === "es" ? "Job" : "Job",
                 render: (row) => <code>#{row.job_id}</code>,
               },
               {
                 key: "job_type",
-                header: "Tipo de job",
+                header: language === "es" ? "Tipo de job" : "Job type",
                 render: (row) => (
                   <ProvisioningCodeCell
                     label={formatProvisioningJobType(row.job_type)}
@@ -1419,17 +1508,17 @@ function handleRefresh() {
               },
               {
                 key: "status",
-                header: "Estado",
+                header: language === "es" ? "Estado" : "Status",
                 render: (row) => <StatusBadge value={row.status} />,
               },
               {
                 key: "attempts",
-                header: "Intentos",
+                header: language === "es" ? "Intentos" : "Attempts",
                 render: (row) => `${row.attempts}/${row.max_attempts}`,
               },
               {
                 key: "error_code",
-                header: "Código de error",
+                header: language === "es" ? "Código de error" : "Error code",
                 render: (row) =>
                   row.error_code ? (
                     <ProvisioningCodeCell
@@ -1442,17 +1531,17 @@ function handleRefresh() {
               },
               {
                 key: "error_message",
-                header: "Mensaje de error",
+                header: language === "es" ? "Mensaje de error" : "Error message",
                 render: (row) => row.error_message || "—",
               },
               {
                 key: "recorded_at",
-                header: "Registrado en",
+                header: language === "es" ? "Registrado en" : "Recorded at",
                 render: (row) => formatDateTime(row.recorded_at),
               },
               {
                 key: "actions",
-                header: "Acciones",
+                header: language === "es" ? "Acciones" : "Actions",
                 render: (row) => (
                   <button
                     type="button"
@@ -1460,7 +1549,7 @@ function handleRefresh() {
                     onClick={() => handleSingleRequeue(row.job_id)}
                     disabled={isActionSubmitting}
                   >
-                    Reencolar
+                    {language === "es" ? "Reencolar" : "Requeue"}
                   </button>
                 ),
               },
@@ -1505,32 +1594,32 @@ function handleRefresh() {
             columns={[
               {
                 key: "captured_at",
-                header: "Capturado en",
+                header: language === "es" ? "Capturado en" : "Captured at",
                 render: (row) => formatDateTime(row.captured_at),
               },
               {
                 key: "worker_profile",
-                header: "Worker",
+                header: language === "es" ? "Worker" : "Worker",
                 render: (row) => row.worker_profile || "default",
               },
               {
                 key: "eligible_jobs",
-                header: "Elegibles",
+                header: language === "es" ? "Elegibles" : "Eligible",
                 render: (row) => row.eligible_jobs,
               },
               {
                 key: "processed_count",
-                header: "Procesados",
+                header: language === "es" ? "Procesados" : "Processed",
                 render: (row) => row.processed_count,
               },
               {
                 key: "failed_count",
-                header: "Fallidos",
+                header: language === "es" ? "Fallidos" : "Failed",
                 render: (row) => row.failed_count,
               },
               {
                 key: "duration_ms",
-                header: "Duración",
+                header: language === "es" ? "Duración" : "Duration",
                 render: (row) => `${row.duration_ms} ms`,
               },
             ]}

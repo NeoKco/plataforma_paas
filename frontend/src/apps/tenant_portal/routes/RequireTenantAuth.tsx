@@ -12,7 +12,13 @@ export function RequireTenantAuth() {
   if (!isHydrated) {
     return (
       <div className="container py-5">
-        <LoadingBlock label="Restaurando sesión tenant..." />
+        <LoadingBlock
+          label={
+            language === "es"
+              ? "Restaurando sesión tenant..."
+              : "Restoring tenant session..."
+          }
+        />
       </div>
     );
   }

@@ -767,9 +767,14 @@ export function TenantsPage() {
 
     requestConfirmation({
       scope: "identity-tenant",
-      title: "Confirmar actualización de identidad básica",
+      title:
+        language === "es"
+          ? "Confirmar actualización de identidad básica"
+          : "Confirm basic identity update",
       description:
-        "Esta acción actualiza el nombre visible y el tipo operativo del tenant. El slug se mantiene estable.",
+        language === "es"
+          ? "Esta acción actualiza el nombre visible y el tipo operativo del tenant. El slug se mantiene estable."
+          : "This action updates the tenant visible name and operational type. The slug remains stable.",
       details: [
         `${
           language === "es" ? "Tenant actual" : "Current tenant"
@@ -1044,15 +1049,22 @@ export function TenantsPage() {
     }
     requestConfirmation({
       scope: "sync-schema",
-      title: "Confirmar sincronización de esquema tenant",
+      title:
+        language === "es"
+          ? "Confirmar sincronización de esquema tenant"
+          : "Confirm tenant schema sync",
       description:
-        "Se ejecutarán migraciones tenant sobre la base configurada del tenant seleccionado.",
+        language === "es"
+          ? "Se ejecutarán migraciones tenant sobre la base configurada del tenant seleccionado."
+          : "Tenant migrations will run against the configured database of the selected tenant.",
       details: [
         `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
         `Slug: ${selectedTenantSummary?.slug || "n/a"}`,
-        "Usa esta acción cuando falten tablas o el schema tenant no esté al día.",
+        language === "es"
+          ? "Usa esta acción cuando falten tablas o el schema tenant no esté al día."
+          : "Use this action when tables are missing or the tenant schema is not up to date.",
       ],
-      confirmLabel: "Sincronizar esquema",
+      confirmLabel: language === "es" ? "Sincronizar esquema" : "Sync schema",
       action: () => syncPlatformTenantSchema(session.accessToken, selectedTenantId),
     });
   }
@@ -1064,19 +1076,29 @@ export function TenantsPage() {
 
     requestConfirmation({
       scope: "run-provisioning-job",
-      title: "Confirmar ejecución del provisioning",
+      title:
+        language === "es"
+          ? "Confirmar ejecución del provisioning"
+          : "Confirm provisioning run",
       description:
-        "Esta acción intenta procesar ahora mismo el job de provisioning visible para este tenant.",
+        language === "es"
+          ? "Esta acción intenta procesar ahora mismo el job de provisioning visible para este tenant."
+          : "This action tries to process the visible provisioning job for this tenant right now.",
       details: [
         `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
         `Job: #${selectedProvisioningJob.id}`,
-        `Tipo: ${formatProvisioningJobType(selectedProvisioningJob.job_type)}`,
-        `Estado actual: ${displayPlatformCode(selectedProvisioningJob.status)}`,
+        `${language === "es" ? "Tipo" : "Type"}: ${formatProvisioningJobType(selectedProvisioningJob.job_type)}`,
+        `${language === "es" ? "Estado actual" : "Current status"}: ${displayPlatformCode(selectedProvisioningJob.status, language)}`,
       ],
-      confirmLabel: "Ejecutar ahora",
+      confirmLabel: language === "es" ? "Ejecutar ahora" : "Run now",
       action: async () => {
         await runProvisioningJob(session.accessToken, selectedProvisioningJob.id);
-        return { message: "El worker procesó el job seleccionado." };
+        return {
+          message:
+            language === "es"
+              ? "El worker procesó el job seleccionado."
+              : "The worker processed the selected job.",
+        };
       },
     });
   }
@@ -1088,19 +1110,29 @@ export function TenantsPage() {
 
     requestConfirmation({
       scope: "requeue-provisioning-job",
-      title: "Confirmar nuevo intento de provisioning",
+      title:
+        language === "es"
+          ? "Confirmar nuevo intento de provisioning"
+          : "Confirm provisioning retry",
       description:
-        "Esta acción vuelve a poner el job en cola para que pueda ejecutarse otra vez.",
+        language === "es"
+          ? "Esta acción vuelve a poner el job en cola para que pueda ejecutarse otra vez."
+          : "This action puts the job back in queue so it can run again.",
       details: [
         `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
         `Job: #${selectedProvisioningJob.id}`,
-        `Estado actual: ${displayPlatformCode(selectedProvisioningJob.status)}`,
-        `Intentos usados: ${selectedProvisioningJob.attempts}/${selectedProvisioningJob.max_attempts}`,
+        `${language === "es" ? "Estado actual" : "Current status"}: ${displayPlatformCode(selectedProvisioningJob.status, language)}`,
+        `${language === "es" ? "Intentos usados" : "Attempts used"}: ${selectedProvisioningJob.attempts}/${selectedProvisioningJob.max_attempts}`,
       ],
-      confirmLabel: "Reencolar job",
+      confirmLabel: language === "es" ? "Reencolar job" : "Requeue job",
       action: async () => {
         await requeueProvisioningJob(session.accessToken, selectedProvisioningJob.id);
-        return { message: "El job quedó reencolado para un nuevo intento." };
+        return {
+          message:
+            language === "es"
+              ? "El job quedó reencolado para un nuevo intento."
+              : "The job was requeued for a new attempt.",
+        };
       },
     });
   }
@@ -1112,21 +1144,30 @@ export function TenantsPage() {
 
     requestConfirmation({
       scope: "reprovision-tenant",
-      title: "Confirmar reprovisionado del tenant",
+      title:
+        language === "es"
+          ? "Confirmar reprovisionado del tenant"
+          : "Confirm tenant reprovisioning",
       description:
-        "Esta acción crea un nuevo job para recomponer la base tenant cuando el historial previo quedó completado, pero la configuración DB sigue incompleta.",
+        language === "es"
+          ? "Esta acción crea un nuevo job para recomponer la base tenant cuando el historial previo quedó completado, pero la configuración DB sigue incompleta."
+          : "This action creates a new job to rebuild the tenant database when the previous history completed but DB configuration is still incomplete.",
       details: [
         `Tenant: ${selectedTenantSummary.name}`,
         `Slug: ${selectedTenantSummary.slug}`,
-        `Lifecycle actual: ${displayPlatformCode(selectedTenantSummary.status)}`,
-        "Úsalo cuando el portal tenant siga bloqueado por configuración DB incompleta.",
+        `${language === "es" ? "Lifecycle actual" : "Current lifecycle"}: ${displayPlatformCode(selectedTenantSummary.status, language)}`,
+        language === "es"
+          ? "Úsalo cuando el portal tenant siga bloqueado por configuración DB incompleta."
+          : "Use it when the tenant portal is still blocked by incomplete DB configuration.",
       ],
-      confirmLabel: "Reprovisionar tenant",
+      confirmLabel: language === "es" ? "Reprovisionar tenant" : "Reprovision tenant",
       action: async () => {
         await reprovisionPlatformTenant(session.accessToken, selectedTenantId);
         return {
           message:
-            "Se creó un nuevo job de provisioning para recomponer la base tenant.",
+            language === "es"
+              ? "Se creó un nuevo job de provisioning para recomponer la base tenant."
+              : "A new provisioning job was created to rebuild the tenant database.",
         };
       },
     });
@@ -1139,16 +1180,23 @@ export function TenantsPage() {
 
     requestConfirmation({
       scope: "rotate-tenant-db-credentials",
-      title: "Confirmar rotación de credenciales técnicas",
+      title:
+        language === "es"
+          ? "Confirmar rotación de credenciales técnicas"
+          : "Confirm technical credential rotation",
       description:
-        "Esta acción rota la contraseña técnica de la base tenant, valida el nuevo acceso y actualiza el secreto dinámico usado por la plataforma.",
+        language === "es"
+          ? "Esta acción rota la contraseña técnica de la base tenant, valida el nuevo acceso y actualiza el secreto dinámico usado por la plataforma."
+          : "This action rotates the tenant database technical password, validates the new access, and updates the dynamic secret used by the platform.",
       details: [
         `Tenant: ${selectedTenantSummary.name}`,
         `Slug: ${selectedTenantSummary.slug}`,
-        `DB tenant configurada: ${selectedTenantSummary.db_configured ? "sí" : "no"}`,
-        "No cambia las credenciales del portal tenant ni las cuentas de usuario final.",
+        `${language === "es" ? "DB tenant configurada" : "Tenant DB configured"}: ${selectedTenantSummary.db_configured ? (language === "es" ? "sí" : "yes") : "no"}`,
+        language === "es"
+          ? "No cambia las credenciales del portal tenant ni las cuentas de usuario final."
+          : "It does not change tenant portal credentials or end-user accounts.",
       ],
-      confirmLabel: "Rotar credenciales",
+      confirmLabel: language === "es" ? "Rotar credenciales" : "Rotate credentials",
       action: async () => {
         const response = await rotatePlatformTenantDbCredentials(
           session.accessToken,
@@ -1156,11 +1204,15 @@ export function TenantsPage() {
         );
         return {
           message:
-            "La credencial técnica de la base tenant fue rotada y validada correctamente.",
+            language === "es"
+              ? "La credencial técnica de la base tenant fue rotada y validada correctamente."
+              : "The tenant database technical credential was rotated and validated successfully.",
           details: [
-            `Variable actualizada: ${response.env_var_name}`,
-            "Archivo gestionado: /home/felipe/platform_paas/.env",
-            "Esta credencial es técnica para la base tenant. No corresponde a la contraseña del portal tenant.",
+            `${language === "es" ? "Variable actualizada" : "Updated variable"}: ${response.env_var_name}`,
+            `${language === "es" ? "Archivo gestionado" : "Managed file"}: /home/felipe/platform_paas/.env`,
+            language === "es"
+              ? "Esta credencial es técnica para la base tenant. No corresponde a la contraseña del portal tenant."
+              : "This credential is technical for the tenant database. It is not the tenant portal password.",
           ],
         };
       },
@@ -1184,11 +1236,16 @@ export function TenantsPage() {
       );
       setTenantPortalResetPassword("");
       return {
-        message: "La contraseña del usuario tenant fue actualizada correctamente.",
+        message:
+          language === "es"
+            ? "La contraseña del usuario tenant fue actualizada correctamente."
+            : "The tenant user password was updated successfully.",
         details: [
-          `Usuario actualizado: ${response.email}`,
+          `${language === "es" ? "Usuario actualizado" : "Updated user"}: ${response.email}`,
           `Tenant: ${response.tenant_slug}`,
-          "Esto cambia la contraseña del portal tenant, no la credencial técnica de la base de datos.",
+          language === "es"
+            ? "Esto cambia la contraseña del portal tenant, no la credencial técnica de la base de datos."
+            : "This changes the tenant portal password, not the database technical credential.",
         ],
       };
     });
@@ -1201,22 +1258,31 @@ export function TenantsPage() {
 
     requestConfirmation({
       scope: "archive-tenant",
-      title: "Confirmar archivo del tenant",
+      title:
+        language === "es"
+          ? "Confirmar archivo del tenant"
+          : "Confirm tenant archive",
       description:
-        "Archivar deja al tenant fuera de operación normal sin eliminar su historial, jobs ni referencias técnicas.",
+        language === "es"
+          ? "Archivar deja al tenant fuera de operación normal sin eliminar su historial, jobs ni referencias técnicas."
+          : "Archiving takes the tenant out of normal operation without deleting its history, jobs, or technical references.",
       details: [
         `Tenant: ${selectedTenantSummary.name}`,
         `Slug: ${selectedTenantSummary.slug}`,
-        "La reapertura posterior debe hacerse usando el flujo explícito de restauración.",
+        language === "es"
+          ? "La reapertura posterior debe hacerse usando el flujo explícito de restauración."
+          : "Any later reopening must be done through the explicit restore flow.",
       ],
-      confirmLabel: "Archivar tenant",
+      confirmLabel: language === "es" ? "Archivar tenant" : "Archive tenant",
       tone: "danger",
       action: () =>
         updatePlatformTenantStatus(session.accessToken, selectedTenantId, {
           status: "archived",
           status_reason:
             normalizeNullableString(statusReason) ||
-            "Archivado desde consola de plataforma",
+            (language === "es"
+              ? "Archivado desde consola de plataforma"
+              : "Archived from the platform console"),
         }),
     });
   }
@@ -1229,17 +1295,22 @@ export function TenantsPage() {
 
     requestConfirmation({
       scope: "restore-tenant",
-      title: "Confirmar restauración del tenant",
+      title:
+        language === "es"
+          ? "Confirmar restauración del tenant"
+          : "Confirm tenant restore",
       description:
-        "Restaurar vuelve a abrir el tenant archivado y lo deja en el lifecycle destino elegido, sin perder historial ni referencias operativas.",
+        language === "es"
+          ? "Restaurar vuelve a abrir el tenant archivado y lo deja en el lifecycle destino elegido, sin perder historial ni referencias operativas."
+          : "Restoring reopens the archived tenant and leaves it in the selected target lifecycle without losing history or operational references.",
       details: [
         `Tenant: ${selectedTenantSummary.name}`,
         `Slug: ${selectedTenantSummary.slug}`,
-        `Estado actual: ${selectedTenantSummary.status}`,
-        `Estado de restauración: ${restoreTargetStatus}`,
-        `Motivo: ${normalizeNullableString(restoreReason) || "sin motivo"}`,
+        `${language === "es" ? "Estado actual" : "Current status"}: ${selectedTenantSummary.status}`,
+        `${language === "es" ? "Estado de restauración" : "Restore status"}: ${restoreTargetStatus}`,
+        `${language === "es" ? "Motivo" : "Reason"}: ${normalizeNullableString(restoreReason) || (language === "es" ? "sin motivo" : "no reason")}`,
       ],
-      confirmLabel: "Restaurar tenant",
+      confirmLabel: language === "es" ? "Restaurar tenant" : "Restore tenant",
       tone: "warning",
       action: () =>
         restorePlatformTenant(session.accessToken, selectedTenantId, {
@@ -1256,21 +1327,31 @@ export function TenantsPage() {
 
     requestConfirmation({
       scope: "delete-tenant",
-      title: "Confirmar borrado seguro del tenant",
+      title:
+        language === "es"
+          ? "Confirmar borrado seguro del tenant"
+          : "Confirm safe tenant deletion",
       description:
-        "Esta acción elimina definitivamente el tenant archivado solo cuando nunca quedó materializada su infraestructura tenant ni su historial comercial.",
+        language === "es"
+          ? "Esta acción elimina definitivamente el tenant archivado solo cuando nunca quedó materializada su infraestructura tenant ni su historial comercial."
+          : "This action permanently deletes the archived tenant only when its tenant infrastructure and commercial history were never materialized.",
       details: [
         `Tenant: ${selectedTenantSummary.name}`,
         `Slug: ${selectedTenantSummary.slug}`,
-        "Úsalo solo para altas descartadas, pruebas o tenants archivados que no deben conservarse.",
+        language === "es"
+          ? "Úsalo solo para altas descartadas, pruebas o tenants archivados que no deben conservarse."
+          : "Use it only for discarded signups, tests, or archived tenants that should not be preserved.",
       ],
-      confirmLabel: "Eliminar tenant",
+      confirmLabel: language === "es" ? "Eliminar tenant" : "Delete tenant",
       tone: "danger",
       action: async () => {
         const deletedTenantId = selectedTenantId;
         await deletePlatformTenant(session.accessToken, selectedTenantId);
         return {
-          message: "El tenant fue eliminado correctamente.",
+          message:
+            language === "es"
+              ? "El tenant fue eliminado correctamente."
+              : "The tenant was deleted successfully.",
           afterSuccess: async () => {
             setSelectedTenantId(null);
             setSelectedTenant(null);
@@ -1292,16 +1373,25 @@ export function TenantsPage() {
 
     requestConfirmation({
       scope: "deprovision-tenant",
-      title: "Confirmar desprovisionado del tenant",
+      title:
+        language === "es"
+          ? "Confirmar desprovisionado del tenant"
+          : "Confirm tenant deprovisioning",
       description:
-        "Esta acción elimina la base tenant, el rol técnico de PostgreSQL y los secretos técnicos asociados. No equivale a borrar el registro del tenant.",
+        language === "es"
+          ? "Esta acción elimina la base tenant, el rol técnico de PostgreSQL y los secretos técnicos asociados. No equivale a borrar el registro del tenant."
+          : "This action removes the tenant database, the PostgreSQL technical role, and associated technical secrets. It does not delete the tenant record.",
       details: [
         `Tenant: ${selectedTenantSummary.name}`,
         `Slug: ${selectedTenantSummary.slug}`,
-        "Debe usarse sobre tenants archivados cuando ya no deban conservar infraestructura técnica.",
-        "Después de desprovisionar, el tenant puede quedar apto para borrado seguro si tampoco tiene historial comercial protegido.",
+        language === "es"
+          ? "Debe usarse sobre tenants archivados cuando ya no deban conservar infraestructura técnica."
+          : "It should be used on archived tenants that should no longer keep technical infrastructure.",
+        language === "es"
+          ? "Después de desprovisionar, el tenant puede quedar apto para borrado seguro si tampoco tiene historial comercial protegido."
+          : "After deprovisioning, the tenant may become eligible for safe deletion if it also has no protected commercial history.",
       ],
-      confirmLabel: "Desprovisionar tenant",
+      confirmLabel: language === "es" ? "Desprovisionar tenant" : "Deprovision tenant",
       tone: "danger",
       action: async () => {
         const job = await deprovisionPlatformTenant(
@@ -1309,12 +1399,17 @@ export function TenantsPage() {
           selectedTenantId
         );
         return {
-          message: "Se creó un job para desprovisionar la infraestructura técnica del tenant.",
+          message:
+            language === "es"
+              ? "Se creó un job para desprovisionar la infraestructura técnica del tenant."
+              : "A job was created to deprovision the tenant technical infrastructure.",
           details: [
             `Job: #${job.id}`,
-            `Tipo: ${formatProvisioningJobType(job.job_type)}`,
-            `Estado inicial: ${displayPlatformCode(job.status)}`,
-            "La ejecución real se procesa por el worker de provisioning o puede lanzarse manualmente desde esta misma ficha.",
+            `${language === "es" ? "Tipo" : "Type"}: ${formatProvisioningJobType(job.job_type)}`,
+            `${language === "es" ? "Estado inicial" : "Initial status"}: ${displayPlatformCode(job.status, language)}`,
+            language === "es"
+              ? "La ejecución real se procesa por el worker de provisioning o puede lanzarse manualmente desde esta misma ficha."
+              : "The actual execution is processed by the provisioning worker or can be launched manually from this same page.",
           ],
         };
       },
@@ -1661,8 +1756,9 @@ export function TenantsPage() {
                     ) : (
                       <>
                         <div className="tenant-help-text">
-                          Este tenant está archivado. Usa el bloque de restauración para reabrirlo
-                          con un lifecycle explícito.
+                          {language === "es"
+                            ? "Este tenant está archivado. Usa el bloque de restauración para reabrirlo con un lifecycle explícito."
+                            : "This tenant is archived. Use the restore block to reopen it with an explicit lifecycle."}
                         </div>
                         {selectedTenantSummary.db_configured ? (
                           <button
@@ -1671,7 +1767,7 @@ export function TenantsPage() {
                             onClick={handleDeprovisionTenant}
                             disabled={isActionSubmitting}
                           >
-                            Desprovisionar tenant
+                            {language === "es" ? "Desprovisionar tenant" : "Deprovision tenant"}
                           </button>
                         ) : (
                           <button
@@ -1680,110 +1776,131 @@ export function TenantsPage() {
                             onClick={handleDeleteTenant}
                             disabled={isActionSubmitting}
                           >
-                            Eliminar tenant
+                            {language === "es" ? "Eliminar tenant" : "Delete tenant"}
                           </button>
                         )}
                       </>
                     )}
                     {tenantPortalHref && canOpenTenantPortal ? (
                       <Link className="btn btn-outline-primary btn-sm" to={tenantPortalHref}>
-                        Abrir portal tenant
+                        {language === "es" ? "Abrir portal tenant" : "Open tenant portal"}
                       </Link>
                     ) : tenantPortalHref ? (
                       <div className="tenant-help-text">
-                        El portal tenant solo queda disponible cuando el tenant está activo, su
-                        provisioning ya terminó correctamente y la configuración DB tenant quedó
-                        completa.
+                        {language === "es"
+                          ? "El portal tenant solo queda disponible cuando el tenant está activo, su provisioning ya terminó correctamente y la configuración DB tenant quedó completa."
+                          : "The tenant portal is only available when the tenant is active, provisioning finished successfully and tenant DB configuration is complete."}
                       </div>
                     ) : null}
                   </div>
                 </div>
                 <div className="tenant-detail-grid">
                   <DetailField label="Slug" value={<code>{selectedTenantSummary.slug}</code>} />
-                  <DetailField label="Tipo de tenant" value={selectedTenantSummary.tenant_type} />
                   <DetailField
-                    label="Ciclo de vida"
+                    label={language === "es" ? "Tipo de tenant" : "Tenant type"}
+                    value={selectedTenantSummary.tenant_type}
+                  />
+                  <DetailField
+                    label={language === "es" ? "Ciclo de vida" : "Lifecycle"}
                     value={<StatusBadge value={selectedTenantSummary.status} />}
                   />
                   <DetailField
-                    label="Facturación"
+                    label={language === "es" ? "Facturación" : "Billing"}
                     value={
                       <StatusBadge value={selectedTenantSummary.billing_status || "unknown"} />
                     }
                   />
                   <DetailField
-                    label="Plan"
-                    value={selectedTenantSummary.plan_code || "Sin plan"}
+                    label={language === "es" ? "Plan" : "Plan"}
+                    value={selectedTenantSummary.plan_code || (language === "es" ? "Sin plan" : "No plan")}
                   />
                   <DetailField
-                    label="Mantenimiento"
-                    value={selectedTenantSummary.maintenance_mode ? "Manual" : "Apagado"}
+                    label={language === "es" ? "Mantenimiento" : "Maintenance"}
+                    value={
+                      selectedTenantSummary.maintenance_mode
+                        ? language === "es"
+                          ? "Manual"
+                          : "Manual"
+                        : language === "es"
+                          ? "Apagado"
+                          : "Off"
+                    }
                   />
                   <DetailField
-                    label="Fin de período billing"
+                    label={language === "es" ? "Fin de período billing" : "Billing period end"}
                     value={formatDateTime(selectedTenantSummary.billing_current_period_ends_at)}
                   />
                   <DetailField
-                    label="Gracia billing hasta"
+                    label={language === "es" ? "Gracia billing hasta" : "Billing grace until"}
                     value={formatDateTime(selectedTenantSummary.billing_grace_until)}
                   />
                   <DetailField
-                    label="Inicio mantenimiento"
+                    label={language === "es" ? "Inicio mantenimiento" : "Maintenance start"}
                     value={formatDateTime(selectedTenantSummary.maintenance_starts_at)}
                   />
                   <DetailField
-                    label="Fin mantenimiento"
+                    label={language === "es" ? "Fin mantenimiento" : "Maintenance end"}
                     value={formatDateTime(selectedTenantSummary.maintenance_ends_at)}
                   />
                 </div>
 
                 {selectedTenantSummary.status_reason ? (
                   <div className="tenant-inline-note">
-                    Motivo de estado: {selectedTenantSummary.status_reason}
+                    {language === "es" ? "Motivo de estado" : "Status reason"}: {selectedTenantSummary.status_reason}
                   </div>
                 ) : null}
                 {selectedTenantSummary.billing_status_reason ? (
                   <div className="tenant-inline-note">
-                    Motivo de facturación: {selectedTenantSummary.billing_status_reason}
+                    {language === "es" ? "Motivo de facturación" : "Billing reason"}: {selectedTenantSummary.billing_status_reason}
                   </div>
                 ) : null}
                 {selectedTenantSummary.maintenance_reason ? (
                   <div className="tenant-inline-note">
-                    Motivo de mantenimiento: {selectedTenantSummary.maintenance_reason}
+                    {language === "es" ? "Motivo de mantenimiento" : "Maintenance reason"}: {selectedTenantSummary.maintenance_reason}
                   </div>
                 ) : null}
               </PanelCard>
 
               {accessPolicy ? (
                 <PanelCard
-                  title="Política de acceso"
-                  subtitle="Lectura efectiva del enforcement de lifecycle y billing."
+                  title={language === "es" ? "Política de acceso" : "Access policy"}
+                  subtitle={
+                    language === "es"
+                      ? "Lectura efectiva del enforcement de lifecycle y billing."
+                      : "Effective read of lifecycle and billing enforcement."
+                  }
                 >
                   <div className="tenant-access-grid">
                     <DetailField
-                      label="Permitido"
+                      label={language === "es" ? "Permitido" : "Allowed"}
                       value={
                         <AppBadge tone={accessPolicy.access_allowed ? "success" : "danger"}>
-                          {accessPolicy.access_allowed ? "permitido" : "bloqueado"}
+                          {accessPolicy.access_allowed
+                            ? language === "es"
+                              ? "permitido"
+                              : "allowed"
+                            : language === "es"
+                              ? "bloqueado"
+                              : "blocked"}
                         </AppBadge>
                       }
                     />
                     <DetailField
-                      label="Fuente de bloqueo"
-                      value={displayAccessBlockingSource(accessPolicy.access_blocking_source)}
+                      label={language === "es" ? "Fuente de bloqueo" : "Blocking source"}
+                      value={displayAccessBlockingSource(accessPolicy.access_blocking_source, language)}
                     />
                     <DetailField
-                      label="Código de estado"
+                      label={language === "es" ? "Código de estado" : "Status code"}
                       value={accessPolicy.access_status_code || "n/a"}
                     />
                     <DetailField
-                      label="Billing en gracia"
-                      value={accessPolicy.billing_in_grace ? "sí" : "no"}
+                      label={language === "es" ? "Billing en gracia" : "Billing in grace"}
+                      value={accessPolicy.billing_in_grace ? (language === "es" ? "sí" : "yes") : "no"}
                     />
                   </div>
                   {accessPolicy.access_detail ? (
                     <div className="tenant-inline-note">
-                      {displayTenantAccessDetail(accessPolicy.access_detail)}
+                      {displayTenantAccessDetail(accessPolicy.access_detail, language)}
                     </div>
                   ) : null}
                 </PanelCard>
@@ -1791,11 +1908,19 @@ export function TenantsPage() {
 
               <PanelCard
                 title="Provisioning"
-                subtitle="Estado del job técnico que prepara la base tenant y deja el acceso bootstrap listo."
+                subtitle={
+                  language === "es"
+                    ? "Estado del job técnico que prepara la base tenant y deja el acceso bootstrap listo."
+                    : "State of the technical job that prepares the tenant database and leaves bootstrap access ready."
+                }
               >
                 {provisioningJobError ? (
                   <ErrorState
-                    title="Falló la lectura de provisioning"
+                    title={
+                      language === "es"
+                        ? "Falló la lectura de provisioning"
+                        : "Provisioning read failed"
+                    }
                     detail={
                       provisioningJobError.payload?.detail || provisioningJobError.message
                     }
@@ -1805,57 +1930,61 @@ export function TenantsPage() {
                   <>
                     <div className="tenant-detail-grid">
                       <DetailField
-                        label="Último job"
+                        label={language === "es" ? "Último job" : "Latest job"}
                         value={`#${selectedProvisioningJob.id}`}
                       />
                       <DetailField
-                        label="Operación"
+                        label={language === "es" ? "Operación" : "Operation"}
                         value={formatProvisioningJobType(selectedProvisioningJob.job_type)}
                       />
                       <DetailField
-                        label="Estado"
+                        label={language === "es" ? "Estado" : "Status"}
                         value={<StatusBadge value={selectedProvisioningJob.status} />}
                       />
                       <DetailField
-                        label="Intentos"
+                        label={language === "es" ? "Intentos" : "Attempts"}
                         value={`${selectedProvisioningJob.attempts}/${selectedProvisioningJob.max_attempts}`}
                       />
                       <DetailField
-                        label="Próximo reintento"
+                        label={language === "es" ? "Próximo reintento" : "Next retry"}
                         value={formatDateTime(selectedProvisioningJob.next_retry_at)}
                       />
                       <DetailField
-                        label="Lectura rápida"
+                        label={language === "es" ? "Lectura rápida" : "Quick read"}
                         value={getProvisioningStatusExplanation(selectedProvisioningJob.status)}
                       />
                     </div>
 
                     {selectedProvisioningJob.error_code ? (
                       <div className="tenant-inline-note">
-                        Error técnico: {displayPlatformCode(selectedProvisioningJob.error_code)}
+                        {language === "es" ? "Error técnico" : "Technical error"}:{" "}
+                        {displayPlatformCode(selectedProvisioningJob.error_code, language)}
                       </div>
                     ) : null}
                     {selectedProvisioningJob.error_message ? (
                       <div className="tenant-inline-note">
-                        Detalle último error: {selectedProvisioningJob.error_message}
+                        {language === "es" ? "Detalle último error" : "Last error detail"}:{" "}
+                        {selectedProvisioningJob.error_message}
                       </div>
                     ) : null}
                     {!selectedTenantSummary.db_configured &&
                     selectedProvisioningJob.status === "completed" ? (
                       <div className="tenant-inline-note">
-                        El tenant tiene un job histórico completado, pero la configuración DB
-                        sigue incompleta. Debes reprovisionarlo para recomponer su base tenant.
+                        {language === "es"
+                          ? "El tenant tiene un job histórico completado, pero la configuración DB sigue incompleta. Debes reprovisionarlo para recomponer su base tenant."
+                          : "The tenant has a completed historical job, but DB configuration is still incomplete. You must reprovision it to rebuild its tenant database."}
                       </div>
                     ) : null}
 
                     <div className="tenant-context-actions tenant-context-actions--compact">
                       <div className="tenant-help-text">
-                        Crear tenant dispara provisioning automáticamente. Aquí puedes ver si la
-                        base tenant quedó lista o si el job necesita intervención.
+                        {language === "es"
+                          ? "Crear tenant dispara provisioning automáticamente. Aquí puedes ver si la base tenant quedó lista o si el job necesita intervención."
+                          : "Creating a tenant triggers provisioning automatically. Here you can see whether the tenant database is ready or whether the job needs intervention."}
                       </div>
                       <div className="tenant-context-actions__buttons">
                         <Link className="btn btn-outline-primary btn-sm" to="/provisioning">
-                          Abrir provisioning
+                          {language === "es" ? "Abrir provisioning" : "Open provisioning"}
                         </Link>
                         {(selectedProvisioningJob.status === "pending" ||
                           selectedProvisioningJob.status === "retry_pending") && (
@@ -1865,7 +1994,7 @@ export function TenantsPage() {
                             onClick={handleRunProvisioningJob}
                             disabled={isActionSubmitting}
                           >
-                            Ejecutar ahora
+                            {language === "es" ? "Ejecutar ahora" : "Run now"}
                           </button>
                         )}
                         {selectedProvisioningJob.status === "failed" && (
@@ -1875,7 +2004,7 @@ export function TenantsPage() {
                             onClick={handleRequeueProvisioningJob}
                             disabled={isActionSubmitting}
                           >
-                            Reintentar
+                            {language === "es" ? "Reintentar" : "Retry"}
                           </button>
                         )}
                         {!selectedTenantSummary.db_configured &&
@@ -1886,7 +2015,7 @@ export function TenantsPage() {
                               onClick={handleReprovisionTenant}
                               disabled={isActionSubmitting}
                             >
-                              Reprovisionar tenant
+                              {language === "es" ? "Reprovisionar tenant" : "Reprovision tenant"}
                             </button>
                           )}
                       </div>
@@ -1895,15 +2024,16 @@ export function TenantsPage() {
                 ) : (
                   <>
                     <div className="text-secondary">
-                      Este tenant todavía no tiene jobs visibles de provisioning. Si acaba de ser
-                      creado, recarga el catálogo o abre la consola de provisioning para revisar la
-                      cola global.
+                      {language === "es"
+                        ? "Este tenant todavía no tiene jobs visibles de provisioning. Si acaba de ser creado, recarga el catálogo o abre la consola de provisioning para revisar la cola global."
+                        : "This tenant still has no visible provisioning jobs. If it was just created, reload the catalog or open the provisioning console to review the global queue."}
                     </div>
                     {!selectedTenantSummary.db_configured ? (
                       <div className="tenant-context-actions tenant-context-actions--compact">
                         <div className="tenant-help-text">
-                          El tenant sigue sin configuración DB completa. Puedes crear ahora un job
-                          nuevo de provisioning para prepararlo.
+                          {language === "es"
+                            ? "El tenant sigue sin configuración DB completa. Puedes crear ahora un job nuevo de provisioning para prepararlo."
+                            : "The tenant still lacks complete DB configuration. You can create a new provisioning job now to prepare it."}
                         </div>
                         <div className="tenant-context-actions__buttons">
                           <button
@@ -1912,7 +2042,7 @@ export function TenantsPage() {
                             onClick={handleReprovisionTenant}
                             disabled={isActionSubmitting}
                           >
-                            Reprovisionar tenant
+                            {language === "es" ? "Reprovisionar tenant" : "Reprovision tenant"}
                           </button>
                         </div>
                       </div>
@@ -1923,15 +2053,20 @@ export function TenantsPage() {
                 {selectedTenantSummary.db_configured ? (
                   schemaStatusError ? (
                     <div className="tenant-inline-note">
-                      No se pudo leer la trazabilidad de esquema tenant en esta revisión.
+                      {language === "es"
+                        ? "No se pudo leer la trazabilidad de esquema tenant en esta revisión."
+                        : "Could not read tenant schema traceability in this review."}
                     </div>
                   ) : schemaStatus ? (
                     <>
                       <div className="tenant-section-divider" />
                       <div className="tenant-detail-grid">
                         <DetailField
-                          label="Esquema actual"
-                          value={schemaStatus.current_version || "sin registro"}
+                          label={language === "es" ? "Esquema actual" : "Current schema"}
+                          value={
+                            schemaStatus.current_version ||
+                            (language === "es" ? "sin registro" : "no record")
+                          }
                         />
                         <DetailField
                           label={

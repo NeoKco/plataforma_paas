@@ -12,7 +12,9 @@ export function RequireAuth() {
   if (!isHydrated) {
     return (
       <div className="container py-5">
-        <LoadingBlock label="Restaurando sesión..." />
+        <LoadingBlock
+          label={language === "es" ? "Restaurando sesión..." : "Restoring session..."}
+        />
       </div>
     );
   }

@@ -12,7 +12,13 @@ export function RequireInstalled({ children }: { children: ReactNode }) {
   if (isChecking) {
     return (
       <div className="container py-5">
-        <LoadingBlock label="Verificando instalación de plataforma..." />
+        <LoadingBlock
+          label={
+            language === "es"
+              ? "Verificando instalación de plataforma..."
+              : "Checking platform installation..."
+          }
+        />
       </div>
     );
   }
