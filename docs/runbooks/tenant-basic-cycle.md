@@ -317,10 +317,12 @@ Lo que sigue abierto aqui ya no es una falta de UI base, sino una decision de pr
 
 Backlog corto de endurecimiento ya identificado:
 
-- agregar una prueba smoke/E2E del ciclo completo:
+- ya existe una prueba de lifecycle integrada que cubre:
   - crear
   - provisionar
+  - login tenant
   - archivar
+  - restaurar
   - desprovisionar
   - eliminar
   - verificar aparicion en `Histórico tenants`

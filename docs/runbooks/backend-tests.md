@@ -200,8 +200,28 @@ Cobertura adicional relevante:
 
 Pendiente recomendado de cobertura:
 
-- smoke del ciclo completo `create -> provision -> archive -> deprovision -> delete -> tenant_history`
 - validacion de permisos de `tenant-history` por rol para que no se abra fuera del alcance esperado
+
+## Suite Lifecycle Tenant Integrada
+
+Archivo:
+
+- `backend/app/tests/test_tenant_lifecycle_integration_flow.py`
+
+Cobertura actual:
+
+- `create -> provision -> tenant login -> operacion tenant basica -> archive -> refresh bloqueado -> restore -> login restaurado -> deprovision -> delete -> tenant_history`
+- usa `platform_control` real de prueba y `tenant DB` real de prueba con SQLite
+- evita depender de PostgreSQL tenant real stubbeando solo la capa de infraestructura externa del provisioning
+
+Ejecucion:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest \
+  app.tests.test_tenant_lifecycle_integration_flow
+```
 
 Suite puntual de seguridad:
 

@@ -63,7 +63,7 @@ La recomendacion actual es esta:
 
 Pendiente corto de endurecimiento antes o en paralelo a nuevos modulos:
 
-- smoke/E2E del lifecycle tenant completo hasta aparicion en `Histórico tenants`
+- smoke/E2E del lifecycle tenant completo hasta aparicion en `Histórico tenants` ya cubierto en backend sobre control DB + tenant DB de prueba, incluyendo create, provision, login tenant, archive, restore, deprovision, delete y validacion del archivo historico
 - congelar permisos finos de la vista historica para que quede acotada a operacion central
 - decidir si el historico necesita exportacion o filtros adicionales antes de crecer en volumen
 - recaptura visual del bloque tenant cuando la UX ya se considere estable
