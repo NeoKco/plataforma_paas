@@ -31,6 +31,7 @@ import {
   runProvisioningJob,
 } from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
+import { useLanguage } from "../../../../store/language-context";
 import type {
   ApiError,
   ProvisioningBrokerDeadLetterResponse,
@@ -60,6 +61,7 @@ type PendingConfirmation = {
 export function ProvisioningPage() {
   const showDevelopmentBootstrapHelp = import.meta.env.DEV;
   const { session } = useAuth();
+  const { language } = useLanguage();
   const [jobs, setJobs] = useState<ProvisioningJob[]>([]);
   const [metrics, setMetrics] = useState<ProvisioningJobMetricsResponse | null>(null);
   const [metricsByJobType, setMetricsByJobType] =
@@ -518,11 +520,17 @@ function handleRefresh() {
       description:
         "Esta acción crea jobs de sincronización para tenants activos con base configurada y sin jobs vivos de provisioning.",
       details: [
-        "Alcance: tenants activos con DB tenant lista.",
-        "Se omiten tenants sin base configurada, con credenciales inválidas o con jobs vivos.",
-        "Úsalo después de un deploy backend para empujar migraciones tenant sin esperar el primer error de uso.",
+        language === "es"
+          ? "Alcance: tenants activos con DB tenant lista."
+          : "Scope: active tenants with a ready tenant DB.",
+        language === "es"
+          ? "Se omiten tenants sin base configurada, con credenciales inválidas o con jobs vivos."
+          : "Tenants without a configured database, with invalid credentials or with live jobs are skipped.",
+        language === "es"
+          ? "Úsalo después de un deploy backend para empujar migraciones tenant sin esperar el primer error de uso."
+          : "Use it after a backend deploy to push tenant migrations without waiting for the first usage error.",
       ],
-      confirmLabel: "Encolar auto-sync",
+      confirmLabel: language === "es" ? "Encolar auto-sync" : "Queue auto-sync",
       action: () => bulkSyncPlatformTenantSchemas(session.accessToken),
     });
   }
@@ -530,9 +538,13 @@ function handleRefresh() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow="Plataforma"
+        eyebrow={language === "es" ? "Plataforma" : "Platform"}
         title="Provisioning"
-        description="Vista operativa sobre jobs, backlog por tenant, alertas activas y recuperación por DLQ usando los contratos backend ya cerrados."
+        description={
+          language === "es"
+            ? "Vista operativa sobre jobs, backlog por tenant, alertas activas y recuperación por DLQ usando los contratos backend ya cerrados."
+            : "Operational view of jobs, per-tenant backlog, active alerts and DLQ recovery using the already closed backend contracts."
+        }
         icon="provisioning"
         actions={
           <AppToolbar compact>
@@ -542,7 +554,7 @@ function handleRefresh() {
               onClick={handleBulkSchemaAutoSync}
               disabled={isLoading || isActionSubmitting}
             >
-              Auto-sync esquemas
+              {language === "es" ? "Auto-sync esquemas" : "Schema auto-sync"}
             </button>
             <button
               type="button"
@@ -550,7 +562,7 @@ function handleRefresh() {
               onClick={handleRefresh}
               disabled={isLoading || isActionSubmitting}
             >
-              Recargar datos
+              {language === "es" ? "Recargar datos" : "Reload data"}
             </button>
           </AppToolbar>
         }
@@ -561,7 +573,7 @@ function handleRefresh() {
         title={pendingConfirmation?.title || ""}
         description={pendingConfirmation?.description || ""}
         details={pendingConfirmation?.details || []}
-        confirmLabel={pendingConfirmation?.confirmLabel || "Confirmar"}
+        confirmLabel={pendingConfirmation?.confirmLabel || (language === "es" ? "Confirmar" : "Confirm")}
         onConfirm={() => {
           if (!pendingConfirmation) {
             return;
@@ -578,30 +590,62 @@ function handleRefresh() {
         <div
           className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
         >
-          <strong>{getPlatformActionFeedbackLabel(actionFeedback.scope)}:</strong>{" "}
+          <strong>{getPlatformActionFeedbackLabel(actionFeedback.scope, language)}:</strong>{" "}
           {actionFeedback.message}
         </div>
       ) : null}
 
-      {isLoading ? <LoadingBlock label="Cargando operación de provisioning..." /> : null}
+      {isLoading ? (
+        <LoadingBlock
+          label={
+            language === "es"
+              ? "Cargando operación de provisioning..."
+              : "Loading provisioning operations..."
+          }
+        />
+      ) : null}
 
       <PanelCard
         icon="catalogs"
-        title="Qué hace provisioning"
-        subtitle="Referencia corta para no confundir el alta en catálogo con la preparación técnica real del tenant."
+        title={language === "es" ? "Qué hace provisioning" : "What provisioning does"}
+        subtitle={
+          language === "es"
+            ? "Referencia corta para no confundir el alta en catálogo con la preparación técnica real del tenant."
+            : "Short reference so you do not confuse catalog creation with the actual technical preparation of the tenant."
+        }
       >
         <div className="dashboard-quick-hints mt-0">
-          <div>`Crear tenant` da de alta la entidad en `platform_control` y dispara el job inicial.</div>
-          <div>`Provisionar` prepara la DB tenant, el usuario técnico, el esquema y el admin bootstrap.</div>
-          <div>`Desprovisionar tenant` crea un job de retiro técnico para soltar DB, rol y secretos técnicos sin borrar todavía la fila viva del tenant.</div>
-          <div>`Pending` espera worker, `retry_pending` volverá a intentarse, `failed` requiere intervención y `completed` deja el tenant listo.</div>
+          <div>
+            {language === "es"
+              ? "`Crear tenant` da de alta la entidad en `platform_control` y dispara el job inicial."
+              : "`Create tenant` registers the entity in `platform_control` and triggers the initial job."}
+          </div>
+          <div>
+            {language === "es"
+              ? "`Provisionar` prepara la DB tenant, el usuario técnico, el esquema y el admin bootstrap."
+              : "`Provision` prepares the tenant DB, technical user, schema and bootstrap admin."}
+          </div>
+          <div>
+            {language === "es"
+              ? "`Desprovisionar tenant` crea un job de retiro técnico para soltar DB, rol y secretos técnicos sin borrar todavía la fila viva del tenant."
+              : "`Deprovision tenant` creates a technical retirement job to release the DB, role and technical secrets without deleting the live tenant row yet."}
+          </div>
+          <div>
+            {language === "es"
+              ? "`Pending` espera worker, `retry_pending` volverá a intentarse, `failed` requiere intervención y `completed` deja el tenant listo."
+              : "`Pending` waits for the worker, `retry_pending` will retry, `failed` requires intervention and `completed` leaves the tenant ready."}
+          </div>
         </div>
       </PanelCard>
 
       <PanelCard
         icon="focus"
-        title="Foco por operación"
-        subtitle="Separa altas, retiros técnicos y cambios de esquema para no mezclar deudas distintas en la misma lectura."
+        title={language === "es" ? "Foco por operación" : "Focus by operation"}
+        subtitle={
+          language === "es"
+            ? "Separa altas, retiros técnicos y cambios de esquema para no mezclar deudas distintas en la misma lectura."
+            : "Separate creations, technical retirements and schema changes so different debts do not mix in the same view."
+        }
       >
         <AppToolbar className="provisioning-filter-strip">
           <button
@@ -609,49 +653,49 @@ function handleRefresh() {
             className={`btn btn-sm ${jobOperationFilter === "all" ? "btn-primary" : "btn-outline-primary"}`}
             onClick={() => setJobOperationFilter("all")}
           >
-            Todas
+            {language === "es" ? "Todas" : "All"}
           </button>
           <button
             type="button"
             className={`btn btn-sm ${jobOperationFilter === "provision" ? "btn-primary" : "btn-outline-primary"}`}
             onClick={() => setJobOperationFilter("provision")}
           >
-            Altas
+            {language === "es" ? "Altas" : "Creates"}
           </button>
           <button
             type="button"
             className={`btn btn-sm ${jobOperationFilter === "deprovision" ? "btn-primary" : "btn-outline-primary"}`}
             onClick={() => setJobOperationFilter("deprovision")}
           >
-            Retiros técnicos
+            {language === "es" ? "Retiros técnicos" : "Technical retirements"}
           </button>
           <button
             type="button"
             className={`btn btn-sm ${jobOperationFilter === "schema" ? "btn-primary" : "btn-outline-primary"}`}
             onClick={() => setJobOperationFilter("schema")}
           >
-            Esquema
+            {language === "es" ? "Esquema" : "Schema"}
           </button>
         </AppToolbar>
         <div className="provisioning-operation-summary">
           <ProvisioningOperationSummaryItem
-            label="Altas"
+            label={language === "es" ? "Altas" : "Creates"}
             count={jobsByOperation.provision}
             kind="provision"
           />
           <ProvisioningOperationSummaryItem
-            label="Retiros técnicos"
+            label={language === "es" ? "Retiros técnicos" : "Technical retirements"}
             count={jobsByOperation.deprovision}
             kind="deprovision"
           />
           <ProvisioningOperationSummaryItem
-            label="Esquema"
+            label={language === "es" ? "Esquema" : "Schema"}
             count={jobsByOperation.schema}
             kind="schema"
           />
           {jobsByOperation.other > 0 ? (
             <ProvisioningOperationSummaryItem
-              label="Otros"
+              label={language === "es" ? "Otros" : "Other"}
               count={jobsByOperation.other}
               kind="other"
             />
@@ -660,25 +704,37 @@ function handleRefresh() {
       </PanelCard>
 
       <div className="provisioning-overview-grid">
-        <MetricCard label="Jobs en catálogo" icon="catalogs" tone="default" value={overview.totalJobs} />
-        <MetricCard label="Jobs en ejecución" icon="provisioning" tone="info" value={overview.runningJobs} />
-        <MetricCard label="Jobs fallidos" icon="focus" tone="danger" value={overview.failedJobs} />
-        <MetricCard label="Alertas activas" icon="pulse" tone="warning" value={overview.activeAlerts} />
-        <MetricCard label="Filas DLQ" icon="activity" tone="warning" value={overview.dlqJobs} />
+        <MetricCard label={language === "es" ? "Jobs en catálogo" : "Jobs in catalog"} icon="catalogs" tone="default" value={overview.totalJobs} />
+        <MetricCard label={language === "es" ? "Jobs en ejecución" : "Running jobs"} icon="provisioning" tone="info" value={overview.runningJobs} />
+        <MetricCard label={language === "es" ? "Jobs fallidos" : "Failed jobs"} icon="focus" tone="danger" value={overview.failedJobs} />
+        <MetricCard label={language === "es" ? "Alertas activas" : "Active alerts"} icon="pulse" tone="warning" value={overview.activeAlerts} />
+        <MetricCard label="DLQ rows" icon="activity" tone="warning" value={overview.dlqJobs} />
       </div>
 
       <PanelCard
         icon="focus"
-        title="Jobs que requieren acción"
-        subtitle="Vista corta para decidir rápido si debes ejecutar, esperar retry o reencolar."
+        title={language === "es" ? "Jobs que requieren acción" : "Jobs requiring action"}
+        subtitle={
+          language === "es"
+            ? "Vista corta para decidir rápido si debes ejecutar, esperar retry o reencolar."
+            : "Short view to quickly decide whether to run, wait for retry or requeue."
+        }
       >
         {filteredJobsRequiringAction.length === 0 ? (
           <EmptyState
-            title="No hay jobs que requieran intervención"
+            title={
+              language === "es"
+                ? "No hay jobs que requieran intervención"
+                : "There are no jobs requiring intervention"
+            }
             detail={
               jobOperationFilter === "all"
-                ? "No existen jobs pendientes, en retry o fallidos. El worker quedó sin deuda operativa inmediata."
-                : "No hay jobs abiertos para la operación filtrada en este momento."
+                ? language === "es"
+                  ? "No existen jobs pendientes, en retry o fallidos. El worker quedó sin deuda operativa inmediata."
+                  : "There are no pending, retrying or failed jobs. The worker has no immediate operational debt."
+                : language === "es"
+                  ? "No hay jobs abiertos para la operación filtrada en este momento."
+                  : "There are no open jobs for the filtered operation right now."
             }
           />
         ) : (

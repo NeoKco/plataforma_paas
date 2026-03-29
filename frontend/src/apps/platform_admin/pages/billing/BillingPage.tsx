@@ -28,6 +28,7 @@ import {
   reconcileTenantBillingEventsBatch,
 } from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
+import { useLanguage } from "../../../../store/language-context";
 import {
   getPlatformActionFeedbackLabel,
   getPlatformActionSuccessMessage,
@@ -61,6 +62,7 @@ type PendingConfirmation = {
 
 export function BillingPage() {
   const { session } = useAuth();
+  const { language } = useLanguage();
   const [capabilities, setCapabilities] = useState<PlatformCapabilities | null>(null);
   const [tenants, setTenants] = useState<PlatformTenant[]>([]);
   const [selectedTenantId, setSelectedTenantId] = useState<number | null>(null);
@@ -436,10 +438,14 @@ export function BillingPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow="Plataforma"
+        eyebrow={language === "es" ? "Plataforma" : "Platform"}
         icon="billing"
-        title="Facturación"
-        description="Monitoreo global y flujos de reconcile por tenant para eventos de sync billing ya persistidos por backend."
+        title={language === "es" ? "Facturación" : "Billing"}
+        description={
+          language === "es"
+            ? "Monitoreo global y flujos de reconcile por tenant para eventos de sync billing ya persistidos por backend."
+            : "Global monitoring and per-tenant reconciliation flows for billing sync events already persisted by the backend."
+        }
         actions={
           <AppToolbar compact>
             <button
@@ -448,7 +454,7 @@ export function BillingPage() {
               onClick={() => void refreshAll()}
               disabled={isLoading || isActionSubmitting}
             >
-              Recargar datos
+              {language === "es" ? "Recargar datos" : "Reload data"}
             </button>
           </AppToolbar>
         }
@@ -459,7 +465,7 @@ export function BillingPage() {
         title={pendingConfirmation?.title || ""}
         description={pendingConfirmation?.description || ""}
         details={pendingConfirmation?.details || []}
-        confirmLabel={pendingConfirmation?.confirmLabel || "Confirmar"}
+        confirmLabel={pendingConfirmation?.confirmLabel || (language === "es" ? "Confirmar" : "Confirm")}
         onConfirm={() => {
           if (!pendingConfirmation) {
             return;
@@ -476,29 +482,74 @@ export function BillingPage() {
         <div
           className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
         >
-          <strong>{getPlatformActionFeedbackLabel(actionFeedback.scope)}:</strong>{" "}
+          <strong>{getPlatformActionFeedbackLabel(actionFeedback.scope, language)}:</strong>{" "}
           {actionFeedback.message}
         </div>
       ) : null}
 
-      {isLoading ? <LoadingBlock label="Cargando operación de facturación..." /> : null}
+      {isLoading ? (
+        <LoadingBlock
+          label={
+            language === "es"
+              ? "Cargando operación de facturación..."
+              : "Loading billing operations..."
+          }
+        />
+      ) : null}
 
       <div className="billing-overview-grid">
-        <MetricCard label="Filas resumen global" icon="overview" tone="default" value={overview.totalPlatformSummaryRows} />
-        <MetricCard label="Alertas activas" icon="activity" tone="warning" value={overview.totalActiveAlerts} />
-        <MetricCard label="Filas historial alertas" icon="reports" tone="info" value={overview.totalAlertHistoryRows} />
-        <MetricCard label="Eventos tenant" icon="billing" tone="success" value={overview.totalTenantEvents} />
-        <MetricCard label="Filas resumen tenant" icon="tenants" tone="default" value={overview.totalTenantSummaryRows} />
+        <MetricCard
+          label={language === "es" ? "Filas resumen global" : "Global summary rows"}
+          icon="overview"
+          tone="default"
+          value={overview.totalPlatformSummaryRows}
+        />
+        <MetricCard
+          label={language === "es" ? "Alertas activas" : "Active alerts"}
+          icon="activity"
+          tone="warning"
+          value={overview.totalActiveAlerts}
+        />
+        <MetricCard
+          label={language === "es" ? "Filas historial alertas" : "Alert history rows"}
+          icon="reports"
+          tone="info"
+          value={overview.totalAlertHistoryRows}
+        />
+        <MetricCard
+          label={language === "es" ? "Eventos tenant" : "Tenant events"}
+          icon="billing"
+          tone="success"
+          value={overview.totalTenantEvents}
+        />
+        <MetricCard
+          label={language === "es" ? "Filas resumen tenant" : "Tenant summary rows"}
+          icon="tenants"
+          tone="default"
+          value={overview.totalTenantSummaryRows}
+        />
       </div>
 
       <PanelCard
-        title="Qué revisar ahora"
-        subtitle="Lectura operativa breve para distinguir ruido puntual de una desalineación comercial real."
+        title={language === "es" ? "Qué revisar ahora" : "What to review now"}
+        subtitle={
+          language === "es"
+            ? "Lectura operativa breve para distinguir ruido puntual de una desalineación comercial real."
+            : "Brief operational read to separate incidental noise from a real commercial mismatch."
+        }
       >
         {operationalSignals.length === 0 ? (
           <EmptyState
-            title="No hay señales operativas abiertas en billing"
-            detail="No existen alertas activas ni indicios inmediatos de reconcile pendiente. El stream de facturación se ve estable."
+            title={
+              language === "es"
+                ? "No hay señales operativas abiertas en billing"
+                : "There are no open operational billing signals"
+            }
+            detail={
+              language === "es"
+                ? "No existen alertas activas ni indicios inmediatos de reconcile pendiente. El stream de facturación se ve estable."
+                : "There are no active alerts or immediate signs of pending reconciliation. The billing stream looks stable."
+            }
           />
         ) : (
           <div className="dashboard-quick-hints mt-0">
@@ -513,8 +564,12 @@ export function BillingPage() {
 
       <PanelCard
         icon="catalogs"
-        title="Filtros de facturación"
-        subtitle="El mismo set de filtros alimenta el resumen global, las alertas activas y el workspace del tenant seleccionado."
+        title={language === "es" ? "Filtros de facturación" : "Billing filters"}
+        subtitle={
+          language === "es"
+            ? "El mismo set de filtros alimenta el resumen global, las alertas activas y el workspace del tenant seleccionado."
+            : "The same filter set powers the global summary, active alerts and the selected tenant workspace."
+        }
       >
         <AppForm className="billing-filter-grid" onSubmit={handleFilterSubmit}>
           <AppFormField label="Tenant">
@@ -527,7 +582,9 @@ export function BillingPage() {
                 )
               }
             >
-              <option value="">Ningún tenant seleccionado</option>
+              <option value="">
+                {language === "es" ? "Ningún tenant seleccionado" : "No tenant selected"}
+              </option>
               {tenants.map((tenant) => (
                 <option key={tenant.id} value={tenant.id}>
                   {tenant.name} ({tenant.slug})
@@ -535,13 +592,13 @@ export function BillingPage() {
               ))}
             </select>
           </AppFormField>
-          <AppFormField label="Proveedor">
+          <AppFormField label={language === "es" ? "Proveedor" : "Provider"}>
             <select
               className="form-select"
               value={providerFilter}
               onChange={(event) => setProviderFilter(event.target.value)}
             >
-              <option value="">todos</option>
+              <option value="">{language === "es" ? "todos" : "all"}</option>
               {(capabilities?.billing_providers || []).map((value) => (
                 <option key={value} value={value}>
                   {value}
@@ -549,21 +606,21 @@ export function BillingPage() {
               ))}
             </select>
           </AppFormField>
-          <AppFormField label="Resultado de procesamiento">
+          <AppFormField label={language === "es" ? "Resultado de procesamiento" : "Processing result"}>
             <select
               className="form-select"
               value={processingResultFilter}
               onChange={(event) => setProcessingResultFilter(event.target.value)}
             >
-              <option value="">todos</option>
+              <option value="">{language === "es" ? "todos" : "all"}</option>
               {(capabilities?.billing_sync_processing_results || []).map((value) => (
                 <option key={value} value={value}>
-                  {displayPlatformCode(value)}
+                  {displayPlatformCode(value, language)}
                 </option>
               ))}
             </select>
           </AppFormField>
-          <AppFormField label="Tipo de evento">
+          <AppFormField label={language === "es" ? "Tipo de evento" : "Event type"}>
             <input
               className="form-control"
               list="billing-event-type-options"
@@ -576,7 +633,7 @@ export function BillingPage() {
               ))}
             </datalist>
           </AppFormField>
-          <AppFormField label="Límite historial">
+          <AppFormField label={language === "es" ? "Límite historial" : "History limit"}>
             <input
               className="form-control"
               type="number"
@@ -591,7 +648,7 @@ export function BillingPage() {
               className="btn btn-primary"
               disabled={isLoading || isActionSubmitting}
             >
-              Aplicar filtros
+              {language === "es" ? "Aplicar filtros" : "Apply filters"}
             </button>
           </AppFormActions>
         </AppForm>
@@ -599,7 +656,11 @@ export function BillingPage() {
 
       {platformError ? (
         <ErrorState
-          title="Datos de facturación de plataforma no disponibles"
+          title={
+            language === "es"
+              ? "Datos de facturación de plataforma no disponibles"
+              : "Platform billing data unavailable"
+          }
           detail={platformError.payload?.detail || platformError.message}
           requestId={platformError.payload?.request_id}
         />

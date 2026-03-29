@@ -42,7 +42,7 @@ export function TenantLoginPage() {
       await login(tenantSlug, email, password);
     } catch (rawError) {
       const typedError = rawError as ApiError;
-      setError(formatTenantLoginError(typedError));
+      setError(formatTenantLoginError(typedError, language));
     } finally {
       setIsSubmitting(false);
     }
@@ -88,6 +88,7 @@ export function TenantLoginPage() {
           <AppFormField fullWidth>
             <FieldHelpLabel
               label={language === "es" ? "Código de tu espacio" : "Workspace code"}
+              language={language}
               helpText={
                 language === "es"
                   ? "Es el identificador corto de tu portal. Si no lo conoces, pídelo al administrador."
@@ -105,6 +106,7 @@ export function TenantLoginPage() {
           <AppFormField fullWidth>
             <FieldHelpLabel
               label={language === "es" ? "Usuario" : "User"}
+              language={language}
               helpText={
                 language === "es"
                   ? "Normalmente corresponde al correo de acceso entregado para tu tenant."
@@ -157,63 +159,89 @@ function normalizeQueryValue(value: string | null) {
   return normalized ? normalized : "";
 }
 
-function formatTenantLoginError(error: ApiError) {
+function formatTenantLoginError(error: ApiError, language: "es" | "en") {
   const detail = (error.payload?.detail || error.message || "").trim();
 
   if (detail === "Tenant database configuration is incomplete") {
-    return "Este tenant todavía no está provisionado. Completa el provisioning desde Platform Admin antes de intentar entrar al portal tenant.";
+    return language === "es"
+      ? "Este tenant todavía no está provisionado. Completa el provisioning desde Platform Admin antes de intentar entrar al portal tenant."
+      : "This tenant is not provisioned yet. Complete provisioning from Platform Admin before accessing the tenant portal.";
   }
 
   if (detail === "Invalid credentials") {
-    return "Las credenciales no son válidas para este tenant.";
+    return language === "es"
+      ? "Las credenciales no son válidas para este tenant."
+      : "The credentials are not valid for this tenant.";
   }
 
   if (detail === "Tenant not found or inactive") {
-    return "No se encontró un tenant operativo con ese código.";
+    return language === "es"
+      ? "No se encontró un tenant operativo con ese código."
+      : "No active tenant was found for that code.";
   }
 
   if (detail === "Tenant provisioning pending") {
-    return "Este tenant todavía está en provisioning. Termina ese proceso desde Platform Admin antes de entrar al portal.";
+    return language === "es"
+      ? "Este tenant todavía está en provisioning. Termina ese proceso desde Platform Admin antes de entrar al portal."
+      : "This tenant is still provisioning. Finish that process from Platform Admin before entering the portal.";
   }
 
   if (detail === "Tenant suspended") {
-    return "Este tenant está suspendido y no admite acceso hasta que se reactive desde Platform Admin.";
+    return language === "es"
+      ? "Este tenant está suspendido y no admite acceso hasta que se reactive desde Platform Admin."
+      : "This tenant is suspended and access will remain blocked until it is reactivated from Platform Admin.";
   }
 
   if (detail === "Tenant archived") {
-    return "Este tenant está archivado y no admite acceso hasta que se restaure formalmente desde Platform Admin.";
+    return language === "es"
+      ? "Este tenant está archivado y no admite acceso hasta que se restaure formalmente desde Platform Admin."
+      : "This tenant is archived and access stays blocked until it is formally restored from Platform Admin.";
   }
 
   if (detail === "Tenant unavailable due to operational error") {
-    return "Este tenant no está disponible por un problema operativo. Revísalo desde Platform Admin.";
+    return language === "es"
+      ? "Este tenant no está disponible por un problema operativo. Revísalo desde Platform Admin."
+      : "This tenant is unavailable due to an operational issue. Review it from Platform Admin.";
   }
 
   if (detail === "Tenant suspended due to overdue billing" || detail === "invoice overdue") {
-    return "Este tenant quedó suspendido por deuda vencida y el acceso está bloqueado hasta regularizar la facturación.";
+    return language === "es"
+      ? "Este tenant quedó suspendido por deuda vencida y el acceso está bloqueado hasta regularizar la facturación."
+      : "This tenant was suspended due to overdue billing and access stays blocked until payment is regularized.";
   }
 
   if (detail === "Tenant suspended by billing policy") {
-    return "Este tenant está suspendido por política de facturación y el acceso está bloqueado.";
+    return language === "es"
+      ? "Este tenant está suspendido por política de facturación y el acceso está bloqueado."
+      : "This tenant is suspended by billing policy and access is blocked.";
   }
 
   if (detail === "Tenant subscription canceled" || detail.includes("subscription canceled")) {
-    return "La suscripción de este tenant está cancelada y el acceso ya no está disponible.";
+    return language === "es"
+      ? "La suscripción de este tenant está cancelada y el acceso ya no está disponible."
+      : "This tenant subscription is canceled and access is no longer available.";
   }
 
-  return detail || "No se pudo iniciar sesión en el portal tenant.";
+  return (
+    detail ||
+    (language === "es"
+      ? "No se pudo iniciar sesión en el portal tenant."
+      : "Could not sign in to the tenant portal.")
+  );
 }
 
 type FieldHelpLabelProps = {
   helpText: string;
   label: string;
+  language: "es" | "en";
 };
 
-function FieldHelpLabel({ helpText, label }: FieldHelpLabelProps) {
+function FieldHelpLabel({ helpText, label, language }: FieldHelpLabelProps) {
   return (
     <div className="login-field-help">
       <label className="form-label mb-0">{label}</label>
       <button
-        aria-label={`Ayuda: ${label}`}
+        aria-label={`${language === "es" ? "Ayuda" : "Help"}: ${label}`}
         className="login-field-help__trigger"
         type="button"
       >

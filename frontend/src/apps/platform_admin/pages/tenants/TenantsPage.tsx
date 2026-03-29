@@ -59,6 +59,7 @@ import {
   updatePlatformTenantStatus,
 } from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
+import { useLanguage } from "../../../../store/language-context";
 import type {
   ApiError,
   PlatformCapabilities,
@@ -91,6 +92,7 @@ type PendingConfirmation = {
 
 export function TenantsPage() {
   const { session } = useAuth();
+  const { language } = useLanguage();
   const [capabilities, setCapabilities] = useState<PlatformCapabilities | null>(null);
   const [tenants, setTenants] = useState<PlatformTenant[]>([]);
   const [selectedTenantId, setSelectedTenantId] = useState<number | null>(null);
@@ -1270,7 +1272,7 @@ export function TenantsPage() {
         title={pendingConfirmation?.title || ""}
         description={pendingConfirmation?.description || ""}
         details={pendingConfirmation?.details || []}
-        confirmLabel={pendingConfirmation?.confirmLabel || "Confirmar"}
+        confirmLabel={pendingConfirmation?.confirmLabel || (language === "es" ? "Confirmar" : "Confirm")}
         tone={pendingConfirmation?.tone || "warning"}
         isSubmitting={isActionSubmitting}
         onCancel={() => setPendingConfirmation(null)}
@@ -1278,14 +1280,18 @@ export function TenantsPage() {
       />
 
       <PageHeader
-        eyebrow="Plataforma"
+        eyebrow={language === "es" ? "Plataforma" : "Platform"}
         icon="tenants"
         title="Tenants"
-        description="Vista operativa sobre lifecycle tenant, billing, mantenimiento, política de acceso y uso actual por módulo."
+        description={
+          language === "es"
+            ? "Vista operativa sobre lifecycle tenant, billing, mantenimiento, política de acceso y uso actual por módulo."
+            : "Operational view of tenant lifecycle, billing, maintenance, access policy and current usage by module."
+        }
         actions={
           <AppToolbar compact>
             <Link className="btn btn-outline-primary" to="/tenant-history">
-              Abrir histórico
+              {language === "es" ? "Abrir histórico" : "Open history"}
             </Link>
           </AppToolbar>
         }
@@ -1301,8 +1307,12 @@ export function TenantsPage() {
       <div className="tenants-page-grid">
         <div className="d-grid gap-4">
           <PanelCard
-            title="Crear tenant"
-            subtitle="Alta operativa básica: nombre, slug, tipo y plan inicial para disparar provisioning."
+            title={language === "es" ? "Crear tenant" : "Create tenant"}
+            subtitle={
+              language === "es"
+                ? "Alta operativa básica: nombre, slug, tipo y plan inicial para disparar provisioning."
+                : "Basic operational onboarding: name, slug, type and initial plan to trigger provisioning."
+            }
           >
             <AppForm
               className="tenant-action-form tenant-create-form"
@@ -1310,8 +1320,12 @@ export function TenantsPage() {
             >
               <AppFormField fullWidth>
                 <FieldHelpLabel
-                  label="Nombre visible"
-                  help="Nombre con el que el operador reconocerá el tenant en la consola."
+                  label={language === "es" ? "Nombre visible" : "Display name"}
+                  help={
+                    language === "es"
+                      ? "Nombre con el que el operador reconocerá el tenant en la consola."
+                      : "Name the operator will use to recognize the tenant in the console."
+                  }
                 />
                 <input
                   className="form-control"
@@ -1323,14 +1337,18 @@ export function TenantsPage() {
                       setCreateTenantSlug(slugifyTenantName(nextName));
                     }
                   }}
-                  placeholder="Ej: Empresa Centro"
+                  placeholder={language === "es" ? "Ej: Empresa Centro" : "Ex: Empresa Centro"}
                   required
                 />
               </AppFormField>
               <AppFormField fullWidth>
                 <FieldHelpLabel
                   label="Slug"
-                  help="Identificador estable del tenant. Conviene definirlo bien al inicio porque se usa en portal tenant, bootstrap y referencias técnicas."
+                  help={
+                    language === "es"
+                      ? "Identificador estable del tenant. Conviene definirlo bien al inicio porque se usa en portal tenant, bootstrap y referencias técnicas."
+                      : "Stable tenant identifier. It is worth defining it well from the start because it is used in the tenant portal, bootstrap and technical references."
+                  }
                 />
                 <input
                   className="form-control"
@@ -1345,8 +1363,12 @@ export function TenantsPage() {
               </AppFormField>
               <AppFormField>
                 <FieldHelpLabel
-                  label="Tipo de tenant"
-                  help="Clasifica el tenant según su vertical principal. Puedes empezar por empresa o condominio."
+                  label={language === "es" ? "Tipo de tenant" : "Tenant type"}
+                  help={
+                    language === "es"
+                      ? "Clasifica el tenant según su vertical principal. Puedes empezar por empresa o condominio."
+                      : "Classify the tenant by its main vertical. You can start with company or condominium."
+                  }
                 />
                 <select
                   className="form-select"
@@ -1362,15 +1384,19 @@ export function TenantsPage() {
               </AppFormField>
               <AppFormField>
                 <FieldHelpLabel
-                  label="Plan inicial"
-                  help="Puedes partir sin plan o asignar uno desde el alta para que el tenant nazca con su política base."
+                  label={language === "es" ? "Plan inicial" : "Initial plan"}
+                  help={
+                    language === "es"
+                      ? "Puedes partir sin plan o asignar uno desde el alta para que el tenant nazca con su política base."
+                      : "You can start without a plan or assign one during creation so the tenant is born with its base policy."
+                  }
                 />
                 <select
                   className="form-select"
                   value={createTenantPlanCode}
                   onChange={(event) => setCreateTenantPlanCode(event.target.value)}
                 >
-                  <option value="">Sin plan</option>
+                  <option value="">{language === "es" ? "Sin plan" : "No plan"}</option>
                   {planOptions.map((value) => (
                     <option key={value} value={value}>
                       {value}
@@ -1380,8 +1406,9 @@ export function TenantsPage() {
               </AppFormField>
               <div className="app-form-field app-form-field--full">
                 <p className="tenant-help-text mt-2 mb-0">
-                  Al crear el tenant se dispara provisioning para preparar su base tenant y
-                  dejar el acceso bootstrap listo.
+                  {language === "es"
+                    ? "Al crear el tenant se dispara provisioning para preparar su base tenant y dejar el acceso bootstrap listo."
+                    : "Creating the tenant triggers provisioning to prepare its tenant database and leave bootstrap access ready."}
                 </p>
               </div>
               <AppFormActions>
@@ -1394,32 +1421,40 @@ export function TenantsPage() {
                     !createTenantSlug.trim()
                   }
                 >
-                  Crear tenant
+                  {language === "es" ? "Crear tenant" : "Create tenant"}
                 </button>
               </AppFormActions>
             </AppForm>
           </PanelCard>
 
           <PanelCard
-            title="Catálogo de tenants"
-            subtitle="Busca, filtra y selecciona tenants para entrar a su operación central."
+            title={language === "es" ? "Catálogo de tenants" : "Tenants catalog"}
+            subtitle={
+              language === "es"
+                ? "Busca, filtra y selecciona tenants para entrar a su operación central."
+                : "Search, filter and select tenants to enter their central operations."
+            }
           >
             <AppFilterGrid className="tenant-catalog-filters">
               <input
                 className="form-control"
                 value={catalogSearch}
                 onChange={(event) => setCatalogSearch(event.target.value)}
-                placeholder="Buscar por nombre, slug o tipo"
+                placeholder={
+                  language === "es"
+                    ? "Buscar por nombre, slug o tipo"
+                    : "Search by name, slug or type"
+                }
               />
               <select
                 className="form-select"
                 value={catalogStatusFilter}
                 onChange={(event) => setCatalogStatusFilter(event.target.value)}
               >
-                <option value="">Todos los estados</option>
+                <option value="">{language === "es" ? "Todos los estados" : "All statuses"}</option>
                 {(capabilities?.tenant_statuses || []).map((value) => (
                   <option key={value} value={value}>
-                    {displayPlatformCode(value)}
+                    {displayPlatformCode(value, language)}
                   </option>
                 ))}
               </select>
@@ -1428,10 +1463,10 @@ export function TenantsPage() {
                 value={catalogBillingFilter}
                 onChange={(event) => setCatalogBillingFilter(event.target.value)}
               >
-                <option value="">Toda la facturación</option>
+                <option value="">{language === "es" ? "Toda la facturación" : "All billing states"}</option>
                 {(capabilities?.tenant_billing_statuses || []).map((value) => (
                   <option key={value} value={value}>
-                    {displayPlatformCode(value)}
+                    {displayPlatformCode(value, language)}
                   </option>
                 ))}
               </select>
@@ -1440,7 +1475,7 @@ export function TenantsPage() {
                 value={catalogTypeFilter}
                 onChange={(event) => setCatalogTypeFilter(event.target.value)}
               >
-                <option value="">Todos los tipos</option>
+                <option value="">{language === "es" ? "Todos los tipos" : "All types"}</option>
                 {tenantTypeOptions.map((value) => (
                   <option key={value} value={value}>
                     {value}
@@ -1449,25 +1484,31 @@ export function TenantsPage() {
               </select>
             </AppFilterGrid>
 
-            {isListLoading ? <LoadingBlock label="Cargando tenants..." /> : null}
+            {isListLoading ? (
+              <LoadingBlock label={language === "es" ? "Cargando tenants..." : "Loading tenants..."} />
+            ) : null}
 
             {!isListLoading && tenants.length === 0 ? (
               <div className="text-secondary">
-                Aún no hay tenants creados. Usa el formulario superior para dar de alta el
-                primero y disparar su provisioning inicial.
+                {language === "es"
+                  ? "Aún no hay tenants creados. Usa el formulario superior para dar de alta el primero y disparar su provisioning inicial."
+                  : "There are no tenants yet. Use the form above to create the first one and trigger its initial provisioning."}
               </div>
             ) : null}
 
             {!isListLoading && tenants.length > 0 && filteredTenants.length === 0 ? (
               <div className="text-secondary">
-                No hay tenants que coincidan con los filtros actuales.
+                {language === "es"
+                  ? "No hay tenants que coincidan con los filtros actuales."
+                  : "No tenants match the current filters."}
               </div>
             ) : null}
 
             {filteredTenants.length > 0 ? (
               <>
                 <div className="tenant-catalog-summary">
-                  {filteredTenants.length} de {tenants.length} tenants visibles
+                  {filteredTenants.length} {language === "es" ? "de" : "of"} {tenants.length}{" "}
+                  {language === "es" ? "tenants visibles" : "visible tenants"}
                 </div>
                 <div className="tenant-list">
                   {filteredTenants.map((tenant) => {
@@ -1491,14 +1532,14 @@ export function TenantsPage() {
                         </div>
                         <div className="tenant-list__chips">
                           <span className="tenant-chip">
-                            billing: {displayPlatformCode(tenant.billing_status || "none")}
+                            billing: {displayPlatformCode(tenant.billing_status || "none", language)}
                           </span>
                           <span className="tenant-chip">
-                            plan: {tenant.plan_code || "ninguno"}
+                            plan: {tenant.plan_code || (language === "es" ? "ninguno" : "none")}
                           </span>
                           {tenant.maintenance_mode ? (
                             <span className="tenant-chip tenant-chip--warning">
-                              mantenimiento
+                              {language === "es" ? "mantenimiento" : "maintenance"}
                             </span>
                           ) : null}
                         </div>
@@ -1514,12 +1555,22 @@ export function TenantsPage() {
 
         <div className="d-grid gap-4">
           {isDetailLoading && !selectedTenant ? (
-            <LoadingBlock label="Cargando detalle del tenant..." />
+            <LoadingBlock
+              label={
+                language === "es"
+                  ? "Cargando detalle del tenant..."
+                  : "Loading tenant detail..."
+              }
+            />
           ) : null}
 
           {detailError ? (
             <ErrorState
-              title="Falló el detalle del tenant"
+              title={
+                language === "es"
+                  ? "Falló el detalle del tenant"
+                  : "Tenant detail failed"
+              }
               detail={detailError.payload?.detail || detailError.message}
               requestId={detailError.payload?.request_id}
             />
@@ -1529,12 +1580,17 @@ export function TenantsPage() {
             <>
               <PanelCard
                 title={selectedTenantSummary.name}
-                subtitle="Identidad operativa central y contexto efectivo de plataforma."
+                subtitle={
+                  language === "es"
+                    ? "Identidad operativa central y contexto efectivo de plataforma."
+                    : "Central operational identity and effective platform context."
+                }
               >
                 <div className="tenant-context-actions">
                   <div className="tenant-help-text">
-                    Acceso rápido para superadmin al portal tenant con el slug ya
-                    precargado.
+                    {language === "es"
+                      ? "Acceso rápido para superadmin al portal tenant con el slug ya precargado."
+                      : "Quick superadmin access to the tenant portal with the slug prefilled."}
                   </div>
                   <div className="tenant-context-actions__buttons">
                     {selectedTenantSummary.status !== "archived" ? (
@@ -1544,7 +1600,7 @@ export function TenantsPage() {
                         onClick={handleArchiveTenant}
                         disabled={isActionSubmitting}
                       >
-                        Archivar tenant
+                        {language === "es" ? "Archivar tenant" : "Archive tenant"}
                       </button>
                     ) : (
                       <>

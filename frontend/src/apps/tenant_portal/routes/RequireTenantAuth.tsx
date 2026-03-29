@@ -1,10 +1,12 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { LoadingBlock } from "../../../components/feedback/LoadingBlock";
+import { useLanguage } from "../../../store/language-context";
 import { useTenantAuth } from "../../../store/tenant-auth-context";
 import { TenantShell } from "../layout/TenantShell";
 
 export function RequireTenantAuth() {
   const { hadStoredSession, isAuthenticated, isHydrated } = useTenantAuth();
+  const { language } = useLanguage();
   const location = useLocation();
 
   if (!isHydrated) {
@@ -22,8 +24,12 @@ export function RequireTenantAuth() {
         replace
         state={{
           message: hadStoredSession
-            ? "Tu sesión tenant expiró. Vuelve a iniciar sesión."
-            : "Debes iniciar sesión tenant para continuar.",
+            ? language === "es"
+              ? "Tu sesión tenant expiró. Vuelve a iniciar sesión."
+              : "Your tenant session expired. Sign in again."
+            : language === "es"
+              ? "Debes iniciar sesión tenant para continuar."
+              : "You must sign in to the tenant portal to continue.",
           from: location.pathname,
         }}
       />

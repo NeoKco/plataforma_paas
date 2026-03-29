@@ -22,10 +22,12 @@ import {
   updatePlatformUserStatus,
 } from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
+import { useLanguage } from "../../../../store/language-context";
 import {
   getPlatformActionFeedbackLabel,
   getPlatformActionSuccessMessage,
 } from "../../../../utils/action-feedback";
+import { getCurrentLocale } from "../../../../utils/i18n";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
 import type { ApiError, PlatformUser } from "../../../../types";
 
@@ -37,22 +39,39 @@ type ActionFeedback = {
 
 const PLATFORM_ROLE_OPTIONS = ["superadmin", "admin", "support"];
 
-function formatPlatformUserErrorMessage(detail: string): string {
+function formatPlatformUserErrorMessage(
+  detail: string,
+  language: "es" | "en"
+): string {
   switch (detail) {
     case "Only one active superadmin is allowed":
-      return "No puedes asignar otro superadministrador activo porque la plataforma debe operar con un solo superadministrador activo.";
+      return language === "es"
+        ? "No puedes asignar otro superadministrador activo porque la plataforma debe operar con un solo superadministrador activo."
+        : "You cannot assign another active superadmin because the platform must operate with a single active superadmin.";
     case "Superadmin role cannot be assigned from this flow":
-      return "La cuenta superadministradora no se crea ni se asigna desde este flujo. Debe mantenerse como cuenta raíz única de la plataforma.";
+      return language === "es"
+        ? "La cuenta superadministradora no se crea ni se asigna desde este flujo. Debe mantenerse como cuenta raíz única de la plataforma."
+        : "The superadmin account is not created or assigned from this flow. It must remain as the platform unique root account.";
     case "At least one active superadmin must remain":
-      return "No puedes dejar la plataforma sin un superadministrador activo.";
+      return language === "es"
+        ? "No puedes dejar la plataforma sin un superadministrador activo."
+        : "You cannot leave the platform without an active superadmin.";
     case "Superadmin users cannot be deleted":
-      return "La cuenta superadministradora no se elimina desde la consola. Si necesitas normalizar una cuenta heredada, primero degrádala o desactívala con una cuenta superadministradora distinta activa.";
+      return language === "es"
+        ? "La cuenta superadministradora no se elimina desde la consola. Si necesitas normalizar una cuenta heredada, primero degrádala o desactívala con una cuenta superadministradora distinta activa."
+        : "The superadmin account cannot be deleted from this console. If you need to normalize a legacy account, first downgrade or deactivate it while another superadmin account is active.";
     case "Platform users cannot delete themselves":
-      return "No puedes eliminar tu propia cuenta desde esta consola.";
+      return language === "es"
+        ? "No puedes eliminar tu propia cuenta desde esta consola."
+        : "You cannot delete your own account from this console.";
     case "You do not have permission to create this platform user role":
-      return "Tu rol actual no puede crear ese tipo de usuario de plataforma.";
+      return language === "es"
+        ? "Tu rol actual no puede crear ese tipo de usuario de plataforma."
+        : "Your current role cannot create that platform user type.";
     case "You do not have permission to manage this platform user":
-      return "Tu rol actual no puede gestionar este usuario de plataforma.";
+      return language === "es"
+        ? "Tu rol actual no puede gestionar este usuario de plataforma."
+        : "Your current role cannot manage this platform user.";
     default:
       return detail;
   }
@@ -60,6 +79,7 @@ function formatPlatformUserErrorMessage(detail: string): string {
 
 export function PlatformUsersPage() {
   const { session } = useAuth();
+  const { language } = useLanguage();
   const [users, setUsers] = useState<PlatformUser[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [catalogSearch, setCatalogSearch] = useState("");
@@ -252,7 +272,8 @@ export function PlatformUsersPage() {
         type: "success",
         message: getPlatformActionSuccessMessage(
           "create-platform-user",
-          response.message
+          response.message,
+          language
         ),
       });
     } catch (rawError) {
@@ -261,7 +282,8 @@ export function PlatformUsersPage() {
         scope: "create-platform-user",
         type: "error",
         message: formatPlatformUserErrorMessage(
-          typedError.payload?.detail || typedError.message
+          typedError.payload?.detail || typedError.message,
+          language
         ),
       });
     } finally {
@@ -289,7 +311,8 @@ export function PlatformUsersPage() {
         type: "success",
         message: getPlatformActionSuccessMessage(
           "identity-platform-user",
-          response.message
+          response.message,
+          language
         ),
       });
     } catch (rawError) {
@@ -298,7 +321,8 @@ export function PlatformUsersPage() {
         scope: "identity-platform-user",
         type: "error",
         message: formatPlatformUserErrorMessage(
-          typedError.payload?.detail || typedError.message
+          typedError.payload?.detail || typedError.message,
+          language
         ),
       });
     } finally {
@@ -326,7 +350,8 @@ export function PlatformUsersPage() {
         type: "success",
         message: getPlatformActionSuccessMessage(
           "status-platform-user",
-          response.message
+          response.message,
+          language
         ),
       });
     } catch (rawError) {
@@ -335,7 +360,8 @@ export function PlatformUsersPage() {
         scope: "status-platform-user",
         type: "error",
         message: formatPlatformUserErrorMessage(
-          typedError.payload?.detail || typedError.message
+          typedError.payload?.detail || typedError.message,
+          language
         ),
       });
     } finally {
@@ -364,7 +390,8 @@ export function PlatformUsersPage() {
         type: "success",
         message: getPlatformActionSuccessMessage(
           "reset-platform-user-password",
-          response.message
+          response.message,
+          language
         ),
       });
     } catch (rawError) {
@@ -373,7 +400,8 @@ export function PlatformUsersPage() {
         scope: "reset-platform-user-password",
         type: "error",
         message: formatPlatformUserErrorMessage(
-          typedError.payload?.detail || typedError.message
+          typedError.payload?.detail || typedError.message,
+          language
         ),
       });
     } finally {
@@ -398,7 +426,8 @@ export function PlatformUsersPage() {
         type: "success",
         message: getPlatformActionSuccessMessage(
           "delete-platform-user",
-          response.message
+          response.message,
+          language
         ),
       });
     } catch (rawError) {
@@ -407,7 +436,8 @@ export function PlatformUsersPage() {
         scope: "delete-platform-user",
         type: "error",
         message: formatPlatformUserErrorMessage(
-          typedError.payload?.detail || typedError.message
+          typedError.payload?.detail || typedError.message,
+          language
         ),
       });
     } finally {
@@ -418,23 +448,39 @@ export function PlatformUsersPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow="Plataforma"
+        eyebrow={language === "es" ? "Plataforma" : "Platform"}
         icon="users"
-        title="Usuarios de plataforma"
-        description="Gobierna quién puede entrar a la consola central, con qué rol y con qué estado operativo."
+        title={language === "es" ? "Usuarios de plataforma" : "Platform users"}
+        description={
+          language === "es"
+            ? "Gobierna quién puede entrar a la consola central, con qué rol y con qué estado operativo."
+            : "Manage who can enter the central console, with which role and with which operational status."
+        }
         actions={
           <AppToolbar compact>
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadUsers()}>
-              Recargar
+              {language === "es" ? "Recargar" : "Reload"}
             </button>
           </AppToolbar>
         }
       />
 
-      {isLoading ? <LoadingBlock label="Cargando usuarios de plataforma..." /> : null}
+      {isLoading ? (
+        <LoadingBlock
+          label={
+            language === "es"
+              ? "Cargando usuarios de plataforma..."
+              : "Loading platform users..."
+          }
+        />
+      ) : null}
       {error ? (
         <ErrorState
-          title="Falló el catálogo de usuarios de plataforma"
+          title={
+            language === "es"
+              ? "Falló el catálogo de usuarios de plataforma"
+              : "Platform users catalog failed"
+          }
           detail={error.payload?.detail || error.message}
           requestId={error.payload?.request_id}
         />
@@ -443,58 +489,88 @@ export function PlatformUsersPage() {
       {!isLoading ? (
         <>
           <div className="dashboard-overview-grid">
-            <MetricCard label="Usuarios totales" icon="users" tone="default" value={overview.totalUsers} />
-            <MetricCard label="Usuarios activos" icon="overview" tone="success" value={overview.activeUsers} />
-            <MetricCard label="Usuarios inactivos" icon="settings" tone="warning" value={overview.inactiveUsers} />
             <MetricCard
-              label="Superadministradores activos"
+              label={language === "es" ? "Usuarios totales" : "Total users"}
+              icon="users"
+              tone="default"
+              value={overview.totalUsers}
+            />
+            <MetricCard
+              label={language === "es" ? "Usuarios activos" : "Active users"}
+              icon="overview"
+              tone="success"
+              value={overview.activeUsers}
+            />
+            <MetricCard
+              label={language === "es" ? "Usuarios inactivos" : "Inactive users"}
+              icon="settings"
+              tone="warning"
+              value={overview.inactiveUsers}
+            />
+            <MetricCard
+              label={language === "es" ? "Superadministradores activos" : "Active superadmins"}
               icon="dashboard"
               tone="info"
               value={overview.activeSuperadmins}
-              hint="La política actual recomienda y ahora exige operar con uno solo activo."
+              hint={
+                language === "es"
+                  ? "La política actual recomienda y ahora exige operar con uno solo activo."
+                  : "Current policy recommends and now requires operating with only one active superadmin."
+              }
             />
           </div>
 
           {hasMultipleActiveSuperadmins ? (
             <div className="tenant-action-feedback tenant-action-feedback--error">
-              <strong>Política de superadministración:</strong> Hoy existen varios
-              superadministradores activos por datos heredados. Desde ahora ya no
-              se pueden crear ni promover más. Conviene dejar solo uno activo y
-              degradar o desactivar el resto.
+              <strong>
+                {language === "es" ? "Política de superadministración:" : "Superadmin policy:"}
+              </strong>{" "}
+              {language === "es"
+                ? "Hoy existen varios superadministradores activos por datos heredados. Desde ahora ya no se pueden crear ni promover más. Conviene dejar solo uno activo y degradar o desactivar el resto."
+                : "There are currently multiple active superadmins due to legacy data. New ones can no longer be created or promoted. It is recommended to keep only one active and downgrade or disable the rest."}
             </div>
           ) : null}
 
           <div className="settings-grid">
             <PanelCard
               icon="users"
-              title="Alta de usuario de plataforma"
-              subtitle="Crea otro operador para la consola central con una contraseña inicial controlada."
+              title={
+                language === "es"
+                  ? "Alta de usuario de plataforma"
+                  : "Create platform user"
+              }
+              subtitle={
+                language === "es"
+                  ? "Crea otro operador para la consola central con una contraseña inicial controlada."
+                  : "Create another operator for the central console with a controlled initial password."
+              }
             >
               {creatableRoles.length === 0 ? (
                 <p className="tenant-help-text">
-                  Tu rol actual es de solo lectura para este bloque. Solo `superadmin`
-                  y `admin` pueden crear usuarios de plataforma.
+                  {language === "es"
+                    ? "Tu rol actual es de solo lectura para este bloque. Solo `superadmin` y `admin` pueden crear usuarios de plataforma."
+                    : "Your current role is read-only for this block. Only `superadmin` and `admin` can create platform users."}
                 </p>
               ) : (
                 <AppForm onSubmit={handleCreateUser}>
-                  <AppFormField label="Nombre completo">
+                  <AppFormField label={language === "es" ? "Nombre completo" : "Full name"}>
                   <input
                     className="form-control"
                     value={createFullName}
                     onChange={(event) => setCreateFullName(event.target.value)}
-                    placeholder="Nombre completo"
+                    placeholder={language === "es" ? "Nombre completo" : "Full name"}
                   />
                   </AppFormField>
-                  <AppFormField label="Correo de acceso">
+                  <AppFormField label={language === "es" ? "Correo de acceso" : "Access email"}>
                   <input
                     className="form-control"
                     type="email"
                     value={createEmail}
                     onChange={(event) => setCreateEmail(event.target.value)}
-                    placeholder="Correo de acceso"
+                    placeholder={language === "es" ? "Correo de acceso" : "Access email"}
                   />
                   </AppFormField>
-                  <AppFormField label="Rol">
+                  <AppFormField label={language === "es" ? "Rol" : "Role"}>
                     <select
                       className="form-select"
                       value={createRole}
@@ -502,12 +578,12 @@ export function PlatformUsersPage() {
                     >
                       {creatableRoles.map((role) => (
                         <option key={role} value={role}>
-                          {displayPlatformCode(role)}
+                          {displayPlatformCode(role, language)}
                         </option>
                         ))}
                       </select>
                   </AppFormField>
-                  <AppFormField label="Estado inicial">
+                  <AppFormField label={language === "es" ? "Estado inicial" : "Initial status"}>
                     <select
                       className="form-select"
                       value={createIsActive ? "active" : "inactive"}
@@ -515,24 +591,28 @@ export function PlatformUsersPage() {
                         setCreateIsActive(event.target.value === "active")
                       }
                     >
-                      <option value="active">activo</option>
-                      <option value="inactive">inactivo</option>
+                      <option value="active">{displayPlatformCode("active", language)}</option>
+                      <option value="inactive">{displayPlatformCode("inactive", language)}</option>
                     </select>
                   </AppFormField>
-                  <AppFormField label="Contraseña inicial">
+                  <AppFormField label={language === "es" ? "Contraseña inicial" : "Initial password"}>
                   <input
                     className="form-control"
                     type="password"
                     value={createPassword}
                     onChange={(event) => setCreatePassword(event.target.value)}
-                    placeholder="Contraseña inicial"
+                    placeholder={language === "es" ? "Contraseña inicial" : "Initial password"}
                   />
                   </AppFormField>
                   <AppFormField fullWidth>
                   <p className="tenant-help-text">
                     {currentPlatformRole === "superadmin"
-                      ? "Usa `admin` para gestión operativa de usuarios y `support` para apoyo diario. `superadmin` queda reservado como cuenta raíz única y no se crea desde este flujo."
-                      : "Como administrador, desde aquí solo puedes crear usuarios `support`."}
+                      ? language === "es"
+                        ? "Usa `admin` para gestión operativa de usuarios y `support` para apoyo diario. `superadmin` queda reservado como cuenta raíz única y no se crea desde este flujo."
+                        : "Use `admin` for operational user management and `support` for daily assistance. `superadmin` remains reserved as the unique root account and is not created from this flow."
+                      : language === "es"
+                        ? "Como administrador, desde aquí solo puedes crear usuarios `support`."
+                        : "As an admin, from here you can only create `support` users."}
                   </p>
                   </AppFormField>
                   <AppFormActions>
@@ -546,7 +626,7 @@ export function PlatformUsersPage() {
                       !createPassword.trim()
                     }
                   >
-                    Crear usuario
+                    {language === "es" ? "Crear usuario" : "Create user"}
                   </button>
                   </AppFormActions>
                 </AppForm>
@@ -555,15 +635,27 @@ export function PlatformUsersPage() {
 
             <PanelCard
               icon="catalogs"
-              title="Catálogo de usuarios de plataforma"
-              subtitle="Busca, filtra y selecciona operadores para revisar su acceso."
+              title={
+                language === "es"
+                  ? "Catálogo de usuarios de plataforma"
+                  : "Platform users catalog"
+              }
+              subtitle={
+                language === "es"
+                  ? "Busca, filtra y selecciona operadores para revisar su acceso."
+                  : "Search, filter and select operators to review their access."
+              }
             >
               <div className="tenant-catalog-filters">
                 <input
                   className="form-control"
                   value={catalogSearch}
                   onChange={(event) => setCatalogSearch(event.target.value)}
-                  placeholder="Buscar por nombre, correo o rol"
+                  placeholder={
+                    language === "es"
+                      ? "Buscar por nombre, correo o rol"
+                      : "Search by name, email or role"
+                  }
                 />
                 <div className="tenant-inline-form-grid">
                   <select
@@ -571,10 +663,10 @@ export function PlatformUsersPage() {
                     value={catalogRoleFilter}
                     onChange={(event) => setCatalogRoleFilter(event.target.value)}
                   >
-                    <option value="">Todos los roles</option>
+                    <option value="">{language === "es" ? "Todos los roles" : "All roles"}</option>
                     {PLATFORM_ROLE_OPTIONS.map((role) => (
                       <option key={role} value={role}>
-                        {displayPlatformCode(role)}
+                        {displayPlatformCode(role, language)}
                       </option>
                     ))}
                   </select>
@@ -583,29 +675,35 @@ export function PlatformUsersPage() {
                     value={catalogStatusFilter}
                     onChange={(event) => setCatalogStatusFilter(event.target.value)}
                   >
-                    <option value="">Todos los estados</option>
-                    <option value="active">activos</option>
-                    <option value="inactive">inactivos</option>
+                    <option value="">{language === "es" ? "Todos los estados" : "All statuses"}</option>
+                    <option value="active">{language === "es" ? "activos" : "active"}</option>
+                    <option value="inactive">{language === "es" ? "inactivos" : "inactive"}</option>
                   </select>
                 </div>
               </div>
 
               {users.length === 0 ? (
                 <div className="text-secondary">
-                  Aún no hay usuarios de plataforma creados además del operador inicial.
+                  {language === "es"
+                    ? "Aún no hay usuarios de plataforma creados además del operador inicial."
+                    : "There are no platform users yet beyond the initial operator."}
                 </div>
               ) : null}
 
               {users.length > 0 && filteredUsers.length === 0 ? (
                 <div className="text-secondary">
-                  No hay usuarios de plataforma que coincidan con los filtros actuales.
+                  {language === "es"
+                    ? "No hay usuarios de plataforma que coincidan con los filtros actuales."
+                    : "No platform users match the current filters."}
                 </div>
               ) : null}
 
               {filteredUsers.length > 0 ? (
                 <>
                   <div className="tenant-catalog-summary">
-                    {filteredUsers.length} de {users.length} usuarios visibles
+                    {filteredUsers.length}{" "}
+                    {language === "es" ? "de" : "of"} {users.length}{" "}
+                    {language === "es" ? "usuarios visibles" : "visible users"}
                   </div>
                   <div className="tenant-list">
                     {filteredUsers.map((user) => {
@@ -622,7 +720,7 @@ export function PlatformUsersPage() {
                               <div className="tenant-list__title">{user.full_name}</div>
                               <div className="tenant-list__meta">
                                 <code>{user.email}</code>
-                                <span>{displayPlatformCode(user.role)}</span>
+                                <span>{displayPlatformCode(user.role, language)}</span>
                               </div>
                             </div>
                             <StatusBadge value={user.is_active ? "active" : "inactive"} />
@@ -640,7 +738,7 @@ export function PlatformUsersPage() {
             <div
               className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
             >
-              <strong>{getPlatformActionFeedbackLabel(actionFeedback.scope)}:</strong>{" "}
+              <strong>{getPlatformActionFeedbackLabel(actionFeedback.scope, language)}:</strong>{" "}
               {actionFeedback.message}
             </div>
           ) : null}
@@ -650,35 +748,39 @@ export function PlatformUsersPage() {
               <PanelCard
                 icon="users"
                 title={selectedUser.full_name}
-                subtitle="Identidad básica y rol operativo del usuario de plataforma seleccionado."
+                subtitle={
+                  language === "es"
+                    ? "Identidad básica y rol operativo del usuario de plataforma seleccionado."
+                    : "Basic identity and operational role of the selected platform user."
+                }
               >
                 <div className="tenant-detail-grid mb-4">
                   <DetailField label="Email" value={selectedUser.email} />
                   <DetailField
-                    label="Rol"
-                    value={displayPlatformCode(selectedUser.role)}
+                    label={language === "es" ? "Rol" : "Role"}
+                    value={displayPlatformCode(selectedUser.role, language)}
                   />
                   <DetailField
-                    label="Estado"
+                    label={language === "es" ? "Estado" : "Status"}
                     value={<StatusBadge value={selectedUser.is_active ? "active" : "inactive"} />}
                   />
                   <DetailField
-                    label="Creado"
-                    value={formatDateTime(selectedUser.created_at)}
+                    label={language === "es" ? "Creado" : "Created"}
+                    value={formatDateTime(selectedUser.created_at, language)}
                   />
                 </div>
 
                 <AppForm onSubmit={handleUpdateUser}>
-                  <AppFormField label="Nombre completo">
+                  <AppFormField label={language === "es" ? "Nombre completo" : "Full name"}>
                   <input
                     className="form-control"
                     value={editFullName}
                     onChange={(event) => setEditFullName(event.target.value)}
-                    placeholder="Nombre completo"
+                    placeholder={language === "es" ? "Nombre completo" : "Full name"}
                     disabled={!canEditSelectedUser || isActionSubmitting}
                   />
                   </AppFormField>
-                  <AppFormField label="Rol">
+                  <AppFormField label={language === "es" ? "Rol" : "Role"}>
                   <select
                     className="form-select"
                     value={editRole}
@@ -687,7 +789,7 @@ export function PlatformUsersPage() {
                   >
                     {editableRoleOptions.map((role) => (
                       <option key={role} value={role}>
-                        {displayPlatformCode(role)}
+                        {displayPlatformCode(role, language)}
                       </option>
                       ))}
                     </select>
@@ -696,8 +798,12 @@ export function PlatformUsersPage() {
                     <AppFormField fullWidth>
                       <p className="tenant-help-text">
                       {selectedUser.role === "superadmin"
-                        ? "La cuenta superadministradora no se crea ni se elimina desde aquí. Si existen superadministradores heredados, solo un superadministrador puede degradarlos o desactivarlos manteniendo siempre uno activo."
-                        : "Tu rol actual no puede editar la identidad o el rol de este usuario."}
+                        ? language === "es"
+                          ? "La cuenta superadministradora no se crea ni se elimina desde aquí. Si existen superadministradores heredados, solo un superadministrador puede degradarlos o desactivarlos manteniendo siempre uno activo."
+                          : "The superadmin account is not created or deleted from here. If there are legacy superadmins, only another superadmin can downgrade or disable them while keeping one active."
+                        : language === "es"
+                          ? "Tu rol actual no puede editar la identidad o el rol de este usuario."
+                          : "Your current role cannot edit this user's identity or role."}
                       </p>
                     </AppFormField>
                   ) : null}
@@ -711,7 +817,7 @@ export function PlatformUsersPage() {
                       !editFullName.trim()
                     }
                   >
-                    Guardar identidad
+                    {language === "es" ? "Guardar identidad" : "Save identity"}
                   </button>
                   </AppFormActions>
                 </AppForm>
@@ -720,14 +826,17 @@ export function PlatformUsersPage() {
               <div className="d-grid gap-4">
                 <PanelCard
                   icon="settings"
-                  title="Estado operativo"
-                  subtitle="Activa o desactiva el acceso de este usuario a la consola de plataforma."
+                  title={language === "es" ? "Estado operativo" : "Operational status"}
+                  subtitle={
+                    language === "es"
+                      ? "Activa o desactiva el acceso de este usuario a la consola de plataforma."
+                      : "Enable or disable this user's access to the platform console."
+                  }
                 >
                   <p className="tenant-help-text">
-                    Si este usuario es el último superadministrador activo, el
-                    backend bloqueará la desactivación o el cambio de rol. Si ya
-                    existe otro superadministrador activo, tampoco podrás
-                    habilitar uno nuevo.
+                    {language === "es"
+                      ? "Si este usuario es el último superadministrador activo, el backend bloqueará la desactivación o el cambio de rol. Si ya existe otro superadministrador activo, tampoco podrás habilitar uno nuevo."
+                      : "If this user is the last active superadmin, the backend will block deactivation or role change. If another active superadmin already exists, you also cannot enable a new one."}
                   </p>
                   <button
                     className="btn btn-outline-primary mt-3"
@@ -735,23 +844,33 @@ export function PlatformUsersPage() {
                     onClick={() => void handleToggleStatus()}
                     disabled={isActionSubmitting || !canToggleSelectedUser}
                   >
-                    {selectedUser.is_active ? "Desactivar acceso" : "Activar acceso"}
+                    {selectedUser.is_active
+                      ? language === "es"
+                        ? "Desactivar acceso"
+                        : "Disable access"
+                      : language === "es"
+                        ? "Activar acceso"
+                        : "Enable access"}
                   </button>
                 </PanelCard>
 
                 <PanelCard
                   icon="settings"
-                  title="Contraseña inicial"
-                  subtitle="Reemplaza la contraseña actual por una nueva clave controlada desde plataforma."
+                  title={language === "es" ? "Contraseña inicial" : "Password reset"}
+                  subtitle={
+                    language === "es"
+                      ? "Reemplaza la contraseña actual por una nueva clave controlada desde plataforma."
+                      : "Replace the current password with a new controlled password from the platform."
+                  }
                 >
                   <AppForm onSubmit={handleResetPassword}>
-                    <AppFormField label="Nueva contraseña">
+                    <AppFormField label={language === "es" ? "Nueva contraseña" : "New password"}>
                     <input
                       className="form-control"
                       type="password"
                       value={resetPassword}
                       onChange={(event) => setResetPassword(event.target.value)}
-                      placeholder="Nueva contraseña"
+                      placeholder={language === "es" ? "Nueva contraseña" : "New password"}
                       disabled={!canResetSelectedUserPassword || isActionSubmitting}
                     />
                     </AppFormField>
@@ -765,7 +884,7 @@ export function PlatformUsersPage() {
                         !resetPassword.trim()
                       }
                     >
-                      Actualizar contraseña
+                      {language === "es" ? "Actualizar contraseña" : "Update password"}
                     </button>
                     </AppFormActions>
                   </AppForm>
@@ -773,12 +892,17 @@ export function PlatformUsersPage() {
 
                 <PanelCard
                   icon="activity"
-                  title="Eliminar usuario"
-                  subtitle="Borra de forma definitiva cuentas no críticas de plataforma."
+                  title={language === "es" ? "Eliminar usuario" : "Delete user"}
+                  subtitle={
+                    language === "es"
+                      ? "Borra de forma definitiva cuentas no críticas de plataforma."
+                      : "Permanently remove non-critical platform accounts."
+                  }
                 >
                   <p className="tenant-help-text">
-                    No se elimina la cuenta `superadmin` y tampoco puedes borrar tu
-                    propia cuenta desde esta consola.
+                    {language === "es"
+                      ? "No se elimina la cuenta `superadmin` y tampoco puedes borrar tu propia cuenta desde esta consola."
+                      : "The `superadmin` account cannot be deleted and you cannot delete your own account from this console."}
                   </p>
                   <button
                     className="btn btn-outline-danger mt-3"
@@ -786,7 +910,7 @@ export function PlatformUsersPage() {
                     onClick={() => setDeleteCandidate(selectedUser)}
                     disabled={isActionSubmitting || !canDeleteSelectedUser}
                   >
-                    Eliminar usuario
+                    {language === "es" ? "Eliminar usuario" : "Delete user"}
                   </button>
                 </PanelCard>
               </div>
@@ -797,14 +921,16 @@ export function PlatformUsersPage() {
 
       <ConfirmDialog
         isOpen={Boolean(deleteCandidate)}
-        title="Eliminar usuario de plataforma"
+        title={language === "es" ? "Eliminar usuario de plataforma" : "Delete platform user"}
         description={
           deleteCandidate
-            ? `Se eliminará de forma definitiva a ${deleteCandidate.full_name} (${deleteCandidate.email}).`
+            ? language === "es"
+              ? `Se eliminará de forma definitiva a ${deleteCandidate.full_name} (${deleteCandidate.email}).`
+              : `${deleteCandidate.full_name} (${deleteCandidate.email}) will be permanently deleted.`
             : ""
         }
-        confirmLabel="Eliminar usuario"
-        cancelLabel="Cancelar"
+        confirmLabel={language === "es" ? "Eliminar usuario" : "Delete user"}
+        cancelLabel={language === "es" ? "Cancelar" : "Cancel"}
         tone="danger"
         onConfirm={() => void handleDeleteUser()}
         onCancel={() => setDeleteCandidate(null)}
@@ -828,7 +954,7 @@ function DetailField({
   );
 }
 
-function formatDateTime(value: string | null): string {
+function formatDateTime(value: string | null, language: "es" | "en"): string {
   if (!value) {
     return "n/a";
   }
@@ -838,7 +964,7 @@ function formatDateTime(value: string | null): string {
     return value;
   }
 
-  return parsed.toLocaleString("es-CL", {
+  return parsed.toLocaleString(getCurrentLocale(language), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

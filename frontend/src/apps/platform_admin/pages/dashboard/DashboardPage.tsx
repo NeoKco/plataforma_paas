@@ -9,6 +9,7 @@ import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { AppBadge } from "../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../design-system/AppLayout";
+import { useLanguage } from "../../../../store/language-context";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
 import { useAuth } from "../../../../store/auth-context";
 import {
@@ -31,6 +32,7 @@ import type {
 
 export function DashboardPage() {
   const { session } = useAuth();
+  const { language } = useLanguage();
   const [capabilities, setCapabilities] = useState<PlatformCapabilities | null>(null);
   const [tenants, setTenants] = useState<PlatformTenant[]>([]);
   const [provisioningMetrics, setProvisioningMetrics] =
@@ -180,9 +182,13 @@ export function DashboardPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow="Plataforma"
-        title="Resumen operativo"
-        description="Vista rápida de salud operativa: tenants que requieren atención, presión de provisioning y señales de facturación que ya justifican una revisión."
+        eyebrow={language === "es" ? "Plataforma" : "Platform"}
+        title={language === "es" ? "Resumen operativo" : "Operational overview"}
+        description={
+          language === "es"
+            ? "Vista rápida de salud operativa: tenants que requieren atención, presión de provisioning y señales de facturación que ya justifican una revisión."
+            : "Quick view of operational health: tenants requiring attention, provisioning pressure and billing signals that already justify a review."
+        }
         icon="dashboard"
         actions={
           <AppToolbar compact>
@@ -192,13 +198,21 @@ export function DashboardPage() {
               onClick={() => void loadDashboard()}
               disabled={isLoading}
             >
-              Recargar datos
+              {language === "es" ? "Recargar datos" : "Reload data"}
             </button>
           </AppToolbar>
         }
       />
 
-      {isLoading ? <LoadingBlock label="Cargando operación de plataforma..." /> : null}
+      {isLoading ? (
+        <LoadingBlock
+          label={
+            language === "es"
+              ? "Cargando operación de plataforma..."
+              : "Loading platform operations..."
+          }
+        />
+      ) : null}
       {error ? (
         <ErrorState
           detail={error.payload?.detail || error.message}
@@ -210,61 +224,101 @@ export function DashboardPage() {
         <>
           <div className="dashboard-overview-grid">
             <MetricCard
-              label="Tenants totales"
+              label={language === "es" ? "Tenants totales" : "Total tenants"}
               icon="tenants"
               tone="default"
               value={kpis.totalTenants}
-              hint="Catálogo actual de tenants visibles desde plataforma."
+              hint={
+                language === "es"
+                  ? "Catálogo actual de tenants visibles desde plataforma."
+                  : "Current catalog of tenants visible from the platform."
+              }
             />
             <MetricCard
-              label="Tenants suspendidos"
+              label={language === "es" ? "Tenants suspendidos" : "Suspended tenants"}
               icon="settings"
               tone="warning"
               value={kpis.suspendedTenants}
-              hint="Tenants detenidos por estado operativo."
+              hint={
+                language === "es"
+                  ? "Tenants detenidos por estado operativo."
+                  : "Tenants stopped by operational status."
+              }
             />
             <MetricCard
-              label="Tenants en mantenimiento"
+              label={language === "es" ? "Tenants en mantenimiento" : "Tenants in maintenance"}
               icon="activity"
               tone="warning"
               value={kpis.maintenanceTenants}
-              hint="Tenants con ventana manual de mantenimiento activa."
+              hint={
+                language === "es"
+                  ? "Tenants con ventana manual de mantenimiento activa."
+                  : "Tenants with an active manual maintenance window."
+              }
             />
             <MetricCard
-              label="Tenants con deuda"
+              label={language === "es" ? "Tenants con deuda" : "Tenants past due"}
               icon="billing"
               tone="danger"
               value={kpis.tenantsPastDue}
-              hint="Tenants en estado de facturación con deuda."
+              hint={
+                language === "es"
+                  ? "Tenants en estado de facturación con deuda."
+                  : "Tenants whose billing status is past due."
+              }
             />
             <MetricCard
-              label="Tenants con provisioning fallido"
+              label={
+                language === "es"
+                  ? "Tenants con provisioning fallido"
+                  : "Tenants with failed provisioning"
+              }
               icon="provisioning"
               tone="danger"
               value={kpis.provisioningFailedTenants}
-              hint="Tenants con jobs fallidos en la última lectura."
+              hint={
+                language === "es"
+                  ? "Tenants con jobs fallidos en la última lectura."
+                  : "Tenants with failed jobs in the latest read."
+              }
             />
             <MetricCard
-              label="Alertas activas de provisioning"
+              label={
+                language === "es"
+                  ? "Alertas activas de provisioning"
+                  : "Active provisioning alerts"
+              }
               icon="pulse"
               tone="info"
               value={kpis.activeProvisioningAlerts}
-              hint="Señales operativas abiertas en la cola técnica."
+              hint={
+                language === "es"
+                  ? "Señales operativas abiertas en la cola técnica."
+                  : "Open operational signals in the technical queue."
+              }
             />
             <MetricCard
-              label="Alertas activas de facturación"
+              label={language === "es" ? "Alertas activas de facturación" : "Active billing alerts"}
               icon="billing"
               tone="info"
               value={kpis.activeBillingAlerts}
-              hint="Alertas abiertas en sincronización y reconcile de billing."
+              hint={
+                language === "es"
+                  ? "Alertas abiertas en sincronización y reconcile de billing."
+                  : "Open alerts in billing sync and reconciliation."
+              }
             />
           </div>
 
           <div className="dashboard-section-grid">
             <PanelCard
               icon="focus"
-              title="Foco operativo"
-              subtitle="Tenants que hoy requieren revisión por estado, mantenimiento o facturación."
+              title={language === "es" ? "Foco operativo" : "Operational focus"}
+              subtitle={
+                language === "es"
+                  ? "Tenants que hoy requieren revisión por estado, mantenimiento o facturación."
+                  : "Tenants that currently require review due to status, maintenance or billing."
+              }
             >
               {tenantAttentionRows.length > 0 ? (
                 <div className="dashboard-spotlight-list">
@@ -278,7 +332,9 @@ export function DashboardPage() {
                         <StatusBadge value={tenant.status} />
                         <StatusBadge value={tenant.billing_status || "unknown"} />
                         {tenant.maintenance_mode ? (
-                          <AppBadge tone="warning">mantenimiento</AppBadge>
+                          <AppBadge tone="warning">
+                            {language === "es" ? "mantenimiento" : "maintenance"}
+                          </AppBadge>
                         ) : null}
                       </div>
                     </div>
@@ -286,39 +342,65 @@ export function DashboardPage() {
                 </div>
               ) : (
                 <div className="text-secondary">
-                  No hay tenants con atención inmediata en esta lectura.
+                  {language === "es"
+                    ? "No hay tenants con atención inmediata en esta lectura."
+                    : "There are no tenants requiring immediate attention in this read."}
                 </div>
               )}
             </PanelCard>
 
             <PanelCard
               icon="overview"
-              title="Acciones rápidas"
-              subtitle="Entra directo a la pantalla adecuada según el tipo de problema."
+              title={language === "es" ? "Acciones rápidas" : "Quick actions"}
+              subtitle={
+                language === "es"
+                  ? "Entra directo a la pantalla adecuada según el tipo de problema."
+                  : "Go directly to the right screen depending on the issue type."
+              }
             >
               <AppToolbar className="dashboard-quick-actions">
                 <Link className="btn btn-primary" to="/tenants">
-                  Abrir tenants
+                  {language === "es" ? "Abrir tenants" : "Open tenants"}
                 </Link>
                 <Link className="btn btn-outline-primary" to="/provisioning">
-                  Abrir provisioning
+                  {language === "es" ? "Abrir provisioning" : "Open provisioning"}
                 </Link>
                 <Link className="btn btn-outline-primary" to="/billing">
-                  Abrir facturación
+                  {language === "es" ? "Abrir facturación" : "Open billing"}
                 </Link>
               </AppToolbar>
               <div className="dashboard-quick-hints">
-                <div>`Tenants`: estado del tenant, plan, mantenimiento, límites y acceso.</div>
-                <div>`Provisioning`: jobs pendientes, fallos, reintentos y recuperación técnica.</div>
-                <div>`Facturación`: eventos persistidos, alertas y reconcile por tenant.</div>
+                <div>
+                  {language === "es"
+                    ? "`Tenants`: estado del tenant, plan, mantenimiento, límites y acceso."
+                    : "`Tenants`: tenant status, plan, maintenance, limits and access."}
+                </div>
+                <div>
+                  {language === "es"
+                    ? "`Provisioning`: jobs pendientes, fallos, reintentos y recuperación técnica."
+                    : "`Provisioning`: pending jobs, failures, retries and technical recovery."}
+                </div>
+                <div>
+                  {language === "es"
+                    ? "`Facturación`: eventos persistidos, alertas y reconcile por tenant."
+                    : "`Billing`: persisted events, alerts and reconciliation by tenant."}
+                </div>
               </div>
             </PanelCard>
           </div>
 
           {provisioningAttentionRows.length > 0 ? (
             <DataTableCard
-              title="Presión de provisioning por tenant"
-              subtitle="Solo tenants con jobs fallidos, en reintento o ejecutándose ahora."
+              title={
+                language === "es"
+                  ? "Presión de provisioning por tenant"
+                  : "Provisioning pressure by tenant"
+              }
+              subtitle={
+                language === "es"
+                  ? "Solo tenants con jobs fallidos, en reintento o ejecutándose ahora."
+                  : "Only tenants with failed, retrying or currently running jobs."
+              }
               rows={provisioningAttentionRows}
               columns={[
                 {
@@ -328,17 +410,17 @@ export function DashboardPage() {
                 },
                 {
                   key: "failed_jobs",
-                  header: "Fallidos",
+                  header: language === "es" ? "Fallidos" : "Failed",
                   render: (row) => row.failed_jobs,
                 },
                 {
                   key: "retry_pending_jobs",
-                  header: "Reintento",
+                  header: language === "es" ? "Reintento" : "Retry",
                   render: (row) => row.retry_pending_jobs,
                 },
                 {
                   key: "running_jobs",
-                  header: "En ejecución",
+                  header: language === "es" ? "En ejecución" : "Running",
                   render: (row) => row.running_jobs,
                 },
                 {
@@ -352,28 +434,36 @@ export function DashboardPage() {
 
           {billingAttentionRows.length > 0 ? (
             <DataTableCard
-              title="Anomalías de facturación por resultado"
-              subtitle="Eventos que no terminaron como flujo limpio y merecen seguimiento."
+              title={
+                language === "es"
+                  ? "Anomalías de facturación por resultado"
+                  : "Billing anomalies by result"
+              }
+              subtitle={
+                language === "es"
+                  ? "Eventos que no terminaron como flujo limpio y merecen seguimiento."
+                  : "Events that did not finish as a clean flow and deserve follow-up."
+              }
               rows={billingAttentionRows}
               columns={[
                 {
                   key: "provider",
-                  header: "Proveedor",
+                  header: language === "es" ? "Proveedor" : "Provider",
                   render: (row) => row.provider,
                 },
                 {
                   key: "event_type",
-                  header: "Tipo de evento",
+                  header: language === "es" ? "Tipo de evento" : "Event type",
                   render: (row) => <code>{row.event_type}</code>,
                 },
                 {
                   key: "processing_result",
-                  header: "Resultado",
+                  header: language === "es" ? "Resultado" : "Result",
                   render: (row) => <StatusBadge value={row.processing_result} />,
                 },
                 {
                   key: "total_events",
-                  header: "Eventos",
+                  header: language === "es" ? "Eventos" : "Events",
                   render: (row) => row.total_events,
                 },
                 {
@@ -387,26 +477,47 @@ export function DashboardPage() {
 
           {capabilities ? (
             <DataTableCard
-              title="Capacidades de límites por módulo"
-              subtitle="Catálogo vivo de claves de límite que el backend expone hoy a la consola."
+              title={
+                language === "es"
+                  ? "Capacidades de límites por módulo"
+                  : "Module limit capabilities"
+              }
+              subtitle={
+                language === "es"
+                  ? "Catálogo vivo de claves de límite que el backend expone hoy a la consola."
+                  : "Live catalog of limit keys currently exposed by the backend."
+              }
               rows={capabilities.module_limit_capabilities}
               columns={[
-                { key: "key", header: "Clave", render: (row) => <code>{row.key}</code> },
-                { key: "module", header: "Módulo", render: (row) => row.module_name },
-                { key: "resource", header: "Recurso", render: (row) => row.resource_name },
+                {
+                  key: "key",
+                  header: language === "es" ? "Clave" : "Key",
+                  render: (row) => <code>{row.key}</code>,
+                },
+                {
+                  key: "module",
+                  header: language === "es" ? "Módulo" : "Module",
+                  render: (row) => row.module_name,
+                },
+                {
+                  key: "resource",
+                  header: language === "es" ? "Recurso" : "Resource",
+                  render: (row) => row.resource_name,
+                },
                 {
                   key: "period",
-                  header: "Período",
-                  render: (row) => displayPlatformCode(row.period || "none"),
+                  header: language === "es" ? "Período" : "Period",
+                  render: (row) => displayPlatformCode(row.period || "none", language),
                 },
                 {
                   key: "segment",
-                  header: "Segmento",
-                  render: (row) => row.segment || "todos",
+                  header: language === "es" ? "Segmento" : "Segment",
+                  render: (row) =>
+                    row.segment || (language === "es" ? "todos" : "all"),
                 },
                 {
                   key: "description",
-                  header: "Descripción",
+                  header: language === "es" ? "Descripción" : "Description",
                   render: (row) => row.description || "—",
                 },
               ]}

@@ -16,6 +16,7 @@ import {
   getTenantFinanceSummary,
   getTenantFinanceUsage,
 } from "../../../../services/tenant-api";
+import { useLanguage } from "../../../../store/language-context";
 import { useTenantAuth } from "../../../../store/tenant-auth-context";
 import { getTenantPortalActionSuccessMessage } from "../../../../utils/action-feedback";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
@@ -34,15 +35,16 @@ type ActionFeedback = {
 
 const MOVEMENT_TYPES = ["income", "expense"];
 
-function getActionFeedbackLabel(scope: string): string {
+function getActionFeedbackLabel(scope: string, language: "es" | "en"): string {
   if (scope === "create-entry") {
-    return "Crear movimiento";
+    return language === "es" ? "Crear movimiento" : "Create transaction";
   }
   return scope;
 }
 
 export function TenantFinancePage() {
   const { session } = useTenantAuth();
+  const { language } = useLanguage();
   const [entriesResponse, setEntriesResponse] =
     useState<TenantFinanceEntriesResponse | null>(null);
   const [summaryResponse, setSummaryResponse] =
@@ -142,7 +144,7 @@ export function TenantFinancePage() {
       setActionFeedback({
         scope,
         type: "success",
-        message: getTenantPortalActionSuccessMessage(scope, result.message),
+        message: getTenantPortalActionSuccessMessage(scope, result.message, language),
       });
     } catch (rawError) {
       const typedError = rawError as ApiError;
@@ -184,9 +186,13 @@ export function TenantFinancePage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow="Espacio"
-        title="Finanzas"
-        description="Consulta el resumen financiero de tu espacio y registra nuevos movimientos."
+        eyebrow={language === "es" ? "Espacio" : "Workspace"}
+        title={language === "es" ? "Finanzas" : "Finance"}
+        description={
+          language === "es"
+            ? "Consulta el resumen financiero de tu espacio y registra nuevos movimientos."
+            : "Review your workspace financial summary and register new transactions."
+        }
         icon="finance"
       />
 
@@ -194,23 +200,59 @@ export function TenantFinancePage() {
         <div
           className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
         >
-          <strong>{getActionFeedbackLabel(actionFeedback.scope)}:</strong>{" "}
+          <strong>{getActionFeedbackLabel(actionFeedback.scope, language)}:</strong>{" "}
           {actionFeedback.message}
         </div>
       ) : null}
 
-      {isLoading ? <LoadingBlock label="Cargando finanzas del tenant..." /> : null}
+      {isLoading ? (
+        <LoadingBlock
+          label={
+            language === "es"
+              ? "Cargando finanzas del tenant..."
+              : "Loading tenant finance..."
+          }
+        />
+      ) : null}
 
       <div className="tenant-portal-metrics">
-        <MetricCard label="Movimientos" icon="transactions" tone="default" value={overview.totalEntries} hint="Entradas registradas" />
-        <MetricCard label="Ingresos" icon="income" tone="success" value={formatMoney(overview.totalIncome)} hint="Acumulado visible" />
-        <MetricCard label="Egresos" icon="expense" tone="warning" value={formatMoney(overview.totalExpense)} hint="Acumulado visible" />
-        <MetricCard label="Balance" icon="balance" tone="info" value={formatMoney(overview.balance)} hint="Resultado actual" />
+        <MetricCard
+          label={language === "es" ? "Movimientos" : "Transactions"}
+          icon="transactions"
+          tone="default"
+          value={overview.totalEntries}
+          hint={language === "es" ? "Entradas registradas" : "Registered entries"}
+        />
+        <MetricCard
+          label={language === "es" ? "Ingresos" : "Income"}
+          icon="income"
+          tone="success"
+          value={formatMoney(overview.totalIncome)}
+          hint={language === "es" ? "Acumulado visible" : "Visible accumulated"}
+        />
+        <MetricCard
+          label={language === "es" ? "Egresos" : "Expenses"}
+          icon="expense"
+          tone="warning"
+          value={formatMoney(overview.totalExpense)}
+          hint={language === "es" ? "Acumulado visible" : "Visible accumulated"}
+        />
+        <MetricCard
+          label={language === "es" ? "Balance" : "Balance"}
+          icon="balance"
+          tone="info"
+          value={formatMoney(overview.balance)}
+          hint={language === "es" ? "Resultado actual" : "Current result"}
+        />
       </div>
 
       {error ? (
         <ErrorState
-          title="Finanzas tenant no disponibles"
+          title={
+            language === "es"
+              ? "Finanzas tenant no disponibles"
+              : "Tenant finance unavailable"
+          }
           detail={error.payload?.detail || error.message}
           requestId={error.payload?.request_id}
         />
@@ -219,11 +261,15 @@ export function TenantFinancePage() {
       <div className="tenant-portal-split tenant-portal-split--finance">
         <PanelCard
           icon="transactions"
-          title="Crear movimiento"
-          subtitle="Registra un ingreso o egreso para este tenant."
+          title={language === "es" ? "Crear movimiento" : "Create transaction"}
+          subtitle={
+            language === "es"
+              ? "Registra un ingreso o egreso para este tenant."
+              : "Register an income or expense for this tenant."
+          }
         >
           <AppForm onSubmit={handleCreateEntry}>
-            <AppFormField label="Tipo de movimiento">
+            <AppFormField label={language === "es" ? "Tipo de movimiento" : "Transaction type"}>
                 <select
                   className="form-select"
                   value={movementType}
@@ -231,12 +277,18 @@ export function TenantFinancePage() {
                 >
                   {MOVEMENT_TYPES.map((value) => (
                     <option key={value} value={value}>
-                      {value === "income" ? "ingreso" : "egreso"}
+                      {value === "income"
+                        ? language === "es"
+                          ? "ingreso"
+                          : "income"
+                        : language === "es"
+                          ? "egreso"
+                          : "expense"}
                     </option>
                   ))}
                 </select>
             </AppFormField>
-            <AppFormField label="Monto">
+            <AppFormField label={language === "es" ? "Monto" : "Amount"}>
                 <input
                   className="form-control"
                   type="number"
@@ -247,20 +299,26 @@ export function TenantFinancePage() {
                   placeholder="0.00"
                 />
             </AppFormField>
-            <AppFormField label="Concepto" fullWidth>
+            <AppFormField label={language === "es" ? "Concepto" : "Concept"} fullWidth>
               <input
                 className="form-control"
                 value={concept}
                 onChange={(event) => setConcept(event.target.value)}
-                placeholder="Ej: Pago de servicio"
+                placeholder={
+                  language === "es" ? "Ej: Pago de servicio" : "Ex: Service payment"
+                }
               />
             </AppFormField>
-            <AppFormField label="Categoría" fullWidth>
+            <AppFormField label={language === "es" ? "Categoría" : "Category"} fullWidth>
               <input
                 className="form-control"
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
-                placeholder="Ej: Operación, ventas, caja"
+                placeholder={
+                  language === "es"
+                    ? "Ej: Operación, ventas, caja"
+                    : "Ex: Operations, sales, cash"
+                }
               />
             </AppFormField>
             <AppFormActions>
@@ -269,7 +327,7 @@ export function TenantFinancePage() {
                 type="submit"
                 disabled={isActionSubmitting}
               >
-                Crear movimiento
+                {language === "es" ? "Crear movimiento" : "Create transaction"}
               </button>
             </AppFormActions>
           </AppForm>
@@ -277,84 +335,123 @@ export function TenantFinancePage() {
 
         <PanelCard
           icon="focus"
-          title="Uso efectivo"
-          subtitle="Refleja la cuota vigente para registrar movimientos."
+          title={language === "es" ? "Uso efectivo" : "Effective usage"}
+          subtitle={
+            language === "es"
+              ? "Refleja la cuota vigente para registrar movimientos."
+              : "Reflects the current quota to register transactions."
+          }
         >
           {usageError ? (
             <ErrorState
-              title="Uso de finanzas no disponible"
+              title={
+                language === "es"
+                  ? "Uso de finanzas no disponible"
+                  : "Finance usage unavailable"
+              }
               detail={usageError.payload?.detail || usageError.message}
               requestId={usageError.payload?.request_id}
             />
           ) : usage ? (
             <div className="tenant-detail-grid">
-              <DetailField label="Clave de módulo" value={<code>{usage.module_key}</code>} />
-              <DetailField label="Movimientos usados" value={usage.used_entries} />
               <DetailField
-                label="Límite"
-                value={usage.unlimited ? "ilimitado" : usage.max_entries ?? "—"}
+                label={language === "es" ? "Clave de módulo" : "Module key"}
+                value={<code>{usage.module_key}</code>}
               />
               <DetailField
-                label="Restante"
+                label={language === "es" ? "Movimientos usados" : "Used transactions"}
+                value={usage.used_entries}
+              />
+              <DetailField
+                label={language === "es" ? "Límite" : "Limit"}
+                value={
+                  usage.unlimited
+                    ? language === "es"
+                      ? "ilimitado"
+                      : "unlimited"
+                    : usage.max_entries ?? "—"
+                }
+              />
+              <DetailField
+                label={language === "es" ? "Restante" : "Remaining"}
                 value={usage.unlimited ? "—" : usage.remaining_entries ?? "—"}
               />
               <DetailField
-                label="Fuente"
-                value={usage.limit_source ? displayPlatformCode(usage.limit_source) : "ninguna"}
+                label={language === "es" ? "Fuente" : "Source"}
+                value={
+                  usage.limit_source
+                    ? displayPlatformCode(usage.limit_source, language)
+                    : language === "es"
+                      ? "ninguna"
+                      : "none"
+                }
               />
               <DetailField
-                label="Estado"
+                label={language === "es" ? "Estado" : "Status"}
                 value={
                   usage.at_limit ? (
-                    <AppBadge tone="warning">al límite</AppBadge>
+                    <AppBadge tone="warning">
+                      {language === "es" ? "al límite" : "at limit"}
+                    </AppBadge>
                   ) : (
-                    <AppBadge tone="success">ok</AppBadge>
+                    <AppBadge tone="success">
+                      {language === "es" ? "ok" : "ok"}
+                    </AppBadge>
                   )
                 }
               />
             </div>
           ) : (
-            <div className="text-secondary">Los datos de uso no están disponibles.</div>
+            <div className="text-secondary">
+              {language === "es"
+                ? "Los datos de uso no están disponibles."
+                : "Usage data is not available."}
+            </div>
           )}
         </PanelCard>
       </div>
 
       {entries.length > 0 ? (
         <DataTableCard
-          title="Movimientos financieros"
+          title={language === "es" ? "Movimientos financieros" : "Financial transactions"}
           rows={entries}
           columns={[
             {
               key: "movement_type",
-              header: "Tipo",
+              header: language === "es" ? "Tipo" : "Type",
               render: (row) => <StatusBadge value={row.movement_type} />,
             },
             {
               key: "concept",
-              header: "Concepto",
+              header: language === "es" ? "Concepto" : "Concept",
               render: (row) => row.concept,
             },
             {
               key: "amount",
-              header: "Monto",
+              header: language === "es" ? "Monto" : "Amount",
               render: (row) => formatMoney(row.amount),
             },
             {
               key: "category",
-              header: "Categoría",
+              header: language === "es" ? "Categoría" : "Category",
               render: (row) => row.category || "—",
             },
             {
               key: "created_by_user_id",
-              header: "Creado por",
+              header: language === "es" ? "Creado por" : "Created by",
               render: (row) => row.created_by_user_id || "—",
             },
           ]}
         />
       ) : !isLoading && !error ? (
-        <PanelCard icon="transactions" title="Movimientos financieros">
+        <PanelCard
+          icon="transactions"
+          title={language === "es" ? "Movimientos financieros" : "Financial transactions"}
+        >
           <div className="text-secondary">
-            Aún no se registran movimientos financieros para este tenant.
+            {language === "es"
+              ? "Aún no se registran movimientos financieros para este tenant."
+              : "There are no financial transactions registered for this tenant yet."}
           </div>
         </PanelCard>
       ) : null}

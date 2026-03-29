@@ -301,7 +301,7 @@ Backlog opcional post-cierre:
 - la base visual local de `finance` ya quedó sembrada con iconografia semantica, bloques `spotlight` y charts livianos; el pendiente ya no es esa capa inicial, sino elevarla a sistema transversal del PaaS
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 - el trabajo transversal de `design system` ya quedó aplicado sobre el frontend visible con iconografia común, `spotlight` genérico, badges, layouts, formularios y wrappers de tabla reutilizables; `finance` ya sirve como bloque de referencia, `Overview`/`Users` ya comparten esa base y `platform_admin` ya la absorbió en `Dashboard`, `Actividad`, `Usuarios de plataforma`, `Tenants`, `Histórico tenants`, `Provisioning`, `Billing`, `Configuración`, login, recuperación raíz e instalador
-- dejar, tambien como trabajo transversal posterior, una internacionalizacion real del sistema porque fuera de `finance` todavia existen pantallas y helpers compartidos con copy parcialmente hardcodeado
+- dejar, tambien como trabajo transversal posterior, el cierre fino de una internacionalizacion real del sistema; la superficie visible principal y los helpers compartidos ya respetan el idioma activo, pero todavia quedan ayudas largas, copy secundario y formularios densos por unificar
 
 ## Etapa 9. Calidad Tecnica Base
 
@@ -510,14 +510,14 @@ Resultado actual:
 
 - `finance` ya no es solo una idea: existe modulo backend funcional, migraciones, enforcement de limites, vistas tenant y visibilidad operativa desde plataforma
 - ya existen pruebas manuales y runbooks guiados sobre `finance`, billing y efectos de limites en el portal tenant
-- `tenant_portal` ya corrigio el cambio de idioma en `Overview` y `Users`, y el frontend ya dejo resuelto el warning de bundle principal grande con code-splitting por ruta
+- `tenant_portal` ya corrigio el cambio de idioma en `Overview`, `Users`, login y el borde legacy de finanzas; `platform_admin` ya absorbio la misma capa en guards, installer, login, recovery, `Dashboard`, `Actividad`, `Settings`, `Usuarios de plataforma`, `Histórico tenants`, `Billing`, `Provisioning` y la lectura principal de `Tenants`, y el frontend ya dejo resuelto el warning de bundle principal grande con code-splitting por ruta
 - `finance` ya puede tratarse como modulo funcionalmente cerrado para pasar a backlog opcional y preparar trabajo transversal posterior
 
 Falta para cerrarlo:
 
 - decidir el siguiente modulo real despues de `finance`
 - tratar el `design system` transversal como base ya aplicada sobre el frontend visible y usar `finance` como referencia formal para los siguientes módulos, no como experimento todavía abierto
-- seguir limpiando internacionalizacion transversal fuera de `finance`, porque todavia quedan pantallas y helpers con copy mezclado o localmente hardcodeado
+- seguir cerrando la internacionalizacion transversal fuera de `finance`, ya no sobre la capa visible principal sino sobre copy secundario, ayudas largas y formularios administrativos densos que todavia mezclan idioma o siguen localmente hardcodeados
 
 ## Etapa 15. Registro y Activacion de Modulos
 

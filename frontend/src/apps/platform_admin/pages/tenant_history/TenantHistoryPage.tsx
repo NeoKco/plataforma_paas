@@ -14,11 +14,13 @@ import {
   listPlatformTenantRetirementArchives,
 } from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
+import { useLanguage } from "../../../../store/language-context";
 import type { ApiError, PlatformTenantRetirementArchiveItem } from "../../../../types";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
 
 export function TenantHistoryPage() {
   const { session } = useAuth();
+  const { language } = useLanguage();
   const [retirementArchives, setRetirementArchives] = useState<
     PlatformTenantRetirementArchiveItem[]
   >([]);
@@ -126,14 +128,18 @@ export function TenantHistoryPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow="Plataforma"
-        title="Histórico tenants"
-        description="Archivo de tenants retirados del catálogo activo, con snapshot funcional resumido para auditoría y soporte post mortem."
+        eyebrow={language === "es" ? "Plataforma" : "Platform"}
+        title={language === "es" ? "Histórico tenants" : "Tenant history"}
+        description={
+          language === "es"
+            ? "Archivo de tenants retirados del catálogo activo, con snapshot funcional resumido para auditoría y soporte post mortem."
+            : "Archive of tenants retired from the active catalog, with a summarized functional snapshot for audit and post-mortem support."
+        }
         icon="tenant-history"
         actions={
           <AppToolbar compact>
             <Link className="btn btn-outline-primary" to="/tenants">
-              Volver a Tenants
+              {language === "es" ? "Volver a Tenants" : "Back to Tenants"}
             </Link>
           </AppToolbar>
         }
@@ -141,25 +147,39 @@ export function TenantHistoryPage() {
 
       <PanelCard
         icon="catalogs"
-        title="Archivo histórico"
-        subtitle="Consulta retirados recientes, filtra por actor o billing y abre el detalle solo cuando lo necesites."
+        title={language === "es" ? "Archivo histórico" : "Historical archive"}
+        subtitle={
+          language === "es"
+            ? "Consulta retirados recientes, filtra por actor o billing y abre el detalle solo cuando lo necesites."
+            : "Review recent retirements, filter by actor or billing and open the detail only when needed."
+        }
       >
         <AppFilterGrid className="tenant-catalog-filters">
           <input
             className="form-control"
             value={retirementSearch}
             onChange={(event) => setRetirementSearch(event.target.value)}
-            placeholder="Buscar por nombre, slug, actor o billing"
+            placeholder={
+              language === "es"
+                ? "Buscar por nombre, slug, actor o billing"
+                : "Search by name, slug, actor or billing"
+            }
           />
         </AppFilterGrid>
 
         {isRetirementArchivesLoading ? (
-          <LoadingBlock label="Cargando archivo histórico..." />
+          <LoadingBlock
+            label={language === "es" ? "Cargando archivo histórico..." : "Loading archive..."}
+          />
         ) : null}
 
         {retirementArchivesError ? (
           <ErrorState
-            title="No se pudo leer el archivo histórico"
+            title={
+              language === "es"
+                ? "No se pudo leer el archivo histórico"
+                : "Could not read the archive"
+            }
             detail={
               retirementArchivesError.payload?.detail ||
               retirementArchivesError.message
@@ -172,8 +192,16 @@ export function TenantHistoryPage() {
         !retirementArchivesError &&
         retirementArchives.length === 0 ? (
           <EmptyState
-            title="Aún no hay tenants retirados archivados"
-            detail="Cuando elimines tenants archivados y desprovisionados, aparecerán aquí con su snapshot de retiro."
+            title={
+              language === "es"
+                ? "Aún no hay tenants retirados archivados"
+                : "There are no archived retired tenants yet"
+            }
+            detail={
+              language === "es"
+                ? "Cuando elimines tenants archivados y desprovisionados, aparecerán aquí con su snapshot de retiro."
+                : "When archived and deprovisioned tenants are deleted, they will appear here with their retirement snapshot."
+            }
           />
         ) : null}
 
@@ -182,8 +210,16 @@ export function TenantHistoryPage() {
         retirementArchives.length > 0 &&
         filteredRetirementArchives.length === 0 ? (
           <EmptyState
-            title="No hay coincidencias para este filtro"
-            detail="Prueba con menos texto o cambia la búsqueda por slug, actor o billing."
+            title={
+              language === "es"
+                ? "No hay coincidencias para este filtro"
+                : "There are no matches for this filter"
+            }
+            detail={
+              language === "es"
+                ? "Prueba con menos texto o cambia la búsqueda por slug, actor o billing."
+                : "Try less text or change the search to slug, actor or billing."
+            }
           />
         ) : null}
 
@@ -191,12 +227,12 @@ export function TenantHistoryPage() {
         !retirementArchivesError &&
         filteredRetirementArchives.length > 0 ? (
           <DataTableCard
-            title="Retirados recientes"
+            title={language === "es" ? "Retirados recientes" : "Recent retirements"}
             rows={filteredRetirementArchives}
             columns={[
               {
                 key: "deleted_at",
-                header: "Retirado en",
+                header: language === "es" ? "Retirado en" : "Retired at",
                 render: (row) => formatDateTime(row.deleted_at),
               },
               {
@@ -214,26 +250,30 @@ export function TenantHistoryPage() {
               },
               {
                 key: "deleted_by_email",
-                header: "Actor",
-                render: (row) => row.deleted_by_email || "sistema",
+                header: language === "es" ? "Actor" : "Actor",
+                render: (row) => row.deleted_by_email || (language === "es" ? "sistema" : "system"),
               },
               {
                 key: "billing_status",
-                header: "Billing final",
+                header: language === "es" ? "Final billing" : "Final billing",
                 render: (row) =>
                   row.billing_status
-                    ? displayPlatformCode(row.billing_status)
-                    : "ninguno",
+                    ? displayPlatformCode(row.billing_status, language)
+                    : language === "es"
+                      ? "ninguno"
+                      : "none",
               },
               {
                 key: "billing_events_count",
-                header: "Eventos",
+                header: language === "es" ? "Eventos" : "Events",
                 render: (row) =>
-                  `${row.billing_events_count} billing / ${row.policy_events_count} policy / ${row.provisioning_jobs_count} jobs`,
+                  language === "es"
+                    ? `${row.billing_events_count} billing / ${row.policy_events_count} policy / ${row.provisioning_jobs_count} jobs`
+                    : `${row.billing_events_count} billing / ${row.policy_events_count} policy / ${row.provisioning_jobs_count} jobs`,
               },
               {
                 key: "actions",
-                header: "Detalle",
+                header: language === "es" ? "Detalle" : "Detail",
                 render: (row) => (
                   <AppToolbar compact>
                     <button
@@ -253,8 +293,12 @@ export function TenantHistoryPage() {
                       disabled={isRetirementArchiveDetailLoading}
                     >
                       {selectedRetirementArchiveId === row.id
-                        ? "Ocultar detalle"
-                        : "Ver detalle"}
+                        ? language === "es"
+                          ? "Ocultar detalle"
+                          : "Hide detail"
+                        : language === "es"
+                          ? "Ver detalle"
+                          : "View detail"}
                     </button>
                   </AppToolbar>
                 ),
@@ -265,12 +309,22 @@ export function TenantHistoryPage() {
       </PanelCard>
 
       {isRetirementArchiveDetailLoading ? (
-        <LoadingBlock label="Cargando detalle del archivo histórico..." />
+        <LoadingBlock
+          label={
+            language === "es"
+              ? "Cargando detalle del archivo histórico..."
+              : "Loading archive detail..."
+          }
+        />
       ) : null}
 
       {retirementArchiveDetailError ? (
         <ErrorState
-          title="No se pudo leer el detalle del archivo histórico"
+          title={
+            language === "es"
+              ? "No se pudo leer el detalle del archivo histórico"
+              : "Could not read archive detail"
+          }
           detail={
             retirementArchiveDetailError.payload?.detail ||
             retirementArchiveDetailError.message
@@ -283,8 +337,16 @@ export function TenantHistoryPage() {
         <>
           <PanelCard
             icon="tenant-history"
-            title={`Detalle histórico: ${selectedRetirementArchive.tenant_name}`}
-            subtitle="Snapshot resumido guardado al momento del retiro definitivo."
+            title={
+              language === "es"
+                ? `Detalle histórico: ${selectedRetirementArchive.tenant_name}`
+                : `Historical detail: ${selectedRetirementArchive.tenant_name}`
+            }
+            subtitle={
+              language === "es"
+                ? "Snapshot resumido guardado al momento del retiro definitivo."
+                : "Summarized snapshot stored at the moment of final retirement."
+            }
           >
             <div className="tenant-detail-grid">
               <DetailField
@@ -292,29 +354,33 @@ export function TenantHistoryPage() {
                 value={<code>{selectedRetirementArchive.tenant_slug}</code>}
               />
               <DetailField
-                label="Retirado en"
+                label={language === "es" ? "Retirado en" : "Retired at"}
                 value={formatDateTime(selectedRetirementArchive.deleted_at)}
               />
               <DetailField
-                label="Actor"
-                value={selectedRetirementArchive.deleted_by_email || "sistema"}
+                label={language === "es" ? "Actor" : "Actor"}
+                value={selectedRetirementArchive.deleted_by_email || (language === "es" ? "sistema" : "system")}
               />
               <DetailField
-                label="Billing final"
+                label={language === "es" ? "Billing final" : "Final billing"}
                 value={
                   selectedRetirementArchive.billing_status
-                    ? displayPlatformCode(selectedRetirementArchive.billing_status)
-                    : "ninguno"
+                    ? displayPlatformCode(selectedRetirementArchive.billing_status, language)
+                    : language === "es"
+                      ? "ninguno"
+                      : "none"
                 }
               />
             </div>
 
             <div className="tenant-inline-note">
-              Policy efectiva al retiro: {formatArchiveAccessPolicy(selectedRetirementSummary)}
+              {language === "es" ? "Policy efectiva al retiro:" : "Effective policy at retirement:"}{" "}
+              {formatArchiveAccessPolicy(selectedRetirementSummary)}
             </div>
 
             <div className="tenant-inline-note">
-              Límites efectivos: {formatArchiveModuleLimits(selectedRetirementSummary)}
+              {language === "es" ? "Límites efectivos:" : "Effective limits:"}{" "}
+              {formatArchiveModuleLimits(selectedRetirementSummary)}
             </div>
           </PanelCard>
 
@@ -323,7 +389,7 @@ export function TenantHistoryPage() {
             "recent_billing_events",
           ]).length > 0 ? (
             <DataTableCard
-              title="Billing reciente"
+              title={language === "es" ? "Billing reciente" : "Recent billing"}
               rows={extractArchiveRows(selectedRetirementSummary, [
                 "retirement",
                 "recent_billing_events",
@@ -331,22 +397,22 @@ export function TenantHistoryPage() {
               columns={[
                 {
                   key: "recorded_at",
-                  header: "Registrado",
+                  header: language === "es" ? "Registrado" : "Recorded",
                   render: (row) => formatDateTime(readArchiveString(row, "recorded_at")),
                 },
                 {
                   key: "event_type",
-                  header: "Evento",
+                  header: language === "es" ? "Evento" : "Event",
                   render: (row) => readArchiveString(row, "event_type") || "n/a",
                 },
                 {
                   key: "provider",
-                  header: "Proveedor",
+                  header: language === "es" ? "Proveedor" : "Provider",
                   render: (row) => readArchiveString(row, "provider") || "n/a",
                 },
                 {
                   key: "processing_result",
-                  header: "Resultado",
+                  header: language === "es" ? "Resultado" : "Result",
                   render: (row) =>
                     readArchiveString(row, "processing_result") || "n/a",
                 },
@@ -364,7 +430,7 @@ export function TenantHistoryPage() {
             "recent_policy_events",
           ]).length > 0 ? (
             <DataTableCard
-              title="Cambios de política recientes"
+              title={language === "es" ? "Cambios de política recientes" : "Recent policy changes"}
               rows={extractArchiveRows(selectedRetirementSummary, [
                 "retirement",
                 "recent_policy_events",
@@ -372,25 +438,25 @@ export function TenantHistoryPage() {
               columns={[
                 {
                   key: "recorded_at",
-                  header: "Registrado",
+                  header: language === "es" ? "Registrado" : "Recorded",
                   render: (row) => formatDateTime(readArchiveString(row, "recorded_at")),
                 },
                 {
                   key: "event_type",
-                  header: "Evento",
+                  header: language === "es" ? "Evento" : "Event",
                   render: (row) => readArchiveString(row, "event_type") || "n/a",
                 },
                 {
                   key: "actor_email",
-                  header: "Actor",
+                  header: language === "es" ? "Actor" : "Actor",
                   render: (row) =>
                     readArchiveString(row, "actor_email") ||
                     readArchiveString(row, "actor_role") ||
-                    "sistema",
+                    (language === "es" ? "sistema" : "system"),
                 },
                 {
                   key: "changed_fields",
-                  header: "Campos",
+                  header: language === "es" ? "Campos" : "Fields",
                   render: (row) => formatArchiveStringArray(row.changed_fields),
                 },
               ]}
@@ -402,7 +468,7 @@ export function TenantHistoryPage() {
             "recent_provisioning_jobs",
           ]).length > 0 ? (
             <DataTableCard
-              title="Jobs técnicos recientes"
+              title={language === "es" ? "Jobs técnicos recientes" : "Recent technical jobs"}
               rows={extractArchiveRows(selectedRetirementSummary, [
                 "retirement",
                 "recent_provisioning_jobs",
@@ -410,12 +476,12 @@ export function TenantHistoryPage() {
               columns={[
                 {
                   key: "created_at",
-                  header: "Creado",
+                  header: language === "es" ? "Creado" : "Created",
                   render: (row) => formatDateTime(readArchiveString(row, "created_at")),
                 },
                 {
                   key: "job_type",
-                  header: "Tipo",
+                  header: language === "es" ? "Tipo" : "Type",
                   render: (row) =>
                     formatProvisioningJobType(
                       readArchiveString(row, "job_type") || "unknown"
@@ -423,7 +489,7 @@ export function TenantHistoryPage() {
                 },
                 {
                   key: "status",
-                  header: "Estado",
+                  header: language === "es" ? "Estado" : "Status",
                   render: (row) =>
                     readArchiveString(row, "status") ? (
                       <StatusBadge value={readArchiveString(row, "status") || "unknown"} />
@@ -433,7 +499,7 @@ export function TenantHistoryPage() {
                 },
                 {
                   key: "attempts",
-                  header: "Intentos",
+                  header: language === "es" ? "Intentos" : "Attempts",
                   render: (row) =>
                     `${readArchiveNumber(row, "attempts") ?? 0}/${readArchiveNumber(
                       row,
@@ -442,8 +508,10 @@ export function TenantHistoryPage() {
                 },
                 {
                   key: "error_code",
-                  header: "Error",
-                  render: (row) => readArchiveString(row, "error_code") || "ninguno",
+                  header: language === "es" ? "Error" : "Error",
+                  render: (row) =>
+                    readArchiveString(row, "error_code") ||
+                    (language === "es" ? "ninguno" : "none"),
                 },
               ]}
             />

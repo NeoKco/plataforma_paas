@@ -10,6 +10,7 @@ import {
   recoverPlatformRootAccount,
 } from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
+import { useLanguage } from "../../../../store/language-context";
 import type {
   ApiError,
   PlatformRootRecoveryRequest,
@@ -26,6 +27,7 @@ const DEFAULT_FORM: PlatformRootRecoveryRequest = {
 export function PlatformRootRecoveryPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { language } = useLanguage();
   const [status, setStatus] = useState<PlatformRootRecoveryStatusResponse | null>(null);
   const [form, setForm] = useState(DEFAULT_FORM);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,8 +78,9 @@ export function PlatformRootRecoveryPage() {
         replace: true,
         state: {
           message:
-            `Cuenta raíz recuperada para ${response.email}. ` +
-            "Inicia sesión con la nueva contraseña.",
+            language === "es"
+              ? `Cuenta raíz recuperada para ${response.email}. Inicia sesión con la nueva contraseña.`
+              : `Root account recovered for ${response.email}. Sign in with the new password.`,
         },
       });
     } catch (rawError) {
@@ -113,37 +116,55 @@ export function PlatformRootRecoveryPage() {
           <div className="page-header__icon">
             <AppIcon name="settings" size={22} />
           </div>
-          <h1 className="login-card__title">Recuperación de cuenta raíz</h1>
+          <h1 className="login-card__title">
+            {language === "es" ? "Recuperación de cuenta raíz" : "Root account recovery"}
+          </h1>
         </div>
         <p className="login-card__subtitle">
-          Usa este flujo solo si ya no existe ningún superadministrador activo y
-          conservas la clave de recuperación emitida al instalar.
+          {language === "es"
+            ? "Usa este flujo solo si ya no existe ningún superadministrador activo y conservas la clave de recuperación emitida al instalar."
+            : "Use this flow only if there is no active superadmin left and you still have the recovery key issued during installation."}
         </p>
 
         <div className="login-card__portal-switch">
-          <span>Este no es el flujo normal de acceso diario.</span>
+          <span>
+            {language === "es"
+              ? "Este no es el flujo normal de acceso diario."
+              : "This is not the regular daily access flow."}
+          </span>
           <AppToolbar compact>
             <Link className="btn btn-outline-secondary btn-sm" to="/login">
-              Volver al login
+              {language === "es" ? "Volver al login" : "Back to login"}
             </Link>
           </AppToolbar>
         </div>
 
-        {isLoading ? <div className="alert alert-info">Verificando disponibilidad...</div> : null}
+        {isLoading ? (
+          <div className="alert alert-info">
+            {language === "es" ? "Verificando disponibilidad..." : "Checking availability..."}
+          </div>
+        ) : null}
         {statusError ? (
           <div className="alert alert-danger">{getApiErrorDisplayMessage(statusError)}</div>
         ) : null}
         {!isLoading && status && !status.recovery_available ? (
           <div className="alert alert-warning">
             {status.has_active_superadmin
-              ? "La recuperación raíz no está disponible porque la plataforma todavía conserva un superadministrador activo."
-              : "La recuperación raíz no está configurada en este entorno."}
+              ? language === "es"
+                ? "La recuperación raíz no está disponible porque la plataforma todavía conserva un superadministrador activo."
+                : "Root recovery is not available because the platform still has an active superadmin."
+              : language === "es"
+                ? "La recuperación raíz no está configurada en este entorno."
+                : "Root recovery is not configured in this environment."}
           </div>
         ) : null}
         {error ? <div className="alert alert-danger">{getApiErrorDisplayMessage(error)}</div> : null}
 
         <AppForm onSubmit={handleSubmit}>
-          <AppFormField label="Clave de recuperación" fullWidth>
+          <AppFormField
+            label={language === "es" ? "Clave de recuperación" : "Recovery key"}
+            fullWidth
+          >
             <input
               className="form-control"
               type="password"
@@ -152,7 +173,12 @@ export function PlatformRootRecoveryPage() {
               autoComplete="one-time-code"
             />
           </AppFormField>
-          <AppFormField label="Nombre del superadministrador" fullWidth>
+          <AppFormField
+            label={
+              language === "es" ? "Nombre del superadministrador" : "Superadmin name"
+            }
+            fullWidth
+          >
             <input
               className="form-control"
               value={form.full_name}
@@ -160,7 +186,7 @@ export function PlatformRootRecoveryPage() {
               autoComplete="name"
             />
           </AppFormField>
-          <AppFormField label="Correo raíz" fullWidth>
+          <AppFormField label={language === "es" ? "Correo raíz" : "Root email"} fullWidth>
             <input
               className="form-control"
               value={form.email}
@@ -168,7 +194,10 @@ export function PlatformRootRecoveryPage() {
               autoComplete="email"
             />
           </AppFormField>
-          <AppFormField label="Nueva contraseña" fullWidth>
+          <AppFormField
+            label={language === "es" ? "Nueva contraseña" : "New password"}
+            fullWidth
+          >
             <input
               className="form-control"
               type="password"
@@ -179,7 +208,13 @@ export function PlatformRootRecoveryPage() {
           </AppFormField>
           <AppFormActions>
             <button className="btn btn-primary" disabled={!canSubmit} type="submit">
-              {isSubmitting ? "Recuperando..." : "Recuperar cuenta raíz"}
+              {isSubmitting
+                ? language === "es"
+                  ? "Recuperando..."
+                  : "Recovering..."
+                : language === "es"
+                  ? "Recuperar cuenta raíz"
+                  : "Recover root account"}
             </button>
           </AppFormActions>
         </AppForm>

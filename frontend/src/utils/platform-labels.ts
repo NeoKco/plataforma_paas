@@ -1,4 +1,5 @@
 import type { Language } from "../store/language-context";
+import { getCurrentLanguage } from "./i18n";
 
 const CODE_LABELS: Record<Language, Record<string, string>> = {
   es: {
@@ -106,7 +107,7 @@ const ACCESS_DETAIL_LABELS: Record<Language, Record<string, string>> = {
 
 export function displayPlatformCode(
   value: string | null | undefined,
-  language: Language = "es"
+  language: Language = getCurrentLanguage()
 ): string {
   if (!value) {
     return language === "es" ? "sin dato" : "unknown";
@@ -125,7 +126,7 @@ export function displayPlatformCode(
 
 export function displayAccessBlockingSource(
   value: string | null | undefined,
-  language: Language = "es"
+  language: Language = getCurrentLanguage()
 ): string {
   if (!value) {
     return language === "es" ? "ninguna" : "none";
@@ -135,7 +136,7 @@ export function displayAccessBlockingSource(
 
 export function displayMaintenanceAccessMode(
   value: string | null | undefined,
-  language: Language = "es"
+  language: Language = getCurrentLanguage()
 ): string {
   if (!value) {
     return language === "es" ? "bloquear escrituras" : "block writes";
@@ -145,7 +146,7 @@ export function displayMaintenanceAccessMode(
 
 export function displayTenantAccessDetail(
   value: string | null | undefined,
-  language: Language = "es"
+  language: Language = getCurrentLanguage()
 ): string {
   if (!value) {
     return language === "es" ? "sin detalle" : "no detail";
