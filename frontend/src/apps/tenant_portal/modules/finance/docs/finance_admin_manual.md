@@ -20,6 +20,10 @@ Estado actual:
 - al abrir el detalle de una transacción ya se pueden cargar boletas, facturas o respaldos en `JPG/PNG/WEBP/PDF`
 - las imágenes se comprimen antes de subirse y el backend valida un tope final de `5 MB` por archivo
 - el mismo detalle ya permite descargar o eliminar adjuntos existentes
+- para poblar tenants de prueba con volumen real ya existe ademas un importador offline de `egresos.csv` legacy con compresion de imagenes y carga idempotente
+- ese flujo genera `egresos_finance_profile.json`, `egresos_finance_import.csv`, `imagenes_finance_preparadas/` y `egresos_finance_import_report.json` dentro de `modulo finanzas/ejemplo/`
+- el importador crea categorias faltantes, carga egresos sobre `finance_transactions` y enlaza cada documento comprimido como adjunto de la transaccion correspondiente
+- una vez importados, esos adjuntos ya no dependen de la carpeta externa de ejemplo: el storage real del módulo vive en `backend/app/apps/tenant_modules/finance/storage/attachments/`
 - si una transacción se cargó por error, la vista ya ofrece `Anular` en vez de borrado físico
 - esa anulación conserva auditoría, deja la fila disponible para soporte y la excluye de balances, listados activos, presupuestos y reportes
 - las transacciones derivadas de cuotas de `Préstamos` no se anulan desde `Transacciones`; deben revertirse desde el propio préstamo
@@ -81,3 +85,12 @@ Estado actual:
 Pendiente administrativo:
 - seguir puliendo copy residual en exportaciones, confirmaciones, badges y mensajes largos para asegurar paridad completa entre `Español/Inglés`
 - el backlog opcional sugerido del módulo ya quedó absorbido en el alcance actual; cualquier cambio adicional pasa a expansión nueva del dominio
+
+Comando operativo de referencia para importar el ejemplo legacy:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/import_finance_legacy_egresos.py --apply --tenant-slug empresa-demo --actor-user-id 1
+```

@@ -943,7 +943,6 @@ function formatMoney(value: number, language: "es" | "en", currencyCode: string)
   return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
     currency: currencyCode,
-    maximumFractionDigits: 2,
   }).format(value);
 }
 

@@ -129,7 +129,16 @@ class Settings(BaseSettings):
     OBSERVABILITY_PROMETHEUS_TEXTFILE_PATH: str = (
         "/tmp/platform_paas_provisioning_metrics.prom"
     )
-    FINANCE_ATTACHMENTS_DIR: str = str(BASE_DIR / "storage" / "finance_attachments")
+    FINANCE_ATTACHMENTS_DIR: str = str(
+        BASE_DIR
+        / "backend"
+        / "app"
+        / "apps"
+        / "tenant_modules"
+        / "finance"
+        / "storage"
+        / "attachments"
+    )
 
     @field_validator("DEBUG", mode="before")
     @classmethod

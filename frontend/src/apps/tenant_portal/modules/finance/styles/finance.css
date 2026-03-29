@@ -533,6 +533,101 @@
   color: #c14d4d;
 }
 
+.finance-attachment-actions-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.finance-attachment-actions-strip__thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid var(--color-border-default, #d5dce7);
+  border-radius: 0.8rem;
+  background: #fff;
+  overflow: hidden;
+}
+
+.finance-attachment-actions-strip__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.finance-attachment-card {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.finance-attachment-card__media {
+  min-width: 0;
+}
+
+.finance-attachment-card__preview,
+.finance-attachment-card__file {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 0.9rem;
+  border: 1px solid var(--color-border-default, #d5dce7);
+  background:
+    linear-gradient(135deg, rgba(237, 243, 255, 0.96), rgba(248, 250, 252, 0.98));
+  overflow: hidden;
+}
+
+.finance-attachment-card__preview {
+  padding: 0;
+}
+
+.finance-attachment-card__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.finance-attachment-card__file {
+  color: #163e91;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.finance-attachment-card__content {
+  min-width: 0;
+}
+
+.finance-attachment-preview-modal {
+  width: min(92vw, 920px);
+}
+
+.finance-attachment-preview-modal__body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  max-height: 74vh;
+  overflow: auto;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.04);
+  padding: 1rem;
+}
+
+.finance-attachment-preview-modal__body img {
+  max-width: 100%;
+  max-height: 68vh;
+  border-radius: 0.9rem;
+  object-fit: contain;
+}
+
 @media (min-width: 1200px) {
   .finance-catalog-layout {
     grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.4fr);
@@ -557,5 +652,15 @@
 
   .finance-bar-chart__value {
     text-align: left;
+  }
+
+  .finance-attachment-card {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-attachment-card__preview,
+  .finance-attachment-card__file {
+    width: 100%;
+    max-width: 180px;
   }
 }

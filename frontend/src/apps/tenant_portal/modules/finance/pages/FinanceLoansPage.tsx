@@ -1731,7 +1731,6 @@ function formatMoney(value: number, currencyCode: string, language: "es" | "en")
   return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
     currency: currencyCode,
-    maximumFractionDigits: 2,
   }).format(value);
 }
 

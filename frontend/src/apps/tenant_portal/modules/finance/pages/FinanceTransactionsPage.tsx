@@ -61,6 +61,12 @@ type ActionFeedback = {
   message: string;
 };
 
+type AttachmentPreviewModalState = {
+  attachmentId: number;
+  fileName: string;
+  previewUrl: string;
+};
+
 type TransactionFormState = {
   transactionType: string;
   accountId: string;
@@ -123,6 +129,11 @@ export function FinanceTransactionsPage() {
   const [attachmentNotes, setAttachmentNotes] = useState("");
   const [createAttachmentFile, setCreateAttachmentFile] = useState<File | null>(null);
   const [createAttachmentNotes, setCreateAttachmentNotes] = useState("");
+  const [attachmentPreviewUrls, setAttachmentPreviewUrls] = useState<Record<number, string>>(
+    {}
+  );
+  const [attachmentPreviewModal, setAttachmentPreviewModal] =
+    useState<AttachmentPreviewModalState | null>(null);
   const [isAttachmentSubmitting, setIsAttachmentSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
@@ -163,6 +174,15 @@ export function FinanceTransactionsPage() {
     () => new Map(currencies.map((currency) => [currency.id, currency])),
     [currencies]
   );
+  const previewCleanupRef = useRef<string[]>([]);
+  const selectedAttachmentPreviewDependency = useMemo(() => {
+    if (!selectedTransactionDetail) {
+      return "";
+    }
+    return selectedTransactionDetail.attachments
+      .map((attachment) => `${attachment.id}:${attachment.file_name}:${attachment.content_type || ""}`)
+      .join("|");
+  }, [selectedTransactionDetail]);
 
   const filteredCategories = useMemo(() => {
     if (formState.transactionType === "transfer") {
@@ -203,6 +223,75 @@ export function FinanceTransactionsPage() {
       }));
     }
   }, [accounts, baseCurrency, formState.accountId, formState.currencyId]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadAttachmentPreviews() {
+      if (!session?.accessToken || !selectedTransactionDetail) {
+        setAttachmentPreviewUrls({});
+        return;
+      }
+
+      previewCleanupRef.current.forEach((url) => URL.revokeObjectURL(url));
+      previewCleanupRef.current = [];
+
+      const previewableAttachments = selectedTransactionDetail.attachments.filter(
+        isImageAttachment
+      );
+      if (previewableAttachments.length === 0) {
+        setAttachmentPreviewUrls({});
+        return;
+      }
+
+      const nextPreviewUrls: Record<number, string> = {};
+      for (const attachment of previewableAttachments) {
+        try {
+          const result = await downloadTenantFinanceTransactionAttachment(
+            session.accessToken,
+            selectedTransactionDetail.transaction.id,
+            attachment.id
+          );
+          const previewUrl = URL.createObjectURL(result.blob);
+          previewCleanupRef.current.push(previewUrl);
+          nextPreviewUrls[attachment.id] = previewUrl;
+        } catch {
+          // Degrade silently when a preview cannot be generated.
+        }
+      }
+
+      if (!isCancelled) {
+        setAttachmentPreviewUrls(nextPreviewUrls);
+        setAttachmentPreviewModal((current) => {
+          if (!current) {
+            return current;
+          }
+          const refreshedPreviewUrl = nextPreviewUrls[current.attachmentId];
+          if (!refreshedPreviewUrl) {
+            return null;
+          }
+          return { ...current, previewUrl: refreshedPreviewUrl };
+        });
+        return;
+      }
+
+      previewCleanupRef.current.forEach((url) => URL.revokeObjectURL(url));
+      previewCleanupRef.current = [];
+    }
+
+    void loadAttachmentPreviews();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedAttachmentPreviewDependency, selectedTransactionDetail, session?.accessToken]);
+
+  useEffect(() => {
+    return () => {
+      previewCleanupRef.current.forEach((url) => URL.revokeObjectURL(url));
+      previewCleanupRef.current = [];
+    };
+  }, []);
 
   async function loadFinanceWorkspace() {
     if (!session?.accessToken) {
@@ -308,6 +397,7 @@ export function FinanceTransactionsPage() {
       setSelectedTransactionId(null);
       setSelectedTransactionDetail(null);
       setDetailError(null);
+      setAttachmentPreviewModal(null);
       return;
     }
 
@@ -337,6 +427,7 @@ export function FinanceTransactionsPage() {
 
     setSelectedTransactionDetail(null);
     setDetailError(null);
+    setAttachmentPreviewModal(null);
     setIsDetailLoading(true);
     try {
       const response = await getTenantFinanceTransactionDetail(
@@ -924,6 +1015,21 @@ export function FinanceTransactionsPage() {
                       </option>
                     ))}
                   </select>
+                  <div className="form-text">
+                    {filteredCategories.length > 0
+                      ? language === "es"
+                        ? `Solo se muestran categorías de tipo ${
+                            formState.transactionType === "income" ? "ingreso" : "egreso"
+                          }.`
+                        : `Only ${formState.transactionType === "income" ? "income" : "expense"} categories are shown.`
+                      : language === "es"
+                        ? `No hay categorías activas de tipo ${
+                            formState.transactionType === "income" ? "ingreso" : "egreso"
+                          }.`
+                        : `There are no active ${
+                            formState.transactionType === "income" ? "income" : "expense"
+                          } categories.`}
+                  </div>
                 </div>
               )}
               <div>
@@ -1679,6 +1785,7 @@ export function FinanceTransactionsPage() {
                           )}
                         </td>
                         <td>
+                          <div className="d-grid gap-2">
 	                          <AppToolbar compact>
 	                            <button
 	                              className="btn btn-sm btn-outline-primary"
@@ -1743,6 +1850,51 @@ export function FinanceTransactionsPage() {
                               </button>
                             )}
                           </AppToolbar>
+                          {selectedTransactionDetail?.transaction.id === transaction.id &&
+                          selectedTransactionDetail.attachments.length > 0 ? (
+                            <div className="finance-attachment-actions-strip">
+                              {selectedTransactionDetail.attachments.map((attachment) => {
+                                const previewUrl = attachmentPreviewUrls[attachment.id];
+                                if (previewUrl) {
+                                  return (
+                                    <button
+                                      key={attachment.id}
+                                      className="finance-attachment-actions-strip__thumb"
+                                      type="button"
+                                      onClick={() =>
+                                        setAttachmentPreviewModal({
+                                          attachmentId: attachment.id,
+                                          fileName: attachment.file_name,
+                                          previewUrl,
+                                        })
+                                      }
+                                      title={
+                                        language === "es"
+                                          ? `Ver ${attachment.file_name}`
+                                          : `View ${attachment.file_name}`
+                                      }
+                                    >
+                                      <img
+                                        src={previewUrl}
+                                        alt={attachment.file_name}
+                                        loading="lazy"
+                                      />
+                                    </button>
+                                  );
+                                }
+                                return (
+                                  <AppBadge key={attachment.id} tone="neutral">
+                                    {isPdfAttachment(attachment)
+                                      ? "PDF"
+                                      : language === "es"
+                                        ? "Archivo"
+                                        : "File"}
+                                  </AppBadge>
+                                );
+                              })}
+                            </div>
+                          ) : null}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1898,17 +2050,64 @@ export function FinanceTransactionsPage() {
                 </div>
                 {selectedTransactionDetail.attachments.length > 0 ? (
                   <div className="finance-audit-list">
-                    {selectedTransactionDetail.attachments.map((attachment) => (
+                    {selectedTransactionDetail.attachments.map((attachment) => {
+                      const previewUrl = attachmentPreviewUrls[attachment.id];
+                      return (
                       <div key={attachment.id} className="finance-audit-list__item">
-                        <div className="d-flex justify-content-between gap-3 align-items-start">
-                          <div>
+                        <div className="finance-attachment-card">
+                          <div className="finance-attachment-card__media">
+                            {previewUrl ? (
+                              <button
+                                className="finance-attachment-card__preview"
+                                type="button"
+                                onClick={() =>
+                                  setAttachmentPreviewModal({
+                                    attachmentId: attachment.id,
+                                    fileName: attachment.file_name,
+                                    previewUrl,
+                                  })
+                                }
+                                title={
+                                  language === "es"
+                                    ? `Abrir vista previa de ${attachment.file_name}`
+                                    : `Open preview for ${attachment.file_name}`
+                                }
+                              >
+                                <img
+                                  src={previewUrl}
+                                  alt={attachment.file_name}
+                                  loading="lazy"
+                                />
+                              </button>
+                            ) : (
+                              <div className="finance-attachment-card__file">
+                                {isPdfAttachment(attachment) ? "PDF" : "FILE"}
+                              </div>
+                            )}
+                          </div>
+                          <div className="finance-attachment-card__content">
                             <strong>{attachment.file_name}</strong>
                             <div className="small text-secondary">
                               {displayAttachmentMeta(attachment, language)}
                             </div>
                             {attachment.notes ? <div>{attachment.notes}</div> : null}
                           </div>
-                          <div className="d-flex gap-2">
+                          <div className="d-flex gap-2 flex-wrap">
+                            {previewUrl ? (
+                              <button
+                                className="btn btn-outline-primary btn-sm"
+                                type="button"
+                                onClick={() =>
+                                  setAttachmentPreviewModal({
+                                    attachmentId: attachment.id,
+                                    fileName: attachment.file_name,
+                                    previewUrl,
+                                  })
+                                }
+                              >
+                                {language === "es" ? "Ver imagen" : "View image"}
+                              </button>
+                            ) : null}
                             <button
                               className="btn btn-outline-secondary btn-sm"
                               type="button"
@@ -1928,7 +2127,7 @@ export function FinanceTransactionsPage() {
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 ) : (
                   <div className="tenant-detail__value">
@@ -1997,6 +2196,45 @@ export function FinanceTransactionsPage() {
 	          ) : null}
 	        </PanelCard>
 	        </div>
+          {attachmentPreviewModal ? (
+            <div
+              className="confirm-dialog-backdrop"
+              role="presentation"
+              onClick={() => setAttachmentPreviewModal(null)}
+            >
+              <div
+                className="confirm-dialog finance-attachment-preview-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-label={attachmentPreviewModal.fileName}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="d-flex justify-content-between gap-3 align-items-start">
+                  <div>
+                    <div className="confirm-dialog__title">{attachmentPreviewModal.fileName}</div>
+                    <div className="confirm-dialog__description">
+                      {language === "es"
+                        ? "Vista previa del documento adjunto."
+                        : "Attachment preview."}
+                    </div>
+                  </div>
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
+                    type="button"
+                    onClick={() => setAttachmentPreviewModal(null)}
+                  >
+                    {language === "es" ? "Cerrar" : "Close"}
+                  </button>
+                </div>
+                <div className="finance-attachment-preview-modal__body">
+                  <img
+                    src={attachmentPreviewModal.previewUrl}
+                    alt={attachmentPreviewModal.fileName}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
 	      </div>
 	    </div>
 	  );
@@ -2039,7 +2277,6 @@ function formatMoney(value: number, currencyCode = "USD", language: "es" | "en" 
   return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
     currency: currencyCode,
-    maximumFractionDigits: 2,
   }).format(value);
 }
 
@@ -2086,6 +2323,14 @@ function displayAttachmentMeta(
     formatDateTime(attachment.created_at, language),
   ];
   return parts.join(" · ");
+}
+
+function isImageAttachment(attachment: TenantFinanceTransactionAttachment) {
+  return (attachment.content_type || "").toLowerCase().startsWith("image/");
+}
+
+function isPdfAttachment(attachment: TenantFinanceTransactionAttachment) {
+  return (attachment.content_type || "").toLowerCase() === "application/pdf";
 }
 
 function formatFileSize(bytes: number) {

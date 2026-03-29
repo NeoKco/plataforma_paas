@@ -68,3 +68,5 @@ Estado ampliado del cierre:
 - el detalle de transacción ya permite descargar o eliminar esos adjuntos
 - `Transacciones` ya permite además anular un movimiento sin borrado fisico, conservando trazabilidad para soporte y auditoria
 - las transacciones anuladas salen de balances, listados activos, presupuestos y reportes
+- existe ademas un importador offline para `egresos.csv` legacy que prepara categorias, comprime imagenes y carga transacciones/adjuntos de forma idempotente sobre el tenant
+- los adjuntos finales del módulo se almacenan en una carpeta propia de `finance` dentro del backend, separada del staging manual usado para importar datasets externos

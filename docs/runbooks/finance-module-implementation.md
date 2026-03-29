@@ -158,6 +158,9 @@ Estado del cierre ampliado:
 - `Transacciones` ya incorpora selección asistida sobre el filtro visible para operar lotes por pendientes, préstamos, ingresos, egresos o visibles completos
 - `Transacciones` ya incorpora además adjuntos reales con compresión previa de imágenes y soporte `jpg/png/webp/pdf`
 - `Transacciones` ya incorpora además anulacion blanda para corregir errores sin perder historia operativa
+- ya existe tooling real para preparar e importar CSV legacy de egresos con compresion offline de imagenes y carga idempotente sobre `finance_transactions`
+- ese flujo deja perfil editable, CSV normalizado, staging de imagenes comprimidas y reporte de importacion para pruebas de volumen sobre tenants reales
+- el almacenamiento real de adjuntos del módulo queda ahora dentro de `backend/app/apps/tenant_modules/finance/storage/attachments/`
 - `Presupuestos` ya soporta plantillas operativas con escala porcentual y redondeo por múltiplo, además de clonación y ajuste guiado
 - `Préstamos` ya devuelve lectura contable derivada más densa con contrapartida, tipo de préstamo, cuota asociada y efecto firmado en exportaciones/tabla
 - `Reportes` y `Planificación` ya cierran con charts comparativos adicionales para lectura ejecutiva del período, horizonte y presión mensual
@@ -172,6 +175,7 @@ Estado del cierre ampliado:
 - `backend/app/apps/tenant_modules/finance/services/planning_service.py`
 - `backend/app/apps/tenant_modules/finance/services/reports_service.py`
 - `backend/app/apps/tenant_modules/finance/services/finance_service.py`
+- `backend/app/apps/tenant_modules/finance/utils/imports.py`
 - `backend/app/apps/tenant_modules/finance/schemas/__init__.py`
 - `backend/app/apps/tenant_modules/finance/api/router.py`
 - `backend/app/apps/tenant_modules/finance/api/transactions.py`
@@ -184,6 +188,7 @@ Estado del cierre ampliado:
 - `backend/app/tests/test_finance_loan_core.py`
 - `backend/app/tests/test_finance_planning_core.py`
 - `backend/app/tests/test_finance_reports_core.py`
+- `backend/app/scripts/import_finance_legacy_egresos.py`
 - `frontend/src/apps/tenant_portal/modules/finance/routes.tsx`
 - `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx`
 - `frontend/src/apps/tenant_portal/modules/finance/pages/FinanceBudgetsPage.tsx`
@@ -257,6 +262,35 @@ Campos legacy principales:
 - `category`
 - `created_by_user_id`
 - `created_at`
+
+## Carga legacy de egresos
+
+Existe un flujo operativo para convertir datasets legacy tipo `egresos.csv` al contrato actual del modulo:
+
+- script: `backend/app/scripts/import_finance_legacy_egresos.py`
+- perfil editable por defecto: `modulo finanzas/ejemplo/egresos_finance_profile.json`
+- salida preparada: `modulo finanzas/ejemplo/egresos_finance_import.csv`
+- staging de imagenes comprimidas: `modulo finanzas/ejemplo/imagenes_finance_preparadas/`
+- reporte de corrida: `modulo finanzas/ejemplo/egresos_finance_import_report.json`
+
+Ese importador:
+
+- traduce `categoria_id` legacy a nombres de categoria del modulo actual
+- prepara paths reales de adjuntos tomando el basename de `foto_path`
+- comprime imagenes con `convert` cuando la herramienta esta disponible
+- crea categorias faltantes de tipo `expense`
+- importa transacciones con `source_type=legacy_csv_egresos` y `source_id=<legacy_id>` para mantener idempotencia
+- adjunta boletas o facturas comprimidas a la transaccion creada
+- copia el archivo final al storage real del módulo, por lo que luego se puede borrar el staging externo usado para preparar el dataset
+
+Ejemplo de uso:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/import_finance_legacy_egresos.py --apply --tenant-slug empresa-demo --actor-user-id 1
+```
 
 Campos base del nuevo nucleo:
 

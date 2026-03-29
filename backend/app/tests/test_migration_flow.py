@@ -19,6 +19,7 @@ from migrations.tenant import v0010_finance_loan_installment_reversal_reason
 from migrations.tenant import v0011_finance_loan_source_account
 from migrations.tenant import v0012_finance_transaction_voids
 from migrations.tenant import v0013_finance_transaction_voids_repair
+from migrations.tenant import v0014_finance_default_category_catalog
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -147,6 +148,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0011_finance_loan_source_account",
                 "0012_finance_transaction_voids",
                 "0013_finance_transaction_voids_repair",
+                "0014_finance_default_category_catalog",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -206,9 +208,11 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertEqual(currency_rows[0][0], "USD")
         self.assertEqual(currency_rows[0][1], 1)
         self.assertIn(("CLP", 0), currency_rows)
-        self.assertIn(("General Income", "income"), category_rows)
-        self.assertIn(("General Expense", "expense"), category_rows)
-        self.assertIn(("Transfer", "transfer"), category_rows)
+        self.assertIn(("Ingreso General", "income"), category_rows)
+        self.assertIn(("Sueldo", "income"), category_rows)
+        self.assertIn(("Egreso General", "expense"), category_rows)
+        self.assertIn(("Gastos menores", "expense"), category_rows)
+        self.assertIn(("Transferencia interna", "transfer"), category_rows)
         self.assertEqual(
             [row[0] for row in settings_rows],
             ["account_types_catalog", "base_currency_code"],
@@ -242,6 +246,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0011_finance_loan_source_account",
                 "0012_finance_transaction_voids",
                 "0013_finance_transaction_voids_repair",
+                "0014_finance_default_category_catalog",
             ],
         )
 
@@ -253,6 +258,8 @@ class MigrationFlowTestCase(unittest.TestCase):
             v0003_finance_catalogs.upgrade(conn)
             v0004_finance_seed_clp.upgrade(conn)
             v0004_finance_seed_clp.upgrade(conn)
+            v0014_finance_default_category_catalog.upgrade(conn)
+            v0014_finance_default_category_catalog.upgrade(conn)
 
         with engine.connect() as conn:
             self.assertEqual(
@@ -261,7 +268,7 @@ class MigrationFlowTestCase(unittest.TestCase):
             )
             self.assertEqual(
                 conn.execute(text("SELECT COUNT(*) FROM finance_categories")).scalar_one(),
-                3,
+                len(v0003_finance_catalogs.DEFAULT_FINANCE_CATEGORY_SEEDS),
             )
             self.assertEqual(
                 conn.execute(text("SELECT COUNT(*) FROM finance_settings")).scalar_one(),
@@ -418,6 +425,8 @@ class MigrationFlowTestCase(unittest.TestCase):
             v0012_finance_transaction_voids.upgrade(conn)
             v0013_finance_transaction_voids_repair.upgrade(conn)
             v0013_finance_transaction_voids_repair.upgrade(conn)
+            v0014_finance_default_category_catalog.upgrade(conn)
+            v0014_finance_default_category_catalog.upgrade(conn)
 
         transaction_columns = {
             column["name"]
@@ -427,6 +436,49 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("voided_at", transaction_columns)
         self.assertIn("void_reason", transaction_columns)
         self.assertIn("voided_by_user_id", transaction_columns)
+
+    def test_finance_default_category_catalog_migration_renames_legacy_base_rows(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            v0003_finance_catalogs.finance_categories.create(conn)
+            conn.execute(
+                v0003_finance_catalogs.finance_categories.insert(),
+                [
+                    {
+                        "name": "General Income",
+                        "category_type": "income",
+                        "sort_order": 10,
+                        "is_active": True,
+                    },
+                    {
+                        "name": "General Expense",
+                        "category_type": "expense",
+                        "sort_order": 10,
+                        "is_active": True,
+                    },
+                    {
+                        "name": "Transfer",
+                        "category_type": "transfer",
+                        "sort_order": 20,
+                        "is_active": True,
+                    },
+                ],
+            )
+            v0014_finance_default_category_catalog.upgrade(conn)
+            v0014_finance_default_category_catalog.upgrade(conn)
+
+        with engine.connect() as conn:
+            category_rows = conn.execute(
+                text("SELECT name, category_type FROM finance_categories ORDER BY sort_order ASC, id ASC")
+            ).all()
+
+        self.assertIn(("Ingreso General", "income"), category_rows)
+        self.assertIn(("Egreso General", "expense"), category_rows)
+        self.assertIn(("Transferencia interna", "transfer"), category_rows)
+        self.assertNotIn(("General Income", "income"), category_rows)
+        self.assertNotIn(("General Expense", "expense"), category_rows)
+        self.assertNotIn(("Transfer", "transfer"), category_rows)
 
 
 if __name__ == "__main__":

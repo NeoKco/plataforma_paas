@@ -1483,7 +1483,6 @@ function formatMoney(
   return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
     currency: currencyCode,
-    minimumFractionDigits: 2,
   }).format(value);
 }
 

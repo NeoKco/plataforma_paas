@@ -50,14 +50,19 @@ export function FinanceCalendarPage() {
       return;
     }
 
+    const periodMonthIso = buildPeriodMonthIso(periodMonth);
+    if (!periodMonthIso) {
+      setOverview(null);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
       const [overviewResponse, currenciesResponse] = await Promise.all([
-        getTenantFinancePlanningOverview(
-          session.accessToken,
-          buildPeriodMonthIso(periodMonth)
-        ),
+        getTenantFinancePlanningOverview(session.accessToken, periodMonthIso),
         getTenantFinanceCurrencies(session.accessToken, false),
       ]);
       setOverview(overviewResponse.data);
@@ -461,7 +466,28 @@ function buildMonthValue(dateValue = new Date()) {
 }
 
 function buildPeriodMonthIso(monthValue: string) {
+  const parsedMonth = parseMonthValue(monthValue);
+  if (!parsedMonth) {
+    return null;
+  }
   return `${monthValue}-01`;
+}
+
+function parseMonthValue(value: string) {
+  const match = /^(\d{4})-(\d{2})$/.exec(value);
+  if (!match) {
+    return null;
+  }
+  const year = Number(match[1]);
+  const monthIndex = Number(match[2]) - 1;
+  if (!Number.isInteger(year) || !Number.isInteger(monthIndex) || monthIndex < 0 || monthIndex > 11) {
+    return null;
+  }
+  const date = new Date(Date.UTC(year, monthIndex, 1, 12, 0, 0));
+  if (!Number.isFinite(date.getTime())) {
+    return null;
+  }
+  return date;
 }
 
 function buildPlanningChartPoints(
@@ -531,7 +557,6 @@ function formatMoney(value: number, language: "es" | "en", currencyCode: string)
   return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
     currency: currencyCode,
-    minimumFractionDigits: 2,
   }).format(value);
 }
 
@@ -549,10 +574,14 @@ function formatDayShort(value: string, language: "es" | "en") {
 }
 
 function formatMonth(value: string, language: "es" | "en") {
+  const parsedMonth = parseMonthValue(value);
+  if (!parsedMonth) {
+    return "—";
+  }
   return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
     month: "long",
     year: "numeric",
-  }).format(new Date(`${value}-01T00:00:00`));
+  }).format(parsedMonth);
 }
 
 function displayLoanType(value: string, language: "es" | "en") {

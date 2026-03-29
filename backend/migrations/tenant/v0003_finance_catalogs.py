@@ -124,6 +124,275 @@ finance_tags = Table(
     Column("updated_at", DateTime(timezone=True), nullable=False, server_default=func.now()),
 )
 
+DEFAULT_FINANCE_CATEGORY_SEEDS = [
+    {
+        "name": "Ingreso General",
+        "category_type": "income",
+        "icon": "income",
+        "note": "Ingreso operativo general",
+        "sort_order": 10,
+    },
+    {
+        "name": "Sueldo",
+        "category_type": "income",
+        "icon": "salary",
+        "note": "Remuneracion o salario",
+        "sort_order": 20,
+    },
+    {
+        "name": "Ventas",
+        "category_type": "income",
+        "icon": "income",
+        "note": "Cobros por ventas",
+        "sort_order": 30,
+    },
+    {
+        "name": "Honorarios y servicios",
+        "category_type": "income",
+        "icon": "cash",
+        "note": "Pagos recibidos por servicios",
+        "sort_order": 40,
+    },
+    {
+        "name": "Reembolso",
+        "category_type": "income",
+        "icon": "cash",
+        "note": "Devoluciones o reintegros",
+        "sort_order": 50,
+    },
+    {
+        "name": "Intereses y rendimientos",
+        "category_type": "income",
+        "icon": "income",
+        "note": "Ganancias financieras o rendimientos",
+        "sort_order": 60,
+    },
+    {
+        "name": "Otros ingresos",
+        "category_type": "income",
+        "icon": "categories",
+        "note": "Ingreso no clasificado",
+        "sort_order": 70,
+    },
+    {
+        "name": "Egreso General",
+        "category_type": "expense",
+        "icon": "expense",
+        "note": "Gasto operativo general",
+        "sort_order": 10,
+    },
+    {
+        "name": "Gastos menores",
+        "category_type": "expense",
+        "icon": "shopping",
+        "note": "Compras menores o caja chica",
+        "sort_order": 20,
+    },
+    {
+        "name": "Transporte y ruta",
+        "category_type": "expense",
+        "icon": "travel",
+        "note": "Movilidad y traslados operativos",
+        "sort_order": 30,
+    },
+    {
+        "name": "Herramientas e insumos",
+        "category_type": "expense",
+        "icon": "shopping",
+        "note": "Herramientas y consumibles de trabajo",
+        "sort_order": 40,
+    },
+    {
+        "name": "Materiales de proyecto",
+        "category_type": "expense",
+        "icon": "home",
+        "note": "Materiales asociados a proyectos o faenas",
+        "sort_order": 50,
+    },
+    {
+        "name": "Combustible",
+        "category_type": "expense",
+        "icon": "car",
+        "note": "Carga de combustible",
+        "sort_order": 60,
+    },
+    {
+        "name": "Publicidad impresa",
+        "category_type": "expense",
+        "icon": "categories",
+        "note": "Impresion, grafica o promocion fisica",
+        "sort_order": 70,
+    },
+    {
+        "name": "Mantencion vehicular",
+        "category_type": "expense",
+        "icon": "car",
+        "note": "Mantencion, repuestos o reparaciones del vehiculo",
+        "sort_order": 80,
+    },
+    {
+        "name": "Impuestos",
+        "category_type": "expense",
+        "icon": "bills",
+        "note": "Tributos y pagos fiscales",
+        "sort_order": 90,
+    },
+    {
+        "name": "Internet y telefonia",
+        "category_type": "expense",
+        "icon": "bills",
+        "note": "Servicios de internet o telefonia",
+        "sort_order": 100,
+    },
+    {
+        "name": "Alimentacion",
+        "category_type": "expense",
+        "icon": "food",
+        "note": "Comidas, colaciones o abarrotes",
+        "sort_order": 110,
+    },
+    {
+        "name": "TAG y peajes",
+        "category_type": "expense",
+        "icon": "travel",
+        "note": "Peajes, TAG y cobros de ruta",
+        "sort_order": 120,
+    },
+    {
+        "name": "Salud",
+        "category_type": "expense",
+        "icon": "health",
+        "note": "Gastos medicos o de salud",
+        "sort_order": 130,
+    },
+    {
+        "name": "Hipotecario",
+        "category_type": "expense",
+        "icon": "home",
+        "note": "Dividendos o gastos hipotecarios",
+        "sort_order": 140,
+    },
+    {
+        "name": "Ocio y salidas",
+        "category_type": "expense",
+        "icon": "leisure",
+        "note": "Panoramas, salidas o recreacion",
+        "sort_order": 150,
+    },
+    {
+        "name": "Electricidad",
+        "category_type": "expense",
+        "icon": "bills",
+        "note": "Cuenta de electricidad",
+        "sort_order": 160,
+    },
+    {
+        "name": "Agua",
+        "category_type": "expense",
+        "icon": "bills",
+        "note": "Cuenta de agua",
+        "sort_order": 170,
+    },
+    {
+        "name": "Gas",
+        "category_type": "expense",
+        "icon": "bills",
+        "note": "Cuenta de gas",
+        "sort_order": 180,
+    },
+    {
+        "name": "Vestuario",
+        "category_type": "expense",
+        "icon": "shopping",
+        "note": "Ropa, uniformes o vestuario",
+        "sort_order": 190,
+    },
+    {
+        "name": "Regalos",
+        "category_type": "expense",
+        "icon": "gift",
+        "note": "Compras para regalos",
+        "sort_order": 200,
+    },
+    {
+        "name": "Credito de consumo",
+        "category_type": "expense",
+        "icon": "bills",
+        "note": "Pago de credito de consumo",
+        "sort_order": 210,
+    },
+    {
+        "name": "Credito camioneta",
+        "category_type": "expense",
+        "icon": "car",
+        "note": "Pago de credito vehicular",
+        "sort_order": 220,
+    },
+    {
+        "name": "Deporte",
+        "category_type": "expense",
+        "icon": "leisure",
+        "note": "Gastos deportivos o actividad fisica",
+        "sort_order": 230,
+    },
+    {
+        "name": "Estacionamiento",
+        "category_type": "expense",
+        "icon": "travel",
+        "note": "Estacionamientos y parquimetros",
+        "sort_order": 240,
+    },
+    {
+        "name": "Educacion",
+        "category_type": "expense",
+        "icon": "education",
+        "note": "Cursos, colegiaturas o material educativo",
+        "sort_order": 250,
+    },
+    {
+        "name": "Seguros",
+        "category_type": "expense",
+        "icon": "insurance",
+        "note": "Polizas y seguros",
+        "sort_order": 260,
+    },
+    {
+        "name": "Mascotas",
+        "category_type": "expense",
+        "icon": "pet",
+        "note": "Cuidado y gastos de mascotas",
+        "sort_order": 270,
+    },
+    {
+        "name": "Cuidado personal",
+        "category_type": "expense",
+        "icon": "personal-care",
+        "note": "Higiene y cuidado personal",
+        "sort_order": 280,
+    },
+    {
+        "name": "Transferencia interna",
+        "category_type": "transfer",
+        "icon": "balance",
+        "note": "Traspaso entre cuentas propias",
+        "sort_order": 10,
+    },
+    {
+        "name": "Deposito entre cuentas",
+        "category_type": "transfer",
+        "icon": "cash",
+        "note": "Movimiento interno hacia otra cuenta propia",
+        "sort_order": 20,
+    },
+    {
+        "name": "Ajuste de saldo",
+        "category_type": "transfer",
+        "icon": "categories",
+        "note": "Regularizacion o ajuste interno",
+        "sort_order": 30,
+    },
+]
+
 finance_exchange_rates = Table(
     "finance_exchange_rates",
     metadata,
@@ -196,26 +465,43 @@ def _seed_default_currency(connection) -> None:
 
 
 def _seed_default_categories(connection) -> None:
-    default_categories = [
-        {"name": "General Income", "category_type": "income", "sort_order": 10},
-        {"name": "General Expense", "category_type": "expense", "sort_order": 10},
-        {"name": "Transfer", "category_type": "transfer", "sort_order": 20},
-    ]
-
-    for category in default_categories:
+    for category in DEFAULT_FINANCE_CATEGORY_SEEDS:
         existing = connection.execute(
-            select(finance_categories.c.id).where(
+            select(
+                finance_categories.c.id,
+                finance_categories.c.icon,
+                finance_categories.c.note,
+                finance_categories.c.sort_order,
+                finance_categories.c.is_active,
+            ).where(
                 finance_categories.c.name == category["name"],
                 finance_categories.c.category_type == category["category_type"],
             )
-        ).first()
+        ).mappings().first()
         if existing:
+            update_values = {}
+            if not existing["is_active"]:
+                update_values["is_active"] = True
+            if not existing["icon"] and category.get("icon"):
+                update_values["icon"] = category["icon"]
+            if not existing["note"] and category.get("note"):
+                update_values["note"] = category["note"]
+            if existing["sort_order"] in {None, 100}:
+                update_values["sort_order"] = category["sort_order"]
+            if update_values:
+                connection.execute(
+                    finance_categories.update()
+                    .where(finance_categories.c.id == existing["id"])
+                    .values(**update_values)
+                )
             continue
 
         connection.execute(
             finance_categories.insert().values(
                 name=category["name"],
                 category_type=category["category_type"],
+                icon=category.get("icon"),
+                note=category.get("note"),
                 sort_order=category["sort_order"],
                 is_active=True,
             )
