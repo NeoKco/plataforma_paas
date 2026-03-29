@@ -200,7 +200,7 @@ Cobertura adicional relevante:
 
 Pendiente recomendado de cobertura:
 
-- validacion de permisos de `tenant-history` por rol para que no se abra fuera del alcance esperado
+- montar mas adelante un stack E2E browser para desarrollo local sobre UI real; la regresion backend integrada ya cubre lifecycle y permisos criticos, pero no reemplaza pruebas visuales o de navegación punta a punta
 
 ## Suite Lifecycle Tenant Integrada
 
@@ -213,6 +213,7 @@ Cobertura actual:
 - `create -> provision -> tenant login -> operacion tenant basica -> archive -> refresh bloqueado -> restore -> login restaurado -> deprovision -> delete -> tenant_history`
 - usa `platform_control` real de prueba y `tenant DB` real de prueba con SQLite
 - evita depender de PostgreSQL tenant real stubbeando solo la capa de infraestructura externa del provisioning
+- congela tambien el cierre operativo del lifecycle tenant que antes seguia pendiente en roadmap
 
 Ejecucion:
 

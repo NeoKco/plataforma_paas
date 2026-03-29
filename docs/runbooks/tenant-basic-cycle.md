@@ -326,7 +326,8 @@ Backlog corto de endurecimiento ya identificado:
   - desprovisionar
   - eliminar
   - verificar aparicion en `Histórico tenants`
-- revisar y congelar permisos finos de la vista `Histórico tenants`
+- permisos finos de la vista `Histórico tenants` ya congelados para mantenerla acotada a `superadmin`
+- agregar despues un stack E2E browser para desarrollo local que recorra este mismo ciclo desde UI real
 - evaluar filtros mas ricos o exportacion basica del historico
 - recapturar el manual visual cuando la UX de `Tenants`, `Provisioning` y `Histórico tenants` deje de moverse
 

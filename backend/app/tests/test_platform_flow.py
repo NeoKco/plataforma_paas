@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from fastapi import HTTPException
+from fastapi.routing import APIRoute
 from sqlalchemy.exc import OperationalError
 
 from app.tests.fixtures import (  # noqa: E402
@@ -64,6 +65,7 @@ from app.apps.platform_control.api.routes import (  # noqa: E402
     ping_control_db,
 )
 from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
+    router as tenant_router,
     bulk_sync_tenant_schemas,
     create_tenant,
     deprovision_tenant,
@@ -198,6 +200,48 @@ class PlatformDependenciesTestCase(unittest.TestCase):
             checker(payload={"role": "support"})
 
         self.assertEqual(exc.exception.status_code, 403)
+
+    def _get_tenant_route_dependency(self, path: str) -> object:
+        route = next(
+            route
+            for route in tenant_router.routes
+            if isinstance(route, APIRoute) and route.path == path and "GET" in route.methods
+        )
+        return route.dependant.dependencies[-1].call
+
+    def test_tenant_history_list_route_rejects_admin_role(self) -> None:
+        role_checker = self._get_tenant_route_dependency(
+            "/platform/tenants/retirement-archives"
+        )
+
+        with self.assertRaises(HTTPException) as exc:
+            role_checker(payload={"role": "admin"})
+
+        self.assertEqual(exc.exception.status_code, 403)
+
+    def test_tenant_history_detail_route_rejects_support_role(self) -> None:
+        role_checker = self._get_tenant_route_dependency(
+            "/platform/tenants/retirement-archives/{archive_id}"
+        )
+
+        with self.assertRaises(HTTPException) as exc:
+            role_checker(payload={"role": "support"})
+
+        self.assertEqual(exc.exception.status_code, 403)
+
+    def test_tenant_history_routes_accept_superadmin_role(self) -> None:
+        list_role_checker = self._get_tenant_route_dependency(
+            "/platform/tenants/retirement-archives"
+        )
+        detail_role_checker = self._get_tenant_route_dependency(
+            "/platform/tenants/retirement-archives/{archive_id}"
+        )
+
+        list_payload = list_role_checker(payload={"role": "superadmin"})
+        detail_payload = detail_role_checker(payload={"role": "superadmin"})
+
+        self.assertEqual(list_payload["role"], "superadmin")
+        self.assertEqual(detail_payload["role"], "superadmin")
 
 
 class PlatformServicesTestCase(unittest.TestCase):
