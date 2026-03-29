@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
+import { AppForm, AppFormActions, AppFormField } from "../../../../design-system/AppForm";
+import { AppIcon } from "../../../../design-system/AppIcon";
+import { AppToolbar } from "../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../services/api";
 import {
   getPlatformRootRecoveryStatus,
@@ -106,7 +109,12 @@ export function PlatformRootRecoveryPage() {
     <div className="login-screen">
       <div className="login-card">
         <div className="login-card__eyebrow">Platform PaaS</div>
-        <h1 className="login-card__title">Recuperación de cuenta raíz</h1>
+        <div className="d-flex align-items-start gap-3">
+          <div className="page-header__icon">
+            <AppIcon name="settings" size={22} />
+          </div>
+          <h1 className="login-card__title">Recuperación de cuenta raíz</h1>
+        </div>
         <p className="login-card__subtitle">
           Usa este flujo solo si ya no existe ningún superadministrador activo y
           conservas la clave de recuperación emitida al instalar.
@@ -114,9 +122,11 @@ export function PlatformRootRecoveryPage() {
 
         <div className="login-card__portal-switch">
           <span>Este no es el flujo normal de acceso diario.</span>
-          <Link className="btn btn-outline-secondary btn-sm" to="/login">
-            Volver al login
-          </Link>
+          <AppToolbar compact>
+            <Link className="btn btn-outline-secondary btn-sm" to="/login">
+              Volver al login
+            </Link>
+          </AppToolbar>
         </div>
 
         {isLoading ? <div className="alert alert-info">Verificando disponibilidad...</div> : null}
@@ -132,9 +142,8 @@ export function PlatformRootRecoveryPage() {
         ) : null}
         {error ? <div className="alert alert-danger">{getApiErrorDisplayMessage(error)}</div> : null}
 
-        <form className="d-grid gap-3" onSubmit={handleSubmit}>
-          <div>
-            <label className="form-label">Clave de recuperación</label>
+        <AppForm onSubmit={handleSubmit}>
+          <AppFormField label="Clave de recuperación" fullWidth>
             <input
               className="form-control"
               type="password"
@@ -142,27 +151,24 @@ export function PlatformRootRecoveryPage() {
               onChange={(event) => updateField("recovery_key", event.target.value)}
               autoComplete="one-time-code"
             />
-          </div>
-          <div>
-            <label className="form-label">Nombre del superadministrador</label>
+          </AppFormField>
+          <AppFormField label="Nombre del superadministrador" fullWidth>
             <input
               className="form-control"
               value={form.full_name}
               onChange={(event) => updateField("full_name", event.target.value)}
               autoComplete="name"
             />
-          </div>
-          <div>
-            <label className="form-label">Correo raíz</label>
+          </AppFormField>
+          <AppFormField label="Correo raíz" fullWidth>
             <input
               className="form-control"
               value={form.email}
               onChange={(event) => updateField("email", event.target.value)}
               autoComplete="email"
             />
-          </div>
-          <div>
-            <label className="form-label">Nueva contraseña</label>
+          </AppFormField>
+          <AppFormField label="Nueva contraseña" fullWidth>
             <input
               className="form-control"
               type="password"
@@ -170,11 +176,13 @@ export function PlatformRootRecoveryPage() {
               onChange={(event) => updateField("password", event.target.value)}
               autoComplete="new-password"
             />
-          </div>
-          <button className="btn btn-primary" disabled={!canSubmit} type="submit">
-            {isSubmitting ? "Recuperando..." : "Recuperar cuenta raíz"}
-          </button>
-        </form>
+          </AppFormField>
+          <AppFormActions>
+            <button className="btn btn-primary" disabled={!canSubmit} type="submit">
+              {isSubmitting ? "Recuperando..." : "Recuperar cuenta raíz"}
+            </button>
+          </AppFormActions>
+        </AppForm>
       </div>
     </div>
   );

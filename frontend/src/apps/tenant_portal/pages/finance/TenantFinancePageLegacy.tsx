@@ -5,6 +5,8 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
+import { AppBadge } from "../../../../design-system/AppBadge";
+import { AppForm, AppFormActions, AppFormField } from "../../../../design-system/AppForm";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../services/api";
@@ -185,6 +187,7 @@ export function TenantFinancePage() {
         eyebrow="Espacio"
         title="Finanzas"
         description="Consulta el resumen financiero de tu espacio y registra nuevos movimientos."
+        icon="finance"
       />
 
       {actionFeedback ? (
@@ -199,10 +202,10 @@ export function TenantFinancePage() {
       {isLoading ? <LoadingBlock label="Cargando finanzas del tenant..." /> : null}
 
       <div className="tenant-portal-metrics">
-        <MetricCard label="Movimientos" value={overview.totalEntries} hint="Entradas registradas" />
-        <MetricCard label="Ingresos" value={formatMoney(overview.totalIncome)} hint="Acumulado visible" />
-        <MetricCard label="Egresos" value={formatMoney(overview.totalExpense)} hint="Acumulado visible" />
-        <MetricCard label="Balance" value={formatMoney(overview.balance)} hint="Resultado actual" />
+        <MetricCard label="Movimientos" icon="transactions" tone="default" value={overview.totalEntries} hint="Entradas registradas" />
+        <MetricCard label="Ingresos" icon="income" tone="success" value={formatMoney(overview.totalIncome)} hint="Acumulado visible" />
+        <MetricCard label="Egresos" icon="expense" tone="warning" value={formatMoney(overview.totalExpense)} hint="Acumulado visible" />
+        <MetricCard label="Balance" icon="balance" tone="info" value={formatMoney(overview.balance)} hint="Resultado actual" />
       </div>
 
       {error ? (
@@ -215,13 +218,12 @@ export function TenantFinancePage() {
 
       <div className="tenant-portal-split tenant-portal-split--finance">
         <PanelCard
+          icon="transactions"
           title="Crear movimiento"
           subtitle="Registra un ingreso o egreso para este tenant."
         >
-          <form className="d-grid gap-3" onSubmit={handleCreateEntry}>
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">Tipo de movimiento</label>
+          <AppForm onSubmit={handleCreateEntry}>
+            <AppFormField label="Tipo de movimiento">
                 <select
                   className="form-select"
                   value={movementType}
@@ -233,9 +235,8 @@ export function TenantFinancePage() {
                     </option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <label className="form-label">Monto</label>
+            </AppFormField>
+            <AppFormField label="Monto">
                 <input
                   className="form-control"
                   type="number"
@@ -245,37 +246,37 @@ export function TenantFinancePage() {
                   onChange={(event) => setAmount(event.target.value)}
                   placeholder="0.00"
                 />
-              </div>
-            </div>
-            <div>
-              <label className="form-label">Concepto</label>
+            </AppFormField>
+            <AppFormField label="Concepto" fullWidth>
               <input
                 className="form-control"
                 value={concept}
                 onChange={(event) => setConcept(event.target.value)}
                 placeholder="Ej: Pago de servicio"
               />
-            </div>
-            <div>
-              <label className="form-label">Categoría</label>
+            </AppFormField>
+            <AppFormField label="Categoría" fullWidth>
               <input
                 className="form-control"
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
                 placeholder="Ej: Operación, ventas, caja"
               />
-            </div>
-            <button
-              className="btn btn-primary"
-              type="submit"
-              disabled={isActionSubmitting}
-            >
-              Crear movimiento
-            </button>
-          </form>
+            </AppFormField>
+            <AppFormActions>
+              <button
+                className="btn btn-primary"
+                type="submit"
+                disabled={isActionSubmitting}
+              >
+                Crear movimiento
+              </button>
+            </AppFormActions>
+          </AppForm>
         </PanelCard>
 
         <PanelCard
+          icon="focus"
           title="Uso efectivo"
           subtitle="Refleja la cuota vigente para registrar movimientos."
         >
@@ -305,9 +306,9 @@ export function TenantFinancePage() {
                 label="Estado"
                 value={
                   usage.at_limit ? (
-                    <span className="status-badge status-badge--warning">al límite</span>
+                    <AppBadge tone="warning">al límite</AppBadge>
                   ) : (
-                    <span className="status-badge status-badge--success">ok</span>
+                    <AppBadge tone="success">ok</AppBadge>
                   )
                 }
               />
@@ -351,7 +352,7 @@ export function TenantFinancePage() {
           ]}
         />
       ) : !isLoading && !error ? (
-        <PanelCard title="Movimientos financieros">
+        <PanelCard icon="transactions" title="Movimientos financieros">
           <div className="text-secondary">
             Aún no se registran movimientos financieros para este tenant.
           </div>

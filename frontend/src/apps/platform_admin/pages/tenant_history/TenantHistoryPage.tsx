@@ -5,6 +5,7 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
+import { AppFilterGrid, AppToolbar } from "../../../../design-system/AppLayout";
 import { EmptyState } from "../../../../components/feedback/EmptyState";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
@@ -128,23 +129,29 @@ export function TenantHistoryPage() {
         eyebrow="Plataforma"
         title="Histórico tenants"
         description="Archivo de tenants retirados del catálogo activo, con snapshot funcional resumido para auditoría y soporte post mortem."
+        icon="tenant-history"
         actions={
-          <Link className="btn btn-outline-primary" to="/tenants">
-            Volver a Tenants
-          </Link>
+          <AppToolbar compact>
+            <Link className="btn btn-outline-primary" to="/tenants">
+              Volver a Tenants
+            </Link>
+          </AppToolbar>
         }
       />
 
       <PanelCard
+        icon="catalogs"
         title="Archivo histórico"
         subtitle="Consulta retirados recientes, filtra por actor o billing y abre el detalle solo cuando lo necesites."
       >
-        <input
-          className="form-control"
-          value={retirementSearch}
-          onChange={(event) => setRetirementSearch(event.target.value)}
-          placeholder="Buscar por nombre, slug, actor o billing"
-        />
+        <AppFilterGrid className="tenant-catalog-filters">
+          <input
+            className="form-control"
+            value={retirementSearch}
+            onChange={(event) => setRetirementSearch(event.target.value)}
+            placeholder="Buscar por nombre, slug, actor o billing"
+          />
+        </AppFilterGrid>
 
         {isRetirementArchivesLoading ? (
           <LoadingBlock label="Cargando archivo histórico..." />
@@ -228,26 +235,28 @@ export function TenantHistoryPage() {
                 key: "actions",
                 header: "Detalle",
                 render: (row) => (
-                  <button
-                    className="btn btn-outline-secondary btn-sm"
-                    type="button"
-                    onClick={() => {
-                      if (selectedRetirementArchiveId === row.id) {
-                        setSelectedRetirementArchiveId(null);
-                        setSelectedRetirementArchive(null);
-                        setSelectedRetirementSummary(null);
-                        setRetirementArchiveDetailError(null);
-                        return;
-                      }
-                      setSelectedRetirementArchiveId(row.id);
-                      void loadRetirementArchiveDetail(row.id);
-                    }}
-                    disabled={isRetirementArchiveDetailLoading}
-                  >
-                    {selectedRetirementArchiveId === row.id
-                      ? "Ocultar detalle"
-                      : "Ver detalle"}
-                  </button>
+                  <AppToolbar compact>
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      type="button"
+                      onClick={() => {
+                        if (selectedRetirementArchiveId === row.id) {
+                          setSelectedRetirementArchiveId(null);
+                          setSelectedRetirementArchive(null);
+                          setSelectedRetirementSummary(null);
+                          setRetirementArchiveDetailError(null);
+                          return;
+                        }
+                        setSelectedRetirementArchiveId(row.id);
+                        void loadRetirementArchiveDetail(row.id);
+                      }}
+                      disabled={isRetirementArchiveDetailLoading}
+                    >
+                      {selectedRetirementArchiveId === row.id
+                        ? "Ocultar detalle"
+                        : "Ver detalle"}
+                    </button>
+                  </AppToolbar>
                 ),
               },
             ]}
@@ -273,6 +282,7 @@ export function TenantHistoryPage() {
       {selectedRetirementArchive && selectedRetirementSummary ? (
         <>
           <PanelCard
+            icon="tenant-history"
             title={`Detalle histórico: ${selectedRetirementArchive.tenant_name}`}
             subtitle="Snapshot resumido guardado al momento del retiro definitivo."
           >

@@ -3,6 +3,7 @@ import { MetricCard } from "../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
+import { AppFilterGrid, AppTableWrap, AppToolbar } from "../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { EmptyState } from "../../../../components/feedback/EmptyState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
@@ -176,6 +177,14 @@ export function PlatformActivityPage() {
         eyebrow="Plataforma"
         title="Actividad"
         description="Auditoría breve de accesos y rechazos recientes para no depender solo de logs o memoria operativa."
+        icon="activity"
+        actions={
+          <AppToolbar compact>
+            <button className="btn btn-outline-primary" type="button" onClick={() => void loadActivity()}>
+              Recargar datos
+            </button>
+          </AppToolbar>
+        }
       />
 
       {isLoading ? <LoadingBlock label="Cargando actividad reciente..." /> : null}
@@ -190,23 +199,28 @@ export function PlatformActivityPage() {
       {!isLoading ? (
         <>
           <div className="dashboard-overview-grid">
-            <MetricCard label="Eventos visibles" value={overview.total} />
-            <MetricCard label="Ingresos correctos" value={overview.successCount} />
-            <MetricCard label="Ingresos fallidos" value={overview.failedCount} />
-            <MetricCard label="Accesos denegados" value={overview.deniedCount} />
+            <MetricCard label="Eventos visibles" icon="activity" tone="default" value={overview.total} />
+            <MetricCard label="Ingresos correctos" icon="overview" tone="success" value={overview.successCount} />
+            <MetricCard label="Ingresos fallidos" icon="focus" tone="danger" value={overview.failedCount} />
+            <MetricCard label="Accesos denegados" icon="settings" tone="warning" value={overview.deniedCount} />
             <MetricCard
               label="Eventos tenant"
+              icon="tenants"
+              tone="info"
               value={overview.tenantScopeCount}
               hint="Incluye logins y refresh del portal tenant."
             />
             <MetricCard
               label="Cambios tenant"
+              icon="tenant-history"
+              tone="info"
               value={overview.tenantChangeCount}
               hint="Mutaciones recientes de estado, billing, límites o mantenimiento."
             />
           </div>
 
           <PanelCard
+            icon="focus"
             title="Qué revisar ahora"
             subtitle="Lectura operativa breve para separar ruido normal de una señal que ya requiere intervención."
           >
@@ -227,68 +241,61 @@ export function PlatformActivityPage() {
           </PanelCard>
 
           <PanelCard
+            icon="catalogs"
             title="Filtros de actividad"
             subtitle="Mira accesos recientes, rechazos y eventos tenant o platform con el mismo set de filtros."
           >
-            <div className="tenant-catalog-filters">
+            <AppFilterGrid className="tenant-catalog-filters">
               <input
                 className="form-control"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar por email, detalle, tenant o tipo de evento"
               />
-              <div className="tenant-inline-form-grid">
-                <select
-                  className="form-select"
-                  value={scopeFilter}
-                  onChange={(event) => setScopeFilter(event.target.value)}
-                >
-                  <option value="">Todos los scopes</option>
-                  <option value="platform">platform</option>
-                  <option value="tenant">tenant</option>
-                </select>
-                <select
-                  className="form-select"
-                  value={outcomeFilter}
-                  onChange={(event) => setOutcomeFilter(event.target.value)}
-                >
-                  <option value="">Todos los resultados</option>
-                  <option value="success">correctos</option>
-                  <option value="failed">fallidos</option>
-                  <option value="denied">denegados</option>
-                </select>
-              </div>
-              <div className="tenant-inline-form-grid">
-                <input
-                  className="form-control"
-                  value={tenantChangeTypeFilter}
-                  onChange={(event) => setTenantChangeTypeFilter(event.target.value)}
-                  placeholder="Tipo de cambio tenant (status, billing, restore...)"
-                />
-                <input
-                  className="form-control"
-                  value={actorEmailFilter}
-                  onChange={(event) => setActorEmailFilter(event.target.value)}
-                  placeholder="Actor de cambio tenant"
-                />
-              </div>
-              <div className="tenant-inline-form-grid">
-                <input
-                  className="form-control"
-                  type="number"
-                  min={1}
-                  max={100}
-                  value={limit}
-                  onChange={(event) => setLimit(Number(event.target.value) || 25)}
-                />
-                <button className="btn btn-primary" type="button" onClick={() => void loadActivity()}>
-                  Recargar datos
-                </button>
-              </div>
-            </div>
+              <select
+                className="form-select"
+                value={scopeFilter}
+                onChange={(event) => setScopeFilter(event.target.value)}
+              >
+                <option value="">Todos los scopes</option>
+                <option value="platform">platform</option>
+                <option value="tenant">tenant</option>
+              </select>
+              <select
+                className="form-select"
+                value={outcomeFilter}
+                onChange={(event) => setOutcomeFilter(event.target.value)}
+              >
+                <option value="">Todos los resultados</option>
+                <option value="success">correctos</option>
+                <option value="failed">fallidos</option>
+                <option value="denied">denegados</option>
+              </select>
+              <input
+                className="form-control"
+                value={tenantChangeTypeFilter}
+                onChange={(event) => setTenantChangeTypeFilter(event.target.value)}
+                placeholder="Tipo de cambio tenant (status, billing, restore...)"
+              />
+              <input
+                className="form-control"
+                value={actorEmailFilter}
+                onChange={(event) => setActorEmailFilter(event.target.value)}
+                placeholder="Actor de cambio tenant"
+              />
+              <input
+                className="form-control"
+                type="number"
+                min={1}
+                max={100}
+                value={limit}
+                onChange={(event) => setLimit(Number(event.target.value) || 25)}
+              />
+            </AppFilterGrid>
           </PanelCard>
 
           <PanelCard
+            icon="activity"
             title="Actividad reciente"
             subtitle="Eventos más recientes de autenticación para platform y tenant."
           >
@@ -297,7 +304,7 @@ export function PlatformActivityPage() {
                 No hay actividad que coincida con los filtros actuales.
               </div>
             ) : (
-              <div className="table-responsive">
+              <AppTableWrap>
                 <table className="table align-middle">
                   <thead>
                     <tr>
@@ -328,11 +335,12 @@ export function PlatformActivityPage() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </AppTableWrap>
             )}
           </PanelCard>
 
           <PanelCard
+            icon="tenant-history"
             title="Cambios administrativos recientes"
             subtitle="Historial corto de mutaciones sobre tenants para no depender de entrar a cada detalle por separado."
           >
@@ -342,7 +350,7 @@ export function PlatformActivityPage() {
                 detail="Con el filtro actual no aparecen mutaciones recientes sobre tenants."
               />
             ) : (
-              <div className="table-responsive">
+              <AppTableWrap>
                 <table className="table align-middle">
                   <thead>
                     <tr>
@@ -367,7 +375,7 @@ export function PlatformActivityPage() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </AppTableWrap>
             )}
           </PanelCard>
         </>

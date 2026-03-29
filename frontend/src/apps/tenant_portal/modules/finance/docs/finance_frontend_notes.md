@@ -80,8 +80,8 @@
 - `Presupuestos` ya permite además aplicar plantillas operativas al mes visible sin salir de la vista
 - la navegación secundaria de `finance` ya usa iconografía semántica propia del módulo
 - `Planificación` y `Reportes` ya exponen una primera capa visual con bloques `spotlight` y charts reales sin depender de una librería externa pesada
-- esa misma base visual queda como semilla de la futura migración al `design system` transversal del PaaS
-- el `design system` ya quedó además arrancado fuera del módulo con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid`, `AppTableWrap`, `AppForm` y primitives compartidas para `PageHeader`, `PanelCard` y `MetricCard`
+- esa misma base visual ya quedó consolidada como referencia real del `design system` transversal del PaaS
+- el `design system` ya quedó además aplicado fuera del módulo con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid`, `AppTableWrap`, `AppForm` y primitives compartidas para `PageHeader`, `PanelCard` y `MetricCard`
 - `Cuentas`, `Categorías`, `Configuración` y `Catálogos auxiliares` ya empezaron además la migración visible de catálogos usando badges, toolbars, wrappers de tabla y formularios compartidos en vez de estructura manual repetida
 - la navegación lateral de `platform_admin` y `tenant_portal` ya consume esa iconografía común como primera adopción transversal
 

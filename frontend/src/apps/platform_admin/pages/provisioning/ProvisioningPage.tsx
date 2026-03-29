@@ -6,6 +6,9 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
+import { AppBadge } from "../../../../design-system/AppBadge";
+import { AppForm, AppFormActions, AppFormField } from "../../../../design-system/AppForm";
+import { AppTableWrap, AppToolbar } from "../../../../design-system/AppLayout";
 import { EmptyState } from "../../../../components/feedback/EmptyState";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
@@ -530,8 +533,9 @@ function handleRefresh() {
         eyebrow="Plataforma"
         title="Provisioning"
         description="Vista operativa sobre jobs, backlog por tenant, alertas activas y recuperación por DLQ usando los contratos backend ya cerrados."
+        icon="provisioning"
         actions={
-          <div className="d-flex gap-2 flex-wrap">
+          <AppToolbar compact>
             <button
               type="button"
               className="btn btn-outline-secondary"
@@ -548,7 +552,7 @@ function handleRefresh() {
             >
               Recargar datos
             </button>
-          </div>
+          </AppToolbar>
         }
       />
 
@@ -582,6 +586,7 @@ function handleRefresh() {
       {isLoading ? <LoadingBlock label="Cargando operación de provisioning..." /> : null}
 
       <PanelCard
+        icon="catalogs"
         title="Qué hace provisioning"
         subtitle="Referencia corta para no confundir el alta en catálogo con la preparación técnica real del tenant."
       >
@@ -594,10 +599,11 @@ function handleRefresh() {
       </PanelCard>
 
       <PanelCard
+        icon="focus"
         title="Foco por operación"
         subtitle="Separa altas, retiros técnicos y cambios de esquema para no mezclar deudas distintas en la misma lectura."
       >
-        <div className="provisioning-filter-strip">
+        <AppToolbar className="provisioning-filter-strip">
           <button
             type="button"
             className={`btn btn-sm ${jobOperationFilter === "all" ? "btn-primary" : "btn-outline-primary"}`}
@@ -626,7 +632,7 @@ function handleRefresh() {
           >
             Esquema
           </button>
-        </div>
+        </AppToolbar>
         <div className="provisioning-operation-summary">
           <ProvisioningOperationSummaryItem
             label="Altas"
@@ -654,14 +660,15 @@ function handleRefresh() {
       </PanelCard>
 
       <div className="provisioning-overview-grid">
-        <MetricCard label="Jobs en catálogo" value={overview.totalJobs} />
-        <MetricCard label="Jobs en ejecución" value={overview.runningJobs} />
-        <MetricCard label="Jobs fallidos" value={overview.failedJobs} />
-        <MetricCard label="Alertas activas" value={overview.activeAlerts} />
-        <MetricCard label="Filas DLQ" value={overview.dlqJobs} />
+        <MetricCard label="Jobs en catálogo" icon="catalogs" tone="default" value={overview.totalJobs} />
+        <MetricCard label="Jobs en ejecución" icon="provisioning" tone="info" value={overview.runningJobs} />
+        <MetricCard label="Jobs fallidos" icon="focus" tone="danger" value={overview.failedJobs} />
+        <MetricCard label="Alertas activas" icon="pulse" tone="warning" value={overview.activeAlerts} />
+        <MetricCard label="Filas DLQ" icon="activity" tone="warning" value={overview.dlqJobs} />
       </div>
 
       <PanelCard
+        icon="focus"
         title="Jobs que requieren acción"
         subtitle="Vista corta para decidir rápido si debes ejecutar, esperar retry o reencolar."
       >
@@ -675,7 +682,7 @@ function handleRefresh() {
             }
           />
         ) : (
-          <div className="table-responsive">
+          <AppTableWrap>
             <table className="table align-middle">
               <thead>
                 <tr>
@@ -720,11 +727,12 @@ function handleRefresh() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </AppTableWrap>
         )}
       </PanelCard>
 
       <PanelCard
+        icon="activity"
         title="Qué revisar ahora"
         subtitle="Lectura operativa rápida para distinguir backlog normal de deuda que ya requiere intervención."
       >
@@ -746,6 +754,7 @@ function handleRefresh() {
 
       {showDevelopmentBootstrapHelp ? (
         <PanelCard
+          icon="users"
           title="Credenciales bootstrap de desarrollo"
           subtitle="Ayuda visible solo en entorno local para validar rápido el acceso al portal tenant después del provisioning."
         >
@@ -868,6 +877,7 @@ function handleRefresh() {
         />
       ) : !jobsError && !isLoading ? (
         <PanelCard
+          icon="provisioning"
           title="Jobs de provisioning"
           subtitle={
             jobs.length === 0
@@ -1071,6 +1081,7 @@ function handleRefresh() {
           />
         ) : (
           <PanelCard
+            icon="pulse"
             title="Alertas activas"
             subtitle="No se reportaron alertas activas de provisioning en la última lectura."
           >
@@ -1083,14 +1094,14 @@ function handleRefresh() {
       ) : null}
 
       <PanelCard
+        icon="reports"
         title="Operación DLQ"
         subtitle="Inspecciona filas dead-letter del broker y reencólalas individualmente o en lote."
       >
         <div className="provisioning-dlq-grid">
-          <form className="tenant-action-form" onSubmit={handleDlqFilterSubmit}>
+          <AppForm className="tenant-action-form" onSubmit={handleDlqFilterSubmit}>
             <h3 className="tenant-action-form__title">Filtros DLQ</h3>
-            <div className="tenant-inline-form-grid">
-              <div>
+            <AppFormField>
                 <FieldHelpLabel
                   label="Límite"
                   help="Máximo de filas DLQ que quieres inspeccionar en la consulta actual."
@@ -1102,8 +1113,8 @@ function handleRefresh() {
                   value={dlqLimit}
                   onChange={(event) => setDlqLimit(event.target.value)}
                 />
-              </div>
-              <div>
+            </AppFormField>
+            <AppFormField>
                 <FieldHelpLabel
                   label="Tipo de job"
                   help="Filtra por operación interna de provisioning, por ejemplo crear base tenant, sincronizar esquema o retirar infraestructura técnica."
@@ -1119,8 +1130,8 @@ function handleRefresh() {
                     <option key={value} value={value} />
                   ))}
                 </datalist>
-              </div>
-              <div>
+            </AppFormField>
+            <AppFormField>
                 <FieldHelpLabel
                   label="Slug tenant"
                   help="Código técnico del tenant sobre el que quieres revisar filas DLQ."
@@ -1130,8 +1141,8 @@ function handleRefresh() {
                   value={dlqTenantSlug}
                   onChange={(event) => setDlqTenantSlug(event.target.value)}
                 />
-              </div>
-              <div>
+            </AppFormField>
+            <AppFormField>
                 <FieldHelpLabel
                   label="Código de error"
                   help="Usa el código interno cuando quieras acotar una familia específica de fallos."
@@ -1141,30 +1152,32 @@ function handleRefresh() {
                   value={dlqErrorCode}
                   onChange={(event) => setDlqErrorCode(event.target.value)}
                 />
-              </div>
-            </div>
-            <FieldHelpLabel
-              label="Error contiene"
-              help="Busca un texto dentro del mensaje de error para aislar casos similares."
-            />
-            <input
-              className="form-control"
-              value={dlqErrorContains}
-              onChange={(event) => setDlqErrorContains(event.target.value)}
-            />
-            <button
-              type="submit"
-              className="btn btn-outline-primary mt-3"
-              disabled={isLoading || isActionSubmitting}
-            >
-              Aplicar filtros
-            </button>
-          </form>
+            </AppFormField>
+            <AppFormField fullWidth>
+              <FieldHelpLabel
+                label="Error contiene"
+                help="Busca un texto dentro del mensaje de error para aislar casos similares."
+              />
+              <input
+                className="form-control"
+                value={dlqErrorContains}
+                onChange={(event) => setDlqErrorContains(event.target.value)}
+              />
+            </AppFormField>
+            <AppFormActions>
+              <button
+                type="submit"
+                className="btn btn-outline-primary"
+                disabled={isLoading || isActionSubmitting}
+              >
+                Aplicar filtros
+              </button>
+            </AppFormActions>
+          </AppForm>
 
-          <form className="tenant-action-form" onSubmit={handleDlqBatchRequeue}>
+          <AppForm className="tenant-action-form" onSubmit={handleDlqBatchRequeue}>
             <h3 className="tenant-action-form__title">Reencolado en lote</h3>
-            <div className="tenant-inline-form-grid">
-              <div>
+            <AppFormField>
                 <FieldHelpLabel
                   label="Límite"
                   help="Cantidad máxima de filas filtradas que se van a devolver a la cola."
@@ -1177,8 +1190,8 @@ function handleRefresh() {
                   value={dlqLimit}
                   onChange={(event) => setDlqLimit(event.target.value)}
                 />
-              </div>
-              <div>
+            </AppFormField>
+            <AppFormField>
                 <FieldHelpLabel
                   label="Segundos de demora"
                   help="Espera opcional antes de volver a entregar el job al worker."
@@ -1191,32 +1204,37 @@ function handleRefresh() {
                   value={dlqDelaySeconds}
                   onChange={(event) => setDlqDelaySeconds(event.target.value)}
                 />
+            </AppFormField>
+            <div className="app-form-field app-form-field--full">
+              <div className="form-check mt-0">
+                <input
+                  id="dlq-reset-attempts"
+                  className="form-check-input"
+                  type="checkbox"
+                  checked={dlqResetAttempts}
+                  onChange={(event) => setDlqResetAttempts(event.target.checked)}
+                />
+                <label className="form-check-label" htmlFor="dlq-reset-attempts">
+                  Reiniciar intentos al reencolar
+                </label>
               </div>
             </div>
-            <div className="form-check mt-3">
-              <input
-                id="dlq-reset-attempts"
-                className="form-check-input"
-                type="checkbox"
-                checked={dlqResetAttempts}
-                onChange={(event) => setDlqResetAttempts(event.target.checked)}
-              />
-              <label className="form-check-label" htmlFor="dlq-reset-attempts">
-                Reiniciar intentos al reencolar
-              </label>
+            <div className="app-form-field app-form-field--full">
+              <p className="tenant-help-text mt-0 mb-0">
+                La acción en lote reutiliza el set actual de filtros, así que puedes reprocesar
+                una porción focalizada del DLQ en vez de toda la cola.
+              </p>
             </div>
-            <p className="tenant-help-text mt-3">
-              La acción en lote reutiliza el set actual de filtros, así que puedes reprocesar
-              una porción focalizada del DLQ en vez de toda la cola.
-            </p>
-            <button
-              type="submit"
-              className="btn btn-primary mt-3"
-              disabled={isActionSubmitting}
-            >
-              Reencolar filas DLQ filtradas
-            </button>
-          </form>
+            <AppFormActions>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isActionSubmitting}
+              >
+                Reencolar filas DLQ filtradas
+              </button>
+            </AppFormActions>
+          </AppForm>
         </div>
       </PanelCard>
 
@@ -1300,6 +1318,7 @@ function handleRefresh() {
           />
         ) : (
           <PanelCard
+            icon="reports"
             title="Filas DLQ"
             subtitle="Ninguna fila dead-letter del broker coincide con el set actual de filtros."
           >
@@ -1352,6 +1371,7 @@ function handleRefresh() {
           />
         ) : (
           <PanelCard
+            icon="activity"
             title="Ciclos recientes del worker"
             subtitle="Todavía no hay trazas persistidas de ciclos en este entorno."
           >
@@ -1403,16 +1423,16 @@ function ProvisioningCodeCell({
 
 function ProvisioningOperationBadge({ jobType }: { jobType: string }) {
   const kind = getProvisioningOperationKind(jobType);
-  const classNameByKind: Record<string, string> = {
-    provision: "status-badge status-badge--success",
-    deprovision: "status-badge status-badge--warning",
-    schema: "status-badge status-badge--info",
-    other: "status-badge status-badge--neutral",
+  const toneByKind: Record<string, "success" | "warning" | "info" | "neutral"> = {
+    provision: "success",
+    deprovision: "warning",
+    schema: "info",
+    other: "neutral",
   };
   return (
-    <span className={classNameByKind[kind]}>
+    <AppBadge tone={toneByKind[kind]}>
       {formatProvisioningOperationKind(kind)}
-    </span>
+    </AppBadge>
   );
 }
 
@@ -1436,13 +1456,13 @@ function ProvisioningOperationSummaryItem({
 
 function SeverityBadge({ value }: { value: string }) {
   const normalized = value.trim().toLowerCase();
-  const className =
+  const tone =
     normalized === "critical" || normalized === "error"
-      ? "status-badge status-badge--danger"
+      ? "danger"
       : normalized === "warning"
-        ? "status-badge status-badge--warning"
-        : "status-badge status-badge--info";
-  return <span className={className}>{normalized}</span>;
+        ? "warning"
+        : "info";
+  return <AppBadge tone={tone}>{normalized}</AppBadge>;
 }
 
 function formatProvisioningJobType(value: string): string {

@@ -300,7 +300,7 @@ Backlog opcional post-cierre:
 - seguir `Reportes` y `Planificación` con visualizaciones mas densas o cortes analíticos adicionales solo si aparecen necesidades reales; la primera capa de charts ya quedó aplicada
 - la base visual local de `finance` ya quedó sembrada con iconografia semantica, bloques `spotlight` y charts livianos; el pendiente ya no es esa capa inicial, sino elevarla a sistema transversal del PaaS
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
-- el trabajo transversal de `design system` ya quedó iniciado en frontend con iconografia común, `spotlight` genérico, badges, layouts, formularios y wrappers de tabla reutilizables; `finance` ya sirve como primer bloque real de adopción también en catálogos y formularios, `Overview`/`Users` ya abrieron la segunda capa visible y `platform_admin` ya absorbió esa base en `Usuarios de plataforma`, `Configuración`, `Facturación` y el bloque operativo central de `Tenants`
+- el trabajo transversal de `design system` ya quedó aplicado sobre el frontend visible con iconografia común, `spotlight` genérico, badges, layouts, formularios y wrappers de tabla reutilizables; `finance` ya sirve como bloque de referencia, `Overview`/`Users` ya comparten esa base y `platform_admin` ya la absorbió en `Dashboard`, `Actividad`, `Usuarios de plataforma`, `Tenants`, `Histórico tenants`, `Provisioning`, `Billing`, `Configuración`, login, recuperación raíz e instalador
 - dejar, tambien como trabajo transversal posterior, una internacionalizacion real del sistema porque fuera de `finance` todavia existen pantallas y helpers compartidos con copy parcialmente hardcodeado
 
 ## Etapa 9. Calidad Tecnica Base
@@ -516,7 +516,7 @@ Resultado actual:
 Falta para cerrarlo:
 
 - decidir el siguiente modulo real despues de `finance`
-- seguir expandiendo el trabajo transversal de `design system` y usar `finance` como primer modulo donde se aplique de forma integral, partiendo desde la base visual ya sembrada y ya conectada a primitives compartidas
+- tratar el `design system` transversal como base ya aplicada sobre el frontend visible y usar `finance` como referencia formal para los siguientes módulos, no como experimento todavía abierto
 - seguir limpiando internacionalizacion transversal fuera de `finance`, porque todavia quedan pantallas y helpers con copy mezclado o localmente hardcodeado
 
 ## Etapa 15. Registro y Activacion de Modulos

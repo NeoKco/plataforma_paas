@@ -53,7 +53,7 @@ Lo pendiente es sobre todo:
 - seguir endureciendo `Préstamos` solo si el negocio exige mejor lectura de contrapartida, cruces más densos o exportaciones aún más contables
 - consolidar la adopción visible del auto-sync post-deploy en consola operativa, ahora que ya existe el follow-up automático post-provisioning, la acción masiva desde `Provisioning` y la integración al wrapper de release/verify
 - `finance` ya tiene una primera capa visual propia con iconografía semántica, bloques `spotlight` y charts livianos en `Reportes` y `Planificación`; si se sigue por ahí debe ser para densidad adicional, no para abrir esa base desde cero
-- el `design system` transversal del PaaS ya quedó arrancado con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid`, `AppTableWrap`, `AppForm` y primitives compartidas; `finance` ya adoptó esa base en catálogos y formularios principales, `Overview` + `Users` ya entraron como segundo bloque de migración visible y `platform_admin` ya la absorbió en `Usuarios de plataforma`, `Configuración`, `Facturación` y el bloque operativo central de `Tenants`
+- el `design system` transversal del PaaS ya quedó aplicado sobre el frontend visible con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid`, `AppTableWrap`, `AppForm` y primitives compartidas; `finance` quedó como primer bloque integral, `Overview` + `Users` ya consumen la misma base, `platform_admin` ya la usa en `Dashboard`, `Actividad`, `Usuarios de plataforma`, `Tenants`, `Histórico tenants`, `Provisioning`, `Billing`, `Settings`, login, recuperación raíz e instalador, y el portal tenant ya absorbió también esa capa en login y el borde legacy de finanzas
 - cerrar una internacionalizacion transversal real del frontend, continuando desde el avance ya aplicado en `finance`, `Overview` y `Users` para eliminar copy hardcodeado del resto de pantallas y helpers compartidos
 
 Nota de ejecucion:
@@ -75,7 +75,7 @@ El objetivo ahora es este:
 - dejar el frontend listo para crecer sin retrabajo grande antes de abrir nuevos modulos
 - tratar `finance` como modulo base visible del SaaS antes de abrir otros dominios tenant
 - mantener `tenant_portal/modules/finance` como estructura canonica para la evolucion del modulo
-- tratar `finance` como primer slice cerrado y ya en migracion inicial al `design system` transversal, no como módulo todavía abierto por defecto
+- tratar `finance` como primer slice cerrado y ya migrado como referencia del `design system` transversal, no como módulo todavía abierto por defecto
 
 ## Principio rector
 
@@ -469,15 +469,14 @@ Hoy la lectura correcta es esta:
 ## Pendientes de UX
 
 - refinar todavia mas el login de `tenant_portal` para hacerlo menos tecnico y mas evidente para usuario final, manteniendo el acceso rapido desde `Tenants` para superadmin
-- seguir cerrando dashboard y settings hasta dejarlos con el mismo nivel de claridad ya alcanzado por `Tenants`, `Billing` y `tenant_portal`
+- seguir endureciendo copy, estados vacíos y microcopy operativo ahora que la capa visual compartida ya quedó aplicada
 
 ## Prioridades inmediatas
 
 Lo mas rentable para las proximas sesiones es esto:
 
-1. cerrar el flujo basico de tenants desde `platform_admin`: crear, editar identidad basica, archivar y filtrar
-2. definir explicitamente que `archivar` es la baja operativa base y que `delete` fisico no se abre todavia
-3. rematar `Dashboard` y `Settings`, que ya mejoraron su lenguaje y lectura operativa pero todavia pueden ganar consistencia final
-4. seguir endureciendo bordes reales solo cuando aparezcan durante cambios funcionales, evitando volver a modo de prueba manual pesada por defecto
-5. pedir al backend catalogos mas ricos para planes, estados y ayudas visibles donde todavia asomen codigos internos
-6. documentar de inmediato cada validacion importante y cada captura util para no tener que reconstruir contexto despues
+1. cerrar la internacionalizacion transversal real del frontend, aprovechando que la base visual ya quedó estable
+2. decidir el siguiente módulo tenant grande después de `finance`, ya con slices naciendo sobre la convención visual actual
+3. seguir endureciendo bordes reales solo cuando aparezcan durante cambios funcionales, evitando volver a modo de prueba manual pesada por defecto
+4. pedir al backend catálogos más ricos para planes, estados y ayudas visibles donde todavía asomen códigos internos
+5. documentar de inmediato cada validación importante y cada captura útil para no tener que reconstruir contexto después

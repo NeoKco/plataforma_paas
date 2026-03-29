@@ -7,6 +7,8 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { MetricCard } from "../../../../components/common/MetricCard";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
+import { AppBadge } from "../../../../design-system/AppBadge";
+import { AppToolbar } from "../../../../design-system/AppLayout";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
 import { useAuth } from "../../../../store/auth-context";
 import {
@@ -41,6 +43,65 @@ export function DashboardPage() {
     useState<PlatformBillingAlertsResponse | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  async function loadDashboard() {
+    if (!session?.accessToken) {
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    const results = await Promise.allSettled([
+      getPlatformCapabilities(session.accessToken),
+      listPlatformTenants(session.accessToken),
+      getProvisioningMetrics(session.accessToken),
+      getProvisioningAlerts(session.accessToken),
+      getPlatformBillingEventsSummary(session.accessToken),
+      getPlatformBillingAlerts(session.accessToken),
+    ]);
+
+    const [
+      capabilitiesResult,
+      tenantsResult,
+      provisioningMetricsResult,
+      provisioningAlertsResult,
+      billingSummaryResult,
+      billingAlertsResult,
+    ] = results;
+
+    const firstRejected = results.find(
+      (result): result is PromiseRejectedResult => result.status === "rejected"
+    );
+
+    if (firstRejected) {
+      setError(firstRejected.reason as ApiError);
+    } else {
+      setError(null);
+    }
+
+    setCapabilities(
+      capabilitiesResult.status === "fulfilled" ? capabilitiesResult.value : null
+    );
+    setTenants(tenantsResult.status === "fulfilled" ? tenantsResult.value.data : []);
+    setProvisioningMetrics(
+      provisioningMetricsResult.status === "fulfilled"
+        ? provisioningMetricsResult.value
+        : null
+    );
+    setProvisioningAlerts(
+      provisioningAlertsResult.status === "fulfilled"
+        ? provisioningAlertsResult.value
+        : null
+    );
+    setBillingSummary(
+      billingSummaryResult.status === "fulfilled" ? billingSummaryResult.value : null
+    );
+    setBillingAlerts(
+      billingAlertsResult.status === "fulfilled" ? billingAlertsResult.value : null
+    );
+    setIsLoading(false);
+  }
 
   const kpis = useMemo(() => {
     const totalTenants = tenants.length;
@@ -105,70 +166,11 @@ export function DashboardPage() {
   useEffect(() => {
     let isMounted = true;
 
-    async function loadDashboard() {
-      if (!session?.accessToken) {
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      const results = await Promise.allSettled([
-        getPlatformCapabilities(session.accessToken),
-        listPlatformTenants(session.accessToken),
-        getProvisioningMetrics(session.accessToken),
-        getProvisioningAlerts(session.accessToken),
-        getPlatformBillingEventsSummary(session.accessToken),
-        getPlatformBillingAlerts(session.accessToken),
-      ]);
-
+    void loadDashboard().finally(() => {
       if (!isMounted) {
         return;
       }
-
-      const [
-        capabilitiesResult,
-        tenantsResult,
-        provisioningMetricsResult,
-        provisioningAlertsResult,
-        billingSummaryResult,
-        billingAlertsResult,
-      ] = results;
-
-      const firstRejected = results.find(
-        (result): result is PromiseRejectedResult => result.status === "rejected"
-      );
-
-      if (firstRejected) {
-        setError(firstRejected.reason as ApiError);
-      } else {
-        setError(null);
-      }
-
-      setCapabilities(
-        capabilitiesResult.status === "fulfilled" ? capabilitiesResult.value : null
-      );
-      setTenants(tenantsResult.status === "fulfilled" ? tenantsResult.value.data : []);
-      setProvisioningMetrics(
-        provisioningMetricsResult.status === "fulfilled"
-          ? provisioningMetricsResult.value
-          : null
-      );
-      setProvisioningAlerts(
-        provisioningAlertsResult.status === "fulfilled"
-          ? provisioningAlertsResult.value
-          : null
-      );
-      setBillingSummary(
-        billingSummaryResult.status === "fulfilled" ? billingSummaryResult.value : null
-      );
-      setBillingAlerts(
-        billingAlertsResult.status === "fulfilled" ? billingAlertsResult.value : null
-      );
-      setIsLoading(false);
-    }
-
-    void loadDashboard();
+    });
 
     return () => {
       isMounted = false;
@@ -181,6 +183,19 @@ export function DashboardPage() {
         eyebrow="Plataforma"
         title="Resumen operativo"
         description="Vista rápida de salud operativa: tenants que requieren atención, presión de provisioning y señales de facturación que ya justifican una revisión."
+        icon="dashboard"
+        actions={
+          <AppToolbar compact>
+            <button
+              className="btn btn-outline-primary"
+              type="button"
+              onClick={() => void loadDashboard()}
+              disabled={isLoading}
+            >
+              Recargar datos
+            </button>
+          </AppToolbar>
+        }
       />
 
       {isLoading ? <LoadingBlock label="Cargando operación de plataforma..." /> : null}
@@ -196,36 +211,50 @@ export function DashboardPage() {
           <div className="dashboard-overview-grid">
             <MetricCard
               label="Tenants totales"
+              icon="tenants"
+              tone="default"
               value={kpis.totalTenants}
               hint="Catálogo actual de tenants visibles desde plataforma."
             />
             <MetricCard
               label="Tenants suspendidos"
+              icon="settings"
+              tone="warning"
               value={kpis.suspendedTenants}
               hint="Tenants detenidos por estado operativo."
             />
             <MetricCard
               label="Tenants en mantenimiento"
+              icon="activity"
+              tone="warning"
               value={kpis.maintenanceTenants}
               hint="Tenants con ventana manual de mantenimiento activa."
             />
             <MetricCard
               label="Tenants con deuda"
+              icon="billing"
+              tone="danger"
               value={kpis.tenantsPastDue}
               hint="Tenants en estado de facturación con deuda."
             />
             <MetricCard
               label="Tenants con provisioning fallido"
+              icon="provisioning"
+              tone="danger"
               value={kpis.provisioningFailedTenants}
               hint="Tenants con jobs fallidos en la última lectura."
             />
             <MetricCard
               label="Alertas activas de provisioning"
+              icon="pulse"
+              tone="info"
               value={kpis.activeProvisioningAlerts}
               hint="Señales operativas abiertas en la cola técnica."
             />
             <MetricCard
               label="Alertas activas de facturación"
+              icon="billing"
+              tone="info"
               value={kpis.activeBillingAlerts}
               hint="Alertas abiertas en sincronización y reconcile de billing."
             />
@@ -233,6 +262,7 @@ export function DashboardPage() {
 
           <div className="dashboard-section-grid">
             <PanelCard
+              icon="focus"
               title="Foco operativo"
               subtitle="Tenants que hoy requieren revisión por estado, mantenimiento o facturación."
             >
@@ -248,9 +278,7 @@ export function DashboardPage() {
                         <StatusBadge value={tenant.status} />
                         <StatusBadge value={tenant.billing_status || "unknown"} />
                         {tenant.maintenance_mode ? (
-                          <span className="tenant-chip tenant-chip--warning">
-                            mantenimiento
-                          </span>
+                          <AppBadge tone="warning">mantenimiento</AppBadge>
                         ) : null}
                       </div>
                     </div>
@@ -264,10 +292,11 @@ export function DashboardPage() {
             </PanelCard>
 
             <PanelCard
+              icon="overview"
               title="Acciones rápidas"
               subtitle="Entra directo a la pantalla adecuada según el tipo de problema."
             >
-              <div className="dashboard-quick-actions">
+              <AppToolbar className="dashboard-quick-actions">
                 <Link className="btn btn-primary" to="/tenants">
                   Abrir tenants
                 </Link>
@@ -277,7 +306,7 @@ export function DashboardPage() {
                 <Link className="btn btn-outline-primary" to="/billing">
                   Abrir facturación
                 </Link>
-              </div>
+              </AppToolbar>
               <div className="dashboard-quick-hints">
                 <div>`Tenants`: estado del tenant, plan, mantenimiento, límites y acceso.</div>
                 <div>`Provisioning`: jobs pendientes, fallos, reintentos y recuperación técnica.</div>

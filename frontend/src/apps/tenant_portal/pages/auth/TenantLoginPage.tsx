@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { LanguageSelect } from "../../../../components/common/LanguageSelect";
+import { AppForm, AppFormActions, AppFormField } from "../../../../design-system/AppForm";
+import { AppIcon } from "../../../../design-system/AppIcon";
+import { AppToolbar } from "../../../../design-system/AppLayout";
 import { useLanguage } from "../../../../store/language-context";
 import { useTenantAuth } from "../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../types";
@@ -50,7 +53,10 @@ export function TenantLoginPage() {
       <div className="login-card">
         <div className="login-card__eyebrow">Platform PaaS</div>
         <div className="d-flex justify-content-between align-items-start gap-3">
-          <div>
+          <div className="d-flex align-items-start gap-3">
+            <div className="page-header__icon">
+              <AppIcon name="tenants" size={22} />
+            </div>
             <h1 className="login-card__title">
               {language === "es" ? "Portal Tenant" : "Tenant Portal"}
             </h1>
@@ -68,16 +74,18 @@ export function TenantLoginPage() {
               ? "¿Necesitas entrar a la operación de plataforma?"
               : "Need platform operations instead?"}
           </span>
-          <Link className="btn btn-outline-secondary btn-sm" to="/login">
-            {language === "es" ? "Abrir Admin Plataforma" : "Open Platform Admin"}
-          </Link>
+          <AppToolbar compact>
+            <Link className="btn btn-outline-secondary btn-sm" to="/login">
+              {language === "es" ? "Abrir Admin Plataforma" : "Open Platform Admin"}
+            </Link>
+          </AppToolbar>
         </div>
         {location.state && typeof location.state === "object" && "message" in location.state ? (
           <div className="alert alert-warning">{String(location.state.message)}</div>
         ) : null}
         {error ? <div className="alert alert-danger">{error}</div> : null}
-        <form className="d-grid gap-3" onSubmit={handleSubmit}>
-          <div>
+        <AppForm onSubmit={handleSubmit}>
+          <AppFormField fullWidth>
             <FieldHelpLabel
               label={language === "es" ? "Código de tu espacio" : "Workspace code"}
               helpText={
@@ -93,8 +101,8 @@ export function TenantLoginPage() {
               autoComplete="organization"
               placeholder={language === "es" ? "Ej: empresa-demo" : "Ex: empresa-demo"}
             />
-          </div>
-          <div>
+          </AppFormField>
+          <AppFormField fullWidth>
             <FieldHelpLabel
               label={language === "es" ? "Usuario" : "User"}
               helpText={
@@ -114,11 +122,11 @@ export function TenantLoginPage() {
                   : "Ex: admin@empresa-demo.local"
               }
             />
-          </div>
-          <div>
-            <label className="form-label">
-              {language === "es" ? "Contraseña" : "Password"}
-            </label>
+          </AppFormField>
+          <AppFormField
+            label={language === "es" ? "Contraseña" : "Password"}
+            fullWidth
+          >
             <input
               className="form-control"
               type="password"
@@ -126,17 +134,19 @@ export function TenantLoginPage() {
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
             />
-          </div>
-          <button className="btn btn-primary" disabled={isSubmitting} type="submit">
-            {isSubmitting
-              ? language === "es"
-                ? "Ingresando..."
-                : "Signing in..."
-              : language === "es"
-                ? "Ingresar"
-                : "Login"}
-          </button>
-        </form>
+          </AppFormField>
+          <AppFormActions>
+            <button className="btn btn-primary" disabled={isSubmitting} type="submit">
+              {isSubmitting
+                ? language === "es"
+                  ? "Ingresando..."
+                  : "Signing in..."
+                : language === "es"
+                  ? "Ingresar"
+                  : "Login"}
+            </button>
+          </AppFormActions>
+        </AppForm>
       </div>
     </div>
   );

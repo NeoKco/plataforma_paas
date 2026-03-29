@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import type { FormEvent, HTMLAttributes } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import { AppBadge } from "../../../../design-system/AppBadge";
+import { AppForm, AppFormActions, AppFormField } from "../../../../design-system/AppForm";
+import { AppIcon } from "../../../../design-system/AppIcon";
+import { AppToolbar } from "../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { runInstallerSetup } from "../../../../services/install-api";
@@ -101,11 +105,11 @@ export function InstallPage() {
             detail={error.payload?.detail || error.message}
             requestId={error.payload?.request_id}
           />
-          <div className="mt-3">
+          <AppToolbar compact className="mt-3">
             <button className="btn btn-outline-primary" onClick={() => void reload()}>
               Reintentar
             </button>
-          </div>
+          </AppToolbar>
         </div>
       </div>
     );
@@ -149,7 +153,12 @@ export function InstallPage() {
     <div className="login-screen">
       <div className="install-card">
         <div className="login-card__eyebrow">Platform PaaS</div>
-        <h1 className="login-card__title">Instalador inicial</h1>
+        <div className="d-flex align-items-start gap-3">
+          <div className="page-header__icon">
+            <AppIcon name="settings" size={22} />
+          </div>
+          <h1 className="login-card__title">Instalador inicial</h1>
+        </div>
         <p className="login-card__subtitle">
           Configura la base de control de la plataforma y deja el entorno listo para
           usar `Platform Admin`.
@@ -158,7 +167,9 @@ export function InstallPage() {
         {!isCompleted ? (
           <>
             <div className="install-card__status-strip">
-              <div className="install-card__status-pill">Modo primer arranque</div>
+              <AppBadge className="install-card__status-pill" tone="info">
+                Modo primer arranque
+              </AppBadge>
               <p className="install-card__status-copy">
                 Usa credenciales de PostgreSQL con permiso para crear roles y bases de datos.
               </p>
@@ -200,7 +211,7 @@ export function InstallPage() {
               />
             ) : null}
 
-            <form className="d-grid gap-4" onSubmit={handleSubmit}>
+            <AppForm className="d-grid gap-4" onSubmit={handleSubmit}>
               <section className="install-card__section">
                 <div className="install-card__section-title">Servidor PostgreSQL</div>
                 <p className="install-card__section-copy">
@@ -350,15 +361,17 @@ export function InstallPage() {
               </section>
 
               {requiredMissing.length ? (
-                <div className="install-card__validation">
+                <div className="install-card__validation app-form-field app-form-field--full">
                   <strong>Faltan datos obligatorios:</strong> {requiredMissing.join(", ")}.
                 </div>
               ) : null}
 
-              <button className="btn btn-primary" disabled={!canSubmit} type="submit">
-                {isSubmitting ? "Instalando..." : "Instalar plataforma"}
-              </button>
-            </form>
+              <AppFormActions>
+                <button className="btn btn-primary" disabled={!canSubmit} type="submit">
+                  {isSubmitting ? "Instalando..." : "Instalar plataforma"}
+                </button>
+              </AppFormActions>
+            </AppForm>
           </>
         ) : (
           <div className="d-grid gap-3">
@@ -397,14 +410,14 @@ export function InstallPage() {
               Si el backend fue levantado antes de instalar, puede requerir reinicio para
               exponer las rutas normales de plataforma.
             </div>
-            <div className="d-flex flex-wrap gap-2">
+            <AppToolbar>
               <button className="btn btn-primary" onClick={() => navigate("/login")}>
                 Ir al login
               </button>
               <button className="btn btn-outline-secondary" onClick={() => void reload()}>
                 Revalidar estado
               </button>
-            </div>
+            </AppToolbar>
           </div>
         )}
       </div>
@@ -434,7 +447,7 @@ function Field({
   autoComplete?: string;
 }) {
   return (
-    <div>
+    <AppFormField fullWidth>
       <label className="form-label">
         {label}
         {required ? <span className="install-card__required">obligatorio</span> : null}
@@ -449,6 +462,6 @@ function Field({
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
-    </div>
+    </AppFormField>
   );
 }
