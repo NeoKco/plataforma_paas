@@ -102,6 +102,23 @@ La plataforma ya asume este baseline:
 
 Eso queda como criterio de seguridad base tanto para `platform_admin` como para `tenant_portal`.
 
+### 8. La iconografia visible debe ser controlada y semantica
+
+La regla correcta ya no es dejar `icon` como texto libre sin contrato visual claro.
+
+El baseline que ya quedó sembrado es este:
+
+- el `design system` provee un registro comun de iconos reutilizables
+- `finance` ya usa iconos semanticos consistentes en navegación, `Categorías`, `Cuentas`, `Beneficiarios` y `Personas`
+- cuando una entidad admite icono visible, la UI debe preferir selector controlado con fallback claro
+- los iconos deben representar dominio o intención operativa, no decoración arbitraria
+
+Esto deja una dirección explícita para futuros módulos:
+
+- evitar uploads libres o claves opacas sin catálogo compartido
+- preferir `icon_key`/valor controlado que pueda mapearse desde frontend
+- mantener paridad visual entre formulario, tabla, detalle y navegación cuando el icono exista
+
 ## Decisiones pendientes antes de mas frontend
 
 ### 1. Refinamiento final de instalador
