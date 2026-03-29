@@ -162,6 +162,10 @@ class FinanceService:
             favorite_flag=False,
             is_reconciled=False,
             reconciled_at=None,
+            is_voided=False,
+            voided_at=None,
+            void_reason=None,
+            voided_by_user_id=None,
             is_template_origin=False,
             planner_id=None,
             template_id=None,
@@ -276,8 +280,7 @@ class FinanceService:
         actor_user_id: int | None = None,
     ) -> FinanceTransaction:
         transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
-        if transaction is None:
-            raise ValueError("La transaccion financiera no existe")
+        self._raise_if_missing_or_voided(transaction)
 
         transaction_values = self._build_transaction_values(
             tenant_db,
@@ -353,8 +356,7 @@ class FinanceService:
         transaction_id: int,
     ) -> tuple[FinanceTransaction, list, list[FinanceTransactionAttachment]]:
         transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
-        if transaction is None:
-            raise ValueError("La transaccion financiera no existe")
+        self._raise_if_missing_or_voided(transaction)
 
         audit_events = self.transaction_audit_repository.list_by_transaction(
             tenant_db,
@@ -379,8 +381,7 @@ class FinanceService:
         actor_user_id: int | None = None,
     ) -> FinanceTransactionAttachment:
         transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
-        if transaction is None:
-            raise ValueError("La transaccion financiera no existe")
+        self._raise_if_missing_or_voided(transaction)
 
         normalized_file_name = self._normalize_attachment_file_name(file_name)
         normalized_content_type = (content_type or "").strip().lower() or None
@@ -477,8 +478,7 @@ class FinanceService:
         attachment_id: int,
     ) -> tuple[FinanceTransactionAttachment, Path]:
         transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
-        if transaction is None:
-            raise ValueError("La transaccion financiera no existe")
+        self._raise_if_missing_or_voided(transaction)
 
         attachment = self.transaction_attachment_repository.get_by_id(
             tenant_db,
@@ -501,8 +501,7 @@ class FinanceService:
         actor_user_id: int | None = None,
     ) -> FinanceTransaction:
         transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
-        if transaction is None:
-            raise ValueError("La transaccion financiera no existe")
+        self._raise_if_missing_or_voided(transaction)
 
         transaction.is_favorite = is_favorite
         transaction.favorite_flag = is_favorite
@@ -516,6 +515,43 @@ class FinanceService:
             actor_user_id=actor_user_id,
             summary="Favorito de transaccion actualizado",
             payload={"is_favorite": is_favorite},
+        )
+        return saved
+
+    def void_transaction(
+        self,
+        tenant_db: Session,
+        transaction_id: int,
+        *,
+        reason: str | None = None,
+        actor_user_id: int | None = None,
+    ) -> FinanceTransaction:
+        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        self._raise_if_missing_or_voided(transaction)
+        if transaction.source_type in {"loan_installment_payment", "loan_installment_reversal"}:
+            raise ValueError(
+                "Las transacciones derivadas de cuotas de préstamo deben revertirse desde Préstamos"
+            )
+
+        normalized_reason = reason.strip() if reason and reason.strip() else None
+        transaction.is_voided = True
+        transaction.voided_at = datetime.now(timezone.utc)
+        transaction.void_reason = normalized_reason
+        transaction.voided_by_user_id = actor_user_id
+        transaction.is_favorite = False
+        transaction.favorite_flag = False
+        transaction.is_reconciled = False
+        transaction.reconciled_at = None
+        transaction.updated_by_user_id = actor_user_id
+        saved = self.transaction_repository.persist(tenant_db, transaction)
+        self._attach_tag_ids(tenant_db, [saved])
+        self.transaction_audit_repository.save_event(
+            tenant_db,
+            transaction_id=saved.id,
+            event_type="transaction.voided",
+            actor_user_id=actor_user_id,
+            summary="Transaccion financiera anulada",
+            payload={"reason": normalized_reason},
         )
         return saved
 
@@ -687,6 +723,12 @@ class FinanceService:
             "favorite_flag": payload.is_favorite,
             "is_reconciled": payload.is_reconciled,
             "reconciled_at": reconciled_at,
+            "is_voided": False if current_transaction is None else current_transaction.is_voided,
+            "voided_at": None if current_transaction is None else current_transaction.voided_at,
+            "void_reason": None if current_transaction is None else current_transaction.void_reason,
+            "voided_by_user_id": (
+                None if current_transaction is None else current_transaction.voided_by_user_id
+            ),
         }
 
     def _normalize_tag_ids(
@@ -754,6 +796,15 @@ class FinanceService:
         if normalized not in self.RECONCILIATION_REASON_CODES:
             raise ValueError("El motivo de conciliacion no es valido")
         return normalized
+
+    def _raise_if_missing_or_voided(
+        self,
+        transaction: FinanceTransaction | None,
+    ) -> None:
+        if transaction is None:
+            raise ValueError("La transaccion financiera no existe")
+        if transaction.is_voided:
+            raise ValueError("La transaccion financiera ya fue anulada")
 
     def _get_transactions_for_batch(
         self,

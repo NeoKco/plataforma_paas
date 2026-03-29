@@ -613,6 +613,83 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
         finally:
             settings.FINANCE_ATTACHMENTS_DIR = original_dir
 
+    def test_can_void_transaction_and_exclude_it_from_active_reads(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=100.0,
+        )
+
+        created = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=20.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Gasto a anular",
+            ),
+            created_by_user_id=1,
+        )
+
+        voided = self.service.void_transaction(
+            self.db,
+            created.id,
+            reason="carga duplicada",
+            actor_user_id=9,
+        )
+
+        self.assertTrue(voided.is_voided)
+        self.assertEqual(voided.void_reason, "carga duplicada")
+        self.assertEqual(voided.voided_by_user_id, 9)
+        self.assertEqual(self.service.list_transactions(self.db), [])
+
+        balances = self.service.get_account_balances(self.db)
+        self.assertEqual(balances[caja.id], 100.0)
+
+        detail_transaction, audit_events, _attachments = self.service.get_transaction_detail(
+            self.db, created.id
+        )
+        self.assertTrue(detail_transaction.is_voided)
+        self.assertTrue(any(event.event_type == "transaction.voided" for event in audit_events))
+
+    def test_rejects_void_for_loan_derived_transactions(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+
+        created = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=25.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Pago derivado",
+            ),
+            created_by_user_id=1,
+            source_type="loan_installment_payment",
+            source_id=99,
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            self.service.void_transaction(
+                self.db,
+                created.id,
+                reason="error",
+                actor_user_id=7,
+            )
+
+        self.assertIn("Préstamos", str(exc.exception))
+
     def test_rejects_unknown_tag_ids(self) -> None:
         usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
         caja = self._seed_account(

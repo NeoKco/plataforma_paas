@@ -35,6 +35,10 @@ export type TenantFinanceTransaction = {
   favorite_flag: boolean;
   is_reconciled: boolean;
   reconciled_at: string | null;
+  is_voided: boolean;
+  voided_at: string | null;
+  void_reason: string | null;
+  voided_by_user_id: number | null;
   is_template_origin: boolean;
   source_type: string | null;
   source_id: number | null;
@@ -390,6 +394,23 @@ export function updateTenantFinanceTransactionsReconciliationBatch(
         is_reconciled: isReconciled,
         note: note || null,
         reason_code: reasonCode || null,
+      },
+    }
+  );
+}
+
+export function voidTenantFinanceTransaction(
+  accessToken: string,
+  transactionId: number,
+  reason?: string
+) {
+  return apiRequest<TenantFinanceTransactionMutationResponse>(
+    `/tenant/finance/transactions/${transactionId}/void`,
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: {
+        reason: reason || null,
       },
     }
   );

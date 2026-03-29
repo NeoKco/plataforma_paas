@@ -71,6 +71,7 @@ class FinanceBudgetRepository:
                 ),
             )
             .filter(FinanceTransaction.category_id.is_not(None))
+            .filter(FinanceTransaction.is_voided.is_(False))
             .filter(FinanceTransaction.transaction_at >= starts_at)
             .filter(FinanceTransaction.transaction_at < ends_at)
             .group_by(FinanceTransaction.category_id)

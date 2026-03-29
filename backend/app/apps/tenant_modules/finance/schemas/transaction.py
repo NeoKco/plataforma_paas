@@ -91,6 +91,10 @@ class FinanceTransactionItemResponse(BaseModel):
     favorite_flag: bool = False
     is_reconciled: bool = False
     reconciled_at: datetime | None = None
+    is_voided: bool = False
+    voided_at: datetime | None = None
+    void_reason: str | None = None
+    voided_by_user_id: int | None = None
     is_template_origin: bool = False
     source_type: str | None = None
     source_id: int | None = None
@@ -173,6 +177,10 @@ class FinanceTransactionReconciliationBatchUpdateRequest(BaseModel):
     is_reconciled: bool
     reason_code: str | None = None
     note: str | None = None
+
+
+class FinanceTransactionVoidRequest(BaseModel):
+    reason: str | None = None
 
 
 class FinanceTransactionBatchMutationData(BaseModel):

@@ -33,6 +33,7 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceTransactionMutationResponse,
     FinanceTransactionReconciliationBatchUpdateRequest,
     FinanceTransactionReconciliationUpdateRequest,
+    FinanceTransactionVoidRequest,
     FinanceTransactionUpdateRequest,
     FinanceTransactionsResponse,
     FinanceUsageData,
@@ -94,6 +95,10 @@ def _build_finance_transaction_item(entry) -> FinanceTransactionItemResponse:
         favorite_flag=entry.favorite_flag,
         is_reconciled=entry.is_reconciled,
         reconciled_at=entry.reconciled_at,
+        is_voided=entry.is_voided,
+        voided_at=entry.voided_at,
+        void_reason=entry.void_reason,
+        voided_by_user_id=entry.voided_by_user_id,
         is_template_origin=entry.is_template_origin,
         source_type=entry.source_type,
         source_id=entry.source_id,
@@ -351,6 +356,36 @@ def download_finance_transaction_attachment(
         path=str(absolute_path),
         media_type=attachment.content_type or "application/octet-stream",
         filename=attachment.file_name,
+    )
+
+
+@router.patch(
+    "/transactions/{transaction_id}/void",
+    response_model=FinanceTransactionMutationResponse,
+)
+def void_finance_transaction(
+    transaction_id: int,
+    payload: FinanceTransactionVoidRequest,
+    current_user=Depends(require_finance_create),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTransactionMutationResponse:
+    try:
+        transaction = finance_service.void_transaction(
+            tenant_db,
+            transaction_id,
+            reason=payload.reason,
+            actor_user_id=current_user["user_id"],
+        )
+    except ValueError as exc:
+        if "no existe" in str(exc):
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceTransactionMutationResponse(
+        success=True,
+        message="Transaccion financiera anulada correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        data=_build_finance_transaction_item(transaction),
     )
 
 

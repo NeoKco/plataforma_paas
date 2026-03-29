@@ -1582,7 +1582,7 @@ export function FinanceTransactionsPage() {
                     <th>{language === "es" ? "Cuenta" : "Account"}</th>
                     <th>{language === "es" ? "Categoría" : "Category"}</th>
                     <th>{language === "es" ? "Monto" : "Amount"}</th>
-                    <th>{language === "es" ? "Estado" : "Status"}</th>
+                    <th>{language === "es" ? "Estado conciliación" : "Reconciliation status"}</th>
                     <th>{language === "es" ? "Acciones" : "Actions"}</th>
                   </tr>
                 </thead>
@@ -1636,9 +1636,13 @@ export function FinanceTransactionsPage() {
                         <td>{formatMoney(transaction.amount, currency?.code, language)}</td>
                         <td>
                           {transaction.is_reconciled ? (
-                            <AppBadge tone="success">{language === "es" ? "conciliada" : "reconciled"}</AppBadge>
+                            <AppBadge tone="success">
+                              {displayReconciliationState(true, language)}
+                            </AppBadge>
                           ) : (
-                            <AppBadge tone="neutral">{language === "es" ? "pendiente" : "pending"}</AppBadge>
+                            <AppBadge tone="neutral">
+                              {displayReconciliationState(false, language)}
+                            </AppBadge>
                           )}
                         </td>
                         <td>
@@ -2247,6 +2251,16 @@ function displayReconciliationReason(
     return language === "es" ? "ajuste post migración" : "migration cleanup";
   }
   return language === "es" ? "otro" : "other";
+}
+
+function displayReconciliationState(
+  isReconciled: boolean,
+  language: "es" | "en" = "es"
+): string {
+  if (isReconciled) {
+    return language === "es" ? "conciliada" : "reconciled";
+  }
+  return language === "es" ? "pendiente conciliación" : "pending reconciliation";
 }
 
 function renderTransactionTagChips(

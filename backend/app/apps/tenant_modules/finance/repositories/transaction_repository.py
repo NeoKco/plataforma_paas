@@ -9,6 +9,17 @@ from app.apps.tenant_modules.finance.models.transaction_tag import FinanceTransa
 
 
 class FinanceTransactionRepository:
+    def _query(
+        self,
+        tenant_db: Session,
+        *,
+        include_voided: bool = False,
+    ):
+        query = tenant_db.query(FinanceTransaction)
+        if not include_voided:
+            query = query.filter(FinanceTransaction.is_voided.is_(False))
+        return query
+
     def save(self, tenant_db: Session, transaction: FinanceTransaction) -> FinanceTransaction:
         tenant_db.add(transaction)
         tenant_db.commit()
@@ -17,7 +28,7 @@ class FinanceTransactionRepository:
 
     def list_all(self, tenant_db: Session) -> list[FinanceTransaction]:
         return (
-            tenant_db.query(FinanceTransaction)
+            self._query(tenant_db)
             .order_by(FinanceTransaction.transaction_at.desc(), FinanceTransaction.id.desc())
             .all()
         )
@@ -34,7 +45,7 @@ class FinanceTransactionRepository:
         is_reconciled: bool | None = None,
         search: str | None = None,
     ) -> list[FinanceTransaction]:
-        query = tenant_db.query(FinanceTransaction)
+        query = self._query(tenant_db)
 
         if transaction_type:
             query = query.filter(
@@ -80,7 +91,7 @@ class FinanceTransactionRepository:
         limit: int | None = None,
     ) -> list[FinanceTransaction]:
         query = (
-            tenant_db.query(FinanceTransaction)
+            self._query(tenant_db)
             .filter(FinanceTransaction.loan_id == loan_id)
             .order_by(
                 FinanceTransaction.transaction_at.desc(),
@@ -92,11 +103,11 @@ class FinanceTransactionRepository:
         return query.all()
 
     def count_all(self, tenant_db: Session) -> int:
-        return tenant_db.query(FinanceTransaction).count()
+        return self._query(tenant_db).count()
 
     def count_created_since(self, tenant_db: Session, created_since: datetime) -> int:
         return (
-            tenant_db.query(FinanceTransaction)
+            self._query(tenant_db)
             .filter(FinanceTransaction.created_at >= created_since)
             .count()
         )
@@ -108,15 +119,21 @@ class FinanceTransactionRepository:
         transaction_type: str,
     ) -> int:
         return (
-            tenant_db.query(FinanceTransaction)
+            self._query(tenant_db)
             .filter(FinanceTransaction.created_at >= created_since)
             .filter(FinanceTransaction.transaction_type == transaction_type.strip().lower())
             .count()
         )
 
-    def get_by_id(self, tenant_db: Session, transaction_id: int) -> FinanceTransaction | None:
+    def get_by_id(
+        self,
+        tenant_db: Session,
+        transaction_id: int,
+        *,
+        include_voided: bool = True,
+    ) -> FinanceTransaction | None:
         return (
-            tenant_db.query(FinanceTransaction)
+            self._query(tenant_db, include_voided=include_voided)
             .filter(FinanceTransaction.id == transaction_id)
             .first()
         )
@@ -125,11 +142,13 @@ class FinanceTransactionRepository:
         self,
         tenant_db: Session,
         transaction_ids: list[int],
+        *,
+        include_voided: bool = False,
     ) -> list[FinanceTransaction]:
         if not transaction_ids:
             return []
         return (
-            tenant_db.query(FinanceTransaction)
+            self._query(tenant_db, include_voided=include_voided)
             .filter(FinanceTransaction.id.in_(transaction_ids))
             .order_by(FinanceTransaction.id.asc())
             .all()

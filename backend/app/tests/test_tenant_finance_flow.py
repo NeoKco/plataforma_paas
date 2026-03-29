@@ -42,6 +42,7 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     get_finance_transaction_detail,
     list_finance_budgets,
     list_finance_loans,
+    void_finance_transaction,
     reverse_finance_loan_installment_payment,
     reverse_finance_loan_installment_payment_batch,
     update_finance_transaction,
@@ -68,6 +69,7 @@ from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceLoanUpdateRequest,
     FinanceTransactionCreateRequest,
     FinanceTransactionUpdateRequest,
+    FinanceTransactionVoidRequest,
 )
 from app.apps.tenant_modules.finance.services.finance_service import (  # noqa: E402
     FinanceService,
@@ -609,11 +611,16 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             favorite_flag=True,
             is_reconciled=True,
             reconciled_at="2026-03-27T14:30:00+00:00",
+            is_voided=False,
+            voided_at=None,
+            void_reason=None,
+            voided_by_user_id=None,
             is_template_origin=False,
             source_type=None,
             source_id=None,
             created_by_user_id=5,
             updated_by_user_id=6,
+            tag_ids=[],
             created_at="2026-03-27T14:00:00+00:00",
             updated_at="2026-03-27T14:30:00+00:00",
         )
@@ -653,6 +660,61 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.data.description, "Gasto reajustado")
         self.assertEqual(update_transaction_mock.call_args.kwargs["actor_user_id"], 1)
+
+    def test_void_finance_transaction_returns_voided_transaction(self) -> None:
+        transaction = SimpleNamespace(
+            id=15,
+            transaction_type="expense",
+            account_id=1,
+            target_account_id=None,
+            category_id=2,
+            beneficiary_id=None,
+            person_id=None,
+            project_id=None,
+            currency_id=1,
+            loan_id=None,
+            amount=420.0,
+            amount_in_base_currency=420.0,
+            exchange_rate=1.0,
+            discount_amount=0.0,
+            amortization_months=None,
+            transaction_at="2026-03-27T14:30:00+00:00",
+            alternative_date=None,
+            description="Gasto anulado",
+            notes="duplicada",
+            is_favorite=False,
+            favorite_flag=False,
+            is_reconciled=False,
+            reconciled_at=None,
+            is_voided=True,
+            voided_at="2026-03-27T14:35:00+00:00",
+            void_reason="duplicada",
+            voided_by_user_id=6,
+            is_template_origin=False,
+            source_type=None,
+            source_id=None,
+            created_by_user_id=5,
+            updated_by_user_id=6,
+            tag_ids=[],
+            created_at="2026-03-27T14:00:00+00:00",
+            updated_at="2026-03-27T14:35:00+00:00",
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.transactions.finance_service.void_transaction",
+            return_value=transaction,
+        ) as void_transaction_mock:
+            response = void_finance_transaction(
+                transaction_id=15,
+                payload=FinanceTransactionVoidRequest(reason="duplicada"),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertTrue(response.data.is_voided)
+        self.assertEqual(response.data.void_reason, "duplicada")
+        self.assertEqual(void_transaction_mock.call_args.kwargs["actor_user_id"], 1)
 
     def test_finance_account_balances_returns_named_accounts(self) -> None:
         accounts = [
