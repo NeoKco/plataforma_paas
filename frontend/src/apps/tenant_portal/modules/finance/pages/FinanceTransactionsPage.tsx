@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../../components/common/PageHeader";
@@ -95,6 +95,7 @@ const DEFAULT_FORM_STATE: TransactionFormState = {
 export function FinanceTransactionsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
+  const detailPanelRef = useRef<HTMLDivElement | null>(null);
   const [transactions, setTransactions] = useState<TenantFinanceTransaction[]>([]);
   const [summaryResponse, setSummaryResponse] =
     useState<TenantFinanceSummaryResponse | null>(null);
@@ -119,6 +120,8 @@ export function FinanceTransactionsPage() {
   const [detailError, setDetailError] = useState<ApiError | null>(null);
   const [usageError, setUsageError] = useState<ApiError | null>(null);
   const [attachmentNotes, setAttachmentNotes] = useState("");
+  const [createAttachmentFile, setCreateAttachmentFile] = useState<File | null>(null);
+  const [createAttachmentNotes, setCreateAttachmentNotes] = useState("");
   const [isAttachmentSubmitting, setIsAttachmentSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
@@ -311,6 +314,21 @@ export function FinanceTransactionsPage() {
     await fetchTransactionDetail(transactionId);
   }
 
+  function focusTransactionDetailPanel() {
+    window.setTimeout(() => {
+      detailPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  }
+
+  async function openTransactionAttachments(transactionId: number) {
+    if (!session?.accessToken) {
+      return;
+    }
+    setSelectedTransactionId(transactionId);
+    await fetchTransactionDetail(transactionId);
+    focusTransactionDetailPanel();
+  }
+
   async function fetchTransactionDetail(transactionId: number) {
     if (!session?.accessToken) {
       return;
@@ -363,6 +381,11 @@ export function FinanceTransactionsPage() {
       event.target.value = "";
       setIsAttachmentSubmitting(false);
     }
+  }
+
+  function handleCreateAttachmentSelection(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] || null;
+    setCreateAttachmentFile(file);
   }
 
   async function handleAttachmentDelete(
@@ -437,6 +460,8 @@ export function FinanceTransactionsPage() {
     setActionFeedback(null);
 
     try {
+      const pendingCreateAttachmentFile = createAttachmentFile;
+      const pendingCreateAttachmentNotes = normalizeNullableString(createAttachmentNotes);
       const payload = buildTransactionWritePayload(formState);
       const response = editingTransactionId
         ? await updateTenantFinanceTransaction(
@@ -447,11 +472,47 @@ export function FinanceTransactionsPage() {
         : await createTenantFinanceTransaction(session.accessToken, payload);
 
       await loadFinanceWorkspace();
-      resetFormForCreate();
-      setActionFeedback({ type: "success", message: response.message });
       setSelectedTransactionId(response.data.id);
       setEditingTransactionId(null);
       await fetchTransactionDetail(response.data.id);
+      resetFormForCreate();
+
+      if (pendingCreateAttachmentFile) {
+        try {
+          const preparedFile = await prepareFinanceAttachmentFile(pendingCreateAttachmentFile);
+          const attachmentResponse = await uploadTenantFinanceTransactionAttachment(
+            session.accessToken,
+            response.data.id,
+            preparedFile,
+            pendingCreateAttachmentNotes ?? undefined
+          );
+          await fetchTransactionDetail(response.data.id);
+          setActionFeedback({
+            type: "success",
+            message:
+              language === "es"
+                ? `${response.message} ${attachmentResponse.message} El detalle quedó abierto abajo.`
+                : `${response.message} ${attachmentResponse.message} The detail panel was opened below.`,
+          });
+        } catch {
+          setActionFeedback({
+            type: "success",
+            message:
+              language === "es"
+                ? `${response.message} La transacción sí quedó creada, pero el adjunto inicial no se pudo cargar. Puedes reintentar desde el detalle abierto abajo.`
+                : `${response.message} The transaction was created, but the initial attachment could not be uploaded. You can retry from the opened detail panel below.`,
+          });
+        }
+      } else {
+        setActionFeedback({
+          type: "success",
+          message:
+            language === "es"
+              ? `${response.message} El detalle quedó abierto abajo para adjuntar boleta, factura u otro respaldo.`
+              : `${response.message} The detail panel was opened below so you can attach a receipt, invoice, or other backup.`,
+        });
+      }
+      focusTransactionDetailPanel();
     } catch (rawError) {
       setActionFeedback({
         type: "error",
@@ -566,6 +627,8 @@ export function FinanceTransactionsPage() {
       currencyId: baseCurrency ? String(baseCurrency.id) : "",
       transactionAt: buildDateTimeLocalValue(),
     });
+    setCreateAttachmentFile(null);
+    setCreateAttachmentNotes("");
   }
 
   const selectedTransactions = transactions.filter((transaction) =>
@@ -926,6 +989,64 @@ export function FinanceTransactionsPage() {
                 }
                 placeholder={language === "es" ? "Contexto adicional del movimiento" : "Additional movement context"}
               />
+            </div>
+
+            <div className="tenant-inline-form-grid">
+              <div>
+                <label className="form-label">
+                  {language === "es" ? "Adjunto inicial" : "Initial attachment"}
+                </label>
+                <input
+                  className="form-control"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  disabled={isActionSubmitting}
+                  onChange={handleCreateAttachmentSelection}
+                />
+                <div className="form-text">
+                  {language === "es"
+                    ? "Opcional. Puedes dejar lista la boleta, factura o respaldo desde ahora. Las imágenes se comprimen antes de subir y el máximo final es 5 MB."
+                    : "Optional. You can queue the receipt, invoice, or backup file right now. Images are compressed before upload and the final max size is 5 MB."}
+                </div>
+                {createAttachmentFile ? (
+                  <div className="small mt-2">
+                    <strong>{language === "es" ? "Archivo listo:" : "Queued file:"}</strong>{" "}
+                    {createAttachmentFile.name} ·{" "}
+                    {formatFileSize(createAttachmentFile.size)}
+                  </div>
+                ) : null}
+              </div>
+              <div>
+                <label className="form-label">
+                  {language === "es" ? "Nota del adjunto inicial" : "Initial attachment note"}
+                </label>
+                <input
+                  className="form-control"
+                  type="text"
+                  value={createAttachmentNotes}
+                  onChange={(event) => setCreateAttachmentNotes(event.target.value)}
+                  placeholder={
+                    language === "es"
+                      ? "Ej: factura proveedor marzo"
+                      : "Ex: supplier invoice march"
+                  }
+                />
+                {createAttachmentFile ? (
+                  <div className="mt-2">
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      type="button"
+                      disabled={isActionSubmitting}
+                      onClick={() => {
+                        setCreateAttachmentFile(null);
+                        setCreateAttachmentNotes("");
+                      }}
+                    >
+                      {language === "es" ? "Quitar archivo" : "Remove file"}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             {formState.transactionType !== "transfer" ? (
@@ -1521,19 +1642,27 @@ export function FinanceTransactionsPage() {
                           )}
                         </td>
                         <td>
-                          <AppToolbar compact>
-                            <button
-                              className="btn btn-sm btn-outline-primary"
+	                          <AppToolbar compact>
+	                            <button
+	                              className="btn btn-sm btn-outline-primary"
                               type="button"
                               disabled={isActionSubmitting}
                               onClick={() => startEditingTransaction(transaction)}
                             >
                               {language === "es" ? "Editar" : "Edit"}
                             </button>
-                            <button
-                              className={`btn btn-sm ${
-                                transaction.is_favorite
-                                  ? "btn-outline-warning"
+	                            <button
+	                              className="btn btn-sm btn-outline-info"
+	                              type="button"
+	                              disabled={isActionSubmitting || isAttachmentSubmitting}
+	                              onClick={() => void openTransactionAttachments(transaction.id)}
+	                            >
+	                              {language === "es" ? "Adjuntar" : "Attach"}
+	                            </button>
+	                            <button
+	                              className={`btn btn-sm ${
+	                                transaction.is_favorite
+	                                  ? "btn-outline-warning"
                                   : "btn-outline-secondary"
                               }`}
                               type="button"
@@ -1583,10 +1712,11 @@ export function FinanceTransactionsPage() {
           )}
         </PanelCard>
 
-        <PanelCard
-          title={language === "es" ? "Detalle operacional" : "Operational detail"}
-          subtitle={
-            language === "es"
+	        <div ref={detailPanelRef}>
+	        <PanelCard
+	          title={language === "es" ? "Detalle operacional" : "Operational detail"}
+	          subtitle={
+	            language === "es"
               ? "Al seleccionar una transacción puedes revisar su trazabilidad reciente."
               : "Select a transaction to review its recent traceability."
           }
@@ -1601,8 +1731,14 @@ export function FinanceTransactionsPage() {
           ) : null}
 
           {!isDetailLoading && !detailError && selectedTransactionDetail ? (
-            <div className="d-grid gap-3">
-              <div className="tenant-detail-grid">
+	              <div className="d-grid gap-3">
+	                <div className="tenant-action-feedback tenant-action-feedback--success">
+	                  <strong>{language === "es" ? "Adjuntos:" : "Attachments:"}</strong>{" "}
+	                  {language === "es"
+	                    ? "usa el bloque inferior para subir boletas, facturas o respaldos de esta transacción."
+	                    : "use the block below to upload receipts, invoices, or backup files for this transaction."}
+	                </div>
+	              <div className="tenant-detail-grid">
                 <DetailField
                   label={language === "es" ? "Tipo" : "Type"}
                   value={displayTransactionType(
@@ -1805,17 +1941,18 @@ export function FinanceTransactionsPage() {
                 )}
               </div>
             </div>
-          ) : !isDetailLoading && !detailError ? (
-            <div className="text-secondary">
-              {language === "es"
-                ? "Selecciona una transacción para revisar cuentas, montos y auditoría."
-                : "Select a transaction to review accounts, amounts, and audit trail."}
-            </div>
-          ) : null}
-        </PanelCard>
-      </div>
-    </div>
-  );
+	          ) : !isDetailLoading && !detailError ? (
+	            <div className="text-secondary">
+	              {language === "es"
+	                ? "Selecciona una transacción para revisar cuentas, montos, auditoría y adjuntar boletas o facturas. También puedes usar el botón Adjuntar desde la tabla."
+	                : "Select a transaction to review accounts, amounts, audit trail, and attach receipts or invoices. You can also use the Attach button from the table."}
+	            </div>
+	          ) : null}
+	        </PanelCard>
+	        </div>
+	      </div>
+	    </div>
+	  );
 }
 
 function normalizeNullableString(value: string): string | null {
