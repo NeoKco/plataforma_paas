@@ -17,6 +17,22 @@ export type FinanceIconName = Extract<
   | "balance"
   | "pulse"
   | "focus"
+  | "car"
+  | "home"
+  | "health"
+  | "gift"
+  | "education"
+  | "food"
+  | "salary"
+  | "travel"
+  | "leisure"
+  | "pet"
+  | "bills"
+  | "insurance"
+  | "shopping"
+  | "personal-care"
+  | "childcare"
+  | "cash"
 >;
 
 type FinanceIconProps = {

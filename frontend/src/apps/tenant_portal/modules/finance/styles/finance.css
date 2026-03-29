@@ -78,6 +78,110 @@
   grid-column: 1 / -1;
 }
 
+.finance-icon-picker {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.finance-icon-picker__preview {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--color-border-subtle, #e2e8f0);
+  border-radius: 0.95rem;
+  background: rgba(248, 250, 252, 0.88);
+}
+
+.finance-icon-picker__preview-icon,
+.finance-category-row__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.75rem;
+  background: rgba(37, 89, 199, 0.1);
+  color: #1f4eb6;
+  flex-shrink: 0;
+}
+
+.finance-icon-picker__preview-title {
+  font-weight: 700;
+  color: #16253d;
+}
+
+.finance-icon-picker__preview-note,
+.finance-icon-picker__legacy-note {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  color: #64738a;
+}
+
+.finance-icon-picker__grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+}
+
+.finance-icon-picker__option {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+  min-height: 5.25rem;
+  padding: 0.75rem 0.6rem;
+  border: 1px solid var(--color-border-default, #d5dce7);
+  border-radius: 0.95rem;
+  background: #fff;
+  color: #4b5a71;
+  text-align: center;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+
+.finance-icon-picker__option:hover {
+  border-color: #6f8bd8;
+  color: #1f3b7f;
+  transform: translateY(-1px);
+}
+
+.finance-icon-picker__option.is-selected {
+  border-color: #2559c7;
+  background: #edf3ff;
+  color: #163e91;
+  box-shadow: 0 0 0 1px rgba(37, 89, 199, 0.08);
+}
+
+.finance-icon-picker__option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.8rem;
+  background: rgba(37, 89, 199, 0.08);
+}
+
+.finance-icon-picker__option-icon.is-empty {
+  opacity: 0.7;
+}
+
+.finance-icon-picker__option-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.finance-category-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
 .finance-tab-strip {
   display: flex;
   flex-wrap: wrap;
@@ -417,6 +521,12 @@
 
 .finance-bar-chart__value.is-positive {
   color: #1c8d6b;
+}
+
+@media (max-width: 640px) {
+  .finance-icon-picker__grid {
+    grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  }
 }
 
 .finance-bar-chart__value.is-negative {

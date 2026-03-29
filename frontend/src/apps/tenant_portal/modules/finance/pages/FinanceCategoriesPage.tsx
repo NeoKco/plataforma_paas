@@ -10,6 +10,7 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceIcon } from "../components/common/FinanceIcon";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { CategoryForm } from "../forms/CategoryForm";
 import {
@@ -20,6 +21,10 @@ import {
   type TenantFinanceCategory,
   type TenantFinanceCategoryWriteRequest,
 } from "../services/categoriesService";
+import {
+  getFinanceCategoryIconLabel,
+  getFinanceCategoryIconName,
+} from "../utils/categoryIcons";
 import {
   getActiveStateLabel,
   getFinanceCategoryTypeLabel,
@@ -231,11 +236,29 @@ export function FinanceCategoriesPage() {
               key: "name",
               header: language === "es" ? "Categoría" : "Category",
               render: (category) => (
-                <div>
-                  <div className="fw-semibold">{category.name}</div>
-                  <div className="text-secondary small">
-                    {categoryById.get(category.parent_category_id ?? 0)?.name ||
-                      (language === "es" ? "sin padre" : "no parent")}
+                <div className="finance-category-row">
+                  <span
+                    className="finance-category-row__icon"
+                    style={category.color ? { color: category.color } : undefined}
+                    title={getFinanceCategoryIconLabel(category.icon, language)}
+                  >
+                    <FinanceIcon
+                      name={getFinanceCategoryIconName(category.icon)}
+                      size={18}
+                    />
+                  </span>
+                  <div>
+                    <div className="fw-semibold">{category.name}</div>
+                    <div className="text-secondary small">
+                      {categoryById.get(category.parent_category_id ?? 0)?.name ||
+                        (language === "es" ? "sin padre" : "no parent")}
+                      {category.icon ? (
+                        <>
+                          {" · "}
+                          {getFinanceCategoryIconLabel(category.icon, language)}
+                        </>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               ),

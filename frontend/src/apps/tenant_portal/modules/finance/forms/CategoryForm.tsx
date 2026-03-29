@@ -5,6 +5,8 @@ import {
   AppFormField,
 } from "../../../../../design-system/AppForm";
 import { useLanguage } from "../../../../../store/language-context";
+import { FinanceCategoryIconPicker } from "../components/common/FinanceCategoryIconPicker";
+import { listFinanceCategoryIconOptions } from "../utils/categoryIcons";
 import { getFinanceCategoryTypeLabel } from "../utils/presentation";
 
 type CategoryFormProps = {
@@ -51,7 +53,17 @@ export function CategoryForm({
         <select
           className="form-select"
           value={value.category_type}
-          onChange={(event) => onChange({ ...value, category_type: event.target.value })}
+          onChange={(event) => {
+            const nextCategoryType = event.target.value;
+            const iconStillAllowed = listFinanceCategoryIconOptions(
+              nextCategoryType
+            ).some((option) => option.value === value.icon);
+            onChange({
+              ...value,
+              category_type: nextCategoryType,
+              icon: iconStillAllowed ? value.icon : null,
+            });
+          }}
         >
           {CATEGORY_TYPES.map((categoryType) => (
             <option key={categoryType} value={categoryType}>
@@ -89,6 +101,13 @@ export function CategoryForm({
           value={value.color ?? ""}
           onChange={(event) => onChange({ ...value, color: event.target.value || null })}
           placeholder="#0d6efd"
+        />
+      </AppFormField>
+      <AppFormField label={language === "es" ? "Icono" : "Icon"} fullWidth>
+        <FinanceCategoryIconPicker
+          categoryType={value.category_type}
+          value={value.icon}
+          onChange={(icon) => onChange({ ...value, icon })}
         />
       </AppFormField>
       <AppFormField label={language === "es" ? "Nota" : "Note"} fullWidth>

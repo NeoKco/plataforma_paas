@@ -54,6 +54,7 @@ En esta fase quedaron listos:
 - endpoints CRUD base para catalogos, settings y exchange rates
 - endpoints de detalle y `reorder` para catalogos principales
 - frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
+- `Categorías` ya permite elegir iconos semánticos controlados y mostrarlos en formulario/listado
 - migracion tenant `0005_finance_transactions`
 - tabla `finance_transactions` como nucleo real del modulo
 - tablas auxiliares de tags, adjuntos y auditoria por transaccion
@@ -133,6 +134,7 @@ Checklist de cierre cubierto:
 - planificación con overview operativo mensual, `spotlight` visual y chart de señales/foco
 - reportes con comparativas, rankings, exportaciones enriquecidas, foco analítico por dimensión y charts reales para pulso, tendencia y desvíos
 - base visual inicial del módulo ya sembrada con navegación iconográfica, bloques `spotlight` y componentes de charting liviano
+- `Categorías` ya permite además distinguir visualmente cada rubro con iconos semánticos controlados
 - manejo controlado de schema incompleto desde UI/API
 - sincronización de schema tenant visible desde portal, follow-up post-provisioning y corrida masiva post-deploy ya integrada al wrapper de release
 

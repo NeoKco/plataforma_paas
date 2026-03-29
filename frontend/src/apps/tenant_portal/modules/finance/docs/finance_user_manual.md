@@ -55,6 +55,7 @@ Estado actual:
 - el contrato legacy `/entries` sigue existiendo solo como compatibilidad de backend
 - `Planificación` y `Reportes` ya muestran además una primera lectura visual con bloques destacados y gráficos para no depender solo de tablas
 - la navegación del módulo ya usa iconos consistentes entre vistas para hacer más evidente el cambio entre secciones
+- `Categorías` ya permite elegir un icono semántico por rubro para reconocer mejor el catálogo en pantalla
 
 Pantallas disponibles:
 - `Transacciones`

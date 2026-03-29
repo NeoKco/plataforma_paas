@@ -229,6 +229,7 @@ Resultado actual:
 - el `Lote 2` ya dejo modelos, schemas y repositories base para catalogos del modulo
 - el `Lote 3` ya dejo servicios, endpoints CRUD base, endpoints de detalle y `reorder` para catalogos, settings y exchange rates
 - el `Lote 4` ya dejo frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
+- `Categorías` ya permite además seleccionar iconos semánticos controlados y releerlos en formulario/listado
 - el `Lote 5` ya dejo `finance_transactions` como nucleo transaccional real, con backfill idempotente desde `finance_entries`
 - el `Lote 6` ya abrio la primera vista moderna de transacciones sobre `finance_transactions`, con balances por cuenta, detalle operacional con auditoria reciente, filtros reales, edicion completa de transacciones existentes y una mesa de trabajo guiada para conciliacion/favoritos con seleccion multiple, nota, motivo estructurado y confirmacion
 - ya existe una primera vista real de `Presupuestos` por mes y categoria con comparacion presupuesto vs ejecucion real
