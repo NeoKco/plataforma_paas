@@ -39,7 +39,12 @@ export type AppIconName =
   | "shopping"
   | "personal-care"
   | "childcare"
-  | "cash";
+  | "cash"
+  | "bank"
+  | "card"
+  | "savings"
+  | "investment"
+  | "credit";
 
 type AppIconProps = {
   name: AppIconName;
@@ -392,6 +397,52 @@ function renderIconPath(name: AppIconName) {
           <rect height="9" rx="2" width="15" x="5" y="8" />
           <path d="M3.5 15V7.5a2 2 0 0 1 2-2H17" />
           <circle cx="12.5" cy="12.5" r="2" />
+        </>
+      );
+    case "bank":
+      return (
+        <>
+          <path d="m4 9 8-5 8 5" />
+          <path d="M5 10h14" />
+          <path d="M6 10v8" />
+          <path d="M10 10v8" />
+          <path d="M14 10v8" />
+          <path d="M18 10v8" />
+          <path d="M4 19h16" />
+        </>
+      );
+    case "card":
+      return (
+        <>
+          <rect height="12" rx="2" width="16" x="4" y="6" />
+          <path d="M4 10h16" />
+          <path d="M8 15h4" />
+        </>
+      );
+    case "savings":
+      return (
+        <>
+          <path d="M7 10.5c0-3 2.2-5.5 5-5.5s5 2.5 5 5.5V15a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4Z" />
+          <path d="M9 10h6" />
+          <path d="M12 8v4" />
+        </>
+      );
+    case "investment":
+      return (
+        <>
+          <path d="M5 18h14" />
+          <path d="M7 15l3-3 2 2 5-6" />
+          <path d="m15 8 2-.1.1 2" />
+        </>
+      );
+    case "credit":
+      return (
+        <>
+          <rect height="11" rx="2" width="16" x="4" y="6.5" />
+          <path d="M4 10.5h16" />
+          <path d="M9 14h3" />
+          <path d="M16.5 13v4" />
+          <path d="M14.5 15h4" />
         </>
       );
   }

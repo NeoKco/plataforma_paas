@@ -10,6 +10,7 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceIcon } from "../components/common/FinanceIcon";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { BeneficiaryForm } from "../forms/BeneficiaryForm";
 import { PersonForm } from "../forms/PersonForm";
@@ -47,6 +48,10 @@ import {
   type TenantFinanceTag,
   type TenantFinanceTagWriteRequest,
 } from "../services/tagsService";
+import {
+  getFinanceEntityIconLabel,
+  getFinanceEntityIconName,
+} from "../utils/entityIcons";
 import { getActiveStateLabel } from "../utils/presentation";
 
 type ToolTab = "beneficiaries" | "people" | "projects" | "tags";
@@ -353,13 +358,25 @@ export function FinanceToolsPage() {
                 key: "name",
                 header: language === "es" ? "Nombre" : "Name",
                 render: (item: TenantFinanceBeneficiary) => (
-                  <span className="fw-semibold">{item.name}</span>
+                  <div className="finance-category-row">
+                    <span
+                      className="finance-category-row__icon"
+                      title={getFinanceEntityIconLabel(item.icon, language)}
+                    >
+                      <FinanceIcon
+                        name={getFinanceEntityIconName(item.icon)}
+                        size={18}
+                      />
+                    </span>
+                    <span className="fw-semibold">{item.name}</span>
+                  </div>
                 ),
               },
               {
                 key: "secondary",
                 header: language === "es" ? "Detalle" : "Detail",
-                render: (item: TenantFinanceBeneficiary) => item.note || item.icon || "—",
+                render: (item: TenantFinanceBeneficiary) =>
+                  item.note || getFinanceEntityIconLabel(item.icon, language) || "—",
               },
               {
                 key: "status",
@@ -411,12 +428,26 @@ export function FinanceToolsPage() {
               {
                 key: "name",
                 header: language === "es" ? "Nombre" : "Name",
-                render: (item: TenantFinancePerson) => <span className="fw-semibold">{item.name}</span>,
+                render: (item: TenantFinancePerson) => (
+                  <div className="finance-category-row">
+                    <span
+                      className="finance-category-row__icon"
+                      title={getFinanceEntityIconLabel(item.icon, language)}
+                    >
+                      <FinanceIcon
+                        name={getFinanceEntityIconName(item.icon)}
+                        size={18}
+                      />
+                    </span>
+                    <span className="fw-semibold">{item.name}</span>
+                  </div>
+                ),
               },
               {
                 key: "secondary",
                 header: language === "es" ? "Detalle" : "Detail",
-                render: (item: TenantFinancePerson) => item.note || item.icon || "—",
+                render: (item: TenantFinancePerson) =>
+                  item.note || getFinanceEntityIconLabel(item.icon, language) || "—",
               },
               {
                 key: "status",

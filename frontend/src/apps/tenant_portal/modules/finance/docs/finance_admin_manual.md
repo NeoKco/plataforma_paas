@@ -65,6 +65,7 @@ Estado actual:
 - `Planificación` y `Reportes` ya incorporan una primera capa visual con bloques destacados y charts livianos para lectura operativa
 - la navegación secundaria del módulo ya usa iconografía semántica consistente entre vistas
 - `Categorías` ya permite además asignar un icono semántico controlado por rubro, visible en formulario y catálogo
+- `Cuentas`, `Beneficiarios` y `Personas` ya reaprovechan la misma convención de iconos controlados en formulario y tabla
 
 Pendiente administrativo:
 - seguir puliendo copy residual en exportaciones, confirmaciones, badges y mensajes largos para asegurar paridad completa entre `Español/Inglés`

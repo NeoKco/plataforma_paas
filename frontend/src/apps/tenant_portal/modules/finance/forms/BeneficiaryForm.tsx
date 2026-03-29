@@ -5,6 +5,13 @@ import {
   AppFormField,
 } from "../../../../../design-system/AppForm";
 import { useLanguage } from "../../../../../store/language-context";
+import { FinanceNamedIconPicker } from "../components/common/FinanceNamedIconPicker";
+import {
+  FINANCE_ENTITY_ICON_OPTIONS,
+  getFinanceEntityIconLabel,
+  getFinanceEntityIconName,
+  isFinanceEntityIconName,
+} from "../utils/entityIcons";
 
 type BeneficiaryFormProps = {
   value: TenantFinanceBeneficiaryWriteRequest;
@@ -39,11 +46,18 @@ export function BeneficiaryForm({
           onChange={(event) => onChange({ ...value, name: event.target.value })}
         />
       </AppFormField>
-      <AppFormField label={language === "es" ? "Ícono" : "Icon"}>
-        <input
-          className="form-control"
-          value={value.icon ?? ""}
-          onChange={(event) => onChange({ ...value, icon: event.target.value || null })}
+      <AppFormField label={language === "es" ? "Ícono" : "Icon"} fullWidth>
+        <FinanceNamedIconPicker
+          options={FINANCE_ENTITY_ICON_OPTIONS}
+          value={value.icon}
+          onChange={(icon) => onChange({ ...value, icon })}
+          fallbackIcon={getFinanceEntityIconName(value.icon)}
+          helperText={{
+            es: "Asigna un icono semántico al tercero o beneficiario para distinguirlo mejor.",
+            en: "Assign a semantic icon to the beneficiary or third party to distinguish it better.",
+          }}
+          getDisplayLabel={getFinanceEntityIconLabel}
+          isKnownValue={isFinanceEntityIconName}
         />
       </AppFormField>
       <AppFormField label={language === "es" ? "Nota" : "Note"} fullWidth>

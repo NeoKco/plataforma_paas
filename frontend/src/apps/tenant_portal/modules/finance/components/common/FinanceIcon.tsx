@@ -3,6 +3,9 @@ import { AppIcon, type AppIconName } from "../../../../../../design-system/AppIc
 
 export type FinanceIconName = Extract<
   AppIconName,
+  | "users"
+  | "finance"
+  | "billing"
   | "transactions"
   | "budgets"
   | "loans"
@@ -33,6 +36,11 @@ export type FinanceIconName = Extract<
   | "personal-care"
   | "childcare"
   | "cash"
+  | "bank"
+  | "card"
+  | "savings"
+  | "investment"
+  | "credit"
 >;
 
 type FinanceIconProps = {

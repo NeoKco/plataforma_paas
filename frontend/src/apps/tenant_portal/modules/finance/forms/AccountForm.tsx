@@ -7,6 +7,13 @@ import {
   AppFormField,
 } from "../../../../../design-system/AppForm";
 import { useLanguage } from "../../../../../store/language-context";
+import { FinanceNamedIconPicker } from "../components/common/FinanceNamedIconPicker";
+import {
+  FINANCE_ACCOUNT_ICON_OPTIONS,
+  getFinanceAccountIconLabel,
+  getFinanceAccountIconName,
+  isFinanceAccountIconName,
+} from "../utils/accountIcons";
 import { getFinanceAccountTypeLabel } from "../utils/presentation";
 
 type AccountFormProps = {
@@ -124,6 +131,26 @@ export function AccountForm({
           onChange={(event) =>
             onChange({ ...value, sort_order: Number.parseInt(event.target.value || "100", 10) })
           }
+        />
+      </AppFormField>
+      <AppFormField label={language === "es" ? "Icono" : "Icon"} fullWidth>
+        <FinanceNamedIconPicker
+          options={FINANCE_ACCOUNT_ICON_OPTIONS}
+          value={value.icon}
+          onChange={(icon) => onChange({ ...value, icon })}
+          fallbackIcon={getFinanceAccountIconName(value.icon, value.account_type)}
+          helperText={{
+            es: "Elige un icono visual para reconocer la cuenta más rápido en tablas y formularios.",
+            en: "Choose a visual icon to recognize the account faster across tables and forms.",
+          }}
+          getDisplayLabel={(iconValue, currentLanguage) =>
+            getFinanceAccountIconLabel(
+              iconValue,
+              currentLanguage,
+              value.account_type
+            )
+          }
+          isKnownValue={isFinanceAccountIconName}
         />
       </AppFormField>
       <AppFormField fullWidth>

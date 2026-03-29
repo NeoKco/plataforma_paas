@@ -10,6 +10,7 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceIcon } from "../components/common/FinanceIcon";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { AccountForm } from "../forms/AccountForm";
 import {
@@ -24,6 +25,10 @@ import {
   getTenantFinanceCurrencies,
   type TenantFinanceCurrency,
 } from "../services/currenciesService";
+import {
+  getFinanceAccountIconLabel,
+  getFinanceAccountIconName,
+} from "../utils/accountIcons";
 import {
   getActiveStateLabel,
   getFinanceAccountTypeLabel,
@@ -272,10 +277,28 @@ export function FinanceAccountsPage() {
               key: "name",
               header: language === "es" ? "Cuenta" : "Account",
               render: (account) => (
-                <div>
-                  <div className="fw-semibold">{account.name}</div>
-                  <div className="text-secondary small">
-                    {account.code || (language === "es" ? "sin código" : "no code")}
+                <div className="finance-category-row">
+                  <span
+                    className="finance-category-row__icon"
+                    title={getFinanceAccountIconLabel(
+                      account.icon,
+                      language,
+                      account.account_type
+                    )}
+                  >
+                    <FinanceIcon
+                      name={getFinanceAccountIconName(
+                        account.icon,
+                        account.account_type
+                      )}
+                      size={18}
+                    />
+                  </span>
+                  <div>
+                    <div className="fw-semibold">{account.name}</div>
+                    <div className="text-secondary small">
+                      {account.code || (language === "es" ? "sin código" : "no code")}
+                    </div>
                   </div>
                 </div>
               ),
