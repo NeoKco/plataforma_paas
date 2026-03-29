@@ -56,7 +56,7 @@ Lo pendiente es sobre todo:
 - consolidar la adopción visible del auto-sync post-deploy en consola operativa, ahora que ya existe el follow-up automático post-provisioning, la acción masiva desde `Provisioning` y la integración al wrapper de release/verify
 - `finance` ya tiene una primera capa visual propia con iconografía semántica, bloques `spotlight` y charts livianos en `Reportes` y `Planificación`; si se sigue por ahí debe ser para densidad adicional, no para abrir esa base desde cero
 - el `design system` transversal del PaaS ya quedó aplicado sobre el frontend visible con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid`, `AppTableWrap`, `AppForm` y primitives compartidas; `finance` quedó como primer bloque integral, `Overview` + `Users` ya consumen la misma base, `platform_admin` ya la usa en `Dashboard`, `Actividad`, `Usuarios de plataforma`, `Tenants`, `Histórico tenants`, `Provisioning`, `Billing`, `Settings`, login, recuperación raíz e instalador, y el portal tenant ya absorbió también esa capa en login y el borde legacy de finanzas
-- profundizar y terminar la internacionalizacion transversal del frontend, ahora que la superficie visible principal, los helpers compartidos y los formularios densos principales ya respetan el idioma activo; lo pendiente fino pasa a ser microcopy residual, ayudas largas y bolsas menores de texto secundario
+- la internacionalizacion transversal del frontend ya quedó resuelta en la superficie visible principal, helpers compartidos, formularios densos y estados operativos; lo que resta baja a editorial secundaria puntual, ayudas largas y futuras pantallas nuevas que se abran fuera del alcance actual
 
 Nota de ejecucion:
 

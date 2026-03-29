@@ -37,7 +37,7 @@ Eso no significa que baste con mostrar el selector:
 - los helpers compartidos no deben forzar español por defecto cuando el contexto ya conoce el idioma
 - `Overview` y `Users` ya quedaron corregidas bajo ese criterio y sirvieron como referencia para extenderlo al resto de la superficie visible
 - guards, login, recovery, installer, `Dashboard`, `Actividad`, `Settings`, `Usuarios de plataforma`, `Histórico tenants`, `Billing`, `Provisioning`, `Tenants` y el borde legacy de finanzas ya respetan el idioma activo en su lectura principal, incluida la pasada fina de formularios densos y paneles operativos
-- lo pendiente ya no es enchufar el idioma en la pantalla, sino limpiar microcopy residual y ayudas largas para que no queden bolsas mixtas
+- lo pendiente ya no es enchufar el idioma en la pantalla: la tarea residual baja a mantenimiento editorial puntual y ayudas largas que se vayan refinando con el uso
 
 ### 3. `Platform Admin` es la puerta de entrada principal
 

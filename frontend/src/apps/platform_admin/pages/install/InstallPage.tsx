@@ -123,7 +123,13 @@ export function InstallPage() {
     return (
       <div className="login-screen">
         <div className="login-card">
-          <LoadingBlock label="Verificando estado de instalación..." />
+          <LoadingBlock
+            label={
+              language === "es"
+                ? "Verificando estado de instalación..."
+                : "Checking installation status..."
+            }
+          />
         </div>
       </div>
     );
@@ -228,7 +234,11 @@ export function InstallPage() {
 
             <div className="install-card__support-grid">
               <div className="install-card__support-box">
-                <div className="install-card__support-title">Necesitas antes de continuar</div>
+                <div className="install-card__support-title">
+                  {language === "es"
+                    ? "Necesitas antes de continuar"
+                    : "You need this before continuing"}
+                </div>
                 <ul className="install-card__support-list">
                   <li>
                     {language === "es"
