@@ -19,6 +19,24 @@ import type { ApiError, PlatformTenantRetirementArchiveItem } from "../../../../
 import { getCurrentLanguage, getCurrentLocale } from "../../../../utils/i18n";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
 
+type RetirementArchiveFilters = {
+  search: string;
+  tenantType: string;
+  billingStatus: string;
+  actorEmail: string;
+  deletedFrom: string;
+  deletedTo: string;
+};
+
+const EMPTY_RETIREMENT_FILTERS: RetirementArchiveFilters = {
+  search: "",
+  tenantType: "all",
+  billingStatus: "all",
+  actorEmail: "",
+  deletedFrom: "",
+  deletedTo: "",
+};
+
 export function TenantHistoryPage() {
   const { session } = useAuth();
   const { language } = useLanguage();
@@ -41,27 +59,43 @@ export function TenantHistoryPage() {
   const [isRetirementArchivesLoading, setIsRetirementArchivesLoading] = useState(true);
   const [isRetirementArchiveDetailLoading, setIsRetirementArchiveDetailLoading] =
     useState(false);
-  const [retirementSearch, setRetirementSearch] = useState("");
+  const [retirementFilters, setRetirementFilters] = useState<RetirementArchiveFilters>(
+    EMPTY_RETIREMENT_FILTERS
+  );
 
-  const filteredRetirementArchives = useMemo(() => {
-    const search = retirementSearch.trim().toLowerCase();
-    if (!search) {
-      return retirementArchives;
-    }
+  const tenantTypeOptions = useMemo(
+    () =>
+      buildArchiveOptions([
+        ...retirementArchives.map((archive) => archive.tenant_type),
+        retirementFilters.tenantType !== "all" ? retirementFilters.tenantType : null,
+      ]),
+    [retirementArchives, retirementFilters.tenantType]
+  );
+  const billingStatusOptions = useMemo(
+    () =>
+      buildArchiveOptions(
+        [
+          ...retirementArchives
+            .map((archive) => archive.billing_status)
+            .filter((value): value is string => Boolean(value)),
+          retirementFilters.billingStatus !== "all"
+            ? retirementFilters.billingStatus
+            : null,
+        ]
+      ),
+    [retirementArchives, retirementFilters.billingStatus]
+  );
+  const hasActiveRetirementFilters = useMemo(
+    () =>
+      Object.values(buildRetirementArchiveExportFilters(retirementFilters)).some(
+        (value) => value !== null
+      ),
+    [retirementFilters]
+  );
 
-    return retirementArchives.filter((archive) => {
-      return (
-        archive.tenant_name.toLowerCase().includes(search) ||
-        archive.tenant_slug.toLowerCase().includes(search) ||
-        archive.tenant_type.toLowerCase().includes(search) ||
-        (archive.deleted_by_email || "").toLowerCase().includes(search) ||
-        (archive.billing_provider || "").toLowerCase().includes(search) ||
-        (archive.billing_status || "").toLowerCase().includes(search)
-      );
-    });
-  }, [retirementArchives, retirementSearch]);
-
-  async function loadRetirementArchives() {
+  async function loadRetirementArchives(
+    filters: RetirementArchiveFilters = retirementFilters
+  ) {
     if (!session?.accessToken) {
       return;
     }
@@ -71,7 +105,7 @@ export function TenantHistoryPage() {
     try {
       const response = await listPlatformTenantRetirementArchives(
         session.accessToken,
-        { limit: 100 }
+        buildRetirementArchiveQuery(filters)
       );
       setRetirementArchives(response.data);
       const hasSelectedArchive =
@@ -123,7 +157,7 @@ export function TenantHistoryPage() {
     if (!session?.accessToken) {
       return;
     }
-    void loadRetirementArchives();
+    void loadRetirementArchives(EMPTY_RETIREMENT_FILTERS);
   }, [session?.accessToken]);
 
   return (
@@ -139,6 +173,42 @@ export function TenantHistoryPage() {
         icon="tenant-history"
         actions={
           <AppToolbar compact>
+            <button
+              className="btn btn-outline-secondary"
+              type="button"
+              onClick={() =>
+                downloadTextFile(
+                  buildRetirementArchiveCsv(retirementArchives, language),
+                  "tenant-retirement-archives.csv",
+                  "text/csv;charset=utf-8;"
+                )
+              }
+              disabled={retirementArchives.length === 0}
+            >
+              {language === "es" ? "Exportar CSV" : "Export CSV"}
+            </button>
+            <button
+              className="btn btn-outline-secondary"
+              type="button"
+              onClick={() =>
+                downloadTextFile(
+                  JSON.stringify(
+                    {
+                      exported_at: new Date().toISOString(),
+                      filters: buildRetirementArchiveExportFilters(retirementFilters),
+                      rows: retirementArchives,
+                    },
+                    null,
+                    2
+                  ),
+                  "tenant-retirement-archives.json",
+                  "application/json;charset=utf-8;"
+                )
+              }
+              disabled={retirementArchives.length === 0}
+            >
+              {language === "es" ? "Exportar JSON" : "Export JSON"}
+            </button>
             <Link className="btn btn-outline-primary" to="/tenants">
               {language === "es" ? "Volver a Tenants" : "Back to Tenants"}
             </Link>
@@ -158,15 +228,117 @@ export function TenantHistoryPage() {
         <AppFilterGrid className="tenant-catalog-filters">
           <input
             className="form-control"
-            value={retirementSearch}
-            onChange={(event) => setRetirementSearch(event.target.value)}
+            value={retirementFilters.search}
+            onChange={(event) =>
+              setRetirementFilters((current) => ({
+                ...current,
+                search: event.target.value,
+              }))
+            }
             placeholder={
               language === "es"
                 ? "Buscar por nombre, slug, actor o billing"
                 : "Search by name, slug, actor or billing"
             }
           />
+          <select
+            className="form-select"
+            value={retirementFilters.tenantType}
+            onChange={(event) =>
+              setRetirementFilters((current) => ({
+                ...current,
+                tenantType: event.target.value,
+              }))
+            }
+          >
+            <option value="all">{language === "es" ? "Todos los tipos" : "All types"}</option>
+            {tenantTypeOptions.map((value) => (
+              <option key={value} value={value}>
+                {displayPlatformCode(value, language)}
+              </option>
+            ))}
+          </select>
+          <select
+            className="form-select"
+            value={retirementFilters.billingStatus}
+            onChange={(event) =>
+              setRetirementFilters((current) => ({
+                ...current,
+                billingStatus: event.target.value,
+              }))
+            }
+          >
+            <option value="all">
+              {language === "es" ? "Todo billing" : "All billing"}
+            </option>
+            {billingStatusOptions.map((value) => (
+              <option key={value} value={value}>
+                {displayPlatformCode(value, language)}
+              </option>
+            ))}
+          </select>
+          <input
+            className="form-control"
+            value={retirementFilters.actorEmail}
+            onChange={(event) =>
+              setRetirementFilters((current) => ({
+                ...current,
+                actorEmail: event.target.value,
+              }))
+            }
+            placeholder={language === "es" ? "Actor email" : "Actor email"}
+          />
+          <input
+            className="form-control"
+            type="date"
+            value={retirementFilters.deletedFrom}
+            onChange={(event) =>
+              setRetirementFilters((current) => ({
+                ...current,
+                deletedFrom: event.target.value,
+              }))
+            }
+            aria-label={language === "es" ? "Retirado desde" : "Retired from"}
+          />
+          <input
+            className="form-control"
+            type="date"
+            value={retirementFilters.deletedTo}
+            onChange={(event) =>
+              setRetirementFilters((current) => ({
+                ...current,
+                deletedTo: event.target.value,
+              }))
+            }
+            aria-label={language === "es" ? "Retirado hasta" : "Retired to"}
+          />
         </AppFilterGrid>
+        <AppToolbar compact>
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={() => void loadRetirementArchives(retirementFilters)}
+            disabled={isRetirementArchivesLoading}
+          >
+            {language === "es" ? "Aplicar filtros" : "Apply filters"}
+          </button>
+          <button
+            className="btn btn-outline-secondary"
+            type="button"
+            onClick={() => {
+              setRetirementFilters(EMPTY_RETIREMENT_FILTERS);
+              void loadRetirementArchives(EMPTY_RETIREMENT_FILTERS);
+            }}
+            disabled={isRetirementArchivesLoading}
+          >
+            {language === "es" ? "Limpiar" : "Clear"}
+          </button>
+          <span className="tenant-inline-note">
+            {language === "es"
+              ? `${retirementArchives.length} retiros visibles`
+              : `${retirementArchives.length} visible retirements`}
+          </span>
+        </AppToolbar>
 
         {isRetirementArchivesLoading ? (
           <LoadingBlock
@@ -191,6 +363,7 @@ export function TenantHistoryPage() {
 
         {!isRetirementArchivesLoading &&
         !retirementArchivesError &&
+        !hasActiveRetirementFilters &&
         retirementArchives.length === 0 ? (
           <EmptyState
             title={
@@ -208,8 +381,8 @@ export function TenantHistoryPage() {
 
         {!isRetirementArchivesLoading &&
         !retirementArchivesError &&
-        retirementArchives.length > 0 &&
-        filteredRetirementArchives.length === 0 ? (
+        hasActiveRetirementFilters &&
+        retirementArchives.length === 0 ? (
           <EmptyState
             title={
               language === "es"
@@ -218,18 +391,18 @@ export function TenantHistoryPage() {
             }
             detail={
               language === "es"
-                ? "Prueba con menos texto o cambia la búsqueda por slug, actor o billing."
-                : "Try less text or change the search to slug, actor or billing."
+                ? "Prueba con menos filtros o amplía la ventana de fechas."
+                : "Try fewer filters or widen the date window."
             }
           />
         ) : null}
 
         {!isRetirementArchivesLoading &&
         !retirementArchivesError &&
-        filteredRetirementArchives.length > 0 ? (
+        retirementArchives.length > 0 ? (
           <DataTableCard
             title={language === "es" ? "Retirados recientes" : "Recent retirements"}
-            rows={filteredRetirementArchives}
+            rows={retirementArchives}
             columns={[
               {
                 key: "deleted_at",
@@ -674,4 +847,103 @@ function formatProvisioningJobType(value: string): string {
   };
 
   return knownLabels[value] || displayPlatformCode(value);
+}
+
+function buildArchiveOptions(values: Array<string | null | undefined>): string[] {
+  return Array.from(
+    new Set(
+      values.filter(
+        (value): value is string => typeof value === "string" && value.trim().length > 0
+      )
+    )
+  ).sort((left, right) => left.localeCompare(right));
+}
+
+function buildRetirementArchiveQuery(filters: RetirementArchiveFilters) {
+  return {
+    limit: 100,
+    search: filters.search.trim() || undefined,
+    tenant_type:
+      filters.tenantType !== "all" ? filters.tenantType : undefined,
+    billing_status:
+      filters.billingStatus !== "all" ? filters.billingStatus : undefined,
+    deleted_by_email: filters.actorEmail.trim() || undefined,
+    deleted_from: filters.deletedFrom || undefined,
+    deleted_to: filters.deletedTo || undefined,
+  };
+}
+
+function buildRetirementArchiveExportFilters(filters: RetirementArchiveFilters) {
+  return {
+    search: filters.search.trim() || null,
+    tenant_type: filters.tenantType !== "all" ? filters.tenantType : null,
+    billing_status:
+      filters.billingStatus !== "all" ? filters.billingStatus : null,
+    deleted_by_email: filters.actorEmail.trim() || null,
+    deleted_from: filters.deletedFrom || null,
+    deleted_to: filters.deletedTo || null,
+  };
+}
+
+function buildRetirementArchiveCsv(
+  rows: PlatformTenantRetirementArchiveItem[],
+  language: "es" | "en"
+): string {
+  const header = [
+    "id",
+    "deleted_at",
+    "tenant_name",
+    "tenant_slug",
+    "tenant_type",
+    "plan_code",
+    "tenant_status",
+    "billing_provider",
+    "billing_status",
+    "deleted_by_email",
+    "tenant_created_at",
+    "billing_events_count",
+    "policy_events_count",
+    "provisioning_jobs_count",
+  ];
+
+  const csvRows = [
+    header,
+    ...rows.map((row) => [
+      String(row.id),
+      formatDateTime(row.deleted_at),
+      row.tenant_name,
+      row.tenant_slug,
+      displayPlatformCode(row.tenant_type, language),
+      row.plan_code || "",
+      displayPlatformCode(row.tenant_status, language),
+      row.billing_provider || "",
+      row.billing_status ? displayPlatformCode(row.billing_status, language) : "",
+      row.deleted_by_email || "",
+      formatDateTime(row.tenant_created_at),
+      String(row.billing_events_count),
+      String(row.policy_events_count),
+      String(row.provisioning_jobs_count),
+    ]),
+  ];
+
+  return csvRows
+    .map((row) => row.map((value) => escapeCsvValue(value)).join(","))
+    .join("\n");
+}
+
+function escapeCsvValue(value: string): string {
+  const normalized = value.split('"').join('""');
+  return /[",\n]/.test(normalized) ? `"${normalized}"` : normalized;
+}
+
+function downloadTextFile(content: string, filename: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }

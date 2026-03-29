@@ -235,6 +235,7 @@ Avance actual:
 - `Tenants` ya pide confirmacion previa para acciones administrativas sensibles
 - `Tenants` ya oculta el bloque de usuarios/reset del portal cuando el tenant fue desprovisionado y ya no existe DB tenant operable
 - `Tenants` ya deja un acceso corto a `Histórico tenants` en vez de mezclar auditoria de retirados dentro de la misma columna operativa
+- `Histórico tenants` ya soporta filtros server-side por tipo, billing, actor y ventana de retiro, y tambien exportacion `CSV/JSON` del resultado visible
 - `Tenants` ya usa la misma capa compartida de formularios, toolbar y badges en alta, filtros y operación central, sin depender de tantos layouts manuales por bloque
 
 Pendientes finos conocidos:

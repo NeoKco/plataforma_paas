@@ -219,6 +219,11 @@ export function listPlatformTenantRetirementArchives(
   params?: {
     limit?: number;
     search?: string;
+    tenant_type?: string;
+    billing_status?: string;
+    deleted_by_email?: string;
+    deleted_from?: string;
+    deleted_to?: string;
   }
 ) {
   const query = new URLSearchParams();
@@ -227,6 +232,21 @@ export function listPlatformTenantRetirementArchives(
   }
   if (params?.search?.trim()) {
     query.set("search", params.search.trim());
+  }
+  if (params?.tenant_type?.trim()) {
+    query.set("tenant_type", params.tenant_type.trim());
+  }
+  if (params?.billing_status?.trim()) {
+    query.set("billing_status", params.billing_status.trim());
+  }
+  if (params?.deleted_by_email?.trim()) {
+    query.set("deleted_by_email", params.deleted_by_email.trim());
+  }
+  if (params?.deleted_from?.trim()) {
+    query.set("deleted_from", params.deleted_from.trim());
+  }
+  if (params?.deleted_to?.trim()) {
+    query.set("deleted_to", params.deleted_to.trim());
   }
 
   const suffix = query.toString() ? `?${query.toString()}` : "";

@@ -102,6 +102,9 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     update_tenant_rate_limits,
     update_tenant_status,
 )
+from app.apps.platform_control.models.tenant_retirement_archive import (  # noqa: E402
+    TenantRetirementArchive,
+)
 from app.apps.platform_control.schemas import (  # noqa: E402
     LoginRequest,
     PlatformRootRecoveryRequest,
@@ -169,11 +172,13 @@ from app.apps.platform_control.services.platform_capability_service import (  # 
 from app.apps.platform_control.services.stripe_webhook_signature_service import (  # noqa: E402
     StripeWebhookSignatureService,
 )
+from app.common.db.base import Base  # noqa: E402
 from app.common.auth.dependencies import get_current_platform_context  # noqa: E402
 from app.common.auth.role_dependencies import require_role  # noqa: E402
 from app.common.policies.tenant_plan_policy_service import (  # noqa: E402
     TenantPlanPolicyService,
 )
+from app.tests.db_test_utils import build_sqlite_session  # noqa: E402
 
 
 class PlatformDependenciesTestCase(unittest.TestCase):
@@ -5901,6 +5906,83 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.total, 1)
         self.assertEqual(response.data[0].tenant_slug, "empresa-provisioning-demo")
+
+    def test_list_tenant_retirement_archives_applies_server_side_filters(self) -> None:
+        db, engine = build_sqlite_session(Base)
+        try:
+            db.add_all(
+                [
+                    TenantRetirementArchive(
+                        original_tenant_id=1,
+                        tenant_slug="empresa-alpha",
+                        tenant_name="Empresa Alpha",
+                        tenant_type="empresa",
+                        plan_code="mensual",
+                        tenant_status="archived",
+                        billing_provider="stripe",
+                        billing_status="active",
+                        billing_events_count=3,
+                        policy_events_count=1,
+                        provisioning_jobs_count=2,
+                        deleted_by_email="admin@platform.local",
+                        summary_json="{}",
+                        deleted_at=datetime(2026, 3, 25, 10, 0, tzinfo=timezone.utc),
+                    ),
+                    TenantRetirementArchive(
+                        original_tenant_id=2,
+                        tenant_slug="condominio-beta",
+                        tenant_name="Condominio Beta",
+                        tenant_type="condominio",
+                        plan_code="anual",
+                        tenant_status="archived",
+                        billing_provider="manual",
+                        billing_status="past_due",
+                        billing_events_count=2,
+                        policy_events_count=2,
+                        provisioning_jobs_count=1,
+                        deleted_by_email="support@platform.local",
+                        summary_json="{}",
+                        deleted_at=datetime(2026, 3, 27, 12, 0, tzinfo=timezone.utc),
+                    ),
+                    TenantRetirementArchive(
+                        original_tenant_id=3,
+                        tenant_slug="empresa-gamma",
+                        tenant_name="Empresa Gamma",
+                        tenant_type="empresa",
+                        plan_code="mensual",
+                        tenant_status="archived",
+                        billing_provider="stripe",
+                        billing_status="active",
+                        billing_events_count=1,
+                        policy_events_count=4,
+                        provisioning_jobs_count=1,
+                        deleted_by_email="admin@platform.local",
+                        summary_json="{}",
+                        deleted_at=datetime(2026, 3, 28, 8, 30, tzinfo=timezone.utc),
+                    ),
+                ]
+            )
+            db.commit()
+
+            response = list_tenant_retirement_archives(
+                limit=25,
+                search="empresa",
+                tenant_type="empresa",
+                billing_status="active",
+                deleted_by_email="admin@platform.local",
+                deleted_from=datetime(2026, 3, 26, tzinfo=timezone.utc).date(),
+                deleted_to=datetime(2026, 3, 28, tzinfo=timezone.utc).date(),
+                db=db,
+                _token=self._token_payload(),
+            )
+
+            self.assertIsInstance(response, TenantRetirementArchiveListResponse)
+            self.assertTrue(response.success)
+            self.assertEqual(response.total, 1)
+            self.assertEqual(response.data[0].tenant_slug, "empresa-gamma")
+        finally:
+            db.close()
+            engine.dispose()
 
     def test_get_tenant_retirement_archive_returns_detail_schema(self) -> None:
         archive = SimpleNamespace(

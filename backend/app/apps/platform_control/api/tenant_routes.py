@@ -1,8 +1,9 @@
 from contextlib import contextmanager
+from datetime import date
 import json
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import desc, or_, text
+from sqlalchemy import desc, func, or_, text
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
 
@@ -525,6 +526,11 @@ def list_tenants(
 def list_tenant_retirement_archives(
     limit: int = 25,
     search: str | None = None,
+    tenant_type: str | None = None,
+    billing_status: str | None = None,
+    deleted_by_email: str | None = None,
+    deleted_from: date | None = None,
+    deleted_to: date | None = None,
     db: Session = Depends(get_control_db),
     _token: dict = Depends(require_role("superadmin")),
 ) -> TenantRetirementArchiveListResponse:
@@ -538,8 +544,45 @@ def list_tenant_retirement_archives(
             or_(
                 TenantRetirementArchive.tenant_name.ilike(search_term),
                 TenantRetirementArchive.tenant_slug.ilike(search_term),
+                TenantRetirementArchive.tenant_type.ilike(search_term),
                 TenantRetirementArchive.deleted_by_email.ilike(search_term),
+                TenantRetirementArchive.billing_provider.ilike(search_term),
+                TenantRetirementArchive.billing_status.ilike(search_term),
             )
+        )
+
+    normalized_tenant_type = None if tenant_type is None else tenant_type.strip()
+    if normalized_tenant_type:
+        query = query.filter(
+            TenantRetirementArchive.tenant_type == normalized_tenant_type
+        )
+
+    normalized_billing_status = (
+        None if billing_status is None else billing_status.strip()
+    )
+    if normalized_billing_status:
+        query = query.filter(
+            TenantRetirementArchive.billing_status == normalized_billing_status
+        )
+
+    normalized_deleted_by_email = (
+        None if deleted_by_email is None else deleted_by_email.strip()
+    )
+    if normalized_deleted_by_email:
+        query = query.filter(
+            TenantRetirementArchive.deleted_by_email.ilike(
+                f"%{normalized_deleted_by_email}%"
+            )
+        )
+
+    if deleted_from is not None:
+        query = query.filter(
+            func.date(TenantRetirementArchive.deleted_at) >= deleted_from.isoformat()
+        )
+
+    if deleted_to is not None:
+        query = query.filter(
+            func.date(TenantRetirementArchive.deleted_at) <= deleted_to.isoformat()
         )
 
     rows = (
