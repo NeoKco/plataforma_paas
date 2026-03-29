@@ -11,12 +11,15 @@ Estado actual:
 - ya existen catálogos operativos para cuentas, categorías, beneficiarios, personas, proyectos, etiquetas, monedas, tipos de cambio y settings
 - `CLP` queda sembrada como moneda disponible desde las migraciones base
 - las pantallas actuales todavía asumen permisos simples `tenant.finance.read` y `tenant.finance.create`
-- `finance_transactions` ya existe como núcleo real del módulo, con auditoría y adjuntos base
+- `finance_transactions` ya existe como núcleo real del módulo, con auditoría y adjuntos reales
 - la pantalla principal de `Transacciones` ya usa el contrato moderno sobre `finance_transactions`
 - esa pantalla ya muestra balances por cuenta y detalle operacional con auditoría reciente
 - esa misma pantalla ya permite filtrar, editar, marcar favorita y conciliar transacciones existentes
 - esa misma pantalla ya permite tambien seleccion multiple y acciones por lote para favoritas o conciliacion
 - esa misma pantalla ya permite además selección asistida sobre el filtro visible para armar lotes por pendientes, préstamos, ingresos, egresos o visibles completos
+- al abrir el detalle de una transacción ya se pueden cargar boletas, facturas o respaldos en `JPG/PNG/WEBP/PDF`
+- las imágenes se comprimen antes de subirse y el backend valida un tope final de `5 MB` por archivo
+- el mismo detalle ya permite descargar o eliminar adjuntos existentes
 - las operaciones de conciliacion ya aceptan `reason_code`, nota opcional y pasan por confirmacion explicita
 - ya existe una pantalla operativa de `Presupuestos` con lectura mensual por categoria
 - `Presupuestos` ya permite alta y edicion de montos, nota y estado activo, usando comparacion contra la ejecucion real del mes
@@ -74,5 +77,4 @@ Estado actual:
 
 Pendiente administrativo:
 - seguir puliendo copy residual en exportaciones, confirmaciones, badges y mensajes largos para asegurar paridad completa entre `Español/Inglés`
-- usar `finance` como primer bloque de adopción del futuro `design system` transversal del PaaS, reutilizando la base visual ya sembrada
 - el backlog opcional sugerido del módulo ya quedó absorbido en el alcance actual; cualquier cambio adicional pasa a expansión nueva del dominio

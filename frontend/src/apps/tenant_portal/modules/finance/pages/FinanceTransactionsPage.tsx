@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
@@ -32,11 +32,14 @@ import {
 } from "../services/tagsService";
 import {
   createTenantFinanceTransaction,
+  deleteTenantFinanceTransactionAttachment,
+  downloadTenantFinanceTransactionAttachment,
   getTenantFinanceAccountBalances,
   getTenantFinanceSummary,
   getTenantFinanceTransactionDetail,
   getTenantFinanceTransactions,
   getTenantFinanceUsage,
+  uploadTenantFinanceTransactionAttachment,
   updateTenantFinanceTransaction,
   updateTenantFinanceTransactionFavorite,
   updateTenantFinanceTransactionReconciliation,
@@ -46,6 +49,7 @@ import {
   type TenantFinanceTransactionFilters,
   type TenantFinanceSummaryResponse,
   type TenantFinanceTransaction,
+  type TenantFinanceTransactionAttachment,
   type TenantFinanceTransactionDetailResponse,
   type TenantFinanceUsageResponse,
 } from "../services/transactionsService";
@@ -114,6 +118,8 @@ export function FinanceTransactionsPage() {
   const [error, setError] = useState<ApiError | null>(null);
   const [detailError, setDetailError] = useState<ApiError | null>(null);
   const [usageError, setUsageError] = useState<ApiError | null>(null);
+  const [attachmentNotes, setAttachmentNotes] = useState("");
+  const [isAttachmentSubmitting, setIsAttachmentSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
@@ -323,6 +329,101 @@ export function FinanceTransactionsPage() {
       setDetailError(rawError as ApiError);
     } finally {
       setIsDetailLoading(false);
+    }
+  }
+
+  async function handleAttachmentUpload(
+    event: ChangeEvent<HTMLInputElement>
+  ) {
+    const file = event.target.files?.[0];
+    if (!file || !session?.accessToken || selectedTransactionId == null) {
+      return;
+    }
+
+    setIsAttachmentSubmitting(true);
+    setActionFeedback(null);
+
+    try {
+      const preparedFile = await prepareFinanceAttachmentFile(file);
+      const response = await uploadTenantFinanceTransactionAttachment(
+        session.accessToken,
+        selectedTransactionId,
+        preparedFile,
+        attachmentNotes
+      );
+      await fetchTransactionDetail(selectedTransactionId);
+      setAttachmentNotes("");
+      setActionFeedback({ type: "success", message: response.message });
+    } catch (rawError) {
+      setActionFeedback({
+        type: "error",
+        message: getApiErrorDisplayMessage(rawError as ApiError),
+      });
+    } finally {
+      event.target.value = "";
+      setIsAttachmentSubmitting(false);
+    }
+  }
+
+  async function handleAttachmentDelete(
+    attachment: TenantFinanceTransactionAttachment
+  ) {
+    if (!session?.accessToken || selectedTransactionId == null) {
+      return;
+    }
+    const confirmed = window.confirm(
+      language === "es"
+        ? `¿Eliminar el adjunto ${attachment.file_name}?`
+        : `Delete attachment ${attachment.file_name}?`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsAttachmentSubmitting(true);
+    setActionFeedback(null);
+    try {
+      const response = await deleteTenantFinanceTransactionAttachment(
+        session.accessToken,
+        selectedTransactionId,
+        attachment.id
+      );
+      await fetchTransactionDetail(selectedTransactionId);
+      setActionFeedback({ type: "success", message: response.message });
+    } catch (rawError) {
+      setActionFeedback({
+        type: "error",
+        message: getApiErrorDisplayMessage(rawError as ApiError),
+      });
+    } finally {
+      setIsAttachmentSubmitting(false);
+    }
+  }
+
+  async function handleAttachmentDownload(
+    attachment: TenantFinanceTransactionAttachment
+  ) {
+    if (!session?.accessToken || selectedTransactionId == null) {
+      return;
+    }
+
+    setActionFeedback(null);
+    try {
+      const result = await downloadTenantFinanceTransactionAttachment(
+        session.accessToken,
+        selectedTransactionId,
+        attachment.id
+      );
+      downloadBlobFile(
+        result.blob,
+        attachment.file_name,
+        result.contentType || attachment.content_type || "application/octet-stream"
+      );
+    } catch (rawError) {
+      setActionFeedback({
+        type: "error",
+        message: getApiErrorDisplayMessage(rawError as ApiError),
+      });
     }
   }
 
@@ -1573,6 +1674,88 @@ export function FinanceTransactionsPage() {
                 </div>
               </div>
 
+              <div className="d-grid gap-2">
+                <div className="tenant-detail__label">
+                  {language === "es" ? "Boletas / facturas adjuntas" : "Attached receipts / invoices"}
+                </div>
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Nota del adjunto" : "Attachment note"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      value={attachmentNotes}
+                      onChange={(event) => setAttachmentNotes(event.target.value)}
+                      placeholder={
+                        language === "es"
+                          ? "Ej: boleta supermercado o factura proveedor"
+                          : "Ex: grocery receipt or supplier invoice"
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Subir archivo" : "Upload file"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,application/pdf"
+                      disabled={isAttachmentSubmitting}
+                      onChange={(event) => void handleAttachmentUpload(event)}
+                    />
+                    <div className="form-text">
+                      {language === "es"
+                        ? "Se aceptan JPG, PNG, WEBP o PDF. Las imágenes se comprimen antes de subir y el máximo final es 5 MB."
+                        : "JPG, PNG, WEBP, or PDF accepted. Images are compressed before upload and the final max size is 5 MB."}
+                    </div>
+                  </div>
+                </div>
+                {selectedTransactionDetail.attachments.length > 0 ? (
+                  <div className="finance-audit-list">
+                    {selectedTransactionDetail.attachments.map((attachment) => (
+                      <div key={attachment.id} className="finance-audit-list__item">
+                        <div className="d-flex justify-content-between gap-3 align-items-start">
+                          <div>
+                            <strong>{attachment.file_name}</strong>
+                            <div className="small text-secondary">
+                              {displayAttachmentMeta(attachment, language)}
+                            </div>
+                            {attachment.notes ? <div>{attachment.notes}</div> : null}
+                          </div>
+                          <div className="d-flex gap-2">
+                            <button
+                              className="btn btn-outline-secondary btn-sm"
+                              type="button"
+                              disabled={isAttachmentSubmitting}
+                              onClick={() => void handleAttachmentDownload(attachment)}
+                            >
+                              {language === "es" ? "Descargar" : "Download"}
+                            </button>
+                            <button
+                              className="btn btn-outline-danger btn-sm"
+                              type="button"
+                              disabled={isAttachmentSubmitting}
+                              onClick={() => void handleAttachmentDelete(attachment)}
+                            >
+                              {language === "es" ? "Eliminar" : "Delete"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="tenant-detail__value">
+                    {language === "es"
+                      ? "Todavía no hay boletas o facturas cargadas para esta transacción."
+                      : "There are no uploaded receipts or invoices for this transaction yet."}
+                  </div>
+                )}
+              </div>
+
               <div>
                 <div className="tenant-detail__label mb-2">
                   {language === "es" ? "Etiquetas" : "Tags"}
@@ -1707,6 +1890,82 @@ function selectedCurrencyRequiresExchangeRate(
     return false;
   }
   return String(baseCurrency.id) !== selectedCurrencyId;
+}
+
+function displayAttachmentMeta(
+  attachment: TenantFinanceTransactionAttachment,
+  language: "es" | "en"
+) {
+  const parts = [
+    formatFileSize(attachment.file_size),
+    attachment.content_type || "application/octet-stream",
+    formatDateTime(attachment.created_at, language),
+  ];
+  return parts.join(" · ");
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+async function prepareFinanceAttachmentFile(file: File): Promise<File> {
+  if (!file.type.startsWith("image/")) {
+    return file;
+  }
+  return compressImageFile(file);
+}
+
+async function compressImageFile(file: File): Promise<File> {
+  const imageBitmap = await createImageBitmap(file);
+  const maxDimension = 1800;
+  const scale = Math.min(
+    1,
+    maxDimension / Math.max(imageBitmap.width, imageBitmap.height)
+  );
+  const targetWidth = Math.max(1, Math.round(imageBitmap.width * scale));
+  const targetHeight = Math.max(1, Math.round(imageBitmap.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return file;
+  }
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, targetWidth, targetHeight);
+  context.drawImage(imageBitmap, 0, 0, targetWidth, targetHeight);
+  imageBitmap.close();
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob((result) => resolve(result), "image/webp", 0.82);
+  });
+  if (!blob) {
+    return file;
+  }
+
+  const baseName = file.name.replace(/\.[^.]+$/, "") || "attachment";
+  return new File([blob], `${baseName}.webp`, {
+    type: "image/webp",
+    lastModified: Date.now(),
+  });
+}
+
+function downloadBlobFile(blob: Blob, filename: string, mimeType: string) {
+  const typedBlob = new Blob([blob], { type: mimeType });
+  const url = URL.createObjectURL(typedBlob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 function DetailField({

@@ -8,7 +8,8 @@ import {
   getTenantFinanceSummary,
   getTenantFinanceUsage,
 } from "../../../../../services/tenant-api";
-import { apiRequest } from "../../../../../services/api";
+import { API_BASE_URL, apiRequest } from "../../../../../services/api";
+import type { ApiError, ApiErrorPayload } from "../../../../../types";
 
 export type TenantFinanceTransaction = {
   id: number;
@@ -53,6 +54,17 @@ export type TenantFinanceTransactionAuditEvent = {
   created_at: string;
 };
 
+export type TenantFinanceTransactionAttachment = {
+  id: number;
+  transaction_id: number;
+  file_name: string;
+  content_type: string | null;
+  file_size: number;
+  notes: string | null;
+  uploaded_by_user_id: number | null;
+  created_at: string;
+};
+
 export type TenantFinanceTransactionsResponse = {
   success: boolean;
   message: string;
@@ -72,6 +84,7 @@ export type TenantFinanceTransactionDetailResponse = {
   data: {
     transaction: TenantFinanceTransaction;
     audit_events: TenantFinanceTransactionAuditEvent[];
+    attachments: TenantFinanceTransactionAttachment[];
   };
 };
 
@@ -131,6 +144,12 @@ export type TenantFinanceTransactionBatchMutationResponse = {
     affected_count: number;
     transaction_ids: number[];
   };
+};
+
+export type TenantFinanceTransactionAttachmentMutationResponse = {
+  success: boolean;
+  message: string;
+  data: TenantFinanceTransactionAttachment;
 };
 
 export function getTenantFinanceTransactions(
@@ -207,6 +226,91 @@ export function getTenantFinanceTransactionDetail(
       token: accessToken,
     }
   );
+}
+
+export function uploadTenantFinanceTransactionAttachment(
+  accessToken: string,
+  transactionId: number,
+  file: File,
+  notes?: string
+) {
+  const body = new FormData();
+  body.append("file", file);
+  if (notes?.trim()) {
+    body.append("notes", notes.trim());
+  }
+  return apiRequest<TenantFinanceTransactionAttachmentMutationResponse>(
+    `/tenant/finance/transactions/${transactionId}/attachments`,
+    {
+      method: "POST",
+      token: accessToken,
+      body,
+    }
+  );
+}
+
+export function deleteTenantFinanceTransactionAttachment(
+  accessToken: string,
+  transactionId: number,
+  attachmentId: number
+) {
+  return apiRequest<{
+    success: boolean;
+    message: string;
+    data: { attachment_id: number; transaction_id: number };
+  }>(`/tenant/finance/transactions/${transactionId}/attachments/${attachmentId}`, {
+    method: "DELETE",
+    token: accessToken,
+  });
+}
+
+export async function downloadTenantFinanceTransactionAttachment(
+  accessToken: string,
+  transactionId: number,
+  attachmentId: number
+) {
+  let response: Response;
+  try {
+    response = await fetch(
+      `${API_BASE_URL}/tenant/finance/transactions/${transactionId}/attachments/${attachmentId}/download`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+  } catch {
+    const error = new Error(
+      `No se pudo conectar con la API en ${API_BASE_URL}. Revisa VITE_API_BASE_URL, CORS y que el backend esté levantado.`
+    ) as ApiError;
+    error.payload = {
+      detail:
+        `No se pudo conectar con la API en ${API_BASE_URL}. ` +
+        "Revisa VITE_API_BASE_URL, CORS y que el backend esté levantado.",
+      error_type: "network_error",
+    };
+    throw error;
+  }
+
+  if (!response.ok) {
+    let payload: ApiErrorPayload | undefined;
+    try {
+      payload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      payload = undefined;
+    }
+    const error = new Error(
+      payload?.detail || `Request failed with status ${response.status}`
+    ) as ApiError;
+    error.status = response.status;
+    error.payload = payload;
+    throw error;
+  }
+
+  return {
+    blob: await response.blob(),
+    contentType: response.headers.get("content-type"),
+  };
 }
 
 export function getTenantFinanceAccountBalances(accessToken: string) {

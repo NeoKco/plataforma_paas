@@ -1,6 +1,7 @@
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.core.schemas import TenantUserContextResponse
@@ -17,6 +18,9 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceEntryMutationResponse,
     FinanceSummaryData,
     FinanceSummaryResponse,
+    FinanceTransactionAttachmentDeleteResponse,
+    FinanceTransactionAttachmentItemResponse,
+    FinanceTransactionAttachmentMutationResponse,
     FinanceTransactionAuditItemResponse,
     FinanceTransactionBatchMutationData,
     FinanceTransactionBatchMutationResponse,
@@ -116,6 +120,21 @@ def _build_finance_transaction_audit_item(event) -> FinanceTransactionAuditItemR
         summary=event.summary,
         payload=payload,
         created_at=event.created_at,
+    )
+
+
+def _build_finance_transaction_attachment_item(
+    attachment,
+) -> FinanceTransactionAttachmentItemResponse:
+    return FinanceTransactionAttachmentItemResponse(
+        id=attachment.id,
+        transaction_id=attachment.transaction_id,
+        file_name=attachment.file_name,
+        content_type=attachment.content_type,
+        file_size=attachment.file_size,
+        notes=attachment.notes,
+        uploaded_by_user_id=attachment.uploaded_by_user_id,
+        created_at=attachment.created_at,
     )
 
 
@@ -224,7 +243,7 @@ def get_finance_transaction_detail(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceTransactionDetailResponse:
     try:
-        transaction, audit_events = finance_service.get_transaction_detail(
+        transaction, audit_events, attachments = finance_service.get_transaction_detail(
             tenant_db,
             transaction_id,
         )
@@ -240,7 +259,98 @@ def get_finance_transaction_detail(
             audit_events=[
                 _build_finance_transaction_audit_item(event) for event in audit_events
             ],
+            attachments=[
+                _build_finance_transaction_attachment_item(item) for item in attachments
+            ],
         ),
+    )
+
+
+@router.post(
+    "/transactions/{transaction_id}/attachments",
+    response_model=FinanceTransactionAttachmentMutationResponse,
+)
+async def create_finance_transaction_attachment(
+    transaction_id: int,
+    file: UploadFile = File(...),
+    notes: str | None = Form(default=None),
+    current_user=Depends(require_finance_create),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTransactionAttachmentMutationResponse:
+    try:
+        attachment = finance_service.create_transaction_attachment(
+            tenant_db,
+            transaction_id,
+            file_name=file.filename or "attachment",
+            content_type=file.content_type,
+            content_bytes=await file.read(),
+            notes=notes,
+            actor_user_id=current_user["user_id"],
+        )
+    except ValueError as exc:
+        if "no existe" in str(exc):
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceTransactionAttachmentMutationResponse(
+        success=True,
+        message="Adjunto de transaccion cargado correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        data=_build_finance_transaction_attachment_item(attachment),
+    )
+
+
+@router.delete(
+    "/transactions/{transaction_id}/attachments/{attachment_id}",
+    response_model=FinanceTransactionAttachmentDeleteResponse,
+)
+def delete_finance_transaction_attachment(
+    transaction_id: int,
+    attachment_id: int,
+    current_user=Depends(require_finance_create),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTransactionAttachmentDeleteResponse:
+    try:
+        attachment = finance_service.delete_transaction_attachment(
+            tenant_db,
+            transaction_id,
+            attachment_id,
+            actor_user_id=current_user["user_id"],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FinanceTransactionAttachmentDeleteResponse(
+        success=True,
+        message="Adjunto de transaccion eliminado correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        data={
+            "attachment_id": attachment.id,
+            "transaction_id": attachment.transaction_id,
+        },
+    )
+
+
+@router.get("/transactions/{transaction_id}/attachments/{attachment_id}/download")
+def download_finance_transaction_attachment(
+    transaction_id: int,
+    attachment_id: int,
+    current_user=Depends(require_finance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+):
+    try:
+        attachment, absolute_path = finance_service.get_transaction_attachment(
+            tenant_db,
+            transaction_id,
+            attachment_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FileResponse(
+        path=str(absolute_path),
+        media_type=attachment.content_type or "application/octet-stream",
+        filename=attachment.file_name,
     )
 
 

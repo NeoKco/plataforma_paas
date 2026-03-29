@@ -1,7 +1,10 @@
 from app.apps.tenant_modules.finance.api.router import router
 from app.apps.tenant_modules.finance.api.transactions import (
     create_finance_transaction,
+    create_finance_transaction_attachment,
     create_finance_entry,
+    delete_finance_transaction_attachment,
+    download_finance_transaction_attachment,
     finance_account_balances,
     finance_service,
     finance_summary,
@@ -46,9 +49,12 @@ from app.apps.tenant_modules.finance.api.reports import (
 
 __all__ = [
     "create_finance_transaction",
+    "create_finance_transaction_attachment",
     "router",
     "create_finance_entry",
     "create_finance_loan",
+    "delete_finance_transaction_attachment",
+    "download_finance_transaction_attachment",
     "apply_finance_loan_installment_payment",
     "apply_finance_loan_installment_payment_batch",
     "apply_finance_budget_guided_adjustment",

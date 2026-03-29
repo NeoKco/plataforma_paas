@@ -280,6 +280,7 @@ Resultado actual:
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
 - existe migracion tenant versionada para `finance_transactions`, `finance_transaction_tags`, `finance_transaction_attachments` y `finance_transaction_audit`
+- `finance` ya permite adjuntar boletas, facturas o respaldos por transaccion, con compresion previa de imagenes en frontend y descarga/eliminacion desde el detalle
 - existe enforcement de `finance.entries`, `finance.entries.monthly`, cuotas segmentadas como `finance.entries.monthly.income`, `finance.entries.monthly.expense`, `core.users`, `core.users.active`, `core.users.monthly` y cuotas por rol como `core.users.admin` por plan, override tenant y billing grace
 - existe visibilidad operativa de uso vs limite desde `tenant` y desde `platform`
 - existe ya una vista generica de uso por modulo para preparar el mismo patron en futuros modulos

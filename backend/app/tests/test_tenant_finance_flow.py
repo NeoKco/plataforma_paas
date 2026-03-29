@@ -1,10 +1,14 @@
 import os
+import tempfile
 import unittest
+from asyncio import run
 from datetime import date
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
 from fastapi import HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy.exc import ProgrammingError
 
 from app.tests.fixtures import (  # noqa: E402
@@ -25,7 +29,10 @@ from app.apps.tenant_modules.finance.api.routes import (  # noqa: E402
     create_finance_budget,
     create_finance_loan,
     create_finance_transaction,
+    create_finance_transaction_attachment,
     create_finance_entry,
+    delete_finance_transaction_attachment,
+    download_finance_transaction_attachment,
     finance_account_balances,
     get_finance_planning_overview,
     get_finance_reports_overview,
@@ -205,15 +212,21 @@ class TenantFinanceServiceTestCase(unittest.TestCase):
             def list_by_transaction(self, tenant_db, transaction_id):
                 return audit_events if transaction_id == 10 else []
 
+        class FakeAttachmentRepository:
+            def list_by_transaction(self, tenant_db, transaction_id):
+                return []
+
         service = FinanceService(
             entry_repository=FakeEntryRepository(),
             transaction_audit_repository=FakeAuditRepository(),
+            transaction_attachment_repository=FakeAttachmentRepository(),
         )
 
-        loaded_transaction, loaded_events = service.get_transaction_detail(object(), 10)
+        loaded_transaction, loaded_events, loaded_attachments = service.get_transaction_detail(object(), 10)
 
         self.assertIs(loaded_transaction, transaction)
         self.assertEqual(loaded_events, audit_events)
+        self.assertEqual(loaded_attachments, [])
 
 
 class TenantFinanceRoutesTestCase(unittest.TestCase):
@@ -469,7 +482,7 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
 
         with patch(
             "app.apps.tenant_modules.finance.api.routes.finance_service.get_transaction_detail",
-            return_value=(transaction, audit_events),
+            return_value=(transaction, audit_events, []),
         ):
             response = get_finance_transaction_detail(
                 transaction_id=14,
@@ -480,6 +493,96 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.data.transaction.id, 14)
         self.assertEqual(response.data.audit_events[0].payload, {"amount": 80})
+        self.assertEqual(response.data.attachments, [])
+
+    def test_create_finance_transaction_attachment_returns_created_attachment(self) -> None:
+        attachment = SimpleNamespace(
+            id=3,
+            transaction_id=14,
+            file_name="boleta.webp",
+            content_type="image/webp",
+            file_size=2048,
+            notes="ticket marzo",
+            uploaded_by_user_id=1,
+            created_at="2026-03-27T14:01:00+00:00",
+        )
+
+        class FakeUploadFile:
+            filename = "boleta.webp"
+            content_type = "image/webp"
+
+            async def read(self) -> bytes:
+                return b"fake-image"
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.transactions.finance_service.create_transaction_attachment",
+            return_value=attachment,
+        ) as create_attachment_mock:
+            response = run(
+                create_finance_transaction_attachment(
+                    transaction_id=14,
+                    file=FakeUploadFile(),
+                    notes="ticket marzo",
+                    current_user=self._current_user(),
+                    tenant_db=object(),
+                )
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.file_name, "boleta.webp")
+        self.assertEqual(
+            create_attachment_mock.call_args.kwargs["content_bytes"],
+            b"fake-image",
+        )
+        self.assertEqual(create_attachment_mock.call_args.kwargs["actor_user_id"], 1)
+
+    def test_delete_finance_transaction_attachment_returns_deleted_attachment(self) -> None:
+        attachment = SimpleNamespace(
+            id=3,
+            transaction_id=14,
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.transactions.finance_service.delete_transaction_attachment",
+            return_value=attachment,
+        ) as delete_attachment_mock:
+            response = delete_finance_transaction_attachment(
+                transaction_id=14,
+                attachment_id=3,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.attachment_id, 3)
+        self.assertEqual(response.data.transaction_id, 14)
+        self.assertEqual(delete_attachment_mock.call_args.kwargs["actor_user_id"], 1)
+
+    def test_download_finance_transaction_attachment_returns_file_response(self) -> None:
+        attachment = SimpleNamespace(
+            id=3,
+            transaction_id=14,
+            file_name="boleta.pdf",
+            content_type="application/pdf",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            absolute_path = Path(tmpdir) / "boleta.pdf"
+            absolute_path.write_bytes(b"%PDF-1.4")
+
+            with patch(
+                "app.apps.tenant_modules.finance.api.transactions.finance_service.get_transaction_attachment",
+                return_value=(attachment, absolute_path),
+            ):
+                response = download_finance_transaction_attachment(
+                    transaction_id=14,
+                    attachment_id=3,
+                    current_user=self._current_user(role="operator"),
+                    tenant_db=object(),
+                )
+
+        self.assertIsInstance(response, FileResponse)
+        self.assertEqual(response.path, str(absolute_path))
+        self.assertEqual(response.media_type, "application/pdf")
 
     def test_update_finance_transaction_returns_updated_transaction(self) -> None:
         transaction = SimpleNamespace(

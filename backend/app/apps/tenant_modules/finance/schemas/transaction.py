@@ -119,13 +119,38 @@ class FinanceTransactionAuditItemResponse(BaseModel):
     created_at: datetime
 
 
+class FinanceTransactionAttachmentItemResponse(BaseModel):
+    id: int
+    transaction_id: int
+    file_name: str
+    content_type: str | None = None
+    file_size: int
+    notes: str | None = None
+    uploaded_by_user_id: int | None = None
+    created_at: datetime
+
+
 class FinanceTransactionDetailData(BaseModel):
     transaction: FinanceTransactionItemResponse
     audit_events: list[FinanceTransactionAuditItemResponse]
+    attachments: list[FinanceTransactionAttachmentItemResponse]
 
 
 class FinanceTransactionDetailResponse(FinanceResponseBase):
     data: FinanceTransactionDetailData
+
+
+class FinanceTransactionAttachmentMutationResponse(FinanceResponseBase):
+    data: FinanceTransactionAttachmentItemResponse
+
+
+class FinanceTransactionAttachmentDeleteData(BaseModel):
+    attachment_id: int
+    transaction_id: int
+
+
+class FinanceTransactionAttachmentDeleteResponse(FinanceResponseBase):
+    data: FinanceTransactionAttachmentDeleteData
 
 
 class FinanceTransactionFavoriteUpdateRequest(BaseModel):

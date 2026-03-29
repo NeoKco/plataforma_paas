@@ -1,3 +1,6 @@
+from pathlib import Path
+from uuid import uuid4
+
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
@@ -6,11 +9,13 @@ from app.apps.tenant_modules.finance.models import (
     FinanceAccount,
     FinanceCurrency,
     FinanceTransaction,
+    FinanceTransactionAttachment,
 )
 from app.apps.tenant_modules.finance.repositories import (
     FinanceAccountRepository,
     FinanceCurrencyRepository,
     FinanceTagRepository,
+    FinanceTransactionAttachmentRepository,
     FinanceTransactionAuditRepository,
     FinanceTransactionRepository,
     FinanceTransactionTagRepository,
@@ -19,6 +24,7 @@ from app.apps.tenant_modules.finance.schemas import (
     FinanceTransactionCreateRequest,
     FinanceTransactionUpdateRequest,
 )
+from app.common.config.settings import settings
 from app.common.policies.module_limit_catalog import (
     FINANCE_ENTRIES_LIMIT_KEY,
     FINANCE_ENTRIES_MONTHLY_LIMIT_KEY,
@@ -42,6 +48,13 @@ class FinanceService:
         "migration_cleanup",
         "other",
     }
+    ATTACHMENT_ALLOWED_CONTENT_TYPES = {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "application/pdf",
+    }
+    ATTACHMENT_MAX_SIZE_BYTES = 5 * 1024 * 1024
 
     def __init__(
         self,
@@ -50,6 +63,7 @@ class FinanceService:
         currency_repository: FinanceCurrencyRepository | None = None,
         account_repository: FinanceAccountRepository | None = None,
         tag_repository: FinanceTagRepository | None = None,
+        transaction_attachment_repository: FinanceTransactionAttachmentRepository | None = None,
         transaction_audit_repository: FinanceTransactionAuditRepository | None = None,
         transaction_tag_repository: FinanceTransactionTagRepository | None = None,
     ):
@@ -61,6 +75,9 @@ class FinanceService:
         self.currency_repository = currency_repository or FinanceCurrencyRepository()
         self.account_repository = account_repository or FinanceAccountRepository()
         self.tag_repository = tag_repository or FinanceTagRepository()
+        self.transaction_attachment_repository = (
+            transaction_attachment_repository or FinanceTransactionAttachmentRepository()
+        )
         self.transaction_audit_repository = (
             transaction_audit_repository or FinanceTransactionAuditRepository()
         )
@@ -334,7 +351,7 @@ class FinanceService:
         self,
         tenant_db: Session,
         transaction_id: int,
-    ) -> tuple[FinanceTransaction, list]:
+    ) -> tuple[FinanceTransaction, list, list[FinanceTransactionAttachment]]:
         transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
         if transaction is None:
             raise ValueError("La transaccion financiera no existe")
@@ -343,8 +360,137 @@ class FinanceService:
             tenant_db,
             transaction_id=transaction_id,
         )
+        attachments = self.transaction_attachment_repository.list_by_transaction(
+            tenant_db,
+            transaction_id=transaction_id,
+        )
         self._attach_tag_ids(tenant_db, [transaction])
-        return transaction, audit_events
+        return transaction, audit_events, attachments
+
+    def create_transaction_attachment(
+        self,
+        tenant_db: Session,
+        transaction_id: int,
+        *,
+        file_name: str,
+        content_type: str | None,
+        content_bytes: bytes,
+        notes: str | None = None,
+        actor_user_id: int | None = None,
+    ) -> FinanceTransactionAttachment:
+        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        if transaction is None:
+            raise ValueError("La transaccion financiera no existe")
+
+        normalized_file_name = self._normalize_attachment_file_name(file_name)
+        normalized_content_type = (content_type or "").strip().lower() or None
+        if normalized_content_type not in self.ATTACHMENT_ALLOWED_CONTENT_TYPES:
+            raise ValueError("Tipo de archivo no soportado para adjuntos de finance")
+        if not content_bytes:
+            raise ValueError("El adjunto no puede estar vacio")
+        if len(content_bytes) > self.ATTACHMENT_MAX_SIZE_BYTES:
+            raise ValueError("El adjunto supera el tamaño máximo permitido de 5 MB")
+
+        suffix = Path(normalized_file_name).suffix.lower() or self._content_type_to_suffix(
+            normalized_content_type
+        )
+        storage_key = str(
+            Path(f"transaction_{transaction_id}")
+            / f"{uuid4().hex}{suffix}"
+        )
+        absolute_path = self._attachments_root() / storage_key
+        absolute_path.parent.mkdir(parents=True, exist_ok=True)
+        absolute_path.write_bytes(content_bytes)
+
+        attachment = FinanceTransactionAttachment(
+            transaction_id=transaction_id,
+            file_name=normalized_file_name,
+            storage_key=storage_key,
+            content_type=normalized_content_type,
+            file_size=len(content_bytes),
+            notes=notes.strip() if notes and notes.strip() else None,
+            uploaded_by_user_id=actor_user_id,
+        )
+        try:
+            saved = self.transaction_attachment_repository.save(tenant_db, attachment)
+        except Exception:
+            if absolute_path.exists():
+                absolute_path.unlink()
+            raise
+
+        self.transaction_audit_repository.save_event(
+            tenant_db,
+            transaction_id=transaction_id,
+            event_type="transaction.attachment.created",
+            actor_user_id=actor_user_id,
+            summary="Adjunto agregado a la transaccion",
+            payload={
+                "attachment_id": saved.id,
+                "file_name": saved.file_name,
+                "content_type": saved.content_type,
+                "file_size": saved.file_size,
+            },
+        )
+        return saved
+
+    def delete_transaction_attachment(
+        self,
+        tenant_db: Session,
+        transaction_id: int,
+        attachment_id: int,
+        *,
+        actor_user_id: int | None = None,
+    ) -> FinanceTransactionAttachment:
+        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        if transaction is None:
+            raise ValueError("La transaccion financiera no existe")
+
+        attachment = self.transaction_attachment_repository.get_by_id(
+            tenant_db,
+            attachment_id,
+        )
+        if attachment is None or attachment.transaction_id != transaction_id:
+            raise ValueError("El adjunto de la transaccion no existe")
+
+        absolute_path = self._attachments_root() / attachment.storage_key
+        self.transaction_attachment_repository.delete(tenant_db, attachment)
+        if absolute_path.exists():
+            absolute_path.unlink()
+
+        self.transaction_audit_repository.save_event(
+            tenant_db,
+            transaction_id=transaction_id,
+            event_type="transaction.attachment.deleted",
+            actor_user_id=actor_user_id,
+            summary="Adjunto eliminado de la transaccion",
+            payload={
+                "attachment_id": attachment.id,
+                "file_name": attachment.file_name,
+            },
+        )
+        return attachment
+
+    def get_transaction_attachment(
+        self,
+        tenant_db: Session,
+        transaction_id: int,
+        attachment_id: int,
+    ) -> tuple[FinanceTransactionAttachment, Path]:
+        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        if transaction is None:
+            raise ValueError("La transaccion financiera no existe")
+
+        attachment = self.transaction_attachment_repository.get_by_id(
+            tenant_db,
+            attachment_id,
+        )
+        if attachment is None or attachment.transaction_id != transaction_id:
+            raise ValueError("El adjunto de la transaccion no existe")
+
+        absolute_path = self._attachments_root() / attachment.storage_key
+        if not absolute_path.exists():
+            raise ValueError("El archivo adjunto no está disponible en almacenamiento")
+        return attachment, absolute_path
 
     def update_transaction_favorite(
         self,
@@ -578,6 +724,26 @@ class FinanceService:
                 "tag_ids",
                 list(tag_ids_by_transaction_id.get(transaction.id, [])),
             )
+
+    def _attachments_root(self) -> Path:
+        root = Path(settings.FINANCE_ATTACHMENTS_DIR)
+        root.mkdir(parents=True, exist_ok=True)
+        return root
+
+    def _normalize_attachment_file_name(self, file_name: str) -> str:
+        normalized = Path(file_name or "attachment").name.strip()
+        return normalized or "attachment"
+
+    def _content_type_to_suffix(self, content_type: str | None) -> str:
+        if content_type == "image/jpeg":
+            return ".jpg"
+        if content_type == "image/png":
+            return ".png"
+        if content_type == "image/webp":
+            return ".webp"
+        if content_type == "application/pdf":
+            return ".pdf"
+        return ""
 
     def _normalize_reconciliation_reason_code(self, reason_code: str | None) -> str | None:
         if reason_code is None:

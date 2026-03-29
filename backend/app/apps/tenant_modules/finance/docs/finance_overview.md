@@ -21,7 +21,7 @@ Alcance de esta fase:
 - pantallas frontend operativas para cuentas, categorias, catalogos auxiliares y configuracion financiera
 - nucleo transaccional real en `finance_transactions`
 - backfill idempotente desde `finance_entries`
-- auditoria y adjuntos base para transacciones
+- auditoria y adjuntos reales para transacciones
 - compatibilidad legacy: `/tenant/finance/entries` sigue operando, pero ya persiste sobre `finance_transactions`
 - endpoints modernos de transacciones, balances por cuenta y detalle con auditoria
 - pantalla tenant operativa sobre `finance_transactions`
@@ -62,8 +62,7 @@ Alcance de esta fase:
 - las transacciones ya persisten tags reales en `finance_transaction_tags`
 - `Reportes` ya permite además rankear por `etiqueta`
 
-Backlog opcional posterior al cierre:
-- lotes inteligentes o reglas asistidas adicionales en `Transacciones` solo si la operación real lo pide
-- presets mas ricos por tenant en `Presupuestos` si luego se justifican
-- lectura contable mas densa en `Préstamos` solo si el dominio exige mayor profundidad
-- comparativas y visualizaciones aun mas profundas en `Reportes` o `Planificación` solo si aparecen nuevas necesidades reales
+Estado ampliado del cierre:
+- `Transacciones` ya permite adjuntar boletas, facturas u otros respaldos por transacción en `jpg/png/webp/pdf`
+- las imagenes pueden comprimirse desde el frontend antes de subirlas para no inflar almacenamiento ni tráfico
+- el detalle de transacción ya permite descargar o eliminar esos adjuntos

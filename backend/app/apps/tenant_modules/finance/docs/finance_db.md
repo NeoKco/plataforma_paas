@@ -89,7 +89,9 @@ Tablas base ya creadas en `Lote 1`:
 - relacion N:M entre transacciones y etiquetas
 
 ### `finance_transaction_attachments`
-- adjuntos base por transaccion
+- adjuntos reales por transaccion
+- pensado para respaldos operativos como boletas, facturas o PDFs de soporte
+- conserva `file_name`, `storage_key`, `content_type`, `file_size`, `notes` y `uploaded_by_user_id`
 
 ### `finance_transaction_audit`
 - auditoria propia del ciclo de vida de la transaccion

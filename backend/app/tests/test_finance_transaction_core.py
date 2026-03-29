@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 import unittest
 from datetime import datetime, timezone
 
@@ -9,6 +10,7 @@ os.environ["APP_ENV"] = "test"
 from app.apps.tenant_modules.finance.models.account import FinanceAccount  # noqa: E402
 from app.apps.tenant_modules.finance.models.currency import FinanceCurrency  # noqa: E402
 from app.apps.tenant_modules.finance.models.tag import FinanceTag  # noqa: E402
+from app.common.config.settings import settings  # noqa: E402
 from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceTransactionCreateRequest,
     FinanceTransactionUpdateRequest,
@@ -423,7 +425,7 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
             actor_user_id=3,
         )
 
-        _transaction, audit_events = self.service.get_transaction_detail(self.db, created.id)
+        _transaction, audit_events, _attachments = self.service.get_transaction_detail(self.db, created.id)
         reconciliation_event = next(
             event
             for event in audit_events
@@ -546,8 +548,70 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
         )
         self.assertEqual(updated.tag_ids, [taxes.id])
 
-        detail_transaction, _ = self.service.get_transaction_detail(self.db, created.id)
+        detail_transaction, _, _attachments = self.service.get_transaction_detail(self.db, created.id)
         self.assertEqual(detail_transaction.tag_ids, [taxes.id])
+
+    def test_can_create_and_delete_transaction_attachment(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+        created = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=45.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Compra con boleta",
+            ),
+            created_by_user_id=1,
+        )
+
+        original_dir = settings.FINANCE_ATTACHMENTS_DIR
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                settings.FINANCE_ATTACHMENTS_DIR = temp_dir
+                attachment = self.service.create_transaction_attachment(
+                    self.db,
+                    created.id,
+                    file_name="boleta.webp",
+                    content_type="image/webp",
+                    content_bytes=b"fake-image-content",
+                    notes="boleta principal",
+                    actor_user_id=9,
+                )
+
+                detail_transaction, audit_events, attachments = self.service.get_transaction_detail(
+                    self.db, created.id
+                )
+                self.assertEqual(detail_transaction.id, created.id)
+                self.assertEqual(len(attachments), 1)
+                self.assertEqual(attachments[0].file_name, "boleta.webp")
+                self.assertTrue(
+                    any(event.event_type == "transaction.attachment.created" for event in audit_events)
+                )
+                _loaded_attachment, attachment_path = self.service.get_transaction_attachment(
+                    self.db,
+                    created.id,
+                    attachment.id,
+                )
+                self.assertTrue(attachment_path.exists())
+
+                deleted = self.service.delete_transaction_attachment(
+                    self.db,
+                    created.id,
+                    attachment.id,
+                    actor_user_id=10,
+                )
+                self.assertEqual(deleted.id, attachment.id)
+                self.assertFalse(attachment_path.exists())
+        finally:
+            settings.FINANCE_ATTACHMENTS_DIR = original_dir
 
     def test_rejects_unknown_tag_ids(self) -> None:
         usd = self._seed_currency(code="USD", is_base=True, sort_order=10)

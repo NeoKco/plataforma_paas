@@ -69,6 +69,9 @@
 - esa misma pantalla ya permite además rankear por `categoría`, `cuenta`, `proyecto`, `beneficiario` o `persona`
 - la pantalla de `Transacciones` ya permite asignar varias etiquetas al registrar o editar un movimiento
 - la pantalla de `Transacciones` ya permite además filtrar por `Etiqueta` y releer esos `tags` como chips en tabla y detalle
+- la pantalla de `Transacciones` ya permite además subir adjuntos operativos por transacción desde el panel de detalle
+- las imágenes adjuntas se comprimen en frontend antes de cargarse y se aceptan `jpg/png/webp/pdf`
+- el mismo detalle ya permite descargar o eliminar boletas, facturas o respaldos cargados
 - `Reportes` ya permite además rankear por `Etiqueta`
 - cuando `finance` detecta schema incompleto, la UI ya explica para que sirve actualizar la estructura del modulo
 - `tenant admin` ya puede disparar esa sincronizacion desde el mismo portal, ver el job asociado y esperar el cierre sin depender solo de `Platform Admin`

@@ -66,6 +66,8 @@ En esta fase quedaron listos:
 - endpoint `GET /tenant/finance/account-balances`
 - vista tenant real de transacciones sobre `finance_transactions`
 - panel de detalle operacional por transaccion seleccionada
+- carga, descarga y eliminacion de adjuntos operativos por transaccion desde el mismo panel de detalle
+- compresion previa de imagenes en frontend para respaldos `jpg/png/webp`, manteniendo tambien soporte `pdf`
 - balances por cuenta visibles desde la UI tenant
 - filtros operativos por tipo, cuenta, categoria, conciliacion y texto
 - acciones rapidas para marcar favorita o conciliada una transaccion existente
@@ -130,6 +132,7 @@ Checklist de cierre cubierto:
 
 - catálogos, configuración y moneda base ya operativos
 - transacciones modernas con filtros, edición, etiquetas, conciliación y auditoría reciente
+- transacciones modernas con adjuntos operativos reales por boleta, factura o respaldo
 - presupuestos con lectura mensual, foco priorizado, clonación, ajustes guiados y plantillas operativas
 - préstamos con cronograma, pagos y reversas individuales o batch, cuenta origen, lectura contable derivada y exportación
 - planificación con overview operativo mensual, `spotlight` visual y chart de señales/foco
@@ -151,6 +154,7 @@ Pendiente posterior al cierre de `finance`:
 Estado del cierre ampliado:
 
 - `Transacciones` ya incorpora selección asistida sobre el filtro visible para operar lotes por pendientes, préstamos, ingresos, egresos o visibles completos
+- `Transacciones` ya incorpora además adjuntos reales con compresión previa de imágenes y soporte `jpg/png/webp/pdf`
 - `Presupuestos` ya soporta plantillas operativas con escala porcentual y redondeo por múltiplo, además de clonación y ajuste guiado
 - `Préstamos` ya devuelve lectura contable derivada más densa con contrapartida, tipo de préstamo, cuota asociada y efecto firmado en exportaciones/tabla
 - `Reportes` y `Planificación` ya cierran con charts comparativos adicionales para lectura ejecutiva del período, horizonte y presión mensual
@@ -190,6 +194,9 @@ Estado del cierre ampliado:
 - `GET /tenant/finance/entries`
 - `POST /tenant/finance/entries`
 - `GET /tenant/finance/summary`
+- `POST /tenant/finance/transactions/{transaction_id}/attachments`
+- `GET /tenant/finance/transactions/{transaction_id}/attachments/{attachment_id}/download`
+- `DELETE /tenant/finance/transactions/{transaction_id}/attachments/{attachment_id}`
 - `GET|POST|PUT /tenant/finance/budgets`
 - `GET|POST|PUT /tenant/finance/loans`
 - `GET /tenant/finance/loans/{loan_id}`

@@ -182,6 +182,10 @@ Nucleo transaccional ya disponible en backend:
 - tabla `finance_transaction_tags`
 - `POST|PUT /tenant/finance/transactions` ya persisten `tag_ids` reales en `finance_transaction_tags`
 - tabla `finance_transaction_attachments`
+- `GET /tenant/finance/transactions/{transaction_id}` ya devuelve también `attachments`
+- ya existe `POST /tenant/finance/transactions/{transaction_id}/attachments` para cargar `jpg/png/webp/pdf`
+- ya existe `GET /tenant/finance/transactions/{transaction_id}/attachments/{attachment_id}/download`
+- ya existe `DELETE /tenant/finance/transactions/{transaction_id}/attachments/{attachment_id}`
 - tabla `finance_transaction_audit`
 - tabla `finance_budgets`
 - tabla `finance_loans`

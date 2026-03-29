@@ -8,6 +8,9 @@ Estado actual:
 - la vista principal ya permite crear, filtrar y editar transacciones, además de revisar balances y auditoría reciente
 - la vista principal ya permite también seleccionar varias transacciones y operar favoritas o conciliación por lote
 - la vista principal ya permite además selección asistida sobre el filtro visible para armar lotes por `pendientes`, `préstamos`, `ingresos`, `egresos` o todos los visibles
+- al guardar una transacción y abrir su detalle, ya puedes subir boletas, facturas o respaldos en `JPG/PNG/WEBP/PDF`
+- las imágenes se comprimen antes de subirse para no cargar de más la app ni el almacenamiento
+- desde el mismo detalle también puedes descargar o eliminar cada adjunto
 - la conciliación ya puede dejar nota operativa, exige elegir un motivo estructurado y pide confirmación antes de aplicar el cambio
 - la vista `Presupuestos` ya permite cargar un monto mensual por categoría y compararlo contra la ejecución real del mes
 - la vista `Presupuestos` ya permite además filtrar por tipo, estado derivado e inactivos
