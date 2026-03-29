@@ -72,6 +72,7 @@ import type {
   PlatformTenantSchemaStatusResponse,
   PlatformTenantModuleUsageSummary,
 } from "../../../../types";
+import { getCurrentLanguage, getCurrentLocale } from "../../../../utils/i18n";
 
 type ActionFeedback = {
   scope: string;
@@ -469,7 +470,9 @@ export function TenantsPage() {
       if (tenantResponse.status !== "active") {
         setModuleUsage(null);
         setModuleUsageNotice(
-          "El uso por módulo estará disponible cuando el tenant esté activo y su base tenant quede provisionada."
+          language === "es"
+            ? "El uso por módulo estará disponible cuando el tenant esté activo y su base tenant quede provisionada."
+            : "Module usage will be available once the tenant is active and its tenant database is provisioned."
         );
       }
     } catch (rawError) {
@@ -495,21 +498,27 @@ export function TenantsPage() {
         typedError.payload?.detail === "Tenant database configuration is incomplete"
       ) {
         setModuleUsageNotice(
-          "El tenant todavía no tiene completa su configuración de base de datos, por eso el uso por módulo no está disponible."
+          language === "es"
+            ? "El tenant todavía no tiene completa su configuración de base de datos, por eso el uso por módulo no está disponible."
+            : "The tenant database configuration is still incomplete, so module usage is not available yet."
         );
       } else if (
         typedError.payload?.detail ===
         "Tenant schema is incomplete. Run tenant schema sync or tenant migrations before requesting module usage."
       ) {
         setModuleUsageNotice(
-          "La base tenant existe, pero su esquema está incompleto. Debes sincronizar migraciones tenant antes de ver el uso por módulo."
+          language === "es"
+            ? "La base tenant existe, pero su esquema está incompleto. Debes sincronizar migraciones tenant antes de ver el uso por módulo."
+            : "The tenant database exists, but its schema is incomplete. Run tenant migrations or tenant schema sync before viewing module usage."
         );
       } else if (
         typedError.payload?.detail ===
         "Tenant database access failed. Rotate or reprovision tenant DB credentials before requesting module usage."
       ) {
         setModuleUsageNotice(
-          "La base tenant no aceptó la credencial técnica actual. Debes rotar o reprovisionar las credenciales de la base tenant antes de ver el uso por módulo."
+          language === "es"
+            ? "La base tenant no aceptó la credencial técnica actual. Debes rotar o reprovisionar las credenciales de la base tenant antes de ver el uso por módulo."
+            : "The tenant database rejected the current technical credential. Rotate or reprovision the tenant DB credentials before viewing module usage."
         );
       } else {
         setModuleUsageError(typedError);
@@ -762,13 +771,15 @@ export function TenantsPage() {
       description:
         "Esta acción actualiza el nombre visible y el tipo operativo del tenant. El slug se mantiene estable.",
       details: [
-        `Tenant actual: ${selectedTenantSummary?.name || "n/a"}`,
-        `Nuevo nombre: ${identityName.trim() || "n/a"}`,
-        `Tipo actual: ${selectedTenantSummary?.tenant_type || "n/a"}`,
-        `Nuevo tipo: ${identityTenantType || "n/a"}`,
-        `Slug estable: ${selectedTenantSummary?.slug || "n/a"}`,
+        `${
+          language === "es" ? "Tenant actual" : "Current tenant"
+        }: ${selectedTenantSummary?.name || "n/a"}`,
+        `${language === "es" ? "Nuevo nombre" : "New name"}: ${identityName.trim() || "n/a"}`,
+        `${language === "es" ? "Tipo actual" : "Current type"}: ${selectedTenantSummary?.tenant_type || "n/a"}`,
+        `${language === "es" ? "Nuevo tipo" : "New type"}: ${identityTenantType || "n/a"}`,
+        `${language === "es" ? "Slug estable" : "Stable slug"}: ${selectedTenantSummary?.slug || "n/a"}`,
       ],
-      confirmLabel: "Actualizar identidad",
+      confirmLabel: language === "es" ? "Actualizar identidad" : "Update identity",
       action: () =>
         updatePlatformTenantIdentity(session.accessToken, selectedTenantId, {
           name: identityName.trim(),
@@ -784,16 +795,18 @@ export function TenantsPage() {
     }
     requestConfirmation({
       scope: "status",
-      title: "Confirmar cambio de estado tenant",
+      title: language === "es" ? "Confirmar cambio de estado tenant" : "Confirm tenant status change",
       description:
-        "Este cambio modifica el lifecycle efectivo del tenant y puede afectar su acceso operativo.",
+        language === "es"
+          ? "Este cambio modifica el lifecycle efectivo del tenant y puede afectar su acceso operativo."
+          : "This change modifies the tenant effective lifecycle and may affect its operational access.",
       details: [
         `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
-        `Estado actual: ${selectedTenantSummary?.status || "n/a"}`,
-        `Nuevo estado: ${statusValue || "n/a"}`,
-        `Motivo: ${normalizeNullableString(statusReason) || "sin motivo"}`,
+        `${language === "es" ? "Estado actual" : "Current status"}: ${selectedTenantSummary?.status || "n/a"}`,
+        `${language === "es" ? "Nuevo estado" : "New status"}: ${statusValue || "n/a"}`,
+        `${language === "es" ? "Motivo" : "Reason"}: ${normalizeNullableString(statusReason) || (language === "es" ? "sin motivo" : "no reason")}`,
       ],
-      confirmLabel: "Aplicar cambio",
+      confirmLabel: language === "es" ? "Aplicar cambio" : "Apply change",
       tone:
         statusValue === "suspended" || statusValue === "archived" ? "danger" : "warning",
       action: () =>
@@ -811,21 +824,35 @@ export function TenantsPage() {
     }
     requestConfirmation({
       scope: "maintenance",
-      title: "Confirmar actualización de mantenimiento",
+      title: language === "es" ? "Confirmar actualización de mantenimiento" : "Confirm maintenance update",
       description:
-        "Esta acción puede bloquear escritura o acceso total según el modo configurado.",
+        language === "es"
+          ? "Esta acción puede bloquear escritura o acceso total según el modo configurado."
+          : "This action may block writes or full access depending on the configured mode.",
       details: [
         `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
-        `Modo manual: ${maintenanceMode ? "habilitado" : "deshabilitado"}`,
-        `Modo de acceso: ${maintenanceAccessMode}`,
+        `${language === "es" ? "Modo manual" : "Manual mode"}: ${
+          maintenanceMode
+            ? language === "es"
+              ? "habilitado"
+              : "enabled"
+            : language === "es"
+              ? "deshabilitado"
+              : "disabled"
+        }`,
+        `${language === "es" ? "Modo de acceso" : "Access mode"}: ${maintenanceAccessMode}`,
         `Scopes: ${
           maintenanceScopes.length > 0
             ? normalizeScopes(maintenanceScopes).join(", ")
-            : "ninguno"
+            : language === "es"
+              ? "ninguno"
+              : "none"
         }`,
-        `Ventana: ${maintenanceStartsAt || "sin inicio"} -> ${maintenanceEndsAt || "sin fin"}`,
+        `${language === "es" ? "Ventana" : "Window"}: ${
+          maintenanceStartsAt || (language === "es" ? "sin inicio" : "no start")
+        } -> ${maintenanceEndsAt || (language === "es" ? "sin fin" : "no end")}`,
       ],
-      confirmLabel: "Actualizar mantenimiento",
+      confirmLabel: language === "es" ? "Actualizar mantenimiento" : "Update maintenance",
       tone: maintenanceMode ? "danger" : "warning",
       action: () =>
         updatePlatformTenantMaintenance(session.accessToken, selectedTenantId, {
@@ -847,16 +874,24 @@ export function TenantsPage() {
     }
     requestConfirmation({
       scope: "billing",
-      title: "Confirmar actualización de facturación",
+      title: language === "es" ? "Confirmar actualización de facturación" : "Confirm billing update",
       description:
-        "Este cambio impacta la política de acceso y la lectura operativa del tenant.",
+        language === "es"
+          ? "Este cambio impacta la política de acceso y la lectura operativa del tenant."
+          : "This change affects the tenant access policy and operational read.",
       details: [
         `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
-        `Estado billing actual: ${selectedTenantSummary?.billing_status || "ninguno"}`,
-        `Nuevo estado billing: ${normalizeNullableString(billingStatus) || "ninguno"}`,
-        `Gracia hasta: ${billingGraceUntil || "sin fecha"}`,
+        `${language === "es" ? "Estado billing actual" : "Current billing status"}: ${
+          selectedTenantSummary?.billing_status || (language === "es" ? "ninguno" : "none")
+        }`,
+        `${language === "es" ? "Nuevo estado billing" : "New billing status"}: ${
+          normalizeNullableString(billingStatus) || (language === "es" ? "ninguno" : "none")
+        }`,
+        `${language === "es" ? "Gracia hasta" : "Grace until"}: ${
+          billingGraceUntil || (language === "es" ? "sin fecha" : "no date")
+        }`,
       ],
-      confirmLabel: "Actualizar facturación",
+      confirmLabel: language === "es" ? "Actualizar facturación" : "Update billing",
       tone:
         billingStatus === "suspended" || billingStatus === "canceled" ? "danger" : "warning",
       action: () =>
@@ -876,15 +911,21 @@ export function TenantsPage() {
     }
     requestConfirmation({
       scope: "plan",
-      title: "Confirmar cambio de plan",
+      title: language === "es" ? "Confirmar cambio de plan" : "Confirm plan change",
       description:
-        "El plan puede alterar módulos habilitados, límites y políticas derivadas del tenant.",
+        language === "es"
+          ? "El plan puede alterar módulos habilitados, límites y políticas derivadas del tenant."
+          : "The plan may alter enabled modules, limits and derived tenant policies.",
       details: [
         `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
-        `Plan actual: ${selectedTenantSummary?.plan_code || "sin plan"}`,
-        `Nuevo plan: ${normalizeNullableString(planCode) || "sin plan"}`,
+        `${language === "es" ? "Plan actual" : "Current plan"}: ${
+          selectedTenantSummary?.plan_code || (language === "es" ? "sin plan" : "no plan")
+        }`,
+        `${language === "es" ? "Nuevo plan" : "New plan"}: ${
+          normalizeNullableString(planCode) || (language === "es" ? "sin plan" : "no plan")
+        }`,
       ],
-      confirmLabel: "Actualizar plan",
+      confirmLabel: language === "es" ? "Actualizar plan" : "Update plan",
       action: () =>
         updatePlatformTenantPlan(session.accessToken, selectedTenantId, {
           plan_code: normalizeNullableString(planCode),
@@ -899,15 +940,21 @@ export function TenantsPage() {
     }
     requestConfirmation({
       scope: "rate-limit",
-      title: "Confirmar actualización de límites de tasa",
+      title: language === "es" ? "Confirmar actualización de límites de tasa" : "Confirm rate-limit update",
       description:
-        "Estos overrides cambian el throughput efectivo del tenant por sobre el plan o la política global.",
+        language === "es"
+          ? "Estos overrides cambian el throughput efectivo del tenant por sobre el plan o la política global."
+          : "These overrides change the tenant effective throughput beyond the plan or global policy.",
       details: [
         `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
-        `Lecturas req/min: ${readRateLimit.trim() || "heredado"}`,
-        `Escrituras req/min: ${writeRateLimit.trim() || "heredado"}`,
+        `${language === "es" ? "Lecturas req/min" : "Read req/min"}: ${
+          readRateLimit.trim() || (language === "es" ? "heredado" : "inherited")
+        }`,
+        `${language === "es" ? "Escrituras req/min" : "Write req/min"}: ${
+          writeRateLimit.trim() || (language === "es" ? "heredado" : "inherited")
+        }`,
       ],
-      confirmLabel: "Actualizar límites",
+      confirmLabel: language === "es" ? "Actualizar límites" : "Update limits",
       action: () =>
         updatePlatformTenantRateLimits(session.accessToken, selectedTenantId, {
           api_read_requests_per_minute: parseNullableInteger(readRateLimit),
@@ -923,18 +970,25 @@ export function TenantsPage() {
     }
     requestConfirmation({
       scope: "billing-identity",
-      title: "Confirmar actualización de identidad de billing",
+      title: language === "es" ? "Confirmar actualización de identidad de billing" : "Confirm billing identity update",
       description:
-        "Se actualizarán los identificadores que conectan este tenant con el proveedor de billing.",
+        language === "es"
+          ? "Se actualizarán los identificadores que conectan este tenant con el proveedor de billing."
+          : "The identifiers connecting this tenant to the billing provider will be updated.",
       details: [
         `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
-        `Proveedor: ${normalizeNullableString(billingProvider) || "ninguno"}`,
-        `Customer ID: ${normalizeNullableString(billingProviderCustomerId) || "vacío"}`,
+        `${language === "es" ? "Proveedor" : "Provider"}: ${
+          normalizeNullableString(billingProvider) || (language === "es" ? "ninguno" : "none")
+        }`,
+        `Customer ID: ${
+          normalizeNullableString(billingProviderCustomerId) || (language === "es" ? "vacío" : "empty")
+        }`,
         `Subscription ID: ${
-          normalizeNullableString(billingProviderSubscriptionId) || "vacío"
+          normalizeNullableString(billingProviderSubscriptionId) ||
+          (language === "es" ? "vacío" : "empty")
         }`,
       ],
-      confirmLabel: "Actualizar identidad",
+      confirmLabel: language === "es" ? "Actualizar identidad" : "Update identity",
       action: () =>
         updatePlatformTenantBillingIdentity(session.accessToken, selectedTenantId, {
           billing_provider: normalizeNullableString(billingProvider),
@@ -963,17 +1017,19 @@ export function TenantsPage() {
 
     requestConfirmation({
       scope: "module-limits",
-      title: "Confirmar actualización de límites por módulo",
+      title: language === "es" ? "Confirmar actualización de límites por módulo" : "Confirm module-limit update",
       description:
-        "Se aplicarán overrides tenant sobre los límites efectivos de módulos y cuotas operativas.",
+        language === "es"
+          ? "Se aplicarán overrides tenant sobre los límites efectivos de módulos y cuotas operativas."
+          : "Tenant overrides will be applied over effective module limits and operational quotas.",
       details: [
         `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
-        `Claves evaluadas: ${moduleLimitKeys.length}`,
-        `Overrides con valor explícito: ${
+        `${language === "es" ? "Claves evaluadas" : "Evaluated keys"}: ${moduleLimitKeys.length}`,
+        `${language === "es" ? "Overrides con valor explícito" : "Overrides with explicit value"}: ${
           Object.values(moduleLimitDrafts).filter((value) => value.trim()).length
         }`,
       ],
-      confirmLabel: "Actualizar límites por módulo",
+      confirmLabel: language === "es" ? "Actualizar límites por módulo" : "Update module limits",
       action: () =>
         updatePlatformTenantModuleLimits(session.accessToken, selectedTenantId, {
           module_limits: payload,
@@ -1878,34 +1934,43 @@ export function TenantsPage() {
                           value={schemaStatus.current_version || "sin registro"}
                         />
                         <DetailField
-                          label="Última versión disponible"
+                          label={
+                            language === "es"
+                              ? "Última versión disponible"
+                              : "Latest available version"
+                          }
                           value={schemaStatus.latest_available_version || "n/a"}
                         />
                         <DetailField
-                          label="Migraciones pendientes"
+                          label={language === "es" ? "Migraciones pendientes" : "Pending migrations"}
                           value={schemaStatus.pending_count}
                         />
                         <DetailField
-                          label="Última sincronización"
+                          label={language === "es" ? "Última sincronización" : "Last sync"}
                           value={formatDateTime(schemaStatus.last_applied_at)}
                         />
                       </div>
                       {schemaStatus.pending_count > 0 ? (
                         <div className="tenant-inline-note">
-                          El tenant no está al día de esquema. Usa{" "}
-                          <strong>Sincronizar esquema tenant</strong> para aplicar las
-                          migraciones pendientes.
+                          {language === "es" ? "El tenant no está al día de esquema. Usa " : "The tenant schema is not up to date. Use "}
+                          <strong>
+                            {language === "es" ? "Sincronizar esquema tenant" : "Sync tenant schema"}
+                          </strong>{" "}
+                          {language === "es" ? "para aplicar las migraciones pendientes." : "to apply pending migrations."}
                         </div>
                       ) : (
                         <div className="tenant-inline-note">
-                          El esquema tenant está al día según las migraciones registradas.
+                          {language === "es"
+                            ? "El esquema tenant está al día según las migraciones registradas."
+                            : "The tenant schema is up to date according to recorded migrations."}
                         </div>
                       )}
                     </>
                   ) : (
                     <div className="tenant-inline-note">
-                      La DB tenant existe, pero todavía no hay una lectura reciente de su
-                      versión de esquema.
+                      {language === "es"
+                        ? "La DB tenant existe, pero todavía no hay una lectura reciente de su versión de esquema."
+                        : "The tenant DB exists, but there is still no recent read of its schema version."}
                     </div>
                   )
                 ) : null}
@@ -1916,7 +1981,7 @@ export function TenantsPage() {
                         className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
                       >
                         <strong>
-                          {getPlatformActionFeedbackLabel(actionFeedback.scope)}:
+                          {getPlatformActionFeedbackLabel(actionFeedback.scope, language)}:
                         </strong>{" "}
                         {actionFeedback.message}
                         {actionFeedback.details?.length ? (
@@ -1930,7 +1995,11 @@ export function TenantsPage() {
                     ) : null}
                     <div className="tenant-detail-grid">
                       <DetailField
-                        label="Última rotación credenciales DB"
+                        label={
+                          language === "es"
+                            ? "Última rotación credenciales DB"
+                            : "Last DB credentials rotation"
+                        }
                         value={formatDateTime(
                           selectedTenantSummary.tenant_db_credentials_rotated_at
                         )}
@@ -1938,10 +2007,9 @@ export function TenantsPage() {
                     </div>
                     <div className="tenant-context-actions tenant-context-actions--compact">
                       <div className="tenant-help-text">
-                        Si necesitas endurecer operación o sospechas exposición de secretos
-                        técnicos, puedes rotar la contraseña DB tenant sin afectar el acceso
-                        del portal tenant. Esta no es la contraseña del usuario del portal
-                        tenant; esa credencial de acceso se gestiona aparte.
+                        {language === "es"
+                          ? "Si necesitas endurecer operación o sospechas exposición de secretos técnicos, puedes rotar la contraseña DB tenant sin afectar el acceso del portal tenant. Esta no es la contraseña del usuario del portal tenant; esa credencial de acceso se gestiona aparte."
+                          : "If you need to harden operations or suspect technical secret exposure, you can rotate the tenant DB password without affecting tenant portal access. This is not the tenant portal user password; that access credential is managed separately."}
                       </div>
                       <div className="tenant-context-actions__buttons">
                         <button
@@ -1950,7 +2018,7 @@ export function TenantsPage() {
                           onClick={handleRotateTenantDbCredentials}
                           disabled={isActionSubmitting}
                         >
-                          Rotar credenciales técnicas
+                          {language === "es" ? "Rotar credenciales técnicas" : "Rotate technical credentials"}
                         </button>
                       </div>
                     </div>
@@ -1959,14 +2027,18 @@ export function TenantsPage() {
               </PanelCard>
 
               <PanelCard
-                title="Acciones administrativas"
-                subtitle="Gobierna lifecycle, mantenimiento, billing, plan, límites y operación técnica del tenant seleccionado."
+                title={language === "es" ? "Acciones administrativas" : "Administrative actions"}
+                subtitle={
+                  language === "es"
+                    ? "Gobierna lifecycle, mantenimiento, billing, plan, límites y operación técnica del tenant seleccionado."
+                    : "Govern lifecycle, maintenance, billing, plan, limits and technical operations for the selected tenant."
+                }
               >
                 {actionFeedback ? (
                   <div
                     className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
                   >
-                    <strong>{getPlatformActionFeedbackLabel(actionFeedback.scope)}:</strong>{" "}
+                    <strong>{getPlatformActionFeedbackLabel(actionFeedback.scope, language)}:</strong>{" "}
                     {actionFeedback.message}
                     {actionFeedback.details?.length ? (
                       <div className="mt-2">
@@ -1981,11 +2053,17 @@ export function TenantsPage() {
                 <div className="tenant-action-grid">
                   {selectedTenantSummary.status === "archived" ? (
                     <AppForm className="tenant-action-form" onSubmit={handleRestoreTenantSubmit}>
-                      <h3 className="tenant-action-form__title">Restauración</h3>
+                      <h3 className="tenant-action-form__title">
+                        {language === "es" ? "Restauración" : "Restore"}
+                      </h3>
                       <AppFormField fullWidth>
                         <FieldHelpLabel
-                          label="Estado destino"
-                          help="La restauración no cambia el slug ni elimina historial. Solo reabre el tenant archivado en el lifecycle que definas aquí."
+                          label={language === "es" ? "Estado destino" : "Target status"}
+                          help={
+                            language === "es"
+                              ? "La restauración no cambia el slug ni elimina historial. Solo reabre el tenant archivado en el lifecycle que definas aquí."
+                              : "Restore does not change the slug or remove history. It only reopens the archived tenant in the lifecycle you define here."
+                          }
                         />
                         <select
                           className="form-select"
@@ -1994,51 +2072,66 @@ export function TenantsPage() {
                         >
                           {["pending", "active", "suspended"].map((value) => (
                             <option key={value} value={value}>
-                              {displayPlatformCode(value)}
+                              {displayPlatformCode(value, language)}
                             </option>
                           ))}
                         </select>
                       </AppFormField>
                       <AppFormField fullWidth>
                         <FieldHelpLabel
-                          label="Motivo de restauración"
-                          help="Úsalo para dejar trazabilidad operativa de por qué el tenant vuelve a abrirse."
+                          label={language === "es" ? "Motivo de restauración" : "Restore reason"}
+                          help={
+                            language === "es"
+                              ? "Úsalo para dejar trazabilidad operativa de por qué el tenant vuelve a abrirse."
+                              : "Use it to leave operational traceability about why the tenant is being reopened."
+                          }
                         />
                         <textarea
                           className="form-control"
                           rows={3}
                           value={restoreReason}
                           onChange={(event) => setRestoreReason(event.target.value)}
-                          placeholder="Ej: Reactivación operativa autorizada"
+                          placeholder={
+                            language === "es"
+                              ? "Ej: Reactivación operativa autorizada"
+                              : "Example: authorized operational reactivation"
+                          }
                         />
                       </AppFormField>
                       <div className="app-form-field app-form-field--full">
                         <div className="tenant-inline-note">
-                          La restauración es explícita y no equivale a editar el estado a mano.
+                          {language === "es"
+                            ? "La restauración es explícita y no equivale a editar el estado a mano."
+                            : "Restore is explicit and is not equivalent to editing the status by hand."}
                         </div>
                       </div>
                       <div className="app-form-field app-form-field--full">
                         <div className="tenant-inline-note">
-                          Si este tenant archivado todavía conserva base o credenciales técnicas,
-                          primero usa `Desprovisionar tenant`. Cuando ya no tenga configuración
-                          DB y no deba conservarse, podrás usar `Eliminar tenant` para removerlo
-                          definitivamente.
+                          {language === "es"
+                            ? "Si este tenant archivado todavía conserva base o credenciales técnicas, primero usa `Desprovisionar tenant`. Cuando ya no tenga configuración DB y no deba conservarse, podrás usar `Eliminar tenant` para removerlo definitivamente."
+                            : "If this archived tenant still keeps a database or technical credentials, first use `Deprovision tenant`. Once it no longer has DB configuration and should not be preserved, you can use `Delete tenant` to remove it permanently."}
                         </div>
                       </div>
                       <AppFormActions>
                         <button className="btn btn-primary" type="submit" disabled={isActionSubmitting}>
-                          Restaurar tenant
+                          {language === "es" ? "Restaurar tenant" : "Restore tenant"}
                         </button>
                       </AppFormActions>
                     </AppForm>
                   ) : null}
 
                   <AppForm className="tenant-action-form" onSubmit={handleIdentitySubmit}>
-                    <h3 className="tenant-action-form__title">Identidad básica</h3>
+                    <h3 className="tenant-action-form__title">
+                      {language === "es" ? "Identidad básica" : "Basic identity"}
+                    </h3>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Nombre visible"
-                        help="Este nombre se usa en catálogo, detalle y operación diaria del tenant."
+                        label={language === "es" ? "Nombre visible" : "Display name"}
+                        help={
+                          language === "es"
+                            ? "Este nombre se usa en catálogo, detalle y operación diaria del tenant."
+                            : "This name is used in catalog, detail and daily tenant operations."
+                        }
                       />
                       <input
                         className="form-control"
@@ -2048,8 +2141,12 @@ export function TenantsPage() {
                     </AppFormField>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Tipo de tenant"
-                        help="Clasifica operativamente el tenant sin tocar su slug ni su historial técnico."
+                        label={language === "es" ? "Tipo de tenant" : "Tenant type"}
+                        help={
+                          language === "es"
+                            ? "Clasifica operativamente el tenant sin tocar su slug ni su historial técnico."
+                            : "Operationally classify the tenant without touching its slug or technical history."
+                        }
                       />
                       <select
                         className="form-select"
@@ -2065,8 +2162,9 @@ export function TenantsPage() {
                     </AppFormField>
                     <div className="app-form-field app-form-field--full">
                       <div className="tenant-inline-note">
-                        El slug se mantiene estable para no romper accesos, bootstrap ni referencias
-                        técnicas.
+                        {language === "es"
+                          ? "El slug se mantiene estable para no romper accesos, bootstrap ni referencias técnicas."
+                          : "The slug stays stable so accesses, bootstrap and technical references do not break."}
                       </div>
                     </div>
                     <AppFormActions>
@@ -2075,17 +2173,23 @@ export function TenantsPage() {
                         type="submit"
                         disabled={isActionSubmitting || !identityName.trim()}
                       >
-                        Actualizar identidad básica
+                        {language === "es" ? "Actualizar identidad básica" : "Update basic identity"}
                       </button>
                     </AppFormActions>
                   </AppForm>
 
                   <AppForm className="tenant-action-form" onSubmit={handleStatusSubmit}>
-                    <h3 className="tenant-action-form__title">Estado</h3>
+                    <h3 className="tenant-action-form__title">
+                      {language === "es" ? "Estado" : "Status"}
+                    </h3>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Estado lifecycle"
-                        help="Controla el estado operativo general del tenant. Puede habilitar, suspender, archivar o dejar pendiente su operación."
+                        label={language === "es" ? "Estado lifecycle" : "Lifecycle status"}
+                        help={
+                          language === "es"
+                            ? "Controla el estado operativo general del tenant. Puede habilitar, suspender, archivar o dejar pendiente su operación."
+                            : "Controls the general tenant operational status. It can enable, suspend, archive or leave its operation pending."
+                        }
                       />
                       <select
                         className="form-select"
@@ -2094,15 +2198,19 @@ export function TenantsPage() {
                       >
                         {(capabilities?.tenant_statuses || []).map((value) => (
                           <option key={value} value={value}>
-                            {displayPlatformCode(value)}
+                            {displayPlatformCode(value, language)}
                           </option>
                         ))}
                       </select>
                     </AppFormField>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Motivo"
-                        help="Úsalo para dejar contexto operativo visible cuando cambias el estado del tenant."
+                        label={language === "es" ? "Motivo" : "Reason"}
+                        help={
+                          language === "es"
+                            ? "Úsalo para dejar contexto operativo visible cuando cambias el estado del tenant."
+                            : "Use it to leave visible operational context when you change the tenant status."
+                        }
                       />
                       <textarea
                         className="form-control"
@@ -2117,13 +2225,15 @@ export function TenantsPage() {
                         type="submit"
                         disabled={isActionSubmitting}
                       >
-                        Actualizar estado
+                        {language === "es" ? "Actualizar estado" : "Update status"}
                       </button>
                     </AppFormActions>
                   </AppForm>
 
                   <AppForm className="tenant-action-form" onSubmit={handleMaintenanceSubmit}>
-                    <h3 className="tenant-action-form__title">Mantenimiento</h3>
+                    <h3 className="tenant-action-form__title">
+                      {language === "es" ? "Mantenimiento" : "Maintenance"}
+                    </h3>
                     <div className="app-form-field app-form-field--full">
                       <div className="form-check mb-0">
                         <input
@@ -2134,20 +2244,25 @@ export function TenantsPage() {
                           onChange={(event) => setMaintenanceMode(event.target.checked)}
                         />
                         <label className="form-check-label" htmlFor="maintenance-mode">
-                          Habilitar mantenimiento manual
+                          {language === "es" ? "Habilitar mantenimiento manual" : "Enable manual maintenance"}
                         </label>
                       </div>
                     </div>
                     <div className="app-form-field app-form-field--full">
                       <p className="tenant-help-text mb-0">
-                        Activa una ventana manual cuando necesites restringir temporalmente el uso
-                        del tenant o de módulos específicos.
+                        {language === "es"
+                          ? "Activa una ventana manual cuando necesites restringir temporalmente el uso del tenant o de módulos específicos."
+                          : "Enable a manual window when you need to temporarily restrict tenant usage or specific modules."}
                       </p>
                     </div>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Modo de acceso"
-                        help="Define si durante el mantenimiento se bloquean solo escrituras o todo el acceso del tenant."
+                        label={language === "es" ? "Modo de acceso" : "Access mode"}
+                        help={
+                          language === "es"
+                            ? "Define si durante el mantenimiento se bloquean solo escrituras o todo el acceso del tenant."
+                            : "Define whether maintenance blocks only writes or the full tenant access."
+                        }
                         placement="left"
                       />
                       <select
@@ -2165,7 +2280,11 @@ export function TenantsPage() {
                     <AppFormField fullWidth>
                       <FieldHelpLabel
                         label="Scopes"
-                        help="Elige si el mantenimiento aplica a todo el tenant o solo a áreas puntuales como core, users o finance."
+                        help={
+                          language === "es"
+                            ? "Elige si el mantenimiento aplica a todo el tenant o solo a áreas puntuales como core, users o finance."
+                            : "Choose whether maintenance applies to the whole tenant or only to specific areas such as core, users or finance."
+                        }
                         placement="left"
                       />
                       <AppCheckGrid className="tenant-scope-list">
@@ -2184,8 +2303,12 @@ export function TenantsPage() {
                     </AppFormField>
                     <AppFormField>
                       <FieldHelpLabel
-                        label="Comienza"
-                        help="Marca cuándo parte la ventana de mantenimiento. Si no ajustas la hora, se guardará 00:00."
+                        label={language === "es" ? "Comienza" : "Starts"}
+                        help={
+                          language === "es"
+                            ? "Marca cuándo parte la ventana de mantenimiento. Si no ajustas la hora, se guardará 00:00."
+                            : "Mark when the maintenance window starts. If you do not set the time, `00:00` will be stored."
+                        }
                         placement="left"
                       />
                       <div className="tenant-date-time-stack">
@@ -2221,8 +2344,12 @@ export function TenantsPage() {
                     </AppFormField>
                     <AppFormField>
                       <FieldHelpLabel
-                        label="Termina"
-                        help="Marca cuándo termina la ventana de mantenimiento. Si no ajustas la hora, se guardará 00:00."
+                        label={language === "es" ? "Termina" : "Ends"}
+                        help={
+                          language === "es"
+                            ? "Marca cuándo termina la ventana de mantenimiento. Si no ajustas la hora, se guardará 00:00."
+                            : "Mark when the maintenance window ends. If you do not set the time, `00:00` will be stored."
+                        }
                         placement="left"
                       />
                       <div className="tenant-date-time-stack">
@@ -2258,8 +2385,12 @@ export function TenantsPage() {
                     </AppFormField>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Motivo"
-                        help="Describe brevemente el motivo operativo del mantenimiento para dejar trazabilidad visible."
+                        label={language === "es" ? "Motivo" : "Reason"}
+                        help={
+                          language === "es"
+                            ? "Describe brevemente el motivo operativo del mantenimiento para dejar trazabilidad visible."
+                            : "Briefly describe the operational reason for maintenance to leave visible traceability."
+                        }
                       />
                       <textarea
                         className="form-control"
@@ -2274,24 +2405,30 @@ export function TenantsPage() {
                         type="submit"
                         disabled={isActionSubmitting}
                       >
-                        Actualizar mantenimiento
+                        {language === "es" ? "Actualizar mantenimiento" : "Update maintenance"}
                       </button>
                     </AppFormActions>
                   </AppForm>
 
                   <AppForm className="tenant-action-form" onSubmit={handleBillingSubmit}>
-                    <h3 className="tenant-action-form__title">Facturación</h3>
+                    <h3 className="tenant-action-form__title">
+                      {language === "es" ? "Facturación" : "Billing"}
+                    </h3>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Estado billing"
-                        help="Representa el estado comercial del tenant frente a cobro y suscripción: trialing, active, past_due, suspended o canceled."
+                        label={language === "es" ? "Estado billing" : "Billing status"}
+                        help={
+                          language === "es"
+                            ? "Representa el estado comercial del tenant frente a cobro y suscripción: trialing, active, past_due, suspended o canceled."
+                            : "Represents the tenant commercial status for billing and subscription: trialing, active, past_due, suspended or canceled."
+                        }
                       />
                       <select
                         className="form-select"
                         value={billingStatus}
                         onChange={(event) => setBillingStatus(event.target.value)}
                       >
-                        <option value="">ninguno</option>
+                        <option value="">{language === "es" ? "ninguno" : "none"}</option>
                         {(capabilities?.tenant_billing_statuses || []).map((value) => (
                           <option key={value} value={value}>
                             {displayPlatformCode(value)}
@@ -2301,8 +2438,12 @@ export function TenantsPage() {
                     </AppFormField>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Motivo"
-                        help="Deja una explicación visible del cambio de facturación o del estado comercial actual."
+                        label={language === "es" ? "Motivo" : "Reason"}
+                        help={
+                          language === "es"
+                            ? "Deja una explicación visible del cambio de facturación o del estado comercial actual."
+                            : "Leave a visible explanation of the billing change or current commercial status."
+                        }
                       />
                       <textarea
                         className="form-control"
@@ -2313,8 +2454,12 @@ export function TenantsPage() {
                     </AppFormField>
                     <AppFormField>
                       <FieldHelpLabel
-                        label="Fin período actual"
-                        help="Usa fecha y hora local del cierre de período. Si no ajustas la hora, se guardará 00:00."
+                        label={language === "es" ? "Fin período actual" : "Current period end"}
+                        help={
+                          language === "es"
+                            ? "Usa fecha y hora local del cierre de período. Si no ajustas la hora, se guardará 00:00."
+                            : "Use the local date and time for the period close. If you do not set the time, `00:00` will be stored."
+                        }
                       />
                       <div className="tenant-date-time-stack">
                         <input
@@ -2349,8 +2494,12 @@ export function TenantsPage() {
                     </AppFormField>
                     <AppFormField>
                       <FieldHelpLabel
-                        label="Gracia hasta"
-                        help="Úsalo cuando el tenant sigue operativo por una ventana temporal pese a estar past_due. Si no ajustas la hora, se guardará 00:00."
+                        label={language === "es" ? "Gracia hasta" : "Grace until"}
+                        help={
+                          language === "es"
+                            ? "Úsalo cuando el tenant sigue operativo por una ventana temporal pese a estar past_due. Si no ajustas la hora, se guardará 00:00."
+                            : "Use it when the tenant remains operational for a temporary window despite being past due. If you do not set the time, `00:00` will be stored."
+                        }
                       />
                       <div className="tenant-date-time-stack">
                         <input
@@ -2389,17 +2538,23 @@ export function TenantsPage() {
                         type="submit"
                         disabled={isActionSubmitting}
                       >
-                        Actualizar facturación
+                        {language === "es" ? "Actualizar facturación" : "Update billing"}
                       </button>
                     </AppFormActions>
                   </AppForm>
 
                   <AppForm className="tenant-action-form" onSubmit={handlePlanSubmit}>
-                    <h3 className="tenant-action-form__title">Plan</h3>
+                    <h3 className="tenant-action-form__title">
+                      {language === "es" ? "Plan" : "Plan"}
+                    </h3>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Código de plan"
-                        help="Selecciona uno de los planes válidos que conoce el backend. Si eliges vacío, el tenant queda sin plan."
+                        label={language === "es" ? "Código de plan" : "Plan code"}
+                        help={
+                          language === "es"
+                            ? "Selecciona uno de los planes válidos que conoce el backend. Si eliges vacío, el tenant queda sin plan."
+                            : "Select one of the valid plans known by the backend. If you leave it empty, the tenant remains without a plan."
+                        }
                         placement="left"
                       />
                       <select
@@ -2407,7 +2562,7 @@ export function TenantsPage() {
                         value={planCode}
                         onChange={(event) => setPlanCode(event.target.value)}
                       >
-                        <option value="">Sin plan</option>
+                        <option value="">{language === "es" ? "Sin plan" : "No plan"}</option>
                         {planOptions.map((value) => (
                           <option key={value} value={value}>
                             {value}
@@ -2417,8 +2572,9 @@ export function TenantsPage() {
                     </AppFormField>
                     <div className="app-form-field app-form-field--full">
                       <p className="tenant-help-text mt-2 mb-0">
-                        Solo puedes aplicar planes definidos en la política de backend. Si no
-                        seleccionas ninguno, el tenant opera sin plan asociado.
+                        {language === "es"
+                          ? "Solo puedes aplicar planes definidos en la política de backend. Si no seleccionas ninguno, el tenant opera sin plan asociado."
+                          : "You can only apply plans defined in the backend policy. If you do not select one, the tenant operates without an associated plan."}
                       </p>
                     </div>
                     <AppFormActions>
@@ -2427,17 +2583,23 @@ export function TenantsPage() {
                         type="submit"
                         disabled={isActionSubmitting}
                       >
-                        Actualizar plan
+                        {language === "es" ? "Actualizar plan" : "Update plan"}
                       </button>
                     </AppFormActions>
                   </AppForm>
 
                   <AppForm className="tenant-action-form" onSubmit={handleRateLimitSubmit}>
-                    <h3 className="tenant-action-form__title">Límites de tasa</h3>
+                    <h3 className="tenant-action-form__title">
+                      {language === "es" ? "Límites de tasa" : "Rate limits"}
+                    </h3>
                     <AppFormField>
                       <FieldHelpLabel
-                        label="Lecturas req/min"
-                        help="Override específico para el máximo de lecturas por minuto. Vacío hereda; `0` deja sin límite."
+                        label={language === "es" ? "Lecturas req/min" : "Read req/min"}
+                        help={
+                          language === "es"
+                            ? "Override específico para el máximo de lecturas por minuto. Vacío hereda; `0` deja sin límite."
+                            : "Specific override for the maximum reads per minute. Empty inherits; `0` removes the limit."
+                        }
                       />
                       <input
                         className="form-control"
@@ -2449,8 +2611,12 @@ export function TenantsPage() {
                     </AppFormField>
                     <AppFormField>
                       <FieldHelpLabel
-                        label="Escrituras req/min"
-                        help="Override específico para el máximo de escrituras por minuto. Vacío hereda; `0` deja sin límite."
+                        label={language === "es" ? "Escrituras req/min" : "Write req/min"}
+                        help={
+                          language === "es"
+                            ? "Override específico para el máximo de escrituras por minuto. Vacío hereda; `0` deja sin límite."
+                            : "Specific override for the maximum writes per minute. Empty inherits; `0` removes the limit."
+                        }
                       />
                       <input
                         className="form-control"
@@ -2462,8 +2628,9 @@ export function TenantsPage() {
                     </AppFormField>
                     <div className="app-form-field app-form-field--full">
                       <p className="tenant-help-text mt-2 mb-0">
-                        Déjalo vacío para volver al plan o a la configuración global. Usa `0`
-                        para quitar el límite de esa categoría.
+                        {language === "es"
+                          ? "Déjalo vacío para volver al plan o a la configuración global. Usa `0` para quitar el límite de esa categoría."
+                          : "Leave it empty to return to the plan or global configuration. Use `0` to remove the limit for that category."}
                       </p>
                     </div>
                     <AppFormActions>
@@ -2472,7 +2639,7 @@ export function TenantsPage() {
                         type="submit"
                         disabled={isActionSubmitting}
                       >
-                        Actualizar límites de tasa
+                        {language === "es" ? "Actualizar límites de tasa" : "Update rate limits"}
                       </button>
                     </AppFormActions>
                   </AppForm>
@@ -2481,11 +2648,17 @@ export function TenantsPage() {
                     className="tenant-action-form"
                     onSubmit={handleBillingIdentitySubmit}
                   >
-                    <h3 className="tenant-action-form__title">Identidad de billing</h3>
+                    <h3 className="tenant-action-form__title">
+                      {language === "es" ? "Identidad de billing" : "Billing identity"}
+                    </h3>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Proveedor"
-                        help="Proveedor externo que gestiona la suscripción o cobro del tenant."
+                        label={language === "es" ? "Proveedor" : "Provider"}
+                        help={
+                          language === "es"
+                            ? "Proveedor externo que gestiona la suscripción o cobro del tenant."
+                            : "External provider that manages the tenant subscription or charging."
+                        }
                         placement="left"
                       />
                       <select
@@ -2493,7 +2666,7 @@ export function TenantsPage() {
                         value={billingProvider}
                         onChange={(event) => setBillingProvider(event.target.value)}
                       >
-                        <option value="">ninguno</option>
+                        <option value="">{language === "es" ? "ninguno" : "none"}</option>
                         {(capabilities?.billing_providers || []).map((value) => (
                           <option key={value} value={value}>
                             {value}
@@ -2504,7 +2677,11 @@ export function TenantsPage() {
                     <AppFormField fullWidth>
                       <FieldHelpLabel
                         label="Customer ID"
-                        help="Identificador del cliente dentro del proveedor de billing."
+                        help={
+                          language === "es"
+                            ? "Identificador del cliente dentro del proveedor de billing."
+                            : "Customer identifier inside the billing provider."
+                        }
                         placement="left"
                       />
                       <input
@@ -2518,7 +2695,11 @@ export function TenantsPage() {
                     <AppFormField fullWidth>
                       <FieldHelpLabel
                         label="Subscription ID"
-                        help="Identificador de la suscripción o contrato activo en el proveedor de billing."
+                        help={
+                          language === "es"
+                            ? "Identificador de la suscripción o contrato activo en el proveedor de billing."
+                            : "Identifier of the active subscription or contract in the billing provider."
+                        }
                         placement="left"
                       />
                       <input
@@ -2535,17 +2716,20 @@ export function TenantsPage() {
                         type="submit"
                         disabled={isActionSubmitting}
                       >
-                        Actualizar identidad de billing
+                        {language === "es" ? "Actualizar identidad de billing" : "Update billing identity"}
                       </button>
                     </AppFormActions>
                   </AppForm>
 
                   <AppForm className="tenant-action-form" onSubmit={handleModuleLimitsSubmit}>
-                    <h3 className="tenant-action-form__title">Límites por módulo</h3>
+                    <h3 className="tenant-action-form__title">
+                      {language === "es" ? "Límites por módulo" : "Module limits"}
+                    </h3>
                     <div className="app-form-field app-form-field--full">
                       <p className="tenant-help-text mb-0">
-                        Vacío limpia el override tenant para esa clave. `0` significa ilimitado
-                        para ese override.
+                        {language === "es"
+                          ? "Vacío limpia el override tenant para esa clave. `0` significa ilimitado para ese override."
+                          : "Empty clears the tenant override for that key. `0` means unlimited for that override."}
                       </p>
                     </div>
                     <AppFormField fullWidth>
@@ -2584,17 +2768,20 @@ export function TenantsPage() {
                         type="submit"
                         disabled={isActionSubmitting}
                       >
-                        Actualizar límites por módulo
+                        {language === "es" ? "Actualizar límites por módulo" : "Update module limits"}
                       </button>
                     </AppFormActions>
                   </AppForm>
 
                   <AppForm className="tenant-action-form" onSubmit={handleTenantSchemaSync}>
-                    <h3 className="tenant-action-form__title">Esquema tenant</h3>
+                    <h3 className="tenant-action-form__title">
+                      {language === "es" ? "Esquema tenant" : "Tenant schema"}
+                    </h3>
                     <div className="app-form-field app-form-field--full">
                       <p className="tenant-help-text mb-0">
-                        Ejecuta la sincronización de migraciones tenant cuando falten tablas
-                        como <code>finance_entries</code> o la base tenant aún no esté al día.
+                        {language === "es"
+                          ? <>Ejecuta la sincronización de migraciones tenant cuando falten tablas como <code>finance_entries</code> o la base tenant aún no esté al día.</>
+                          : <>Run tenant schema sync when tables such as <code>finance_entries</code> are missing or the tenant database is still not up to date.</>}
                       </p>
                     </div>
                     <AppFormActions>
@@ -2603,7 +2790,7 @@ export function TenantsPage() {
                         type="submit"
                         disabled={isActionSubmitting}
                       >
-                        Sincronizar esquema tenant
+                        {language === "es" ? "Sincronizar esquema tenant" : "Sync tenant schema"}
                       </button>
                     </AppFormActions>
                   </AppForm>
@@ -2613,19 +2800,23 @@ export function TenantsPage() {
                     onSubmit={handleResetTenantPortalPassword}
                   >
                     <h3 className="tenant-action-form__title">
-                      Acceso portal tenant
+                      {language === "es" ? "Acceso portal tenant" : "Tenant portal access"}
                     </h3>
                     <div className="app-form-field app-form-field--full">
                       <p className="tenant-help-text mb-0">
-                        Usa este bloque para reiniciar la contraseña de un usuario del
-                        portal tenant cuando la olvidó. No cambia la credencial técnica
-                        de la base tenant.
+                        {language === "es"
+                          ? "Usa este bloque para reiniciar la contraseña de un usuario del portal tenant cuando la olvidó. No cambia la credencial técnica de la base tenant."
+                          : "Use this block to reset a tenant portal user password when it was forgotten. It does not change the tenant database technical credential."}
                       </p>
                     </div>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Usuario portal tenant"
-                        help="Selecciona un usuario real cargado desde la base tenant actual. Esto evita intentar reinicios sobre correos que no existen."
+                        label={language === "es" ? "Usuario portal tenant" : "Tenant portal user"}
+                        help={
+                          language === "es"
+                            ? "Selecciona un usuario real cargado desde la base tenant actual. Esto evita intentar reinicios sobre correos que no existen."
+                            : "Select a real user loaded from the current tenant database. This avoids trying resets on emails that do not exist."
+                        }
                         placement="left"
                       />
                       <select
@@ -2636,13 +2827,23 @@ export function TenantsPage() {
                       >
                         <option value="">
                           {tenantPortalUsers.length > 0
-                            ? "Selecciona un usuario tenant"
-                            : "No hay usuarios tenant disponibles"}
+                            ? language === "es"
+                              ? "Selecciona un usuario tenant"
+                              : "Select a tenant user"
+                            : language === "es"
+                              ? "No hay usuarios tenant disponibles"
+                              : "There are no tenant users available"}
                         </option>
                         {tenantPortalUsers.map((user) => (
                           <option key={user.id} value={user.email}>
                             {`${user.email} · ${user.role} · ${
-                              user.is_active ? "activo" : "inactivo"
+                              user.is_active
+                                ? language === "es"
+                                  ? "activo"
+                                  : "active"
+                                : language === "es"
+                                  ? "inactivo"
+                                  : "inactive"
                             }`}
                           </option>
                         ))}
@@ -2650,15 +2851,19 @@ export function TenantsPage() {
                     </AppFormField>
                     <div className="app-form-field app-form-field--full">
                       <p className="tenant-help-text mb-0">
-                        La lista se carga desde la base tenant activa. Si no aparecen
-                        usuarios, revisa el acceso técnico del tenant o su bootstrap de
-                        usuarios.
+                        {language === "es"
+                          ? "La lista se carga desde la base tenant activa. Si no aparecen usuarios, revisa el acceso técnico del tenant o su bootstrap de usuarios."
+                          : "The list is loaded from the active tenant database. If users do not appear, review the tenant technical access or its user bootstrap."}
                       </p>
                     </div>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label="Nueva contraseña portal"
-                        help="La nueva contraseña se aplica al usuario tenant indicado y no toca la contraseña técnica de la DB."
+                        label={language === "es" ? "Nueva contraseña portal" : "New portal password"}
+                        help={
+                          language === "es"
+                            ? "La nueva contraseña se aplica al usuario tenant indicado y no toca la contraseña técnica de la DB."
+                            : "The new password is applied to the selected tenant user and does not touch the database technical password."
+                        }
                         placement="left"
                       />
                       <input
@@ -2681,7 +2886,7 @@ export function TenantsPage() {
                           !tenantPortalResetPassword
                         }
                       >
-                        Reiniciar contraseña portal
+                        {language === "es" ? "Reiniciar contraseña portal" : "Reset portal password"}
                       </button>
                     </AppFormActions>
                   </AppForm>
@@ -2690,7 +2895,7 @@ export function TenantsPage() {
 
               {moduleUsageError ? (
                 <ErrorState
-                  title="Uso por módulo no disponible"
+                  title={language === "es" ? "Uso por módulo no disponible" : "Module usage unavailable"}
                   detail={moduleUsageError.payload?.detail || moduleUsageError.message}
                   requestId={moduleUsageError.payload?.request_id}
                 />
@@ -2698,53 +2903,55 @@ export function TenantsPage() {
 
               {moduleUsageNotice ? (
                 <PanelCard
-                  title="Uso por módulo no disponible"
+                  title={language === "es" ? "Uso por módulo no disponible" : "Module usage unavailable"}
                   subtitle={moduleUsageNotice}
                 >
                   <div className="text-secondary">
-                    Completa el provisioning del tenant o su configuración de base de
-                    datos para habilitar esta vista.
+                    {language === "es"
+                      ? "Completa el provisioning del tenant o su configuración de base de datos para habilitar esta vista."
+                      : "Finish tenant provisioning or its database configuration to enable this view."}
                   </div>
                 </PanelCard>
               ) : null}
 
               {moduleUsage ? (
                 <DataTableCard
-                  title="Uso por módulo"
+                  title={language === "es" ? "Uso por módulo" : "Module usage"}
                   rows={moduleUsage.data}
                   columns={[
                     {
                       key: "module_key",
-                      header: "Clave de módulo",
+                      header: language === "es" ? "Clave de módulo" : "Module key",
                       render: (row) => <code>{row.module_key}</code>,
                     },
                     {
                       key: "used_units",
-                      header: "Usado",
+                      header: language === "es" ? "Usado" : "Used",
                       render: (row) => row.used_units,
                     },
                     {
                       key: "max_units",
-                      header: "Límite",
-                      render: (row) => (row.unlimited ? "ilimitado" : row.max_units ?? "—"),
+                      header: language === "es" ? "Límite" : "Limit",
+                      render: (row) =>
+                        row.unlimited ? (language === "es" ? "ilimitado" : "unlimited") : row.max_units ?? "—",
                     },
                     {
                       key: "remaining_units",
-                      header: "Restante",
+                      header: language === "es" ? "Restante" : "Remaining",
                       render: (row) =>
                         row.unlimited ? "—" : row.remaining_units ?? "—",
                     },
                     {
                       key: "limit_source",
-                      header: "Fuente",
-                      render: (row) => row.limit_source || "ninguna",
+                      header: language === "es" ? "Fuente" : "Source",
+                      render: (row) => row.limit_source || (language === "es" ? "ninguna" : "none"),
                     },
                     {
                       key: "at_limit",
-                      header: "Estado",
+                      header: language === "es" ? "Estado" : "Status",
                       render: (row) =>
                         row.at_limit ? (
-                          <AppBadge tone="warning">al-límite</AppBadge>
+                          <AppBadge tone="warning">{language === "es" ? "al-límite" : "at limit"}</AppBadge>
                         ) : (
                           <AppBadge tone="success">ok</AppBadge>
                         ),
@@ -2755,7 +2962,7 @@ export function TenantsPage() {
 
               {policyHistoryError ? (
                 <ErrorState
-                  title="Historial de políticas no disponible"
+                  title={language === "es" ? "Historial de políticas no disponible" : "Policy history unavailable"}
                   detail={policyHistoryError.payload?.detail || policyHistoryError.message}
                   requestId={policyHistoryError.payload?.request_id}
                 />
@@ -2763,50 +2970,62 @@ export function TenantsPage() {
 
               {policyHistory.length > 0 ? (
                 <DataTableCard
-                  title="Historial de políticas"
+                  title={language === "es" ? "Historial de políticas" : "Policy history"}
                   rows={policyHistory}
                   columns={[
                     {
                       key: "recorded_at",
-                      header: "Registrado en",
+                      header: language === "es" ? "Registrado en" : "Recorded at",
                       render: (row) => formatDateTime(row.recorded_at),
                     },
                     {
                       key: "event_type",
-                      header: "Evento",
+                      header: language === "es" ? "Evento" : "Event",
                       render: (row) => row.event_type,
                     },
                     {
                       key: "actor_email",
-                      header: "Actor",
-                      render: (row) => row.actor_email || row.actor_role || "sistema",
+                      header: language === "es" ? "Actor" : "Actor",
+                      render: (row) =>
+                        row.actor_email ||
+                        row.actor_role ||
+                        (language === "es" ? "sistema" : "system"),
                     },
                     {
                       key: "changed_fields",
-                      header: "Campos cambiados",
+                      header: language === "es" ? "Campos cambiados" : "Changed fields",
                       render: (row) =>
                         row.changed_fields.length > 0
                           ? row.changed_fields.join(", ")
-                          : "ninguno",
+                          : language === "es"
+                            ? "ninguno"
+                            : "none",
                     },
                   ]}
                 />
               ) : !policyHistoryError ? (
                 <PanelCard
-                  title="Historial de políticas"
-                  subtitle="Mutaciones recientes de política aplicadas desde la operación de plataforma."
+                  title={language === "es" ? "Historial de políticas" : "Policy history"}
+                  subtitle={
+                    language === "es"
+                      ? "Mutaciones recientes de política aplicadas desde la operación de plataforma."
+                      : "Recent policy mutations applied from platform operations."
+                  }
                 >
                   <div className="text-secondary">
-                    Aún no hay mutaciones de política registradas para este tenant.
+                    {language === "es"
+                      ? "Aún no hay mutaciones de política registradas para este tenant."
+                      : "There are no policy mutations recorded for this tenant yet."}
                   </div>
                 </PanelCard>
               ) : null}
             </>
           ) : !isListLoading ? (
-            <PanelCard title="Detalle del tenant">
+            <PanelCard title={language === "es" ? "Detalle del tenant" : "Tenant detail"}>
               <div className="text-secondary">
-                Selecciona un tenant desde el panel izquierdo para inspeccionar estado, billing,
-                políticas y controles administrativos.
+                {language === "es"
+                  ? "Selecciona un tenant desde el panel izquierdo para inspeccionar estado, billing, políticas y controles administrativos."
+                  : "Select a tenant from the left panel to inspect status, billing, policies and administrative controls."}
               </div>
             </PanelCard>
           ) : null}
@@ -2843,7 +3062,13 @@ function FieldHelpLabel({
   return (
     <div className={`inline-help inline-help--${placement}`}>
       <span className="form-label mb-0">{label}</span>
-      <button className="inline-help__trigger" type="button" aria-label={`Ayuda sobre ${label}`}>
+      <button
+        className="inline-help__trigger"
+        type="button"
+        aria-label={`${
+          getCurrentLanguage() === "es" ? "Ayuda sobre" : "Help about"
+        } ${label}`}
+      >
         ?
       </button>
       <div className="inline-help__bubble">{help}</div>
@@ -2931,14 +3156,15 @@ function toDateTimeLocalInput(value: string | null): string {
 }
 
 function formatDateTime(value: string | null): string {
+  const language = getCurrentLanguage();
   if (!value) {
-    return "n/a";
+    return language === "es" ? "n/d" : "n/a";
   }
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
     return value;
   }
-  return parsed.toLocaleString();
+  return parsed.toLocaleString(getCurrentLocale(language));
 }
 
 function readArchiveObject(
@@ -2992,19 +3218,21 @@ function readArchiveNumber(
 }
 
 function formatArchiveStringArray(value: unknown): string {
+  const language = getCurrentLanguage();
   if (!Array.isArray(value)) {
-    return "ninguno";
+    return language === "es" ? "ninguno" : "none";
   }
   const items = value.filter((item): item is string => typeof item === "string");
-  return items.length > 0 ? items.join(", ") : "ninguno";
+  return items.length > 0 ? items.join(", ") : language === "es" ? "ninguno" : "none";
 }
 
 function formatArchiveAccessPolicy(
   summary: Record<string, unknown> | null
 ): string {
+  const language = getCurrentLanguage();
   const accessPolicy = readArchiveObject(summary, "access_policy");
   if (!accessPolicy) {
-    return "sin snapshot";
+    return language === "es" ? "sin snapshot" : "no snapshot";
   }
   const allowed = accessPolicy.allowed === true;
   const detail =
@@ -3015,27 +3243,38 @@ function formatArchiveAccessPolicy(
       : null;
 
   if (allowed) {
-    return detail ? `permitido (${detail})` : "permitido";
+    return detail
+      ? language === "es"
+        ? `permitido (${detail})`
+        : `allowed (${detail})`
+      : language === "es"
+        ? "permitido"
+        : "allowed";
   }
-  return source && detail ? `bloqueado por ${source}: ${detail}` : detail || "bloqueado";
+  return source && detail
+    ? language === "es"
+      ? `bloqueado por ${source}: ${detail}`
+      : `blocked by ${source}: ${detail}`
+    : detail || (language === "es" ? "bloqueado" : "blocked");
 }
 
 function formatArchiveModuleLimits(
   summary: Record<string, unknown> | null
 ): string {
+  const language = getCurrentLanguage();
   const tenantSnapshot = readArchiveObject(summary, "tenant");
   if (!tenantSnapshot) {
-    return "sin snapshot";
+    return language === "es" ? "sin snapshot" : "no snapshot";
   }
   const limits = readArchiveObject(tenantSnapshot, "effective_module_limits");
   if (!limits) {
-    return "sin límites efectivos";
+    return language === "es" ? "sin límites efectivos" : "no effective limits";
   }
   const entries = Object.entries(limits).filter(
     ([, value]) => typeof value === "number"
   );
   if (entries.length === 0) {
-    return "sin límites efectivos";
+    return language === "es" ? "sin límites efectivos" : "no effective limits";
   }
   return entries.map(([key, value]) => `${key}: ${value}`).join(" | ");
 }
@@ -3051,25 +3290,50 @@ function selectLatestProvisioningJob(
 }
 
 function formatProvisioningJobType(value: string): string {
+  const language = getCurrentLanguage();
   const knownLabels: Record<string, string> = {
-    create_tenant_database: "Crear base del tenant",
-    deprovision_tenant_database: "Desprovisionar base del tenant",
-    sync_tenant_schema: "Sincronizar esquema tenant",
+    create_tenant_database:
+      language === "es" ? "Crear base del tenant" : "Create tenant database",
+    deprovision_tenant_database:
+      language === "es" ? "Desprovisionar base del tenant" : "Deprovision tenant database",
+    sync_tenant_schema:
+      language === "es" ? "Sincronizar esquema tenant" : "Sync tenant schema",
   };
 
   return knownLabels[value] || displayPlatformCode(value);
 }
 
 function getProvisioningStatusExplanation(status: string): string {
+  const language = getCurrentLanguage();
   const knownMessages: Record<string, string> = {
-    pending: "El job está en cola y todavía no lo toma el worker.",
-    running: "El worker está procesando este job ahora mismo.",
-    retry_pending: "Falló un intento, pero el job volverá a intentarse.",
-    completed: "La base tenant y su bootstrap técnico quedaron listos.",
-    failed: "El job agotó sus intentos y ya requiere intervención explícita.",
+    pending:
+      language === "es"
+        ? "El job está en cola y todavía no lo toma el worker."
+        : "The job is queued and the worker has not picked it up yet.",
+    running:
+      language === "es"
+        ? "El worker está procesando este job ahora mismo."
+        : "The worker is processing this job right now.",
+    retry_pending:
+      language === "es"
+        ? "Falló un intento, pero el job volverá a intentarse."
+        : "One attempt failed, but the job will be retried.",
+    completed:
+      language === "es"
+        ? "La base tenant y su bootstrap técnico quedaron listos."
+        : "The tenant database and its technical bootstrap are ready.",
+    failed:
+      language === "es"
+        ? "El job agotó sus intentos y ya requiere intervención explícita."
+        : "The job exhausted its attempts and now requires explicit intervention.",
   };
 
-  return knownMessages[status] || "Estado operativo de provisioning.";
+  return (
+    knownMessages[status] ||
+    (language === "es"
+      ? "Estado operativo de provisioning."
+      : "Provisioning operational status.")
+  );
 }
 
 function toggleScope(currentScopes: string[], scope: string): string[] {

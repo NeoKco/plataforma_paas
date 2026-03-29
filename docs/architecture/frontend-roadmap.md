@@ -18,7 +18,7 @@ Hoy el frontend ya es operable de punta a punta para los flujos visibles princip
 - `Actividad` ya permite leer senales operativas breves y filtrar cambios tenant por tipo de evento y actor
 - existe `tenant_portal` con login, resumen, usuarios y finanzas
 - `Overview` y `Users` del `tenant_portal` ya respetan el selector de idioma en su lectura principal
-- el frontend visible ya quedo conectado al idioma activo en guards, login, recovery, installer, `tenant_portal`, `Dashboard`, `Actividad`, `Settings`, `Usuarios de plataforma`, `Histórico tenants`, `Billing`, `Provisioning`, `Tenants` y el borde legacy de finanzas
+- el frontend visible ya quedo conectado al idioma activo en guards, login, recovery, installer, `tenant_portal`, `Dashboard`, `Actividad`, `Settings`, `Usuarios de plataforma`, `Histórico tenants`, `Billing`, `Provisioning`, `Tenants` y el borde legacy de finanzas, incluyendo ya la pasada fina sobre formularios densos y lecturas operativas de `Billing`, `Provisioning` y `Tenants`
 - los helpers compartidos de labels, feedback, estados vacios, errores, badges y tablas ya dejaron de forzar español cuando el idioma activo es ingles
 - `finance` ya tiene slice frontend propio en `tenant_portal/modules/finance`
 - la ruta `/tenant-portal/finance` ya queda servida desde ese slice, preservando la vista actual de movimientos como base operativa
@@ -56,7 +56,7 @@ Lo pendiente es sobre todo:
 - consolidar la adopción visible del auto-sync post-deploy en consola operativa, ahora que ya existe el follow-up automático post-provisioning, la acción masiva desde `Provisioning` y la integración al wrapper de release/verify
 - `finance` ya tiene una primera capa visual propia con iconografía semántica, bloques `spotlight` y charts livianos en `Reportes` y `Planificación`; si se sigue por ahí debe ser para densidad adicional, no para abrir esa base desde cero
 - el `design system` transversal del PaaS ya quedó aplicado sobre el frontend visible con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid`, `AppTableWrap`, `AppForm` y primitives compartidas; `finance` quedó como primer bloque integral, `Overview` + `Users` ya consumen la misma base, `platform_admin` ya la usa en `Dashboard`, `Actividad`, `Usuarios de plataforma`, `Tenants`, `Histórico tenants`, `Provisioning`, `Billing`, `Settings`, login, recuperación raíz e instalador, y el portal tenant ya absorbió también esa capa en login y el borde legacy de finanzas
-- profundizar y terminar la internacionalizacion transversal del frontend, ahora que la superficie visible principal y los helpers compartidos ya respetan el idioma activo; lo pendiente fino es limpiar copy secundario, ayudas largas y formularios densos para dejar el sistema completamente consistente
+- profundizar y terminar la internacionalizacion transversal del frontend, ahora que la superficie visible principal, los helpers compartidos y los formularios densos principales ya respetan el idioma activo; lo pendiente fino pasa a ser microcopy residual, ayudas largas y bolsas menores de texto secundario
 
 Nota de ejecucion:
 

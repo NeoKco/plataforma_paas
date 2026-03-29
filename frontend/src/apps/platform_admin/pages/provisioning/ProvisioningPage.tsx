@@ -32,6 +32,7 @@ import {
 } from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
 import { useLanguage } from "../../../../store/language-context";
+import { getCurrentLanguage, getCurrentLocale } from "../../../../utils/i18n";
 import type {
   ApiError,
   ProvisioningBrokerDeadLetterResponse,
@@ -377,7 +378,10 @@ export function ProvisioningPage() {
         type: "success",
         message: getPlatformActionSuccessMessage(
           scope,
-          message || "La acción de provisioning se completó correctamente."
+          message ||
+            (language === "es"
+              ? "La acción de provisioning se completó correctamente."
+              : "The provisioning action completed successfully.")
         ),
       });
     } catch (rawError) {
@@ -396,11 +400,17 @@ function getProvisioningActionRecommendation(job: ProvisioningJob): string {
   if (job.job_type === "deprovision_tenant_database") {
     switch (job.status) {
       case "failed":
-        return "Corrige el bloqueo del retiro técnico y reencola el job antes de intentar borrar el tenant.";
+        return language === "es"
+          ? "Corrige el bloqueo del retiro técnico y reencola el job antes de intentar borrar el tenant."
+          : "Fix the technical retirement blocker and requeue the job before trying to delete the tenant.";
       case "retry_pending":
-        return "El retiro técnico volverá a intentarse. Puedes esperar el worker o forzar la ejecución si quieres cerrar el tenant ahora.";
+        return language === "es"
+          ? "El retiro técnico volverá a intentarse. Puedes esperar el worker o forzar la ejecución si quieres cerrar el tenant ahora."
+          : "The technical retirement will be retried. You can wait for the worker or force execution if you want to close the tenant now.";
       case "pending":
-        return "El retiro técnico quedó en cola. Ejecútalo ahora si necesitas liberar infraestructura sin esperar al worker.";
+        return language === "es"
+          ? "El retiro técnico quedó en cola. Ejecútalo ahora si necesitas liberar infraestructura sin esperar al worker."
+          : "The technical retirement is queued. Run it now if you need to release infrastructure without waiting for the worker.";
       default:
         return "n/a";
     }
@@ -408,11 +418,17 @@ function getProvisioningActionRecommendation(job: ProvisioningJob): string {
 
   switch (job.status) {
     case "failed":
-      return "Reencola el job o revisa el error antes de volver a intentar.";
+      return language === "es"
+        ? "Reencola el job o revisa el error antes de volver a intentar."
+        : "Requeue the job or review the error before trying again.";
     case "retry_pending":
-      return "Puedes esperar el próximo ciclo del worker o forzar ejecución ahora.";
+      return language === "es"
+        ? "Puedes esperar el próximo ciclo del worker o forzar ejecución ahora."
+        : "You can wait for the next worker cycle or force execution now.";
     case "pending":
-      return "Puedes dejarlo en cola o ejecutarlo ahora si necesitas acelerar el alta.";
+      return language === "es"
+        ? "Puedes dejarlo en cola o ejecutarlo ahora si necesitas acelerar el alta."
+        : "You can leave it queued or run it now if you need to speed up provisioning.";
     default:
       return "n/a";
   }
@@ -435,17 +451,29 @@ function handleRefresh() {
 
     setPendingConfirmation({
       scope: "requeue-dlq-batch",
-      title: "Reencolar filas DLQ filtradas",
+      title: language === "es" ? "Reencolar filas DLQ filtradas" : "Requeue filtered DLQ rows",
       description:
-        "Esta acción vuelve a poner en cola el subconjunto actual del DLQ usando los filtros visibles en pantalla.",
+        language === "es"
+          ? "Esta acción vuelve a poner en cola el subconjunto actual del DLQ usando los filtros visibles en pantalla."
+          : "This action puts the current DLQ subset back in queue using the filters currently visible on screen.",
       details: [
-        `Filas candidatas: ${dlq?.total_jobs || 0}`,
-        `Tipo de job: ${normalizeNullableString(dlqJobType) || "todos"}`,
-        `Tenant: ${normalizeNullableString(dlqTenantSlug) || "todos"}`,
-        `Resetear intentos: ${dlqResetAttempts ? "sí" : "no"}`,
-        `Demora antes de reencolar: ${parseNonNegativeInteger(dlqDelaySeconds, 0)} s`,
+        `${language === "es" ? "Filas candidatas" : "Candidate rows"}: ${dlq?.total_jobs || 0}`,
+        `${language === "es" ? "Tipo de job" : "Job type"}: ${
+          normalizeNullableString(dlqJobType) || (language === "es" ? "todos" : "all")
+        }`,
+        `Tenant: ${normalizeNullableString(dlqTenantSlug) || (language === "es" ? "todos" : "all")}`,
+        `${language === "es" ? "Resetear intentos" : "Reset attempts"}: ${
+          dlqResetAttempts
+            ? language === "es"
+              ? "sí"
+              : "yes"
+            : language === "es"
+              ? "no"
+              : "no"
+        }`,
+        `${language === "es" ? "Demora antes de reencolar" : "Delay before requeue"}: ${parseNonNegativeInteger(dlqDelaySeconds, 0)} s`,
       ],
-      confirmLabel: "Reencolar lote",
+      confirmLabel: language === "es" ? "Reencolar lote" : "Requeue batch",
       action: () =>
         requeueProvisioningBrokerDlq(session.accessToken, {
           limit: parsePositiveInteger(dlqLimit, 25),
@@ -466,15 +494,19 @@ function handleRefresh() {
 
     setPendingConfirmation({
       scope: "requeue-provisioning-job",
-      title: `Reencolar job #${jobId}`,
+      title: language === "es" ? `Reencolar job #${jobId}` : `Requeue job #${jobId}`,
       description:
-        "Esta acción devuelve el job a cola para que vuelva a entrar al ciclo normal del worker.",
+        language === "es"
+          ? "Esta acción devuelve el job a cola para que vuelva a entrar al ciclo normal del worker."
+          : "This action returns the job to queue so it re-enters the normal worker cycle.",
       details: [
         `Job: #${jobId}`,
-        `Resetear intentos: ${dlqResetAttempts ? "sí" : "no"}`,
-        `Demora antes de reencolar: ${parseNonNegativeInteger(dlqDelaySeconds, 0)} s`,
+        `${language === "es" ? "Resetear intentos" : "Reset attempts"}: ${
+          dlqResetAttempts ? (language === "es" ? "sí" : "yes") : "no"
+        }`,
+        `${language === "es" ? "Demora antes de reencolar" : "Delay before requeue"}: ${parseNonNegativeInteger(dlqDelaySeconds, 0)} s`,
       ],
-      confirmLabel: "Reencolar job",
+      confirmLabel: language === "es" ? "Reencolar job" : "Requeue job",
       action: () =>
         requeueProvisioningJob(session.accessToken, jobId, {
           resetAttempts: dlqResetAttempts,
@@ -490,21 +522,29 @@ function handleRefresh() {
 
     setPendingConfirmation({
       scope: "run-provisioning-job",
-      title: `Ejecutar ahora el job #${job.id}`,
+      title: language === "es" ? `Ejecutar ahora el job #${job.id}` : `Run job #${job.id} now`,
       description:
         job.job_type === "deprovision_tenant_database"
-          ? "Esta acción intenta ejecutar inmediatamente el retiro técnico del tenant seleccionado, sin esperar al siguiente ciclo del worker."
-          : "Esta acción intenta procesar inmediatamente el job seleccionado, sin esperar al siguiente ciclo del worker.",
+          ? language === "es"
+            ? "Esta acción intenta ejecutar inmediatamente el retiro técnico del tenant seleccionado, sin esperar al siguiente ciclo del worker."
+            : "This action tries to run the selected tenant technical retirement immediately, without waiting for the next worker cycle."
+          : language === "es"
+            ? "Esta acción intenta procesar inmediatamente el job seleccionado, sin esperar al siguiente ciclo del worker."
+            : "This action tries to process the selected job immediately, without waiting for the next worker cycle.",
       details: [
         `Tenant: ${tenantSlugById.get(job.tenant_id) || `tenant-${job.tenant_id}`}`,
-        `Operación: ${formatProvisioningJobType(job.job_type)}`,
-        `Estado actual: ${formatProvisioningCodeLabel(job.status)}`,
-        `Intentos usados: ${job.attempts}/${job.max_attempts}`,
+        `${language === "es" ? "Operación" : "Operation"}: ${formatProvisioningJobType(job.job_type)}`,
+        `${language === "es" ? "Estado actual" : "Current status"}: ${formatProvisioningCodeLabel(job.status)}`,
+        `${language === "es" ? "Intentos usados" : "Used attempts"}: ${job.attempts}/${job.max_attempts}`,
       ],
       confirmLabel:
         job.job_type === "deprovision_tenant_database"
-          ? "Ejecutar retiro técnico"
-          : "Ejecutar ahora",
+          ? language === "es"
+            ? "Ejecutar retiro técnico"
+            : "Run technical retirement"
+          : language === "es"
+            ? "Ejecutar ahora"
+            : "Run now",
       action: () => runProvisioningJob(session.accessToken, job.id),
     });
   }
@@ -789,13 +829,25 @@ function handleRefresh() {
 
       <PanelCard
         icon="activity"
-        title="Qué revisar ahora"
-        subtitle="Lectura operativa rápida para distinguir backlog normal de deuda que ya requiere intervención."
+        title={language === "es" ? "Qué revisar ahora" : "What to review now"}
+        subtitle={
+          language === "es"
+            ? "Lectura operativa rápida para distinguir backlog normal de deuda que ya requiere intervención."
+            : "Quick operational read to distinguish normal backlog from debt that already requires intervention."
+        }
       >
         {operationalSignals.length === 0 ? (
           <EmptyState
-            title="No hay señales operativas abiertas"
-            detail="No hay jobs fallidos, DLQ relevante ni señales recientes de ciclos cortados por error. Provisioning se ve estable en este momento."
+            title={
+              language === "es"
+                ? "No hay señales operativas abiertas"
+                : "There are no open operational signals"
+            }
+            detail={
+              language === "es"
+                ? "No hay jobs fallidos, DLQ relevante ni señales recientes de ciclos cortados por error. Provisioning se ve estable en este momento."
+                : "There are no failed jobs, relevant DLQ rows or recent signs of worker cycles cut by errors. Provisioning looks stable right now."
+            }
           />
         ) : (
           <div className="dashboard-quick-hints mt-0">
@@ -811,28 +863,42 @@ function handleRefresh() {
       {showDevelopmentBootstrapHelp ? (
         <PanelCard
           icon="users"
-          title="Credenciales bootstrap de desarrollo"
-          subtitle="Ayuda visible solo en entorno local para validar rápido el acceso al portal tenant después del provisioning."
+          title={
+            language === "es"
+              ? "Credenciales bootstrap de desarrollo"
+              : "Development bootstrap credentials"
+          }
+          subtitle={
+            language === "es"
+              ? "Ayuda visible solo en entorno local para validar rápido el acceso al portal tenant después del provisioning."
+              : "Helper visible only in local environments to quickly validate tenant portal access after provisioning."
+          }
         >
           <div className="text-secondary">
-            Usuario bootstrap tenant:
+            {language === "es" ? "Usuario bootstrap tenant:" : "Tenant bootstrap user:"}
             {" "}
             <code>admin@{"<tenant_slug>"}.local</code>
           </div>
           <div className="text-secondary">
-            Contraseña bootstrap tenant:
+            {language === "es" ? "Contraseña bootstrap tenant:" : "Tenant bootstrap password:"}
             {" "}
             <code>TenantAdmin123!</code>
           </div>
           <div className="tenant-inline-note">
-            Usa esta referencia solo para pruebas de desarrollo. No representa una política válida de producción.
+            {language === "es"
+              ? "Usa esta referencia solo para pruebas de desarrollo. No representa una política válida de producción."
+              : "Use this reference only for development tests. It does not represent a valid production policy."}
           </div>
         </PanelCard>
       ) : null}
 
       {jobsError ? (
         <ErrorState
-          title="Jobs de provisioning no disponibles"
+          title={
+            language === "es"
+              ? "Jobs de provisioning no disponibles"
+              : "Provisioning jobs unavailable"
+          }
           detail={jobsError.payload?.detail || jobsError.message}
           requestId={jobsError.payload?.request_id}
         />
@@ -840,7 +906,7 @@ function handleRefresh() {
 
       {!jobsError && filteredJobs.length > 0 ? (
         <DataTableCard
-          title="Jobs de provisioning"
+            title={language === "es" ? "Jobs de provisioning" : "Provisioning jobs"}
           subtitle={
             jobOperationFilter === "all"
               ? "Catálogo completo de jobs técnicos."
@@ -958,7 +1024,11 @@ function handleRefresh() {
 
       {metricsError ? (
         <ErrorState
-          title="Métricas de provisioning no disponibles"
+            title={
+              language === "es"
+                ? "Métricas de provisioning no disponibles"
+                : "Provisioning metrics unavailable"
+            }
           detail={metricsError.payload?.detail || metricsError.message}
           requestId={metricsError.payload?.request_id}
         />
@@ -967,7 +1037,7 @@ function handleRefresh() {
       {!metricsError && metrics ? (
         <div className="provisioning-data-grid">
           <DataTableCard
-            title="Métricas por tenant"
+            title={language === "es" ? "Métricas por tenant" : "Metrics by tenant"}
             rows={metrics.data}
             columns={[
               {
@@ -1005,7 +1075,7 @@ function handleRefresh() {
 
           {metricsByJobType ? (
             <DataTableCard
-              title="Métricas por tipo de job"
+              title={language === "es" ? "Métricas por tipo de job" : "Metrics by job type"}
               rows={metricsByJobType.data}
               columns={[
                 {
@@ -1044,8 +1114,12 @@ function handleRefresh() {
 
           {metricsByErrorCode ? (
             <DataTableCard
-              title="Fallos por código"
-              subtitle="Agrupa familias de error para no depender solo del texto libre del último intento."
+              title={language === "es" ? "Fallos por código" : "Failures by code"}
+              subtitle={
+                language === "es"
+                  ? "Agrupa familias de error para no depender solo del texto libre del último intento."
+                  : "Groups error families so you do not depend only on the free text of the latest attempt."
+              }
               rows={metricsByErrorCode.data}
               columns={[
                 {
@@ -1086,7 +1160,11 @@ function handleRefresh() {
 
       {alertsError ? (
         <ErrorState
-          title="Alertas de provisioning no disponibles"
+          title={
+            language === "es"
+              ? "Alertas de provisioning no disponibles"
+              : "Provisioning alerts unavailable"
+          }
           detail={alertsError.payload?.detail || alertsError.message}
           requestId={alertsError.payload?.request_id}
         />
@@ -1095,7 +1173,7 @@ function handleRefresh() {
       {!alertsError && alerts ? (
         alerts.data.length > 0 ? (
           <DataTableCard
-            title="Alertas activas"
+            title={language === "es" ? "Alertas activas" : "Active alerts"}
             rows={alerts.data}
             columns={[
               {
@@ -1138,12 +1216,24 @@ function handleRefresh() {
         ) : (
           <PanelCard
             icon="pulse"
-            title="Alertas activas"
-            subtitle="No se reportaron alertas activas de provisioning en la última lectura."
+            title={language === "es" ? "Alertas activas" : "Active alerts"}
+            subtitle={
+              language === "es"
+                ? "No se reportaron alertas activas de provisioning en la última lectura."
+                : "No active provisioning alerts were reported in the latest read."
+            }
           >
             <EmptyState
-              title="No hay alertas activas de provisioning"
-              detail="La operación está estable y no hay señales abiertas de backlog, fallos o degradación."
+              title={
+                language === "es"
+                  ? "No hay alertas activas de provisioning"
+                  : "There are no active provisioning alerts"
+              }
+              detail={
+                language === "es"
+                  ? "La operación está estable y no hay señales abiertas de backlog, fallos o degradación."
+                  : "Operations are stable and there are no open signs of backlog, failures or degradation."
+              }
             />
           </PanelCard>
         )
@@ -1151,8 +1241,12 @@ function handleRefresh() {
 
       <PanelCard
         icon="reports"
-        title="Operación DLQ"
-        subtitle="Inspecciona filas dead-letter del broker y reencólalas individualmente o en lote."
+        title={language === "es" ? "Operación DLQ" : "DLQ operations"}
+        subtitle={
+          language === "es"
+            ? "Inspecciona filas dead-letter del broker y reencólalas individualmente o en lote."
+            : "Inspect broker dead-letter rows and requeue them individually or in batches."
+        }
       >
         <div className="provisioning-dlq-grid">
           <AppForm className="tenant-action-form" onSubmit={handleDlqFilterSubmit}>
@@ -1296,7 +1390,7 @@ function handleRefresh() {
 
       {dlqError ? (
         <ErrorState
-          title="DLQ de provisioning no disponible"
+          title={language === "es" ? "DLQ de provisioning no disponible" : "Provisioning DLQ unavailable"}
           detail={dlqError.payload?.detail || dlqError.message}
           requestId={dlqError.payload?.request_id}
         />
@@ -1305,7 +1399,7 @@ function handleRefresh() {
       {!dlqError && dlq ? (
         dlq.data.length > 0 ? (
           <DataTableCard
-            title="Filas DLQ"
+            title={language === "es" ? "Filas DLQ" : "DLQ rows"}
             rows={dlq.data}
             columns={[
               {
@@ -1375,12 +1469,24 @@ function handleRefresh() {
         ) : (
           <PanelCard
             icon="reports"
-            title="Filas DLQ"
-            subtitle="Ninguna fila dead-letter del broker coincide con el set actual de filtros."
+            title={language === "es" ? "Filas DLQ" : "DLQ rows"}
+            subtitle={
+              language === "es"
+                ? "Ninguna fila dead-letter del broker coincide con el set actual de filtros."
+                : "No broker dead-letter rows match the current filter set."
+            }
           >
             <EmptyState
-              title="No hay filas DLQ para este filtro"
-              detail="Esto es esperable cuando el broker está estable o cuando el filtro actual es muy específico."
+              title={
+                language === "es"
+                  ? "No hay filas DLQ para este filtro"
+                  : "There are no DLQ rows for this filter"
+              }
+              detail={
+                language === "es"
+                  ? "Esto es esperable cuando el broker está estable o cuando el filtro actual es muy específico."
+                  : "This is expected when the broker is stable or when the current filter is very specific."
+              }
             />
           </PanelCard>
         )
@@ -1389,8 +1495,12 @@ function handleRefresh() {
       {!metricsError && cycleHistory ? (
         cycleHistory.data.length > 0 ? (
           <DataTableCard
-            title="Ciclos recientes del worker"
-            subtitle="Resumen corto de las últimas corridas para distinguir si el problema es de backlog o de ejecución."
+            title={language === "es" ? "Ciclos recientes del worker" : "Recent worker cycles"}
+            subtitle={
+              language === "es"
+                ? "Resumen corto de las últimas corridas para distinguir si el problema es de backlog o de ejecución."
+                : "Short summary of recent runs to distinguish whether the issue is backlog or execution."
+            }
             rows={cycleHistory.data}
             columns={[
               {
@@ -1428,12 +1538,24 @@ function handleRefresh() {
         ) : (
           <PanelCard
             icon="activity"
-            title="Ciclos recientes del worker"
-            subtitle="Todavía no hay trazas persistidas de ciclos en este entorno."
+            title={language === "es" ? "Ciclos recientes del worker" : "Recent worker cycles"}
+            subtitle={
+              language === "es"
+                ? "Todavía no hay trazas persistidas de ciclos en este entorno."
+                : "There are no persisted cycle traces in this environment yet."
+            }
           >
             <EmptyState
-              title="No hay historial reciente del worker"
-              detail="Esto suele pasar cuando todavía no se ejecutó el worker con persistencia de trazas o el entorno es nuevo."
+              title={
+                language === "es"
+                  ? "No hay historial reciente del worker"
+                  : "There is no recent worker history"
+              }
+              detail={
+                language === "es"
+                  ? "Esto suele pasar cuando todavía no se ejecutó el worker con persistencia de trazas o el entorno es nuevo."
+                  : "This usually happens when the worker has not run yet with trace persistence or the environment is new."
+              }
             />
           </PanelCard>
         )
@@ -1454,7 +1576,13 @@ function FieldHelpLabel({
   return (
     <div className={`inline-help inline-help--${placement}`}>
       <span className="form-label mb-0">{label}</span>
-      <button className="inline-help__trigger" type="button" aria-label={`Ayuda sobre ${label}`}>
+      <button
+        className="inline-help__trigger"
+        type="button"
+        aria-label={`${
+          getCurrentLanguage() === "es" ? "Ayuda sobre" : "Help about"
+        } ${label}`}
+      >
         ?
       </button>
       <div className="inline-help__bubble">{help}</div>
@@ -1522,11 +1650,16 @@ function SeverityBadge({ value }: { value: string }) {
 }
 
 function formatProvisioningJobType(value: string): string {
+  const language = getCurrentLanguage();
   const knownLabels: Record<string, string> = {
-    create_tenant_database: "Crear base del tenant",
-    deprovision_tenant_database: "Desprovisionar base del tenant",
-    sync_tenant_schema: "Sincronizar esquema tenant",
-    repair_tenant_schema: "Reparar esquema tenant",
+    create_tenant_database:
+      language === "es" ? "Crear base del tenant" : "Create tenant database",
+    deprovision_tenant_database:
+      language === "es" ? "Desprovisionar base del tenant" : "Deprovision tenant database",
+    sync_tenant_schema:
+      language === "es" ? "Sincronizar esquema tenant" : "Sync tenant schema",
+    repair_tenant_schema:
+      language === "es" ? "Reparar esquema tenant" : "Repair tenant schema",
   };
 
   return knownLabels[value] || formatProvisioningCodeLabel(value);
@@ -1550,18 +1683,19 @@ function getProvisioningOperationKind(
 function formatProvisioningOperationKind(
   kind: "provision" | "deprovision" | "schema" | "other"
 ): string {
+  const language = getCurrentLanguage();
   const labels: Record<string, string> = {
-    provision: "alta",
-    deprovision: "retiro técnico",
-    schema: "esquema",
-    other: "otro",
+    provision: language === "es" ? "alta" : "create",
+    deprovision: language === "es" ? "retiro técnico" : "technical retirement",
+    schema: language === "es" ? "esquema" : "schema",
+    other: language === "es" ? "otro" : "other",
   };
   return labels[kind] || kind;
 }
 
 function formatProvisioningOperationFilterLabel(value: string): string {
   if (value === "all") {
-    return "todas las operaciones";
+    return getCurrentLanguage() === "es" ? "todas las operaciones" : "all operations";
   }
   return formatProvisioningOperationKind(
     value as "provision" | "deprovision" | "schema" | "other"
@@ -1584,13 +1718,24 @@ function kindToRepresentativeJobType(
 }
 
 function formatProvisioningAlertCode(value: string): string {
+  const language = getCurrentLanguage();
   const knownLabels: Record<string, string> = {
-    tenant_failed_jobs_threshold_exceeded: "Tenant con jobs fallidos sobre el umbral",
-    worker_cycle_duration_threshold_exceeded: "Worker con ciclo sobre el umbral",
+    tenant_failed_jobs_threshold_exceeded:
+      language === "es"
+        ? "Tenant con jobs fallidos sobre el umbral"
+        : "Tenant with failed jobs over threshold",
+    worker_cycle_duration_threshold_exceeded:
+      language === "es"
+        ? "Worker con ciclo sobre el umbral"
+        : "Worker with cycle over threshold",
     billing_provider_event_volume_threshold_exceeded:
-      "Volumen de eventos billing sobre el umbral",
+      language === "es"
+        ? "Volumen de eventos billing sobre el umbral"
+        : "Billing event volume over threshold",
     billing_duplicate_events_threshold_exceeded:
-      "Eventos billing duplicados sobre el umbral",
+      language === "es"
+        ? "Eventos billing duplicados sobre el umbral"
+        : "Duplicate billing events over threshold",
   };
 
   return knownLabels[value] || formatProvisioningCodeLabel(value);
@@ -1624,6 +1769,7 @@ function parseNonNegativeInteger(value: string, fallback: number): number {
 }
 
 function formatDateTime(value: string | null): string {
+  const language = getCurrentLanguage();
   if (!value) {
     return "—";
   }
@@ -1631,7 +1777,7 @@ function formatDateTime(value: string | null): string {
   if (Number.isNaN(parsed.getTime())) {
     return value;
   }
-  return parsed.toLocaleString();
+  return parsed.toLocaleString(getCurrentLocale(language));
 }
 
 function buildDlqOptions(filters: {

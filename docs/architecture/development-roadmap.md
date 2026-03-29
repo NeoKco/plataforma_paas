@@ -301,7 +301,7 @@ Backlog opcional post-cierre:
 - la base visual local de `finance` ya quedó sembrada con iconografia semantica, bloques `spotlight` y charts livianos; el pendiente ya no es esa capa inicial, sino elevarla a sistema transversal del PaaS
 - consolidar `finance` como referencia formal para los modulos siguientes antes de abrir otro dominio grande
 - el trabajo transversal de `design system` ya quedó aplicado sobre el frontend visible con iconografia común, `spotlight` genérico, badges, layouts, formularios y wrappers de tabla reutilizables; `finance` ya sirve como bloque de referencia, `Overview`/`Users` ya comparten esa base y `platform_admin` ya la absorbió en `Dashboard`, `Actividad`, `Usuarios de plataforma`, `Tenants`, `Histórico tenants`, `Provisioning`, `Billing`, `Configuración`, login, recuperación raíz e instalador
-- dejar, tambien como trabajo transversal posterior, el cierre fino de una internacionalizacion real del sistema; la superficie visible principal y los helpers compartidos ya respetan el idioma activo, pero todavia quedan ayudas largas, copy secundario y formularios densos por unificar
+- dejar, tambien como trabajo transversal posterior, el cierre fino de una internacionalizacion real del sistema; la superficie visible principal, los helpers compartidos y los formularios densos principales ya respetan el idioma activo, y lo pendiente baja a ayudas largas, microcopy residual y bolsas menores de texto secundario
 
 ## Etapa 9. Calidad Tecnica Base
 

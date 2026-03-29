@@ -16,6 +16,7 @@ import {
 import { useAuth } from "../../../../store/auth-context";
 import { useLanguage } from "../../../../store/language-context";
 import type { ApiError, PlatformTenantRetirementArchiveItem } from "../../../../types";
+import { getCurrentLanguage, getCurrentLocale } from "../../../../utils/i18n";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
 
 export function TenantHistoryPage() {
@@ -538,14 +539,15 @@ function DetailField({
 }
 
 function formatDateTime(value: string | null): string {
+  const language = getCurrentLanguage();
   if (!value) {
-    return "n/a";
+    return language === "es" ? "n/d" : "n/a";
   }
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
     return value;
   }
-  return parsed.toLocaleString();
+  return parsed.toLocaleString(getCurrentLocale(language));
 }
 
 function readArchiveObject(
@@ -599,19 +601,21 @@ function readArchiveNumber(
 }
 
 function formatArchiveStringArray(value: unknown): string {
+  const language = getCurrentLanguage();
   if (!Array.isArray(value)) {
-    return "ninguno";
+    return language === "es" ? "ninguno" : "none";
   }
   const items = value.filter((item): item is string => typeof item === "string");
-  return items.length > 0 ? items.join(", ") : "ninguno";
+  return items.length > 0 ? items.join(", ") : language === "es" ? "ninguno" : "none";
 }
 
 function formatArchiveAccessPolicy(
   summary: Record<string, unknown> | null
 ): string {
+  const language = getCurrentLanguage();
   const accessPolicy = readArchiveObject(summary, "access_policy");
   if (!accessPolicy) {
-    return "sin snapshot";
+    return language === "es" ? "sin snapshot" : "no snapshot";
   }
   const allowed = accessPolicy.allowed === true;
   const detail =
@@ -622,36 +626,51 @@ function formatArchiveAccessPolicy(
       : null;
 
   if (allowed) {
-    return detail ? `permitido (${detail})` : "permitido";
+    return detail
+      ? language === "es"
+        ? `permitido (${detail})`
+        : `allowed (${detail})`
+      : language === "es"
+        ? "permitido"
+        : "allowed";
   }
-  return source && detail ? `bloqueado por ${source}: ${detail}` : detail || "bloqueado";
+  return source && detail
+    ? language === "es"
+      ? `bloqueado por ${source}: ${detail}`
+      : `blocked by ${source}: ${detail}`
+    : detail || (language === "es" ? "bloqueado" : "blocked");
 }
 
 function formatArchiveModuleLimits(
   summary: Record<string, unknown> | null
 ): string {
+  const language = getCurrentLanguage();
   const tenantSnapshot = readArchiveObject(summary, "tenant");
   if (!tenantSnapshot) {
-    return "sin snapshot";
+    return language === "es" ? "sin snapshot" : "no snapshot";
   }
   const limits = readArchiveObject(tenantSnapshot, "effective_module_limits");
   if (!limits) {
-    return "sin límites efectivos";
+    return language === "es" ? "sin límites efectivos" : "no effective limits";
   }
   const entries = Object.entries(limits).filter(
     ([, value]) => typeof value === "number"
   );
   if (entries.length === 0) {
-    return "sin límites efectivos";
+    return language === "es" ? "sin límites efectivos" : "no effective limits";
   }
   return entries.map(([key, value]) => `${key}: ${value}`).join(" | ");
 }
 
 function formatProvisioningJobType(value: string): string {
+  const language = getCurrentLanguage();
   const knownLabels: Record<string, string> = {
-    create_tenant_database: "Crear base del tenant",
-    deprovision_tenant_database: "Desprovisionar base del tenant",
-    sync_tenant_schema: "Sincronizar esquema tenant",
+    create_tenant_database:
+      language === "es" ? "Crear base del tenant" : "Create tenant database",
+    deprovision_tenant_database:
+      language === "es" ? "Desprovisionar base del tenant" : "Deprovision tenant database",
+    sync_tenant_schema:
+      language === "es" ? "Sincronizar esquema tenant" : "Sync tenant schema",
   };
 
   return knownLabels[value] || displayPlatformCode(value);

@@ -29,6 +29,7 @@ import {
 } from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
 import { useLanguage } from "../../../../store/language-context";
+import { getCurrentLanguage, getCurrentLocale } from "../../../../utils/i18n";
 import {
   getPlatformActionFeedbackLabel,
   getPlatformActionSuccessMessage,
@@ -365,7 +366,10 @@ export function BillingPage() {
         type: "success",
         message: getPlatformActionSuccessMessage(
           scope,
-          result.message || "La acción de facturación se completó correctamente."
+          result.message ||
+            (language === "es"
+              ? "La acción de facturación se completó correctamente."
+              : "The billing action completed successfully.")
         ),
       });
     } catch (rawError) {
@@ -392,15 +396,20 @@ export function BillingPage() {
 
     setPendingConfirmation({
       scope: `reconcile-${syncEventId}`,
-      title: `Reconciliar evento #${syncEventId}`,
+      title: language === "es" ? `Reconciliar evento #${syncEventId}` : `Reconcile event #${syncEventId}`,
       description:
-        "Esta acción vuelve a aplicar sobre el tenant el estado persistido en ese evento de billing.",
+        language === "es"
+          ? "Esta acción vuelve a aplicar sobre el tenant el estado persistido en ese evento de billing."
+          : "This action reapplies to the tenant the state persisted in that billing event.",
       details: [
         `Tenant: ${selectedTenant?.slug || `tenant-${selectedTenantId}`}`,
-        `Evento: #${syncEventId}`,
-        `Proveedor: ${normalizeNullableString(providerFilter) || "según fila seleccionada"}`,
+        `${language === "es" ? "Evento" : "Event"}: #${syncEventId}`,
+        `${language === "es" ? "Proveedor" : "Provider"}: ${
+          normalizeNullableString(providerFilter) ||
+          (language === "es" ? "según fila seleccionada" : "according to selected row")
+        }`,
       ],
-      confirmLabel: "Reconciliar evento",
+      confirmLabel: language === "es" ? "Reconciliar evento" : "Reconcile event",
       action: () =>
         reconcileTenantBillingEvent(session.accessToken, selectedTenantId, syncEventId),
     });
@@ -414,17 +423,29 @@ export function BillingPage() {
 
     setPendingConfirmation({
       scope: "reconcile-batch",
-      title: "Reconciliar eventos filtrados",
+      title:
+        language === "es"
+          ? "Reconciliar eventos filtrados"
+          : "Reconcile filtered events",
       description:
-        "Esta acción vuelve a aplicar sobre el tenant los eventos de billing que hoy coinciden con el filtro visible.",
+        language === "es"
+          ? "Esta acción vuelve a aplicar sobre el tenant los eventos de billing que hoy coinciden con el filtro visible."
+          : "This action reapplies to the tenant the billing events that currently match the visible filter.",
       details: [
         `Tenant: ${selectedTenant?.slug || `tenant-${selectedTenantId}`}`,
-        `Proveedor: ${normalizeNullableString(providerFilter) || "todos"}`,
-        `Tipo de evento: ${normalizeNullableString(eventTypeFilter) || "todos"}`,
-        `Resultado actual: ${normalizeNullableString(processingResultFilter) || "todos"}`,
-        `Límite: ${parsePositiveInteger(batchLimit, 10)}`,
+        `${language === "es" ? "Proveedor" : "Provider"}: ${
+          normalizeNullableString(providerFilter) || (language === "es" ? "todos" : "all")
+        }`,
+        `${language === "es" ? "Tipo de evento" : "Event type"}: ${
+          normalizeNullableString(eventTypeFilter) || (language === "es" ? "todos" : "all")
+        }`,
+        `${language === "es" ? "Resultado actual" : "Current result"}: ${
+          normalizeNullableString(processingResultFilter) ||
+          (language === "es" ? "todos" : "all")
+        }`,
+        `${language === "es" ? "Límite" : "Limit"}: ${parsePositiveInteger(batchLimit, 10)}`,
       ],
-      confirmLabel: "Reconciliar lote",
+      confirmLabel: language === "es" ? "Reconciliar lote" : "Reconcile batch",
       action: () =>
         reconcileTenantBillingEventsBatch(session.accessToken, selectedTenantId, {
           provider: normalizeNullableString(providerFilter),
@@ -669,27 +690,27 @@ export function BillingPage() {
       {!platformError && platformSummary ? (
         <div className="billing-data-grid">
           <DataTableCard
-            title="Resumen global de facturación"
+            title={language === "es" ? "Resumen global de facturación" : "Global billing summary"}
             rows={platformSummary.data}
             columns={[
               {
                 key: "provider",
-                header: "Proveedor",
+                header: language === "es" ? "Proveedor" : "Provider",
                 render: (row) => row.provider,
               },
               {
                 key: "event_type",
-                header: "Tipo de evento",
+                header: language === "es" ? "Tipo de evento" : "Event type",
                 render: (row) => <code>{row.event_type}</code>,
               },
               {
                 key: "processing_result",
-                header: "Resultado",
+                header: language === "es" ? "Resultado" : "Result",
                 render: (row) => <StatusBadge value={row.processing_result} />,
               },
               {
                 key: "total_events",
-                header: "Eventos",
+                header: language === "es" ? "Eventos" : "Events",
                 render: (row) => row.total_events,
               },
               {
@@ -699,7 +720,7 @@ export function BillingPage() {
               },
               {
                 key: "last_recorded_at",
-                header: "Última vez visto",
+                header: language === "es" ? "Última vez visto" : "Last seen",
                 render: (row) => formatDateTime(row.last_recorded_at),
               },
             ]}
@@ -708,30 +729,30 @@ export function BillingPage() {
           {platformAlerts ? (
             platformAlerts.data.length > 0 ? (
               <DataTableCard
-                title="Alertas activas de facturación"
+                title={language === "es" ? "Alertas activas de facturación" : "Active billing alerts"}
                 rows={platformAlerts.data}
                 columns={[
                   {
                     key: "severity",
-                    header: "Severidad",
+                    header: language === "es" ? "Severidad" : "Severity",
                     render: (row) => <SeverityBadge value={row.severity} />,
                   },
                   {
                     key: "alert_code",
-                    header: "Alerta",
+                    header: language === "es" ? "Alerta" : "Alert",
                     render: (row) => <code>{row.alert_code}</code>,
                   },
                   {
                     key: "provider",
-                    header: "Proveedor",
+                    header: language === "es" ? "Proveedor" : "Provider",
                     render: (row) => row.provider,
                   },
                   {
                     key: "processing_result",
-                    header: "Resultado",
+                    header: language === "es" ? "Resultado" : "Result",
                     render: (row) =>
                       row.processing_result
-                        ? displayPlatformCode(row.processing_result)
+                        ? displayPlatformCode(row.processing_result, language)
                         : "—",
                   },
                   {
@@ -741,19 +762,31 @@ export function BillingPage() {
                   },
                   {
                     key: "message",
-                    header: "Mensaje",
+                    header: language === "es" ? "Mensaje" : "Message",
                     render: (row) => row.message,
                   },
                 ]}
               />
             ) : (
               <PanelCard
-                title="Alertas activas de facturación"
-                subtitle="No hay alertas activas de facturación que coincidan con el set actual de filtros."
+                title={language === "es" ? "Alertas activas de facturación" : "Active billing alerts"}
+                subtitle={
+                  language === "es"
+                    ? "No hay alertas activas de facturación que coincidan con el set actual de filtros."
+                    : "There are no active billing alerts matching the current filter set."
+                }
               >
                 <EmptyState
-                  title="No hay alertas activas para este filtro"
-                  detail="La sincronización de billing está tranquila y no hay señales operativas abiertas en este momento."
+                  title={
+                    language === "es"
+                      ? "No hay alertas activas para este filtro"
+                      : "There are no active alerts for this filter"
+                  }
+                  detail={
+                    language === "es"
+                      ? "La sincronización de billing está tranquila y no hay señales operativas abiertas en este momento."
+                      : "Billing sync is quiet and there are no open operational signals right now."
+                  }
                 />
               </PanelCard>
             )
@@ -764,40 +797,40 @@ export function BillingPage() {
       {!platformError && platformAlertHistory ? (
         platformAlertHistory.data.length > 0 ? (
           <DataTableCard
-            title="Historial de alertas de facturación"
+            title={language === "es" ? "Historial de alertas de facturación" : "Billing alert history"}
             rows={platformAlertHistory.data}
             columns={[
               {
                 key: "recorded_at",
-                header: "Registrado en",
+                header: language === "es" ? "Registrado en" : "Recorded at",
                 render: (row) => formatDateTime(row.recorded_at),
               },
               {
                 key: "severity",
-                header: "Severidad",
+                header: language === "es" ? "Severidad" : "Severity",
                 render: (row) => <SeverityBadge value={row.severity} />,
               },
               {
                 key: "alert_code",
-                header: "Alerta",
+                header: language === "es" ? "Alerta" : "Alert",
                 render: (row) => <code>{row.alert_code}</code>,
               },
               {
                 key: "provider",
-                header: "Proveedor",
+                header: language === "es" ? "Proveedor" : "Provider",
                 render: (row) => row.provider,
               },
               {
                     key: "processing_result",
-                    header: "Resultado",
+                    header: language === "es" ? "Resultado" : "Result",
                     render: (row) =>
                       row.processing_result
-                        ? displayPlatformCode(row.processing_result)
+                        ? displayPlatformCode(row.processing_result, language)
                         : "—",
               },
               {
                 key: "message",
-                header: "Mensaje",
+                header: language === "es" ? "Mensaje" : "Message",
                 render: (row) => row.message,
               },
             ]}
@@ -809,7 +842,11 @@ export function BillingPage() {
         <>
           {tenantError ? (
             <ErrorState
-              title="Espacio tenant de billing no disponible"
+              title={
+                language === "es"
+                  ? "Espacio tenant de billing no disponible"
+                  : "Tenant billing workspace unavailable"
+              }
               detail={tenantError.payload?.detail || tenantError.message}
               requestId={tenantError.payload?.request_id}
             />
@@ -817,18 +854,26 @@ export function BillingPage() {
 
           <PanelCard
             icon="billing"
-            title={`Espacio tenant de billing: ${selectedTenant.name}`}
-            subtitle="Historial de eventos y reconciliación sobre el stream persistido de billing sync."
+            title={
+              language === "es"
+                ? `Espacio tenant de billing: ${selectedTenant.name}`
+                : `Tenant billing workspace: ${selectedTenant.name}`
+            }
+            subtitle={
+              language === "es"
+                ? "Historial de eventos y reconciliación sobre el stream persistido de billing sync."
+                : "Event history and reconciliation over the persisted billing sync stream."
+            }
           >
             <div className="tenant-detail-grid">
               <DetailField label="Tenant" value={selectedTenant.name} />
               <DetailField label="Slug" value={<code>{selectedTenant.slug}</code>} />
               <DetailField
-                label="Ciclo de vida"
+                label={language === "es" ? "Ciclo de vida" : "Lifecycle"}
                 value={<StatusBadge value={selectedTenant.status} />}
               />
               <DetailField
-                label="Facturación"
+                label={language === "es" ? "Facturación" : "Billing"}
                 value={
                   <StatusBadge value={selectedTenant.billing_status || "unknown"} />
                 }
@@ -836,45 +881,55 @@ export function BillingPage() {
             </div>
           </PanelCard>
 
-          {isTenantLoading ? <LoadingBlock label="Cargando datos de billing tenant..." /> : null}
+          {isTenantLoading ? (
+            <LoadingBlock
+              label={
+                language === "es"
+                  ? "Cargando datos de billing tenant..."
+                  : "Loading tenant billing data..."
+              }
+            />
+          ) : null}
 
           {!tenantError && tenantSummary ? (
             <div className="billing-data-grid">
               <DataTableCard
-                title="Resumen billing tenant"
+                title={language === "es" ? "Resumen billing tenant" : "Tenant billing summary"}
                 rows={tenantSummary.data}
                 columns={[
                   {
                     key: "provider",
-                    header: "Proveedor",
+                    header: language === "es" ? "Proveedor" : "Provider",
                     render: (row) => row.provider,
                   },
                   {
                     key: "event_type",
-                    header: "Tipo de evento",
+                    header: language === "es" ? "Tipo de evento" : "Event type",
                     render: (row) => <code>{row.event_type}</code>,
                   },
                   {
                     key: "processing_result",
-                    header: "Resultado",
+                    header: language === "es" ? "Resultado" : "Result",
                     render: (row) => <StatusBadge value={row.processing_result} />,
                   },
                   {
                     key: "total_events",
-                    header: "Eventos",
+                    header: language === "es" ? "Eventos" : "Events",
                     render: (row) => row.total_events,
                   },
                   {
                     key: "last_recorded_at",
-                    header: "Última vez visto",
+                    header: language === "es" ? "Última vez visto" : "Last seen",
                     render: (row) => formatDateTime(row.last_recorded_at),
                   },
                 ]}
               />
 
               <AppForm className="tenant-action-form" onSubmit={handleBatchReconcile}>
-                <h3 className="tenant-action-form__title">Reconcile en lote</h3>
-                <AppFormField label="Límite">
+                <h3 className="tenant-action-form__title">
+                  {language === "es" ? "Reconcile en lote" : "Batch reconcile"}
+                </h3>
+                <AppFormField label={language === "es" ? "Límite" : "Limit"}>
                 <input
                   className="form-control"
                   type="number"
@@ -885,7 +940,9 @@ export function BillingPage() {
                 </AppFormField>
                 <AppFormField fullWidth>
                   <p className="tenant-help-text mt-3">
-                  Reconciliar eventos recientes persistidos usando el set actual de filtros del tenant.
+                  {language === "es"
+                    ? "Reconciliar eventos recientes persistidos usando el set actual de filtros del tenant."
+                    : "Reconcile recent persisted events using the current tenant filter set."}
                   </p>
                 </AppFormField>
                 <AppFormActions>
@@ -894,7 +951,7 @@ export function BillingPage() {
                   className="btn btn-primary mt-3"
                   disabled={isActionSubmitting}
                 >
-                  Reconciliar eventos filtrados
+                  {language === "es" ? "Reconciliar eventos filtrados" : "Reconcile filtered events"}
                 </button>
                 </AppFormActions>
               </AppForm>
@@ -904,38 +961,38 @@ export function BillingPage() {
           {!tenantError && tenantEvents ? (
             tenantEvents.data.length > 0 ? (
               <DataTableCard
-                title="Eventos billing tenant"
+                title={language === "es" ? "Eventos billing tenant" : "Tenant billing events"}
                 rows={tenantEvents.data}
                 columns={[
                   {
                     key: "recorded_at",
-                    header: "Registrado en",
+                    header: language === "es" ? "Registrado en" : "Recorded at",
                     render: (row) => formatDateTime(row.recorded_at),
                   },
                   {
                     key: "provider",
-                    header: "Proveedor",
+                    header: language === "es" ? "Proveedor" : "Provider",
                     render: (row) => row.provider,
                   },
                   {
                     key: "event_type",
-                    header: "Tipo de evento",
+                    header: language === "es" ? "Tipo de evento" : "Event type",
                     render: (row) => <code>{row.event_type}</code>,
                   },
                   {
                     key: "processing_result",
-                    header: "Resultado",
+                    header: language === "es" ? "Resultado" : "Result",
                     render: (row) => <StatusBadge value={row.processing_result} />,
                   },
                   {
                     key: "billing_status",
-                    header: "Estado billing",
+                    header: language === "es" ? "Estado billing" : "Billing status",
                     render: (row) =>
-                      row.billing_status ? displayPlatformCode(row.billing_status) : "—",
+                      row.billing_status ? displayPlatformCode(row.billing_status, language) : "—",
                   },
                   {
                     key: "actions",
-                    header: "Acciones",
+                    header: language === "es" ? "Acciones" : "Actions",
                     render: (row) => (
                       <AppToolbar compact>
                         <button
@@ -944,7 +1001,7 @@ export function BillingPage() {
                           onClick={() => handleSingleReconcile(row.id)}
                           disabled={isActionSubmitting}
                         >
-                          Reconciliar
+                          {language === "es" ? "Reconciliar" : "Reconcile"}
                         </button>
                       </AppToolbar>
                     ),
@@ -953,12 +1010,24 @@ export function BillingPage() {
               />
             ) : (
               <PanelCard
-                title="Eventos billing tenant"
-                subtitle="Ningún evento persistido coincide con el set actual de filtros del tenant."
+                title={language === "es" ? "Eventos billing tenant" : "Tenant billing events"}
+                subtitle={
+                  language === "es"
+                    ? "Ningún evento persistido coincide con el set actual de filtros del tenant."
+                    : "No persisted event matches the current tenant filter set."
+                }
               >
                 <EmptyState
-                  title="No hay eventos para este tenant con el filtro actual"
-                  detail="Puedes ampliar el período o limpiar filtros para recuperar más historial de billing sync."
+                  title={
+                    language === "es"
+                      ? "No hay eventos para este tenant con el filtro actual"
+                      : "There are no events for this tenant with the current filter"
+                  }
+                  detail={
+                    language === "es"
+                      ? "Puedes ampliar el período o limpiar filtros para recuperar más historial de billing sync."
+                      : "You can widen the period or clear filters to recover more billing sync history."
+                  }
                 />
               </PanelCard>
             )
@@ -966,12 +1035,24 @@ export function BillingPage() {
         </>
       ) : (
         <PanelCard
-          title="Espacio tenant de billing"
-          subtitle="Selecciona un tenant desde la barra de filtros para inspeccionar historial de sync y ejecutar acciones de reconcile."
+          title={language === "es" ? "Espacio tenant de billing" : "Tenant billing workspace"}
+          subtitle={
+            language === "es"
+              ? "Selecciona un tenant desde la barra de filtros para inspeccionar historial de sync y ejecutar acciones de reconcile."
+              : "Select a tenant from the filter bar to inspect sync history and run reconcile actions."
+          }
         >
           <EmptyState
-            title="Todavía no elegiste un tenant"
-            detail="Las tarjetas globales siguen visibles, pero el detalle de eventos y reconcile necesita un tenant seleccionado."
+            title={
+              language === "es"
+                ? "Todavía no elegiste un tenant"
+                : "You have not selected a tenant yet"
+            }
+            detail={
+              language === "es"
+                ? "Las tarjetas globales siguen visibles, pero el detalle de eventos y reconcile necesita un tenant seleccionado."
+                : "Global cards remain visible, but event detail and reconcile require a selected tenant."
+            }
           />
         </PanelCard>
       )}
@@ -1019,6 +1100,7 @@ function parsePositiveInteger(value: string, fallback: number): number {
 }
 
 function formatDateTime(value: string | null): string {
+  const language = getCurrentLanguage();
   if (!value) {
     return "—";
   }
@@ -1026,5 +1108,5 @@ function formatDateTime(value: string | null): string {
   if (Number.isNaN(parsed.getTime())) {
     return value;
   }
-  return parsed.toLocaleString();
+  return parsed.toLocaleString(getCurrentLocale(language));
 }
