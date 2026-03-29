@@ -118,6 +118,7 @@ Importante:
 - para post-deploy masivo ya existe `POST /platform/tenants/schema-sync/bulk`
 - como respaldo operativo también existe `backend/app/scripts/enqueue_active_tenant_schema_sync.py`
 - el wrapper `deploy/verify_backend_deploy.sh` ya ejecuta esa corrida masiva post-deploy por defecto, salvo que `BACKEND_AUTO_SYNC_POST_DEPLOY=false`
+- si una migracion tenant queda marcada como aplicada pero faltan columnas fisicas, la correccion debe entrar como nueva migracion reparadora; por ejemplo, `0013_finance_transaction_voids_repair` repara tenants que hubieran quedado en `0012_finance_transaction_voids` sin las columnas reales de anulacion
 
 ## Limitaciones actuales
 

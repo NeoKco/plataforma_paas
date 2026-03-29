@@ -12,6 +12,7 @@ Estado actual:
 - existe `0010_finance_loan_installment_reversal_reason` como migracion del motivo estructurado de reversa por cuota
 - existe `0011_finance_loan_source_account` como migracion de cuenta origen opcional por prestamo
 - existe `0012_finance_transaction_voids` como migracion de anulacion blanda para transacciones
+- existe `0013_finance_transaction_voids_repair` como migracion reparadora para tenants que hubieran quedado marcados en `0012` sin columnas fisicas
 
 Objetivo contractual:
 - ampliar el esquema tenant del modulo segun el roadmap maestro

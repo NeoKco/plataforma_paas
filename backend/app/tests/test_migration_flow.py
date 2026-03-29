@@ -16,6 +16,9 @@ from migrations.tenant import v0007_finance_loans
 from migrations.tenant import v0008_finance_loan_installments
 from migrations.tenant import v0009_finance_loan_installment_payment_split
 from migrations.tenant import v0010_finance_loan_installment_reversal_reason
+from migrations.tenant import v0011_finance_loan_source_account
+from migrations.tenant import v0012_finance_transaction_voids
+from migrations.tenant import v0013_finance_transaction_voids_repair
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -141,6 +144,9 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0008_finance_loan_installments",
                 "0009_finance_loan_installment_payment_split",
                 "0010_finance_loan_installment_reversal_reason",
+                "0011_finance_loan_source_account",
+                "0012_finance_transaction_voids",
+                "0013_finance_transaction_voids_repair",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -169,9 +175,21 @@ class MigrationFlowTestCase(unittest.TestCase):
             column["name"]
             for column in inspect(engine).get_columns("finance_loan_installments")
         }
+        loan_columns = {
+            column["name"] for column in inspect(engine).get_columns("finance_loans")
+        }
+        transaction_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("finance_transactions")
+        }
         self.assertIn("paid_principal_amount", installment_columns)
         self.assertIn("paid_interest_amount", installment_columns)
         self.assertIn("reversal_reason_code", installment_columns)
+        self.assertIn("account_id", loan_columns)
+        self.assertIn("is_voided", transaction_columns)
+        self.assertIn("voided_at", transaction_columns)
+        self.assertIn("void_reason", transaction_columns)
+        self.assertIn("voided_by_user_id", transaction_columns)
 
         with engine.connect() as conn:
             currency_rows = conn.execute(
@@ -221,6 +239,9 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0008_finance_loan_installments",
                 "0009_finance_loan_installment_payment_split",
                 "0010_finance_loan_installment_reversal_reason",
+                "0011_finance_loan_source_account",
+                "0012_finance_transaction_voids",
+                "0013_finance_transaction_voids_repair",
             ],
         )
 
@@ -372,6 +393,40 @@ class MigrationFlowTestCase(unittest.TestCase):
             for column in inspect(engine).get_columns("finance_loan_installments")
         }
         self.assertIn("reversal_reason_code", installment_columns)
+
+    def test_finance_loan_source_account_migration_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            v0003_finance_catalogs.upgrade(conn)
+            v0007_finance_loans.upgrade(conn)
+            v0011_finance_loan_source_account.upgrade(conn)
+            v0011_finance_loan_source_account.upgrade(conn)
+
+        loan_columns = {
+            column["name"] for column in inspect(engine).get_columns("finance_loans")
+        }
+        self.assertIn("account_id", loan_columns)
+
+    def test_finance_transaction_void_migrations_add_missing_columns_idempotently(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            v0003_finance_catalogs.upgrade(conn)
+            v0005_finance_transactions.upgrade(conn)
+            v0012_finance_transaction_voids.upgrade(conn)
+            v0012_finance_transaction_voids.upgrade(conn)
+            v0013_finance_transaction_voids_repair.upgrade(conn)
+            v0013_finance_transaction_voids_repair.upgrade(conn)
+
+        transaction_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("finance_transactions")
+        }
+        self.assertIn("is_voided", transaction_columns)
+        self.assertIn("voided_at", transaction_columns)
+        self.assertIn("void_reason", transaction_columns)
+        self.assertIn("voided_by_user_id", transaction_columns)
 
 
 if __name__ == "__main__":

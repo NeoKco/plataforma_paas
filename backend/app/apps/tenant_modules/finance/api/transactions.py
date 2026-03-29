@@ -2,9 +2,13 @@ import json
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
+from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.core.schemas import TenantUserContextResponse
+from app.apps.tenant_modules.finance.api.error_handling import (
+    raise_finance_schema_http_error,
+)
 from app.apps.tenant_modules.finance.dependencies import (
     require_finance_create,
     require_finance_read,
@@ -171,16 +175,19 @@ def list_finance_transactions(
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceTransactionsResponse:
-    entries = finance_service.list_transactions_filtered(
-        tenant_db,
-        transaction_type=transaction_type,
-        account_id=account_id,
-        category_id=category_id,
-        tag_id=tag_id,
-        is_favorite=is_favorite,
-        is_reconciled=is_reconciled,
-        search=search,
-    )
+    try:
+        entries = finance_service.list_transactions_filtered(
+            tenant_db,
+            transaction_type=transaction_type,
+            account_id=account_id,
+            category_id=category_id,
+            tag_id=tag_id,
+            is_favorite=is_favorite,
+            is_reconciled=is_reconciled,
+            search=search,
+        )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceTransactionsResponse(
         success=True,
@@ -203,6 +210,8 @@ def create_finance_transaction(
             payload,
             created_by_user_id=current_user["user_id"],
         )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -228,6 +237,8 @@ def update_finance_transaction(
             payload,
             actor_user_id=current_user["user_id"],
         )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     except ValueError as exc:
         if str(exc) == "La transaccion financiera no existe":
             raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -252,6 +263,8 @@ def get_finance_transaction_detail(
             tenant_db,
             transaction_id,
         )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -292,6 +305,8 @@ async def create_finance_transaction_attachment(
             notes=notes,
             actor_user_id=current_user["user_id"],
         )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     except ValueError as exc:
         if "no existe" in str(exc):
             raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -322,6 +337,8 @@ def delete_finance_transaction_attachment(
             attachment_id,
             actor_user_id=current_user["user_id"],
         )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -349,6 +366,8 @@ def download_finance_transaction_attachment(
             transaction_id,
             attachment_id,
         )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -376,6 +395,8 @@ def void_finance_transaction(
             reason=payload.reason,
             actor_user_id=current_user["user_id"],
         )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     except ValueError as exc:
         if "no existe" in str(exc):
             raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -406,6 +427,8 @@ def update_finance_transaction_favorite(
             is_favorite=payload.is_favorite,
             actor_user_id=current_user["user_id"],
         )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -433,6 +456,8 @@ def update_finance_transactions_favorite_batch(
             is_favorite=payload.is_favorite,
             actor_user_id=current_user["user_id"],
         )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -466,6 +491,8 @@ def update_finance_transaction_reconciliation(
             note=getattr(payload, "note", None),
             actor_user_id=current_user["user_id"],
         )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -495,6 +522,8 @@ def update_finance_transactions_reconciliation_batch(
             note=getattr(payload, "note", None),
             actor_user_id=current_user["user_id"],
         )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -560,8 +589,13 @@ def finance_account_balances(
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceAccountBalancesResponse:
-    accounts = finance_service.account_repository.list_all(tenant_db, include_inactive=True)
-    balances = finance_service.get_account_balances(tenant_db)
+    try:
+        accounts = finance_service.account_repository.list_all(
+            tenant_db, include_inactive=True
+        )
+        balances = finance_service.get_account_balances(tenant_db)
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceAccountBalancesResponse(
         success=True,
@@ -587,7 +621,10 @@ def finance_summary(
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceSummaryResponse:
-    summary = finance_service.get_summary(tenant_db)
+    try:
+        summary = finance_service.get_summary(tenant_db)
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceSummaryResponse(
         success=True,
@@ -613,10 +650,13 @@ def finance_usage(
         "tenant_effective_module_limit_sources",
         None,
     ) or {}
-    usage = finance_service.get_usage(
-        tenant_db,
-        max_entries=effective_module_limits.get(FinanceService.MODULE_LIMIT_KEY),
-    )
+    try:
+        usage = finance_service.get_usage(
+            tenant_db,
+            max_entries=effective_module_limits.get(FinanceService.MODULE_LIMIT_KEY),
+        )
+    except (ProgrammingError, OperationalError) as exc:
+        raise_finance_schema_http_error(exc)
 
     return FinanceUsageResponse(
         success=True,

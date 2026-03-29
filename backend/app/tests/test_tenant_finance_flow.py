@@ -369,6 +369,28 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertFalse(list_transactions_mock.call_args.kwargs["is_reconciled"])
         self.assertEqual(list_transactions_mock.call_args.kwargs["search"], "mantencion")
 
+    def test_list_finance_transactions_returns_controlled_schema_error_on_missing_column(
+        self,
+    ) -> None:
+        failing_error = ProgrammingError(
+            "SELECT ...",
+            {},
+            Exception("no existe la columna finance_transactions.is_voided"),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.list_transactions_filtered",
+            side_effect=failing_error,
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                list_finance_transactions(
+                    current_user=self._current_user(role="operator"),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertIn("esquema finance", exc.exception.detail.lower())
+
     def test_create_finance_transaction_returns_created_transaction(self) -> None:
         transaction = SimpleNamespace(
             id=12,
@@ -2273,6 +2295,26 @@ class TenantFinanceRouteOrderTestCase(unittest.TestCase):
 
         self.assertEqual(response.data.balance, 600.0)
 
+    def test_finance_summary_returns_controlled_schema_error_on_missing_column(self) -> None:
+        failing_error = ProgrammingError(
+            "SELECT ...",
+            {},
+            Exception("no existe la columna finance_transactions.is_voided"),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.get_summary",
+            side_effect=failing_error,
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                finance_summary(
+                    current_user=self._current_user(role="operator"),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertIn("esquema finance", exc.exception.detail.lower())
+
     def test_finance_usage_returns_effective_limit_and_source(self) -> None:
         usage = {
             "module_key": "finance.entries",
@@ -2304,6 +2346,57 @@ class TenantFinanceRouteOrderTestCase(unittest.TestCase):
         self.assertEqual(response.data.module_key, "finance.entries")
         self.assertEqual(response.data.max_entries, 25)
         self.assertEqual(response.data.limit_source, "billing_grace")
+
+    def test_finance_usage_returns_controlled_schema_error_on_missing_column(self) -> None:
+        failing_error = ProgrammingError(
+            "SELECT ...",
+            {},
+            Exception("no existe la columna finance_transactions.is_voided"),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.get_usage",
+            side_effect=failing_error,
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                finance_usage(
+                    request=SimpleNamespace(
+                        state=SimpleNamespace(
+                            tenant_effective_module_limits={"finance.entries": 25},
+                            tenant_effective_module_limit_sources={},
+                        )
+                    ),
+                    current_user=self._current_user(role="operator"),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertIn("esquema finance", exc.exception.detail.lower())
+
+    def test_finance_account_balances_returns_controlled_schema_error_on_missing_column(
+        self,
+    ) -> None:
+        failing_error = ProgrammingError(
+            "SELECT ...",
+            {},
+            Exception("no existe la columna finance_transactions.is_voided"),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.account_repository.list_all",
+            return_value=[],
+        ), patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.get_account_balances",
+            side_effect=failing_error,
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                finance_account_balances(
+                    current_user=self._current_user(role="operator"),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertIn("esquema finance", exc.exception.detail.lower())
 
 
 if __name__ == "__main__":

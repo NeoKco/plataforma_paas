@@ -1,8 +1,10 @@
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Connection
 
-MIGRATION_ID = "0012_finance_transaction_voids"
-DESCRIPTION = "Add soft-void fields to finance transactions"
+
+MIGRATION_ID = "0013_finance_transaction_voids_repair"
+DESCRIPTION = "Repair missing soft-void fields on finance transactions"
+
 
 def upgrade(connection: Connection) -> None:
     existing_columns = {
