@@ -66,9 +66,11 @@ Smokes actuales del bloque central:
 
 - [platform-admin.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin.smoke.spec.ts)
 - [platform-admin-tenant-lifecycle.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-lifecycle.smoke.spec.ts)
+- [platform-admin-provisioning.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning.smoke.spec.ts)
 
 Cobertura actual:
 
 - login `platform_admin`
 - navegación base a `Tenants` y `Provisioning`
 - lifecycle tenant base en UI con `create`, `archive` y `restore`
+- visibilidad de jobs de provisioning recién disparados desde `Tenants`
