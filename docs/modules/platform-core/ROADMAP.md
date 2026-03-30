@@ -25,6 +25,7 @@ La base central ya es operable:
 - primer stack E2E browser base
 - smoke browser de `platform_admin` para `create`, `archive` y `restore`
 - validación browser de aparición de jobs nuevos en `Provisioning`
+- validación browser del disparo de `schema auto-sync` desde `Provisioning`
 
 ## Próximo nivel recomendado
 

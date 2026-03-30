@@ -316,6 +316,7 @@ Avance actual:
 - `Provisioning` ya muestra ciclos recientes del worker para distinguir backlog de ejecucion
 - `Provisioning` ya muestra un bloque corto de `Jobs que requieren accion` para decidir rapido si conviene ejecutar, esperar retry o reencolar
 - `Provisioning` ya permite exportar el catálogo visible de jobs en `CSV` y un snapshot operativo completo en `JSON`
+- `Provisioning` ya permite disparar `schema auto-sync` masivo con confirmacion y feedback visible
 
 Lectura practica:
 
