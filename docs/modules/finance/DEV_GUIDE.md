@@ -60,6 +60,8 @@ Smokes vigentes:
 
 - [platform-admin.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
+- [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
+- [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
 
 ## Contratos y decisiones importantes
 
@@ -68,6 +70,7 @@ Smokes vigentes:
 - Transacciones no se borran físicamente; se anulan.
 - Catálogos se eliminan solo con `delete seguro`; si hay referencias, se bloquea.
 - Adjuntos del módulo viven dentro del propio backend del módulo, no en carpetas externas de staging.
+- Las imágenes adjuntas se comprimen en frontend antes del upload y se normalizan a `image/webp`.
 - La moneda base afecta formateo y lectura agregada, pero no recalcula histórico automáticamente.
 
 ## Cómo extender el módulo
@@ -101,6 +104,7 @@ Frontend:
 
 - build de `frontend`
 - smoke browser Playwright
+- cobertura tenant validada al menos para creación de transacción, carga de adjunto, anulación y conciliación sobre `empresa-demo`
 
 ## Importación legacy
 

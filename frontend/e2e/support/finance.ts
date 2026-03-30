@@ -126,10 +126,21 @@ export function getTransactionRowByDescription(page: Page, description: string) 
   return page.getByRole("table").getByText(description).first();
 }
 
+export function getTransactionRowContainerByDescription(page: Page, description: string) {
+  return getTransactionRowByDescription(page, description).locator("xpath=ancestor::tr[1]");
+}
+
 export function getAttachmentSuccessFeedback(page: Page) {
   return page
     .locator(".tenant-action-feedback--success")
     .filter({ hasText: /Adjuntos|Attachments|Adjunto|Attachment/i })
+    .first();
+}
+
+export function getReconciliationSuccessFeedback(page: Page) {
+  return page
+    .locator(".tenant-action-feedback--success")
+    .filter({ hasText: /Conciliaci[oó]n|Reconciliation/i })
     .first();
 }
 

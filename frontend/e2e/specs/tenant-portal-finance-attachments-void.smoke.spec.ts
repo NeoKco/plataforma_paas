@@ -4,6 +4,7 @@ import { loginTenant } from "../support/auth";
 import {
   createBasicExpenseTransaction,
   getAttachmentSuccessFeedback,
+  getTransactionRowContainerByDescription,
   getTransactionRowByDescription,
   openFinanceTransactionsPage,
 } from "../support/finance";
@@ -15,7 +16,7 @@ test("tenant portal finance can upload an attachment to a created transaction", 
   const fixturePath = path.resolve(
     "/home/felipe/platform_paas/docs/assets/app-visual-manual/12a-tenant-finance-overview-form.png"
   );
-  const fixtureName = path.basename(fixturePath);
+  const fixtureName = `${path.parse(fixturePath).name}.webp`;
 
   await loginTenant(page);
   await openFinanceTransactionsPage(page);
@@ -43,7 +44,7 @@ test("tenant portal finance can upload an attachment to a created transaction", 
   await expect(getAttachmentSuccessFeedback(page)).toContainText(
     /Adjunto|Attachment/i
   );
-  await expect(page.getByText(fixtureName).first()).toBeVisible();
+  await expect(detailPanel.getByText(fixtureName).first()).toBeVisible();
 });
 
 test("tenant portal finance can void a created transaction", async ({ page }) => {
@@ -53,7 +54,7 @@ test("tenant portal finance can void a created transaction", async ({ page }) =>
   await openFinanceTransactionsPage(page);
   await createBasicExpenseTransaction(page, uniqueDescription);
 
-  const row = getTransactionRowByDescription(page, uniqueDescription).locator("xpath=ancestor::tr[1]");
+  const row = getTransactionRowContainerByDescription(page, uniqueDescription);
 
   const dialogHandler = async (dialog: Parameters<typeof page.on>[1] extends (arg: infer T) => any ? T : never) => {
     if (dialog.type() === "prompt") {

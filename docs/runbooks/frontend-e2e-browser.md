@@ -21,6 +21,8 @@ Archivos principales:
 - [env.ts](/home/felipe/platform_paas/frontend/e2e/support/env.ts)
 - [platform-admin.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
+- [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
+- [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
 
 ## Alcance inicial
 
@@ -32,6 +34,7 @@ Cobertura actual:
 - alta básica de una transacción en `finance`
 - carga de adjunto sobre transacción creada en `finance`
 - anulación básica de una transacción creada en `finance`
+- conciliación básica de una transacción creada en `finance`
 
 Esto no reemplaza:
 
@@ -83,6 +86,12 @@ npm run e2e:tenant
 
 Eso permite validar primero la consola de plataforma y después el flujo tenant con credenciales correctas del entorno.
 
+Resultado validado en local a la fecha:
+
+- `platform_admin` smoke pasando
+- `tenant_portal` con `empresa-demo` pasando
+- flujo `finance` cubierto en creación, adjunto, anulación y conciliación
+
 ## Comandos
 
 Desde `frontend/`:
@@ -109,6 +118,12 @@ Decisiones de este primer corte:
 - no automatizar backend en el config; se asume backend ya operativo
 - permitir que `Playwright` levante el frontend o reutilice uno existente
 
+Notas del flujo `finance` que conviene recordar:
+
+- el smoke tenant usa `empresa-demo` porque ya trae cuentas y datos operativos reales
+- la subida de imágenes en transacciones comprime el archivo antes de enviarlo
+- cuando la imagen se comprime, el nombre visible final del adjunto puede cambiar a extensión `webp`
+
 ## Siguiente expansión sugerida
 
 Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son:
@@ -116,5 +131,5 @@ Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son
 - create tenant + provisioning desde `platform_admin`
 - acceso rápido al `tenant_portal` desde `Tenants`
 - archive / restore tenant
-- adjuntos y anulación de transacciones en `finance`
+- cuentas y categorías básicas en `finance`
 - creación de usuario tenant y enforcement de límites

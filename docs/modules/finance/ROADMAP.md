@@ -32,15 +32,14 @@ Ya cubre:
 - ayudas contextuales en UI
 - importador idempotente con compresión de imágenes
 - E2E browser base con `empresa-demo`
+- E2E browser de `finance` validado para creación, adjunto, anulación y conciliación
 
 ## Próximo nivel recomendado
 
 - ampliar E2E de `finance` para:
-  - adjuntos
-  - anulación
-  - conciliación
   - presupuestos
   - préstamos
+  - cuentas y categorías
 - seguir la migración transversal del frontend al `design system`
 - terminar de pulir copy residual `es/en`
 - crear más specs browser sobre provisioning y recorridos tenant completos

@@ -48,6 +48,7 @@ Después del alta, el detalle operacional queda abierto para adjuntar boleta, fa
 3. Subir `JPG`, `PNG`, `WEBP` o `PDF`.
 
 Las imágenes se comprimen antes de subir y el backend valida un tamaño final máximo de `5 MB`.
+Si subes una imagen `JPG` o `PNG`, el nombre final visible del adjunto puede quedar con extensión `WEBP`.
 
 ### Corregir un movimiento
 

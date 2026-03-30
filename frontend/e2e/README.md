@@ -10,6 +10,14 @@ Cobertura inicial:
 - smoke real de `finance` creando una transacción
 - smoke de adjuntos en `finance`
 - smoke de anulación en `finance`
+- smoke de conciliación en `finance`
+
+Specs actuales:
+
+- [platform-admin.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin.smoke.spec.ts)
+- [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
+- [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
+- [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
 
 Variables de entorno:
 
@@ -30,3 +38,5 @@ Notas:
 - el backend debe estar levantado antes de correr las pruebas
 - el frontend puede levantarse automáticamente desde `playwright.config.ts`, o reutilizar uno existente con `E2E_USE_EXISTING_FRONTEND=1`
 - para instalar el navegador local usa `npm run e2e:install`
+- el baseline tenant actualmente validado es `empresa-demo`
+- cuando el smoke sube una imagen en `finance`, el frontend la comprime antes del upload y el nombre final visible queda en `WEBP`
