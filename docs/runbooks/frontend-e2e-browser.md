@@ -30,6 +30,8 @@ Cobertura actual:
 - navegación corta a `Tenants` y `Provisioning`
 - login `tenant_portal`
 - alta básica de una transacción en `finance`
+- carga de adjunto sobre transacción creada en `finance`
+- anulación básica de una transacción creada en `finance`
 
 Esto no reemplaza:
 

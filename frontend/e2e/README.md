@@ -8,6 +8,8 @@ Cobertura inicial:
 - navegación base de `platform_admin`
 - login de `tenant_portal`
 - smoke real de `finance` creando una transacción
+- smoke de adjuntos en `finance`
+- smoke de anulación en `finance`
 
 Variables de entorno:
 
