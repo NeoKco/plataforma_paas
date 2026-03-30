@@ -59,3 +59,16 @@ Documentación base:
 - Error/status matrix: [backend-error-status-matrix.md](/home/felipe/platform_paas/docs/architecture/backend-error-status-matrix.md)
 - Mapa de permisos: [permission-map.md](/home/felipe/platform_paas/docs/architecture/permission-map.md)
 - E2E browser: [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md)
+
+## E2E vigente
+
+Smokes actuales del bloque central:
+
+- [platform-admin.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin.smoke.spec.ts)
+- [platform-admin-tenant-lifecycle.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-lifecycle.smoke.spec.ts)
+
+Cobertura actual:
+
+- login `platform_admin`
+- navegación base a `Tenants` y `Provisioning`
+- lifecycle tenant base en UI con `create`, `archive` y `restore`

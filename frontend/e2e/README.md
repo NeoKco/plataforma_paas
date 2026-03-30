@@ -6,6 +6,7 @@ Cobertura inicial:
 
 - login de `platform_admin`
 - navegación base de `platform_admin`
+- lifecycle básico de tenant en `platform_admin` (`create`, `archive`, `restore`)
 - login de `tenant_portal`
 - smoke real de `finance` creando una transacción
 - smoke de adjuntos en `finance`
@@ -15,6 +16,7 @@ Cobertura inicial:
 Specs actuales:
 
 - [platform-admin.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin.smoke.spec.ts)
+- [platform-admin-tenant-lifecycle.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-lifecycle.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)

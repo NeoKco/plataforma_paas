@@ -20,6 +20,7 @@ Archivos principales:
 - [auth.ts](/home/felipe/platform_paas/frontend/e2e/support/auth.ts)
 - [env.ts](/home/felipe/platform_paas/frontend/e2e/support/env.ts)
 - [platform-admin.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin.smoke.spec.ts)
+- [platform-admin-tenant-lifecycle.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-lifecycle.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
@@ -30,6 +31,7 @@ Cobertura actual:
 
 - login `platform_admin`
 - navegación corta a `Tenants` y `Provisioning`
+- lifecycle básico de tenant en `platform_admin` con `create`, `archive` y `restore`
 - login `tenant_portal`
 - alta básica de una transacción en `finance`
 - carga de adjunto sobre transacción creada en `finance`
@@ -89,6 +91,7 @@ Eso permite validar primero la consola de plataforma y después el flujo tenant 
 Resultado validado en local a la fecha:
 
 - `platform_admin` smoke pasando
+- `platform_admin` lifecycle tenant base pasando
 - `tenant_portal` con `empresa-demo` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
 
@@ -128,8 +131,8 @@ Notas del flujo `finance` que conviene recordar:
 
 Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son:
 
-- create tenant + provisioning desde `platform_admin`
 - acceso rápido al `tenant_portal` desde `Tenants`
 - archive / restore tenant
+- provisioning más profundo desde `platform_admin`
 - cuentas y categorías básicas en `finance`
 - creación de usuario tenant y enforcement de límites

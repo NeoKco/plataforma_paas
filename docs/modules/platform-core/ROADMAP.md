@@ -23,10 +23,11 @@ La base central ya es operable:
 - lifecycle tenant base
 - UI visible de platform admin
 - primer stack E2E browser base
+- smoke browser de `platform_admin` para `create`, `archive` y `restore`
 
 ## Próximo nivel recomendado
 
-- ampliar E2E browser a lifecycle tenant completo
+- ampliar E2E browser a provisioning más profundo y acceso tenant desde `Tenants`
 - más regresión sobre provisioning y billing
 - seguir endureciendo copy, validaciones y observabilidad visible
 - mantener la política documental canónica al abrir más dominios

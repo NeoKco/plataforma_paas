@@ -23,6 +23,7 @@ Resumen curado del bloque central.
 - actividad operativa
 - exportaciones operativas en varias vistas
 - primer stack Playwright browser base
+- smoke browser de `platform_admin` ampliado a `create`, `archive` y `restore` de tenants
 
 ## Documentación
 

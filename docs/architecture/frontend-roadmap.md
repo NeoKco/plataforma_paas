@@ -62,7 +62,7 @@ Lo pendiente es sobre todo:
 - el `design system` transversal del PaaS ya quedó aplicado sobre el frontend visible con `AppIcon`, `AppSpotlight`, `AppBadge`, `AppToolbar`, `AppFilterGrid`, `AppTableWrap`, `AppForm` y primitives compartidas; `finance` quedó como primer bloque integral, `Overview` + `Users` ya consumen la misma base, `platform_admin` ya la usa en `Dashboard`, `Actividad`, `Usuarios de plataforma`, `Tenants`, `Histórico tenants`, `Provisioning`, `Billing`, `Settings`, login, recuperación raíz e instalador, y el portal tenant ya absorbió también esa capa en login y el borde legacy de finanzas
 - la matriz visible de acceso por rol en `platform_admin` ya quedó centralizada para `SidebarNav`, redirecciones por ruta y gestión de `Usuarios de plataforma`, evitando permisos frontend dispersos entre páginas
 - la internacionalizacion transversal del frontend ya quedó resuelta en la superficie visible principal, helpers compartidos, formularios densos y estados operativos; lo que resta baja a editorial secundaria puntual, ayudas largas y futuras pantallas nuevas que se abran fuera del alcance actual
-- ya existe un stack E2E browser local con `Playwright` en `frontend/`, con smoke operativo sobre `platform_admin`, `tenant_portal` y `finance` para creación, adjunto, anulación y conciliación; falta ampliarlo a provisioning, lifecycle tenant y más regresión funcional
+- ya existe un stack E2E browser local con `Playwright` en `frontend/`, con smoke operativo sobre `platform_admin` para login y lifecycle tenant base (`create/archive/restore`), y sobre `tenant_portal/finance` para creación, adjunto, anulación y conciliación; falta ampliarlo a provisioning más profundo y más regresión funcional
 
 Nota de ejecucion:
 
