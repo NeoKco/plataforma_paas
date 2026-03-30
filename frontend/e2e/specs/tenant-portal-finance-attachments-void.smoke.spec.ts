@@ -21,10 +21,21 @@ test("tenant portal finance can upload an attachment to a created transaction", 
   await openFinanceTransactionsPage(page);
   await createBasicExpenseTransaction(page, uniqueDescription);
 
-  await page
-    .getByPlaceholder(/boleta supermercado|grocery receipt|factura proveedor/i)
+  const detailPanel = page
+    .locator("div")
+    .filter({
+      has: page.getByRole("heading", {
+        name: /Detalle operacional|Operational detail/,
+      }),
+    })
+    .first();
+
+  await detailPanel
+    .getByPlaceholder(
+      /boleta supermercado o factura proveedor|grocery receipt or supplier invoice/i
+    )
     .fill("e2e attachment note");
-  await page.locator('input[type="file"]').nth(1).setInputFiles(fixturePath);
+  await detailPanel.locator('input[type="file"]').setInputFiles(fixturePath);
 
   await expect(getAttachmentSuccessFeedback(page)).toContainText(
     /Adjunto|Attachment/i

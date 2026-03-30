@@ -92,7 +92,7 @@
         - generic [ref=e97]:
           - generic [ref=e100]:
             - img [ref=e102]
-            - generic [ref=e104]: "135"
+            - generic [ref=e104]: "137"
             - generic [ref=e105]: Transacciones
             - generic [ref=e106]: Movimientos persistidos en finance_transactions
           - generic [ref=e109]:
@@ -102,12 +102,12 @@
             - generic [ref=e115]: Acumulado visible
           - generic [ref=e118]:
             - img [ref=e120]
-            - generic [ref=e122]: $6.448.451
+            - generic [ref=e122]: $6.473.141
             - generic [ref=e123]: Egresos
             - generic [ref=e124]: Acumulado visible
           - generic [ref=e127]:
             - img [ref=e129]
-            - generic [ref=e132]: $450.620
+            - generic [ref=e132]: $425.930
             - generic [ref=e133]: Balance
             - generic [ref=e134]: Resultado actual
         - generic [ref=e135]:
@@ -179,7 +179,7 @@
                   - spinbutton [ref=e162]
                 - generic [ref=e163]:
                   - generic [ref=e164]: Fecha y hora
-                  - textbox [ref=e165]: 2026-03-30T00:46
+                  - textbox [ref=e165]: 2026-03-30T00:48
               - generic [ref=e166]:
                 - generic [ref=e167]: Descripción
                 - 'textbox "Ej: Pago proveedor de mantención" [ref=e168]'
@@ -216,7 +216,7 @@
                   - generic [ref=e203]: efectivo
                   - generic [ref=e204]: Cash
                 - generic [ref=e205]:
-                  - generic [ref=e206]: $450.620
+                  - generic [ref=e206]: $425.930
                   - generic [ref=e207]: CLP
               - separator [ref=e208]
               - generic [ref=e209]:
@@ -225,13 +225,13 @@
                   - code [ref=e213]: finance.entries
                 - generic [ref=e214]:
                   - generic [ref=e215]: Usado
-                  - generic [ref=e216]: "135"
+                  - generic [ref=e216]: "137"
                 - generic [ref=e217]:
                   - generic [ref=e218]: Límite
                   - generic [ref=e219]: "1200"
                 - generic [ref=e220]:
                   - generic [ref=e221]: Restante
-                  - generic [ref=e222]: "1065"
+                  - generic [ref=e222]: "1063"
                 - generic [ref=e223]:
                   - generic [ref=e224]: Fuente
                   - generic [ref=e225]: Plan
@@ -250,7 +250,7 @@
                   - generic [ref=e241]: "0"
                 - generic [ref=e242]:
                   - generic [ref=e243]: Pendientes conciliación
-                  - generic [ref=e244]: "4"
+                  - generic [ref=e244]: "6"
                 - generic [ref=e245]:
                   - generic [ref=e246]: Seleccionadas
                   - generic [ref=e247]: "0"
@@ -352,13 +352,13 @@
                   - generic [ref=e285]: "0"
                 - generic [ref=e286]:
                   - generic [ref=e287]: Pendientes visibles
-                  - generic [ref=e288]: "4"
+                  - generic [ref=e288]: "6"
                 - generic [ref=e289]:
                   - generic [ref=e290]: Ligadas a préstamo
                   - generic [ref=e291]: "0"
                 - generic [ref=e292]:
                   - generic [ref=e293]: Ingreso / egreso
-                  - generic [ref=e294]: 2 / 133
+                  - generic [ref=e294]: 2 / 135
               - table [ref=e296]:
                 - rowgroup [ref=e297]:
                   - row "Detalle Fecha Tipo Descripción Cuenta Categoría Monto Estado conciliación Acciones" [ref=e298]:
@@ -374,16 +374,16 @@
                     - columnheader "Estado conciliación" [ref=e308]
                     - columnheader "Acciones" [ref=e309]
                 - rowgroup [ref=e310]:
-                  - row "Ocultar 30-03-26, 12:46 a. m. Egreso e2e-attach-1774831599877 efectivo — $12.345 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e311]:
+                  - row "Ocultar 30-03-26, 12:48 a. m. Egreso e2e-attach-1774831698908 efectivo — $12.345 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e311]:
                     - cell [ref=e312]:
                       - checkbox [ref=e313]
                     - cell "Ocultar" [ref=e314]:
                       - button "Ocultar" [ref=e315] [cursor=pointer]
-                    - cell "30-03-26, 12:46 a. m." [ref=e316]
+                    - cell "30-03-26, 12:48 a. m." [ref=e316]
                     - cell "Egreso" [ref=e317]:
                       - generic [ref=e318]: Egreso
-                    - cell "e2e-attach-1774831599877" [ref=e319]:
-                      - generic [ref=e320]: e2e-attach-1774831599877
+                    - cell "e2e-attach-1774831698908" [ref=e319]:
+                      - generic [ref=e320]: e2e-attach-1774831698908
                     - cell "efectivo" [ref=e321]
                     - cell "—" [ref=e322]
                     - cell "$12.345" [ref=e323]
@@ -396,16 +396,16 @@
                         - button "Favorita" [ref=e331] [cursor=pointer]
                         - button "Conciliar" [ref=e332] [cursor=pointer]
                         - button "Anular" [ref=e333] [cursor=pointer]
-                  - row "Ver 30-03-26, 12:11 a. m. Egreso e2e-mov-1774829478747 efectivo — $12.345 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e334]:
+                  - row "Ver 30-03-26, 12:46 a. m. Egreso e2e-mov-1774831608543 efectivo — $12.345 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e334]:
                     - cell [ref=e335]:
                       - checkbox [ref=e336]
                     - cell "Ver" [ref=e337]:
                       - button "Ver" [ref=e338] [cursor=pointer]
-                    - cell "30-03-26, 12:11 a. m." [ref=e339]
+                    - cell "30-03-26, 12:46 a. m." [ref=e339]
                     - cell "Egreso" [ref=e340]:
                       - generic [ref=e341]: Egreso
-                    - cell "e2e-mov-1774829478747" [ref=e342]:
-                      - generic [ref=e343]: e2e-mov-1774829478747
+                    - cell "e2e-mov-1774831608543" [ref=e342]:
+                      - generic [ref=e343]: e2e-mov-1774831608543
                     - cell "efectivo" [ref=e344]
                     - cell "—" [ref=e345]
                     - cell "$12.345" [ref=e346]
@@ -418,16 +418,16 @@
                         - button "Favorita" [ref=e354] [cursor=pointer]
                         - button "Conciliar" [ref=e355] [cursor=pointer]
                         - button "Anular" [ref=e356] [cursor=pointer]
-                  - row "Ver 30-03-26, 12:10 a. m. Egreso e2e-mov-1774829407556 efectivo — $12.345 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e357]:
+                  - row "Ver 30-03-26, 12:46 a. m. Egreso e2e-attach-1774831599877 efectivo — $12.345 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e357]:
                     - cell [ref=e358]:
                       - checkbox [ref=e359]
                     - cell "Ver" [ref=e360]:
                       - button "Ver" [ref=e361] [cursor=pointer]
-                    - cell "30-03-26, 12:10 a. m." [ref=e362]
+                    - cell "30-03-26, 12:46 a. m." [ref=e362]
                     - cell "Egreso" [ref=e363]:
                       - generic [ref=e364]: Egreso
-                    - cell "e2e-mov-1774829407556" [ref=e365]:
-                      - generic [ref=e366]: e2e-mov-1774829407556
+                    - cell "e2e-attach-1774831599877" [ref=e365]:
+                      - generic [ref=e366]: e2e-attach-1774831599877
                     - cell "efectivo" [ref=e367]
                     - cell "—" [ref=e368]
                     - cell "$12.345" [ref=e369]
@@ -440,16 +440,16 @@
                         - button "Favorita" [ref=e377] [cursor=pointer]
                         - button "Conciliar" [ref=e378] [cursor=pointer]
                         - button "Anular" [ref=e379] [cursor=pointer]
-                  - row "Ver 30-03-26, 12:08 a. m. Egreso e2e-mov-1774829320225 efectivo — $12.345 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e380]:
+                  - row "Ver 30-03-26, 12:11 a. m. Egreso e2e-mov-1774829478747 efectivo — $12.345 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e380]:
                     - cell [ref=e381]:
                       - checkbox [ref=e382]
                     - cell "Ver" [ref=e383]:
                       - button "Ver" [ref=e384] [cursor=pointer]
-                    - cell "30-03-26, 12:08 a. m." [ref=e385]
+                    - cell "30-03-26, 12:11 a. m." [ref=e385]
                     - cell "Egreso" [ref=e386]:
                       - generic [ref=e387]: Egreso
-                    - cell "e2e-mov-1774829320225" [ref=e388]:
-                      - generic [ref=e389]: e2e-mov-1774829320225
+                    - cell "e2e-mov-1774829478747" [ref=e388]:
+                      - generic [ref=e389]: e2e-mov-1774829478747
                     - cell "efectivo" [ref=e390]
                     - cell "—" [ref=e391]
                     - cell "$12.345" [ref=e392]
@@ -462,63 +462,63 @@
                         - button "Favorita" [ref=e400] [cursor=pointer]
                         - button "Conciliar" [ref=e401] [cursor=pointer]
                         - button "Anular" [ref=e402] [cursor=pointer]
-                  - row "Ver 27-03-26, 9:00 a. m. Egreso Estacionamiento flyiers efectivo Estacionamiento $790 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e403]:
+                  - row "Ver 30-03-26, 12:10 a. m. Egreso e2e-mov-1774829407556 efectivo — $12.345 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e403]:
                     - cell [ref=e404]:
                       - checkbox [ref=e405]
                     - cell "Ver" [ref=e406]:
                       - button "Ver" [ref=e407] [cursor=pointer]
-                    - cell "27-03-26, 9:00 a. m." [ref=e408]
+                    - cell "30-03-26, 12:10 a. m." [ref=e408]
                     - cell "Egreso" [ref=e409]:
                       - generic [ref=e410]: Egreso
-                    - cell "Estacionamiento flyiers" [ref=e411]:
-                      - generic [ref=e412]: Estacionamiento flyiers
+                    - cell "e2e-mov-1774829407556" [ref=e411]:
+                      - generic [ref=e412]: e2e-mov-1774829407556
                     - cell "efectivo" [ref=e413]
-                    - cell "Estacionamiento" [ref=e414]
-                    - cell "$790" [ref=e415]
-                    - cell "conciliada" [ref=e416]:
-                      - generic [ref=e417]: conciliada
-                    - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e418]:
+                    - cell "—" [ref=e414]
+                    - cell "$12.345" [ref=e415]
+                    - cell "pendiente conciliación" [ref=e416]:
+                      - generic [ref=e417]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e418]:
                       - generic [ref=e420]:
                         - button "Editar" [ref=e421] [cursor=pointer]
                         - button "Adjuntar" [ref=e422] [cursor=pointer]
                         - button "Favorita" [ref=e423] [cursor=pointer]
-                        - button "Desconciliar" [ref=e424] [cursor=pointer]
+                        - button "Conciliar" [ref=e424] [cursor=pointer]
                         - button "Anular" [ref=e425] [cursor=pointer]
-                  - row "Ver 27-03-26, 9:00 a. m. Egreso Flyers efectivo Publicidad impresa $15.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e426]:
+                  - row "Ver 30-03-26, 12:08 a. m. Egreso e2e-mov-1774829320225 efectivo — $12.345 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e426]:
                     - cell [ref=e427]:
                       - checkbox [ref=e428]
                     - cell "Ver" [ref=e429]:
                       - button "Ver" [ref=e430] [cursor=pointer]
-                    - cell "27-03-26, 9:00 a. m." [ref=e431]
+                    - cell "30-03-26, 12:08 a. m." [ref=e431]
                     - cell "Egreso" [ref=e432]:
                       - generic [ref=e433]: Egreso
-                    - cell "Flyers" [ref=e434]:
-                      - generic [ref=e435]: Flyers
+                    - cell "e2e-mov-1774829320225" [ref=e434]:
+                      - generic [ref=e435]: e2e-mov-1774829320225
                     - cell "efectivo" [ref=e436]
-                    - cell "Publicidad impresa" [ref=e437]
-                    - cell "$15.000" [ref=e438]
-                    - cell "conciliada" [ref=e439]:
-                      - generic [ref=e440]: conciliada
-                    - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e441]:
+                    - cell "—" [ref=e437]
+                    - cell "$12.345" [ref=e438]
+                    - cell "pendiente conciliación" [ref=e439]:
+                      - generic [ref=e440]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e441]:
                       - generic [ref=e443]:
                         - button "Editar" [ref=e444] [cursor=pointer]
                         - button "Adjuntar" [ref=e445] [cursor=pointer]
                         - button "Favorita" [ref=e446] [cursor=pointer]
-                        - button "Desconciliar" [ref=e447] [cursor=pointer]
+                        - button "Conciliar" [ref=e447] [cursor=pointer]
                         - button "Anular" [ref=e448] [cursor=pointer]
-                  - row "Ver 26-03-26, 9:00 a. m. Egreso Válvulas tp efectivo Materiales de proyecto $36.761 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e449]:
+                  - row "Ver 27-03-26, 9:00 a. m. Egreso Estacionamiento flyiers efectivo Estacionamiento $790 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e449]:
                     - cell [ref=e450]:
                       - checkbox [ref=e451]
                     - cell "Ver" [ref=e452]:
                       - button "Ver" [ref=e453] [cursor=pointer]
-                    - cell "26-03-26, 9:00 a. m." [ref=e454]
+                    - cell "27-03-26, 9:00 a. m." [ref=e454]
                     - cell "Egreso" [ref=e455]:
                       - generic [ref=e456]: Egreso
-                    - cell "Válvulas tp" [ref=e457]:
-                      - generic [ref=e458]: Válvulas tp
+                    - cell "Estacionamiento flyiers" [ref=e457]:
+                      - generic [ref=e458]: Estacionamiento flyiers
                     - cell "efectivo" [ref=e459]
-                    - cell "Materiales de proyecto" [ref=e460]
-                    - cell "$36.761" [ref=e461]
+                    - cell "Estacionamiento" [ref=e460]
+                    - cell "$790" [ref=e461]
                     - cell "conciliada" [ref=e462]:
                       - generic [ref=e463]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e464]:
@@ -528,19 +528,19 @@
                         - button "Favorita" [ref=e469] [cursor=pointer]
                         - button "Desconciliar" [ref=e470] [cursor=pointer]
                         - button "Anular" [ref=e471] [cursor=pointer]
-                  - row "Ver 23-03-26, 9:00 a. m. Egreso Comida gata efectivo Alimentación $9.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e472]:
+                  - row "Ver 27-03-26, 9:00 a. m. Egreso Flyers efectivo Publicidad impresa $15.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e472]:
                     - cell [ref=e473]:
                       - checkbox [ref=e474]
                     - cell "Ver" [ref=e475]:
                       - button "Ver" [ref=e476] [cursor=pointer]
-                    - cell "23-03-26, 9:00 a. m." [ref=e477]
+                    - cell "27-03-26, 9:00 a. m." [ref=e477]
                     - cell "Egreso" [ref=e478]:
                       - generic [ref=e479]: Egreso
-                    - cell "Comida gata" [ref=e480]:
-                      - generic [ref=e481]: Comida gata
+                    - cell "Flyers" [ref=e480]:
+                      - generic [ref=e481]: Flyers
                     - cell "efectivo" [ref=e482]
-                    - cell "Alimentación" [ref=e483]
-                    - cell "$9.000" [ref=e484]
+                    - cell "Publicidad impresa" [ref=e483]
+                    - cell "$15.000" [ref=e484]
                     - cell "conciliada" [ref=e485]:
                       - generic [ref=e486]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e487]:
@@ -550,19 +550,19 @@
                         - button "Favorita" [ref=e492] [cursor=pointer]
                         - button "Desconciliar" [ref=e493] [cursor=pointer]
                         - button "Anular" [ref=e494] [cursor=pointer]
-                  - row "Ver 21-03-26, 9:00 a. m. Egreso Regalo cumpleaños efectivo Regalos $5.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e495]:
+                  - row "Ver 26-03-26, 9:00 a. m. Egreso Válvulas tp efectivo Materiales de proyecto $36.761 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e495]:
                     - cell [ref=e496]:
                       - checkbox [ref=e497]
                     - cell "Ver" [ref=e498]:
                       - button "Ver" [ref=e499] [cursor=pointer]
-                    - cell "21-03-26, 9:00 a. m." [ref=e500]
+                    - cell "26-03-26, 9:00 a. m." [ref=e500]
                     - cell "Egreso" [ref=e501]:
                       - generic [ref=e502]: Egreso
-                    - cell "Regalo cumpleaños" [ref=e503]:
-                      - generic [ref=e504]: Regalo cumpleaños
+                    - cell "Válvulas tp" [ref=e503]:
+                      - generic [ref=e504]: Válvulas tp
                     - cell "efectivo" [ref=e505]
-                    - cell "Regalos" [ref=e506]
-                    - cell "$5.000" [ref=e507]
+                    - cell "Materiales de proyecto" [ref=e506]
+                    - cell "$36.761" [ref=e507]
                     - cell "conciliada" [ref=e508]:
                       - generic [ref=e509]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e510]:
@@ -572,19 +572,19 @@
                         - button "Favorita" [ref=e515] [cursor=pointer]
                         - button "Desconciliar" [ref=e516] [cursor=pointer]
                         - button "Anular" [ref=e517] [cursor=pointer]
-                  - row "Ver 20-03-26, 9:00 a. m. Egreso Reparación foco neblinero trasero lado conductor efectivo Mantención vehicular $23.800 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e518]:
+                  - row "Ver 23-03-26, 9:00 a. m. Egreso Comida gata efectivo Alimentación $9.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e518]:
                     - cell [ref=e519]:
                       - checkbox [ref=e520]
                     - cell "Ver" [ref=e521]:
                       - button "Ver" [ref=e522] [cursor=pointer]
-                    - cell "20-03-26, 9:00 a. m." [ref=e523]
+                    - cell "23-03-26, 9:00 a. m." [ref=e523]
                     - cell "Egreso" [ref=e524]:
                       - generic [ref=e525]: Egreso
-                    - cell "Reparación foco neblinero trasero lado conductor" [ref=e526]:
-                      - generic [ref=e527]: Reparación foco neblinero trasero lado conductor
+                    - cell "Comida gata" [ref=e526]:
+                      - generic [ref=e527]: Comida gata
                     - cell "efectivo" [ref=e528]
-                    - cell "Mantención vehicular" [ref=e529]
-                    - cell "$23.800" [ref=e530]
+                    - cell "Alimentación" [ref=e529]
+                    - cell "$9.000" [ref=e530]
                     - cell "conciliada" [ref=e531]:
                       - generic [ref=e532]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e533]:
@@ -594,19 +594,19 @@
                         - button "Favorita" [ref=e538] [cursor=pointer]
                         - button "Desconciliar" [ref=e539] [cursor=pointer]
                         - button "Anular" [ref=e540] [cursor=pointer]
-                  - row "Ver 20-03-26, 9:00 a. m. Egreso Parka sofia efectivo Vestuario $40.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e541]:
+                  - row "Ver 21-03-26, 9:00 a. m. Egreso Regalo cumpleaños efectivo Regalos $5.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e541]:
                     - cell [ref=e542]:
                       - checkbox [ref=e543]
                     - cell "Ver" [ref=e544]:
                       - button "Ver" [ref=e545] [cursor=pointer]
-                    - cell "20-03-26, 9:00 a. m." [ref=e546]
+                    - cell "21-03-26, 9:00 a. m." [ref=e546]
                     - cell "Egreso" [ref=e547]:
                       - generic [ref=e548]: Egreso
-                    - cell "Parka sofia" [ref=e549]:
-                      - generic [ref=e550]: Parka sofia
+                    - cell "Regalo cumpleaños" [ref=e549]:
+                      - generic [ref=e550]: Regalo cumpleaños
                     - cell "efectivo" [ref=e551]
-                    - cell "Vestuario" [ref=e552]
-                    - cell "$40.000" [ref=e553]
+                    - cell "Regalos" [ref=e552]
+                    - cell "$5.000" [ref=e553]
                     - cell "conciliada" [ref=e554]:
                       - generic [ref=e555]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e556]:
@@ -616,19 +616,19 @@
                         - button "Favorita" [ref=e561] [cursor=pointer]
                         - button "Desconciliar" [ref=e562] [cursor=pointer]
                         - button "Anular" [ref=e563] [cursor=pointer]
-                  - row "Ver 18-03-26, 9:00 a. m. Egreso Barras de magnesio efectivo Materiales de proyecto $160.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e564]:
+                  - row "Ver 20-03-26, 9:00 a. m. Egreso Reparación foco neblinero trasero lado conductor efectivo Mantención vehicular $23.800 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e564]:
                     - cell [ref=e565]:
                       - checkbox [ref=e566]
                     - cell "Ver" [ref=e567]:
                       - button "Ver" [ref=e568] [cursor=pointer]
-                    - cell "18-03-26, 9:00 a. m." [ref=e569]
+                    - cell "20-03-26, 9:00 a. m." [ref=e569]
                     - cell "Egreso" [ref=e570]:
                       - generic [ref=e571]: Egreso
-                    - cell "Barras de magnesio" [ref=e572]:
-                      - generic [ref=e573]: Barras de magnesio
+                    - cell "Reparación foco neblinero trasero lado conductor" [ref=e572]:
+                      - generic [ref=e573]: Reparación foco neblinero trasero lado conductor
                     - cell "efectivo" [ref=e574]
-                    - cell "Materiales de proyecto" [ref=e575]
-                    - cell "$160.000" [ref=e576]
+                    - cell "Mantención vehicular" [ref=e575]
+                    - cell "$23.800" [ref=e576]
                     - cell "conciliada" [ref=e577]:
                       - generic [ref=e578]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e579]:
@@ -638,19 +638,19 @@
                         - button "Favorita" [ref=e584] [cursor=pointer]
                         - button "Desconciliar" [ref=e585] [cursor=pointer]
                         - button "Anular" [ref=e586] [cursor=pointer]
-                  - row "Ver 18-03-26, 9:00 a. m. Egreso Cuota 57/80 efectivo Crédito de consumo $297.935 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e587]:
+                  - row "Ver 20-03-26, 9:00 a. m. Egreso Parka sofia efectivo Vestuario $40.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e587]:
                     - cell [ref=e588]:
                       - checkbox [ref=e589]
                     - cell "Ver" [ref=e590]:
                       - button "Ver" [ref=e591] [cursor=pointer]
-                    - cell "18-03-26, 9:00 a. m." [ref=e592]
+                    - cell "20-03-26, 9:00 a. m." [ref=e592]
                     - cell "Egreso" [ref=e593]:
                       - generic [ref=e594]: Egreso
-                    - cell "Cuota 57/80" [ref=e595]:
-                      - generic [ref=e596]: Cuota 57/80
+                    - cell "Parka sofia" [ref=e595]:
+                      - generic [ref=e596]: Parka sofia
                     - cell "efectivo" [ref=e597]
-                    - cell "Crédito de consumo" [ref=e598]
-                    - cell "$297.935" [ref=e599]
+                    - cell "Vestuario" [ref=e598]
+                    - cell "$40.000" [ref=e599]
                     - cell "conciliada" [ref=e600]:
                       - generic [ref=e601]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e602]:
@@ -660,19 +660,19 @@
                         - button "Favorita" [ref=e607] [cursor=pointer]
                         - button "Desconciliar" [ref=e608] [cursor=pointer]
                         - button "Anular" [ref=e609] [cursor=pointer]
-                  - row "Ver 17-03-26, 9:00 a. m. Egreso Neblinero delantero efectivo Mantención vehicular $15.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e610]:
+                  - row "Ver 18-03-26, 9:00 a. m. Egreso Barras de magnesio efectivo Materiales de proyecto $160.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e610]:
                     - cell [ref=e611]:
                       - checkbox [ref=e612]
                     - cell "Ver" [ref=e613]:
                       - button "Ver" [ref=e614] [cursor=pointer]
-                    - cell "17-03-26, 9:00 a. m." [ref=e615]
+                    - cell "18-03-26, 9:00 a. m." [ref=e615]
                     - cell "Egreso" [ref=e616]:
                       - generic [ref=e617]: Egreso
-                    - cell "Neblinero delantero" [ref=e618]:
-                      - generic [ref=e619]: Neblinero delantero
+                    - cell "Barras de magnesio" [ref=e618]:
+                      - generic [ref=e619]: Barras de magnesio
                     - cell "efectivo" [ref=e620]
-                    - cell "Mantención vehicular" [ref=e621]
-                    - cell "$15.000" [ref=e622]
+                    - cell "Materiales de proyecto" [ref=e621]
+                    - cell "$160.000" [ref=e622]
                     - cell "conciliada" [ref=e623]:
                       - generic [ref=e624]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e625]:
@@ -682,19 +682,19 @@
                         - button "Favorita" [ref=e630] [cursor=pointer]
                         - button "Desconciliar" [ref=e631] [cursor=pointer]
                         - button "Anular" [ref=e632] [cursor=pointer]
-                  - row "Ver 17-03-26, 9:00 a. m. Egreso Luz neblinero camioneta delantera efectivo Mantención vehicular $15.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e633]:
+                  - row "Ver 18-03-26, 9:00 a. m. Egreso Cuota 57/80 efectivo Crédito de consumo $297.935 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e633]:
                     - cell [ref=e634]:
                       - checkbox [ref=e635]
                     - cell "Ver" [ref=e636]:
                       - button "Ver" [ref=e637] [cursor=pointer]
-                    - cell "17-03-26, 9:00 a. m." [ref=e638]
+                    - cell "18-03-26, 9:00 a. m." [ref=e638]
                     - cell "Egreso" [ref=e639]:
                       - generic [ref=e640]: Egreso
-                    - cell "Luz neblinero camioneta delantera" [ref=e641]:
-                      - generic [ref=e642]: Luz neblinero camioneta delantera
+                    - cell "Cuota 57/80" [ref=e641]:
+                      - generic [ref=e642]: Cuota 57/80
                     - cell "efectivo" [ref=e643]
-                    - cell "Mantención vehicular" [ref=e644]
-                    - cell "$15.000" [ref=e645]
+                    - cell "Crédito de consumo" [ref=e644]
+                    - cell "$297.935" [ref=e645]
                     - cell "conciliada" [ref=e646]:
                       - generic [ref=e647]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e648]:
@@ -704,7 +704,7 @@
                         - button "Favorita" [ref=e653] [cursor=pointer]
                         - button "Desconciliar" [ref=e654] [cursor=pointer]
                         - button "Anular" [ref=e655] [cursor=pointer]
-                  - row "Ver 17-03-26, 9:00 a. m. Egreso Pastillas de freno camioneta efectivo Mantención vehicular $36.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e656]:
+                  - row "Ver 17-03-26, 9:00 a. m. Egreso Neblinero delantero efectivo Mantención vehicular $15.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e656]:
                     - cell [ref=e657]:
                       - checkbox [ref=e658]
                     - cell "Ver" [ref=e659]:
@@ -712,11 +712,11 @@
                     - cell "17-03-26, 9:00 a. m." [ref=e661]
                     - cell "Egreso" [ref=e662]:
                       - generic [ref=e663]: Egreso
-                    - cell "Pastillas de freno camioneta" [ref=e664]:
-                      - generic [ref=e665]: Pastillas de freno camioneta
+                    - cell "Neblinero delantero" [ref=e664]:
+                      - generic [ref=e665]: Neblinero delantero
                     - cell "efectivo" [ref=e666]
                     - cell "Mantención vehicular" [ref=e667]
-                    - cell "$36.000" [ref=e668]
+                    - cell "$15.000" [ref=e668]
                     - cell "conciliada" [ref=e669]:
                       - generic [ref=e670]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e671]:
@@ -726,19 +726,19 @@
                         - button "Favorita" [ref=e676] [cursor=pointer]
                         - button "Desconciliar" [ref=e677] [cursor=pointer]
                         - button "Anular" [ref=e678] [cursor=pointer]
-                  - row "Ver 16-03-26, 9:00 a. m. Egreso cambio de amortiguadores delanteros camioneta SHPG74 efectivo Mantención vehicular $140.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e679]:
+                  - row "Ver 17-03-26, 9:00 a. m. Egreso Luz neblinero camioneta delantera efectivo Mantención vehicular $15.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e679]:
                     - cell [ref=e680]:
                       - checkbox [ref=e681]
                     - cell "Ver" [ref=e682]:
                       - button "Ver" [ref=e683] [cursor=pointer]
-                    - cell "16-03-26, 9:00 a. m." [ref=e684]
+                    - cell "17-03-26, 9:00 a. m." [ref=e684]
                     - cell "Egreso" [ref=e685]:
                       - generic [ref=e686]: Egreso
-                    - cell "cambio de amortiguadores delanteros camioneta SHPG74" [ref=e687]:
-                      - generic [ref=e688]: cambio de amortiguadores delanteros camioneta SHPG74
+                    - cell "Luz neblinero camioneta delantera" [ref=e687]:
+                      - generic [ref=e688]: Luz neblinero camioneta delantera
                     - cell "efectivo" [ref=e689]
                     - cell "Mantención vehicular" [ref=e690]
-                    - cell "$140.000" [ref=e691]
+                    - cell "$15.000" [ref=e691]
                     - cell "conciliada" [ref=e692]:
                       - generic [ref=e693]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e694]:
@@ -748,19 +748,19 @@
                         - button "Favorita" [ref=e699] [cursor=pointer]
                         - button "Desconciliar" [ref=e700] [cursor=pointer]
                         - button "Anular" [ref=e701] [cursor=pointer]
-                  - row "Ver 13-03-26, 9:00 a. m. Egreso Diesel efectivo Combustible $25.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e702]:
+                  - row "Ver 17-03-26, 9:00 a. m. Egreso Pastillas de freno camioneta efectivo Mantención vehicular $36.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e702]:
                     - cell [ref=e703]:
                       - checkbox [ref=e704]
                     - cell "Ver" [ref=e705]:
                       - button "Ver" [ref=e706] [cursor=pointer]
-                    - cell "13-03-26, 9:00 a. m." [ref=e707]
+                    - cell "17-03-26, 9:00 a. m." [ref=e707]
                     - cell "Egreso" [ref=e708]:
                       - generic [ref=e709]: Egreso
-                    - cell "Diesel" [ref=e710]:
-                      - generic [ref=e711]: Diesel
+                    - cell "Pastillas de freno camioneta" [ref=e710]:
+                      - generic [ref=e711]: Pastillas de freno camioneta
                     - cell "efectivo" [ref=e712]
-                    - cell "Combustible" [ref=e713]
-                    - cell "$25.000" [ref=e714]
+                    - cell "Mantención vehicular" [ref=e713]
+                    - cell "$36.000" [ref=e714]
                     - cell "conciliada" [ref=e715]:
                       - generic [ref=e716]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e717]:
@@ -770,19 +770,19 @@
                         - button "Favorita" [ref=e722] [cursor=pointer]
                         - button "Desconciliar" [ref=e723] [cursor=pointer]
                         - button "Anular" [ref=e724] [cursor=pointer]
-                  - row "Ver 13-03-26, 9:00 a. m. Egreso Exámenes sofia efectivo Salud $9.180 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e725]:
+                  - row "Ver 16-03-26, 9:00 a. m. Egreso cambio de amortiguadores delanteros camioneta SHPG74 efectivo Mantención vehicular $140.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e725]:
                     - cell [ref=e726]:
                       - checkbox [ref=e727]
                     - cell "Ver" [ref=e728]:
                       - button "Ver" [ref=e729] [cursor=pointer]
-                    - cell "13-03-26, 9:00 a. m." [ref=e730]
+                    - cell "16-03-26, 9:00 a. m." [ref=e730]
                     - cell "Egreso" [ref=e731]:
                       - generic [ref=e732]: Egreso
-                    - cell "Exámenes sofia" [ref=e733]:
-                      - generic [ref=e734]: Exámenes sofia
+                    - cell "cambio de amortiguadores delanteros camioneta SHPG74" [ref=e733]:
+                      - generic [ref=e734]: cambio de amortiguadores delanteros camioneta SHPG74
                     - cell "efectivo" [ref=e735]
-                    - cell "Salud" [ref=e736]
-                    - cell "$9.180" [ref=e737]
+                    - cell "Mantención vehicular" [ref=e736]
+                    - cell "$140.000" [ref=e737]
                     - cell "conciliada" [ref=e738]:
                       - generic [ref=e739]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e740]:
@@ -792,7 +792,7 @@
                         - button "Favorita" [ref=e745] [cursor=pointer]
                         - button "Desconciliar" [ref=e746] [cursor=pointer]
                         - button "Anular" [ref=e747] [cursor=pointer]
-                  - row "Ver 13-03-26, 9:00 a. m. Egreso Exámenes sofia efectivo Salud $26.750 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e748]:
+                  - row "Ver 13-03-26, 9:00 a. m. Egreso Diesel efectivo Combustible $25.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e748]:
                     - cell [ref=e749]:
                       - checkbox [ref=e750]
                     - cell "Ver" [ref=e751]:
@@ -800,11 +800,11 @@
                     - cell "13-03-26, 9:00 a. m." [ref=e753]
                     - cell "Egreso" [ref=e754]:
                       - generic [ref=e755]: Egreso
-                    - cell "Exámenes sofia" [ref=e756]:
-                      - generic [ref=e757]: Exámenes sofia
+                    - cell "Diesel" [ref=e756]:
+                      - generic [ref=e757]: Diesel
                     - cell "efectivo" [ref=e758]
-                    - cell "Salud" [ref=e759]
-                    - cell "$26.750" [ref=e760]
+                    - cell "Combustible" [ref=e759]
+                    - cell "$25.000" [ref=e760]
                     - cell "conciliada" [ref=e761]:
                       - generic [ref=e762]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e763]:
@@ -814,7 +814,7 @@
                         - button "Favorita" [ref=e768] [cursor=pointer]
                         - button "Desconciliar" [ref=e769] [cursor=pointer]
                         - button "Anular" [ref=e770] [cursor=pointer]
-                  - row "Ver 13-03-26, 9:00 a. m. Egreso Diesel efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e771]:
+                  - row "Ver 13-03-26, 9:00 a. m. Egreso Exámenes sofia efectivo Salud $9.180 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e771]:
                     - cell [ref=e772]:
                       - checkbox [ref=e773]
                     - cell "Ver" [ref=e774]:
@@ -822,11 +822,11 @@
                     - cell "13-03-26, 9:00 a. m." [ref=e776]
                     - cell "Egreso" [ref=e777]:
                       - generic [ref=e778]: Egreso
-                    - cell "Diesel" [ref=e779]:
-                      - generic [ref=e780]: Diesel
+                    - cell "Exámenes sofia" [ref=e779]:
+                      - generic [ref=e780]: Exámenes sofia
                     - cell "efectivo" [ref=e781]
-                    - cell "Combustible" [ref=e782]
-                    - cell "$20.000" [ref=e783]
+                    - cell "Salud" [ref=e782]
+                    - cell "$9.180" [ref=e783]
                     - cell "conciliada" [ref=e784]:
                       - generic [ref=e785]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e786]:
@@ -836,19 +836,19 @@
                         - button "Favorita" [ref=e791] [cursor=pointer]
                         - button "Desconciliar" [ref=e792] [cursor=pointer]
                         - button "Anular" [ref=e793] [cursor=pointer]
-                  - row "Ver 12-03-26, 9:00 a. m. Egreso Estacionamiento compra amortiguadores efectivo Estacionamiento $3.160 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e794]:
+                  - row "Ver 13-03-26, 9:00 a. m. Egreso Exámenes sofia efectivo Salud $26.750 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e794]:
                     - cell [ref=e795]:
                       - checkbox [ref=e796]
                     - cell "Ver" [ref=e797]:
                       - button "Ver" [ref=e798] [cursor=pointer]
-                    - cell "12-03-26, 9:00 a. m." [ref=e799]
+                    - cell "13-03-26, 9:00 a. m." [ref=e799]
                     - cell "Egreso" [ref=e800]:
                       - generic [ref=e801]: Egreso
-                    - cell "Estacionamiento compra amortiguadores" [ref=e802]:
-                      - generic [ref=e803]: Estacionamiento compra amortiguadores
+                    - cell "Exámenes sofia" [ref=e802]:
+                      - generic [ref=e803]: Exámenes sofia
                     - cell "efectivo" [ref=e804]
-                    - cell "Estacionamiento" [ref=e805]
-                    - cell "$3.160" [ref=e806]
+                    - cell "Salud" [ref=e805]
+                    - cell "$26.750" [ref=e806]
                     - cell "conciliada" [ref=e807]:
                       - generic [ref=e808]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e809]:
@@ -858,19 +858,19 @@
                         - button "Favorita" [ref=e814] [cursor=pointer]
                         - button "Desconciliar" [ref=e815] [cursor=pointer]
                         - button "Anular" [ref=e816] [cursor=pointer]
-                  - row "Ver 12-03-26, 9:00 a. m. Egreso Revisión técnica camioneta shpg74 efectivo Mantención vehicular $14.800 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e817]:
+                  - row "Ver 13-03-26, 9:00 a. m. Egreso Diesel efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e817]:
                     - cell [ref=e818]:
                       - checkbox [ref=e819]
                     - cell "Ver" [ref=e820]:
                       - button "Ver" [ref=e821] [cursor=pointer]
-                    - cell "12-03-26, 9:00 a. m." [ref=e822]
+                    - cell "13-03-26, 9:00 a. m." [ref=e822]
                     - cell "Egreso" [ref=e823]:
                       - generic [ref=e824]: Egreso
-                    - cell "Revisión técnica camioneta shpg74" [ref=e825]:
-                      - generic [ref=e826]: Revisión técnica camioneta shpg74
+                    - cell "Diesel" [ref=e825]:
+                      - generic [ref=e826]: Diesel
                     - cell "efectivo" [ref=e827]
-                    - cell "Mantención vehicular" [ref=e828]
-                    - cell "$14.800" [ref=e829]
+                    - cell "Combustible" [ref=e828]
+                    - cell "$20.000" [ref=e829]
                     - cell "conciliada" [ref=e830]:
                       - generic [ref=e831]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e832]:
@@ -880,7 +880,7 @@
                         - button "Favorita" [ref=e837] [cursor=pointer]
                         - button "Desconciliar" [ref=e838] [cursor=pointer]
                         - button "Anular" [ref=e839] [cursor=pointer]
-                  - row "Ver 12-03-26, 9:00 a. m. Egreso Reparación camioneta - amortiguadores delanteros efectivo Mantención vehicular $120.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e840]:
+                  - row "Ver 12-03-26, 9:00 a. m. Egreso Estacionamiento compra amortiguadores efectivo Estacionamiento $3.160 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e840]:
                     - cell [ref=e841]:
                       - checkbox [ref=e842]
                     - cell "Ver" [ref=e843]:
@@ -888,11 +888,11 @@
                     - cell "12-03-26, 9:00 a. m." [ref=e845]
                     - cell "Egreso" [ref=e846]:
                       - generic [ref=e847]: Egreso
-                    - cell "Reparación camioneta - amortiguadores delanteros" [ref=e848]:
-                      - generic [ref=e849]: Reparación camioneta - amortiguadores delanteros
+                    - cell "Estacionamiento compra amortiguadores" [ref=e848]:
+                      - generic [ref=e849]: Estacionamiento compra amortiguadores
                     - cell "efectivo" [ref=e850]
-                    - cell "Mantención vehicular" [ref=e851]
-                    - cell "$120.000" [ref=e852]
+                    - cell "Estacionamiento" [ref=e851]
+                    - cell "$3.160" [ref=e852]
                     - cell "conciliada" [ref=e853]:
                       - generic [ref=e854]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e855]:
@@ -902,19 +902,19 @@
                         - button "Favorita" [ref=e860] [cursor=pointer]
                         - button "Desconciliar" [ref=e861] [cursor=pointer]
                         - button "Anular" [ref=e862] [cursor=pointer]
-                  - row "Ver 11-03-26, 9:00 a. m. Egreso Insumos de mantenimiento efectivo Materiales de proyecto $6.600 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e863]:
+                  - row "Ver 12-03-26, 9:00 a. m. Egreso Revisión técnica camioneta shpg74 efectivo Mantención vehicular $14.800 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e863]:
                     - cell [ref=e864]:
                       - checkbox [ref=e865]
                     - cell "Ver" [ref=e866]:
                       - button "Ver" [ref=e867] [cursor=pointer]
-                    - cell "11-03-26, 9:00 a. m." [ref=e868]
+                    - cell "12-03-26, 9:00 a. m." [ref=e868]
                     - cell "Egreso" [ref=e869]:
                       - generic [ref=e870]: Egreso
-                    - cell "Insumos de mantenimiento" [ref=e871]:
-                      - generic [ref=e872]: Insumos de mantenimiento
+                    - cell "Revisión técnica camioneta shpg74" [ref=e871]:
+                      - generic [ref=e872]: Revisión técnica camioneta shpg74
                     - cell "efectivo" [ref=e873]
-                    - cell "Materiales de proyecto" [ref=e874]
-                    - cell "$6.600" [ref=e875]
+                    - cell "Mantención vehicular" [ref=e874]
+                    - cell "$14.800" [ref=e875]
                     - cell "conciliada" [ref=e876]:
                       - generic [ref=e877]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e878]:
@@ -924,19 +924,19 @@
                         - button "Favorita" [ref=e883] [cursor=pointer]
                         - button "Desconciliar" [ref=e884] [cursor=pointer]
                         - button "Anular" [ref=e885] [cursor=pointer]
-                  - row "Ver 11-03-26, 9:00 a. m. Egreso Supermercado efectivo Alimentación $74.286 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e886]:
+                  - row "Ver 12-03-26, 9:00 a. m. Egreso Reparación camioneta - amortiguadores delanteros efectivo Mantención vehicular $120.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e886]:
                     - cell [ref=e887]:
                       - checkbox [ref=e888]
                     - cell "Ver" [ref=e889]:
                       - button "Ver" [ref=e890] [cursor=pointer]
-                    - cell "11-03-26, 9:00 a. m." [ref=e891]
+                    - cell "12-03-26, 9:00 a. m." [ref=e891]
                     - cell "Egreso" [ref=e892]:
                       - generic [ref=e893]: Egreso
-                    - cell "Supermercado" [ref=e894]:
-                      - generic [ref=e895]: Supermercado
+                    - cell "Reparación camioneta - amortiguadores delanteros" [ref=e894]:
+                      - generic [ref=e895]: Reparación camioneta - amortiguadores delanteros
                     - cell "efectivo" [ref=e896]
-                    - cell "Alimentación" [ref=e897]
-                    - cell "$74.286" [ref=e898]
+                    - cell "Mantención vehicular" [ref=e897]
+                    - cell "$120.000" [ref=e898]
                     - cell "conciliada" [ref=e899]:
                       - generic [ref=e900]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e901]:
@@ -946,19 +946,19 @@
                         - button "Favorita" [ref=e906] [cursor=pointer]
                         - button "Desconciliar" [ref=e907] [cursor=pointer]
                         - button "Anular" [ref=e908] [cursor=pointer]
-                  - row "Ver 10-03-26, 9:00 a. m. Egreso Froilan roa estacionamiento efectivo Estacionamiento $2.980 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e909]:
+                  - row "Ver 11-03-26, 9:00 a. m. Egreso Insumos de mantenimiento efectivo Materiales de proyecto $6.600 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e909]:
                     - cell [ref=e910]:
                       - checkbox [ref=e911]
                     - cell "Ver" [ref=e912]:
                       - button "Ver" [ref=e913] [cursor=pointer]
-                    - cell "10-03-26, 9:00 a. m." [ref=e914]
+                    - cell "11-03-26, 9:00 a. m." [ref=e914]
                     - cell "Egreso" [ref=e915]:
                       - generic [ref=e916]: Egreso
-                    - cell "Froilan roa estacionamiento" [ref=e917]:
-                      - generic [ref=e918]: Froilan roa estacionamiento
+                    - cell "Insumos de mantenimiento" [ref=e917]:
+                      - generic [ref=e918]: Insumos de mantenimiento
                     - cell "efectivo" [ref=e919]
-                    - cell "Estacionamiento" [ref=e920]
-                    - cell "$2.980" [ref=e921]
+                    - cell "Materiales de proyecto" [ref=e920]
+                    - cell "$6.600" [ref=e921]
                     - cell "conciliada" [ref=e922]:
                       - generic [ref=e923]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e924]:
@@ -968,19 +968,19 @@
                         - button "Favorita" [ref=e929] [cursor=pointer]
                         - button "Desconciliar" [ref=e930] [cursor=pointer]
                         - button "Anular" [ref=e931] [cursor=pointer]
-                  - row "Ver 09-03-26, 9:00 a. m. Egreso Remedios sofia efectivo Salud $14.280 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e932]:
+                  - row "Ver 11-03-26, 9:00 a. m. Egreso Supermercado efectivo Alimentación $74.286 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e932]:
                     - cell [ref=e933]:
                       - checkbox [ref=e934]
                     - cell "Ver" [ref=e935]:
                       - button "Ver" [ref=e936] [cursor=pointer]
-                    - cell "09-03-26, 9:00 a. m." [ref=e937]
+                    - cell "11-03-26, 9:00 a. m." [ref=e937]
                     - cell "Egreso" [ref=e938]:
                       - generic [ref=e939]: Egreso
-                    - cell "Remedios sofia" [ref=e940]:
-                      - generic [ref=e941]: Remedios sofia
+                    - cell "Supermercado" [ref=e940]:
+                      - generic [ref=e941]: Supermercado
                     - cell "efectivo" [ref=e942]
-                    - cell "Salud" [ref=e943]
-                    - cell "$14.280" [ref=e944]
+                    - cell "Alimentación" [ref=e943]
+                    - cell "$74.286" [ref=e944]
                     - cell "conciliada" [ref=e945]:
                       - generic [ref=e946]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e947]:
@@ -990,19 +990,19 @@
                         - button "Favorita" [ref=e952] [cursor=pointer]
                         - button "Desconciliar" [ref=e953] [cursor=pointer]
                         - button "Anular" [ref=e954] [cursor=pointer]
-                  - row "Ver 08-03-26, 9:00 a. m. Egreso Colaciones sofia efectivo Alimentación $38.610 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e955]:
+                  - row "Ver 10-03-26, 9:00 a. m. Egreso Froilan roa estacionamiento efectivo Estacionamiento $2.980 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e955]:
                     - cell [ref=e956]:
                       - checkbox [ref=e957]
                     - cell "Ver" [ref=e958]:
                       - button "Ver" [ref=e959] [cursor=pointer]
-                    - cell "08-03-26, 9:00 a. m." [ref=e960]
+                    - cell "10-03-26, 9:00 a. m." [ref=e960]
                     - cell "Egreso" [ref=e961]:
                       - generic [ref=e962]: Egreso
-                    - cell "Colaciones sofia" [ref=e963]:
-                      - generic [ref=e964]: Colaciones sofia
+                    - cell "Froilan roa estacionamiento" [ref=e963]:
+                      - generic [ref=e964]: Froilan roa estacionamiento
                     - cell "efectivo" [ref=e965]
-                    - cell "Alimentación" [ref=e966]
-                    - cell "$38.610" [ref=e967]
+                    - cell "Estacionamiento" [ref=e966]
+                    - cell "$2.980" [ref=e967]
                     - cell "conciliada" [ref=e968]:
                       - generic [ref=e969]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e970]:
@@ -1012,19 +1012,19 @@
                         - button "Favorita" [ref=e975] [cursor=pointer]
                         - button "Desconciliar" [ref=e976] [cursor=pointer]
                         - button "Anular" [ref=e977] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso Anticristalizante , tapa adblue y adblue efectivo Transporte y ruta $49.999 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e978]:
+                  - row "Ver 09-03-26, 9:00 a. m. Egreso Remedios sofia efectivo Salud $14.280 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e978]:
                     - cell [ref=e979]:
                       - checkbox [ref=e980]
                     - cell "Ver" [ref=e981]:
                       - button "Ver" [ref=e982] [cursor=pointer]
-                    - cell "06-03-26, 9:00 a. m." [ref=e983]
+                    - cell "09-03-26, 9:00 a. m." [ref=e983]
                     - cell "Egreso" [ref=e984]:
                       - generic [ref=e985]: Egreso
-                    - cell "Anticristalizante , tapa adblue y adblue" [ref=e986]:
-                      - generic [ref=e987]: Anticristalizante , tapa adblue y adblue
+                    - cell "Remedios sofia" [ref=e986]:
+                      - generic [ref=e987]: Remedios sofia
                     - cell "efectivo" [ref=e988]
-                    - cell "Transporte y ruta" [ref=e989]
-                    - cell "$49.999" [ref=e990]
+                    - cell "Salud" [ref=e989]
+                    - cell "$14.280" [ref=e990]
                     - cell "conciliada" [ref=e991]:
                       - generic [ref=e992]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e993]:
@@ -1034,19 +1034,19 @@
                         - button "Favorita" [ref=e998] [cursor=pointer]
                         - button "Desconciliar" [ref=e999] [cursor=pointer]
                         - button "Anular" [ref=e1000] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso Diesel efectivo Combustible $40.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1001]:
+                  - row "Ver 08-03-26, 9:00 a. m. Egreso Colaciones sofia efectivo Alimentación $38.610 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1001]:
                     - cell [ref=e1002]:
                       - checkbox [ref=e1003]
                     - cell "Ver" [ref=e1004]:
                       - button "Ver" [ref=e1005] [cursor=pointer]
-                    - cell "06-03-26, 9:00 a. m." [ref=e1006]
+                    - cell "08-03-26, 9:00 a. m." [ref=e1006]
                     - cell "Egreso" [ref=e1007]:
                       - generic [ref=e1008]: Egreso
-                    - cell "Diesel" [ref=e1009]:
-                      - generic [ref=e1010]: Diesel
+                    - cell "Colaciones sofia" [ref=e1009]:
+                      - generic [ref=e1010]: Colaciones sofia
                     - cell "efectivo" [ref=e1011]
-                    - cell "Combustible" [ref=e1012]
-                    - cell "$40.000" [ref=e1013]
+                    - cell "Alimentación" [ref=e1012]
+                    - cell "$38.610" [ref=e1013]
                     - cell "conciliada" [ref=e1014]:
                       - generic [ref=e1015]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1016]:
@@ -1056,7 +1056,7 @@
                         - button "Favorita" [ref=e1021] [cursor=pointer]
                         - button "Desconciliar" [ref=e1022] [cursor=pointer]
                         - button "Anular" [ref=e1023] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso Diesel efectivo Combustible $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1024]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso Anticristalizante , tapa adblue y adblue efectivo Transporte y ruta $49.999 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1024]:
                     - cell [ref=e1025]:
                       - checkbox [ref=e1026]
                     - cell "Ver" [ref=e1027]:
@@ -1064,11 +1064,11 @@
                     - cell "06-03-26, 9:00 a. m." [ref=e1029]
                     - cell "Egreso" [ref=e1030]:
                       - generic [ref=e1031]: Egreso
-                    - cell "Diesel" [ref=e1032]:
-                      - generic [ref=e1033]: Diesel
+                    - cell "Anticristalizante , tapa adblue y adblue" [ref=e1032]:
+                      - generic [ref=e1033]: Anticristalizante , tapa adblue y adblue
                     - cell "efectivo" [ref=e1034]
-                    - cell "Combustible" [ref=e1035]
-                    - cell "$10.000" [ref=e1036]
+                    - cell "Transporte y ruta" [ref=e1035]
+                    - cell "$49.999" [ref=e1036]
                     - cell "conciliada" [ref=e1037]:
                       - generic [ref=e1038]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1039]:
@@ -1078,7 +1078,7 @@
                         - button "Favorita" [ref=e1044] [cursor=pointer]
                         - button "Desconciliar" [ref=e1045] [cursor=pointer]
                         - button "Anular" [ref=e1046] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso Metrogas efectivo Gas $11.965 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1047]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso Diesel efectivo Combustible $40.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1047]:
                     - cell [ref=e1048]:
                       - checkbox [ref=e1049]
                     - cell "Ver" [ref=e1050]:
@@ -1086,11 +1086,11 @@
                     - cell "06-03-26, 9:00 a. m." [ref=e1052]
                     - cell "Egreso" [ref=e1053]:
                       - generic [ref=e1054]: Egreso
-                    - cell "Metrogas" [ref=e1055]:
-                      - generic [ref=e1056]: Metrogas
+                    - cell "Diesel" [ref=e1055]:
+                      - generic [ref=e1056]: Diesel
                     - cell "efectivo" [ref=e1057]
-                    - cell "Gas" [ref=e1058]
-                    - cell "$11.965" [ref=e1059]
+                    - cell "Combustible" [ref=e1058]
+                    - cell "$40.000" [ref=e1059]
                     - cell "conciliada" [ref=e1060]:
                       - generic [ref=e1061]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1062]:
@@ -1100,7 +1100,7 @@
                         - button "Favorita" [ref=e1067] [cursor=pointer]
                         - button "Desconciliar" [ref=e1068] [cursor=pointer]
                         - button "Anular" [ref=e1069] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso Aguas andinas efectivo Agua $29.840 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1070]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso Diesel efectivo Combustible $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1070]:
                     - cell [ref=e1071]:
                       - checkbox [ref=e1072]
                     - cell "Ver" [ref=e1073]:
@@ -1108,11 +1108,11 @@
                     - cell "06-03-26, 9:00 a. m." [ref=e1075]
                     - cell "Egreso" [ref=e1076]:
                       - generic [ref=e1077]: Egreso
-                    - cell "Aguas andinas" [ref=e1078]:
-                      - generic [ref=e1079]: Aguas andinas
+                    - cell "Diesel" [ref=e1078]:
+                      - generic [ref=e1079]: Diesel
                     - cell "efectivo" [ref=e1080]
-                    - cell "Agua" [ref=e1081]
-                    - cell "$29.840" [ref=e1082]
+                    - cell "Combustible" [ref=e1081]
+                    - cell "$10.000" [ref=e1082]
                     - cell "conciliada" [ref=e1083]:
                       - generic [ref=e1084]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1085]:
@@ -1122,7 +1122,7 @@
                         - button "Favorita" [ref=e1090] [cursor=pointer]
                         - button "Desconciliar" [ref=e1091] [cursor=pointer]
                         - button "Anular" [ref=e1092] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso tag camioneta roja papa efectivo TAG y peajes $8.081 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1093]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso Metrogas efectivo Gas $11.965 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1093]:
                     - cell [ref=e1094]:
                       - checkbox [ref=e1095]
                     - cell "Ver" [ref=e1096]:
@@ -1130,11 +1130,11 @@
                     - cell "06-03-26, 9:00 a. m." [ref=e1098]
                     - cell "Egreso" [ref=e1099]:
                       - generic [ref=e1100]: Egreso
-                    - cell "tag camioneta roja papa" [ref=e1101]:
-                      - generic [ref=e1102]: tag camioneta roja papa
+                    - cell "Metrogas" [ref=e1101]:
+                      - generic [ref=e1102]: Metrogas
                     - cell "efectivo" [ref=e1103]
-                    - cell "TAG y peajes" [ref=e1104]
-                    - cell "$8.081" [ref=e1105]
+                    - cell "Gas" [ref=e1104]
+                    - cell "$11.965" [ref=e1105]
                     - cell "conciliada" [ref=e1106]:
                       - generic [ref=e1107]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1108]:
@@ -1144,7 +1144,7 @@
                         - button "Favorita" [ref=e1113] [cursor=pointer]
                         - button "Desconciliar" [ref=e1114] [cursor=pointer]
                         - button "Anular" [ref=e1115] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso tag camioneta roja papa efectivo TAG y peajes $140.939 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1116]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso Aguas andinas efectivo Agua $29.840 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1116]:
                     - cell [ref=e1117]:
                       - checkbox [ref=e1118]
                     - cell "Ver" [ref=e1119]:
@@ -1152,11 +1152,11 @@
                     - cell "06-03-26, 9:00 a. m." [ref=e1121]
                     - cell "Egreso" [ref=e1122]:
                       - generic [ref=e1123]: Egreso
-                    - cell "tag camioneta roja papa" [ref=e1124]:
-                      - generic [ref=e1125]: tag camioneta roja papa
+                    - cell "Aguas andinas" [ref=e1124]:
+                      - generic [ref=e1125]: Aguas andinas
                     - cell "efectivo" [ref=e1126]
-                    - cell "TAG y peajes" [ref=e1127]
-                    - cell "$140.939" [ref=e1128]
+                    - cell "Agua" [ref=e1127]
+                    - cell "$29.840" [ref=e1128]
                     - cell "conciliada" [ref=e1129]:
                       - generic [ref=e1130]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1131]:
@@ -1166,7 +1166,7 @@
                         - button "Favorita" [ref=e1136] [cursor=pointer]
                         - button "Desconciliar" [ref=e1137] [cursor=pointer]
                         - button "Anular" [ref=e1138] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso futbol 5/2/2026 efectivo Deporte $3.600 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1139]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso tag camioneta roja papa efectivo TAG y peajes $8.081 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1139]:
                     - cell [ref=e1140]:
                       - checkbox [ref=e1141]
                     - cell "Ver" [ref=e1142]:
@@ -1174,11 +1174,11 @@
                     - cell "06-03-26, 9:00 a. m." [ref=e1144]
                     - cell "Egreso" [ref=e1145]:
                       - generic [ref=e1146]: Egreso
-                    - cell "futbol 5/2/2026" [ref=e1147]:
-                      - generic [ref=e1148]: futbol 5/2/2026
+                    - cell "tag camioneta roja papa" [ref=e1147]:
+                      - generic [ref=e1148]: tag camioneta roja papa
                     - cell "efectivo" [ref=e1149]
-                    - cell "Deporte" [ref=e1150]
-                    - cell "$3.600" [ref=e1151]
+                    - cell "TAG y peajes" [ref=e1150]
+                    - cell "$8.081" [ref=e1151]
                     - cell "conciliada" [ref=e1152]:
                       - generic [ref=e1153]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1154]:
@@ -1188,7 +1188,7 @@
                         - button "Favorita" [ref=e1159] [cursor=pointer]
                         - button "Desconciliar" [ref=e1160] [cursor=pointer]
                         - button "Anular" [ref=e1161] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso futbol equipo holanda efectivo Deporte $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1162]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso tag camioneta roja papa efectivo TAG y peajes $140.939 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1162]:
                     - cell [ref=e1163]:
                       - checkbox [ref=e1164]
                     - cell "Ver" [ref=e1165]:
@@ -1196,11 +1196,11 @@
                     - cell "06-03-26, 9:00 a. m." [ref=e1167]
                     - cell "Egreso" [ref=e1168]:
                       - generic [ref=e1169]: Egreso
-                    - cell "futbol equipo holanda" [ref=e1170]:
-                      - generic [ref=e1171]: futbol equipo holanda
+                    - cell "tag camioneta roja papa" [ref=e1170]:
+                      - generic [ref=e1171]: tag camioneta roja papa
                     - cell "efectivo" [ref=e1172]
-                    - cell "Deporte" [ref=e1173]
-                    - cell "$10.000" [ref=e1174]
+                    - cell "TAG y peajes" [ref=e1173]
+                    - cell "$140.939" [ref=e1174]
                     - cell "conciliada" [ref=e1175]:
                       - generic [ref=e1176]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1177]:
@@ -1210,7 +1210,7 @@
                         - button "Favorita" [ref=e1182] [cursor=pointer]
                         - button "Desconciliar" [ref=e1183] [cursor=pointer]
                         - button "Anular" [ref=e1184] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso telefonia celular entel efectivo Internet y telefonía $13.990 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1185]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso futbol 5/2/2026 efectivo Deporte $3.600 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1185]:
                     - cell [ref=e1186]:
                       - checkbox [ref=e1187]
                     - cell "Ver" [ref=e1188]:
@@ -1218,11 +1218,11 @@
                     - cell "06-03-26, 9:00 a. m." [ref=e1190]
                     - cell "Egreso" [ref=e1191]:
                       - generic [ref=e1192]: Egreso
-                    - cell "telefonia celular entel" [ref=e1193]:
-                      - generic [ref=e1194]: telefonia celular entel
+                    - cell "futbol 5/2/2026" [ref=e1193]:
+                      - generic [ref=e1194]: futbol 5/2/2026
                     - cell "efectivo" [ref=e1195]
-                    - cell "Internet y telefonía" [ref=e1196]
-                    - cell "$13.990" [ref=e1197]
+                    - cell "Deporte" [ref=e1196]
+                    - cell "$3.600" [ref=e1197]
                     - cell "conciliada" [ref=e1198]:
                       - generic [ref=e1199]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1200]:
@@ -1232,7 +1232,7 @@
                         - button "Favorita" [ref=e1205] [cursor=pointer]
                         - button "Desconciliar" [ref=e1206] [cursor=pointer]
                         - button "Anular" [ref=e1207] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso internet hogar fibra efectivo Internet y telefonía $17.990 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1208]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso futbol equipo holanda efectivo Deporte $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1208]:
                     - cell [ref=e1209]:
                       - checkbox [ref=e1210]
                     - cell "Ver" [ref=e1211]:
@@ -1240,11 +1240,11 @@
                     - cell "06-03-26, 9:00 a. m." [ref=e1213]
                     - cell "Egreso" [ref=e1214]:
                       - generic [ref=e1215]: Egreso
-                    - cell "internet hogar fibra" [ref=e1216]:
-                      - generic [ref=e1217]: internet hogar fibra
+                    - cell "futbol equipo holanda" [ref=e1216]:
+                      - generic [ref=e1217]: futbol equipo holanda
                     - cell "efectivo" [ref=e1218]
-                    - cell "Internet y telefonía" [ref=e1219]
-                    - cell "$17.990" [ref=e1220]
+                    - cell "Deporte" [ref=e1219]
+                    - cell "$10.000" [ref=e1220]
                     - cell "conciliada" [ref=e1221]:
                       - generic [ref=e1222]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1223]:
@@ -1254,7 +1254,7 @@
                         - button "Favorita" [ref=e1228] [cursor=pointer]
                         - button "Desconciliar" [ref=e1229] [cursor=pointer]
                         - button "Anular" [ref=e1230] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso Agua efectivo Gastos menores $1.200 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1231]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso telefonia celular entel efectivo Internet y telefonía $13.990 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1231]:
                     - cell [ref=e1232]:
                       - checkbox [ref=e1233]
                     - cell "Ver" [ref=e1234]:
@@ -1262,11 +1262,11 @@
                     - cell "06-03-26, 9:00 a. m." [ref=e1236]
                     - cell "Egreso" [ref=e1237]:
                       - generic [ref=e1238]: Egreso
-                    - cell "Agua" [ref=e1239]:
-                      - generic [ref=e1240]: Agua
+                    - cell "telefonia celular entel" [ref=e1239]:
+                      - generic [ref=e1240]: telefonia celular entel
                     - cell "efectivo" [ref=e1241]
-                    - cell "Gastos menores" [ref=e1242]
-                    - cell "$1.200" [ref=e1243]
+                    - cell "Internet y telefonía" [ref=e1242]
+                    - cell "$13.990" [ref=e1243]
                     - cell "conciliada" [ref=e1244]:
                       - generic [ref=e1245]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1246]:
@@ -1276,7 +1276,7 @@
                         - button "Favorita" [ref=e1251] [cursor=pointer]
                         - button "Desconciliar" [ref=e1252] [cursor=pointer]
                         - button "Anular" [ref=e1253] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso Helados efectivo Gastos menores $1.500 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1254]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso internet hogar fibra efectivo Internet y telefonía $17.990 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1254]:
                     - cell [ref=e1255]:
                       - checkbox [ref=e1256]
                     - cell "Ver" [ref=e1257]:
@@ -1284,11 +1284,11 @@
                     - cell "06-03-26, 9:00 a. m." [ref=e1259]
                     - cell "Egreso" [ref=e1260]:
                       - generic [ref=e1261]: Egreso
-                    - cell "Helados" [ref=e1262]:
-                      - generic [ref=e1263]: Helados
+                    - cell "internet hogar fibra" [ref=e1262]:
+                      - generic [ref=e1263]: internet hogar fibra
                     - cell "efectivo" [ref=e1264]
-                    - cell "Gastos menores" [ref=e1265]
-                    - cell "$1.500" [ref=e1266]
+                    - cell "Internet y telefonía" [ref=e1265]
+                    - cell "$17.990" [ref=e1266]
                     - cell "conciliada" [ref=e1267]:
                       - generic [ref=e1268]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1269]:
@@ -1298,7 +1298,7 @@
                         - button "Favorita" [ref=e1274] [cursor=pointer]
                         - button "Desconciliar" [ref=e1275] [cursor=pointer]
                         - button "Anular" [ref=e1276] [cursor=pointer]
-                  - row "Ver 06-03-26, 9:00 a. m. Egreso Supermercado efectivo Alimentación $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1277]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso Agua efectivo Gastos menores $1.200 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1277]:
                     - cell [ref=e1278]:
                       - checkbox [ref=e1279]
                     - cell "Ver" [ref=e1280]:
@@ -1306,11 +1306,11 @@
                     - cell "06-03-26, 9:00 a. m." [ref=e1282]
                     - cell "Egreso" [ref=e1283]:
                       - generic [ref=e1284]: Egreso
-                    - cell "Supermercado" [ref=e1285]:
-                      - generic [ref=e1286]: Supermercado
+                    - cell "Agua" [ref=e1285]:
+                      - generic [ref=e1286]: Agua
                     - cell "efectivo" [ref=e1287]
-                    - cell "Alimentación" [ref=e1288]
-                    - cell "$10.000" [ref=e1289]
+                    - cell "Gastos menores" [ref=e1288]
+                    - cell "$1.200" [ref=e1289]
                     - cell "conciliada" [ref=e1290]:
                       - generic [ref=e1291]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1292]:
@@ -1320,19 +1320,19 @@
                         - button "Favorita" [ref=e1297] [cursor=pointer]
                         - button "Desconciliar" [ref=e1298] [cursor=pointer]
                         - button "Anular" [ref=e1299] [cursor=pointer]
-                  - row "Ver 05-03-26, 9:00 a. m. Egreso Teflon más tapatornillos efectivo Materiales de proyecto $25.987 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1300]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso Helados efectivo Gastos menores $1.500 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1300]:
                     - cell [ref=e1301]:
                       - checkbox [ref=e1302]
                     - cell "Ver" [ref=e1303]:
                       - button "Ver" [ref=e1304] [cursor=pointer]
-                    - cell "05-03-26, 9:00 a. m." [ref=e1305]
+                    - cell "06-03-26, 9:00 a. m." [ref=e1305]
                     - cell "Egreso" [ref=e1306]:
                       - generic [ref=e1307]: Egreso
-                    - cell "Teflon más tapatornillos" [ref=e1308]:
-                      - generic [ref=e1309]: Teflon más tapatornillos
+                    - cell "Helados" [ref=e1308]:
+                      - generic [ref=e1309]: Helados
                     - cell "efectivo" [ref=e1310]
-                    - cell "Materiales de proyecto" [ref=e1311]
-                    - cell "$25.987" [ref=e1312]
+                    - cell "Gastos menores" [ref=e1311]
+                    - cell "$1.500" [ref=e1312]
                     - cell "conciliada" [ref=e1313]:
                       - generic [ref=e1314]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1315]:
@@ -1342,19 +1342,19 @@
                         - button "Favorita" [ref=e1320] [cursor=pointer]
                         - button "Desconciliar" [ref=e1321] [cursor=pointer]
                         - button "Anular" [ref=e1322] [cursor=pointer]
-                  - row "Ver 04-03-26, 9:00 a. m. Egreso Gomas efectivo Materiales de proyecto $280 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1323]:
+                  - row "Ver 06-03-26, 9:00 a. m. Egreso Supermercado efectivo Alimentación $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1323]:
                     - cell [ref=e1324]:
                       - checkbox [ref=e1325]
                     - cell "Ver" [ref=e1326]:
                       - button "Ver" [ref=e1327] [cursor=pointer]
-                    - cell "04-03-26, 9:00 a. m." [ref=e1328]
+                    - cell "06-03-26, 9:00 a. m." [ref=e1328]
                     - cell "Egreso" [ref=e1329]:
                       - generic [ref=e1330]: Egreso
-                    - cell "Gomas" [ref=e1331]:
-                      - generic [ref=e1332]: Gomas
+                    - cell "Supermercado" [ref=e1331]:
+                      - generic [ref=e1332]: Supermercado
                     - cell "efectivo" [ref=e1333]
-                    - cell "Materiales de proyecto" [ref=e1334]
-                    - cell "$280" [ref=e1335]
+                    - cell "Alimentación" [ref=e1334]
+                    - cell "$10.000" [ref=e1335]
                     - cell "conciliada" [ref=e1336]:
                       - generic [ref=e1337]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1338]:
@@ -1364,19 +1364,19 @@
                         - button "Favorita" [ref=e1343] [cursor=pointer]
                         - button "Desconciliar" [ref=e1344] [cursor=pointer]
                         - button "Anular" [ref=e1345] [cursor=pointer]
-                  - row "Ver 03-03-26, 9:00 a. m. Egreso Diesel efectivo Combustible $30.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1346]:
+                  - row "Ver 05-03-26, 9:00 a. m. Egreso Teflon más tapatornillos efectivo Materiales de proyecto $25.987 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1346]:
                     - cell [ref=e1347]:
                       - checkbox [ref=e1348]
                     - cell "Ver" [ref=e1349]:
                       - button "Ver" [ref=e1350] [cursor=pointer]
-                    - cell "03-03-26, 9:00 a. m." [ref=e1351]
+                    - cell "05-03-26, 9:00 a. m." [ref=e1351]
                     - cell "Egreso" [ref=e1352]:
                       - generic [ref=e1353]: Egreso
-                    - cell "Diesel" [ref=e1354]:
-                      - generic [ref=e1355]: Diesel
+                    - cell "Teflon más tapatornillos" [ref=e1354]:
+                      - generic [ref=e1355]: Teflon más tapatornillos
                     - cell "efectivo" [ref=e1356]
-                    - cell "Combustible" [ref=e1357]
-                    - cell "$30.000" [ref=e1358]
+                    - cell "Materiales de proyecto" [ref=e1357]
+                    - cell "$25.987" [ref=e1358]
                     - cell "conciliada" [ref=e1359]:
                       - generic [ref=e1360]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1361]:
@@ -1386,19 +1386,19 @@
                         - button "Favorita" [ref=e1366] [cursor=pointer]
                         - button "Desconciliar" [ref=e1367] [cursor=pointer]
                         - button "Anular" [ref=e1368] [cursor=pointer]
-                  - row "Ver 03-03-26, 9:00 a. m. Egreso Barras de magnesio efectivo Materiales de proyecto $192.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1369]:
+                  - row "Ver 04-03-26, 9:00 a. m. Egreso Gomas efectivo Materiales de proyecto $280 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1369]:
                     - cell [ref=e1370]:
                       - checkbox [ref=e1371]
                     - cell "Ver" [ref=e1372]:
                       - button "Ver" [ref=e1373] [cursor=pointer]
-                    - cell "03-03-26, 9:00 a. m." [ref=e1374]
+                    - cell "04-03-26, 9:00 a. m." [ref=e1374]
                     - cell "Egreso" [ref=e1375]:
                       - generic [ref=e1376]: Egreso
-                    - cell "Barras de magnesio" [ref=e1377]:
-                      - generic [ref=e1378]: Barras de magnesio
+                    - cell "Gomas" [ref=e1377]:
+                      - generic [ref=e1378]: Gomas
                     - cell "efectivo" [ref=e1379]
                     - cell "Materiales de proyecto" [ref=e1380]
-                    - cell "$192.000" [ref=e1381]
+                    - cell "$280" [ref=e1381]
                     - cell "conciliada" [ref=e1382]:
                       - generic [ref=e1383]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1384]:
@@ -1408,19 +1408,19 @@
                         - button "Favorita" [ref=e1389] [cursor=pointer]
                         - button "Desconciliar" [ref=e1390] [cursor=pointer]
                         - button "Anular" [ref=e1391] [cursor=pointer]
-                  - row "Ver 03-03-26, 1:00 a. m. Ingreso sueldo de marzo efectivo Sueldo $2.359.513 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1392]:
+                  - row "Ver 03-03-26, 9:00 a. m. Egreso Diesel efectivo Combustible $30.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1392]:
                     - cell [ref=e1393]:
                       - checkbox [ref=e1394]
                     - cell "Ver" [ref=e1395]:
                       - button "Ver" [ref=e1396] [cursor=pointer]
-                    - cell "03-03-26, 1:00 a. m." [ref=e1397]
-                    - cell "Ingreso" [ref=e1398]:
-                      - generic [ref=e1399]: Ingreso
-                    - cell "sueldo de marzo" [ref=e1400]:
-                      - generic [ref=e1401]: sueldo de marzo
+                    - cell "03-03-26, 9:00 a. m." [ref=e1397]
+                    - cell "Egreso" [ref=e1398]:
+                      - generic [ref=e1399]: Egreso
+                    - cell "Diesel" [ref=e1400]:
+                      - generic [ref=e1401]: Diesel
                     - cell "efectivo" [ref=e1402]
-                    - cell "Sueldo" [ref=e1403]
-                    - cell "$2.359.513" [ref=e1404]
+                    - cell "Combustible" [ref=e1403]
+                    - cell "$30.000" [ref=e1404]
                     - cell "conciliada" [ref=e1405]:
                       - generic [ref=e1406]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1407]:
@@ -1430,19 +1430,19 @@
                         - button "Favorita" [ref=e1412] [cursor=pointer]
                         - button "Desconciliar" [ref=e1413] [cursor=pointer]
                         - button "Anular" [ref=e1414] [cursor=pointer]
-                  - row "Ver 02-03-26, 9:00 a. m. Egreso Foco trasero derecho , JMC vigus Pro efectivo Mantención vehicular $49.990 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1415]:
+                  - row "Ver 03-03-26, 9:00 a. m. Egreso Barras de magnesio efectivo Materiales de proyecto $192.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1415]:
                     - cell [ref=e1416]:
                       - checkbox [ref=e1417]
                     - cell "Ver" [ref=e1418]:
                       - button "Ver" [ref=e1419] [cursor=pointer]
-                    - cell "02-03-26, 9:00 a. m." [ref=e1420]
+                    - cell "03-03-26, 9:00 a. m." [ref=e1420]
                     - cell "Egreso" [ref=e1421]:
                       - generic [ref=e1422]: Egreso
-                    - cell "Foco trasero derecho , JMC vigus Pro" [ref=e1423]:
-                      - generic [ref=e1424]: Foco trasero derecho , JMC vigus Pro
+                    - cell "Barras de magnesio" [ref=e1423]:
+                      - generic [ref=e1424]: Barras de magnesio
                     - cell "efectivo" [ref=e1425]
-                    - cell "Mantención vehicular" [ref=e1426]
-                    - cell "$49.990" [ref=e1427]
+                    - cell "Materiales de proyecto" [ref=e1426]
+                    - cell "$192.000" [ref=e1427]
                     - cell "conciliada" [ref=e1428]:
                       - generic [ref=e1429]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1430]:
@@ -1452,19 +1452,19 @@
                         - button "Favorita" [ref=e1435] [cursor=pointer]
                         - button "Desconciliar" [ref=e1436] [cursor=pointer]
                         - button "Anular" [ref=e1437] [cursor=pointer]
-                  - row "Ver 01-03-26, 9:00 a. m. Egreso Carne mensual efectivo Alimentación $62.220 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1438]:
+                  - row "Ver 03-03-26, 1:00 a. m. Ingreso sueldo de marzo efectivo Sueldo $2.359.513 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1438]:
                     - cell [ref=e1439]:
                       - checkbox [ref=e1440]
                     - cell "Ver" [ref=e1441]:
                       - button "Ver" [ref=e1442] [cursor=pointer]
-                    - cell "01-03-26, 9:00 a. m." [ref=e1443]
-                    - cell "Egreso" [ref=e1444]:
-                      - generic [ref=e1445]: Egreso
-                    - cell "Carne mensual" [ref=e1446]:
-                      - generic [ref=e1447]: Carne mensual
+                    - cell "03-03-26, 1:00 a. m." [ref=e1443]
+                    - cell "Ingreso" [ref=e1444]:
+                      - generic [ref=e1445]: Ingreso
+                    - cell "sueldo de marzo" [ref=e1446]:
+                      - generic [ref=e1447]: sueldo de marzo
                     - cell "efectivo" [ref=e1448]
-                    - cell "Alimentación" [ref=e1449]
-                    - cell "$62.220" [ref=e1450]
+                    - cell "Sueldo" [ref=e1449]
+                    - cell "$2.359.513" [ref=e1450]
                     - cell "conciliada" [ref=e1451]:
                       - generic [ref=e1452]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1453]:
@@ -1474,19 +1474,19 @@
                         - button "Favorita" [ref=e1458] [cursor=pointer]
                         - button "Desconciliar" [ref=e1459] [cursor=pointer]
                         - button "Anular" [ref=e1460] [cursor=pointer]
-                  - row "Ver 19-02-26, 9:00 a. m. Egreso Diesel efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1461]:
+                  - row "Ver 02-03-26, 9:00 a. m. Egreso Foco trasero derecho , JMC vigus Pro efectivo Mantención vehicular $49.990 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1461]:
                     - cell [ref=e1462]:
                       - checkbox [ref=e1463]
                     - cell "Ver" [ref=e1464]:
                       - button "Ver" [ref=e1465] [cursor=pointer]
-                    - cell "19-02-26, 9:00 a. m." [ref=e1466]
+                    - cell "02-03-26, 9:00 a. m." [ref=e1466]
                     - cell "Egreso" [ref=e1467]:
                       - generic [ref=e1468]: Egreso
-                    - cell "Diesel" [ref=e1469]:
-                      - generic [ref=e1470]: Diesel
+                    - cell "Foco trasero derecho , JMC vigus Pro" [ref=e1469]:
+                      - generic [ref=e1470]: Foco trasero derecho , JMC vigus Pro
                     - cell "efectivo" [ref=e1471]
-                    - cell "Combustible" [ref=e1472]
-                    - cell "$20.000" [ref=e1473]
+                    - cell "Mantención vehicular" [ref=e1472]
+                    - cell "$49.990" [ref=e1473]
                     - cell "conciliada" [ref=e1474]:
                       - generic [ref=e1475]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1476]:
@@ -1496,19 +1496,19 @@
                         - button "Favorita" [ref=e1481] [cursor=pointer]
                         - button "Desconciliar" [ref=e1482] [cursor=pointer]
                         - button "Anular" [ref=e1483] [cursor=pointer]
-                  - row "Ver 14-02-26, 9:00 a. m. Egreso Diesel efectivo Combustible $25.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1484]:
+                  - row "Ver 01-03-26, 9:00 a. m. Egreso Carne mensual efectivo Alimentación $62.220 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1484]:
                     - cell [ref=e1485]:
                       - checkbox [ref=e1486]
                     - cell "Ver" [ref=e1487]:
                       - button "Ver" [ref=e1488] [cursor=pointer]
-                    - cell "14-02-26, 9:00 a. m." [ref=e1489]
+                    - cell "01-03-26, 9:00 a. m." [ref=e1489]
                     - cell "Egreso" [ref=e1490]:
                       - generic [ref=e1491]: Egreso
-                    - cell "Diesel" [ref=e1492]:
-                      - generic [ref=e1493]: Diesel
+                    - cell "Carne mensual" [ref=e1492]:
+                      - generic [ref=e1493]: Carne mensual
                     - cell "efectivo" [ref=e1494]
-                    - cell "Combustible" [ref=e1495]
-                    - cell "$25.000" [ref=e1496]
+                    - cell "Alimentación" [ref=e1495]
+                    - cell "$62.220" [ref=e1496]
                     - cell "conciliada" [ref=e1497]:
                       - generic [ref=e1498]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1499]:
@@ -1518,19 +1518,19 @@
                         - button "Favorita" [ref=e1504] [cursor=pointer]
                         - button "Desconciliar" [ref=e1505] [cursor=pointer]
                         - button "Anular" [ref=e1506] [cursor=pointer]
-                  - row "Ver 12-02-26, 9:00 a. m. Egreso Comida y cumpleaños sofia efectivo Alimentación $126.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1507]:
+                  - row "Ver 19-02-26, 9:00 a. m. Egreso Diesel efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1507]:
                     - cell [ref=e1508]:
                       - checkbox [ref=e1509]
                     - cell "Ver" [ref=e1510]:
                       - button "Ver" [ref=e1511] [cursor=pointer]
-                    - cell "12-02-26, 9:00 a. m." [ref=e1512]
+                    - cell "19-02-26, 9:00 a. m." [ref=e1512]
                     - cell "Egreso" [ref=e1513]:
                       - generic [ref=e1514]: Egreso
-                    - cell "Comida y cumpleaños sofia" [ref=e1515]:
-                      - generic [ref=e1516]: Comida y cumpleaños sofia
+                    - cell "Diesel" [ref=e1515]:
+                      - generic [ref=e1516]: Diesel
                     - cell "efectivo" [ref=e1517]
-                    - cell "Alimentación" [ref=e1518]
-                    - cell "$126.000" [ref=e1519]
+                    - cell "Combustible" [ref=e1518]
+                    - cell "$20.000" [ref=e1519]
                     - cell "conciliada" [ref=e1520]:
                       - generic [ref=e1521]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1522]:
@@ -1540,19 +1540,19 @@
                         - button "Favorita" [ref=e1527] [cursor=pointer]
                         - button "Desconciliar" [ref=e1528] [cursor=pointer]
                         - button "Anular" [ref=e1529] [cursor=pointer]
-                  - row "Ver 12-02-26, 9:00 a. m. Egreso Comida rapida efectivo Alimentación $11.900 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1530]:
+                  - row "Ver 14-02-26, 9:00 a. m. Egreso Diesel efectivo Combustible $25.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1530]:
                     - cell [ref=e1531]:
                       - checkbox [ref=e1532]
                     - cell "Ver" [ref=e1533]:
                       - button "Ver" [ref=e1534] [cursor=pointer]
-                    - cell "12-02-26, 9:00 a. m." [ref=e1535]
+                    - cell "14-02-26, 9:00 a. m." [ref=e1535]
                     - cell "Egreso" [ref=e1536]:
                       - generic [ref=e1537]: Egreso
-                    - cell "Comida rapida" [ref=e1538]:
-                      - generic [ref=e1539]: Comida rapida
+                    - cell "Diesel" [ref=e1538]:
+                      - generic [ref=e1539]: Diesel
                     - cell "efectivo" [ref=e1540]
-                    - cell "Alimentación" [ref=e1541]
-                    - cell "$11.900" [ref=e1542]
+                    - cell "Combustible" [ref=e1541]
+                    - cell "$25.000" [ref=e1542]
                     - cell "conciliada" [ref=e1543]:
                       - generic [ref=e1544]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1545]:
@@ -1562,19 +1562,19 @@
                         - button "Favorita" [ref=e1550] [cursor=pointer]
                         - button "Desconciliar" [ref=e1551] [cursor=pointer]
                         - button "Anular" [ref=e1552] [cursor=pointer]
-                  - row "Ver 09-02-26, 9:00 a. m. Egreso Barras de magnesio efectivo Materiales de proyecto $134.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1553]:
+                  - row "Ver 12-02-26, 9:00 a. m. Egreso Comida y cumpleaños sofia efectivo Alimentación $126.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1553]:
                     - cell [ref=e1554]:
                       - checkbox [ref=e1555]
                     - cell "Ver" [ref=e1556]:
                       - button "Ver" [ref=e1557] [cursor=pointer]
-                    - cell "09-02-26, 9:00 a. m." [ref=e1558]
+                    - cell "12-02-26, 9:00 a. m." [ref=e1558]
                     - cell "Egreso" [ref=e1559]:
                       - generic [ref=e1560]: Egreso
-                    - cell "Barras de magnesio" [ref=e1561]:
-                      - generic [ref=e1562]: Barras de magnesio
+                    - cell "Comida y cumpleaños sofia" [ref=e1561]:
+                      - generic [ref=e1562]: Comida y cumpleaños sofia
                     - cell "efectivo" [ref=e1563]
-                    - cell "Materiales de proyecto" [ref=e1564]
-                    - cell "$134.000" [ref=e1565]
+                    - cell "Alimentación" [ref=e1564]
+                    - cell "$126.000" [ref=e1565]
                     - cell "conciliada" [ref=e1566]:
                       - generic [ref=e1567]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1568]:
@@ -1584,19 +1584,19 @@
                         - button "Favorita" [ref=e1573] [cursor=pointer]
                         - button "Desconciliar" [ref=e1574] [cursor=pointer]
                         - button "Anular" [ref=e1575] [cursor=pointer]
-                  - row "Ver 03-02-26, 9:00 a. m. Egreso metrogas efectivo Gas $12.141 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1576]:
+                  - row "Ver 12-02-26, 9:00 a. m. Egreso Comida rapida efectivo Alimentación $11.900 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1576]:
                     - cell [ref=e1577]:
                       - checkbox [ref=e1578]
                     - cell "Ver" [ref=e1579]:
                       - button "Ver" [ref=e1580] [cursor=pointer]
-                    - cell "03-02-26, 9:00 a. m." [ref=e1581]
+                    - cell "12-02-26, 9:00 a. m." [ref=e1581]
                     - cell "Egreso" [ref=e1582]:
                       - generic [ref=e1583]: Egreso
-                    - cell "metrogas" [ref=e1584]:
-                      - generic [ref=e1585]: metrogas
+                    - cell "Comida rapida" [ref=e1584]:
+                      - generic [ref=e1585]: Comida rapida
                     - cell "efectivo" [ref=e1586]
-                    - cell "Gas" [ref=e1587]
-                    - cell "$12.141" [ref=e1588]
+                    - cell "Alimentación" [ref=e1587]
+                    - cell "$11.900" [ref=e1588]
                     - cell "conciliada" [ref=e1589]:
                       - generic [ref=e1590]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1591]:
@@ -1606,19 +1606,19 @@
                         - button "Favorita" [ref=e1596] [cursor=pointer]
                         - button "Desconciliar" [ref=e1597] [cursor=pointer]
                         - button "Anular" [ref=e1598] [cursor=pointer]
-                  - row "Ver 03-02-26, 9:00 a. m. Egreso aguas andinas efectivo Agua $22.720 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1599]:
+                  - row "Ver 09-02-26, 9:00 a. m. Egreso Barras de magnesio efectivo Materiales de proyecto $134.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1599]:
                     - cell [ref=e1600]:
                       - checkbox [ref=e1601]
                     - cell "Ver" [ref=e1602]:
                       - button "Ver" [ref=e1603] [cursor=pointer]
-                    - cell "03-02-26, 9:00 a. m." [ref=e1604]
+                    - cell "09-02-26, 9:00 a. m." [ref=e1604]
                     - cell "Egreso" [ref=e1605]:
                       - generic [ref=e1606]: Egreso
-                    - cell "aguas andinas" [ref=e1607]:
-                      - generic [ref=e1608]: aguas andinas
+                    - cell "Barras de magnesio" [ref=e1607]:
+                      - generic [ref=e1608]: Barras de magnesio
                     - cell "efectivo" [ref=e1609]
-                    - cell "Agua" [ref=e1610]
-                    - cell "$22.720" [ref=e1611]
+                    - cell "Materiales de proyecto" [ref=e1610]
+                    - cell "$134.000" [ref=e1611]
                     - cell "conciliada" [ref=e1612]:
                       - generic [ref=e1613]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1614]:
@@ -1628,7 +1628,7 @@
                         - button "Favorita" [ref=e1619] [cursor=pointer]
                         - button "Desconciliar" [ref=e1620] [cursor=pointer]
                         - button "Anular" [ref=e1621] [cursor=pointer]
-                  - row "Ver 03-02-26, 9:00 a. m. Egreso telefonia efectivo Internet y telefonía $15.110 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1622]:
+                  - row "Ver 03-02-26, 9:00 a. m. Egreso metrogas efectivo Gas $12.141 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1622]:
                     - cell [ref=e1623]:
                       - checkbox [ref=e1624]
                     - cell "Ver" [ref=e1625]:
@@ -1636,11 +1636,11 @@
                     - cell "03-02-26, 9:00 a. m." [ref=e1627]
                     - cell "Egreso" [ref=e1628]:
                       - generic [ref=e1629]: Egreso
-                    - cell "telefonia" [ref=e1630]:
-                      - generic [ref=e1631]: telefonia
+                    - cell "metrogas" [ref=e1630]:
+                      - generic [ref=e1631]: metrogas
                     - cell "efectivo" [ref=e1632]
-                    - cell "Internet y telefonía" [ref=e1633]
-                    - cell "$15.110" [ref=e1634]
+                    - cell "Gas" [ref=e1633]
+                    - cell "$12.141" [ref=e1634]
                     - cell "conciliada" [ref=e1635]:
                       - generic [ref=e1636]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1637]:
@@ -1650,7 +1650,7 @@
                         - button "Favorita" [ref=e1642] [cursor=pointer]
                         - button "Desconciliar" [ref=e1643] [cursor=pointer]
                         - button "Anular" [ref=e1644] [cursor=pointer]
-                  - row "Ver 03-02-26, 9:00 a. m. Egreso internet entel efectivo Internet y telefonía $17.990 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1645]:
+                  - row "Ver 03-02-26, 9:00 a. m. Egreso aguas andinas efectivo Agua $22.720 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1645]:
                     - cell [ref=e1646]:
                       - checkbox [ref=e1647]
                     - cell "Ver" [ref=e1648]:
@@ -1658,11 +1658,11 @@
                     - cell "03-02-26, 9:00 a. m." [ref=e1650]
                     - cell "Egreso" [ref=e1651]:
                       - generic [ref=e1652]: Egreso
-                    - cell "internet entel" [ref=e1653]:
-                      - generic [ref=e1654]: internet entel
+                    - cell "aguas andinas" [ref=e1653]:
+                      - generic [ref=e1654]: aguas andinas
                     - cell "efectivo" [ref=e1655]
-                    - cell "Internet y telefonía" [ref=e1656]
-                    - cell "$17.990" [ref=e1657]
+                    - cell "Agua" [ref=e1656]
+                    - cell "$22.720" [ref=e1657]
                     - cell "conciliada" [ref=e1658]:
                       - generic [ref=e1659]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1660]:
@@ -1672,19 +1672,19 @@
                         - button "Favorita" [ref=e1665] [cursor=pointer]
                         - button "Desconciliar" [ref=e1666] [cursor=pointer]
                         - button "Anular" [ref=e1667] [cursor=pointer]
-                  - row "Ver 02-02-26, 9:00 a. m. Egreso diesel - camioneta JMC SHPG74 efectivo Combustible $60.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1668]:
+                  - row "Ver 03-02-26, 9:00 a. m. Egreso telefonia efectivo Internet y telefonía $15.110 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1668]:
                     - cell [ref=e1669]:
                       - checkbox [ref=e1670]
                     - cell "Ver" [ref=e1671]:
                       - button "Ver" [ref=e1672] [cursor=pointer]
-                    - cell "02-02-26, 9:00 a. m." [ref=e1673]
+                    - cell "03-02-26, 9:00 a. m." [ref=e1673]
                     - cell "Egreso" [ref=e1674]:
                       - generic [ref=e1675]: Egreso
-                    - cell "diesel - camioneta JMC SHPG74" [ref=e1676]:
-                      - generic [ref=e1677]: diesel - camioneta JMC SHPG74
+                    - cell "telefonia" [ref=e1676]:
+                      - generic [ref=e1677]: telefonia
                     - cell "efectivo" [ref=e1678]
-                    - cell "Combustible" [ref=e1679]
-                    - cell "$60.000" [ref=e1680]
+                    - cell "Internet y telefonía" [ref=e1679]
+                    - cell "$15.110" [ref=e1680]
                     - cell "conciliada" [ref=e1681]:
                       - generic [ref=e1682]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1683]:
@@ -1694,19 +1694,19 @@
                         - button "Favorita" [ref=e1688] [cursor=pointer]
                         - button "Desconciliar" [ref=e1689] [cursor=pointer]
                         - button "Anular" [ref=e1690] [cursor=pointer]
-                  - row "Ver 28-01-26, 9:00 a. m. Egreso Cumpleaños momi efectivo Regalos $12.475 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1691]:
+                  - row "Ver 03-02-26, 9:00 a. m. Egreso internet entel efectivo Internet y telefonía $17.990 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1691]:
                     - cell [ref=e1692]:
                       - checkbox [ref=e1693]
                     - cell "Ver" [ref=e1694]:
                       - button "Ver" [ref=e1695] [cursor=pointer]
-                    - cell "28-01-26, 9:00 a. m." [ref=e1696]
+                    - cell "03-02-26, 9:00 a. m." [ref=e1696]
                     - cell "Egreso" [ref=e1697]:
                       - generic [ref=e1698]: Egreso
-                    - cell "Cumpleaños momi" [ref=e1699]:
-                      - generic [ref=e1700]: Cumpleaños momi
+                    - cell "internet entel" [ref=e1699]:
+                      - generic [ref=e1700]: internet entel
                     - cell "efectivo" [ref=e1701]
-                    - cell "Regalos" [ref=e1702]
-                    - cell "$12.475" [ref=e1703]
+                    - cell "Internet y telefonía" [ref=e1702]
+                    - cell "$17.990" [ref=e1703]
                     - cell "conciliada" [ref=e1704]:
                       - generic [ref=e1705]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1706]:
@@ -1716,19 +1716,19 @@
                         - button "Favorita" [ref=e1711] [cursor=pointer]
                         - button "Desconciliar" [ref=e1712] [cursor=pointer]
                         - button "Anular" [ref=e1713] [cursor=pointer]
-                  - row "Ver 25-01-26, 9:00 a. m. Egreso Feria efectivo Alimentación $30.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1714]:
+                  - row "Ver 02-02-26, 9:00 a. m. Egreso diesel - camioneta JMC SHPG74 efectivo Combustible $60.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1714]:
                     - cell [ref=e1715]:
                       - checkbox [ref=e1716]
                     - cell "Ver" [ref=e1717]:
                       - button "Ver" [ref=e1718] [cursor=pointer]
-                    - cell "25-01-26, 9:00 a. m." [ref=e1719]
+                    - cell "02-02-26, 9:00 a. m." [ref=e1719]
                     - cell "Egreso" [ref=e1720]:
                       - generic [ref=e1721]: Egreso
-                    - cell "Feria" [ref=e1722]:
-                      - generic [ref=e1723]: Feria
+                    - cell "diesel - camioneta JMC SHPG74" [ref=e1722]:
+                      - generic [ref=e1723]: diesel - camioneta JMC SHPG74
                     - cell "efectivo" [ref=e1724]
-                    - cell "Alimentación" [ref=e1725]
-                    - cell "$30.000" [ref=e1726]
+                    - cell "Combustible" [ref=e1725]
+                    - cell "$60.000" [ref=e1726]
                     - cell "conciliada" [ref=e1727]:
                       - generic [ref=e1728]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1729]:
@@ -1738,19 +1738,19 @@
                         - button "Favorita" [ref=e1734] [cursor=pointer]
                         - button "Desconciliar" [ref=e1735] [cursor=pointer]
                         - button "Anular" [ref=e1736] [cursor=pointer]
-                  - row "Ver 25-01-26, 9:00 a. m. Egreso Comida china efectivo Alimentación $11.900 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1737]:
+                  - row "Ver 28-01-26, 9:00 a. m. Egreso Cumpleaños momi efectivo Regalos $12.475 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1737]:
                     - cell [ref=e1738]:
                       - checkbox [ref=e1739]
                     - cell "Ver" [ref=e1740]:
                       - button "Ver" [ref=e1741] [cursor=pointer]
-                    - cell "25-01-26, 9:00 a. m." [ref=e1742]
+                    - cell "28-01-26, 9:00 a. m." [ref=e1742]
                     - cell "Egreso" [ref=e1743]:
                       - generic [ref=e1744]: Egreso
-                    - cell "Comida china" [ref=e1745]:
-                      - generic [ref=e1746]: Comida china
+                    - cell "Cumpleaños momi" [ref=e1745]:
+                      - generic [ref=e1746]: Cumpleaños momi
                     - cell "efectivo" [ref=e1747]
-                    - cell "Alimentación" [ref=e1748]
-                    - cell "$11.900" [ref=e1749]
+                    - cell "Regalos" [ref=e1748]
+                    - cell "$12.475" [ref=e1749]
                     - cell "conciliada" [ref=e1750]:
                       - generic [ref=e1751]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1752]:
@@ -1760,19 +1760,19 @@
                         - button "Favorita" [ref=e1757] [cursor=pointer]
                         - button "Desconciliar" [ref=e1758] [cursor=pointer]
                         - button "Anular" [ref=e1759] [cursor=pointer]
-                  - row "Ver 22-01-26, 9:00 a. m. Egreso Tag efectivo Transporte y ruta $700 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1760]:
+                  - row "Ver 25-01-26, 9:00 a. m. Egreso Feria efectivo Alimentación $30.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1760]:
                     - cell [ref=e1761]:
                       - checkbox [ref=e1762]
                     - cell "Ver" [ref=e1763]:
                       - button "Ver" [ref=e1764] [cursor=pointer]
-                    - cell "22-01-26, 9:00 a. m." [ref=e1765]
+                    - cell "25-01-26, 9:00 a. m." [ref=e1765]
                     - cell "Egreso" [ref=e1766]:
                       - generic [ref=e1767]: Egreso
-                    - cell "Tag" [ref=e1768]:
-                      - generic [ref=e1769]: Tag
+                    - cell "Feria" [ref=e1768]:
+                      - generic [ref=e1769]: Feria
                     - cell "efectivo" [ref=e1770]
-                    - cell "Transporte y ruta" [ref=e1771]
-                    - cell "$700" [ref=e1772]
+                    - cell "Alimentación" [ref=e1771]
+                    - cell "$30.000" [ref=e1772]
                     - cell "conciliada" [ref=e1773]:
                       - generic [ref=e1774]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1775]:
@@ -1782,19 +1782,19 @@
                         - button "Favorita" [ref=e1780] [cursor=pointer]
                         - button "Desconciliar" [ref=e1781] [cursor=pointer]
                         - button "Anular" [ref=e1782] [cursor=pointer]
-                  - row "Ver 22-01-26, 9:00 a. m. Egreso Petroleo efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1783]:
+                  - row "Ver 25-01-26, 9:00 a. m. Egreso Comida china efectivo Alimentación $11.900 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1783]:
                     - cell [ref=e1784]:
                       - checkbox [ref=e1785]
                     - cell "Ver" [ref=e1786]:
                       - button "Ver" [ref=e1787] [cursor=pointer]
-                    - cell "22-01-26, 9:00 a. m." [ref=e1788]
+                    - cell "25-01-26, 9:00 a. m." [ref=e1788]
                     - cell "Egreso" [ref=e1789]:
                       - generic [ref=e1790]: Egreso
-                    - cell "Petroleo" [ref=e1791]:
-                      - generic [ref=e1792]: Petroleo
+                    - cell "Comida china" [ref=e1791]:
+                      - generic [ref=e1792]: Comida china
                     - cell "efectivo" [ref=e1793]
-                    - cell "Combustible" [ref=e1794]
-                    - cell "$20.000" [ref=e1795]
+                    - cell "Alimentación" [ref=e1794]
+                    - cell "$11.900" [ref=e1795]
                     - cell "conciliada" [ref=e1796]:
                       - generic [ref=e1797]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1798]:
@@ -1804,19 +1804,19 @@
                         - button "Favorita" [ref=e1803] [cursor=pointer]
                         - button "Desconciliar" [ref=e1804] [cursor=pointer]
                         - button "Anular" [ref=e1805] [cursor=pointer]
-                  - row "Ver 20-01-26, 9:00 a. m. Egreso Energetica efectivo Gastos menores $1.500 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1806]:
+                  - row "Ver 22-01-26, 9:00 a. m. Egreso Tag efectivo Transporte y ruta $700 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1806]:
                     - cell [ref=e1807]:
                       - checkbox [ref=e1808]
                     - cell "Ver" [ref=e1809]:
                       - button "Ver" [ref=e1810] [cursor=pointer]
-                    - cell "20-01-26, 9:00 a. m." [ref=e1811]
+                    - cell "22-01-26, 9:00 a. m." [ref=e1811]
                     - cell "Egreso" [ref=e1812]:
                       - generic [ref=e1813]: Egreso
-                    - cell "Energetica" [ref=e1814]:
-                      - generic [ref=e1815]: Energetica
+                    - cell "Tag" [ref=e1814]:
+                      - generic [ref=e1815]: Tag
                     - cell "efectivo" [ref=e1816]
-                    - cell "Gastos menores" [ref=e1817]
-                    - cell "$1.500" [ref=e1818]
+                    - cell "Transporte y ruta" [ref=e1817]
+                    - cell "$700" [ref=e1818]
                     - cell "conciliada" [ref=e1819]:
                       - generic [ref=e1820]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1821]:
@@ -1826,19 +1826,19 @@
                         - button "Favorita" [ref=e1826] [cursor=pointer]
                         - button "Desconciliar" [ref=e1827] [cursor=pointer]
                         - button "Anular" [ref=e1828] [cursor=pointer]
-                  - row "Ver 17-01-26, 9:00 a. m. Egreso Petróleo efectivo Combustible $30.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1829]:
+                  - row "Ver 22-01-26, 9:00 a. m. Egreso Petroleo efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1829]:
                     - cell [ref=e1830]:
                       - checkbox [ref=e1831]
                     - cell "Ver" [ref=e1832]:
                       - button "Ver" [ref=e1833] [cursor=pointer]
-                    - cell "17-01-26, 9:00 a. m." [ref=e1834]
+                    - cell "22-01-26, 9:00 a. m." [ref=e1834]
                     - cell "Egreso" [ref=e1835]:
                       - generic [ref=e1836]: Egreso
-                    - cell "Petróleo" [ref=e1837]:
-                      - generic [ref=e1838]: Petróleo
+                    - cell "Petroleo" [ref=e1837]:
+                      - generic [ref=e1838]: Petroleo
                     - cell "efectivo" [ref=e1839]
                     - cell "Combustible" [ref=e1840]
-                    - cell "$30.000" [ref=e1841]
+                    - cell "$20.000" [ref=e1841]
                     - cell "conciliada" [ref=e1842]:
                       - generic [ref=e1843]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1844]:
@@ -1848,19 +1848,19 @@
                         - button "Favorita" [ref=e1849] [cursor=pointer]
                         - button "Desconciliar" [ref=e1850] [cursor=pointer]
                         - button "Anular" [ref=e1851] [cursor=pointer]
-                  - row "Ver 02-01-26, 4:26 a. m. Ingreso conciliacion efectivo Sueldo $4.539.558 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1852]:
+                  - row "Ver 20-01-26, 9:00 a. m. Egreso Energetica efectivo Gastos menores $1.500 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1852]:
                     - cell [ref=e1853]:
                       - checkbox [ref=e1854]
                     - cell "Ver" [ref=e1855]:
                       - button "Ver" [ref=e1856] [cursor=pointer]
-                    - cell "02-01-26, 4:26 a. m." [ref=e1857]
-                    - cell "Ingreso" [ref=e1858]:
-                      - generic [ref=e1859]: Ingreso
-                    - cell "conciliacion" [ref=e1860]:
-                      - generic [ref=e1861]: conciliacion
+                    - cell "20-01-26, 9:00 a. m." [ref=e1857]
+                    - cell "Egreso" [ref=e1858]:
+                      - generic [ref=e1859]: Egreso
+                    - cell "Energetica" [ref=e1860]:
+                      - generic [ref=e1861]: Energetica
                     - cell "efectivo" [ref=e1862]
-                    - cell "Sueldo" [ref=e1863]
-                    - cell "$4.539.558" [ref=e1864]
+                    - cell "Gastos menores" [ref=e1863]
+                    - cell "$1.500" [ref=e1864]
                     - cell "conciliada" [ref=e1865]:
                       - generic [ref=e1866]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1867]:
@@ -1870,19 +1870,19 @@
                         - button "Favorita" [ref=e1872] [cursor=pointer]
                         - button "Desconciliar" [ref=e1873] [cursor=pointer]
                         - button "Anular" [ref=e1874] [cursor=pointer]
-                  - row "Ver 18-07-25, 8:00 a. m. Egreso terminal bronce SO-HE 1/2\" x 3/4\" dimaflow - SST split proyecto Rodrigo bascuñan efectivo Materiales de proyecto $3.295 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1875]:
+                  - row "Ver 17-01-26, 9:00 a. m. Egreso Petróleo efectivo Combustible $30.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1875]:
                     - cell [ref=e1876]:
                       - checkbox [ref=e1877]
                     - cell "Ver" [ref=e1878]:
                       - button "Ver" [ref=e1879] [cursor=pointer]
-                    - cell "18-07-25, 8:00 a. m." [ref=e1880]
+                    - cell "17-01-26, 9:00 a. m." [ref=e1880]
                     - cell "Egreso" [ref=e1881]:
                       - generic [ref=e1882]: Egreso
-                    - cell "terminal bronce SO-HE 1/2\" x 3/4\" dimaflow - SST split proyecto Rodrigo bascuñan" [ref=e1883]:
-                      - generic [ref=e1884]: terminal bronce SO-HE 1/2" x 3/4" dimaflow - SST split proyecto Rodrigo bascuñan
+                    - cell "Petróleo" [ref=e1883]:
+                      - generic [ref=e1884]: Petróleo
                     - cell "efectivo" [ref=e1885]
-                    - cell "Materiales de proyecto" [ref=e1886]
-                    - cell "$3.295" [ref=e1887]
+                    - cell "Combustible" [ref=e1886]
+                    - cell "$30.000" [ref=e1887]
                     - cell "conciliada" [ref=e1888]:
                       - generic [ref=e1889]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1890]:
@@ -1892,19 +1892,19 @@
                         - button "Favorita" [ref=e1895] [cursor=pointer]
                         - button "Desconciliar" [ref=e1896] [cursor=pointer]
                         - button "Anular" [ref=e1897] [cursor=pointer]
-                  - row "Ver 18-07-25, 8:00 a. m. Egreso bomba recirculacion - SST split proyecto Rodrigo bascuñan efectivo Materiales de proyecto $38.556 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1898]:
+                  - row "Ver 02-01-26, 4:26 a. m. Ingreso conciliacion efectivo Sueldo $4.539.558 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1898]:
                     - cell [ref=e1899]:
                       - checkbox [ref=e1900]
                     - cell "Ver" [ref=e1901]:
                       - button "Ver" [ref=e1902] [cursor=pointer]
-                    - cell "18-07-25, 8:00 a. m." [ref=e1903]
-                    - cell "Egreso" [ref=e1904]:
-                      - generic [ref=e1905]: Egreso
-                    - cell "bomba recirculacion - SST split proyecto Rodrigo bascuñan" [ref=e1906]:
-                      - generic [ref=e1907]: bomba recirculacion - SST split proyecto Rodrigo bascuñan
+                    - cell "02-01-26, 4:26 a. m." [ref=e1903]
+                    - cell "Ingreso" [ref=e1904]:
+                      - generic [ref=e1905]: Ingreso
+                    - cell "conciliacion" [ref=e1906]:
+                      - generic [ref=e1907]: conciliacion
                     - cell "efectivo" [ref=e1908]
-                    - cell "Materiales de proyecto" [ref=e1909]
-                    - cell "$38.556" [ref=e1910]
+                    - cell "Sueldo" [ref=e1909]
+                    - cell "$4.539.558" [ref=e1910]
                     - cell "conciliada" [ref=e1911]:
                       - generic [ref=e1912]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1913]:
@@ -1914,7 +1914,7 @@
                         - button "Favorita" [ref=e1918] [cursor=pointer]
                         - button "Desconciliar" [ref=e1919] [cursor=pointer]
                         - button "Anular" [ref=e1920] [cursor=pointer]
-                  - row "Ver 18-07-25, 8:00 a. m. Egreso terminal bronce SO-HE 1/2\" x 3/4\" dimaflow - SST split proyecto Rodrigo bascuñan efectivo Materiales de proyecto $1.648 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1921]:
+                  - row "Ver 18-07-25, 8:00 a. m. Egreso terminal bronce SO-HE 1/2\" x 3/4\" dimaflow - SST split proyecto Rodrigo bascuñan efectivo Materiales de proyecto $3.295 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1921]:
                     - cell [ref=e1922]:
                       - checkbox [ref=e1923]
                     - cell "Ver" [ref=e1924]:
@@ -1926,7 +1926,7 @@
                       - generic [ref=e1930]: terminal bronce SO-HE 1/2" x 3/4" dimaflow - SST split proyecto Rodrigo bascuñan
                     - cell "efectivo" [ref=e1931]
                     - cell "Materiales de proyecto" [ref=e1932]
-                    - cell "$1.648" [ref=e1933]
+                    - cell "$3.295" [ref=e1933]
                     - cell "conciliada" [ref=e1934]:
                       - generic [ref=e1935]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1936]:
@@ -1936,19 +1936,19 @@
                         - button "Favorita" [ref=e1941] [cursor=pointer]
                         - button "Desconciliar" [ref=e1942] [cursor=pointer]
                         - button "Anular" [ref=e1943] [cursor=pointer]
-                  - row "Ver 13-07-25, 8:00 a. m. Egreso Alvi efectivo Alimentación $30.100 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1944]:
+                  - row "Ver 18-07-25, 8:00 a. m. Egreso bomba recirculacion - SST split proyecto Rodrigo bascuñan efectivo Materiales de proyecto $38.556 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1944]:
                     - cell [ref=e1945]:
                       - checkbox [ref=e1946]
                     - cell "Ver" [ref=e1947]:
                       - button "Ver" [ref=e1948] [cursor=pointer]
-                    - cell "13-07-25, 8:00 a. m." [ref=e1949]
+                    - cell "18-07-25, 8:00 a. m." [ref=e1949]
                     - cell "Egreso" [ref=e1950]:
                       - generic [ref=e1951]: Egreso
-                    - cell "Alvi" [ref=e1952]:
-                      - generic [ref=e1953]: Alvi
+                    - cell "bomba recirculacion - SST split proyecto Rodrigo bascuñan" [ref=e1952]:
+                      - generic [ref=e1953]: bomba recirculacion - SST split proyecto Rodrigo bascuñan
                     - cell "efectivo" [ref=e1954]
-                    - cell "Alimentación" [ref=e1955]
-                    - cell "$30.100" [ref=e1956]
+                    - cell "Materiales de proyecto" [ref=e1955]
+                    - cell "$38.556" [ref=e1956]
                     - cell "conciliada" [ref=e1957]:
                       - generic [ref=e1958]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1959]:
@@ -1958,19 +1958,19 @@
                         - button "Favorita" [ref=e1964] [cursor=pointer]
                         - button "Desconciliar" [ref=e1965] [cursor=pointer]
                         - button "Anular" [ref=e1966] [cursor=pointer]
-                  - row "Ver 10-07-25, 8:00 a. m. Egreso Diesel efectivo Combustible $25.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1967]:
+                  - row "Ver 18-07-25, 8:00 a. m. Egreso terminal bronce SO-HE 1/2\" x 3/4\" dimaflow - SST split proyecto Rodrigo bascuñan efectivo Materiales de proyecto $1.648 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1967]:
                     - cell [ref=e1968]:
                       - checkbox [ref=e1969]
                     - cell "Ver" [ref=e1970]:
                       - button "Ver" [ref=e1971] [cursor=pointer]
-                    - cell "10-07-25, 8:00 a. m." [ref=e1972]
+                    - cell "18-07-25, 8:00 a. m." [ref=e1972]
                     - cell "Egreso" [ref=e1973]:
                       - generic [ref=e1974]: Egreso
-                    - cell "Diesel" [ref=e1975]:
-                      - generic [ref=e1976]: Diesel
+                    - cell "terminal bronce SO-HE 1/2\" x 3/4\" dimaflow - SST split proyecto Rodrigo bascuñan" [ref=e1975]:
+                      - generic [ref=e1976]: terminal bronce SO-HE 1/2" x 3/4" dimaflow - SST split proyecto Rodrigo bascuñan
                     - cell "efectivo" [ref=e1977]
-                    - cell "Combustible" [ref=e1978]
-                    - cell "$25.000" [ref=e1979]
+                    - cell "Materiales de proyecto" [ref=e1978]
+                    - cell "$1.648" [ref=e1979]
                     - cell "conciliada" [ref=e1980]:
                       - generic [ref=e1981]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e1982]:
@@ -1980,19 +1980,19 @@
                         - button "Favorita" [ref=e1987] [cursor=pointer]
                         - button "Desconciliar" [ref=e1988] [cursor=pointer]
                         - button "Anular" [ref=e1989] [cursor=pointer]
-                  - row "Ver 09-07-25, 8:00 a. m. Egreso Calefont más despacho - SST split proyecto Rodrigo bascuñan efectivo Materiales de proyecto $245.980 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1990]:
+                  - row "Ver 13-07-25, 8:00 a. m. Egreso Alvi efectivo Alimentación $30.100 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e1990]:
                     - cell [ref=e1991]:
                       - checkbox [ref=e1992]
                     - cell "Ver" [ref=e1993]:
                       - button "Ver" [ref=e1994] [cursor=pointer]
-                    - cell "09-07-25, 8:00 a. m." [ref=e1995]
+                    - cell "13-07-25, 8:00 a. m." [ref=e1995]
                     - cell "Egreso" [ref=e1996]:
                       - generic [ref=e1997]: Egreso
-                    - cell "Calefont más despacho - SST split proyecto Rodrigo bascuñan" [ref=e1998]:
-                      - generic [ref=e1999]: Calefont más despacho - SST split proyecto Rodrigo bascuñan
+                    - cell "Alvi" [ref=e1998]:
+                      - generic [ref=e1999]: Alvi
                     - cell "efectivo" [ref=e2000]
-                    - cell "Materiales de proyecto" [ref=e2001]
-                    - cell "$245.980" [ref=e2002]
+                    - cell "Alimentación" [ref=e2001]
+                    - cell "$30.100" [ref=e2002]
                     - cell "conciliada" [ref=e2003]:
                       - generic [ref=e2004]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2005]:
@@ -2002,19 +2002,19 @@
                         - button "Favorita" [ref=e2010] [cursor=pointer]
                         - button "Desconciliar" [ref=e2011] [cursor=pointer]
                         - button "Anular" [ref=e2012] [cursor=pointer]
-                  - row "Ver 09-07-25, 8:00 a. m. Egreso estanque, controlador, valvula seguridad, purgador, mezcladora - SST split proyecto Rodrigo bascuñan efectivo Materiales de proyecto $728.708 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2013]:
+                  - row "Ver 10-07-25, 8:00 a. m. Egreso Diesel efectivo Combustible $25.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2013]:
                     - cell [ref=e2014]:
                       - checkbox [ref=e2015]
                     - cell "Ver" [ref=e2016]:
                       - button "Ver" [ref=e2017] [cursor=pointer]
-                    - cell "09-07-25, 8:00 a. m." [ref=e2018]
+                    - cell "10-07-25, 8:00 a. m." [ref=e2018]
                     - cell "Egreso" [ref=e2019]:
                       - generic [ref=e2020]: Egreso
-                    - cell "estanque, controlador, valvula seguridad, purgador, mezcladora - SST split proyecto Rodrigo bascuñan" [ref=e2021]:
-                      - generic [ref=e2022]: estanque, controlador, valvula seguridad, purgador, mezcladora - SST split proyecto Rodrigo bascuñan
+                    - cell "Diesel" [ref=e2021]:
+                      - generic [ref=e2022]: Diesel
                     - cell "efectivo" [ref=e2023]
-                    - cell "Materiales de proyecto" [ref=e2024]
-                    - cell "$728.708" [ref=e2025]
+                    - cell "Combustible" [ref=e2024]
+                    - cell "$25.000" [ref=e2025]
                     - cell "conciliada" [ref=e2026]:
                       - generic [ref=e2027]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2028]:
@@ -2024,7 +2024,7 @@
                         - button "Favorita" [ref=e2033] [cursor=pointer]
                         - button "Desconciliar" [ref=e2034] [cursor=pointer]
                         - button "Anular" [ref=e2035] [cursor=pointer]
-                  - row "Ver 09-07-25, 8:00 a. m. Egreso Materiales eléctricos - proyecto fv Rodrigo bascuñan efectivo Materiales de proyecto $15.889 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2036]:
+                  - row "Ver 09-07-25, 8:00 a. m. Egreso Calefont más despacho - SST split proyecto Rodrigo bascuñan efectivo Materiales de proyecto $245.980 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2036]:
                     - cell [ref=e2037]:
                       - checkbox [ref=e2038]
                     - cell "Ver" [ref=e2039]:
@@ -2032,11 +2032,11 @@
                     - cell "09-07-25, 8:00 a. m." [ref=e2041]
                     - cell "Egreso" [ref=e2042]:
                       - generic [ref=e2043]: Egreso
-                    - cell "Materiales eléctricos - proyecto fv Rodrigo bascuñan" [ref=e2044]:
-                      - generic [ref=e2045]: Materiales eléctricos - proyecto fv Rodrigo bascuñan
+                    - cell "Calefont más despacho - SST split proyecto Rodrigo bascuñan" [ref=e2044]:
+                      - generic [ref=e2045]: Calefont más despacho - SST split proyecto Rodrigo bascuñan
                     - cell "efectivo" [ref=e2046]
                     - cell "Materiales de proyecto" [ref=e2047]
-                    - cell "$15.889" [ref=e2048]
+                    - cell "$245.980" [ref=e2048]
                     - cell "conciliada" [ref=e2049]:
                       - generic [ref=e2050]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2051]:
@@ -2046,19 +2046,19 @@
                         - button "Favorita" [ref=e2056] [cursor=pointer]
                         - button "Desconciliar" [ref=e2057] [cursor=pointer]
                         - button "Anular" [ref=e2058] [cursor=pointer]
-                  - row "Ver 08-07-25, 8:00 a. m. Egreso Válvula relleno - SST split proyecto Rodrigo bascuñan efectivo Materiales de proyecto $39.900 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2059]:
+                  - row "Ver 09-07-25, 8:00 a. m. Egreso estanque, controlador, valvula seguridad, purgador, mezcladora - SST split proyecto Rodrigo bascuñan efectivo Materiales de proyecto $728.708 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2059]:
                     - cell [ref=e2060]:
                       - checkbox [ref=e2061]
                     - cell "Ver" [ref=e2062]:
                       - button "Ver" [ref=e2063] [cursor=pointer]
-                    - cell "08-07-25, 8:00 a. m." [ref=e2064]
+                    - cell "09-07-25, 8:00 a. m." [ref=e2064]
                     - cell "Egreso" [ref=e2065]:
                       - generic [ref=e2066]: Egreso
-                    - cell "Válvula relleno - SST split proyecto Rodrigo bascuñan" [ref=e2067]:
-                      - generic [ref=e2068]: Válvula relleno - SST split proyecto Rodrigo bascuñan
+                    - cell "estanque, controlador, valvula seguridad, purgador, mezcladora - SST split proyecto Rodrigo bascuñan" [ref=e2067]:
+                      - generic [ref=e2068]: estanque, controlador, valvula seguridad, purgador, mezcladora - SST split proyecto Rodrigo bascuñan
                     - cell "efectivo" [ref=e2069]
                     - cell "Materiales de proyecto" [ref=e2070]
-                    - cell "$39.900" [ref=e2071]
+                    - cell "$728.708" [ref=e2071]
                     - cell "conciliada" [ref=e2072]:
                       - generic [ref=e2073]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2074]:
@@ -2068,19 +2068,19 @@
                         - button "Favorita" [ref=e2079] [cursor=pointer]
                         - button "Desconciliar" [ref=e2080] [cursor=pointer]
                         - button "Anular" [ref=e2081] [cursor=pointer]
-                  - row "Ver 06-07-25, 8:00 a. m. Egreso Diesel efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2082]:
+                  - row "Ver 09-07-25, 8:00 a. m. Egreso Materiales eléctricos - proyecto fv Rodrigo bascuñan efectivo Materiales de proyecto $15.889 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2082]:
                     - cell [ref=e2083]:
                       - checkbox [ref=e2084]
                     - cell "Ver" [ref=e2085]:
                       - button "Ver" [ref=e2086] [cursor=pointer]
-                    - cell "06-07-25, 8:00 a. m." [ref=e2087]
+                    - cell "09-07-25, 8:00 a. m." [ref=e2087]
                     - cell "Egreso" [ref=e2088]:
                       - generic [ref=e2089]: Egreso
-                    - cell "Diesel" [ref=e2090]:
-                      - generic [ref=e2091]: Diesel
+                    - cell "Materiales eléctricos - proyecto fv Rodrigo bascuñan" [ref=e2090]:
+                      - generic [ref=e2091]: Materiales eléctricos - proyecto fv Rodrigo bascuñan
                     - cell "efectivo" [ref=e2092]
-                    - cell "Combustible" [ref=e2093]
-                    - cell "$20.000" [ref=e2094]
+                    - cell "Materiales de proyecto" [ref=e2093]
+                    - cell "$15.889" [ref=e2094]
                     - cell "conciliada" [ref=e2095]:
                       - generic [ref=e2096]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2097]:
@@ -2090,19 +2090,19 @@
                         - button "Favorita" [ref=e2102] [cursor=pointer]
                         - button "Desconciliar" [ref=e2103] [cursor=pointer]
                         - button "Anular" [ref=e2104] [cursor=pointer]
-                  - row "Ver 06-07-25, 8:00 a. m. Egreso Junta con los muchachos... Luis, Rodrigo y lalo efectivo Ocio y salidas $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2105]:
+                  - row "Ver 08-07-25, 8:00 a. m. Egreso Válvula relleno - SST split proyecto Rodrigo bascuñan efectivo Materiales de proyecto $39.900 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2105]:
                     - cell [ref=e2106]:
                       - checkbox [ref=e2107]
                     - cell "Ver" [ref=e2108]:
                       - button "Ver" [ref=e2109] [cursor=pointer]
-                    - cell "06-07-25, 8:00 a. m." [ref=e2110]
+                    - cell "08-07-25, 8:00 a. m." [ref=e2110]
                     - cell "Egreso" [ref=e2111]:
                       - generic [ref=e2112]: Egreso
-                    - cell "Junta con los muchachos... Luis, Rodrigo y lalo" [ref=e2113]:
-                      - generic [ref=e2114]: Junta con los muchachos... Luis, Rodrigo y lalo
+                    - cell "Válvula relleno - SST split proyecto Rodrigo bascuñan" [ref=e2113]:
+                      - generic [ref=e2114]: Válvula relleno - SST split proyecto Rodrigo bascuñan
                     - cell "efectivo" [ref=e2115]
-                    - cell "Ocio y salidas" [ref=e2116]
-                    - cell "$10.000" [ref=e2117]
+                    - cell "Materiales de proyecto" [ref=e2116]
+                    - cell "$39.900" [ref=e2117]
                     - cell "conciliada" [ref=e2118]:
                       - generic [ref=e2119]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2120]:
@@ -2112,19 +2112,19 @@
                         - button "Favorita" [ref=e2125] [cursor=pointer]
                         - button "Desconciliar" [ref=e2126] [cursor=pointer]
                         - button "Anular" [ref=e2127] [cursor=pointer]
-                  - row "Ver 04-07-25, 8:00 a. m. Egreso materiales electricos - proyecto FV Rodrigo bascuñan efectivo Materiales de proyecto $49.866 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2128]:
+                  - row "Ver 06-07-25, 8:00 a. m. Egreso Diesel efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2128]:
                     - cell [ref=e2129]:
                       - checkbox [ref=e2130]
                     - cell "Ver" [ref=e2131]:
                       - button "Ver" [ref=e2132] [cursor=pointer]
-                    - cell "04-07-25, 8:00 a. m." [ref=e2133]
+                    - cell "06-07-25, 8:00 a. m." [ref=e2133]
                     - cell "Egreso" [ref=e2134]:
                       - generic [ref=e2135]: Egreso
-                    - cell "materiales electricos - proyecto FV Rodrigo bascuñan" [ref=e2136]:
-                      - generic [ref=e2137]: materiales electricos - proyecto FV Rodrigo bascuñan
+                    - cell "Diesel" [ref=e2136]:
+                      - generic [ref=e2137]: Diesel
                     - cell "efectivo" [ref=e2138]
-                    - cell "Materiales de proyecto" [ref=e2139]
-                    - cell "$49.866" [ref=e2140]
+                    - cell "Combustible" [ref=e2139]
+                    - cell "$20.000" [ref=e2140]
                     - cell "conciliada" [ref=e2141]:
                       - generic [ref=e2142]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2143]:
@@ -2134,19 +2134,19 @@
                         - button "Favorita" [ref=e2148] [cursor=pointer]
                         - button "Desconciliar" [ref=e2149] [cursor=pointer]
                         - button "Anular" [ref=e2150] [cursor=pointer]
-                  - row "Ver 04-07-25, 8:00 a. m. Egreso rifa equipo futbol holanda efectivo Ocio y salidas $15.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2151]:
+                  - row "Ver 06-07-25, 8:00 a. m. Egreso Junta con los muchachos... Luis, Rodrigo y lalo efectivo Ocio y salidas $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2151]:
                     - cell [ref=e2152]:
                       - checkbox [ref=e2153]
                     - cell "Ver" [ref=e2154]:
                       - button "Ver" [ref=e2155] [cursor=pointer]
-                    - cell "04-07-25, 8:00 a. m." [ref=e2156]
+                    - cell "06-07-25, 8:00 a. m." [ref=e2156]
                     - cell "Egreso" [ref=e2157]:
                       - generic [ref=e2158]: Egreso
-                    - cell "rifa equipo futbol holanda" [ref=e2159]:
-                      - generic [ref=e2160]: rifa equipo futbol holanda
+                    - cell "Junta con los muchachos... Luis, Rodrigo y lalo" [ref=e2159]:
+                      - generic [ref=e2160]: Junta con los muchachos... Luis, Rodrigo y lalo
                     - cell "efectivo" [ref=e2161]
                     - cell "Ocio y salidas" [ref=e2162]
-                    - cell "$15.000" [ref=e2163]
+                    - cell "$10.000" [ref=e2163]
                     - cell "conciliada" [ref=e2164]:
                       - generic [ref=e2165]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2166]:
@@ -2156,7 +2156,7 @@
                         - button "Favorita" [ref=e2171] [cursor=pointer]
                         - button "Desconciliar" [ref=e2172] [cursor=pointer]
                         - button "Anular" [ref=e2173] [cursor=pointer]
-                  - row "Ver 04-07-25, 8:00 a. m. Egreso campeonato barrancon efectivo Ocio y salidas $25.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2174]:
+                  - row "Ver 04-07-25, 8:00 a. m. Egreso materiales electricos - proyecto FV Rodrigo bascuñan efectivo Materiales de proyecto $49.866 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2174]:
                     - cell [ref=e2175]:
                       - checkbox [ref=e2176]
                     - cell "Ver" [ref=e2177]:
@@ -2164,11 +2164,11 @@
                     - cell "04-07-25, 8:00 a. m." [ref=e2179]
                     - cell "Egreso" [ref=e2180]:
                       - generic [ref=e2181]: Egreso
-                    - cell "campeonato barrancon" [ref=e2182]:
-                      - generic [ref=e2183]: campeonato barrancon
+                    - cell "materiales electricos - proyecto FV Rodrigo bascuñan" [ref=e2182]:
+                      - generic [ref=e2183]: materiales electricos - proyecto FV Rodrigo bascuñan
                     - cell "efectivo" [ref=e2184]
-                    - cell "Ocio y salidas" [ref=e2185]
-                    - cell "$25.000" [ref=e2186]
+                    - cell "Materiales de proyecto" [ref=e2185]
+                    - cell "$49.866" [ref=e2186]
                     - cell "conciliada" [ref=e2187]:
                       - generic [ref=e2188]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2189]:
@@ -2178,7 +2178,7 @@
                         - button "Favorita" [ref=e2194] [cursor=pointer]
                         - button "Desconciliar" [ref=e2195] [cursor=pointer]
                         - button "Anular" [ref=e2196] [cursor=pointer]
-                  - row "Ver 04-07-25, 8:00 a. m. Egreso telefonia efectivo Internet y telefonía $18.132 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2197]:
+                  - row "Ver 04-07-25, 8:00 a. m. Egreso rifa equipo futbol holanda efectivo Ocio y salidas $15.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2197]:
                     - cell [ref=e2198]:
                       - checkbox [ref=e2199]
                     - cell "Ver" [ref=e2200]:
@@ -2186,11 +2186,11 @@
                     - cell "04-07-25, 8:00 a. m." [ref=e2202]
                     - cell "Egreso" [ref=e2203]:
                       - generic [ref=e2204]: Egreso
-                    - cell "telefonia" [ref=e2205]:
-                      - generic [ref=e2206]: telefonia
+                    - cell "rifa equipo futbol holanda" [ref=e2205]:
+                      - generic [ref=e2206]: rifa equipo futbol holanda
                     - cell "efectivo" [ref=e2207]
-                    - cell "Internet y telefonía" [ref=e2208]
-                    - cell "$18.132" [ref=e2209]
+                    - cell "Ocio y salidas" [ref=e2208]
+                    - cell "$15.000" [ref=e2209]
                     - cell "conciliada" [ref=e2210]:
                       - generic [ref=e2211]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2212]:
@@ -2200,7 +2200,7 @@
                         - button "Favorita" [ref=e2217] [cursor=pointer]
                         - button "Desconciliar" [ref=e2218] [cursor=pointer]
                         - button "Anular" [ref=e2219] [cursor=pointer]
-                  - row "Ver 04-07-25, 8:00 a. m. Egreso internet efectivo Internet y telefonía $16.762 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2220]:
+                  - row "Ver 04-07-25, 8:00 a. m. Egreso campeonato barrancon efectivo Ocio y salidas $25.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2220]:
                     - cell [ref=e2221]:
                       - checkbox [ref=e2222]
                     - cell "Ver" [ref=e2223]:
@@ -2208,11 +2208,11 @@
                     - cell "04-07-25, 8:00 a. m." [ref=e2225]
                     - cell "Egreso" [ref=e2226]:
                       - generic [ref=e2227]: Egreso
-                    - cell "internet" [ref=e2228]:
-                      - generic [ref=e2229]: internet
+                    - cell "campeonato barrancon" [ref=e2228]:
+                      - generic [ref=e2229]: campeonato barrancon
                     - cell "efectivo" [ref=e2230]
-                    - cell "Internet y telefonía" [ref=e2231]
-                    - cell "$16.762" [ref=e2232]
+                    - cell "Ocio y salidas" [ref=e2231]
+                    - cell "$25.000" [ref=e2232]
                     - cell "conciliada" [ref=e2233]:
                       - generic [ref=e2234]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2235]:
@@ -2222,19 +2222,19 @@
                         - button "Favorita" [ref=e2240] [cursor=pointer]
                         - button "Desconciliar" [ref=e2241] [cursor=pointer]
                         - button "Anular" [ref=e2242] [cursor=pointer]
-                  - row "Ver 03-07-25, 8:00 a. m. Egreso Diesel efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2243]:
+                  - row "Ver 04-07-25, 8:00 a. m. Egreso telefonia efectivo Internet y telefonía $18.132 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2243]:
                     - cell [ref=e2244]:
                       - checkbox [ref=e2245]
                     - cell "Ver" [ref=e2246]:
                       - button "Ver" [ref=e2247] [cursor=pointer]
-                    - cell "03-07-25, 8:00 a. m." [ref=e2248]
+                    - cell "04-07-25, 8:00 a. m." [ref=e2248]
                     - cell "Egreso" [ref=e2249]:
                       - generic [ref=e2250]: Egreso
-                    - cell "Diesel" [ref=e2251]:
-                      - generic [ref=e2252]: Diesel
+                    - cell "telefonia" [ref=e2251]:
+                      - generic [ref=e2252]: telefonia
                     - cell "efectivo" [ref=e2253]
-                    - cell "Combustible" [ref=e2254]
-                    - cell "$20.000" [ref=e2255]
+                    - cell "Internet y telefonía" [ref=e2254]
+                    - cell "$18.132" [ref=e2255]
                     - cell "conciliada" [ref=e2256]:
                       - generic [ref=e2257]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2258]:
@@ -2244,19 +2244,19 @@
                         - button "Favorita" [ref=e2263] [cursor=pointer]
                         - button "Desconciliar" [ref=e2264] [cursor=pointer]
                         - button "Anular" [ref=e2265] [cursor=pointer]
-                  - row "Ver 03-07-25, 8:00 a. m. Egreso cuota 16 camioneta efectivo Crédito camioneta $270.665 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2266]:
+                  - row "Ver 04-07-25, 8:00 a. m. Egreso internet efectivo Internet y telefonía $16.762 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2266]:
                     - cell [ref=e2267]:
                       - checkbox [ref=e2268]
                     - cell "Ver" [ref=e2269]:
                       - button "Ver" [ref=e2270] [cursor=pointer]
-                    - cell "03-07-25, 8:00 a. m." [ref=e2271]
+                    - cell "04-07-25, 8:00 a. m." [ref=e2271]
                     - cell "Egreso" [ref=e2272]:
                       - generic [ref=e2273]: Egreso
-                    - cell "cuota 16 camioneta" [ref=e2274]:
-                      - generic [ref=e2275]: cuota 16 camioneta
+                    - cell "internet" [ref=e2274]:
+                      - generic [ref=e2275]: internet
                     - cell "efectivo" [ref=e2276]
-                    - cell "Crédito camioneta" [ref=e2277]
-                    - cell "$270.665" [ref=e2278]
+                    - cell "Internet y telefonía" [ref=e2277]
+                    - cell "$16.762" [ref=e2278]
                     - cell "conciliada" [ref=e2279]:
                       - generic [ref=e2280]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2281]:
@@ -2266,19 +2266,19 @@
                         - button "Favorita" [ref=e2286] [cursor=pointer]
                         - button "Desconciliar" [ref=e2287] [cursor=pointer]
                         - button "Anular" [ref=e2288] [cursor=pointer]
-                  - row "Ver 02-07-25, 8:00 a. m. Egreso Diesel efectivo Combustible $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2289]:
+                  - row "Ver 03-07-25, 8:00 a. m. Egreso Diesel efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2289]:
                     - cell [ref=e2290]:
                       - checkbox [ref=e2291]
                     - cell "Ver" [ref=e2292]:
                       - button "Ver" [ref=e2293] [cursor=pointer]
-                    - cell "02-07-25, 8:00 a. m." [ref=e2294]
+                    - cell "03-07-25, 8:00 a. m." [ref=e2294]
                     - cell "Egreso" [ref=e2295]:
                       - generic [ref=e2296]: Egreso
                     - cell "Diesel" [ref=e2297]:
                       - generic [ref=e2298]: Diesel
                     - cell "efectivo" [ref=e2299]
                     - cell "Combustible" [ref=e2300]
-                    - cell "$10.000" [ref=e2301]
+                    - cell "$20.000" [ref=e2301]
                     - cell "conciliada" [ref=e2302]:
                       - generic [ref=e2303]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2304]:
@@ -2288,19 +2288,19 @@
                         - button "Favorita" [ref=e2309] [cursor=pointer]
                         - button "Desconciliar" [ref=e2310] [cursor=pointer]
                         - button "Anular" [ref=e2311] [cursor=pointer]
-                  - row "Ver 01-07-25, 8:00 a. m. Egreso Comida rápida proyecto George alarja efectivo Alimentación $11.500 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2312]:
+                  - row "Ver 03-07-25, 8:00 a. m. Egreso cuota 16 camioneta efectivo Crédito camioneta $270.665 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2312]:
                     - cell [ref=e2313]:
                       - checkbox [ref=e2314]
                     - cell "Ver" [ref=e2315]:
                       - button "Ver" [ref=e2316] [cursor=pointer]
-                    - cell "01-07-25, 8:00 a. m." [ref=e2317]
+                    - cell "03-07-25, 8:00 a. m." [ref=e2317]
                     - cell "Egreso" [ref=e2318]:
                       - generic [ref=e2319]: Egreso
-                    - cell "Comida rápida proyecto George alarja" [ref=e2320]:
-                      - generic [ref=e2321]: Comida rápida proyecto George alarja
+                    - cell "cuota 16 camioneta" [ref=e2320]:
+                      - generic [ref=e2321]: cuota 16 camioneta
                     - cell "efectivo" [ref=e2322]
-                    - cell "Alimentación" [ref=e2323]
-                    - cell "$11.500" [ref=e2324]
+                    - cell "Crédito camioneta" [ref=e2323]
+                    - cell "$270.665" [ref=e2324]
                     - cell "conciliada" [ref=e2325]:
                       - generic [ref=e2326]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2327]:
@@ -2310,19 +2310,19 @@
                         - button "Favorita" [ref=e2332] [cursor=pointer]
                         - button "Desconciliar" [ref=e2333] [cursor=pointer]
                         - button "Anular" [ref=e2334] [cursor=pointer]
-                  - row "Ver 27-06-25, 8:00 a. m. Egreso cafe regalo - alberto, felipe y yim efectivo Gastos menores $6.100 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2335]:
+                  - row "Ver 02-07-25, 8:00 a. m. Egreso Diesel efectivo Combustible $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2335]:
                     - cell [ref=e2336]:
                       - checkbox [ref=e2337]
                     - cell "Ver" [ref=e2338]:
                       - button "Ver" [ref=e2339] [cursor=pointer]
-                    - cell "27-06-25, 8:00 a. m." [ref=e2340]
+                    - cell "02-07-25, 8:00 a. m." [ref=e2340]
                     - cell "Egreso" [ref=e2341]:
                       - generic [ref=e2342]: Egreso
-                    - cell "cafe regalo - alberto, felipe y yim" [ref=e2343]:
-                      - generic [ref=e2344]: cafe regalo - alberto, felipe y yim
+                    - cell "Diesel" [ref=e2343]:
+                      - generic [ref=e2344]: Diesel
                     - cell "efectivo" [ref=e2345]
-                    - cell "Gastos menores" [ref=e2346]
-                    - cell "$6.100" [ref=e2347]
+                    - cell "Combustible" [ref=e2346]
+                    - cell "$10.000" [ref=e2347]
                     - cell "conciliada" [ref=e2348]:
                       - generic [ref=e2349]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2350]:
@@ -2332,19 +2332,19 @@
                         - button "Favorita" [ref=e2355] [cursor=pointer]
                         - button "Desconciliar" [ref=e2356] [cursor=pointer]
                         - button "Anular" [ref=e2357] [cursor=pointer]
-                  - row "Ver 27-06-25, 8:00 a. m. Egreso Diesel Camioneta SHPG74 - Proyecto George Alarja efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2358]:
+                  - row "Ver 01-07-25, 8:00 a. m. Egreso Comida rápida proyecto George alarja efectivo Alimentación $11.500 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2358]:
                     - cell [ref=e2359]:
                       - checkbox [ref=e2360]
                     - cell "Ver" [ref=e2361]:
                       - button "Ver" [ref=e2362] [cursor=pointer]
-                    - cell "27-06-25, 8:00 a. m." [ref=e2363]
+                    - cell "01-07-25, 8:00 a. m." [ref=e2363]
                     - cell "Egreso" [ref=e2364]:
                       - generic [ref=e2365]: Egreso
-                    - cell "Diesel Camioneta SHPG74 - Proyecto George Alarja" [ref=e2366]:
-                      - generic [ref=e2367]: Diesel Camioneta SHPG74 - Proyecto George Alarja
+                    - cell "Comida rápida proyecto George alarja" [ref=e2366]:
+                      - generic [ref=e2367]: Comida rápida proyecto George alarja
                     - cell "efectivo" [ref=e2368]
-                    - cell "Combustible" [ref=e2369]
-                    - cell "$20.000" [ref=e2370]
+                    - cell "Alimentación" [ref=e2369]
+                    - cell "$11.500" [ref=e2370]
                     - cell "conciliada" [ref=e2371]:
                       - generic [ref=e2372]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2373]:
@@ -2354,19 +2354,19 @@
                         - button "Favorita" [ref=e2378] [cursor=pointer]
                         - button "Desconciliar" [ref=e2379] [cursor=pointer]
                         - button "Anular" [ref=e2380] [cursor=pointer]
-                  - row "Ver 21-06-25, 8:00 a. m. Egreso Italianos efectivo Alimentación $5.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2381]:
+                  - row "Ver 27-06-25, 8:00 a. m. Egreso cafe regalo - alberto, felipe y yim efectivo Gastos menores $6.100 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2381]:
                     - cell [ref=e2382]:
                       - checkbox [ref=e2383]
                     - cell "Ver" [ref=e2384]:
                       - button "Ver" [ref=e2385] [cursor=pointer]
-                    - cell "21-06-25, 8:00 a. m." [ref=e2386]
+                    - cell "27-06-25, 8:00 a. m." [ref=e2386]
                     - cell "Egreso" [ref=e2387]:
                       - generic [ref=e2388]: Egreso
-                    - cell "Italianos" [ref=e2389]:
-                      - generic [ref=e2390]: Italianos
+                    - cell "cafe regalo - alberto, felipe y yim" [ref=e2389]:
+                      - generic [ref=e2390]: cafe regalo - alberto, felipe y yim
                     - cell "efectivo" [ref=e2391]
-                    - cell "Alimentación" [ref=e2392]
-                    - cell "$5.000" [ref=e2393]
+                    - cell "Gastos menores" [ref=e2392]
+                    - cell "$6.100" [ref=e2393]
                     - cell "conciliada" [ref=e2394]:
                       - generic [ref=e2395]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2396]:
@@ -2376,19 +2376,19 @@
                         - button "Favorita" [ref=e2401] [cursor=pointer]
                         - button "Desconciliar" [ref=e2402] [cursor=pointer]
                         - button "Anular" [ref=e2403] [cursor=pointer]
-                  - row "Ver 20-06-25, 8:00 a. m. Egreso Asado mc efectivo Ocio y salidas $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2404]:
+                  - row "Ver 27-06-25, 8:00 a. m. Egreso Diesel Camioneta SHPG74 - Proyecto George Alarja efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2404]:
                     - cell [ref=e2405]:
                       - checkbox [ref=e2406]
                     - cell "Ver" [ref=e2407]:
                       - button "Ver" [ref=e2408] [cursor=pointer]
-                    - cell "20-06-25, 8:00 a. m." [ref=e2409]
+                    - cell "27-06-25, 8:00 a. m." [ref=e2409]
                     - cell "Egreso" [ref=e2410]:
                       - generic [ref=e2411]: Egreso
-                    - cell "Asado mc" [ref=e2412]:
-                      - generic [ref=e2413]: Asado mc
+                    - cell "Diesel Camioneta SHPG74 - Proyecto George Alarja" [ref=e2412]:
+                      - generic [ref=e2413]: Diesel Camioneta SHPG74 - Proyecto George Alarja
                     - cell "efectivo" [ref=e2414]
-                    - cell "Ocio y salidas" [ref=e2415]
-                    - cell "$10.000" [ref=e2416]
+                    - cell "Combustible" [ref=e2415]
+                    - cell "$20.000" [ref=e2416]
                     - cell "conciliada" [ref=e2417]:
                       - generic [ref=e2418]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2419]:
@@ -2398,19 +2398,19 @@
                         - button "Favorita" [ref=e2424] [cursor=pointer]
                         - button "Desconciliar" [ref=e2425] [cursor=pointer]
                         - button "Anular" [ref=e2426] [cursor=pointer]
-                  - row "Ver 20-06-25, 8:00 a. m. Egreso Diesel efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2427]:
+                  - row "Ver 21-06-25, 8:00 a. m. Egreso Italianos efectivo Alimentación $5.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2427]:
                     - cell [ref=e2428]:
                       - checkbox [ref=e2429]
                     - cell "Ver" [ref=e2430]:
                       - button "Ver" [ref=e2431] [cursor=pointer]
-                    - cell "20-06-25, 8:00 a. m." [ref=e2432]
+                    - cell "21-06-25, 8:00 a. m." [ref=e2432]
                     - cell "Egreso" [ref=e2433]:
                       - generic [ref=e2434]: Egreso
-                    - cell "Diesel" [ref=e2435]:
-                      - generic [ref=e2436]: Diesel
+                    - cell "Italianos" [ref=e2435]:
+                      - generic [ref=e2436]: Italianos
                     - cell "efectivo" [ref=e2437]
-                    - cell "Combustible" [ref=e2438]
-                    - cell "$20.000" [ref=e2439]
+                    - cell "Alimentación" [ref=e2438]
+                    - cell "$5.000" [ref=e2439]
                     - cell "conciliada" [ref=e2440]:
                       - generic [ref=e2441]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2442]:
@@ -2420,7 +2420,7 @@
                         - button "Favorita" [ref=e2447] [cursor=pointer]
                         - button "Desconciliar" [ref=e2448] [cursor=pointer]
                         - button "Anular" [ref=e2449] [cursor=pointer]
-                  - row "Ver 20-06-25, 8:00 a. m. Egreso Cancha y rifa efectivo Ocio y salidas $2.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2450]:
+                  - row "Ver 20-06-25, 8:00 a. m. Egreso Asado mc efectivo Ocio y salidas $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2450]:
                     - cell [ref=e2451]:
                       - checkbox [ref=e2452]
                     - cell "Ver" [ref=e2453]:
@@ -2428,11 +2428,11 @@
                     - cell "20-06-25, 8:00 a. m." [ref=e2455]
                     - cell "Egreso" [ref=e2456]:
                       - generic [ref=e2457]: Egreso
-                    - cell "Cancha y rifa" [ref=e2458]:
-                      - generic [ref=e2459]: Cancha y rifa
+                    - cell "Asado mc" [ref=e2458]:
+                      - generic [ref=e2459]: Asado mc
                     - cell "efectivo" [ref=e2460]
                     - cell "Ocio y salidas" [ref=e2461]
-                    - cell "$2.000" [ref=e2462]
+                    - cell "$10.000" [ref=e2462]
                     - cell "conciliada" [ref=e2463]:
                       - generic [ref=e2464]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2465]:
@@ -2442,7 +2442,7 @@
                         - button "Favorita" [ref=e2470] [cursor=pointer]
                         - button "Desconciliar" [ref=e2471] [cursor=pointer]
                         - button "Anular" [ref=e2472] [cursor=pointer]
-                  - row "Ver 20-06-25, 8:00 a. m. Egreso IVA efectivo Impuestos $104.400 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2473]:
+                  - row "Ver 20-06-25, 8:00 a. m. Egreso Diesel efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2473]:
                     - cell [ref=e2474]:
                       - checkbox [ref=e2475]
                     - cell "Ver" [ref=e2476]:
@@ -2450,11 +2450,11 @@
                     - cell "20-06-25, 8:00 a. m." [ref=e2478]
                     - cell "Egreso" [ref=e2479]:
                       - generic [ref=e2480]: Egreso
-                    - cell "IVA" [ref=e2481]:
-                      - generic [ref=e2482]: IVA
+                    - cell "Diesel" [ref=e2481]:
+                      - generic [ref=e2482]: Diesel
                     - cell "efectivo" [ref=e2483]
-                    - cell "Impuestos" [ref=e2484]
-                    - cell "$104.400" [ref=e2485]
+                    - cell "Combustible" [ref=e2484]
+                    - cell "$20.000" [ref=e2485]
                     - cell "conciliada" [ref=e2486]:
                       - generic [ref=e2487]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2488]:
@@ -2464,19 +2464,19 @@
                         - button "Favorita" [ref=e2493] [cursor=pointer]
                         - button "Desconciliar" [ref=e2494] [cursor=pointer]
                         - button "Anular" [ref=e2495] [cursor=pointer]
-                  - row "Ver 19-06-25, 8:00 a. m. Egreso Cumple chico Laporte efectivo Ocio y salidas $6.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2496]:
+                  - row "Ver 20-06-25, 8:00 a. m. Egreso Cancha y rifa efectivo Ocio y salidas $2.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2496]:
                     - cell [ref=e2497]:
                       - checkbox [ref=e2498]
                     - cell "Ver" [ref=e2499]:
                       - button "Ver" [ref=e2500] [cursor=pointer]
-                    - cell "19-06-25, 8:00 a. m." [ref=e2501]
+                    - cell "20-06-25, 8:00 a. m." [ref=e2501]
                     - cell "Egreso" [ref=e2502]:
                       - generic [ref=e2503]: Egreso
-                    - cell "Cumple chico Laporte" [ref=e2504]:
-                      - generic [ref=e2505]: Cumple chico Laporte
+                    - cell "Cancha y rifa" [ref=e2504]:
+                      - generic [ref=e2505]: Cancha y rifa
                     - cell "efectivo" [ref=e2506]
                     - cell "Ocio y salidas" [ref=e2507]
-                    - cell "$6.000" [ref=e2508]
+                    - cell "$2.000" [ref=e2508]
                     - cell "conciliada" [ref=e2509]:
                       - generic [ref=e2510]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2511]:
@@ -2486,19 +2486,19 @@
                         - button "Favorita" [ref=e2516] [cursor=pointer]
                         - button "Desconciliar" [ref=e2517] [cursor=pointer]
                         - button "Anular" [ref=e2518] [cursor=pointer]
-                  - row "Ver 17-06-25, 8:00 a. m. Egreso Diesel efectivo Combustible $30.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2519]:
+                  - row "Ver 20-06-25, 8:00 a. m. Egreso IVA efectivo Impuestos $104.400 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2519]:
                     - cell [ref=e2520]:
                       - checkbox [ref=e2521]
                     - cell "Ver" [ref=e2522]:
                       - button "Ver" [ref=e2523] [cursor=pointer]
-                    - cell "17-06-25, 8:00 a. m." [ref=e2524]
+                    - cell "20-06-25, 8:00 a. m." [ref=e2524]
                     - cell "Egreso" [ref=e2525]:
                       - generic [ref=e2526]: Egreso
-                    - cell "Diesel" [ref=e2527]:
-                      - generic [ref=e2528]: Diesel
+                    - cell "IVA" [ref=e2527]:
+                      - generic [ref=e2528]: IVA
                     - cell "efectivo" [ref=e2529]
-                    - cell "Combustible" [ref=e2530]
-                    - cell "$30.000" [ref=e2531]
+                    - cell "Impuestos" [ref=e2530]
+                    - cell "$104.400" [ref=e2531]
                     - cell "conciliada" [ref=e2532]:
                       - generic [ref=e2533]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2534]:
@@ -2508,19 +2508,19 @@
                         - button "Favorita" [ref=e2539] [cursor=pointer]
                         - button "Desconciliar" [ref=e2540] [cursor=pointer]
                         - button "Anular" [ref=e2541] [cursor=pointer]
-                  - row "Ver 16-06-25, 8:00 a. m. Egreso Alvi efectivo Alimentación $24.030 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2542]:
+                  - row "Ver 19-06-25, 8:00 a. m. Egreso Cumple chico Laporte efectivo Ocio y salidas $6.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2542]:
                     - cell [ref=e2543]:
                       - checkbox [ref=e2544]
                     - cell "Ver" [ref=e2545]:
                       - button "Ver" [ref=e2546] [cursor=pointer]
-                    - cell "16-06-25, 8:00 a. m." [ref=e2547]
+                    - cell "19-06-25, 8:00 a. m." [ref=e2547]
                     - cell "Egreso" [ref=e2548]:
                       - generic [ref=e2549]: Egreso
-                    - cell "Alvi" [ref=e2550]:
-                      - generic [ref=e2551]: Alvi
+                    - cell "Cumple chico Laporte" [ref=e2550]:
+                      - generic [ref=e2551]: Cumple chico Laporte
                     - cell "efectivo" [ref=e2552]
-                    - cell "Alimentación" [ref=e2553]
-                    - cell "$24.030" [ref=e2554]
+                    - cell "Ocio y salidas" [ref=e2553]
+                    - cell "$6.000" [ref=e2554]
                     - cell "conciliada" [ref=e2555]:
                       - generic [ref=e2556]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2557]:
@@ -2530,19 +2530,19 @@
                         - button "Favorita" [ref=e2562] [cursor=pointer]
                         - button "Desconciliar" [ref=e2563] [cursor=pointer]
                         - button "Anular" [ref=e2564] [cursor=pointer]
-                  - row "Ver 14-06-25, 8:00 a. m. Egreso puntas 3/16 y dos mas, discos de corte efectivo Herramientas e insumos $6.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2565]:
+                  - row "Ver 17-06-25, 8:00 a. m. Egreso Diesel efectivo Combustible $30.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2565]:
                     - cell [ref=e2566]:
                       - checkbox [ref=e2567]
                     - cell "Ver" [ref=e2568]:
                       - button "Ver" [ref=e2569] [cursor=pointer]
-                    - cell "14-06-25, 8:00 a. m." [ref=e2570]
+                    - cell "17-06-25, 8:00 a. m." [ref=e2570]
                     - cell "Egreso" [ref=e2571]:
                       - generic [ref=e2572]: Egreso
-                    - cell "puntas 3/16 y dos mas, discos de corte" [ref=e2573]:
-                      - generic [ref=e2574]: puntas 3/16 y dos mas, discos de corte
+                    - cell "Diesel" [ref=e2573]:
+                      - generic [ref=e2574]: Diesel
                     - cell "efectivo" [ref=e2575]
-                    - cell "Herramientas e insumos" [ref=e2576]
-                    - cell "$6.000" [ref=e2577]
+                    - cell "Combustible" [ref=e2576]
+                    - cell "$30.000" [ref=e2577]
                     - cell "conciliada" [ref=e2578]:
                       - generic [ref=e2579]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2580]:
@@ -2552,19 +2552,19 @@
                         - button "Favorita" [ref=e2585] [cursor=pointer]
                         - button "Desconciliar" [ref=e2586] [cursor=pointer]
                         - button "Anular" [ref=e2587] [cursor=pointer]
-                  - row "Ver 14-06-25, 8:00 a. m. Egreso feria frutas, Verduras & otros efectivo Alimentación $32.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2588]:
+                  - row "Ver 16-06-25, 8:00 a. m. Egreso Alvi efectivo Alimentación $24.030 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2588]:
                     - cell [ref=e2589]:
                       - checkbox [ref=e2590]
                     - cell "Ver" [ref=e2591]:
                       - button "Ver" [ref=e2592] [cursor=pointer]
-                    - cell "14-06-25, 8:00 a. m." [ref=e2593]
+                    - cell "16-06-25, 8:00 a. m." [ref=e2593]
                     - cell "Egreso" [ref=e2594]:
                       - generic [ref=e2595]: Egreso
-                    - cell "feria frutas, Verduras & otros" [ref=e2596]:
-                      - generic [ref=e2597]: feria frutas, Verduras & otros
+                    - cell "Alvi" [ref=e2596]:
+                      - generic [ref=e2597]: Alvi
                     - cell "efectivo" [ref=e2598]
                     - cell "Alimentación" [ref=e2599]
-                    - cell "$32.000" [ref=e2600]
+                    - cell "$24.030" [ref=e2600]
                     - cell "conciliada" [ref=e2601]:
                       - generic [ref=e2602]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2603]:
@@ -2574,7 +2574,7 @@
                         - button "Favorita" [ref=e2608] [cursor=pointer]
                         - button "Desconciliar" [ref=e2609] [cursor=pointer]
                         - button "Anular" [ref=e2610] [cursor=pointer]
-                  - row "Ver 14-06-25, 8:00 a. m. Egreso Diesel 910 efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2611]:
+                  - row "Ver 14-06-25, 8:00 a. m. Egreso puntas 3/16 y dos mas, discos de corte efectivo Herramientas e insumos $6.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2611]:
                     - cell [ref=e2612]:
                       - checkbox [ref=e2613]
                     - cell "Ver" [ref=e2614]:
@@ -2582,11 +2582,11 @@
                     - cell "14-06-25, 8:00 a. m." [ref=e2616]
                     - cell "Egreso" [ref=e2617]:
                       - generic [ref=e2618]: Egreso
-                    - cell "Diesel 910" [ref=e2619]:
-                      - generic [ref=e2620]: Diesel 910
+                    - cell "puntas 3/16 y dos mas, discos de corte" [ref=e2619]:
+                      - generic [ref=e2620]: puntas 3/16 y dos mas, discos de corte
                     - cell "efectivo" [ref=e2621]
-                    - cell "Combustible" [ref=e2622]
-                    - cell "$20.000" [ref=e2623]
+                    - cell "Herramientas e insumos" [ref=e2622]
+                    - cell "$6.000" [ref=e2623]
                     - cell "conciliada" [ref=e2624]:
                       - generic [ref=e2625]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2626]:
@@ -2596,19 +2596,19 @@
                         - button "Favorita" [ref=e2631] [cursor=pointer]
                         - button "Desconciliar" [ref=e2632] [cursor=pointer]
                         - button "Anular" [ref=e2633] [cursor=pointer]
-                  - row "Ver 12-06-25, 8:00 a. m. Egreso aguas andinas efectivo Agua $38.580 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2634]:
+                  - row "Ver 14-06-25, 8:00 a. m. Egreso feria frutas, Verduras & otros efectivo Alimentación $32.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2634]:
                     - cell [ref=e2635]:
                       - checkbox [ref=e2636]
                     - cell "Ver" [ref=e2637]:
                       - button "Ver" [ref=e2638] [cursor=pointer]
-                    - cell "12-06-25, 8:00 a. m." [ref=e2639]
+                    - cell "14-06-25, 8:00 a. m." [ref=e2639]
                     - cell "Egreso" [ref=e2640]:
                       - generic [ref=e2641]: Egreso
-                    - cell "aguas andinas" [ref=e2642]:
-                      - generic [ref=e2643]: aguas andinas
+                    - cell "feria frutas, Verduras & otros" [ref=e2642]:
+                      - generic [ref=e2643]: feria frutas, Verduras & otros
                     - cell "efectivo" [ref=e2644]
-                    - cell "Agua" [ref=e2645]
-                    - cell "$38.580" [ref=e2646]
+                    - cell "Alimentación" [ref=e2645]
+                    - cell "$32.000" [ref=e2646]
                     - cell "conciliada" [ref=e2647]:
                       - generic [ref=e2648]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2649]:
@@ -2618,19 +2618,19 @@
                         - button "Favorita" [ref=e2654] [cursor=pointer]
                         - button "Desconciliar" [ref=e2655] [cursor=pointer]
                         - button "Anular" [ref=e2656] [cursor=pointer]
-                  - row "Ver 11-06-25, 8:00 a. m. Egreso Energetica efectivo Alimentación $2.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2657]:
+                  - row "Ver 14-06-25, 8:00 a. m. Egreso Diesel 910 efectivo Combustible $20.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2657]:
                     - cell [ref=e2658]:
                       - checkbox [ref=e2659]
                     - cell "Ver" [ref=e2660]:
                       - button "Ver" [ref=e2661] [cursor=pointer]
-                    - cell "11-06-25, 8:00 a. m." [ref=e2662]
+                    - cell "14-06-25, 8:00 a. m." [ref=e2662]
                     - cell "Egreso" [ref=e2663]:
                       - generic [ref=e2664]: Egreso
-                    - cell "Energetica" [ref=e2665]:
-                      - generic [ref=e2666]: Energetica
+                    - cell "Diesel 910" [ref=e2665]:
+                      - generic [ref=e2666]: Diesel 910
                     - cell "efectivo" [ref=e2667]
-                    - cell "Alimentación" [ref=e2668]
-                    - cell "$2.000" [ref=e2669]
+                    - cell "Combustible" [ref=e2668]
+                    - cell "$20.000" [ref=e2669]
                     - cell "conciliada" [ref=e2670]:
                       - generic [ref=e2671]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2672]:
@@ -2640,19 +2640,19 @@
                         - button "Favorita" [ref=e2677] [cursor=pointer]
                         - button "Desconciliar" [ref=e2678] [cursor=pointer]
                         - button "Anular" [ref=e2679] [cursor=pointer]
-                  - row "Ver 11-06-25, 8:00 a. m. Egreso Cancha pago marco encina efectivo Ocio y salidas $5.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2680]:
+                  - row "Ver 12-06-25, 8:00 a. m. Egreso aguas andinas efectivo Agua $38.580 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2680]:
                     - cell [ref=e2681]:
                       - checkbox [ref=e2682]
                     - cell "Ver" [ref=e2683]:
                       - button "Ver" [ref=e2684] [cursor=pointer]
-                    - cell "11-06-25, 8:00 a. m." [ref=e2685]
+                    - cell "12-06-25, 8:00 a. m." [ref=e2685]
                     - cell "Egreso" [ref=e2686]:
                       - generic [ref=e2687]: Egreso
-                    - cell "Cancha pago marco encina" [ref=e2688]:
-                      - generic [ref=e2689]: Cancha pago marco encina
+                    - cell "aguas andinas" [ref=e2688]:
+                      - generic [ref=e2689]: aguas andinas
                     - cell "efectivo" [ref=e2690]
-                    - cell "Ocio y salidas" [ref=e2691]
-                    - cell "$5.000" [ref=e2692]
+                    - cell "Agua" [ref=e2691]
+                    - cell "$38.580" [ref=e2692]
                     - cell "conciliada" [ref=e2693]:
                       - generic [ref=e2694]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2695]:
@@ -2662,19 +2662,19 @@
                         - button "Favorita" [ref=e2700] [cursor=pointer]
                         - button "Desconciliar" [ref=e2701] [cursor=pointer]
                         - button "Anular" [ref=e2702] [cursor=pointer]
-                  - row "Ver 10-06-25, 8:00 a. m. Egreso hipotecario Cuota 90 efectivo Hipotecario $557.136 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2703]:
+                  - row "Ver 11-06-25, 8:00 a. m. Egreso Energetica efectivo Alimentación $2.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2703]:
                     - cell [ref=e2704]:
                       - checkbox [ref=e2705]
                     - cell "Ver" [ref=e2706]:
                       - button "Ver" [ref=e2707] [cursor=pointer]
-                    - cell "10-06-25, 8:00 a. m." [ref=e2708]
+                    - cell "11-06-25, 8:00 a. m." [ref=e2708]
                     - cell "Egreso" [ref=e2709]:
                       - generic [ref=e2710]: Egreso
-                    - cell "hipotecario Cuota 90" [ref=e2711]:
-                      - generic [ref=e2712]: hipotecario Cuota 90
+                    - cell "Energetica" [ref=e2711]:
+                      - generic [ref=e2712]: Energetica
                     - cell "efectivo" [ref=e2713]
-                    - cell "Hipotecario" [ref=e2714]
-                    - cell "$557.136" [ref=e2715]
+                    - cell "Alimentación" [ref=e2714]
+                    - cell "$2.000" [ref=e2715]
                     - cell "conciliada" [ref=e2716]:
                       - generic [ref=e2717]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2718]:
@@ -2684,19 +2684,19 @@
                         - button "Favorita" [ref=e2723] [cursor=pointer]
                         - button "Desconciliar" [ref=e2724] [cursor=pointer]
                         - button "Anular" [ref=e2725] [cursor=pointer]
-                  - row "Ver 08-06-25, 8:00 a. m. Egreso Regalo Hernán - tía meche efectivo Regalos $10.330 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2726]:
+                  - row "Ver 11-06-25, 8:00 a. m. Egreso Cancha pago marco encina efectivo Ocio y salidas $5.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2726]:
                     - cell [ref=e2727]:
                       - checkbox [ref=e2728]
                     - cell "Ver" [ref=e2729]:
                       - button "Ver" [ref=e2730] [cursor=pointer]
-                    - cell "08-06-25, 8:00 a. m." [ref=e2731]
+                    - cell "11-06-25, 8:00 a. m." [ref=e2731]
                     - cell "Egreso" [ref=e2732]:
                       - generic [ref=e2733]: Egreso
-                    - cell "Regalo Hernán - tía meche" [ref=e2734]:
-                      - generic [ref=e2735]: Regalo Hernán - tía meche
+                    - cell "Cancha pago marco encina" [ref=e2734]:
+                      - generic [ref=e2735]: Cancha pago marco encina
                     - cell "efectivo" [ref=e2736]
-                    - cell "Regalos" [ref=e2737]
-                    - cell "$10.330" [ref=e2738]
+                    - cell "Ocio y salidas" [ref=e2737]
+                    - cell "$5.000" [ref=e2738]
                     - cell "conciliada" [ref=e2739]:
                       - generic [ref=e2740]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2741]:
@@ -2706,19 +2706,19 @@
                         - button "Favorita" [ref=e2746] [cursor=pointer]
                         - button "Desconciliar" [ref=e2747] [cursor=pointer]
                         - button "Anular" [ref=e2748] [cursor=pointer]
-                  - row "Ver 08-06-25, 8:00 a. m. Egreso Deporte - pago junio 2025 cdf inter efectivo Ocio y salidas $30.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2749]:
+                  - row "Ver 10-06-25, 8:00 a. m. Egreso hipotecario Cuota 90 efectivo Hipotecario $557.136 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2749]:
                     - cell [ref=e2750]:
                       - checkbox [ref=e2751]
                     - cell "Ver" [ref=e2752]:
                       - button "Ver" [ref=e2753] [cursor=pointer]
-                    - cell "08-06-25, 8:00 a. m." [ref=e2754]
+                    - cell "10-06-25, 8:00 a. m." [ref=e2754]
                     - cell "Egreso" [ref=e2755]:
                       - generic [ref=e2756]: Egreso
-                    - cell "Deporte - pago junio 2025 cdf inter" [ref=e2757]:
-                      - generic [ref=e2758]: Deporte - pago junio 2025 cdf inter
+                    - cell "hipotecario Cuota 90" [ref=e2757]:
+                      - generic [ref=e2758]: hipotecario Cuota 90
                     - cell "efectivo" [ref=e2759]
-                    - cell "Ocio y salidas" [ref=e2760]
-                    - cell "$30.000" [ref=e2761]
+                    - cell "Hipotecario" [ref=e2760]
+                    - cell "$557.136" [ref=e2761]
                     - cell "conciliada" [ref=e2762]:
                       - generic [ref=e2763]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2764]:
@@ -2728,19 +2728,19 @@
                         - button "Favorita" [ref=e2769] [cursor=pointer]
                         - button "Desconciliar" [ref=e2770] [cursor=pointer]
                         - button "Anular" [ref=e2771] [cursor=pointer]
-                  - row "Ver 07-06-25, 8:00 a. m. Egreso Deporte - pago junio 2025 cdf holanda efectivo Ocio y salidas $25.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2772]:
+                  - row "Ver 08-06-25, 8:00 a. m. Egreso Regalo Hernán - tía meche efectivo Regalos $10.330 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2772]:
                     - cell [ref=e2773]:
                       - checkbox [ref=e2774]
                     - cell "Ver" [ref=e2775]:
                       - button "Ver" [ref=e2776] [cursor=pointer]
-                    - cell "07-06-25, 8:00 a. m." [ref=e2777]
+                    - cell "08-06-25, 8:00 a. m." [ref=e2777]
                     - cell "Egreso" [ref=e2778]:
                       - generic [ref=e2779]: Egreso
-                    - cell "Deporte - pago junio 2025 cdf holanda" [ref=e2780]:
-                      - generic [ref=e2781]: Deporte - pago junio 2025 cdf holanda
+                    - cell "Regalo Hernán - tía meche" [ref=e2780]:
+                      - generic [ref=e2781]: Regalo Hernán - tía meche
                     - cell "efectivo" [ref=e2782]
-                    - cell "Ocio y salidas" [ref=e2783]
-                    - cell "$25.000" [ref=e2784]
+                    - cell "Regalos" [ref=e2783]
+                    - cell "$10.330" [ref=e2784]
                     - cell "conciliada" [ref=e2785]:
                       - generic [ref=e2786]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2787]:
@@ -2750,19 +2750,19 @@
                         - button "Favorita" [ref=e2792] [cursor=pointer]
                         - button "Desconciliar" [ref=e2793] [cursor=pointer]
                         - button "Anular" [ref=e2794] [cursor=pointer]
-                  - row "Ver 06-06-25, 8:00 a. m. Egreso Barras de magnesio efectivo Materiales de proyecto $90.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2795]:
+                  - row "Ver 08-06-25, 8:00 a. m. Egreso Deporte - pago junio 2025 cdf inter efectivo Ocio y salidas $30.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2795]:
                     - cell [ref=e2796]:
                       - checkbox [ref=e2797]
                     - cell "Ver" [ref=e2798]:
                       - button "Ver" [ref=e2799] [cursor=pointer]
-                    - cell "06-06-25, 8:00 a. m." [ref=e2800]
+                    - cell "08-06-25, 8:00 a. m." [ref=e2800]
                     - cell "Egreso" [ref=e2801]:
                       - generic [ref=e2802]: Egreso
-                    - cell "Barras de magnesio" [ref=e2803]:
-                      - generic [ref=e2804]: Barras de magnesio
+                    - cell "Deporte - pago junio 2025 cdf inter" [ref=e2803]:
+                      - generic [ref=e2804]: Deporte - pago junio 2025 cdf inter
                     - cell "efectivo" [ref=e2805]
-                    - cell "Materiales de proyecto" [ref=e2806]
-                    - cell "$90.000" [ref=e2807]
+                    - cell "Ocio y salidas" [ref=e2806]
+                    - cell "$30.000" [ref=e2807]
                     - cell "conciliada" [ref=e2808]:
                       - generic [ref=e2809]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2810]:
@@ -2772,19 +2772,19 @@
                         - button "Favorita" [ref=e2815] [cursor=pointer]
                         - button "Desconciliar" [ref=e2816] [cursor=pointer]
                         - button "Anular" [ref=e2817] [cursor=pointer]
-                  - row "Ver 05-06-25, 8:00 a. m. Egreso Comida rápida - churrascos italianos familia efectivo Alimentación $15.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2818]:
+                  - row "Ver 07-06-25, 8:00 a. m. Egreso Deporte - pago junio 2025 cdf holanda efectivo Ocio y salidas $25.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2818]:
                     - cell [ref=e2819]:
                       - checkbox [ref=e2820]
                     - cell "Ver" [ref=e2821]:
                       - button "Ver" [ref=e2822] [cursor=pointer]
-                    - cell "05-06-25, 8:00 a. m." [ref=e2823]
+                    - cell "07-06-25, 8:00 a. m." [ref=e2823]
                     - cell "Egreso" [ref=e2824]:
                       - generic [ref=e2825]: Egreso
-                    - cell "Comida rápida - churrascos italianos familia" [ref=e2826]:
-                      - generic [ref=e2827]: Comida rápida - churrascos italianos familia
+                    - cell "Deporte - pago junio 2025 cdf holanda" [ref=e2826]:
+                      - generic [ref=e2827]: Deporte - pago junio 2025 cdf holanda
                     - cell "efectivo" [ref=e2828]
-                    - cell "Alimentación" [ref=e2829]
-                    - cell "$15.000" [ref=e2830]
+                    - cell "Ocio y salidas" [ref=e2829]
+                    - cell "$25.000" [ref=e2830]
                     - cell "conciliada" [ref=e2831]:
                       - generic [ref=e2832]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2833]:
@@ -2794,19 +2794,19 @@
                         - button "Favorita" [ref=e2838] [cursor=pointer]
                         - button "Desconciliar" [ref=e2839] [cursor=pointer]
                         - button "Anular" [ref=e2840] [cursor=pointer]
-                  - row "Ver 05-06-25, 8:00 a. m. Egreso Diesel Camioneta SHPG74 - Proyecto George Alarja efectivo Combustible $57.005 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2841]:
+                  - row "Ver 06-06-25, 8:00 a. m. Egreso Barras de magnesio efectivo Materiales de proyecto $90.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2841]:
                     - cell [ref=e2842]:
                       - checkbox [ref=e2843]
                     - cell "Ver" [ref=e2844]:
                       - button "Ver" [ref=e2845] [cursor=pointer]
-                    - cell "05-06-25, 8:00 a. m." [ref=e2846]
+                    - cell "06-06-25, 8:00 a. m." [ref=e2846]
                     - cell "Egreso" [ref=e2847]:
                       - generic [ref=e2848]: Egreso
-                    - cell "Diesel Camioneta SHPG74 - Proyecto George Alarja" [ref=e2849]:
-                      - generic [ref=e2850]: Diesel Camioneta SHPG74 - Proyecto George Alarja
+                    - cell "Barras de magnesio" [ref=e2849]:
+                      - generic [ref=e2850]: Barras de magnesio
                     - cell "efectivo" [ref=e2851]
-                    - cell "Combustible" [ref=e2852]
-                    - cell "$57.005" [ref=e2853]
+                    - cell "Materiales de proyecto" [ref=e2852]
+                    - cell "$90.000" [ref=e2853]
                     - cell "conciliada" [ref=e2854]:
                       - generic [ref=e2855]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2856]:
@@ -2816,19 +2816,19 @@
                         - button "Favorita" [ref=e2861] [cursor=pointer]
                         - button "Desconciliar" [ref=e2862] [cursor=pointer]
                         - button "Anular" [ref=e2863] [cursor=pointer]
-                  - 'row "Ver 02-06-25, 8:00 a. m. Egreso Egreso importado #28 efectivo Gastos menores $2.490 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2864]':
+                  - row "Ver 05-06-25, 8:00 a. m. Egreso Comida rápida - churrascos italianos familia efectivo Alimentación $15.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2864]:
                     - cell [ref=e2865]:
                       - checkbox [ref=e2866]
                     - cell "Ver" [ref=e2867]:
                       - button "Ver" [ref=e2868] [cursor=pointer]
-                    - cell "02-06-25, 8:00 a. m." [ref=e2869]
+                    - cell "05-06-25, 8:00 a. m." [ref=e2869]
                     - cell "Egreso" [ref=e2870]:
                       - generic [ref=e2871]: Egreso
-                    - 'cell "Egreso importado #28" [ref=e2872]':
-                      - generic [ref=e2873]: "Egreso importado #28"
+                    - cell "Comida rápida - churrascos italianos familia" [ref=e2872]:
+                      - generic [ref=e2873]: Comida rápida - churrascos italianos familia
                     - cell "efectivo" [ref=e2874]
-                    - cell "Gastos menores" [ref=e2875]
-                    - cell "$2.490" [ref=e2876]
+                    - cell "Alimentación" [ref=e2875]
+                    - cell "$15.000" [ref=e2876]
                     - cell "conciliada" [ref=e2877]:
                       - generic [ref=e2878]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2879]:
@@ -2838,19 +2838,19 @@
                         - button "Favorita" [ref=e2884] [cursor=pointer]
                         - button "Desconciliar" [ref=e2885] [cursor=pointer]
                         - button "Anular" [ref=e2886] [cursor=pointer]
-                  - row "Ver 01-06-25, 8:00 a. m. Egreso credito consumo cuota 49/80 efectivo Crédito de consumo $289.764 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2887]:
+                  - row "Ver 05-06-25, 8:00 a. m. Egreso Diesel Camioneta SHPG74 - Proyecto George Alarja efectivo Combustible $57.005 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2887]:
                     - cell [ref=e2888]:
                       - checkbox [ref=e2889]
                     - cell "Ver" [ref=e2890]:
                       - button "Ver" [ref=e2891] [cursor=pointer]
-                    - cell "01-06-25, 8:00 a. m." [ref=e2892]
+                    - cell "05-06-25, 8:00 a. m." [ref=e2892]
                     - cell "Egreso" [ref=e2893]:
                       - generic [ref=e2894]: Egreso
-                    - cell "credito consumo cuota 49/80" [ref=e2895]:
-                      - generic [ref=e2896]: credito consumo cuota 49/80
+                    - cell "Diesel Camioneta SHPG74 - Proyecto George Alarja" [ref=e2895]:
+                      - generic [ref=e2896]: Diesel Camioneta SHPG74 - Proyecto George Alarja
                     - cell "efectivo" [ref=e2897]
-                    - cell "Crédito de consumo" [ref=e2898]
-                    - cell "$289.764" [ref=e2899]
+                    - cell "Combustible" [ref=e2898]
+                    - cell "$57.005" [ref=e2899]
                     - cell "conciliada" [ref=e2900]:
                       - generic [ref=e2901]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2902]:
@@ -2860,19 +2860,19 @@
                         - button "Favorita" [ref=e2907] [cursor=pointer]
                         - button "Desconciliar" [ref=e2908] [cursor=pointer]
                         - button "Anular" [ref=e2909] [cursor=pointer]
-                  - row "Ver 01-06-25, 8:00 a. m. Egreso credito camioneta cuota 15 efectivo Crédito camioneta $269.988 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2910]:
+                  - 'row "Ver 02-06-25, 8:00 a. m. Egreso Egreso importado #28 efectivo Gastos menores $2.490 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2910]':
                     - cell [ref=e2911]:
                       - checkbox [ref=e2912]
                     - cell "Ver" [ref=e2913]:
                       - button "Ver" [ref=e2914] [cursor=pointer]
-                    - cell "01-06-25, 8:00 a. m." [ref=e2915]
+                    - cell "02-06-25, 8:00 a. m." [ref=e2915]
                     - cell "Egreso" [ref=e2916]:
                       - generic [ref=e2917]: Egreso
-                    - cell "credito camioneta cuota 15" [ref=e2918]:
-                      - generic [ref=e2919]: credito camioneta cuota 15
+                    - 'cell "Egreso importado #28" [ref=e2918]':
+                      - generic [ref=e2919]: "Egreso importado #28"
                     - cell "efectivo" [ref=e2920]
-                    - cell "Crédito camioneta" [ref=e2921]
-                    - cell "$269.988" [ref=e2922]
+                    - cell "Gastos menores" [ref=e2921]
+                    - cell "$2.490" [ref=e2922]
                     - cell "conciliada" [ref=e2923]:
                       - generic [ref=e2924]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2925]:
@@ -2882,7 +2882,7 @@
                         - button "Favorita" [ref=e2930] [cursor=pointer]
                         - button "Desconciliar" [ref=e2931] [cursor=pointer]
                         - button "Anular" [ref=e2932] [cursor=pointer]
-                  - row "Ver 01-06-25, 8:00 a. m. Egreso metrogas efectivo Gas $44.897 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2933]:
+                  - row "Ver 01-06-25, 8:00 a. m. Egreso credito consumo cuota 49/80 efectivo Crédito de consumo $289.764 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2933]:
                     - cell [ref=e2934]:
                       - checkbox [ref=e2935]
                     - cell "Ver" [ref=e2936]:
@@ -2890,11 +2890,11 @@
                     - cell "01-06-25, 8:00 a. m." [ref=e2938]
                     - cell "Egreso" [ref=e2939]:
                       - generic [ref=e2940]: Egreso
-                    - cell "metrogas" [ref=e2941]:
-                      - generic [ref=e2942]: metrogas
+                    - cell "credito consumo cuota 49/80" [ref=e2941]:
+                      - generic [ref=e2942]: credito consumo cuota 49/80
                     - cell "efectivo" [ref=e2943]
-                    - cell "Gas" [ref=e2944]
-                    - cell "$44.897" [ref=e2945]
+                    - cell "Crédito de consumo" [ref=e2944]
+                    - cell "$289.764" [ref=e2945]
                     - cell "conciliada" [ref=e2946]:
                       - generic [ref=e2947]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2948]:
@@ -2904,7 +2904,7 @@
                         - button "Favorita" [ref=e2953] [cursor=pointer]
                         - button "Desconciliar" [ref=e2954] [cursor=pointer]
                         - button "Anular" [ref=e2955] [cursor=pointer]
-                  - row "Ver 01-06-25, 8:00 a. m. Egreso telefonia efectivo Internet y telefonía $18.043 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2956]:
+                  - row "Ver 01-06-25, 8:00 a. m. Egreso credito camioneta cuota 15 efectivo Crédito camioneta $269.988 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2956]:
                     - cell [ref=e2957]:
                       - checkbox [ref=e2958]
                     - cell "Ver" [ref=e2959]:
@@ -2912,11 +2912,11 @@
                     - cell "01-06-25, 8:00 a. m." [ref=e2961]
                     - cell "Egreso" [ref=e2962]:
                       - generic [ref=e2963]: Egreso
-                    - cell "telefonia" [ref=e2964]:
-                      - generic [ref=e2965]: telefonia
+                    - cell "credito camioneta cuota 15" [ref=e2964]:
+                      - generic [ref=e2965]: credito camioneta cuota 15
                     - cell "efectivo" [ref=e2966]
-                    - cell "Internet y telefonía" [ref=e2967]
-                    - cell "$18.043" [ref=e2968]
+                    - cell "Crédito camioneta" [ref=e2967]
+                    - cell "$269.988" [ref=e2968]
                     - cell "conciliada" [ref=e2969]:
                       - generic [ref=e2970]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2971]:
@@ -2926,7 +2926,7 @@
                         - button "Favorita" [ref=e2976] [cursor=pointer]
                         - button "Desconciliar" [ref=e2977] [cursor=pointer]
                         - button "Anular" [ref=e2978] [cursor=pointer]
-                  - row "Ver 01-06-25, 8:00 a. m. Egreso internet efectivo Internet y telefonía $16.762 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2979]:
+                  - row "Ver 01-06-25, 8:00 a. m. Egreso metrogas efectivo Gas $44.897 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e2979]:
                     - cell [ref=e2980]:
                       - checkbox [ref=e2981]
                     - cell "Ver" [ref=e2982]:
@@ -2934,11 +2934,11 @@
                     - cell "01-06-25, 8:00 a. m." [ref=e2984]
                     - cell "Egreso" [ref=e2985]:
                       - generic [ref=e2986]: Egreso
-                    - cell "internet" [ref=e2987]:
-                      - generic [ref=e2988]: internet
+                    - cell "metrogas" [ref=e2987]:
+                      - generic [ref=e2988]: metrogas
                     - cell "efectivo" [ref=e2989]
-                    - cell "Internet y telefonía" [ref=e2990]
-                    - cell "$16.762" [ref=e2991]
+                    - cell "Gas" [ref=e2990]
+                    - cell "$44.897" [ref=e2991]
                     - cell "conciliada" [ref=e2992]:
                       - generic [ref=e2993]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e2994]:
@@ -2948,7 +2948,7 @@
                         - button "Favorita" [ref=e2999] [cursor=pointer]
                         - button "Desconciliar" [ref=e3000] [cursor=pointer]
                         - button "Anular" [ref=e3001] [cursor=pointer]
-                  - row "Ver 01-06-25, 8:00 a. m. Egreso carne molida efectivo Alimentación $14.800 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3002]:
+                  - row "Ver 01-06-25, 8:00 a. m. Egreso telefonia efectivo Internet y telefonía $18.043 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3002]:
                     - cell [ref=e3003]:
                       - checkbox [ref=e3004]
                     - cell "Ver" [ref=e3005]:
@@ -2956,11 +2956,11 @@
                     - cell "01-06-25, 8:00 a. m." [ref=e3007]
                     - cell "Egreso" [ref=e3008]:
                       - generic [ref=e3009]: Egreso
-                    - cell "carne molida" [ref=e3010]:
-                      - generic [ref=e3011]: carne molida
+                    - cell "telefonia" [ref=e3010]:
+                      - generic [ref=e3011]: telefonia
                     - cell "efectivo" [ref=e3012]
-                    - cell "Alimentación" [ref=e3013]
-                    - cell "$14.800" [ref=e3014]
+                    - cell "Internet y telefonía" [ref=e3013]
+                    - cell "$18.043" [ref=e3014]
                     - cell "conciliada" [ref=e3015]:
                       - generic [ref=e3016]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3017]:
@@ -2970,7 +2970,7 @@
                         - button "Favorita" [ref=e3022] [cursor=pointer]
                         - button "Desconciliar" [ref=e3023] [cursor=pointer]
                         - button "Anular" [ref=e3024] [cursor=pointer]
-                  - row "Ver 01-06-25, 8:00 a. m. Egreso italianos efectivo Ocio y salidas $5.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3025]:
+                  - row "Ver 01-06-25, 8:00 a. m. Egreso internet efectivo Internet y telefonía $16.762 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3025]:
                     - cell [ref=e3026]:
                       - checkbox [ref=e3027]
                     - cell "Ver" [ref=e3028]:
@@ -2978,11 +2978,11 @@
                     - cell "01-06-25, 8:00 a. m." [ref=e3030]
                     - cell "Egreso" [ref=e3031]:
                       - generic [ref=e3032]: Egreso
-                    - cell "italianos" [ref=e3033]:
-                      - generic [ref=e3034]: italianos
+                    - cell "internet" [ref=e3033]:
+                      - generic [ref=e3034]: internet
                     - cell "efectivo" [ref=e3035]
-                    - cell "Ocio y salidas" [ref=e3036]
-                    - cell "$5.000" [ref=e3037]
+                    - cell "Internet y telefonía" [ref=e3036]
+                    - cell "$16.762" [ref=e3037]
                     - cell "conciliada" [ref=e3038]:
                       - generic [ref=e3039]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3040]:
@@ -2992,19 +2992,19 @@
                         - button "Favorita" [ref=e3045] [cursor=pointer]
                         - button "Desconciliar" [ref=e3046] [cursor=pointer]
                         - button "Anular" [ref=e3047] [cursor=pointer]
-                  - row "Ver 31-05-25, 8:00 a. m. Egreso italianos y chelas efectivo Ocio y salidas $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3048]:
+                  - row "Ver 01-06-25, 8:00 a. m. Egreso carne molida efectivo Alimentación $14.800 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3048]:
                     - cell [ref=e3049]:
                       - checkbox [ref=e3050]
                     - cell "Ver" [ref=e3051]:
                       - button "Ver" [ref=e3052] [cursor=pointer]
-                    - cell "31-05-25, 8:00 a. m." [ref=e3053]
+                    - cell "01-06-25, 8:00 a. m." [ref=e3053]
                     - cell "Egreso" [ref=e3054]:
                       - generic [ref=e3055]: Egreso
-                    - cell "italianos y chelas" [ref=e3056]:
-                      - generic [ref=e3057]: italianos y chelas
+                    - cell "carne molida" [ref=e3056]:
+                      - generic [ref=e3057]: carne molida
                     - cell "efectivo" [ref=e3058]
-                    - cell "Ocio y salidas" [ref=e3059]
-                    - cell "$10.000" [ref=e3060]
+                    - cell "Alimentación" [ref=e3059]
+                    - cell "$14.800" [ref=e3060]
                     - cell "conciliada" [ref=e3061]:
                       - generic [ref=e3062]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3063]:
@@ -3014,19 +3014,19 @@
                         - button "Favorita" [ref=e3068] [cursor=pointer]
                         - button "Desconciliar" [ref=e3069] [cursor=pointer]
                         - button "Anular" [ref=e3070] [cursor=pointer]
-                  - row "Ver 30-05-25, 8:00 a. m. Egreso villalba - vulcometal Proyecto george Alarja efectivo Materiales de proyecto $72.971 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3071]:
+                  - row "Ver 01-06-25, 8:00 a. m. Egreso italianos efectivo Ocio y salidas $5.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3071]:
                     - cell [ref=e3072]:
                       - checkbox [ref=e3073]
                     - cell "Ver" [ref=e3074]:
                       - button "Ver" [ref=e3075] [cursor=pointer]
-                    - cell "30-05-25, 8:00 a. m." [ref=e3076]
+                    - cell "01-06-25, 8:00 a. m." [ref=e3076]
                     - cell "Egreso" [ref=e3077]:
                       - generic [ref=e3078]: Egreso
-                    - cell "villalba - vulcometal Proyecto george Alarja" [ref=e3079]:
-                      - generic [ref=e3080]: villalba - vulcometal Proyecto george Alarja
+                    - cell "italianos" [ref=e3079]:
+                      - generic [ref=e3080]: italianos
                     - cell "efectivo" [ref=e3081]
-                    - cell "Materiales de proyecto" [ref=e3082]
-                    - cell "$72.971" [ref=e3083]
+                    - cell "Ocio y salidas" [ref=e3082]
+                    - cell "$5.000" [ref=e3083]
                     - cell "conciliada" [ref=e3084]:
                       - generic [ref=e3085]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3086]:
@@ -3036,19 +3036,19 @@
                         - button "Favorita" [ref=e3091] [cursor=pointer]
                         - button "Desconciliar" [ref=e3092] [cursor=pointer]
                         - button "Anular" [ref=e3093] [cursor=pointer]
-                  - row "Ver 30-05-25, 8:00 a. m. Egreso unimarc - pirque efectivo Alimentación $5.540 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3094]:
+                  - row "Ver 31-05-25, 8:00 a. m. Egreso italianos y chelas efectivo Ocio y salidas $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3094]:
                     - cell [ref=e3095]:
                       - checkbox [ref=e3096]
                     - cell "Ver" [ref=e3097]:
                       - button "Ver" [ref=e3098] [cursor=pointer]
-                    - cell "30-05-25, 8:00 a. m." [ref=e3099]
+                    - cell "31-05-25, 8:00 a. m." [ref=e3099]
                     - cell "Egreso" [ref=e3100]:
                       - generic [ref=e3101]: Egreso
-                    - cell "unimarc - pirque" [ref=e3102]:
-                      - generic [ref=e3103]: unimarc - pirque
+                    - cell "italianos y chelas" [ref=e3102]:
+                      - generic [ref=e3103]: italianos y chelas
                     - cell "efectivo" [ref=e3104]
-                    - cell "Alimentación" [ref=e3105]
-                    - cell "$5.540" [ref=e3106]
+                    - cell "Ocio y salidas" [ref=e3105]
+                    - cell "$10.000" [ref=e3106]
                     - cell "conciliada" [ref=e3107]:
                       - generic [ref=e3108]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3109]:
@@ -3058,7 +3058,7 @@
                         - button "Favorita" [ref=e3114] [cursor=pointer]
                         - button "Desconciliar" [ref=e3115] [cursor=pointer]
                         - button "Anular" [ref=e3116] [cursor=pointer]
-                  - row "Ver 30-05-25, 8:00 a. m. Egreso alvi - alimentos y chelas efectivo Alimentación $27.760 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3117]:
+                  - row "Ver 30-05-25, 8:00 a. m. Egreso villalba - vulcometal Proyecto george Alarja efectivo Materiales de proyecto $72.971 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3117]:
                     - cell [ref=e3118]:
                       - checkbox [ref=e3119]
                     - cell "Ver" [ref=e3120]:
@@ -3066,11 +3066,11 @@
                     - cell "30-05-25, 8:00 a. m." [ref=e3122]
                     - cell "Egreso" [ref=e3123]:
                       - generic [ref=e3124]: Egreso
-                    - cell "alvi - alimentos y chelas" [ref=e3125]:
-                      - generic [ref=e3126]: alvi - alimentos y chelas
+                    - cell "villalba - vulcometal Proyecto george Alarja" [ref=e3125]:
+                      - generic [ref=e3126]: villalba - vulcometal Proyecto george Alarja
                     - cell "efectivo" [ref=e3127]
-                    - cell "Alimentación" [ref=e3128]
-                    - cell "$27.760" [ref=e3129]
+                    - cell "Materiales de proyecto" [ref=e3128]
+                    - cell "$72.971" [ref=e3129]
                     - cell "conciliada" [ref=e3130]:
                       - generic [ref=e3131]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3132]:
@@ -3080,19 +3080,19 @@
                         - button "Favorita" [ref=e3137] [cursor=pointer]
                         - button "Desconciliar" [ref=e3138] [cursor=pointer]
                         - button "Anular" [ref=e3139] [cursor=pointer]
-                  - row "Ver 29-05-25, 8:00 a. m. Egreso Pan de molde - lider efectivo Alimentación $4.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3140]:
+                  - row "Ver 30-05-25, 8:00 a. m. Egreso unimarc - pirque efectivo Alimentación $5.540 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3140]:
                     - cell [ref=e3141]:
                       - checkbox [ref=e3142]
                     - cell "Ver" [ref=e3143]:
                       - button "Ver" [ref=e3144] [cursor=pointer]
-                    - cell "29-05-25, 8:00 a. m." [ref=e3145]
+                    - cell "30-05-25, 8:00 a. m." [ref=e3145]
                     - cell "Egreso" [ref=e3146]:
                       - generic [ref=e3147]: Egreso
-                    - cell "Pan de molde - lider" [ref=e3148]:
-                      - generic [ref=e3149]: Pan de molde - lider
+                    - cell "unimarc - pirque" [ref=e3148]:
+                      - generic [ref=e3149]: unimarc - pirque
                     - cell "efectivo" [ref=e3150]
                     - cell "Alimentación" [ref=e3151]
-                    - cell "$4.000" [ref=e3152]
+                    - cell "$5.540" [ref=e3152]
                     - cell "conciliada" [ref=e3153]:
                       - generic [ref=e3154]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3155]:
@@ -3102,19 +3102,19 @@
                         - button "Favorita" [ref=e3160] [cursor=pointer]
                         - button "Desconciliar" [ref=e3161] [cursor=pointer]
                         - button "Anular" [ref=e3162] [cursor=pointer]
-                  - row "Ver 29-05-25, 8:00 a. m. Egreso Jamón y queso efectivo Alimentación $11.940 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3163]:
+                  - row "Ver 30-05-25, 8:00 a. m. Egreso alvi - alimentos y chelas efectivo Alimentación $27.760 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3163]:
                     - cell [ref=e3164]:
                       - checkbox [ref=e3165]
                     - cell "Ver" [ref=e3166]:
                       - button "Ver" [ref=e3167] [cursor=pointer]
-                    - cell "29-05-25, 8:00 a. m." [ref=e3168]
+                    - cell "30-05-25, 8:00 a. m." [ref=e3168]
                     - cell "Egreso" [ref=e3169]:
                       - generic [ref=e3170]: Egreso
-                    - cell "Jamón y queso" [ref=e3171]:
-                      - generic [ref=e3172]: Jamón y queso
+                    - cell "alvi - alimentos y chelas" [ref=e3171]:
+                      - generic [ref=e3172]: alvi - alimentos y chelas
                     - cell "efectivo" [ref=e3173]
                     - cell "Alimentación" [ref=e3174]
-                    - cell "$11.940" [ref=e3175]
+                    - cell "$27.760" [ref=e3175]
                     - cell "conciliada" [ref=e3176]:
                       - generic [ref=e3177]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3178]:
@@ -3124,7 +3124,7 @@
                         - button "Favorita" [ref=e3183] [cursor=pointer]
                         - button "Desconciliar" [ref=e3184] [cursor=pointer]
                         - button "Anular" [ref=e3185] [cursor=pointer]
-                  - row "Ver 29-05-25, 8:00 a. m. Egreso Chaleca Sofía efectivo Vestuario $9.990 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3186]:
+                  - row "Ver 29-05-25, 8:00 a. m. Egreso Pan de molde - lider efectivo Alimentación $4.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3186]:
                     - cell [ref=e3187]:
                       - checkbox [ref=e3188]
                     - cell "Ver" [ref=e3189]:
@@ -3132,11 +3132,11 @@
                     - cell "29-05-25, 8:00 a. m." [ref=e3191]
                     - cell "Egreso" [ref=e3192]:
                       - generic [ref=e3193]: Egreso
-                    - cell "Chaleca Sofía" [ref=e3194]:
-                      - generic [ref=e3195]: Chaleca Sofía
+                    - cell "Pan de molde - lider" [ref=e3194]:
+                      - generic [ref=e3195]: Pan de molde - lider
                     - cell "efectivo" [ref=e3196]
-                    - cell "Vestuario" [ref=e3197]
-                    - cell "$9.990" [ref=e3198]
+                    - cell "Alimentación" [ref=e3197]
+                    - cell "$4.000" [ref=e3198]
                     - cell "conciliada" [ref=e3199]:
                       - generic [ref=e3200]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3201]:
@@ -3146,7 +3146,7 @@
                         - button "Favorita" [ref=e3206] [cursor=pointer]
                         - button "Desconciliar" [ref=e3207] [cursor=pointer]
                         - button "Anular" [ref=e3208] [cursor=pointer]
-                  - row "Ver 29-05-25, 8:00 a. m. Egreso Corbata y audífonos sofia efectivo Vestuario $4.980 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3209]:
+                  - row "Ver 29-05-25, 8:00 a. m. Egreso Jamón y queso efectivo Alimentación $11.940 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3209]:
                     - cell [ref=e3210]:
                       - checkbox [ref=e3211]
                     - cell "Ver" [ref=e3212]:
@@ -3154,11 +3154,11 @@
                     - cell "29-05-25, 8:00 a. m." [ref=e3214]
                     - cell "Egreso" [ref=e3215]:
                       - generic [ref=e3216]: Egreso
-                    - cell "Corbata y audífonos sofia" [ref=e3217]:
-                      - generic [ref=e3218]: Corbata y audífonos sofia
+                    - cell "Jamón y queso" [ref=e3217]:
+                      - generic [ref=e3218]: Jamón y queso
                     - cell "efectivo" [ref=e3219]
-                    - cell "Vestuario" [ref=e3220]
-                    - cell "$4.980" [ref=e3221]
+                    - cell "Alimentación" [ref=e3220]
+                    - cell "$11.940" [ref=e3221]
                     - cell "conciliada" [ref=e3222]:
                       - generic [ref=e3223]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3224]:
@@ -3168,7 +3168,7 @@
                         - button "Favorita" [ref=e3229] [cursor=pointer]
                         - button "Desconciliar" [ref=e3230] [cursor=pointer]
                         - button "Anular" [ref=e3231] [cursor=pointer]
-                  - row "Ver 29-05-25, 8:00 a. m. Egreso Diesel Camioneta SHPG74 efectivo Combustible $40.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3232]:
+                  - row "Ver 29-05-25, 8:00 a. m. Egreso Chaleca Sofía efectivo Vestuario $9.990 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3232]:
                     - cell [ref=e3233]:
                       - checkbox [ref=e3234]
                     - cell "Ver" [ref=e3235]:
@@ -3176,11 +3176,11 @@
                     - cell "29-05-25, 8:00 a. m." [ref=e3237]
                     - cell "Egreso" [ref=e3238]:
                       - generic [ref=e3239]: Egreso
-                    - cell "Diesel Camioneta SHPG74" [ref=e3240]:
-                      - generic [ref=e3241]: Diesel Camioneta SHPG74
+                    - cell "Chaleca Sofía" [ref=e3240]:
+                      - generic [ref=e3241]: Chaleca Sofía
                     - cell "efectivo" [ref=e3242]
-                    - cell "Combustible" [ref=e3243]
-                    - cell "$40.000" [ref=e3244]
+                    - cell "Vestuario" [ref=e3243]
+                    - cell "$9.990" [ref=e3244]
                     - cell "conciliada" [ref=e3245]:
                       - generic [ref=e3246]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3247]:
@@ -3190,7 +3190,7 @@
                         - button "Favorita" [ref=e3252] [cursor=pointer]
                         - button "Desconciliar" [ref=e3253] [cursor=pointer]
                         - button "Anular" [ref=e3254] [cursor=pointer]
-                  - row "Ver 29-05-25, 8:00 a. m. Egreso Mantención 50000. Jmc efectivo Mantención vehicular $338.900 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3255]:
+                  - row "Ver 29-05-25, 8:00 a. m. Egreso Corbata y audífonos sofia efectivo Vestuario $4.980 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3255]:
                     - cell [ref=e3256]:
                       - checkbox [ref=e3257]
                     - cell "Ver" [ref=e3258]:
@@ -3198,11 +3198,11 @@
                     - cell "29-05-25, 8:00 a. m." [ref=e3260]
                     - cell "Egreso" [ref=e3261]:
                       - generic [ref=e3262]: Egreso
-                    - cell "Mantención 50000. Jmc" [ref=e3263]:
-                      - generic [ref=e3264]: Mantención 50000. Jmc
+                    - cell "Corbata y audífonos sofia" [ref=e3263]:
+                      - generic [ref=e3264]: Corbata y audífonos sofia
                     - cell "efectivo" [ref=e3265]
-                    - cell "Mantención vehicular" [ref=e3266]
-                    - cell "$338.900" [ref=e3267]
+                    - cell "Vestuario" [ref=e3266]
+                    - cell "$4.980" [ref=e3267]
                     - cell "conciliada" [ref=e3268]:
                       - generic [ref=e3269]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3270]:
@@ -3212,7 +3212,7 @@
                         - button "Favorita" [ref=e3275] [cursor=pointer]
                         - button "Desconciliar" [ref=e3276] [cursor=pointer]
                         - button "Anular" [ref=e3277] [cursor=pointer]
-                  - row "Ver 29-05-25, 8:00 a. m. Egreso Uber acceso sur a casa efectivo Transporte y ruta $1.423 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3278]:
+                  - row "Ver 29-05-25, 8:00 a. m. Egreso Diesel Camioneta SHPG74 efectivo Combustible $40.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3278]:
                     - cell [ref=e3279]:
                       - checkbox [ref=e3280]
                     - cell "Ver" [ref=e3281]:
@@ -3220,11 +3220,11 @@
                     - cell "29-05-25, 8:00 a. m." [ref=e3283]
                     - cell "Egreso" [ref=e3284]:
                       - generic [ref=e3285]: Egreso
-                    - cell "Uber acceso sur a casa" [ref=e3286]:
-                      - generic [ref=e3287]: Uber acceso sur a casa
+                    - cell "Diesel Camioneta SHPG74" [ref=e3286]:
+                      - generic [ref=e3287]: Diesel Camioneta SHPG74
                     - cell "efectivo" [ref=e3288]
-                    - cell "Transporte y ruta" [ref=e3289]
-                    - cell "$1.423" [ref=e3290]
+                    - cell "Combustible" [ref=e3289]
+                    - cell "$40.000" [ref=e3290]
                     - cell "conciliada" [ref=e3291]:
                       - generic [ref=e3292]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3293]:
@@ -3234,7 +3234,7 @@
                         - button "Favorita" [ref=e3298] [cursor=pointer]
                         - button "Desconciliar" [ref=e3299] [cursor=pointer]
                         - button "Anular" [ref=e3300] [cursor=pointer]
-                  - row "Ver 29-05-25, 8:00 a. m. Egreso Uber san Bernardo efectivo Transporte y ruta $4.092 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3301]:
+                  - row "Ver 29-05-25, 8:00 a. m. Egreso Mantención 50000. Jmc efectivo Mantención vehicular $338.900 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3301]:
                     - cell [ref=e3302]:
                       - checkbox [ref=e3303]
                     - cell "Ver" [ref=e3304]:
@@ -3242,11 +3242,11 @@
                     - cell "29-05-25, 8:00 a. m." [ref=e3306]
                     - cell "Egreso" [ref=e3307]:
                       - generic [ref=e3308]: Egreso
-                    - cell "Uber san Bernardo" [ref=e3309]:
-                      - generic [ref=e3310]: Uber san Bernardo
+                    - cell "Mantención 50000. Jmc" [ref=e3309]:
+                      - generic [ref=e3310]: Mantención 50000. Jmc
                     - cell "efectivo" [ref=e3311]
-                    - cell "Transporte y ruta" [ref=e3312]
-                    - cell "$4.092" [ref=e3313]
+                    - cell "Mantención vehicular" [ref=e3312]
+                    - cell "$338.900" [ref=e3313]
                     - cell "conciliada" [ref=e3314]:
                       - generic [ref=e3315]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3316]:
@@ -3256,19 +3256,19 @@
                         - button "Favorita" [ref=e3321] [cursor=pointer]
                         - button "Desconciliar" [ref=e3322] [cursor=pointer]
                         - button "Anular" [ref=e3323] [cursor=pointer]
-                  - row "Ver 27-05-25, 8:00 a. m. Egreso despedida del negro efectivo Ocio y salidas $70.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3324]:
+                  - row "Ver 29-05-25, 8:00 a. m. Egreso Uber acceso sur a casa efectivo Transporte y ruta $1.423 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3324]:
                     - cell [ref=e3325]:
                       - checkbox [ref=e3326]
                     - cell "Ver" [ref=e3327]:
                       - button "Ver" [ref=e3328] [cursor=pointer]
-                    - cell "27-05-25, 8:00 a. m." [ref=e3329]
+                    - cell "29-05-25, 8:00 a. m." [ref=e3329]
                     - cell "Egreso" [ref=e3330]:
                       - generic [ref=e3331]: Egreso
-                    - cell "despedida del negro" [ref=e3332]:
-                      - generic [ref=e3333]: despedida del negro
+                    - cell "Uber acceso sur a casa" [ref=e3332]:
+                      - generic [ref=e3333]: Uber acceso sur a casa
                     - cell "efectivo" [ref=e3334]
-                    - cell "Ocio y salidas" [ref=e3335]
-                    - cell "$70.000" [ref=e3336]
+                    - cell "Transporte y ruta" [ref=e3335]
+                    - cell "$1.423" [ref=e3336]
                     - cell "conciliada" [ref=e3337]:
                       - generic [ref=e3338]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3339]:
@@ -3278,19 +3278,19 @@
                         - button "Favorita" [ref=e3344] [cursor=pointer]
                         - button "Desconciliar" [ref=e3345] [cursor=pointer]
                         - button "Anular" [ref=e3346] [cursor=pointer]
-                  - row "Ver 25-05-25, 8:00 a. m. Egreso TAG ruta maipo - despedida soltero Negro efectivo TAG y peajes $700 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3347]:
+                  - row "Ver 29-05-25, 8:00 a. m. Egreso Uber san Bernardo efectivo Transporte y ruta $4.092 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3347]:
                     - cell [ref=e3348]:
                       - checkbox [ref=e3349]
                     - cell "Ver" [ref=e3350]:
                       - button "Ver" [ref=e3351] [cursor=pointer]
-                    - cell "25-05-25, 8:00 a. m." [ref=e3352]
+                    - cell "29-05-25, 8:00 a. m." [ref=e3352]
                     - cell "Egreso" [ref=e3353]:
                       - generic [ref=e3354]: Egreso
-                    - cell "TAG ruta maipo - despedida soltero Negro" [ref=e3355]:
-                      - generic [ref=e3356]: TAG ruta maipo - despedida soltero Negro
+                    - cell "Uber san Bernardo" [ref=e3355]:
+                      - generic [ref=e3356]: Uber san Bernardo
                     - cell "efectivo" [ref=e3357]
-                    - cell "TAG y peajes" [ref=e3358]
-                    - cell "$700" [ref=e3359]
+                    - cell "Transporte y ruta" [ref=e3358]
+                    - cell "$4.092" [ref=e3359]
                     - cell "conciliada" [ref=e3360]:
                       - generic [ref=e3361]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3362]:
@@ -3300,19 +3300,19 @@
                         - button "Favorita" [ref=e3367] [cursor=pointer]
                         - button "Desconciliar" [ref=e3368] [cursor=pointer]
                         - button "Anular" [ref=e3369] [cursor=pointer]
-                  - row "Ver 22-05-25, 8:00 a. m. Egreso futbol - pago cancha marcos encina efectivo Ocio y salidas $2.500 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3370]:
+                  - row "Ver 27-05-25, 8:00 a. m. Egreso despedida del negro efectivo Ocio y salidas $70.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3370]:
                     - cell [ref=e3371]:
                       - checkbox [ref=e3372]
                     - cell "Ver" [ref=e3373]:
                       - button "Ver" [ref=e3374] [cursor=pointer]
-                    - cell "22-05-25, 8:00 a. m." [ref=e3375]
+                    - cell "27-05-25, 8:00 a. m." [ref=e3375]
                     - cell "Egreso" [ref=e3376]:
                       - generic [ref=e3377]: Egreso
-                    - cell "futbol - pago cancha marcos encina" [ref=e3378]:
-                      - generic [ref=e3379]: futbol - pago cancha marcos encina
+                    - cell "despedida del negro" [ref=e3378]:
+                      - generic [ref=e3379]: despedida del negro
                     - cell "efectivo" [ref=e3380]
                     - cell "Ocio y salidas" [ref=e3381]
-                    - cell "$2.500" [ref=e3382]
+                    - cell "$70.000" [ref=e3382]
                     - cell "conciliada" [ref=e3383]:
                       - generic [ref=e3384]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3385]:
@@ -3322,19 +3322,19 @@
                         - button "Favorita" [ref=e3390] [cursor=pointer]
                         - button "Desconciliar" [ref=e3391] [cursor=pointer]
                         - button "Anular" [ref=e3392] [cursor=pointer]
-                  - row "Ver 22-05-25, 8:00 a. m. Egreso Diesel Camioneta SHPG74 efectivo Combustible $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3393]:
+                  - row "Ver 25-05-25, 8:00 a. m. Egreso TAG ruta maipo - despedida soltero Negro efectivo TAG y peajes $700 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3393]:
                     - cell [ref=e3394]:
                       - checkbox [ref=e3395]
                     - cell "Ver" [ref=e3396]:
                       - button "Ver" [ref=e3397] [cursor=pointer]
-                    - cell "22-05-25, 8:00 a. m." [ref=e3398]
+                    - cell "25-05-25, 8:00 a. m." [ref=e3398]
                     - cell "Egreso" [ref=e3399]:
                       - generic [ref=e3400]: Egreso
-                    - cell "Diesel Camioneta SHPG74" [ref=e3401]:
-                      - generic [ref=e3402]: Diesel Camioneta SHPG74
+                    - cell "TAG ruta maipo - despedida soltero Negro" [ref=e3401]:
+                      - generic [ref=e3402]: TAG ruta maipo - despedida soltero Negro
                     - cell "efectivo" [ref=e3403]
-                    - cell "Combustible" [ref=e3404]
-                    - cell "$10.000" [ref=e3405]
+                    - cell "TAG y peajes" [ref=e3404]
+                    - cell "$700" [ref=e3405]
                     - cell "conciliada" [ref=e3406]:
                       - generic [ref=e3407]: conciliada
                     - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3408]:
@@ -3344,60 +3344,104 @@
                         - button "Favorita" [ref=e3413] [cursor=pointer]
                         - button "Desconciliar" [ref=e3414] [cursor=pointer]
                         - button "Anular" [ref=e3415] [cursor=pointer]
-          - generic [ref=e3417]:
-            - generic [ref=e3420]:
-              - heading "Detalle operacional" [level=2] [ref=e3421]
-              - paragraph [ref=e3422]: Al seleccionar una transacción puedes revisar su trazabilidad reciente.
-            - generic [ref=e3424]:
-              - generic [ref=e3425]:
-                - strong [ref=e3426]: "Adjuntos:"
+                  - row "Ver 22-05-25, 8:00 a. m. Egreso futbol - pago cancha marcos encina efectivo Ocio y salidas $2.500 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3416]:
+                    - cell [ref=e3417]:
+                      - checkbox [ref=e3418]
+                    - cell "Ver" [ref=e3419]:
+                      - button "Ver" [ref=e3420] [cursor=pointer]
+                    - cell "22-05-25, 8:00 a. m." [ref=e3421]
+                    - cell "Egreso" [ref=e3422]:
+                      - generic [ref=e3423]: Egreso
+                    - cell "futbol - pago cancha marcos encina" [ref=e3424]:
+                      - generic [ref=e3425]: futbol - pago cancha marcos encina
+                    - cell "efectivo" [ref=e3426]
+                    - cell "Ocio y salidas" [ref=e3427]
+                    - cell "$2.500" [ref=e3428]
+                    - cell "conciliada" [ref=e3429]:
+                      - generic [ref=e3430]: conciliada
+                    - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3431]:
+                      - generic [ref=e3433]:
+                        - button "Editar" [ref=e3434] [cursor=pointer]
+                        - button "Adjuntar" [ref=e3435] [cursor=pointer]
+                        - button "Favorita" [ref=e3436] [cursor=pointer]
+                        - button "Desconciliar" [ref=e3437] [cursor=pointer]
+                        - button "Anular" [ref=e3438] [cursor=pointer]
+                  - row "Ver 22-05-25, 8:00 a. m. Egreso Diesel Camioneta SHPG74 efectivo Combustible $10.000 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e3439]:
+                    - cell [ref=e3440]:
+                      - checkbox [ref=e3441]
+                    - cell "Ver" [ref=e3442]:
+                      - button "Ver" [ref=e3443] [cursor=pointer]
+                    - cell "22-05-25, 8:00 a. m." [ref=e3444]
+                    - cell "Egreso" [ref=e3445]:
+                      - generic [ref=e3446]: Egreso
+                    - cell "Diesel Camioneta SHPG74" [ref=e3447]:
+                      - generic [ref=e3448]: Diesel Camioneta SHPG74
+                    - cell "efectivo" [ref=e3449]
+                    - cell "Combustible" [ref=e3450]
+                    - cell "$10.000" [ref=e3451]
+                    - cell "conciliada" [ref=e3452]:
+                      - generic [ref=e3453]: conciliada
+                    - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e3454]:
+                      - generic [ref=e3456]:
+                        - button "Editar" [ref=e3457] [cursor=pointer]
+                        - button "Adjuntar" [ref=e3458] [cursor=pointer]
+                        - button "Favorita" [ref=e3459] [cursor=pointer]
+                        - button "Desconciliar" [ref=e3460] [cursor=pointer]
+                        - button "Anular" [ref=e3461] [cursor=pointer]
+          - generic [ref=e3463]:
+            - generic [ref=e3466]:
+              - heading "Detalle operacional" [level=2] [ref=e3467]
+              - paragraph [ref=e3468]: Al seleccionar una transacción puedes revisar su trazabilidad reciente.
+            - generic [ref=e3470]:
+              - generic [ref=e3471]:
+                - strong [ref=e3472]: "Adjuntos:"
                 - text: usa el bloque inferior para subir boletas, facturas o respaldos de esta transacción.
-              - generic [ref=e3427]:
-                - generic [ref=e3428]:
-                  - generic [ref=e3429]: Tipo
-                  - generic [ref=e3430]: egreso
-                - generic [ref=e3431]:
-                  - generic [ref=e3432]: Cuenta origen
-                  - generic [ref=e3433]: efectivo
-                - generic [ref=e3434]:
-                  - generic [ref=e3435]: Cuenta destino
-                  - generic [ref=e3436]: —
-                - generic [ref=e3437]:
-                  - generic [ref=e3438]: Categoría
-                  - generic [ref=e3439]: —
-                - generic [ref=e3440]:
-                  - generic [ref=e3441]: Monto
-                  - generic [ref=e3442]: $12.345
-                - generic [ref=e3443]:
-                  - generic [ref=e3444]: Registrada en
-                  - generic [ref=e3445]: 30-03-26, 12:46 a. m.
-              - generic [ref=e3446]:
-                - generic [ref=e3447]: Descripción
-                - generic [ref=e3448]: e2e-attach-1774831599877
-              - button "Editar esta transacción" [ref=e3450] [cursor=pointer]
-              - generic [ref=e3451]:
-                - generic [ref=e3452]: Notas
-                - generic [ref=e3453]: sin notas
-              - generic [ref=e3454]:
-                - generic [ref=e3455]: Boletas / facturas adjuntas
-                - generic [ref=e3456]:
-                  - generic [ref=e3457]:
-                    - generic [ref=e3458]: Nota del adjunto
-                    - 'textbox "Ej: boleta supermercado o factura proveedor" [ref=e3459]'
-                  - generic [ref=e3460]:
-                    - generic [ref=e3461]: Subir archivo
-                    - button "Choose File" [ref=e3462] [cursor=pointer]
-                    - generic [ref=e3463]: Se aceptan JPG, PNG, WEBP o PDF. Las imágenes se comprimen antes de subir y el máximo final es 5 MB.
-                - generic [ref=e3464]: Todavía no hay boletas o facturas cargadas para esta transacción.
-              - generic [ref=e3465]:
-                - generic [ref=e3466]: Etiquetas
-                - generic [ref=e3467]: sin etiquetas
-              - generic [ref=e3468]:
-                - generic [ref=e3469]: Auditoría reciente
-                - generic [ref=e3471]:
-                  - generic [ref=e3472]:
-                    - strong [ref=e3473]: Transaction.Created
-                    - generic [ref=e3474]: 29-03-26, 9:46 p. m.
-                  - generic [ref=e3475]: Transaccion financiera creada
-                  - generic [ref=e3476]: "{ \"transaction_type\": \"expense\", \"account_id\": 1, \"target_account_id\": null, \"currency_id\": 2, \"amount\": 12345, \"tag_ids\": [] }"
+              - generic [ref=e3473]:
+                - generic [ref=e3474]:
+                  - generic [ref=e3475]: Tipo
+                  - generic [ref=e3476]: egreso
+                - generic [ref=e3477]:
+                  - generic [ref=e3478]: Cuenta origen
+                  - generic [ref=e3479]: efectivo
+                - generic [ref=e3480]:
+                  - generic [ref=e3481]: Cuenta destino
+                  - generic [ref=e3482]: —
+                - generic [ref=e3483]:
+                  - generic [ref=e3484]: Categoría
+                  - generic [ref=e3485]: —
+                - generic [ref=e3486]:
+                  - generic [ref=e3487]: Monto
+                  - generic [ref=e3488]: $12.345
+                - generic [ref=e3489]:
+                  - generic [ref=e3490]: Registrada en
+                  - generic [ref=e3491]: 30-03-26, 12:48 a. m.
+              - generic [ref=e3492]:
+                - generic [ref=e3493]: Descripción
+                - generic [ref=e3494]: e2e-attach-1774831698908
+              - button "Editar esta transacción" [ref=e3496] [cursor=pointer]
+              - generic [ref=e3497]:
+                - generic [ref=e3498]: Notas
+                - generic [ref=e3499]: sin notas
+              - generic [ref=e3500]:
+                - generic [ref=e3501]: Boletas / facturas adjuntas
+                - generic [ref=e3502]:
+                  - generic [ref=e3503]:
+                    - generic [ref=e3504]: Nota del adjunto
+                    - 'textbox "Ej: boleta supermercado o factura proveedor" [ref=e3505]'
+                  - generic [ref=e3506]:
+                    - generic [ref=e3507]: Subir archivo
+                    - button "Choose File" [ref=e3508] [cursor=pointer]
+                    - generic [ref=e3509]: Se aceptan JPG, PNG, WEBP o PDF. Las imágenes se comprimen antes de subir y el máximo final es 5 MB.
+                - generic [ref=e3510]: Todavía no hay boletas o facturas cargadas para esta transacción.
+              - generic [ref=e3511]:
+                - generic [ref=e3512]: Etiquetas
+                - generic [ref=e3513]: sin etiquetas
+              - generic [ref=e3514]:
+                - generic [ref=e3515]: Auditoría reciente
+                - generic [ref=e3517]:
+                  - generic [ref=e3518]:
+                    - strong [ref=e3519]: Transaction.Created
+                    - generic [ref=e3520]: 29-03-26, 9:48 p. m.
+                  - generic [ref=e3521]: Transaccion financiera creada
+                  - generic [ref=e3522]: "{ \"transaction_type\": \"expense\", \"account_id\": 1, \"target_account_id\": null, \"currency_id\": 2, \"amount\": 12345, \"tag_ids\": [] }"
 ```
