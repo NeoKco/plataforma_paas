@@ -22,7 +22,7 @@ test("tenant portal finance can upload an attachment to a created transaction", 
   await createBasicExpenseTransaction(page, uniqueDescription);
 
   const detailPanel = page
-    .locator("div")
+    .locator("section")
     .filter({
       has: page.getByRole("heading", {
         name: /Detalle operacional|Operational detail/,
@@ -35,7 +35,10 @@ test("tenant portal finance can upload an attachment to a created transaction", 
       /boleta supermercado o factura proveedor|grocery receipt or supplier invoice/i
     )
     .fill("e2e attachment note");
-  await detailPanel.locator('input[type="file"]').setInputFiles(fixturePath);
+  await detailPanel
+    .locator("label.form-label", { hasText: /Subir archivo|Upload file/i })
+    .locator("xpath=following-sibling::input[@type='file'][1]")
+    .setInputFiles(fixturePath);
 
   await expect(getAttachmentSuccessFeedback(page)).toContainText(
     /Adjunto|Attachment/i
