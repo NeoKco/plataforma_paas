@@ -133,6 +133,25 @@ def update_finance_person_status(
     )
 
 
+@router.delete("/{person_id}", response_model=FinancePersonMutationResponse)
+def delete_finance_person(
+    person_id: int,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinancePersonMutationResponse:
+    try:
+        person = person_service.delete_person(tenant_db, person_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinancePersonMutationResponse(
+        success=True,
+        message="Persona eliminada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_person_item(person),
+    )
+
+
 @router.patch("/reorder", response_model=FinancePeopleResponse)
 def reorder_finance_people(
     payload: FinanceReorderRequest,

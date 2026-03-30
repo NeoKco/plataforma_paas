@@ -11,6 +11,7 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceHelpBubble } from "../components/common/FinanceHelpBubble";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
 import {
@@ -369,6 +370,18 @@ export function FinanceBudgetsPage() {
           language === "es"
             ? "Define metas mensuales por categoría y compara rápidamente lo presupuestado contra lo ejecutado."
             : "Set monthly targets by category and quickly compare budgeted versus actual execution."
+        }
+        actions={
+          <AppToolbar compact>
+            <FinanceHelpBubble
+              label={language === "es" ? "Ayuda sobre presupuestos" : "Budgets help"}
+              helpText={
+                language === "es"
+                  ? "Clonar copia un mes a otro. Plantilla aplica una base con escala y redondeo. El foco guiado ajusta ítems visibles según desvío real sin reemplazar toda la planificación."
+                  : "Clone copies one month into another. Template applies a base with scaling and rounding. Guided focus adjusts visible items by actual variance without replacing the entire plan."
+              }
+            />
+          </AppToolbar>
         }
       />
 

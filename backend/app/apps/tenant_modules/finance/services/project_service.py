@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.finance.models import FinanceProject
+from app.apps.tenant_modules.finance.models import FinanceProject, FinanceTransaction
 from app.apps.tenant_modules.finance.repositories import FinanceProjectRepository
 from app.apps.tenant_modules.finance.schemas import (
     FinanceProjectCreateRequest,
@@ -67,6 +67,20 @@ class FinanceProjectService:
         items: list[tuple[int, int]],
     ) -> list[FinanceProject]:
         return self.project_repository.reorder(tenant_db, items)
+
+    def delete_project(self, tenant_db: Session, project_id: int) -> FinanceProject:
+        project = self._get_or_raise(tenant_db, project_id)
+        usage_exists = (
+            tenant_db.query(FinanceTransaction.id)
+            .filter(FinanceTransaction.project_id == project.id)
+            .first()
+        )
+        if usage_exists is not None:
+            raise ValueError(
+                "No puedes eliminar el proyecto porque ya esta asociado a transacciones"
+            )
+        self.project_repository.delete(tenant_db, project)
+        return project
 
     def _get_or_raise(self, tenant_db: Session, project_id: int) -> FinanceProject:
         project = self.project_repository.get_by_id(tenant_db, project_id)

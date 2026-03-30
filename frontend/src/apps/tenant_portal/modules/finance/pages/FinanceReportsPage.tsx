@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
-import { AppFilterGrid } from "../../../../../design-system/AppLayout";
+import { AppFilterGrid, AppToolbar } from "../../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
@@ -11,6 +11,7 @@ import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { FinanceHorizontalBarChart } from "../components/charts/FinanceHorizontalBarChart";
 import { FinanceMultiSeriesChart } from "../components/charts/FinanceMultiSeriesChart";
+import { FinanceHelpBubble } from "../components/common/FinanceHelpBubble";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
 import { FinanceSpotlight } from "../components/common/FinanceSpotlight";
@@ -134,6 +135,18 @@ export function FinanceReportsPage() {
           language === "es"
             ? "Lectura mensual consolidada de transacciones, presupuestos y cartera de préstamos."
             : "Consolidated monthly view of transactions, budgets, and loan portfolio."
+        }
+        actions={
+          <AppToolbar compact>
+            <FinanceHelpBubble
+              label={language === "es" ? "Ayuda sobre reportes" : "Reports help"}
+              helpText={
+                language === "es"
+                  ? "Período compara el mes visible. Horizonte acumula tendencia según la ventana elegida. Acumulado anual consolida desde enero. El rango arbitrario complementa la lectura comparativa y no reemplaza el mes principal."
+                  : "Period compares the visible month. Horizon accumulates trend based on the selected window. Year to date consolidates from January. The custom range complements comparison reading and does not replace the primary month."
+              }
+            />
+          </AppToolbar>
         }
       />
 

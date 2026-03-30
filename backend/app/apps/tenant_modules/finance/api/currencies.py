@@ -170,6 +170,25 @@ def update_finance_exchange_rate(
     )
 
 
+@router.delete("/exchange-rates/{exchange_rate_id}", response_model=FinanceExchangeRateMutationResponse)
+def delete_finance_exchange_rate(
+    exchange_rate_id: int,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceExchangeRateMutationResponse:
+    try:
+        exchange_rate = currency_service.delete_exchange_rate(tenant_db, exchange_rate_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceExchangeRateMutationResponse(
+        success=True,
+        message="Tipo de cambio eliminado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_exchange_rate_item(exchange_rate),
+    )
+
+
 @router.get("/{currency_id}", response_model=FinanceCurrencyMutationResponse)
 def get_finance_currency(
     currency_id: int,
@@ -233,6 +252,25 @@ def update_finance_currency_status(
     )
 
 
+@router.delete("/{currency_id}", response_model=FinanceCurrencyMutationResponse)
+def delete_finance_currency(
+    currency_id: int,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceCurrencyMutationResponse:
+    try:
+        currency = currency_service.delete_currency(tenant_db, currency_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceCurrencyMutationResponse(
+        success=True,
+        message="Moneda eliminada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_currency_item(currency),
+    )
+
+
 @router.patch("/reorder", response_model=FinanceCurrenciesResponse)
 def reorder_finance_currencies(
     payload: FinanceReorderRequest,
@@ -254,4 +292,3 @@ def reorder_finance_currencies(
         total=len(currencies),
         data=[_build_currency_item(item) for item in currencies],
     )
-

@@ -96,8 +96,14 @@ Hoy, en este repositorio, un modulo tenant bien cerrado deberia tener al menos:
 
 ### Documentacion
 
-- un runbook del modulo
-- notas operativas si el modulo introduce enforcement, seeds o soporte especial
+- un directorio canonico en `docs/modules/<modulo>/`
+- `README.md`
+- `USER_GUIDE.md`
+- `DEV_GUIDE.md`
+- `ROADMAP.md`
+- `CHANGELOG.md`
+- `API_REFERENCE.md` cuando el modulo exponga endpoints o contratos propios
+- runbooks y notas operativas adicionales cuando el modulo introduzca enforcement, seeds o soporte especial
 
 ## Regla minima por modulo
 
@@ -111,6 +117,37 @@ Antes de considerar un modulo como "real", deberia tener como minimo:
 - migracion tenant
 - pruebas backend
 - documentacion escrita corta
+- carpeta canonica en `docs/modules/<modulo>/` con los documentos base ya creados
+
+## Politica documental oficial
+
+La documentacion modular ya no debe quedar solo dispersa entre backend, frontend y runbooks.
+
+Desde ahora, cada modulo o dominio nuevo debe cumplir esta regla:
+
+1. tener documentacion tecnica detallada donde corresponda
+2. tener un punto de entrada unico en `docs/modules/<modulo>/`
+3. separar el contenido por tipo de lector
+
+La minima separacion oficial es:
+
+- `README.md`
+  indice del modulo y mapa de documentos
+- `USER_GUIDE.md`
+  lectura para operacion y soporte funcional
+- `DEV_GUIDE.md`
+  lectura para desarrollo y extension
+- `ROADMAP.md`
+  estado actual, deuda y siguientes pasos
+- `CHANGELOG.md`
+  hitos y evolucion
+- `API_REFERENCE.md`
+  referencia resumida cuando aplique
+
+La regla practica es:
+
+- el contenido detallado puede seguir viviendo en backend/frontend/docs/runbooks
+- pero `docs/modules/<modulo>/` pasa a ser la puerta de entrada oficial
 
 Si falta una de esas piezas, todavia no deberia presentarse como modulo cerrado.
 
@@ -167,4 +204,5 @@ La politica vigente del proyecto queda asi:
 
 - no migrar masivamente `finance` de carpeta por ahora
 - usar `finance` como referencia base del SaaS
+- usar `docs/modules/finance/` y `docs/modules/platform-core/` como patrón documental canónico
 - hacer que los modulos nuevos nazcan ya con esta mentalidad de slice completo

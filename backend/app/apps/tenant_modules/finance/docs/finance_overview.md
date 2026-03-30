@@ -13,6 +13,7 @@ Alcance de esta fase:
 - migraciones base de catalogos y configuracion
 - seeds idempotentes iniciales para moneda, categorias y settings
 - seed idempotente adicional para `CLP`
+- catalogo default ampliado de categorias para ingresos, egresos y transferencias
 - modelos SQLAlchemy de catalogos base
 - schemas backend por entidad
 - repositories CRUD base por catalogo
@@ -68,5 +69,7 @@ Estado ampliado del cierre:
 - el detalle de transacción ya permite descargar o eliminar esos adjuntos
 - `Transacciones` ya permite además anular un movimiento sin borrado fisico, conservando trazabilidad para soporte y auditoria
 - las transacciones anuladas salen de balances, listados activos, presupuestos y reportes
+- los catalogos operativos principales ya admiten `delete seguro` cuando no tienen referencias; si existe uso en transacciones, prestamos, presupuestos, tipos de cambio o jerarquias, el backend bloquea la eliminacion
 - existe ademas un importador offline para `egresos.csv` legacy que prepara categorias, comprime imagenes y carga transacciones/adjuntos de forma idempotente sobre el tenant
 - los adjuntos finales del módulo se almacenan en una carpeta propia de `finance` dentro del backend, separada del staging manual usado para importar datasets externos
+- el modulo ya deja por defecto un set mas util de categorias semilla, incluyendo `Sueldo` y las categorias operativas de egresos reaprovechadas desde el perfil legacy del importador

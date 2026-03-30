@@ -143,6 +143,25 @@ def update_finance_account_status(
     )
 
 
+@router.delete("/{account_id}", response_model=FinanceAccountMutationResponse)
+def delete_finance_account(
+    account_id: int,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceAccountMutationResponse:
+    try:
+        account = account_service.delete_account(tenant_db, account_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceAccountMutationResponse(
+        success=True,
+        message="Cuenta financiera eliminada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_account_item(account),
+    )
+
+
 @router.patch("/reorder", response_model=FinanceAccountsResponse)
 def reorder_finance_accounts(
     payload: FinanceReorderRequest,

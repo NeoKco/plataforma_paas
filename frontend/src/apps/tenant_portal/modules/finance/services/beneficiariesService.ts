@@ -82,3 +82,16 @@ export function updateTenantFinanceBeneficiaryStatus(
     }
   );
 }
+
+export function deleteTenantFinanceBeneficiary(
+  accessToken: string,
+  beneficiaryId: number
+) {
+  return apiRequest<TenantFinanceBeneficiaryMutationResponse>(
+    `/tenant/finance/beneficiaries/${beneficiaryId}`,
+    {
+      method: "DELETE",
+      token: accessToken,
+    }
+  );
+}

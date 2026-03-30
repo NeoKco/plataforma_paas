@@ -13,6 +13,7 @@ Estado actual:
 - existe `0011_finance_loan_source_account` como migracion de cuenta origen opcional por prestamo
 - existe `0012_finance_transaction_voids` como migracion de anulacion blanda para transacciones
 - existe `0013_finance_transaction_voids_repair` como migracion reparadora para tenants que hubieran quedado marcados en `0012` sin columnas fisicas
+- existe `0014_finance_default_category_catalog` como migracion reparadora y expansiva del catalogo default de categorias
 
 Objetivo contractual:
 - ampliar el esquema tenant del modulo segun el roadmap maestro
@@ -42,10 +43,10 @@ Tablas base ya creadas en `Lote 1`:
 
 - moneda base `USD`
 - moneda secundaria `CLP`
-- categorias:
-  - `General Income`
-  - `General Expense`
-  - `Transfer`
+- catalogo default de categorias:
+  - ingresos: `Ingreso General`, `Sueldo`, `Ventas`, `Honorarios y servicios`, `Reembolso`, `Intereses y rendimientos`, `Otros ingresos`
+  - egresos: `Egreso General`, `Gastos menores`, `Transporte y ruta`, `Herramientas e insumos`, `Materiales de proyecto`, `Combustible`, `Publicidad impresa`, `Mantencion vehicular`, `Impuestos`, `Internet y telefonia`, `Alimentacion`, `TAG y peajes`, `Salud`, `Hipotecario`, `Ocio y salidas`, `Electricidad`, `Agua`, `Gas`, `Vestuario`, `Regalos`, `Credito de consumo`, `Credito camioneta`, `Deporte`, `Estacionamiento`, `Educacion`, `Seguros`, `Mascotas`, `Cuidado personal`
+  - transferencias: `Transferencia interna`, `Deposito entre cuentas`, `Ajuste de saldo`
 - settings:
   - `base_currency_code`
   - `account_types_catalog`

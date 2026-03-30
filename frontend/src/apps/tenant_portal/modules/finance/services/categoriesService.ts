@@ -93,3 +93,13 @@ export function updateTenantFinanceCategoryStatus(
     }
   );
 }
+
+export function deleteTenantFinanceCategory(accessToken: string, categoryId: number) {
+  return apiRequest<TenantFinanceCategoryMutationResponse>(
+    `/tenant/finance/categories/${categoryId}`,
+    {
+      method: "DELETE",
+      token: accessToken,
+    }
+  );
+}

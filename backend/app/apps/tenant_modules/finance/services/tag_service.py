@@ -1,7 +1,9 @@
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.finance.models import FinanceTag
-from app.apps.tenant_modules.finance.repositories import FinanceTagRepository
+from app.apps.tenant_modules.finance.models import FinanceTag, FinanceTransactionTag
+from app.apps.tenant_modules.finance.repositories import (
+    FinanceTagRepository,
+)
 from app.apps.tenant_modules.finance.schemas import (
     FinanceTagCreateRequest,
     FinanceTagUpdateRequest,
@@ -67,6 +69,20 @@ class FinanceTagService:
         items: list[tuple[int, int]],
     ) -> list[FinanceTag]:
         return self.tag_repository.reorder(tenant_db, items)
+
+    def delete_tag(self, tenant_db: Session, tag_id: int) -> FinanceTag:
+        tag = self._get_or_raise(tenant_db, tag_id)
+        usage_exists = (
+            tenant_db.query(FinanceTransactionTag.transaction_id)
+            .filter(FinanceTransactionTag.tag_id == tag.id)
+            .first()
+        )
+        if usage_exists is not None:
+            raise ValueError(
+                "No puedes eliminar la etiqueta porque ya esta asociada a transacciones"
+            )
+        self.tag_repository.delete(tenant_db, tag)
+        return tag
 
     def _get_or_raise(self, tenant_db: Session, tag_id: int) -> FinanceTag:
         tag = self.tag_repository.get_by_id(tenant_db, tag_id)

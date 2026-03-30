@@ -1,6 +1,12 @@
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.finance.models import FinanceCurrency, FinanceExchangeRate
+from app.apps.tenant_modules.finance.models import (
+    FinanceAccount,
+    FinanceCurrency,
+    FinanceExchangeRate,
+    FinanceLoan,
+    FinanceTransaction,
+)
 from app.apps.tenant_modules.finance.repositories import (
     FinanceCurrencyRepository,
     FinanceExchangeRateRepository,
@@ -76,6 +82,57 @@ class FinanceCurrencyService:
             raise ValueError("No puedes desactivar la moneda base")
         return self.currency_repository.set_active(tenant_db, currency, is_active)
 
+    def delete_currency(self, tenant_db: Session, currency_id: int) -> FinanceCurrency:
+        currency = self._get_currency_or_raise(tenant_db, currency_id)
+        if currency.is_base:
+            raise ValueError("No puedes eliminar la moneda base")
+
+        account_exists = (
+            tenant_db.query(FinanceAccount.id)
+            .filter(FinanceAccount.currency_id == currency.id)
+            .first()
+        )
+        if account_exists is not None:
+            raise ValueError(
+                "No puedes eliminar la moneda porque ya esta asociada a cuentas"
+            )
+
+        transaction_exists = (
+            tenant_db.query(FinanceTransaction.id)
+            .filter(FinanceTransaction.currency_id == currency.id)
+            .first()
+        )
+        if transaction_exists is not None:
+            raise ValueError(
+                "No puedes eliminar la moneda porque ya esta asociada a transacciones"
+            )
+
+        loan_exists = (
+            tenant_db.query(FinanceLoan.id)
+            .filter(FinanceLoan.currency_id == currency.id)
+            .first()
+        )
+        if loan_exists is not None:
+            raise ValueError(
+                "No puedes eliminar la moneda porque ya esta asociada a prestamos"
+            )
+
+        exchange_rate_exists = (
+            tenant_db.query(FinanceExchangeRate.id)
+            .filter(
+                (FinanceExchangeRate.source_currency_id == currency.id)
+                | (FinanceExchangeRate.target_currency_id == currency.id)
+            )
+            .first()
+        )
+        if exchange_rate_exists is not None:
+            raise ValueError(
+                "No puedes eliminar la moneda porque ya esta asociada a tipos de cambio"
+            )
+
+        self.currency_repository.delete(tenant_db, currency)
+        return currency
+
     def reorder_currencies(
         self,
         tenant_db: Session,
@@ -119,6 +176,15 @@ class FinanceCurrencyService:
         for field, value in normalized.items():
             setattr(exchange_rate, field, value)
         return self.exchange_rate_repository.save(tenant_db, exchange_rate)
+
+    def delete_exchange_rate(
+        self,
+        tenant_db: Session,
+        exchange_rate_id: int,
+    ) -> FinanceExchangeRate:
+        exchange_rate = self._get_exchange_rate_or_raise(tenant_db, exchange_rate_id)
+        self.exchange_rate_repository.delete(tenant_db, exchange_rate)
+        return exchange_rate
 
     def _get_currency_or_raise(self, tenant_db: Session, currency_id: int) -> FinanceCurrency:
         currency = self.currency_repository.get_by_id(tenant_db, currency_id)

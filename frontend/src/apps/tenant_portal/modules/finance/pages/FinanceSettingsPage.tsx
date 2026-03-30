@@ -10,12 +10,15 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceHelpBubble } from "../components/common/FinanceHelpBubble";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { CurrencyForm, ExchangeRateForm } from "../forms/CurrencyForm";
 import { SettingForm } from "../forms/SettingForm";
 import {
   createTenantFinanceCurrency,
   createTenantFinanceExchangeRate,
+  deleteTenantFinanceCurrency,
+  deleteTenantFinanceExchangeRate,
   getTenantFinanceCurrencies,
   getTenantFinanceExchangeRates,
   updateTenantFinanceCurrency,
@@ -195,6 +198,56 @@ export function FinanceSettingsPage() {
     }
   }
 
+  async function deleteCurrency(currency: TenantFinanceCurrency) {
+    if (!session?.accessToken) {
+      return;
+    }
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Eliminar la moneda "${currency.code}" solo funcionará si no es base y no tiene cuentas, transacciones, préstamos ni tipos de cambio asociados. ¿Quieres continuar?`
+        : `Deleting currency "${currency.code}" only works when it is not the base currency and has no linked accounts, transactions, loans, or exchange rates. Continue?`
+    );
+    if (!confirmed) {
+      return;
+    }
+    try {
+      setError(null);
+      const response = await deleteTenantFinanceCurrency(session.accessToken, currency.id);
+      if (editingId === currency.id) {
+        resetForms();
+      }
+      setFeedback(response.message);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    }
+  }
+
+  async function deleteExchangeRate(exchangeRate: TenantFinanceExchangeRate) {
+    if (!session?.accessToken) {
+      return;
+    }
+    const confirmed = window.confirm(
+      language === "es"
+        ? "Eliminar este tipo de cambio quitará el registro histórico manual. ¿Quieres continuar?"
+        : "Deleting this exchange rate removes the manual historical record. Continue?"
+    );
+    if (!confirmed) {
+      return;
+    }
+    try {
+      setError(null);
+      const response = await deleteTenantFinanceExchangeRate(
+        session.accessToken,
+        exchangeRate.id
+      );
+      setFeedback(response.message);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    }
+  }
+
   return (
     <div className="d-grid gap-4">
       <PageHeader
@@ -208,6 +261,14 @@ export function FinanceSettingsPage() {
         }
         actions={
           <AppToolbar compact>
+            <FinanceHelpBubble
+              label={language === "es" ? "Ayuda sobre configuración financiera" : "Financial settings help"}
+              helpText={
+                language === "es"
+                  ? "Las monedas se administran por activación y base. Eliminar una moneda solo funciona si no es base y no tiene referencias; en tipos de cambio sí puedes eliminar registros manuales históricos cuando ya no correspondan."
+                  : "Currencies are managed through activation and base assignment. Deleting a currency only works when it is not the base currency and has no references; exchange rates can be deleted when manual historical records are no longer needed."
+              }
+            />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
@@ -399,6 +460,13 @@ export function FinanceSettingsPage() {
                           ? "Activar"
                           : "Activate"}
                     </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      type="button"
+                      onClick={() => void deleteCurrency(currency)}
+                    >
+                      {language === "es" ? "Eliminar" : "Delete"}
+                    </button>
                   </AppToolbar>
                 ),
               },
@@ -432,6 +500,21 @@ export function FinanceSettingsPage() {
                 key: "effective",
                 header: language === "es" ? "Fecha efectiva" : "Effective date",
                 render: (rate: TenantFinanceExchangeRate) => rate.effective_at,
+              },
+              {
+                key: "actions",
+                header: language === "es" ? "Acciones" : "Actions",
+                render: (rate: TenantFinanceExchangeRate) => (
+                  <AppToolbar compact>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      type="button"
+                      onClick={() => void deleteExchangeRate(rate)}
+                    >
+                      {language === "es" ? "Eliminar" : "Delete"}
+                    </button>
+                  </AppToolbar>
+                ),
               },
             ]}
           />

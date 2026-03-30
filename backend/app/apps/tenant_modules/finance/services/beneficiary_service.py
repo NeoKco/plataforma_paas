@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.finance.models import FinanceBeneficiary
+from app.apps.tenant_modules.finance.models import FinanceBeneficiary, FinanceTransaction
 from app.apps.tenant_modules.finance.repositories import FinanceBeneficiaryRepository
 from app.apps.tenant_modules.finance.schemas import (
     FinanceBeneficiaryCreateRequest,
@@ -67,6 +67,24 @@ class FinanceBeneficiaryService:
         items: list[tuple[int, int]],
     ) -> list[FinanceBeneficiary]:
         return self.beneficiary_repository.reorder(tenant_db, items)
+
+    def delete_beneficiary(
+        self,
+        tenant_db: Session,
+        beneficiary_id: int,
+    ) -> FinanceBeneficiary:
+        beneficiary = self._get_or_raise(tenant_db, beneficiary_id)
+        usage_exists = (
+            tenant_db.query(FinanceTransaction.id)
+            .filter(FinanceTransaction.beneficiary_id == beneficiary.id)
+            .first()
+        )
+        if usage_exists is not None:
+            raise ValueError(
+                "No puedes eliminar el beneficiario porque ya esta asociado a transacciones"
+            )
+        self.beneficiary_repository.delete(tenant_db, beneficiary)
+        return beneficiary
 
     def _get_or_raise(self, tenant_db: Session, beneficiary_id: int) -> FinanceBeneficiary:
         beneficiary = self.beneficiary_repository.get_by_id(tenant_db, beneficiary_id)

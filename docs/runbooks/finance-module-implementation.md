@@ -8,6 +8,15 @@ Desde el estado actual del proyecto, `finance` queda ademas declarado como:
 - modulo piloto para la convencion modular futura
 - referencia tecnica para los siguientes modulos tenant
 
+Documentacion canonica del modulo:
+
+- [README.md](/home/felipe/platform_paas/docs/modules/finance/README.md)
+- [USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/finance/USER_GUIDE.md)
+- [DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/finance/DEV_GUIDE.md)
+- [API_REFERENCE.md](/home/felipe/platform_paas/docs/modules/finance/API_REFERENCE.md)
+- [ROADMAP.md](/home/felipe/platform_paas/docs/modules/finance/ROADMAP.md)
+- [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/finance/CHANGELOG.md)
+
 ## Objetivo
 
 Agregar un modulo pequeno pero real que reutilice:
@@ -45,14 +54,17 @@ En esta fase quedaron listos:
 - documentacion tecnica y funcional inicial del modulo
 - migracion tenant `0003_finance_catalogs`
 - migracion tenant `0004_finance_seed_clp`
+- migracion tenant `0014_finance_default_category_catalog`
 - catalogos base del modulo y seeds idempotentes
 - `CLP` disponible como moneda semilla adicional
+- catalogo default de categorias ampliado para `ingreso | egreso | transferencia`, incluyendo `Sueldo` y las categorias de egreso operativas consolidadas desde el import legacy
 - modelos SQLAlchemy de catalogos base
 - schemas backend por entidad
 - repositories CRUD base por catalogo
 - servicios backend por catalogo
 - endpoints CRUD base para catalogos, settings y exchange rates
 - endpoints de detalle y `reorder` para catalogos principales
+- `delete seguro` ya disponible para `Cuentas`, `Categorías`, `Etiquetas`, `Beneficiarios`, `Personas`, `Proyectos`, `Monedas` y `Tipos de cambio`, bloqueando borrado si existen referencias operativas
 - frontend operativo para cuentas, categorias, catalogos auxiliares y configuracion financiera
 - `Categorías` ya permite elegir iconos semánticos controlados y mostrarlos en formulario/listado
 - `Cuentas`, `Beneficiarios` y `Personas` ya reutilizan también iconos controlados en formulario/listado
@@ -135,6 +147,8 @@ Checklist de cierre cubierto:
 - transacciones modernas con filtros, edición, etiquetas, conciliación y auditoría reciente
 - transacciones modernas con adjuntos operativos reales por boleta, factura o respaldo
 - transacciones modernas con anulacion blanda y trazabilidad conservada para soporte
+- catálogos principales con borrado físico seguro solo cuando no hay referencias; si existe uso, la operacion correcta sigue siendo `desactivar`
+- las pantallas operativas del slice ya muestran ayudas visibles para distinguir `Eliminar`, `Desactivar` y `Anular`
 - presupuestos con lectura mensual, foco priorizado, clonación, ajustes guiados y plantillas operativas
 - préstamos con cronograma, pagos y reversas individuales o batch, cuenta origen, lectura contable derivada y exportación
 - planificación con overview operativo mensual, `spotlight` visual y chart de señales/foco
@@ -217,14 +231,14 @@ Estado del cierre ampliado:
 - `GET /tenant/finance/reports/overview`
 - `GET /tenant/schema-status`
 - `POST /tenant/sync-schema`
-- `GET|POST|PUT|PATCH /tenant/finance/accounts`
-- `GET|POST|PUT|PATCH /tenant/finance/categories`
-- `GET|POST|PUT|PATCH /tenant/finance/beneficiaries`
-- `GET|POST|PUT|PATCH /tenant/finance/people`
-- `GET|POST|PUT|PATCH /tenant/finance/projects`
-- `GET|POST|PUT|PATCH /tenant/finance/tags`
-- `GET|POST|PUT|PATCH /tenant/finance/currencies`
-- `GET|POST|PUT /tenant/finance/currencies/exchange-rates`
+- `GET|POST|PUT|PATCH|DELETE /tenant/finance/accounts`
+- `GET|POST|PUT|PATCH|DELETE /tenant/finance/categories`
+- `GET|POST|PUT|PATCH|DELETE /tenant/finance/beneficiaries`
+- `GET|POST|PUT|PATCH|DELETE /tenant/finance/people`
+- `GET|POST|PUT|PATCH|DELETE /tenant/finance/projects`
+- `GET|POST|PUT|PATCH|DELETE /tenant/finance/tags`
+- `GET|POST|PUT|PATCH|DELETE /tenant/finance/currencies`
+- `GET|POST|PUT|DELETE /tenant/finance/currencies/exchange-rates`
 - `GET|POST|PUT|PATCH /tenant/finance/settings`
 - `GET` detalle por entidad en catalogos principales
 - `PATCH /reorder` donde aplica

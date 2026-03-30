@@ -10,11 +10,13 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceHelpBubble } from "../components/common/FinanceHelpBubble";
 import { FinanceIcon } from "../components/common/FinanceIcon";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { AccountForm } from "../forms/AccountForm";
 import {
   createTenantFinanceAccount,
+  deleteTenantFinanceAccount,
   getTenantFinanceAccounts,
   updateTenantFinanceAccount,
   updateTenantFinanceAccountStatus,
@@ -179,6 +181,33 @@ export function FinanceAccountsPage() {
     }
   }
 
+  async function handleDelete(account: TenantFinanceAccount) {
+    if (!session?.accessToken) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Eliminar la cuenta "${account.name}" solo funcionará si no tiene movimientos, préstamos ni cuentas hijas asociadas. ¿Quieres continuar?`
+        : `Deleting account "${account.name}" only works when it has no linked transactions, loans, or child accounts. Continue?`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setError(null);
+      const response = await deleteTenantFinanceAccount(session.accessToken, account.id);
+      if (editingAccountId === account.id) {
+        startCreate();
+      }
+      setFeedback(response.message);
+      await loadAccounts();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    }
+  }
+
   const currencyById = new Map(currencies.map((currency) => [currency.id, currency]));
 
   return (
@@ -194,6 +223,14 @@ export function FinanceAccountsPage() {
         }
         actions={
           <AppToolbar compact>
+            <FinanceHelpBubble
+              label={language === "es" ? "Ayuda sobre cuentas" : "Accounts help"}
+              helpText={
+                language === "es"
+                  ? "Usa Desactivar para ocultar una cuenta sin perder historial. Eliminar solo funciona cuando la cuenta no tiene movimientos, préstamos ni cuentas hijas."
+                  : "Use Deactivate to hide an account without losing history. Delete only works when the account has no linked transactions, loans, or child accounts."
+              }
+            />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadAccounts()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
@@ -347,6 +384,13 @@ export function FinanceAccountsPage() {
                       : language === "es"
                         ? "Activar"
                         : "Activate"}
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-danger"
+                    type="button"
+                    onClick={() => void handleDelete(account)}
+                  >
+                    {language === "es" ? "Eliminar" : "Delete"}
                   </button>
                 </AppToolbar>
               ),

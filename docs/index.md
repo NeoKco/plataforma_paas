@@ -8,7 +8,7 @@ Este directorio centraliza la documentacion funcional, tecnica y operativa del p
 - [API](./api/index.md): documentacion de endpoints y contratos HTTP.
 - [Install](./install/): pasos y notas del proceso de instalacion inicial.
 - [Deploy](./deploy/index.md): guias de despliegue y configuracion de entornos.
-- [Modules](./modules/): documentacion por modulo funcional o dominio.
+- [Modules](./modules/index.md): documentacion por modulo funcional o dominio.
 - [Runbooks](./runbooks/index.md): procedimientos operativos y de soporte.
 
 ## Estado Actual
@@ -46,6 +46,8 @@ En este momento la documentacion creada formalmente dentro del repositorio comie
 - [Implementacion backend platform](./runbooks/platform-backend-implementation.md)
 - [Implementacion backend tenant](./runbooks/tenant-backend-implementation.md)
 - [Implementacion modulo finance](./runbooks/finance-module-implementation.md)
+- [Indice canonico de finance](./modules/finance/README.md)
+- [Indice canonico de platform core](./modules/platform-core/README.md)
 - [Reglas backend y guia de cambios](./runbooks/backend-rules-and-change-guidelines.md)
 - [Onboarding de developers](./runbooks/developer-onboarding.md)
 - [Demo data y seeds de desarrollo](./runbooks/demo-data.md)

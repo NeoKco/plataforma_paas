@@ -1,6 +1,11 @@
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.finance.models import FinanceAccount, FinanceCurrency
+from app.apps.tenant_modules.finance.models import (
+    FinanceAccount,
+    FinanceCurrency,
+    FinanceLoan,
+    FinanceTransaction,
+)
 from app.apps.tenant_modules.finance.repositories import (
     FinanceAccountRepository,
     FinanceCurrencyRepository,
@@ -74,6 +79,45 @@ class FinanceAccountService:
         items: list[tuple[int, int]],
     ) -> list[FinanceAccount]:
         return self.account_repository.reorder(tenant_db, items)
+
+    def delete_account(self, tenant_db: Session, account_id: int) -> FinanceAccount:
+        account = self._get_account_or_raise(tenant_db, account_id)
+
+        child_exists = (
+            tenant_db.query(FinanceAccount.id)
+            .filter(FinanceAccount.parent_account_id == account.id)
+            .first()
+        )
+        if child_exists is not None:
+            raise ValueError(
+                "No puedes eliminar la cuenta porque tiene cuentas hijas asociadas"
+            )
+
+        transaction_exists = (
+            tenant_db.query(FinanceTransaction.id)
+            .filter(
+                (FinanceTransaction.account_id == account.id)
+                | (FinanceTransaction.target_account_id == account.id)
+            )
+            .first()
+        )
+        if transaction_exists is not None:
+            raise ValueError(
+                "No puedes eliminar la cuenta porque ya esta asociada a transacciones"
+            )
+
+        loan_exists = (
+            tenant_db.query(FinanceLoan.id)
+            .filter(FinanceLoan.account_id == account.id)
+            .first()
+        )
+        if loan_exists is not None:
+            raise ValueError(
+                "No puedes eliminar la cuenta porque ya esta asociada a prestamos"
+            )
+
+        self.account_repository.delete(tenant_db, account)
+        return account
 
     def _get_account_or_raise(self, tenant_db: Session, account_id: int) -> FinanceAccount:
         account = self.account_repository.get_by_id(tenant_db, account_id)

@@ -10,11 +10,13 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceHelpBubble } from "../components/common/FinanceHelpBubble";
 import { FinanceIcon } from "../components/common/FinanceIcon";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { CategoryForm } from "../forms/CategoryForm";
 import {
   createTenantFinanceCategory,
+  deleteTenantFinanceCategory,
   getTenantFinanceCategories,
   updateTenantFinanceCategory,
   updateTenantFinanceCategoryStatus,
@@ -141,6 +143,31 @@ export function FinanceCategoriesPage() {
     }
   }
 
+  async function handleDelete(category: TenantFinanceCategory) {
+    if (!session?.accessToken) {
+      return;
+    }
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Eliminar la categoría "${category.name}" solo funcionará si no tiene transacciones, presupuestos ni subcategorías asociadas. ¿Quieres continuar?`
+        : `Deleting category "${category.name}" only works when it has no linked transactions, budgets, or child categories. Continue?`
+    );
+    if (!confirmed) {
+      return;
+    }
+    try {
+      setError(null);
+      const response = await deleteTenantFinanceCategory(session.accessToken, category.id);
+      if (editingCategoryId === category.id) {
+        startCreate();
+      }
+      setFeedback(response.message);
+      await loadCategories();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    }
+  }
+
   return (
     <div className="d-grid gap-4">
       <PageHeader
@@ -154,6 +181,14 @@ export function FinanceCategoriesPage() {
         }
         actions={
           <AppToolbar compact>
+            <FinanceHelpBubble
+              label={language === "es" ? "Ayuda sobre categorías" : "Categories help"}
+              helpText={
+                language === "es"
+                  ? "Usa Desactivar si la categoría ya fue usada. Eliminar solo funciona cuando no tiene subcategorías, transacciones ni presupuestos asociados."
+                  : "Use Deactivate if the category has already been used. Delete only works when it has no child categories, transactions, or budgets linked to it."
+              }
+            />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadCategories()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
@@ -302,6 +337,13 @@ export function FinanceCategoriesPage() {
                       : language === "es"
                         ? "Activar"
                         : "Activate"}
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-danger"
+                    type="button"
+                    onClick={() => void handleDelete(category)}
+                  >
+                    {language === "es" ? "Eliminar" : "Delete"}
                   </button>
                 </AppToolbar>
               ),

@@ -76,3 +76,13 @@ export function updateTenantFinanceProjectStatus(
     }
   );
 }
+
+export function deleteTenantFinanceProject(accessToken: string, projectId: number) {
+  return apiRequest<TenantFinanceProjectMutationResponse>(
+    `/tenant/finance/projects/${projectId}`,
+    {
+      method: "DELETE",
+      token: accessToken,
+    }
+  );
+}

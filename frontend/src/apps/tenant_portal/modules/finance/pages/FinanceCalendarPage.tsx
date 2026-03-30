@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
-import { AppFilterGrid } from "../../../../../design-system/AppLayout";
+import { AppFilterGrid, AppToolbar } from "../../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
@@ -11,6 +11,7 @@ import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { FinanceHorizontalBarChart } from "../components/charts/FinanceHorizontalBarChart";
 import { FinanceMultiSeriesChart } from "../components/charts/FinanceMultiSeriesChart";
+import { FinanceHelpBubble } from "../components/common/FinanceHelpBubble";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
 import { FinanceSpotlight } from "../components/common/FinanceSpotlight";
@@ -87,6 +88,18 @@ export function FinanceCalendarPage() {
           language === "es"
             ? "Lectura mensual de flujo esperado: actividad diaria, vencimientos de préstamos y foco presupuestario."
             : "Monthly view of expected flow: daily activity, loan due dates, and budget focus."
+        }
+        actions={
+          <AppToolbar compact>
+            <FinanceHelpBubble
+              label={language === "es" ? "Ayuda sobre planificación" : "Planning help"}
+              helpText={
+                language === "es"
+                  ? "Esta vista prioriza señales del mes seleccionado: días con movimiento, cuotas por vencer y categorías con mayor desvío presupuestario. No reemplaza Reportes; sirve para decidir foco operativo."
+                  : "This view prioritizes signals for the selected month: days with movement, installments due, and categories with the largest budget variance. It does not replace Reports; it is for operational focus."
+              }
+            />
+          </AppToolbar>
         }
       />
 

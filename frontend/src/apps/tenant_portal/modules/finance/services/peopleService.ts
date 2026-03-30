@@ -76,3 +76,10 @@ export function updateTenantFinancePersonStatus(
     }
   );
 }
+
+export function deleteTenantFinancePerson(accessToken: string, personId: number) {
+  return apiRequest<TenantFinancePersonMutationResponse>(`/tenant/finance/people/${personId}`, {
+    method: "DELETE",
+    token: accessToken,
+  });
+}

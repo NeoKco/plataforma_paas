@@ -141,6 +141,25 @@ def update_finance_category_status(
     )
 
 
+@router.delete("/{category_id}", response_model=FinanceCategoryMutationResponse)
+def delete_finance_category(
+    category_id: int,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceCategoryMutationResponse:
+    try:
+        category = category_service.delete_category(tenant_db, category_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceCategoryMutationResponse(
+        success=True,
+        message="Categoria financiera eliminada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_category_item(category),
+    )
+
+
 @router.patch("/reorder", response_model=FinanceCategoriesResponse)
 def reorder_finance_categories(
     payload: FinanceReorderRequest,

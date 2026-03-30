@@ -13,6 +13,7 @@ import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { displayPlatformCode } from "../../../../../utils/platform-labels";
 import type { ApiError } from "../../../../../types";
+import { FinanceHelpBubble } from "../components/common/FinanceHelpBubble";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import {
   getTenantFinanceAccounts,
@@ -858,6 +859,18 @@ export function FinanceTransactionsPage() {
           language === "es"
             ? "Opera el núcleo real de finance con balances por cuenta y trazabilidad reciente."
             : "Operate the real finance core with account balances and recent traceability."
+        }
+        actions={
+          <AppToolbar compact>
+            <FinanceHelpBubble
+              label={language === "es" ? "Ayuda sobre transacciones" : "Transactions help"}
+              helpText={
+                language === "es"
+                  ? "Conciliar valida el movimiento sin borrarlo. Anular lo saca de balances y reportes, pero conserva auditoría. Los adjuntos se suben al crear o desde el detalle operacional."
+                  : "Reconcile validates the movement without deleting it. Void removes it from balances and reports while keeping audit history. Attachments can be uploaded on create or from the operational detail."
+              }
+            />
+          </AppToolbar>
         }
       />
 

@@ -140,6 +140,25 @@ def update_finance_beneficiary_status(
     )
 
 
+@router.delete("/{beneficiary_id}", response_model=FinanceBeneficiaryMutationResponse)
+def delete_finance_beneficiary(
+    beneficiary_id: int,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceBeneficiaryMutationResponse:
+    try:
+        beneficiary = beneficiary_service.delete_beneficiary(tenant_db, beneficiary_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceBeneficiaryMutationResponse(
+        success=True,
+        message="Beneficiario eliminado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_beneficiary_item(beneficiary),
+    )
+
+
 @router.patch("/reorder", response_model=FinanceBeneficiariesResponse)
 def reorder_finance_beneficiaries(
     payload: FinanceReorderRequest,

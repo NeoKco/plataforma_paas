@@ -117,6 +117,16 @@ export function updateTenantFinanceCurrencyStatus(
   );
 }
 
+export function deleteTenantFinanceCurrency(accessToken: string, currencyId: number) {
+  return apiRequest<TenantFinanceCurrencyMutationResponse>(
+    `/tenant/finance/currencies/${currencyId}`,
+    {
+      method: "DELETE",
+      token: accessToken,
+    }
+  );
+}
+
 export function getTenantFinanceExchangeRates(accessToken: string) {
   return apiRequest<TenantFinanceExchangeRatesResponse>(
     "/tenant/finance/currencies/exchange-rates",
@@ -149,6 +159,19 @@ export function updateTenantFinanceExchangeRate(
       method: "PUT",
       token: accessToken,
       body: payload,
+    }
+  );
+}
+
+export function deleteTenantFinanceExchangeRate(
+  accessToken: string,
+  exchangeRateId: number
+) {
+  return apiRequest<TenantFinanceExchangeRateMutationResponse>(
+    `/tenant/finance/currencies/exchange-rates/${exchangeRateId}`,
+    {
+      method: "DELETE",
+      token: accessToken,
     }
   );
 }

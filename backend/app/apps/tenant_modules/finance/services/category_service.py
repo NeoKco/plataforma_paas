@@ -1,6 +1,10 @@
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.finance.models import FinanceCategory
+from app.apps.tenant_modules.finance.models import (
+    FinanceBudget,
+    FinanceCategory,
+    FinanceTransaction,
+)
 from app.apps.tenant_modules.finance.repositories import FinanceCategoryRepository
 from app.apps.tenant_modules.finance.schemas import (
     FinanceCategoryCreateRequest,
@@ -76,6 +80,42 @@ class FinanceCategoryService:
         items: list[tuple[int, int]],
     ) -> list[FinanceCategory]:
         return self.category_repository.reorder(tenant_db, items)
+
+    def delete_category(self, tenant_db: Session, category_id: int) -> FinanceCategory:
+        category = self._get_category_or_raise(tenant_db, category_id)
+
+        child_exists = (
+            tenant_db.query(FinanceCategory.id)
+            .filter(FinanceCategory.parent_category_id == category.id)
+            .first()
+        )
+        if child_exists is not None:
+            raise ValueError(
+                "No puedes eliminar la categoria porque tiene subcategorias asociadas"
+            )
+
+        transaction_exists = (
+            tenant_db.query(FinanceTransaction.id)
+            .filter(FinanceTransaction.category_id == category.id)
+            .first()
+        )
+        if transaction_exists is not None:
+            raise ValueError(
+                "No puedes eliminar la categoria porque ya esta asociada a transacciones"
+            )
+
+        budget_exists = (
+            tenant_db.query(FinanceBudget.id)
+            .filter(FinanceBudget.category_id == category.id)
+            .first()
+        )
+        if budget_exists is not None:
+            raise ValueError(
+                "No puedes eliminar la categoria porque ya esta asociada a presupuestos"
+            )
+
+        self.category_repository.delete(tenant_db, category)
+        return category
 
     def _get_category_or_raise(self, tenant_db: Session, category_id: int) -> FinanceCategory:
         category = self.category_repository.get_by_id(tenant_db, category_id)

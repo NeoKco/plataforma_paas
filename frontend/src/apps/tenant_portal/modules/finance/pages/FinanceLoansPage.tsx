@@ -11,6 +11,7 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceHelpBubble } from "../components/common/FinanceHelpBubble";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { FinanceSchemaSyncCallout } from "../components/common/FinanceSchemaSyncCallout";
 import {
@@ -564,6 +565,18 @@ export function FinanceLoansPage() {
           language === "es"
             ? "Gestiona dinero prestado o recibido, con saldo pendiente, contraparte y lectura rápida de cartera."
             : "Manage borrowed or lent money, with outstanding balance, counterparty, and a quick portfolio view."
+        }
+        actions={
+          <AppToolbar compact>
+            <FinanceHelpBubble
+              label={language === "es" ? "Ayuda sobre préstamos" : "Loans help"}
+              helpText={
+                language === "es"
+                  ? "Aplicar pago genera movimiento contable ligado al préstamo. Reversa deshace ese pago con motivo. Las cuotas ligadas a préstamo no se anulan desde Transacciones; se revierten aquí."
+                  : "Applying a payment creates an accounting movement linked to the loan. Reverse undoes that payment with a reason. Loan-linked installments are not voided from Transactions; they are reversed here."
+              }
+            />
+          </AppToolbar>
         }
       />
 

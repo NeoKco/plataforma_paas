@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.finance.models import FinancePerson
+from app.apps.tenant_modules.finance.models import FinancePerson, FinanceTransaction
 from app.apps.tenant_modules.finance.repositories import FinancePersonRepository
 from app.apps.tenant_modules.finance.schemas import (
     FinancePersonCreateRequest,
@@ -67,6 +67,20 @@ class FinancePersonService:
         items: list[tuple[int, int]],
     ) -> list[FinancePerson]:
         return self.person_repository.reorder(tenant_db, items)
+
+    def delete_person(self, tenant_db: Session, person_id: int) -> FinancePerson:
+        person = self._get_or_raise(tenant_db, person_id)
+        usage_exists = (
+            tenant_db.query(FinanceTransaction.id)
+            .filter(FinanceTransaction.person_id == person.id)
+            .first()
+        )
+        if usage_exists is not None:
+            raise ValueError(
+                "No puedes eliminar la persona porque ya esta asociada a transacciones"
+            )
+        self.person_repository.delete(tenant_db, person)
+        return person
 
     def _get_or_raise(self, tenant_db: Session, person_id: int) -> FinancePerson:
         person = self.person_repository.get_by_id(tenant_db, person_id)

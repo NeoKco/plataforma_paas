@@ -133,6 +133,25 @@ def update_finance_project_status(
     )
 
 
+@router.delete("/{project_id}", response_model=FinanceProjectMutationResponse)
+def delete_finance_project(
+    project_id: int,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceProjectMutationResponse:
+    try:
+        project = project_service.delete_project(tenant_db, project_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceProjectMutationResponse(
+        success=True,
+        message="Proyecto eliminado correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_project_item(project),
+    )
+
+
 @router.patch("/reorder", response_model=FinanceProjectsResponse)
 def reorder_finance_projects(
     payload: FinanceReorderRequest,

@@ -90,3 +90,10 @@ export function updateTenantFinanceAccountStatus(
     }
   );
 }
+
+export function deleteTenantFinanceAccount(accessToken: string, accountId: number) {
+  return apiRequest<TenantFinanceAccountMutationResponse>(`/tenant/finance/accounts/${accountId}`, {
+    method: "DELETE",
+    token: accessToken,
+  });
+}

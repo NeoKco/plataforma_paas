@@ -54,6 +54,14 @@ class FinanceCatalogRepository(Generic[ModelT]):
         tenant_db.refresh(item)
         return item
 
+    def delete(self, tenant_db: Session, item: ModelT) -> None:
+        tenant_db.delete(item)
+        try:
+            tenant_db.commit()
+        except Exception:
+            tenant_db.rollback()
+            raise
+
     def set_active(self, tenant_db: Session, item: ModelT, is_active: bool) -> ModelT:
         setattr(item, "is_active", is_active)
         tenant_db.add(item)

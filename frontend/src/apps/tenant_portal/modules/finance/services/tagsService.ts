@@ -71,3 +71,10 @@ export function updateTenantFinanceTagStatus(
     body: { is_active: isActive },
   });
 }
+
+export function deleteTenantFinanceTag(accessToken: string, tagId: number) {
+  return apiRequest<TenantFinanceTagMutationResponse>(`/tenant/finance/tags/${tagId}`, {
+    method: "DELETE",
+    token: accessToken,
+  });
+}

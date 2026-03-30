@@ -27,6 +27,9 @@ Estado actual:
 - si una transacción se cargó por error, la vista ya ofrece `Anular` en vez de borrado físico
 - esa anulación conserva auditoría, deja la fila disponible para soporte y la excluye de balances, listados activos, presupuestos y reportes
 - las transacciones derivadas de cuotas de `Préstamos` no se anulan desde `Transacciones`; deben revertirse desde el propio préstamo
+- `Cuentas`, `Categorías`, `Etiquetas`, `Beneficiarios`, `Personas`, `Proyectos`, `Monedas` y `Tipos de cambio` ya ofrecen `Eliminar` cuando el registro no tiene referencias; si el backend detecta uso real, bloquea la eliminación y la operación correcta pasa a ser `Desactivar`
+- en `Monedas`, el borrado además exige que la fila no sea moneda base
+- `Cuentas`, `Categorías`, `Catálogos` y `Configuración` ya muestran ayudas visibles en pantalla para aclarar cuándo conviene eliminar, desactivar o conservar histórico
 - las operaciones de conciliacion ya aceptan `reason_code`, nota opcional y pasan por confirmacion explicita
 - ya existe una pantalla operativa de `Presupuestos` con lectura mensual por categoria
 - `Presupuestos` ya permite alta y edicion de montos, nota y estado activo, usando comparacion contra la ejecucion real del mes

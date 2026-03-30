@@ -128,6 +128,25 @@ def update_finance_tag_status(
     )
 
 
+@router.delete("/{tag_id}", response_model=FinanceTagMutationResponse)
+def delete_finance_tag(
+    tag_id: int,
+    current_user=Depends(require_finance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> FinanceTagMutationResponse:
+    try:
+        tag = tag_service.delete_tag(tenant_db, tag_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FinanceTagMutationResponse(
+        success=True,
+        message="Etiqueta eliminada correctamente",
+        requested_by=build_finance_requested_by(current_user),
+        data=_build_tag_item(tag),
+    )
+
+
 @router.patch("/reorder", response_model=FinanceTagsResponse)
 def reorder_finance_tags(
     payload: FinanceReorderRequest,

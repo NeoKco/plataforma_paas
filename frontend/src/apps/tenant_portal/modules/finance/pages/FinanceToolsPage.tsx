@@ -10,6 +10,7 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { FinanceHelpBubble } from "../components/common/FinanceHelpBubble";
 import { FinanceIcon } from "../components/common/FinanceIcon";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
 import { BeneficiaryForm } from "../forms/BeneficiaryForm";
@@ -18,6 +19,7 @@ import { ProjectForm } from "../forms/ProjectForm";
 import { TagForm } from "../forms/TagForm";
 import {
   createTenantFinanceBeneficiary,
+  deleteTenantFinanceBeneficiary,
   getTenantFinanceBeneficiaries,
   updateTenantFinanceBeneficiary,
   updateTenantFinanceBeneficiaryStatus,
@@ -26,6 +28,7 @@ import {
 } from "../services/beneficiariesService";
 import {
   createTenantFinancePerson,
+  deleteTenantFinancePerson,
   getTenantFinancePeople,
   updateTenantFinancePerson,
   updateTenantFinancePersonStatus,
@@ -34,6 +37,7 @@ import {
 } from "../services/peopleService";
 import {
   createTenantFinanceProject,
+  deleteTenantFinanceProject,
   getTenantFinanceProjects,
   updateTenantFinanceProject,
   updateTenantFinanceProjectStatus,
@@ -42,6 +46,7 @@ import {
 } from "../services/projectsService";
 import {
   createTenantFinanceTag,
+  deleteTenantFinanceTag,
   getTenantFinanceTags,
   updateTenantFinanceTag,
   updateTenantFinanceTagStatus,
@@ -198,6 +203,44 @@ export function FinanceToolsPage() {
     }
   }
 
+  async function deleteCurrent(
+    item: TenantFinanceBeneficiary | TenantFinancePerson | TenantFinanceProject | TenantFinanceTag
+  ) {
+    if (!session?.accessToken) {
+      return;
+    }
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Eliminar "${item.name}" solo funcionará si no tiene referencias operativas. ¿Quieres continuar?`
+        : `Deleting "${item.name}" only works when it has no operational references. Continue?`
+    );
+    if (!confirmed) {
+      return;
+    }
+    try {
+      setError(null);
+      let message = "";
+      if (activeTab === "beneficiaries") {
+        message = (
+          await deleteTenantFinanceBeneficiary(session.accessToken, item.id)
+        ).message;
+      } else if (activeTab === "people") {
+        message = (await deleteTenantFinancePerson(session.accessToken, item.id)).message;
+      } else if (activeTab === "projects") {
+        message = (await deleteTenantFinanceProject(session.accessToken, item.id)).message;
+      } else {
+        message = (await deleteTenantFinanceTag(session.accessToken, item.id)).message;
+      }
+      if (editingId === item.id) {
+        resetForm();
+      }
+      setFeedback(message);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    }
+  }
+
   function startEdit(item: TenantFinanceBeneficiary | TenantFinancePerson | TenantFinanceProject | TenantFinanceTag) {
     setEditingId(item.id);
     setError(null);
@@ -253,6 +296,14 @@ export function FinanceToolsPage() {
         }
         actions={
           <AppToolbar compact>
+            <FinanceHelpBubble
+              label={language === "es" ? "Ayuda sobre catálogos auxiliares" : "Supporting catalogs help"}
+              helpText={
+                language === "es"
+                  ? "Beneficiarios, personas, proyectos y etiquetas pueden eliminarse solo si no tienen referencias. Si ya fueron usados, conviene desactivarlos."
+                  : "Beneficiaries, people, projects, and tags can only be deleted when they have no references. If they were already used, the correct action is to deactivate them."
+              }
+            />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
@@ -412,6 +463,13 @@ export function FinanceToolsPage() {
                           ? "Activar"
                           : "Activate"}
                     </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      type="button"
+                      onClick={() => void deleteCurrent(item)}
+                    >
+                      {language === "es" ? "Eliminar" : "Delete"}
+                    </button>
                   </AppToolbar>
                 ),
               },
@@ -483,6 +541,13 @@ export function FinanceToolsPage() {
                           ? "Activar"
                           : "Activate"}
                     </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      type="button"
+                      onClick={() => void deleteCurrent(item)}
+                    >
+                      {language === "es" ? "Eliminar" : "Delete"}
+                    </button>
                   </AppToolbar>
                 ),
               },
@@ -540,6 +605,13 @@ export function FinanceToolsPage() {
                           ? "Activar"
                           : "Activate"}
                     </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      type="button"
+                      onClick={() => void deleteCurrent(item)}
+                    >
+                      {language === "es" ? "Eliminar" : "Delete"}
+                    </button>
                   </AppToolbar>
                 ),
               },
@@ -596,6 +668,13 @@ export function FinanceToolsPage() {
                         : language === "es"
                           ? "Activar"
                           : "Activate"}
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      type="button"
+                      onClick={() => void deleteCurrent(item)}
+                    >
+                      {language === "es" ? "Eliminar" : "Delete"}
                     </button>
                   </AppToolbar>
                 ),
