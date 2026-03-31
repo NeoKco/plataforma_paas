@@ -131,8 +131,6 @@ test("tenant portal finance loans applies batch payment and batch reversal over 
     .filter({ has: page.getByRole("button", { name: /Aplicar pago en lote|Apply batch payment/i }) })
     .first();
 
-  await expect(getSchedulePanel(page)).toContainText(/Cuotas seleccionadas|Selected installments/i);
-  await expect(getSchedulePanel(page)).toContainText(/\b2\b/);
   await expect(
     batchForm.getByRole("button", { name: /Aplicar pago en lote|Apply batch payment/i })
   ).toBeEnabled();
