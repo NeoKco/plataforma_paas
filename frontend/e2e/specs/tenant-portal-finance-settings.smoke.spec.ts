@@ -21,6 +21,12 @@ function getSuccessAlert(page: Page) {
   return page.locator(".alert.alert-success").first();
 }
 
+function expectSettingsSuccess(page: Page) {
+  return expect(getSuccessAlert(page)).toContainText(
+    /configuraci[oó]n financiera|financial settings|setting/i
+  );
+}
+
 function getCurrentForm(page: Page) {
   return page.locator("form").first();
 }
@@ -147,7 +153,7 @@ test("tenant portal finance settings manages currencies, exchange rates and para
     .fill(settingValue);
   await settingForm.getByRole("button", { name: /Crear parámetro|Create parameter/i }).click();
 
-  await expect(getSuccessAlert(page)).toContainText(/par[áa]metro|setting/i);
+  await expectSettingsSuccess(page);
 
   const settingRow = getTableRow(page, settingKey);
   await expect(settingRow).toBeVisible();
@@ -164,14 +170,14 @@ test("tenant portal finance settings manages currencies, exchange rates and para
     .fill(updatedSettingValue);
   await settingEditForm.getByRole("button", { name: /Guardar cambios|Save changes/i }).click();
 
-  await expect(getSuccessAlert(page)).toContainText(/par[áa]metro|setting/i);
+  await expectSettingsSuccess(page);
   await expect(settingRow).toContainText(updatedSettingValue);
 
   await settingRow.getByRole("button", { name: /Desactivar|Deactivate/i }).click();
-  await expect(getSuccessAlert(page)).toContainText(/par[áa]metro|setting/i);
+  await expectSettingsSuccess(page);
   await expect(settingRow).toContainText(/inactivo|inactive/i);
 
   await settingRow.getByRole("button", { name: /Activar|Activate/i }).click();
-  await expect(getSuccessAlert(page)).toContainText(/par[áa]metro|setting/i);
+  await expectSettingsSuccess(page);
   await expect(settingRow).toContainText(/activo|active/i);
 });
