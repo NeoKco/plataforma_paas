@@ -1,0 +1,1438 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e12]: Platform PaaS
+      - generic [ref=e13]: Administración
+    - navigation [ref=e14]:
+      - link "Resumen" [ref=e15] [cursor=pointer]:
+        - /url: /
+        - img [ref=e17]
+        - text: Resumen
+      - link "Usuarios plataforma" [ref=e22] [cursor=pointer]:
+        - /url: /users
+        - img [ref=e24]
+        - text: Usuarios plataforma
+      - link "Actividad" [ref=e29] [cursor=pointer]:
+        - /url: /activity
+        - img [ref=e31]
+        - text: Actividad
+      - link "Tenants" [ref=e33] [cursor=pointer]:
+        - /url: /tenants
+        - img [ref=e35]
+        - text: Tenants
+      - link "Histórico tenants" [ref=e38] [cursor=pointer]:
+        - /url: /tenant-history
+        - img [ref=e40]
+        - text: Histórico tenants
+      - link "Provisioning" [ref=e44] [cursor=pointer]:
+        - /url: /provisioning
+        - img [ref=e46]
+        - text: Provisioning
+      - link "Facturación" [ref=e49] [cursor=pointer]:
+        - /url: /billing
+        - img [ref=e51]
+        - text: Facturación
+      - link "Configuración" [ref=e53] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e55]
+        - text: Configuración
+  - generic [ref=e58]:
+    - banner [ref=e59]:
+      - generic [ref=e60]:
+        - generic [ref=e61]: Consola Operativa
+        - generic [ref=e62]: Superficie de control de plataforma
+      - generic [ref=e63]:
+        - generic [ref=e64]:
+          - generic [ref=e65]: Idioma
+          - combobox "Idioma" [ref=e66]:
+            - option "Español" [selected]
+            - option "English"
+        - link "Portal tenant" [ref=e67] [cursor=pointer]:
+          - /url: /tenant-portal/login
+        - generic [ref=e68]:
+          - generic [ref=e69]: Felipe Hormazabal
+          - generic [ref=e70]: superadmin
+        - button "Salir" [ref=e71] [cursor=pointer]
+    - main [ref=e72]:
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - img [ref=e77]
+            - generic [ref=e80]:
+              - generic [ref=e81]: Plataforma
+              - heading "Tenants" [level=1] [ref=e82]
+              - paragraph [ref=e83]: Vista operativa sobre lifecycle tenant, billing, mantenimiento, política de acceso y uso actual por módulo.
+          - link "Abrir histórico" [ref=e86] [cursor=pointer]:
+            - /url: /tenant-history
+        - generic [ref=e87]:
+          - generic [ref=e88]:
+            - generic [ref=e89]:
+              - generic [ref=e92]:
+                - heading "Crear tenant" [level=2] [ref=e93]
+                - paragraph [ref=e94]: "Alta operativa básica: nombre, slug, tipo y plan inicial para disparar provisioning."
+              - generic [ref=e96]:
+                - generic [ref=e97]:
+                  - generic [ref=e98]:
+                    - generic [ref=e99]: Nombre visible
+                    - button "Ayuda sobre Nombre visible" [ref=e100] [cursor=pointer]: "?"
+                  - 'textbox "Ej: Empresa Centro" [ref=e101]': empresa-demo
+                - generic [ref=e102]:
+                  - generic [ref=e103]:
+                    - generic [ref=e104]: Slug
+                    - button "Ayuda sobre Slug" [ref=e105] [cursor=pointer]: "?"
+                  - textbox "empresa-centro" [ref=e106]: empresa-demo
+                - generic [ref=e107]:
+                  - generic [ref=e108]:
+                    - generic [ref=e109]: Tipo de tenant
+                    - button "Ayuda sobre Tipo de tenant" [ref=e110] [cursor=pointer]: "?"
+                  - combobox [ref=e111]:
+                    - option "condominio"
+                    - option "empresa" [selected]
+                - generic [ref=e112]:
+                  - generic [ref=e113]:
+                    - generic [ref=e114]: Plan inicial
+                    - button "Ayuda sobre Plan inicial" [ref=e115] [cursor=pointer]: "?"
+                  - combobox [ref=e116]:
+                    - option "Sin plan" [selected]
+                    - option "anual"
+                    - option "mensual"
+                    - option "semestral"
+                    - option "trimestral"
+                - paragraph [ref=e118]: Al crear el tenant se dispara provisioning para preparar su base tenant y dejar el acceso bootstrap listo.
+                - button "Crear tenant" [ref=e120] [cursor=pointer]
+            - generic [ref=e121]:
+              - generic [ref=e124]:
+                - heading "Catálogo de tenants" [level=2] [ref=e125]
+                - paragraph [ref=e126]: Busca, filtra y selecciona tenants para entrar a su operación central.
+              - generic [ref=e127]:
+                - generic [ref=e128]:
+                  - textbox "Buscar por nombre, slug o tipo" [ref=e129]
+                  - combobox [ref=e130]:
+                    - option "Todos los estados" [selected]
+                    - option "activo"
+                    - option "archivado"
+                    - option "error"
+                    - option "pendiente"
+                    - option "suspendido"
+                  - combobox [ref=e131]:
+                    - option "Toda la facturación" [selected]
+                    - option "activo"
+                    - option "cancelado"
+                    - option "con deuda"
+                    - option "suspendido"
+                    - option "en prueba"
+                  - combobox [ref=e132]:
+                    - option "Todos los tipos" [selected]
+                    - option "condominio"
+                    - option "empresa"
+                - generic [ref=e133]: 72 de 72 tenants visibles
+                - generic [ref=e134]:
+                  - 'button "Empresa Demo empresa-demo empresa activo billing: activo plan: semestral" [ref=e135] [cursor=pointer]':
+                    - generic [ref=e136]:
+                      - generic [ref=e137]:
+                        - generic [ref=e138]: Empresa Demo
+                        - generic [ref=e139]:
+                          - code [ref=e140]: empresa-demo
+                          - generic [ref=e141]: empresa
+                      - generic [ref=e142]: activo
+                    - generic [ref=e143]:
+                      - generic [ref=e144]: "billing: activo"
+                      - generic [ref=e145]: "plan: semestral"
+                  - 'button "Condominio Demo condominio-demo condominio activo billing: activo plan: ninguno" [ref=e146] [cursor=pointer]':
+                    - generic [ref=e147]:
+                      - generic [ref=e148]:
+                        - generic [ref=e149]: Condominio Demo
+                        - generic [ref=e150]:
+                          - code [ref=e151]: condominio-demo
+                          - generic [ref=e152]: condominio
+                      - generic [ref=e153]: activo
+                    - generic [ref=e154]:
+                      - generic [ref=e155]: "billing: activo"
+                      - generic [ref=e156]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774834389046 e2e-tenant-1774834389046 empresa activo billing: ninguno plan: ninguno" [ref=e157] [cursor=pointer]':
+                    - generic [ref=e158]:
+                      - generic [ref=e159]:
+                        - generic [ref=e160]: E2E Tenant 1774834389046
+                        - generic [ref=e161]:
+                          - code [ref=e162]: e2e-tenant-1774834389046
+                          - generic [ref=e163]: empresa
+                      - generic [ref=e164]: activo
+                    - generic [ref=e165]:
+                      - generic [ref=e166]: "billing: ninguno"
+                      - generic [ref=e167]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774834559880 e2e-provisioning-1774834559880 empresa pendiente billing: ninguno plan: ninguno" [ref=e168] [cursor=pointer]':
+                    - generic [ref=e169]:
+                      - generic [ref=e170]:
+                        - generic [ref=e171]: E2E Provisioning 1774834559880
+                        - generic [ref=e172]:
+                          - code [ref=e173]: e2e-provisioning-1774834559880
+                          - generic [ref=e174]: empresa
+                      - generic [ref=e175]: pendiente
+                    - generic [ref=e176]:
+                      - generic [ref=e177]: "billing: ninguno"
+                      - generic [ref=e178]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774834562925 e2e-tenant-1774834562925 empresa activo billing: ninguno plan: ninguno" [ref=e179] [cursor=pointer]':
+                    - generic [ref=e180]:
+                      - generic [ref=e181]:
+                        - generic [ref=e182]: E2E Tenant 1774834562925
+                        - generic [ref=e183]:
+                          - code [ref=e184]: e2e-tenant-1774834562925
+                          - generic [ref=e185]: empresa
+                      - generic [ref=e186]: activo
+                    - generic [ref=e187]:
+                      - generic [ref=e188]: "billing: ninguno"
+                      - generic [ref=e189]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774834616968 e2e-provisioning-1774834616968 empresa pendiente billing: ninguno plan: ninguno" [ref=e190] [cursor=pointer]':
+                    - generic [ref=e191]:
+                      - generic [ref=e192]:
+                        - generic [ref=e193]: E2E Provisioning 1774834616968
+                        - generic [ref=e194]:
+                          - code [ref=e195]: e2e-provisioning-1774834616968
+                          - generic [ref=e196]: empresa
+                      - generic [ref=e197]: pendiente
+                    - generic [ref=e198]:
+                      - generic [ref=e199]: "billing: ninguno"
+                      - generic [ref=e200]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774834618677 e2e-tenant-1774834618677 empresa activo billing: ninguno plan: ninguno" [ref=e201] [cursor=pointer]':
+                    - generic [ref=e202]:
+                      - generic [ref=e203]:
+                        - generic [ref=e204]: E2E Tenant 1774834618677
+                        - generic [ref=e205]:
+                          - code [ref=e206]: e2e-tenant-1774834618677
+                          - generic [ref=e207]: empresa
+                      - generic [ref=e208]: activo
+                    - generic [ref=e209]:
+                      - generic [ref=e210]: "billing: ninguno"
+                      - generic [ref=e211]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774834875253 e2e-provisioning-1774834875253 empresa pendiente billing: ninguno plan: ninguno" [ref=e212] [cursor=pointer]':
+                    - generic [ref=e213]:
+                      - generic [ref=e214]:
+                        - generic [ref=e215]: E2E Provisioning 1774834875253
+                        - generic [ref=e216]:
+                          - code [ref=e217]: e2e-provisioning-1774834875253
+                          - generic [ref=e218]: empresa
+                      - generic [ref=e219]: pendiente
+                    - generic [ref=e220]:
+                      - generic [ref=e221]: "billing: ninguno"
+                      - generic [ref=e222]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774834878149 e2e-tenant-1774834878149 empresa activo billing: ninguno plan: ninguno" [ref=e223] [cursor=pointer]':
+                    - generic [ref=e224]:
+                      - generic [ref=e225]:
+                        - generic [ref=e226]: E2E Tenant 1774834878149
+                        - generic [ref=e227]:
+                          - code [ref=e228]: e2e-tenant-1774834878149
+                          - generic [ref=e229]: empresa
+                      - generic [ref=e230]: activo
+                    - generic [ref=e231]:
+                      - generic [ref=e232]: "billing: ninguno"
+                      - generic [ref=e233]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774919607139 e2e-provisioning-run-1774919607139 empresa activo billing: ninguno plan: ninguno" [ref=e234] [cursor=pointer]':
+                    - generic [ref=e235]:
+                      - generic [ref=e236]:
+                        - generic [ref=e237]: E2E Provisioning Run 1774919607139
+                        - generic [ref=e238]:
+                          - code [ref=e239]: e2e-provisioning-run-1774919607139
+                          - generic [ref=e240]: empresa
+                      - generic [ref=e241]: activo
+                    - generic [ref=e242]:
+                      - generic [ref=e243]: "billing: ninguno"
+                      - generic [ref=e244]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774919610278 e2e-provisioning-1774919610278 empresa pendiente billing: ninguno plan: ninguno" [ref=e245] [cursor=pointer]':
+                    - generic [ref=e246]:
+                      - generic [ref=e247]:
+                        - generic [ref=e248]: E2E Provisioning 1774919610278
+                        - generic [ref=e249]:
+                          - code [ref=e250]: e2e-provisioning-1774919610278
+                          - generic [ref=e251]: empresa
+                      - generic [ref=e252]: pendiente
+                    - generic [ref=e253]:
+                      - generic [ref=e254]: "billing: ninguno"
+                      - generic [ref=e255]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774919612600 e2e-tenant-1774919612600 empresa activo billing: ninguno plan: ninguno" [ref=e256] [cursor=pointer]':
+                    - generic [ref=e257]:
+                      - generic [ref=e258]:
+                        - generic [ref=e259]: E2E Tenant 1774919612600
+                        - generic [ref=e260]:
+                          - code [ref=e261]: e2e-tenant-1774919612600
+                          - generic [ref=e262]: empresa
+                      - generic [ref=e263]: activo
+                    - generic [ref=e264]:
+                      - generic [ref=e265]: "billing: ninguno"
+                      - generic [ref=e266]: "plan: ninguno"
+                  - 'button "E2E Provisioning Retry 1774919965587 e2e-provisioning-retry-1774919965587 empresa pendiente billing: ninguno plan: ninguno" [ref=e267] [cursor=pointer]':
+                    - generic [ref=e268]:
+                      - generic [ref=e269]:
+                        - generic [ref=e270]: E2E Provisioning Retry 1774919965587
+                        - generic [ref=e271]:
+                          - code [ref=e272]: e2e-provisioning-retry-1774919965587
+                          - generic [ref=e273]: empresa
+                      - generic [ref=e274]: pendiente
+                    - generic [ref=e275]:
+                      - generic [ref=e276]: "billing: ninguno"
+                      - generic [ref=e277]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774919967840 e2e-provisioning-run-1774919967840 empresa activo billing: ninguno plan: ninguno" [ref=e278] [cursor=pointer]':
+                    - generic [ref=e279]:
+                      - generic [ref=e280]:
+                        - generic [ref=e281]: E2E Provisioning Run 1774919967840
+                        - generic [ref=e282]:
+                          - code [ref=e283]: e2e-provisioning-run-1774919967840
+                          - generic [ref=e284]: empresa
+                      - generic [ref=e285]: activo
+                    - generic [ref=e286]:
+                      - generic [ref=e287]: "billing: ninguno"
+                      - generic [ref=e288]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774919971138 e2e-provisioning-1774919971138 empresa pendiente billing: ninguno plan: ninguno" [ref=e289] [cursor=pointer]':
+                    - generic [ref=e290]:
+                      - generic [ref=e291]:
+                        - generic [ref=e292]: E2E Provisioning 1774919971138
+                        - generic [ref=e293]:
+                          - code [ref=e294]: e2e-provisioning-1774919971138
+                          - generic [ref=e295]: empresa
+                      - generic [ref=e296]: pendiente
+                    - generic [ref=e297]:
+                      - generic [ref=e298]: "billing: ninguno"
+                      - generic [ref=e299]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774919973683 e2e-tenant-1774919973683 empresa activo billing: ninguno plan: ninguno" [ref=e300] [cursor=pointer]':
+                    - generic [ref=e301]:
+                      - generic [ref=e302]:
+                        - generic [ref=e303]: E2E Tenant 1774919973683
+                        - generic [ref=e304]:
+                          - code [ref=e305]: e2e-tenant-1774919973683
+                          - generic [ref=e306]: empresa
+                      - generic [ref=e307]: activo
+                    - generic [ref=e308]:
+                      - generic [ref=e309]: "billing: ninguno"
+                      - generic [ref=e310]: "plan: ninguno"
+                  - 'button "E2E Provisioning Retry 1774919998091 e2e-provisioning-retry-1774919998091 empresa pendiente billing: ninguno plan: ninguno" [ref=e311] [cursor=pointer]':
+                    - generic [ref=e312]:
+                      - generic [ref=e313]:
+                        - generic [ref=e314]: E2E Provisioning Retry 1774919998091
+                        - generic [ref=e315]:
+                          - code [ref=e316]: e2e-provisioning-retry-1774919998091
+                          - generic [ref=e317]: empresa
+                      - generic [ref=e318]: pendiente
+                    - generic [ref=e319]:
+                      - generic [ref=e320]: "billing: ninguno"
+                      - generic [ref=e321]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774920000150 e2e-provisioning-run-1774920000150 empresa activo billing: ninguno plan: ninguno" [ref=e322] [cursor=pointer]':
+                    - generic [ref=e323]:
+                      - generic [ref=e324]:
+                        - generic [ref=e325]: E2E Provisioning Run 1774920000150
+                        - generic [ref=e326]:
+                          - code [ref=e327]: e2e-provisioning-run-1774920000150
+                          - generic [ref=e328]: empresa
+                      - generic [ref=e329]: activo
+                    - generic [ref=e330]:
+                      - generic [ref=e331]: "billing: ninguno"
+                      - generic [ref=e332]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774920002623 e2e-provisioning-1774920002623 empresa pendiente billing: ninguno plan: ninguno" [ref=e333] [cursor=pointer]':
+                    - generic [ref=e334]:
+                      - generic [ref=e335]:
+                        - generic [ref=e336]: E2E Provisioning 1774920002623
+                        - generic [ref=e337]:
+                          - code [ref=e338]: e2e-provisioning-1774920002623
+                          - generic [ref=e339]: empresa
+                      - generic [ref=e340]: pendiente
+                    - generic [ref=e341]:
+                      - generic [ref=e342]: "billing: ninguno"
+                      - generic [ref=e343]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774920005029 e2e-tenant-1774920005029 empresa activo billing: ninguno plan: ninguno" [ref=e344] [cursor=pointer]':
+                    - generic [ref=e345]:
+                      - generic [ref=e346]:
+                        - generic [ref=e347]: E2E Tenant 1774920005029
+                        - generic [ref=e348]:
+                          - code [ref=e349]: e2e-tenant-1774920005029
+                          - generic [ref=e350]: empresa
+                      - generic [ref=e351]: activo
+                    - generic [ref=e352]:
+                      - generic [ref=e353]: "billing: ninguno"
+                      - generic [ref=e354]: "plan: ninguno"
+                  - 'button "E2E Provisioning Retry 1774920410172 e2e-provisioning-retry-1774920410172 empresa pendiente billing: ninguno plan: ninguno" [ref=e355] [cursor=pointer]':
+                    - generic [ref=e356]:
+                      - generic [ref=e357]:
+                        - generic [ref=e358]: E2E Provisioning Retry 1774920410172
+                        - generic [ref=e359]:
+                          - code [ref=e360]: e2e-provisioning-retry-1774920410172
+                          - generic [ref=e361]: empresa
+                      - generic [ref=e362]: pendiente
+                    - generic [ref=e363]:
+                      - generic [ref=e364]: "billing: ninguno"
+                      - generic [ref=e365]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774920412326 e2e-provisioning-run-1774920412326 empresa activo billing: ninguno plan: ninguno" [ref=e366] [cursor=pointer]':
+                    - generic [ref=e367]:
+                      - generic [ref=e368]:
+                        - generic [ref=e369]: E2E Provisioning Run 1774920412326
+                        - generic [ref=e370]:
+                          - code [ref=e371]: e2e-provisioning-run-1774920412326
+                          - generic [ref=e372]: empresa
+                      - generic [ref=e373]: activo
+                    - generic [ref=e374]:
+                      - generic [ref=e375]: "billing: ninguno"
+                      - generic [ref=e376]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774920414493 e2e-provisioning-1774920414493 empresa pendiente billing: ninguno plan: ninguno" [ref=e377] [cursor=pointer]':
+                    - generic [ref=e378]:
+                      - generic [ref=e379]:
+                        - generic [ref=e380]: E2E Provisioning 1774920414493
+                        - generic [ref=e381]:
+                          - code [ref=e382]: e2e-provisioning-1774920414493
+                          - generic [ref=e383]: empresa
+                      - generic [ref=e384]: pendiente
+                    - generic [ref=e385]:
+                      - generic [ref=e386]: "billing: ninguno"
+                      - generic [ref=e387]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774920416743 e2e-tenant-1774920416743 empresa activo billing: ninguno plan: ninguno" [ref=e388] [cursor=pointer]':
+                    - generic [ref=e389]:
+                      - generic [ref=e390]:
+                        - generic [ref=e391]: E2E Tenant 1774920416743
+                        - generic [ref=e392]:
+                          - code [ref=e393]: e2e-tenant-1774920416743
+                          - generic [ref=e394]: empresa
+                      - generic [ref=e395]: activo
+                    - generic [ref=e396]:
+                      - generic [ref=e397]: "billing: ninguno"
+                      - generic [ref=e398]: "plan: ninguno"
+                  - 'button "E2E Provisioning Retry 1774921074256 e2e-provisioning-retry-1774921074256 empresa pendiente billing: ninguno plan: ninguno" [ref=e399] [cursor=pointer]':
+                    - generic [ref=e400]:
+                      - generic [ref=e401]:
+                        - generic [ref=e402]: E2E Provisioning Retry 1774921074256
+                        - generic [ref=e403]:
+                          - code [ref=e404]: e2e-provisioning-retry-1774921074256
+                          - generic [ref=e405]: empresa
+                      - generic [ref=e406]: pendiente
+                    - generic [ref=e407]:
+                      - generic [ref=e408]: "billing: ninguno"
+                      - generic [ref=e409]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774921076033 e2e-provisioning-run-1774921076033 empresa activo billing: ninguno plan: ninguno" [ref=e410] [cursor=pointer]':
+                    - generic [ref=e411]:
+                      - generic [ref=e412]:
+                        - generic [ref=e413]: E2E Provisioning Run 1774921076033
+                        - generic [ref=e414]:
+                          - code [ref=e415]: e2e-provisioning-run-1774921076033
+                          - generic [ref=e416]: empresa
+                      - generic [ref=e417]: activo
+                    - generic [ref=e418]:
+                      - generic [ref=e419]: "billing: ninguno"
+                      - generic [ref=e420]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774921078524 e2e-provisioning-1774921078524 empresa pendiente billing: ninguno plan: ninguno" [ref=e421] [cursor=pointer]':
+                    - generic [ref=e422]:
+                      - generic [ref=e423]:
+                        - generic [ref=e424]: E2E Provisioning 1774921078524
+                        - generic [ref=e425]:
+                          - code [ref=e426]: e2e-provisioning-1774921078524
+                          - generic [ref=e427]: empresa
+                      - generic [ref=e428]: pendiente
+                    - generic [ref=e429]:
+                      - generic [ref=e430]: "billing: ninguno"
+                      - generic [ref=e431]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774921080952 e2e-tenant-1774921080952 empresa activo billing: ninguno plan: ninguno" [ref=e432] [cursor=pointer]':
+                    - generic [ref=e433]:
+                      - generic [ref=e434]:
+                        - generic [ref=e435]: E2E Tenant 1774921080952
+                        - generic [ref=e436]:
+                          - code [ref=e437]: e2e-tenant-1774921080952
+                          - generic [ref=e438]: empresa
+                      - generic [ref=e439]: activo
+                    - generic [ref=e440]:
+                      - generic [ref=e441]: "billing: ninguno"
+                      - generic [ref=e442]: "plan: ninguno"
+                  - 'button "E2E Provisioning Retry 1774921104542 e2e-provisioning-retry-1774921104542 empresa pendiente billing: ninguno plan: ninguno" [ref=e443] [cursor=pointer]':
+                    - generic [ref=e444]:
+                      - generic [ref=e445]:
+                        - generic [ref=e446]: E2E Provisioning Retry 1774921104542
+                        - generic [ref=e447]:
+                          - code [ref=e448]: e2e-provisioning-retry-1774921104542
+                          - generic [ref=e449]: empresa
+                      - generic [ref=e450]: pendiente
+                    - generic [ref=e451]:
+                      - generic [ref=e452]: "billing: ninguno"
+                      - generic [ref=e453]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774921106513 e2e-provisioning-run-1774921106513 empresa activo billing: ninguno plan: ninguno" [ref=e454] [cursor=pointer]':
+                    - generic [ref=e455]:
+                      - generic [ref=e456]:
+                        - generic [ref=e457]: E2E Provisioning Run 1774921106513
+                        - generic [ref=e458]:
+                          - code [ref=e459]: e2e-provisioning-run-1774921106513
+                          - generic [ref=e460]: empresa
+                      - generic [ref=e461]: activo
+                    - generic [ref=e462]:
+                      - generic [ref=e463]: "billing: ninguno"
+                      - generic [ref=e464]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774921108664 e2e-provisioning-1774921108664 empresa pendiente billing: ninguno plan: ninguno" [ref=e465] [cursor=pointer]':
+                    - generic [ref=e466]:
+                      - generic [ref=e467]:
+                        - generic [ref=e468]: E2E Provisioning 1774921108664
+                        - generic [ref=e469]:
+                          - code [ref=e470]: e2e-provisioning-1774921108664
+                          - generic [ref=e471]: empresa
+                      - generic [ref=e472]: pendiente
+                    - generic [ref=e473]:
+                      - generic [ref=e474]: "billing: ninguno"
+                      - generic [ref=e475]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774921111085 e2e-tenant-1774921111085 empresa activo billing: ninguno plan: ninguno" [ref=e476] [cursor=pointer]':
+                    - generic [ref=e477]:
+                      - generic [ref=e478]:
+                        - generic [ref=e479]: E2E Tenant 1774921111085
+                        - generic [ref=e480]:
+                          - code [ref=e481]: e2e-tenant-1774921111085
+                          - generic [ref=e482]: empresa
+                      - generic [ref=e483]: activo
+                    - generic [ref=e484]:
+                      - generic [ref=e485]: "billing: ninguno"
+                      - generic [ref=e486]: "plan: ninguno"
+                  - 'button "E2E Provisioning Retry 1774921378551 e2e-provisioning-retry-1774921378551 empresa pendiente billing: ninguno plan: ninguno" [ref=e487] [cursor=pointer]':
+                    - generic [ref=e488]:
+                      - generic [ref=e489]:
+                        - generic [ref=e490]: E2E Provisioning Retry 1774921378551
+                        - generic [ref=e491]:
+                          - code [ref=e492]: e2e-provisioning-retry-1774921378551
+                          - generic [ref=e493]: empresa
+                      - generic [ref=e494]: pendiente
+                    - generic [ref=e495]:
+                      - generic [ref=e496]: "billing: ninguno"
+                      - generic [ref=e497]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774921380564 e2e-provisioning-run-1774921380564 empresa activo billing: ninguno plan: ninguno" [ref=e498] [cursor=pointer]':
+                    - generic [ref=e499]:
+                      - generic [ref=e500]:
+                        - generic [ref=e501]: E2E Provisioning Run 1774921380564
+                        - generic [ref=e502]:
+                          - code [ref=e503]: e2e-provisioning-run-1774921380564
+                          - generic [ref=e504]: empresa
+                      - generic [ref=e505]: activo
+                    - generic [ref=e506]:
+                      - generic [ref=e507]: "billing: ninguno"
+                      - generic [ref=e508]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774921383011 e2e-provisioning-1774921383011 empresa pendiente billing: ninguno plan: ninguno" [ref=e509] [cursor=pointer]':
+                    - generic [ref=e510]:
+                      - generic [ref=e511]:
+                        - generic [ref=e512]: E2E Provisioning 1774921383011
+                        - generic [ref=e513]:
+                          - code [ref=e514]: e2e-provisioning-1774921383011
+                          - generic [ref=e515]: empresa
+                      - generic [ref=e516]: pendiente
+                    - generic [ref=e517]:
+                      - generic [ref=e518]: "billing: ninguno"
+                      - generic [ref=e519]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774921385436 e2e-tenant-1774921385436 empresa activo billing: ninguno plan: ninguno" [ref=e520] [cursor=pointer]':
+                    - generic [ref=e521]:
+                      - generic [ref=e522]:
+                        - generic [ref=e523]: E2E Tenant 1774921385436
+                        - generic [ref=e524]:
+                          - code [ref=e525]: e2e-tenant-1774921385436
+                          - generic [ref=e526]: empresa
+                      - generic [ref=e527]: activo
+                    - generic [ref=e528]:
+                      - generic [ref=e529]: "billing: ninguno"
+                      - generic [ref=e530]: "plan: ninguno"
+                  - 'button "E2E Tenant Portal Blocked 1774921673859 e2e-tenant-portal-blocked-1774921673859 empresa archivado billing: ninguno plan: ninguno" [ref=e531] [cursor=pointer]':
+                    - generic [ref=e532]:
+                      - generic [ref=e533]:
+                        - generic [ref=e534]: E2E Tenant Portal Blocked 1774921673859
+                        - generic [ref=e535]:
+                          - code [ref=e536]: e2e-tenant-portal-blocked-1774921673859
+                          - generic [ref=e537]: empresa
+                      - generic [ref=e538]: archivado
+                    - generic [ref=e539]:
+                      - generic [ref=e540]: "billing: ninguno"
+                      - generic [ref=e541]: "plan: ninguno"
+                  - 'button "E2E Provisioning Retry 1774921705348 e2e-provisioning-retry-1774921705348 empresa pendiente billing: ninguno plan: ninguno" [ref=e542] [cursor=pointer]':
+                    - generic [ref=e543]:
+                      - generic [ref=e544]:
+                        - generic [ref=e545]: E2E Provisioning Retry 1774921705348
+                        - generic [ref=e546]:
+                          - code [ref=e547]: e2e-provisioning-retry-1774921705348
+                          - generic [ref=e548]: empresa
+                      - generic [ref=e549]: pendiente
+                    - generic [ref=e550]:
+                      - generic [ref=e551]: "billing: ninguno"
+                      - generic [ref=e552]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774921707353 e2e-provisioning-run-1774921707353 empresa activo billing: ninguno plan: ninguno" [ref=e553] [cursor=pointer]':
+                    - generic [ref=e554]:
+                      - generic [ref=e555]:
+                        - generic [ref=e556]: E2E Provisioning Run 1774921707353
+                        - generic [ref=e557]:
+                          - code [ref=e558]: e2e-provisioning-run-1774921707353
+                          - generic [ref=e559]: empresa
+                      - generic [ref=e560]: activo
+                    - generic [ref=e561]:
+                      - generic [ref=e562]: "billing: ninguno"
+                      - generic [ref=e563]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774921709652 e2e-provisioning-1774921709652 empresa pendiente billing: ninguno plan: ninguno" [ref=e564] [cursor=pointer]':
+                    - generic [ref=e565]:
+                      - generic [ref=e566]:
+                        - generic [ref=e567]: E2E Provisioning 1774921709652
+                        - generic [ref=e568]:
+                          - code [ref=e569]: e2e-provisioning-1774921709652
+                          - generic [ref=e570]: empresa
+                      - generic [ref=e571]: pendiente
+                    - generic [ref=e572]:
+                      - generic [ref=e573]: "billing: ninguno"
+                      - generic [ref=e574]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774921712143 e2e-tenant-1774921712143 empresa activo billing: ninguno plan: ninguno" [ref=e575] [cursor=pointer]':
+                    - generic [ref=e576]:
+                      - generic [ref=e577]:
+                        - generic [ref=e578]: E2E Tenant 1774921712143
+                        - generic [ref=e579]:
+                          - code [ref=e580]: e2e-tenant-1774921712143
+                          - generic [ref=e581]: empresa
+                      - generic [ref=e582]: activo
+                    - generic [ref=e583]:
+                      - generic [ref=e584]: "billing: ninguno"
+                      - generic [ref=e585]: "plan: ninguno"
+                  - 'button "E2E Tenant Portal Blocked 1774921747638 e2e-tenant-portal-blocked-1774921747638 empresa archivado billing: ninguno plan: ninguno" [ref=e586] [cursor=pointer]':
+                    - generic [ref=e587]:
+                      - generic [ref=e588]:
+                        - generic [ref=e589]: E2E Tenant Portal Blocked 1774921747638
+                        - generic [ref=e590]:
+                          - code [ref=e591]: e2e-tenant-portal-blocked-1774921747638
+                          - generic [ref=e592]: empresa
+                      - generic [ref=e593]: archivado
+                    - generic [ref=e594]:
+                      - generic [ref=e595]: "billing: ninguno"
+                      - generic [ref=e596]: "plan: ninguno"
+                  - 'button "E2E Tenant Portal Blocked 1774921775651 e2e-tenant-portal-blocked-1774921775651 empresa archivado billing: ninguno plan: ninguno" [ref=e597] [cursor=pointer]':
+                    - generic [ref=e598]:
+                      - generic [ref=e599]:
+                        - generic [ref=e600]: E2E Tenant Portal Blocked 1774921775651
+                        - generic [ref=e601]:
+                          - code [ref=e602]: e2e-tenant-portal-blocked-1774921775651
+                          - generic [ref=e603]: empresa
+                      - generic [ref=e604]: archivado
+                    - generic [ref=e605]:
+                      - generic [ref=e606]: "billing: ninguno"
+                      - generic [ref=e607]: "plan: ninguno"
+                  - 'button "E2E Provisioning Retry 1774921861964 e2e-provisioning-retry-1774921861964 empresa pendiente billing: ninguno plan: ninguno" [ref=e608] [cursor=pointer]':
+                    - generic [ref=e609]:
+                      - generic [ref=e610]:
+                        - generic [ref=e611]: E2E Provisioning Retry 1774921861964
+                        - generic [ref=e612]:
+                          - code [ref=e613]: e2e-provisioning-retry-1774921861964
+                          - generic [ref=e614]: empresa
+                      - generic [ref=e615]: pendiente
+                    - generic [ref=e616]:
+                      - generic [ref=e617]: "billing: ninguno"
+                      - generic [ref=e618]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774921864029 e2e-provisioning-run-1774921864029 empresa activo billing: ninguno plan: ninguno" [ref=e619] [cursor=pointer]':
+                    - generic [ref=e620]:
+                      - generic [ref=e621]:
+                        - generic [ref=e622]: E2E Provisioning Run 1774921864029
+                        - generic [ref=e623]:
+                          - code [ref=e624]: e2e-provisioning-run-1774921864029
+                          - generic [ref=e625]: empresa
+                      - generic [ref=e626]: activo
+                    - generic [ref=e627]:
+                      - generic [ref=e628]: "billing: ninguno"
+                      - generic [ref=e629]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774921866479 e2e-provisioning-1774921866479 empresa pendiente billing: ninguno plan: ninguno" [ref=e630] [cursor=pointer]':
+                    - generic [ref=e631]:
+                      - generic [ref=e632]:
+                        - generic [ref=e633]: E2E Provisioning 1774921866479
+                        - generic [ref=e634]:
+                          - code [ref=e635]: e2e-provisioning-1774921866479
+                          - generic [ref=e636]: empresa
+                      - generic [ref=e637]: pendiente
+                    - generic [ref=e638]:
+                      - generic [ref=e639]: "billing: ninguno"
+                      - generic [ref=e640]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774921869033 e2e-tenant-1774921869033 empresa activo billing: ninguno plan: ninguno" [ref=e641] [cursor=pointer]':
+                    - generic [ref=e642]:
+                      - generic [ref=e643]:
+                        - generic [ref=e644]: E2E Tenant 1774921869033
+                        - generic [ref=e645]:
+                          - code [ref=e646]: e2e-tenant-1774921869033
+                          - generic [ref=e647]: empresa
+                      - generic [ref=e648]: activo
+                    - generic [ref=e649]:
+                      - generic [ref=e650]: "billing: ninguno"
+                      - generic [ref=e651]: "plan: ninguno"
+                  - 'button "E2E Tenant Portal Blocked 1774921871927 e2e-tenant-portal-blocked-1774921871927 empresa archivado billing: ninguno plan: ninguno" [ref=e652] [cursor=pointer]':
+                    - generic [ref=e653]:
+                      - generic [ref=e654]:
+                        - generic [ref=e655]: E2E Tenant Portal Blocked 1774921871927
+                        - generic [ref=e656]:
+                          - code [ref=e657]: e2e-tenant-portal-blocked-1774921871927
+                          - generic [ref=e658]: empresa
+                      - generic [ref=e659]: archivado
+                    - generic [ref=e660]:
+                      - generic [ref=e661]: "billing: ninguno"
+                      - generic [ref=e662]: "plan: ninguno"
+                  - 'button "E2E Provisioning Retry 1774922137110 e2e-provisioning-retry-1774922137110 empresa pendiente billing: ninguno plan: ninguno" [ref=e663] [cursor=pointer]':
+                    - generic [ref=e664]:
+                      - generic [ref=e665]:
+                        - generic [ref=e666]: E2E Provisioning Retry 1774922137110
+                        - generic [ref=e667]:
+                          - code [ref=e668]: e2e-provisioning-retry-1774922137110
+                          - generic [ref=e669]: empresa
+                      - generic [ref=e670]: pendiente
+                    - generic [ref=e671]:
+                      - generic [ref=e672]: "billing: ninguno"
+                      - generic [ref=e673]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774922138990 e2e-provisioning-run-1774922138990 empresa activo billing: ninguno plan: ninguno" [ref=e674] [cursor=pointer]':
+                    - generic [ref=e675]:
+                      - generic [ref=e676]:
+                        - generic [ref=e677]: E2E Provisioning Run 1774922138990
+                        - generic [ref=e678]:
+                          - code [ref=e679]: e2e-provisioning-run-1774922138990
+                          - generic [ref=e680]: empresa
+                      - generic [ref=e681]: activo
+                    - generic [ref=e682]:
+                      - generic [ref=e683]: "billing: ninguno"
+                      - generic [ref=e684]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774922141471 e2e-provisioning-1774922141471 empresa pendiente billing: ninguno plan: ninguno" [ref=e685] [cursor=pointer]':
+                    - generic [ref=e686]:
+                      - generic [ref=e687]:
+                        - generic [ref=e688]: E2E Provisioning 1774922141471
+                        - generic [ref=e689]:
+                          - code [ref=e690]: e2e-provisioning-1774922141471
+                          - generic [ref=e691]: empresa
+                      - generic [ref=e692]: pendiente
+                    - generic [ref=e693]:
+                      - generic [ref=e694]: "billing: ninguno"
+                      - generic [ref=e695]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774922143737 e2e-tenant-1774922143737 empresa activo billing: ninguno plan: ninguno" [ref=e696] [cursor=pointer]':
+                    - generic [ref=e697]:
+                      - generic [ref=e698]:
+                        - generic [ref=e699]: E2E Tenant 1774922143737
+                        - generic [ref=e700]:
+                          - code [ref=e701]: e2e-tenant-1774922143737
+                          - generic [ref=e702]: empresa
+                      - generic [ref=e703]: activo
+                    - generic [ref=e704]:
+                      - generic [ref=e705]: "billing: ninguno"
+                      - generic [ref=e706]: "plan: ninguno"
+                  - 'button "E2E Tenant Portal Blocked 1774922148685 e2e-tenant-portal-blocked-1774922148685 empresa archivado billing: ninguno plan: ninguno" [ref=e707] [cursor=pointer]':
+                    - generic [ref=e708]:
+                      - generic [ref=e709]:
+                        - generic [ref=e710]: E2E Tenant Portal Blocked 1774922148685
+                        - generic [ref=e711]:
+                          - code [ref=e712]: e2e-tenant-portal-blocked-1774922148685
+                          - generic [ref=e713]: empresa
+                      - generic [ref=e714]: archivado
+                    - generic [ref=e715]:
+                      - generic [ref=e716]: "billing: ninguno"
+                      - generic [ref=e717]: "plan: ninguno"
+                  - 'button "E2E Provisioning Retry 1774922660783 e2e-provisioning-retry-1774922660783 empresa pendiente billing: ninguno plan: ninguno" [ref=e718] [cursor=pointer]':
+                    - generic [ref=e719]:
+                      - generic [ref=e720]:
+                        - generic [ref=e721]: E2E Provisioning Retry 1774922660783
+                        - generic [ref=e722]:
+                          - code [ref=e723]: e2e-provisioning-retry-1774922660783
+                          - generic [ref=e724]: empresa
+                      - generic [ref=e725]: pendiente
+                    - generic [ref=e726]:
+                      - generic [ref=e727]: "billing: ninguno"
+                      - generic [ref=e728]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774922662565 e2e-provisioning-run-1774922662565 empresa activo billing: ninguno plan: ninguno" [ref=e729] [cursor=pointer]':
+                    - generic [ref=e730]:
+                      - generic [ref=e731]:
+                        - generic [ref=e732]: E2E Provisioning Run 1774922662565
+                        - generic [ref=e733]:
+                          - code [ref=e734]: e2e-provisioning-run-1774922662565
+                          - generic [ref=e735]: empresa
+                      - generic [ref=e736]: activo
+                    - generic [ref=e737]:
+                      - generic [ref=e738]: "billing: ninguno"
+                      - generic [ref=e739]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774922665065 e2e-provisioning-1774922665065 empresa pendiente billing: ninguno plan: ninguno" [ref=e740] [cursor=pointer]':
+                    - generic [ref=e741]:
+                      - generic [ref=e742]:
+                        - generic [ref=e743]: E2E Provisioning 1774922665065
+                        - generic [ref=e744]:
+                          - code [ref=e745]: e2e-provisioning-1774922665065
+                          - generic [ref=e746]: empresa
+                      - generic [ref=e747]: pendiente
+                    - generic [ref=e748]:
+                      - generic [ref=e749]: "billing: ninguno"
+                      - generic [ref=e750]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774922667764 e2e-tenant-1774922667764 empresa activo billing: ninguno plan: ninguno" [ref=e751] [cursor=pointer]':
+                    - generic [ref=e752]:
+                      - generic [ref=e753]:
+                        - generic [ref=e754]: E2E Tenant 1774922667764
+                        - generic [ref=e755]:
+                          - code [ref=e756]: e2e-tenant-1774922667764
+                          - generic [ref=e757]: empresa
+                      - generic [ref=e758]: activo
+                    - generic [ref=e759]:
+                      - generic [ref=e760]: "billing: ninguno"
+                      - generic [ref=e761]: "plan: ninguno"
+                  - 'button "E2E Tenant Portal Blocked 1774922678453 e2e-tenant-portal-blocked-1774922678453 empresa archivado billing: ninguno plan: ninguno" [ref=e762] [cursor=pointer]':
+                    - generic [ref=e763]:
+                      - generic [ref=e764]:
+                        - generic [ref=e765]: E2E Tenant Portal Blocked 1774922678453
+                        - generic [ref=e766]:
+                          - code [ref=e767]: e2e-tenant-portal-blocked-1774922678453
+                          - generic [ref=e768]: empresa
+                      - generic [ref=e769]: archivado
+                    - generic [ref=e770]:
+                      - generic [ref=e771]: "billing: ninguno"
+                      - generic [ref=e772]: "plan: ninguno"
+                  - 'button "E2E Provisioning Retry 1774922733852 e2e-provisioning-retry-1774922733852 empresa pendiente billing: ninguno plan: ninguno" [ref=e773] [cursor=pointer]':
+                    - generic [ref=e774]:
+                      - generic [ref=e775]:
+                        - generic [ref=e776]: E2E Provisioning Retry 1774922733852
+                        - generic [ref=e777]:
+                          - code [ref=e778]: e2e-provisioning-retry-1774922733852
+                          - generic [ref=e779]: empresa
+                      - generic [ref=e780]: pendiente
+                    - generic [ref=e781]:
+                      - generic [ref=e782]: "billing: ninguno"
+                      - generic [ref=e783]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774922735938 e2e-provisioning-run-1774922735938 empresa activo billing: ninguno plan: ninguno" [ref=e784] [cursor=pointer]':
+                    - generic [ref=e785]:
+                      - generic [ref=e786]:
+                        - generic [ref=e787]: E2E Provisioning Run 1774922735938
+                        - generic [ref=e788]:
+                          - code [ref=e789]: e2e-provisioning-run-1774922735938
+                          - generic [ref=e790]: empresa
+                      - generic [ref=e791]: activo
+                    - generic [ref=e792]:
+                      - generic [ref=e793]: "billing: ninguno"
+                      - generic [ref=e794]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774922738629 e2e-provisioning-1774922738629 empresa pendiente billing: ninguno plan: ninguno" [ref=e795] [cursor=pointer]':
+                    - generic [ref=e796]:
+                      - generic [ref=e797]:
+                        - generic [ref=e798]: E2E Provisioning 1774922738629
+                        - generic [ref=e799]:
+                          - code [ref=e800]: e2e-provisioning-1774922738629
+                          - generic [ref=e801]: empresa
+                      - generic [ref=e802]: pendiente
+                    - generic [ref=e803]:
+                      - generic [ref=e804]: "billing: ninguno"
+                      - generic [ref=e805]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774922741247 e2e-tenant-1774922741247 empresa activo billing: ninguno plan: ninguno" [ref=e806] [cursor=pointer]':
+                    - generic [ref=e807]:
+                      - generic [ref=e808]:
+                        - generic [ref=e809]: E2E Tenant 1774922741247
+                        - generic [ref=e810]:
+                          - code [ref=e811]: e2e-tenant-1774922741247
+                          - generic [ref=e812]: empresa
+                      - generic [ref=e813]: activo
+                    - generic [ref=e814]:
+                      - generic [ref=e815]: "billing: ninguno"
+                      - generic [ref=e816]: "plan: ninguno"
+                  - 'button "E2E Tenant Portal Blocked 1774922746690 e2e-tenant-portal-blocked-1774922746690 empresa archivado billing: ninguno plan: ninguno" [ref=e817] [cursor=pointer]':
+                    - generic [ref=e818]:
+                      - generic [ref=e819]:
+                        - generic [ref=e820]: E2E Tenant Portal Blocked 1774922746690
+                        - generic [ref=e821]:
+                          - code [ref=e822]: e2e-tenant-portal-blocked-1774922746690
+                          - generic [ref=e823]: empresa
+                      - generic [ref=e824]: archivado
+                    - generic [ref=e825]:
+                      - generic [ref=e826]: "billing: ninguno"
+                      - generic [ref=e827]: "plan: ninguno"
+                  - 'button "E2E Tenant Limit 1774923276292 e2e-tenant-limit-1774923276292 empresa activo billing: ninguno plan: ninguno" [ref=e828] [cursor=pointer]':
+                    - generic [ref=e829]:
+                      - generic [ref=e830]:
+                        - generic [ref=e831]: E2E Tenant Limit 1774923276292
+                        - generic [ref=e832]:
+                          - code [ref=e833]: e2e-tenant-limit-1774923276292
+                          - generic [ref=e834]: empresa
+                      - generic [ref=e835]: activo
+                    - generic [ref=e836]:
+                      - generic [ref=e837]: "billing: ninguno"
+                      - generic [ref=e838]: "plan: ninguno"
+                  - 'button "E2E Tenant Limit 1774923339729 e2e-tenant-limit-1774923339729 empresa pendiente billing: ninguno plan: ninguno" [ref=e839] [cursor=pointer]':
+                    - generic [ref=e840]:
+                      - generic [ref=e841]:
+                        - generic [ref=e842]: E2E Tenant Limit 1774923339729
+                        - generic [ref=e843]:
+                          - code [ref=e844]: e2e-tenant-limit-1774923339729
+                          - generic [ref=e845]: empresa
+                      - generic [ref=e846]: pendiente
+                    - generic [ref=e847]:
+                      - generic [ref=e848]: "billing: ninguno"
+                      - generic [ref=e849]: "plan: ninguno"
+                  - 'button "E2E Tenant Limit 1774923385308 e2e-tenant-limit-1774923385308 empresa pendiente billing: ninguno plan: ninguno" [ref=e850] [cursor=pointer]':
+                    - generic [ref=e851]:
+                      - generic [ref=e852]:
+                        - generic [ref=e853]: E2E Tenant Limit 1774923385308
+                        - generic [ref=e854]:
+                          - code [ref=e855]: e2e-tenant-limit-1774923385308
+                          - generic [ref=e856]: empresa
+                      - generic [ref=e857]: pendiente
+                    - generic [ref=e858]:
+                      - generic [ref=e859]: "billing: ninguno"
+                      - generic [ref=e860]: "plan: ninguno"
+                  - 'button "E2E Tenant Limit 1774923442132 e2e-tenant-limit-1774923442132 empresa pendiente billing: ninguno plan: ninguno" [ref=e861] [cursor=pointer]':
+                    - generic [ref=e862]:
+                      - generic [ref=e863]:
+                        - generic [ref=e864]: E2E Tenant Limit 1774923442132
+                        - generic [ref=e865]:
+                          - code [ref=e866]: e2e-tenant-limit-1774923442132
+                          - generic [ref=e867]: empresa
+                      - generic [ref=e868]: pendiente
+                    - generic [ref=e869]:
+                      - generic [ref=e870]: "billing: ninguno"
+                      - generic [ref=e871]: "plan: ninguno"
+                  - 'button "E2E Provisioning Retry 1774924075198 e2e-provisioning-retry-1774924075198 empresa pendiente billing: ninguno plan: ninguno" [ref=e872] [cursor=pointer]':
+                    - generic [ref=e873]:
+                      - generic [ref=e874]:
+                        - generic [ref=e875]: E2E Provisioning Retry 1774924075198
+                        - generic [ref=e876]:
+                          - code [ref=e877]: e2e-provisioning-retry-1774924075198
+                          - generic [ref=e878]: empresa
+                      - generic [ref=e879]: pendiente
+                    - generic [ref=e880]:
+                      - generic [ref=e881]: "billing: ninguno"
+                      - generic [ref=e882]: "plan: ninguno"
+                  - 'button "E2E Provisioning Run 1774924077322 e2e-provisioning-run-1774924077322 empresa activo billing: ninguno plan: ninguno" [ref=e883] [cursor=pointer]':
+                    - generic [ref=e884]:
+                      - generic [ref=e885]:
+                        - generic [ref=e886]: E2E Provisioning Run 1774924077322
+                        - generic [ref=e887]:
+                          - code [ref=e888]: e2e-provisioning-run-1774924077322
+                          - generic [ref=e889]: empresa
+                      - generic [ref=e890]: activo
+                    - generic [ref=e891]:
+                      - generic [ref=e892]: "billing: ninguno"
+                      - generic [ref=e893]: "plan: ninguno"
+                  - 'button "E2E Provisioning 1774924079834 e2e-provisioning-1774924079834 empresa pendiente billing: ninguno plan: ninguno" [ref=e894] [cursor=pointer]':
+                    - generic [ref=e895]:
+                      - generic [ref=e896]:
+                        - generic [ref=e897]: E2E Provisioning 1774924079834
+                        - generic [ref=e898]:
+                          - code [ref=e899]: e2e-provisioning-1774924079834
+                          - generic [ref=e900]: empresa
+                      - generic [ref=e901]: pendiente
+                    - generic [ref=e902]:
+                      - generic [ref=e903]: "billing: ninguno"
+                      - generic [ref=e904]: "plan: ninguno"
+                  - 'button "E2E Tenant 1774924082475 e2e-tenant-1774924082475 empresa activo billing: ninguno plan: ninguno" [ref=e905] [cursor=pointer]':
+                    - generic [ref=e906]:
+                      - generic [ref=e907]:
+                        - generic [ref=e908]: E2E Tenant 1774924082475
+                        - generic [ref=e909]:
+                          - code [ref=e910]: e2e-tenant-1774924082475
+                          - generic [ref=e911]: empresa
+                      - generic [ref=e912]: activo
+                    - generic [ref=e913]:
+                      - generic [ref=e914]: "billing: ninguno"
+                      - generic [ref=e915]: "plan: ninguno"
+                  - 'button "E2E Tenant Portal Blocked 1774924085156 e2e-tenant-portal-blocked-1774924085156 empresa archivado billing: ninguno plan: ninguno" [ref=e916] [cursor=pointer]':
+                    - generic [ref=e917]:
+                      - generic [ref=e918]:
+                        - generic [ref=e919]: E2E Tenant Portal Blocked 1774924085156
+                        - generic [ref=e920]:
+                          - code [ref=e921]: e2e-tenant-portal-blocked-1774924085156
+                          - generic [ref=e922]: empresa
+                      - generic [ref=e923]: archivado
+                    - generic [ref=e924]:
+                      - generic [ref=e925]: "billing: ninguno"
+                      - generic [ref=e926]: "plan: ninguno"
+          - generic [ref=e927]:
+            - generic [ref=e928]:
+              - generic [ref=e931]:
+                - heading "Empresa Demo" [level=2] [ref=e932]
+                - paragraph [ref=e933]: Identidad operativa central y contexto efectivo de plataforma.
+              - generic [ref=e934]:
+                - generic [ref=e935]:
+                  - generic [ref=e936]: Acceso rápido para superadmin al portal tenant con el slug ya precargado.
+                  - generic [ref=e937]:
+                    - button "Archivar tenant" [ref=e938] [cursor=pointer]
+                    - generic [ref=e939]: El portal tenant solo queda disponible cuando el tenant está activo, su provisioning ya terminó correctamente y la configuración DB tenant quedó completa.
+                - generic [ref=e940]:
+                  - generic [ref=e941]:
+                    - generic [ref=e942]: Slug
+                    - code [ref=e944]: empresa-demo
+                  - generic [ref=e945]:
+                    - generic [ref=e946]: Tipo de tenant
+                    - generic [ref=e947]: empresa
+                  - generic [ref=e948]:
+                    - generic [ref=e949]: Ciclo de vida
+                    - generic [ref=e951]: activo
+                  - generic [ref=e952]:
+                    - generic [ref=e953]: Facturación
+                    - generic [ref=e955]: activo
+                  - generic [ref=e956]:
+                    - generic [ref=e957]: Plan
+                    - generic [ref=e958]: semestral
+                  - generic [ref=e959]:
+                    - generic [ref=e960]: Mantenimiento
+                    - generic [ref=e961]: Apagado
+                  - generic [ref=e962]:
+                    - generic [ref=e963]: Fin de período billing
+                    - generic [ref=e964]: 22-03-2026, 12:00:00 a. m.
+                  - generic [ref=e965]:
+                    - generic [ref=e966]: Gracia billing hasta
+                    - generic [ref=e967]: 31-03-2026, 12:00:00 a. m.
+                  - generic [ref=e968]:
+                    - generic [ref=e969]: Inicio mantenimiento
+                    - generic [ref=e970]: 22-03-2026, 12:00:00 a. m.
+                  - generic [ref=e971]:
+                    - generic [ref=e972]: Fin mantenimiento
+                    - generic [ref=e973]: 23-03-2026, 12:00:00 a. m.
+                - generic [ref=e974]: "Motivo de estado: Restaurado desde consola de plataforma"
+            - generic [ref=e975]:
+              - generic [ref=e978]:
+                - heading "Política de acceso" [level=2] [ref=e979]
+                - paragraph [ref=e980]: Lectura efectiva del enforcement de lifecycle y billing.
+              - generic [ref=e982]:
+                - generic [ref=e983]:
+                  - generic [ref=e984]: Permitido
+                  - generic [ref=e986]: permitido
+                - generic [ref=e987]:
+                  - generic [ref=e988]: Fuente de bloqueo
+                  - generic [ref=e989]: ninguna
+                - generic [ref=e990]:
+                  - generic [ref=e991]: Código de estado
+                  - generic [ref=e992]: n/a
+                - generic [ref=e993]:
+                  - generic [ref=e994]: Billing en gracia
+                  - generic [ref=e995]: "no"
+            - generic [ref=e996]:
+              - generic [ref=e999]:
+                - heading "Provisioning" [level=2] [ref=e1000]
+                - paragraph [ref=e1001]: Estado del job técnico que prepara la base tenant y deja el acceso bootstrap listo.
+              - generic [ref=e1002]:
+                - generic [ref=e1003]:
+                  - generic [ref=e1004]:
+                    - generic [ref=e1005]: Último job
+                    - generic [ref=e1006]: "#116"
+                  - generic [ref=e1007]:
+                    - generic [ref=e1008]: Operación
+                    - generic [ref=e1009]: Sincronizar esquema tenant
+                  - generic [ref=e1010]:
+                    - generic [ref=e1011]: Estado
+                    - generic [ref=e1013]: pendiente
+                  - generic [ref=e1014]:
+                    - generic [ref=e1015]: Intentos
+                    - generic [ref=e1016]: 0/3
+                  - generic [ref=e1017]:
+                    - generic [ref=e1018]: Próximo reintento
+                    - generic [ref=e1019]: n/d
+                  - generic [ref=e1020]:
+                    - generic [ref=e1021]: Lectura rápida
+                    - generic [ref=e1022]: El job está en cola y todavía no lo toma el worker.
+                - generic [ref=e1023]:
+                  - generic [ref=e1024]: Crear tenant dispara provisioning automáticamente. Aquí puedes ver si la base tenant quedó lista o si el job necesita intervención.
+                  - generic [ref=e1025]:
+                    - link "Abrir provisioning" [ref=e1026] [cursor=pointer]:
+                      - /url: /provisioning
+                    - button "Ejecutar ahora" [ref=e1027] [cursor=pointer]
+                - generic [ref=e1029]:
+                  - generic [ref=e1030]:
+                    - generic [ref=e1031]: Esquema actual
+                    - generic [ref=e1032]: 0014_finance_default_category_catalog
+                  - generic [ref=e1033]:
+                    - generic [ref=e1034]: Última versión disponible
+                    - generic [ref=e1035]: 0014_finance_default_category_catalog
+                  - generic [ref=e1036]:
+                    - generic [ref=e1037]: Migraciones pendientes
+                    - generic [ref=e1038]: "0"
+                  - generic [ref=e1039]:
+                    - generic [ref=e1040]: Última sincronización
+                    - generic [ref=e1041]: 29-03-2026, 7:33:56 p. m.
+                - generic [ref=e1042]: El esquema tenant está al día según las migraciones registradas.
+                - generic [ref=e1044]:
+                  - generic [ref=e1045]: Última rotación credenciales DB
+                  - generic [ref=e1046]: 26-03-2026, 10:08:47 p. m.
+                - generic [ref=e1047]:
+                  - generic [ref=e1048]: Si necesitas endurecer operación o sospechas exposición de secretos técnicos, puedes rotar la contraseña DB tenant sin afectar el acceso del portal tenant. Esta no es la contraseña del usuario del portal tenant; esa credencial de acceso se gestiona aparte.
+                  - button "Rotar credenciales técnicas" [ref=e1050] [cursor=pointer]
+            - generic [ref=e1051]:
+              - generic [ref=e1054]:
+                - heading "Acciones administrativas" [level=2] [ref=e1055]
+                - paragraph [ref=e1056]: Gobierna lifecycle, mantenimiento, billing, plan, límites y operación técnica del tenant seleccionado.
+              - generic [ref=e1057]:
+                - generic [ref=e1058]:
+                  - strong [ref=e1059]: "Límites por módulo:"
+                  - text: Los límites por módulo fueron actualizados correctamente.
+                - generic [ref=e1060]:
+                  - generic [ref=e1061]:
+                    - heading "Identidad básica" [level=3] [ref=e1062]
+                    - generic [ref=e1063]:
+                      - generic [ref=e1064]:
+                        - generic [ref=e1065]: Nombre visible
+                        - button "Ayuda sobre Nombre visible" [ref=e1066] [cursor=pointer]: "?"
+                      - textbox [ref=e1067]: Empresa Demo
+                    - generic [ref=e1068]:
+                      - generic [ref=e1069]:
+                        - generic [ref=e1070]: Tipo de tenant
+                        - button "Ayuda sobre Tipo de tenant" [ref=e1071] [cursor=pointer]: "?"
+                      - combobox [ref=e1072]:
+                        - option "condominio"
+                        - option "empresa" [selected]
+                    - generic [ref=e1074]: El slug se mantiene estable para no romper accesos, bootstrap ni referencias técnicas.
+                    - button "Actualizar identidad básica" [ref=e1076] [cursor=pointer]
+                  - generic [ref=e1077]:
+                    - heading "Estado" [level=3] [ref=e1078]
+                    - generic [ref=e1079]:
+                      - generic [ref=e1080]:
+                        - generic [ref=e1081]: Estado lifecycle
+                        - button "Ayuda sobre Estado lifecycle" [ref=e1082] [cursor=pointer]: "?"
+                      - combobox [ref=e1083]:
+                        - option "activo" [selected]
+                        - option "archivado"
+                        - option "error"
+                        - option "pendiente"
+                        - option "suspendido"
+                    - generic [ref=e1084]:
+                      - generic [ref=e1085]:
+                        - generic [ref=e1086]: Motivo
+                        - button "Ayuda sobre Motivo" [ref=e1087] [cursor=pointer]: "?"
+                      - textbox [ref=e1088]: Restaurado desde consola de plataforma
+                    - button "Actualizar estado" [ref=e1090] [cursor=pointer]
+                  - generic [ref=e1091]:
+                    - heading "Mantenimiento" [level=3] [ref=e1092]
+                    - generic [ref=e1094]:
+                      - checkbox "Habilitar mantenimiento manual" [ref=e1095]
+                      - generic [ref=e1096]: Habilitar mantenimiento manual
+                    - paragraph [ref=e1098]: Activa una ventana manual cuando necesites restringir temporalmente el uso del tenant o de módulos específicos.
+                    - generic [ref=e1099]:
+                      - generic [ref=e1100]:
+                        - generic [ref=e1101]: Modo de acceso
+                        - button "Ayuda sobre Modo de acceso" [ref=e1102] [cursor=pointer]: "?"
+                      - combobox [ref=e1103]:
+                        - option "bloquear todo el acceso"
+                        - option "bloquear escrituras" [selected]
+                    - generic [ref=e1104]:
+                      - generic [ref=e1105]:
+                        - generic [ref=e1106]: Scopes
+                        - button "Ayuda sobre Scopes" [ref=e1107] [cursor=pointer]: "?"
+                      - generic [ref=e1108]:
+                        - generic [ref=e1109]:
+                          - checkbox "all" [checked] [ref=e1110]
+                          - text: all
+                        - generic [ref=e1111]:
+                          - checkbox "core" [ref=e1112]
+                          - text: core
+                        - generic [ref=e1113]:
+                          - checkbox "finance" [ref=e1114]
+                          - text: finance
+                        - generic [ref=e1115]:
+                          - checkbox "users" [ref=e1116]
+                          - text: users
+                    - generic [ref=e1117]:
+                      - generic [ref=e1118]:
+                        - generic [ref=e1119]: Comienza
+                        - button "Ayuda sobre Comienza" [ref=e1120] [cursor=pointer]: "?"
+                      - generic [ref=e1121]:
+                        - textbox [ref=e1122]: 2026-03-22
+                        - textbox [ref=e1123]: 00:00
+                    - generic [ref=e1124]:
+                      - generic [ref=e1125]:
+                        - generic [ref=e1126]: Termina
+                        - button "Ayuda sobre Termina" [ref=e1127] [cursor=pointer]: "?"
+                      - generic [ref=e1128]:
+                        - textbox [ref=e1129]: 2026-03-23
+                        - textbox [ref=e1130]: 00:00
+                    - generic [ref=e1131]:
+                      - generic [ref=e1132]:
+                        - generic [ref=e1133]: Motivo
+                        - button "Ayuda sobre Motivo" [ref=e1134] [cursor=pointer]: "?"
+                      - textbox [ref=e1135]
+                    - button "Actualizar mantenimiento" [ref=e1137] [cursor=pointer]
+                  - generic [ref=e1138]:
+                    - heading "Facturación" [level=3] [ref=e1139]
+                    - generic [ref=e1140]:
+                      - generic [ref=e1141]:
+                        - generic [ref=e1142]: Estado billing
+                        - button "Ayuda sobre Estado billing" [ref=e1143] [cursor=pointer]: "?"
+                      - combobox [ref=e1144]:
+                        - option "ninguno"
+                        - option "activo" [selected]
+                        - option "cancelado"
+                        - option "con deuda"
+                        - option "suspendido"
+                        - option "en prueba"
+                    - generic [ref=e1145]:
+                      - generic [ref=e1146]:
+                        - generic [ref=e1147]: Motivo
+                        - button "Ayuda sobre Motivo" [ref=e1148] [cursor=pointer]: "?"
+                      - textbox [ref=e1149]
+                    - generic [ref=e1150]:
+                      - generic [ref=e1151]:
+                        - generic [ref=e1152]: Fin período actual
+                        - button "Ayuda sobre Fin período actual" [ref=e1153] [cursor=pointer]: "?"
+                      - generic [ref=e1154]:
+                        - textbox [ref=e1155]: 2026-03-22
+                        - textbox [ref=e1156]: 00:00
+                    - generic [ref=e1157]:
+                      - generic [ref=e1158]:
+                        - generic [ref=e1159]: Gracia hasta
+                        - button "Ayuda sobre Gracia hasta" [ref=e1160] [cursor=pointer]: "?"
+                      - generic [ref=e1161]:
+                        - textbox [ref=e1162]: 2026-03-31
+                        - textbox [ref=e1163]: 00:00
+                    - button "Actualizar facturación" [ref=e1165] [cursor=pointer]
+                  - generic [ref=e1166]:
+                    - heading "Plan" [level=3] [ref=e1167]
+                    - generic [ref=e1168]:
+                      - generic [ref=e1169]:
+                        - generic [ref=e1170]: Código de plan
+                        - button "Ayuda sobre Código de plan" [ref=e1171] [cursor=pointer]: "?"
+                      - combobox [ref=e1172]:
+                        - option "Sin plan"
+                        - option "anual"
+                        - option "mensual"
+                        - option "semestral" [selected]
+                        - option "trimestral"
+                    - paragraph [ref=e1174]: Solo puedes aplicar planes definidos en la política de backend. Si no seleccionas ninguno, el tenant opera sin plan asociado.
+                    - button "Actualizar plan" [ref=e1176] [cursor=pointer]
+                  - generic [ref=e1177]:
+                    - heading "Límites de tasa" [level=3] [ref=e1178]
+                    - generic [ref=e1179]:
+                      - generic [ref=e1180]:
+                        - generic [ref=e1181]: Lecturas req/min
+                        - button "Ayuda sobre Lecturas req/min" [ref=e1182] [cursor=pointer]: "?"
+                      - spinbutton [ref=e1183]
+                    - generic [ref=e1184]:
+                      - generic [ref=e1185]:
+                        - generic [ref=e1186]: Escrituras req/min
+                        - button "Ayuda sobre Escrituras req/min" [ref=e1187] [cursor=pointer]: "?"
+                      - spinbutton [ref=e1188]
+                    - paragraph [ref=e1190]: "Déjalo vacío para volver al plan o a la configuración global. Usa `0` para quitar el límite de esa categoría."
+                    - button "Actualizar límites de tasa" [ref=e1192] [cursor=pointer]
+                  - generic [ref=e1193]:
+                    - heading "Identidad de billing" [level=3] [ref=e1194]
+                    - generic [ref=e1195]:
+                      - generic [ref=e1196]:
+                        - generic [ref=e1197]: Proveedor
+                        - button "Ayuda sobre Proveedor" [ref=e1198] [cursor=pointer]: "?"
+                      - combobox [ref=e1199]:
+                        - option "ninguno" [selected]
+                        - option "stripe"
+                    - generic [ref=e1200]:
+                      - generic [ref=e1201]:
+                        - generic [ref=e1202]: Customer ID
+                        - button "Ayuda sobre Customer ID" [ref=e1203] [cursor=pointer]: "?"
+                      - textbox [ref=e1204]
+                    - generic [ref=e1205]:
+                      - generic [ref=e1206]:
+                        - generic [ref=e1207]: Subscription ID
+                        - button "Ayuda sobre Subscription ID" [ref=e1208] [cursor=pointer]: "?"
+                      - textbox [ref=e1209]
+                    - button "Actualizar identidad de billing" [ref=e1211] [cursor=pointer]
+                  - generic [ref=e1212]:
+                    - heading "Límites por módulo" [level=3] [ref=e1213]
+                    - paragraph [ref=e1215]: "Vacío limpia el override tenant para esa clave. `0` significa ilimitado para ese override."
+                    - generic [ref=e1217]:
+                      - generic [ref=e1218]:
+                        - generic [ref=e1219]:
+                          - code [ref=e1221]: core.users
+                          - generic [ref=e1222]: Total de usuarios tenant
+                        - spinbutton [ref=e1223]
+                      - generic [ref=e1224]:
+                        - generic [ref=e1225]:
+                          - code [ref=e1227]: core.users.active
+                          - generic [ref=e1228]: Usuarios activos tenant
+                        - spinbutton [ref=e1229]
+                      - generic [ref=e1230]:
+                        - generic [ref=e1231]:
+                          - code [ref=e1233]: core.users.admin
+                          - generic [ref=e1234]: Usuarios tenant con rol admin
+                        - spinbutton [ref=e1235]
+                      - generic [ref=e1236]:
+                        - generic [ref=e1237]:
+                          - code [ref=e1239]: core.users.manager
+                          - generic [ref=e1240]: Usuarios tenant con rol manager
+                        - spinbutton [ref=e1241]
+                      - generic [ref=e1242]:
+                        - generic [ref=e1243]:
+                          - code [ref=e1245]: core.users.monthly
+                          - generic [ref=e1246]: Usuarios creados en el mes actual
+                        - spinbutton [ref=e1247]
+                      - generic [ref=e1248]:
+                        - generic [ref=e1249]:
+                          - code [ref=e1251]: core.users.operator
+                          - generic [ref=e1252]: Usuarios tenant con rol operator
+                        - spinbutton [ref=e1253]
+                      - generic [ref=e1254]:
+                        - generic [ref=e1255]:
+                          - code [ref=e1257]: finance.entries
+                          - generic [ref=e1258]: Total de movimientos financieros
+                        - spinbutton [ref=e1259]: "1"
+                      - generic [ref=e1260]:
+                        - generic [ref=e1261]:
+                          - code [ref=e1263]: finance.entries.monthly
+                          - generic [ref=e1264]: Movimientos financieros creados en el mes actual
+                        - spinbutton [ref=e1265]
+                      - generic [ref=e1266]:
+                        - generic [ref=e1267]:
+                          - code [ref=e1269]: finance.entries.monthly.expense
+                          - generic [ref=e1270]: Gastos creados en el mes actual
+                        - spinbutton [ref=e1271]
+                      - generic [ref=e1272]:
+                        - generic [ref=e1273]:
+                          - code [ref=e1275]: finance.entries.monthly.income
+                          - generic [ref=e1276]: Ingresos creados en el mes actual
+                        - spinbutton [ref=e1277]
+                    - button "Actualizar límites por módulo" [ref=e1279] [cursor=pointer]
+                  - generic [ref=e1280]:
+                    - heading "Esquema tenant" [level=3] [ref=e1281]
+                    - paragraph [ref=e1283]:
+                      - text: Ejecuta la sincronización de migraciones tenant cuando falten tablas como
+                      - code [ref=e1284]: finance_entries
+                      - text: o la base tenant aún no esté al día.
+                    - button "Sincronizar esquema tenant" [ref=e1286] [cursor=pointer]
+                  - generic [ref=e1287]:
+                    - heading "Acceso portal tenant" [level=3] [ref=e1288]
+                    - paragraph [ref=e1290]: Usa este bloque para reiniciar la contraseña de un usuario del portal tenant cuando la olvidó. No cambia la credencial técnica de la base tenant.
+                    - generic [ref=e1291]:
+                      - generic [ref=e1292]:
+                        - generic [ref=e1293]: Usuario portal tenant
+                        - button "Ayuda sobre Usuario portal tenant" [ref=e1294] [cursor=pointer]: "?"
+                      - combobox [ref=e1295]:
+                        - option "Selecciona un usuario tenant"
+                        - option "admin@empresa-demo.local · admin · activo" [selected]
+                    - paragraph [ref=e1297]: La lista se carga desde la base tenant activa. Si no aparecen usuarios, revisa el acceso técnico del tenant o su bootstrap de usuarios.
+                    - generic [ref=e1298]:
+                      - generic [ref=e1299]:
+                        - generic [ref=e1300]: Nueva contraseña portal
+                        - button "Ayuda sobre Nueva contraseña portal" [ref=e1301] [cursor=pointer]: "?"
+                      - textbox [ref=e1302]
+                    - generic [ref=e1303]:
+                      - button "Reiniciar contraseña portal" [disabled]
+            - generic [ref=e1304]:
+              - generic [ref=e1306]:
+                - heading "Uso por módulo" [level=2] [ref=e1308]
+                - generic [ref=e1309]: 8 filas
+              - table [ref=e1311]:
+                - rowgroup [ref=e1312]:
+                  - row "Clave de módulo Usado Límite Restante Fuente Estado" [ref=e1313]:
+                    - columnheader "Clave de módulo" [ref=e1314]
+                    - columnheader "Usado" [ref=e1315]
+                    - columnheader "Límite" [ref=e1316]
+                    - columnheader "Restante" [ref=e1317]
+                    - columnheader "Fuente" [ref=e1318]
+                    - columnheader "Estado" [ref=e1319]
+                - rowgroup [ref=e1320]:
+                  - row "core.users 1 ilimitado — ninguna ok" [ref=e1321]:
+                    - cell "core.users" [ref=e1322]:
+                      - code [ref=e1323]: core.users
+                    - cell "1" [ref=e1324]
+                    - cell "ilimitado" [ref=e1325]
+                    - cell "—" [ref=e1326]
+                    - cell "ninguna" [ref=e1327]
+                    - cell "ok" [ref=e1328]:
+                      - generic [ref=e1329]: ok
+                  - row "core.users.active 1 ilimitado — ninguna ok" [ref=e1330]:
+                    - cell "core.users.active" [ref=e1331]:
+                      - code [ref=e1332]: core.users.active
+                    - cell "1" [ref=e1333]
+                    - cell "ilimitado" [ref=e1334]
+                    - cell "—" [ref=e1335]
+                    - cell "ninguna" [ref=e1336]
+                    - cell "ok" [ref=e1337]:
+                      - generic [ref=e1338]: ok
+                  - row "core.users.monthly 1 ilimitado — ninguna ok" [ref=e1339]:
+                    - cell "core.users.monthly" [ref=e1340]:
+                      - code [ref=e1341]: core.users.monthly
+                    - cell "1" [ref=e1342]
+                    - cell "ilimitado" [ref=e1343]
+                    - cell "—" [ref=e1344]
+                    - cell "ninguna" [ref=e1345]
+                    - cell "ok" [ref=e1346]:
+                      - generic [ref=e1347]: ok
+                  - row "core.users.admin 1 ilimitado — ninguna ok" [ref=e1348]:
+                    - cell "core.users.admin" [ref=e1349]:
+                      - code [ref=e1350]: core.users.admin
+                    - cell "1" [ref=e1351]
+                    - cell "ilimitado" [ref=e1352]
+                    - cell "—" [ref=e1353]
+                    - cell "ninguna" [ref=e1354]
+                    - cell "ok" [ref=e1355]:
+                      - generic [ref=e1356]: ok
+                  - row "finance.entries 136 1 0 tenant_override al-límite" [ref=e1357]:
+                    - cell "finance.entries" [ref=e1358]:
+                      - code [ref=e1359]: finance.entries
+                    - cell "136" [ref=e1360]
+                    - cell "1" [ref=e1361]
+                    - cell "0" [ref=e1362]
+                    - cell "tenant_override" [ref=e1363]
+                    - cell "al-límite" [ref=e1364]:
+                      - generic [ref=e1365]: al-límite
+                  - row "finance.entries.monthly 136 ilimitado — ninguna ok" [ref=e1366]:
+                    - cell "finance.entries.monthly" [ref=e1367]:
+                      - code [ref=e1368]: finance.entries.monthly
+                    - cell "136" [ref=e1369]
+                    - cell "ilimitado" [ref=e1370]
+                    - cell "—" [ref=e1371]
+                    - cell "ninguna" [ref=e1372]
+                    - cell "ok" [ref=e1373]:
+                      - generic [ref=e1374]: ok
+                  - row "finance.entries.monthly.income 2 ilimitado — ninguna ok" [ref=e1375]:
+                    - cell "finance.entries.monthly.income" [ref=e1376]:
+                      - code [ref=e1377]: finance.entries.monthly.income
+                    - cell "2" [ref=e1378]
+                    - cell "ilimitado" [ref=e1379]
+                    - cell "—" [ref=e1380]
+                    - cell "ninguna" [ref=e1381]
+                    - cell "ok" [ref=e1382]:
+                      - generic [ref=e1383]: ok
+                  - row "finance.entries.monthly.expense 134 ilimitado — ninguna ok" [ref=e1384]:
+                    - cell "finance.entries.monthly.expense" [ref=e1385]:
+                      - code [ref=e1386]: finance.entries.monthly.expense
+                    - cell "134" [ref=e1387]
+                    - cell "ilimitado" [ref=e1388]
+                    - cell "—" [ref=e1389]
+                    - cell "ninguna" [ref=e1390]
+                    - cell "ok" [ref=e1391]:
+                      - generic [ref=e1392]: ok
+            - generic [ref=e1393]:
+              - generic [ref=e1395]:
+                - heading "Historial de políticas" [level=2] [ref=e1397]
+                - generic [ref=e1398]: 10 filas
+              - table [ref=e1400]:
+                - rowgroup [ref=e1401]:
+                  - row "Registrado en Evento Actor Campos cambiados" [ref=e1402]:
+                    - columnheader "Registrado en" [ref=e1403]
+                    - columnheader "Evento" [ref=e1404]
+                    - columnheader "Actor" [ref=e1405]
+                    - columnheader "Campos cambiados" [ref=e1406]
+                - rowgroup [ref=e1407]:
+                  - row "30-03-2026, 11:38:35 p. m. module_limits admin@platform.local ninguno" [ref=e1408]:
+                    - cell "30-03-2026, 11:38:35 p. m." [ref=e1409]
+                    - cell "module_limits" [ref=e1410]
+                    - cell "admin@platform.local" [ref=e1411]
+                    - cell "ninguno" [ref=e1412]
+                  - row "30-03-2026, 11:38:30 p. m. module_limits admin@platform.local ninguno" [ref=e1413]:
+                    - cell "30-03-2026, 11:38:30 p. m." [ref=e1414]
+                    - cell "module_limits" [ref=e1415]
+                    - cell "admin@platform.local" [ref=e1416]
+                    - cell "ninguno" [ref=e1417]
+                  - row "30-03-2026, 11:33:53 p. m. module_limits admin@platform.local ninguno" [ref=e1418]:
+                    - cell "30-03-2026, 11:33:53 p. m." [ref=e1419]
+                    - cell "module_limits" [ref=e1420]
+                    - cell "admin@platform.local" [ref=e1421]
+                    - cell "ninguno" [ref=e1422]
+                  - row "30-03-2026, 11:33:43 p. m. module_limits admin@platform.local module_limits_json" [ref=e1423]:
+                    - cell "30-03-2026, 11:33:43 p. m." [ref=e1424]
+                    - cell "module_limits" [ref=e1425]
+                    - cell "admin@platform.local" [ref=e1426]
+                    - cell "module_limits_json" [ref=e1427]
+                  - row "30-03-2026, 11:27:51 p. m. module_limits admin@platform.local module_limits_json" [ref=e1428]:
+                    - cell "30-03-2026, 11:27:51 p. m." [ref=e1429]
+                    - cell "module_limits" [ref=e1430]
+                    - cell "admin@platform.local" [ref=e1431]
+                    - cell "module_limits_json" [ref=e1432]
+                  - row "30-03-2026, 11:27:49 p. m. module_limits admin@platform.local module_limits_json" [ref=e1433]:
+                    - cell "30-03-2026, 11:27:49 p. m." [ref=e1434]
+                    - cell "module_limits" [ref=e1435]
+                    - cell "admin@platform.local" [ref=e1436]
+                    - cell "module_limits_json" [ref=e1437]
+                  - row "30-03-2026, 11:22:33 p. m. module_limits admin@platform.local module_limits_json" [ref=e1438]:
+                    - cell "30-03-2026, 11:22:33 p. m." [ref=e1439]
+                    - cell "module_limits" [ref=e1440]
+                    - cell "admin@platform.local" [ref=e1441]
+                    - cell "module_limits_json" [ref=e1442]
+                  - row "30-03-2026, 11:22:30 p. m. module_limits admin@platform.local ninguno" [ref=e1443]:
+                    - cell "30-03-2026, 11:22:30 p. m." [ref=e1444]
+                    - cell "module_limits" [ref=e1445]
+                    - cell "admin@platform.local" [ref=e1446]
+                    - cell "ninguno" [ref=e1447]
+                  - row "30-03-2026, 11:21:10 p. m. module_limits admin@platform.local ninguno" [ref=e1448]:
+                    - cell "30-03-2026, 11:21:10 p. m." [ref=e1449]
+                    - cell "module_limits" [ref=e1450]
+                    - cell "admin@platform.local" [ref=e1451]
+                    - cell "ninguno" [ref=e1452]
+                  - row "30-03-2026, 11:19:55 p. m. module_limits admin@platform.local ninguno" [ref=e1453]:
+                    - cell "30-03-2026, 11:19:55 p. m." [ref=e1454]
+                    - cell "module_limits" [ref=e1455]
+                    - cell "admin@platform.local" [ref=e1456]
+                    - cell "ninguno" [ref=e1457]
+```

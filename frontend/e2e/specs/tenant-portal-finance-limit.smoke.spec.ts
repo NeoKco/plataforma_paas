@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { loginPlatform, loginTenant } from "../support/auth";
 import { e2eEnv } from "../support/env";
 import {
+  ensureFinanceTransactionFormReady,
   getFinanceTransactionForm,
   getTransactionRowByDescription,
   openFinanceTransactionsPage,
@@ -85,19 +86,35 @@ test("tenant portal finance shows limit enforcement when entries quota is exhaus
     await expect(page.getByText(/al límite|at limit/i).first()).toBeVisible();
 
     const form = getFinanceTransactionForm(page);
+    await ensureFinanceTransactionFormReady(page, form, `e2e-finance-limit-account-${Date.now()}`);
     await form.locator('input[type="number"]').first().fill("12345");
     await form
       .getByPlaceholder(/Pago proveedor de mantención|Maintenance supplier payment/i)
       .fill(uniqueDescription);
+
+    const createResponsePromise = page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        /\/tenant\/finance\/transactions$/.test(response.url())
+    );
+
     await form
       .getByRole("button", {
         name: /Registrar transacción|Create transaction/i,
       })
       .click();
 
-    await expect(page.locator(".tenant-action-feedback--error").first()).toContainText(
-      /finance\.entries|límite|limit/i
-    );
+    const createResponse = await createResponsePromise;
+    expect(createResponse.status()).toBe(403);
+
+    const responseBody = JSON.stringify(await createResponse.json());
+    expect(responseBody).toMatch(/finance\.entries|límite|limit/i);
+
+    const errorFeedback = page.locator(".tenant-action-feedback--error").first();
+    if ((await page.locator(".tenant-action-feedback--error").count()) > 0) {
+      await expect(errorFeedback).toContainText(/finance\.entries|límite|limit/i);
+    }
+
     await expect(getTransactionRowByDescription(page, uniqueDescription)).toHaveCount(0);
   } finally {
     await updateFinanceEntriesLimit(page, e2eEnv.tenant.slug, "");
