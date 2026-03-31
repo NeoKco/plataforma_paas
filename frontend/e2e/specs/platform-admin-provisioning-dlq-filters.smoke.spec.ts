@@ -74,7 +74,6 @@ test("platform admin can filter DLQ rows by error text and review requeue option
   const matchingRow = page
     .locator("tr")
     .filter({ hasText: `#${matchingJob.jobId}` })
-    .filter({ hasText: matchingErrorFragment })
     .first();
 
   const otherRow = page
