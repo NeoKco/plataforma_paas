@@ -45,7 +45,7 @@ Desde `Provisioning`, la operación normal ya permite:
 2. ejecutar manualmente un job `pending` o `retry_pending` si hace falta acelerar el ciclo
 3. reencolar un job `failed` cuando ya se corrigió la causa o se quiere reintentar formalmente
 4. lanzar `schema auto-sync` para tenants activos después de cambios backend o deploys
-5. revisar y reencolar filas DLQ individualmente o en lote cuando la instalación usa backend de provisioning tipo `broker`
+5. revisar y reencolar filas DLQ individualmente o en lote cuando la instalación usa backend de provisioning tipo `broker`, incluyendo filtros por texto de error cuando necesites aislar solo una familia de fallos
 
 Referencia:
 

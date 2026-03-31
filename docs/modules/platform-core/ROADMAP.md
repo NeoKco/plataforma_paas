@@ -32,6 +32,7 @@ La base central ya es operable:
 - validación browser del disparo de `schema auto-sync` desde `Provisioning`
 - validación browser broker-only de requeue individual sobre filas DLQ desde `Provisioning`
 - validación browser broker-only de requeue batch sobre filas DLQ filtradas desde `Provisioning`
+- validación browser broker-only de filtros finos DLQ por texto de error y opciones de requeue desde `Provisioning`
 
 ## Próximo nivel recomendado
 

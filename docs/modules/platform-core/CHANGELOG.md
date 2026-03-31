@@ -32,6 +32,7 @@ Resumen curado del bloque central.
 - smoke browser ampliado para disparar `schema auto-sync` desde `Provisioning`
 - smoke browser broker-only agregado para reencolar individualmente filas DLQ desde `Provisioning`
 - smoke browser broker-only agregado para reencolar en lote filas DLQ filtradas desde `Provisioning`
+- smoke browser broker-only agregado para validar filtros DLQ por texto de error y opciones visibles de requeue individual
 
 ## Documentación
 

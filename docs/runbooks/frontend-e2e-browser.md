@@ -29,6 +29,7 @@ Archivos principales:
 - [platform-admin-schema-auto-sync.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-schema-auto-sync.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-row.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts)
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
@@ -48,6 +49,7 @@ Cobertura actual:
 - disparo de `schema auto-sync` desde `Provisioning`
 - requeue individual de una fila DLQ desde `Provisioning` cuando el backend usa broker
 - requeue batch de filas DLQ filtradas desde `Provisioning` cuando el backend usa broker
+- filtros finos DLQ por texto de error y revisión de `delay/reset attempts` antes del requeue individual cuando el backend usa broker
 - login `tenant_portal`
 - alta básica de una transacción en `finance`
 - carga de adjunto sobre transacción creada en `finance`
@@ -116,6 +118,7 @@ Resultado validado en local a la fecha:
 - `Provisioning` validado también para disparar `schema auto-sync` desde la toolbar
 - `Provisioning` ya tiene además un smoke broker-only para reencolar una fila DLQ individual desde la tabla de resultados
 - `Provisioning` ya tiene además un smoke broker-only para reencolar filas DLQ filtradas en lote
+- `Provisioning` ya tiene además un smoke broker-only para validar filtros DLQ por `error contains` y confirmar opciones de requeue individual
 - `tenant_portal` con `empresa-demo` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
 
@@ -174,3 +177,9 @@ Nota operativa del smoke `DLQ row`:
 
 - requiere `PROVISIONING_DISPATCH_BACKEND=broker`
 - siembra una fila DLQ controlada y valida el reencolado individual desde la tabla visible del workspace
+
+Nota operativa del smoke `DLQ filters`:
+
+- requiere `PROVISIONING_DISPATCH_BACKEND=broker`
+- siembra más de una fila DLQ para el mismo tenant y valida que el filtro `error contains` aísle solo el subconjunto esperado
+- además verifica que la confirmación del requeue individual refleje el `delay` y el `reset attempts` visibles en la UI

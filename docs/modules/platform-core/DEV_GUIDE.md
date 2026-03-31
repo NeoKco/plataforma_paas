@@ -74,6 +74,7 @@ Smokes actuales del bloque central:
 - [platform-admin-schema-auto-sync.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-schema-auto-sync.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-row.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts)
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
 
 Cobertura actual:
 
@@ -88,3 +89,4 @@ Cobertura actual:
 - disparo de `schema auto-sync` desde `Provisioning` con confirmación y feedback visible
 - requeue individual de filas DLQ desde `Provisioning` en entornos con backend `broker`
 - requeue batch de filas DLQ filtradas desde `Provisioning` en entornos con backend `broker`
+- filtros finos DLQ por texto de error y validación visible de `delay/reset attempts` antes del requeue individual en backend `broker`
