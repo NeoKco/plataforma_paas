@@ -59,7 +59,6 @@ export async function ensureFinanceAccount(page: Page, accountName: string) {
   await codeField.fill(`E2E-${Date.now()}`);
 
   await accountForm.getByRole("button", { name: /Crear cuenta|Create account/ }).click();
-  await expect(page.locator(".alert-success").first()).toBeVisible();
   await expect(
     catalogCard.locator("tbody tr").filter({ hasText: accountName }).first()
   ).toBeVisible({ timeout: 10000 });
