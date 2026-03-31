@@ -68,7 +68,7 @@ Pendiente corto de endurecimiento antes o en paralelo a nuevos modulos:
 - `tenant-history` ya expone filtros server-side y exportacion `CSV/JSON` para no depender solo de filtrado en memoria cuando el archivo crezca
 - `Billing` y `Provisioning` ya permiten exportar snapshots operativos del estado visible para soporte y trazabilidad sin copiar filas manualmente desde la UI
 - la superficie visible de `platform_admin` ya usa una matriz de acceso por rol centralizada para navegación, redirecciones y edición de usuarios de plataforma
-- ya existe un stack E2E browser local con `Playwright` sobre `frontend/`, cubriendo login `platform_admin`, lifecycle tenant base (`create/archive/restore`), visibilidad de jobs nuevos en `Provisioning`, disparo de `schema auto-sync`, login `tenant_portal` y `finance` en creación, adjunto, anulación y conciliación; queda pendiente ampliarlo a acciones de provisioning todavía más profundas y enforcement visible de límites
+- ya existe un stack E2E browser local con `Playwright` sobre `frontend/`, cubriendo login `platform_admin`, lifecycle tenant base (`create/archive/restore`), visibilidad de jobs nuevos en `Provisioning`, ejecución manual de jobs `pending`, disparo de `schema auto-sync`, login `tenant_portal` y `finance` en creación, adjunto, anulación y conciliación; queda pendiente ampliarlo a `retry`/DLQ de provisioning y enforcement visible de límites
 - recaptura visual del bloque tenant cuando la UX ya se considere estable
 
 ## Etapa 0. Base de Proyecto

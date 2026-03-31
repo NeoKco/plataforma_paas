@@ -8,6 +8,7 @@ Cobertura inicial:
 - navegación base de `platform_admin`
 - lifecycle básico de tenant en `platform_admin` (`create`, `archive`, `restore`)
 - visibilidad de job nuevo en `Provisioning` después de crear tenant
+- ejecución manual de un job `pending` desde `Provisioning`
 - disparo de `schema auto-sync` desde `Provisioning`
 - login de `tenant_portal`
 - smoke real de `finance` creando una transacción
@@ -20,6 +21,7 @@ Specs actuales:
 - [platform-admin.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin.smoke.spec.ts)
 - [platform-admin-tenant-lifecycle.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-lifecycle.smoke.spec.ts)
 - [platform-admin-provisioning.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning.smoke.spec.ts)
+- [platform-admin-provisioning-run-now.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-run-now.smoke.spec.ts)
 - [platform-admin-schema-auto-sync.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-schema-auto-sync.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
@@ -46,3 +48,4 @@ Notas:
 - para instalar el navegador local usa `npm run e2e:install`
 - el baseline tenant actualmente validado es `empresa-demo`
 - cuando el smoke sube una imagen en `finance`, el frontend la comprime antes del upload y el nombre final visible queda en `WEBP`
+- `npm run e2e:platform` ya ejecuta todo el bloque `platform-admin*.spec.ts`, no solo el smoke de login/navegación base

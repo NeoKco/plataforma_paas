@@ -25,6 +25,7 @@ Resumen curado del bloque central.
 - primer stack Playwright browser base
 - smoke browser de `platform_admin` ampliado a `create`, `archive` y `restore` de tenants
 - smoke browser ampliado para verificar que los jobs nuevos aparezcan en `Provisioning`
+- smoke browser ampliado para ejecutar manualmente jobs `pending` desde `Provisioning`
 - smoke browser ampliado para disparar `schema auto-sync` desde `Provisioning`
 
 ## Documentación
