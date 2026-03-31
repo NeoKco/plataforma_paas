@@ -200,16 +200,36 @@ def list_finance_transactions(
 
 @router.post("/transactions", response_model=FinanceTransactionMutationResponse)
 def create_finance_transaction(
+    request: Request,
     payload: FinanceTransactionCreateRequest,
     current_user=Depends(require_finance_create),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceTransactionMutationResponse:
+    effective_module_limits = getattr(
+        request.state,
+        "tenant_effective_module_limits",
+        None,
+    ) or {}
     try:
         transaction = finance_service.create_transaction(
             tenant_db,
             payload,
             created_by_user_id=current_user["user_id"],
+            max_entries=effective_module_limits.get("finance.entries"),
+            max_monthly_entries=effective_module_limits.get(
+                FinanceService.MONTHLY_MODULE_LIMIT_KEY
+            ),
+            max_monthly_entries_by_type={
+                "income": effective_module_limits.get(
+                    FinanceService.MONTHLY_TYPE_MODULE_LIMIT_KEYS["income"]
+                ),
+                "expense": effective_module_limits.get(
+                    FinanceService.MONTHLY_TYPE_MODULE_LIMIT_KEYS["expense"]
+                ),
+            },
         )
+    except FinanceUsageLimitExceededError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
     except ValueError as exc:

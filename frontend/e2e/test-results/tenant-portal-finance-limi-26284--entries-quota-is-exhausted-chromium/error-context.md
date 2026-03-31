@@ -933,7 +933,8 @@
                   - generic [ref=e936]: Acceso rápido para superadmin al portal tenant con el slug ya precargado.
                   - generic [ref=e937]:
                     - button "Archivar tenant" [ref=e938] [cursor=pointer]
-                    - generic [ref=e939]: El portal tenant solo queda disponible cuando el tenant está activo, su provisioning ya terminó correctamente y la configuración DB tenant quedó completa.
+                    - link "Abrir portal tenant" [ref=e939] [cursor=pointer]:
+                      - /url: /tenant-portal/login?tenantSlug=empresa-demo&email=admin%40empresa-demo.local
                 - generic [ref=e940]:
                   - generic [ref=e941]:
                     - generic [ref=e942]: Slug
@@ -997,442 +998,440 @@
                     - generic [ref=e1009]: Sincronizar esquema tenant
                   - generic [ref=e1010]:
                     - generic [ref=e1011]: Estado
-                    - generic [ref=e1013]: pendiente
+                    - generic [ref=e1013]: completado
                   - generic [ref=e1014]:
                     - generic [ref=e1015]: Intentos
-                    - generic [ref=e1016]: 0/3
+                    - generic [ref=e1016]: 1/3
                   - generic [ref=e1017]:
                     - generic [ref=e1018]: Próximo reintento
                     - generic [ref=e1019]: n/d
                   - generic [ref=e1020]:
                     - generic [ref=e1021]: Lectura rápida
-                    - generic [ref=e1022]: El job está en cola y todavía no lo toma el worker.
+                    - generic [ref=e1022]: La base tenant y su bootstrap técnico quedaron listos.
                 - generic [ref=e1023]:
                   - generic [ref=e1024]: Crear tenant dispara provisioning automáticamente. Aquí puedes ver si la base tenant quedó lista o si el job necesita intervención.
-                  - generic [ref=e1025]:
-                    - link "Abrir provisioning" [ref=e1026] [cursor=pointer]:
-                      - /url: /provisioning
-                    - button "Ejecutar ahora" [ref=e1027] [cursor=pointer]
-                - generic [ref=e1029]:
-                  - generic [ref=e1030]:
-                    - generic [ref=e1031]: Esquema actual
-                    - generic [ref=e1032]: 0014_finance_default_category_catalog
-                  - generic [ref=e1033]:
-                    - generic [ref=e1034]: Última versión disponible
-                    - generic [ref=e1035]: 0014_finance_default_category_catalog
-                  - generic [ref=e1036]:
-                    - generic [ref=e1037]: Migraciones pendientes
-                    - generic [ref=e1038]: "0"
-                  - generic [ref=e1039]:
-                    - generic [ref=e1040]: Última sincronización
-                    - generic [ref=e1041]: 29-03-2026, 7:33:56 p. m.
-                - generic [ref=e1042]: El esquema tenant está al día según las migraciones registradas.
-                - generic [ref=e1044]:
-                  - generic [ref=e1045]: Última rotación credenciales DB
-                  - generic [ref=e1046]: 26-03-2026, 10:08:47 p. m.
-                - generic [ref=e1047]:
-                  - generic [ref=e1048]: Si necesitas endurecer operación o sospechas exposición de secretos técnicos, puedes rotar la contraseña DB tenant sin afectar el acceso del portal tenant. Esta no es la contraseña del usuario del portal tenant; esa credencial de acceso se gestiona aparte.
-                  - button "Rotar credenciales técnicas" [ref=e1050] [cursor=pointer]
-            - generic [ref=e1051]:
-              - generic [ref=e1054]:
-                - heading "Acciones administrativas" [level=2] [ref=e1055]
-                - paragraph [ref=e1056]: Gobierna lifecycle, mantenimiento, billing, plan, límites y operación técnica del tenant seleccionado.
-              - generic [ref=e1057]:
-                - generic [ref=e1058]:
-                  - strong [ref=e1059]: "Límites por módulo:"
+                  - link "Abrir provisioning" [ref=e1026] [cursor=pointer]:
+                    - /url: /provisioning
+                - generic [ref=e1028]:
+                  - generic [ref=e1029]:
+                    - generic [ref=e1030]: Esquema actual
+                    - generic [ref=e1031]: 0014_finance_default_category_catalog
+                  - generic [ref=e1032]:
+                    - generic [ref=e1033]: Última versión disponible
+                    - generic [ref=e1034]: 0014_finance_default_category_catalog
+                  - generic [ref=e1035]:
+                    - generic [ref=e1036]: Migraciones pendientes
+                    - generic [ref=e1037]: "0"
+                  - generic [ref=e1038]:
+                    - generic [ref=e1039]: Última sincronización
+                    - generic [ref=e1040]: 29-03-2026, 7:33:56 p. m.
+                - generic [ref=e1041]: El esquema tenant está al día según las migraciones registradas.
+                - generic [ref=e1043]:
+                  - generic [ref=e1044]: Última rotación credenciales DB
+                  - generic [ref=e1045]: 26-03-2026, 10:08:47 p. m.
+                - generic [ref=e1046]:
+                  - generic [ref=e1047]: Si necesitas endurecer operación o sospechas exposición de secretos técnicos, puedes rotar la contraseña DB tenant sin afectar el acceso del portal tenant. Esta no es la contraseña del usuario del portal tenant; esa credencial de acceso se gestiona aparte.
+                  - button "Rotar credenciales técnicas" [ref=e1049] [cursor=pointer]
+            - generic [ref=e1050]:
+              - generic [ref=e1053]:
+                - heading "Acciones administrativas" [level=2] [ref=e1054]
+                - paragraph [ref=e1055]: Gobierna lifecycle, mantenimiento, billing, plan, límites y operación técnica del tenant seleccionado.
+              - generic [ref=e1056]:
+                - generic [ref=e1057]:
+                  - strong [ref=e1058]: "Límites por módulo:"
                   - text: Los límites por módulo fueron actualizados correctamente.
-                - generic [ref=e1060]:
-                  - generic [ref=e1061]:
-                    - heading "Identidad básica" [level=3] [ref=e1062]
-                    - generic [ref=e1063]:
-                      - generic [ref=e1064]:
-                        - generic [ref=e1065]: Nombre visible
-                        - button "Ayuda sobre Nombre visible" [ref=e1066] [cursor=pointer]: "?"
-                      - textbox [ref=e1067]: Empresa Demo
-                    - generic [ref=e1068]:
-                      - generic [ref=e1069]:
-                        - generic [ref=e1070]: Tipo de tenant
-                        - button "Ayuda sobre Tipo de tenant" [ref=e1071] [cursor=pointer]: "?"
-                      - combobox [ref=e1072]:
+                - generic [ref=e1059]:
+                  - generic [ref=e1060]:
+                    - heading "Identidad básica" [level=3] [ref=e1061]
+                    - generic [ref=e1062]:
+                      - generic [ref=e1063]:
+                        - generic [ref=e1064]: Nombre visible
+                        - button "Ayuda sobre Nombre visible" [ref=e1065] [cursor=pointer]: "?"
+                      - textbox [ref=e1066]: Empresa Demo
+                    - generic [ref=e1067]:
+                      - generic [ref=e1068]:
+                        - generic [ref=e1069]: Tipo de tenant
+                        - button "Ayuda sobre Tipo de tenant" [ref=e1070] [cursor=pointer]: "?"
+                      - combobox [ref=e1071]:
                         - option "condominio"
                         - option "empresa" [selected]
-                    - generic [ref=e1074]: El slug se mantiene estable para no romper accesos, bootstrap ni referencias técnicas.
-                    - button "Actualizar identidad básica" [ref=e1076] [cursor=pointer]
-                  - generic [ref=e1077]:
-                    - heading "Estado" [level=3] [ref=e1078]
-                    - generic [ref=e1079]:
-                      - generic [ref=e1080]:
-                        - generic [ref=e1081]: Estado lifecycle
-                        - button "Ayuda sobre Estado lifecycle" [ref=e1082] [cursor=pointer]: "?"
-                      - combobox [ref=e1083]:
+                    - generic [ref=e1073]: El slug se mantiene estable para no romper accesos, bootstrap ni referencias técnicas.
+                    - button "Actualizar identidad básica" [ref=e1075] [cursor=pointer]
+                  - generic [ref=e1076]:
+                    - heading "Estado" [level=3] [ref=e1077]
+                    - generic [ref=e1078]:
+                      - generic [ref=e1079]:
+                        - generic [ref=e1080]: Estado lifecycle
+                        - button "Ayuda sobre Estado lifecycle" [ref=e1081] [cursor=pointer]: "?"
+                      - combobox [ref=e1082]:
                         - option "activo" [selected]
                         - option "archivado"
                         - option "error"
                         - option "pendiente"
                         - option "suspendido"
-                    - generic [ref=e1084]:
-                      - generic [ref=e1085]:
-                        - generic [ref=e1086]: Motivo
-                        - button "Ayuda sobre Motivo" [ref=e1087] [cursor=pointer]: "?"
-                      - textbox [ref=e1088]: Restaurado desde consola de plataforma
-                    - button "Actualizar estado" [ref=e1090] [cursor=pointer]
-                  - generic [ref=e1091]:
-                    - heading "Mantenimiento" [level=3] [ref=e1092]
-                    - generic [ref=e1094]:
-                      - checkbox "Habilitar mantenimiento manual" [ref=e1095]
-                      - generic [ref=e1096]: Habilitar mantenimiento manual
-                    - paragraph [ref=e1098]: Activa una ventana manual cuando necesites restringir temporalmente el uso del tenant o de módulos específicos.
-                    - generic [ref=e1099]:
-                      - generic [ref=e1100]:
-                        - generic [ref=e1101]: Modo de acceso
-                        - button "Ayuda sobre Modo de acceso" [ref=e1102] [cursor=pointer]: "?"
-                      - combobox [ref=e1103]:
+                    - generic [ref=e1083]:
+                      - generic [ref=e1084]:
+                        - generic [ref=e1085]: Motivo
+                        - button "Ayuda sobre Motivo" [ref=e1086] [cursor=pointer]: "?"
+                      - textbox [ref=e1087]: Restaurado desde consola de plataforma
+                    - button "Actualizar estado" [ref=e1089] [cursor=pointer]
+                  - generic [ref=e1090]:
+                    - heading "Mantenimiento" [level=3] [ref=e1091]
+                    - generic [ref=e1093]:
+                      - checkbox "Habilitar mantenimiento manual" [ref=e1094]
+                      - generic [ref=e1095]: Habilitar mantenimiento manual
+                    - paragraph [ref=e1097]: Activa una ventana manual cuando necesites restringir temporalmente el uso del tenant o de módulos específicos.
+                    - generic [ref=e1098]:
+                      - generic [ref=e1099]:
+                        - generic [ref=e1100]: Modo de acceso
+                        - button "Ayuda sobre Modo de acceso" [ref=e1101] [cursor=pointer]: "?"
+                      - combobox [ref=e1102]:
                         - option "bloquear todo el acceso"
                         - option "bloquear escrituras" [selected]
-                    - generic [ref=e1104]:
-                      - generic [ref=e1105]:
-                        - generic [ref=e1106]: Scopes
-                        - button "Ayuda sobre Scopes" [ref=e1107] [cursor=pointer]: "?"
-                      - generic [ref=e1108]:
-                        - generic [ref=e1109]:
-                          - checkbox "all" [checked] [ref=e1110]
+                    - generic [ref=e1103]:
+                      - generic [ref=e1104]:
+                        - generic [ref=e1105]: Scopes
+                        - button "Ayuda sobre Scopes" [ref=e1106] [cursor=pointer]: "?"
+                      - generic [ref=e1107]:
+                        - generic [ref=e1108]:
+                          - checkbox "all" [checked] [ref=e1109]
                           - text: all
-                        - generic [ref=e1111]:
-                          - checkbox "core" [ref=e1112]
+                        - generic [ref=e1110]:
+                          - checkbox "core" [ref=e1111]
                           - text: core
-                        - generic [ref=e1113]:
-                          - checkbox "finance" [ref=e1114]
+                        - generic [ref=e1112]:
+                          - checkbox "finance" [ref=e1113]
                           - text: finance
-                        - generic [ref=e1115]:
-                          - checkbox "users" [ref=e1116]
+                        - generic [ref=e1114]:
+                          - checkbox "users" [ref=e1115]
                           - text: users
-                    - generic [ref=e1117]:
-                      - generic [ref=e1118]:
-                        - generic [ref=e1119]: Comienza
-                        - button "Ayuda sobre Comienza" [ref=e1120] [cursor=pointer]: "?"
-                      - generic [ref=e1121]:
-                        - textbox [ref=e1122]: 2026-03-22
-                        - textbox [ref=e1123]: 00:00
-                    - generic [ref=e1124]:
-                      - generic [ref=e1125]:
-                        - generic [ref=e1126]: Termina
-                        - button "Ayuda sobre Termina" [ref=e1127] [cursor=pointer]: "?"
-                      - generic [ref=e1128]:
-                        - textbox [ref=e1129]: 2026-03-23
-                        - textbox [ref=e1130]: 00:00
-                    - generic [ref=e1131]:
-                      - generic [ref=e1132]:
-                        - generic [ref=e1133]: Motivo
-                        - button "Ayuda sobre Motivo" [ref=e1134] [cursor=pointer]: "?"
-                      - textbox [ref=e1135]
-                    - button "Actualizar mantenimiento" [ref=e1137] [cursor=pointer]
-                  - generic [ref=e1138]:
-                    - heading "Facturación" [level=3] [ref=e1139]
-                    - generic [ref=e1140]:
-                      - generic [ref=e1141]:
-                        - generic [ref=e1142]: Estado billing
-                        - button "Ayuda sobre Estado billing" [ref=e1143] [cursor=pointer]: "?"
-                      - combobox [ref=e1144]:
+                    - generic [ref=e1116]:
+                      - generic [ref=e1117]:
+                        - generic [ref=e1118]: Comienza
+                        - button "Ayuda sobre Comienza" [ref=e1119] [cursor=pointer]: "?"
+                      - generic [ref=e1120]:
+                        - textbox [ref=e1121]: 2026-03-22
+                        - textbox [ref=e1122]: 00:00
+                    - generic [ref=e1123]:
+                      - generic [ref=e1124]:
+                        - generic [ref=e1125]: Termina
+                        - button "Ayuda sobre Termina" [ref=e1126] [cursor=pointer]: "?"
+                      - generic [ref=e1127]:
+                        - textbox [ref=e1128]: 2026-03-23
+                        - textbox [ref=e1129]: 00:00
+                    - generic [ref=e1130]:
+                      - generic [ref=e1131]:
+                        - generic [ref=e1132]: Motivo
+                        - button "Ayuda sobre Motivo" [ref=e1133] [cursor=pointer]: "?"
+                      - textbox [ref=e1134]
+                    - button "Actualizar mantenimiento" [ref=e1136] [cursor=pointer]
+                  - generic [ref=e1137]:
+                    - heading "Facturación" [level=3] [ref=e1138]
+                    - generic [ref=e1139]:
+                      - generic [ref=e1140]:
+                        - generic [ref=e1141]: Estado billing
+                        - button "Ayuda sobre Estado billing" [ref=e1142] [cursor=pointer]: "?"
+                      - combobox [ref=e1143]:
                         - option "ninguno"
                         - option "activo" [selected]
                         - option "cancelado"
                         - option "con deuda"
                         - option "suspendido"
                         - option "en prueba"
-                    - generic [ref=e1145]:
-                      - generic [ref=e1146]:
-                        - generic [ref=e1147]: Motivo
-                        - button "Ayuda sobre Motivo" [ref=e1148] [cursor=pointer]: "?"
-                      - textbox [ref=e1149]
-                    - generic [ref=e1150]:
-                      - generic [ref=e1151]:
-                        - generic [ref=e1152]: Fin período actual
-                        - button "Ayuda sobre Fin período actual" [ref=e1153] [cursor=pointer]: "?"
-                      - generic [ref=e1154]:
-                        - textbox [ref=e1155]: 2026-03-22
-                        - textbox [ref=e1156]: 00:00
-                    - generic [ref=e1157]:
-                      - generic [ref=e1158]:
-                        - generic [ref=e1159]: Gracia hasta
-                        - button "Ayuda sobre Gracia hasta" [ref=e1160] [cursor=pointer]: "?"
-                      - generic [ref=e1161]:
-                        - textbox [ref=e1162]: 2026-03-31
-                        - textbox [ref=e1163]: 00:00
-                    - button "Actualizar facturación" [ref=e1165] [cursor=pointer]
-                  - generic [ref=e1166]:
-                    - heading "Plan" [level=3] [ref=e1167]
-                    - generic [ref=e1168]:
-                      - generic [ref=e1169]:
-                        - generic [ref=e1170]: Código de plan
-                        - button "Ayuda sobre Código de plan" [ref=e1171] [cursor=pointer]: "?"
-                      - combobox [ref=e1172]:
+                    - generic [ref=e1144]:
+                      - generic [ref=e1145]:
+                        - generic [ref=e1146]: Motivo
+                        - button "Ayuda sobre Motivo" [ref=e1147] [cursor=pointer]: "?"
+                      - textbox [ref=e1148]
+                    - generic [ref=e1149]:
+                      - generic [ref=e1150]:
+                        - generic [ref=e1151]: Fin período actual
+                        - button "Ayuda sobre Fin período actual" [ref=e1152] [cursor=pointer]: "?"
+                      - generic [ref=e1153]:
+                        - textbox [ref=e1154]: 2026-03-22
+                        - textbox [ref=e1155]: 00:00
+                    - generic [ref=e1156]:
+                      - generic [ref=e1157]:
+                        - generic [ref=e1158]: Gracia hasta
+                        - button "Ayuda sobre Gracia hasta" [ref=e1159] [cursor=pointer]: "?"
+                      - generic [ref=e1160]:
+                        - textbox [ref=e1161]: 2026-03-31
+                        - textbox [ref=e1162]: 00:00
+                    - button "Actualizar facturación" [ref=e1164] [cursor=pointer]
+                  - generic [ref=e1165]:
+                    - heading "Plan" [level=3] [ref=e1166]
+                    - generic [ref=e1167]:
+                      - generic [ref=e1168]:
+                        - generic [ref=e1169]: Código de plan
+                        - button "Ayuda sobre Código de plan" [ref=e1170] [cursor=pointer]: "?"
+                      - combobox [ref=e1171]:
                         - option "Sin plan"
                         - option "anual"
                         - option "mensual"
                         - option "semestral" [selected]
                         - option "trimestral"
-                    - paragraph [ref=e1174]: Solo puedes aplicar planes definidos en la política de backend. Si no seleccionas ninguno, el tenant opera sin plan asociado.
-                    - button "Actualizar plan" [ref=e1176] [cursor=pointer]
-                  - generic [ref=e1177]:
-                    - heading "Límites de tasa" [level=3] [ref=e1178]
-                    - generic [ref=e1179]:
-                      - generic [ref=e1180]:
-                        - generic [ref=e1181]: Lecturas req/min
-                        - button "Ayuda sobre Lecturas req/min" [ref=e1182] [cursor=pointer]: "?"
-                      - spinbutton [ref=e1183]
-                    - generic [ref=e1184]:
-                      - generic [ref=e1185]:
-                        - generic [ref=e1186]: Escrituras req/min
-                        - button "Ayuda sobre Escrituras req/min" [ref=e1187] [cursor=pointer]: "?"
-                      - spinbutton [ref=e1188]
-                    - paragraph [ref=e1190]: "Déjalo vacío para volver al plan o a la configuración global. Usa `0` para quitar el límite de esa categoría."
-                    - button "Actualizar límites de tasa" [ref=e1192] [cursor=pointer]
-                  - generic [ref=e1193]:
-                    - heading "Identidad de billing" [level=3] [ref=e1194]
-                    - generic [ref=e1195]:
-                      - generic [ref=e1196]:
-                        - generic [ref=e1197]: Proveedor
-                        - button "Ayuda sobre Proveedor" [ref=e1198] [cursor=pointer]: "?"
-                      - combobox [ref=e1199]:
+                    - paragraph [ref=e1173]: Solo puedes aplicar planes definidos en la política de backend. Si no seleccionas ninguno, el tenant opera sin plan asociado.
+                    - button "Actualizar plan" [ref=e1175] [cursor=pointer]
+                  - generic [ref=e1176]:
+                    - heading "Límites de tasa" [level=3] [ref=e1177]
+                    - generic [ref=e1178]:
+                      - generic [ref=e1179]:
+                        - generic [ref=e1180]: Lecturas req/min
+                        - button "Ayuda sobre Lecturas req/min" [ref=e1181] [cursor=pointer]: "?"
+                      - spinbutton [ref=e1182]
+                    - generic [ref=e1183]:
+                      - generic [ref=e1184]:
+                        - generic [ref=e1185]: Escrituras req/min
+                        - button "Ayuda sobre Escrituras req/min" [ref=e1186] [cursor=pointer]: "?"
+                      - spinbutton [ref=e1187]
+                    - paragraph [ref=e1189]: "Déjalo vacío para volver al plan o a la configuración global. Usa `0` para quitar el límite de esa categoría."
+                    - button "Actualizar límites de tasa" [ref=e1191] [cursor=pointer]
+                  - generic [ref=e1192]:
+                    - heading "Identidad de billing" [level=3] [ref=e1193]
+                    - generic [ref=e1194]:
+                      - generic [ref=e1195]:
+                        - generic [ref=e1196]: Proveedor
+                        - button "Ayuda sobre Proveedor" [ref=e1197] [cursor=pointer]: "?"
+                      - combobox [ref=e1198]:
                         - option "ninguno" [selected]
                         - option "stripe"
-                    - generic [ref=e1200]:
-                      - generic [ref=e1201]:
-                        - generic [ref=e1202]: Customer ID
-                        - button "Ayuda sobre Customer ID" [ref=e1203] [cursor=pointer]: "?"
-                      - textbox [ref=e1204]
-                    - generic [ref=e1205]:
-                      - generic [ref=e1206]:
-                        - generic [ref=e1207]: Subscription ID
-                        - button "Ayuda sobre Subscription ID" [ref=e1208] [cursor=pointer]: "?"
-                      - textbox [ref=e1209]
-                    - button "Actualizar identidad de billing" [ref=e1211] [cursor=pointer]
-                  - generic [ref=e1212]:
-                    - heading "Límites por módulo" [level=3] [ref=e1213]
-                    - paragraph [ref=e1215]: "Vacío limpia el override tenant para esa clave. `0` significa ilimitado para ese override."
-                    - generic [ref=e1217]:
-                      - generic [ref=e1218]:
-                        - generic [ref=e1219]:
-                          - code [ref=e1221]: core.users
-                          - generic [ref=e1222]: Total de usuarios tenant
-                        - spinbutton [ref=e1223]
-                      - generic [ref=e1224]:
-                        - generic [ref=e1225]:
-                          - code [ref=e1227]: core.users.active
-                          - generic [ref=e1228]: Usuarios activos tenant
-                        - spinbutton [ref=e1229]
-                      - generic [ref=e1230]:
-                        - generic [ref=e1231]:
-                          - code [ref=e1233]: core.users.admin
-                          - generic [ref=e1234]: Usuarios tenant con rol admin
-                        - spinbutton [ref=e1235]
-                      - generic [ref=e1236]:
-                        - generic [ref=e1237]:
-                          - code [ref=e1239]: core.users.manager
-                          - generic [ref=e1240]: Usuarios tenant con rol manager
-                        - spinbutton [ref=e1241]
-                      - generic [ref=e1242]:
-                        - generic [ref=e1243]:
-                          - code [ref=e1245]: core.users.monthly
-                          - generic [ref=e1246]: Usuarios creados en el mes actual
-                        - spinbutton [ref=e1247]
-                      - generic [ref=e1248]:
-                        - generic [ref=e1249]:
-                          - code [ref=e1251]: core.users.operator
-                          - generic [ref=e1252]: Usuarios tenant con rol operator
-                        - spinbutton [ref=e1253]
-                      - generic [ref=e1254]:
-                        - generic [ref=e1255]:
-                          - code [ref=e1257]: finance.entries
-                          - generic [ref=e1258]: Total de movimientos financieros
-                        - spinbutton [ref=e1259]: "1"
-                      - generic [ref=e1260]:
-                        - generic [ref=e1261]:
-                          - code [ref=e1263]: finance.entries.monthly
-                          - generic [ref=e1264]: Movimientos financieros creados en el mes actual
-                        - spinbutton [ref=e1265]
-                      - generic [ref=e1266]:
-                        - generic [ref=e1267]:
-                          - code [ref=e1269]: finance.entries.monthly.expense
-                          - generic [ref=e1270]: Gastos creados en el mes actual
-                        - spinbutton [ref=e1271]
-                      - generic [ref=e1272]:
-                        - generic [ref=e1273]:
-                          - code [ref=e1275]: finance.entries.monthly.income
-                          - generic [ref=e1276]: Ingresos creados en el mes actual
-                        - spinbutton [ref=e1277]
-                    - button "Actualizar límites por módulo" [ref=e1279] [cursor=pointer]
-                  - generic [ref=e1280]:
-                    - heading "Esquema tenant" [level=3] [ref=e1281]
-                    - paragraph [ref=e1283]:
+                    - generic [ref=e1199]:
+                      - generic [ref=e1200]:
+                        - generic [ref=e1201]: Customer ID
+                        - button "Ayuda sobre Customer ID" [ref=e1202] [cursor=pointer]: "?"
+                      - textbox [ref=e1203]
+                    - generic [ref=e1204]:
+                      - generic [ref=e1205]:
+                        - generic [ref=e1206]: Subscription ID
+                        - button "Ayuda sobre Subscription ID" [ref=e1207] [cursor=pointer]: "?"
+                      - textbox [ref=e1208]
+                    - button "Actualizar identidad de billing" [ref=e1210] [cursor=pointer]
+                  - generic [ref=e1211]:
+                    - heading "Límites por módulo" [level=3] [ref=e1212]
+                    - paragraph [ref=e1214]: "Vacío limpia el override tenant para esa clave. `0` significa ilimitado para ese override."
+                    - generic [ref=e1216]:
+                      - generic [ref=e1217]:
+                        - generic [ref=e1218]:
+                          - code [ref=e1220]: core.users
+                          - generic [ref=e1221]: Total de usuarios tenant
+                        - spinbutton [ref=e1222]
+                      - generic [ref=e1223]:
+                        - generic [ref=e1224]:
+                          - code [ref=e1226]: core.users.active
+                          - generic [ref=e1227]: Usuarios activos tenant
+                        - spinbutton [ref=e1228]
+                      - generic [ref=e1229]:
+                        - generic [ref=e1230]:
+                          - code [ref=e1232]: core.users.admin
+                          - generic [ref=e1233]: Usuarios tenant con rol admin
+                        - spinbutton [ref=e1234]
+                      - generic [ref=e1235]:
+                        - generic [ref=e1236]:
+                          - code [ref=e1238]: core.users.manager
+                          - generic [ref=e1239]: Usuarios tenant con rol manager
+                        - spinbutton [ref=e1240]
+                      - generic [ref=e1241]:
+                        - generic [ref=e1242]:
+                          - code [ref=e1244]: core.users.monthly
+                          - generic [ref=e1245]: Usuarios creados en el mes actual
+                        - spinbutton [ref=e1246]
+                      - generic [ref=e1247]:
+                        - generic [ref=e1248]:
+                          - code [ref=e1250]: core.users.operator
+                          - generic [ref=e1251]: Usuarios tenant con rol operator
+                        - spinbutton [ref=e1252]
+                      - generic [ref=e1253]:
+                        - generic [ref=e1254]:
+                          - code [ref=e1256]: finance.entries
+                          - generic [ref=e1257]: Total de movimientos financieros
+                        - spinbutton [ref=e1258]: "140"
+                      - generic [ref=e1259]:
+                        - generic [ref=e1260]:
+                          - code [ref=e1262]: finance.entries.monthly
+                          - generic [ref=e1263]: Movimientos financieros creados en el mes actual
+                        - spinbutton [ref=e1264]
+                      - generic [ref=e1265]:
+                        - generic [ref=e1266]:
+                          - code [ref=e1268]: finance.entries.monthly.expense
+                          - generic [ref=e1269]: Gastos creados en el mes actual
+                        - spinbutton [ref=e1270]
+                      - generic [ref=e1271]:
+                        - generic [ref=e1272]:
+                          - code [ref=e1274]: finance.entries.monthly.income
+                          - generic [ref=e1275]: Ingresos creados en el mes actual
+                        - spinbutton [ref=e1276]
+                    - button "Actualizar límites por módulo" [ref=e1278] [cursor=pointer]
+                  - generic [ref=e1279]:
+                    - heading "Esquema tenant" [level=3] [ref=e1280]
+                    - paragraph [ref=e1282]:
                       - text: Ejecuta la sincronización de migraciones tenant cuando falten tablas como
-                      - code [ref=e1284]: finance_entries
+                      - code [ref=e1283]: finance_entries
                       - text: o la base tenant aún no esté al día.
-                    - button "Sincronizar esquema tenant" [ref=e1286] [cursor=pointer]
-                  - generic [ref=e1287]:
-                    - heading "Acceso portal tenant" [level=3] [ref=e1288]
-                    - paragraph [ref=e1290]: Usa este bloque para reiniciar la contraseña de un usuario del portal tenant cuando la olvidó. No cambia la credencial técnica de la base tenant.
-                    - generic [ref=e1291]:
-                      - generic [ref=e1292]:
-                        - generic [ref=e1293]: Usuario portal tenant
-                        - button "Ayuda sobre Usuario portal tenant" [ref=e1294] [cursor=pointer]: "?"
-                      - combobox [ref=e1295]:
+                    - button "Sincronizar esquema tenant" [ref=e1285] [cursor=pointer]
+                  - generic [ref=e1286]:
+                    - heading "Acceso portal tenant" [level=3] [ref=e1287]
+                    - paragraph [ref=e1289]: Usa este bloque para reiniciar la contraseña de un usuario del portal tenant cuando la olvidó. No cambia la credencial técnica de la base tenant.
+                    - generic [ref=e1290]:
+                      - generic [ref=e1291]:
+                        - generic [ref=e1292]: Usuario portal tenant
+                        - button "Ayuda sobre Usuario portal tenant" [ref=e1293] [cursor=pointer]: "?"
+                      - combobox [ref=e1294]:
                         - option "Selecciona un usuario tenant"
                         - option "admin@empresa-demo.local · admin · activo" [selected]
-                    - paragraph [ref=e1297]: La lista se carga desde la base tenant activa. Si no aparecen usuarios, revisa el acceso técnico del tenant o su bootstrap de usuarios.
-                    - generic [ref=e1298]:
-                      - generic [ref=e1299]:
-                        - generic [ref=e1300]: Nueva contraseña portal
-                        - button "Ayuda sobre Nueva contraseña portal" [ref=e1301] [cursor=pointer]: "?"
-                      - textbox [ref=e1302]
-                    - generic [ref=e1303]:
+                    - paragraph [ref=e1296]: La lista se carga desde la base tenant activa. Si no aparecen usuarios, revisa el acceso técnico del tenant o su bootstrap de usuarios.
+                    - generic [ref=e1297]:
+                      - generic [ref=e1298]:
+                        - generic [ref=e1299]: Nueva contraseña portal
+                        - button "Ayuda sobre Nueva contraseña portal" [ref=e1300] [cursor=pointer]: "?"
+                      - textbox [ref=e1301]
+                    - generic [ref=e1302]:
                       - button "Reiniciar contraseña portal" [disabled]
-            - generic [ref=e1304]:
-              - generic [ref=e1306]:
-                - heading "Uso por módulo" [level=2] [ref=e1308]
-                - generic [ref=e1309]: 8 filas
-              - table [ref=e1311]:
-                - rowgroup [ref=e1312]:
-                  - row "Clave de módulo Usado Límite Restante Fuente Estado" [ref=e1313]:
-                    - columnheader "Clave de módulo" [ref=e1314]
-                    - columnheader "Usado" [ref=e1315]
-                    - columnheader "Límite" [ref=e1316]
-                    - columnheader "Restante" [ref=e1317]
-                    - columnheader "Fuente" [ref=e1318]
-                    - columnheader "Estado" [ref=e1319]
-                - rowgroup [ref=e1320]:
-                  - row "core.users 1 ilimitado — ninguna ok" [ref=e1321]:
-                    - cell "core.users" [ref=e1322]:
-                      - code [ref=e1323]: core.users
-                    - cell "1" [ref=e1324]
-                    - cell "ilimitado" [ref=e1325]
-                    - cell "—" [ref=e1326]
-                    - cell "ninguna" [ref=e1327]
-                    - cell "ok" [ref=e1328]:
-                      - generic [ref=e1329]: ok
-                  - row "core.users.active 1 ilimitado — ninguna ok" [ref=e1330]:
-                    - cell "core.users.active" [ref=e1331]:
-                      - code [ref=e1332]: core.users.active
-                    - cell "1" [ref=e1333]
-                    - cell "ilimitado" [ref=e1334]
-                    - cell "—" [ref=e1335]
-                    - cell "ninguna" [ref=e1336]
-                    - cell "ok" [ref=e1337]:
-                      - generic [ref=e1338]: ok
-                  - row "core.users.monthly 1 ilimitado — ninguna ok" [ref=e1339]:
-                    - cell "core.users.monthly" [ref=e1340]:
-                      - code [ref=e1341]: core.users.monthly
-                    - cell "1" [ref=e1342]
-                    - cell "ilimitado" [ref=e1343]
-                    - cell "—" [ref=e1344]
-                    - cell "ninguna" [ref=e1345]
-                    - cell "ok" [ref=e1346]:
-                      - generic [ref=e1347]: ok
-                  - row "core.users.admin 1 ilimitado — ninguna ok" [ref=e1348]:
-                    - cell "core.users.admin" [ref=e1349]:
-                      - code [ref=e1350]: core.users.admin
-                    - cell "1" [ref=e1351]
-                    - cell "ilimitado" [ref=e1352]
-                    - cell "—" [ref=e1353]
-                    - cell "ninguna" [ref=e1354]
-                    - cell "ok" [ref=e1355]:
-                      - generic [ref=e1356]: ok
-                  - row "finance.entries 136 1 0 tenant_override al-límite" [ref=e1357]:
-                    - cell "finance.entries" [ref=e1358]:
-                      - code [ref=e1359]: finance.entries
-                    - cell "136" [ref=e1360]
-                    - cell "1" [ref=e1361]
-                    - cell "0" [ref=e1362]
-                    - cell "tenant_override" [ref=e1363]
-                    - cell "al-límite" [ref=e1364]:
-                      - generic [ref=e1365]: al-límite
-                  - row "finance.entries.monthly 136 ilimitado — ninguna ok" [ref=e1366]:
-                    - cell "finance.entries.monthly" [ref=e1367]:
-                      - code [ref=e1368]: finance.entries.monthly
-                    - cell "136" [ref=e1369]
-                    - cell "ilimitado" [ref=e1370]
-                    - cell "—" [ref=e1371]
-                    - cell "ninguna" [ref=e1372]
-                    - cell "ok" [ref=e1373]:
-                      - generic [ref=e1374]: ok
-                  - row "finance.entries.monthly.income 2 ilimitado — ninguna ok" [ref=e1375]:
-                    - cell "finance.entries.monthly.income" [ref=e1376]:
-                      - code [ref=e1377]: finance.entries.monthly.income
-                    - cell "2" [ref=e1378]
-                    - cell "ilimitado" [ref=e1379]
-                    - cell "—" [ref=e1380]
-                    - cell "ninguna" [ref=e1381]
-                    - cell "ok" [ref=e1382]:
-                      - generic [ref=e1383]: ok
-                  - row "finance.entries.monthly.expense 134 ilimitado — ninguna ok" [ref=e1384]:
-                    - cell "finance.entries.monthly.expense" [ref=e1385]:
-                      - code [ref=e1386]: finance.entries.monthly.expense
-                    - cell "134" [ref=e1387]
-                    - cell "ilimitado" [ref=e1388]
-                    - cell "—" [ref=e1389]
-                    - cell "ninguna" [ref=e1390]
-                    - cell "ok" [ref=e1391]:
-                      - generic [ref=e1392]: ok
-            - generic [ref=e1393]:
-              - generic [ref=e1395]:
-                - heading "Historial de políticas" [level=2] [ref=e1397]
-                - generic [ref=e1398]: 10 filas
-              - table [ref=e1400]:
-                - rowgroup [ref=e1401]:
-                  - row "Registrado en Evento Actor Campos cambiados" [ref=e1402]:
-                    - columnheader "Registrado en" [ref=e1403]
-                    - columnheader "Evento" [ref=e1404]
-                    - columnheader "Actor" [ref=e1405]
-                    - columnheader "Campos cambiados" [ref=e1406]
-                - rowgroup [ref=e1407]:
-                  - row "30-03-2026, 11:38:35 p. m. module_limits admin@platform.local ninguno" [ref=e1408]:
-                    - cell "30-03-2026, 11:38:35 p. m." [ref=e1409]
-                    - cell "module_limits" [ref=e1410]
-                    - cell "admin@platform.local" [ref=e1411]
-                    - cell "ninguno" [ref=e1412]
-                  - row "30-03-2026, 11:38:30 p. m. module_limits admin@platform.local ninguno" [ref=e1413]:
-                    - cell "30-03-2026, 11:38:30 p. m." [ref=e1414]
-                    - cell "module_limits" [ref=e1415]
-                    - cell "admin@platform.local" [ref=e1416]
-                    - cell "ninguno" [ref=e1417]
-                  - row "30-03-2026, 11:33:53 p. m. module_limits admin@platform.local ninguno" [ref=e1418]:
-                    - cell "30-03-2026, 11:33:53 p. m." [ref=e1419]
-                    - cell "module_limits" [ref=e1420]
-                    - cell "admin@platform.local" [ref=e1421]
-                    - cell "ninguno" [ref=e1422]
-                  - row "30-03-2026, 11:33:43 p. m. module_limits admin@platform.local module_limits_json" [ref=e1423]:
-                    - cell "30-03-2026, 11:33:43 p. m." [ref=e1424]
-                    - cell "module_limits" [ref=e1425]
-                    - cell "admin@platform.local" [ref=e1426]
-                    - cell "module_limits_json" [ref=e1427]
-                  - row "30-03-2026, 11:27:51 p. m. module_limits admin@platform.local module_limits_json" [ref=e1428]:
-                    - cell "30-03-2026, 11:27:51 p. m." [ref=e1429]
-                    - cell "module_limits" [ref=e1430]
-                    - cell "admin@platform.local" [ref=e1431]
-                    - cell "module_limits_json" [ref=e1432]
-                  - row "30-03-2026, 11:27:49 p. m. module_limits admin@platform.local module_limits_json" [ref=e1433]:
-                    - cell "30-03-2026, 11:27:49 p. m." [ref=e1434]
-                    - cell "module_limits" [ref=e1435]
-                    - cell "admin@platform.local" [ref=e1436]
-                    - cell "module_limits_json" [ref=e1437]
-                  - row "30-03-2026, 11:22:33 p. m. module_limits admin@platform.local module_limits_json" [ref=e1438]:
-                    - cell "30-03-2026, 11:22:33 p. m." [ref=e1439]
-                    - cell "module_limits" [ref=e1440]
-                    - cell "admin@platform.local" [ref=e1441]
-                    - cell "module_limits_json" [ref=e1442]
-                  - row "30-03-2026, 11:22:30 p. m. module_limits admin@platform.local ninguno" [ref=e1443]:
-                    - cell "30-03-2026, 11:22:30 p. m." [ref=e1444]
-                    - cell "module_limits" [ref=e1445]
-                    - cell "admin@platform.local" [ref=e1446]
-                    - cell "ninguno" [ref=e1447]
-                  - row "30-03-2026, 11:21:10 p. m. module_limits admin@platform.local ninguno" [ref=e1448]:
-                    - cell "30-03-2026, 11:21:10 p. m." [ref=e1449]
-                    - cell "module_limits" [ref=e1450]
-                    - cell "admin@platform.local" [ref=e1451]
-                    - cell "ninguno" [ref=e1452]
-                  - row "30-03-2026, 11:19:55 p. m. module_limits admin@platform.local ninguno" [ref=e1453]:
-                    - cell "30-03-2026, 11:19:55 p. m." [ref=e1454]
-                    - cell "module_limits" [ref=e1455]
-                    - cell "admin@platform.local" [ref=e1456]
-                    - cell "ninguno" [ref=e1457]
+            - generic [ref=e1303]:
+              - generic [ref=e1305]:
+                - heading "Uso por módulo" [level=2] [ref=e1307]
+                - generic [ref=e1308]: 8 filas
+              - table [ref=e1310]:
+                - rowgroup [ref=e1311]:
+                  - row "Clave de módulo Usado Límite Restante Fuente Estado" [ref=e1312]:
+                    - columnheader "Clave de módulo" [ref=e1313]
+                    - columnheader "Usado" [ref=e1314]
+                    - columnheader "Límite" [ref=e1315]
+                    - columnheader "Restante" [ref=e1316]
+                    - columnheader "Fuente" [ref=e1317]
+                    - columnheader "Estado" [ref=e1318]
+                - rowgroup [ref=e1319]:
+                  - row "core.users 1 ilimitado — ninguna ok" [ref=e1320]:
+                    - cell "core.users" [ref=e1321]:
+                      - code [ref=e1322]: core.users
+                    - cell "1" [ref=e1323]
+                    - cell "ilimitado" [ref=e1324]
+                    - cell "—" [ref=e1325]
+                    - cell "ninguna" [ref=e1326]
+                    - cell "ok" [ref=e1327]:
+                      - generic [ref=e1328]: ok
+                  - row "core.users.active 1 ilimitado — ninguna ok" [ref=e1329]:
+                    - cell "core.users.active" [ref=e1330]:
+                      - code [ref=e1331]: core.users.active
+                    - cell "1" [ref=e1332]
+                    - cell "ilimitado" [ref=e1333]
+                    - cell "—" [ref=e1334]
+                    - cell "ninguna" [ref=e1335]
+                    - cell "ok" [ref=e1336]:
+                      - generic [ref=e1337]: ok
+                  - row "core.users.monthly 1 ilimitado — ninguna ok" [ref=e1338]:
+                    - cell "core.users.monthly" [ref=e1339]:
+                      - code [ref=e1340]: core.users.monthly
+                    - cell "1" [ref=e1341]
+                    - cell "ilimitado" [ref=e1342]
+                    - cell "—" [ref=e1343]
+                    - cell "ninguna" [ref=e1344]
+                    - cell "ok" [ref=e1345]:
+                      - generic [ref=e1346]: ok
+                  - row "core.users.admin 1 ilimitado — ninguna ok" [ref=e1347]:
+                    - cell "core.users.admin" [ref=e1348]:
+                      - code [ref=e1349]: core.users.admin
+                    - cell "1" [ref=e1350]
+                    - cell "ilimitado" [ref=e1351]
+                    - cell "—" [ref=e1352]
+                    - cell "ninguna" [ref=e1353]
+                    - cell "ok" [ref=e1354]:
+                      - generic [ref=e1355]: ok
+                  - row "finance.entries 141 140 0 tenant_override al-límite" [ref=e1356]:
+                    - cell "finance.entries" [ref=e1357]:
+                      - code [ref=e1358]: finance.entries
+                    - cell "141" [ref=e1359]
+                    - cell "140" [ref=e1360]
+                    - cell "0" [ref=e1361]
+                    - cell "tenant_override" [ref=e1362]
+                    - cell "al-límite" [ref=e1363]:
+                      - generic [ref=e1364]: al-límite
+                  - row "finance.entries.monthly 141 ilimitado — ninguna ok" [ref=e1365]:
+                    - cell "finance.entries.monthly" [ref=e1366]:
+                      - code [ref=e1367]: finance.entries.monthly
+                    - cell "141" [ref=e1368]
+                    - cell "ilimitado" [ref=e1369]
+                    - cell "—" [ref=e1370]
+                    - cell "ninguna" [ref=e1371]
+                    - cell "ok" [ref=e1372]:
+                      - generic [ref=e1373]: ok
+                  - row "finance.entries.monthly.income 2 ilimitado — ninguna ok" [ref=e1374]:
+                    - cell "finance.entries.monthly.income" [ref=e1375]:
+                      - code [ref=e1376]: finance.entries.monthly.income
+                    - cell "2" [ref=e1377]
+                    - cell "ilimitado" [ref=e1378]
+                    - cell "—" [ref=e1379]
+                    - cell "ninguna" [ref=e1380]
+                    - cell "ok" [ref=e1381]:
+                      - generic [ref=e1382]: ok
+                  - row "finance.entries.monthly.expense 139 ilimitado — ninguna ok" [ref=e1383]:
+                    - cell "finance.entries.monthly.expense" [ref=e1384]:
+                      - code [ref=e1385]: finance.entries.monthly.expense
+                    - cell "139" [ref=e1386]
+                    - cell "ilimitado" [ref=e1387]
+                    - cell "—" [ref=e1388]
+                    - cell "ninguna" [ref=e1389]
+                    - cell "ok" [ref=e1390]:
+                      - generic [ref=e1391]: ok
+            - generic [ref=e1392]:
+              - generic [ref=e1394]:
+                - heading "Historial de políticas" [level=2] [ref=e1396]
+                - generic [ref=e1397]: 10 filas
+              - table [ref=e1399]:
+                - rowgroup [ref=e1400]:
+                  - row "Registrado en Evento Actor Campos cambiados" [ref=e1401]:
+                    - columnheader "Registrado en" [ref=e1402]
+                    - columnheader "Evento" [ref=e1403]
+                    - columnheader "Actor" [ref=e1404]
+                    - columnheader "Campos cambiados" [ref=e1405]
+                - rowgroup [ref=e1406]:
+                  - row "30-03-2026, 11:44:25 p. m. module_limits admin@platform.local ninguno" [ref=e1407]:
+                    - cell "30-03-2026, 11:44:25 p. m." [ref=e1408]
+                    - cell "module_limits" [ref=e1409]
+                    - cell "admin@platform.local" [ref=e1410]
+                    - cell "ninguno" [ref=e1411]
+                  - row "30-03-2026, 11:44:19 p. m. module_limits admin@platform.local module_limits_json" [ref=e1412]:
+                    - cell "30-03-2026, 11:44:19 p. m." [ref=e1413]
+                    - cell "module_limits" [ref=e1414]
+                    - cell "admin@platform.local" [ref=e1415]
+                    - cell "module_limits_json" [ref=e1416]
+                  - row "30-03-2026, 11:42:54 p. m. module_limits admin@platform.local module_limits_json" [ref=e1417]:
+                    - cell "30-03-2026, 11:42:54 p. m." [ref=e1418]
+                    - cell "module_limits" [ref=e1419]
+                    - cell "admin@platform.local" [ref=e1420]
+                    - cell "module_limits_json" [ref=e1421]
+                  - row "30-03-2026, 11:42:51 p. m. module_limits admin@platform.local module_limits_json" [ref=e1422]:
+                    - cell "30-03-2026, 11:42:51 p. m." [ref=e1423]
+                    - cell "module_limits" [ref=e1424]
+                    - cell "admin@platform.local" [ref=e1425]
+                    - cell "module_limits_json" [ref=e1426]
+                  - row "30-03-2026, 11:40:15 p. m. module_limits admin@platform.local module_limits_json" [ref=e1427]:
+                    - cell "30-03-2026, 11:40:15 p. m." [ref=e1428]
+                    - cell "module_limits" [ref=e1429]
+                    - cell "admin@platform.local" [ref=e1430]
+                    - cell "module_limits_json" [ref=e1431]
+                  - row "30-03-2026, 11:40:07 p. m. module_limits admin@platform.local ninguno" [ref=e1432]:
+                    - cell "30-03-2026, 11:40:07 p. m." [ref=e1433]
+                    - cell "module_limits" [ref=e1434]
+                    - cell "admin@platform.local" [ref=e1435]
+                    - cell "ninguno" [ref=e1436]
+                  - row "30-03-2026, 11:38:35 p. m. module_limits admin@platform.local ninguno" [ref=e1437]:
+                    - cell "30-03-2026, 11:38:35 p. m." [ref=e1438]
+                    - cell "module_limits" [ref=e1439]
+                    - cell "admin@platform.local" [ref=e1440]
+                    - cell "ninguno" [ref=e1441]
+                  - row "30-03-2026, 11:38:30 p. m. module_limits admin@platform.local ninguno" [ref=e1442]:
+                    - cell "30-03-2026, 11:38:30 p. m." [ref=e1443]
+                    - cell "module_limits" [ref=e1444]
+                    - cell "admin@platform.local" [ref=e1445]
+                    - cell "ninguno" [ref=e1446]
+                  - row "30-03-2026, 11:33:53 p. m. module_limits admin@platform.local ninguno" [ref=e1447]:
+                    - cell "30-03-2026, 11:33:53 p. m." [ref=e1448]
+                    - cell "module_limits" [ref=e1449]
+                    - cell "admin@platform.local" [ref=e1450]
+                    - cell "ninguno" [ref=e1451]
+                  - row "30-03-2026, 11:33:43 p. m. module_limits admin@platform.local module_limits_json" [ref=e1452]:
+                    - cell "30-03-2026, 11:33:43 p. m." [ref=e1453]
+                    - cell "module_limits" [ref=e1454]
+                    - cell "admin@platform.local" [ref=e1455]
+                    - cell "module_limits_json" [ref=e1456]
 ```

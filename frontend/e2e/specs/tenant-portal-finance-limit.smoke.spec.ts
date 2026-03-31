@@ -2,11 +2,58 @@ import { expect, test, type Page } from "@playwright/test";
 import { loginPlatform, loginTenant } from "../support/auth";
 import { e2eEnv } from "../support/env";
 import {
+  createBasicExpenseTransaction,
   ensureFinanceTransactionFormReady,
   getFinanceTransactionForm,
   getTransactionRowByDescription,
   openFinanceTransactionsPage,
 } from "../support/finance";
+
+async function getUsageValue(page: Page, label: RegExp) {
+  const field = page
+    .locator(".tenant-detail__label")
+    .filter({ hasText: label })
+    .first()
+    .locator("xpath=..");
+
+  await expect(field).toBeVisible();
+  return (await field.locator(".tenant-detail__value").innerText()).trim();
+}
+
+async function getUsedEntries(page: Page) {
+  const usedText = await getUsageValue(page, /Usado|Used/i);
+  const usedEntries = Number.parseInt(usedText, 10);
+
+  if (Number.isNaN(usedEntries)) {
+    throw new Error(`Could not parse finance used entries from: ${usedText}`);
+  }
+
+  return usedEntries;
+}
+
+async function ensureTenantPortalSession(page: Page, options?: { forceFreshLogin?: boolean }) {
+  if (options?.forceFreshLogin) {
+    await page.goto("/");
+    await page.evaluate(() => {
+      window.sessionStorage.removeItem("platform_paas.tenant_session");
+    });
+  }
+
+  const searchParams = new URLSearchParams({
+    tenantSlug: e2eEnv.tenant.slug,
+    email: e2eEnv.tenant.email,
+  });
+
+  await page.goto(`/tenant-portal/login?${searchParams.toString()}`);
+  await page.waitForLoadState("networkidle");
+
+  if (/\/tenant-portal\/login($|[?#])/.test(page.url())) {
+    await loginTenant(page);
+    return;
+  }
+
+  await expect(page).toHaveURL(/\/tenant-portal($|[/?#])/);
+}
 
 async function ensurePlatformTenantsPage(page: Page) {
   await page.goto("/tenants");
@@ -74,16 +121,32 @@ async function updateFinanceEntriesLimit(page: Page, tenantSlug: string, value: 
 test("tenant portal finance shows limit enforcement when entries quota is exhausted", async ({
   page,
 }) => {
+  const seedDescription = `e2e-finance-seed-${Date.now()}`;
   const uniqueDescription = `e2e-finance-limit-${Date.now()}`;
 
+  await ensureTenantPortalSession(page);
+  await openFinanceTransactionsPage(page);
+
+  const usedEntriesBefore = await getUsedEntries(page);
+  await createBasicExpenseTransaction(page, seedDescription);
+  const exhaustedLimit = String(usedEntriesBefore + 1);
+
   await loginPlatform(page);
-  await updateFinanceEntriesLimit(page, e2eEnv.tenant.slug, "1");
+  await updateFinanceEntriesLimit(page, e2eEnv.tenant.slug, exhaustedLimit);
 
   try {
-    await loginTenant(page);
+    await ensureTenantPortalSession(page, { forceFreshLogin: true });
     await openFinanceTransactionsPage(page);
 
-    await expect(page.getByText(/al límite|at limit/i).first()).toBeVisible();
+    await expect
+      .poll(async () => getUsageValue(page, /Estado|Status/i))
+      .toMatch(/al límite|at limit/i);
+    await expect
+      .poll(async () => getUsageValue(page, /Límite|Limit/i))
+      .toBe(exhaustedLimit);
+    await expect
+      .poll(async () => String(await getUsedEntries(page)))
+      .toBe(exhaustedLimit);
 
     const form = getFinanceTransactionForm(page);
     await ensureFinanceTransactionFormReady(page, form, `e2e-finance-limit-account-${Date.now()}`);

@@ -16,6 +16,9 @@ from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
     FinanceTransactionUpdateRequest,
 )
 from app.apps.tenant_modules.finance.services.finance_service import FinanceService  # noqa: E402
+from app.apps.tenant_modules.finance.services.transaction_service import (  # noqa: E402
+    FinanceUsageLimitExceededError,
+)
 from app.common.db.tenant_base import TenantBase  # noqa: E402
 from app.tests.db_test_utils import build_sqlite_session  # noqa: E402
 
@@ -164,6 +167,45 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
 
         self.assertEqual(transaction.exchange_rate, 0.0011)
         self.assertAlmostEqual(transaction.amount_in_base_currency, 11.0, places=6)
+
+    def test_create_transaction_rejects_when_entries_limit_is_reached(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+
+        self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=10.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Base",
+            ),
+            created_by_user_id=1,
+        )
+
+        with self.assertRaises(FinanceUsageLimitExceededError) as exc:
+            self.service.create_transaction(
+                tenant_db=self.db,
+                payload=FinanceTransactionCreateRequest(
+                    transaction_type="expense",
+                    account_id=caja.id,
+                    currency_id=usd.id,
+                    amount=20.0,
+                    transaction_at=datetime.now(timezone.utc),
+                    description="Bloqueada",
+                ),
+                created_by_user_id=1,
+                max_entries=1,
+            )
+
+        self.assertIn("finance.entries", str(exc.exception))
 
     def test_account_balances_remain_consistent_with_income_expense_and_transfer(self) -> None:
         usd = self._seed_currency(code="USD", is_base=True, sort_order=10)

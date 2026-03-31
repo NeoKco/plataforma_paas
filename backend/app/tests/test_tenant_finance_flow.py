@@ -430,6 +430,9 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
             return_value=transaction,
         ) as create_transaction_mock:
             response = create_finance_transaction(
+                request=SimpleNamespace(
+                    state=SimpleNamespace(tenant_effective_module_limits={})
+                ),
                 payload=FinanceTransactionCreateRequest(
                     transaction_type="expense",
                     account_id=1,
@@ -459,6 +462,49 @@ class TenantFinanceRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.data.transaction_type, "expense")
         self.assertEqual(create_transaction_mock.call_args.kwargs["created_by_user_id"], 1)
+        self.assertIsNone(create_transaction_mock.call_args.kwargs["max_entries"])
+
+    def test_create_finance_transaction_returns_403_when_plan_limit_is_reached(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.finance.api.routes.finance_service.create_transaction",
+            side_effect=FinanceUsageLimitExceededError(
+                "El plan actual alcanzo el limite de finance.entries"
+            ),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                create_finance_transaction(
+                    request=SimpleNamespace(
+                        state=SimpleNamespace(
+                            tenant_effective_module_limits={"finance.entries": 5}
+                        )
+                    ),
+                    payload=FinanceTransactionCreateRequest(
+                        transaction_type="expense",
+                        account_id=1,
+                        target_account_id=None,
+                        category_id=2,
+                        beneficiary_id=None,
+                        person_id=None,
+                        project_id=None,
+                        currency_id=1,
+                        loan_id=None,
+                        amount=300.0,
+                        discount_amount=0.0,
+                        exchange_rate=1.0,
+                        amortization_months=None,
+                        transaction_at="2026-03-27T13:00:00+00:00",
+                        alternative_date=None,
+                        description="Compra insumos",
+                        notes=None,
+                        is_favorite=False,
+                        is_reconciled=False,
+                        tag_ids=None,
+                    ),
+                    current_user=self._current_user(),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 403)
 
     def test_get_finance_transaction_detail_returns_audit_history(self) -> None:
         transaction = SimpleNamespace(

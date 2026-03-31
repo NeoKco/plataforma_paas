@@ -85,6 +85,53 @@ class FinanceService:
             transaction_tag_repository or FinanceTransactionTagRepository()
         )
 
+    def _enforce_usage_limits(
+        self,
+        tenant_db: Session,
+        *,
+        movement_type: str | None = None,
+        max_entries: int | None = None,
+        max_monthly_entries: int | None = None,
+        max_monthly_entries_by_type: dict[str, int] | None = None,
+    ) -> None:
+        if max_entries is not None and max_entries > 0:
+            current_entries = self.transaction_repository.count_all(tenant_db)
+            if current_entries >= max_entries:
+                raise FinanceUsageLimitExceededError(
+                    "El plan actual alcanzo el limite de finance.entries"
+                )
+
+        if max_monthly_entries is not None and max_monthly_entries > 0:
+            current_monthly_entries = self.transaction_repository.count_created_since(
+                tenant_db,
+                self._get_current_month_start(),
+            )
+            if current_monthly_entries >= max_monthly_entries:
+                raise FinanceUsageLimitExceededError(
+                    "El plan actual alcanzo el limite de finance.entries.monthly"
+                )
+
+        normalized_type = (movement_type or "").strip().lower()
+        if (
+            normalized_type
+            and max_monthly_entries_by_type is not None
+            and normalized_type in self.MONTHLY_TYPE_MODULE_LIMIT_KEYS
+        ):
+            type_monthly_limit = max_monthly_entries_by_type.get(normalized_type)
+            if type_monthly_limit is not None and type_monthly_limit > 0:
+                current_type_monthly_entries = (
+                    self.transaction_repository.count_created_since_by_type(
+                        tenant_db,
+                        self._get_current_month_start(),
+                        normalized_type,
+                    )
+                )
+                if current_type_monthly_entries >= type_monthly_limit:
+                    raise FinanceUsageLimitExceededError(
+                        "El plan actual alcanzo el limite de "
+                        f"{self.MONTHLY_TYPE_MODULE_LIMIT_KEYS[normalized_type]}"
+                    )
+
     def create_entry(
         self,
         tenant_db: Session,
@@ -104,39 +151,13 @@ class FinanceService:
         if amount <= 0:
             raise ValueError("amount debe ser mayor que cero")
 
-        if max_entries is not None and max_entries > 0:
-            current_entries = self.transaction_repository.count_all(tenant_db)
-            if current_entries >= max_entries:
-                raise FinanceUsageLimitExceededError(
-                    "El plan actual alcanzo el limite de finance.entries"
-                )
-
-        if max_monthly_entries is not None and max_monthly_entries > 0:
-            current_monthly_entries = self.transaction_repository.count_created_since(
-                tenant_db,
-                self._get_current_month_start(),
-            )
-            if current_monthly_entries >= max_monthly_entries:
-                raise FinanceUsageLimitExceededError(
-                    "El plan actual alcanzo el limite de finance.entries.monthly"
-                )
-
-        type_monthly_limit = None
-        if max_monthly_entries_by_type is not None:
-            type_monthly_limit = max_monthly_entries_by_type.get(normalized_type)
-        if type_monthly_limit is not None and type_monthly_limit > 0:
-            current_type_monthly_entries = (
-                self.transaction_repository.count_created_since_by_type(
-                    tenant_db,
-                    self._get_current_month_start(),
-                    normalized_type,
-                )
-            )
-            if current_type_monthly_entries >= type_monthly_limit:
-                raise FinanceUsageLimitExceededError(
-                    "El plan actual alcanzo el limite de "
-                    f"{self.MONTHLY_TYPE_MODULE_LIMIT_KEYS[normalized_type]}"
-                )
+        self._enforce_usage_limits(
+            tenant_db,
+            movement_type=normalized_type,
+            max_entries=max_entries,
+            max_monthly_entries=max_monthly_entries,
+            max_monthly_entries_by_type=max_monthly_entries_by_type,
+        )
 
         base_currency = self._get_base_currency_or_raise(tenant_db)
         transaction = FinanceTransaction(
@@ -197,7 +218,18 @@ class FinanceService:
         summary: str = "Transaccion financiera creada",
         audit_payload: dict | None = None,
         allow_accountless: bool = False,
+        max_entries: int | None = None,
+        max_monthly_entries: int | None = None,
+        max_monthly_entries_by_type: dict[str, int] | None = None,
     ) -> FinanceTransaction:
+        self._enforce_usage_limits(
+            tenant_db,
+            movement_type=payload.transaction_type,
+            max_entries=max_entries,
+            max_monthly_entries=max_monthly_entries,
+            max_monthly_entries_by_type=max_monthly_entries_by_type,
+        )
+
         transaction = self.stage_system_transaction(
             tenant_db,
             payload,
