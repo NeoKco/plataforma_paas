@@ -34,7 +34,9 @@ async function ensureFinanceCategoriesPage(page: Page) {
   }
 
   await expect(page).toHaveURL(/\/tenant-portal\/finance\/categories($|[/?#])/);
-  await expect(page.getByRole("heading", { name: /Categorías|Categories/i })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 1, name: /Categorías|Categories/i })
+  ).toBeVisible();
 }
 
 function getCategoryRow(page: Page, categoryName: string) {
