@@ -65,6 +65,15 @@ Si subes una imagen `JPG` o `PNG`, el nombre final visible del adjunto puede que
 
 Esta regla aplica especialmente a cuentas, categorías, monedas y catálogos auxiliares.
 
+### Mantener configuración financiera
+
+1. Ir a `Finanzas > Configuración`.
+2. En `Monedas`, crear o activar/desactivar monedas operativas del tenant.
+3. En `Tipos de cambio`, registrar tasas manuales vigentes cuando necesites operar pares distintos a la moneda base.
+4. En `Parámetros`, mantener claves simples de configuración del módulo.
+
+Recuerda que borrar una moneda solo funciona cuando no es base y no tiene referencias reales como cuentas, transacciones, préstamos o tipos de cambio asociados.
+
 ### Registrar y clonar presupuestos
 
 1. Ir a `Finanzas > Presupuestos`.

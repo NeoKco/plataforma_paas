@@ -9,6 +9,7 @@ Estado actual:
 - módulo funcionalmente cerrado para la etapa actual del PaaS
 - backend, frontend, migraciones, importación legacy y smoke E2E ya operativos
 - cobertura E2E tenant ya incluye límites visibles y mantenimiento básico de cuentas/categorías
+- cobertura E2E tenant ya incluye además configuración financiera base sobre monedas, tipos de cambio y parámetros
 - cobertura E2E tenant ya incluye además el flujo base de presupuestos mensuales
 - cobertura E2E tenant ya incluye además el flujo base de préstamos y pagos simples de cuota
 - cobertura E2E tenant ya incluye además operaciones batch y reversas básicas de préstamos

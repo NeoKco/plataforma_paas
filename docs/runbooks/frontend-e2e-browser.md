@@ -146,6 +146,7 @@ Resultado validado en local a la fecha:
 - `tenant_portal` ya cubre además enforcement de `finance.entries.monthly.income` y `finance.entries.monthly.expense` bloqueando nuevas transacciones según el tipo del movimiento
 - `tenant_portal` ya cubre además el mantenimiento operativo de cuentas y categorías (`create`, `deactivate`, `delete`) dentro de `finance`
 - `tenant_portal` ya cubre además el flujo base de presupuestos con alta mensual y clonación al mes visible
+- `tenant_portal` ya cubre además la configuración operativa de `finance` sobre monedas, tipos de cambio y parámetros base
 - `tenant_portal` ya cubre además el flujo base de préstamos con alta de cartera y pago simple de cuota
 - `tenant_portal` ya cubre además pago en lote y reversa en lote de cuotas sobre préstamos seleccionados
 - `tenant_portal` con `empresa-bootstrap` pasando
@@ -188,6 +189,7 @@ Notas del flujo `finance` que conviene recordar:
 - el smoke mensual por tipo de `finance` reutiliza ese snapshot real para fijar `finance.entries.monthly.income` y `finance.entries.monthly.expense` sin depender de conteos estáticos
 - el smoke de catálogos `finance` usa registros efímeros con nombres únicos para validar alta, desactivación y borrado seguro sin depender del catálogo inicial
 - el smoke de presupuestos usa meses futuros efímeros para evitar colisiones con planificación real y verificar alta + clonación sin ensuciar meses operativos actuales
+- el smoke de configuración financiera usa códigos y claves efímeras para validar creación, activación/desactivación y limpieza segura de monedas, tipos de cambio y parámetros del módulo
 - el smoke de préstamos usa un préstamo efímero con 3 cuotas para validar la ruta mínima `create -> schedule -> payment` sin depender de cartera previa
 - el smoke batch de préstamos reutiliza un préstamo efímero con 3 cuotas para validar `schedule -> batch payment -> batch reversal` sobre selección múltiple
 - ambos smokes de préstamos quedaron endurecidos contra variaciones legítimas de UI: cronograma ya expandido, formularios de pago con etiquetas parecidas y selects que cambian de posición según el modo
@@ -199,8 +201,9 @@ Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son
 
 - archive / restore tenant
 - provisioning más profundo desde `platform_admin` (DLQ individual, variaciones de filtros o delay)
-- cuentas y categorías básicas en `finance`
-- más regresión visible sobre configuraciones operativas de `finance`, ajustes guiados/plantillas y escenarios extra de usuarios tenant
+- ajustes guiados/plantillas en `finance budgets`
+- exportaciones y lectura contable derivada en `finance loans`
+- escenarios extra de usuarios tenant y regresión funcional adicional del portal
 
 Nota operativa del smoke `retry`:
 
