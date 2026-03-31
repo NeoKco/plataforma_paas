@@ -101,6 +101,15 @@ Esto acelera la preparación del mes visible sin recargar manualmente cada categ
 
 El detalle del préstamo muestra cronograma, estado de cuotas y lectura contable derivada para revisar pagos y reversas desde el mismo módulo.
 
+### Exportar lectura contable derivada del préstamo
+
+1. Abre `Cronograma` del préstamo ya operado.
+2. Baja al bloque `Lectura contable derivada`.
+3. Revisa pagos, reversas, cuenta operativa, efecto base y estado de conciliación.
+4. Usa `Exportar CSV` o `Exportar JSON` si necesitas compartir o auditar el detalle.
+
+Las exportaciones salen con el detalle derivado del préstamo visible en pantalla, incluyendo acción, cuota, cuenta, montos y señal de conciliación.
+
 ### Operar cuotas en lote
 
 1. Abrir `Cronograma` del préstamo.

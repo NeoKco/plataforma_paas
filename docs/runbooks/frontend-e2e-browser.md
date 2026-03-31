@@ -70,6 +70,7 @@ Cobertura actual:
 - flujo avanzado de `finance budgets` con plantillas y ajustes guiados sobre el mes visible en `tenant_portal`
 - flujo base de `finance loans` con creación de préstamo y pago simple de cuota en `tenant_portal`
 - operaciones batch de `finance loans` con pago y reversa sobre cuotas seleccionadas en `tenant_portal`
+- lectura contable derivada y exportaciones `CSV`/`JSON` de `finance loans` en `tenant_portal`
 - alta básica de una transacción en `finance`
 - carga de adjunto sobre transacción creada en `finance`
 - anulación básica de una transacción creada en `finance`
@@ -151,6 +152,7 @@ Resultado validado en local a la fecha:
 - `tenant_portal` ya cubre además la configuración operativa de `finance` sobre monedas, tipos de cambio y parámetros base
 - `tenant_portal` ya cubre además el flujo base de préstamos con alta de cartera y pago simple de cuota
 - `tenant_portal` ya cubre además pago en lote y reversa en lote de cuotas sobre préstamos seleccionados
+- `tenant_portal` ya cubre además lectura contable derivada y exportaciones de préstamos tras pago y reversa
 - `tenant_portal` con `empresa-bootstrap` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
 
@@ -195,6 +197,7 @@ Notas del flujo `finance` que conviene recordar:
 - el smoke de configuración financiera usa códigos y claves efímeras para validar creación, activación/desactivación y limpieza segura de monedas, tipos de cambio y parámetros del módulo
 - el smoke de préstamos usa un préstamo efímero con 3 cuotas para validar la ruta mínima `create -> schedule -> payment` sin depender de cartera previa
 - el smoke batch de préstamos reutiliza un préstamo efímero con 3 cuotas para validar `schedule -> batch payment -> batch reversal` sobre selección múltiple
+- el smoke contable de préstamos reutiliza un préstamo efímero con pago + reversa simple para verificar la tabla de lectura derivada y las descargas `finance-loan-accounting-*.csv/json`
 - ambos smokes de préstamos quedaron endurecidos contra variaciones legítimas de UI: cronograma ya expandido, formularios de pago con etiquetas parecidas y selects que cambian de posición según el modo
 - no hubo parche funcional en frontend/backend de `finance loans` porque la evidencia mostró que el comportamiento de producto era correcto; lo inestable eran los locators y supuestos del smoke
 
@@ -204,7 +207,6 @@ Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son
 
 - archive / restore tenant
 - provisioning más profundo desde `platform_admin` (DLQ individual, variaciones de filtros o delay)
-- exportaciones y lectura contable derivada en `finance loans`
 - escenarios extra de usuarios tenant y regresión funcional adicional del portal
 
 Nota operativa del smoke `retry`:
