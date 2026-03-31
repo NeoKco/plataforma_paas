@@ -48,7 +48,7 @@ Variables de entorno:
 - usar `.env.e2e.example` como referencia
 - si tu demo local usa otro tenant o credenciales, sobreescribe `E2E_TENANT_*` y `E2E_PLATFORM_*`
 - si `Playwright` no encuentra su browser exacto, puedes apuntar `E2E_CHROMIUM_EXECUTABLE_PATH` a un `chromium` ya instalado
-- el baseline actual usa `empresa-demo`, porque ya trae cuentas y datos útiles para el smoke de `finance`
+- el baseline actualmente validado usa `empresa-bootstrap`, porque quedó `active`, con login operativo y datos reproducibles para los smokes tenant
 - si tu entorno no tiene ese tenant o usa otra clave, sobreescribe `E2E_TENANT_*`
 
 Comandos útiles:
@@ -62,10 +62,15 @@ Notas:
 - el backend debe estar levantado antes de correr las pruebas
 - el frontend puede levantarse automáticamente desde `playwright.config.ts`, o reutilizar uno existente con `E2E_USE_EXISTING_FRONTEND=1`
 - para instalar el navegador local usa `npm run e2e:install`
-- el baseline tenant actualmente validado es `empresa-demo`
+- el baseline tenant actualmente validado es `empresa-bootstrap`
+- credenciales validadas para esta iteración:
+	- `E2E_TENANT_SLUG=empresa-bootstrap`
+	- `E2E_TENANT_EMAIL=admin@empresa-bootstrap.local`
+	- `E2E_TENANT_PASSWORD=TenantAdmin123!`
 - cuando el smoke sube una imagen en `finance`, el frontend la comprime antes del upload y el nombre final visible queda en `WEBP`
 - `npm run e2e:platform` ya ejecuta todo el bloque `platform-admin*.spec.ts`, no solo el smoke de login/navegación base
 - `npm run e2e:tenant` ya ejecuta todo el bloque `tenant-portal*.spec.ts`, no solo el smoke base de `finance`
 - el smoke de `retry` de provisioning siembra un job `failed` controlado en la DB de control usando el Python del backend; si tu entorno usa otra ruta, sobreescribe `E2E_BACKEND_PYTHON`
 - el smoke de DLQ requiere `PROVISIONING_DISPATCH_BACKEND=broker`; si el entorno usa `database`, el spec queda omitido automáticamente
 - el smoke DLQ individual y el smoke DLQ batch comparten ese requisito broker-only y se omiten automáticamente en backend `database`
+- los smokes de límites tenant ahora fijan y limpian overrides por control DB para evitar fragilidad al preparar estado por UI

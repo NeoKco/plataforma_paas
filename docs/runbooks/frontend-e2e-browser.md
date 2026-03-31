@@ -93,13 +93,13 @@ Baseline recomendado para desarrollo local:
 
 - usar un tenant realmente `active`
 - el baseline actual del smoke tenant usa:
-  - `E2E_TENANT_SLUG=empresa-demo`
-  - `E2E_TENANT_EMAIL=admin@empresa-demo.local`
-  - `E2E_TENANT_PASSWORD=EmpresaDemoPortal123!`
+  - `E2E_TENANT_SLUG=empresa-bootstrap`
+  - `E2E_TENANT_EMAIL=admin@empresa-bootstrap.local`
+  - `E2E_TENANT_PASSWORD=TenantAdmin123!`
 
-Se prioriza `empresa-demo` porque ya trae cuentas y datos operativos en `finance`, así que el smoke valida el flujo real con menos bootstrap previo.
+Se prioriza `empresa-bootstrap` porque en la validación local quedó `active`, con login funcional y bootstrap reproducible para `finance` y límites tenant.
 
-Si tu entorno no tiene `empresa-demo` operativo o usa otra clave, sobreescribe `E2E_TENANT_*`.
+Si tu entorno no tiene `empresa-bootstrap` operativo o usa otra clave, sobreescribe `E2E_TENANT_*`.
 
 Comandos separados:
 
@@ -125,9 +125,9 @@ Resultado validado en local a la fecha:
 - `Provisioning` ya tiene además un smoke broker-only para reencolar una fila DLQ individual desde la tabla de resultados
 - `Provisioning` ya tiene además un smoke broker-only para reencolar filas DLQ filtradas en lote
 - `Provisioning` ya tiene además un smoke broker-only para validar filtros DLQ por `error contains` y confirmar opciones de requeue individual
-- `tenant_portal` ya cubre además enforcement visible de límites de usuarios activos con un tenant de prueba provisionado durante el smoke
+- `tenant_portal` ya cubre además enforcement visible de límites de usuarios activos con overrides preparados de forma determinista
 - `tenant_portal` ya cubre además enforcement visible de límites de `finance.entries` bloqueando nuevas transacciones cuando el tenant queda al límite
-- `tenant_portal` con `empresa-demo` pasando
+- `tenant_portal` con `empresa-bootstrap` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
 
 ## Comandos
@@ -158,9 +158,10 @@ Decisiones de este primer corte:
 
 Notas del flujo `finance` que conviene recordar:
 
-- el smoke tenant usa `empresa-demo` porque ya trae cuentas y datos operativos reales
+- el smoke tenant validado usa `empresa-bootstrap` como baseline activo de esta iteración
 - la subida de imágenes en transacciones comprime el archivo antes de enviarlo
 - cuando la imagen se comprime, el nombre visible final del adjunto puede cambiar a extensión `webp`
+- los smokes de límites tenant ya no dependen de preparar overrides por UI de `Tenants`; usan control DB para fijar y limpiar estado reproducible
 
 ## Siguiente expansión sugerida
 
