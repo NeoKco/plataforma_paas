@@ -246,6 +246,84 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
 
         self.assertIn("finance.entries.monthly", str(exc.exception))
 
+    def test_create_transaction_rejects_when_monthly_income_limit_is_reached(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+
+        self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=10.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Ingreso base mensual",
+            ),
+            created_by_user_id=1,
+        )
+
+        with self.assertRaises(FinanceUsageLimitExceededError) as exc:
+            self.service.create_transaction(
+                tenant_db=self.db,
+                payload=FinanceTransactionCreateRequest(
+                    transaction_type="income",
+                    account_id=caja.id,
+                    currency_id=usd.id,
+                    amount=20.0,
+                    transaction_at=datetime.now(timezone.utc),
+                    description="Ingreso bloqueado mensual",
+                ),
+                created_by_user_id=1,
+                max_monthly_entries_by_type={"income": 1},
+            )
+
+        self.assertIn("finance.entries.monthly.income", str(exc.exception))
+
+    def test_create_transaction_rejects_when_monthly_expense_limit_is_reached(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+
+        self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=10.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Egreso base mensual",
+            ),
+            created_by_user_id=1,
+        )
+
+        with self.assertRaises(FinanceUsageLimitExceededError) as exc:
+            self.service.create_transaction(
+                tenant_db=self.db,
+                payload=FinanceTransactionCreateRequest(
+                    transaction_type="expense",
+                    account_id=caja.id,
+                    currency_id=usd.id,
+                    amount=20.0,
+                    transaction_at=datetime.now(timezone.utc),
+                    description="Egreso bloqueado mensual",
+                ),
+                created_by_user_id=1,
+                max_monthly_entries_by_type={"expense": 1},
+            )
+
+        self.assertIn("finance.entries.monthly.expense", str(exc.exception))
+
     def test_account_balances_remain_consistent_with_income_expense_and_transfer(self) -> None:
         usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
         caja = self._seed_account(
