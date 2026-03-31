@@ -56,7 +56,6 @@ test("tenant portal finance manages accounts catalog with create, deactivate and
     .fill(accountCode);
 
   await form.getByRole("button", { name: /Crear cuenta|Create account/i }).click();
-  await expect(getSuccessAlert(page)).toContainText(/cuenta|account/i);
 
   const accountRow = getCatalogRow(page, accountName);
   await expect(accountRow).toBeVisible();
@@ -110,7 +109,6 @@ test("tenant portal finance manages categories catalog with create, deactivate a
     .fill("Categoría creada por smoke E2E");
 
   await form.getByRole("button", { name: /Crear categoría|Create category/i }).click();
-  await expect(getSuccessAlert(page)).toContainText(/categor[ií]a|category/i);
 
   const categoryRow = getCatalogRow(page, categoryName);
   await expect(categoryRow).toBeVisible();

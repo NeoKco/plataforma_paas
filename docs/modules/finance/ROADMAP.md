@@ -31,15 +31,15 @@ Ya cubre:
 - manejo de moneda base y formateo de montos
 - ayudas contextuales en UI
 - importador idempotente con compresión de imágenes
-- E2E browser base con `empresa-demo`
-- E2E browser de `finance` validado para creación, adjunto, anulación y conciliación
+- E2E browser base revalidado con `empresa-bootstrap`
+- E2E browser de `finance` validado para creación, adjunto, anulación, conciliación, límites visibles y mantenimiento de cuentas/categorías
 
 ## Próximo nivel recomendado
 
 - ampliar E2E de `finance` para:
   - presupuestos
   - préstamos
-  - cuentas y categorías
+  - settings avanzados y catálogos secundarios
 - seguir la migración transversal del frontend al `design system`
 - terminar de pulir copy residual `es/en`
 - crear más specs browser sobre provisioning y recorridos tenant completos

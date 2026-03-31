@@ -35,6 +35,7 @@ Archivos principales:
 - [tenant-portal-finance-limit-precedence.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit-precedence.smoke.spec.ts)
 - [tenant-portal-finance-monthly-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-monthly-limit.smoke.spec.ts)
 - [tenant-portal-finance-monthly-type-limits.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-monthly-type-limits.smoke.spec.ts)
+- [tenant-portal-finance-catalogs.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-catalogs.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
@@ -61,6 +62,7 @@ Cobertura actual:
 - precedencia visible de `finance.entries` sobre `finance.entries.monthly` cuando ambos quedan agotados
 - enforcement de límites mensuales de `finance.entries.monthly` en `tenant_portal`
 - enforcement de límites mensuales por tipo `finance.entries.monthly.income` y `finance.entries.monthly.expense` en `tenant_portal`
+- mantenimiento básico de catálogos `finance` para cuentas y categorías en `tenant_portal`
 - alta básica de una transacción en `finance`
 - carga de adjunto sobre transacción creada en `finance`
 - anulación básica de una transacción creada en `finance`
@@ -136,6 +138,7 @@ Resultado validado en local a la fecha:
 - `tenant_portal` ya cubre además la precedencia visible del límite total `finance.entries` cuando coincide con `finance.entries.monthly`
 - `tenant_portal` ya cubre además enforcement de `finance.entries.monthly` bloqueando nuevas transacciones cuando el tenant alcanza el cupo mensual
 - `tenant_portal` ya cubre además enforcement de `finance.entries.monthly.income` y `finance.entries.monthly.expense` bloqueando nuevas transacciones según el tipo del movimiento
+- `tenant_portal` ya cubre además el mantenimiento operativo de cuentas y categorías (`create`, `deactivate`, `delete`) dentro de `finance`
 - `tenant_portal` con `empresa-bootstrap` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
 
@@ -174,6 +177,7 @@ Notas del flujo `finance` que conviene recordar:
 - el smoke de precedencia de `finance` fija en paralelo `finance.entries` y `finance.entries.monthly` para confirmar que el error visible y el `403` priorizan el límite total
 - el smoke mensual de `finance` usa además un snapshot real del uso tenant para fijar `finance.entries.monthly` sin asumir conteos hardcodeados
 - el smoke mensual por tipo de `finance` reutiliza ese snapshot real para fijar `finance.entries.monthly.income` y `finance.entries.monthly.expense` sin depender de conteos estáticos
+- el smoke de catálogos `finance` usa registros efímeros con nombres únicos para validar alta, desactivación y borrado seguro sin depender del catálogo inicial
 
 ## Siguiente expansión sugerida
 
@@ -182,7 +186,7 @@ Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son
 - archive / restore tenant
 - provisioning más profundo desde `platform_admin` (DLQ individual, variaciones de filtros o delay)
 - cuentas y categorías básicas en `finance`
-- más enforcement visible de límites y combinaciones operativas en `finance`, además de escenarios extra de usuarios tenant
+- más regresión visible sobre presupuestos, préstamos y configuraciones operativas de `finance`, además de escenarios extra de usuarios tenant
 
 Nota operativa del smoke `retry`:
 

@@ -57,5 +57,5 @@ Resumen curado de hitos del módulo `finance`.
 
 - se incorporó stack Playwright base
 - smoke `platform_admin` operativo
-- smoke `tenant finance` operativo usando `empresa-demo`
-- smoke `tenant finance` ampliado a creación, adjunto, anulación y conciliación
+- smoke `tenant finance` revalidado usando `empresa-bootstrap`
+- smoke `tenant finance` ampliado a creación, adjunto, anulación, conciliación, enforcement visible de límites y catálogos básicos (`accounts`, `categories`)
