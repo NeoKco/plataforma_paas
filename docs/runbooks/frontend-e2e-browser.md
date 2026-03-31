@@ -148,6 +148,7 @@ Resultado validado en local a la fecha:
 - `Provisioning` ya tiene además un smoke broker-only para reencolar filas DLQ filtradas en lote
 - `Provisioning` ya tiene además un smoke broker-only para validar filtros DLQ por `error contains` y confirmar opciones de requeue individual
 - `tenant_portal` ya cubre además enforcement visible de límites de usuarios activos con overrides preparados de forma determinista
+- `tenant_portal` ya cubre además login permitido cuando el tenant está `past_due` pero sigue en gracia, y bloqueo visible cuando la deuda vencida ya corta el acceso
 - `tenant_portal` ya cubre además bloqueo por cuota `core.users.admin` al crear un admin extra y al intentar reactivar un admin inactivo
 - `tenant_portal` ya cubre además bloqueo por `core.users.monthly` al intentar crear usuarios después de agotar el cupo del mes
 - `tenant_portal` ya cubre además enforcement visible de límites de `finance.entries` bloqueando nuevas transacciones cuando el tenant queda al límite
@@ -200,6 +201,7 @@ Notas del flujo `finance` que conviene recordar:
 - el smoke de `Billing` crea un tenant efímero y siembra un evento `invoice.payment_failed` controlado directamente en la DB de control para validar el workspace tenant y el reconcile individual sin depender de webhooks externos
 - el smoke batch de `Billing` reutiliza la misma siembra backend-control con dos eventos del mismo filtro para validar `Reconciliar eventos filtrados` sin depender de webhooks externos
 - el smoke de `Histórico tenants` recorre `create -> billing seed -> archive -> delete` sobre un tenant efímero para validar el archivo real sin tocar fixtures manuales
+- el smoke de login billing tenant reutiliza el baseline `empresa-bootstrap`, siembra estados de billing controlados y luego restaura el tenant a `active` al finalizar para no ensuciar la suite
 - el smoke admin de `tenant users` prepara primero un admin inactivo efímero y luego fija `core.users.admin=1` para comprobar el borde real de reactivación bloqueada sin depender de fixtures manuales
 - el smoke mensual de `tenant users` usa snapshot real de uso y una siembra determinista con `created_at` del mes actual para fijar `core.users.monthly` sin asumir conteos hardcodeados
 - el smoke de precedencia de `finance` fija en paralelo `finance.entries` y `finance.entries.monthly` para confirmar que el error visible y el `403` priorizan el límite total
@@ -221,7 +223,7 @@ Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son
 
 - `Billing` operativo desde `platform_admin` (workspace tenant + reconcile individual/batch)
 - `Histórico tenants` con filtros/export y detalle visible del archivo
-- regresión funcional adicional del portal
+- regresión funcional adicional del portal ya casi cerrada; lo que resta es ampliar casos secundarios si aparecen nuevos bordes reales
 
 Nota operativa del smoke `retry`:
 
