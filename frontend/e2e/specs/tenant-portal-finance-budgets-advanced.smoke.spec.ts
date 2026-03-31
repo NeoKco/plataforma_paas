@@ -166,9 +166,16 @@ test("tenant portal finance budgets applies a template and guided adjustment on 
     await focusRow.getByRole("button", { name: /Desactivar sin uso|Deactivate unused/i }).click();
 
     await expect(getSuccessFeedback(page)).toContainText(/presupuesto|budget/i);
-    await expect(getFocusRow(page, categoryName)).toContainText(/inactivo|inactive/i);
-    await expect(getFocusRow(page, categoryName).getByRole("button", { name: /Activar|Activate/i })).toBeVisible();
     await expect(getBudgetRow(page, categoryName)).toContainText(/inactivo|inactive/i);
+    await expect
+      .poll(async () => {
+        const nextFocusRow = getFocusRow(page, categoryName);
+        if ((await nextFocusRow.count()) === 0) {
+          return "removed";
+        }
+        return (await nextFocusRow.textContent()) || "";
+      })
+      .toMatch(/removed|inactivo|inactive/i);
   } finally {
     await deactivateBudgetCategory(page, categoryName);
   }

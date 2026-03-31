@@ -23,12 +23,16 @@ export function getFinanceTransactionForm(page: Page) {
 
 export async function ensureFinanceAccount(page: Page, accountName: string) {
   await page.goto("/tenant-portal/finance/accounts");
+  await page.waitForLoadState("networkidle");
   await expect(
     page.getByRole("heading", {
       level: 1,
       name: /Cuentas|Accounts/,
     })
   ).toBeVisible();
+  await expect(
+    page.getByText(/Cargando cuentas financieras|Loading financial accounts/i)
+  ).toHaveCount(0);
 
   const catalogCard = page.locator(".data-table-card").first();
   const existingRows = catalogCard.locator("tbody tr");

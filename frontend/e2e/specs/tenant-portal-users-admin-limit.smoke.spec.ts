@@ -49,6 +49,10 @@ test("tenant portal blocks extra admin creation and admin reactivation when admi
     await createUserForm.getByRole("combobox").nth(1).selectOption("inactive");
     await createUserForm.getByRole("button", { name: /Crear usuario|Create user/i }).click();
 
+    await expect
+      .poll(async () => await getUserRow(page, inactiveAdminEmail).count())
+      .toBeGreaterThan(0);
+
     const inactiveAdminRow = getUserRow(page, inactiveAdminEmail);
     await expect(inactiveAdminRow).toBeVisible();
     await expect(inactiveAdminRow).toContainText(/admin/i);
