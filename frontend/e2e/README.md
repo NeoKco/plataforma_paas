@@ -1,8 +1,8 @@
 # E2E Browser
 
-Primer corte de pruebas `browser` del frontend con `Playwright`.
+Estado actual de la suite `browser` del frontend con `Playwright`.
 
-Cobertura inicial:
+Cobertura validada:
 
 - login de `platform_admin`
 - navegación base de `platform_admin`
@@ -116,3 +116,8 @@ Notas:
 - el smoke contable de `finance loans` valida lectura derivada tras pago + reversa y confirma exportaciones `CSV`/`JSON` desde el detalle del préstamo
 - los smokes de `finance loans` quedaron estabilizados para tolerar cronogramas ya abiertos, distinguir formularios simples vs batch y usar selectores consistentes sobre `Cuenta origen`, nota operativa y motivo de reversa
 - en esta iteración no hicieron falta cambios funcionales del módulo `finance`: los fallos detectados fueron de sincronización/selección E2E y el flujo real ya soportaba creación, pago simple, pago batch, reversa batch y exportación/lectura contable derivada
+- estado validado al cierre actual:
+	- `npm run e2e:platform` → `12 passed`, `3 skipped`
+	- `npm run e2e:tenant` → `21 passed`
+	- los `3 skipped` corresponden a escenarios DLQ broker-only cuando el entorno no usa `PROVISIONING_DISPATCH_BACKEND=broker`
+	- fuera de esos casos dependientes de entorno, el frente E2E browser principal queda prácticamente cerrado

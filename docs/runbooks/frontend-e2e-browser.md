@@ -164,6 +164,9 @@ Resultado validado en local a la fecha:
 - `tenant_portal` ya cubre además lectura contable derivada y exportaciones de préstamos tras pago y reversa
 - `tenant_portal` con `empresa-bootstrap` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
+- suite `platform_admin` validada en local con `12 passed` y `3 skipped` broker-only
+- suite `tenant_portal` validada en local con `21 passed`
+- el stack browser principal ya quedó prácticamente cerrado; lo siguiente pasa a ser regresión incremental cuando aparezcan nuevos bordes reales
 
 ## Comandos
 
@@ -217,13 +220,28 @@ Notas del flujo `finance` que conviene recordar:
 - ambos smokes de préstamos quedaron endurecidos contra variaciones legítimas de UI: cronograma ya expandido, formularios de pago con etiquetas parecidas y selects que cambian de posición según el modo
 - no hubo parche funcional en frontend/backend de `finance loans` porque la evidencia mostró que el comportamiento de producto era correcto; lo inestable eran los locators y supuestos del smoke
 
-## Siguiente expansión sugerida
+## Estado de cierre actual
 
-Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son:
+Con la validación local actual, el frente E2E browser queda cubierto en lo principal para:
 
-- `Billing` operativo desde `platform_admin` (workspace tenant + reconcile individual/batch)
-- `Histórico tenants` con filtros/export y detalle visible del archivo
-- regresión funcional adicional del portal ya casi cerrada; lo que resta es ampliar casos secundarios si aparecen nuevos bordes reales
+- `platform_admin`
+  - navegación y acceso
+  - lifecycle base tenant
+  - acceso rápido al `tenant_portal`
+  - política visible por rol
+  - `Provisioning` principal y variantes broker-only
+  - `Billing` individual y batch
+  - `Histórico tenants`
+- `tenant_portal`
+  - login base y login condicionado por billing
+  - enforcement visible de límites de usuarios
+  - slice amplio de `finance`
+
+Lo que sigue después de este punto ya no es un hueco obvio de cobertura base, sino regresión incremental cuando aparezcan:
+
+- nuevos bordes funcionales reales
+- cambios de UX relevantes
+- nuevos módulos tenant o administrativos
 
 Nota operativa del smoke `retry`:
 
