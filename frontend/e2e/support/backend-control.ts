@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 type FailedProvisioningJobSeed = {
@@ -20,7 +21,9 @@ type SeededProvisioningJob = {
 };
 
 function getRepoRoot() {
-  return path.resolve(__dirname, "../../..");
+  const currentFilePath = fileURLToPath(import.meta.url);
+  const currentDirPath = path.dirname(currentFilePath);
+  return path.resolve(currentDirPath, "../../..");
 }
 
 function getBackendPythonExecutable() {
