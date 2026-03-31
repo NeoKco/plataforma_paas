@@ -74,6 +74,15 @@ Esta regla aplica especialmente a cuentas, categorías, monedas y catálogos aux
 
 El portal muestra además una lectura rápida de `Presupuestado`, `Ejecutado`, `Desviación` y el estado derivado de cada fila para priorizar revisión.
 
+### Registrar un préstamo y cobrar/pagar una cuota
+
+1. Ir a `Finanzas > Préstamos`.
+2. Registrar nombre, contraparte, capital, saldo, cuotas y cuenta operativa.
+3. Abrir `Cronograma` desde la cartera.
+4. Usar `Registrar pago` sobre una cuota para aplicar un abono simple.
+
+El detalle del préstamo muestra cronograma, estado de cuotas y lectura contable derivada para revisar pagos y reversas desde el mismo módulo.
+
 ## Errores comunes
 
 ### “Schema incompleto” o estructura atrasada

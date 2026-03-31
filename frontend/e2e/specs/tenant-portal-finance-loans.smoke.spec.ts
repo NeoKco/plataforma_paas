@@ -1,6 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
 import { loginTenant } from "../support/auth";
-import { ensureFinanceAccount } from "../support/finance";
 
 function buildTodayDateValue() {
   return new Date().toISOString().slice(0, 10);
@@ -38,10 +37,7 @@ test("tenant portal finance loans creates a loan and records a simple installmen
   page,
 }) => {
   const loanName = `e2e-loan-${Date.now()}`;
-  const accountName = `e2e-loan-account-${Date.now()}`;
 
-  await ensureFinanceLoansPage(page);
-  await ensureFinanceAccount(page, accountName);
   await ensureFinanceLoansPage(page);
 
   const createForm = page.locator("form").first();

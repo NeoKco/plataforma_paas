@@ -32,14 +32,14 @@ Ya cubre:
 - ayudas contextuales en UI
 - importador idempotente con compresión de imágenes
 - E2E browser base revalidado con `empresa-bootstrap`
-- E2E browser de `finance` validado para creación, adjunto, anulación, conciliación, límites visibles, mantenimiento de cuentas/categorías y flujo base de presupuestos
+- E2E browser de `finance` validado para creación, adjunto, anulación, conciliación, límites visibles, mantenimiento de cuentas/categorías, flujo base de presupuestos y flujo base de préstamos
 
 ## Próximo nivel recomendado
 
 - ampliar E2E de `finance` para:
-  - préstamos
   - settings avanzados y catálogos secundarios
   - ajustes guiados y plantillas de presupuestos
+  - batch/reversal de préstamos
 - seguir la migración transversal del frontend al `design system`
 - terminar de pulir copy residual `es/en`
 - crear más specs browser sobre provisioning y recorridos tenant completos

@@ -109,3 +109,4 @@ Cobertura actual:
 - enforcement de límites mensuales por tipo `finance.entries.monthly.income` y `finance.entries.monthly.expense` en `tenant_portal` con overrides preparados de forma determinista
 - mantenimiento operativo de cuentas y categorías `finance` en `tenant_portal` (`create`, `deactivate`, `delete`)
 - flujo operativo base de presupuestos `finance` en `tenant_portal` (`create`, `clone`)
+- flujo operativo base de préstamos `finance` en `tenant_portal` (`create`, `schedule`, `payment`)
