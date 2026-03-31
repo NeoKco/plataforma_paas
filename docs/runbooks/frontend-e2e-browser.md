@@ -190,6 +190,8 @@ Notas del flujo `finance` que conviene recordar:
 - el smoke de presupuestos usa meses futuros efímeros para evitar colisiones con planificación real y verificar alta + clonación sin ensuciar meses operativos actuales
 - el smoke de préstamos usa un préstamo efímero con 3 cuotas para validar la ruta mínima `create -> schedule -> payment` sin depender de cartera previa
 - el smoke batch de préstamos reutiliza un préstamo efímero con 3 cuotas para validar `schedule -> batch payment -> batch reversal` sobre selección múltiple
+- ambos smokes de préstamos quedaron endurecidos contra variaciones legítimas de UI: cronograma ya expandido, formularios de pago con etiquetas parecidas y selects que cambian de posición según el modo
+- no hubo parche funcional en frontend/backend de `finance loans` porque la evidencia mostró que el comportamiento de producto era correcto; lo inestable eran los locators y supuestos del smoke
 
 ## Siguiente expansión sugerida
 

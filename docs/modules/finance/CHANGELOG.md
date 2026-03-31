@@ -59,3 +59,5 @@ Resumen curado de hitos del módulo `finance`.
 - smoke `platform_admin` operativo
 - smoke `tenant finance` revalidado usando `empresa-bootstrap`
 - smoke `tenant finance` ampliado a creación, adjunto, anulación, conciliación, enforcement visible de límites, catálogos básicos (`accounts`, `categories`), presupuestos base (`create`, `clone`), préstamos base (`create`, `payment`) y batch/reversal de préstamos
+- se estabilizaron los smokes de préstamos corrigiendo locators y supuestos de UI para cronograma abierto, formulario simple vs batch y selección explícita de cuenta/nota/motivo de reversa
+- no se registraron cambios funcionales de producto en esta iteración porque la incidencia cerrada correspondía a fragilidad de automatización, no a un defecto del flujo real de préstamos

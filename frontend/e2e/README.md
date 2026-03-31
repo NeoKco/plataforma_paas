@@ -89,3 +89,5 @@ Notas:
 - el smoke de `finance budgets` valida alta de presupuesto mensual y clonación al mes visible para cubrir el primer flujo operativo de planificación
 - el smoke de `finance loans` valida alta de préstamo y registro simple de pago de cuota desde el cronograma
 - el smoke batch de `finance loans` valida pago en lote y reversa en lote sobre cuotas seleccionadas
+- los smokes de `finance loans` quedaron estabilizados para tolerar cronogramas ya abiertos, distinguir formularios simples vs batch y usar selectores consistentes sobre `Cuenta origen`, nota operativa y motivo de reversa
+- en esta iteración no hicieron falta cambios funcionales del módulo `finance`: los fallos detectados fueron de sincronización/selección E2E y el flujo real ya soportaba creación, pago simple, pago batch y reversa batch
