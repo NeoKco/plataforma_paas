@@ -58,6 +58,8 @@ Resumen curado de hitos del módulo `finance`.
 - se incorporó stack Playwright base
 - smoke `platform_admin` operativo
 - smoke `tenant finance` revalidado usando `empresa-bootstrap`
-- smoke `tenant finance` ampliado a creación, adjunto, anulación, conciliación, enforcement visible de límites, catálogos básicos (`accounts`, `categories`), configuración base (`currencies`, `exchange rates`, `settings`), presupuestos base (`create`, `clone`), préstamos base (`create`, `payment`) y batch/reversal de préstamos
+- smoke `tenant finance` ampliado a creación, adjunto, anulación, conciliación, enforcement visible de límites, catálogos básicos (`accounts`, `categories`), configuración base (`currencies`, `exchange rates`, `settings`), presupuestos base (`create`, `clone`), plantillas/ajustes guiados de presupuestos, préstamos base (`create`, `payment`) y batch/reversal de préstamos
+- se agregó un smoke específico para `Presupuestos` avanzados que valida `previous_month` con escala/redondeo y la acción guiada de desactivación sobre categorías enfocadas
 - se estabilizaron los smokes de préstamos corrigiendo locators y supuestos de UI para cronograma abierto, formulario simple vs batch y selección explícita de cuenta/nota/motivo de reversa
+- no se registraron cambios funcionales de producto en esta ampliación de `Presupuestos`, porque el comportamiento ya existía en frontend/backend y el trabajo fue cerrar cobertura browser sobre capacidades ya operativas
 - no se registraron cambios funcionales de producto en esta iteración porque la incidencia cerrada correspondía a fragilidad de automatización, no a un defecto del flujo real de préstamos

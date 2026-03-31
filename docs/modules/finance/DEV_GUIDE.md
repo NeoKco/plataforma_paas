@@ -62,6 +62,7 @@ Smokes vigentes:
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-catalogs.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-catalogs.smoke.spec.ts)
 - [tenant-portal-finance-budgets.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-budgets.smoke.spec.ts)
+- [tenant-portal-finance-budgets-advanced.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-budgets-advanced.smoke.spec.ts)
 - [tenant-portal-finance-settings.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-settings.smoke.spec.ts)
 - [tenant-portal-finance-loans.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-loans.smoke.spec.ts)
 - [tenant-portal-finance-loans-batch.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-loans-batch.smoke.spec.ts)
@@ -114,7 +115,8 @@ Frontend:
 - build de `frontend`
 - smoke browser Playwright
 - baseline tenant actual validado sobre `empresa-bootstrap`
-- cobertura tenant validada para creación de transacción, carga de adjunto, anulación, conciliación, límites efectivos, mantenimiento de cuentas/categorías, configuración financiera base (`currencies`, `exchange rates`, `settings`), flujo base de presupuestos, flujo base de préstamos y operaciones batch/reversal de préstamos
+- cobertura tenant validada para creación de transacción, carga de adjunto, anulación, conciliación, límites efectivos, mantenimiento de cuentas/categorías, configuración financiera base (`currencies`, `exchange rates`, `settings`), flujo base de presupuestos, plantillas y ajustes guiados de presupuestos, flujo base de préstamos y operaciones batch/reversal de préstamos
+- el smoke avanzado de presupuestos usa categoría y meses efímeros para validar `template apply` con escala/redondeo y la acción guiada `deactivate_unused` sin acoplarse al catálogo inicial del tenant
 - los smokes de préstamos se estabilizaron para aceptar cronograma ya abierto, separar correctamente el formulario individual del batch y seleccionar de forma explícita `Cuenta origen`, nota operativa y motivo de reversa
 - no se requirió cambio funcional del módulo en esta ronda porque la regresión observada fue exclusivamente E2E: los endpoints y la UI ya resolvían el caso real, pero los tests asumían estados/locators demasiado frágiles
 

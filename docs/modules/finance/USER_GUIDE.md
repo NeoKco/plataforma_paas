@@ -83,6 +83,15 @@ Recuerda que borrar una moneda solo funciona cuando no es base y no tiene refere
 
 El portal muestra además una lectura rápida de `Presupuestado`, `Ejecutado`, `Desviación` y el estado derivado de cada fila para priorizar revisión.
 
+### Aplicar plantillas y ajustes guiados de presupuesto
+
+1. En `Finanzas > Presupuestos`, muévete al mes destino que quieres preparar.
+2. Usa `Aplicar plantilla` para traer una base desde `Mes anterior`, `Mismo mes del año anterior` o `Promedio real 3 meses`.
+3. Si necesitas normalizar montos, ajusta `Escala` y `Redondeo` antes de confirmar.
+4. Revisa el bloque de foco priorizado y aplica la acción guiada sugerida cuando una categoría aparezca con poco uso o desviación relevante.
+
+Esto acelera la preparación del mes visible sin recargar manualmente cada categoría y deja señal clara sobre líneas que conviene desactivar o alinear al real.
+
 ### Registrar un préstamo y cobrar/pagar una cuota
 
 1. Ir a `Finanzas > Préstamos`.
