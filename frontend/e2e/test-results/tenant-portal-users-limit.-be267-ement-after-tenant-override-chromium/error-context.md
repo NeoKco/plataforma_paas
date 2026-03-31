@@ -1,0 +1,59 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e8]: Platform PaaS
+      - generic [ref=e9]: Portal Tenant
+    - navigation [ref=e10]:
+      - link "Resumen" [ref=e11] [cursor=pointer]:
+        - /url: /tenant-portal
+        - img [ref=e13]
+        - text: Resumen
+      - link "Usuarios" [ref=e18] [cursor=pointer]:
+        - /url: /tenant-portal/users
+        - img [ref=e20]
+        - text: Usuarios
+      - link "Finanzas" [ref=e25] [cursor=pointer]:
+        - /url: /tenant-portal/finance
+        - img [ref=e27]
+        - text: Finanzas
+  - generic [ref=e28]:
+    - banner [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]: Espacio Tenant
+        - generic [ref=e32]: empresa-bootstrap
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: Idioma
+          - combobox "Idioma" [ref=e36]:
+            - option "Español" [selected]
+            - option "English"
+        - link "Volver a plataforma" [ref=e37] [cursor=pointer]:
+          - /url: /login
+        - generic [ref=e38]:
+          - generic [ref=e39]: Tenant Admin
+          - generic [ref=e40]: admin
+        - button "Salir" [ref=e41] [cursor=pointer]
+    - main [ref=e42]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - img [ref=e47]
+            - generic [ref=e52]:
+              - generic [ref=e53]: Espacio
+              - heading "empresa-bootstrap" [level=1] [ref=e54]
+              - paragraph [ref=e55]: Vista general del estado actual de tu espacio, sus límites efectivos y los módulos disponibles.
+          - button "Recargar" [ref=e58] [cursor=pointer]
+        - generic [ref=e59]:
+          - heading "Información del tenant no disponible" [level=3] [ref=e60]
+          - paragraph [ref=e61]: No se pudo conectar con la API en http://127.0.0.1:8000. Revisa VITE_API_BASE_URL, CORS y que el backend esté levantado.
+        - generic [ref=e62]:
+          - heading "Resumen del tenant" [level=2] [ref=e66]
+          - generic [ref=e68]:
+            - generic [ref=e69]: Sin datos
+            - heading "No se pudo armar el resumen del tenant" [level=3] [ref=e70]
+            - paragraph [ref=e71]: La sesión actual no devolvió información suficiente para mostrar el contexto operativo del espacio.
+```
