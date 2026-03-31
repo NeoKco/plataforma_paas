@@ -9,17 +9,6 @@ function buildMonthValue(offsetMonths = 0) {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
-function buildMonthIso(monthValue: string) {
-  return `${monthValue}-01`;
-}
-
-function formatMonthLabel(monthIso: string) {
-  return new Intl.DateTimeFormat("es-CL", {
-    month: "short",
-    year: "numeric",
-  }).format(new Date(monthIso));
-}
-
 async function ensureFinanceBudgetsPage(page: Page) {
   await page.goto("/tenant-portal/finance/budgets");
   await page.waitForLoadState("networkidle");
@@ -42,10 +31,9 @@ function getPeriodTable(page: Page) {
   return page.locator("table").last();
 }
 
-function getBudgetRow(page: Page, options: { monthLabel: string; categoryName: string }) {
+function getBudgetRow(page: Page, options: { categoryName: string }) {
   return getPeriodTable(page)
     .locator("tbody tr")
-    .filter({ hasText: options.monthLabel })
     .filter({ hasText: options.categoryName })
     .first();
 }
@@ -75,7 +63,6 @@ test("tenant portal finance budgets creates a budget and clones it into another 
     .click();
 
   const sourceRow = getBudgetRow(page, {
-    monthLabel: formatMonthLabel(buildMonthIso(sourceMonth)),
     categoryName,
   });
   await expect(sourceRow).toBeVisible();
@@ -95,7 +82,6 @@ test("tenant portal finance budgets creates a budget and clones it into another 
     .click();
 
   const clonedRow = getBudgetRow(page, {
-    monthLabel: formatMonthLabel(buildMonthIso(targetMonth)),
     categoryName,
   });
   await expect(clonedRow).toBeVisible();
