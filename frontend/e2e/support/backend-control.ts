@@ -398,27 +398,27 @@ finally:
   return JSON.parse(output) as SeededTenantUser;
 }
 
-  export function getTenantUserUsageSnapshot(tenantSlug: string): TenantUserUsageSnapshot {
-    const script = `
-  import json
-  import sys
-  from datetime import datetime, timezone
+export function getTenantUserUsageSnapshot(tenantSlug: string): TenantUserUsageSnapshot {
+  const script = `
+import json
+import sys
+from datetime import datetime, timezone
 
-  from app.common.db.control_database import ControlSessionLocal
-  from app.apps.tenant_modules.core.repositories.user_repository import UserRepository
-  from app.apps.tenant_modules.core.services.tenant_connection_service import TenantConnectionService
+from app.common.db.control_database import ControlSessionLocal
+from app.apps.tenant_modules.core.repositories.user_repository import UserRepository
+from app.apps.tenant_modules.core.services.tenant_connection_service import TenantConnectionService
 
-  tenant_slug = sys.argv[1]
+tenant_slug = sys.argv[1]
 
-  control_db = ControlSessionLocal()
-  tenant_connection = TenantConnectionService()
-  tenant_db = None
-  repository = UserRepository()
+control_db = ControlSessionLocal()
+tenant_connection = TenantConnectionService()
+tenant_db = None
+repository = UserRepository()
 
-  try:
+try:
     tenant = tenant_connection.get_tenant_by_slug(control_db, tenant_slug)
     if tenant is None:
-      raise SystemExit(f"Tenant not found: {tenant_slug}")
+        raise SystemExit(f"Tenant not found: {tenant_slug}")
 
     tenant_session_factory = tenant_connection.get_tenant_session(tenant)
     tenant_db = tenant_session_factory()
@@ -427,23 +427,23 @@ finally:
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
     print(json.dumps({
-      "tenantSlug": tenant_slug,
-      "totalUsers": repository.count_all(tenant_db),
-      "activeUsers": repository.count_active(tenant_db),
-      "monthlyUsers": repository.count_created_since(tenant_db, month_start),
-      "adminUsers": repository.count_by_role(tenant_db, "admin"),
-      "managerUsers": repository.count_by_role(tenant_db, "manager"),
-      "operatorUsers": repository.count_by_role(tenant_db, "operator"),
+        "tenantSlug": tenant_slug,
+        "totalUsers": repository.count_all(tenant_db),
+        "activeUsers": repository.count_active(tenant_db),
+        "monthlyUsers": repository.count_created_since(tenant_db, month_start),
+        "adminUsers": repository.count_by_role(tenant_db, "admin"),
+        "managerUsers": repository.count_by_role(tenant_db, "manager"),
+        "operatorUsers": repository.count_by_role(tenant_db, "operator"),
     }))
-  finally:
+finally:
     if tenant_db is not None:
-      tenant_db.close()
+        tenant_db.close()
     control_db.close()
-  `;
+`;
 
-    const output = runBackendPython(script, [tenantSlug]);
-    return JSON.parse(output) as TenantUserUsageSnapshot;
-  }
+  const output = runBackendPython(script, [tenantSlug]);
+  return JSON.parse(output) as TenantUserUsageSnapshot;
+}
 
 export function getTenantFinanceUsageSnapshot(tenantSlug: string) {
   const script = `
