@@ -6,8 +6,8 @@ import { e2eEnv } from "../support/env";
 test("tenant portal reflects billing grace and blocks login when overdue billing expires", async ({ page }) => {
   const uniqueSuffix = Date.now();
   const tenantSlug = e2eEnv.tenant.slug;
-  const futureGraceUntilIso = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
-  const futurePeriodEndsAtIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const futurePeriodEndsAtIso = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+  const futureGraceUntilIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
   try {
     const graceEvent = seedTenantBillingSyncEvent({
