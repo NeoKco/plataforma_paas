@@ -9,7 +9,9 @@ test("platform admin can open tenant portal from tenants with slug prefilled", a
 
   await page.goto("/tenants");
   await expect(page).toHaveURL(/\/tenants$/);
-  await expect(page.getByRole("heading", { name: /Tenants/i })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Tenants", exact: true })
+  ).toBeVisible();
 
   await page
     .locator("input.form-control")
@@ -27,6 +29,28 @@ test("platform admin can open tenant portal from tenants with slug prefilled", a
   const openTenantPortalLink = page.getByRole("link", {
     name: /Abrir portal tenant|Open tenant portal/i,
   });
+
+  if ((await openTenantPortalLink.count()) === 0) {
+    const runNowButton = page.getByRole("button", {
+      name: /Ejecutar ahora|Run now/i,
+    });
+
+    await expect(runNowButton).toBeVisible();
+    await runNowButton.click();
+
+    const confirmDialog = page.getByRole("dialog");
+    await expect(confirmDialog).toBeVisible();
+    await confirmDialog
+      .getByRole("button", { name: /Ejecutar ahora|Run now/i })
+      .click();
+
+    await expect(
+      page
+        .locator(".tenant-action-feedback--success")
+        .filter({ hasText: /Ejecución de provisioning|Run provisioning/i })
+        .first()
+    ).toContainText(/ejecutado correctamente|started successfully/i);
+  }
 
   await expect(openTenantPortalLink).toBeVisible();
   await expect(openTenantPortalLink).toHaveAttribute(
