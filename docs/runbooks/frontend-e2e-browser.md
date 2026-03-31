@@ -139,6 +139,7 @@ Resultado validado en local a la fecha:
 - matriz visible por rol en `platform_admin` validada para `admin` y `support`, incluyendo redirecciones y modo solo lectura en `Usuarios de plataforma`
 - `Billing` validado para workspace tenant con evento persistido y reconcile individual desde la fila visible
 - `Billing` validado también para reconcile batch de eventos filtrados dentro del workspace tenant
+- `Histórico tenants` validado para filtros, exportaciones `CSV/JSON` y apertura/cierre del detalle histórico visible
 - `Provisioning` validado al menos para visibilidad de jobs nuevos disparados desde `Tenants`
 - `Provisioning` validado también para ejecutar manualmente un job `pending` desde la consola
 - `Provisioning` validado también para reencolar un job `failed` desde la consola
@@ -198,6 +199,7 @@ Notas del flujo `finance` que conviene recordar:
 - el smoke de roles `platform_admin` crea usuarios efímeros `admin` y `support` para congelar la navegación visible, la redirección por ruta y el modo solo lectura sin depender de seeds manuales
 - el smoke de `Billing` crea un tenant efímero y siembra un evento `invoice.payment_failed` controlado directamente en la DB de control para validar el workspace tenant y el reconcile individual sin depender de webhooks externos
 - el smoke batch de `Billing` reutiliza la misma siembra backend-control con dos eventos del mismo filtro para validar `Reconciliar eventos filtrados` sin depender de webhooks externos
+- el smoke de `Histórico tenants` recorre `create -> billing seed -> archive -> delete` sobre un tenant efímero para validar el archivo real sin tocar fixtures manuales
 - el smoke admin de `tenant users` prepara primero un admin inactivo efímero y luego fija `core.users.admin=1` para comprobar el borde real de reactivación bloqueada sin depender de fixtures manuales
 - el smoke mensual de `tenant users` usa snapshot real de uso y una siembra determinista con `created_at` del mes actual para fijar `core.users.monthly` sin asumir conteos hardcodeados
 - el smoke de precedencia de `finance` fija en paralelo `finance.entries` y `finance.entries.monthly` para confirmar que el error visible y el `403` priorizan el límite total
