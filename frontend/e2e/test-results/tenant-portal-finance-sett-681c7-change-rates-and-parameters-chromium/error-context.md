@@ -1,0 +1,156 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e8]: Platform PaaS
+      - generic [ref=e9]: Portal Tenant
+    - navigation [ref=e10]:
+      - link "Resumen" [ref=e11] [cursor=pointer]:
+        - /url: /tenant-portal
+        - img [ref=e13]
+        - text: Resumen
+      - link "Usuarios" [ref=e18] [cursor=pointer]:
+        - /url: /tenant-portal/users
+        - img [ref=e20]
+        - text: Usuarios
+      - link "Finanzas" [ref=e25] [cursor=pointer]:
+        - /url: /tenant-portal/finance
+        - img [ref=e27]
+        - text: Finanzas
+  - generic [ref=e28]:
+    - banner [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]: Espacio Tenant
+        - generic [ref=e32]: empresa-bootstrap
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: Idioma
+          - combobox "Idioma" [ref=e36]:
+            - option "Español" [selected]
+            - option "English"
+        - link "Volver a plataforma" [ref=e37] [cursor=pointer]:
+          - /url: /login
+        - generic [ref=e38]:
+          - generic [ref=e39]: Tenant Admin
+          - generic [ref=e40]: admin
+        - button "Salir" [ref=e41] [cursor=pointer]
+    - main [ref=e42]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - img [ref=e47]
+            - generic [ref=e50]:
+              - generic [ref=e51]: Finance
+              - heading "Configuración financiera" [level=1] [ref=e52]
+              - paragraph [ref=e53]: Administra monedas, tipos de cambio y parámetros base del módulo.
+          - generic [ref=e55]:
+            - generic [ref=e56]:
+              - button "Ayuda sobre configuración financiera" [ref=e57] [cursor=pointer]: "?"
+              - tooltip "Las monedas se administran por activación y base. Eliminar una moneda solo funciona si no es base y no tiene referencias; en tipos de cambio sí puedes eliminar registros manuales históricos cuando ya no correspondan."
+            - button "Recargar" [ref=e58] [cursor=pointer]
+            - button "Nuevo registro" [ref=e59] [cursor=pointer]
+        - generic [ref=e60]:
+          - link "Movimientos" [ref=e61] [cursor=pointer]:
+            - /url: /tenant-portal/finance
+            - img [ref=e63]
+            - text: Movimientos
+          - link "Presupuestos" [ref=e65] [cursor=pointer]:
+            - /url: /tenant-portal/finance/budgets
+            - img [ref=e67]
+            - text: Presupuestos
+          - link "Préstamos" [ref=e68] [cursor=pointer]:
+            - /url: /tenant-portal/finance/loans
+            - img [ref=e70]
+            - text: Préstamos
+          - link "Planificación" [ref=e72] [cursor=pointer]:
+            - /url: /tenant-portal/finance/calendar
+            - img [ref=e74]
+            - text: Planificación
+          - link "Reportes" [ref=e76] [cursor=pointer]:
+            - /url: /tenant-portal/finance/reports
+            - img [ref=e78]
+            - text: Reportes
+          - link "Cuentas" [ref=e79] [cursor=pointer]:
+            - /url: /tenant-portal/finance/accounts
+            - img [ref=e81]
+            - text: Cuentas
+          - link "Categorías" [ref=e83] [cursor=pointer]:
+            - /url: /tenant-portal/finance/categories
+            - img [ref=e85]
+            - text: Categorías
+          - link "Catálogos" [ref=e88] [cursor=pointer]:
+            - /url: /tenant-portal/finance/tools
+            - img [ref=e90]
+            - text: Catálogos
+          - link "Configuración" [ref=e93] [cursor=pointer]:
+            - /url: /tenant-portal/finance/settings
+            - img [ref=e95]
+            - text: Configuración
+        - generic [ref=e98]: Configuracion financiera creada correctamente
+        - generic [ref=e99]:
+          - button "Monedas" [ref=e100] [cursor=pointer]
+          - button "Tipos de cambio" [ref=e101] [cursor=pointer]
+          - button "Parámetros" [ref=e102] [cursor=pointer]
+        - generic [ref=e103]:
+          - generic [ref=e104]:
+            - generic [ref=e107]:
+              - heading "Alta o edición" [level=2] [ref=e108]
+              - paragraph [ref=e109]: Mantén la configuración base que usará el módulo financiero.
+            - generic [ref=e111]:
+              - generic [ref=e112]:
+                - generic [ref=e113]: Clave
+                - textbox [ref=e114]
+              - generic [ref=e115]:
+                - generic [ref=e116]: Valor
+                - textbox [ref=e117]
+              - button "Crear parámetro" [ref=e119] [cursor=pointer]
+          - generic [ref=e120]:
+            - generic [ref=e122]:
+              - generic [ref=e123]:
+                - heading "Configuración vigente" [level=2] [ref=e124]
+                - paragraph [ref=e125]: Parámetros simples del módulo financiero.
+              - generic [ref=e126]: 3 filas
+            - table [ref=e128]:
+              - rowgroup [ref=e129]:
+                - row "Clave Estado Acciones" [ref=e130]:
+                  - columnheader "Clave" [ref=e131]
+                  - columnheader "Estado" [ref=e132]
+                  - columnheader "Acciones" [ref=e133]
+              - rowgroup [ref=e134]:
+                - row "base_currency_code USD activo Editar Desactivar" [ref=e135]:
+                  - cell "base_currency_code USD" [ref=e136]:
+                    - generic [ref=e137]:
+                      - generic [ref=e138]: base_currency_code
+                      - generic [ref=e139]: USD
+                  - cell "activo" [ref=e140]:
+                    - generic [ref=e141]: activo
+                  - cell "Editar Desactivar" [ref=e142]:
+                    - generic [ref=e143]:
+                      - button "Editar" [ref=e144] [cursor=pointer]
+                      - button "Desactivar" [ref=e145] [cursor=pointer]
+                - row "account_types_catalog [\"cash\", \"bank\", \"card\", \"savings\", \"investment\", \"credit\", \"other\"] activo Editar Desactivar" [ref=e146]:
+                  - cell "account_types_catalog [\"cash\", \"bank\", \"card\", \"savings\", \"investment\", \"credit\", \"other\"]" [ref=e147]:
+                    - generic [ref=e148]:
+                      - generic [ref=e149]: account_types_catalog
+                      - generic [ref=e150]: "[\"cash\", \"bank\", \"card\", \"savings\", \"investment\", \"credit\", \"other\"]"
+                  - cell "activo" [ref=e151]:
+                    - generic [ref=e152]: activo
+                  - cell "Editar Desactivar" [ref=e153]:
+                    - generic [ref=e154]:
+                      - button "Editar" [ref=e155] [cursor=pointer]
+                      - button "Desactivar" [ref=e156] [cursor=pointer]
+                - row "e2e.setting.845018 valor inicial 845018 activo Editar Desactivar" [ref=e157]:
+                  - cell "e2e.setting.845018 valor inicial 845018" [ref=e158]:
+                    - generic [ref=e159]:
+                      - generic [ref=e160]: e2e.setting.845018
+                      - generic [ref=e161]: valor inicial 845018
+                  - cell "activo" [ref=e162]:
+                    - generic [ref=e163]: activo
+                  - cell "Editar Desactivar" [ref=e164]:
+                    - generic [ref=e165]:
+                      - button "Editar" [ref=e166] [cursor=pointer]
+                      - button "Desactivar" [ref=e167] [cursor=pointer]
+```
