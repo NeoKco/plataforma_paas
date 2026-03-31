@@ -35,6 +35,7 @@ La base central ya es operable:
 - validación browser broker-only de filtros finos DLQ por texto de error y opciones de requeue desde `Provisioning`
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
+- validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`
 - validación browser del bloqueo mensual de `finance.entries.monthly` en `tenant_portal`
 - validación browser del bloqueo mensual por tipo de `finance.entries.monthly.income` y `finance.entries.monthly.expense` en `tenant_portal`
 

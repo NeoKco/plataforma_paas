@@ -104,5 +104,6 @@ Cobertura actual:
 - filtros finos DLQ por texto de error y validación visible de `delay/reset attempts` antes del requeue individual en backend `broker`
 - enforcement visible de límites de usuarios activos en `tenant_portal` con overrides preparados de forma determinista
 - enforcement visible de límites de `finance.entries` en `tenant_portal` con overrides preparados de forma determinista
+- precedencia visible de `finance.entries` sobre `finance.entries.monthly` cuando ambos límites aplican a la vez en `tenant_portal`
 - enforcement de límites mensuales de `finance.entries.monthly` en `tenant_portal` con overrides preparados de forma determinista
 - enforcement de límites mensuales por tipo `finance.entries.monthly.income` y `finance.entries.monthly.expense` en `tenant_portal` con overrides preparados de forma determinista
