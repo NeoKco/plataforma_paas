@@ -38,6 +38,7 @@ Resumen curado del bloque central.
 - baseline E2E tenant actualizado y validado sobre `empresa-bootstrap` en vez de `empresa-demo`
 - smokes browser de límites tenant endurecidos para fijar y limpiar overrides por control DB
 - enforcement backend agregado al endpoint moderno de creación de transacciones `finance` para respetar `finance.entries`
+- smoke browser agregado para validar bloqueo mensual de `finance.entries.monthly` en `tenant_portal`
 
 ## Documentación
 

@@ -94,6 +94,10 @@ Si el tenant ya alcanzó el cupo de usuarios activos, `Tenant Portal > Users` bl
 
 Si el tenant ya alcanzó el cupo efectivo de `finance.entries`, `Tenant Portal > Finance` mostrará el estado `al límite` y bloqueará nuevas transacciones con un mensaje visible. Este enforcement también queda cubierto por smoke browser.
 
+### Límite mensual de transacciones en finance
+
+Si el tenant alcanza el cupo mensual `finance.entries.monthly`, `Tenant Portal > Finance` bloqueará nuevas transacciones del mes actual y mostrará un mensaje operativo explícito. Este enforcement también queda cubierto por smoke browser.
+
 ## Referencias útiles
 
 - Arquitectura rápida: [app-quick-guide.md](/home/felipe/platform_paas/docs/architecture/app-quick-guide.md)

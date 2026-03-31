@@ -1,0 +1,840 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e8]: Platform PaaS
+      - generic [ref=e9]: Portal Tenant
+    - navigation [ref=e10]:
+      - link "Resumen" [ref=e11] [cursor=pointer]:
+        - /url: /tenant-portal
+        - img [ref=e13]
+        - text: Resumen
+      - link "Usuarios" [ref=e18] [cursor=pointer]:
+        - /url: /tenant-portal/users
+        - img [ref=e20]
+        - text: Usuarios
+      - link "Finanzas" [ref=e25] [cursor=pointer]:
+        - /url: /tenant-portal/finance
+        - img [ref=e27]
+        - text: Finanzas
+  - generic [ref=e28]:
+    - banner [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]: Espacio Tenant
+        - generic [ref=e32]: empresa-bootstrap
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: Idioma
+          - combobox "Idioma" [ref=e36]:
+            - option "Español" [selected]
+            - option "English"
+        - link "Volver a plataforma" [ref=e37] [cursor=pointer]:
+          - /url: /login
+        - generic [ref=e38]:
+          - generic [ref=e39]: Tenant Admin
+          - generic [ref=e40]: admin
+        - button "Salir" [ref=e41] [cursor=pointer]
+    - main [ref=e42]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - img [ref=e47]
+            - generic [ref=e49]:
+              - generic [ref=e50]: Espacio
+              - heading "Transacciones financieras" [level=1] [ref=e51]
+              - paragraph [ref=e52]: Opera el núcleo real de finance con balances por cuenta y trazabilidad reciente.
+          - generic [ref=e55]:
+            - button "Ayuda sobre transacciones" [ref=e56] [cursor=pointer]: "?"
+            - tooltip "Conciliar valida el movimiento sin borrarlo. Anular lo saca de balances y reportes, pero conserva auditoría. Los adjuntos se suben al crear o desde el detalle operacional."
+        - generic [ref=e57]:
+          - link "Movimientos" [ref=e58] [cursor=pointer]:
+            - /url: /tenant-portal/finance
+            - img [ref=e60]
+            - text: Movimientos
+          - link "Presupuestos" [ref=e62] [cursor=pointer]:
+            - /url: /tenant-portal/finance/budgets
+            - img [ref=e64]
+            - text: Presupuestos
+          - link "Préstamos" [ref=e65] [cursor=pointer]:
+            - /url: /tenant-portal/finance/loans
+            - img [ref=e67]
+            - text: Préstamos
+          - link "Planificación" [ref=e69] [cursor=pointer]:
+            - /url: /tenant-portal/finance/calendar
+            - img [ref=e71]
+            - text: Planificación
+          - link "Reportes" [ref=e73] [cursor=pointer]:
+            - /url: /tenant-portal/finance/reports
+            - img [ref=e75]
+            - text: Reportes
+          - link "Cuentas" [ref=e76] [cursor=pointer]:
+            - /url: /tenant-portal/finance/accounts
+            - img [ref=e78]
+            - text: Cuentas
+          - link "Categorías" [ref=e80] [cursor=pointer]:
+            - /url: /tenant-portal/finance/categories
+            - img [ref=e82]
+            - text: Categorías
+          - link "Catálogos" [ref=e85] [cursor=pointer]:
+            - /url: /tenant-portal/finance/tools
+            - img [ref=e87]
+            - text: Catálogos
+          - link "Configuración" [ref=e90] [cursor=pointer]:
+            - /url: /tenant-portal/finance/settings
+            - img [ref=e92]
+            - text: Configuración
+        - generic [ref=e95]:
+          - strong [ref=e96]: "Transacciones:"
+          - text: Transaccion financiera creada correctamente El detalle quedó abierto abajo para adjuntar boleta, factura u otro respaldo.
+        - generic [ref=e97]:
+          - generic [ref=e100]:
+            - img [ref=e102]
+            - generic [ref=e104]: "19"
+            - generic [ref=e105]: Transacciones
+            - generic [ref=e106]: Movimientos persistidos en finance_transactions
+          - generic [ref=e109]:
+            - img [ref=e111]
+            - generic [ref=e113]: US$0,00
+            - generic [ref=e114]: Ingresos
+            - generic [ref=e115]: Acumulado visible
+          - generic [ref=e118]:
+            - img [ref=e120]
+            - generic [ref=e122]: US$234.555,00
+            - generic [ref=e123]: Egresos
+            - generic [ref=e124]: Acumulado visible
+          - generic [ref=e127]:
+            - img [ref=e129]
+            - generic [ref=e132]: US$-234.555,00
+            - generic [ref=e133]: Balance
+            - generic [ref=e134]: Resultado actual
+        - generic [ref=e135]:
+          - generic [ref=e136]:
+            - generic [ref=e139]:
+              - heading "Registrar transacción" [level=2] [ref=e140]
+              - paragraph [ref=e141]: Usa el contrato moderno de finance_transactions para ingresos, egresos y transferencias.
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - generic [ref=e145]:
+                  - generic [ref=e146]: Tipo
+                  - combobox [ref=e147]:
+                    - option "Ingreso"
+                    - option "Egreso" [selected]
+                    - option "Transferencia"
+                - generic [ref=e148]:
+                  - generic [ref=e149]: Cuenta origen
+                  - combobox [ref=e150]:
+                    - option "Selecciona una cuenta"
+                    - option "e2e-caja-1774926029879" [selected]
+              - generic [ref=e151]:
+                - generic [ref=e152]:
+                  - generic [ref=e153]: Categoría
+                  - combobox [ref=e154]:
+                    - option "Sin categoría" [selected]
+                    - option "Egreso General"
+                    - option "Gastos menores"
+                    - option "Transporte y ruta"
+                    - option "Herramientas e insumos"
+                    - option "Materiales de proyecto"
+                    - option "Combustible"
+                    - option "Publicidad impresa"
+                    - option "Mantencion vehicular"
+                    - option "Impuestos"
+                    - option "Internet y telefonia"
+                    - option "Alimentacion"
+                    - option "TAG y peajes"
+                    - option "Salud"
+                    - option "Hipotecario"
+                    - option "Ocio y salidas"
+                    - option "Electricidad"
+                    - option "Agua"
+                    - option "Gas"
+                    - option "Vestuario"
+                    - option "Regalos"
+                    - option "Credito de consumo"
+                    - option "Credito camioneta"
+                    - option "Deporte"
+                    - option "Estacionamiento"
+                    - option "Educacion"
+                    - option "Seguros"
+                    - option "Mascotas"
+                    - option "Cuidado personal"
+                  - generic [ref=e155]: Solo se muestran categorías de tipo egreso.
+                - generic [ref=e156]:
+                  - generic [ref=e157]: Moneda
+                  - combobox [ref=e158]:
+                    - option "Selecciona una moneda"
+                    - option "USD · US Dollar" [selected]
+                    - option "CLP · Peso Chileno"
+              - generic [ref=e159]:
+                - generic [ref=e160]:
+                  - generic [ref=e161]: Monto
+                  - spinbutton [ref=e162]
+                - generic [ref=e163]:
+                  - generic [ref=e164]: Fecha y hora
+                  - textbox [ref=e165]: 2026-03-31T03:30
+              - generic [ref=e166]:
+                - generic [ref=e167]: Descripción
+                - 'textbox "Ej: Pago proveedor de mantención" [ref=e168]'
+              - generic [ref=e169]:
+                - generic [ref=e170]: Notas
+                - textbox "Contexto adicional del movimiento" [ref=e171]
+              - generic [ref=e172]:
+                - generic [ref=e173]:
+                  - generic [ref=e174]: Adjunto inicial
+                  - button "Choose File" [ref=e175] [cursor=pointer]
+                  - generic [ref=e176]: Opcional. Puedes dejar lista la boleta, factura o respaldo desde ahora. Las imágenes se comprimen antes de subir y el máximo final es 5 MB.
+                - generic [ref=e177]:
+                  - generic [ref=e178]: Nota del adjunto inicial
+                  - 'textbox "Ej: factura proveedor marzo" [ref=e179]'
+              - generic [ref=e180]:
+                - generic [ref=e181]: Etiquetas
+                - listbox [ref=e182]
+                - generic [ref=e183]: Usa Ctrl o Cmd para seleccionar varias etiquetas sobre el mismo movimiento.
+              - generic [ref=e184]:
+                - generic [ref=e185]:
+                  - checkbox "Marcar conciliada" [ref=e186]
+                  - generic [ref=e187]: Marcar conciliada
+                - generic [ref=e188]:
+                  - checkbox "Favorita" [ref=e189]
+                  - generic [ref=e190]: Favorita
+              - button "Registrar transacción" [ref=e192] [cursor=pointer]
+          - generic [ref=e193]:
+            - generic [ref=e196]:
+              - heading "Balances por cuenta" [level=2] [ref=e197]
+              - paragraph [ref=e198]: Lectura rápida del saldo operativo calculado sobre saldo inicial y transacciones.
+            - generic [ref=e199]:
+              - generic [ref=e201]:
+                - generic [ref=e202]:
+                  - generic [ref=e203]: e2e-caja-1774926029879
+                  - generic [ref=e204]: Cash
+                - generic [ref=e205]:
+                  - generic [ref=e206]: US$-234.555,00
+                  - generic [ref=e207]: USD
+              - separator [ref=e208]
+              - generic [ref=e209]:
+                - generic [ref=e210]:
+                  - generic [ref=e211]: Clave de módulo
+                  - code [ref=e213]: finance.entries
+                - generic [ref=e214]:
+                  - generic [ref=e215]: Usado
+                  - generic [ref=e216]: "19"
+                - generic [ref=e217]:
+                  - generic [ref=e218]: Límite
+                  - generic [ref=e219]: "2400"
+                - generic [ref=e220]:
+                  - generic [ref=e221]: Restante
+                  - generic [ref=e222]: "2381"
+                - generic [ref=e223]:
+                  - generic [ref=e224]: Fuente
+                  - generic [ref=e225]: Plan
+                - generic [ref=e226]:
+                  - generic [ref=e227]: Estado
+                  - generic [ref=e229]: ok
+        - generic [ref=e230]:
+          - generic [ref=e231]:
+            - generic [ref=e234]:
+              - heading "Transacciones recientes" [level=2] [ref=e235]
+              - paragraph [ref=e236]: La tabla ya lee finance_transactions y no la capa legacy de entries.
+            - generic [ref=e237]:
+              - generic [ref=e238]:
+                - generic [ref=e239]:
+                  - generic [ref=e240]: Favoritas visibles
+                  - generic [ref=e241]: "0"
+                - generic [ref=e242]:
+                  - generic [ref=e243]: Pendientes conciliación
+                  - generic [ref=e244]: "16"
+                - generic [ref=e245]:
+                  - generic [ref=e246]: Seleccionadas
+                  - generic [ref=e247]: "0"
+                - generic [ref=e248]:
+                  - generic [ref=e249]: Favoritas seleccionadas
+                  - generic [ref=e250]: "0"
+              - generic [ref=e251]:
+                - generic [ref=e252]:
+                  - generic [ref=e253]: Buscar
+                  - textbox "Descripción o notas" [ref=e254]
+                - generic [ref=e255]:
+                  - generic [ref=e256]: Tipo
+                  - combobox [ref=e257]:
+                    - option "Todos" [selected]
+                    - option "Ingresos"
+                    - option "Egresos"
+                    - option "Transferencias"
+                - generic [ref=e258]:
+                  - generic [ref=e259]: Cuenta
+                  - combobox [ref=e260]:
+                    - option "Todas" [selected]
+                    - option "e2e-caja-1774926029879"
+                - generic [ref=e261]:
+                  - generic [ref=e262]: Categoría
+                  - combobox [ref=e263]:
+                    - option "Todas" [selected]
+                    - option "Ingreso General"
+                    - option "Egreso General"
+                    - option "Transferencia interna"
+                    - option "Sueldo"
+                    - option "Gastos menores"
+                    - option "Deposito entre cuentas"
+                    - option "Ventas"
+                    - option "Transporte y ruta"
+                    - option "Ajuste de saldo"
+                    - option "Honorarios y servicios"
+                    - option "Herramientas e insumos"
+                    - option "Reembolso"
+                    - option "Materiales de proyecto"
+                    - option "Intereses y rendimientos"
+                    - option "Combustible"
+                    - option "Otros ingresos"
+                    - option "Publicidad impresa"
+                    - option "Mantencion vehicular"
+                    - option "Impuestos"
+                    - option "Internet y telefonia"
+                    - option "Alimentacion"
+                    - option "TAG y peajes"
+                    - option "Salud"
+                    - option "Hipotecario"
+                    - option "Ocio y salidas"
+                    - option "Electricidad"
+                    - option "Agua"
+                    - option "Gas"
+                    - option "Vestuario"
+                    - option "Regalos"
+                    - option "Credito de consumo"
+                    - option "Credito camioneta"
+                    - option "Deporte"
+                    - option "Estacionamiento"
+                    - option "Educacion"
+                    - option "Seguros"
+                    - option "Mascotas"
+                    - option "Cuidado personal"
+                - generic [ref=e264]:
+                  - generic [ref=e265]: Etiqueta
+                  - combobox [ref=e266]:
+                    - option "Todas" [selected]
+                - generic [ref=e267]:
+                  - generic [ref=e268]: Favorita
+                  - combobox [ref=e269]:
+                    - option "Todas" [selected]
+                    - option "Favoritas"
+                    - option "No favoritas"
+                - generic [ref=e270]:
+                  - generic [ref=e271]: Conciliación
+                  - combobox [ref=e272]:
+                    - option "Todas" [selected]
+                    - option "Pendientes"
+                    - option "Conciliadas"
+              - generic [ref=e273]:
+                - button "Seleccionar visibles" [ref=e274] [cursor=pointer]
+                - button "Seleccionar pendientes" [ref=e275] [cursor=pointer]
+                - button "Seleccionar préstamos" [ref=e276] [cursor=pointer]
+                - button "Seleccionar ingresos" [ref=e277] [cursor=pointer]
+                - button "Seleccionar egresos" [ref=e278] [cursor=pointer]
+                - button "Solo favoritas" [ref=e279] [cursor=pointer]
+                - button "Pendientes conciliación" [ref=e280] [cursor=pointer]
+                - button "Limpiar filtros" [ref=e281] [cursor=pointer]
+              - generic [ref=e282]:
+                - generic [ref=e283]:
+                  - generic [ref=e284]: Favoritas visibles
+                  - generic [ref=e285]: "0"
+                - generic [ref=e286]:
+                  - generic [ref=e287]: Pendientes visibles
+                  - generic [ref=e288]: "16"
+                - generic [ref=e289]:
+                  - generic [ref=e290]: Ligadas a préstamo
+                  - generic [ref=e291]: "0"
+                - generic [ref=e292]:
+                  - generic [ref=e293]: Ingreso / egreso
+                  - generic [ref=e294]: 0 / 19
+              - table [ref=e296]:
+                - rowgroup [ref=e297]:
+                  - row "Detalle Fecha Tipo Descripción Cuenta Categoría Monto Estado conciliación Acciones" [ref=e298]:
+                    - columnheader [ref=e299]:
+                      - checkbox [ref=e300]
+                    - columnheader "Detalle" [ref=e301]
+                    - columnheader "Fecha" [ref=e302]
+                    - columnheader "Tipo" [ref=e303]
+                    - columnheader "Descripción" [ref=e304]
+                    - columnheader "Cuenta" [ref=e305]
+                    - columnheader "Categoría" [ref=e306]
+                    - columnheader "Monto" [ref=e307]
+                    - columnheader "Estado conciliación" [ref=e308]
+                    - columnheader "Acciones" [ref=e309]
+                - rowgroup [ref=e310]:
+                  - row "Ocultar 31-03-26, 3:30 a. m. Egreso e2e-finance-monthly-seed-1774927821461 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e311]:
+                    - cell [ref=e312]:
+                      - checkbox [ref=e313]
+                    - cell "Ocultar" [ref=e314]:
+                      - button "Ocultar" [ref=e315] [cursor=pointer]
+                    - cell "31-03-26, 3:30 a. m." [ref=e316]
+                    - cell "Egreso" [ref=e317]:
+                      - generic [ref=e318]: Egreso
+                    - cell "e2e-finance-monthly-seed-1774927821461" [ref=e319]:
+                      - generic [ref=e320]: e2e-finance-monthly-seed-1774927821461
+                    - cell "e2e-caja-1774926029879" [ref=e321]
+                    - cell "—" [ref=e322]
+                    - cell "US$12.345,00" [ref=e323]
+                    - cell "pendiente conciliación" [ref=e324]:
+                      - generic [ref=e325]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e326]:
+                      - generic [ref=e328]:
+                        - button "Editar" [ref=e329] [cursor=pointer]
+                        - button "Adjuntar" [ref=e330] [cursor=pointer]
+                        - button "Favorita" [ref=e331] [cursor=pointer]
+                        - button "Conciliar" [ref=e332] [cursor=pointer]
+                        - button "Anular" [ref=e333] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:14 a. m. Egreso e2e-mov-1774926842401 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e334]:
+                    - cell [ref=e335]:
+                      - checkbox [ref=e336]
+                    - cell "Ver" [ref=e337]:
+                      - button "Ver" [ref=e338] [cursor=pointer]
+                    - cell "31-03-26, 3:14 a. m." [ref=e339]
+                    - cell "Egreso" [ref=e340]:
+                      - generic [ref=e341]: Egreso
+                    - cell "e2e-mov-1774926842401" [ref=e342]:
+                      - generic [ref=e343]: e2e-mov-1774926842401
+                    - cell "e2e-caja-1774926029879" [ref=e344]
+                    - cell "—" [ref=e345]
+                    - cell "US$12.345,00" [ref=e346]
+                    - cell "pendiente conciliación" [ref=e347]:
+                      - generic [ref=e348]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e349]:
+                      - generic [ref=e351]:
+                        - button "Editar" [ref=e352] [cursor=pointer]
+                        - button "Adjuntar" [ref=e353] [cursor=pointer]
+                        - button "Favorita" [ref=e354] [cursor=pointer]
+                        - button "Conciliar" [ref=e355] [cursor=pointer]
+                        - button "Anular" [ref=e356] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:14 a. m. Egreso e2e-reconcile-1774926839025 e2e-caja-1774926029879 — US$12.345,00 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e357]:
+                    - cell [ref=e358]:
+                      - checkbox [ref=e359]
+                    - cell "Ver" [ref=e360]:
+                      - button "Ver" [ref=e361] [cursor=pointer]
+                    - cell "31-03-26, 3:14 a. m." [ref=e362]
+                    - cell "Egreso" [ref=e363]:
+                      - generic [ref=e364]: Egreso
+                    - cell "e2e-reconcile-1774926839025" [ref=e365]:
+                      - generic [ref=e366]: e2e-reconcile-1774926839025
+                    - cell "e2e-caja-1774926029879" [ref=e367]
+                    - cell "—" [ref=e368]
+                    - cell "US$12.345,00" [ref=e369]
+                    - cell "conciliada" [ref=e370]:
+                      - generic [ref=e371]: conciliada
+                    - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e372]:
+                      - generic [ref=e374]:
+                        - button "Editar" [ref=e375] [cursor=pointer]
+                        - button "Adjuntar" [ref=e376] [cursor=pointer]
+                        - button "Favorita" [ref=e377] [cursor=pointer]
+                        - button "Desconciliar" [ref=e378] [cursor=pointer]
+                        - button "Anular" [ref=e379] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:13 a. m. Egreso e2e-finance-seed-1774926832376 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e380]:
+                    - cell [ref=e381]:
+                      - checkbox [ref=e382]
+                    - cell "Ver" [ref=e383]:
+                      - button "Ver" [ref=e384] [cursor=pointer]
+                    - cell "31-03-26, 3:13 a. m." [ref=e385]
+                    - cell "Egreso" [ref=e386]:
+                      - generic [ref=e387]: Egreso
+                    - cell "e2e-finance-seed-1774926832376" [ref=e388]:
+                      - generic [ref=e389]: e2e-finance-seed-1774926832376
+                    - cell "e2e-caja-1774926029879" [ref=e390]
+                    - cell "—" [ref=e391]
+                    - cell "US$12.345,00" [ref=e392]
+                    - cell "pendiente conciliación" [ref=e393]:
+                      - generic [ref=e394]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e395]:
+                      - generic [ref=e397]:
+                        - button "Editar" [ref=e398] [cursor=pointer]
+                        - button "Adjuntar" [ref=e399] [cursor=pointer]
+                        - button "Favorita" [ref=e400] [cursor=pointer]
+                        - button "Conciliar" [ref=e401] [cursor=pointer]
+                        - button "Anular" [ref=e402] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:13 a. m. Egreso e2e-attach-1774926826623 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e403]:
+                    - cell [ref=e404]:
+                      - checkbox [ref=e405]
+                    - cell "Ver" [ref=e406]:
+                      - button "Ver" [ref=e407] [cursor=pointer]
+                    - cell "31-03-26, 3:13 a. m." [ref=e408]
+                    - cell "Egreso" [ref=e409]:
+                      - generic [ref=e410]: Egreso
+                    - cell "e2e-attach-1774926826623" [ref=e411]:
+                      - generic [ref=e412]: e2e-attach-1774926826623
+                    - cell "e2e-caja-1774926029879" [ref=e413]
+                    - cell "—" [ref=e414]
+                    - cell "US$12.345,00" [ref=e415]
+                    - cell "pendiente conciliación" [ref=e416]:
+                      - generic [ref=e417]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e418]:
+                      - generic [ref=e420]:
+                        - button "Editar" [ref=e421] [cursor=pointer]
+                        - button "Adjuntar" [ref=e422] [cursor=pointer]
+                        - button "Favorita" [ref=e423] [cursor=pointer]
+                        - button "Conciliar" [ref=e424] [cursor=pointer]
+                        - button "Anular" [ref=e425] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:13 a. m. Egreso e2e-mov-1774926799608 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e426]:
+                    - cell [ref=e427]:
+                      - checkbox [ref=e428]
+                    - cell "Ver" [ref=e429]:
+                      - button "Ver" [ref=e430] [cursor=pointer]
+                    - cell "31-03-26, 3:13 a. m." [ref=e431]
+                    - cell "Egreso" [ref=e432]:
+                      - generic [ref=e433]: Egreso
+                    - cell "e2e-mov-1774926799608" [ref=e434]:
+                      - generic [ref=e435]: e2e-mov-1774926799608
+                    - cell "e2e-caja-1774926029879" [ref=e436]
+                    - cell "—" [ref=e437]
+                    - cell "US$12.345,00" [ref=e438]
+                    - cell "pendiente conciliación" [ref=e439]:
+                      - generic [ref=e440]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e441]:
+                      - generic [ref=e443]:
+                        - button "Editar" [ref=e444] [cursor=pointer]
+                        - button "Adjuntar" [ref=e445] [cursor=pointer]
+                        - button "Favorita" [ref=e446] [cursor=pointer]
+                        - button "Conciliar" [ref=e447] [cursor=pointer]
+                        - button "Anular" [ref=e448] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:13 a. m. Egreso e2e-reconcile-1774926796536 e2e-caja-1774926029879 — US$12.345,00 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e449]:
+                    - cell [ref=e450]:
+                      - checkbox [ref=e451]
+                    - cell "Ver" [ref=e452]:
+                      - button "Ver" [ref=e453] [cursor=pointer]
+                    - cell "31-03-26, 3:13 a. m." [ref=e454]
+                    - cell "Egreso" [ref=e455]:
+                      - generic [ref=e456]: Egreso
+                    - cell "e2e-reconcile-1774926796536" [ref=e457]:
+                      - generic [ref=e458]: e2e-reconcile-1774926796536
+                    - cell "e2e-caja-1774926029879" [ref=e459]
+                    - cell "—" [ref=e460]
+                    - cell "US$12.345,00" [ref=e461]
+                    - cell "conciliada" [ref=e462]:
+                      - generic [ref=e463]: conciliada
+                    - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e464]:
+                      - generic [ref=e466]:
+                        - button "Editar" [ref=e467] [cursor=pointer]
+                        - button "Adjuntar" [ref=e468] [cursor=pointer]
+                        - button "Favorita" [ref=e469] [cursor=pointer]
+                        - button "Desconciliar" [ref=e470] [cursor=pointer]
+                        - button "Anular" [ref=e471] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:13 a. m. Egreso e2e-finance-seed-1774926789758 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e472]:
+                    - cell [ref=e473]:
+                      - checkbox [ref=e474]
+                    - cell "Ver" [ref=e475]:
+                      - button "Ver" [ref=e476] [cursor=pointer]
+                    - cell "31-03-26, 3:13 a. m." [ref=e477]
+                    - cell "Egreso" [ref=e478]:
+                      - generic [ref=e479]: Egreso
+                    - cell "e2e-finance-seed-1774926789758" [ref=e480]:
+                      - generic [ref=e481]: e2e-finance-seed-1774926789758
+                    - cell "e2e-caja-1774926029879" [ref=e482]
+                    - cell "—" [ref=e483]
+                    - cell "US$12.345,00" [ref=e484]
+                    - cell "pendiente conciliación" [ref=e485]:
+                      - generic [ref=e486]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e487]:
+                      - generic [ref=e489]:
+                        - button "Editar" [ref=e490] [cursor=pointer]
+                        - button "Adjuntar" [ref=e491] [cursor=pointer]
+                        - button "Favorita" [ref=e492] [cursor=pointer]
+                        - button "Conciliar" [ref=e493] [cursor=pointer]
+                        - button "Anular" [ref=e494] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:13 a. m. Egreso e2e-attach-1774926784150 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e495]:
+                    - cell [ref=e496]:
+                      - checkbox [ref=e497]
+                    - cell "Ver" [ref=e498]:
+                      - button "Ver" [ref=e499] [cursor=pointer]
+                    - cell "31-03-26, 3:13 a. m." [ref=e500]
+                    - cell "Egreso" [ref=e501]:
+                      - generic [ref=e502]: Egreso
+                    - cell "e2e-attach-1774926784150" [ref=e503]:
+                      - generic [ref=e504]: e2e-attach-1774926784150
+                    - cell "e2e-caja-1774926029879" [ref=e505]
+                    - cell "—" [ref=e506]
+                    - cell "US$12.345,00" [ref=e507]
+                    - cell "pendiente conciliación" [ref=e508]:
+                      - generic [ref=e509]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e510]:
+                      - generic [ref=e512]:
+                        - button "Editar" [ref=e513] [cursor=pointer]
+                        - button "Adjuntar" [ref=e514] [cursor=pointer]
+                        - button "Favorita" [ref=e515] [cursor=pointer]
+                        - button "Conciliar" [ref=e516] [cursor=pointer]
+                        - button "Anular" [ref=e517] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:12 a. m. Egreso e2e-mov-1774926719320 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e518]:
+                    - cell [ref=e519]:
+                      - checkbox [ref=e520]
+                    - cell "Ver" [ref=e521]:
+                      - button "Ver" [ref=e522] [cursor=pointer]
+                    - cell "31-03-26, 3:12 a. m." [ref=e523]
+                    - cell "Egreso" [ref=e524]:
+                      - generic [ref=e525]: Egreso
+                    - cell "e2e-mov-1774926719320" [ref=e526]:
+                      - generic [ref=e527]: e2e-mov-1774926719320
+                    - cell "e2e-caja-1774926029879" [ref=e528]
+                    - cell "—" [ref=e529]
+                    - cell "US$12.345,00" [ref=e530]
+                    - cell "pendiente conciliación" [ref=e531]:
+                      - generic [ref=e532]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e533]:
+                      - generic [ref=e535]:
+                        - button "Editar" [ref=e536] [cursor=pointer]
+                        - button "Adjuntar" [ref=e537] [cursor=pointer]
+                        - button "Favorita" [ref=e538] [cursor=pointer]
+                        - button "Conciliar" [ref=e539] [cursor=pointer]
+                        - button "Anular" [ref=e540] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:11 a. m. Egreso e2e-reconcile-1774926716691 e2e-caja-1774926029879 — US$12.345,00 conciliada Editar Adjuntar Favorita Desconciliar Anular" [ref=e541]:
+                    - cell [ref=e542]:
+                      - checkbox [ref=e543]
+                    - cell "Ver" [ref=e544]:
+                      - button "Ver" [ref=e545] [cursor=pointer]
+                    - cell "31-03-26, 3:11 a. m." [ref=e546]
+                    - cell "Egreso" [ref=e547]:
+                      - generic [ref=e548]: Egreso
+                    - cell "e2e-reconcile-1774926716691" [ref=e549]:
+                      - generic [ref=e550]: e2e-reconcile-1774926716691
+                    - cell "e2e-caja-1774926029879" [ref=e551]
+                    - cell "—" [ref=e552]
+                    - cell "US$12.345,00" [ref=e553]
+                    - cell "conciliada" [ref=e554]:
+                      - generic [ref=e555]: conciliada
+                    - cell "Editar Adjuntar Favorita Desconciliar Anular" [ref=e556]:
+                      - generic [ref=e558]:
+                        - button "Editar" [ref=e559] [cursor=pointer]
+                        - button "Adjuntar" [ref=e560] [cursor=pointer]
+                        - button "Favorita" [ref=e561] [cursor=pointer]
+                        - button "Desconciliar" [ref=e562] [cursor=pointer]
+                        - button "Anular" [ref=e563] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:11 a. m. Egreso e2e-finance-seed-1774926710418 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e564]:
+                    - cell [ref=e565]:
+                      - checkbox [ref=e566]
+                    - cell "Ver" [ref=e567]:
+                      - button "Ver" [ref=e568] [cursor=pointer]
+                    - cell "31-03-26, 3:11 a. m." [ref=e569]
+                    - cell "Egreso" [ref=e570]:
+                      - generic [ref=e571]: Egreso
+                    - cell "e2e-finance-seed-1774926710418" [ref=e572]:
+                      - generic [ref=e573]: e2e-finance-seed-1774926710418
+                    - cell "e2e-caja-1774926029879" [ref=e574]
+                    - cell "—" [ref=e575]
+                    - cell "US$12.345,00" [ref=e576]
+                    - cell "pendiente conciliación" [ref=e577]:
+                      - generic [ref=e578]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e579]:
+                      - generic [ref=e581]:
+                        - button "Editar" [ref=e582] [cursor=pointer]
+                        - button "Adjuntar" [ref=e583] [cursor=pointer]
+                        - button "Favorita" [ref=e584] [cursor=pointer]
+                        - button "Conciliar" [ref=e585] [cursor=pointer]
+                        - button "Anular" [ref=e586] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:11 a. m. Egreso e2e-attach-1774926705120 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e587]:
+                    - cell [ref=e588]:
+                      - checkbox [ref=e589]
+                    - cell "Ver" [ref=e590]:
+                      - button "Ver" [ref=e591] [cursor=pointer]
+                    - cell "31-03-26, 3:11 a. m." [ref=e592]
+                    - cell "Egreso" [ref=e593]:
+                      - generic [ref=e594]: Egreso
+                    - cell "e2e-attach-1774926705120" [ref=e595]:
+                      - generic [ref=e596]: e2e-attach-1774926705120
+                    - cell "e2e-caja-1774926029879" [ref=e597]
+                    - cell "—" [ref=e598]
+                    - cell "US$12.345,00" [ref=e599]
+                    - cell "pendiente conciliación" [ref=e600]:
+                      - generic [ref=e601]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e602]:
+                      - generic [ref=e604]:
+                        - button "Editar" [ref=e605] [cursor=pointer]
+                        - button "Adjuntar" [ref=e606] [cursor=pointer]
+                        - button "Favorita" [ref=e607] [cursor=pointer]
+                        - button "Conciliar" [ref=e608] [cursor=pointer]
+                        - button "Anular" [ref=e609] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:10 a. m. Egreso e2e-finance-seed-1774926653177 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e610]:
+                    - cell [ref=e611]:
+                      - checkbox [ref=e612]
+                    - cell "Ver" [ref=e613]:
+                      - button "Ver" [ref=e614] [cursor=pointer]
+                    - cell "31-03-26, 3:10 a. m." [ref=e615]
+                    - cell "Egreso" [ref=e616]:
+                      - generic [ref=e617]: Egreso
+                    - cell "e2e-finance-seed-1774926653177" [ref=e618]:
+                      - generic [ref=e619]: e2e-finance-seed-1774926653177
+                    - cell "e2e-caja-1774926029879" [ref=e620]
+                    - cell "—" [ref=e621]
+                    - cell "US$12.345,00" [ref=e622]
+                    - cell "pendiente conciliación" [ref=e623]:
+                      - generic [ref=e624]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e625]:
+                      - generic [ref=e627]:
+                        - button "Editar" [ref=e628] [cursor=pointer]
+                        - button "Adjuntar" [ref=e629] [cursor=pointer]
+                        - button "Favorita" [ref=e630] [cursor=pointer]
+                        - button "Conciliar" [ref=e631] [cursor=pointer]
+                        - button "Anular" [ref=e632] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:08 a. m. Egreso e2e-finance-seed-1774926495627 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e633]:
+                    - cell [ref=e634]:
+                      - checkbox [ref=e635]
+                    - cell "Ver" [ref=e636]:
+                      - button "Ver" [ref=e637] [cursor=pointer]
+                    - cell "31-03-26, 3:08 a. m." [ref=e638]
+                    - cell "Egreso" [ref=e639]:
+                      - generic [ref=e640]: Egreso
+                    - cell "e2e-finance-seed-1774926495627" [ref=e641]:
+                      - generic [ref=e642]: e2e-finance-seed-1774926495627
+                    - cell "e2e-caja-1774926029879" [ref=e643]
+                    - cell "—" [ref=e644]
+                    - cell "US$12.345,00" [ref=e645]
+                    - cell "pendiente conciliación" [ref=e646]:
+                      - generic [ref=e647]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e648]:
+                      - generic [ref=e650]:
+                        - button "Editar" [ref=e651] [cursor=pointer]
+                        - button "Adjuntar" [ref=e652] [cursor=pointer]
+                        - button "Favorita" [ref=e653] [cursor=pointer]
+                        - button "Conciliar" [ref=e654] [cursor=pointer]
+                        - button "Anular" [ref=e655] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:07 a. m. Egreso e2e-finance-seed-1774926432690 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e656]:
+                    - cell [ref=e657]:
+                      - checkbox [ref=e658]
+                    - cell "Ver" [ref=e659]:
+                      - button "Ver" [ref=e660] [cursor=pointer]
+                    - cell "31-03-26, 3:07 a. m." [ref=e661]
+                    - cell "Egreso" [ref=e662]:
+                      - generic [ref=e663]: Egreso
+                    - cell "e2e-finance-seed-1774926432690" [ref=e664]:
+                      - generic [ref=e665]: e2e-finance-seed-1774926432690
+                    - cell "e2e-caja-1774926029879" [ref=e666]
+                    - cell "—" [ref=e667]
+                    - cell "US$12.345,00" [ref=e668]
+                    - cell "pendiente conciliación" [ref=e669]:
+                      - generic [ref=e670]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e671]:
+                      - generic [ref=e673]:
+                        - button "Editar" [ref=e674] [cursor=pointer]
+                        - button "Adjuntar" [ref=e675] [cursor=pointer]
+                        - button "Favorita" [ref=e676] [cursor=pointer]
+                        - button "Conciliar" [ref=e677] [cursor=pointer]
+                        - button "Anular" [ref=e678] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:05 a. m. Egreso e2e-finance-seed-1774926322719 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e679]:
+                    - cell [ref=e680]:
+                      - checkbox [ref=e681]
+                    - cell "Ver" [ref=e682]:
+                      - button "Ver" [ref=e683] [cursor=pointer]
+                    - cell "31-03-26, 3:05 a. m." [ref=e684]
+                    - cell "Egreso" [ref=e685]:
+                      - generic [ref=e686]: Egreso
+                    - cell "e2e-finance-seed-1774926322719" [ref=e687]:
+                      - generic [ref=e688]: e2e-finance-seed-1774926322719
+                    - cell "e2e-caja-1774926029879" [ref=e689]
+                    - cell "—" [ref=e690]
+                    - cell "US$12.345,00" [ref=e691]
+                    - cell "pendiente conciliación" [ref=e692]:
+                      - generic [ref=e693]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e694]:
+                      - generic [ref=e696]:
+                        - button "Editar" [ref=e697] [cursor=pointer]
+                        - button "Adjuntar" [ref=e698] [cursor=pointer]
+                        - button "Favorita" [ref=e699] [cursor=pointer]
+                        - button "Conciliar" [ref=e700] [cursor=pointer]
+                        - button "Anular" [ref=e701] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:02 a. m. Egreso e2e-finance-seed-1774926138000 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e702]:
+                    - cell [ref=e703]:
+                      - checkbox [ref=e704]
+                    - cell "Ver" [ref=e705]:
+                      - button "Ver" [ref=e706] [cursor=pointer]
+                    - cell "31-03-26, 3:02 a. m." [ref=e707]
+                    - cell "Egreso" [ref=e708]:
+                      - generic [ref=e709]: Egreso
+                    - cell "e2e-finance-seed-1774926138000" [ref=e710]:
+                      - generic [ref=e711]: e2e-finance-seed-1774926138000
+                    - cell "e2e-caja-1774926029879" [ref=e712]
+                    - cell "—" [ref=e713]
+                    - cell "US$12.345,00" [ref=e714]
+                    - cell "pendiente conciliación" [ref=e715]:
+                      - generic [ref=e716]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e717]:
+                      - generic [ref=e719]:
+                        - button "Editar" [ref=e720] [cursor=pointer]
+                        - button "Adjuntar" [ref=e721] [cursor=pointer]
+                        - button "Favorita" [ref=e722] [cursor=pointer]
+                        - button "Conciliar" [ref=e723] [cursor=pointer]
+                        - button "Anular" [ref=e724] [cursor=pointer]
+                  - row "Ver 31-03-26, 3:02 a. m. Egreso e2e-mov-1774926124961 e2e-caja-1774926029879 — US$12.345,00 pendiente conciliación Editar Adjuntar Favorita Conciliar Anular" [ref=e725]:
+                    - cell [ref=e726]:
+                      - checkbox [ref=e727]
+                    - cell "Ver" [ref=e728]:
+                      - button "Ver" [ref=e729] [cursor=pointer]
+                    - cell "31-03-26, 3:02 a. m." [ref=e730]
+                    - cell "Egreso" [ref=e731]:
+                      - generic [ref=e732]: Egreso
+                    - cell "e2e-mov-1774926124961" [ref=e733]:
+                      - generic [ref=e734]: e2e-mov-1774926124961
+                    - cell "e2e-caja-1774926029879" [ref=e735]
+                    - cell "—" [ref=e736]
+                    - cell "US$12.345,00" [ref=e737]
+                    - cell "pendiente conciliación" [ref=e738]:
+                      - generic [ref=e739]: pendiente conciliación
+                    - cell "Editar Adjuntar Favorita Conciliar Anular" [ref=e740]:
+                      - generic [ref=e742]:
+                        - button "Editar" [ref=e743] [cursor=pointer]
+                        - button "Adjuntar" [ref=e744] [cursor=pointer]
+                        - button "Favorita" [ref=e745] [cursor=pointer]
+                        - button "Conciliar" [ref=e746] [cursor=pointer]
+                        - button "Anular" [ref=e747] [cursor=pointer]
+          - generic [ref=e749]:
+            - generic [ref=e752]:
+              - heading "Detalle operacional" [level=2] [ref=e753]
+              - paragraph [ref=e754]: Al seleccionar una transacción puedes revisar su trazabilidad reciente.
+            - generic [ref=e756]:
+              - generic [ref=e757]:
+                - strong [ref=e758]: "Adjuntos:"
+                - text: usa el bloque inferior para subir boletas, facturas o respaldos de esta transacción.
+              - generic [ref=e759]:
+                - generic [ref=e760]:
+                  - generic [ref=e761]: Tipo
+                  - generic [ref=e762]: egreso
+                - generic [ref=e763]:
+                  - generic [ref=e764]: Cuenta origen
+                  - generic [ref=e765]: e2e-caja-1774926029879
+                - generic [ref=e766]:
+                  - generic [ref=e767]: Cuenta destino
+                  - generic [ref=e768]: —
+                - generic [ref=e769]:
+                  - generic [ref=e770]: Categoría
+                  - generic [ref=e771]: —
+                - generic [ref=e772]:
+                  - generic [ref=e773]: Monto
+                  - generic [ref=e774]: US$12.345,00
+                - generic [ref=e775]:
+                  - generic [ref=e776]: Registrada en
+                  - generic [ref=e777]: 31-03-26, 3:30 a. m.
+              - generic [ref=e778]:
+                - generic [ref=e779]: Descripción
+                - generic [ref=e780]: e2e-finance-monthly-seed-1774927821461
+              - button "Editar esta transacción" [ref=e782] [cursor=pointer]
+              - generic [ref=e783]:
+                - generic [ref=e784]: Notas
+                - generic [ref=e785]: sin notas
+              - generic [ref=e786]:
+                - generic [ref=e787]: Boletas / facturas adjuntas
+                - generic [ref=e788]:
+                  - generic [ref=e789]:
+                    - generic [ref=e790]: Nota del adjunto
+                    - 'textbox "Ej: boleta supermercado o factura proveedor" [ref=e791]'
+                  - generic [ref=e792]:
+                    - generic [ref=e793]: Subir archivo
+                    - button "Choose File" [ref=e794] [cursor=pointer]
+                    - generic [ref=e795]: Se aceptan JPG, PNG, WEBP o PDF. Las imágenes se comprimen antes de subir y el máximo final es 5 MB.
+                - generic [ref=e796]: Todavía no hay boletas o facturas cargadas para esta transacción.
+              - generic [ref=e797]:
+                - generic [ref=e798]: Etiquetas
+                - generic [ref=e799]: sin etiquetas
+              - generic [ref=e800]:
+                - generic [ref=e801]: Auditoría reciente
+                - generic [ref=e803]:
+                  - generic [ref=e804]:
+                    - strong [ref=e805]: Transaction.Created
+                    - generic [ref=e806]: 31-03-26, 12:30 a. m.
+                  - generic [ref=e807]: Transaccion financiera creada
+                  - generic [ref=e808]: "{ \"transaction_type\": \"expense\", \"account_id\": 1, \"target_account_id\": null, \"currency_id\": 1, \"amount\": 12345, \"tag_ids\": [] }"
+```

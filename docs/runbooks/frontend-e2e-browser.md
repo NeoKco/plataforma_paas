@@ -32,6 +32,7 @@ Archivos principales:
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-finance-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit.smoke.spec.ts)
+- [tenant-portal-finance-monthly-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-monthly-limit.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
@@ -55,6 +56,7 @@ Cobertura actual:
 - login `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
 - enforcement visible de límites de `finance` en `tenant_portal`
+- enforcement de límites mensuales de `finance.entries.monthly` en `tenant_portal`
 - alta básica de una transacción en `finance`
 - carga de adjunto sobre transacción creada en `finance`
 - anulación básica de una transacción creada en `finance`
@@ -127,6 +129,7 @@ Resultado validado en local a la fecha:
 - `Provisioning` ya tiene además un smoke broker-only para validar filtros DLQ por `error contains` y confirmar opciones de requeue individual
 - `tenant_portal` ya cubre además enforcement visible de límites de usuarios activos con overrides preparados de forma determinista
 - `tenant_portal` ya cubre además enforcement visible de límites de `finance.entries` bloqueando nuevas transacciones cuando el tenant queda al límite
+- `tenant_portal` ya cubre además enforcement de `finance.entries.monthly` bloqueando nuevas transacciones cuando el tenant alcanza el cupo mensual
 - `tenant_portal` con `empresa-bootstrap` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
 
@@ -162,6 +165,7 @@ Notas del flujo `finance` que conviene recordar:
 - la subida de imágenes en transacciones comprime el archivo antes de enviarlo
 - cuando la imagen se comprime, el nombre visible final del adjunto puede cambiar a extensión `webp`
 - los smokes de límites tenant ya no dependen de preparar overrides por UI de `Tenants`; usan control DB para fijar y limpiar estado reproducible
+- el smoke mensual de `finance` usa además un snapshot real del uso tenant para fijar `finance.entries.monthly` sin asumir conteos hardcodeados
 
 ## Siguiente expansión sugerida
 
