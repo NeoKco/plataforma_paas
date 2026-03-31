@@ -76,6 +76,18 @@ Smokes actuales del bloque central:
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
 
+Baseline E2E tenant actualmente validado para continuar pruebas browser:
+
+- `E2E_TENANT_SLUG=empresa-bootstrap`
+- `E2E_TENANT_EMAIL=admin@empresa-bootstrap.local`
+- `E2E_TENANT_PASSWORD=TenantAdmin123!`
+
+Nota operativa:
+
+- para esta iteración ya no se está tomando `empresa-demo` como baseline validado de tenant browser
+- los smokes de límites tenant (`core.users.active` y `finance.entries`) ahora preparan y limpian overrides de forma determinista por control DB
+- si otro entorno no tiene `empresa-bootstrap` disponible, hay que sobreescribir `E2E_TENANT_*` y revalidar el baseline
+
 Cobertura actual:
 
 - login `platform_admin`
@@ -90,5 +102,5 @@ Cobertura actual:
 - requeue individual de filas DLQ desde `Provisioning` en entornos con backend `broker`
 - requeue batch de filas DLQ filtradas desde `Provisioning` en entornos con backend `broker`
 - filtros finos DLQ por texto de error y validación visible de `delay/reset attempts` antes del requeue individual en backend `broker`
-- enforcement visible de límites de usuarios activos en `tenant_portal` tras aplicar overrides tenant desde `Tenants`
-- enforcement visible de límites de `finance.entries` en `tenant_portal` tras aplicar overrides tenant desde `Tenants`
+- enforcement visible de límites de usuarios activos en `tenant_portal` con overrides preparados de forma determinista
+- enforcement visible de límites de `finance.entries` en `tenant_portal` con overrides preparados de forma determinista

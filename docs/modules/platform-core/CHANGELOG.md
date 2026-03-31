@@ -35,6 +35,9 @@ Resumen curado del bloque central.
 - smoke browser broker-only agregado para reencolar individualmente filas DLQ desde `Provisioning`
 - smoke browser broker-only agregado para reencolar en lote filas DLQ filtradas desde `Provisioning`
 - smoke browser broker-only agregado para validar filtros DLQ por texto de error y opciones visibles de requeue individual
+- baseline E2E tenant actualizado y validado sobre `empresa-bootstrap` en vez de `empresa-demo`
+- smokes browser de límites tenant endurecidos para fijar y limpiar overrides por control DB
+- enforcement backend agregado al endpoint moderno de creación de transacciones `finance` para respetar `finance.entries`
 
 ## Documentación
 
