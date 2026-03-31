@@ -54,7 +54,7 @@ test("platform admin can review and reconcile a tenant billing event", async ({ 
 
   await billingFilters
     .getByRole("combobox", { name: /^Tenant$/i })
-    .selectOption({ label: `${tenantName} (${tenantSlug})` });
+    .selectOption(String(seededEvent.tenantId));
   await billingFilters
     .getByRole("combobox", { name: /Proveedor|Provider/i })
     .selectOption("stripe");
