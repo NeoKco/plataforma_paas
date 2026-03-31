@@ -9,6 +9,7 @@ Estado actual:
 - módulo funcionalmente cerrado para la etapa actual del PaaS
 - backend, frontend, migraciones, importación legacy y smoke E2E ya operativos
 - cobertura E2E tenant ya incluye límites visibles y mantenimiento básico de cuentas/categorías
+- cobertura E2E tenant ya incluye además el flujo base de presupuestos mensuales
 - `finance` actúa como módulo base y piloto de convención para siguientes módulos tenant
 
 ## Mapa de documentos

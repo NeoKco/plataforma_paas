@@ -1,0 +1,287 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e8]: Platform PaaS
+      - generic [ref=e9]: Portal Tenant
+    - navigation [ref=e10]:
+      - link "Resumen" [ref=e11] [cursor=pointer]:
+        - /url: /tenant-portal
+        - img [ref=e13]
+        - text: Resumen
+      - link "Usuarios" [ref=e18] [cursor=pointer]:
+        - /url: /tenant-portal/users
+        - img [ref=e20]
+        - text: Usuarios
+      - link "Finanzas" [ref=e25] [cursor=pointer]:
+        - /url: /tenant-portal/finance
+        - img [ref=e27]
+        - text: Finanzas
+  - generic [ref=e28]:
+    - banner [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]: Espacio Tenant
+        - generic [ref=e32]: empresa-bootstrap
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: Idioma
+          - combobox "Idioma" [ref=e36]:
+            - option "Español" [selected]
+            - option "English"
+        - link "Volver a plataforma" [ref=e37] [cursor=pointer]:
+          - /url: /login
+        - generic [ref=e38]:
+          - generic [ref=e39]: Tenant Admin
+          - generic [ref=e40]: admin
+        - button "Salir" [ref=e41] [cursor=pointer]
+    - main [ref=e42]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - img [ref=e47]
+            - generic [ref=e48]:
+              - generic [ref=e49]: Finance
+              - heading "Presupuestos" [level=1] [ref=e50]
+              - paragraph [ref=e51]: Define metas mensuales por categoría y compara rápidamente lo presupuestado contra lo ejecutado.
+          - generic [ref=e54]:
+            - button "Ayuda sobre presupuestos" [ref=e55] [cursor=pointer]: "?"
+            - tooltip "Clonar copia un mes a otro. Plantilla aplica una base con escala y redondeo. El foco guiado ajusta ítems visibles según desvío real sin reemplazar toda la planificación."
+        - generic [ref=e56]:
+          - link "Movimientos" [ref=e57] [cursor=pointer]:
+            - /url: /tenant-portal/finance
+            - img [ref=e59]
+            - text: Movimientos
+          - link "Presupuestos" [ref=e61] [cursor=pointer]:
+            - /url: /tenant-portal/finance/budgets
+            - img [ref=e63]
+            - text: Presupuestos
+          - link "Préstamos" [ref=e64] [cursor=pointer]:
+            - /url: /tenant-portal/finance/loans
+            - img [ref=e66]
+            - text: Préstamos
+          - link "Planificación" [ref=e68] [cursor=pointer]:
+            - /url: /tenant-portal/finance/calendar
+            - img [ref=e70]
+            - text: Planificación
+          - link "Reportes" [ref=e72] [cursor=pointer]:
+            - /url: /tenant-portal/finance/reports
+            - img [ref=e74]
+            - text: Reportes
+          - link "Cuentas" [ref=e75] [cursor=pointer]:
+            - /url: /tenant-portal/finance/accounts
+            - img [ref=e77]
+            - text: Cuentas
+          - link "Categorías" [ref=e79] [cursor=pointer]:
+            - /url: /tenant-portal/finance/categories
+            - img [ref=e81]
+            - text: Categorías
+          - link "Catálogos" [ref=e84] [cursor=pointer]:
+            - /url: /tenant-portal/finance/tools
+            - img [ref=e86]
+            - text: Catálogos
+          - link "Configuración" [ref=e89] [cursor=pointer]:
+            - /url: /tenant-portal/finance/settings
+            - img [ref=e91]
+            - text: Configuración
+        - generic [ref=e94]:
+          - strong [ref=e95]: "Presupuestos:"
+          - text: "Ya existe un presupuesto para esa categoria en el periodo indicado (request_id: 2129544e-8aa0-42d4-9760-59eeeced93b7)"
+        - generic [ref=e96]:
+          - generic [ref=e99]:
+            - img [ref=e101]
+            - generic [ref=e102]: US$0,00
+            - generic [ref=e103]: Presupuestado
+            - generic [ref=e104]: Total del filtro visible
+          - generic [ref=e107]:
+            - img [ref=e109]
+            - generic [ref=e111]: US$0,00
+            - generic [ref=e112]: Ejecutado
+            - generic [ref=e113]: Real acumulado por categoría
+          - generic [ref=e116]:
+            - img [ref=e118]
+            - generic [ref=e121]: US$0,00
+            - generic [ref=e122]: Desviación
+            - generic [ref=e123]: Presupuesto menos real
+          - generic [ref=e126]:
+            - img [ref=e128]
+            - generic [ref=e131]: "0"
+            - generic [ref=e132]: Ítems
+            - generic [ref=e133]: Presupuestos del filtro
+        - generic [ref=e134]:
+          - generic [ref=e137]:
+            - img [ref=e139]
+            - generic [ref=e141]: "0"
+            - generic [ref=e142]: Sobre presupuesto
+            - generic [ref=e143]: Categorías que ya superaron el monto visible
+          - generic [ref=e146]:
+            - img [ref=e148]
+            - generic [ref=e151]: "0"
+            - generic [ref=e152]: Dentro
+            - generic [ref=e153]: Categorías activas aún dentro del rango
+          - generic [ref=e156]:
+            - img [ref=e158]
+            - generic [ref=e161]: "0"
+            - generic [ref=e162]: Sin uso
+            - generic [ref=e163]: Categorías sin ejecución en el período
+          - generic [ref=e166]:
+            - img [ref=e168]
+            - generic [ref=e171]: "0"
+            - generic [ref=e172]: Inactivas
+            - generic [ref=e173]: Presupuestos visibles pero desactivados
+        - generic [ref=e174]:
+          - generic [ref=e175]:
+            - generic [ref=e178]:
+              - heading "Registrar presupuesto" [level=2] [ref=e179]
+              - paragraph [ref=e180]: "Primer corte: presupuesto mensual por categoría con comparación contra gasto o ingreso real."
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - generic [ref=e184]:
+                  - generic [ref=e185]: Mes
+                  - textbox [ref=e186]: 2027-01
+                - generic [ref=e187]:
+                  - generic [ref=e188]: Categoría
+                  - combobox [ref=e189]:
+                    - option "Selecciona una categoría"
+                    - option "Ingreso General · Ingreso" [selected]
+                    - option "Egreso General · Egreso"
+                    - option "Sueldo · Ingreso"
+                    - option "Gastos menores · Egreso"
+                    - option "Ventas · Ingreso"
+                    - option "Transporte y ruta · Egreso"
+                    - option "Honorarios y servicios · Ingreso"
+                    - option "Herramientas e insumos · Egreso"
+                    - option "Reembolso · Ingreso"
+                    - option "Materiales de proyecto · Egreso"
+                    - option "Intereses y rendimientos · Ingreso"
+                    - option "Combustible · Egreso"
+                    - option "Otros ingresos · Ingreso"
+                    - option "Publicidad impresa · Egreso"
+                    - option "Mantencion vehicular · Egreso"
+                    - option "Impuestos · Egreso"
+                    - option "Internet y telefonia · Egreso"
+                    - option "e2e-finance-category-1774963744487 · Egreso"
+                    - option "Alimentacion · Egreso"
+                    - option "TAG y peajes · Egreso"
+                    - option "Salud · Egreso"
+                    - option "Hipotecario · Egreso"
+                    - option "Ocio y salidas · Egreso"
+                    - option "Electricidad · Egreso"
+                    - option "Agua · Egreso"
+                    - option "Gas · Egreso"
+                    - option "Vestuario · Egreso"
+                    - option "Regalos · Egreso"
+                    - option "Credito de consumo · Egreso"
+                    - option "Credito camioneta · Egreso"
+                    - option "Deporte · Egreso"
+                    - option "Estacionamiento · Egreso"
+                    - option "Educacion · Egreso"
+                    - option "Seguros · Egreso"
+                    - option "Mascotas · Egreso"
+                    - option "Cuidado personal · Egreso"
+              - generic [ref=e190]:
+                - generic [ref=e191]:
+                  - generic [ref=e192]: Monto presupuestado
+                  - spinbutton [ref=e193]: "54321"
+                - generic [ref=e194]:
+                  - generic [ref=e195]: Activo
+                  - combobox [ref=e196]:
+                    - option "Sí" [selected]
+                    - option "No"
+              - generic [ref=e197]:
+                - generic [ref=e198]: Nota
+                - 'textbox "Ej: tope aprobado para marketing de marzo" [ref=e199]': Presupuesto E2E 1774965110003
+              - button "Registrar presupuesto" [ref=e201] [cursor=pointer]
+          - generic [ref=e202]:
+            - generic [ref=e205]:
+              - heading "Lectura del período" [level=2] [ref=e206]
+              - paragraph [ref=e207]: Filtra por tipo o estado para concentrarte en categorías con desviación, inactivas o sin uso.
+            - generic [ref=e209]:
+              - generic [ref=e210]:
+                - generic [ref=e211]:
+                  - generic [ref=e212]: Mes visible
+                  - textbox [ref=e213]: 2026-03
+                - generic [ref=e214]:
+                  - generic [ref=e215]: Tipo
+                  - combobox [ref=e216]:
+                    - option "Todos" [selected]
+                    - option "Ingresos"
+                    - option "Egresos"
+              - generic [ref=e217]:
+                - generic [ref=e218]:
+                  - generic [ref=e219]: Estado derivado
+                  - combobox [ref=e220]:
+                    - option "Todos" [selected]
+                    - option "Dentro del presupuesto"
+                    - option "Sobre el presupuesto"
+                    - option "Sin ejecución"
+                    - option "Inactivo"
+                - generic [ref=e222]:
+                  - checkbox "Incluir inactivos" [checked] [ref=e223]
+                  - generic [ref=e224]: Incluir inactivos
+              - generic [ref=e225]:
+                - generic [ref=e226]:
+                  - generic [ref=e227]: Presupuestado
+                  - generic [ref=e228]: US$0,00
+                - generic [ref=e229]:
+                  - generic [ref=e230]: Ejecutado
+                  - generic [ref=e231]: US$0,00
+                - generic [ref=e232]:
+                  - generic [ref=e233]: Desviación
+                  - generic [ref=e234]: US$0,00
+                - generic [ref=e235]:
+                  - generic [ref=e236]: Filas
+                  - generic [ref=e237]: "0"
+              - generic [ref=e238]:
+                - generic [ref=e239]:
+                  - generic [ref=e240]: Ingreso presup.
+                  - generic [ref=e241]: US$0,00
+                - generic [ref=e242]:
+                  - generic [ref=e243]: Ingreso real
+                  - generic [ref=e244]: US$0,00
+                - generic [ref=e245]:
+                  - generic [ref=e246]: Egreso presup.
+                  - generic [ref=e247]: US$0,00
+                - generic [ref=e248]:
+                  - generic [ref=e249]: Egreso real
+                  - generic [ref=e250]: US$0,00
+              - generic [ref=e251]:
+                - generic [ref=e252]:
+                  - generic [ref=e253]: Clonar desde
+                  - textbox [ref=e254]: 2026-02
+                - generic [ref=e256]:
+                  - checkbox "Sobrescribir categorías existentes" [ref=e257]
+                  - generic [ref=e258]: Sobrescribir categorías existentes
+              - button "Clonar al mes visible" [ref=e260] [cursor=pointer]
+              - generic [ref=e261]:
+                - generic [ref=e262]:
+                  - generic [ref=e263]: Plantilla sugerida
+                  - combobox [ref=e264]:
+                    - option "Mes anterior" [selected]
+                    - option "Mismo mes año anterior"
+                    - option "Promedio real últimos 3 meses"
+                - generic [ref=e265]:
+                  - generic [ref=e266]: Escalar %
+                  - spinbutton [ref=e267]: "100"
+                  - generic [ref=e268]: 100 mantiene el monto; 110 agrega 10%; 90 reduce 10%.
+                - generic [ref=e269]:
+                  - generic [ref=e270]: Redondear a
+                  - spinbutton [ref=e271]
+                  - generic [ref=e272]: Opcional. Redondea cada presupuesto al múltiplo indicado.
+                - generic [ref=e274]:
+                  - checkbox "Sobrescribir con plantilla" [ref=e275]
+                  - generic [ref=e276]: Sobrescribir con plantilla
+              - button "Aplicar plantilla al mes visible" [ref=e278] [cursor=pointer]
+        - generic [ref=e279]:
+          - generic [ref=e282]:
+            - heading "Foco presupuestario" [level=2] [ref=e283]
+            - paragraph [ref=e284]: Lectura corta de categorías que requieren revisión primero en el período visible.
+          - generic [ref=e286]: No hay categorías presupuestarias que priorizar con el filtro actual.
+        - generic [ref=e287]:
+          - generic [ref=e290]:
+            - heading "Presupuesto vs ejecución" [level=2] [ref=e291]
+            - paragraph [ref=e292]: Comparación mensual por categoría, con estado derivado para leer rápido qué necesita atención.
+          - generic [ref=e294]: No hay presupuestos para el filtro seleccionado.
+```

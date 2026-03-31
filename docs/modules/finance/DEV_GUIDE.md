@@ -61,6 +61,7 @@ Smokes vigentes:
 - [platform-admin.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-catalogs.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-catalogs.smoke.spec.ts)
+- [tenant-portal-finance-budgets.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-budgets.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
 - [tenant-portal-finance-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit.smoke.spec.ts)
@@ -110,7 +111,7 @@ Frontend:
 - build de `frontend`
 - smoke browser Playwright
 - baseline tenant actual validado sobre `empresa-bootstrap`
-- cobertura tenant validada para creación de transacción, carga de adjunto, anulación, conciliación, límites efectivos y mantenimiento de cuentas/categorías
+- cobertura tenant validada para creación de transacción, carga de adjunto, anulación, conciliación, límites efectivos, mantenimiento de cuentas/categorías y flujo base de presupuestos
 
 ## Importación legacy
 

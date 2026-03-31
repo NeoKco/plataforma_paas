@@ -65,6 +65,15 @@ Si subes una imagen `JPG` o `PNG`, el nombre final visible del adjunto puede que
 
 Esta regla aplica especialmente a cuentas, categorías, monedas y catálogos auxiliares.
 
+### Registrar y clonar presupuestos
+
+1. Ir a `Finanzas > Presupuestos`.
+2. Elegir `Mes`, `Categoría` y `Monto presupuestado`.
+3. Registrar el presupuesto mensual.
+4. Si necesitas replicarlo al siguiente período, usa `Clonar al mes visible`.
+
+El portal muestra además una lectura rápida de `Presupuestado`, `Ejecutado`, `Desviación` y el estado derivado de cada fila para priorizar revisión.
+
 ## Errores comunes
 
 ### “Schema incompleto” o estructura atrasada

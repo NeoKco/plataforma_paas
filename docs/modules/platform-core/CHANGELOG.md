@@ -42,6 +42,7 @@ Resumen curado del bloque central.
 - smoke browser agregado para validar bloqueo mensual de `finance.entries.monthly` en `tenant_portal`
 - smoke browser agregado para validar bloqueo mensual por tipo de `finance.entries.monthly.income` y `finance.entries.monthly.expense` en `tenant_portal`
 - smoke browser agregado para validar cuentas y categorías `finance` con `create`, `deactivate` y `delete` en `tenant_portal`
+- smoke browser agregado para validar presupuestos `finance` con alta mensual y clonación al mes visible en `tenant_portal`
 
 ## Documentación
 
