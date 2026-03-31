@@ -113,9 +113,7 @@ test("tenant portal finance loans creates a loan and records a simple installmen
     .filter({ has: page.getByRole("button", { name: /Aplicar pago|Apply payment/i }) })
     .first();
   await paymentForm.locator('input[type="number"]').first().fill("300");
-  await paymentForm
-    .getByPlaceholder(/abono recibido por transferencia|payment received by transfer/i)
-    .fill("Abono smoke E2E");
+  await paymentForm.locator("input.form-control").last().fill("Abono smoke E2E");
   await paymentForm.getByRole("button", { name: /Aplicar pago|Apply payment/i }).click();
 
   await expect(getLoanFeedback(page)).toContainText(/pago|payment/i);

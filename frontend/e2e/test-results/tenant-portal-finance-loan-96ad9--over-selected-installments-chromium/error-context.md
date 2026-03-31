@@ -92,7 +92,7 @@
         - generic [ref=e97]:
           - generic [ref=e100]:
             - img [ref=e102]
-            - generic [ref=e103]: US$18.900,00
+            - generic [ref=e103]: US$21.000,00
             - generic [ref=e104]: Capital total
             - generic [ref=e105]: Monto inicial visible
           - generic [ref=e108]:
@@ -102,12 +102,12 @@
             - generic [ref=e114]: Por cobrar a terceros
           - generic [ref=e117]:
             - img [ref=e119]
-            - generic [ref=e121]: US$18.900,00
+            - generic [ref=e121]: US$21.000,00
             - generic [ref=e122]: Saldo recibido
             - generic [ref=e123]: Por pagar a terceros
           - generic [ref=e126]:
             - img [ref=e128]
-            - generic [ref=e130]: "18"
+            - generic [ref=e130]: "20"
             - generic [ref=e131]: Activos
             - generic [ref=e132]: Préstamos abiertos
         - generic [ref=e133]:
@@ -202,16 +202,16 @@
               - generic [ref=e210]:
                 - generic [ref=e211]:
                   - generic [ref=e212]: Capital visible
-                  - generic [ref=e213]: US$18.900,00
+                  - generic [ref=e213]: US$21.000,00
                 - generic [ref=e214]:
                   - generic [ref=e215]: Prestado
                   - generic [ref=e216]: US$0,00
                 - generic [ref=e217]:
                   - generic [ref=e218]: Recibido
-                  - generic [ref=e219]: US$18.900,00
+                  - generic [ref=e219]: US$21.000,00
                 - generic [ref=e220]:
                   - generic [ref=e221]: Ítems
-                  - generic [ref=e222]: "18"
+                  - generic [ref=e222]: "20"
         - generic [ref=e223]:
           - generic [ref=e226]:
             - heading "Cartera de préstamos" [level=2] [ref=e227]
@@ -232,8 +232,8 @@
                 - columnheader "Estado" [ref=e244]
                 - columnheader "Acción" [ref=e245]
             - rowgroup [ref=e246]:
-              - row "e2e-loan-batch-1774969143426 recibido Banco Batch E2E e2e-caja-1774926029879 (E2E-1774926030022) US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Ocultar" [ref=e247]:
-                - cell "e2e-loan-batch-1774969143426" [ref=e248]
+              - row "e2e-loan-batch-1774969285052 recibido Banco Batch E2E e2e-caja-1774926029879 (E2E-1774926030022) US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Ocultar" [ref=e247]:
+                - cell "e2e-loan-batch-1774969285052" [ref=e248]
                 - cell "recibido" [ref=e249]
                 - cell "Banco Batch E2E" [ref=e250]
                 - cell "e2e-caja-1774926029879 (E2E-1774926030022)" [ref=e251]
@@ -249,11 +249,11 @@
                   - generic [ref=e261]:
                     - button "Editar" [ref=e262] [cursor=pointer]
                     - button "Ocultar" [ref=e263] [cursor=pointer]
-              - row "e2e-loan-1774969063718 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e264]:
-                - cell "e2e-loan-1774969063718" [ref=e265]
+              - row "e2e-loan-1774969154428 recibido Banco E2E e2e-caja-1774926029879 (E2E-1774926030022) US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e264]:
+                - cell "e2e-loan-1774969154428" [ref=e265]
                 - cell "recibido" [ref=e266]
                 - cell "Banco E2E" [ref=e267]
-                - cell "sin definir" [ref=e268]
+                - cell "e2e-caja-1774926029879 (E2E-1774926030022)" [ref=e268]
                 - cell "US$900,00" [ref=e269]
                 - cell "US$900,00" [ref=e270]
                 - cell "US$0,00" [ref=e271]
@@ -266,11 +266,11 @@
                   - generic [ref=e278]:
                     - button "Editar" [ref=e279] [cursor=pointer]
                     - button "Cronograma" [ref=e280] [cursor=pointer]
-              - row "e2e-loan-batch-1774969052877 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e281]:
-                - cell "e2e-loan-batch-1774969052877" [ref=e282]
+              - row "e2e-loan-batch-1774969143426 recibido Banco Batch E2E e2e-caja-1774926029879 (E2E-1774926030022) US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e281]:
+                - cell "e2e-loan-batch-1774969143426" [ref=e282]
                 - cell "recibido" [ref=e283]
                 - cell "Banco Batch E2E" [ref=e284]
-                - cell "sin definir" [ref=e285]
+                - cell "e2e-caja-1774926029879 (E2E-1774926030022)" [ref=e285]
                 - cell "US$1.200,00" [ref=e286]
                 - cell "US$1.200,00" [ref=e287]
                 - cell "US$0,00" [ref=e288]
@@ -283,8 +283,8 @@
                   - generic [ref=e295]:
                     - button "Editar" [ref=e296] [cursor=pointer]
                     - button "Cronograma" [ref=e297] [cursor=pointer]
-              - row "e2e-loan-1774969035668 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e298]:
-                - cell "e2e-loan-1774969035668" [ref=e299]
+              - row "e2e-loan-1774969063718 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e298]:
+                - cell "e2e-loan-1774969063718" [ref=e299]
                 - cell "recibido" [ref=e300]
                 - cell "Banco E2E" [ref=e301]
                 - cell "sin definir" [ref=e302]
@@ -300,8 +300,8 @@
                   - generic [ref=e312]:
                     - button "Editar" [ref=e313] [cursor=pointer]
                     - button "Cronograma" [ref=e314] [cursor=pointer]
-              - row "e2e-loan-batch-1774969024851 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e315]:
-                - cell "e2e-loan-batch-1774969024851" [ref=e316]
+              - row "e2e-loan-batch-1774969052877 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e315]:
+                - cell "e2e-loan-batch-1774969052877" [ref=e316]
                 - cell "recibido" [ref=e317]
                 - cell "Banco Batch E2E" [ref=e318]
                 - cell "sin definir" [ref=e319]
@@ -317,8 +317,8 @@
                   - generic [ref=e329]:
                     - button "Editar" [ref=e330] [cursor=pointer]
                     - button "Cronograma" [ref=e331] [cursor=pointer]
-              - row "e2e-loan-1774968964151 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e332]:
-                - cell "e2e-loan-1774968964151" [ref=e333]
+              - row "e2e-loan-1774969035668 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e332]:
+                - cell "e2e-loan-1774969035668" [ref=e333]
                 - cell "recibido" [ref=e334]
                 - cell "Banco E2E" [ref=e335]
                 - cell "sin definir" [ref=e336]
@@ -334,8 +334,8 @@
                   - generic [ref=e346]:
                     - button "Editar" [ref=e347] [cursor=pointer]
                     - button "Cronograma" [ref=e348] [cursor=pointer]
-              - row "e2e-loan-batch-1774968953359 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e349]:
-                - cell "e2e-loan-batch-1774968953359" [ref=e350]
+              - row "e2e-loan-batch-1774969024851 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e349]:
+                - cell "e2e-loan-batch-1774969024851" [ref=e350]
                 - cell "recibido" [ref=e351]
                 - cell "Banco Batch E2E" [ref=e352]
                 - cell "sin definir" [ref=e353]
@@ -351,8 +351,8 @@
                   - generic [ref=e363]:
                     - button "Editar" [ref=e364] [cursor=pointer]
                     - button "Cronograma" [ref=e365] [cursor=pointer]
-              - row "e2e-loan-1774968875729 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e366]:
-                - cell "e2e-loan-1774968875729" [ref=e367]
+              - row "e2e-loan-1774968964151 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e366]:
+                - cell "e2e-loan-1774968964151" [ref=e367]
                 - cell "recibido" [ref=e368]
                 - cell "Banco E2E" [ref=e369]
                 - cell "sin definir" [ref=e370]
@@ -368,8 +368,8 @@
                   - generic [ref=e380]:
                     - button "Editar" [ref=e381] [cursor=pointer]
                     - button "Cronograma" [ref=e382] [cursor=pointer]
-              - row "e2e-loan-batch-1774968870257 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e383]:
-                - cell "e2e-loan-batch-1774968870257" [ref=e384]
+              - row "e2e-loan-batch-1774968953359 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e383]:
+                - cell "e2e-loan-batch-1774968953359" [ref=e384]
                 - cell "recibido" [ref=e385]
                 - cell "Banco Batch E2E" [ref=e386]
                 - cell "sin definir" [ref=e387]
@@ -385,8 +385,8 @@
                   - generic [ref=e397]:
                     - button "Editar" [ref=e398] [cursor=pointer]
                     - button "Cronograma" [ref=e399] [cursor=pointer]
-              - row "e2e-loan-1774968659276 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e400]:
-                - cell "e2e-loan-1774968659276" [ref=e401]
+              - row "e2e-loan-1774968875729 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e400]:
+                - cell "e2e-loan-1774968875729" [ref=e401]
                 - cell "recibido" [ref=e402]
                 - cell "Banco E2E" [ref=e403]
                 - cell "sin definir" [ref=e404]
@@ -402,8 +402,8 @@
                   - generic [ref=e414]:
                     - button "Editar" [ref=e415] [cursor=pointer]
                     - button "Cronograma" [ref=e416] [cursor=pointer]
-              - row "e2e-loan-batch-1774968653747 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e417]:
-                - cell "e2e-loan-batch-1774968653747" [ref=e418]
+              - row "e2e-loan-batch-1774968870257 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e417]:
+                - cell "e2e-loan-batch-1774968870257" [ref=e418]
                 - cell "recibido" [ref=e419]
                 - cell "Banco Batch E2E" [ref=e420]
                 - cell "sin definir" [ref=e421]
@@ -419,8 +419,8 @@
                   - generic [ref=e431]:
                     - button "Editar" [ref=e432] [cursor=pointer]
                     - button "Cronograma" [ref=e433] [cursor=pointer]
-              - row "e2e-loan-1774968631037 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e434]:
-                - cell "e2e-loan-1774968631037" [ref=e435]
+              - row "e2e-loan-1774968659276 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e434]:
+                - cell "e2e-loan-1774968659276" [ref=e435]
                 - cell "recibido" [ref=e436]
                 - cell "Banco E2E" [ref=e437]
                 - cell "sin definir" [ref=e438]
@@ -436,8 +436,8 @@
                   - generic [ref=e448]:
                     - button "Editar" [ref=e449] [cursor=pointer]
                     - button "Cronograma" [ref=e450] [cursor=pointer]
-              - row "e2e-loan-batch-1774968599148 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e451]:
-                - cell "e2e-loan-batch-1774968599148" [ref=e452]
+              - row "e2e-loan-batch-1774968653747 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e451]:
+                - cell "e2e-loan-batch-1774968653747" [ref=e452]
                 - cell "recibido" [ref=e453]
                 - cell "Banco Batch E2E" [ref=e454]
                 - cell "sin definir" [ref=e455]
@@ -453,8 +453,8 @@
                   - generic [ref=e465]:
                     - button "Editar" [ref=e466] [cursor=pointer]
                     - button "Cronograma" [ref=e467] [cursor=pointer]
-              - row "e2e-loan-1774968427028 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e468]:
-                - cell "e2e-loan-1774968427028" [ref=e469]
+              - row "e2e-loan-1774968631037 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e468]:
+                - cell "e2e-loan-1774968631037" [ref=e469]
                 - cell "recibido" [ref=e470]
                 - cell "Banco E2E" [ref=e471]
                 - cell "sin definir" [ref=e472]
@@ -470,8 +470,8 @@
                   - generic [ref=e482]:
                     - button "Editar" [ref=e483] [cursor=pointer]
                     - button "Cronograma" [ref=e484] [cursor=pointer]
-              - row "e2e-loan-batch-1774968395131 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e485]:
-                - cell "e2e-loan-batch-1774968395131" [ref=e486]
+              - row "e2e-loan-batch-1774968599148 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e485]:
+                - cell "e2e-loan-batch-1774968599148" [ref=e486]
                 - cell "recibido" [ref=e487]
                 - cell "Banco Batch E2E" [ref=e488]
                 - cell "sin definir" [ref=e489]
@@ -487,13 +487,13 @@
                   - generic [ref=e499]:
                     - button "Editar" [ref=e500] [cursor=pointer]
                     - button "Cronograma" [ref=e501] [cursor=pointer]
-              - row "e2e-loan-batch-1774968211750 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e502]:
-                - cell "e2e-loan-batch-1774968211750" [ref=e503]
+              - row "e2e-loan-1774968427028 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e502]:
+                - cell "e2e-loan-1774968427028" [ref=e503]
                 - cell "recibido" [ref=e504]
-                - cell "Banco Batch E2E" [ref=e505]
+                - cell "Banco E2E" [ref=e505]
                 - cell "sin definir" [ref=e506]
-                - cell "US$1.200,00" [ref=e507]
-                - cell "US$1.200,00" [ref=e508]
+                - cell "US$900,00" [ref=e507]
+                - cell "US$900,00" [ref=e508]
                 - cell "US$0,00" [ref=e509]
                 - cell "0/3" [ref=e510]
                 - cell "31-03-2026" [ref=e511]
@@ -504,13 +504,13 @@
                   - generic [ref=e516]:
                     - button "Editar" [ref=e517] [cursor=pointer]
                     - button "Cronograma" [ref=e518] [cursor=pointer]
-              - row "e2e-loan-1774966354399 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e519]:
-                - cell "e2e-loan-1774966354399" [ref=e520]
+              - row "e2e-loan-batch-1774968395131 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e519]:
+                - cell "e2e-loan-batch-1774968395131" [ref=e520]
                 - cell "recibido" [ref=e521]
-                - cell "Banco E2E" [ref=e522]
+                - cell "Banco Batch E2E" [ref=e522]
                 - cell "sin definir" [ref=e523]
-                - cell "US$900,00" [ref=e524]
-                - cell "US$900,00" [ref=e525]
+                - cell "US$1.200,00" [ref=e524]
+                - cell "US$1.200,00" [ref=e525]
                 - cell "US$0,00" [ref=e526]
                 - cell "0/3" [ref=e527]
                 - cell "31-03-2026" [ref=e528]
@@ -521,13 +521,13 @@
                   - generic [ref=e533]:
                     - button "Editar" [ref=e534] [cursor=pointer]
                     - button "Cronograma" [ref=e535] [cursor=pointer]
-              - row "e2e-loan-1774966155173 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e536]:
-                - cell "e2e-loan-1774966155173" [ref=e537]
+              - row "e2e-loan-batch-1774968211750 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e536]:
+                - cell "e2e-loan-batch-1774968211750" [ref=e537]
                 - cell "recibido" [ref=e538]
-                - cell "Banco E2E" [ref=e539]
+                - cell "Banco Batch E2E" [ref=e539]
                 - cell "sin definir" [ref=e540]
-                - cell "US$900,00" [ref=e541]
-                - cell "US$900,00" [ref=e542]
+                - cell "US$1.200,00" [ref=e541]
+                - cell "US$1.200,00" [ref=e542]
                 - cell "US$0,00" [ref=e543]
                 - cell "0/3" [ref=e544]
                 - cell "31-03-2026" [ref=e545]
@@ -538,129 +538,131 @@
                   - generic [ref=e550]:
                     - button "Editar" [ref=e551] [cursor=pointer]
                     - button "Cronograma" [ref=e552] [cursor=pointer]
-        - generic [ref=e553]:
-          - generic [ref=e556]:
-            - heading "Cronograma del préstamo" [level=2] [ref=e557]
-            - paragraph [ref=e558]: Detalle por cuota para lectura operacional rápida y aplicación manual de pagos simples sobre el cronograma.
-          - generic [ref=e560]:
-            - generic [ref=e561]:
-              - generic [ref=e562]:
-                - generic [ref=e563]: Préstamo
-                - generic [ref=e564]: e2e-loan-batch-1774969143426
-              - generic [ref=e565]:
-                - generic [ref=e566]: Contraparte
-                - generic [ref=e567]: Banco Batch E2E
-              - generic [ref=e568]:
-                - generic [ref=e569]: Cuenta origen
-                - generic [ref=e570]: e2e-caja-1774926029879 (E2E-1774926030022)
-              - generic [ref=e571]:
-                - generic [ref=e572]: Plan de cuotas
-                - generic [ref=e573]: 0/3
-              - generic [ref=e574]:
-                - generic [ref=e575]: Próximo vencimiento
-                - generic [ref=e576]: 31-03-2026
-            - generic [ref=e577]:
-              - generic [ref=e578]:
-                - generic [ref=e579]:
-                  - generic [ref=e580]: Cuotas seleccionadas
-                  - generic [ref=e581]: "2"
-                - generic [ref=e582]:
-                  - generic [ref=e583]: Modo lote
-                  - generic [ref=e584]: pago
-                - generic [ref=e585]:
-                  - generic [ref=e586]: Monto lote
-                  - generic [ref=e587]: saldo pendiente por cuota
-                - generic [ref=e588]:
-                  - generic [ref=e589]: Acción sugerida
-                  - generic [ref=e590]: lista para ejecutar
-              - generic [ref=e591]:
-                - generic [ref=e592]:
-                  - generic [ref=e593]: Operación en lote
-                  - combobox [ref=e594]:
+              - row "e2e-loan-1774966354399 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e553]:
+                - cell "e2e-loan-1774966354399" [ref=e554]
+                - cell "recibido" [ref=e555]
+                - cell "Banco E2E" [ref=e556]
+                - cell "sin definir" [ref=e557]
+                - cell "US$900,00" [ref=e558]
+                - cell "US$900,00" [ref=e559]
+                - cell "US$0,00" [ref=e560]
+                - cell "0/3" [ref=e561]
+                - cell "31-03-2026" [ref=e562]
+                - cell "USD" [ref=e563]
+                - cell "abierto" [ref=e564]:
+                  - generic [ref=e565]: abierto
+                - cell "Editar Cronograma" [ref=e566]:
+                  - generic [ref=e567]:
+                    - button "Editar" [ref=e568] [cursor=pointer]
+                    - button "Cronograma" [ref=e569] [cursor=pointer]
+              - row "e2e-loan-1774966155173 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e570]:
+                - cell "e2e-loan-1774966155173" [ref=e571]
+                - cell "recibido" [ref=e572]
+                - cell "Banco E2E" [ref=e573]
+                - cell "sin definir" [ref=e574]
+                - cell "US$900,00" [ref=e575]
+                - cell "US$900,00" [ref=e576]
+                - cell "US$0,00" [ref=e577]
+                - cell "0/3" [ref=e578]
+                - cell "31-03-2026" [ref=e579]
+                - cell "USD" [ref=e580]
+                - cell "abierto" [ref=e581]:
+                  - generic [ref=e582]: abierto
+                - cell "Editar Cronograma" [ref=e583]:
+                  - generic [ref=e584]:
+                    - button "Editar" [ref=e585] [cursor=pointer]
+                    - button "Cronograma" [ref=e586] [cursor=pointer]
+        - generic [ref=e587]:
+          - generic [ref=e590]:
+            - heading "Cronograma del préstamo" [level=2] [ref=e591]
+            - paragraph [ref=e592]: Detalle por cuota para lectura operacional rápida y aplicación manual de pagos simples sobre el cronograma.
+          - generic [ref=e594]:
+            - generic [ref=e595]:
+              - generic [ref=e596]:
+                - generic [ref=e597]: Préstamo
+                - generic [ref=e598]: e2e-loan-batch-1774969285052
+              - generic [ref=e599]:
+                - generic [ref=e600]: Contraparte
+                - generic [ref=e601]: Banco Batch E2E
+              - generic [ref=e602]:
+                - generic [ref=e603]: Cuenta origen
+                - generic [ref=e604]: e2e-caja-1774926029879 (E2E-1774926030022)
+              - generic [ref=e605]:
+                - generic [ref=e606]: Plan de cuotas
+                - generic [ref=e607]: 0/3
+              - generic [ref=e608]:
+                - generic [ref=e609]: Próximo vencimiento
+                - generic [ref=e610]: 31-03-2026
+            - generic [ref=e611]:
+              - generic [ref=e612]:
+                - generic [ref=e613]:
+                  - generic [ref=e614]: Cuotas seleccionadas
+                  - generic [ref=e615]: "2"
+                - generic [ref=e616]:
+                  - generic [ref=e617]: Modo lote
+                  - generic [ref=e618]: pago
+                - generic [ref=e619]:
+                  - generic [ref=e620]: Monto lote
+                  - generic [ref=e621]: saldo pendiente por cuota
+                - generic [ref=e622]:
+                  - generic [ref=e623]: Acción sugerida
+                  - generic [ref=e624]: lista para ejecutar
+              - generic [ref=e625]:
+                - generic [ref=e626]:
+                  - generic [ref=e627]: Operación en lote
+                  - combobox [ref=e628]:
                     - option "Aplicar pago" [selected]
                     - option "Aplicar reversa"
-                - generic [ref=e595]:
-                  - generic [ref=e596]: Monto por cuota
-                  - combobox [ref=e597]:
+                - generic [ref=e629]:
+                  - generic [ref=e630]: Monto por cuota
+                  - combobox [ref=e631]:
                     - option "Saldo pendiente" [selected]
                     - option "Monto fijo"
-              - generic [ref=e598]:
-                - generic [ref=e599]:
-                  - generic [ref=e600]: Monto fijo
-                  - spinbutton [disabled] [ref=e601]
-                - generic [ref=e602]:
-                  - generic [ref=e603]: Cuenta operación
-                  - combobox [ref=e604]:
+              - generic [ref=e632]:
+                - generic [ref=e633]:
+                  - generic [ref=e634]: Monto fijo
+                  - spinbutton [disabled] [ref=e635]
+                - generic [ref=e636]:
+                  - generic [ref=e637]: Cuenta operación
+                  - combobox [ref=e638]:
                     - option "Usar cuenta del préstamo" [selected]
                     - option "e2e-caja-1774926029879 (E2E-1774926030022)"
                     - option "e2e-finance-account-1774963735773 (E2E-ACC-1774963735773)"
                     - option "e2e-loan-account-1774966084711 (E2E-1774966087162)"
-              - generic [ref=e606]:
-                - generic [ref=e607]: Modo amortización
-                - combobox [ref=e608]:
+              - generic [ref=e640]:
+                - generic [ref=e641]: Modo amortización
+                - combobox [ref=e642]:
                   - option "Interés primero" [selected]
                   - option "Capital primero"
                   - option "Proporcional"
-              - generic [ref=e609]:
-                - generic [ref=e610]: Nota operativa lote
-                - 'textbox "Ej: abono grupal confirmado por tesorería" [ref=e611]'
-              - generic [ref=e612]:
-                - button "Aplicar pago en lote" [ref=e613] [cursor=pointer]
-                - button "Limpiar lote" [ref=e614] [cursor=pointer]
-            - table [ref=e616]:
-              - rowgroup [ref=e617]:
-                - row "# Vence Planificada Capital Interés Pagado Capital pagado Interés pagado Motivo reversa Estado Acción" [ref=e618]:
-                  - columnheader [ref=e619]:
-                    - checkbox [ref=e620]
-                  - columnheader "#" [ref=e621]
-                  - columnheader "Vence" [ref=e622]
-                  - columnheader "Planificada" [ref=e623]
-                  - columnheader "Capital" [ref=e624]
-                  - columnheader "Interés" [ref=e625]
-                  - columnheader "Pagado" [ref=e626]
-                  - columnheader "Capital pagado" [ref=e627]
-                  - columnheader "Interés pagado" [ref=e628]
-                  - columnheader "Motivo reversa" [ref=e629]
-                  - columnheader "Estado" [ref=e630]
-                  - columnheader "Acción" [ref=e631]
-              - rowgroup [ref=e632]:
-                - row "1 31-03-2026 US$440,00 US$400,00 US$40,00 US$0,00 US$0,00 US$0,00 n/a pendiente Registrar pago" [ref=e633]:
-                  - cell [ref=e634]:
-                    - checkbox [checked] [ref=e635]
-                  - cell "1" [ref=e636]
-                  - cell "31-03-2026" [ref=e637]
-                  - cell "US$440,00" [ref=e638]
-                  - cell "US$400,00" [ref=e639]
-                  - cell "US$40,00" [ref=e640]
-                  - cell "US$0,00" [ref=e641]
-                  - cell "US$0,00" [ref=e642]
-                  - cell "US$0,00" [ref=e643]
-                  - cell "n/a" [ref=e644]
-                  - cell "pendiente" [ref=e645]:
-                    - generic [ref=e646]: pendiente
-                  - cell "Registrar pago" [ref=e647]:
-                    - button "Registrar pago" [ref=e649] [cursor=pointer]
-                - row "2 30-04-2026 US$440,00 US$400,00 US$40,00 US$0,00 US$0,00 US$0,00 n/a pendiente Registrar pago" [ref=e650]:
-                  - cell [ref=e651]:
-                    - checkbox [checked] [active] [ref=e652]
-                  - cell "2" [ref=e653]
-                  - cell "30-04-2026" [ref=e654]
-                  - cell "US$440,00" [ref=e655]
-                  - cell "US$400,00" [ref=e656]
-                  - cell "US$40,00" [ref=e657]
-                  - cell "US$0,00" [ref=e658]
-                  - cell "US$0,00" [ref=e659]
-                  - cell "US$0,00" [ref=e660]
-                  - cell "n/a" [ref=e661]
-                  - cell "pendiente" [ref=e662]:
-                    - generic [ref=e663]: pendiente
-                  - cell "Registrar pago" [ref=e664]:
-                    - button "Registrar pago" [ref=e666] [cursor=pointer]
-                - row "3 31-05-2026 US$440,00 US$400,00 US$40,00 US$0,00 US$0,00 US$0,00 n/a pendiente Registrar pago" [ref=e667]:
+              - generic [ref=e643]:
+                - generic [ref=e644]: Nota operativa lote
+                - 'textbox "Ej: abono grupal confirmado por tesorería" [ref=e645]'
+              - generic [ref=e646]:
+                - button "Aplicar pago en lote" [ref=e647] [cursor=pointer]
+                - button "Limpiar lote" [ref=e648] [cursor=pointer]
+            - table [ref=e650]:
+              - rowgroup [ref=e651]:
+                - row "# Vence Planificada Capital Interés Pagado Capital pagado Interés pagado Motivo reversa Estado Acción" [ref=e652]:
+                  - columnheader [ref=e653]:
+                    - checkbox [ref=e654]
+                  - columnheader "#" [ref=e655]
+                  - columnheader "Vence" [ref=e656]
+                  - columnheader "Planificada" [ref=e657]
+                  - columnheader "Capital" [ref=e658]
+                  - columnheader "Interés" [ref=e659]
+                  - columnheader "Pagado" [ref=e660]
+                  - columnheader "Capital pagado" [ref=e661]
+                  - columnheader "Interés pagado" [ref=e662]
+                  - columnheader "Motivo reversa" [ref=e663]
+                  - columnheader "Estado" [ref=e664]
+                  - columnheader "Acción" [ref=e665]
+              - rowgroup [ref=e666]:
+                - row "1 31-03-2026 US$440,00 US$400,00 US$40,00 US$0,00 US$0,00 US$0,00 n/a pendiente Registrar pago" [ref=e667]:
                   - cell [ref=e668]:
-                    - checkbox [ref=e669]
-                  - cell "3" [ref=e670]
-                  - cell "31-05-2026" [ref=e671]
+                    - checkbox [checked] [ref=e669]
+                  - cell "1" [ref=e670]
+                  - cell "31-03-2026" [ref=e671]
                   - cell "US$440,00" [ref=e672]
                   - cell "US$400,00" [ref=e673]
                   - cell "US$40,00" [ref=e674]
@@ -672,30 +674,62 @@
                     - generic [ref=e680]: pendiente
                   - cell "Registrar pago" [ref=e681]:
                     - button "Registrar pago" [ref=e683] [cursor=pointer]
-            - generic [ref=e684]:
-              - generic [ref=e685]:
-                - generic [ref=e686]: Lectura contable derivada
-                - generic [ref=e687]:
+                - row "2 30-04-2026 US$440,00 US$400,00 US$40,00 US$0,00 US$0,00 US$0,00 n/a pendiente Registrar pago" [ref=e684]:
+                  - cell [ref=e685]:
+                    - checkbox [checked] [active] [ref=e686]
+                  - cell "2" [ref=e687]
+                  - cell "30-04-2026" [ref=e688]
+                  - cell "US$440,00" [ref=e689]
+                  - cell "US$400,00" [ref=e690]
+                  - cell "US$40,00" [ref=e691]
+                  - cell "US$0,00" [ref=e692]
+                  - cell "US$0,00" [ref=e693]
+                  - cell "US$0,00" [ref=e694]
+                  - cell "n/a" [ref=e695]
+                  - cell "pendiente" [ref=e696]:
+                    - generic [ref=e697]: pendiente
+                  - cell "Registrar pago" [ref=e698]:
+                    - button "Registrar pago" [ref=e700] [cursor=pointer]
+                - row "3 31-05-2026 US$440,00 US$400,00 US$40,00 US$0,00 US$0,00 US$0,00 n/a pendiente Registrar pago" [ref=e701]:
+                  - cell [ref=e702]:
+                    - checkbox [ref=e703]
+                  - cell "3" [ref=e704]
+                  - cell "31-05-2026" [ref=e705]
+                  - cell "US$440,00" [ref=e706]
+                  - cell "US$400,00" [ref=e707]
+                  - cell "US$40,00" [ref=e708]
+                  - cell "US$0,00" [ref=e709]
+                  - cell "US$0,00" [ref=e710]
+                  - cell "US$0,00" [ref=e711]
+                  - cell "n/a" [ref=e712]
+                  - cell "pendiente" [ref=e713]:
+                    - generic [ref=e714]: pendiente
+                  - cell "Registrar pago" [ref=e715]:
+                    - button "Registrar pago" [ref=e717] [cursor=pointer]
+            - generic [ref=e718]:
+              - generic [ref=e719]:
+                - generic [ref=e720]: Lectura contable derivada
+                - generic [ref=e721]:
                   - button "Exportar CSV" [disabled]
                   - button "Exportar JSON" [disabled]
-              - generic [ref=e688]:
-                - generic [ref=e689]:
-                  - generic [ref=e690]: Movimientos
-                  - generic [ref=e691]: "0"
-                - generic [ref=e692]:
-                  - generic [ref=e693]: Pagos
-                  - generic [ref=e694]: "0"
-                - generic [ref=e695]:
-                  - generic [ref=e696]: Reversas
-                  - generic [ref=e697]: "0"
-                - generic [ref=e698]:
-                  - generic [ref=e699]: Efecto neto base
-                  - generic [ref=e700]: US$0,00
-                - generic [ref=e701]:
-                  - generic [ref=e702]: Sin conciliar
-                  - generic [ref=e703]: "0"
-                - generic [ref=e704]:
-                  - generic [ref=e705]: Último movimiento
-                  - generic [ref=e706]: n/a
-              - generic [ref=e707]: Todavía no hay transacciones derivadas registradas para este préstamo.
+              - generic [ref=e722]:
+                - generic [ref=e723]:
+                  - generic [ref=e724]: Movimientos
+                  - generic [ref=e725]: "0"
+                - generic [ref=e726]:
+                  - generic [ref=e727]: Pagos
+                  - generic [ref=e728]: "0"
+                - generic [ref=e729]:
+                  - generic [ref=e730]: Reversas
+                  - generic [ref=e731]: "0"
+                - generic [ref=e732]:
+                  - generic [ref=e733]: Efecto neto base
+                  - generic [ref=e734]: US$0,00
+                - generic [ref=e735]:
+                  - generic [ref=e736]: Sin conciliar
+                  - generic [ref=e737]: "0"
+                - generic [ref=e738]:
+                  - generic [ref=e739]: Último movimiento
+                  - generic [ref=e740]: n/a
+              - generic [ref=e741]: Todavía no hay transacciones derivadas registradas para este préstamo.
 ```
