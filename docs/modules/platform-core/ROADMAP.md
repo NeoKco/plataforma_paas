@@ -41,6 +41,7 @@ La base central ya es operable:
 - validación browser del mantenimiento operativo de cuentas y categorías `finance` en `tenant_portal`
 - validación browser del flujo base de presupuestos `finance` en `tenant_portal`
 - validación browser del flujo base de préstamos `finance` en `tenant_portal`
+- validación browser del pago y reversa en lote de préstamos `finance` en `tenant_portal`
 
 ## Próximo nivel recomendado
 

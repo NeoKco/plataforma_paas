@@ -11,6 +11,7 @@ Estado actual:
 - cobertura E2E tenant ya incluye límites visibles y mantenimiento básico de cuentas/categorías
 - cobertura E2E tenant ya incluye además el flujo base de presupuestos mensuales
 - cobertura E2E tenant ya incluye además el flujo base de préstamos y pagos simples de cuota
+- cobertura E2E tenant ya incluye además operaciones batch y reversas básicas de préstamos
 - `finance` actúa como módulo base y piloto de convención para siguientes módulos tenant
 
 ## Mapa de documentos

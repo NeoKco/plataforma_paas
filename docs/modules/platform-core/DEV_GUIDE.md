@@ -110,3 +110,4 @@ Cobertura actual:
 - mantenimiento operativo de cuentas y categorías `finance` en `tenant_portal` (`create`, `deactivate`, `delete`)
 - flujo operativo base de presupuestos `finance` en `tenant_portal` (`create`, `clone`)
 - flujo operativo base de préstamos `finance` en `tenant_portal` (`create`, `schedule`, `payment`)
+- operaciones batch de préstamos `finance` en `tenant_portal` (`batch payment`, `batch reversal`)

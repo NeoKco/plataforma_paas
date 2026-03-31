@@ -38,6 +38,7 @@ Archivos principales:
 - [tenant-portal-finance-catalogs.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-catalogs.smoke.spec.ts)
 - [tenant-portal-finance-budgets.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-budgets.smoke.spec.ts)
 - [tenant-portal-finance-loans.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-loans.smoke.spec.ts)
+- [tenant-portal-finance-loans-batch.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-loans-batch.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
@@ -67,6 +68,7 @@ Cobertura actual:
 - mantenimiento básico de catálogos `finance` para cuentas y categorías en `tenant_portal`
 - flujo base de `finance budgets` con creación y clonación mensual en `tenant_portal`
 - flujo base de `finance loans` con creación de préstamo y pago simple de cuota en `tenant_portal`
+- operaciones batch de `finance loans` con pago y reversa sobre cuotas seleccionadas en `tenant_portal`
 - alta básica de una transacción en `finance`
 - carga de adjunto sobre transacción creada en `finance`
 - anulación básica de una transacción creada en `finance`
@@ -145,6 +147,7 @@ Resultado validado en local a la fecha:
 - `tenant_portal` ya cubre además el mantenimiento operativo de cuentas y categorías (`create`, `deactivate`, `delete`) dentro de `finance`
 - `tenant_portal` ya cubre además el flujo base de presupuestos con alta mensual y clonación al mes visible
 - `tenant_portal` ya cubre además el flujo base de préstamos con alta de cartera y pago simple de cuota
+- `tenant_portal` ya cubre además pago en lote y reversa en lote de cuotas sobre préstamos seleccionados
 - `tenant_portal` con `empresa-bootstrap` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
 
@@ -186,6 +189,7 @@ Notas del flujo `finance` que conviene recordar:
 - el smoke de catálogos `finance` usa registros efímeros con nombres únicos para validar alta, desactivación y borrado seguro sin depender del catálogo inicial
 - el smoke de presupuestos usa meses futuros efímeros para evitar colisiones con planificación real y verificar alta + clonación sin ensuciar meses operativos actuales
 - el smoke de préstamos usa un préstamo efímero con 3 cuotas para validar la ruta mínima `create -> schedule -> payment` sin depender de cartera previa
+- el smoke batch de préstamos reutiliza un préstamo efímero con 3 cuotas para validar `schedule -> batch payment -> batch reversal` sobre selección múltiple
 
 ## Siguiente expansión sugerida
 
@@ -194,7 +198,7 @@ Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son
 - archive / restore tenant
 - provisioning más profundo desde `platform_admin` (DLQ individual, variaciones de filtros o delay)
 - cuentas y categorías básicas en `finance`
-- más regresión visible sobre configuraciones operativas de `finance`, batch/reversal de préstamos y escenarios extra de usuarios tenant
+- más regresión visible sobre configuraciones operativas de `finance`, ajustes guiados/plantillas y escenarios extra de usuarios tenant
 
 Nota operativa del smoke `retry`:
 

@@ -44,6 +44,7 @@ Resumen curado del bloque central.
 - smoke browser agregado para validar cuentas y categorías `finance` con `create`, `deactivate` y `delete` en `tenant_portal`
 - smoke browser agregado para validar presupuestos `finance` con alta mensual y clonación al mes visible en `tenant_portal`
 - smoke browser agregado para validar préstamos `finance` con alta y pago simple de cuota en `tenant_portal`
+- smoke browser agregado para validar préstamos `finance` con pago en lote y reversa en lote sobre cuotas seleccionadas
 
 ## Documentación
 

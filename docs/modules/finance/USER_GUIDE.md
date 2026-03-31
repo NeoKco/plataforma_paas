@@ -83,6 +83,15 @@ El portal muestra además una lectura rápida de `Presupuestado`, `Ejecutado`, `
 
 El detalle del préstamo muestra cronograma, estado de cuotas y lectura contable derivada para revisar pagos y reversas desde el mismo módulo.
 
+### Operar cuotas en lote
+
+1. Abrir `Cronograma` del préstamo.
+2. Seleccionar varias cuotas.
+3. Elegir `Aplicar pago en lote` o `Aplicar reversa en lote`.
+4. Confirmar monto por cuota, cuenta operativa y motivo de reversa cuando corresponda.
+
+Esto permite regularizar varias cuotas en una sola operación manteniendo trazabilidad por cuota dentro del mismo préstamo.
+
 ## Errores comunes
 
 ### “Schema incompleto” o estructura atrasada

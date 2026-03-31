@@ -1,0 +1,446 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e8]: Platform PaaS
+      - generic [ref=e9]: Portal Tenant
+    - navigation [ref=e10]:
+      - link "Resumen" [ref=e11] [cursor=pointer]:
+        - /url: /tenant-portal
+        - img [ref=e13]
+        - text: Resumen
+      - link "Usuarios" [ref=e18] [cursor=pointer]:
+        - /url: /tenant-portal/users
+        - img [ref=e20]
+        - text: Usuarios
+      - link "Finanzas" [ref=e25] [cursor=pointer]:
+        - /url: /tenant-portal/finance
+        - img [ref=e27]
+        - text: Finanzas
+  - generic [ref=e28]:
+    - banner [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]: Espacio Tenant
+        - generic [ref=e32]: empresa-bootstrap
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: Idioma
+          - combobox "Idioma" [ref=e36]:
+            - option "Español" [selected]
+            - option "English"
+        - link "Volver a plataforma" [ref=e37] [cursor=pointer]:
+          - /url: /login
+        - generic [ref=e38]:
+          - generic [ref=e39]: Tenant Admin
+          - generic [ref=e40]: admin
+        - button "Salir" [ref=e41] [cursor=pointer]
+    - main [ref=e42]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - img [ref=e47]
+            - generic [ref=e49]:
+              - generic [ref=e50]: Finance
+              - heading "Préstamos" [level=1] [ref=e51]
+              - paragraph [ref=e52]: Gestiona dinero prestado o recibido, con saldo pendiente, contraparte y lectura rápida de cartera.
+          - generic [ref=e55]:
+            - button "Ayuda sobre préstamos" [ref=e56] [cursor=pointer]: "?"
+            - tooltip "Aplicar pago genera movimiento contable ligado al préstamo. Reversa deshace ese pago con motivo. Las cuotas ligadas a préstamo no se anulan desde Transacciones; se revierten aquí."
+        - generic [ref=e57]:
+          - link "Movimientos" [ref=e58] [cursor=pointer]:
+            - /url: /tenant-portal/finance
+            - img [ref=e60]
+            - text: Movimientos
+          - link "Presupuestos" [ref=e62] [cursor=pointer]:
+            - /url: /tenant-portal/finance/budgets
+            - img [ref=e64]
+            - text: Presupuestos
+          - link "Préstamos" [ref=e65] [cursor=pointer]:
+            - /url: /tenant-portal/finance/loans
+            - img [ref=e67]
+            - text: Préstamos
+          - link "Planificación" [ref=e69] [cursor=pointer]:
+            - /url: /tenant-portal/finance/calendar
+            - img [ref=e71]
+            - text: Planificación
+          - link "Reportes" [ref=e73] [cursor=pointer]:
+            - /url: /tenant-portal/finance/reports
+            - img [ref=e75]
+            - text: Reportes
+          - link "Cuentas" [ref=e76] [cursor=pointer]:
+            - /url: /tenant-portal/finance/accounts
+            - img [ref=e78]
+            - text: Cuentas
+          - link "Categorías" [ref=e80] [cursor=pointer]:
+            - /url: /tenant-portal/finance/categories
+            - img [ref=e82]
+            - text: Categorías
+          - link "Catálogos" [ref=e85] [cursor=pointer]:
+            - /url: /tenant-portal/finance/tools
+            - img [ref=e87]
+            - text: Catálogos
+          - link "Configuración" [ref=e90] [cursor=pointer]:
+            - /url: /tenant-portal/finance/settings
+            - img [ref=e92]
+            - text: Configuración
+        - generic [ref=e95]:
+          - strong [ref=e96]: "Préstamos:"
+          - text: Préstamo financiero creado correctamente
+        - generic [ref=e97]:
+          - generic [ref=e100]:
+            - img [ref=e102]
+            - generic [ref=e103]: US$3.000,00
+            - generic [ref=e104]: Capital total
+            - generic [ref=e105]: Monto inicial visible
+          - generic [ref=e108]:
+            - img [ref=e110]
+            - generic [ref=e112]: US$0,00
+            - generic [ref=e113]: Saldo prestado
+            - generic [ref=e114]: Por cobrar a terceros
+          - generic [ref=e117]:
+            - img [ref=e119]
+            - generic [ref=e121]: US$3.000,00
+            - generic [ref=e122]: Saldo recibido
+            - generic [ref=e123]: Por pagar a terceros
+          - generic [ref=e126]:
+            - img [ref=e128]
+            - generic [ref=e130]: "3"
+            - generic [ref=e131]: Activos
+            - generic [ref=e132]: Préstamos abiertos
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - generic [ref=e137]:
+              - heading "Registrar préstamo" [level=2] [ref=e138]
+              - paragraph [ref=e139]: "Primer corte: cartera básica con saldo pendiente y contraparte, sin abrir todavía amortización avanzada."
+            - generic [ref=e141]:
+              - generic [ref=e142]:
+                - generic [ref=e143]:
+                  - generic [ref=e144]: Nombre
+                  - 'textbox "Ej: crédito vehículo" [ref=e145]'
+                - generic [ref=e146]:
+                  - generic [ref=e147]: Tipo
+                  - combobox [ref=e148]:
+                    - option "Recibido" [selected]
+                    - option "Prestado"
+              - generic [ref=e149]:
+                - generic [ref=e150]:
+                  - generic [ref=e151]: Contraparte
+                  - 'textbox "Ej: Banco Sur" [ref=e152]'
+                - generic [ref=e153]:
+                  - generic [ref=e154]: Moneda
+                  - combobox [ref=e155]:
+                    - option "Selecciona una moneda"
+                    - option "USD · US Dollar" [selected]
+                    - option "CLP · Peso Chileno"
+              - generic [ref=e156]:
+                - generic [ref=e157]: Cuenta origen
+                - combobox [ref=e158]:
+                  - option "Sin cuenta fija; se pedirá al operar cuotas" [selected]
+                  - option "e2e-caja-1774926029879 (E2E-1774926030022)"
+                  - option "e2e-finance-account-1774963735773 (E2E-ACC-1774963735773)"
+                  - option "e2e-loan-account-1774966084711 (E2E-1774966087162)"
+              - generic [ref=e159]:
+                - generic [ref=e160]:
+                  - generic [ref=e161]: Capital inicial
+                  - spinbutton [ref=e162]
+                - generic [ref=e163]:
+                  - generic [ref=e164]: Saldo pendiente
+                  - spinbutton [ref=e165]
+              - generic [ref=e166]:
+                - generic [ref=e167]:
+                  - generic [ref=e168]: Tasa interés %
+                  - spinbutton [ref=e169]
+                - generic [ref=e170]:
+                  - generic [ref=e171]: Cuotas
+                  - spinbutton [ref=e172]
+              - generic [ref=e173]:
+                - generic [ref=e174]:
+                  - generic [ref=e175]: Frecuencia
+                  - combobox [ref=e176]:
+                    - option "Mensual" [selected]
+                - generic [ref=e177]:
+                  - generic [ref=e178]: Activo
+                  - combobox [ref=e179]:
+                    - option "Sí" [selected]
+                    - option "No"
+              - generic [ref=e180]:
+                - generic [ref=e181]:
+                  - generic [ref=e182]: Inicio
+                  - textbox [ref=e183]: 2026-03-31
+                - generic [ref=e184]:
+                  - generic [ref=e185]: Vencimiento
+                  - textbox [ref=e186]
+              - generic [ref=e187]:
+                - generic [ref=e188]: Nota
+                - 'textbox "Ej: renegociado en marzo o con cuota variable" [ref=e189]'
+              - button "Registrar préstamo" [ref=e191] [cursor=pointer]
+          - generic [ref=e192]:
+            - generic [ref=e195]:
+              - heading "Lectura de cartera" [level=2] [ref=e196]
+              - paragraph [ref=e197]: Filtra por tipo o estado para separar deuda recibida, deuda prestada y cartera ya liquidada.
+            - generic [ref=e199]:
+              - generic [ref=e200]:
+                - generic [ref=e201]:
+                  - generic [ref=e202]: Tipo
+                  - combobox [ref=e203]:
+                    - option "Todos" [selected]
+                    - option "Recibidos"
+                    - option "Prestados"
+                - generic [ref=e204]:
+                  - generic [ref=e205]: Estado
+                  - combobox [ref=e206]:
+                    - option "Todos" [selected]
+                    - option "Abiertos"
+                    - option "Liquidados"
+                    - option "Inactivos"
+              - generic [ref=e207]:
+                - checkbox "Incluir inactivos" [checked] [ref=e208]
+                - generic [ref=e209]: Incluir inactivos
+              - generic [ref=e210]:
+                - generic [ref=e211]:
+                  - generic [ref=e212]: Capital visible
+                  - generic [ref=e213]: US$3.000,00
+                - generic [ref=e214]:
+                  - generic [ref=e215]: Prestado
+                  - generic [ref=e216]: US$0,00
+                - generic [ref=e217]:
+                  - generic [ref=e218]: Recibido
+                  - generic [ref=e219]: US$3.000,00
+                - generic [ref=e220]:
+                  - generic [ref=e221]: Ítems
+                  - generic [ref=e222]: "3"
+        - generic [ref=e223]:
+          - generic [ref=e226]:
+            - heading "Cartera de préstamos" [level=2] [ref=e227]
+            - paragraph [ref=e228]: Lectura básica de capital, saldo y estado para abrir después conciliación de cuotas y cronograma.
+          - table [ref=e231]:
+            - rowgroup [ref=e232]:
+              - row "Nombre Tipo Contraparte Cuenta origen Capital Saldo Pagado Cuotas Próxima Moneda Estado Acción" [ref=e233]:
+                - columnheader "Nombre" [ref=e234]
+                - columnheader "Tipo" [ref=e235]
+                - columnheader "Contraparte" [ref=e236]
+                - columnheader "Cuenta origen" [ref=e237]
+                - columnheader "Capital" [ref=e238]
+                - columnheader "Saldo" [ref=e239]
+                - columnheader "Pagado" [ref=e240]
+                - columnheader "Cuotas" [ref=e241]
+                - columnheader "Próxima" [ref=e242]
+                - columnheader "Moneda" [ref=e243]
+                - columnheader "Estado" [ref=e244]
+                - columnheader "Acción" [ref=e245]
+            - rowgroup [ref=e246]:
+              - row "e2e-loan-batch-1774968211750 recibido Banco Batch E2E sin definir US$1.200,00 US$1.200,00 US$0,00 0/3 31-03-2026 USD abierto Editar Ocultar" [ref=e247]:
+                - cell "e2e-loan-batch-1774968211750" [ref=e248]
+                - cell "recibido" [ref=e249]
+                - cell "Banco Batch E2E" [ref=e250]
+                - cell "sin definir" [ref=e251]
+                - cell "US$1.200,00" [ref=e252]
+                - cell "US$1.200,00" [ref=e253]
+                - cell "US$0,00" [ref=e254]
+                - cell "0/3" [ref=e255]
+                - cell "31-03-2026" [ref=e256]
+                - cell "USD" [ref=e257]
+                - cell "abierto" [ref=e258]:
+                  - generic [ref=e259]: abierto
+                - cell "Editar Ocultar" [ref=e260]:
+                  - generic [ref=e261]:
+                    - button "Editar" [ref=e262] [cursor=pointer]
+                    - button "Ocultar" [ref=e263] [cursor=pointer]
+              - row "e2e-loan-1774966354399 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e264]:
+                - cell "e2e-loan-1774966354399" [ref=e265]
+                - cell "recibido" [ref=e266]
+                - cell "Banco E2E" [ref=e267]
+                - cell "sin definir" [ref=e268]
+                - cell "US$900,00" [ref=e269]
+                - cell "US$900,00" [ref=e270]
+                - cell "US$0,00" [ref=e271]
+                - cell "0/3" [ref=e272]
+                - cell "31-03-2026" [ref=e273]
+                - cell "USD" [ref=e274]
+                - cell "abierto" [ref=e275]:
+                  - generic [ref=e276]: abierto
+                - cell "Editar Cronograma" [ref=e277]:
+                  - generic [ref=e278]:
+                    - button "Editar" [ref=e279] [cursor=pointer]
+                    - button "Cronograma" [ref=e280] [cursor=pointer]
+              - row "e2e-loan-1774966155173 recibido Banco E2E sin definir US$900,00 US$900,00 US$0,00 0/3 31-03-2026 USD abierto Editar Cronograma" [ref=e281]:
+                - cell "e2e-loan-1774966155173" [ref=e282]
+                - cell "recibido" [ref=e283]
+                - cell "Banco E2E" [ref=e284]
+                - cell "sin definir" [ref=e285]
+                - cell "US$900,00" [ref=e286]
+                - cell "US$900,00" [ref=e287]
+                - cell "US$0,00" [ref=e288]
+                - cell "0/3" [ref=e289]
+                - cell "31-03-2026" [ref=e290]
+                - cell "USD" [ref=e291]
+                - cell "abierto" [ref=e292]:
+                  - generic [ref=e293]: abierto
+                - cell "Editar Cronograma" [ref=e294]:
+                  - generic [ref=e295]:
+                    - button "Editar" [ref=e296] [cursor=pointer]
+                    - button "Cronograma" [ref=e297] [cursor=pointer]
+        - generic [ref=e298]:
+          - generic [ref=e301]:
+            - heading "Cronograma del préstamo" [level=2] [ref=e302]
+            - paragraph [ref=e303]: Detalle por cuota para lectura operacional rápida y aplicación manual de pagos simples sobre el cronograma.
+          - generic [ref=e305]:
+            - generic [ref=e306]:
+              - generic [ref=e307]:
+                - generic [ref=e308]: Préstamo
+                - generic [ref=e309]: e2e-loan-batch-1774968211750
+              - generic [ref=e310]:
+                - generic [ref=e311]: Contraparte
+                - generic [ref=e312]: Banco Batch E2E
+              - generic [ref=e313]:
+                - generic [ref=e314]: Cuenta origen
+                - generic [ref=e315]: sin definir
+              - generic [ref=e316]:
+                - generic [ref=e317]: Plan de cuotas
+                - generic [ref=e318]: 0/3
+              - generic [ref=e319]:
+                - generic [ref=e320]: Próximo vencimiento
+                - generic [ref=e321]: 31-03-2026
+            - generic [ref=e322]:
+              - generic [ref=e323]:
+                - generic [ref=e324]:
+                  - generic [ref=e325]: Cuotas seleccionadas
+                  - generic [ref=e326]: "0"
+                - generic [ref=e327]:
+                  - generic [ref=e328]: Modo lote
+                  - generic [ref=e329]: pago
+                - generic [ref=e330]:
+                  - generic [ref=e331]: Monto lote
+                  - generic [ref=e332]: saldo pendiente por cuota
+                - generic [ref=e333]:
+                  - generic [ref=e334]: Acción sugerida
+                  - generic [ref=e335]: selecciona cuotas del cronograma
+              - generic [ref=e336]:
+                - generic [ref=e337]:
+                  - generic [ref=e338]: Operación en lote
+                  - combobox [ref=e339]:
+                    - option "Aplicar pago" [selected]
+                    - option "Aplicar reversa"
+                - generic [ref=e340]:
+                  - generic [ref=e341]: Monto por cuota
+                  - combobox [ref=e342]:
+                    - option "Saldo pendiente" [selected]
+                    - option "Monto fijo"
+              - generic [ref=e343]:
+                - generic [ref=e344]:
+                  - generic [ref=e345]: Monto fijo
+                  - spinbutton [disabled] [ref=e346]
+                - generic [ref=e347]:
+                  - generic [ref=e348]: Cuenta operación
+                  - combobox [ref=e349]:
+                    - option "Selecciona una cuenta" [selected]
+                    - option "e2e-caja-1774926029879 (E2E-1774926030022)"
+                    - option "e2e-finance-account-1774963735773 (E2E-ACC-1774963735773)"
+                    - option "e2e-loan-account-1774966084711 (E2E-1774966087162)"
+              - generic [ref=e351]:
+                - generic [ref=e352]: Modo amortización
+                - combobox [ref=e353]:
+                  - option "Interés primero" [selected]
+                  - option "Capital primero"
+                  - option "Proporcional"
+              - generic [ref=e354]:
+                - generic [ref=e355]: Nota operativa lote
+                - 'textbox "Ej: abono grupal confirmado por tesorería" [ref=e356]'
+              - generic [ref=e357]:
+                - button "Aplicar pago en lote" [disabled]
+                - button "Limpiar lote" [ref=e358] [cursor=pointer]
+            - table [ref=e360]:
+              - rowgroup [ref=e361]:
+                - row "# Vence Planificada Capital Interés Pagado Capital pagado Interés pagado Motivo reversa Estado Acción" [ref=e362]:
+                  - columnheader [ref=e363]:
+                    - checkbox [ref=e364]
+                  - columnheader "#" [ref=e365]
+                  - columnheader "Vence" [ref=e366]
+                  - columnheader "Planificada" [ref=e367]
+                  - columnheader "Capital" [ref=e368]
+                  - columnheader "Interés" [ref=e369]
+                  - columnheader "Pagado" [ref=e370]
+                  - columnheader "Capital pagado" [ref=e371]
+                  - columnheader "Interés pagado" [ref=e372]
+                  - columnheader "Motivo reversa" [ref=e373]
+                  - columnheader "Estado" [ref=e374]
+                  - columnheader "Acción" [ref=e375]
+              - rowgroup [ref=e376]:
+                - row "1 31-03-2026 US$440,00 US$400,00 US$40,00 US$0,00 US$0,00 US$0,00 n/a pendiente Registrar pago" [ref=e377]:
+                  - cell [ref=e378]:
+                    - checkbox [ref=e379]
+                  - cell "1" [ref=e380]
+                  - cell "31-03-2026" [ref=e381]
+                  - cell "US$440,00" [ref=e382]
+                  - cell "US$400,00" [ref=e383]
+                  - cell "US$40,00" [ref=e384]
+                  - cell "US$0,00" [ref=e385]
+                  - cell "US$0,00" [ref=e386]
+                  - cell "US$0,00" [ref=e387]
+                  - cell "n/a" [ref=e388]
+                  - cell "pendiente" [ref=e389]:
+                    - generic [ref=e390]: pendiente
+                  - cell "Registrar pago" [ref=e391]:
+                    - button "Registrar pago" [ref=e393] [cursor=pointer]
+                - row "2 30-04-2026 US$440,00 US$400,00 US$40,00 US$0,00 US$0,00 US$0,00 n/a pendiente Registrar pago" [ref=e394]:
+                  - cell [ref=e395]:
+                    - checkbox [ref=e396]
+                  - cell "2" [ref=e397]
+                  - cell "30-04-2026" [ref=e398]
+                  - cell "US$440,00" [ref=e399]
+                  - cell "US$400,00" [ref=e400]
+                  - cell "US$40,00" [ref=e401]
+                  - cell "US$0,00" [ref=e402]
+                  - cell "US$0,00" [ref=e403]
+                  - cell "US$0,00" [ref=e404]
+                  - cell "n/a" [ref=e405]
+                  - cell "pendiente" [ref=e406]:
+                    - generic [ref=e407]: pendiente
+                  - cell "Registrar pago" [ref=e408]:
+                    - button "Registrar pago" [ref=e410] [cursor=pointer]
+                - row "3 31-05-2026 US$440,00 US$400,00 US$40,00 US$0,00 US$0,00 US$0,00 n/a pendiente Registrar pago" [ref=e411]:
+                  - cell [ref=e412]:
+                    - checkbox [ref=e413]
+                  - cell "3" [ref=e414]
+                  - cell "31-05-2026" [ref=e415]
+                  - cell "US$440,00" [ref=e416]
+                  - cell "US$400,00" [ref=e417]
+                  - cell "US$40,00" [ref=e418]
+                  - cell "US$0,00" [ref=e419]
+                  - cell "US$0,00" [ref=e420]
+                  - cell "US$0,00" [ref=e421]
+                  - cell "n/a" [ref=e422]
+                  - cell "pendiente" [ref=e423]:
+                    - generic [ref=e424]: pendiente
+                  - cell "Registrar pago" [ref=e425]:
+                    - button "Registrar pago" [ref=e427] [cursor=pointer]
+            - generic [ref=e428]:
+              - generic [ref=e429]:
+                - generic [ref=e430]: Lectura contable derivada
+                - generic [ref=e431]:
+                  - button "Exportar CSV" [disabled]
+                  - button "Exportar JSON" [disabled]
+              - generic [ref=e432]:
+                - generic [ref=e433]:
+                  - generic [ref=e434]: Movimientos
+                  - generic [ref=e435]: "0"
+                - generic [ref=e436]:
+                  - generic [ref=e437]: Pagos
+                  - generic [ref=e438]: "0"
+                - generic [ref=e439]:
+                  - generic [ref=e440]: Reversas
+                  - generic [ref=e441]: "0"
+                - generic [ref=e442]:
+                  - generic [ref=e443]: Efecto neto base
+                  - generic [ref=e444]: US$0,00
+                - generic [ref=e445]:
+                  - generic [ref=e446]: Sin conciliar
+                  - generic [ref=e447]: "0"
+                - generic [ref=e448]:
+                  - generic [ref=e449]: Último movimiento
+                  - generic [ref=e450]: n/a
+              - generic [ref=e451]: Todavía no hay transacciones derivadas registradas para este préstamo.
+```

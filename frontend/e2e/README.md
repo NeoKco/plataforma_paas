@@ -46,6 +46,7 @@ Specs actuales:
 - [tenant-portal-finance-catalogs.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-catalogs.smoke.spec.ts)
 - [tenant-portal-finance-budgets.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-budgets.smoke.spec.ts)
 - [tenant-portal-finance-loans.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-loans.smoke.spec.ts)
+- [tenant-portal-finance-loans-batch.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-loans-batch.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
@@ -87,3 +88,4 @@ Notas:
 - el smoke de catálogos `finance` valida altas básicas, desactivación y borrado seguro de cuentas y categorías desde `tenant_portal`
 - el smoke de `finance budgets` valida alta de presupuesto mensual y clonación al mes visible para cubrir el primer flujo operativo de planificación
 - el smoke de `finance loans` valida alta de préstamo y registro simple de pago de cuota desde el cronograma
+- el smoke batch de `finance loans` valida pago en lote y reversa en lote sobre cuotas seleccionadas
