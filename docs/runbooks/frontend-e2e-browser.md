@@ -136,6 +136,7 @@ Resultado validado en local a la fecha:
 - `platform_admin` lifecycle tenant base pasando
 - acceso rápido desde `Tenants` al login de `tenant_portal` con `slug` precargado pasando
 - acceso rápido desde `Tenants` correctamente bloqueado cuando el tenant no está en estado elegible pasando
+- matriz visible por rol en `platform_admin` validada para `admin` y `support`, incluyendo redirecciones y modo solo lectura en `Usuarios de plataforma`
 - `Provisioning` validado al menos para visibilidad de jobs nuevos disparados desde `Tenants`
 - `Provisioning` validado también para ejecutar manualmente un job `pending` desde la consola
 - `Provisioning` validado también para reencolar un job `failed` desde la consola
@@ -192,6 +193,7 @@ Notas del flujo `finance` que conviene recordar:
 - la subida de imágenes en transacciones comprime el archivo antes de enviarlo
 - cuando la imagen se comprime, el nombre visible final del adjunto puede cambiar a extensión `webp`
 - los smokes de límites tenant ya no dependen de preparar overrides por UI de `Tenants`; usan control DB para fijar y limpiar estado reproducible
+- el smoke de roles `platform_admin` crea usuarios efímeros `admin` y `support` para congelar la navegación visible, la redirección por ruta y el modo solo lectura sin depender de seeds manuales
 - el smoke admin de `tenant users` prepara primero un admin inactivo efímero y luego fija `core.users.admin=1` para comprobar el borde real de reactivación bloqueada sin depender de fixtures manuales
 - el smoke mensual de `tenant users` usa snapshot real de uso y una siembra determinista con `created_at` del mes actual para fijar `core.users.monthly` sin asumir conteos hardcodeados
 - el smoke de precedencia de `finance` fija en paralelo `finance.entries` y `finance.entries.monthly` para confirmar que el error visible y el `403` priorizan el límite total
@@ -211,8 +213,8 @@ Notas del flujo `finance` que conviene recordar:
 
 Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son:
 
-- archive / restore tenant
-- provisioning más profundo desde `platform_admin` (DLQ individual, variaciones de filtros o delay)
+- `Billing` operativo desde `platform_admin` (workspace tenant + reconcile individual/batch)
+- `Histórico tenants` con filtros/export y detalle visible del archivo
 - regresión funcional adicional del portal
 
 Nota operativa del smoke `retry`:

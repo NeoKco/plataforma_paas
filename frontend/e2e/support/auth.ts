@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 import { e2eEnv } from "./env";
 
-export async function loginPlatform(page: Page) {
+export async function loginPlatformAs(page: Page, email: string, password: string) {
   await page.goto("/login");
   await expect(
     page.getByRole("heading", {
@@ -9,13 +9,16 @@ export async function loginPlatform(page: Page) {
     })
   ).toBeVisible();
 
-  await page
-    .locator('input[autocomplete="email"]')
-    .fill(e2eEnv.platform.email);
-  await page
-    .locator('input[autocomplete="current-password"]')
-    .fill(e2eEnv.platform.password);
+  await page.locator('input[autocomplete="email"]').fill(email);
+  await page.locator('input[autocomplete="current-password"]').fill(password);
   await page.getByRole("button", { name: /Ingresar|Login/ }).click();
+
+  await page.waitForLoadState("networkidle");
+  await expect(page).not.toHaveURL(/\/login($|[?#])/);
+}
+
+export async function loginPlatform(page: Page) {
+  await loginPlatformAs(page, e2eEnv.platform.email, e2eEnv.platform.password);
 
   await expect(page).toHaveURL(/\/($|[#?])/);
   await expect(
@@ -76,5 +79,15 @@ export async function loginTenant(page: Page) {
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: /Finanzas|Finance/ })
+  ).toBeVisible();
+}
+
+export async function logoutPlatform(page: Page) {
+  await page.getByRole("button", { name: /Salir|Logout/ }).click();
+  await expect(page).toHaveURL(/\/login($|[?#])/);
+  await expect(
+    page.getByRole("heading", {
+      name: /Administración de Plataforma|Platform Admin/,
+    })
   ).toBeVisible();
 }

@@ -1,0 +1,217 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e12]: Platform PaaS
+      - generic [ref=e13]: Administración
+    - navigation [ref=e14]:
+      - link "Resumen" [ref=e15] [cursor=pointer]:
+        - /url: /
+        - img [ref=e17]
+        - text: Resumen
+      - link "Usuarios plataforma" [ref=e22] [cursor=pointer]:
+        - /url: /users
+        - img [ref=e24]
+        - text: Usuarios plataforma
+      - link "Actividad" [ref=e29] [cursor=pointer]:
+        - /url: /activity
+        - img [ref=e31]
+        - text: Actividad
+      - link "Tenants" [ref=e33] [cursor=pointer]:
+        - /url: /tenants
+        - img [ref=e35]
+        - text: Tenants
+      - link "Histórico tenants" [ref=e38] [cursor=pointer]:
+        - /url: /tenant-history
+        - img [ref=e40]
+        - text: Histórico tenants
+      - link "Provisioning" [ref=e44] [cursor=pointer]:
+        - /url: /provisioning
+        - img [ref=e46]
+        - text: Provisioning
+      - link "Facturación" [ref=e49] [cursor=pointer]:
+        - /url: /billing
+        - img [ref=e51]
+        - text: Facturación
+      - link "Configuración" [ref=e53] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e55]
+        - text: Configuración
+  - generic [ref=e58]:
+    - banner [ref=e59]:
+      - generic [ref=e60]:
+        - generic [ref=e61]: Consola Operativa
+        - generic [ref=e62]: Superficie de control de plataforma
+      - generic [ref=e63]:
+        - generic [ref=e64]:
+          - generic [ref=e65]: Idioma
+          - combobox "Idioma" [ref=e66]:
+            - option "Español" [selected]
+            - option "English"
+        - link "Portal tenant" [ref=e67] [cursor=pointer]:
+          - /url: /tenant-portal/login
+        - generic [ref=e68]:
+          - generic [ref=e69]: Felipe Hormazabal
+          - generic [ref=e70]: superadmin
+        - button "Salir" [ref=e71] [cursor=pointer]
+    - main [ref=e72]:
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - img [ref=e77]
+            - generic [ref=e82]:
+              - generic [ref=e83]: Plataforma
+              - heading "Usuarios de plataforma" [level=1] [ref=e84]
+              - paragraph [ref=e85]: Gobierna quién puede entrar a la consola central, con qué rol y con qué estado operativo.
+          - button "Recargar" [ref=e88] [cursor=pointer]
+        - generic [ref=e89]:
+          - generic [ref=e92]:
+            - img [ref=e94]
+            - generic [ref=e99]: "2"
+            - generic [ref=e100]: Usuarios totales
+          - generic [ref=e103]:
+            - img [ref=e105]
+            - generic [ref=e110]: "2"
+            - generic [ref=e111]: Usuarios activos
+          - generic [ref=e114]:
+            - img [ref=e116]
+            - generic [ref=e119]: "0"
+            - generic [ref=e120]: Usuarios inactivos
+          - generic [ref=e123]:
+            - img [ref=e125]
+            - generic [ref=e130]: "1"
+            - generic [ref=e131]: Superadministradores activos
+            - generic [ref=e132]: La política actual recomienda y ahora exige operar con uno solo activo.
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - generic [ref=e136]:
+              - img [ref=e138]
+              - generic [ref=e143]:
+                - heading "Alta de usuario de plataforma" [level=2] [ref=e144]
+                - paragraph [ref=e145]: Crea otro operador para la consola central con una contraseña inicial controlada.
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - generic [ref=e149]: Nombre completo
+                - textbox "Nombre completo" [ref=e150]
+              - generic [ref=e151]:
+                - generic [ref=e152]: Correo de acceso
+                - textbox "Correo de acceso" [ref=e153]
+              - generic [ref=e154]:
+                - generic [ref=e155]: Rol
+                - combobox [ref=e156]:
+                  - option "administrador"
+                  - option "soporte" [selected]
+              - generic [ref=e157]:
+                - generic [ref=e158]: Estado inicial
+                - combobox [ref=e159]:
+                  - option "activo" [selected]
+                  - option "inactivo"
+              - generic [ref=e160]:
+                - generic [ref=e161]: Contraseña inicial
+                - textbox "Contraseña inicial" [ref=e162]
+              - paragraph [ref=e164]: "Usa `admin` para gestión operativa de usuarios y `support` para apoyo diario. `superadmin` queda reservado como cuenta raíz única y no se crea desde este flujo."
+              - generic [ref=e165]:
+                - button "Crear usuario" [disabled]
+          - generic [ref=e166]:
+            - generic [ref=e168]:
+              - img [ref=e170]
+              - generic [ref=e173]:
+                - heading "Catálogo de usuarios de plataforma" [level=2] [ref=e174]
+                - paragraph [ref=e175]: Busca, filtra y selecciona operadores para revisar su acceso.
+            - generic [ref=e176]:
+              - generic [ref=e177]:
+                - textbox "Buscar por nombre, correo o rol" [ref=e178]
+                - generic [ref=e179]:
+                  - combobox [ref=e180]:
+                    - option "Todos los roles" [selected]
+                    - option "superadministrador"
+                    - option "administrador"
+                    - option "soporte"
+                  - combobox [ref=e181]:
+                    - option "Todos los estados" [selected]
+                    - option "activos"
+                    - option "inactivos"
+              - generic [ref=e182]: 2 de 2 usuarios visibles
+              - generic [ref=e183]:
+                - button "Usuario de Soporte_cambio soporte@platform.dev soporte activo" [ref=e184] [cursor=pointer]:
+                  - generic [ref=e185]:
+                    - generic [ref=e186]:
+                      - generic [ref=e187]: Usuario de Soporte_cambio
+                      - generic [ref=e188]:
+                        - code [ref=e189]: soporte@platform.dev
+                        - generic [ref=e190]: soporte
+                    - generic [ref=e191]: activo
+                - button "Felipe Hormazabal admin@platform.local superadministrador activo" [ref=e192] [cursor=pointer]:
+                  - generic [ref=e193]:
+                    - generic [ref=e194]:
+                      - generic [ref=e195]: Felipe Hormazabal
+                      - generic [ref=e196]:
+                        - code [ref=e197]: admin@platform.local
+                        - generic [ref=e198]: superadministrador
+                    - generic [ref=e199]: activo
+        - generic [ref=e200]:
+          - generic [ref=e201]:
+            - generic [ref=e203]:
+              - img [ref=e205]
+              - generic [ref=e210]:
+                - heading "Usuario de Soporte_cambio" [level=2] [ref=e211]
+                - paragraph [ref=e212]: Identidad básica y rol operativo del usuario de plataforma seleccionado.
+            - generic [ref=e213]:
+              - generic [ref=e214]:
+                - generic [ref=e215]:
+                  - generic [ref=e216]: Email
+                  - generic [ref=e217]: soporte@platform.dev
+                - generic [ref=e218]:
+                  - generic [ref=e219]: Rol
+                  - generic [ref=e220]: soporte
+                - generic [ref=e221]:
+                  - generic [ref=e222]: Estado
+                  - generic [ref=e224]: activo
+                - generic [ref=e225]:
+                  - generic [ref=e226]: Creado
+                  - generic [ref=e227]: 25-03-2026, 12:59 a. m.
+              - generic [ref=e228]:
+                - generic [ref=e229]:
+                  - generic [ref=e230]: Nombre completo
+                  - textbox "Nombre completo" [ref=e231]: Usuario de Soporte_cambio
+                - generic [ref=e232]:
+                  - generic [ref=e233]: Rol
+                  - combobox [ref=e234]:
+                    - option "administrador"
+                    - option "soporte" [selected]
+                - button "Guardar identidad" [ref=e236] [cursor=pointer]
+          - generic [ref=e237]:
+            - generic [ref=e238]:
+              - generic [ref=e240]:
+                - img [ref=e242]
+                - generic [ref=e245]:
+                  - heading "Estado operativo" [level=2] [ref=e246]
+                  - paragraph [ref=e247]: Activa o desactiva el acceso de este usuario a la consola de plataforma.
+              - generic [ref=e248]:
+                - paragraph [ref=e249]: Si este usuario es el último superadministrador activo, el backend bloqueará la desactivación o el cambio de rol. Si ya existe otro superadministrador activo, tampoco podrás habilitar uno nuevo.
+                - button "Desactivar acceso" [ref=e250] [cursor=pointer]
+            - generic [ref=e251]:
+              - generic [ref=e253]:
+                - img [ref=e255]
+                - generic [ref=e258]:
+                  - heading "Contraseña inicial" [level=2] [ref=e259]
+                  - paragraph [ref=e260]: Reemplaza la contraseña actual por una nueva clave controlada desde plataforma.
+              - generic [ref=e262]:
+                - generic [ref=e263]:
+                  - generic [ref=e264]: Nueva contraseña
+                  - textbox "Nueva contraseña" [ref=e265]
+                - generic [ref=e266]:
+                  - button "Actualizar contraseña" [disabled]
+            - generic [ref=e267]:
+              - generic [ref=e269]:
+                - img [ref=e271]
+                - generic [ref=e273]:
+                  - heading "Eliminar usuario" [level=2] [ref=e274]
+                  - paragraph [ref=e275]: Borra de forma definitiva cuentas no críticas de plataforma.
+              - generic [ref=e276]:
+                - paragraph [ref=e277]: "No se elimina la cuenta `superadmin` y tampoco puedes borrar tu propia cuenta desde esta consola."
+                - button "Eliminar usuario" [ref=e278] [cursor=pointer]
+```
