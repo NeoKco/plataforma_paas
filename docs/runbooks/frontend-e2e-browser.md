@@ -165,6 +165,7 @@ Resultado validado en local a la fecha:
 - `tenant_portal` con `empresa-bootstrap` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
 - suite `platform_admin` validada en local con `12 passed` y `3 skipped` broker-only
+- los `3` escenarios broker-only de DLQ quedaron además verificados explícitamente en un stack paralelo local con backend `broker` + Redis, con `3 passed`
 - suite `tenant_portal` validada en local con `21 passed`
 - el stack browser principal ya quedó prácticamente cerrado; lo siguiente pasa a ser regresión incremental cuando aparezcan nuevos bordes reales
 

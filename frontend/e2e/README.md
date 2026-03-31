@@ -120,4 +120,5 @@ Notas:
 	- `npm run e2e:platform` → `12 passed`, `3 skipped`
 	- `npm run e2e:tenant` → `21 passed`
 	- los `3 skipped` corresponden a escenarios DLQ broker-only cuando el entorno no usa `PROVISIONING_DISPATCH_BACKEND=broker`
+	- los `3` escenarios DLQ broker-only también quedaron verificados aparte sobre un stack local paralelo en modo `broker` apuntando a Redis, con `3 passed`
 	- fuera de esos casos dependientes de entorno, el frente E2E browser principal queda prácticamente cerrado
