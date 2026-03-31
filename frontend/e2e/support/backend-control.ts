@@ -67,6 +67,29 @@ type TenantFinanceUsageSnapshot = {
   monthlyExpenseEntries: number;
 };
 
+type SeedTenantBillingSyncEventInput = {
+  tenantSlug: string;
+  provider?: string;
+  providerEventId: string;
+  eventType?: string;
+  billingStatus?: string;
+  billingStatusReason?: string;
+  billingCurrentPeriodEndsAtIso?: string;
+  billingGraceUntilIso?: string;
+  providerCustomerId?: string;
+  providerSubscriptionId?: string;
+};
+
+type SeededTenantBillingSyncEvent = {
+  tenantId: number;
+  tenantSlug: string;
+  billingStatus: string | null;
+  billingStatusReason: string | null;
+  wasDuplicate: boolean;
+  processingResult: string;
+  syncEventId: number;
+};
+
 function getRepoRoot() {
   const currentFilePath = fileURLToPath(import.meta.url);
   const currentDirPath = path.dirname(currentFilePath);
@@ -496,4 +519,95 @@ finally:
 
   const output = runBackendPython(script, [tenantSlug]);
   return JSON.parse(output) as TenantFinanceUsageSnapshot;
+}
+
+export function seedTenantBillingSyncEvent({
+  tenantSlug,
+  provider = "stripe",
+  providerEventId,
+  eventType = "invoice.payment_failed",
+  billingStatus = "past_due",
+  billingStatusReason = "E2E billing sync event",
+  billingCurrentPeriodEndsAtIso,
+  billingGraceUntilIso,
+  providerCustomerId,
+  providerSubscriptionId,
+}: SeedTenantBillingSyncEventInput): SeededTenantBillingSyncEvent {
+  const script = `
+import json
+import sys
+from datetime import datetime, timezone
+
+from app.common.db.control_database import ControlSessionLocal
+from app.apps.platform_control.repositories.tenant_repository import TenantRepository
+from app.apps.platform_control.services.tenant_billing_sync_service import TenantBillingSyncService
+
+tenant_slug = sys.argv[1]
+provider = sys.argv[2]
+provider_event_id = sys.argv[3]
+event_type = sys.argv[4]
+billing_status = None if sys.argv[5] == "__NONE__" else sys.argv[5]
+billing_status_reason = None if sys.argv[6] == "__NONE__" else sys.argv[6]
+billing_current_period_ends_at_raw = sys.argv[7]
+billing_grace_until_raw = sys.argv[8]
+provider_customer_id = None if sys.argv[9] == "__NONE__" else sys.argv[9]
+provider_subscription_id = None if sys.argv[10] == "__NONE__" else sys.argv[10]
+
+def parse_datetime(raw_value):
+    if raw_value == "__NONE__":
+        return None
+    parsed = datetime.fromisoformat(raw_value)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+db = ControlSessionLocal()
+try:
+    tenant = TenantRepository().get_by_slug(db, tenant_slug)
+    if tenant is None:
+        raise SystemExit(f"Tenant not found: {tenant_slug}")
+
+    result = TenantBillingSyncService().apply_sync_event(
+        db=db,
+        tenant_id=tenant.id,
+        provider=provider,
+        provider_event_id=provider_event_id,
+        event_type=event_type,
+        billing_status=billing_status,
+        billing_status_reason=billing_status_reason,
+        billing_current_period_ends_at=parse_datetime(billing_current_period_ends_at_raw),
+        billing_grace_until=parse_datetime(billing_grace_until_raw),
+        provider_customer_id=provider_customer_id,
+        provider_subscription_id=provider_subscription_id,
+        raw_payload={"source": "e2e-backend-control"},
+        actor_context={"sub": "e2e-backend-control", "email": "admin@platform.local"},
+    )
+
+    print(json.dumps({
+        "tenantId": result.tenant.id,
+        "tenantSlug": result.tenant.slug,
+        "billingStatus": result.tenant.billing_status,
+        "billingStatusReason": result.tenant.billing_status_reason,
+        "wasDuplicate": result.was_duplicate,
+        "processingResult": result.sync_event.processing_result,
+        "syncEventId": result.sync_event.id,
+    }))
+finally:
+    db.close()
+`;
+
+  const output = runBackendPython(script, [
+    tenantSlug,
+    provider,
+    providerEventId,
+    eventType,
+    billingStatus || "__NONE__",
+    billingStatusReason || "__NONE__",
+    billingCurrentPeriodEndsAtIso?.trim() || "__NONE__",
+    billingGraceUntilIso?.trim() || "__NONE__",
+    providerCustomerId?.trim() || "__NONE__",
+    providerSubscriptionId?.trim() || "__NONE__",
+  ]);
+
+  return JSON.parse(output) as SeededTenantBillingSyncEvent;
 }
