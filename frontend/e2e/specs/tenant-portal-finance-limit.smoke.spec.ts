@@ -124,6 +124,9 @@ test("tenant portal finance shows limit enforcement when entries quota is exhaus
   const seedDescription = `e2e-finance-seed-${Date.now()}`;
   const uniqueDescription = `e2e-finance-limit-${Date.now()}`;
 
+  await loginPlatform(page);
+  await updateFinanceEntriesLimit(page, e2eEnv.tenant.slug, "");
+
   await ensureTenantPortalSession(page);
   await openFinanceTransactionsPage(page);
 
@@ -131,7 +134,6 @@ test("tenant portal finance shows limit enforcement when entries quota is exhaus
   await createBasicExpenseTransaction(page, seedDescription);
   const exhaustedLimit = String(usedEntriesBefore + 1);
 
-  await loginPlatform(page);
   await updateFinanceEntriesLimit(page, e2eEnv.tenant.slug, exhaustedLimit);
 
   try {
