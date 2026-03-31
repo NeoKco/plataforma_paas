@@ -1,5 +1,4 @@
 import { expect, test, type Page } from "@playwright/test";
-import { loginTenant } from "../support/auth";
 import {
   getTenantFinanceUsageSnapshot,
   setTenantModuleLimit,
@@ -31,7 +30,23 @@ async function ensureTenantPortalSession(page: Page, options?: { forceFreshLogin
   await page.waitForLoadState("networkidle");
 
   if (/\/tenant-portal\/login($|[?#])/.test(page.url())) {
-    await loginTenant(page);
+    const tenantSlugInput = page.locator('input[autocomplete="organization"]');
+    const tenantEmailInput = page.locator('input[autocomplete="email"]');
+    const tenantPasswordInput = page.locator('input[autocomplete="current-password"]');
+
+    await expect(tenantSlugInput).toHaveValue(e2eEnv.tenant.slug);
+    await expect(tenantEmailInput).toHaveValue(e2eEnv.tenant.email);
+    await tenantPasswordInput.fill(e2eEnv.tenant.password);
+    await page.getByRole("button", { name: /Ingresar|Login/ }).click();
+    await page.waitForLoadState("networkidle");
+
+    if (/\/tenant-portal\/login/.test(page.url())) {
+      throw new Error(
+        `Tenant login did not advance for slug=${e2eEnv.tenant.slug} email=${e2eEnv.tenant.email}`
+      );
+    }
+
+    await expect(page).toHaveURL(/\/tenant-portal($|[/?#])/);
     return;
   }
 
