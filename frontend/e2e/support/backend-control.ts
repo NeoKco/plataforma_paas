@@ -39,6 +39,7 @@ type SeedTenantUserInput = {
   password: string;
   role: string;
   isActive: boolean;
+  createdAtIso?: string;
 };
 
 type SeededTenantUser = {
@@ -46,6 +47,16 @@ type SeededTenantUser = {
   email: string;
   role: string;
   isActive: boolean;
+};
+
+type TenantUserUsageSnapshot = {
+  tenantSlug: string;
+  totalUsers: number;
+  activeUsers: number;
+  monthlyUsers: number;
+  adminUsers: number;
+  managerUsers: number;
+  operatorUsers: number;
 };
 
 type TenantFinanceUsageSnapshot = {
@@ -305,10 +316,12 @@ export function seedTenantUser({
   password,
   role,
   isActive,
+  createdAtIso,
 }: SeedTenantUserInput): SeededTenantUser {
   const script = `
 import json
 import sys
+from datetime import datetime, timezone
 
 from app.common.db.control_database import ControlSessionLocal
 from app.apps.tenant_modules.core.models.user import User
@@ -321,6 +334,10 @@ email = sys.argv[3]
 password = sys.argv[4]
 role = sys.argv[5]
 is_active = sys.argv[6] == "true"
+created_at_raw = sys.argv[7]
+created_at = None if created_at_raw == "__NONE__" else datetime.fromisoformat(created_at_raw)
+if created_at is not None and created_at.tzinfo is None:
+  created_at = created_at.replace(tzinfo=timezone.utc)
 
 control_db = ControlSessionLocal()
 tenant_connection = TenantConnectionService()
@@ -350,6 +367,9 @@ try:
         user.role = role
         user.is_active = is_active
 
+    if created_at is not None:
+      user.created_at = created_at
+
     tenant_db.commit()
     tenant_db.refresh(user)
 
@@ -372,10 +392,58 @@ finally:
     password,
     role,
     isActive ? "true" : "false",
+    createdAtIso?.trim() || "__NONE__",
   ]);
 
   return JSON.parse(output) as SeededTenantUser;
 }
+
+  export function getTenantUserUsageSnapshot(tenantSlug: string): TenantUserUsageSnapshot {
+    const script = `
+  import json
+  import sys
+  from datetime import datetime, timezone
+
+  from app.common.db.control_database import ControlSessionLocal
+  from app.apps.tenant_modules.core.repositories.user_repository import UserRepository
+  from app.apps.tenant_modules.core.services.tenant_connection_service import TenantConnectionService
+
+  tenant_slug = sys.argv[1]
+
+  control_db = ControlSessionLocal()
+  tenant_connection = TenantConnectionService()
+  tenant_db = None
+  repository = UserRepository()
+
+  try:
+    tenant = tenant_connection.get_tenant_by_slug(control_db, tenant_slug)
+    if tenant is None:
+      raise SystemExit(f"Tenant not found: {tenant_slug}")
+
+    tenant_session_factory = tenant_connection.get_tenant_session(tenant)
+    tenant_db = tenant_session_factory()
+
+    now = datetime.now(timezone.utc)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    print(json.dumps({
+      "tenantSlug": tenant_slug,
+      "totalUsers": repository.count_all(tenant_db),
+      "activeUsers": repository.count_active(tenant_db),
+      "monthlyUsers": repository.count_created_since(tenant_db, month_start),
+      "adminUsers": repository.count_by_role(tenant_db, "admin"),
+      "managerUsers": repository.count_by_role(tenant_db, "manager"),
+      "operatorUsers": repository.count_by_role(tenant_db, "operator"),
+    }))
+  finally:
+    if tenant_db is not None:
+      tenant_db.close()
+    control_db.close()
+  `;
+
+    const output = runBackendPython(script, [tenantSlug]);
+    return JSON.parse(output) as TenantUserUsageSnapshot;
+  }
 
 export function getTenantFinanceUsageSnapshot(tenantSlug: string) {
   const script = `
