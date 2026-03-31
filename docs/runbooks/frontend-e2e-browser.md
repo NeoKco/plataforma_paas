@@ -61,6 +61,7 @@ Cobertura actual:
 - filtros finos DLQ por texto de error y revisión de `delay/reset attempts` antes del requeue individual cuando el backend usa broker
 - login `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
+- enforcement visible de cuota admin y reactivación bloqueada en `tenant_portal > Usuarios`
 - enforcement visible de límites de `finance` en `tenant_portal`
 - precedencia visible de `finance.entries` sobre `finance.entries.monthly` cuando ambos quedan agotados
 - enforcement de límites mensuales de `finance.entries.monthly` en `tenant_portal`
@@ -142,6 +143,7 @@ Resultado validado en local a la fecha:
 - `Provisioning` ya tiene además un smoke broker-only para reencolar filas DLQ filtradas en lote
 - `Provisioning` ya tiene además un smoke broker-only para validar filtros DLQ por `error contains` y confirmar opciones de requeue individual
 - `tenant_portal` ya cubre además enforcement visible de límites de usuarios activos con overrides preparados de forma determinista
+- `tenant_portal` ya cubre además bloqueo por cuota `core.users.admin` al crear un admin extra y al intentar reactivar un admin inactivo
 - `tenant_portal` ya cubre además enforcement visible de límites de `finance.entries` bloqueando nuevas transacciones cuando el tenant queda al límite
 - `tenant_portal` ya cubre además la precedencia visible del límite total `finance.entries` cuando coincide con `finance.entries.monthly`
 - `tenant_portal` ya cubre además enforcement de `finance.entries.monthly` bloqueando nuevas transacciones cuando el tenant alcanza el cupo mensual
@@ -188,6 +190,7 @@ Notas del flujo `finance` que conviene recordar:
 - la subida de imágenes en transacciones comprime el archivo antes de enviarlo
 - cuando la imagen se comprime, el nombre visible final del adjunto puede cambiar a extensión `webp`
 - los smokes de límites tenant ya no dependen de preparar overrides por UI de `Tenants`; usan control DB para fijar y limpiar estado reproducible
+- el smoke admin de `tenant users` prepara primero un admin inactivo efímero y luego fija `core.users.admin=1` para comprobar el borde real de reactivación bloqueada sin depender de fixtures manuales
 - el smoke de precedencia de `finance` fija en paralelo `finance.entries` y `finance.entries.monthly` para confirmar que el error visible y el `403` priorizan el límite total
 - el smoke mensual de `finance` usa además un snapshot real del uso tenant para fijar `finance.entries.monthly` sin asumir conteos hardcodeados
 - el smoke mensual por tipo de `finance` reutiliza ese snapshot real para fijar `finance.entries.monthly.income` y `finance.entries.monthly.expense` sin depender de conteos estáticos
@@ -207,7 +210,7 @@ Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son
 
 - archive / restore tenant
 - provisioning más profundo desde `platform_admin` (DLQ individual, variaciones de filtros o delay)
-- escenarios extra de usuarios tenant y regresión funcional adicional del portal
+- regresión funcional adicional del portal
 
 Nota operativa del smoke `retry`:
 
