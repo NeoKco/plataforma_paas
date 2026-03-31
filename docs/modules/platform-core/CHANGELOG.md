@@ -39,6 +39,7 @@ Resumen curado del bloque central.
 - smokes browser de límites tenant endurecidos para fijar y limpiar overrides por control DB
 - enforcement backend agregado al endpoint moderno de creación de transacciones `finance` para respetar `finance.entries`
 - smoke browser agregado para validar bloqueo mensual de `finance.entries.monthly` en `tenant_portal`
+- smoke browser agregado para validar bloqueo mensual por tipo de `finance.entries.monthly.income` y `finance.entries.monthly.expense` en `tenant_portal`
 
 ## Documentación
 

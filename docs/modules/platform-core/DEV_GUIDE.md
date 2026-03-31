@@ -105,3 +105,4 @@ Cobertura actual:
 - enforcement visible de límites de usuarios activos en `tenant_portal` con overrides preparados de forma determinista
 - enforcement visible de límites de `finance.entries` en `tenant_portal` con overrides preparados de forma determinista
 - enforcement de límites mensuales de `finance.entries.monthly` en `tenant_portal` con overrides preparados de forma determinista
+- enforcement de límites mensuales por tipo `finance.entries.monthly.income` y `finance.entries.monthly.expense` en `tenant_portal` con overrides preparados de forma determinista

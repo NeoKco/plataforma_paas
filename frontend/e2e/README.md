@@ -41,6 +41,7 @@ Specs actuales:
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-finance-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit.smoke.spec.ts)
 - [tenant-portal-finance-monthly-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-monthly-limit.smoke.spec.ts)
+- [tenant-portal-finance-monthly-type-limits.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-monthly-type-limits.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
@@ -77,3 +78,4 @@ Notas:
 - el smoke DLQ individual y el smoke DLQ batch comparten ese requisito broker-only y se omiten automáticamente en backend `database`
 - los smokes de límites tenant ahora fijan y limpian overrides por control DB para evitar fragilidad al preparar estado por UI
 - el smoke mensual de `finance` fija `finance.entries.monthly` sobre el uso real del mes y valida el bloqueo de nuevas transacciones
+- el smoke mensual por tipo de `finance` fija `finance.entries.monthly.income` y `finance.entries.monthly.expense` sobre el uso real del tenant para validar bloqueos específicos por ingreso y egreso

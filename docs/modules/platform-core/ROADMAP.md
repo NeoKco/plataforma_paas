@@ -36,6 +36,7 @@ La base central ya es operable:
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser del bloqueo mensual de `finance.entries.monthly` en `tenant_portal`
+- validación browser del bloqueo mensual por tipo de `finance.entries.monthly.income` y `finance.entries.monthly.expense` en `tenant_portal`
 
 ## Próximo nivel recomendado
 
