@@ -53,7 +53,7 @@ async function openLoanSchedule(page: Page, loanName: string) {
     await expect(hideButton).toBeVisible();
   }
 
-  await expect(page.getByText(loanName, { exact: true })).toBeVisible();
+  await expect(getSchedulePanel(page).getByText(loanName, { exact: true })).toBeVisible();
   await expect(getSchedulePanel(page)).toBeVisible();
 }
 

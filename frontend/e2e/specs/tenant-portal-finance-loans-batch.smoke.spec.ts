@@ -57,7 +57,7 @@ async function openLoanSchedule(page: Page, loanName: string) {
     await expect(hideButton).toBeVisible();
   }
 
-  await expect(page.getByText(loanName, { exact: true })).toBeVisible();
+  await expect(getSchedulePanel(page).getByText(loanName, { exact: true })).toBeVisible();
   await expect(getScheduleTable(page)).toBeVisible();
 }
 
@@ -105,9 +105,8 @@ function getInstallmentRows(page: Page) {
 
 async function setInstallmentChecked(row: Locator, checked: boolean) {
   const checkbox = row.locator('input[type="checkbox"]').first();
-  if ((await checkbox.isChecked()) !== checked) {
-    await checkbox.click();
-  }
+  await checkbox.scrollIntoViewIfNeeded();
+  await checkbox.setChecked(checked);
 }
 
 test("tenant portal finance loans applies batch payment and batch reversal over selected installments", async ({
@@ -131,6 +130,12 @@ test("tenant portal finance loans applies batch payment and batch reversal over 
     .locator("form")
     .filter({ has: page.getByRole("button", { name: /Aplicar pago en lote|Apply batch payment/i }) })
     .first();
+
+  await expect(getSchedulePanel(page)).toContainText(/Cuotas seleccionadas|Selected installments/i);
+  await expect(getSchedulePanel(page)).toContainText(/\b2\b/);
+  await expect(
+    batchForm.getByRole("button", { name: /Aplicar pago en lote|Apply batch payment/i })
+  ).toBeEnabled();
 
   await batchForm.locator("input.form-control").first().fill("Batch payment E2E");
   await batchForm
