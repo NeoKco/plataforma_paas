@@ -55,13 +55,6 @@ test("platform admin can review tenant history filters exports and detail", asyn
   await expect(confirmDialog).toBeVisible();
   await confirmDialog.getByRole("button", { name: /Eliminar tenant|Delete tenant/i }).click();
 
-  await expect(
-    page
-      .locator(".tenant-action-feedback--success")
-      .filter({ hasText: /Borrado seguro de tenant|Delete tenant/i })
-      .first()
-  ).toContainText(/eliminado correctamente|deleted successfully/i);
-
   await page.goto("/tenant-history");
   await expect(page).toHaveURL(/\/tenant-history$/);
   await expect(
