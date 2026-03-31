@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
@@ -323,6 +323,134 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
             )
 
         self.assertIn("finance.entries.monthly.expense", str(exc.exception))
+
+    def test_create_transaction_prioritizes_total_limit_before_monthly_limit(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+
+        self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=10.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Base precedencia",
+            ),
+            created_by_user_id=1,
+        )
+
+        with self.assertRaises(FinanceUsageLimitExceededError) as exc:
+            self.service.create_transaction(
+                tenant_db=self.db,
+                payload=FinanceTransactionCreateRequest(
+                    transaction_type="expense",
+                    account_id=caja.id,
+                    currency_id=usd.id,
+                    amount=20.0,
+                    transaction_at=datetime.now(timezone.utc),
+                    description="Bloqueada precedencia",
+                ),
+                created_by_user_id=1,
+                max_entries=1,
+                max_monthly_entries=1,
+                max_monthly_entries_by_type={"expense": 1},
+            )
+
+        self.assertIn("finance.entries", str(exc.exception))
+        self.assertNotIn("finance.entries.monthly", str(exc.exception))
+
+    def test_create_transaction_allows_new_entry_when_only_previous_month_consumed_quota(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+
+        previous_month_transaction = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=10.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Base mes anterior",
+            ),
+            created_by_user_id=1,
+        )
+        previous_month_transaction.created_at = self.service._get_current_month_start() - timedelta(
+            days=1
+        )
+        self.db.add(previous_month_transaction)
+        self.db.commit()
+
+        allowed_transaction = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=20.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Permitida mes actual",
+            ),
+            created_by_user_id=1,
+            max_monthly_entries=1,
+        )
+
+        self.assertEqual(allowed_transaction.description, "Permitida mes actual")
+
+    def test_create_transaction_allows_new_entry_when_only_previous_month_type_quota_was_used(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+
+        previous_month_income = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=10.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Ingreso mes anterior",
+            ),
+            created_by_user_id=1,
+        )
+        previous_month_income.created_at = self.service._get_current_month_start() - timedelta(
+            days=1
+        )
+        self.db.add(previous_month_income)
+        self.db.commit()
+
+        allowed_transaction = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=20.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Ingreso permitido mes actual",
+            ),
+            created_by_user_id=1,
+            max_monthly_entries_by_type={"income": 1},
+        )
+
+        self.assertEqual(allowed_transaction.description, "Ingreso permitido mes actual")
 
     def test_account_balances_remain_consistent_with_income_expense_and_transfer(self) -> None:
         usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
