@@ -110,7 +110,7 @@ test("tenant portal finance loans creates a loan and records a simple installmen
 
   const paymentForm = page
     .locator("form")
-    .filter({ has: page.getByRole("button", { name: /Aplicar pago|Apply payment/i }) })
+    .filter({ has: page.getByRole("button", { name: /^(Aplicar pago|Apply payment)$/i }) })
     .first();
   await paymentForm.locator('input[type="number"]').first().fill("300");
   await paymentForm.locator("input.form-control").last().fill("Abono smoke E2E");
