@@ -112,14 +112,42 @@ export async function createBasicExpenseTransaction(
   description: string,
   amount = "12345"
 ) {
+  await createBasicTransaction(page, {
+    transactionType: "expense",
+    description,
+    amount,
+  });
+}
+
+export async function createBasicIncomeTransaction(
+  page: Page,
+  description: string,
+  amount = "12345"
+) {
+  await createBasicTransaction(page, {
+    transactionType: "income",
+    description,
+    amount,
+  });
+}
+
+export async function createBasicTransaction(
+  page: Page,
+  options: {
+    transactionType: "income" | "expense";
+    description: string;
+    amount?: string;
+  }
+) {
   const form = getFinanceTransactionForm(page);
   const uniqueAccountName = `e2e-caja-${Date.now()}`;
   await ensureFinanceTransactionFormReady(page, form, uniqueAccountName);
 
-  await form.locator('input[type="number"]').first().fill(amount);
+  await form.getByRole("combobox").first().selectOption(options.transactionType);
+  await form.locator('input[type="number"]').first().fill(options.amount || "12345");
   await form
     .getByPlaceholder(/Pago proveedor de mantención|provider maintenance/i)
-    .fill(description);
+    .fill(options.description);
   await form
     .getByRole("button", {
       name: /Registrar transacción|Create transaction/,
@@ -129,7 +157,7 @@ export async function createBasicExpenseTransaction(
   await expect(getTransactionSuccessFeedback(page)).toContainText(
     /Transacci[oó]n|Transaction/i
   );
-  await expect(getTransactionRowByDescription(page, description)).toBeVisible();
+  await expect(getTransactionRowByDescription(page, options.description)).toBeVisible();
 }
 
 export function getTransactionSuccessFeedback(page: Page) {
