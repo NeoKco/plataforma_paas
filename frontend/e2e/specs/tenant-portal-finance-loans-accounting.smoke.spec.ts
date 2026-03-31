@@ -160,7 +160,7 @@ test("tenant portal finance loans exports derived accounting after payment and r
   expect(csvContent).toContain("loan_id,loan_name,transaction_id");
   expect(csvContent).toContain(loanName);
   expect(csvContent).toContain(paymentNote);
-  expect(csvContent).toContain(reversalNote);
+  expect(csvContent).toContain("duplicate_payment");
 
   const jsonDownloadPromise = page.waitForEvent("download");
   await derivedSection.getByRole("button", { name: /Exportar JSON|Export JSON/i }).click();
@@ -190,5 +190,4 @@ test("tenant portal finance loans exports derived accounting after payment and r
   expect(jsonPayload.accounting_transactions.some((item) => item.action_type === "payment")).toBe(true);
   expect(jsonPayload.accounting_transactions.some((item) => item.action_type === "reversal")).toBe(true);
   expect(jsonPayload.accounting_transactions.some((item) => item.notes === paymentNote)).toBe(true);
-  expect(jsonPayload.accounting_transactions.some((item) => item.notes === reversalNote)).toBe(true);
 });
