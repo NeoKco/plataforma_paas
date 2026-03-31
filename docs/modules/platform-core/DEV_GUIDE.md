@@ -68,6 +68,7 @@ Smokes actuales del bloque central:
 - [platform-admin-tenant-lifecycle.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-lifecycle.smoke.spec.ts)
 - [platform-admin-provisioning.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning.smoke.spec.ts)
 - [platform-admin-provisioning-run-now.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-run-now.smoke.spec.ts)
+- [platform-admin-provisioning-retry.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-retry.smoke.spec.ts)
 - [platform-admin-schema-auto-sync.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-schema-auto-sync.smoke.spec.ts)
 
 Cobertura actual:
@@ -77,4 +78,5 @@ Cobertura actual:
 - lifecycle tenant base en UI con `create`, `archive` y `restore`
 - visibilidad de jobs de provisioning recién disparados desde `Tenants`
 - ejecución manual de jobs `pending` desde `Provisioning`
+- requeue de jobs `failed` desde `Provisioning`
 - disparo de `schema auto-sync` desde `Provisioning` con confirmación y feedback visible

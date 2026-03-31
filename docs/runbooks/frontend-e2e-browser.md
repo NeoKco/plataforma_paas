@@ -23,6 +23,7 @@ Archivos principales:
 - [platform-admin-tenant-lifecycle.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-lifecycle.smoke.spec.ts)
 - [platform-admin-provisioning.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning.smoke.spec.ts)
 - [platform-admin-provisioning-run-now.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-run-now.smoke.spec.ts)
+- [platform-admin-provisioning-retry.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-retry.smoke.spec.ts)
 - [platform-admin-schema-auto-sync.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-schema-auto-sync.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
@@ -37,6 +38,7 @@ Cobertura actual:
 - lifecycle básico de tenant en `platform_admin` con `create`, `archive` y `restore`
 - visibilidad de job nuevo en `Provisioning` después de crear tenant
 - ejecución manual de un job `pending` desde `Provisioning`
+- requeue de un job `failed` desde `Provisioning`
 - disparo de `schema auto-sync` desde `Provisioning`
 - login `tenant_portal`
 - alta básica de una transacción en `finance`
@@ -100,6 +102,7 @@ Resultado validado en local a la fecha:
 - `platform_admin` lifecycle tenant base pasando
 - `Provisioning` validado al menos para visibilidad de jobs nuevos disparados desde `Tenants`
 - `Provisioning` validado también para ejecutar manualmente un job `pending` desde la consola
+- `Provisioning` validado también para reencolar un job `failed` desde la consola
 - `Provisioning` validado también para disparar `schema auto-sync` desde la toolbar
 - `tenant_portal` con `empresa-demo` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
@@ -142,6 +145,11 @@ Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son
 
 - acceso rápido al `tenant_portal` desde `Tenants`
 - archive / restore tenant
-- provisioning más profundo desde `platform_admin` (`retry`, DLQ)
+- provisioning más profundo desde `platform_admin` (DLQ)
 - cuentas y categorías básicas en `finance`
 - creación de usuario tenant y enforcement de límites
+
+Nota operativa del smoke `retry`:
+
+- el spec crea un tenant de prueba y luego siembra un job `failed` controlado directamente en la DB de control para validar la recuperación visible sin depender de un fallo accidental del worker
+- por defecto usa `/home/felipe/platform_paas/platform_paas_venv/bin/python`; si tu entorno cambia, puedes sobreescribir `E2E_BACKEND_PYTHON`
