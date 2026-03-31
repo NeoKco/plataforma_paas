@@ -44,6 +44,10 @@ function getScheduleTable(page: Page) {
   return getSchedulePanel(page).locator("table").first();
 }
 
+function getBatchForm(page: Page) {
+  return getSchedulePanel(page).locator("form").first();
+}
+
 async function openLoanSchedule(page: Page, loanName: string) {
   const loanRow = getLoanRow(page, loanName);
   await expect(loanRow).toBeVisible();
@@ -126,10 +130,7 @@ test("tenant portal finance loans applies batch payment and batch reversal over 
   await setInstallmentChecked(firstRow, true);
   await setInstallmentChecked(secondRow, true);
 
-  const batchForm = getSchedulePanel(page)
-    .locator("form")
-    .filter({ has: page.getByRole("button", { name: /Aplicar pago en lote|Apply batch payment/i }) })
-    .first();
+  const batchForm = getBatchForm(page);
 
   await expect(
     batchForm.getByRole("button", { name: /Aplicar pago en lote|Apply batch payment/i })
