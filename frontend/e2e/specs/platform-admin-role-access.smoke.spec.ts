@@ -20,9 +20,8 @@ test("platform admin enforces visible role access for admin and support users", 
   await page.goto("/users");
   await expect(page).toHaveURL(/\/users$/);
   await expect(
-    page.getByRole("heading", {
-      name: /Usuarios de plataforma|Platform users/i,
-      exact: true,
+    page.locator("h1.page-title").filter({
+      hasText: /Usuarios de plataforma|Platform users/i,
     })
   ).toBeVisible();
 
@@ -67,9 +66,8 @@ test("platform admin enforces visible role access for admin and support users", 
   await loginPlatformAs(page, supportUser.email, supportUser.password);
   await expect(page).toHaveURL(/\/users$/);
   await expect(
-    page.getByRole("heading", {
-      name: /Usuarios de plataforma|Platform users/i,
-      exact: true,
+    page.locator("h1.page-title").filter({
+      hasText: /Usuarios de plataforma|Platform users/i,
     })
   ).toBeVisible();
   await expect(page.getByRole("link", { name: /Usuarios plataforma|Platform Users/i })).toBeVisible();
@@ -89,9 +87,8 @@ test("platform admin enforces visible role access for admin and support users", 
   await page.goto("/activity");
   await expect(page).toHaveURL(/\/users$/);
   await expect(
-    page.getByRole("heading", {
-      name: /Usuarios de plataforma|Platform users/i,
-      exact: true,
+    page.locator("h1.page-title").filter({
+      hasText: /Usuarios de plataforma|Platform users/i,
     })
   ).toBeVisible();
 
