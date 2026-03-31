@@ -32,6 +32,22 @@ type TenantModuleLimitMutation = {
   value: number | null;
 };
 
+type SeedTenantUserInput = {
+  tenantSlug: string;
+  fullName: string;
+  email: string;
+  password: string;
+  role: string;
+  isActive: boolean;
+};
+
+type SeededTenantUser = {
+  id: number;
+  email: string;
+  role: string;
+  isActive: boolean;
+};
+
 type TenantFinanceUsageSnapshot = {
   tenantSlug: string;
   totalEntries: number;
@@ -280,6 +296,85 @@ finally:
     tenantSlug: string;
     moduleLimits: Record<string, number>;
   };
+}
+
+export function seedTenantUser({
+  tenantSlug,
+  fullName,
+  email,
+  password,
+  role,
+  isActive,
+}: SeedTenantUserInput): SeededTenantUser {
+  const script = `
+import json
+import sys
+
+from app.common.db.control_database import ControlSessionLocal
+from app.apps.tenant_modules.core.models.user import User
+from app.apps.tenant_modules.core.services.tenant_connection_service import TenantConnectionService
+from app.common.security.password_service import hash_password
+
+tenant_slug = sys.argv[1]
+full_name = sys.argv[2]
+email = sys.argv[3]
+password = sys.argv[4]
+role = sys.argv[5]
+is_active = sys.argv[6] == "true"
+
+control_db = ControlSessionLocal()
+tenant_connection = TenantConnectionService()
+tenant_db = None
+
+try:
+    tenant = tenant_connection.get_tenant_by_slug(control_db, tenant_slug)
+    if tenant is None:
+        raise SystemExit(f"Tenant not found: {tenant_slug}")
+
+    tenant_session_factory = tenant_connection.get_tenant_session(tenant)
+    tenant_db = tenant_session_factory()
+
+    user = tenant_db.query(User).filter(User.email == email).first()
+    if user is None:
+        user = User(
+            full_name=full_name,
+            email=email,
+            password_hash=hash_password(password),
+            role=role,
+            is_active=is_active,
+        )
+        tenant_db.add(user)
+    else:
+        user.full_name = full_name
+        user.password_hash = hash_password(password)
+        user.role = role
+        user.is_active = is_active
+
+    tenant_db.commit()
+    tenant_db.refresh(user)
+
+    print(json.dumps({
+        "id": user.id,
+        "email": user.email,
+        "role": user.role,
+        "isActive": user.is_active,
+    }))
+finally:
+    if tenant_db is not None:
+        tenant_db.close()
+    control_db.close()
+`;
+
+  const output = runBackendPython(script, [
+    tenantSlug,
+    fullName,
+    email,
+    password,
+    role,
+    isActive ? "true" : "false",
+  ]);
+
+  return JSON.parse(output) as SeededTenantUser;
 }
 
 export function getTenantFinanceUsageSnapshot(tenantSlug: string) {

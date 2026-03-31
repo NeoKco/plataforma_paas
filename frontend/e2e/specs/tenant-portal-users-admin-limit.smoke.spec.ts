@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { loginTenant } from "../support/auth";
-import { setTenantModuleLimit } from "../support/backend-control";
+import { seedTenantUser, setTenantModuleLimit } from "../support/backend-control";
 import { e2eEnv } from "../support/env";
 
 async function ensureTenantUsersPage(page: Page) {
@@ -32,22 +32,21 @@ test("tenant portal blocks extra admin creation and admin reactivation when admi
   const inactiveAdminEmail = `admin-inactive-${Date.now()}@${e2eEnv.tenant.slug}.local`;
 
   try {
+    const seededUser = seedTenantUser({
+      tenantSlug: e2eEnv.tenant.slug,
+      fullName: "Admin inactivo E2E",
+      email: inactiveAdminEmail,
+      password: "TenantAdmin123!",
+      role: "admin",
+      isActive: false,
+    });
+    expect(seededUser.email).toBe(inactiveAdminEmail);
+    expect(seededUser.role).toBe("admin");
+    expect(seededUser.isActive).toBe(false);
+
     await ensureTenantUsersPage(page);
 
     const createUserForm = page.locator("form").first();
-
-    await createUserForm
-      .getByPlaceholder(/Ej: María Pérez|Example: Maria Perez/i)
-      .fill("Admin inactivo E2E");
-    await createUserForm
-      .getByPlaceholder(/Ej: maria@empresa-demo.local|Example: maria@empresa-demo.local/i)
-      .fill(inactiveAdminEmail);
-    await createUserForm
-      .getByPlaceholder(/Define una contraseña inicial|Define an initial password/i)
-      .fill("TenantAdmin123!");
-    await createUserForm.getByRole("combobox").nth(0).selectOption("admin");
-    await createUserForm.getByRole("combobox").nth(1).selectOption("inactive");
-    await createUserForm.getByRole("button", { name: /Crear usuario|Create user/i }).click();
 
     await expect
       .poll(async () => await getUserRow(page, inactiveAdminEmail).count())
