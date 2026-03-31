@@ -25,35 +25,48 @@ async function ensureTenantPortalReady(page: Page, tenantSlug: string) {
   });
 
   if ((await openTenantPortalLink.count()) === 0) {
-    const runNowButton = page.getByRole("button", {
-      name: /Ejecutar ahora|Run now/i,
-    });
+    try {
+      await expect
+        .poll(
+          async () => {
+            await selectTenant(page, tenantSlug);
+            return openTenantPortalLink.count();
+          },
+          { timeout: 5000 }
+        )
+        .toBeGreaterThan(0);
+    } catch {
+      const runNowButton = page.getByRole("button", {
+        name: /Ejecutar ahora|Run now/i,
+      });
 
-    await expect(runNowButton).toBeVisible();
-    await runNowButton.click();
+      if ((await runNowButton.count()) > 0) {
+        await runNowButton.click();
 
-    const confirmDialog = page.getByRole("dialog");
-    await expect(confirmDialog).toBeVisible();
-    await confirmDialog
-      .getByRole("button", { name: /Ejecutar ahora|Run now/i })
-      .click();
+        const confirmDialog = page.getByRole("dialog");
+        await expect(confirmDialog).toBeVisible();
+        await confirmDialog
+          .getByRole("button", { name: /Ejecutar ahora|Run now/i })
+          .click();
 
-    await expect(
-      page
-        .locator(".tenant-action-feedback--success")
-        .filter({ hasText: /Ejecución de provisioning|Run provisioning/i })
-        .first()
-    ).toContainText(/ejecutado correctamente|started successfully/i);
+        await expect(
+          page
+            .locator(".tenant-action-feedback--success")
+            .filter({ hasText: /Ejecución de provisioning|Run provisioning/i })
+            .first()
+        ).toContainText(/ejecutado correctamente|started successfully/i);
+      }
 
-    await expect
-      .poll(
-        async () => {
-          await selectTenant(page, tenantSlug);
-          return openTenantPortalLink.count();
-        },
-        { timeout: 20000 }
-      )
-      .toBeGreaterThan(0);
+      await expect
+        .poll(
+          async () => {
+            await selectTenant(page, tenantSlug);
+            return openTenantPortalLink.count();
+          },
+          { timeout: 20000 }
+        )
+        .toBeGreaterThan(0);
+    }
   }
 
   await expect(openTenantPortalLink).toBeVisible();
@@ -80,7 +93,10 @@ async function loginTenantBootstrap(page: Page, tenantSlug: string) {
 
   await expect(page).toHaveURL(/\/tenant-portal($|[#?])/);
   await expect(
-    page.getByRole("heading", { name: /Módulos habilitados|Enabled modules/i })
+    page.getByRole("heading", {
+      name: /Módulos habilitados|Enabled modules/i,
+      exact: true,
+    })
   ).toBeVisible();
 }
 
