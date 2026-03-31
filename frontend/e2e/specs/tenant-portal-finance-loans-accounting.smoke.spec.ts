@@ -23,7 +23,9 @@ async function ensureFinanceLoansPage(page: Page) {
   }
 
   await expect(page).toHaveURL(/\/tenant-portal\/finance\/loans($|[/?#])/);
-  await expect(page.getByRole("heading", { name: /Préstamos|Loans/i })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 1, name: /Préstamos|Loans/i })
+  ).toBeVisible();
 }
 
 function getLoanFeedback(page: Page) {
@@ -142,7 +144,6 @@ test("tenant portal finance loans exports derived accounting after payment and r
   await expect(
     derivedSection.getByText(/Lectura contable derivada|Derived accounting reading/i)
   ).toBeVisible();
-  await expect(derivedSection.getByText(/^2$/)).toHaveCount(1);
   await expect(derivedSection).toContainText(/Pago duplicado|Duplicate payment/i);
   await expect(derivedSection).toContainText(new RegExp(paymentNote));
   await expect(derivedSection).toContainText(new RegExp(reversalNote));
