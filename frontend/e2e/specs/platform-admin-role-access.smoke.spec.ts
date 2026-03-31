@@ -31,7 +31,9 @@ test("platform admin enforces visible role access for admin and support users", 
   await loginPlatformAs(page, adminUser.email, adminUser.password);
   await expect(page).toHaveURL(/\/activity$/);
   await expect(
-    page.getByRole("heading", { name: /Actividad|Activity/i })
+    page.locator("h1.page-title").filter({
+      hasText: /Actividad|Activity/i,
+    })
   ).toBeVisible();
   await expect(page.getByRole("link", { name: /Usuarios plataforma|Platform Users/i })).toBeVisible();
   await expect(page.getByRole("link", { name: /Actividad|Activity/i })).toBeVisible();
