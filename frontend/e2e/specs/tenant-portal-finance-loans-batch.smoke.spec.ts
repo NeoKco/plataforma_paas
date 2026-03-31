@@ -65,7 +65,7 @@ async function createLoanAndOpenSchedule(page: Page, loanName: string) {
   await ensureFinanceLoansPage(page);
 
   const createForm = page.locator("form").first();
-  const accountSelect = createForm.locator("select.form-select").nth(3);
+  const accountSelect = createForm.locator("select.form-select").nth(2);
   const accountOptions = await accountSelect.locator("option").evaluateAll((options) =>
     options
       .map((option) => ({
@@ -137,7 +137,9 @@ test("tenant portal finance loans applies batch payment and batch reversal over 
     batchForm.getByRole("button", { name: /Aplicar pago en lote|Apply batch payment/i })
   ).toBeEnabled();
 
-  await batchForm.locator("input.form-control").first().fill("Batch payment E2E");
+  await batchForm
+    .getByPlaceholder(/abono grupal confirmado por tesorer[ií]a|batch payment confirmed by treasury/i)
+    .fill("Batch payment E2E");
   await batchForm
     .getByRole("button", { name: /Aplicar pago en lote|Apply batch payment/i })
     .click();
@@ -152,7 +154,9 @@ test("tenant portal finance loans applies batch payment and batch reversal over 
   await setInstallmentChecked(secondRow, true);
 
   await batchForm.getByRole("combobox").first().selectOption("reverse");
-  await batchForm.locator("input.form-control").first().fill("Batch reversal E2E");
+  await batchForm
+    .getByPlaceholder(/abono grupal confirmado por tesorer[ií]a|batch payment confirmed by treasury/i)
+    .fill("Batch reversal E2E");
   await batchForm.getByRole("combobox").nth(2).selectOption("duplicate_payment");
   await batchForm
     .getByRole("button", { name: /Aplicar reversa en lote|Apply batch reversal/i })

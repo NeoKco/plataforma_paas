@@ -65,7 +65,7 @@ test("tenant portal finance loans creates a loan and records a simple installmen
   await ensureFinanceLoansPage(page);
 
   const createForm = page.locator("form").first();
-  const accountSelect = createForm.locator("select.form-select").nth(3);
+  const accountSelect = createForm.locator("select.form-select").nth(2);
   const accountOptions = await accountSelect.locator("option").evaluateAll((options) =>
     options
       .map((option) => ({
@@ -113,7 +113,9 @@ test("tenant portal finance loans creates a loan and records a simple installmen
     .filter({ has: page.getByRole("button", { name: /Aplicar pago|Apply payment/i }) })
     .first();
   await paymentForm.locator('input[type="number"]').first().fill("300");
-  await paymentForm.locator("input.form-control").first().fill("Abono smoke E2E");
+  await paymentForm
+    .getByPlaceholder(/abono recibido por transferencia|payment received by transfer/i)
+    .fill("Abono smoke E2E");
   await paymentForm.getByRole("button", { name: /Aplicar pago|Apply payment/i }).click();
 
   await expect(getLoanFeedback(page)).toContainText(/pago|payment/i);
