@@ -36,11 +36,28 @@ export async function ensureFinanceAccount(page: Page, accountName: string) {
     return;
   }
 
-  const accountForm = page.locator("form").first();
-  await accountForm.getByLabel(/Nombre|Name/).fill(accountName);
-  await accountForm.getByRole("button", { name: /Crear cuenta|Create account/ }).click();
+  const accountForm = page
+    .locator("form")
+    .filter({
+      has: page.getByRole("button", { name: /Crear cuenta|Create account/i }),
+    })
+    .first();
 
-  await expect(page.locator(".alert.alert-success")).toContainText(/Cuenta|Account/i);
+  await accountForm
+    .locator(".app-form-field")
+    .filter({ hasText: /Nombre|Name/i })
+    .first()
+    .locator("input.form-control")
+    .fill(accountName);
+
+  const codeField = accountForm
+    .locator(".app-form-field")
+    .filter({ hasText: /Código|Code/i })
+    .first()
+    .locator("input.form-control");
+  await codeField.fill(`E2E-${Date.now()}`);
+
+  await accountForm.getByRole("button", { name: /Crear cuenta|Create account/ }).click();
   await expect(page.getByText(accountName)).toBeVisible();
 }
 

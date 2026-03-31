@@ -70,7 +70,9 @@ async function ensurePlatformTenantsPage(page: Page) {
 
 async function selectTenant(page: Page, tenantSlug: string) {
   await ensurePlatformTenantsPage(page);
-  await page.locator("input.form-control").first().fill(tenantSlug);
+  await page
+    .getByPlaceholder(/Buscar por nombre, slug o tipo|Search by name, slug or type/i)
+    .fill(tenantSlug);
 
   const tenantListItem = page
     .locator("button.tenant-list__item")
@@ -79,6 +81,7 @@ async function selectTenant(page: Page, tenantSlug: string) {
 
   await expect(tenantListItem).toBeVisible();
   await tenantListItem.click();
+  await expect(tenantListItem).toHaveClass(/is-selected/);
 }
 
 async function updateFinanceEntriesLimit(page: Page, tenantSlug: string, value: string) {
@@ -92,9 +95,10 @@ async function updateFinanceEntriesLimit(page: Page, tenantSlug: string, value: 
     .first();
 
   const financeEntriesLimitRow = moduleLimitsForm
-    .locator(".tenant-module-limit-row")
-    .filter({ hasText: "finance.entries" })
-    .first();
+    .locator("code")
+    .filter({ hasText: /^finance\.entries$/ })
+    .first()
+    .locator('xpath=ancestor::*[contains(@class,"tenant-module-limit-row")][1]');
 
   await expect(financeEntriesLimitRow).toBeVisible();
   await financeEntriesLimitRow.locator('input[type="number"]').fill(value);
@@ -116,6 +120,21 @@ async function updateFinanceEntriesLimit(page: Page, tenantSlug: string, value: 
       .filter({ hasText: /Límites por módulo|Module limits/i })
       .first()
   ).toContainText(/actualizados|updated/i);
+
+  await selectTenant(page, tenantSlug);
+  const financeEntriesInput = page
+    .locator("form.tenant-action-form")
+    .filter({
+      has: page.getByRole("heading", { name: /Límites por módulo|Module limits/i }),
+    })
+    .first()
+    .locator("code")
+    .filter({ hasText: /^finance\.entries$/ })
+    .first()
+    .locator('xpath=ancestor::*[contains(@class,"tenant-module-limit-row")][1]')
+    .locator('input[type="number"]');
+
+  await expect(financeEntriesInput).toHaveValue(value);
 }
 
 test("tenant portal finance shows limit enforcement when entries quota is exhausted", async ({
