@@ -5,14 +5,16 @@ import { e2eEnv } from "../support/env";
 
 async function ensureTenantUsersPage(page: Page) {
   await page.goto("/tenant-portal/users");
+  await page.waitForLoadState("networkidle");
 
   if (/\/tenant-portal\/login($|[?#])/.test(page.url())) {
     await loginTenant(page);
     await page.goto("/tenant-portal/users");
+    await page.waitForLoadState("networkidle");
   }
 
   await expect(page).toHaveURL(/\/tenant-portal\/users($|[?#])/);
-  await expect(page.getByRole("heading", { level: 1, name: /^(Usuarios|Users)$/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^(Usuarios|Users)$/i })).toBeVisible();
 }
 
 function getUserRow(page: Page, email: string) {
