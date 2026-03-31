@@ -26,6 +26,12 @@ type ProvisioningDispatchInfo = {
   redisUrl: string;
 };
 
+type TenantModuleLimitMutation = {
+  tenantSlug: string;
+  moduleKey: string;
+  value: number | null;
+};
+
 function getRepoRoot() {
   const currentFilePath = fileURLToPath(import.meta.url);
   const currentDirPath = path.dirname(currentFilePath);
@@ -208,4 +214,62 @@ finally:
   ]);
 
   return JSON.parse(output) as SeededProvisioningJob;
+}
+
+export function setTenantModuleLimit({
+  tenantSlug,
+  moduleKey,
+  value,
+}: TenantModuleLimitMutation) {
+  const script = `
+import json
+import sys
+
+from app.common.db.control_database import ControlSessionLocal
+from app.apps.platform_control.models.tenant import Tenant
+from app.apps.platform_control.services.tenant_service import TenantService
+
+tenant_slug = sys.argv[1]
+module_key = sys.argv[2]
+raw_value = sys.argv[3]
+value = None if raw_value == "__NONE__" else int(raw_value)
+
+db = ControlSessionLocal()
+service = TenantService()
+try:
+    tenant = db.query(Tenant).filter(Tenant.slug == tenant_slug).first()
+    if tenant is None:
+        raise SystemExit(f"Tenant not found: {tenant_slug}")
+
+    current_limits = service.get_tenant_module_limits(tenant) or {}
+    next_limits = dict(current_limits)
+    if value is None:
+        next_limits.pop(module_key, None)
+    else:
+        next_limits[module_key] = value
+
+    updated = service.set_module_limits(
+        db=db,
+        tenant_id=tenant.id,
+        module_limits=next_limits,
+    )
+
+    print(json.dumps({
+        "tenantSlug": updated.slug,
+        "moduleLimits": service.get_tenant_module_limits(updated) or {},
+    }))
+finally:
+    db.close()
+`;
+
+  const output = runBackendPython(script, [
+    tenantSlug,
+    moduleKey,
+    value === null ? "__NONE__" : String(value),
+  ]);
+
+  return JSON.parse(output) as {
+    tenantSlug: string;
+    moduleLimits: Record<string, number>;
+  };
 }

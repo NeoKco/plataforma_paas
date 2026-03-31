@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
-import { loginPlatform, loginTenant } from "../support/auth";
+import { loginTenant } from "../support/auth";
+import { setTenantModuleLimit } from "../support/backend-control";
 import { e2eEnv } from "../support/env";
 import {
   createBasicExpenseTransaction,
@@ -55,96 +56,17 @@ async function ensureTenantPortalSession(page: Page, options?: { forceFreshLogin
   await expect(page).toHaveURL(/\/tenant-portal($|[/?#])/);
 }
 
-async function ensurePlatformTenantsPage(page: Page) {
-  await page.goto("/tenants");
-  if (/\/login($|[?#])/.test(page.url())) {
-    await loginPlatform(page);
-    await page.goto("/tenants");
-  }
-
-  await expect(page).toHaveURL(/\/tenants$/);
-  await expect(
-    page.getByRole("heading", { name: "Tenants", exact: true })
-  ).toBeVisible();
-}
-
-async function selectTenant(page: Page, tenantSlug: string) {
-  await ensurePlatformTenantsPage(page);
-  await page
-    .getByPlaceholder(/Buscar por nombre, slug o tipo|Search by name, slug or type/i)
-    .fill(tenantSlug);
-
-  const tenantListItem = page
-    .locator("button.tenant-list__item")
-    .filter({ hasText: tenantSlug })
-    .first();
-
-  await expect(tenantListItem).toBeVisible();
-  await tenantListItem.click();
-  await expect(tenantListItem).toHaveClass(/is-selected/);
-}
-
-async function updateFinanceEntriesLimit(page: Page, tenantSlug: string, value: string) {
-  await selectTenant(page, tenantSlug);
-
-  const moduleLimitsForm = page
-    .locator("form.tenant-action-form")
-    .filter({
-      has: page.getByRole("heading", { name: /Límites por módulo|Module limits/i }),
-    })
-    .first();
-
-  const financeEntriesLimitRow = moduleLimitsForm
-    .locator("code")
-    .filter({ hasText: /^finance\.entries$/ })
-    .first()
-    .locator('xpath=ancestor::*[contains(@class,"tenant-module-limit-row")][1]');
-
-  await expect(financeEntriesLimitRow).toBeVisible();
-  await financeEntriesLimitRow.locator('input[type="number"]').fill(value);
-  await moduleLimitsForm
-    .getByRole("button", { name: /Actualizar límites por módulo|Update module limits/i })
-    .click();
-
-  const confirmDialog = page.getByRole("dialog");
-  await expect(confirmDialog).toBeVisible();
-  await confirmDialog
-    .getByRole("button", {
-      name: /Actualizar límites por módulo|Update module limits/i,
-    })
-    .click();
-
-  await expect(
-    page
-      .locator(".tenant-action-feedback--success")
-      .filter({ hasText: /Límites por módulo|Module limits/i })
-      .first()
-  ).toContainText(/actualizados|updated/i);
-
-  await selectTenant(page, tenantSlug);
-  const financeEntriesInput = page
-    .locator("form.tenant-action-form")
-    .filter({
-      has: page.getByRole("heading", { name: /Límites por módulo|Module limits/i }),
-    })
-    .first()
-    .locator("code")
-    .filter({ hasText: /^finance\.entries$/ })
-    .first()
-    .locator('xpath=ancestor::*[contains(@class,"tenant-module-limit-row")][1]')
-    .locator('input[type="number"]');
-
-  await expect(financeEntriesInput).toHaveValue(value);
-}
-
 test("tenant portal finance shows limit enforcement when entries quota is exhausted", async ({
   page,
 }) => {
   const seedDescription = `e2e-finance-seed-${Date.now()}`;
   const uniqueDescription = `e2e-finance-limit-${Date.now()}`;
 
-  await loginPlatform(page);
-  await updateFinanceEntriesLimit(page, e2eEnv.tenant.slug, "");
+  setTenantModuleLimit({
+    tenantSlug: e2eEnv.tenant.slug,
+    moduleKey: "finance.entries",
+    value: null,
+  });
 
   await ensureTenantPortalSession(page);
   await openFinanceTransactionsPage(page);
@@ -153,7 +75,12 @@ test("tenant portal finance shows limit enforcement when entries quota is exhaus
   await createBasicExpenseTransaction(page, seedDescription);
   const exhaustedLimit = String(usedEntriesBefore + 1);
 
-  await updateFinanceEntriesLimit(page, e2eEnv.tenant.slug, exhaustedLimit);
+  const appliedLimit = setTenantModuleLimit({
+    tenantSlug: e2eEnv.tenant.slug,
+    moduleKey: "finance.entries",
+    value: Number(exhaustedLimit),
+  });
+  expect(appliedLimit.moduleLimits["finance.entries"]).toBe(Number(exhaustedLimit));
 
   try {
     await ensureTenantPortalSession(page, { forceFreshLogin: true });
@@ -201,6 +128,11 @@ test("tenant portal finance shows limit enforcement when entries quota is exhaus
 
     await expect(getTransactionRowByDescription(page, uniqueDescription)).toHaveCount(0);
   } finally {
-    await updateFinanceEntriesLimit(page, e2eEnv.tenant.slug, "");
+    const clearedLimit = setTenantModuleLimit({
+      tenantSlug: e2eEnv.tenant.slug,
+      moduleKey: "finance.entries",
+      value: null,
+    });
+    expect(clearedLimit.moduleLimits["finance.entries"]).toBeUndefined();
   }
 });
