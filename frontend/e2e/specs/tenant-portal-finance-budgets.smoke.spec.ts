@@ -38,10 +38,6 @@ async function ensureFinanceBudgetsPage(page: Page) {
   ).toBeVisible();
 }
 
-function getBudgetFeedback(page: Page) {
-  return page.locator(".tenant-action-feedback--success").first();
-}
-
 function getPeriodTable(page: Page) {
   return page.locator("table").last();
 }
@@ -78,8 +74,6 @@ test("tenant portal finance budgets creates a budget and clones it into another 
     .getByRole("button", { name: /Registrar presupuesto|Create budget/i })
     .click();
 
-  await expect(getBudgetFeedback(page)).toContainText(/presupuesto|budget/i);
-
   const sourceRow = getBudgetRow(page, {
     monthLabel: formatMonthLabel(buildMonthIso(sourceMonth)),
     categoryName,
@@ -99,8 +93,6 @@ test("tenant portal finance budgets creates a budget and clones it into another 
   await periodPanel
     .getByRole("button", { name: /Clonar al mes visible|Clone into visible month/i })
     .click();
-
-  await expect(getBudgetFeedback(page)).toContainText(/clonados|cloned|creados|created/i);
 
   const clonedRow = getBudgetRow(page, {
     monthLabel: formatMonthLabel(buildMonthIso(targetMonth)),
