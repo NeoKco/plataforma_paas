@@ -130,7 +130,7 @@ test("tenant portal finance blocks income creation when monthly income quota is 
   );
 
   try {
-    await ensureTenantPortalSession(page, { forceFreshLogin: true });
+    await ensureTenantPortalSession(page);
     await openFinanceTransactionsPage(page);
     await expectBlockedTypeTransaction(page, {
       transactionType: "income",
@@ -176,7 +176,7 @@ test("tenant portal finance blocks expense creation when monthly expense quota i
   );
 
   try {
-    await ensureTenantPortalSession(page, { forceFreshLogin: true });
+    await ensureTenantPortalSession(page);
     await openFinanceTransactionsPage(page);
     await expectBlockedTypeTransaction(page, {
       transactionType: "expense",
