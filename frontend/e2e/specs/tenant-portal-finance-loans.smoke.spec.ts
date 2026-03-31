@@ -33,6 +33,30 @@ function getLoanRow(page: Page, name: string) {
   return page.locator("tbody tr").filter({ hasText: name }).first();
 }
 
+function getSchedulePanel(page: Page) {
+  return page
+    .locator(".panel-card")
+    .filter({ has: page.getByText(/Cronograma del préstamo|Loan schedule/i) })
+    .first();
+}
+
+async function openLoanSchedule(page: Page, loanName: string) {
+  const loanRow = getLoanRow(page, loanName);
+  await expect(loanRow).toBeVisible();
+
+  const scheduleButton = loanRow.getByRole("button", { name: /Cronograma|Schedule/i });
+  const hideButton = loanRow.getByRole("button", { name: /Ocultar|Hide/i });
+
+  if (await scheduleButton.count()) {
+    await scheduleButton.click();
+  } else {
+    await expect(hideButton).toBeVisible();
+  }
+
+  await expect(page.getByText(loanName, { exact: true })).toBeVisible();
+  await expect(getSchedulePanel(page)).toBeVisible();
+}
+
 test("tenant portal finance loans creates a loan and records a simple installment payment", async ({
   page,
 }) => {
@@ -77,10 +101,9 @@ test("tenant portal finance loans creates a loan and records a simple installmen
   await expect(loanRow).toContainText(/abierto|open/i);
   await expect(loanRow).toContainText(/0\/3/);
 
-  await loanRow.getByRole("button", { name: /Cronograma|Schedule/i }).click();
-  await expect(page.getByText(loanName, { exact: true })).toBeVisible();
+  await openLoanSchedule(page, loanName);
 
-  const scheduleTable = page.locator("table").nth(1);
+  const scheduleTable = getSchedulePanel(page).locator("table").first();
   const firstInstallmentRow = scheduleTable.locator("tbody tr").first();
   await expect(firstInstallmentRow).toBeVisible();
   await firstInstallmentRow.getByRole("button", { name: /Registrar pago|Record payment/i }).click();

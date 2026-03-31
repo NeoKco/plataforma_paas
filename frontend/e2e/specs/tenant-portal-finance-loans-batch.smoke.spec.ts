@@ -44,6 +44,23 @@ function getScheduleTable(page: Page) {
   return getSchedulePanel(page).locator("table").first();
 }
 
+async function openLoanSchedule(page: Page, loanName: string) {
+  const loanRow = getLoanRow(page, loanName);
+  await expect(loanRow).toBeVisible();
+
+  const scheduleButton = loanRow.getByRole("button", { name: /Cronograma|Schedule/i });
+  const hideButton = loanRow.getByRole("button", { name: /Ocultar|Hide/i });
+
+  if (await scheduleButton.count()) {
+    await scheduleButton.click();
+  } else {
+    await expect(hideButton).toBeVisible();
+  }
+
+  await expect(page.getByText(loanName, { exact: true })).toBeVisible();
+  await expect(getScheduleTable(page)).toBeVisible();
+}
+
 async function createLoanAndOpenSchedule(page: Page, loanName: string) {
   await ensureFinanceLoansPage(page);
 
@@ -79,12 +96,7 @@ async function createLoanAndOpenSchedule(page: Page, loanName: string) {
 
   await expect(getLoanFeedback(page)).toContainText(/pr[eé]stamo|loan/i);
 
-  const loanRow = getLoanRow(page, loanName);
-  await expect(loanRow).toBeVisible();
-  await loanRow.getByRole("button", { name: /Cronograma|Schedule/i }).click();
-
-  await expect(page.getByText(loanName, { exact: true })).toBeVisible();
-  await expect(getScheduleTable(page)).toBeVisible();
+  await openLoanSchedule(page, loanName);
 }
 
 function getInstallmentRows(page: Page) {
