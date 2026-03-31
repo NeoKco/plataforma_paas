@@ -52,12 +52,11 @@ test("platform admin can review and reconcile a tenant billing event", async ({ 
     .filter({ hasText: /Filtros de facturación|Billing filters/i })
     .first();
 
-  await billingFilters
-    .getByRole("combobox", { name: /^Tenant$/i })
-    .selectOption(String(seededEvent.tenantId));
-  await billingFilters
-    .getByRole("combobox", { name: /Proveedor|Provider/i })
-    .selectOption("stripe");
+  const tenantSelect = billingFilters.locator("select.form-select").nth(0);
+  const providerSelect = billingFilters.locator("select.form-select").nth(1);
+
+  await tenantSelect.selectOption(String(seededEvent.tenantId));
+  await providerSelect.selectOption("stripe");
   await billingFilters
     .getByRole("textbox", { name: /Tipo de evento|Event type/i })
     .fill("invoice.payment_failed");
