@@ -27,6 +27,77 @@ async function ensureFinanceBudgetsPage(page: Page) {
   ).toBeVisible();
 }
 
+async function ensureFinanceCategoriesPage(page: Page) {
+  await page.goto("/tenant-portal/finance/categories");
+  await page.waitForLoadState("networkidle");
+
+  if (/\/tenant-portal\/login($|[?#])/.test(page.url())) {
+    await loginTenant(page);
+    await page.goto("/tenant-portal/finance/categories");
+    await page.waitForLoadState("networkidle");
+  }
+
+  await expect(page).toHaveURL(/\/tenant-portal\/finance\/categories($|[/?#])/);
+  await expect(
+    page.getByRole("heading", {
+      name: /Categorías|Categories/,
+    })
+  ).toBeVisible();
+}
+
+function getCategoryRow(page: Page, categoryName: string) {
+  return page.locator("tbody tr").filter({ hasText: categoryName }).first();
+}
+
+async function createBudgetCategory(page: Page, categoryName: string) {
+  await ensureFinanceCategoriesPage(page);
+
+  const form = page
+    .locator("form")
+    .filter({
+      has: page.getByRole("button", { name: /Crear categoría|Create category/i }),
+    })
+    .first();
+
+  await form
+    .locator(".app-form-field")
+    .filter({ hasText: /Nombre|Name/i })
+    .first()
+    .locator("input.form-control")
+    .fill(categoryName);
+  await form
+    .locator(".app-form-field")
+    .filter({ hasText: /Tipo|Type/i })
+    .first()
+    .locator("select.form-select")
+    .selectOption("expense");
+  await form
+    .locator(".app-form-field")
+    .filter({ hasText: /Color|Color/i })
+    .first()
+    .locator("input.form-control")
+    .fill("#0ea5e9");
+
+  await form.getByRole("button", { name: /Crear categoría|Create category/i }).click();
+  await expect(getCategoryRow(page, categoryName)).toBeVisible();
+}
+
+async function deactivateBudgetCategory(page: Page, categoryName: string) {
+  await ensureFinanceCategoriesPage(page);
+  const categoryRow = getCategoryRow(page, categoryName);
+  if ((await categoryRow.count()) === 0) {
+    return;
+  }
+  const deactivateButton = categoryRow.getByRole("button", {
+    name: /Desactivar|Deactivate/i,
+  });
+  if ((await deactivateButton.count()) === 0) {
+    return;
+  }
+  await deactivateButton.click();
+  await expect(categoryRow).toContainText(/inactiva|inactive/i);
+}
+
 function getPeriodTable(page: Page) {
   return page.locator("table").last();
 }
@@ -45,45 +116,48 @@ test("tenant portal finance budgets creates a budget and clones it into another 
   const targetMonth = buildMonthValue(11);
   const budgetAmount = "54321";
   const budgetNote = `Presupuesto E2E ${Date.now()}`;
+  const categoryName = `e2e-budget-category-${Date.now()}`;
 
-  await ensureFinanceBudgetsPage(page);
+  try {
+    await createBudgetCategory(page, categoryName);
+    await ensureFinanceBudgetsPage(page);
 
-  const createForm = page.locator("form").first();
-  const categorySelect = createForm.locator("select.form-select").first();
-  const selectedCategoryLabel = (
-    await categorySelect.locator("option:checked").first().innerText()
-  ).trim();
-  const categoryName = selectedCategoryLabel.split("·")[0].trim();
+    const createForm = page.locator("form").first();
+    const categorySelect = createForm.locator("select.form-select").first();
 
-  await createForm.locator('input[type="month"]').first().fill(sourceMonth);
-  await createForm.locator('input[type="number"]').first().fill(budgetAmount);
-  await createForm.locator("textarea.form-control").fill(budgetNote);
-  await createForm
-    .getByRole("button", { name: /Registrar presupuesto|Create budget/i })
-    .click();
+    await createForm.locator('input[type="month"]').first().fill(sourceMonth);
+    await categorySelect.selectOption({ label: new RegExp(categoryName, "i") });
+    await createForm.locator('input[type="number"]').first().fill(budgetAmount);
+    await createForm.locator("textarea.form-control").fill(budgetNote);
+    await createForm
+      .getByRole("button", { name: /Registrar presupuesto|Create budget/i })
+      .click();
 
-  const sourceRow = getBudgetRow(page, {
-    categoryName,
-  });
-  await expect(sourceRow).toBeVisible();
-  await expect(sourceRow).toContainText(/sin ejecución|unused|dentro del presupuesto|within budget/i);
+    const sourceRow = getBudgetRow(page, {
+      categoryName,
+    });
+    await expect(sourceRow).toBeVisible();
+    await expect(sourceRow).toContainText(/sin ejecución|unused|dentro del presupuesto|within budget/i);
 
-  const periodPanel = page
-    .locator(".panel-card")
-    .filter({
-      has: page.getByText(/Lectura del período|Period view/i),
-    })
-    .first();
+    const periodPanel = page
+      .locator(".panel-card")
+      .filter({
+        has: page.getByText(/Lectura del período|Period view/i),
+      })
+      .first();
 
-  await periodPanel.locator('input[type="month"]').first().fill(targetMonth);
-  await periodPanel.locator('input[type="month"]').nth(1).fill(sourceMonth);
-  await periodPanel
-    .getByRole("button", { name: /Clonar al mes visible|Clone into visible month/i })
-    .click();
+    await periodPanel.locator('input[type="month"]').first().fill(targetMonth);
+    await periodPanel.locator('input[type="month"]').nth(1).fill(sourceMonth);
+    await periodPanel
+      .getByRole("button", { name: /Clonar al mes visible|Clone into visible month/i })
+      .click();
 
-  const clonedRow = getBudgetRow(page, {
-    categoryName,
-  });
-  await expect(clonedRow).toBeVisible();
-  await expect(clonedRow).toContainText(/sin ejecución|unused|dentro del presupuesto|within budget/i);
+    const clonedRow = getBudgetRow(page, {
+      categoryName,
+    });
+    await expect(clonedRow).toBeVisible();
+    await expect(clonedRow).toContainText(/sin ejecución|unused|dentro del presupuesto|within budget/i);
+  } finally {
+    await deactivateBudgetCategory(page, categoryName);
+  }
 });

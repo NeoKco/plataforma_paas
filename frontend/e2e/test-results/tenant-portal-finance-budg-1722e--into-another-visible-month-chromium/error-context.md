@@ -88,7 +88,7 @@
             - text: Configuración
         - generic [ref=e94]:
           - strong [ref=e95]: "Presupuestos:"
-          - text: "Ya existe un presupuesto para esa categoria en el periodo indicado (request_id: cf321148-4c62-4078-b5ff-898ea410405c)"
+          - text: "Ya existe un presupuesto para esa categoria en el periodo indicado (request_id: 3cdb0a92-f921-488a-aedd-26cbcc73902d)"
         - generic [ref=e96]:
           - generic [ref=e99]:
             - img [ref=e101]
@@ -192,7 +192,7 @@
                     - option "No"
               - generic [ref=e197]:
                 - generic [ref=e198]: Nota
-                - 'textbox "Ej: tope aprobado para marketing de marzo" [ref=e199]': Presupuesto E2E 1774965337338
+                - 'textbox "Ej: tope aprobado para marketing de marzo" [ref=e199]': Presupuesto E2E 1774965453230
               - button "Registrar presupuesto" [ref=e201] [cursor=pointer]
           - generic [ref=e202]:
             - generic [ref=e205]:
