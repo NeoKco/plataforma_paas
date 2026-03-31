@@ -1,0 +1,196 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e8]: Platform PaaS
+      - generic [ref=e9]: Portal Tenant
+    - navigation [ref=e10]:
+      - link "Resumen" [ref=e11] [cursor=pointer]:
+        - /url: /tenant-portal
+        - img [ref=e13]
+        - text: Resumen
+      - link "Usuarios" [ref=e18] [cursor=pointer]:
+        - /url: /tenant-portal/users
+        - img [ref=e20]
+        - text: Usuarios
+      - link "Finanzas" [ref=e25] [cursor=pointer]:
+        - /url: /tenant-portal/finance
+        - img [ref=e27]
+        - text: Finanzas
+  - generic [ref=e28]:
+    - banner [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]: Espacio Tenant
+        - generic [ref=e32]: e2e-tenant-limit-1774923276292
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: Idioma
+          - combobox "Idioma" [ref=e36]:
+            - option "Español" [selected]
+            - option "English"
+        - link "Volver a plataforma" [ref=e37] [cursor=pointer]:
+          - /url: /login
+        - generic [ref=e38]:
+          - generic [ref=e39]: Tenant Admin
+          - generic [ref=e40]: admin
+        - button "Salir" [ref=e41] [cursor=pointer]
+    - main [ref=e42]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - img [ref=e47]
+            - generic [ref=e52]:
+              - generic [ref=e53]: Espacio
+              - heading "E2E Tenant Limit 1774923276292" [level=1] [ref=e54]
+              - paragraph [ref=e55]: Vista general del estado actual de tu espacio, sus límites efectivos y los módulos disponibles.
+          - button "Recargar" [ref=e58] [cursor=pointer]
+        - generic [ref=e59]:
+          - generic [ref=e62]:
+            - img [ref=e64]
+            - generic [ref=e67]: "0"
+            - generic [ref=e68]: Módulos habilitados
+            - generic [ref=e69]: Cantidad activa hoy
+          - generic [ref=e72]:
+            - img [ref=e74]
+            - generic [ref=e77]: "0"
+            - generic [ref=e78]: Claves de límites
+            - generic [ref=e79]: Cuotas con regla efectiva
+          - generic [ref=e82]:
+            - img [ref=e84]
+            - generic [ref=e85]: "0"
+            - generic [ref=e86]: Lecturas rpm efectivas
+            - generic [ref=e87]: Límite vigente de lectura
+          - generic [ref=e90]:
+            - img [ref=e92]
+            - generic [ref=e94]: "0"
+            - generic [ref=e95]: Escrituras rpm efectivas
+            - generic [ref=e96]: Límite vigente de escritura
+        - generic [ref=e97]:
+          - generic [ref=e99]:
+            - img [ref=e101]
+            - generic [ref=e104]:
+              - heading "Postura del tenant" [level=2] [ref=e105]
+              - paragraph [ref=e106]: Estado operativo actual aplicado a tu espacio.
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - generic [ref=e110]: Slug
+              - code [ref=e112]: e2e-tenant-limit-1774923276292
+            - generic [ref=e113]:
+              - generic [ref=e114]: Tipo de tenant
+              - generic [ref=e115]: Empresa
+            - generic [ref=e116]:
+              - generic [ref=e117]: Ciclo de vida
+              - generic [ref=e119]: activo
+            - generic [ref=e120]:
+              - generic [ref=e121]: Facturación
+              - generic [ref=e123]: sin dato
+            - generic [ref=e124]:
+              - generic [ref=e125]: Plan
+              - generic [ref=e126]: sin plan
+            - generic [ref=e127]:
+              - generic [ref=e128]: Acceso
+              - generic [ref=e129]: permitido
+            - generic [ref=e130]:
+              - generic [ref=e131]: Mantenimiento
+              - generic [ref=e132]: apagado
+            - generic [ref=e133]:
+              - generic [ref=e134]: Gracia billing
+              - generic [ref=e135]: "no"
+        - generic [ref=e136]:
+          - generic [ref=e137]:
+            - generic [ref=e139]:
+              - img [ref=e141]
+              - heading "Módulos habilitados" [level=2] [ref=e145]
+            - generic [ref=e148]:
+              - generic [ref=e149]: Sin datos
+              - heading "Todavía no hay módulos habilitados" [level=3] [ref=e150]
+              - paragraph [ref=e151]: Este tenant aún no tiene módulos efectivos para operar desde el portal.
+          - generic [ref=e152]:
+            - generic [ref=e154]:
+              - img [ref=e156]
+              - heading "Usuario actual" [level=2] [ref=e162]
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - generic [ref=e166]: Email
+                - generic [ref=e167]: admin@e2e-tenant-limit-1774923276292.local
+              - generic [ref=e168]:
+                - generic [ref=e169]: Rol
+                - generic [ref=e170]: administrador
+              - generic [ref=e171]:
+                - generic [ref=e172]: ID usuario
+                - generic [ref=e173]: "1"
+              - generic [ref=e174]:
+                - generic [ref=e175]: Alcance del token
+                - generic [ref=e176]: tenant
+        - generic [ref=e177]:
+          - generic [ref=e179]:
+            - heading "Uso por módulo" [level=2] [ref=e181]
+            - generic [ref=e182]: 6 filas
+          - table [ref=e184]:
+            - rowgroup [ref=e185]:
+              - row "Clave de módulo Usado Límite Restante Fuente Estado" [ref=e186]:
+                - columnheader "Clave de módulo" [ref=e187]
+                - columnheader "Usado" [ref=e188]
+                - columnheader "Límite" [ref=e189]
+                - columnheader "Restante" [ref=e190]
+                - columnheader "Fuente" [ref=e191]
+                - columnheader "Estado" [ref=e192]
+            - rowgroup [ref=e193]:
+              - row "core.users 1 ilimitado — ninguna ok" [ref=e194]:
+                - cell "core.users" [ref=e195]:
+                  - code [ref=e196]: core.users
+                - cell "1" [ref=e197]
+                - cell "ilimitado" [ref=e198]
+                - cell "—" [ref=e199]
+                - cell "ninguna" [ref=e200]
+                - cell "ok" [ref=e201]:
+                  - generic [ref=e202]: ok
+              - row "core.users.active 1 ilimitado — ninguna ok" [ref=e203]:
+                - cell "core.users.active" [ref=e204]:
+                  - code [ref=e205]: core.users.active
+                - cell "1" [ref=e206]
+                - cell "ilimitado" [ref=e207]
+                - cell "—" [ref=e208]
+                - cell "ninguna" [ref=e209]
+                - cell "ok" [ref=e210]:
+                  - generic [ref=e211]: ok
+              - row "core.users.monthly 1 ilimitado — ninguna ok" [ref=e212]:
+                - cell "core.users.monthly" [ref=e213]:
+                  - code [ref=e214]: core.users.monthly
+                - cell "1" [ref=e215]
+                - cell "ilimitado" [ref=e216]
+                - cell "—" [ref=e217]
+                - cell "ninguna" [ref=e218]
+                - cell "ok" [ref=e219]:
+                  - generic [ref=e220]: ok
+              - row "core.users.admin 1 ilimitado — ninguna ok" [ref=e221]:
+                - cell "core.users.admin" [ref=e222]:
+                  - code [ref=e223]: core.users.admin
+                - cell "1" [ref=e224]
+                - cell "ilimitado" [ref=e225]
+                - cell "—" [ref=e226]
+                - cell "ninguna" [ref=e227]
+                - cell "ok" [ref=e228]:
+                  - generic [ref=e229]: ok
+              - row "finance.entries 0 ilimitado — ninguna ok" [ref=e230]:
+                - cell "finance.entries" [ref=e231]:
+                  - code [ref=e232]: finance.entries
+                - cell "0" [ref=e233]
+                - cell "ilimitado" [ref=e234]
+                - cell "—" [ref=e235]
+                - cell "ninguna" [ref=e236]
+                - cell "ok" [ref=e237]:
+                  - generic [ref=e238]: ok
+              - row "finance.entries.monthly 0 ilimitado — ninguna ok" [ref=e239]:
+                - cell "finance.entries.monthly" [ref=e240]:
+                  - code [ref=e241]: finance.entries.monthly
+                - cell "0" [ref=e242]
+                - cell "ilimitado" [ref=e243]
+                - cell "—" [ref=e244]
+                - cell "ninguna" [ref=e245]
+                - cell "ok" [ref=e246]:
+                  - generic [ref=e247]: ok
+```

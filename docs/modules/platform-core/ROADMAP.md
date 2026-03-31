@@ -33,6 +33,7 @@ La base central ya es operable:
 - validación browser broker-only de requeue individual sobre filas DLQ desde `Provisioning`
 - validación browser broker-only de requeue batch sobre filas DLQ filtradas desde `Provisioning`
 - validación browser broker-only de filtros finos DLQ por texto de error y opciones de requeue desde `Provisioning`
+- validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 
 ## Próximo nivel recomendado
 

@@ -28,6 +28,7 @@ Resumen curado del bloque central.
 - smoke browser ampliado para validar el bloqueo visible del acceso rápido al `tenant_portal` cuando el tenant todavía no es elegible
 - smoke browser ampliado para verificar que los jobs nuevos aparezcan en `Provisioning`
 - smoke browser ampliado para ejecutar manualmente jobs `pending` desde `Provisioning`
+- smoke browser ampliado para validar enforcement visible de límites de usuarios activos en `tenant_portal`
 - smoke browser ampliado para reencolar jobs `failed` desde `Provisioning`
 - smoke browser ampliado para disparar `schema auto-sync` desde `Provisioning`
 - smoke browser broker-only agregado para reencolar individualmente filas DLQ desde `Provisioning`

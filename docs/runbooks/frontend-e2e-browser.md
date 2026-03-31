@@ -30,6 +30,7 @@ Archivos principales:
 - [platform-admin-provisioning-dlq-row.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts)
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
+- [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
@@ -51,6 +52,7 @@ Cobertura actual:
 - requeue batch de filas DLQ filtradas desde `Provisioning` cuando el backend usa broker
 - filtros finos DLQ por texto de error y revisión de `delay/reset attempts` antes del requeue individual cuando el backend usa broker
 - login `tenant_portal`
+- enforcement visible de límites de usuarios activos en `tenant_portal`
 - alta básica de una transacción en `finance`
 - carga de adjunto sobre transacción creada en `finance`
 - anulación básica de una transacción creada en `finance`
@@ -106,6 +108,8 @@ npm run e2e:tenant
 
 Eso permite validar primero la consola de plataforma y después el flujo tenant con credenciales correctas del entorno.
 
+`npm run e2e:tenant` ya ejecuta todo `tenant-portal*.spec.ts`, incluyendo el smoke de límites y los smokes de `finance`.
+
 Resultado validado en local a la fecha:
 
 - `platform_admin` smoke pasando
@@ -119,6 +123,7 @@ Resultado validado en local a la fecha:
 - `Provisioning` ya tiene además un smoke broker-only para reencolar una fila DLQ individual desde la tabla de resultados
 - `Provisioning` ya tiene además un smoke broker-only para reencolar filas DLQ filtradas en lote
 - `Provisioning` ya tiene además un smoke broker-only para validar filtros DLQ por `error contains` y confirmar opciones de requeue individual
+- `tenant_portal` ya cubre además enforcement visible de límites de usuarios activos con un tenant de prueba provisionado durante el smoke
 - `tenant_portal` con `empresa-demo` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
 
@@ -161,7 +166,7 @@ Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son
 - archive / restore tenant
 - provisioning más profundo desde `platform_admin` (DLQ individual, variaciones de filtros o delay)
 - cuentas y categorías básicas en `finance`
-- creación de usuario tenant y enforcement de límites
+- más enforcement visible de límites y creación de usuario tenant en escenarios adicionales
 
 Nota operativa del smoke `retry`:
 

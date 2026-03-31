@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "e2e": "playwright test",
     "e2e:platform": "playwright test e2e/specs/platform-admin*.spec.ts",
-    "e2e:tenant": "playwright test e2e/specs/tenant-portal-finance.smoke.spec.ts",
+    "e2e:tenant": "playwright test e2e/specs/tenant-portal*.spec.ts",
     "e2e:headed": "playwright test --headed",
     "e2e:ui": "playwright test --ui",
     "e2e:report": "playwright show-report e2e/playwright-report",
