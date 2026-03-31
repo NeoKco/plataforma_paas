@@ -47,10 +47,21 @@ test("platform admin can review and reconcile a tenant billing event", async ({ 
     page.locator("h1.page-title").filter({ hasText: /Facturación|Billing/i })
   ).toBeVisible();
 
-  await page.locator("select.form-select").first().selectOption({ label: `${tenantName} (${tenantSlug})` });
-  await page.getByRole("combobox", { name: /Proveedor|Provider/i }).selectOption("stripe");
-  await page.getByRole("textbox", { name: /Tipo de evento|Event type/i }).fill("invoice.payment_failed");
-  await page.getByRole("button", { name: /Aplicar filtros|Apply filters/i }).click();
+  const billingFilters = page
+    .locator(".panel-card")
+    .filter({ hasText: /Filtros de facturación|Billing filters/i })
+    .first();
+
+  await billingFilters
+    .getByRole("combobox", { name: /^Tenant$/i })
+    .selectOption({ label: `${tenantName} (${tenantSlug})` });
+  await billingFilters
+    .getByRole("combobox", { name: /Proveedor|Provider/i })
+    .selectOption("stripe");
+  await billingFilters
+    .getByRole("textbox", { name: /Tipo de evento|Event type/i })
+    .fill("invoice.payment_failed");
+  await billingFilters.getByRole("button", { name: /Aplicar filtros|Apply filters/i }).click();
 
   await expect(
     page
