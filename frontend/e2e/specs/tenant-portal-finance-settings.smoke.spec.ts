@@ -13,7 +13,10 @@ async function ensureFinanceSettingsPage(page: Page) {
 
   await expect(page).toHaveURL(/\/tenant-portal\/finance\/settings($|[/?#])/);
   await expect(
-    page.getByRole("heading", { name: /Configuración financiera|Financial settings/i })
+    page.getByRole("heading", {
+      level: 1,
+      name: /Configuración financiera|Financial settings/i,
+    })
   ).toBeVisible();
 }
 

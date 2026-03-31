@@ -69,9 +69,10 @@ export async function loginTenant(page: Page) {
 
   await expect(page).toHaveURL(/\/tenant-portal($|[#?])/);
   await expect(
-    page.getByRole("heading", {
-      name: /Módulos habilitados|Enabled modules/,
-    })
+    page
+      .locator(".panel-card")
+      .filter({ hasText: /Módulos habilitados|Enabled modules/i })
+      .first()
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: /Finanzas|Finance/ })
