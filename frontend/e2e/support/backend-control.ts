@@ -20,6 +20,12 @@ type SeededProvisioningJob = {
   errorMessage: string;
 };
 
+type ProvisioningDispatchInfo = {
+  backendName: string;
+  brokerUrl: string;
+  redisUrl: string;
+};
+
 function getRepoRoot() {
   const currentFilePath = fileURLToPath(import.meta.url);
   const currentDirPath = path.dirname(currentFilePath);
@@ -88,6 +94,97 @@ try:
     db.add(job)
     db.commit()
     db.refresh(job)
+
+    print(json.dumps({
+        "jobId": job.id,
+        "tenantId": tenant.id,
+        "tenantSlug": tenant.slug,
+        "jobType": job.job_type,
+        "status": job.status,
+        "errorCode": job.error_code,
+        "errorMessage": job.error_message,
+    }))
+finally:
+    db.close()
+`;
+
+  const output = runBackendPython(script, [
+    tenantSlug,
+    jobType,
+    errorCode,
+    errorMessage,
+    String(maxAttempts),
+  ]);
+
+  return JSON.parse(output) as SeededProvisioningJob;
+}
+
+export function getProvisioningDispatchInfo(): ProvisioningDispatchInfo {
+  const script = `
+import json
+
+from app.common.config.settings import settings
+
+print(json.dumps({
+    "backendName": settings.PROVISIONING_DISPATCH_BACKEND,
+    "brokerUrl": settings.PROVISIONING_BROKER_URL,
+    "redisUrl": settings.REDIS_URL,
+}))
+`;
+
+  const output = runBackendPython(script, []);
+  return JSON.parse(output) as ProvisioningDispatchInfo;
+}
+
+export function seedProvisioningDeadLetterJob({
+  tenantSlug,
+  jobType = "sync_tenant_schema",
+  errorCode = "e2e_dlq_failed_job",
+  errorMessage = "E2E synthetic DLQ provisioning job",
+  maxAttempts = 3,
+}: FailedProvisioningJobSeed): SeededProvisioningJob {
+  const script = `
+import json
+import sys
+from datetime import datetime, timezone
+
+from app.common.config.settings import settings
+from app.common.db.control_database import ControlSessionLocal
+from app.apps.platform_control.models.tenant import Tenant
+from app.apps.platform_control.models.provisioning_job import ProvisioningJob
+from app.apps.provisioning.services.provisioning_dispatch_service import ProvisioningDispatchService
+
+tenant_slug = sys.argv[1]
+job_type = sys.argv[2]
+error_code = sys.argv[3]
+error_message = sys.argv[4]
+max_attempts = int(sys.argv[5])
+
+if settings.PROVISIONING_DISPATCH_BACKEND != "broker":
+    raise SystemExit("Provisioning dispatch backend is not broker")
+
+db = ControlSessionLocal()
+try:
+    tenant = db.query(Tenant).filter(Tenant.slug == tenant_slug).first()
+    if tenant is None:
+        raise SystemExit(f"Tenant not found: {tenant_slug}")
+
+    job = ProvisioningJob(
+        tenant_id=tenant.id,
+        job_type=job_type,
+        status="failed",
+        attempts=max_attempts,
+        max_attempts=max_attempts,
+        error_code=error_code,
+        error_message=error_message,
+        last_attempt_at=datetime.now(timezone.utc),
+        next_retry_at=None,
+    )
+    db.add(job)
+    db.commit()
+    db.refresh(job)
+
+    ProvisioningDispatchService().finalize_job(job=job)
 
     print(json.dumps({
         "jobId": job.id,

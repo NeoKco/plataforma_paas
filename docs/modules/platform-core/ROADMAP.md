@@ -28,10 +28,11 @@ La base central ya es operable:
 - validación browser de ejecución manual de jobs `pending` desde `Provisioning`
 - validación browser de requeue de jobs `failed` desde `Provisioning`
 - validación browser del disparo de `schema auto-sync` desde `Provisioning`
+- validación browser broker-only de requeue batch sobre filas DLQ filtradas desde `Provisioning`
 
 ## Próximo nivel recomendado
 
-- ampliar E2E browser a DLQ de provisioning y acceso tenant desde `Tenants`
+- ampliar E2E browser a DLQ individual/filtros más finos y acceso tenant desde `Tenants`
 - más regresión sobre provisioning y billing
 - seguir endureciendo copy, validaciones y observabilidad visible
 - mantener la política documental canónica al abrir más dominios

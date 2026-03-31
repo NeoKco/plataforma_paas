@@ -70,6 +70,7 @@ Smokes actuales del bloque central:
 - [platform-admin-provisioning-run-now.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-run-now.smoke.spec.ts)
 - [platform-admin-provisioning-retry.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-retry.smoke.spec.ts)
 - [platform-admin-schema-auto-sync.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-schema-auto-sync.smoke.spec.ts)
+- [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 
 Cobertura actual:
 
@@ -80,3 +81,4 @@ Cobertura actual:
 - ejecución manual de jobs `pending` desde `Provisioning`
 - requeue de jobs `failed` desde `Provisioning`
 - disparo de `schema auto-sync` desde `Provisioning` con confirmación y feedback visible
+- requeue batch de filas DLQ filtradas desde `Provisioning` en entornos con backend `broker`

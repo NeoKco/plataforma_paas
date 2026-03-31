@@ -25,6 +25,7 @@ Archivos principales:
 - [platform-admin-provisioning-run-now.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-run-now.smoke.spec.ts)
 - [platform-admin-provisioning-retry.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-retry.smoke.spec.ts)
 - [platform-admin-schema-auto-sync.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-schema-auto-sync.smoke.spec.ts)
+- [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
@@ -40,6 +41,7 @@ Cobertura actual:
 - ejecución manual de un job `pending` desde `Provisioning`
 - requeue de un job `failed` desde `Provisioning`
 - disparo de `schema auto-sync` desde `Provisioning`
+- requeue batch de filas DLQ filtradas desde `Provisioning` cuando el backend usa broker
 - login `tenant_portal`
 - alta básica de una transacción en `finance`
 - carga de adjunto sobre transacción creada en `finance`
@@ -104,6 +106,7 @@ Resultado validado en local a la fecha:
 - `Provisioning` validado también para ejecutar manualmente un job `pending` desde la consola
 - `Provisioning` validado también para reencolar un job `failed` desde la consola
 - `Provisioning` validado también para disparar `schema auto-sync` desde la toolbar
+- `Provisioning` ya tiene además un smoke broker-only para reencolar filas DLQ filtradas en lote
 - `tenant_portal` con `empresa-demo` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
 
@@ -145,7 +148,7 @@ Cuando este stack empiece a usarse de verdad, los siguientes specs correctos son
 
 - acceso rápido al `tenant_portal` desde `Tenants`
 - archive / restore tenant
-- provisioning más profundo desde `platform_admin` (DLQ)
+- provisioning más profundo desde `platform_admin` (DLQ individual, variaciones de filtros o delay)
 - cuentas y categorías básicas en `finance`
 - creación de usuario tenant y enforcement de límites
 
@@ -153,3 +156,8 @@ Nota operativa del smoke `retry`:
 
 - el spec crea un tenant de prueba y luego siembra un job `failed` controlado directamente en la DB de control para validar la recuperación visible sin depender de un fallo accidental del worker
 - por defecto usa `/home/felipe/platform_paas/platform_paas_venv/bin/python`; si tu entorno cambia, puedes sobreescribir `E2E_BACKEND_PYTHON`
+
+Nota operativa del smoke `DLQ`:
+
+- requiere `PROVISIONING_DISPATCH_BACKEND=broker`, porque la DLQ no existe operativamente sobre el backend `database`
+- cuando el entorno no soporta broker, el spec se omite sin romper la suite general

@@ -28,6 +28,7 @@ Resumen curado del bloque central.
 - smoke browser ampliado para ejecutar manualmente jobs `pending` desde `Provisioning`
 - smoke browser ampliado para reencolar jobs `failed` desde `Provisioning`
 - smoke browser ampliado para disparar `schema auto-sync` desde `Provisioning`
+- smoke browser broker-only agregado para reencolar en lote filas DLQ filtradas desde `Provisioning`
 
 ## Documentación
 
