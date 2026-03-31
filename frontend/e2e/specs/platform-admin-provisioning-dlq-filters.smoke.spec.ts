@@ -71,12 +71,16 @@ test("platform admin can filter DLQ rows by error text and review requeue option
     .getByRole("button", { name: /Aplicar filtros|Apply filters/i })
     .click();
 
-  const matchingRow = page
+  const dlqTable = page.locator(".panel-card.data-table-card").filter({
+    has: page.getByRole("heading", { name: /Filas DLQ|DLQ rows/i }),
+  });
+
+  const matchingRow = dlqTable
     .locator("tr")
     .filter({ hasText: `#${matchingJob.jobId}` })
     .first();
 
-  const otherRow = page
+  const otherRow = dlqTable
     .locator("tr")
     .filter({ hasText: `#${otherJob.jobId}` })
     .first();

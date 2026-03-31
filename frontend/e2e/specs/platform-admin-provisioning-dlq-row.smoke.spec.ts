@@ -60,7 +60,11 @@ test("platform admin can requeue an individual DLQ row from provisioning", async
     .getByRole("button", { name: /Aplicar filtros|Apply filters/i })
     .click();
 
-  const dlqRow = page
+  const dlqTable = page.locator(".panel-card.data-table-card").filter({
+    has: page.getByRole("heading", { name: /Filas DLQ|DLQ rows/i }),
+  });
+
+  const dlqRow = dlqTable
     .locator("tr")
     .filter({ hasText: `#${seededJob.jobId}` })
     .filter({ hasText: errorCode })
