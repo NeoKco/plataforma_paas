@@ -22,6 +22,7 @@ Archivos principales:
 - [platform-admin.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin.smoke.spec.ts)
 - [platform-admin-tenant-lifecycle.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-lifecycle.smoke.spec.ts)
 - [platform-admin-tenant-portal-access.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-portal-access.smoke.spec.ts)
+- [platform-admin-tenant-portal-blocked.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-portal-blocked.smoke.spec.ts)
 - [platform-admin-provisioning.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning.smoke.spec.ts)
 - [platform-admin-provisioning-run-now.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-run-now.smoke.spec.ts)
 - [platform-admin-provisioning-retry.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-retry.smoke.spec.ts)
@@ -38,6 +39,7 @@ Cobertura actual:
 - login `platform_admin`
 - navegación corta a `Tenants` y `Provisioning`
 - acceso rápido al `tenant_portal` desde `Tenants` con `slug` precargado
+- bloqueo visible del acceso rápido al `tenant_portal` cuando el tenant no está operativo para abrir portal
 - lifecycle básico de tenant en `platform_admin` con `create`, `archive` y `restore`
 - visibilidad de job nuevo en `Provisioning` después de crear tenant
 - ejecución manual de un job `pending` desde `Provisioning`
@@ -105,6 +107,7 @@ Resultado validado en local a la fecha:
 - `platform_admin` smoke pasando
 - `platform_admin` lifecycle tenant base pasando
 - acceso rápido desde `Tenants` al login de `tenant_portal` con `slug` precargado pasando
+- acceso rápido desde `Tenants` correctamente bloqueado cuando el tenant no está en estado elegible pasando
 - `Provisioning` validado al menos para visibilidad de jobs nuevos disparados desde `Tenants`
 - `Provisioning` validado también para ejecutar manualmente un job `pending` desde la consola
 - `Provisioning` validado también para reencolar un job `failed` desde la consola

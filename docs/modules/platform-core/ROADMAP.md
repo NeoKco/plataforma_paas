@@ -25,6 +25,7 @@ La base central ya es operable:
 - primer stack E2E browser base
 - smoke browser de `platform_admin` para `create`, `archive` y `restore`
 - validación browser del acceso rápido desde `Tenants` hacia `tenant_portal` con `slug` precargado
+- validación browser del bloqueo visible del acceso rápido al `tenant_portal` cuando el tenant aún no es elegible
 - validación browser de aparición de jobs nuevos en `Provisioning`
 - validación browser de ejecución manual de jobs `pending` desde `Provisioning`
 - validación browser de requeue de jobs `failed` desde `Provisioning`

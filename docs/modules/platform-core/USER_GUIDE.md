@@ -81,7 +81,10 @@ Revisar:
 
 - que el tenant esté `active`
 - que provisioning haya cerrado correctamente
+- que la DB tenant haya quedado configurada
 - que la política de acceso no lo esté bloqueando
+
+La UI de `Tenants` deja un mensaje explícito cuando el portal todavía no debe abrirse; hoy también queda cubierto por smoke browser para evitar regresiones sobre ese bloqueo.
 
 ## Referencias útiles
 
