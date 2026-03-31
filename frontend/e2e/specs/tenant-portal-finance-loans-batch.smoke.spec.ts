@@ -151,7 +151,7 @@ test("tenant portal finance loans applies batch payment and batch reversal over 
 
   await batchForm.getByRole("combobox").first().selectOption("reverse");
   await batchForm.locator("input.form-control").last().fill("Batch reversal E2E");
-  await batchForm.getByRole("combobox").nth(2).selectOption("duplicate_payment");
+  await batchForm.locator("select.form-select").last().selectOption("duplicate_payment");
   await batchForm
     .getByRole("button", { name: /Aplicar reversa en lote|Apply batch reversal/i })
     .click();
