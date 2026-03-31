@@ -40,6 +40,7 @@ test("tenant portal finance loans creates a loan and records a simple installmen
   const loanName = `e2e-loan-${Date.now()}`;
   const accountName = `e2e-loan-account-${Date.now()}`;
 
+  await ensureFinanceLoansPage(page);
   await ensureFinanceAccount(page, accountName);
   await ensureFinanceLoansPage(page);
 
