@@ -32,6 +32,14 @@ type TenantModuleLimitMutation = {
   value: number | null;
 };
 
+type TenantFinanceUsageSnapshot = {
+  tenantSlug: string;
+  totalEntries: number;
+  monthlyEntries: number;
+  monthlyIncomeEntries: number;
+  monthlyExpenseEntries: number;
+};
+
 function getRepoRoot() {
   const currentFilePath = fileURLToPath(import.meta.url);
   const currentDirPath = path.dirname(currentFilePath);
@@ -273,3 +281,58 @@ finally:
     moduleLimits: Record<string, number>;
   };
 }
+
+  export function getTenantFinanceUsageSnapshot(tenantSlug: string) {
+    const script = `
+  import json
+  import sys
+
+  from app.common.db.control_database import ControlSessionLocal
+  from app.apps.platform_control.models.tenant import Tenant
+  from app.common.db.session_resolver import tenant_engine_cache
+  from app.apps.tenant_modules.finance.services.finance_service import FinanceService
+  from sqlalchemy.orm import sessionmaker
+
+  tenant_slug = sys.argv[1]
+
+  control_db = ControlSessionLocal()
+  service = FinanceService()
+  tenant_db = None
+  try:
+    tenant = control_db.query(Tenant).filter(Tenant.slug == tenant_slug).first()
+    if tenant is None:
+      raise SystemExit(f"Tenant not found: {tenant_slug}")
+    if not tenant.db_name or not tenant.db_user or not tenant.db_password_encrypted:
+      raise SystemExit(f"Tenant DB not configured: {tenant_slug}")
+
+    engine = tenant_engine_cache.get_engine_for_tenant(tenant)
+    SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+    tenant_db = SessionLocal()
+
+    print(json.dumps({
+      "tenantSlug": tenant.slug,
+      "totalEntries": service.transaction_repository.count_all(tenant_db),
+      "monthlyEntries": service.transaction_repository.count_created_since(
+        tenant_db,
+        service._get_current_month_start(),
+      ),
+      "monthlyIncomeEntries": service.transaction_repository.count_created_since_by_type(
+        tenant_db,
+        service._get_current_month_start(),
+        "income",
+      ),
+      "monthlyExpenseEntries": service.transaction_repository.count_created_since_by_type(
+        tenant_db,
+        service._get_current_month_start(),
+        "expense",
+      ),
+    }))
+  finally:
+    if tenant_db is not None:
+      tenant_db.close()
+    control_db.close()
+  `;
+
+    const output = runBackendPython(script, [tenantSlug]);
+    return JSON.parse(output) as TenantFinanceUsageSnapshot;
+  }
