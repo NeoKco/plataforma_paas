@@ -289,25 +289,23 @@ import sys
 
 from app.common.db.control_database import ControlSessionLocal
 from app.apps.platform_control.models.tenant import Tenant
-from app.common.db.session_resolver import tenant_engine_cache
 from app.apps.tenant_modules.finance.services.finance_service import FinanceService
-from sqlalchemy.orm import sessionmaker
+from app.apps.tenant_modules.core.services.tenant_connection_service import TenantConnectionService
 
 tenant_slug = sys.argv[1]
 
 control_db = ControlSessionLocal()
 service = FinanceService()
+connection_service = TenantConnectionService()
 tenant_db = None
 try:
     tenant = control_db.query(Tenant).filter(Tenant.slug == tenant_slug).first()
     if tenant is None:
         raise SystemExit(f"Tenant not found: {tenant_slug}")
-    if not tenant.db_name or not tenant.db_user or not tenant.db_password_encrypted:
+    if not tenant.db_name or not tenant.db_user or not tenant.db_host or not tenant.db_port:
         raise SystemExit(f"Tenant DB not configured: {tenant_slug}")
 
-    engine = tenant_engine_cache.get_engine_for_tenant(tenant)
-    SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
-    tenant_db = SessionLocal()
+    tenant_db = connection_service.get_tenant_session(tenant)()
 
     print(json.dumps({
         "tenantSlug": tenant.slug,
