@@ -124,9 +124,16 @@ test("tenant portal finance budgets creates a budget and clones it into another 
 
     const createForm = page.locator("form").first();
     const categorySelect = createForm.locator("select.form-select").first();
+    const categoryValue = await categorySelect.locator("option").evaluateAll((options, target) => {
+      const matched = options.find((option) => option.textContent?.includes(target));
+      return (matched as HTMLOptionElement | undefined)?.value || "";
+    }, categoryName);
+    if (!categoryValue) {
+      throw new Error(`Budget smoke could not find category option: ${categoryName}`);
+    }
 
     await createForm.locator('input[type="month"]').first().fill(sourceMonth);
-    await categorySelect.selectOption({ label: new RegExp(categoryName, "i") });
+    await categorySelect.selectOption(categoryValue);
     await createForm.locator('input[type="number"]').first().fill(budgetAmount);
     await createForm.locator("textarea.form-control").fill(budgetNote);
     await createForm
