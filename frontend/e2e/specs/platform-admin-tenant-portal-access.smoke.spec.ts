@@ -58,7 +58,7 @@ test("platform admin can open tenant portal from tenants with slug prefilled", a
     new RegExp(`tenantSlug=${e2eEnv.tenant.slug}`)
   );
 
-  await openTenantPortalLink.click();
+  await openTenantPortalLink.evaluate((link: HTMLAnchorElement) => link.click());
 
   await expect(page).toHaveURL(
     new RegExp(`/tenant-portal/login\\?tenantSlug=${e2eEnv.tenant.slug}`)
