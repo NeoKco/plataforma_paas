@@ -31,6 +31,7 @@ Referencia:
 2. esperar provisioning
 3. revisar acceso, billing, maintenance y límites
 4. archivar o restaurar cuando corresponda
+5. abrir el `tenant_portal` desde `Tenants` cuando el tenant ya esté activo y con DB operativa
 
 Referencia:
 

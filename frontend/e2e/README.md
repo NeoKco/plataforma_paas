@@ -7,6 +7,7 @@ Cobertura inicial:
 - login de `platform_admin`
 - navegación base de `platform_admin`
 - lifecycle básico de tenant en `platform_admin` (`create`, `archive`, `restore`)
+- acceso rápido al `tenant_portal` desde `Tenants` con slug precargado
 - visibilidad de job nuevo en `Provisioning` después de crear tenant
 - ejecución manual de un job `pending` desde `Provisioning`
 - requeue de un job `failed` desde `Provisioning`
@@ -22,6 +23,7 @@ Specs actuales:
 
 - [platform-admin.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin.smoke.spec.ts)
 - [platform-admin-tenant-lifecycle.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-lifecycle.smoke.spec.ts)
+- [platform-admin-tenant-portal-access.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-portal-access.smoke.spec.ts)
 - [platform-admin-provisioning.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning.smoke.spec.ts)
 - [platform-admin-provisioning-run-now.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-run-now.smoke.spec.ts)
 - [platform-admin-provisioning-retry.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-retry.smoke.spec.ts)

@@ -24,6 +24,7 @@ Resumen curado del bloque central.
 - exportaciones operativas en varias vistas
 - primer stack Playwright browser base
 - smoke browser de `platform_admin` ampliado a `create`, `archive` y `restore` de tenants
+- smoke browser ampliado para validar acceso rápido desde `Tenants` al login de `tenant_portal`
 - smoke browser ampliado para verificar que los jobs nuevos aparezcan en `Provisioning`
 - smoke browser ampliado para ejecutar manualmente jobs `pending` desde `Provisioning`
 - smoke browser ampliado para reencolar jobs `failed` desde `Provisioning`

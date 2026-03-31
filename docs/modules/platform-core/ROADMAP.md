@@ -24,6 +24,7 @@ La base central ya es operable:
 - UI visible de platform admin
 - primer stack E2E browser base
 - smoke browser de `platform_admin` para `create`, `archive` y `restore`
+- validación browser del acceso rápido desde `Tenants` hacia `tenant_portal` con `slug` precargado
 - validación browser de aparición de jobs nuevos en `Provisioning`
 - validación browser de ejecución manual de jobs `pending` desde `Provisioning`
 - validación browser de requeue de jobs `failed` desde `Provisioning`
@@ -32,7 +33,7 @@ La base central ya es operable:
 
 ## Próximo nivel recomendado
 
-- ampliar E2E browser a DLQ individual/filtros más finos y acceso tenant desde `Tenants`
+- ampliar E2E browser a acceso tenant más profundo tras el salto desde `Tenants`, y a DLQ individual/filtros más finos
 - más regresión sobre provisioning y billing
 - seguir endureciendo copy, validaciones y observabilidad visible
 - mantener la política documental canónica al abrir más dominios
