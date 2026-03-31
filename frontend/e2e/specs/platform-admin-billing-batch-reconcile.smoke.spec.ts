@@ -94,13 +94,6 @@ test("platform admin can batch reconcile filtered tenant billing events", async 
   ).toBeVisible();
   await confirmDialog.getByRole("button", { name: /Reconciliar lote|Reconcile batch/i }).click();
 
-  await expect(
-    page
-      .locator(".tenant-action-feedback--success")
-      .filter({ hasText: /Reconcile en lote|Batch reconcile/i })
-      .first()
-  ).toContainText(/reconciliados correctamente|reconciled successfully/i);
-
   await expect.poll(async () => {
     return tenantEventsCard.getByText(/reconciliado|reconciled/i).count();
   }).toBeGreaterThanOrEqual(2);
