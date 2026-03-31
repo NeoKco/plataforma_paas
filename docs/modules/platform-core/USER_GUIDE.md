@@ -36,6 +36,19 @@ Referencia:
 
 - [tenant-basic-cycle.md](/home/felipe/platform_paas/docs/runbooks/tenant-basic-cycle.md)
 
+### Operar provisioning
+
+Desde `Provisioning`, la operación normal ya permite:
+
+1. ver jobs nuevos creados desde `Tenants`
+2. ejecutar manualmente un job `pending` o `retry_pending` si hace falta acelerar el ciclo
+3. reencolar un job `failed` cuando ya se corrigió la causa o se quiere reintentar formalmente
+4. lanzar `schema auto-sync` para tenants activos después de cambios backend o deploys
+
+Referencia:
+
+- [provisioning-guided-test.md](/home/felipe/platform_paas/docs/runbooks/provisioning-guided-test.md)
+
 ### Operar usuarios de plataforma
 
 1. alta
@@ -55,6 +68,8 @@ Revisar:
 
 - estado del tenant
 - jobs de provisioning
+- si el job quedó `pending`, `retry_pending` o `failed`
+- si conviene `Ejecutar ahora`, `Reencolar` o revisar primero la causa técnica
 - política de acceso
 - lifecycle visible
 

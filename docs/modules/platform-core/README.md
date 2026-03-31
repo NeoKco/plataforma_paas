@@ -44,6 +44,8 @@ No reemplaza la documentación detallada ya existente. La ordena.
 Si necesitas operar la app central:
 - parte por [USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/USER_GUIDE.md)
 
+La guía de usuario ya cubre también la lectura operativa base de `Provisioning`, incluyendo jobs nuevos, ejecución manual, requeue y `schema auto-sync`.
+
 Si necesitas modificar backend/frontend central:
 - parte por [DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/DEV_GUIDE.md)
 
