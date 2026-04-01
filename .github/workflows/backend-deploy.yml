@@ -70,6 +70,7 @@ jobs:
           EOF
 
       - name: Resolve remote operational evidence
+        id: resolve_evidence
         if: always()
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -77,7 +78,7 @@ jobs:
           DEPLOY_PROJECT_ROOT: ${{ secrets.DEPLOY_PROJECT_ROOT }}
         run: |
           REMOTE_EVIDENCE_PATH=$(ssh "${DEPLOY_USER}@${DEPLOY_HOST}" "ls -1t '${DEPLOY_PROJECT_ROOT}/operational_evidence'/backend_operational_evidence_*.log 2>/dev/null | head -n 1" || true)
-          echo "REMOTE_EVIDENCE_PATH=${REMOTE_EVIDENCE_PATH}" >> "$GITHUB_ENV"
+          echo "remote_evidence_path=${REMOTE_EVIDENCE_PATH}" >> "$GITHUB_OUTPUT"
           if [ -n "$REMOTE_EVIDENCE_PATH" ]; then
             echo "Remote evidence: $REMOTE_EVIDENCE_PATH"
           else
@@ -85,13 +86,13 @@ jobs:
           fi
 
       - name: Download operational evidence
-        if: always() && env.REMOTE_EVIDENCE_PATH != ''
+        if: always() && steps.resolve_evidence.outputs.remote_evidence_path != ''
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
           mkdir -p /tmp/backend-deploy-evidence
-          scp "${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_EVIDENCE_PATH}" /tmp/backend-deploy-evidence/
+          scp "${DEPLOY_USER}@${DEPLOY_HOST}:${{ steps.resolve_evidence.outputs.remote_evidence_path }}" /tmp/backend-deploy-evidence/
 
       - name: Upload operational evidence artifact
         if: always()
