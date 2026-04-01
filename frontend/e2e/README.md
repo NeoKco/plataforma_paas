@@ -91,6 +91,7 @@ Baseline institucionalizado:
 - los escenarios broker-only quedan documentados y validados aparte cuando se necesite una pasada específica con Redis/broker real
 - para desarrollo local existe además [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh), que corre migraciones, siembra baseline, levanta backend si hace falta y ejecuta `build + e2e:platform + e2e:tenant`
 - para validar específicamente los `3` smokes DLQ broker-only existe [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh), que levanta un stack paralelo `broker` sobre Redis y ejecuta solo esos casos
+- para CI manual de esos casos broker-only existe además [.github/workflows/frontend-broker-dlq-e2e.yml](../../.github/workflows/frontend-broker-dlq-e2e.yml), pensado para lanzarse con `workflow_dispatch`
 
 Notas:
 

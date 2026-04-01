@@ -226,6 +226,7 @@ Institucionalización del baseline:
 - los smokes DLQ broker-only no bloquean ese baseline estándar porque en CI principal siguen quedando como `skip` sobre backend `database`; su validación broker real sigue siendo una pasada específica complementaria
 - para ejecución local repetible existe además [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh), pensado para developers que quieren reproducir el baseline sin recordar la secuencia completa manual
 - para la validación complementaria broker-only existe además [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh), pensado para reproducir los smokes DLQ sin rearmar manualmente el stack paralelo
+- para una pasada CI manual de esos mismos `3` smokes broker-only existe [.github/workflows/frontend-broker-dlq-e2e.yml](../../.github/workflows/frontend-broker-dlq-e2e.yml), que prepara PostgreSQL + Redis y ejecuta únicamente ese bloque DLQ
 
 Notas del flujo `finance` que conviene recordar:
 
