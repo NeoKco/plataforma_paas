@@ -14,6 +14,7 @@ RUN_PLATFORM=1
 RUN_TENANT=1
 STARTED_BACKEND=0
 BACKEND_PID=""
+TARGET="all"
 
 usage() {
   cat <<'EOF'
@@ -21,6 +22,7 @@ Uso:
   scripts/dev/run_local_browser_baseline.sh [opciones]
 
 Opciones:
+  --target VALUE   Selecciona `all`, `platform` o `tenant`
   --platform-only   Ejecuta solo build + baseline platform
   --tenant-only     Ejecuta solo build + baseline tenant
   --skip-build      Omite npm run build
@@ -37,13 +39,24 @@ EOF
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --target)
+      TARGET="${2:-}"
+      if [[ -z "$TARGET" ]]; then
+        echo "Falta valor para --target" >&2
+        exit 1
+      fi
+      shift 2
+      continue
+      ;;
     --platform-only)
       RUN_PLATFORM=1
       RUN_TENANT=0
+      TARGET="platform"
       ;;
     --tenant-only)
       RUN_PLATFORM=0
       RUN_TENANT=1
+      TARGET="tenant"
       ;;
     --skip-build)
       RUN_BUILD=0
@@ -60,6 +73,25 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
+
+case "$TARGET" in
+  all)
+    RUN_PLATFORM=1
+    RUN_TENANT=1
+    ;;
+  platform)
+    RUN_PLATFORM=1
+    RUN_TENANT=0
+    ;;
+  tenant)
+    RUN_PLATFORM=0
+    RUN_TENANT=1
+    ;;
+  *)
+    echo "Target no soportado: $TARGET" >&2
+    exit 1
+    ;;
+esac
 
 if [[ ! -x "$PYTHON_BIN" ]]; then
   echo "Python backend no encontrado en $PYTHON_BIN" >&2
