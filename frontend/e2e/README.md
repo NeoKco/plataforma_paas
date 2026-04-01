@@ -80,6 +80,13 @@ Comandos útiles:
 - `npm run e2e:tenant`
 - `npm run e2e`
 
+Baseline institucionalizado:
+
+- el baseline browser oficial del repo queda automatizado en GitHub Actions mediante [.github/workflows/frontend-browser-e2e.yml](../../.github/workflows/frontend-browser-e2e.yml)
+- ese workflow prepara PostgreSQL, corre migraciones, siembra `seed_frontend_demo_baseline`, compila el frontend y ejecuta `npm run e2e:platform` + `npm run e2e:tenant`
+- los `3 skipped` broker-only de DLQ siguen siendo esperables dentro de ese baseline estándar porque CI corre con `PROVISIONING_DISPATCH_BACKEND=database`
+- los escenarios broker-only quedan documentados y validados aparte cuando se necesite una pasada específica con Redis/broker real
+
 Notas:
 
 - el backend debe estar levantado antes de correr las pruebas

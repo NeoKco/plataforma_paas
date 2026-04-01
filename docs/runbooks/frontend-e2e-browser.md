@@ -195,6 +195,13 @@ Decisiones de este primer corte:
 - no automatizar backend en el config; se asume backend ya operativo
 - permitir que `Playwright` levante el frontend o reutilice uno existente
 
+Institucionalización del baseline:
+
+- el baseline browser oficial queda automatizado en GitHub Actions mediante [.github/workflows/frontend-browser-e2e.yml](../../.github/workflows/frontend-browser-e2e.yml)
+- el workflow prepara PostgreSQL efímero, crea `platform_control`, corre migraciones, siembra `seed_frontend_demo_baseline`, levanta backend local y ejecuta `build + e2e:platform + e2e:tenant`
+- esto convierte la cobertura browser actual en un check estándar de regresión para cambios de `frontend`, `backend` y contratos operativos asociados
+- los smokes DLQ broker-only no bloquean ese baseline estándar porque en CI principal siguen quedando como `skip` sobre backend `database`; su validación broker real sigue siendo una pasada específica complementaria
+
 Notas del flujo `finance` que conviene recordar:
 
 - el smoke tenant validado usa `empresa-bootstrap` como baseline activo de esta iteración

@@ -169,3 +169,4 @@ El repo ya esta preparado para GitHub:
 - `venv`, `node_modules`, `dist` y caches ignorados
 - `.env.example` como base publica
 - capturas finales del manual visual si versionadas como documentacion
+- baseline browser institucionalizado en GitHub Actions con `build + e2e:platform + e2e:tenant`

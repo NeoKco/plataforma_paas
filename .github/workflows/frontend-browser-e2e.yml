@@ -1,0 +1,199 @@
+name: Frontend Browser E2E
+
+on:
+  push:
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - ".github/workflows/frontend-browser-e2e.yml"
+      - "frontend/e2e/README.md"
+      - "docs/runbooks/frontend-e2e-browser.md"
+  pull_request:
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - ".github/workflows/frontend-browser-e2e.yml"
+      - "frontend/e2e/README.md"
+      - "docs/runbooks/frontend-e2e-browser.md"
+  workflow_dispatch:
+
+jobs:
+  frontend-browser-e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      APP_ENV: development
+      DEBUG: "true"
+      PLATFORM_INSTALLED: "true"
+      BACKEND_CORS_ALLOW_ORIGINS: http://127.0.0.1:4173,http://localhost:4173
+      CONTROL_DB_HOST: 127.0.0.1
+      CONTROL_DB_PORT: "5432"
+      CONTROL_DB_NAME: platform_control
+      CONTROL_DB_USER: platform_owner
+      CONTROL_DB_PASSWORD: platform_owner
+      POSTGRES_ADMIN_PASSWORD: postgres
+      JWT_SECRET_KEY: ci-browser-e2e-secret-key-change-on-real-envs
+      JWT_ISSUER: platform_paas
+      JWT_PLATFORM_AUDIENCE: platform-api
+      JWT_TENANT_AUDIENCE: tenant-api
+      ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+      REFRESH_TOKEN_EXPIRE_MINUTES: "10080"
+      E2E_BACKEND_PYTHON: python
+      E2E_PLATFORM_EMAIL: admin@platform.local
+      E2E_PLATFORM_PASSWORD: AdminTemporal123!
+      E2E_TENANT_SLUG: empresa-bootstrap
+      E2E_TENANT_EMAIL: admin@empresa-bootstrap.local
+      E2E_TENANT_PASSWORD: TenantAdmin123!
+      TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP: BrowserCiEmpresaBootstrap123!
+      TENANT_BOOTSTRAP_DB_PASSWORD_CONDOMINIO_DEMO: BrowserCiCondominioDemo123!
+      CI: "true"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements/base.txt
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Wait for PostgreSQL
+        run: |
+          python - <<'PY'
+          import socket
+          import time
+
+          deadline = time.time() + 30
+          last_error = None
+
+          while time.time() < deadline:
+              try:
+                  with socket.create_connection(("127.0.0.1", 5432), timeout=2):
+                      print("PostgreSQL is ready.")
+                      raise SystemExit(0)
+              except OSError as exc:
+                  last_error = exc
+                  time.sleep(1)
+
+          raise SystemExit(f"PostgreSQL did not become ready in time: {last_error}")
+          PY
+
+      - name: Prepare control database
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+              IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'platform_owner') THEN
+                  CREATE ROLE platform_owner LOGIN PASSWORD 'platform_owner';
+              ELSE
+                  ALTER ROLE platform_owner WITH LOGIN PASSWORD 'platform_owner';
+              END IF;
+          END
+          $$;
+          SELECT 'CREATE DATABASE platform_control OWNER platform_owner'
+          WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'platform_control')
+          \gexec
+          GRANT ALL PRIVILEGES ON DATABASE platform_control TO platform_owner;
+          SQL
+
+      - name: Run control migrations
+        working-directory: backend
+        run: |
+          PYTHONPATH=$PWD python -m app.scripts.run_control_migrations
+
+      - name: Seed frontend baseline
+        working-directory: backend
+        run: |
+          PYTHONPATH=$PWD python -m app.scripts.seed_frontend_demo_baseline
+
+      - name: Start backend
+        working-directory: backend
+        run: |
+          nohup python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/platform-backend.log 2>&1 &
+          echo $! > /tmp/platform-backend.pid
+
+      - name: Wait for backend health
+        run: |
+          python - <<'PY'
+          import time
+          import urllib.request
+
+          deadline = time.time() + 60
+          last_error = None
+          url = 'http://127.0.0.1:8000/health'
+
+          while time.time() < deadline:
+              try:
+                  with urllib.request.urlopen(url, timeout=5) as response:
+                      payload = response.read().decode('utf-8')
+                      print(payload)
+                      raise SystemExit(0)
+              except Exception as exc:
+                  last_error = exc
+                  time.sleep(1)
+
+          raise SystemExit(f'Backend health check failed: {last_error}')
+          PY
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Run platform browser baseline
+        working-directory: frontend
+        run: npm run e2e:platform
+
+      - name: Run tenant browser baseline
+        working-directory: frontend
+        run: npm run e2e:tenant
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/e2e/playwright-report
+          if-no-files-found: ignore
+
+      - name: Print backend log on failure
+        if: failure()
+        run: |
+          echo "===== backend log ====="
+          cat /tmp/platform-backend.log || true
