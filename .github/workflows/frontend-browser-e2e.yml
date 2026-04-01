@@ -20,6 +20,16 @@ on:
       - "frontend/e2e/README.md"
       - "docs/runbooks/frontend-e2e-browser.md"
   workflow_dispatch:
+    inputs:
+      target:
+        description: "Subset baseline browser a ejecutar"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - platform
+          - tenant
 
 jobs:
   frontend-browser-e2e:
@@ -186,10 +196,12 @@ jobs:
         run: npm run build
 
       - name: Run platform browser baseline
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'platform' }}
         working-directory: frontend
         run: npm run e2e:platform
 
       - name: Run tenant browser baseline
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'tenant' }}
         working-directory: frontend
         run: npm run e2e:tenant
 
