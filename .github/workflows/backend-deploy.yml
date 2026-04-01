@@ -132,7 +132,7 @@ jobs:
           mkdir -p /tmp/backend-deploy-evidence
           scp "${DEPLOY_USER}@${DEPLOY_HOST}:${{ steps.resolve_evidence.outputs.remote_evidence_path }}" /tmp/backend-deploy-evidence/
 
-        - name: Publish deploy summary
+      - name: Publish deploy summary
         if: always()
         env:
           DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
