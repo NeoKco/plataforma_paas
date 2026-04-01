@@ -1,20 +1,49 @@
 name: Backend Tests
 
+concurrency:
+  group: backend-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     paths:
       - "backend/**"
+      - "scripts/dev/run_local_backend_baseline.sh"
       - ".github/workflows/backend-tests.yml"
       - "infra/env/pgtest.example.env"
+      - "docs/runbooks/backend-tests.md"
+      - "docs/runbooks/backend-ci.md"
+      - "README.md"
   pull_request:
     paths:
       - "backend/**"
+      - "scripts/dev/run_local_backend_baseline.sh"
       - ".github/workflows/backend-tests.yml"
       - "infra/env/pgtest.example.env"
+      - "docs/runbooks/backend-tests.md"
+      - "docs/runbooks/backend-ci.md"
+      - "README.md"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Subset backend a ejecutar"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - auth
+          - tenant
+          - finance
+          - provisioning
+          - platform
 
 jobs:
   backend-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
 
     services:
       postgres:
@@ -78,4 +107,8 @@ jobs:
       - name: Run backend test runner
         working-directory: backend
         run: |
-          python app/scripts/run_backend_tests.py
+          TARGET="all"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TARGET="${{ github.event.inputs.target }}"
+          fi
+          python app/scripts/run_backend_tests.py --target "$TARGET"

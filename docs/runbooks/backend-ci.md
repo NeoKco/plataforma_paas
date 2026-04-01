@@ -20,6 +20,7 @@ Ese workflow:
 - levanta PostgreSQL temporal como servicio
 - expone `PGTEST_*` para activar suites PostgreSQL
 - ejecuta `backend/app/scripts/run_backend_tests.py`
+- acepta `workflow_dispatch` con `target=all|auth|tenant|finance|provisioning|platform`
 
 ## Variables de Entorno del Workflow
 
@@ -51,6 +52,12 @@ cd backend
 /home/felipe/platform_paas/platform_paas_venv/bin/python app/scripts/run_backend_tests.py
 ```
 
+Alternativa corta desde la raiz:
+
+```bash
+scripts/dev/run_local_backend_baseline.sh --target all --with-postgres
+```
+
 ## Resultado Esperado
 
 Con el estado actual del repositorio, el runner unificado deberia cerrar con algo de este estilo:
@@ -65,3 +72,4 @@ Ran 77 tests ... OK
 - agregar matriz de versiones de Python cuando el proyecto lo necesite
 - volver obligatorio el workflow en ramas protegidas
 - agregar artifacts si mas adelante aparecen reportes de test o coverage
+- evaluar coverage formal cuando la baseline backend ya quede estable varias semanas seguidas

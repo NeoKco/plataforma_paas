@@ -36,6 +36,7 @@ Objetivo:
 - correr suites base siempre
 - incluir suites HTTP smoke por defecto
 - incluir suites PostgreSQL automaticamente si `PGTEST_*` esta configurado
+- permitir subsets rapidos por dominio para `auth`, `tenant`, `finance`, `provisioning` y `platform`
 
 Ejecucion base:
 
@@ -47,6 +48,9 @@ cd /home/felipe/platform_paas/backend
 Opciones utiles:
 
 ```bash
+# correr solo un dominio concreto
+/home/felipe/platform_paas/platform_paas_venv/bin/python app/scripts/run_backend_tests.py --target finance
+
 # omitir smoke HTTP
 /home/felipe/platform_paas/platform_paas_venv/bin/python app/scripts/run_backend_tests.py --skip-http-smoke
 
@@ -59,8 +63,21 @@ Opciones utiles:
 
 Notas:
 
+- `--target` acepta `all`, `auth`, `tenant`, `finance`, `provisioning` y `platform`
 - `--with-postgres` falla rapido si faltan `PGTEST_HOST`, `PGTEST_ADMIN_USER` o `PGTEST_ADMIN_PASSWORD`
 - la suite HTTP smoke levanta `uvicorn` temporal y requiere socket local disponible
+
+Helper local repetible:
+
+- `scripts/dev/run_local_backend_baseline.sh`
+
+Ejemplos:
+
+```bash
+scripts/dev/run_local_backend_baseline.sh
+scripts/dev/run_local_backend_baseline.sh --target finance --skip-postgres
+scripts/dev/run_local_backend_baseline.sh --target tenant --with-postgres
+```
 
 ## CI Backend
 
@@ -77,6 +94,7 @@ Objetivo:
 - correr el mismo runner unificado tambien en CI
 - activar automaticamente las suites PostgreSQL con `PGTEST_*`
 - mantener alineado el flujo local con el flujo del repositorio
+- permitir revalidacion manual por subset cuando solo cambia un dominio concreto
 
 Replica local sugerida:
 
@@ -88,6 +106,13 @@ set +a
 
 cd backend
 /home/felipe/platform_paas/platform_paas_venv/bin/python app/scripts/run_backend_tests.py
+```
+
+Replica local simplificada:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_local_backend_baseline.sh --target all --with-postgres
 ```
 
 ## Convencion de Fixtures
