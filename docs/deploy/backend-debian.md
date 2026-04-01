@@ -187,6 +187,7 @@ sudo journalctl -u platform-paas-backend -n 50 --no-pager
 - para separar cadencias por perfil de worker, usar `deploy/install_provisioning_worker_profile_units.sh`
 - el deploy ahora falla rapido si faltan variables criticas o si el entorno no coincide con el wrapper usado
 - el verify post-deploy ahora tambien puede dejar ya encolado el sync de schema tenant sin depender de una corrida manual posterior
+- para una validacion funcional externa adicional se puede usar `deploy/run_remote_backend_smoke.py` contra la URL publica del entorno
 
 ## Siguiente Evolucion Natural
 

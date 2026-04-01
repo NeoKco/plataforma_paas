@@ -13,6 +13,7 @@ Esta guia deja una secuencia minima para validar un deploy antes de darlo por bu
 - `deploy/verify_backend_deploy.sh`
 - `deploy/run_backend_post_deploy_gate.sh`
 - `deploy/collect_backend_operational_evidence.sh`
+- `deploy/run_remote_backend_smoke.py`
 
 ## Que Valida
 
@@ -86,6 +87,31 @@ Ademas, por defecto, al terminar la verificacion se recolecta evidencia operativ
 La recoleccion de evidencia usa:
 
 - `deploy/collect_backend_operational_evidence.sh`
+
+Cuando se quiere una validacion mas funcional sobre staging o produccion accesible desde fuera del host, existe ademas un smoke remoto:
+
+- `deploy/run_remote_backend_smoke.py`
+
+Ese smoke valida:
+
+- `GET /health`
+- `GET /`
+- login platform real con `POST /platform/auth/login`
+- acceso autenticado a `GET /platform/ping-db`
+- opcionalmente login tenant real con `POST /tenant/auth/login`
+- opcionalmente lectura autenticada de `GET /tenant/me` y `GET /tenant/info`
+
+Uso manual de ejemplo:
+
+```bash
+SMOKE_BASE_URL=https://staging.example.com \
+SMOKE_PLATFORM_EMAIL=admin@platform.local \
+SMOKE_PLATFORM_PASSWORD='***' \
+SMOKE_TENANT_SLUG=empresa-bootstrap \
+SMOKE_TENANT_EMAIL=admin@empresa-bootstrap.local \
+SMOKE_TENANT_PASSWORD='***' \
+python deploy/run_remote_backend_smoke.py
+```
 
 Se puede omitir con:
 

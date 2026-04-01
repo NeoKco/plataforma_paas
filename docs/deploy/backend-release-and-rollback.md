@@ -14,6 +14,7 @@ Esta guia deja una base minima para ejecutar despliegues manuales asistidos y ro
 - `deploy/verify_backend_deploy.sh`
 - `deploy/run_backend_post_deploy_gate.sh`
 - `deploy/collect_backend_operational_evidence.sh`
+- `deploy/run_remote_backend_smoke.py`
 - `.github/workflows/backend-deploy.yml`
 
 ## Deploy Manual desde Servidor
@@ -77,6 +78,8 @@ Inputs:
 
 - `environment`: `staging` o `production`
 - `git_ref`: branch, tag o commit a desplegar
+- `collect_evidence`: activa o desactiva la evidencia operativa post-deploy
+- `run_remote_smoke`: activa o desactiva el smoke funcional remoto tras el deploy
 
 Secrets esperados en GitHub:
 
@@ -85,12 +88,22 @@ Secrets esperados en GitHub:
 - `DEPLOY_SSH_KEY`
 - `DEPLOY_PROJECT_ROOT`
 
+Secrets recomendados por entorno para smoke remoto:
+
+- `BACKEND_PUBLIC_BASE_URL`
+- `SMOKE_PLATFORM_EMAIL`
+- `SMOKE_PLATFORM_PASSWORD`
+- `SMOKE_TENANT_SLUG`
+- `SMOKE_TENANT_EMAIL`
+- `SMOKE_TENANT_PASSWORD`
+
 Que hace la plantilla:
 
 - abre SSH al servidor
 - hace `git fetch`
 - hace `git checkout` de la ref pedida
 - ejecuta el wrapper de deploy correcto segun entorno
+- puede correr un smoke funcional remoto contra la URL publica del entorno si `run_remote_smoke=true`
 - intenta descargar la evidencia operativa mas reciente como artefacto del job para facilitar revision remota
 
 ## Recomendacion Operativa

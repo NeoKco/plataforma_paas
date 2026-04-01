@@ -23,6 +23,11 @@ on:
         required: true
         default: true
         type: boolean
+      run_remote_smoke:
+        description: "Ejecutar smoke funcional remoto tras el deploy"
+        required: true
+        default: true
+        type: boolean
 
 jobs:
   deploy:
@@ -40,6 +45,11 @@ jobs:
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
       - name: Register deploy host
         run: |
@@ -68,6 +78,20 @@ jobs:
             bash deploy/deploy_backend_production.sh
           fi
           EOF
+
+      - name: Run remote functional smoke
+        if: ${{ inputs.run_remote_smoke }}
+        env:
+          SMOKE_BASE_URL: ${{ secrets.BACKEND_PUBLIC_BASE_URL }}
+          SMOKE_PLATFORM_EMAIL: ${{ secrets.SMOKE_PLATFORM_EMAIL }}
+          SMOKE_PLATFORM_PASSWORD: ${{ secrets.SMOKE_PLATFORM_PASSWORD }}
+          SMOKE_TENANT_SLUG: ${{ secrets.SMOKE_TENANT_SLUG }}
+          SMOKE_TENANT_EMAIL: ${{ secrets.SMOKE_TENANT_EMAIL }}
+          SMOKE_TENANT_PASSWORD: ${{ secrets.SMOKE_TENANT_PASSWORD }}
+          SMOKE_TIMEOUT_SECONDS: "20"
+        run: |
+          mkdir -p /tmp/backend-deploy-smoke
+          python deploy/run_remote_backend_smoke.py | tee /tmp/backend-deploy-smoke/remote-backend-smoke.log
 
       - name: Resolve remote operational evidence
         id: resolve_evidence
@@ -100,4 +124,12 @@ jobs:
         with:
           name: backend-operational-evidence-${{ inputs.environment }}
           path: /tmp/backend-deploy-evidence
+          if-no-files-found: ignore
+
+      - name: Upload remote smoke artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-remote-smoke-${{ inputs.environment }}
+          path: /tmp/backend-deploy-smoke
           if-no-files-found: ignore
