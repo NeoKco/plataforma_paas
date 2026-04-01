@@ -1,5 +1,9 @@
 name: Frontend Browser E2E
 
+concurrency:
+  group: frontend-browser-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     paths:
@@ -20,6 +24,9 @@ on:
 jobs:
   frontend-browser-e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
 
     services:
       postgres:
@@ -54,6 +61,8 @@ jobs:
       ACCESS_TOKEN_EXPIRE_MINUTES: "60"
       REFRESH_TOKEN_EXPIRE_MINUTES: "10080"
       E2E_BACKEND_PYTHON: python
+      E2E_BASE_URL: http://127.0.0.1:4173
+      E2E_USE_EXISTING_FRONTEND: "0"
       E2E_PLATFORM_EMAIL: admin@platform.local
       E2E_PLATFORM_PASSWORD: AdminTemporal123!
       E2E_TENANT_SLUG: empresa-bootstrap
@@ -192,8 +201,31 @@ jobs:
           path: frontend/e2e/playwright-report
           if-no-files-found: ignore
 
+      - name: Upload Playwright raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: frontend/e2e/test-results
+          if-no-files-found: ignore
+
+      - name: Upload backend log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-log
+          path: /tmp/platform-backend.log
+          if-no-files-found: ignore
+
       - name: Print backend log on failure
         if: failure()
         run: |
           echo "===== backend log ====="
           cat /tmp/platform-backend.log || true
+
+      - name: Stop backend
+        if: always()
+        run: |
+          if [ -f /tmp/platform-backend.pid ]; then
+            kill "$(cat /tmp/platform-backend.pid)" || true
+          fi

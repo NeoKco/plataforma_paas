@@ -199,6 +199,7 @@ Institucionalización del baseline:
 
 - el baseline browser oficial queda automatizado en GitHub Actions mediante [.github/workflows/frontend-browser-e2e.yml](../../.github/workflows/frontend-browser-e2e.yml)
 - el workflow prepara PostgreSQL efímero, crea `platform_control`, corre migraciones, siembra `seed_frontend_demo_baseline`, levanta backend local y ejecuta `build + e2e:platform + e2e:tenant`
+- además conserva como artefactos el reporte HTML de Playwright, los resultados crudos y el log backend para acelerar la depuración cuando falle CI
 - esto convierte la cobertura browser actual en un check estándar de regresión para cambios de `frontend`, `backend` y contratos operativos asociados
 - los smokes DLQ broker-only no bloquean ese baseline estándar porque en CI principal siguen quedando como `skip` sobre backend `database`; su validación broker real sigue siendo una pasada específica complementaria
 
