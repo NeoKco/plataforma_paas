@@ -150,6 +150,7 @@ PYTHONPATH=/home/felipe/platform_paas/backend \
 Referencia:
 
 - [Demo data y seeds de desarrollo](./docs/runbooks/demo-data.md)
+- [Baseline browser local](./docs/runbooks/frontend-e2e-browser.md)
 
 ## Documentacion recomendada
 
@@ -170,3 +171,4 @@ El repo ya esta preparado para GitHub:
 - `.env.example` como base publica
 - capturas finales del manual visual si versionadas como documentacion
 - baseline browser institucionalizado en GitHub Actions con `build + e2e:platform + e2e:tenant`
+- baseline browser local repetible con [scripts/dev/run_local_browser_baseline.sh](./scripts/dev/run_local_browser_baseline.sh)

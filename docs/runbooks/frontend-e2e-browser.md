@@ -178,6 +178,20 @@ npm run e2e:install
 npm run e2e
 ```
 
+Baseline local consolidada desde la raíz del repo:
+
+```bash
+scripts/dev/run_local_browser_baseline.sh
+```
+
+Variantes útiles del script:
+
+```bash
+scripts/dev/run_local_browser_baseline.sh --platform-only
+scripts/dev/run_local_browser_baseline.sh --tenant-only
+scripts/dev/run_local_browser_baseline.sh --skip-build
+```
+
 Variantes útiles:
 
 ```bash
@@ -202,6 +216,7 @@ Institucionalización del baseline:
 - además conserva como artefactos el reporte HTML de Playwright, los resultados crudos y el log backend para acelerar la depuración cuando falle CI
 - esto convierte la cobertura browser actual en un check estándar de regresión para cambios de `frontend`, `backend` y contratos operativos asociados
 - los smokes DLQ broker-only no bloquean ese baseline estándar porque en CI principal siguen quedando como `skip` sobre backend `database`; su validación broker real sigue siendo una pasada específica complementaria
+- para ejecución local repetible existe además [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh), pensado para developers que quieren reproducir el baseline sin recordar la secuencia completa manual
 
 Notas del flujo `finance` que conviene recordar:
 
