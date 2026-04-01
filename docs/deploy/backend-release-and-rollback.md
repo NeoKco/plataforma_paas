@@ -15,6 +15,7 @@ Esta guia deja una base minima para ejecutar despliegues manuales asistidos y ro
 - `deploy/run_backend_post_deploy_gate.sh`
 - `deploy/collect_backend_operational_evidence.sh`
 - `deploy/run_remote_backend_smoke.py`
+- `scripts/dev/run_remote_backend_smoke.sh`
 - `.github/workflows/backend-deploy.yml`
 
 ## Deploy Manual desde Servidor
@@ -106,6 +107,7 @@ Que hace la plantilla:
 - ejecuta el wrapper de deploy correcto segun entorno
 - puede correr un smoke funcional remoto contra la URL publica del entorno si `run_remote_smoke=true`
 - ese smoke remoto tambien puede limitarse a `base`, `platform` o `tenant` cuando solo conviene revalidar una parte
+- el workflow guarda tambien el log del smoke y un reporte JSON resumido dentro del artefacto remoto
 - intenta descargar la evidencia operativa mas reciente como artefacto del job para facilitar revision remota
 
 ## Recomendacion Operativa

@@ -5,6 +5,7 @@ import os
 import time
 import urllib.error
 import urllib.request
+from pathlib import Path
 from typing import Any
 
 
@@ -22,6 +23,14 @@ def _request(
     json_body: dict[str, Any] | None = None,
     timeout: int = 15,
 ) -> dict[str, Any]:
+    def _parse_json_body(body: str) -> Any:
+        if not body:
+            return None
+        try:
+            return json.loads(body)
+        except json.JSONDecodeError:
+            return None
+
     request_headers = dict(headers or {})
     data = None
 
@@ -41,14 +50,16 @@ def _request(
             body = response.read().decode("utf-8")
             return {
                 "status_code": response.status,
-                "json": json.loads(body) if body else None,
+                "json": _parse_json_body(body),
+                "text": body,
                 "headers": dict(response.headers.items()),
             }
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8")
         return {
             "status_code": exc.code,
-            "json": json.loads(body) if body else None,
+            "json": _parse_json_body(body),
+            "text": body,
             "headers": dict(exc.headers.items()),
         }
 
@@ -58,14 +69,23 @@ def _require(condition: bool, message: str) -> None:
         raise SystemExit(message)
 
 
+def _write_report(report_path: str | None, payload: dict[str, Any]) -> None:
+    if not report_path:
+        return
+
+    path = Path(report_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
+
+
 def _run_with_retries(attempts: int, delay_seconds: int, callback, label: str) -> None:
-    last_error: SystemExit | None = None
+    last_error: Exception | None = None
 
     for attempt in range(1, attempts + 1):
         try:
             callback()
             return
-        except SystemExit as exc:
+        except Exception as exc:  # noqa: BLE001
             last_error = exc
             if attempt == attempts:
                 break
@@ -224,6 +244,11 @@ def main() -> int:
     parser.add_argument("--tenant-slug", default=_read_env("SMOKE_TENANT_SLUG"))
     parser.add_argument("--tenant-email", default=_read_env("SMOKE_TENANT_EMAIL"))
     parser.add_argument("--tenant-password", default=_read_env("SMOKE_TENANT_PASSWORD"))
+    parser.add_argument(
+        "--report-path",
+        default=_read_env("SMOKE_REPORT_PATH"),
+        help="Optional JSON report path for the remote smoke result.",
+    )
     args = parser.parse_args()
 
     _require(args.base_url, "Missing smoke base URL. Use --base-url or SMOKE_BASE_URL.")
@@ -232,6 +257,16 @@ def main() -> int:
 
     run_platform = not args.skip_platform and args.target in {"all", "platform"}
     run_tenant = not args.skip_tenant and args.target in {"all", "tenant"}
+    report_payload: dict[str, Any] = {
+        "base_url": args.base_url,
+        "target": args.target,
+        "timeout": args.timeout,
+        "attempts": args.attempts,
+        "retry_delay": args.retry_delay,
+        "run_platform": run_platform,
+        "run_tenant": run_tenant,
+        "status": "running",
+    }
 
     def _execute_selected_smoke() -> None:
         _run_base_smoke(args.base_url, args.timeout)
@@ -269,13 +304,21 @@ def main() -> int:
         else:
             print("[smoke] Tenant auth smoke skipped")
 
-    _run_with_retries(
-        attempts=args.attempts,
-        delay_seconds=args.retry_delay,
-        callback=_execute_selected_smoke,
-        label=f"remote smoke target={args.target}",
-    )
+    try:
+        _run_with_retries(
+            attempts=args.attempts,
+            delay_seconds=args.retry_delay,
+            callback=_execute_selected_smoke,
+            label=f"remote smoke target={args.target}",
+        )
+        report_payload["status"] = "passed"
+    except Exception as exc:  # noqa: BLE001
+        report_payload["status"] = "failed"
+        report_payload["error"] = str(exc)
+        _write_report(args.report_path, report_payload)
+        raise
 
+    _write_report(args.report_path, report_payload)
     print("[smoke] Remote backend smoke completed successfully")
     return 0
 

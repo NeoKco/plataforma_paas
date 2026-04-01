@@ -102,6 +102,7 @@ jobs:
           SMOKE_TIMEOUT_SECONDS: "20"
           SMOKE_ATTEMPTS: "4"
           SMOKE_RETRY_DELAY_SECONDS: "5"
+          SMOKE_REPORT_PATH: /tmp/backend-deploy-smoke/remote-backend-smoke-report.json
         run: |
           mkdir -p /tmp/backend-deploy-smoke
           python deploy/run_remote_backend_smoke.py | tee /tmp/backend-deploy-smoke/remote-backend-smoke.log

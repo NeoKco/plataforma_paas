@@ -14,6 +14,7 @@ Esta guia deja una secuencia minima para validar un deploy antes de darlo por bu
 - `deploy/run_backend_post_deploy_gate.sh`
 - `deploy/collect_backend_operational_evidence.sh`
 - `deploy/run_remote_backend_smoke.py`
+- `scripts/dev/run_remote_backend_smoke.sh`
 
 ## Que Valida
 
@@ -108,6 +109,10 @@ Ademas acepta reintentos con:
 - `--attempts`
 - `--retry-delay`
 
+Y puede escribir un resumen estructurado en JSON con:
+
+- `--report-path`
+
 Uso manual de ejemplo:
 
 ```bash
@@ -126,6 +131,13 @@ Ejemplos utiles:
 python deploy/run_remote_backend_smoke.py --base-url https://staging.example.com --target base
 python deploy/run_remote_backend_smoke.py --base-url https://staging.example.com --target platform --attempts 5 --retry-delay 10
 python deploy/run_remote_backend_smoke.py --base-url https://staging.example.com --target tenant
+```
+
+Helper local equivalente:
+
+```bash
+SMOKE_BASE_URL=https://staging.example.com \
+scripts/dev/run_remote_backend_smoke.sh --target platform
 ```
 
 Se puede omitir con:
