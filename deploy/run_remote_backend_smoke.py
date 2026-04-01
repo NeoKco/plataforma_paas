@@ -85,7 +85,7 @@ def _run_with_retries(attempts: int, delay_seconds: int, callback, label: str) -
         try:
             callback()
             return
-        except Exception as exc:  # noqa: BLE001
+        except BaseException as exc:  # noqa: BLE001
             last_error = exc
             if attempt == attempts:
                 break
@@ -312,7 +312,7 @@ def main() -> int:
             label=f"remote smoke target={args.target}",
         )
         report_payload["status"] = "passed"
-    except Exception as exc:  # noqa: BLE001
+    except BaseException as exc:  # noqa: BLE001
         report_payload["status"] = "failed"
         report_payload["error"] = str(exc)
         _write_report(args.report_path, report_payload)
