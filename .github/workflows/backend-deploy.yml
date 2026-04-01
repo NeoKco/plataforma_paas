@@ -132,6 +132,76 @@ jobs:
           mkdir -p /tmp/backend-deploy-evidence
           scp "${DEPLOY_USER}@${DEPLOY_HOST}:${{ steps.resolve_evidence.outputs.remote_evidence_path }}" /tmp/backend-deploy-evidence/
 
+        - name: Publish deploy summary
+        if: always()
+        env:
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          DEPLOY_REF: ${{ inputs.git_ref }}
+          REMOTE_SMOKE_ENABLED: ${{ inputs.run_remote_smoke }}
+          REMOTE_SMOKE_TARGET: ${{ inputs.remote_smoke_target }}
+          REMOTE_EVIDENCE_PATH: ${{ steps.resolve_evidence.outputs.remote_evidence_path }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          report_path = Path("/tmp/backend-deploy-smoke/remote-backend-smoke-report.json")
+          log_path = Path("/tmp/backend-deploy-smoke/remote-backend-smoke.log")
+
+          environment = os.environ.get("DEPLOY_ENVIRONMENT", "unknown")
+          deploy_ref = os.environ.get("DEPLOY_REF", "unknown")
+          smoke_enabled = os.environ.get("REMOTE_SMOKE_ENABLED", "false") == "true"
+          smoke_target = os.environ.get("REMOTE_SMOKE_TARGET", "all")
+          evidence_path = os.environ.get("REMOTE_EVIDENCE_PATH", "")
+
+          lines = [
+            "# Backend deploy summary",
+            "",
+            f"- Environment: `{environment}`",
+            f"- Git ref: `{deploy_ref}`",
+            f"- Remote smoke enabled: `{str(smoke_enabled).lower()}`",
+            f"- Remote smoke target: `{smoke_target}`",
+          ]
+
+          if evidence_path:
+            lines.append(f"- Remote evidence path: `{evidence_path}`")
+          else:
+            lines.append("- Remote evidence path: not found")
+
+          if smoke_enabled and report_path.exists():
+            payload = json.loads(report_path.read_text())
+            lines.extend(
+              [
+                "",
+                "## Remote smoke result",
+                "",
+                f"- Status: `{payload.get('status', 'unknown')}`",
+                f"- Base URL: `{payload.get('base_url', '')}`",
+                f"- Attempts: `{payload.get('attempts', '')}`",
+                f"- Retry delay: `{payload.get('retry_delay', '')}`",
+                f"- Platform block: `{str(payload.get('run_platform', False)).lower()}`",
+                f"- Tenant block: `{str(payload.get('run_tenant', False)).lower()}`",
+              ]
+            )
+            error = payload.get("error")
+            if error:
+              lines.extend(["", "### Smoke error", "", "```text", error[:4000], "```"])
+          elif smoke_enabled:
+            lines.extend(["", "## Remote smoke result", "", "No JSON report was generated."])
+          else:
+            lines.extend(["", "## Remote smoke result", "", "Skipped by workflow input."])
+
+          if log_path.exists():
+            log_lines = log_path.read_text().splitlines()
+            tail = "\n".join(log_lines[-40:])
+            if tail:
+              lines.extend(["", "## Smoke log tail", "", "```text", tail[:4000], "```"])
+
+          summary_path.write_text("\n".join(lines) + "\n")
+          PY
+
       - name: Upload operational evidence artifact
         if: always()
         uses: actions/upload-artifact@v4

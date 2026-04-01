@@ -108,6 +108,7 @@ Que hace la plantilla:
 - puede correr un smoke funcional remoto contra la URL publica del entorno si `run_remote_smoke=true`
 - ese smoke remoto tambien puede limitarse a `base`, `platform` o `tenant` cuando solo conviene revalidar una parte
 - el workflow guarda tambien el log del smoke y un reporte JSON resumido dentro del artefacto remoto
+- el job publica ademas un resumen legible en `GitHub Actions` con estado del smoke, target ejecutado, evidencia remota detectada y cola final del log
 - intenta descargar la evidencia operativa mas reciente como artefacto del job para facilitar revision remota
 
 ## Recomendacion Operativa

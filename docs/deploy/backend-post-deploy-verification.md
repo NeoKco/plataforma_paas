@@ -140,6 +140,15 @@ SMOKE_BASE_URL=https://staging.example.com \
 scripts/dev/run_remote_backend_smoke.sh --target platform
 ```
 
+Cuando el smoke corre desde [\.github/workflows/backend-deploy.yml](../../.github/workflows/backend-deploy.yml), el job deja ademas un resumen en `GitHub Actions` con:
+
+- entorno desplegado
+- ref desplegada
+- target remoto ejecutado
+- estado final del smoke
+- path de evidencia remota detectada
+- cola final del log del smoke
+
 Se puede omitir con:
 
 ```bash
