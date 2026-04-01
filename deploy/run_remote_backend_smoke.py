@@ -2,7 +2,7 @@
 import argparse
 import json
 import os
-import sys
+import time
 import urllib.error
 import urllib.request
 from typing import Any
@@ -56,6 +56,26 @@ def _request(
 def _require(condition: bool, message: str) -> None:
     if not condition:
         raise SystemExit(message)
+
+
+def _run_with_retries(attempts: int, delay_seconds: int, callback, label: str) -> None:
+    last_error: SystemExit | None = None
+
+    for attempt in range(1, attempts + 1):
+        try:
+            callback()
+            return
+        except SystemExit as exc:
+            last_error = exc
+            if attempt == attempts:
+                break
+            print(
+                f"[smoke] {label} failed on attempt {attempt}/{attempts}: {exc}. "
+                f"Retrying in {delay_seconds}s..."
+            )
+            time.sleep(delay_seconds)
+
+    raise SystemExit(str(last_error) if last_error is not None else f"{label} failed")
 
 
 def _run_base_smoke(base_url: str, timeout: int) -> None:
@@ -178,7 +198,25 @@ def _run_tenant_smoke(
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run remote backend smoke checks.")
     parser.add_argument("--base-url", default=_read_env("SMOKE_BASE_URL"))
+    parser.add_argument(
+        "--target",
+        choices=("all", "base", "platform", "tenant"),
+        default=_read_env("SMOKE_TARGET") or "all",
+        help="Select the remote smoke subset to run.",
+    )
     parser.add_argument("--timeout", type=int, default=int(_read_env("SMOKE_TIMEOUT_SECONDS") or "15"))
+    parser.add_argument(
+        "--attempts",
+        type=int,
+        default=int(_read_env("SMOKE_ATTEMPTS") or "3"),
+        help="How many times to retry the selected smoke before failing.",
+    )
+    parser.add_argument(
+        "--retry-delay",
+        type=int,
+        default=int(_read_env("SMOKE_RETRY_DELAY_SECONDS") or "5"),
+        help="Seconds to wait between smoke retries.",
+    )
     parser.add_argument("--skip-platform", action="store_true")
     parser.add_argument("--skip-tenant", action="store_true")
     parser.add_argument("--platform-email", default=_read_env("SMOKE_PLATFORM_EMAIL"))
@@ -189,41 +227,54 @@ def main() -> int:
     args = parser.parse_args()
 
     _require(args.base_url, "Missing smoke base URL. Use --base-url or SMOKE_BASE_URL.")
+    _require(args.attempts >= 1, "--attempts must be at least 1.")
+    _require(args.retry_delay >= 0, "--retry-delay must be 0 or greater.")
 
-    _run_base_smoke(args.base_url, args.timeout)
+    run_platform = not args.skip_platform and args.target in {"all", "platform"}
+    run_tenant = not args.skip_tenant and args.target in {"all", "tenant"}
 
-    if not args.skip_platform:
-        _require(
-            args.platform_email and args.platform_password,
-            "Missing platform smoke credentials. Use --platform-email/--platform-password or SMOKE_PLATFORM_*.",
-        )
-        _run_platform_smoke(
-            args.base_url,
-            args.timeout,
-            args.platform_email,
-            args.platform_password,
-        )
-    else:
-        print("[smoke] Platform auth smoke skipped")
+    def _execute_selected_smoke() -> None:
+        _run_base_smoke(args.base_url, args.timeout)
 
-    tenant_values = [args.tenant_slug, args.tenant_email, args.tenant_password]
-    if not args.skip_tenant:
-        if any(tenant_values) and not all(tenant_values):
-            raise SystemExit(
-                "Incomplete tenant smoke credentials. Provide slug, email and password together."
+        if run_platform:
+            _require(
+                args.platform_email and args.platform_password,
+                "Missing platform smoke credentials. Use --platform-email/--platform-password or SMOKE_PLATFORM_*.",
             )
-        if all(tenant_values):
-            _run_tenant_smoke(
+            _run_platform_smoke(
                 args.base_url,
                 args.timeout,
-                args.tenant_slug,
-                args.tenant_email,
-                args.tenant_password,
+                args.platform_email,
+                args.platform_password,
             )
         else:
-            print("[smoke] Tenant auth smoke skipped because no tenant credentials were provided")
-    else:
-        print("[smoke] Tenant auth smoke skipped")
+            print("[smoke] Platform auth smoke skipped")
+
+        tenant_values = [args.tenant_slug, args.tenant_email, args.tenant_password]
+        if run_tenant:
+            if any(tenant_values) and not all(tenant_values):
+                raise SystemExit(
+                    "Incomplete tenant smoke credentials. Provide slug, email and password together."
+                )
+            if all(tenant_values):
+                _run_tenant_smoke(
+                    args.base_url,
+                    args.timeout,
+                    args.tenant_slug,
+                    args.tenant_email,
+                    args.tenant_password,
+                )
+            else:
+                print("[smoke] Tenant auth smoke skipped because no tenant credentials were provided")
+        else:
+            print("[smoke] Tenant auth smoke skipped")
+
+    _run_with_retries(
+        attempts=args.attempts,
+        delay_seconds=args.retry_delay,
+        callback=_execute_selected_smoke,
+        label=f"remote smoke target={args.target}",
+    )
 
     print("[smoke] Remote backend smoke completed successfully")
     return 0

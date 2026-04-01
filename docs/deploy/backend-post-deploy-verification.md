@@ -101,6 +101,13 @@ Ese smoke valida:
 - opcionalmente login tenant real con `POST /tenant/auth/login`
 - opcionalmente lectura autenticada de `GET /tenant/me` y `GET /tenant/info`
 
+Tambien acepta subsets con `--target all|base|platform|tenant` para revalidar solo el bloque afectado.
+
+Ademas acepta reintentos con:
+
+- `--attempts`
+- `--retry-delay`
+
 Uso manual de ejemplo:
 
 ```bash
@@ -111,6 +118,14 @@ SMOKE_TENANT_SLUG=empresa-bootstrap \
 SMOKE_TENANT_EMAIL=admin@empresa-bootstrap.local \
 SMOKE_TENANT_PASSWORD='***' \
 python deploy/run_remote_backend_smoke.py
+```
+
+Ejemplos utiles:
+
+```bash
+python deploy/run_remote_backend_smoke.py --base-url https://staging.example.com --target base
+python deploy/run_remote_backend_smoke.py --base-url https://staging.example.com --target platform --attempts 5 --retry-delay 10
+python deploy/run_remote_backend_smoke.py --base-url https://staging.example.com --target tenant
 ```
 
 Se puede omitir con:

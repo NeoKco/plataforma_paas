@@ -80,6 +80,7 @@ Inputs:
 - `git_ref`: branch, tag o commit a desplegar
 - `collect_evidence`: activa o desactiva la evidencia operativa post-deploy
 - `run_remote_smoke`: activa o desactiva el smoke funcional remoto tras el deploy
+- `remote_smoke_target`: subset remoto `all|base|platform|tenant`
 
 Secrets esperados en GitHub:
 
@@ -104,6 +105,7 @@ Que hace la plantilla:
 - hace `git checkout` de la ref pedida
 - ejecuta el wrapper de deploy correcto segun entorno
 - puede correr un smoke funcional remoto contra la URL publica del entorno si `run_remote_smoke=true`
+- ese smoke remoto tambien puede limitarse a `base`, `platform` o `tenant` cuando solo conviene revalidar una parte
 - intenta descargar la evidencia operativa mas reciente como artefacto del job para facilitar revision remota
 
 ## Recomendacion Operativa

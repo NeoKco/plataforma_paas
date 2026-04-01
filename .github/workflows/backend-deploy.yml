@@ -28,6 +28,16 @@ on:
         required: true
         default: true
         type: boolean
+      remote_smoke_target:
+        description: "Subset remoto a validar"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - base
+          - platform
+          - tenant
 
 jobs:
   deploy:
@@ -83,12 +93,15 @@ jobs:
         if: ${{ inputs.run_remote_smoke }}
         env:
           SMOKE_BASE_URL: ${{ secrets.BACKEND_PUBLIC_BASE_URL }}
+          SMOKE_TARGET: ${{ inputs.remote_smoke_target }}
           SMOKE_PLATFORM_EMAIL: ${{ secrets.SMOKE_PLATFORM_EMAIL }}
           SMOKE_PLATFORM_PASSWORD: ${{ secrets.SMOKE_PLATFORM_PASSWORD }}
           SMOKE_TENANT_SLUG: ${{ secrets.SMOKE_TENANT_SLUG }}
           SMOKE_TENANT_EMAIL: ${{ secrets.SMOKE_TENANT_EMAIL }}
           SMOKE_TENANT_PASSWORD: ${{ secrets.SMOKE_TENANT_PASSWORD }}
           SMOKE_TIMEOUT_SECONDS: "20"
+          SMOKE_ATTEMPTS: "4"
+          SMOKE_RETRY_DELAY_SECONDS: "5"
         run: |
           mkdir -p /tmp/backend-deploy-smoke
           python deploy/run_remote_backend_smoke.py | tee /tmp/backend-deploy-smoke/remote-backend-smoke.log
