@@ -200,6 +200,14 @@ scripts/dev/run_local_broker_dlq_baseline.sh
 
 Ese helper levanta un backend paralelo con `PROVISIONING_DISPATCH_BACKEND=broker`, un frontend paralelo apuntando a ese backend y ejecuta exclusivamente los `3` smokes DLQ broker-only.
 
+También admite un subset concreto:
+
+```bash
+scripts/dev/run_local_broker_dlq_baseline.sh --target batch
+scripts/dev/run_local_broker_dlq_baseline.sh --target row
+scripts/dev/run_local_broker_dlq_baseline.sh --target filters
+```
+
 Variantes útiles:
 
 ```bash

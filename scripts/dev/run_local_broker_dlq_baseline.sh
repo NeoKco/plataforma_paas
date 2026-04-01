@@ -15,13 +15,18 @@ REDIS_DB="${BROKER_REDIS_DB:-0}"
 REDIS_URL="${BROKER_REDIS_URL:-redis://$REDIS_HOST:$REDIS_PORT/$REDIS_DB}"
 BACKEND_PID=""
 FRONTEND_PID=""
+TARGET="all"
 
 usage() {
   cat <<'EOF'
 Uso:
-  scripts/dev/run_local_broker_dlq_baseline.sh
+  scripts/dev/run_local_broker_dlq_baseline.sh [--target all|batch|row|filters]
 
 Ejecuta la validación local broker-only para los 3 smokes DLQ de provisioning.
+
+Opciones:
+  --target VALUE   Selecciona `all`, `batch`, `row` o `filters`
+  --help           Muestra esta ayuda
 
 Variables útiles:
   E2E_BACKEND_PYTHON
@@ -31,10 +36,27 @@ Variables útiles:
 EOF
 }
 
-if [[ "${1:-}" == "--help" ]]; then
-  usage
-  exit 0
-fi
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --target)
+      TARGET="${2:-}"
+      if [[ -z "$TARGET" ]]; then
+        echo "Falta valor para --target" >&2
+        exit 1
+      fi
+      shift 2
+      ;;
+    --help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Opción no reconocida: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
 
 if [[ ! -x "$PYTHON_BIN" ]]; then
   echo "Python backend no encontrado en $PYTHON_BIN" >&2
@@ -126,10 +148,27 @@ wait_for_http "http://$FRONTEND_HOST:$FRONTEND_PORT"
 echo "==> Ejecutando smokes broker-only DLQ"
 (
   cd "$FRONTEND_DIR"
-  npx playwright test \
-    e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts \
-    e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts \
-    e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts
+  case "$TARGET" in
+    all)
+      npx playwright test \
+        e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts \
+        e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts \
+        e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts
+      ;;
+    batch)
+      npx playwright test e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts
+      ;;
+    row)
+      npx playwright test e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts
+      ;;
+    filters)
+      npx playwright test e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts
+      ;;
+    *)
+      echo "Target broker-only no soportado: $TARGET" >&2
+      exit 1
+      ;;
+  esac
 )
 
 echo "==> Validación broker-only DLQ completada"
