@@ -80,6 +80,7 @@ Comandos útiles:
 - `npm run e2e:tenant`
 - `npm run e2e`
 - `../../scripts/dev/run_local_browser_baseline.sh`
+- `../../scripts/dev/run_local_broker_dlq_baseline.sh`
 
 Baseline institucionalizado:
 
@@ -89,6 +90,7 @@ Baseline institucionalizado:
 - los `3 skipped` broker-only de DLQ siguen siendo esperables dentro de ese baseline estándar porque CI corre con `PROVISIONING_DISPATCH_BACKEND=database`
 - los escenarios broker-only quedan documentados y validados aparte cuando se necesite una pasada específica con Redis/broker real
 - para desarrollo local existe además [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh), que corre migraciones, siembra baseline, levanta backend si hace falta y ejecuta `build + e2e:platform + e2e:tenant`
+- para validar específicamente los `3` smokes DLQ broker-only existe [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh), que levanta un stack paralelo `broker` sobre Redis y ejecuta solo esos casos
 
 Notas:
 

@@ -172,3 +172,4 @@ El repo ya esta preparado para GitHub:
 - capturas finales del manual visual si versionadas como documentacion
 - baseline browser institucionalizado en GitHub Actions con `build + e2e:platform + e2e:tenant`
 - baseline browser local repetible con [scripts/dev/run_local_browser_baseline.sh](./scripts/dev/run_local_browser_baseline.sh)
+- helper broker-only para DLQ con [scripts/dev/run_local_broker_dlq_baseline.sh](./scripts/dev/run_local_broker_dlq_baseline.sh)
