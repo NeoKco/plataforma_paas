@@ -12,6 +12,8 @@ Esta guia deja una base minima para ejecutar despliegues manuales asistidos y ro
 
 - `deploy/rollback_backend.sh`
 - `deploy/verify_backend_deploy.sh`
+- `deploy/run_backend_post_deploy_gate.sh`
+- `deploy/collect_backend_operational_evidence.sh`
 - `.github/workflows/backend-deploy.yml`
 
 ## Deploy Manual desde Servidor
@@ -31,6 +33,7 @@ Ese flujo:
 - reinicia el servicio objetivo
 - verifica `systemd` y `/health` antes de dar el deploy por bueno
 - encola ademas auto-sync masivo de schema tenant para tenants activos con DB configurada
+- deja evidencia operativa local despues del gate post-deploy, tanto en exito como en fallo, salvo que `COLLECT_OPERATIONAL_EVIDENCE=false`
 
 ## Rollback Manual en Servidor
 
@@ -88,6 +91,7 @@ Que hace la plantilla:
 - hace `git fetch`
 - hace `git checkout` de la ref pedida
 - ejecuta el wrapper de deploy correcto segun entorno
+- intenta descargar la evidencia operativa mas reciente como artefacto del job para facilitar revision remota
 
 ## Recomendacion Operativa
 

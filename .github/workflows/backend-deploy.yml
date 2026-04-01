@@ -1,5 +1,9 @@
 name: Backend Deploy
 
+concurrency:
+  group: backend-deploy-${{ inputs.environment || github.ref }}
+  cancel-in-progress: false
+
 on:
   workflow_dispatch:
     inputs:
@@ -14,11 +18,19 @@ on:
         description: "Git ref to deploy"
         required: true
         default: "main"
+      collect_evidence:
+        description: "Recolectar evidencia operativa post-deploy"
+        required: true
+        default: true
+        type: boolean
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    timeout-minutes: 45
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -41,12 +53,14 @@ jobs:
           DEPLOY_PROJECT_ROOT: ${{ secrets.DEPLOY_PROJECT_ROOT }}
           TARGET_ENV: ${{ inputs.environment }}
           TARGET_REF: ${{ inputs.git_ref }}
+          COLLECT_EVIDENCE: ${{ inputs.collect_evidence }}
         run: |
           ssh "${DEPLOY_USER}@${DEPLOY_HOST}" <<EOF
           set -euo pipefail
           cd "${DEPLOY_PROJECT_ROOT}"
           git fetch --all --tags --prune
           git checkout "${TARGET_REF}"
+          export COLLECT_OPERATIONAL_EVIDENCE="${COLLECT_EVIDENCE}"
 
           if [ "${TARGET_ENV}" = "staging" ]; then
             bash deploy/deploy_backend_staging.sh
@@ -54,3 +68,35 @@ jobs:
             bash deploy/deploy_backend_production.sh
           fi
           EOF
+
+      - name: Resolve remote operational evidence
+        if: always()
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PROJECT_ROOT: ${{ secrets.DEPLOY_PROJECT_ROOT }}
+        run: |
+          REMOTE_EVIDENCE_PATH=$(ssh "${DEPLOY_USER}@${DEPLOY_HOST}" "ls -1t '${DEPLOY_PROJECT_ROOT}/operational_evidence'/backend_operational_evidence_*.log 2>/dev/null | head -n 1" || true)
+          echo "REMOTE_EVIDENCE_PATH=${REMOTE_EVIDENCE_PATH}" >> "$GITHUB_ENV"
+          if [ -n "$REMOTE_EVIDENCE_PATH" ]; then
+            echo "Remote evidence: $REMOTE_EVIDENCE_PATH"
+          else
+            echo "No remote operational evidence file found."
+          fi
+
+      - name: Download operational evidence
+        if: always() && env.REMOTE_EVIDENCE_PATH != ''
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          mkdir -p /tmp/backend-deploy-evidence
+          scp "${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_EVIDENCE_PATH}" /tmp/backend-deploy-evidence/
+
+      - name: Upload operational evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-operational-evidence-${{ inputs.environment }}
+          path: /tmp/backend-deploy-evidence
+          if-no-files-found: ignore

@@ -125,6 +125,7 @@ Ese script:
 - reinicia el servicio `systemd`
 - verifica el healthcheck antes de terminar
 - encola auto-sync post-deploy de schema tenant para tenants activos con DB configurada
+- recolecta evidencia operativa al cerrar el gate post-deploy, incluso si la verificacion falla
 
 Variables ajustables del script:
 
@@ -136,6 +137,7 @@ Variables ajustables del script:
 - `HEALTHCHECK_URL`
 - `BACKEND_AUTO_SYNC_POST_DEPLOY`
 - `BACKEND_AUTO_SYNC_LIMIT`
+- `COLLECT_OPERATIONAL_EVIDENCE`
 
 Ejemplo:
 

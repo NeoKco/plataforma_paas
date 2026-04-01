@@ -44,5 +44,6 @@ export SERVICE_NAME
 export HEALTHCHECK_URL
 export BACKEND_AUTO_SYNC_POST_DEPLOY
 export BACKEND_AUTO_SYNC_LIMIT
+export COLLECT_OPERATIONAL_EVIDENCE="${COLLECT_OPERATIONAL_EVIDENCE:-true}"
 
-bash "$SCRIPT_DIR/verify_backend_deploy.sh"
+bash "$SCRIPT_DIR/run_backend_post_deploy_gate.sh"

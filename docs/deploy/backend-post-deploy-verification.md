@@ -11,6 +11,8 @@ Esta guia deja una secuencia minima para validar un deploy antes de darlo por bu
 ## Archivo Base
 
 - `deploy/verify_backend_deploy.sh`
+- `deploy/run_backend_post_deploy_gate.sh`
+- `deploy/collect_backend_operational_evidence.sh`
 
 ## Que Valida
 
@@ -64,7 +66,7 @@ bash deploy/verify_backend_deploy.sh
 
 ## Integracion Actual
 
-El script ya queda llamado al final de:
+El wrapper ya queda llamado al final de:
 
 - `deploy/deploy_backend.sh`
 
@@ -73,6 +75,23 @@ Eso significa que un deploy no termina exitosamente si:
 - el servicio no queda activo
 - el endpoint `/health` no responde bien en los intentos configurados
 - falla el encolado masivo de `sync_tenant_schema` cuando `BACKEND_AUTO_SYNC_POST_DEPLOY=true`
+
+Ademas, por defecto, al terminar la verificacion se recolecta evidencia operativa con:
+
+- `systemctl status`
+- `journalctl` reciente
+- respuesta completa del `healthcheck`
+- revision git actual del checkout remoto
+
+La recoleccion de evidencia usa:
+
+- `deploy/collect_backend_operational_evidence.sh`
+
+Se puede omitir con:
+
+```bash
+COLLECT_OPERATIONAL_EVIDENCE=false bash deploy/run_backend_post_deploy_gate.sh
+```
 
 El paso de auto-sync usa:
 
@@ -101,6 +120,10 @@ systemctl status platform-paas-backend --no-pager
 sudo journalctl -u platform-paas-backend -n 100 --no-pager
 curl -I http://127.0.0.1/health
 ```
+
+Si la evidencia operativa esta habilitada, revisar tambien el ultimo archivo en:
+
+- `/opt/platform_paas/operational_evidence/`
 
 ## Relacion con Rollback
 
