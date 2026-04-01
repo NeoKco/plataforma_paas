@@ -6,6 +6,17 @@ concurrency:
 
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: "Subset broker-only DLQ a ejecutar"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - batch
+          - row
+          - filters
 
 jobs:
   frontend-broker-dlq-e2e:
@@ -212,10 +223,28 @@ jobs:
       - name: Run broker-only DLQ browser smokes
         working-directory: frontend
         run: |
-          npx playwright test \
-            e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts \
-            e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts \
-            e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts
+          TARGET="${{ github.event.inputs.target || 'all' }}"
+          case "$TARGET" in
+            all)
+              npx playwright test \
+                e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts \
+                e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts \
+                e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts
+              ;;
+            batch)
+              npx playwright test e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts
+              ;;
+            row)
+              npx playwright test e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts
+              ;;
+            filters)
+              npx playwright test e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts
+              ;;
+            *)
+              echo "Target broker-only no soportado: $TARGET" >&2
+              exit 1
+              ;;
+          esac
 
       - name: Upload Playwright report
         if: always()

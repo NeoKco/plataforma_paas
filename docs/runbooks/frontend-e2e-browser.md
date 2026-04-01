@@ -227,6 +227,7 @@ Institucionalización del baseline:
 - para ejecución local repetible existe además [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh), pensado para developers que quieren reproducir el baseline sin recordar la secuencia completa manual
 - para la validación complementaria broker-only existe además [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh), pensado para reproducir los smokes DLQ sin rearmar manualmente el stack paralelo
 - para una pasada CI manual de esos mismos `3` smokes broker-only existe [.github/workflows/frontend-broker-dlq-e2e.yml](../../.github/workflows/frontend-broker-dlq-e2e.yml), que prepara PostgreSQL + Redis y ejecuta únicamente ese bloque DLQ
+- el `workflow_dispatch` de ese job permite escoger `target=all|batch|row|filters` para revalidar solo el subset afectado cuando el cambio no toca todo el bloque DLQ
 
 Notas del flujo `finance` que conviene recordar:
 
