@@ -183,8 +183,21 @@ jobs:
                 f"- Retry delay: `{payload.get('retry_delay', '')}`",
                 f"- Platform block: `{str(payload.get('run_platform', False)).lower()}`",
                 f"- Tenant block: `{str(payload.get('run_tenant', False)).lower()}`",
+                f"- Checks passed: `{payload.get('checks_passed', '')}`",
+                f"- Checks failed: `{payload.get('checks_failed', '')}`",
               ]
             )
+            checks = payload.get("checks") or []
+            if checks:
+              lines.extend(["", "### Checks"])
+              for check in checks[:20]:
+                icon = "✅" if check.get("ok") else "❌"
+                detail = check.get("detail")
+                detail_suffix = f" — {detail}" if detail else ""
+                lines.append(
+                  f"- {icon} `{check.get('method', '')} {check.get('path', '')}` "
+                  f"→ `{check.get('status_code', '')}`{detail_suffix}"
+                )
             error = payload.get("error")
             if error:
               lines.extend(["", "### Smoke error", "", "```text", error[:4000], "```"])

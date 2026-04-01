@@ -78,6 +78,28 @@ def _write_report(report_path: str | None, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
 
 
+def _append_check(
+    report_payload: dict[str, Any],
+    *,
+    name: str,
+    method: str,
+    path: str,
+    response: dict[str, Any],
+    ok: bool,
+    detail: str | None = None,
+) -> None:
+    report_payload.setdefault("checks", []).append(
+        {
+            "name": name,
+            "method": method,
+            "path": path,
+            "status_code": response.get("status_code"),
+            "ok": ok,
+            "detail": detail,
+        }
+    )
+
+
 def _run_with_retries(attempts: int, delay_seconds: int, callback, label: str) -> None:
     last_error: Exception | None = None
 
@@ -98,11 +120,21 @@ def _run_with_retries(attempts: int, delay_seconds: int, callback, label: str) -
     raise SystemExit(str(last_error) if last_error is not None else f"{label} failed")
 
 
-def _run_base_smoke(base_url: str, timeout: int) -> None:
+def _run_base_smoke(base_url: str, timeout: int, report_payload: dict[str, Any]) -> None:
     print(f"[smoke] GET {base_url.rstrip('/')}/health")
     health = _request(base_url, "/health", timeout=timeout)
-    _require(health["status_code"] == 200, f"Healthcheck failed: {health}")
     health_payload = health["json"] or {}
+    health_ok = health["status_code"] == 200 and health_payload.get("status") in {"healthy", "ok"}
+    _append_check(
+        report_payload,
+        name="health",
+        method="GET",
+        path="/health",
+        response=health,
+        ok=health_ok,
+        detail=None if health_ok else "Health endpoint did not return a healthy payload",
+    )
+    _require(health["status_code"] == 200, f"Healthcheck failed: {health}")
     _require(
         health_payload.get("status") in {"healthy", "ok"},
         f"Unexpected health payload: {health_payload}",
@@ -110,6 +142,16 @@ def _run_base_smoke(base_url: str, timeout: int) -> None:
 
     print(f"[smoke] GET {base_url.rstrip('/')}/")
     root = _request(base_url, "/", timeout=timeout)
+    root_ok = root["status_code"] == 200
+    _append_check(
+        report_payload,
+        name="root",
+        method="GET",
+        path="/",
+        response=root,
+        ok=root_ok,
+        detail=None if root_ok else "Root endpoint did not return HTTP 200",
+    )
     _require(root["status_code"] == 200, f"Root endpoint failed: {root}")
 
 
@@ -118,6 +160,7 @@ def _run_platform_smoke(
     timeout: int,
     email: str,
     password: str,
+    report_payload: dict[str, Any],
 ) -> None:
     print("[smoke] POST /platform/auth/login")
     login_response = _request(
@@ -127,13 +170,23 @@ def _run_platform_smoke(
         json_body={"email": email, "password": password},
         timeout=timeout,
     )
+    login_payload = login_response["json"] or {}
+    login_ok = login_response["status_code"] == 200 and bool(login_payload.get("access_token"))
+    _append_check(
+        report_payload,
+        name="platform_login",
+        method="POST",
+        path="/platform/auth/login",
+        response=login_response,
+        ok=login_ok,
+        detail=None if login_ok else "Platform login did not return an access token",
+    )
     _require(
         login_response["status_code"] == 200,
         f"Platform login failed: {login_response}",
     )
-    payload = login_response["json"] or {}
-    token = payload.get("access_token")
-    _require(token, f"Platform login did not return access token: {payload}")
+    token = login_payload.get("access_token")
+    _require(token, f"Platform login did not return access token: {login_payload}")
 
     print("[smoke] GET /platform/ping-db")
     ping_response = _request(
@@ -142,11 +195,21 @@ def _run_platform_smoke(
         headers={"Authorization": f"Bearer {token}"},
         timeout=timeout,
     )
+    ping_payload = ping_response["json"] or {}
+    ping_ok = ping_response["status_code"] == 200 and ping_payload.get("status") == "ok"
+    _append_check(
+        report_payload,
+        name="platform_ping_db",
+        method="GET",
+        path="/platform/ping-db",
+        response=ping_response,
+        ok=ping_ok,
+        detail=None if ping_ok else "Platform ping-db did not return status ok",
+    )
     _require(
         ping_response["status_code"] == 200,
         f"Platform ping-db failed: {ping_response}",
     )
-    ping_payload = ping_response["json"] or {}
     _require(
         ping_payload.get("status") == "ok",
         f"Unexpected platform ping payload: {ping_payload}",
@@ -159,6 +222,7 @@ def _run_tenant_smoke(
     tenant_slug: str,
     email: str,
     password: str,
+    report_payload: dict[str, Any],
 ) -> None:
     print("[smoke] POST /tenant/auth/login")
     login_response = _request(
@@ -172,13 +236,23 @@ def _run_tenant_smoke(
         },
         timeout=timeout,
     )
+    login_payload = login_response["json"] or {}
+    login_ok = login_response["status_code"] == 200 and bool(login_payload.get("access_token"))
+    _append_check(
+        report_payload,
+        name="tenant_login",
+        method="POST",
+        path="/tenant/auth/login",
+        response=login_response,
+        ok=login_ok,
+        detail=None if login_ok else "Tenant login did not return an access token",
+    )
     _require(
         login_response["status_code"] == 200,
         f"Tenant login failed: {login_response}",
     )
-    payload = login_response["json"] or {}
-    token = payload.get("access_token")
-    _require(token, f"Tenant login did not return access token: {payload}")
+    token = login_payload.get("access_token")
+    _require(token, f"Tenant login did not return access token: {login_payload}")
 
     auth_headers = {"Authorization": f"Bearer {token}"}
 
@@ -189,8 +263,22 @@ def _run_tenant_smoke(
         headers=auth_headers,
         timeout=timeout,
     )
-    _require(me_response["status_code"] == 200, f"Tenant /me failed: {me_response}")
     me_payload = me_response["json"] or {}
+    me_ok = (
+        me_response["status_code"] == 200
+        and me_payload.get("success") is True
+        and ((me_payload.get("data") or {}).get("tenant_slug") == tenant_slug)
+    )
+    _append_check(
+        report_payload,
+        name="tenant_me",
+        method="GET",
+        path="/tenant/me",
+        response=me_response,
+        ok=me_ok,
+        detail=None if me_ok else "Tenant /me did not return the expected tenant slug",
+    )
+    _require(me_response["status_code"] == 200, f"Tenant /me failed: {me_response}")
     _require(me_payload.get("success") is True, f"Unexpected tenant /me payload: {me_payload}")
     _require(
         ((me_payload.get("data") or {}).get("tenant_slug") == tenant_slug),
@@ -204,11 +292,21 @@ def _run_tenant_smoke(
         headers=auth_headers,
         timeout=timeout,
     )
+    info_payload = info_response["json"] or {}
+    info_ok = info_response["status_code"] == 200 and info_payload.get("success") is True
+    _append_check(
+        report_payload,
+        name="tenant_info",
+        method="GET",
+        path="/tenant/info",
+        response=info_response,
+        ok=info_ok,
+        detail=None if info_ok else "Tenant /info did not return success=true",
+    )
     _require(
         info_response["status_code"] == 200,
         f"Tenant /info failed: {info_response}",
     )
-    info_payload = info_response["json"] or {}
     _require(
         info_payload.get("success") is True,
         f"Unexpected tenant /info payload: {info_payload}",
@@ -266,10 +364,12 @@ def main() -> int:
         "run_platform": run_platform,
         "run_tenant": run_tenant,
         "status": "running",
+        "checks": [],
     }
 
     def _execute_selected_smoke() -> None:
-        _run_base_smoke(args.base_url, args.timeout)
+        report_payload["checks"] = []
+        _run_base_smoke(args.base_url, args.timeout, report_payload)
 
         if run_platform:
             _require(
@@ -281,6 +381,7 @@ def main() -> int:
                 args.timeout,
                 args.platform_email,
                 args.platform_password,
+                report_payload,
             )
         else:
             print("[smoke] Platform auth smoke skipped")
@@ -298,6 +399,7 @@ def main() -> int:
                     args.tenant_slug,
                     args.tenant_email,
                     args.tenant_password,
+                    report_payload,
                 )
             else:
                 print("[smoke] Tenant auth smoke skipped because no tenant credentials were provided")
@@ -312,9 +414,13 @@ def main() -> int:
             label=f"remote smoke target={args.target}",
         )
         report_payload["status"] = "passed"
+        report_payload["checks_passed"] = sum(1 for item in report_payload["checks"] if item.get("ok"))
+        report_payload["checks_failed"] = sum(1 for item in report_payload["checks"] if not item.get("ok"))
     except BaseException as exc:  # noqa: BLE001
         report_payload["status"] = "failed"
         report_payload["error"] = str(exc)
+        report_payload["checks_passed"] = sum(1 for item in report_payload["checks"] if item.get("ok"))
+        report_payload["checks_failed"] = sum(1 for item in report_payload["checks"] if not item.get("ok"))
         _write_report(args.report_path, report_payload)
         raise
 

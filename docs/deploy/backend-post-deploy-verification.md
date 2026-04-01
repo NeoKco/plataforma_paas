@@ -146,6 +146,8 @@ Cuando el smoke corre desde [\.github/workflows/backend-deploy.yml](../../.githu
 - ref desplegada
 - target remoto ejecutado
 - estado final del smoke
+- conteo de checks aprobados y fallidos
+- lista breve de checks HTTP ejecutados
 - path de evidencia remota detectada
 - cola final del log del smoke
 
