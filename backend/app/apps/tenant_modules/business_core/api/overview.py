@@ -27,12 +27,11 @@ def get_business_core_overview(
         module_key="business-core",
         module_name="Business Core",
         status="in_progress",
-        phase="wave_1_backend",
+        phase="wave_1_backend_complete",
         message=(
-            "Business core wave 1 is active. Organizations and clients already "
-            "have backend CRUD, while contacts and sites remain in the next "
-            "implementation slice as the shared tenant domain for maintenance, "
-            "projects, and future IoT."
+            "Business core wave 1 backend is active. Organizations, clients, "
+            "contacts, and sites already expose tenant CRUD as the shared "
+            "domain for maintenance, projects, and future IoT."
         ),
         first_wave_entities=[
             "organizations",

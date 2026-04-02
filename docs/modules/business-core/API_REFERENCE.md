@@ -5,9 +5,9 @@ Estado actual:
 - backend activo para:
   - `organizations`
   - `clients`
-- pendiente para:
   - `contacts`
   - `sites`
+- pendiente para:
   - `function_profiles`
   - `work_groups`
   - `task_types`
@@ -26,9 +26,6 @@ Estado actual:
 - `PUT /tenant/business-core/organizations/{organization_id}`
 - `PATCH /tenant/business-core/organizations/{organization_id}/status`
 - `DELETE /tenant/business-core/organizations/{organization_id}`
-
-## Endpoints objetivo del siguiente corte
-
 - `GET /tenant/business-core/contacts`
 - `POST /tenant/business-core/contacts`
 - `GET /tenant/business-core/contacts/{contact_id}`
@@ -41,6 +38,9 @@ Estado actual:
 - `PUT /tenant/business-core/sites/{site_id}`
 - `PATCH /tenant/business-core/sites/{site_id}/status`
 - `DELETE /tenant/business-core/sites/{site_id}`
+
+## Endpoints objetivo del siguiente corte
+
 - `GET /tenant/business-core/function-profiles`
 - `GET /tenant/business-core/work-groups`
 - `GET /tenant/business-core/task-types`

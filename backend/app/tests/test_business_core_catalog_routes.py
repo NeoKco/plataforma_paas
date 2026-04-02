@@ -17,6 +17,13 @@ from app.apps.tenant_modules.business_core.api.clients import (
     list_business_clients,
     update_business_client_status,
 )
+from app.apps.tenant_modules.business_core.api.contacts import (
+    create_business_contact,
+    delete_business_contact,
+    get_business_contact,
+    list_business_contacts,
+    update_business_contact_status,
+)
 from app.apps.tenant_modules.business_core.api.organizations import (
     create_business_organization,
     delete_business_organization,
@@ -24,10 +31,19 @@ from app.apps.tenant_modules.business_core.api.organizations import (
     list_business_organizations,
     update_business_organization_status,
 )
+from app.apps.tenant_modules.business_core.api.sites import (
+    create_business_site,
+    delete_business_site,
+    get_business_site,
+    list_business_sites,
+    update_business_site_status,
+)
 from app.apps.tenant_modules.business_core.schemas import (
     BusinessClientCreateRequest,
+    BusinessContactCreateRequest,
     BusinessCoreStatusUpdateRequest,
     BusinessOrganizationCreateRequest,
+    BusinessSiteCreateRequest,
 )
 
 
@@ -306,6 +322,292 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
             )
 
         self.assertEqual(response.data.client_code, "ACME-001")
+
+    def test_list_business_contacts_returns_filtered_data(self) -> None:
+        contact = SimpleNamespace(
+            id=21,
+            organization_id=7,
+            full_name="Maria Perez",
+            email="maria@acme.local",
+            phone="+56911111111",
+            role_title="Administracion",
+            is_primary=True,
+            is_active=True,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.contacts.contact_service.list_contacts",
+            return_value=[contact],
+        ) as list_mock:
+            response = list_business_contacts(
+                organization_id=7,
+                include_inactive=False,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.total, 1)
+        self.assertTrue(response.data[0].is_primary)
+        self.assertEqual(
+            list_mock.call_args.kwargs,
+            {"organization_id": 7, "include_inactive": False},
+        )
+
+    def test_create_business_contact_translates_validation_error_to_400(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.business_core.api.contacts.contact_service.create_contact",
+            side_effect=ValueError("La organizacion seleccionada ya tiene un contacto principal"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                create_business_contact(
+                    payload=BusinessContactCreateRequest(
+                        organization_id=7,
+                        full_name="Maria Perez",
+                        email="maria@acme.local",
+                        phone=None,
+                        role_title="Administracion",
+                        is_primary=True,
+                        is_active=True,
+                        sort_order=100,
+                    ),
+                    current_user=self._current_user(),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+
+    def test_get_business_contact_returns_detail(self) -> None:
+        contact = SimpleNamespace(
+            id=21,
+            organization_id=7,
+            full_name="Maria Perez",
+            email="maria@acme.local",
+            phone="+56911111111",
+            role_title="Administracion",
+            is_primary=True,
+            is_active=True,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.contacts.contact_service.get_contact",
+            return_value=contact,
+        ):
+            response = get_business_contact(
+                contact_id=21,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data.full_name, "Maria Perez")
+
+    def test_update_business_contact_status_returns_mutated_item(self) -> None:
+        contact = SimpleNamespace(
+            id=21,
+            organization_id=7,
+            full_name="Maria Perez",
+            email="maria@acme.local",
+            phone=None,
+            role_title="Administracion",
+            is_primary=False,
+            is_active=False,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.contacts.contact_service.set_contact_active",
+            return_value=contact,
+        ):
+            response = update_business_contact_status(
+                contact_id=21,
+                payload=BusinessCoreStatusUpdateRequest(is_active=False),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertFalse(response.data.is_active)
+
+    def test_delete_business_contact_returns_deleted_item(self) -> None:
+        contact = SimpleNamespace(
+            id=21,
+            organization_id=7,
+            full_name="Maria Perez",
+            email="maria@acme.local",
+            phone=None,
+            role_title="Administracion",
+            is_primary=False,
+            is_active=True,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.contacts.contact_service.delete_contact",
+            return_value=contact,
+        ):
+            response = delete_business_contact(
+                contact_id=21,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data.email, "maria@acme.local")
+
+    def test_list_business_sites_returns_filtered_data(self) -> None:
+        site = SimpleNamespace(
+            id=31,
+            client_id=11,
+            name="Casa Matriz",
+            site_code="ACME-HQ",
+            address_line="Av. Siempre Viva 123",
+            city="Santiago",
+            region="RM",
+            country_code="CL",
+            reference_notes=None,
+            is_active=True,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.sites.site_service.list_sites",
+            return_value=[site],
+        ) as list_mock:
+            response = list_business_sites(
+                client_id=11,
+                include_inactive=False,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.total, 1)
+        self.assertEqual(response.data[0].site_code, "ACME-HQ")
+        self.assertEqual(
+            list_mock.call_args.kwargs,
+            {"client_id": 11, "include_inactive": False},
+        )
+
+    def test_create_business_site_translates_validation_error_to_400(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.business_core.api.sites.site_service.create_site",
+            side_effect=ValueError("El cliente seleccionado no existe"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                create_business_site(
+                    payload=BusinessSiteCreateRequest(
+                        client_id=11,
+                        name="Casa Matriz",
+                        site_code="ACME-HQ",
+                        address_line=None,
+                        city="Santiago",
+                        region="RM",
+                        country_code="CL",
+                        reference_notes=None,
+                        is_active=True,
+                        sort_order=100,
+                    ),
+                    current_user=self._current_user(),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+
+    def test_get_business_site_returns_detail(self) -> None:
+        site = SimpleNamespace(
+            id=31,
+            client_id=11,
+            name="Casa Matriz",
+            site_code="ACME-HQ",
+            address_line="Av. Siempre Viva 123",
+            city="Santiago",
+            region="RM",
+            country_code="CL",
+            reference_notes=None,
+            is_active=True,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.sites.site_service.get_site",
+            return_value=site,
+        ):
+            response = get_business_site(
+                site_id=31,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data.city, "Santiago")
+
+    def test_update_business_site_status_returns_mutated_item(self) -> None:
+        site = SimpleNamespace(
+            id=31,
+            client_id=11,
+            name="Casa Matriz",
+            site_code="ACME-HQ",
+            address_line=None,
+            city="Santiago",
+            region="RM",
+            country_code="CL",
+            reference_notes=None,
+            is_active=False,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.sites.site_service.set_site_active",
+            return_value=site,
+        ):
+            response = update_business_site_status(
+                site_id=31,
+                payload=BusinessCoreStatusUpdateRequest(is_active=False),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertFalse(response.data.is_active)
+
+    def test_delete_business_site_returns_deleted_item(self) -> None:
+        site = SimpleNamespace(
+            id=31,
+            client_id=11,
+            name="Casa Matriz",
+            site_code="ACME-HQ",
+            address_line=None,
+            city="Santiago",
+            region="RM",
+            country_code="CL",
+            reference_notes=None,
+            is_active=True,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.sites.site_service.delete_site",
+            return_value=site,
+        ):
+            response = delete_business_site(
+                site_id=31,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data.name, "Casa Matriz")
 
 
 if __name__ == "__main__":

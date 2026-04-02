@@ -30,7 +30,7 @@ Entregables:
 
 Estado:
 
-- `Pendiente`
+- `En progreso`
 
 Alcance:
 
@@ -51,7 +51,7 @@ Subfases recomendadas:
 
 Estado:
 
-- `Pendiente`
+- `En progreso`
 
 Alcance:
 
@@ -96,8 +96,8 @@ Alcance:
 - abrir el slice real de `business-core`
 - empezar por `organizations`, `clients`, `contacts` y `sites`
 ## Estado actual
-- `wave 1 backend` en progreso:
+- `wave 1 backend` completo:
   - `organizations`: backend CRUD listo
   - `clients`: backend CRUD listo
-  - `contacts`: pendiente
-  - `sites`: pendiente
+  - `contacts`: backend CRUD listo
+  - `sites`: backend CRUD listo
