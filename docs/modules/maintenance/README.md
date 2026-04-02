@@ -18,6 +18,7 @@ Estado actual:
 - el primer corte backend ya expone APIs reales para `equipment_types`, `installations` y `work_orders`
 - el frontend tenant ya opera sobre esas APIs en sus tres vistas principales
 - `history` ya muestra órdenes cerradas con `status_logs` y `visits`
+- `agenda técnica` ya permite crear, editar y eliminar `visits`
 
 Objetivo del modulo:
 
@@ -55,8 +56,8 @@ Pendientes visibles inmediatos:
 
 - uso mas profundo de `work_groups`, `function_profiles` y `task_types`
 - agenda integrada
-- creación/edición operativa de `visits`
 - timeline más rica por cliente e instalación
+- agenda visual con conflictos y reprogramación más rica
 - importadores desde `ieris_app`
 
 Se deja fuera del primer corte:

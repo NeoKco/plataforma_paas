@@ -111,13 +111,14 @@ Avance actual:
   - `work_orders`
 - frontend tenant ya conectado a esas tres APIs
 - historial tecnico ya visible con `status_logs` y `visits`
+- `visits` ya son editables desde agenda técnica base
 
 Pendiente inmediato de esta fase:
 
 - usar `work_groups`, `function_profiles` y `task_types` de forma más profunda
 - mejorar lectura operacional de historial
-- permitir creación/edición de `visits`
 - preparar importadores desde `ieris_app`
+- agenda visual con conflictos y reprogramación más rica
 
 ## Fase 4. Endurecimiento operativo
 
@@ -180,8 +181,7 @@ Alcance:
 
 ## Siguiente paso recomendado
 
-- permitir creación/edición de `visits`
-- integrar agenda/reprogramacion
+- integrar agenda visual/reprogramacion con conflictos
 - despues preparar importadores desde `ieris_app` hacia `business-core` y `maintenance`
 
 ## Backlog pendiente visible
@@ -190,8 +190,8 @@ Alcance:
 - `installations`: backend/frontend base listo
 - `work_orders`: backend/frontend base listo
 - `history`: backend/frontend base listo
-- `visits`: lectura lista, edición pendiente
+- `visits`: backend/frontend base listo
 - `status_logs` operativos: backend/frontend lectura lista
-- integración con agenda: pendiente
+- integración con agenda visual: pendiente
 - evidencias y checklist: pendiente
 - importadores legacy: pendiente

@@ -70,6 +70,14 @@ Ordenes de trabajo:
 - `PATCH /tenant/maintenance/work-orders/<id>/status`
 - `DELETE /tenant/maintenance/work-orders/<id>`
 
+Visitas:
+
+- `GET /tenant/maintenance/visits`
+- `POST /tenant/maintenance/visits`
+- `GET /tenant/maintenance/visits/<id>`
+- `PUT /tenant/maintenance/visits/<id>`
+- `DELETE /tenant/maintenance/visits/<id>`
+
 Historial:
 
 - `GET /tenant/maintenance/history`

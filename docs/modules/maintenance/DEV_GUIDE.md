@@ -180,6 +180,7 @@ Frontend actual:
   - `installations`
   - `equipment-types`
   - `history`
+  - `calendar` como agenda ligera de visitas
 
 Documentacion:
 
@@ -196,6 +197,7 @@ Etapa 1:
 - instalaciones
 - frontend base operativo
 - historial tecnico visible con logs y visitas
+- visitas editables
 
 Etapa 1.5:
 
@@ -233,6 +235,7 @@ Frontend:
 - smoke de cambio de estado
 - smoke de crear instalacion
 - smoke de lectura de historial
+- smoke de crear visita
 
 ## Mejoras concretas recomendadas
 
@@ -242,7 +245,7 @@ Frontend:
 - usar adjuntos/evidencias del modulo, no filesystem ad hoc
 - preparar el modulo para crecer luego hacia expediente tecnico sin acoplarlo desde el inicio
 - exponer `status_logs` y `visits` en el frontend antes de sumar agenda completa
-- hacer `visits` editables sin meter todavia la agenda completa
+- agregar agenda visual con conflictos y reprogramación sin romper el slice ya operativo
 
 ## Decisiones ya tomadas
 
