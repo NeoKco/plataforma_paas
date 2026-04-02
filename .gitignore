@@ -45,3 +45,5 @@ Thumbs.db
 generated/
 tmp/
 *.log
+frontend/e2e/playwright-report/
+frontend/e2e/test-results/

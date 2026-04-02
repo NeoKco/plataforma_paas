@@ -13,8 +13,8 @@ export const e2eEnv = {
     password: readEnv("E2E_PLATFORM_PASSWORD", "AdminTemporal123!"),
   },
   tenant: {
-    slug: readEnv("E2E_TENANT_SLUG", "empresa-demo"),
-    email: readEnv("E2E_TENANT_EMAIL", "admin@empresa-demo.local"),
-    password: readEnv("E2E_TENANT_PASSWORD", "EmpresaDemoPortal123!"),
+    slug: readEnv("E2E_TENANT_SLUG", "empresa-bootstrap"),
+    email: readEnv("E2E_TENANT_EMAIL", "admin@empresa-bootstrap.local"),
+    password: readEnv("E2E_TENANT_PASSWORD", "TenantAdmin123!"),
   },
 } as const;
