@@ -2,7 +2,7 @@
 
 Estado actual:
 
-- `Descubrimiento y definicion inicial`
+- `Diseno inicial del dominio completado`
 
 Prioridad:
 
@@ -42,6 +42,11 @@ Alcance:
 - grupos de trabajo
 - tipos de tarea
 
+Subfases recomendadas:
+
+- `1A`: organizaciones, clientes, contactos, sitios
+- `1B`: perfiles funcionales, grupos de trabajo, tipos de tarea
+
 ## Fase 2. CRUD y permisos base
 
 Estado:
@@ -53,6 +58,7 @@ Alcance:
 - endpoints tenant
 - permisos declarativos
 - frontend tenant base para catalogos
+- inactivacion segura y relaciones protegidas
 
 ## Fase 3. Integracion con modulos
 
@@ -66,6 +72,19 @@ Alcance:
 - `projects` nace sobre `business-core`
 - `iot` reusa `sites` y `assets`
 
+## Fase 4. Assets y responsables
+
+Estado:
+
+- `Pendiente`
+
+Alcance:
+
+- `assets`
+- tipos de activo
+- responsables por sitio
+- adopcion por `iot`
+
 ## Riesgos a evitar
 
 - meter clientes y empresas en `platform-core`
@@ -74,4 +93,5 @@ Alcance:
 
 ## Siguiente paso recomendado
 
-- convertir `business-core` en el siguiente slice tenant antes de seguir con `maintenance`
+- abrir el slice real de `business-core`
+- empezar por `organizations`, `clients`, `contacts` y `sites`

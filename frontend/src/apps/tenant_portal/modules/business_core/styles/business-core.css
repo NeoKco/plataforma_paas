@@ -1,0 +1,27 @@
+.business-core-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.business-core-nav__item {
+  border: 1px solid var(--app-border, #cfd7e6);
+  border-radius: 999px;
+  color: var(--app-text, #183153);
+  padding: 0.55rem 1rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.business-core-nav__item:hover,
+.business-core-nav__item:focus-visible {
+  border-color: var(--app-primary, #0d6efd);
+  color: var(--app-primary, #0d6efd);
+}
+
+.business-core-nav__item.is-active {
+  background: rgba(13, 110, 253, 0.08);
+  border-color: var(--app-primary, #0d6efd);
+  color: var(--app-primary, #0d6efd);
+  font-weight: 600;
+}

@@ -1,0 +1,1 @@
+"""Business core tenant module."""

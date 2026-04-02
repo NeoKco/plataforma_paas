@@ -39,6 +39,7 @@ En este momento la documentacion creada formalmente dentro del repositorio comie
 - [Modelo multi-tenant](./architecture/multi-tenant-model.md)
 - [Autenticacion y autorizacion](./architecture/authentication-and-authorization.md)
 - [Roadmap de desarrollo](./architecture/development-roadmap.md)
+- [Mapa de dominios del PaaS](./architecture/domain-map.md)
 - [API actual](./api/index.md)
 - [Flujo visual del instalador](./install/installer-visual-flow.md)
 - [Contratos backend estables para frontend](./api/frontend-contract-stability.md)

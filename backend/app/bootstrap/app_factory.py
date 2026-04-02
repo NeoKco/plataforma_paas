@@ -17,6 +17,9 @@ from app.apps.platform_control.api.provisioning_job_routes import (
 )
 from app.apps.platform_control.api.routes import router as platform_router
 from app.apps.platform_control.api.tenant_routes import router as tenant_router
+from app.apps.tenant_modules.business_core.api.routes import (
+    router as tenant_business_core_router,
+)
 from app.apps.tenant_modules.core.api.auth_routes import router as tenant_auth_router
 from app.apps.tenant_modules.core.api.tenant_routes import (
     router as tenant_protected_router,
@@ -115,6 +118,7 @@ def register_installed_routes(app: FastAPI) -> None:
 
     # Tenant protected routes
     app.include_router(tenant_protected_router)
+    app.include_router(tenant_business_core_router)
     app.include_router(tenant_finance_router)
     app.include_router(tenant_maintenance_router)
 

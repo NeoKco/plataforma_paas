@@ -30,6 +30,17 @@ Primer corte del dominio:
 - grupos de trabajo
 - tipos de tarea
 
+Primer corte tecnico sugerido:
+
+- `organizations`
+- `clients`
+- `contacts`
+- `sites`
+- `function_profiles`
+- `work_groups`
+- `task_types`
+- relaciones minimas entre cliente, sitio y contacto
+
 Alcance recomendado inmediatamente despues:
 
 - activos o equipos instalados
@@ -44,6 +55,18 @@ Alcance recomendado inmediatamente despues:
 - `crm` si se abre mas adelante
 - `technical-records` o `expediente tecnico` si se separa como modulo
 
+## Relacion minima esperada entre entidades
+
+Lectura base recomendada:
+
+- una `organization` representa una empresa o contraparte
+- un `client` representa el rol de cliente dentro del tenant
+- un `contact` pertenece a una `organization` y puede quedar asociado a uno o mas `sites`
+- un `site` cuelga de un `client`
+- un `work_group` representa un equipo interno reusable por modulos operativos
+- un `function_profile` representa perfiles funcionales configurables
+- un `task_type` representa taxonomias de trabajo reutilizables
+
 ## Mapa de documentos
 
 - [USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/business-core/USER_GUIDE.md)
@@ -51,6 +74,7 @@ Alcance recomendado inmediatamente despues:
 - [API_REFERENCE.md](/home/felipe/platform_paas/docs/modules/business-core/API_REFERENCE.md)
 - [ROADMAP.md](/home/felipe/platform_paas/docs/modules/business-core/ROADMAP.md)
 - [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/business-core/CHANGELOG.md)
+- [MIGRATION_MATRIX.md](/home/felipe/platform_paas/docs/modules/business-core/MIGRATION_MATRIX.md)
 
 ## Criterio de uso
 
@@ -65,3 +89,7 @@ Si necesitas modelarlo bien para modulos futuros:
 Si necesitas revisar orden de ejecucion:
 
 - parte por [ROADMAP.md](/home/felipe/platform_paas/docs/modules/business-core/ROADMAP.md)
+
+Si necesitas mapear `ieris_app` hacia el modelo nuevo:
+
+- parte por [MIGRATION_MATRIX.md](/home/felipe/platform_paas/docs/modules/business-core/MIGRATION_MATRIX.md)

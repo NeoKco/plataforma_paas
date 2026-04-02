@@ -2,6 +2,7 @@ import { Navigate, createBrowserRouter, RouterProvider } from "react-router-dom"
 import { RequireAuth } from "./RequireAuth";
 import { RequireInstalled } from "./RequireInstalled";
 import { RequirePlatformRoles } from "./RequirePlatformRoles";
+import { businessCoreTenantPortalRoutes } from "../../tenant_portal/modules/business_core";
 import { financeTenantPortalRoutes } from "../../tenant_portal/modules/finance";
 import { maintenanceTenantPortalRoutes } from "../../tenant_portal/modules/maintenance";
 import { RequireTenantAuth } from "../../tenant_portal/routes/RequireTenantAuth";
@@ -169,6 +170,10 @@ const router = createBrowserRouter([
           const module = await import("../../tenant_portal/pages/users/TenantUsersPage");
           return { Component: module.TenantUsersPage };
         },
+      },
+      {
+        path: "business-core",
+        children: businessCoreTenantPortalRoutes,
       },
       {
         path: "finance",

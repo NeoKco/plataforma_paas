@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 export type AppIconName =
   | "overview"
   | "users"
+  | "business-core"
   | "finance"
   | "maintenance"
   | "dashboard"
@@ -98,6 +99,16 @@ function renderIconPath(name: AppIconName) {
           <path d="M4 19a5 5 0 0 1 10 0" />
           <circle cx="17.5" cy="10" r="2.5" />
           <path d="M15 19a4 4 0 0 1 5-3.9" />
+        </>
+      );
+    case "business-core":
+      return (
+        <>
+          <rect x="4" y="6" width="16" height="12" rx="2" />
+          <path d="M9 6V4h6v2" />
+          <path d="M4 11h16" />
+          <path d="M11 11v2" />
+          <path d="M13 11v2" />
         </>
       );
     case "finance":

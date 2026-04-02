@@ -16,6 +16,11 @@ export function TenantSidebarNav() {
       icon: "users" as AppIconName,
     },
     {
+      to: "/tenant-portal/business-core",
+      label: language === "es" ? "Core negocio" : "Business core",
+      icon: "business-core" as AppIconName,
+    },
+    {
       to: "/tenant-portal/finance",
       label: language === "es" ? "Finanzas" : "Finance",
       icon: "finance" as AppIconName,

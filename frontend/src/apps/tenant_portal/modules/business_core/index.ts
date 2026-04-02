@@ -1,0 +1,1 @@
+export { businessCoreTenantPortalRoutes } from "./routes";
