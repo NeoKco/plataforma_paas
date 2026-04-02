@@ -20,6 +20,7 @@ from migrations.tenant import v0011_finance_loan_source_account
 from migrations.tenant import v0012_finance_transaction_voids
 from migrations.tenant import v0013_finance_transaction_voids_repair
 from migrations.tenant import v0014_finance_default_category_catalog
+from migrations.tenant import v0015_business_core_base
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -149,6 +150,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0012_finance_transaction_voids",
                 "0013_finance_transaction_voids_repair",
                 "0014_finance_default_category_catalog",
+                "0015_business_core_base",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -172,6 +174,10 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("finance_budgets", tables)
         self.assertIn("finance_loans", tables)
         self.assertIn("finance_loan_installments", tables)
+        self.assertIn("business_organizations", tables)
+        self.assertIn("business_clients", tables)
+        self.assertIn("business_contacts", tables)
+        self.assertIn("business_sites", tables)
         self.assertIn("tenant_schema_migrations", tables)
         installment_columns = {
             column["name"]
@@ -184,6 +190,21 @@ class MigrationFlowTestCase(unittest.TestCase):
             column["name"]
             for column in inspect(engine).get_columns("finance_transactions")
         }
+        business_organization_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("business_organizations")
+        }
+        business_client_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("business_clients")
+        }
+        business_contact_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("business_contacts")
+        }
+        business_site_columns = {
+            column["name"] for column in inspect(engine).get_columns("business_sites")
+        }
         self.assertIn("paid_principal_amount", installment_columns)
         self.assertIn("paid_interest_amount", installment_columns)
         self.assertIn("reversal_reason_code", installment_columns)
@@ -192,6 +213,10 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("voided_at", transaction_columns)
         self.assertIn("void_reason", transaction_columns)
         self.assertIn("voided_by_user_id", transaction_columns)
+        self.assertIn("organization_kind", business_organization_columns)
+        self.assertIn("organization_id", business_client_columns)
+        self.assertIn("full_name", business_contact_columns)
+        self.assertIn("client_id", business_site_columns)
 
         with engine.connect() as conn:
             currency_rows = conn.execute(
@@ -247,6 +272,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0012_finance_transaction_voids",
                 "0013_finance_transaction_voids_repair",
                 "0014_finance_default_category_catalog",
+                "0015_business_core_base",
             ],
         )
 
@@ -281,6 +307,19 @@ class MigrationFlowTestCase(unittest.TestCase):
                 ).all()
             ]
             self.assertEqual(currency_codes, ["USD", "CLP"])
+
+    def test_business_core_base_migration_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            v0015_business_core_base.upgrade(conn)
+            v0015_business_core_base.upgrade(conn)
+
+        tables = set(inspect(engine).get_table_names())
+        self.assertIn("business_organizations", tables)
+        self.assertIn("business_clients", tables)
+        self.assertIn("business_contacts", tables)
+        self.assertIn("business_sites", tables)
 
     def test_finance_transactions_migration_backfills_legacy_entries(self) -> None:
         engine = self._build_engine()
