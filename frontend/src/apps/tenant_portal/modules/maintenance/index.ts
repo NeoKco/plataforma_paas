@@ -1,0 +1,1 @@
+export { maintenanceTenantPortalRoutes } from "./routes";

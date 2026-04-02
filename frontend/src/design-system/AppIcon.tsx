@@ -4,6 +4,7 @@ export type AppIconName =
   | "overview"
   | "users"
   | "finance"
+  | "maintenance"
   | "dashboard"
   | "tenants"
   | "tenant-history"
@@ -106,6 +107,14 @@ function renderIconPath(name: AppIconName) {
           <path d="M7 18V9" />
           <path d="M12 18V5" />
           <path d="M17 18v-7" />
+        </>
+      );
+    case "maintenance":
+      return (
+        <>
+          <path d="m14.5 5.5 4 4" />
+          <path d="M12 8 6 14l-1.5 4.5L9 17l6-6" />
+          <path d="m13 7 4-4 2 2-4 4" />
         </>
       );
     case "tenants":

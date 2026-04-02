@@ -3,6 +3,7 @@ import { RequireAuth } from "./RequireAuth";
 import { RequireInstalled } from "./RequireInstalled";
 import { RequirePlatformRoles } from "./RequirePlatformRoles";
 import { financeTenantPortalRoutes } from "../../tenant_portal/modules/finance";
+import { maintenanceTenantPortalRoutes } from "../../tenant_portal/modules/maintenance";
 import { RequireTenantAuth } from "../../tenant_portal/routes/RequireTenantAuth";
 import { LoadingBlock } from "../../../components/feedback/LoadingBlock";
 import { useAuth } from "../../../store/auth-context";
@@ -172,6 +173,10 @@ const router = createBrowserRouter([
       {
         path: "finance",
         children: financeTenantPortalRoutes,
+      },
+      {
+        path: "maintenance",
+        children: maintenanceTenantPortalRoutes,
       },
     ],
   },

@@ -20,6 +20,11 @@ export function TenantSidebarNav() {
       label: language === "es" ? "Finanzas" : "Finance",
       icon: "finance" as AppIconName,
     },
+    {
+      to: "/tenant-portal/maintenance",
+      label: language === "es" ? "Mantenciones" : "Maintenance",
+      icon: "maintenance" as AppIconName,
+    },
   ];
 
   return (
