@@ -42,6 +42,11 @@
   - `0015_business_core_base`
   - `0016_maintenance_base`
   - `0017_business_core_taxonomy`
+- se ejecuta el importador con `--apply` sobre `empresa-bootstrap`
+- se valida una segunda corrida `dry-run` como idempotente:
+  - `work_orders`: `created 0 / existing 105`
+  - `installations`: `created 0 / existing 197`
+  - `sites`: `created 0 / existing 200`
 
 ## 2026-04-01
 

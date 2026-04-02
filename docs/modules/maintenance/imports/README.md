@@ -28,6 +28,8 @@ Validacion ya realizada:
   - `0015_business_core_base`
   - `0016_maintenance_base`
   - `0017_business_core_taxonomy`
+- `--apply` ejecutado con exito sobre `empresa-bootstrap`
+- segunda corrida en `dry-run` validada como idempotente
 
 Comando recomendado de validacion:
 
@@ -75,4 +77,4 @@ Pendiente posterior:
 - `business_work_group_members`
 - mapeo de usuarios legacy a usuarios tenant reales
 - activos compartidos si `asset-core` se abre despues
-- ejecutar `--apply` sobre el tenant que quede como destino oficial de la migracion
+- si se migra a otro tenant, repetir primero `dry-run` y luego `--apply`

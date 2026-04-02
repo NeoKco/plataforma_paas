@@ -148,4 +148,5 @@ Pendiente documentado:
 - `dry-run` validado:
   - fuente `kanban_db`
   - tenant destino `empresa-bootstrap`
-  - pendiente solo `--apply` sobre el tenant final de migracion
+- `--apply` ya ejecutado sobre `empresa-bootstrap`
+- idempotencia ya verificada con segunda corrida `dry-run`

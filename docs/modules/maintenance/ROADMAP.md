@@ -204,4 +204,6 @@ Validacion reciente:
   - `0015_business_core_base`
   - `0016_maintenance_base`
   - `0017_business_core_taxonomy`
-- pendiente inmediato: ejecutar `--apply` sobre el tenant destino final de la migracion
+- `--apply` ya ejecutado con exito sobre `empresa-bootstrap`
+- segunda corrida `dry-run` ya valida idempotencia
+- pendiente inmediato: decidir si `empresa-bootstrap` queda como tenant definitivo de operacion o repetir el proceso en otro tenant destino

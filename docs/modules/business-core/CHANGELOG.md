@@ -19,3 +19,4 @@
 - se agrega el importador inicial [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py) para poblar `business-core` desde la BD legacy de `ieris_app`
 - se deja explicito que `user_groups` sigue pendiente hasta abrir `business_work_group_members`
 - se valida el `dry-run` del importador contra `kanban_db` y el tenant `empresa-bootstrap`
+- se ejecuta el importador real sobre `empresa-bootstrap` y se valida idempotencia en segunda corrida
