@@ -49,6 +49,25 @@ Esa base deberia absorber:
 
 Sin eso, `maintenance` quedaria como dueño accidental de entidades que luego tambien necesitara `projects` e `iot`.
 
+## Regla sobre la BD de `ieris_app`
+
+La BD de `ieris_app` es:
+
+- fuente de referencia funcional
+- fuente de migracion de datos
+- fuente de contraste durante la transicion
+
+La BD de `ieris_app` no es:
+
+- la base operativa en runtime del modulo nuevo
+- el contrato publico del PaaS
+- la estructura final que deba heredarse tal cual
+
+Decision:
+
+- `maintenance` en el PaaS debe operar sobre la BD tenant del PaaS
+- los datos antiguos se importan desde `ieris_app`, pero el modulo nuevo no depende de consultas vivas contra esa BD
+
 ## Auditoria de la app fuente
 
 La auditoria de `ieris_app` muestra este slice real:
@@ -100,6 +119,8 @@ Entidades sugeridas para el primer corte de `maintenance` una vez exista `busine
   si se requiere formalizar destino de asignacion a usuario/grupo
 - `maintenance_status_logs`
   historial de cambios de estado
+- `maintenance_equipment_types`
+- `maintenance_installations` o `maintenance_assets`
 
 Entidades que conviene vivir en `business-core`:
 
@@ -169,6 +190,12 @@ Etapa 1:
 - mantenciones activas
 - cierre/anulacion con lifecycle formal
 - lectura historial
+
+Etapa 1.5:
+
+- importador desde la BD de `ieris_app`
+- tabla o registro de mapeo `legacy_id -> new_id`
+- validacion de paridad por cliente, sitio e historico
 
 Etapa 2:
 

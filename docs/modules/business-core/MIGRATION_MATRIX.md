@@ -10,6 +10,26 @@ La regla es:
 - corregir acoplamientos y mezclas del sistema fuente
 - normalizar entidades compartidas antes de abrir `maintenance`, `projects` e `iot`
 
+## Fuente vs destino operativo
+
+Uso correcto de `ieris_app` y su BD:
+
+- descubrir reglas reales del negocio
+- preparar importadores
+- validar datos migrados
+- contrastar paridad durante la transicion
+
+Uso incorrecto de `ieris_app` y su BD:
+
+- dejar a `business-core` funcionando con consultas vivas contra la BD vieja
+- usar ids antiguos como contrato publico del PaaS
+- arrastrar tablas fuente como si fueran el modelo final
+
+Decision:
+
+- `business-core` opera sobre la BD tenant del PaaS
+- la BD de `ieris_app` se usa solo como fuente de migracion y verificacion
+
 ## Fuentes auditadas
 
 Modelos fuente:

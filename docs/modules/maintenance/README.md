@@ -59,6 +59,14 @@ Nota importante:
   Estado actual, fases y backlog de migracion.
 - [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/maintenance/CHANGELOG.md)
   Hitos documentales y tecnicos del modulo.
+- [MIGRATION_MATRIX.md](/home/felipe/platform_paas/docs/modules/maintenance/MIGRATION_MATRIX.md)
+  Mapa fuente -> destino desde `ieris_app` hacia `maintenance` y su dependencia con `business-core`.
+
+## Regla operativa de migracion
+
+- `ieris_app` y su BD no seran la dependencia viva del modulo nuevo
+- el PaaS operara sobre su propia BD tenant
+- la BD vieja solo se usara para importar, contrastar y validar paridad durante la migracion
 
 ## Fuentes auditadas
 

@@ -1,5 +1,10 @@
 # Maintenance Changelog
 
+## 2026-04-02
+
+- se documenta explicitamente que la BD de `ieris_app` sera solo fuente de migracion y validacion, no dependencia viva del runtime del PaaS
+- se agrega [MIGRATION_MATRIX.md](/home/felipe/platform_paas/docs/modules/maintenance/MIGRATION_MATRIX.md) para mapear mantenciones, historico, instalaciones y tipos de equipo hacia el modelo nuevo
+
 ## 2026-04-01
 
 - se declara `maintenance` como siguiente modulo de negocio priorizado para el PaaS

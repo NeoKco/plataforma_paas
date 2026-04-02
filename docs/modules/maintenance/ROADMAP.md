@@ -90,6 +90,7 @@ Criterio de salida:
 - frontend tenant visible
 - migraciones tenant creadas
 - pruebas backend minimas
+- sin dependencia runtime contra la BD de `ieris_app`
 
 ## Fase 4. Endurecimiento operativo
 
@@ -154,3 +155,4 @@ Alcance:
 
 - abrir `business-core` como dominio tenant transversal
 - despues retomar `maintenance` con modelo de datos ya desacoplado
+- preparar matriz de migracion desde `ieris_app` hacia `maintenance`
