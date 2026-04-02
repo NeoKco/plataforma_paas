@@ -15,3 +15,4 @@
 - Se versiona `0017_business_core_taxonomy` con `function_profiles`, `work_groups` y `task_types`.
 - Se implementa la ola 1B backend/frontend para taxonomias compartidas.
 - Se deja explicito que membresias de grupos quedan para una ola posterior.
+- Se deja el backlog pendiente visible en la documentacion para no perder `assets`, `site_responsibles`, `work_group_members` e integraciones con modulos.

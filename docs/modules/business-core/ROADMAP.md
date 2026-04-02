@@ -72,6 +72,12 @@ Alcance:
 - `projects` nace sobre `business-core`
 - `iot` reusa `sites` y `assets`
 
+Pendiente inmediato dentro de esta fase:
+
+- reemplazar selects y catálogos ad hoc de `maintenance` por entidades de `business-core`
+- amarrar órdenes y visitas a `sites`, `work_groups`, `function_profiles` y `task_types`
+- definir los primeros contratos frontend/backend de integración
+
 ## Fase 4. Assets y responsables
 
 Estado:
@@ -85,6 +91,13 @@ Alcance:
 - responsables por sitio
 - adopcion por `iot`
 
+Pendiente documentado:
+
+- `business_work_group_members`
+- `business_site_responsibles`
+- `business_assets`
+- `business_asset_types`
+
 ## Riesgos a evitar
 
 - meter clientes y empresas en `platform-core`
@@ -96,6 +109,15 @@ Alcance:
 - conectar `maintenance` contra `business-core`
 - dejar memberships de `work_groups` para una ola posterior
 - preparar importadores desde `ieris_app`
+
+## Backlog pendiente visible
+
+- `work_group_members`: pendiente
+- `site_responsibles`: pendiente
+- `assets` y `asset_types`: pendiente
+- importadores legacy desde `ieris_app`: pendiente
+- integración con `projects`: pendiente
+- integración con `iot`: pendiente
 ## Estado actual
 - `wave 1 backend` completo:
   - `organizations`: backend CRUD listo

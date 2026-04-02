@@ -22,6 +22,14 @@ Estado actual:
 - backend CRUD implementado para `function_profiles`, `work_groups` y `task_types`
 - frontend tenant operativo para las taxonomias de ola 1B
 
+Pendientes visibles inmediatos:
+
+- membresias de `work_groups` (`business_work_group_members`)
+- responsables por sitio
+- assets o equipos instalados como dominio compartido
+- importadores desde `ieris_app`
+- integracion real con `maintenance`
+
 Nota importante:
 
 - esto no reemplaza `platform-core`
@@ -56,6 +64,10 @@ Alcance recomendado inmediatamente despues:
 - activos o equipos instalados
 - responsables internos y externos por sitio
 - clasificaciones tecnicas compartidas
+
+Pendiente posterior importante:
+
+- no abrir `iot` sobre tablas propias antes de resolver `assets`
 
 ## Modulos que dependen de este dominio
 

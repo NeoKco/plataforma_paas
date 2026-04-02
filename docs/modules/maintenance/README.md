@@ -45,6 +45,16 @@ Estado del corte hoy:
 - modelos ORM iniciales ya versionados
 - frontend del modulo aun esta en estado de scaffold
 - APIs operativas de `maintenance` aun pendientes
+- `business-core` ya entrega clientes, sitios, perfiles funcionales, grupos y tipos de tarea para conectarlo correctamente
+
+Pendientes visibles inmediatos:
+
+- CRUD/backend real de `equipment_types`
+- CRUD/backend real de `installations`
+- CRUD/backend real de `work_orders`
+- uso efectivo de `sites`, `work_groups`, `function_profiles` y `task_types`
+- frontend operativo del primer corte
+- importadores desde `ieris_app`
 
 Se deja fuera del primer corte:
 

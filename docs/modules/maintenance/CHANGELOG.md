@@ -12,6 +12,7 @@
 - el scaffold backend deja estado `schema_base` para reflejar que el modulo ya no esta solo en diseno
 - se documenta explicitamente que la BD de `ieris_app` sera solo fuente de migracion y validacion, no dependencia viva del runtime del PaaS
 - se agrega [MIGRATION_MATRIX.md](/home/felipe/platform_paas/docs/modules/maintenance/MIGRATION_MATRIX.md) para mapear mantenciones, historico, instalaciones y tipos de equipo hacia el modelo nuevo
+- se deja visible el backlog pendiente del modulo para `equipment_types`, `installations`, `work_orders`, `visits`, agenda e importadores legacy
 
 ## 2026-04-01
 

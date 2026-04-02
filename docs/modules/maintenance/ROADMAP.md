@@ -104,6 +104,15 @@ Avance actual:
   - `maintenance_visits`
   - `maintenance_status_logs`
 - prueba de migraciones validada
+- `business-core` ya cubre el prerequisito de taxonomias compartidas
+
+Pendiente inmediato de esta fase:
+
+- APIs reales para `equipment_types`
+- APIs reales para `installations`
+- APIs reales para `work_orders`
+- usar ids de `business-core` en formularios y contratos
+- frontend operativo sobre esas APIs
 
 ## Fase 4. Endurecimiento operativo
 
@@ -169,3 +178,14 @@ Alcance:
 - implementar APIs reales de `equipment_types`, `installations` y `work_orders`
 - montar frontend operativo del primer corte sobre esas APIs
 - despues preparar importadores desde `ieris_app` hacia `business-core` y `maintenance`
+
+## Backlog pendiente visible
+
+- `equipment_types`: pendiente
+- `installations`: pendiente
+- `work_orders`: pendiente
+- `visits`: pendiente
+- `status_logs` operativos: pendiente
+- integración con agenda: pendiente
+- evidencias y checklist: pendiente
+- importadores legacy: pendiente
