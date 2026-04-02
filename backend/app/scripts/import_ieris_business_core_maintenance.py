@@ -1277,26 +1277,27 @@ def import_business_core_and_maintenance(
 
 def main() -> int:
     args = parse_args()
-    legacy_config = load_legacy_db_config(args)
     report_out = args.report_out
     report_out.parent.mkdir(parents=True, exist_ok=True)
-
-    legacy_data = fetch_legacy_source(legacy_config, args.skip_historical)
-
-    control_db = ControlSessionLocal()
+    legacy_config = load_legacy_db_config(args)
+    legacy_data = None
+    tenant_db = None
     try:
-        tenant_connection_service = TenantConnectionService()
-        tenant = tenant_connection_service.get_tenant(control_db, args.tenant_slug)
-        if tenant is None:
-            raise ValueError(
-                f"No existe un tenant activo con slug='{args.tenant_slug}' para importar"
-            )
-        tenant_session_factory = tenant_connection_service.get_tenant_session(tenant)
-    finally:
-        control_db.close()
+        legacy_data = fetch_legacy_source(legacy_config, args.skip_historical)
 
-    tenant_db = tenant_session_factory()
-    try:
+        control_db = ControlSessionLocal()
+        try:
+            tenant_connection_service = TenantConnectionService()
+            tenant = tenant_connection_service.get_tenant(control_db, args.tenant_slug)
+            if tenant is None:
+                raise ValueError(
+                    f"No existe un tenant activo con slug='{args.tenant_slug}' para importar"
+                )
+            tenant_session_factory = tenant_connection_service.get_tenant_session(tenant)
+        finally:
+            control_db.close()
+
+        tenant_db = tenant_session_factory()
         assert_required_target_tables(tenant_db)
         result = import_business_core_and_maintenance(
             tenant_db,
@@ -1325,11 +1326,31 @@ def main() -> int:
         )
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0
-    except Exception:
-        tenant_db.rollback()
-        raise
+    except Exception as exc:
+        if tenant_db is not None:
+            tenant_db.rollback()
+        report = {
+            "mode": "apply" if args.apply else "dry-run",
+            "tenant_slug": args.tenant_slug,
+            "legacy": {
+                "app_dir": str(args.legacy_app_dir),
+                "db_name": legacy_config.get("dbname"),
+                "db_host": legacy_config.get("host"),
+                "db_port": str(legacy_config.get("port")),
+            },
+            "status": "error",
+            "error": str(exc),
+            "source_counts": {key: len(value) for key, value in (legacy_data or {}).items()},
+        }
+        report_out.write_text(
+            json.dumps(report, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 1
     finally:
-        tenant_db.close()
+        if tenant_db is not None:
+            tenant_db.close()
 
 
 if __name__ == "__main__":
