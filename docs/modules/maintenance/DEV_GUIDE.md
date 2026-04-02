@@ -1,0 +1,192 @@
+# Maintenance Developer Guide
+
+Guia de desarrollo para el modulo `maintenance`.
+
+## Decision de naming
+
+Slug tecnico recomendado:
+
+- `maintenance`
+
+Etiqueta funcional:
+
+- `Mantenciones`
+
+Se toma `maintenance` como nombre tecnico para mantener consistencia con `finance` y `platform-core`, pero el lenguaje de producto puede seguir usando `Mantenciones`.
+
+## Frontera del modulo
+
+Entra en `maintenance`:
+
+- ordenes de mantencion
+- historial de mantenciones
+- instalaciones por cliente
+- tipos de equipo
+- sincronizacion con agenda
+- evidencias y checklist basico de mantencion en fases posteriores
+
+No entra en el primer corte:
+
+- `finance`
+- `CRM`
+- `cotizaciones`
+- expediente tecnico completo
+
+## Auditoria de la app fuente
+
+La auditoria de `ieris_app` muestra este slice real:
+
+- mantenciones activas y programadas
+- cierre de mantencion con movimiento a historico
+- instalaciones por cliente
+- catalogo de tipos de equipo
+- integracion fuerte con `calendar_events`
+- integracion secundaria con `tasks`
+
+Fuente backend principal:
+
+- [mantenciones_routes.py](/home/felipe/ieris_app/app/routes/mantenciones_routes.py)
+- [mantenciones_service.py](/home/felipe/ieris_app/app/services/mantenciones_service.py)
+- [historico_mantenciones_routes.py](/home/felipe/ieris_app/app/routes/historico_mantenciones_routes.py)
+- [historico_mantenciones_service.py](/home/felipe/ieris_app/app/services/historico_mantenciones_service.py)
+- [instalaciones_por_cliente_routes.py](/home/felipe/ieris_app/app/routes/instalaciones_por_cliente_routes.py)
+- [instalaciones_por_cliente_service.py](/home/felipe/ieris_app/app/services/instalaciones_por_cliente_service.py)
+- [tipo_equipo_routes.py](/home/felipe/ieris_app/app/routes/tipo_equipo_routes.py)
+- [calendar_service.py](/home/felipe/ieris_app/app/services/calendar_service.py)
+
+Fuente frontend principal:
+
+- [GestionarMantenciones.jsx](/home/felipe/ieris_app/frontend_app/src/components/mantenciones/gestionar_mantenciones/GestionarMantenciones.jsx)
+- [CrearMantencionModal.jsx](/home/felipe/ieris_app/frontend_app/src/components/mantenciones/crear_mantencion/CrearMantencionModal.jsx)
+- [EditarMantencionModal.jsx](/home/felipe/ieris_app/frontend_app/src/components/mantenciones/editar_mantencion/EditarMantencionModal.jsx)
+- [HistoricoMantenciones.js](/home/felipe/ieris_app/frontend_app/src/components/historicos/historico_mantenciones/HistoricoMantenciones.js)
+- [GestionarInstalaciones.jsx](/home/felipe/ieris_app/frontend_app/src/components/instalaciones_por_cliente/gestion_de_instalacion/GestionarInstalaciones.jsx)
+
+## Problemas de diseño detectados en la fuente
+
+- el cierre mueve registros desde `mantenciones` a `historico_mantenciones`, en vez de mantener una sola entidad con lifecycle auditable
+- la asignacion es flexible (`usuario` o `grupo`), pero no existe un modelo de responsables ni una agenda de terreno suficientemente formal
+- una mantencion se asocia a `cliente`, pero no necesariamente a una `instalacion`
+- se crean tareas y eventos de agenda desde el servicio de mantenciones, lo que aumenta acoplamiento
+- no existe una frontera clara entre mantencion operativa y expediente tecnico
+- el frontend trabaja con tablas compactas y modales, pero no con una lectura por ficha/orden de trabajo
+
+## Modelo objetivo recomendado en PaaS
+
+Entidades sugeridas para el primer corte:
+
+- `maintenance_equipment_types`
+  catalogo de tipos de equipo
+- `maintenance_installations`
+  instalaciones asociadas a cliente, empresa, tipo de equipo y metadatos tecnicos basicos
+- `maintenance_work_orders`
+  orden principal de mantencion
+- `maintenance_assignment_targets`
+  si se requiere formalizar destino de asignacion a usuario/grupo
+- `maintenance_status_logs`
+  historial de cambios de estado
+
+Entidades de segundo corte:
+
+- `maintenance_evidence`
+- `maintenance_checklists`
+- `maintenance_visit_reports`
+
+## Estados recomendados
+
+En vez de borrar y mover a historico, usar un solo lifecycle:
+
+- `scheduled`
+- `confirmed`
+- `in_progress`
+- `completed`
+- `cancelled`
+
+El historico deberia ser una vista derivada de las ordenes cerradas, no otra tabla obligatoria para operar.
+
+## Integraciones recomendadas
+
+Con `platform-core`:
+
+- permisos tenant
+- auditoria
+- limites si mas adelante aplica
+
+Con modulos tenant:
+
+- `calendar`: la orden crea o actualiza eventos visibles
+- `clients` futuro o dominio equivalente: cliente asociado
+- `finance`: no mezclar gasto tecnico dentro del modulo base
+
+## Estructura esperada en el PaaS
+
+Backend futuro:
+
+- `backend/app/apps/tenant_modules/maintenance/models/`
+- `backend/app/apps/tenant_modules/maintenance/repositories/`
+- `backend/app/apps/tenant_modules/maintenance/services/`
+- `backend/app/apps/tenant_modules/maintenance/api/`
+- `backend/app/apps/tenant_modules/maintenance/schemas.py`
+- `backend/app/apps/tenant_modules/maintenance/permissions.py`
+
+Frontend futuro:
+
+- `frontend/src/apps/tenant_portal/modules/maintenance/`
+
+Documentacion:
+
+- `docs/modules/maintenance/`
+
+## Implementacion sugerida por etapas
+
+Etapa 1:
+
+- tipos de equipo
+- instalaciones
+- mantenciones activas
+- cierre/anulacion con lifecycle formal
+- lectura historial
+
+Etapa 2:
+
+- agenda integrada
+- checklist operativo
+- evidencias adjuntas
+- mejor lectura de ficha por cliente
+
+Etapa 3:
+
+- expedientes tecnicos relacionados
+- SLA, alertas y automatizaciones
+- tablero tecnico y vista movil de terreno
+
+## Pruebas que deberia tener el modulo
+
+Backend:
+
+- CRUD seguro de tipos de equipo
+- CRUD seguro de instalaciones
+- creacion de orden con validacion de agenda
+- cierre y anulacion de orden sin perdida de trazabilidad
+- filtros de historial por cliente y periodo
+
+Frontend:
+
+- smoke de crear orden
+- smoke de reprogramar
+- smoke de cerrar con observacion
+- smoke de crear instalacion
+
+## Mejoras concretas recomendadas
+
+- asociar cada mantencion a una instalacion cuando corresponda
+- reemplazar la tabla compacta por una lista operativa con ficha lateral
+- separar claramente acciones `cerrar`, `anular`, `reprogramar`
+- usar adjuntos/evidencias del modulo, no filesystem ad hoc
+- preparar el modulo para crecer luego hacia expediente tecnico sin acoplarlo desde el inicio
+
+## Decisiones ya tomadas
+
+- `egresos` no se migra
+- `finance` sigue siendo el reemplazo del frente economico del sistema fuente
+- `maintenance` se abre como modulo propio y de alta prioridad operativa

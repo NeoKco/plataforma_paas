@@ -31,5 +31,7 @@ La idea no es duplicar toda la documentación técnica existente, sino:
 
 - [finance](/home/felipe/platform_paas/docs/modules/finance/README.md)
   Primer módulo tenant funcional y módulo piloto del SaaS.
+- [maintenance](/home/felipe/platform_paas/docs/modules/maintenance/README.md)
+  Siguiente modulo tenant priorizado, derivado de la auditoria de `Mantenciones` en `ieris_app`.
 - [platform-core](/home/felipe/platform_paas/docs/modules/platform-core/README.md)
   Bloque central de instalación, `platform_admin`, tenants, provisioning, billing y ciclo operativo base.

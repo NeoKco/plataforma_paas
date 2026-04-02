@@ -61,6 +61,12 @@ La recomendacion actual es esta:
 - dejar `slug` como identificador estable salvo que despues exista una politica formal de cambio
 - no usar `restore` como mutacion informal de estados; ya existe como flujo explicito para tenants archivados
 
+Modulo siguiente ya elegido para apertura formal:
+
+- `maintenance` (`Mantenciones`), auditado desde `ieris_app`, queda como siguiente modulo tenant priorizado
+- el alcance base decidido es: mantenciones, historial, instalaciones, tipos de equipo e integracion con agenda
+- `egresos` no entra en esta linea porque su reemplazo en el PaaS ya es `finance`
+
 Pendiente corto de endurecimiento antes o en paralelo a nuevos modulos:
 
 - smoke/E2E del lifecycle tenant completo hasta aparicion en `Histórico tenants` ya cubierto en backend sobre control DB + tenant DB de prueba, incluyendo create, provision, login tenant, archive, restore, deprovision, delete y validacion del archivo historico

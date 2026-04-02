@@ -47,6 +47,7 @@ En este momento la documentacion creada formalmente dentro del repositorio comie
 - [Implementacion backend tenant](./runbooks/tenant-backend-implementation.md)
 - [Implementacion modulo finance](./runbooks/finance-module-implementation.md)
 - [Indice canonico de finance](./modules/finance/README.md)
+- [Indice canonico de maintenance](./modules/maintenance/README.md)
 - [Indice canonico de platform core](./modules/platform-core/README.md)
 - [Reglas backend y guia de cambios](./runbooks/backend-rules-and-change-guidelines.md)
 - [Onboarding de developers](./runbooks/developer-onboarding.md)
