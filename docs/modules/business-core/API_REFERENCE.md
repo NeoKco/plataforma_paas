@@ -1,25 +1,51 @@
 # Business Core API Reference
 
-Todavia no existe API implementada para `business-core`.
+Estado actual:
 
-Referencia objetivo de primer corte:
+- backend activo para:
+  - `organizations`
+  - `clients`
+- pendiente para:
+  - `contacts`
+  - `sites`
+  - `function_profiles`
+  - `work_groups`
+  - `task_types`
+
+## Endpoints implementados
 
 - `GET /tenant/business-core/clients`
 - `POST /tenant/business-core/clients`
-- `PATCH /tenant/business-core/clients/{client_id}`
+- `GET /tenant/business-core/clients/{client_id}`
+- `PUT /tenant/business-core/clients/{client_id}`
+- `PATCH /tenant/business-core/clients/{client_id}/status`
+- `DELETE /tenant/business-core/clients/{client_id}`
 - `GET /tenant/business-core/organizations`
 - `POST /tenant/business-core/organizations`
-- `PATCH /tenant/business-core/organizations/{organization_id}`
+- `GET /tenant/business-core/organizations/{organization_id}`
+- `PUT /tenant/business-core/organizations/{organization_id}`
+- `PATCH /tenant/business-core/organizations/{organization_id}/status`
+- `DELETE /tenant/business-core/organizations/{organization_id}`
+
+## Endpoints objetivo del siguiente corte
+
 - `GET /tenant/business-core/contacts`
 - `POST /tenant/business-core/contacts`
+- `GET /tenant/business-core/contacts/{contact_id}`
+- `PUT /tenant/business-core/contacts/{contact_id}`
+- `PATCH /tenant/business-core/contacts/{contact_id}/status`
+- `DELETE /tenant/business-core/contacts/{contact_id}`
 - `GET /tenant/business-core/sites`
 - `POST /tenant/business-core/sites`
-- `PATCH /tenant/business-core/sites/{site_id}`
+- `GET /tenant/business-core/sites/{site_id}`
+- `PUT /tenant/business-core/sites/{site_id}`
+- `PATCH /tenant/business-core/sites/{site_id}/status`
+- `DELETE /tenant/business-core/sites/{site_id}`
 - `GET /tenant/business-core/function-profiles`
 - `GET /tenant/business-core/work-groups`
 - `GET /tenant/business-core/task-types`
 
-Referencia objetivo de segundo corte:
+## Segundo corte sugerido
 
 - `GET /tenant/business-core/assets`
 - `POST /tenant/business-core/assets`

@@ -95,3 +95,9 @@ Alcance:
 
 - abrir el slice real de `business-core`
 - empezar por `organizations`, `clients`, `contacts` y `sites`
+## Estado actual
+- `wave 1 backend` en progreso:
+  - `organizations`: backend CRUD listo
+  - `clients`: backend CRUD listo
+  - `contacts`: pendiente
+  - `sites`: pendiente

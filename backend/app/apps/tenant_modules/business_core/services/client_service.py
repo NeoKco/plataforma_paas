@@ -1,0 +1,163 @@
+from sqlalchemy.orm import Session
+
+from app.apps.tenant_modules.business_core.models import (
+    BusinessClient,
+    BusinessOrganization,
+    BusinessSite,
+)
+from app.apps.tenant_modules.business_core.repositories import (
+    BusinessClientRepository,
+    BusinessOrganizationRepository,
+)
+from app.apps.tenant_modules.business_core.schemas import (
+    BusinessClientCreateRequest,
+    BusinessClientUpdateRequest,
+)
+
+
+class BusinessClientService:
+    def __init__(
+        self,
+        client_repository: BusinessClientRepository | None = None,
+        organization_repository: BusinessOrganizationRepository | None = None,
+    ) -> None:
+        self.client_repository = client_repository or BusinessClientRepository()
+        self.organization_repository = (
+            organization_repository or BusinessOrganizationRepository()
+        )
+
+    def list_clients(
+        self,
+        tenant_db: Session,
+        *,
+        organization_id: int | None = None,
+        include_inactive: bool = True,
+    ) -> list[BusinessClient]:
+        if organization_id is not None:
+            return self.client_repository.list_by_organization(
+                tenant_db,
+                organization_id,
+                include_inactive=include_inactive,
+            )
+        return self.client_repository.list_all(
+            tenant_db,
+            include_inactive=include_inactive,
+        )
+
+    def create_client(
+        self,
+        tenant_db: Session,
+        payload: BusinessClientCreateRequest,
+    ) -> BusinessClient:
+        normalized = self._normalize_payload(payload)
+        self._validate_payload(tenant_db, normalized)
+        client = BusinessClient(**normalized)
+        return self.client_repository.save(tenant_db, client)
+
+    def get_client(self, tenant_db: Session, client_id: int) -> BusinessClient:
+        return self._get_client_or_raise(tenant_db, client_id)
+
+    def update_client(
+        self,
+        tenant_db: Session,
+        client_id: int,
+        payload: BusinessClientUpdateRequest,
+    ) -> BusinessClient:
+        client = self._get_client_or_raise(tenant_db, client_id)
+        normalized = self._normalize_payload(payload)
+        self._validate_payload(tenant_db, normalized, current_client=client)
+
+        for field, value in normalized.items():
+            setattr(client, field, value)
+
+        return self.client_repository.save(tenant_db, client)
+
+    def set_client_active(
+        self,
+        tenant_db: Session,
+        client_id: int,
+        is_active: bool,
+    ) -> BusinessClient:
+        client = self._get_client_or_raise(tenant_db, client_id)
+        return self.client_repository.set_active(tenant_db, client, is_active)
+
+    def delete_client(self, tenant_db: Session, client_id: int) -> BusinessClient:
+        client = self._get_client_or_raise(tenant_db, client_id)
+
+        site_exists = (
+            tenant_db.query(BusinessSite.id)
+            .filter(BusinessSite.client_id == client.id)
+            .first()
+        )
+        if site_exists is not None:
+            raise ValueError(
+                "No puedes eliminar el cliente porque ya esta asociado a sitios"
+            )
+
+        self.client_repository.delete(tenant_db, client)
+        return client
+
+    def _get_client_or_raise(self, tenant_db: Session, client_id: int) -> BusinessClient:
+        client = self.client_repository.get_by_id(tenant_db, client_id)
+        if client is None:
+            raise ValueError("El cliente solicitado no existe")
+        return client
+
+    def _normalize_payload(
+        self,
+        payload: BusinessClientCreateRequest | BusinessClientUpdateRequest,
+    ) -> dict:
+        return {
+            "organization_id": payload.organization_id,
+            "client_code": (
+                payload.client_code.strip().upper()
+                if payload.client_code and payload.client_code.strip()
+                else None
+            ),
+            "service_status": payload.service_status.strip().lower(),
+            "commercial_notes": (
+                payload.commercial_notes.strip()
+                if payload.commercial_notes and payload.commercial_notes.strip()
+                else None
+            ),
+            "is_active": payload.is_active,
+            "sort_order": payload.sort_order,
+        }
+
+    def _validate_payload(
+        self,
+        tenant_db: Session,
+        payload: dict,
+        *,
+        current_client: BusinessClient | None = None,
+    ) -> None:
+        organization = self.organization_repository.get_by_id(
+            tenant_db,
+            payload["organization_id"],
+        )
+        if organization is None:
+            raise ValueError("La organizacion seleccionada no existe")
+
+        existing_client = self.client_repository.get_by_organization_id(
+            tenant_db,
+            payload["organization_id"],
+        )
+        if existing_client and (current_client is None or existing_client.id != current_client.id):
+            raise ValueError("La organizacion seleccionada ya tiene un cliente asociado")
+
+        if not payload["service_status"]:
+            raise ValueError("El estado de servicio del cliente es obligatorio")
+
+        if payload["client_code"]:
+            existing_code = self.client_repository.get_by_client_code(
+                tenant_db,
+                payload["client_code"],
+            )
+            if existing_code and (current_client is None or existing_code.id != current_client.id):
+                raise ValueError("Ya existe un cliente con ese codigo")
+
+        if (
+            isinstance(organization, BusinessOrganization)
+            and organization.organization_kind.strip().lower() == "internal"
+        ):
+            raise ValueError("La organizacion interna no puede registrarse como cliente")

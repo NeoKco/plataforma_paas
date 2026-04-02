@@ -12,6 +12,12 @@ Objetivo:
 - evitar que `maintenance`, `projects`, `iot` o futuros modulos repliquen clientes, empresas, contactos, sitios, equipos, grupos o taxonomias base
 - servir como base funcional sobre la que se montan los modulos de negocio
 
+Estado actual:
+
+- migracion tenant base creada
+- backend CRUD implementado para `organizations` y `clients`
+- `contacts` y `sites` definidos como fase siguiente
+
 Nota importante:
 
 - esto no reemplaza `platform-core`

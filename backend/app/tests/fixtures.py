@@ -44,14 +44,19 @@ def build_tenant_context(
                 "tenant.users.change_status",
                 "tenant.finance.read",
                 "tenant.finance.create",
+                "tenant.business_core.read",
+                "tenant.business_core.manage",
             ],
             "manager": [
                 "tenant.users.read",
                 "tenant.finance.read",
                 "tenant.finance.create",
+                "tenant.business_core.read",
+                "tenant.business_core.manage",
             ],
             "operator": [
                 "tenant.finance.read",
+                "tenant.business_core.read",
             ],
         }
         permissions = permissions_by_role.get(role, [])

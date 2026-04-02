@@ -8,3 +8,6 @@
 - se define la matriz de migracion desde `ieris_app`
 - se abre el scaffold inicial del modulo en backend y frontend
 - se versiona la primera migracion tenant con `organizations`, `clients`, `contacts` y `sites`
+# 2026-04-02
+- Se implemento la primera ola backend de `business-core` con CRUD y rutas para `organizations` y `clients`.
+- Se agregaron modelos ORM, repositories, services y pruebas de rutas para el primer slice real del dominio compartido.
