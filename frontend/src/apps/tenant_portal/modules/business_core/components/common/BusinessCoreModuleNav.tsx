@@ -26,6 +26,18 @@ export function BusinessCoreModuleNav() {
       label: language === "es" ? "Sitios" : "Sites",
     },
     {
+      to: "/tenant-portal/business-core/function-profiles",
+      label: language === "es" ? "Perfiles" : "Profiles",
+    },
+    {
+      to: "/tenant-portal/business-core/work-groups",
+      label: language === "es" ? "Grupos" : "Groups",
+    },
+    {
+      to: "/tenant-portal/business-core/task-types",
+      label: language === "es" ? "Tipos de tarea" : "Task types",
+    },
+    {
       to: "/tenant-portal/business-core/taxonomy",
       label: language === "es" ? "Taxonomías" : "Taxonomy",
     },

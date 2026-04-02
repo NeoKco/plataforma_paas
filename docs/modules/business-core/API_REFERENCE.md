@@ -7,7 +7,6 @@ Estado actual:
   - `clients`
   - `contacts`
   - `sites`
-- pendiente para:
   - `function_profiles`
   - `work_groups`
   - `task_types`
@@ -38,12 +37,24 @@ Estado actual:
 - `PUT /tenant/business-core/sites/{site_id}`
 - `PATCH /tenant/business-core/sites/{site_id}/status`
 - `DELETE /tenant/business-core/sites/{site_id}`
-
-## Endpoints objetivo del siguiente corte
-
 - `GET /tenant/business-core/function-profiles`
+- `POST /tenant/business-core/function-profiles`
+- `GET /tenant/business-core/function-profiles/{function_profile_id}`
+- `PUT /tenant/business-core/function-profiles/{function_profile_id}`
+- `PATCH /tenant/business-core/function-profiles/{function_profile_id}/status`
+- `DELETE /tenant/business-core/function-profiles/{function_profile_id}`
 - `GET /tenant/business-core/work-groups`
+- `POST /tenant/business-core/work-groups`
+- `GET /tenant/business-core/work-groups/{work_group_id}`
+- `PUT /tenant/business-core/work-groups/{work_group_id}`
+- `PATCH /tenant/business-core/work-groups/{work_group_id}/status`
+- `DELETE /tenant/business-core/work-groups/{work_group_id}`
 - `GET /tenant/business-core/task-types`
+- `POST /tenant/business-core/task-types`
+- `GET /tenant/business-core/task-types/{task_type_id}`
+- `PUT /tenant/business-core/task-types/{task_type_id}`
+- `PATCH /tenant/business-core/task-types/{task_type_id}/status`
+- `DELETE /tenant/business-core/task-types/{task_type_id}`
 
 ## Segundo corte sugerido
 

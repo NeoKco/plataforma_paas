@@ -24,6 +24,12 @@ from app.apps.tenant_modules.business_core.api.contacts import (
     list_business_contacts,
     update_business_contact_status,
 )
+from app.apps.tenant_modules.business_core.api.function_profiles import (
+    create_business_function_profile,
+    delete_business_function_profile,
+    list_business_function_profiles,
+    update_business_function_profile_status,
+)
 from app.apps.tenant_modules.business_core.api.organizations import (
     create_business_organization,
     delete_business_organization,
@@ -38,12 +44,27 @@ from app.apps.tenant_modules.business_core.api.sites import (
     list_business_sites,
     update_business_site_status,
 )
+from app.apps.tenant_modules.business_core.api.task_types import (
+    create_business_task_type,
+    delete_business_task_type,
+    list_business_task_types,
+    update_business_task_type_status,
+)
+from app.apps.tenant_modules.business_core.api.work_groups import (
+    create_business_work_group,
+    delete_business_work_group,
+    list_business_work_groups,
+    update_business_work_group_status,
+)
 from app.apps.tenant_modules.business_core.schemas import (
     BusinessClientCreateRequest,
     BusinessContactCreateRequest,
     BusinessCoreStatusUpdateRequest,
+    BusinessFunctionProfileCreateRequest,
     BusinessOrganizationCreateRequest,
     BusinessSiteCreateRequest,
+    BusinessTaskTypeCreateRequest,
+    BusinessWorkGroupCreateRequest,
 )
 
 
@@ -608,6 +629,307 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
             )
 
         self.assertEqual(response.data.name, "Casa Matriz")
+
+    def test_list_business_function_profiles_returns_filtered_data(self) -> None:
+        item = SimpleNamespace(
+            id=31,
+            code="tecnico",
+            name="Técnico",
+            description="Trabajo en terreno",
+            is_active=True,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.function_profiles.function_profile_service.list_function_profiles",
+            return_value=[item],
+        ) as list_mock:
+            response = list_business_function_profiles(
+                include_inactive=False,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.total, 1)
+        self.assertEqual(response.data[0].code, "tecnico")
+        self.assertEqual(list_mock.call_args.kwargs, {"include_inactive": False})
+
+    def test_create_business_function_profile_translates_validation_error_to_400(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.business_core.api.function_profiles.function_profile_service.create_function_profile",
+            side_effect=ValueError("Ya existe un perfil funcional con ese codigo"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                create_business_function_profile(
+                    payload=BusinessFunctionProfileCreateRequest(
+                        code="tecnico",
+                        name="Técnico",
+                        description=None,
+                        is_active=True,
+                        sort_order=100,
+                    ),
+                    current_user=self._current_user(),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+
+    def test_update_business_function_profile_status_returns_mutated_item(self) -> None:
+        item = SimpleNamespace(
+            id=31,
+            code="tecnico",
+            name="Técnico",
+            description=None,
+            is_active=False,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.function_profiles.function_profile_service.set_function_profile_active",
+            return_value=item,
+        ):
+            response = update_business_function_profile_status(
+                function_profile_id=31,
+                payload=BusinessCoreStatusUpdateRequest(is_active=False),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertFalse(response.data.is_active)
+
+    def test_delete_business_function_profile_returns_deleted_item(self) -> None:
+        item = SimpleNamespace(
+            id=31,
+            code="tecnico",
+            name="Técnico",
+            description=None,
+            is_active=False,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.function_profiles.function_profile_service.delete_function_profile",
+            return_value=item,
+        ):
+            response = delete_business_function_profile(
+                function_profile_id=31,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data.code, "tecnico")
+
+    def test_list_business_work_groups_returns_filtered_data(self) -> None:
+        item = SimpleNamespace(
+            id=41,
+            code="terreno-norte",
+            name="Terreno Norte",
+            description="Equipo técnico norte",
+            group_kind="field",
+            is_active=True,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.work_groups.work_group_service.list_work_groups",
+            return_value=[item],
+        ) as list_mock:
+            response = list_business_work_groups(
+                include_inactive=False,
+                group_kind="field",
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.total, 1)
+        self.assertEqual(response.data[0].group_kind, "field")
+        self.assertEqual(
+            list_mock.call_args.kwargs,
+            {"include_inactive": False, "group_kind": "field"},
+        )
+
+    def test_create_business_work_group_translates_validation_error_to_400(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.business_core.api.work_groups.work_group_service.create_work_group",
+            side_effect=ValueError("Ya existe un grupo de trabajo con ese nombre"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                create_business_work_group(
+                    payload=BusinessWorkGroupCreateRequest(
+                        code="terreno-norte",
+                        name="Terreno Norte",
+                        description=None,
+                        group_kind="field",
+                        is_active=True,
+                        sort_order=100,
+                    ),
+                    current_user=self._current_user(),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+
+    def test_update_business_work_group_status_returns_mutated_item(self) -> None:
+        item = SimpleNamespace(
+            id=41,
+            code="terreno-norte",
+            name="Terreno Norte",
+            description=None,
+            group_kind="field",
+            is_active=False,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.work_groups.work_group_service.set_work_group_active",
+            return_value=item,
+        ):
+            response = update_business_work_group_status(
+                work_group_id=41,
+                payload=BusinessCoreStatusUpdateRequest(is_active=False),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertFalse(response.data.is_active)
+
+    def test_delete_business_work_group_returns_deleted_item(self) -> None:
+        item = SimpleNamespace(
+            id=41,
+            code="terreno-norte",
+            name="Terreno Norte",
+            description=None,
+            group_kind="field",
+            is_active=False,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.work_groups.work_group_service.delete_work_group",
+            return_value=item,
+        ):
+            response = delete_business_work_group(
+                work_group_id=41,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data.name, "Terreno Norte")
+
+    def test_list_business_task_types_returns_filtered_data(self) -> None:
+        item = SimpleNamespace(
+            id=51,
+            code="mantencion-preventiva",
+            name="Mantención preventiva",
+            description="Rutina base",
+            color="#2563eb",
+            icon="calendar",
+            is_active=True,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.task_types.task_type_service.list_task_types",
+            return_value=[item],
+        ) as list_mock:
+            response = list_business_task_types(
+                include_inactive=False,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.total, 1)
+        self.assertEqual(response.data[0].color, "#2563eb")
+        self.assertEqual(list_mock.call_args.kwargs, {"include_inactive": False})
+
+    def test_create_business_task_type_translates_validation_error_to_400(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.business_core.api.task_types.task_type_service.create_task_type",
+            side_effect=ValueError("Ya existe un tipo de tarea con ese codigo"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                create_business_task_type(
+                    payload=BusinessTaskTypeCreateRequest(
+                        code="mantencion-preventiva",
+                        name="Mantención preventiva",
+                        description=None,
+                        color="#2563eb",
+                        icon="calendar",
+                        is_active=True,
+                        sort_order=100,
+                    ),
+                    current_user=self._current_user(),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+
+    def test_update_business_task_type_status_returns_mutated_item(self) -> None:
+        item = SimpleNamespace(
+            id=51,
+            code="mantencion-preventiva",
+            name="Mantención preventiva",
+            description=None,
+            color="#2563eb",
+            icon="calendar",
+            is_active=False,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.task_types.task_type_service.set_task_type_active",
+            return_value=item,
+        ):
+            response = update_business_task_type_status(
+                task_type_id=51,
+                payload=BusinessCoreStatusUpdateRequest(is_active=False),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertFalse(response.data.is_active)
+
+    def test_delete_business_task_type_returns_deleted_item(self) -> None:
+        item = SimpleNamespace(
+            id=51,
+            code="mantencion-preventiva",
+            name="Mantención preventiva",
+            description=None,
+            color="#2563eb",
+            icon="calendar",
+            is_active=False,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.task_types.task_type_service.delete_task_type",
+            return_value=item,
+        ):
+            response = delete_business_task_type(
+                task_type_id=51,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data.code, "mantencion-preventiva")
 
 
 if __name__ == "__main__":

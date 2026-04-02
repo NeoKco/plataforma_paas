@@ -2,7 +2,7 @@
 
 Estado actual:
 
-- `Diseno inicial del dominio completado`
+- `Wave 2 operativa para taxonomias compartidas`
 
 Prioridad:
 
@@ -30,7 +30,7 @@ Entregables:
 
 Estado:
 
-- `En progreso`
+- `Completado en olas 1A y 1B`
 
 Alcance:
 
@@ -51,7 +51,7 @@ Subfases recomendadas:
 
 Estado:
 
-- `Completado en ola 1 para organizations, clients, contacts y sites`
+- `Completado en olas 1A y 1B`
 
 Alcance:
 
@@ -93,8 +93,9 @@ Alcance:
 
 ## Siguiente paso recomendado
 
-- abrir el slice real de `business-core`
-- empezar por `organizations`, `clients`, `contacts` y `sites`
+- conectar `maintenance` contra `business-core`
+- dejar memberships de `work_groups` para una ola posterior
+- preparar importadores desde `ieris_app`
 ## Estado actual
 - `wave 1 backend` completo:
   - `organizations`: backend CRUD listo
@@ -106,3 +107,11 @@ Alcance:
   - `clients`: vista tenant operativa
   - `contacts`: vista tenant operativa
   - `sites`: vista tenant operativa
+- `wave 2 backend` completo:
+  - `function_profiles`: backend CRUD listo
+  - `work_groups`: backend CRUD listo
+  - `task_types`: backend CRUD listo
+- `wave 2 frontend` completo:
+  - `function_profiles`: vista tenant operativa
+  - `work_groups`: vista tenant operativa
+  - `task_types`: vista tenant operativa

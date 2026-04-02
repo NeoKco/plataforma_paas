@@ -8,8 +8,10 @@
 - se define la matriz de migracion desde `ieris_app`
 - se abre el scaffold inicial del modulo en backend y frontend
 - se versiona la primera migracion tenant con `organizations`, `clients`, `contacts` y `sites`
-# 2026-04-02
 - Se implemento la primera ola backend de `business-core` con CRUD y rutas para `organizations` y `clients`.
 - Se agregaron modelos ORM, repositories, services y pruebas de rutas para el primer slice real del dominio compartido.
 - Se completo la ola 1 backend con CRUD y rutas para `contacts` y `sites`.
 - Se conecto el frontend tenant de `organizations`, `clients`, `contacts` y `sites` contra las APIs reales del modulo.
+- Se versiona `0017_business_core_taxonomy` con `function_profiles`, `work_groups` y `task_types`.
+- Se implementa la ola 1B backend/frontend para taxonomias compartidas.
+- Se deja explicito que membresias de grupos quedan para una ola posterior.

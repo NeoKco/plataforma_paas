@@ -254,6 +254,12 @@ Fase 1B:
 - `work_groups`
 - `task_types`
 
+Estado real:
+
+- `1A` ya operativo en backend/frontend
+- `1B` ya operativo en backend/frontend para catalogos base
+- `business_work_group_members` se posterga para una ola posterior, evitando sobrediseño antes de conectar `maintenance`
+
 Fase 2:
 
 - frontend tenant base para catalogos

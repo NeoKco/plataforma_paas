@@ -20,17 +20,17 @@ export function BusinessCoreOverviewPage() {
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
             label={language === "es" ? "Fase actual" : "Current phase"}
-            value={language === "es" ? "Ola 1 operativa" : "Wave 1 live"}
-            hint={language === "es" ? "Backend y frontend base conectados" : "Base backend and frontend connected"}
+            value={language === "es" ? "Ola 2 operativa" : "Wave 2 live"}
+            hint={language === "es" ? "Taxonomías compartidas ya conectadas" : "Shared taxonomies already connected"}
             icon="business-core"
             tone="info"
           />
         </div>
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
-            label={language === "es" ? "Fase 1A" : "Phase 1A"}
-            value={language === "es" ? "4 entidades" : "4 entities"}
-            hint={language === "es" ? "Empresas, clientes, contactos y sitios" : "Organizations, clients, contacts, and sites"}
+            label={language === "es" ? "Fase 1B" : "Phase 1B"}
+            value={language === "es" ? "3 taxonomías" : "3 taxonomies"}
+            hint={language === "es" ? "Perfiles, grupos y tipos de tarea" : "Profiles, groups, and task types"}
             icon="accounts"
           />
         </div>
@@ -79,8 +79,13 @@ export function BusinessCoreOverviewPage() {
           </li>
           <li>
             {language === "es"
-              ? "Las cuatro vistas base ya permiten alta, edición, activación e inactivación desde el portal tenant."
-              : "The four base views already support create, edit, activate, and deactivate actions from the tenant portal."}
+              ? "Las siete vistas base ya permiten alta, edición, activación e inactivación desde el portal tenant."
+              : "The seven base views already support create, edit, activate, and deactivate actions from the tenant portal."}
+          </li>
+          <li>
+            {language === "es"
+              ? "Perfiles funcionales, grupos y tipos de tarea ya no tienen que nacer dentro de Mantenciones."
+              : "Functional profiles, groups, and task types no longer need to be born inside Maintenance."}
           </li>
         </ul>
       </PanelCard>

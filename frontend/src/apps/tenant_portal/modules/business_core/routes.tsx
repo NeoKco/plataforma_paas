@@ -38,6 +38,27 @@ export const businessCoreTenantPortalRoutes: RouteObject[] = [
     },
   },
   {
+    path: "function-profiles",
+    lazy: async () => {
+      const module = await import("./pages/BusinessCoreFunctionProfilesPage");
+      return { Component: module.BusinessCoreFunctionProfilesPage };
+    },
+  },
+  {
+    path: "work-groups",
+    lazy: async () => {
+      const module = await import("./pages/BusinessCoreWorkGroupsPage");
+      return { Component: module.BusinessCoreWorkGroupsPage };
+    },
+  },
+  {
+    path: "task-types",
+    lazy: async () => {
+      const module = await import("./pages/BusinessCoreTaskTypesPage");
+      return { Component: module.BusinessCoreTaskTypesPage };
+    },
+  },
+  {
     path: "taxonomy",
     lazy: async () => {
       const module = await import("./pages/BusinessCoreTaxonomyPage");

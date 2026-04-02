@@ -9,8 +9,8 @@ export function BusinessCoreTaxonomyPage() {
       title={language === "es" ? "Taxonomías" : "Taxonomy"}
       description={
         language === "es"
-          ? "Perfiles funcionales, grupos de trabajo y tipos de tarea compartidos por los módulos operativos."
-          : "Functional profiles, work groups, and task types shared by operational modules."
+          ? "Wave 2 ya está operativa: usa Perfiles, Grupos y Tipos de tarea para mantener la base compartida ordenada antes de seguir con Mantenciones."
+          : "Wave 2 is already live: use Profiles, Groups, and Task Types to keep the shared base ordered before continuing with Maintenance."
       }
     />
   );

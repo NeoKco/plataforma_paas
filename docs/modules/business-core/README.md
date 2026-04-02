@@ -18,6 +18,9 @@ Estado actual:
 - backend CRUD implementado para `organizations` y `clients`
 - backend CRUD implementado para `contacts` y `sites`
 - frontend tenant operativo para `organizations`, `clients`, `contacts` y `sites`
+- migracion tenant de taxonomias compartidas creada
+- backend CRUD implementado para `function_profiles`, `work_groups` y `task_types`
+- frontend tenant operativo para las taxonomias de ola 1B
 
 Nota importante:
 
