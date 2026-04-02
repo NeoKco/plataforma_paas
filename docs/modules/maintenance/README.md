@@ -11,13 +11,19 @@ Estado actual:
 - modulo identificado como siguiente prioridad de negocio para el PaaS
 - auditoria inicial completada sobre la app fuente `ieris_app`
 - alcance base ya definido para iniciar migracion por slice
-- aun no implementado como modulo tenant dentro de `platform_paas`
+- slice inicial ya scaffolded dentro de `platform_paas`
+- queda redefinido como modulo dependiente de `business-core`
 
 Objetivo del modulo:
 
 - cubrir la operacion diaria de mantenciones tecnicas e instalaciones asociadas
 - mejorar la version actual antes de migrar funcionalidades mas avanzadas
 - servir como segundo modulo tenant grande despues de `finance`
+
+Dependencia arquitectonica:
+
+- `maintenance` no debe convertirse en dueño de clientes, empresas, contactos, perfiles funcionales, grupos ni tipos de tarea compartidos
+- esas piezas pasan a declararse como parte de [business-core](/home/felipe/platform_paas/docs/modules/business-core/README.md)
 
 ## Alcance base decidido
 
@@ -26,8 +32,8 @@ Primer corte del modulo en PaaS:
 - mantenciones programadas
 - edicion, cierre y anulacion controlada de mantenciones
 - historial de mantenciones por cliente
-- instalaciones por cliente
-- tipos de equipo
+- instalaciones por cliente usando `sites` de `business-core`
+- tipos de equipo o activos tecnicos enlazados a `business-core`
 - integracion con agenda/calendario
 
 Se deja fuera del primer corte:

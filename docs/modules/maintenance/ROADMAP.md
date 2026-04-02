@@ -2,7 +2,7 @@
 
 Estado actual:
 
-- `Descubrimiento completado`
+- `Descubrimiento completado y slice inicial scaffolded`
 
 Prioridad:
 
@@ -40,7 +40,32 @@ Entregables:
 - definicion de fronteras del modulo
 - backlog inicial de mejoras
 
-## Fase 2. Slice base tenant
+## Fase 2. Dominio previo requerido
+
+Estado:
+
+- `Pendiente`
+
+Objetivo:
+
+- abrir `business-core` antes de cerrar `maintenance` como modulo productivo
+
+Alcance:
+
+- clientes
+- empresas
+- contactos
+- sitios
+- perfiles funcionales
+- grupos de trabajo
+- tipos de tarea
+
+Criterio de salida:
+
+- `maintenance` deja de depender de entidades embebidas propias
+- existen ids y contratos estables para relacionar work orders, agenda e instalaciones
+
+## Fase 3. Slice base tenant
 
 Estado:
 
@@ -52,11 +77,12 @@ Objetivo:
 
 Alcance:
 
-- tipos de equipo
+- work orders
 - instalaciones
 - mantenciones activas
 - cierre/anulacion
 - historial
+- tipos de equipo o activos enlazados al dominio base
 
 Criterio de salida:
 
@@ -65,7 +91,7 @@ Criterio de salida:
 - migraciones tenant creadas
 - pruebas backend minimas
 
-## Fase 3. Endurecimiento operativo
+## Fase 4. Endurecimiento operativo
 
 Estado:
 
@@ -83,7 +109,7 @@ Alcance:
 - conflictos visibles de programacion
 - trazabilidad de cambios
 
-## Fase 4. Evidencias y checklist
+## Fase 5. Evidencias y checklist
 
 Estado:
 
@@ -96,7 +122,7 @@ Alcance:
 - observacion de cierre estandarizada
 - storage real del modulo
 
-## Fase 5. Extension tecnica
+## Fase 6. Extension tecnica
 
 Estado:
 
@@ -126,5 +152,5 @@ Alcance:
 
 ## Siguiente paso recomendado
 
-- abrir la fase de implementacion del slice base
-- empezar por modelo de datos y contratos API antes de copiar frontend
+- abrir `business-core` como dominio tenant transversal
+- despues retomar `maintenance` con modelo de datos ya desacoplado

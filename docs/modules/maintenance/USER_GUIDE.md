@@ -8,9 +8,13 @@ El modulo se define para controlar el trabajo tecnico recurrente sobre clientes,
 
 - programar mantenciones
 - asignarlas a tecnicos o equipos
-- registrar instalaciones por cliente
+- registrar intervenciones sobre sitios o instalaciones del cliente
 - cerrar trabajo realizado con trazabilidad
 - consultar historico tecnico por cliente
+
+Base esperada:
+
+- `maintenance` deberia leer cliente, sitio, contactos y grupos desde `business-core`
 
 ## Problemas del sistema fuente que se quieren corregir
 
@@ -31,8 +35,8 @@ El primer corte del modulo deberia permitir:
 - editar reprogramaciones y asignacion
 - cerrar o anular una mantencion sin perder trazabilidad
 - consultar historial por cliente
-- administrar instalaciones por cliente
-- administrar tipos de equipo
+- consumir instalaciones o sitios del dominio base
+- consumir equipos o activos del dominio base
 - ver sincronizacion con agenda
 
 ## Lo que no entra en el primer corte
@@ -82,6 +86,9 @@ Roles operativos sugeridos para el modulo:
 ## Relacion con otros modulos
 
 - `finance` reemplaza el antiguo frente de egresos
+- `business-core` deberia proveer cliente, empresa, contacto, sitio, grupo y tipo de tarea
 - `calendar` debe mostrar ventanas de mantencion
+- `projects` deberia reutilizar la misma base de clientes, sitios y responsables
+- `iot` deberia reutilizar la misma base de sitios y activos
 - `crm` y `cotizaciones` podran integrarse despues, pero no deben bloquear el primer corte
 - `expediente tecnico` podra acoplarse luego como extension documental y de evidencias

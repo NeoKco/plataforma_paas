@@ -20,8 +20,8 @@ Entra en `maintenance`:
 
 - ordenes de mantencion
 - historial de mantenciones
-- instalaciones por cliente
-- tipos de equipo
+- instalaciones y visitas tecnicas apoyadas sobre `business-core`
+- activos tecnicos o tipos de equipo enlazados al dominio base
 - sincronizacion con agenda
 - evidencias y checklist basico de mantencion en fases posteriores
 
@@ -31,6 +31,23 @@ No entra en el primer corte:
 - `CRM`
 - `cotizaciones`
 - expediente tecnico completo
+- clientes, empresas, contactos, perfiles funcionales, grupos y tipos de tarea compartidos
+
+## Dependencia previa requerida
+
+Antes de cerrar `maintenance` como modulo productivo, conviene abrir [business-core](/home/felipe/platform_paas/docs/modules/business-core/README.md).
+
+Esa base deberia absorber:
+
+- clientes
+- empresas
+- contactos
+- sitios
+- perfiles funcionales
+- grupos de trabajo
+- tipos de tarea
+
+Sin eso, `maintenance` quedaria como dueño accidental de entidades que luego tambien necesitara `projects` e `iot`.
 
 ## Auditoria de la app fuente
 
@@ -73,18 +90,23 @@ Fuente frontend principal:
 
 ## Modelo objetivo recomendado en PaaS
 
-Entidades sugeridas para el primer corte:
+Entidades sugeridas para el primer corte de `maintenance` una vez exista `business-core`:
 
-- `maintenance_equipment_types`
-  catalogo de tipos de equipo
-- `maintenance_installations`
-  instalaciones asociadas a cliente, empresa, tipo de equipo y metadatos tecnicos basicos
 - `maintenance_work_orders`
   orden principal de mantencion
+- `maintenance_visits`
+  agenda y ejecucion de visitas por orden
 - `maintenance_assignment_targets`
   si se requiere formalizar destino de asignacion a usuario/grupo
 - `maintenance_status_logs`
   historial de cambios de estado
+
+Entidades que conviene vivir en `business-core`:
+
+- `business_sites`
+- `business_assets` o `installed_equipment`
+- `business_work_groups`
+- `business_task_types`
 
 Entidades de segundo corte:
 
@@ -115,8 +137,10 @@ Con `platform-core`:
 Con modulos tenant:
 
 - `calendar`: la orden crea o actualiza eventos visibles
-- `clients` futuro o dominio equivalente: cliente asociado
+- `business-core`: cliente, sitio, activo, grupo y tipo de tarea
 - `finance`: no mezclar gasto tecnico dentro del modulo base
+- `projects`: podra reutilizar el mismo sitio, cliente y responsable
+- `iot`: deberia colgarse del mismo sitio o activo instalado
 
 ## Estructura esperada en el PaaS
 
@@ -141,14 +165,14 @@ Documentacion:
 
 Etapa 1:
 
-- tipos de equipo
-- instalaciones
+- `business-core` base
 - mantenciones activas
 - cierre/anulacion con lifecycle formal
 - lectura historial
 
 Etapa 2:
 
+- integracion real con sitios y activos
 - agenda integrada
 - checklist operativo
 - evidencias adjuntas
@@ -190,3 +214,4 @@ Frontend:
 - `egresos` no se migra
 - `finance` sigue siendo el reemplazo del frente economico del sistema fuente
 - `maintenance` se abre como modulo propio y de alta prioridad operativa
+- `business-core` pasa a ser requisito previo para que `maintenance`, `projects` e `iot` no dupliquen dominio

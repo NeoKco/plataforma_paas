@@ -61,11 +61,13 @@ La recomendacion actual es esta:
 - dejar `slug` como identificador estable salvo que despues exista una politica formal de cambio
 - no usar `restore` como mutacion informal de estados; ya existe como flujo explicito para tenants archivados
 
-Modulo siguiente ya elegido para apertura formal:
+Secuencia siguiente ya redefinida para apertura formal:
 
-- `maintenance` (`Mantenciones`), auditado desde `ieris_app`, queda como siguiente modulo tenant priorizado
-- el alcance base decidido es: mantenciones, historial, instalaciones, tipos de equipo e integracion con agenda
+- primero abrir `business-core` como dominio tenant transversal
+- despues cerrar `maintenance` (`Mantenciones`) sobre esa base
 - `egresos` no entra en esta linea porque su reemplazo en el PaaS ya es `finance`
+- `projects` e `iot` deberian nacer luego reutilizando `business-core`, no duplicando clientes, sitios o equipos
+- si la veta condominio se vuelve prioritaria, abrir `community-core` para residentes, unidades y visitas en vez de forzar esa semantica dentro de `business-core`
 
 Pendiente corto de endurecimiento antes o en paralelo a nuevos modulos:
 
