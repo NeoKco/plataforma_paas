@@ -2,7 +2,7 @@
 
 Estado actual:
 
-- `Descubrimiento completado, business-core operativo y maintenance en schema_base`
+- `Descubrimiento completado, business-core operativo y maintenance en slice_base_live`
 
 Prioridad:
 
@@ -95,7 +95,7 @@ Criterio de salida:
 
 Avance actual:
 
-- modulo frontend/backend scaffolded
+- modulo frontend/backend ya operativo en primer corte
 - migracion tenant `0016_maintenance_base` creada
 - tablas iniciales ya definidas:
   - `maintenance_equipment_types`
@@ -105,14 +105,18 @@ Avance actual:
   - `maintenance_status_logs`
 - prueba de migraciones validada
 - `business-core` ya cubre el prerequisito de taxonomias compartidas
+- APIs reales ya disponibles para:
+  - `equipment_types`
+  - `installations`
+  - `work_orders`
+- frontend tenant ya conectado a esas tres APIs
 
 Pendiente inmediato de esta fase:
 
-- APIs reales para `equipment_types`
-- APIs reales para `installations`
-- APIs reales para `work_orders`
-- usar ids de `business-core` en formularios y contratos
-- frontend operativo sobre esas APIs
+- usar `work_groups`, `function_profiles` y `task_types` de forma más profunda
+- exponer `visits` y `status_logs` al frontend
+- mejorar lectura operacional de historial
+- preparar importadores desde `ieris_app`
 
 ## Fase 4. Endurecimiento operativo
 
@@ -175,17 +179,17 @@ Alcance:
 
 ## Siguiente paso recomendado
 
-- implementar APIs reales de `equipment_types`, `installations` y `work_orders`
-- montar frontend operativo del primer corte sobre esas APIs
+- exponer `visits` y `status_logs` al frontend
+- integrar agenda/reprogramacion
 - despues preparar importadores desde `ieris_app` hacia `business-core` y `maintenance`
 
 ## Backlog pendiente visible
 
-- `equipment_types`: pendiente
-- `installations`: pendiente
-- `work_orders`: pendiente
+- `equipment_types`: backend/frontend base listo
+- `installations`: backend/frontend base listo
+- `work_orders`: backend/frontend base listo
 - `visits`: pendiente
-- `status_logs` operativos: pendiente
+- `status_logs` operativos: backend listo, frontend pendiente
 - integración con agenda: pendiente
 - evidencias y checklist: pendiente
 - importadores legacy: pendiente

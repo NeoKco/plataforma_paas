@@ -28,16 +28,15 @@ La version actual de `ieris_app` resuelve la operacion base, pero tiene limites 
 
 ## Alcance funcional del primer corte en PaaS
 
-El primer corte del modulo deberia permitir:
+El primer corte del modulo ya permite:
 
-- ver mantenciones activas del periodo
-- crear una mantencion nueva
-- editar reprogramaciones y asignacion
-- cerrar o anular una mantencion sin perder trazabilidad
-- consultar historial por cliente
-- consumir instalaciones o sitios del dominio base
-- consumir equipos o activos del dominio base
-- ver sincronizacion con agenda
+- ver ordenes de trabajo activas y cerradas
+- crear una orden nueva
+- editar una orden aun no cerrada
+- cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
+- mantener catalogo de tipos de equipo
+- mantener instalaciones tecnicas ligadas a sitios del dominio base
+- consumir clientes y sitios desde `business-core`
 
 ## Lo que no entra en el primer corte
 
@@ -45,26 +44,29 @@ El primer corte del modulo deberia permitir:
 - `CRM`
 - `cotizaciones`
 - expediente tecnico completo
+- agenda integrada
+- historial enriquecido por visitas
+- evidencias y checklist
 
 ## Flujo operativo esperado
 
 1. seleccionar cliente
-2. elegir instalacion o equipo intervenido
-3. programar fecha, hora y duracion
-4. asignar responsable
-5. ejecutar la visita tecnica
-6. cerrar la mantencion con resultado, observaciones y evidencia
-7. consultar el historial del cliente
+2. elegir sitio
+3. elegir instalacion si corresponde
+4. programar fecha y hora
+5. crear la orden con prioridad y contexto tecnico
+6. cambiar estado a `en curso` cuando el trabajo arranca
+7. completar o anular la orden dejando observacion o motivo
 
 ## Mejora funcional recomendada
 
-La version PaaS deberia operar mejor que la actual con estas mejoras desde el inicio o muy temprano:
+La version PaaS ya mejora a la actual en estos puntos y todavia tiene mejoras pendientes:
 
 - una mantencion debe quedar ligada a una instalacion concreta cuando exista
 - el estado no debe depender de borrar el registro activo
-- debe existir una lectura de estados clara: `programada`, `confirmada`, `en ruta`, `en ejecucion`, `completada`, `anulada`
-- el cliente deberia tener una linea de tiempo tecnica con instalaciones y mantenciones
-- el tecnico deberia poder registrar observaciones de cierre de forma mas simple
+- hoy ya existe una lectura clara de `programada`, `en curso`, `completada` y `anulada`
+- sigue pendiente una linea de tiempo tecnica por cliente
+- sigue pendiente un flujo mas simple de visitas, evidencias y cierre en terreno
 
 ## Roles recomendados
 
@@ -80,7 +82,7 @@ Roles operativos sugeridos para el modulo:
 - superposicion con agenda de otro trabajo
 - falta de instalacion asociada cuando el cliente tiene varias
 - tipo de equipo inexistente o desactivado
-- cierre sin observacion tecnica minima
+- cierre o anulacion sin observacion util para el equipo
 - intentos de borrar datos con historico asociado
 
 ## Relacion con otros modulos

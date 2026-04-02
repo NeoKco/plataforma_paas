@@ -41,7 +41,7 @@ Relacion con agenda:
 
 - la fuente usa `calendar_events` y metadata `origin = mantencion`
 
-## API objetivo sugerida en PaaS
+## API objetivo en PaaS
 
 Catalogos:
 
@@ -49,6 +49,7 @@ Catalogos:
 - `POST /tenant/maintenance/equipment-types`
 - `GET /tenant/maintenance/equipment-types/<id>`
 - `PUT /tenant/maintenance/equipment-types/<id>`
+- `PATCH /tenant/maintenance/equipment-types/<id>/status`
 - `DELETE /tenant/maintenance/equipment-types/<id>`
 
 Instalaciones:
@@ -57,8 +58,8 @@ Instalaciones:
 - `POST /tenant/maintenance/installations`
 - `GET /tenant/maintenance/installations/<id>`
 - `PUT /tenant/maintenance/installations/<id>`
+- `PATCH /tenant/maintenance/installations/<id>/status`
 - `DELETE /tenant/maintenance/installations/<id>`
-- `GET /tenant/maintenance/installations/by-client/<client_id>`
 
 Ordenes de trabajo:
 
@@ -66,9 +67,8 @@ Ordenes de trabajo:
 - `POST /tenant/maintenance/work-orders`
 - `GET /tenant/maintenance/work-orders/<id>`
 - `PUT /tenant/maintenance/work-orders/<id>`
-- `POST /tenant/maintenance/work-orders/<id>/complete`
-- `POST /tenant/maintenance/work-orders/<id>/cancel`
-- `POST /tenant/maintenance/work-orders/<id>/reschedule`
+- `PATCH /tenant/maintenance/work-orders/<id>/status`
+- `DELETE /tenant/maintenance/work-orders/<id>`
 
 Historial:
 

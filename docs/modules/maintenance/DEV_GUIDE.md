@@ -35,7 +35,7 @@ No entra en el primer corte:
 
 ## Dependencia previa requerida
 
-Antes de cerrar `maintenance` como modulo productivo, conviene abrir [business-core](/home/felipe/platform_paas/docs/modules/business-core/README.md).
+Ese prerequisito ya quedo cubierto por [business-core](/home/felipe/platform_paas/docs/modules/business-core/README.md).
 
 Esa base deberia absorber:
 
@@ -47,7 +47,7 @@ Esa base deberia absorber:
 - grupos de trabajo
 - tipos de tarea
 
-Sin eso, `maintenance` quedaria como dueño accidental de entidades que luego tambien necesitara `projects` e `iot`.
+Con eso, `maintenance` ya puede correr sobre clientes, sitios y taxonomias compartidas del PaaS.
 
 ## Regla sobre la BD de `ieris_app`
 
@@ -109,38 +109,36 @@ Fuente frontend principal:
 
 ## Modelo objetivo recomendado en PaaS
 
-Entidades sugeridas para el primer corte de `maintenance` una vez exista `business-core`:
+Entidades del primer corte ya modeladas en `maintenance`:
 
 - `maintenance_work_orders`
   orden principal de mantencion
 - `maintenance_visits`
   agenda y ejecucion de visitas por orden
-- `maintenance_assignment_targets`
-  si se requiere formalizar destino de asignacion a usuario/grupo
 - `maintenance_status_logs`
   historial de cambios de estado
 - `maintenance_equipment_types`
-- `maintenance_installations` o `maintenance_assets`
+- `maintenance_installations`
 
-Entidades que conviene vivir en `business-core`:
+Entidades que viven o deberian vivir en `business-core`:
 
 - `business_sites`
-- `business_assets` o `installed_equipment`
 - `business_work_groups`
 - `business_task_types`
+- `business_function_profiles`
 
 Entidades de segundo corte:
 
 - `maintenance_evidence`
 - `maintenance_checklists`
 - `maintenance_visit_reports`
+- `maintenance_assignment_targets` si se formaliza asignacion a usuario/grupo
 
 ## Estados recomendados
 
-En vez de borrar y mover a historico, usar un solo lifecycle:
+Lifecycle base ya operativo:
 
 - `scheduled`
-- `confirmed`
 - `in_progress`
 - `completed`
 - `cancelled`
@@ -165,16 +163,16 @@ Con modulos tenant:
 
 ## Estructura esperada en el PaaS
 
-Backend futuro:
+Backend actual:
 
 - `backend/app/apps/tenant_modules/maintenance/models/`
 - `backend/app/apps/tenant_modules/maintenance/repositories/`
 - `backend/app/apps/tenant_modules/maintenance/services/`
 - `backend/app/apps/tenant_modules/maintenance/api/`
-- `backend/app/apps/tenant_modules/maintenance/schemas.py`
+- `backend/app/apps/tenant_modules/maintenance/schemas/`
 - `backend/app/apps/tenant_modules/maintenance/permissions.py`
 
-Frontend futuro:
+Frontend actual:
 
 - `frontend/src/apps/tenant_portal/modules/maintenance/`
 
@@ -189,7 +187,9 @@ Etapa 1:
 - `business-core` base
 - mantenciones activas
 - cierre/anulacion con lifecycle formal
-- lectura historial
+- tipos de equipo
+- instalaciones
+- frontend base operativo
 
 Etapa 1.5:
 
@@ -217,15 +217,14 @@ Backend:
 
 - CRUD seguro de tipos de equipo
 - CRUD seguro de instalaciones
-- creacion de orden con validacion de agenda
+- creacion de orden con validacion de cliente, sitio e instalacion
 - cierre y anulacion de orden sin perdida de trazabilidad
 - filtros de historial por cliente y periodo
 
 Frontend:
 
 - smoke de crear orden
-- smoke de reprogramar
-- smoke de cerrar con observacion
+- smoke de cambio de estado
 - smoke de crear instalacion
 
 ## Mejoras concretas recomendadas
@@ -235,6 +234,7 @@ Frontend:
 - separar claramente acciones `cerrar`, `anular`, `reprogramar`
 - usar adjuntos/evidencias del modulo, no filesystem ad hoc
 - preparar el modulo para crecer luego hacia expediente tecnico sin acoplarlo desde el inicio
+- exponer `status_logs` y `visits` en el frontend antes de sumar agenda completa
 
 ## Decisiones ya tomadas
 

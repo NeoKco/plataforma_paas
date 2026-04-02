@@ -15,6 +15,8 @@ Estado actual:
 - queda redefinido como modulo dependiente de `business-core`
 - `business-core` ya existe como dominio real en backend, frontend y migraciones tenant
 - `maintenance` ya tiene esquema tenant base versionado con work orders, visits, installations y equipment types
+- el primer corte backend ya expone APIs reales para `equipment_types`, `installations` y `work_orders`
+- el frontend tenant ya opera sobre esas APIs en sus tres vistas principales
 
 Objetivo del modulo:
 
@@ -43,17 +45,15 @@ Estado del corte hoy:
 
 - esquema tenant base ya creado en `0016_maintenance_base`
 - modelos ORM iniciales ya versionados
-- frontend del modulo aun esta en estado de scaffold
-- APIs operativas de `maintenance` aun pendientes
+- APIs operativas ya disponibles para `equipment_types`, `installations` y `work_orders`
+- frontend operativo ya disponible para esas tres vistas
 - `business-core` ya entrega clientes, sitios, perfiles funcionales, grupos y tipos de tarea para conectarlo correctamente
 
 Pendientes visibles inmediatos:
 
-- CRUD/backend real de `equipment_types`
-- CRUD/backend real de `installations`
-- CRUD/backend real de `work_orders`
-- uso efectivo de `sites`, `work_groups`, `function_profiles` y `task_types`
-- frontend operativo del primer corte
+- uso mas profundo de `work_groups`, `function_profiles` y `task_types`
+- historial operativo visible
+- agenda integrada
 - importadores desde `ieris_app`
 
 Se deja fuera del primer corte:
