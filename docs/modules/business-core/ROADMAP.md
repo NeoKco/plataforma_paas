@@ -108,14 +108,14 @@ Pendiente documentado:
 
 - conectar `maintenance` contra `business-core`
 - dejar memberships de `work_groups` para una ola posterior
-- preparar importadores desde `ieris_app`
+- validar y aplicar el importador inicial desde `ieris_app`
 
 ## Backlog pendiente visible
 
 - `work_group_members`: pendiente
 - `site_responsibles`: pendiente
 - `assets` y `asset_types`: pendiente
-- importadores legacy desde `ieris_app`: pendiente
+- importadores legacy desde `ieris_app`: primer corte listo, falta aplicacion y endurecimiento
 - integración con `projects`: pendiente
 - integración con `iot`: pendiente
 ## Estado actual
@@ -137,3 +137,11 @@ Pendiente documentado:
   - `function_profiles`: vista tenant operativa
   - `work_groups`: vista tenant operativa
   - `task_types`: vista tenant operativa
+- `importador legacy` inicial listo:
+  - `organizations`
+  - `clients`
+  - `contacts`
+  - `sites`
+  - `function_profiles`
+  - `work_groups`
+  - `task_types`

@@ -60,6 +60,13 @@ Pendientes visibles inmediatos:
 - agenda visual con conflictos y reprogramación más rica
 - importadores desde `ieris_app`
 
+Estado del importador legacy:
+
+- ya existe el primer script combinado para `business-core` + `maintenance`
+- corre en `dry-run` por defecto y `--apply` explicito
+- exige que el tenant destino ya tenga migraciones de `business-core` y `maintenance`
+- documentacion de uso en [imports/README.md](/home/felipe/platform_paas/docs/modules/maintenance/imports/README.md)
+
 Se deja fuera del primer corte:
 
 - `egresos`
@@ -85,6 +92,8 @@ Nota importante:
   Hitos documentales y tecnicos del modulo.
 - [MIGRATION_MATRIX.md](/home/felipe/platform_paas/docs/modules/maintenance/MIGRATION_MATRIX.md)
   Mapa fuente -> destino desde `ieris_app` hacia `maintenance` y su dependencia con `business-core`.
+- [imports/README.md](/home/felipe/platform_paas/docs/modules/maintenance/imports/README.md)
+  Guia de uso del importador inicial desde la BD legacy de `ieris_app`.
 
 ## Regla operativa de migracion
 

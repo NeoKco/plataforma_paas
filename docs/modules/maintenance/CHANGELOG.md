@@ -29,6 +29,9 @@
 - `Agenda técnica`
 - el overview del modulo deja de presentarlo como solo scaffold
 - se actualiza el backlog visible: agenda visual, evidencias e importadores legacy
+- se agrega el importador inicial [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py) para migrar `business-core` y `maintenance` desde la BD legacy de `ieris_app`
+- se agrega [imports/README.md](/home/felipe/platform_paas/docs/modules/maintenance/imports/README.md) con el flujo `dry-run` y `--apply`
+- el importador deja explicita como precondicion que el tenant destino ya tenga aplicadas las migraciones de `business-core` y `maintenance`
 
 ## 2026-04-01
 

@@ -117,7 +117,7 @@ Pendiente inmediato de esta fase:
 
 - usar `work_groups`, `function_profiles` y `task_types` de forma más profunda
 - mejorar lectura operacional de historial
-- preparar importadores desde `ieris_app`
+- endurecer y ejecutar importadores desde `ieris_app`
 - agenda visual con conflictos y reprogramación más rica
 
 ## Fase 4. Endurecimiento operativo
@@ -181,8 +181,9 @@ Alcance:
 
 ## Siguiente paso recomendado
 
-- integrar agenda visual/reprogramacion con conflictos
-- despues preparar importadores desde `ieris_app` hacia `business-core` y `maintenance`
+- aplicar migraciones tenant faltantes en el tenant destino del importador
+- validar el importador inicial con `dry-run` y luego `--apply`
+- despues integrar agenda visual/reprogramacion con conflictos
 
 ## Backlog pendiente visible
 
@@ -194,4 +195,4 @@ Alcance:
 - `status_logs` operativos: backend/frontend lectura lista
 - integración con agenda visual: pendiente
 - evidencias y checklist: pendiente
-- importadores legacy: pendiente
+- importadores legacy: primer corte listo, falta validacion aplicada y endurecimiento

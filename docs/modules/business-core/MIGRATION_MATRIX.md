@@ -29,6 +29,7 @@ Decision:
 
 - `business-core` opera sobre la BD tenant del PaaS
 - la BD de `ieris_app` se usa solo como fuente de migracion y verificacion
+- el primer importador combinado queda en [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py)
 
 ## Fuentes auditadas
 

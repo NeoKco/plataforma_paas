@@ -30,6 +30,12 @@ Pendientes visibles inmediatos:
 - importadores desde `ieris_app`
 - integracion real con `maintenance`
 
+Estado del importador legacy:
+
+- ya existe el primer importador combinado desde `ieris_app`
+- cubre `organizations`, `clients`, `contacts`, `sites`, `function_profiles`, `work_groups` y `task_types`
+- la guia de uso principal vive en [maintenance/imports/README.md](/home/felipe/platform_paas/docs/modules/maintenance/imports/README.md) porque el mismo script tambien importa `maintenance`
+
 Nota importante:
 
 - esto no reemplaza `platform-core`

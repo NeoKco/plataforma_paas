@@ -258,6 +258,31 @@ Estado real:
 
 - `1A` ya operativo en backend/frontend
 - `1B` ya operativo en backend/frontend para catalogos base
+- ya existe un importador inicial desde `ieris_app` hacia `business-core` y `maintenance`
+
+## Importacion legacy
+
+Script actual:
+
+- [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py)
+
+Cobertura actual:
+
+- `business_organizations`
+- `business_clients`
+- `business_contacts`
+- `business_sites`
+- `business_function_profiles`
+- `business_work_groups`
+- `business_task_types`
+
+Pendiente aun en business-core:
+
+- `business_work_group_members`
+- `business_site_contacts`
+- `business_site_responsibles`
+- `assets`
+- mapeo de usuarios legacy hacia usuarios tenant reales
 - `business_work_group_members` se posterga para una ola posterior, evitando sobrediseño antes de conectar `maintenance`
 
 Fase 2:

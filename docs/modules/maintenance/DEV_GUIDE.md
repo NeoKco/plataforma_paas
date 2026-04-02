@@ -205,6 +205,13 @@ Etapa 1.5:
 - tabla o registro de mapeo `legacy_id -> new_id`
 - validacion de paridad por cliente, sitio e historico
 
+Estado real:
+
+- el primer importador combinado ya existe en [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py)
+- cubre importacion inicial de `business-core` y `maintenance`
+- sigue faltando una capa formal de mapeo persistente `legacy_id -> new_id`
+- el importador hoy es idempotente por codigos, referencias externas y marcadores legacy en notas
+
 Etapa 2:
 
 - integracion real con sitios y activos
@@ -236,6 +243,29 @@ Frontend:
 - smoke de crear instalacion
 - smoke de lectura de historial
 - smoke de crear visita
+
+## Importacion legacy
+
+Script actual:
+
+- [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py)
+
+Cobertura del script:
+
+- organizaciones, clientes, contactos y sitios
+- perfiles funcionales, grupos de trabajo y tipos de tarea
+- tipos de equipo
+- instalaciones
+- mantenciones activas
+- historico de mantenciones
+- `status_logs` y `visits` base
+
+Limitaciones actuales:
+
+- no importa `user_groups` porque `business_work_group_members` aun no existe
+- no mapea usuarios legacy a `tenant_users` del PaaS
+- no importa expediente tecnico ni checklist/evidencias
+- requiere schema tenant ya migrado antes de ejecutarse
 
 ## Mejoras concretas recomendadas
 

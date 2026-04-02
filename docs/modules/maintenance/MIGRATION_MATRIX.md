@@ -27,6 +27,8 @@ Decision tomada:
 
 - `maintenance` operara sobre la BD tenant del PaaS
 - la BD de `ieris_app` se usara solo para migracion, importacion y verificacion
+- el importador inicial queda en [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py)
+- la guia operativa del importador queda en [imports/README.md](/home/felipe/platform_paas/docs/modules/maintenance/imports/README.md)
 
 ## Fuentes auditadas
 
