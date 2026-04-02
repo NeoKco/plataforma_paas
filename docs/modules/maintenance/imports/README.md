@@ -20,6 +20,15 @@ Precondicion obligatoria:
   - `business-core`
   - `maintenance`
 
+Validacion ya realizada:
+
+- `dry-run` validado contra la BD legacy `kanban_db`
+- tenant destino validado: `empresa-bootstrap`
+- antes de esa corrida se aplicaron en ese tenant:
+  - `0015_business_core_base`
+  - `0016_maintenance_base`
+  - `0017_business_core_taxonomy`
+
 Comando recomendado de validacion:
 
 ```bash
@@ -66,3 +75,4 @@ Pendiente posterior:
 - `business_work_group_members`
 - mapeo de usuarios legacy a usuarios tenant reales
 - activos compartidos si `asset-core` se abre despues
+- ejecutar `--apply` sobre el tenant que quede como destino oficial de la migracion

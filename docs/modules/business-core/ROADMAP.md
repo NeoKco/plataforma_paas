@@ -145,3 +145,7 @@ Pendiente documentado:
   - `function_profiles`
   - `work_groups`
   - `task_types`
+- `dry-run` validado:
+  - fuente `kanban_db`
+  - tenant destino `empresa-bootstrap`
+  - pendiente solo `--apply` sobre el tenant final de migracion

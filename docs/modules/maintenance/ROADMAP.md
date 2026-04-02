@@ -196,3 +196,12 @@ Alcance:
 - integración con agenda visual: pendiente
 - evidencias y checklist: pendiente
 - importadores legacy: primer corte listo, falta validacion aplicada y endurecimiento
+
+Validacion reciente:
+
+- `dry-run` del importador legacy ya validado contra `kanban_db` -> `empresa-bootstrap`
+- el tenant `empresa-bootstrap` ya quedo migrado con:
+  - `0015_business_core_base`
+  - `0016_maintenance_base`
+  - `0017_business_core_taxonomy`
+- pendiente inmediato: ejecutar `--apply` sobre el tenant destino final de la migracion

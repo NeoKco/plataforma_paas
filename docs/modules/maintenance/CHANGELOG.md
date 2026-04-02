@@ -32,6 +32,16 @@
 - se agrega el importador inicial [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py) para migrar `business-core` y `maintenance` desde la BD legacy de `ieris_app`
 - se agrega [imports/README.md](/home/felipe/platform_paas/docs/modules/maintenance/imports/README.md) con el flujo `dry-run` y `--apply`
 - el importador deja explicita como precondicion que el tenant destino ya tenga aplicadas las migraciones de `business-core` y `maintenance`
+- se valida el `dry-run` real contra `kanban_db` con estas magnitudes de fuente:
+  - `empresa`: 12
+  - `clientes`: 200
+  - `instalacion_sst`: 197
+  - `mantenciones`: 2
+  - `historico_mantenciones`: 103
+- se aplican en `empresa-bootstrap` las migraciones tenant:
+  - `0015_business_core_base`
+  - `0016_maintenance_base`
+  - `0017_business_core_taxonomy`
 
 ## 2026-04-01
 
