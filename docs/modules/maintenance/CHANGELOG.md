@@ -2,6 +2,14 @@
 
 ## 2026-04-02
 
+- se crea la base tenant inicial del modulo con `0016_maintenance_base`
+- se versionan tablas iniciales del dominio:
+  - `maintenance_equipment_types`
+  - `maintenance_installations`
+  - `maintenance_work_orders`
+  - `maintenance_visits`
+  - `maintenance_status_logs`
+- el scaffold backend deja estado `schema_base` para reflejar que el modulo ya no esta solo en diseno
 - se documenta explicitamente que la BD de `ieris_app` sera solo fuente de migracion y validacion, no dependencia viva del runtime del PaaS
 - se agrega [MIGRATION_MATRIX.md](/home/felipe/platform_paas/docs/modules/maintenance/MIGRATION_MATRIX.md) para mapear mantenciones, historico, instalaciones y tipos de equipo hacia el modelo nuevo
 

@@ -2,7 +2,7 @@
 
 Estado actual:
 
-- `Descubrimiento completado y slice inicial scaffolded`
+- `Descubrimiento completado, business-core operativo y maintenance en schema_base`
 
 Prioridad:
 
@@ -44,7 +44,7 @@ Entregables:
 
 Estado:
 
-- `Pendiente`
+- `Completado`
 
 Objetivo:
 
@@ -64,12 +64,13 @@ Criterio de salida:
 
 - `maintenance` deja de depender de entidades embebidas propias
 - existen ids y contratos estables para relacionar work orders, agenda e instalaciones
+- hoy ese prerequisito ya quedo cubierto por `business-core`
 
 ## Fase 3. Slice base tenant
 
 Estado:
 
-- `Pendiente`
+- `En progreso`
 
 Objetivo:
 
@@ -91,6 +92,18 @@ Criterio de salida:
 - migraciones tenant creadas
 - pruebas backend minimas
 - sin dependencia runtime contra la BD de `ieris_app`
+
+Avance actual:
+
+- modulo frontend/backend scaffolded
+- migracion tenant `0016_maintenance_base` creada
+- tablas iniciales ya definidas:
+  - `maintenance_equipment_types`
+  - `maintenance_installations`
+  - `maintenance_work_orders`
+  - `maintenance_visits`
+  - `maintenance_status_logs`
+- prueba de migraciones validada
 
 ## Fase 4. Endurecimiento operativo
 
@@ -153,6 +166,6 @@ Alcance:
 
 ## Siguiente paso recomendado
 
-- abrir `business-core` como dominio tenant transversal
-- despues retomar `maintenance` con modelo de datos ya desacoplado
-- preparar matriz de migracion desde `ieris_app` hacia `maintenance`
+- implementar APIs reales de `equipment_types`, `installations` y `work_orders`
+- montar frontend operativo del primer corte sobre esas APIs
+- despues preparar importadores desde `ieris_app` hacia `business-core` y `maintenance`

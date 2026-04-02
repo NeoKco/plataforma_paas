@@ -25,18 +25,18 @@ def get_maintenance_module_overview(
         success=True,
         module_key="maintenance",
         module_name="Maintenance",
-        status="planned",
-        phase="scaffolded",
+        status="in_progress",
+        phase="schema_base",
         message=(
-            "Maintenance module scaffold active. The first implementation slice "
-            "covers work orders, installations, equipment types, history, and "
-            "calendar integration."
+            "Maintenance schema base active. The first implementation slice "
+            "now has tenant tables for equipment types, installations, work "
+            "orders, visits, and status logs over business-core."
         ),
         recommended_first_slice=[
             "equipment_types",
             "installations",
             "work_orders",
-            "history",
-            "calendar_sync",
+            "visits",
+            "status_logs",
         ],
     )

@@ -13,6 +13,8 @@ Estado actual:
 - alcance base ya definido para iniciar migracion por slice
 - slice inicial ya scaffolded dentro de `platform_paas`
 - queda redefinido como modulo dependiente de `business-core`
+- `business-core` ya existe como dominio real en backend, frontend y migraciones tenant
+- `maintenance` ya tiene esquema tenant base versionado con work orders, visits, installations y equipment types
 
 Objetivo del modulo:
 
@@ -24,6 +26,7 @@ Dependencia arquitectonica:
 
 - `maintenance` no debe convertirse en dueño de clientes, empresas, contactos, perfiles funcionales, grupos ni tipos de tarea compartidos
 - esas piezas pasan a declararse como parte de [business-core](/home/felipe/platform_paas/docs/modules/business-core/README.md)
+- la relacion runtime correcta es: `maintenance` usa ids y contratos del PaaS, no consultas vivas contra la BD de `ieris_app`
 
 ## Alcance base decidido
 
@@ -35,6 +38,13 @@ Primer corte del modulo en PaaS:
 - instalaciones por cliente usando `sites` de `business-core`
 - tipos de equipo o activos tecnicos enlazados a `business-core`
 - integracion con agenda/calendario
+
+Estado del corte hoy:
+
+- esquema tenant base ya creado en `0016_maintenance_base`
+- modelos ORM iniciales ya versionados
+- frontend del modulo aun esta en estado de scaffold
+- APIs operativas de `maintenance` aun pendientes
 
 Se deja fuera del primer corte:
 

@@ -21,6 +21,7 @@ from migrations.tenant import v0012_finance_transaction_voids
 from migrations.tenant import v0013_finance_transaction_voids_repair
 from migrations.tenant import v0014_finance_default_category_catalog
 from migrations.tenant import v0015_business_core_base
+from migrations.tenant import v0016_maintenance_base
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -151,6 +152,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0013_finance_transaction_voids_repair",
                 "0014_finance_default_category_catalog",
                 "0015_business_core_base",
+                "0016_maintenance_base",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -178,6 +180,11 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("business_clients", tables)
         self.assertIn("business_contacts", tables)
         self.assertIn("business_sites", tables)
+        self.assertIn("maintenance_equipment_types", tables)
+        self.assertIn("maintenance_installations", tables)
+        self.assertIn("maintenance_work_orders", tables)
+        self.assertIn("maintenance_visits", tables)
+        self.assertIn("maintenance_status_logs", tables)
         self.assertIn("tenant_schema_migrations", tables)
         installment_columns = {
             column["name"]
@@ -205,6 +212,25 @@ class MigrationFlowTestCase(unittest.TestCase):
         business_site_columns = {
             column["name"] for column in inspect(engine).get_columns("business_sites")
         }
+        maintenance_equipment_type_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("maintenance_equipment_types")
+        }
+        maintenance_installation_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("maintenance_installations")
+        }
+        maintenance_work_order_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("maintenance_work_orders")
+        }
+        maintenance_visit_columns = {
+            column["name"] for column in inspect(engine).get_columns("maintenance_visits")
+        }
+        maintenance_status_log_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("maintenance_status_logs")
+        }
         self.assertIn("paid_principal_amount", installment_columns)
         self.assertIn("paid_interest_amount", installment_columns)
         self.assertIn("reversal_reason_code", installment_columns)
@@ -217,6 +243,11 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("organization_id", business_client_columns)
         self.assertIn("full_name", business_contact_columns)
         self.assertIn("client_id", business_site_columns)
+        self.assertIn("name", maintenance_equipment_type_columns)
+        self.assertIn("equipment_type_id", maintenance_installation_columns)
+        self.assertIn("installation_id", maintenance_work_order_columns)
+        self.assertIn("visit_status", maintenance_visit_columns)
+        self.assertIn("to_status", maintenance_status_log_columns)
 
         with engine.connect() as conn:
             currency_rows = conn.execute(
@@ -273,6 +304,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0013_finance_transaction_voids_repair",
                 "0014_finance_default_category_catalog",
                 "0015_business_core_base",
+                "0016_maintenance_base",
             ],
         )
 
