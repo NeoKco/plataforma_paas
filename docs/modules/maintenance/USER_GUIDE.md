@@ -37,6 +37,7 @@ El primer corte del modulo ya permite:
 - mantener catalogo de tipos de equipo
 - mantener instalaciones tecnicas ligadas a sitios del dominio base
 - consumir clientes y sitios desde `business-core`
+- consultar historial tecnico de ordenes cerradas con cambios de estado y visitas registradas
 
 ## Lo que no entra en el primer corte
 
@@ -47,6 +48,7 @@ El primer corte del modulo ya permite:
 - agenda integrada
 - historial enriquecido por visitas
 - evidencias y checklist
+- programación operativa completa de visitas
 
 ## Flujo operativo esperado
 
@@ -57,6 +59,7 @@ El primer corte del modulo ya permite:
 5. crear la orden con prioridad y contexto tecnico
 6. cambiar estado a `en curso` cuando el trabajo arranca
 7. completar o anular la orden dejando observacion o motivo
+8. revisar despues el historial tecnico con sus cambios de estado y visitas
 
 ## Mejora funcional recomendada
 

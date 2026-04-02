@@ -17,6 +17,7 @@ Estado actual:
 - `maintenance` ya tiene esquema tenant base versionado con work orders, visits, installations y equipment types
 - el primer corte backend ya expone APIs reales para `equipment_types`, `installations` y `work_orders`
 - el frontend tenant ya opera sobre esas APIs en sus tres vistas principales
+- `history` ya muestra órdenes cerradas con `status_logs` y `visits`
 
 Objetivo del modulo:
 
@@ -47,13 +48,15 @@ Estado del corte hoy:
 - modelos ORM iniciales ya versionados
 - APIs operativas ya disponibles para `equipment_types`, `installations` y `work_orders`
 - frontend operativo ya disponible para esas tres vistas
+- historial tecnico visible ya disponible
 - `business-core` ya entrega clientes, sitios, perfiles funcionales, grupos y tipos de tarea para conectarlo correctamente
 
 Pendientes visibles inmediatos:
 
 - uso mas profundo de `work_groups`, `function_profiles` y `task_types`
-- historial operativo visible
 - agenda integrada
+- creación/edición operativa de `visits`
+- timeline más rica por cliente e instalación
 - importadores desde `ieris_app`
 
 Se deja fuera del primer corte:

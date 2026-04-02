@@ -16,12 +16,17 @@
   - `equipment_types`
   - `installations`
   - `work_orders`
+- se agregan endpoints de lectura para:
+  - `history`
+  - `status_logs`
+  - `visits`
 - el frontend tenant deja de ser placeholder en:
   - `Tipos de equipo`
   - `Instalaciones`
   - `Órdenes de trabajo`
+- `Historial técnico`
 - el overview del modulo deja de presentarlo como solo scaffold
-- se actualiza el backlog visible: `visits`, `status_logs` frontend, agenda, evidencias e importadores legacy
+- se actualiza el backlog visible: edición de `visits`, agenda, evidencias e importadores legacy
 
 ## 2026-04-01
 

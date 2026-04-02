@@ -74,6 +74,8 @@ Historial:
 
 - `GET /tenant/maintenance/history`
 - `GET /tenant/maintenance/history/by-client/<client_id>`
+- `GET /tenant/maintenance/work-orders/<id>/status-logs`
+- `GET /tenant/maintenance/work-orders/<id>/visits`
 
 Adjuntos y checklist en fase posterior:
 

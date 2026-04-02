@@ -4,6 +4,18 @@ from app.apps.tenant_modules.maintenance.models import MaintenanceStatusLog
 
 
 class MaintenanceStatusLogRepository:
+    def list_by_work_order(
+        self,
+        tenant_db: Session,
+        work_order_id: int,
+    ) -> list[MaintenanceStatusLog]:
+        return (
+            tenant_db.query(MaintenanceStatusLog)
+            .filter(MaintenanceStatusLog.work_order_id == work_order_id)
+            .order_by(MaintenanceStatusLog.changed_at.desc(), MaintenanceStatusLog.id.desc())
+            .all()
+        )
+
     def create(
         self,
         tenant_db: Session,

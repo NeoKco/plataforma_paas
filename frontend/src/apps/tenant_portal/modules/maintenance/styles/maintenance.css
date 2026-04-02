@@ -102,3 +102,19 @@
   color: var(--app-text-muted, #6b7a90);
   font-size: 0.875rem;
 }
+
+.maintenance-history-entry {
+  border: 1px solid var(--app-border, #cfd7e6);
+  border-radius: 0.9rem;
+  padding: 0.75rem 0.85rem;
+  background: #f8fbff;
+}
+
+.maintenance-history-entry__title {
+  font-weight: 600;
+}
+
+.maintenance-history-entry__meta {
+  color: var(--app-text-muted, #6b7a90);
+  font-size: 0.875rem;
+}

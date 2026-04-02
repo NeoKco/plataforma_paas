@@ -175,6 +175,11 @@ Backend actual:
 Frontend actual:
 
 - `frontend/src/apps/tenant_portal/modules/maintenance/`
+- primer corte operativo ya visible en:
+  - `work-orders`
+  - `installations`
+  - `equipment-types`
+  - `history`
 
 Documentacion:
 
@@ -190,6 +195,7 @@ Etapa 1:
 - tipos de equipo
 - instalaciones
 - frontend base operativo
+- historial tecnico visible con logs y visitas
 
 Etapa 1.5:
 
@@ -226,6 +232,7 @@ Frontend:
 - smoke de crear orden
 - smoke de cambio de estado
 - smoke de crear instalacion
+- smoke de lectura de historial
 
 ## Mejoras concretas recomendadas
 
@@ -235,6 +242,7 @@ Frontend:
 - usar adjuntos/evidencias del modulo, no filesystem ad hoc
 - preparar el modulo para crecer luego hacia expediente tecnico sin acoplarlo desde el inicio
 - exponer `status_logs` y `visits` en el frontend antes de sumar agenda completa
+- hacer `visits` editables sin meter todavia la agenda completa
 
 ## Decisiones ya tomadas
 
