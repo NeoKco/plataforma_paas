@@ -17,6 +17,7 @@ Estado actual:
 - migracion tenant base creada
 - backend CRUD implementado para `organizations` y `clients`
 - backend CRUD implementado para `contacts` y `sites`
+- frontend tenant operativo para `organizations`, `clients`, `contacts` y `sites`
 
 Nota importante:
 

@@ -20,8 +20,8 @@ export function BusinessCoreOverviewPage() {
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
             label={language === "es" ? "Fase actual" : "Current phase"}
-            value={language === "es" ? "Diseño" : "Design"}
-            hint={language === "es" ? "Slice scaffolded" : "Slice scaffolded"}
+            value={language === "es" ? "Ola 1 operativa" : "Wave 1 live"}
+            hint={language === "es" ? "Backend y frontend base conectados" : "Base backend and frontend connected"}
             icon="business-core"
             tone="info"
           />
@@ -57,8 +57,8 @@ export function BusinessCoreOverviewPage() {
         title={language === "es" ? "Diseño aprobado" : "Approved design"}
         subtitle={
           language === "es"
-            ? "La fuente real es ieris_app, pero la arquitectura destino ya no hereda sus acoplamientos."
-            : "The real source is ieris_app, but the destination architecture no longer inherits its couplings."
+            ? "La fuente real es ieris_app, pero el destino ya corre con dominio base propio para organizaciones, clientes, contactos y sitios."
+            : "The real source is ieris_app, but the destination now runs with its own base domain for organizations, clients, contacts, and sites."
         }
       >
         <ul className="mb-0">
@@ -76,6 +76,11 @@ export function BusinessCoreOverviewPage() {
             {language === "es"
               ? "Sitio pasa a ser entidad de primer nivel para Mantenciones, Proyectos e IoT."
               : "Site becomes a first-level entity for Maintenance, Projects, and IoT."}
+          </li>
+          <li>
+            {language === "es"
+              ? "Las cuatro vistas base ya permiten alta, edición, activación e inactivación desde el portal tenant."
+              : "The four base views already support create, edit, activate, and deactivate actions from the tenant portal."}
           </li>
         </ul>
       </PanelCard>

@@ -51,7 +51,7 @@ Subfases recomendadas:
 
 Estado:
 
-- `En progreso`
+- `Completado en ola 1 para organizations, clients, contacts y sites`
 
 Alcance:
 
@@ -101,3 +101,8 @@ Alcance:
   - `clients`: backend CRUD listo
   - `contacts`: backend CRUD listo
   - `sites`: backend CRUD listo
+- `wave 1 frontend` completo:
+  - `organizations`: vista tenant operativa
+  - `clients`: vista tenant operativa
+  - `contacts`: vista tenant operativa
+  - `sites`: vista tenant operativa

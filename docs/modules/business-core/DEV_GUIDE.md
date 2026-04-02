@@ -339,6 +339,7 @@ Si `projects` e `iot` estan en el horizonte, conviene considerar desde ya:
 - perfiles funcionales configurables, no hardcodeados por modulo
 ## Estado de implementacion
 - El primer slice backend ya existe en el PaaS para `organizations`, `clients`, `contacts` y `sites`.
+- El primer slice frontend tenant ya existe en el PaaS para `organizations`, `clients`, `contacts` y `sites`.
 - Las rutas activas del primer corte son:
   - `GET/POST/GET by id/PUT/PATCH status/DELETE /tenant/business-core/organizations`
   - `GET/POST/GET by id/PUT/PATCH status/DELETE /tenant/business-core/clients`
