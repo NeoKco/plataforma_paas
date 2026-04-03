@@ -118,6 +118,13 @@ class TenantAuthDependenciesTestCase(unittest.TestCase):
 
         self.assertIn("tenant.users.read", context["permissions"])
 
+    def test_require_tenant_permission_accepts_maintenance_read_for_admin(self) -> None:
+        checker = require_tenant_permission("tenant.maintenance.read")
+
+        context = checker(self._request(role="admin"))
+
+        self.assertIn("tenant.maintenance.read", context["permissions"])
+
     def test_require_tenant_permission_rejects_role_without_permission(self) -> None:
         checker = require_tenant_permission("tenant.users.create")
 

@@ -45,6 +45,7 @@ Resumen curado del bloque central.
 - smoke browser agregado para validar presupuestos `finance` con alta mensual y clonación al mes visible en `tenant_portal`
 - smoke browser agregado para validar préstamos `finance` con alta y pago simple de cuota en `tenant_portal`
 - smoke browser agregado para validar préstamos `finance` con pago en lote y reversa en lote sobre cuotas seleccionadas
+- baseline de permisos tenant corregido para incluir acceso `maintenance` en roles operativos que ya navegan ese módulo dentro de `tenant_portal`
 
 ## Documentación
 

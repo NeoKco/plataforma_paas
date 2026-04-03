@@ -46,6 +46,8 @@ def build_tenant_context(
                 "tenant.finance.create",
                 "tenant.business_core.read",
                 "tenant.business_core.manage",
+                "tenant.maintenance.read",
+                "tenant.maintenance.manage",
             ],
             "manager": [
                 "tenant.users.read",
