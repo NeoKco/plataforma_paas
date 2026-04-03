@@ -75,6 +75,15 @@ export function updateTenantBusinessClient(
   );
 }
 
+export function getTenantBusinessClient(accessToken: string, clientId: number) {
+  return apiRequest<TenantBusinessClientMutationResponse>(
+    `/tenant/business-core/clients/${clientId}`,
+    {
+      token: accessToken,
+    }
+  );
+}
+
 export function updateTenantBusinessClientStatus(
   accessToken: string,
   clientId: number,

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { useLanguage } from "../../../../../store/language-context";
@@ -38,6 +39,7 @@ function normalizeNullable(value: string | null): string | null {
 export function BusinessCoreClientsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
+  const navigate = useNavigate();
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -283,6 +285,13 @@ export function BusinessCoreClientsPage() {
             <AppToolbar compact>
               <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => startEdit(client)}>
                 {currentLanguage === "es" ? "Editar" : "Edit"}
+              </button>
+              <button
+                className="btn btn-sm btn-outline-dark"
+                type="button"
+                onClick={() => navigate(`/tenant-portal/business-core/clients/${client.id}`)}
+              >
+                {currentLanguage === "es" ? "Ver ficha" : "Open detail"}
               </button>
               <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => void handleToggle(client)}>
                 {client.is_active

@@ -94,3 +94,55 @@
   color: var(--app-text-muted, #6b7a90);
   font-size: 0.875rem;
 }
+
+.business-core-detail-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1100px) {
+  .business-core-detail-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+}
+
+.business-core-detail-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.business-core-detail-item {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.business-core-detail-label {
+  color: var(--app-text-muted, #6b7a90);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.business-core-detail-note {
+  margin-top: 1rem;
+}
+
+.business-core-stack {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.business-core-related-card {
+  border: 1px solid var(--app-border, #cfd7e6);
+  border-radius: 0.9rem;
+  padding: 0.9rem 1rem;
+}
+
+.business-core-related-title {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}

@@ -76,6 +76,18 @@ export function createTenantBusinessOrganization(
   );
 }
 
+export function getTenantBusinessOrganization(
+  accessToken: string,
+  organizationId: number
+) {
+  return apiRequest<TenantBusinessOrganizationMutationResponse>(
+    `/tenant/business-core/organizations/${organizationId}`,
+    {
+      token: accessToken,
+    }
+  );
+}
+
 export function updateTenantBusinessOrganization(
   accessToken: string,
   organizationId: number,

@@ -186,14 +186,14 @@ export function BusinessCoreSitesPage() {
 
   return (
     <BusinessCoreCatalogPage
-      titleEs="Sitios"
-      titleEn="Sites"
-      descriptionEs="Entidad de primer nivel para dirección operativa, contexto técnico y futuros activos."
-      descriptionEn="First-level entity for operating address, technical context, and future assets."
-      helpEs="Sitio debe representar una ubicación operativa real. Mantenciones, proyectos e IoT deberían colgar de esta entidad y no repetir direcciones sueltas."
-      helpEn="A site should represent a real operating location. Maintenance, projects, and IoT should hang from this entity instead of repeating loose addresses."
-      loadingLabelEs="Cargando sitios..."
-      loadingLabelEn="Loading sites..."
+      titleEs="Direcciones de clientes"
+      titleEn="Client addresses"
+      descriptionEs="Vista administrativa de direcciones operativas. La lectura principal debería hacerse desde la ficha del cliente."
+      descriptionEn="Administrative view of operating addresses. Primary reading should happen from the client detail page."
+      helpEs="Internamente sigue siendo una entidad `site`, pero funcionalmente representa una dirección u operación del cliente. Usa esta vista para mantenimiento administrativo y la ficha de cliente para lectura diaria."
+      helpEn="Internally this is still a `site` entity, but functionally it represents a client address or operating location. Use this view for administration and the client detail page for day-to-day reading."
+      loadingLabelEs="Cargando direcciones..."
+      loadingLabelEn="Loading addresses..."
       isLoading={isLoading}
       isSubmitting={isSubmitting}
       rows={sites}
@@ -222,8 +222,8 @@ export function BusinessCoreSitesPage() {
             label: client.client_code || `#${client.id}`,
           })),
         },
-        { key: "name", labelEs: "Nombre sitio", labelEn: "Site name" },
-        { key: "site_code", labelEs: "Código sitio", labelEn: "Site code" },
+        { key: "name", labelEs: "Nombre dirección", labelEn: "Address name" },
+        { key: "site_code", labelEs: "Código dirección", labelEn: "Address code" },
         { key: "address_line", labelEs: "Dirección", labelEn: "Address" },
         { key: "city", labelEs: "Ciudad", labelEn: "City" },
         { key: "region", labelEs: "Región", labelEn: "Region" },
@@ -235,8 +235,8 @@ export function BusinessCoreSitesPage() {
       columns={[
         {
           key: "site",
-          headerEs: "Sitio",
-          headerEn: "Site",
+          headerEs: "Dirección",
+          headerEn: "Address",
           render: (site, currentLanguage) => (
             <div>
               <div className="business-core-cell__title">{site.name}</div>

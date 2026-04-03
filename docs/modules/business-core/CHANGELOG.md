@@ -1,6 +1,7 @@
 # Business Core Changelog
 
 - Se corrigio la lectura de `Empresas` para excluir por defecto las organizaciones ya usadas como clientes y evitar mezclar cartera comercial con contrapartes operativas.
+- Se agrego la ficha de cliente y se renombro la lectura visible de `sites` a `Direcciones`, dejando a Google Maps como salida operativa desde cada direccion.
 
 ## 2026-04-02
 

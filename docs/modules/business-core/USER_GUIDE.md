@@ -31,6 +31,9 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - `Clientes` muestra la cartera cliente del tenant.
 - una misma identidad base puede existir como `organization`, pero la vista `Empresas` no debe usarse para revisar la cartera comercial completa.
 - por defecto, la pantalla `Empresas` excluye las organizaciones ya usadas como clientes para evitar mezclar ambas lecturas.
+- la lectura principal del cliente deberia hacerse desde su ficha, no desde catalogos sueltos.
+- `Direcciones` es el nombre visible para la entidad tecnica `site`.
+- cada ficha de cliente debe consolidar identidad, contactos y direcciones, incluyendo acceso a Google Maps cuando exista direccion usable.
 
 Eso genera:
 

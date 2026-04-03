@@ -23,7 +23,7 @@ export function BusinessCoreModuleNav() {
     },
     {
       to: "/tenant-portal/business-core/sites",
-      label: language === "es" ? "Sitios" : "Sites",
+      label: language === "es" ? "Direcciones" : "Addresses",
     },
     {
       to: "/tenant-portal/business-core/function-profiles",
