@@ -28,6 +28,12 @@ Guía operativa corta del módulo `finance`.
 - `Cuentas`, `Categorías`, `Catálogos`, `Configuración`
   Mantener el catálogo operativo del módulo.
 
+Regla UX operativa:
+
+- la lectura del catálogo debe verse primero
+- la creación o edición no debería quedar abierta por defecto
+- `Cuentas` y `Categorías` ya abren la captura solo bajo demanda desde `Nueva cuenta`, `Nueva categoría` o `Editar`
+
 ## Flujos principales
 
 ### Registrar una transacción

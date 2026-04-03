@@ -51,6 +51,7 @@ export function FinanceCategoriesPage() {
   const [categories, setCategories] = useState<TenantFinanceCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -81,10 +82,11 @@ export function FinanceCategoriesPage() {
     [categories]
   );
 
-  function startCreate() {
+  function startCreate(openForm = false) {
     setEditingCategoryId(null);
     setError(null);
     setFeedback(null);
+    setIsFormOpen(openForm);
     setForm(buildDefaultForm());
   }
 
@@ -92,6 +94,7 @@ export function FinanceCategoriesPage() {
     setEditingCategoryId(category.id);
     setError(null);
     setFeedback(null);
+    setIsFormOpen(true);
     setForm({
       name: category.name,
       category_type: category.category_type,
@@ -116,7 +119,7 @@ export function FinanceCategoriesPage() {
         ? await updateTenantFinanceCategory(session.accessToken, editingCategoryId, form)
         : await createTenantFinanceCategory(session.accessToken, form);
       setFeedback(response.message);
-      startCreate();
+      startCreate(false);
       await loadCategories();
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -159,7 +162,7 @@ export function FinanceCategoriesPage() {
       setError(null);
       const response = await deleteTenantFinanceCategory(session.accessToken, category.id);
       if (editingCategoryId === category.id) {
-        startCreate();
+        startCreate(false);
       }
       setFeedback(response.message);
       await loadCategories();
@@ -192,7 +195,7 @@ export function FinanceCategoriesPage() {
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadCategories()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
-            <button className="btn btn-primary" type="button" onClick={startCreate}>
+            <button className="btn btn-primary" type="button" onClick={() => startCreate(true)}>
               {language === "es" ? "Nueva categoría" : "New category"}
             </button>
           </AppToolbar>
@@ -222,43 +225,75 @@ export function FinanceCategoriesPage() {
         />
       ) : null}
 
-      <div className="finance-catalog-layout">
-        <PanelCard
-          title={
-            editingCategoryId
-              ? language === "es"
-                ? "Editar categoría"
-                : "Edit category"
-              : language === "es"
-                ? "Nueva categoría"
-                : "New category"
-          }
-          subtitle={
-            language === "es"
-              ? "Mantén la jerarquía y el tipo de cada categoría."
-              : "Maintain the hierarchy and type of each category."
-          }
+      {isFormOpen ? (
+        <div
+          className="finance-form-backdrop"
+          role="presentation"
+          onClick={() => startCreate(false)}
         >
-          <CategoryForm
-            value={form}
-            categories={categories.filter((category) => category.id !== editingCategoryId)}
-            submitLabel={
+          <div
+            className="finance-form-modal finance-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
               editingCategoryId
                 ? language === "es"
-                  ? "Guardar cambios"
-                  : "Save changes"
+                  ? "Editar categoría"
+                  : "Edit category"
                 : language === "es"
-                  ? "Crear categoría"
-                  : "Create category"
+                  ? "Nueva categoría"
+                  : "New category"
             }
-            isSubmitting={isSubmitting}
-            onChange={setForm}
-            onSubmit={handleSubmit}
-            onCancel={editingCategoryId ? startCreate : undefined}
-          />
-        </PanelCard>
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="finance-form-modal__eyebrow">
+              {editingCategoryId
+                ? language === "es"
+                  ? "Edición puntual"
+                  : "Targeted edit"
+                : language === "es"
+                  ? "Alta bajo demanda"
+                  : "On-demand creation"}
+            </div>
+            <PanelCard
+              title={
+                editingCategoryId
+                  ? language === "es"
+                    ? "Editar categoría"
+                    : "Edit category"
+                  : language === "es"
+                    ? "Nueva categoría"
+                    : "New category"
+              }
+              subtitle={
+                language === "es"
+                  ? "Mantén la jerarquía y el tipo de cada categoría."
+                  : "Maintain the hierarchy and type of each category."
+              }
+            >
+              <CategoryForm
+                value={form}
+                categories={categories.filter((category) => category.id !== editingCategoryId)}
+                submitLabel={
+                  editingCategoryId
+                    ? language === "es"
+                      ? "Guardar cambios"
+                      : "Save changes"
+                    : language === "es"
+                      ? "Crear categoría"
+                      : "Create category"
+                }
+                isSubmitting={isSubmitting}
+                onChange={setForm}
+                onSubmit={handleSubmit}
+                onCancel={() => startCreate(false)}
+              />
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
 
-        <DataTableCard
+      <DataTableCard
           title={language === "es" ? "Catálogo de categorías" : "Categories catalog"}
           subtitle={
             language === "es"
@@ -350,7 +385,6 @@ export function FinanceCategoriesPage() {
             },
           ]}
         />
-      </div>
     </div>
   );
 }

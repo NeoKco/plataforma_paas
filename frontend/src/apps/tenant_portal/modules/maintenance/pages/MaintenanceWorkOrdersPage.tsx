@@ -107,6 +107,7 @@ export function MaintenanceWorkOrdersPage() {
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -220,6 +221,7 @@ export function MaintenanceWorkOrdersPage() {
   useEffect(() => {
     if (!isLoading && requestedMode === "create") {
       setEditingId(null);
+      setIsFormOpen(true);
     }
   }, [isLoading, requestedMode]);
 
@@ -242,12 +244,13 @@ export function MaintenanceWorkOrdersPage() {
     }
   }, [filteredInstallations, form.installation_id]);
 
-  function startCreate() {
+  function startCreate(openForm = false) {
     const clientId = clients[0]?.id || 0;
     const candidateSites = sites.filter((site) => site.client_id === clientId);
     setEditingId(null);
     setFeedback(null);
     setError(null);
+    setIsFormOpen(openForm);
     setForm({
       ...buildDefaultForm(),
       client_id: clientId,
@@ -259,6 +262,7 @@ export function MaintenanceWorkOrdersPage() {
     setEditingId(item.id);
     setFeedback(null);
     setError(null);
+    setIsFormOpen(true);
     setForm({
       client_id: item.client_id,
       site_id: item.site_id,
@@ -302,7 +306,7 @@ export function MaintenanceWorkOrdersPage() {
         ? await updateTenantMaintenanceWorkOrder(session.accessToken, editingId, payload)
         : await createTenantMaintenanceWorkOrder(session.accessToken, payload);
       setFeedback(response.message);
-      startCreate();
+      startCreate(false);
       await loadData();
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -355,7 +359,7 @@ export function MaintenanceWorkOrdersPage() {
         workOrder.id
       );
       if (editingId === workOrder.id) {
-        startCreate();
+        startCreate(false);
       }
       setFeedback(response.message);
       await loadData();
@@ -388,7 +392,7 @@ export function MaintenanceWorkOrdersPage() {
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
-            <button className="btn btn-primary" type="button" onClick={startCreate}>
+            <button className="btn btn-primary" type="button" onClick={() => startCreate(true)}>
               {language === "es" ? "Nueva orden" : "New work order"}
             </button>
           </AppToolbar>
@@ -459,31 +463,60 @@ export function MaintenanceWorkOrdersPage() {
         </div>
       </div>
 
-      <div className="maintenance-catalog-layout">
-        <PanelCard
-          title={
-            editingId
-              ? language === "es"
-                ? "Editar orden"
-                : "Edit work order"
-              : language === "es"
-                ? "Nueva orden"
-                : "New work order"
-          }
-          subtitle={
-            language === "es"
-              ? "Primer corte operativo apoyado sobre business-core y trazabilidad de estado."
-              : "First operational slice supported by business-core and status traceability."
-          }
+      {isFormOpen ? (
+        <div
+          className="maintenance-form-backdrop"
+          role="presentation"
+          onClick={() => startCreate(false)}
         >
-          <form
-            className="maintenance-form"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void handleSubmit();
-            }}
+          <div
+            className="maintenance-form-modal maintenance-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              editingId
+                ? language === "es"
+                  ? "Editar orden"
+                  : "Edit work order"
+                : language === "es"
+                  ? "Nueva orden"
+                  : "New work order"
+            }
+            onClick={(event) => event.stopPropagation()}
           >
-            <div className="row g-3">
+            <div className="maintenance-form-modal__eyebrow">
+              {editingId
+                ? language === "es"
+                  ? "Edición puntual"
+                  : "Targeted edit"
+                : language === "es"
+                  ? "Alta bajo demanda"
+                  : "On-demand creation"}
+            </div>
+            <PanelCard
+              title={
+                editingId
+                  ? language === "es"
+                    ? "Editar orden"
+                    : "Edit work order"
+                  : language === "es"
+                    ? "Nueva orden"
+                    : "New work order"
+              }
+              subtitle={
+                language === "es"
+                  ? "Primer corte operativo apoyado sobre business-core y trazabilidad de estado."
+                  : "First operational slice supported by business-core and status traceability."
+              }
+            >
+              <form
+                className="maintenance-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void handleSubmit();
+                }}
+              >
+                <div className="row g-3">
               <div className="col-12 col-md-6">
                 <label className="form-label">{language === "es" ? "Cliente" : "Client"}</label>
                 <select
@@ -674,31 +707,36 @@ export function MaintenanceWorkOrdersPage() {
                   }
                 />
               </div>
-            </div>
-            <div className="maintenance-form__actions">
-              <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-                {isSubmitting
-                  ? language === "es"
-                    ? "Guardando..."
-                    : "Saving..."
-                  : editingId
-                    ? language === "es"
-                      ? "Guardar cambios"
-                      : "Save changes"
-                    : language === "es"
-                      ? "Crear orden"
-                      : "Create work order"}
-              </button>
-              {editingId ? (
-                <button className="btn btn-outline-secondary" type="button" onClick={startCreate}>
-                  {language === "es" ? "Cancelar" : "Cancel"}
-                </button>
-              ) : null}
-            </div>
-          </form>
-        </PanelCard>
+                </div>
+                <div className="maintenance-form__actions">
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    onClick={() => startCreate(false)}
+                  >
+                    {language === "es" ? "Cancelar" : "Cancel"}
+                  </button>
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
+                    {isSubmitting
+                      ? language === "es"
+                        ? "Guardando..."
+                        : "Saving..."
+                      : editingId
+                        ? language === "es"
+                          ? "Guardar cambios"
+                          : "Save changes"
+                        : language === "es"
+                          ? "Crear orden"
+                          : "Create work order"}
+                  </button>
+                </div>
+              </form>
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
 
-        <DataTableCard
+      <DataTableCard
           title={language === "es" ? "Órdenes activas y cerradas" : "Open and closed work orders"}
           subtitle={
             language === "es"
@@ -812,7 +850,6 @@ export function MaintenanceWorkOrdersPage() {
             },
           ]}
         />
-      </div>
     </div>
   );
 }

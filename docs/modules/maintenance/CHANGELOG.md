@@ -48,6 +48,12 @@
   - `installations`: `created 0 / existing 197`
   - `sites`: `created 0 / existing 200`
 - se agrega un smoke E2E tenant para confirmar que tipos de equipo y órdenes importadas quedan visibles en el portal sobre `empresa-bootstrap`
+- el frontend de `maintenance` adopta el mismo patrón de alta bajo demanda que ya se fijó para otros CRUD:
+  - `Tipos de equipo`
+  - `Instalaciones`
+  - `Agenda técnica`
+  - `Órdenes de trabajo`
+- los formularios dejan de quedar abiertos por defecto y pasan a modal, priorizando la lectura del catálogo o tabla operativa
 
 ## 2026-04-01
 

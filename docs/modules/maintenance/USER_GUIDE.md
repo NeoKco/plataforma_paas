@@ -40,6 +40,7 @@ El primer corte del modulo ya permite:
 - consultar historial tecnico de ordenes cerradas con cambios de estado y visitas registradas
 - programar visitas técnicas ligadas a órdenes de trabajo
 - abrir `Mantenciones` desde la ficha del cliente con cliente y dirección ya preseleccionados
+- abrir altas y ediciones desde modal bajo demanda, dejando catálogo y lectura como primer plano
 
 ## Lo que no entra en el primer corte
 
@@ -70,6 +71,12 @@ Tambien deberia funcionar asi:
 2. abrir su ficha
 3. revisar direccion, contactos e instalaciones asociadas
 4. saltar a `Mantenciones` con el contexto del cliente ya cargado
+
+Regla UX operativa:
+
+- la lectura del catálogo debe verse primero
+- altas y ediciones no deberían quedar desplegadas por defecto
+- la captura se abre solo cuando el usuario pide `Nuevo` o `Editar`
 
 ## Mejora funcional recomendada
 

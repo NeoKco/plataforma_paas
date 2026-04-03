@@ -104,6 +104,12 @@ Smokes vigentes:
 5. validar textos `es/en`
 6. añadir smoke o ampliar E2E si el flujo lo justifica
 
+## Regla UX aplicada
+
+- los CRUD visibles de `finance` deben priorizar lectura primero
+- la alta o edición no debería invadir la vista principal si el usuario no la pidió
+- `Cuentas` y `Categorías` ya adoptan modal bajo demanda para creación y edición
+
 ## Testing
 
 Backend:

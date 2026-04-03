@@ -60,6 +60,7 @@ export function FinanceAccountsPage() {
   const [currencies, setCurrencies] = useState<TenantFinanceCurrency[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAccountId, setEditingAccountId] = useState<number | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -105,10 +106,11 @@ export function FinanceAccountsPage() {
     [accounts, editingAccountId]
   );
 
-  function startCreate() {
+  function startCreate(openForm = false) {
     setEditingAccountId(null);
     setError(null);
     setFeedback(null);
+    setIsFormOpen(openForm);
     setForm(buildDefaultForm(currencies[0]?.id ?? null));
   }
 
@@ -116,6 +118,7 @@ export function FinanceAccountsPage() {
     setEditingAccountId(account.id);
     setError(null);
     setFeedback(null);
+    setIsFormOpen(true);
     setForm({
       name: account.name,
       code: account.code,
@@ -153,7 +156,7 @@ export function FinanceAccountsPage() {
         const response = await createTenantFinanceAccount(session.accessToken, form);
         setFeedback(response.message);
       }
-      startCreate();
+      startCreate(false);
       await loadAccounts();
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -199,7 +202,7 @@ export function FinanceAccountsPage() {
       setError(null);
       const response = await deleteTenantFinanceAccount(session.accessToken, account.id);
       if (editingAccountId === account.id) {
-        startCreate();
+        startCreate(false);
       }
       setFeedback(response.message);
       await loadAccounts();
@@ -234,7 +237,7 @@ export function FinanceAccountsPage() {
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadAccounts()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
-            <button className="btn btn-primary" type="button" onClick={startCreate}>
+            <button className="btn btn-primary" type="button" onClick={() => startCreate(true)}>
               {language === "es" ? "Nueva cuenta" : "New account"}
             </button>
           </AppToolbar>
@@ -264,44 +267,76 @@ export function FinanceAccountsPage() {
         />
       ) : null}
 
-      <div className="finance-catalog-layout">
-        <PanelCard
-          title={
-            editingAccountId
-              ? language === "es"
-                ? "Editar cuenta"
-                : "Edit account"
-              : language === "es"
-                ? "Nueva cuenta"
-                : "New account"
-          }
-          subtitle={
-            language === "es"
-              ? "Define nombre, tipo, moneda y jerarquía de la cuenta."
-              : "Define name, type, currency, and account hierarchy."
-          }
+      {isFormOpen ? (
+        <div
+          className="finance-form-backdrop"
+          role="presentation"
+          onClick={() => startCreate(false)}
         >
-          <AccountForm
-            value={form}
-            currencies={currencies}
-            parentAccounts={parentAccounts}
-            submitLabel={
+          <div
+            className="finance-form-modal finance-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
               editingAccountId
                 ? language === "es"
-                  ? "Guardar cambios"
-                  : "Save changes"
+                  ? "Editar cuenta"
+                  : "Edit account"
                 : language === "es"
-                  ? "Crear cuenta"
-                  : "Create account"
+                  ? "Nueva cuenta"
+                  : "New account"
             }
-            isSubmitting={isSubmitting}
-            onChange={setForm}
-            onSubmit={handleSubmit}
-            onCancel={editingAccountId ? startCreate : undefined}
-          />
-        </PanelCard>
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="finance-form-modal__eyebrow">
+              {editingAccountId
+                ? language === "es"
+                  ? "Edición puntual"
+                  : "Targeted edit"
+                : language === "es"
+                  ? "Alta bajo demanda"
+                  : "On-demand creation"}
+            </div>
+            <PanelCard
+              title={
+                editingAccountId
+                  ? language === "es"
+                    ? "Editar cuenta"
+                    : "Edit account"
+                  : language === "es"
+                    ? "Nueva cuenta"
+                    : "New account"
+              }
+              subtitle={
+                language === "es"
+                  ? "Define nombre, tipo, moneda y jerarquía de la cuenta."
+                  : "Define name, type, currency, and account hierarchy."
+              }
+            >
+              <AccountForm
+                value={form}
+                currencies={currencies}
+                parentAccounts={parentAccounts}
+                submitLabel={
+                  editingAccountId
+                    ? language === "es"
+                      ? "Guardar cambios"
+                      : "Save changes"
+                    : language === "es"
+                      ? "Crear cuenta"
+                      : "Create account"
+                }
+                isSubmitting={isSubmitting}
+                onChange={setForm}
+                onSubmit={handleSubmit}
+                onCancel={() => startCreate(false)}
+              />
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
 
-        <DataTableCard
+      <DataTableCard
           title={language === "es" ? "Catálogo de cuentas" : "Accounts catalog"}
           subtitle={
             language === "es"
@@ -397,7 +432,6 @@ export function FinanceAccountsPage() {
             },
           ]}
         />
-      </div>
     </div>
   );
 }

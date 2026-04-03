@@ -71,6 +71,7 @@ export function FinanceToolsPage() {
   const [tags, setTags] = useState<TenantFinanceTag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -134,6 +135,7 @@ export function FinanceToolsPage() {
   function resetForm() {
     setEditingId(null);
     setError(null);
+    setIsFormOpen(false);
     setBeneficiaryForm({ name: "", icon: null, note: null, is_active: true, sort_order: 100 });
     setPersonForm({ name: "", icon: null, note: null, is_active: true, sort_order: 100 });
     setProjectForm({ name: "", code: null, note: null, is_active: true, sort_order: 100 });
@@ -245,6 +247,7 @@ export function FinanceToolsPage() {
     setEditingId(item.id);
     setError(null);
     setFeedback(null);
+    setIsFormOpen(true);
     if (activeTab === "beneficiaries") {
       const current = item as TenantFinanceBeneficiary;
       setBeneficiaryForm({
@@ -307,7 +310,14 @@ export function FinanceToolsPage() {
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
-            <button className="btn btn-primary" type="button" onClick={resetForm}>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => {
+                resetForm();
+                setIsFormOpen(true);
+              }}
+            >
               {language === "es" ? "Nuevo registro" : "New record"}
             </button>
           </AppToolbar>
@@ -351,55 +361,87 @@ export function FinanceToolsPage() {
         ))}
       </div>
 
-      <div className="finance-catalog-layout">
-        <PanelCard
-          title={editingId ? (language === "es" ? "Editar registro" : "Edit record") : (language === "es" ? "Nuevo registro" : "New record")}
-          subtitle={
-            language === "es"
-              ? "Cada catálogo alimenta filtros y asociaciones futuras de transacciones."
-              : "Each catalog feeds future transaction filters and associations."
-          }
+      {isFormOpen ? (
+        <div
+          className="finance-form-backdrop"
+          role="presentation"
+          onClick={resetForm}
         >
-          {activeTab === "beneficiaries" ? (
-            <BeneficiaryForm
-              value={beneficiaryForm}
-              submitLabel={editingId ? (language === "es" ? "Guardar cambios" : "Save changes") : (language === "es" ? "Crear beneficiario" : "Create beneficiary")}
-              isSubmitting={isSubmitting}
-              onChange={setBeneficiaryForm}
-              onSubmit={submitCurrent}
-              onCancel={editingId ? resetForm : undefined}
-            />
-          ) : activeTab === "people" ? (
-            <PersonForm
-              value={personForm}
-              submitLabel={editingId ? (language === "es" ? "Guardar cambios" : "Save changes") : (language === "es" ? "Crear persona" : "Create person")}
-              isSubmitting={isSubmitting}
-              onChange={setPersonForm}
-              onSubmit={submitCurrent}
-              onCancel={editingId ? resetForm : undefined}
-            />
-          ) : activeTab === "projects" ? (
-            <ProjectForm
-              value={projectForm}
-              submitLabel={editingId ? (language === "es" ? "Guardar cambios" : "Save changes") : (language === "es" ? "Crear proyecto" : "Create project")}
-              isSubmitting={isSubmitting}
-              onChange={setProjectForm}
-              onSubmit={submitCurrent}
-              onCancel={editingId ? resetForm : undefined}
-            />
-          ) : (
-            <TagForm
-              value={tagForm}
-              submitLabel={editingId ? (language === "es" ? "Guardar cambios" : "Save changes") : (language === "es" ? "Crear etiqueta" : "Create tag")}
-              isSubmitting={isSubmitting}
-              onChange={setTagForm}
-              onSubmit={submitCurrent}
-              onCancel={editingId ? resetForm : undefined}
-            />
-          )}
-        </PanelCard>
+          <div
+            className="finance-form-modal finance-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              editingId
+                ? language === "es"
+                  ? "Editar registro"
+                  : "Edit record"
+                : language === "es"
+                  ? "Nuevo registro"
+                  : "New record"
+            }
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="finance-form-modal__eyebrow">
+              {editingId
+                ? language === "es"
+                  ? "Edición puntual"
+                  : "Targeted edit"
+                : language === "es"
+                  ? "Alta bajo demanda"
+                  : "On-demand creation"}
+            </div>
+            <PanelCard
+              title={editingId ? (language === "es" ? "Editar registro" : "Edit record") : (language === "es" ? "Nuevo registro" : "New record")}
+              subtitle={
+                language === "es"
+                  ? "Cada catálogo alimenta filtros y asociaciones futuras de transacciones."
+                  : "Each catalog feeds future transaction filters and associations."
+              }
+            >
+              {activeTab === "beneficiaries" ? (
+                <BeneficiaryForm
+                  value={beneficiaryForm}
+                  submitLabel={editingId ? (language === "es" ? "Guardar cambios" : "Save changes") : (language === "es" ? "Crear beneficiario" : "Create beneficiary")}
+                  isSubmitting={isSubmitting}
+                  onChange={setBeneficiaryForm}
+                  onSubmit={submitCurrent}
+                  onCancel={resetForm}
+                />
+              ) : activeTab === "people" ? (
+                <PersonForm
+                  value={personForm}
+                  submitLabel={editingId ? (language === "es" ? "Guardar cambios" : "Save changes") : (language === "es" ? "Crear persona" : "Create person")}
+                  isSubmitting={isSubmitting}
+                  onChange={setPersonForm}
+                  onSubmit={submitCurrent}
+                  onCancel={resetForm}
+                />
+              ) : activeTab === "projects" ? (
+                <ProjectForm
+                  value={projectForm}
+                  submitLabel={editingId ? (language === "es" ? "Guardar cambios" : "Save changes") : (language === "es" ? "Crear proyecto" : "Create project")}
+                  isSubmitting={isSubmitting}
+                  onChange={setProjectForm}
+                  onSubmit={submitCurrent}
+                  onCancel={resetForm}
+                />
+              ) : (
+                <TagForm
+                  value={tagForm}
+                  submitLabel={editingId ? (language === "es" ? "Guardar cambios" : "Save changes") : (language === "es" ? "Crear etiqueta" : "Create tag")}
+                  isSubmitting={isSubmitting}
+                  onChange={setTagForm}
+                  onSubmit={submitCurrent}
+                  onCancel={resetForm}
+                />
+              )}
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
 
-        {activeTab === "beneficiaries" ? (
+      {activeTab === "beneficiaries" ? (
           <DataTableCard
             title={language === "es" ? "Registros" : "Records"}
             subtitle={language === "es" ? "Beneficiarios o terceros para futuras transacciones." : "Beneficiaries or third parties for future transactions."}

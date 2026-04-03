@@ -107,6 +107,12 @@ Fuente frontend principal:
 - no existe una frontera clara entre mantencion operativa y expediente tecnico
 - el frontend trabaja con tablas compactas y modales, pero no con una lectura por ficha/orden de trabajo
 
+## Regla UX aplicada en PaaS
+
+- los CRUD de `maintenance` deben priorizar lectura primero
+- los formularios de alta o edición no deberían quedar desplegados por defecto
+- `equipment_types`, `installations`, `visits` y `work_orders` ya abren captura en modal bajo demanda
+
 ## Modelo objetivo recomendado en PaaS
 
 Entidades del primer corte ya modeladas en `maintenance`:

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../../../components/data-display/DataTableCard";
@@ -97,6 +97,7 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
 }: MaintenanceCatalogPageProps<TRow, TForm>) {
   const { language } = useLanguage();
   const [localError, setLocalError] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const localizedColumns = useMemo(
     () =>
@@ -113,8 +114,32 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
     setLocalError(null);
     try {
       await onSubmit();
+      setIsFormOpen(false);
     } catch (rawError) {
       setLocalError((rawError as Error).message);
+    }
+  }
+
+  useEffect(() => {
+    if (editingId) {
+      setIsFormOpen(true);
+    }
+  }, [editingId]);
+
+  function handleOpenCreate() {
+    setLocalError(null);
+    onNew();
+    setIsFormOpen(true);
+  }
+
+  function handleCloseForm() {
+    if (isSubmitting) {
+      return;
+    }
+    setLocalError(null);
+    setIsFormOpen(false);
+    if (editingId && onCancel) {
+      onCancel();
     }
   }
 
@@ -134,7 +159,7 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
             <button className="btn btn-outline-secondary" type="button" onClick={() => void onReload()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
-            <button className="btn btn-primary" type="button" onClick={onNew}>
+            <button className="btn btn-primary" type="button" onClick={handleOpenCreate}>
               {language === "es" ? "Nuevo registro" : "New record"}
             </button>
           </AppToolbar>
@@ -159,153 +184,182 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
         <LoadingBlock label={language === "es" ? loadingLabelEs : loadingLabelEn} />
       ) : null}
 
-      <div className="maintenance-catalog-layout">
-        <PanelCard
-          title={
-            editingId
-              ? language === "es"
-                ? "Editar registro"
-                : "Edit record"
-              : language === "es"
-                ? "Nuevo registro"
-                : "New record"
-          }
-          subtitle={
-            language === "es"
-              ? "Mantén limpio este dominio técnico para que el ciclo de mantenciones no se degrade."
-              : "Keep this technical domain clean so the work-order lifecycle does not degrade."
-          }
+      {isFormOpen ? (
+        <div
+          className="maintenance-form-backdrop"
+          role="presentation"
+          onClick={handleCloseForm}
         >
-          <form className="maintenance-form" onSubmit={(event) => void handleSubmit(event)}>
-            <div className="row g-3">
-              {fields.map((field) => {
-                const label = language === "es" ? field.labelEs : field.labelEn;
-                const placeholder =
-                  language === "es" ? field.placeholderEs : field.placeholderEn;
-                const value = form[field.key];
+          <div
+            className="maintenance-form-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              editingId
+                ? language === "es"
+                  ? "Editar registro"
+                  : "Edit record"
+                : language === "es"
+                  ? "Nuevo registro"
+                  : "New record"
+            }
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="maintenance-form-modal__eyebrow">
+              {editingId
+                ? language === "es"
+                  ? "Edición puntual"
+                  : "Targeted edit"
+                : language === "es"
+                  ? "Alta bajo demanda"
+                  : "On-demand creation"}
+            </div>
+            <PanelCard
+              title={
+                editingId
+                  ? language === "es"
+                    ? "Editar registro"
+                    : "Edit record"
+                  : language === "es"
+                    ? "Nuevo registro"
+                    : "New record"
+              }
+              subtitle={
+                language === "es"
+                  ? "Mantén limpio este dominio técnico para que el ciclo de mantenciones no se degrade."
+                  : "Keep this technical domain clean so the work-order lifecycle does not degrade."
+              }
+            >
+              <form className="maintenance-form" onSubmit={(event) => void handleSubmit(event)}>
+                <div className="row g-3">
+                  {fields.map((field) => {
+                    const label = language === "es" ? field.labelEs : field.labelEn;
+                    const placeholder =
+                      language === "es" ? field.placeholderEs : field.placeholderEn;
+                    const value = form[field.key];
 
-                if (field.type === "checkbox") {
-                  return (
-                    <div className="col-12" key={String(field.key)}>
-                      <label className="form-check">
+                    if (field.type === "checkbox") {
+                      return (
+                        <div className="col-12" key={String(field.key)}>
+                          <label className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              checked={Boolean(value)}
+                              onChange={(event) =>
+                                onFormChange({
+                                  ...form,
+                                  [field.key]: event.target.checked,
+                                })
+                              }
+                            />
+                            <span className="form-check-label">{label}</span>
+                          </label>
+                        </div>
+                      );
+                    }
+
+                    if (field.type === "textarea") {
+                      return (
+                        <div className="col-12" key={String(field.key)}>
+                          <label className="form-label">{label}</label>
+                          <textarea
+                            className="form-control"
+                            value={formatInputValue(value)}
+                            placeholder={placeholder}
+                            rows={4}
+                            onChange={(event) =>
+                              onFormChange({
+                                ...form,
+                                [field.key]: event.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      );
+                    }
+
+                    if (field.type === "select") {
+                      return (
+                        <div className="col-12 col-md-6" key={String(field.key)}>
+                          <label className="form-label">{label}</label>
+                          <select
+                            className="form-select"
+                            value={formatInputValue(value)}
+                            onChange={(event) =>
+                              onFormChange({
+                                ...form,
+                                [field.key]: event.target.value,
+                              })
+                            }
+                          >
+                            {(field.options ?? []).map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="col-12 col-md-6" key={String(field.key)}>
+                        <label className="form-label">{label}</label>
                         <input
-                          className="form-check-input"
-                          type="checkbox"
-                          checked={Boolean(value)}
+                          className="form-control"
+                          type={field.type ?? "text"}
+                          min={field.min}
+                          value={formatInputValue(value)}
+                          placeholder={placeholder}
                           onChange={(event) =>
                             onFormChange({
                               ...form,
-                              [field.key]: event.target.checked,
+                              [field.key]:
+                                field.type === "number"
+                                  ? Number(event.target.value || 0)
+                                  : event.target.value,
                             })
                           }
                         />
-                        <span className="form-check-label">{label}</span>
-                      </label>
-                    </div>
-                  );
-                }
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="maintenance-form__actions">
+                  <button className="btn btn-outline-secondary" type="button" onClick={handleCloseForm}>
+                    {language === "es" ? "Cancelar" : "Cancel"}
+                  </button>
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
+                    {isSubmitting
+                      ? language === "es"
+                        ? "Guardando..."
+                        : "Saving..."
+                      : editingId
+                        ? language === "es"
+                          ? "Guardar cambios"
+                          : "Save changes"
+                        : language === "es"
+                          ? "Crear registro"
+                          : "Create record"}
+                  </button>
+                </div>
+              </form>
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
 
-                if (field.type === "textarea") {
-                  return (
-                    <div className="col-12" key={String(field.key)}>
-                      <label className="form-label">{label}</label>
-                      <textarea
-                        className="form-control"
-                        value={formatInputValue(value)}
-                        placeholder={placeholder}
-                        rows={4}
-                        onChange={(event) =>
-                          onFormChange({
-                            ...form,
-                            [field.key]: event.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                  );
-                }
-
-                if (field.type === "select") {
-                  return (
-                    <div className="col-12 col-md-6" key={String(field.key)}>
-                      <label className="form-label">{label}</label>
-                      <select
-                        className="form-select"
-                        value={formatInputValue(value)}
-                        onChange={(event) =>
-                          onFormChange({
-                            ...form,
-                            [field.key]: event.target.value,
-                          })
-                        }
-                      >
-                        {(field.options ?? []).map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div className="col-12 col-md-6" key={String(field.key)}>
-                    <label className="form-label">{label}</label>
-                    <input
-                      className="form-control"
-                      type={field.type ?? "text"}
-                      min={field.min}
-                      value={formatInputValue(value)}
-                      placeholder={placeholder}
-                      onChange={(event) =>
-                        onFormChange({
-                          ...form,
-                          [field.key]:
-                            field.type === "number"
-                              ? Number(event.target.value || 0)
-                              : event.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                );
-              })}
-            </div>
-            <div className="maintenance-form__actions">
-              <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-                {isSubmitting
-                  ? language === "es"
-                    ? "Guardando..."
-                    : "Saving..."
-                  : editingId
-                    ? language === "es"
-                      ? "Guardar cambios"
-                      : "Save changes"
-                    : language === "es"
-                      ? "Crear registro"
-                      : "Create record"}
-              </button>
-              {editingId && onCancel ? (
-                <button className="btn btn-outline-secondary" type="button" onClick={onCancel}>
-                  {language === "es" ? "Cancelar" : "Cancel"}
-                </button>
-              ) : null}
-            </div>
-          </form>
-        </PanelCard>
-
-        <DataTableCard
-          title={language === "es" ? "Catálogo operativo" : "Operational catalog"}
-          subtitle={
-            language === "es"
-              ? "Lista base del módulo técnico."
-              : "Base list for the technical module."
-          }
-          rows={rows}
-          columns={localizedColumns}
-        />
-      </div>
+      <DataTableCard
+        title={language === "es" ? "Catálogo operativo" : "Operational catalog"}
+        subtitle={
+          language === "es"
+            ? "Lista base del módulo técnico."
+            : "Base list for the technical module."
+        }
+        rows={rows}
+        columns={localizedColumns}
+      />
     </div>
   );
 }

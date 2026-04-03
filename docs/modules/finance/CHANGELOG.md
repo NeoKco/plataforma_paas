@@ -52,6 +52,7 @@ Resumen curado de hitos del módulo `finance`.
 - se añadieron ayudas contextuales tipo burbuja
 - se ajustó el formateo monetario para respetar monedas sin decimales como `CLP`
 - se mejoró la visualización de adjuntos dentro de acciones y detalle operacional
+- `Cuentas` y `Categorías` pasan a alta/edición bajo demanda en modal, dejando el catálogo como lectura principal
 
 ### E2E browser
 
