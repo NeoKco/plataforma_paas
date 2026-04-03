@@ -20,6 +20,7 @@ class BusinessCoreSiteServiceTestCase(unittest.TestCase):
         site_repository = Mock()
         client_repository = Mock()
         client_repository.get_by_id.return_value = SimpleNamespace(id=1, is_active=True)
+        site_repository.list_by_client.return_value = []
         site_repository.save.side_effect = lambda _tenant_db, site: site
 
         service = BusinessSiteService(
@@ -65,6 +66,7 @@ class BusinessCoreSiteServiceTestCase(unittest.TestCase):
         client_repository = Mock()
         site_repository.get_by_id.return_value = existing_site
         site_repository.get_by_site_code.return_value = existing_site
+        site_repository.list_by_client.return_value = [existing_site]
         client_repository.get_by_id.return_value = SimpleNamespace(id=1, is_active=True)
         site_repository.save.side_effect = lambda _tenant_db, site: site
 

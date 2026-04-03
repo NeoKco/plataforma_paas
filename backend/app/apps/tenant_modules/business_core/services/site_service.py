@@ -9,6 +9,9 @@ from app.apps.tenant_modules.business_core.schemas import (
     BusinessSiteCreateRequest,
     BusinessSiteUpdateRequest,
 )
+from app.apps.tenant_modules.business_core.services.normalization_support import (
+    normalize_human_key,
+)
 
 
 class BusinessSiteService:
@@ -151,3 +154,30 @@ class BusinessSiteService:
                 current_site is None or existing_code.id != current_site.id
             ):
                 raise ValueError("Ya existe un sitio con ese codigo")
+
+        existing_sites = self.site_repository.list_by_client(
+            tenant_db,
+            payload["client_id"],
+            include_inactive=True,
+        )
+        normalized_name = normalize_human_key(payload["name"])
+        normalized_address = (
+            normalize_human_key(payload["address_line"]),
+            normalize_human_key(payload["commune"]),
+            normalize_human_key(payload["city"]),
+            normalize_human_key(payload["region"]),
+        )
+        for site in existing_sites:
+            if current_site is not None and site.id == current_site.id:
+                continue
+            if normalize_human_key(site.name) == normalized_name:
+                raise ValueError("Ya existe una dirección con ese nombre para el cliente")
+            if payload["address_line"]:
+                site_address = (
+                    normalize_human_key(site.address_line),
+                    normalize_human_key(site.commune),
+                    normalize_human_key(site.city),
+                    normalize_human_key(site.region),
+                )
+                if site_address == normalized_address:
+                    raise ValueError("Ya existe una dirección igual para el cliente")

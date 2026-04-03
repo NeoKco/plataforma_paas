@@ -51,6 +51,7 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - las descripciones visibles de taxonomias no deben arrastrar marcadores `legacy_*`; si el dato no fue escrito por el usuario, no debe mostrarse en captura ni lectura.
 - lo mismo aplica para `Empresas`, `Clientes` y catálogos visibles de `Maintenance`: la operacion no debe mostrar marcadores `legacy_*` en notas, descripciones ni textos de apoyo.
 - la direccion propia de una empresa o proveedor sigue siendo una necesidad real, pero conviene resolverla como parte del modelo y no como un campo suelto pegado al modal. Hasta que exista esa ola, el foco de `Empresas` debe ser identidad + contacto principal.
+- si intentas registrar un cliente repetido, el control correcto no debe depender de la pantalla: la contraparte base no debe duplicarse y una misma organizacion no deberia tener mas de un cliente asociado.
 
 Eso genera:
 

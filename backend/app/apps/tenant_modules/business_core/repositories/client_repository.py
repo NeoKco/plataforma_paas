@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.business_core.models import BusinessClient
@@ -17,7 +18,7 @@ class BusinessClientRepository(BusinessCoreCatalogRepository[BusinessClient]):
     ) -> BusinessClient | None:
         return (
             tenant_db.query(BusinessClient)
-            .filter(BusinessClient.client_code == client_code)
+            .filter(func.lower(BusinessClient.client_code) == client_code.strip().lower())
             .first()
         )
 

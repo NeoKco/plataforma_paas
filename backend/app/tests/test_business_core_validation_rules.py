@@ -1,0 +1,226 @@
+import os
+import unittest
+from types import SimpleNamespace
+from unittest.mock import Mock
+
+os.environ["DEBUG"] = "true"
+os.environ["APP_ENV"] = "test"
+
+from app.apps.tenant_modules.business_core.schemas import (  # noqa: E402
+    BusinessClientCreateRequest,
+    BusinessContactCreateRequest,
+    BusinessOrganizationCreateRequest,
+    BusinessSiteCreateRequest,
+)
+from app.apps.tenant_modules.business_core.services.client_service import (  # noqa: E402
+    BusinessClientService,
+)
+from app.apps.tenant_modules.business_core.services.contact_service import (  # noqa: E402
+    BusinessContactService,
+)
+from app.apps.tenant_modules.business_core.services.organization_service import (  # noqa: E402
+    BusinessOrganizationService,
+)
+from app.apps.tenant_modules.business_core.services.site_service import (  # noqa: E402
+    BusinessSiteService,
+)
+
+
+class BusinessCoreValidationRulesTestCase(unittest.TestCase):
+    def test_organization_rejects_duplicate_name_case_insensitive(self) -> None:
+        repository = Mock()
+        repository.list_all.return_value = [
+            SimpleNamespace(id=1, name="Ácme   Ltda", tax_id=None),
+        ]
+        service = BusinessOrganizationService(organization_repository=repository)
+
+        with self.assertRaises(ValueError) as exc:
+            service.create_organization(
+                object(),
+                BusinessOrganizationCreateRequest(
+                    name=" acme ltda ",
+                    legal_name=None,
+                    tax_id=None,
+                    organization_kind="supplier",
+                    phone=None,
+                    email=None,
+                    notes=None,
+                    is_active=True,
+                    sort_order=100,
+                ),
+            )
+
+        self.assertIn("Ya existe una organizacion con ese nombre", str(exc.exception))
+
+    def test_organization_rejects_duplicate_tax_id_with_format_variation(self) -> None:
+        repository = Mock()
+        repository.list_all.return_value = [
+            SimpleNamespace(id=7, name="Acme Ltda", tax_id="76.123.456-7"),
+        ]
+        service = BusinessOrganizationService(organization_repository=repository)
+
+        with self.assertRaises(ValueError) as exc:
+            service.create_organization(
+                object(),
+                BusinessOrganizationCreateRequest(
+                    name="Acme Nueva",
+                    legal_name=None,
+                    tax_id="76123456-7",
+                    organization_kind="supplier",
+                    phone=None,
+                    email=None,
+                    notes=None,
+                    is_active=True,
+                    sort_order=100,
+                ),
+            )
+
+        self.assertIn(
+            "Ya existe una organizacion con ese identificador tributario",
+            str(exc.exception),
+        )
+
+    def test_client_rejects_duplicate_organization_association(self) -> None:
+        client_repository = Mock()
+        organization_repository = Mock()
+        organization_repository.get_by_id.return_value = SimpleNamespace(
+            id=7,
+            organization_kind="client",
+        )
+        client_repository.get_by_organization_id.return_value = SimpleNamespace(id=12)
+        service = BusinessClientService(
+            client_repository=client_repository,
+            organization_repository=organization_repository,
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.create_client(
+                object(),
+                BusinessClientCreateRequest(
+                    organization_id=7,
+                    client_code=None,
+                    service_status="active",
+                    commercial_notes=None,
+                    is_active=True,
+                    sort_order=100,
+                ),
+            )
+
+        self.assertIn(
+            "La organizacion seleccionada ya tiene un cliente asociado",
+            str(exc.exception),
+        )
+
+    def test_contact_rejects_duplicate_email_in_same_organization(self) -> None:
+        contact_repository = Mock()
+        organization_repository = Mock()
+        organization_repository.get_by_id.return_value = SimpleNamespace(id=7, is_active=True)
+        contact_repository.list_by_organization.return_value = [
+            SimpleNamespace(
+                id=22,
+                full_name="Maria Perez",
+                email="maria@acme.local",
+                phone=None,
+                is_primary=False,
+            )
+        ]
+        service = BusinessContactService(
+            contact_repository=contact_repository,
+            organization_repository=organization_repository,
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.create_contact(
+                object(),
+                BusinessContactCreateRequest(
+                    organization_id=7,
+                    full_name="Maria Perez 2",
+                    email="maria@acme.local",
+                    phone=None,
+                    role_title="Administracion",
+                    is_primary=False,
+                    is_active=True,
+                    sort_order=100,
+                ),
+            )
+
+        self.assertIn("Ya existe un contacto con ese email", str(exc.exception))
+
+    def test_contact_rejects_duplicate_phone_with_format_variation(self) -> None:
+        contact_repository = Mock()
+        organization_repository = Mock()
+        organization_repository.get_by_id.return_value = SimpleNamespace(id=7, is_active=True)
+        contact_repository.list_by_organization.return_value = [
+            SimpleNamespace(
+                id=22,
+                full_name="Maria Perez",
+                email=None,
+                phone="+56 9 1111 1111",
+                is_primary=False,
+            )
+        ]
+        service = BusinessContactService(
+            contact_repository=contact_repository,
+            organization_repository=organization_repository,
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.create_contact(
+                object(),
+                BusinessContactCreateRequest(
+                    organization_id=7,
+                    full_name="Pedro Soto",
+                    email=None,
+                    phone="+56911111111",
+                    role_title="Terreno",
+                    is_primary=False,
+                    is_active=True,
+                    sort_order=100,
+                ),
+            )
+
+        self.assertIn("Ya existe un contacto con ese teléfono", str(exc.exception))
+
+    def test_site_rejects_duplicate_address_in_same_client(self) -> None:
+        site_repository = Mock()
+        client_repository = Mock()
+        client_repository.get_by_id.return_value = SimpleNamespace(id=1, is_active=True)
+        site_repository.get_by_site_code.return_value = None
+        site_repository.list_by_client.return_value = [
+            SimpleNamespace(
+                id=4,
+                name="Casa matriz",
+                address_line="Av. Siempre Viva 123",
+                commune="Puente Alto",
+                city="Santiago",
+                region="RM",
+            )
+        ]
+        service = BusinessSiteService(
+            site_repository=site_repository,
+            client_repository=client_repository,
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.create_site(
+                object(),
+                BusinessSiteCreateRequest(
+                    client_id=1,
+                    name="Sucursal centro",
+                    site_code=None,
+                    address_line="Av. Siempre Viva 123",
+                    commune="Puente Alto",
+                    city="Santiago",
+                    region="RM",
+                    country_code="CL",
+                    reference_notes=None,
+                    is_active=True,
+                    sort_order=100,
+                ),
+            )
+
+        self.assertIn("Ya existe una dirección igual", str(exc.exception))
+
+
+if __name__ == "__main__":
+    unittest.main()

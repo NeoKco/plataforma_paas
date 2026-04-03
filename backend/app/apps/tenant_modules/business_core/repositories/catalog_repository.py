@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from typing import Generic, TypeVar
 
 from sqlalchemy.orm import Session
@@ -40,7 +41,7 @@ class BusinessCoreCatalogRepository(Generic[ModelT]):
             raise AttributeError("This repository does not support get_by_name")
         return (
             tenant_db.query(self.model_class)
-            .filter(getattr(self.model_class, self.name_field) == name)
+            .filter(func.lower(getattr(self.model_class, self.name_field)) == name.strip().lower())
             .first()
         )
 

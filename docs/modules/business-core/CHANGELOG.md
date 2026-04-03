@@ -21,6 +21,7 @@
 - Se corrige `Empresas` para mostrar y editar tambien el contacto principal desde la misma pantalla, incluyendo nombre, teléfono y mail visibles en el catálogo activo.
 - Se sanea el importador y la lectura visible para que notas de `Empresas`, `Clientes` y catálogos seguros no vuelvan a exponer marcadores `legacy_*`.
 - Se deja documentado que la dirección propia de `Empresas` requiere una ola de modelo dedicada y no debe improvisarse como texto suelto en el modal actual.
+- Se endurecen las reglas anti-duplicados del dominio para comparar organizaciones, contactos y direcciones con normalizacion, y se deja explicito que `Clientes` no debe repetirse sobre la misma organizacion base.
 
 ## 2026-04-02
 

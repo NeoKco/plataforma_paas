@@ -28,6 +28,7 @@ Estado actual:
 - `comuna` queda modelada como dato propio de direccion, separado de `ciudad`, para alinear la captura y la busqueda con el uso real en Chile
 - `reference_notes` se reserva para observaciones humanas, no para arrastrar ids legacy visibles
 - se limpia la importacion visible desde `ieris_app` para que `legacy_*` no contamine notas operativas, catalogos y taxonomias compartidas
+- la no duplicacion de `clients` se resuelve sobre la entidad base: primero no se repite la `organization`, y luego solo puede existir un `client` por `organization_id`
 
 Pendientes visibles inmediatos:
 

@@ -9,6 +9,11 @@ from app.apps.tenant_modules.business_core.schemas import (
     BusinessContactCreateRequest,
     BusinessContactUpdateRequest,
 )
+from app.apps.tenant_modules.business_core.services.normalization_support import (
+    normalize_email_key,
+    normalize_human_key,
+    normalize_phone_key,
+)
 
 
 class BusinessContactService:
@@ -130,14 +135,25 @@ class BusinessContactService:
         ):
             raise ValueError("No puedes registrar contactos para una organizacion inactiva")
 
-        if payload["is_primary"]:
-            primary_contact = self.contact_repository.get_primary_by_organization(
-                tenant_db,
-                payload["organization_id"],
-            )
-            if primary_contact and (
-                current_contact is None or primary_contact.id != current_contact.id
-            ):
+        existing_contacts = self.contact_repository.list_by_organization(
+            tenant_db,
+            payload["organization_id"],
+            include_inactive=True,
+        )
+        normalized_name = normalize_human_key(payload["full_name"])
+        normalized_email = normalize_email_key(payload["email"])
+        normalized_phone = normalize_phone_key(payload["phone"])
+
+        for contact in existing_contacts:
+            if current_contact is not None and contact.id == current_contact.id:
+                continue
+            if payload["is_primary"] and contact.is_primary:
                 raise ValueError(
                     "La organizacion seleccionada ya tiene un contacto principal"
                 )
+            if normalize_human_key(contact.full_name) == normalized_name:
+                raise ValueError("Ya existe un contacto con ese nombre en la organizacion")
+            if normalized_email and normalize_email_key(contact.email) == normalized_email:
+                raise ValueError("Ya existe un contacto con ese email en la organizacion")
+            if normalized_phone and normalize_phone_key(contact.phone) == normalized_phone:
+                raise ValueError("Ya existe un contacto con ese teléfono en la organizacion")

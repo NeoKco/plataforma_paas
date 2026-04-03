@@ -243,6 +243,13 @@ Reglas recomendadas desde el inicio:
 - no usar `function_profile` como reemplazo del sistema de permisos
 - no hacer que `maintenance` sea dueño de `task_types`
 
+Reglas anti-duplicados recomendadas:
+
+- `organizations`: por `name` normalizado y `tax_id` normalizado
+- `clients`: un solo registro por `organization_id`
+- `contacts`: no repetir `full_name`, `email` o `phone` dentro de la misma organizacion
+- `sites`: no repetir nombre ni combinacion de direccion dentro del mismo cliente
+
 ## Permisos sugeridos
 
 Primer bloque de permisos:
