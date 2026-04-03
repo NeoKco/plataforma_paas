@@ -5,6 +5,7 @@ Esta carpeta documenta la migracion legacy desde `ieris_app` hacia `business-cor
 Script principal:
 
 - [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py)
+- [cleanup_business_core_legacy_site_notes.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_business_core_legacy_site_notes.py)
 
 Comportamiento:
 
@@ -13,6 +14,7 @@ Comportamiento:
 - corre en `dry-run` por defecto
 - requiere `--apply` para persistir cambios
 - genera un reporte JSON en `tmp/` por defecto
+- no debe copiar ids o trazas legacy a campos visibles para usuario como `reference_notes`
 
 Precondicion obligatoria:
 
@@ -48,6 +50,17 @@ cd /home/felipe/platform_paas/backend
 PYTHONPATH=/home/felipe/platform_paas/backend \
 /home/felipe/platform_paas/platform_paas_venv/bin/python \
 app/scripts/import_ieris_business_core_maintenance.py \
+  --tenant-slug empresa-bootstrap \
+  --apply
+```
+
+Si un tenant ya fue importado con notas legacy visibles en direcciones:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/cleanup_business_core_legacy_site_notes.py \
   --tenant-slug empresa-bootstrap \
   --apply
 ```

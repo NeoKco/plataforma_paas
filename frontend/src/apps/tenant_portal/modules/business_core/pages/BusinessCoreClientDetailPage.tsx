@@ -147,24 +147,30 @@ export function BusinessCoreClientDetailPage() {
       const clientData = clientResponse.data;
       setClient(clientData);
 
-        const [organizationResponse, contactsResponse, addressesResponse, installationsResponse, workOrdersResponse] = await Promise.all([
-          getTenantBusinessOrganization(session.accessToken, clientData.organization_id),
-          getTenantBusinessContacts(session.accessToken, {
-            organizationId: clientData.organization_id,
-          }),
-          getTenantBusinessSites(session.accessToken, { clientId: clientData.id }),
-          getTenantMaintenanceInstallations(session.accessToken),
-          getTenantMaintenanceWorkOrders(session.accessToken, { clientId: clientData.id }),
-        ]);
+      const [
+        organizationResponse,
+        contactsResponse,
+        addressesResponse,
+        installationsResponse,
+        workOrdersResponse,
+      ] = await Promise.all([
+        getTenantBusinessOrganization(session.accessToken, clientData.organization_id),
+        getTenantBusinessContacts(session.accessToken, {
+          organizationId: clientData.organization_id,
+        }),
+        getTenantBusinessSites(session.accessToken, { clientId: clientData.id }),
+        getTenantMaintenanceInstallations(session.accessToken),
+        getTenantMaintenanceWorkOrders(session.accessToken, { clientId: clientData.id }),
+      ]);
 
-        setOrganization(organizationResponse.data);
-        setContacts(contactsResponse.data);
-        setAddresses(addressesResponse.data);
-        setInstallations(installationsResponse.data);
-        setWorkOrders(workOrdersResponse.data);
-        setContactForm((current) =>
-          current.organization_id
-            ? current
+      setOrganization(organizationResponse.data);
+      setContacts(contactsResponse.data);
+      setAddresses(addressesResponse.data);
+      setInstallations(installationsResponse.data);
+      setWorkOrders(workOrdersResponse.data);
+      setContactForm((current) =>
+        current.organization_id
+          ? current
           : buildDefaultContactForm(clientData.organization_id)
       );
       setAddressForm((current) =>
@@ -288,7 +294,7 @@ export function BusinessCoreClientDetailPage() {
         ...addressForm,
         client_id: client.id,
         name: addressForm.name.trim(),
-        site_code: normalizeNullable(addressForm.site_code),
+        site_code: null,
         address_line: normalizeNullable(addressForm.address_line),
         city: normalizeNullable(addressForm.city),
         region: normalizeNullable(addressForm.region),
@@ -661,7 +667,7 @@ export function BusinessCoreClientDetailPage() {
       >
         <div className="business-core-inline-form">
           <div className="row g-3">
-            <div className="col-12 col-md-6">
+            <div className="col-12">
               <label className="form-label">
                 {language === "es" ? "Nombre dirección" : "Address name"}
               </label>
@@ -672,21 +678,6 @@ export function BusinessCoreClientDetailPage() {
                   setAddressForm((current) => ({
                     ...current,
                     name: event.target.value,
-                  }))
-                }
-              />
-            </div>
-            <div className="col-12 col-md-6">
-              <label className="form-label">
-                {language === "es" ? "Código dirección" : "Address code"}
-              </label>
-              <input
-                className="form-control"
-                value={addressForm.site_code ?? ""}
-                onChange={(event) =>
-                  setAddressForm((current) => ({
-                    ...current,
-                    site_code: event.target.value,
                   }))
                 }
               />

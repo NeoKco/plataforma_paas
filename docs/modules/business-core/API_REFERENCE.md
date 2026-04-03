@@ -93,6 +93,11 @@ Campos minimos de lectura:
 - `region`
 - `is_active`
 
+Notas de contrato:
+
+- `site_code` sigue existiendo en el modelo por razones tecnicas, pero la UI normal del tenant no deberia exponerlo como editable.
+- `reference_notes` debe reservarse para notas humanas visibles al usuario, no para ids o trazas legacy.
+
 ### Work group summary
 
 Campos minimos de lectura:

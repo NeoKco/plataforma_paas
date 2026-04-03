@@ -963,11 +963,7 @@ def import_business_core_and_maintenance(
             address_line=address_line,
             city=normalize_text(row.get("comuna")) or normalize_text(row.get("ciudad")),
             region=normalize_text(row.get("region")),
-            reference_notes=append_note(
-                normalize_text(row.get("codigo_postal"))
-                and f"legacy_codigo_postal={normalize_text(row.get('codigo_postal'))}",
-                f"legacy_client_id={legacy_client_id}",
-            ),
+            reference_notes=None,
             is_active=to_bool_from_legacy_status(row.get("estado")),
             counters=report["business_core"]["sites"],
         )

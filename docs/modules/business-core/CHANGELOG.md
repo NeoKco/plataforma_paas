@@ -4,6 +4,8 @@
 - Se agrego la ficha de cliente y se renombro la lectura visible de `sites` a `Direcciones`, dejando a Google Maps como salida operativa desde cada direccion.
 - La ficha del cliente ahora permite alta, edicion y eliminacion basica de contactos y direcciones sin salir de la misma vista.
 - La vista principal de `Clientes` se rehizo para dejar una sola alta desde la esquina superior derecha, mostrar contacto y direccion junto al cliente y permitir busqueda por nombre, RUT, contacto o direccion.
+- Se deja `site_code` como identificador tecnico interno, ocultandolo de las pantallas operativas para que no se edite como si fuera un dato de negocio.
+- Se corrige el importador legacy para que `reference_notes` no muestre `legacy_client_id` ni otros marcadores tecnicos visibles al usuario.
 
 ## 2026-04-02
 

@@ -128,6 +128,9 @@ Observacion:
 
 - `site` debe ser entidad de primer nivel
 - no conviene esconderlo como simple direccion dentro del cliente
+- `site_code` se mantiene como identificador tecnico interno para integraciones/importadores
+- la UI normal del tenant no deberia exponer `site_code` como campo editable
+- `reference_notes` es un campo visible al usuario y no debe usarse para guardar metadatos legacy como `legacy_client_id`
 
 ### 5. Contact-Site Links
 

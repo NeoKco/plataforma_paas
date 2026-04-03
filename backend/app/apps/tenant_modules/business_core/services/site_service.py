@@ -44,6 +44,8 @@ class BusinessSiteService:
         payload: BusinessSiteCreateRequest,
     ) -> BusinessSite:
         normalized = self._normalize_payload(payload)
+        # `site_code` queda reservado para integraciones/importadores, no para captura manual.
+        normalized["site_code"] = None
         self._validate_payload(tenant_db, normalized)
         site = BusinessSite(**normalized)
         return self.site_repository.save(tenant_db, site)
@@ -59,6 +61,7 @@ class BusinessSiteService:
     ) -> BusinessSite:
         site = self._get_site_or_raise(tenant_db, site_id)
         normalized = self._normalize_payload(payload)
+        normalized["site_code"] = site.site_code
         self._validate_payload(tenant_db, normalized, current_site=site)
 
         for field, value in normalized.items():

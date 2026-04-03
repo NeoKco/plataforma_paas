@@ -120,7 +120,7 @@ export function BusinessCoreSitesPage() {
       ...form,
       client_id: Number(form.client_id),
       name: form.name.trim(),
-      site_code: normalizeNullable(form.site_code),
+      site_code: null,
       address_line: normalizeNullable(form.address_line),
       city: normalizeNullable(form.city),
       region: normalizeNullable(form.region),
@@ -190,8 +190,8 @@ export function BusinessCoreSitesPage() {
       titleEn="Client addresses"
       descriptionEs="Vista administrativa de direcciones operativas. La lectura principal debería hacerse desde la ficha del cliente."
       descriptionEn="Administrative view of operating addresses. Primary reading should happen from the client detail page."
-      helpEs="Internamente sigue siendo una entidad `site`, pero funcionalmente representa una dirección u operación del cliente. Usa esta vista para mantenimiento administrativo y la ficha de cliente para lectura diaria."
-      helpEn="Internally this is still a `site` entity, but functionally it represents a client address or operating location. Use this view for administration and the client detail page for day-to-day reading."
+      helpEs="Internamente sigue siendo una entidad `site`, pero funcionalmente representa una dirección del cliente. El código técnico queda oculto y esta vista debe usarse para mantenimiento administrativo; la lectura diaria debería hacerse desde la ficha del cliente."
+      helpEn="Internally this is still a `site` entity, but functionally it represents a client address. The technical code stays hidden and this view should be used for administration; day-to-day reading should happen from the client detail page."
       loadingLabelEs="Cargando direcciones..."
       loadingLabelEn="Loading addresses..."
       isLoading={isLoading}
@@ -223,7 +223,6 @@ export function BusinessCoreSitesPage() {
           })),
         },
         { key: "name", labelEs: "Nombre dirección", labelEn: "Address name" },
-        { key: "site_code", labelEs: "Código dirección", labelEn: "Address code" },
         { key: "address_line", labelEs: "Dirección", labelEn: "Address" },
         { key: "city", labelEs: "Ciudad", labelEn: "City" },
         { key: "region", labelEs: "Región", labelEn: "Region" },

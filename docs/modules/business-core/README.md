@@ -23,6 +23,8 @@ Estado actual:
 - frontend tenant operativo para las taxonomias de ola 1B
 - la vista principal de `clients` ya se rehizo inspirada en `ieris_app`: busqueda por nombre/contacto/direccion, alta unica desde la esquina superior derecha y ficha consolidada del cliente
 - la ficha del cliente ya conecta con `maintenance` para ver instalaciones y abrir/agendar mantenciones con contexto precargado
+- el `codigo de direccion` queda tratado como dato tecnico interno y no como campo editable de usuario
+- `reference_notes` se reserva para observaciones humanas, no para arrastrar ids legacy visibles
 
 Pendientes visibles inmediatos:
 
