@@ -29,6 +29,7 @@ Estado actual:
 - `reference_notes` se reserva para observaciones humanas, no para arrastrar ids legacy visibles
 - se limpia la importacion visible desde `ieris_app` para que `legacy_*` no contamine notas operativas, catalogos y taxonomias compartidas
 - la no duplicacion de `clients` se resuelve sobre la entidad base: primero no se repite la `organization`, y luego solo puede existir un `client` por `organization_id`
+- el importador legacy ya no solo crea `sites`; tambien puede corregir direcciones legacy existentes cuando detecta que `comuna`, `ciudad` o `region` quedaron mal cargadas en una corrida anterior
 
 Pendientes visibles inmediatos:
 

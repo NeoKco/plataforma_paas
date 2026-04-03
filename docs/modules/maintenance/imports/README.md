@@ -15,6 +15,7 @@ Comportamiento:
 - requiere `--apply` para persistir cambios
 - genera un reporte JSON en `tmp/` por defecto
 - no debe copiar ids o trazas legacy a campos visibles para usuario como `reference_notes`
+- para `business_sites`, una corrida posterior tambien puede corregir registros legacy ya importados si detecta que `comuna`, `ciudad` o `region` quedaron mal asignadas
 
 Precondicion obligatoria:
 
@@ -32,6 +33,7 @@ Validacion ya realizada:
   - `0017_business_core_taxonomy`
 - `--apply` ejecutado con exito sobre `empresa-bootstrap`
 - segunda corrida en `dry-run` validada como idempotente
+- luego se reaplico `--apply` para corregir direcciones legacy ya existentes y normalizar `commune/city/region` en `empresa-bootstrap`
 
 Comando recomendado de validacion:
 

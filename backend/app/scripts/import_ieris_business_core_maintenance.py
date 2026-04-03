@@ -419,7 +419,26 @@ def get_or_create_site(
         .first()
     )
     if existing is not None:
-        counters.existing += 1
+        changed = False
+        for field, value in {
+            "client_id": client_id,
+            "name": name,
+            "address_line": address_line,
+            "commune": commune,
+            "city": city,
+            "region": region,
+            "reference_notes": reference_notes,
+            "is_active": is_active,
+        }.items():
+            if getattr(existing, field) != value:
+                setattr(existing, field, value)
+                changed = True
+        if changed:
+            tenant_db.add(existing)
+            tenant_db.flush()
+            counters.updated += 1
+        else:
+            counters.existing += 1
         return existing
 
     item = BusinessSite(
