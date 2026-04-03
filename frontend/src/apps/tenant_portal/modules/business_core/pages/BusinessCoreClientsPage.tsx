@@ -652,8 +652,8 @@ export function BusinessCoreClientsPage() {
                 : "Load the client's base data here. Additional maintenance details will later live on top of its installations."}
             </div>
             {modalError ? <div className="alert alert-danger mb-3">{modalError}</div> : null}
-            <div className="business-core-modal-grid">
-              <div className="business-core-modal-section">
+            <div className="business-core-modal-grid business-core-modal-grid--client">
+              <div className="business-core-modal-section business-core-modal-section--client-main">
                 <div className="business-core-modal-section__title">
                   {language === "es" ? "Cliente" : "Client"}
                 </div>
@@ -770,7 +770,7 @@ export function BusinessCoreClientsPage() {
                     </label>
                     <textarea
                       className="form-control"
-                      rows={3}
+                      rows={2}
                       value={modalForm.commercialNotes}
                       onChange={(event) =>
                         setModalForm((current) => ({
@@ -783,7 +783,7 @@ export function BusinessCoreClientsPage() {
                 </div>
               </div>
 
-              <div className="business-core-modal-section">
+              <div className="business-core-modal-section business-core-modal-section--client-side">
                 <div className="business-core-modal-section__title">
                   {language === "es" ? "Contacto principal" : "Primary contact"}
                 </div>
@@ -852,7 +852,7 @@ export function BusinessCoreClientsPage() {
                 </div>
               </div>
 
-              <div className="business-core-modal-section">
+              <div className="business-core-modal-section business-core-modal-section--client-side">
                 <div className="business-core-modal-section__title">
                   {language === "es" ? "Dirección principal" : "Primary address"}
                 </div>
@@ -923,7 +923,7 @@ export function BusinessCoreClientsPage() {
                     </label>
                     <textarea
                       className="form-control"
-                      rows={3}
+                      rows={2}
                       value={modalForm.referenceNotes}
                       onChange={(event) =>
                         setModalForm((current) => ({

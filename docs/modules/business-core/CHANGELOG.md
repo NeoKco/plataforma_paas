@@ -6,6 +6,7 @@
 - La vista principal de `Clientes` se rehizo para dejar una sola alta desde la esquina superior derecha, mostrar contacto y direccion junto al cliente y permitir busqueda por nombre, RUT, contacto o direccion.
 - Se deja `site_code` como identificador tecnico interno, ocultandolo de las pantallas operativas para que no se edite como si fuera un dato de negocio.
 - Se corrige el importador legacy para que `reference_notes` no muestre `legacy_client_id` ni otros marcadores tecnicos visibles al usuario.
+- La ficha del cliente deja de mostrar formularios abiertos por defecto para contactos y direcciones; ahora esas altas y ediciones se abren solo bajo demanda en modal.
 
 ## 2026-04-02
 

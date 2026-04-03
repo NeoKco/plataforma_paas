@@ -106,6 +106,8 @@ export function BusinessCoreClientDetailPage() {
   const [isSavingAddress, setIsSavingAddress] = useState(false);
   const [editingContactId, setEditingContactId] = useState<number | null>(null);
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [contactForm, setContactForm] = useState<TenantBusinessContactWriteRequest>(
     buildDefaultContactForm(0)
   );
@@ -199,6 +201,32 @@ export function BusinessCoreClientDetailPage() {
     setAddressForm(buildDefaultAddressForm(client?.id ?? 0));
   }
 
+  function openCreateContactModal() {
+    resetContactForm();
+    setIsContactModalOpen(true);
+  }
+
+  function openCreateAddressModal() {
+    resetAddressForm();
+    setIsAddressModalOpen(true);
+  }
+
+  function closeContactModal() {
+    if (isSavingContact) {
+      return;
+    }
+    setIsContactModalOpen(false);
+    resetContactForm();
+  }
+
+  function closeAddressModal() {
+    if (isSavingAddress) {
+      return;
+    }
+    setIsAddressModalOpen(false);
+    resetAddressForm();
+  }
+
   function startEditContact(contact: TenantBusinessContact) {
     setEditingContactId(contact.id);
     setMutationError(null);
@@ -212,6 +240,7 @@ export function BusinessCoreClientDetailPage() {
       is_active: contact.is_active,
       sort_order: contact.sort_order,
     });
+    setIsContactModalOpen(true);
   }
 
   function startEditAddress(address: TenantBusinessSite) {
@@ -229,6 +258,7 @@ export function BusinessCoreClientDetailPage() {
       is_active: address.is_active,
       sort_order: address.sort_order,
     });
+    setIsAddressModalOpen(true);
   }
 
   async function handleSaveContact() {
@@ -250,7 +280,7 @@ export function BusinessCoreClientDetailPage() {
         ? await updateTenantBusinessContact(session.accessToken, editingContactId, payload)
         : await createTenantBusinessContact(session.accessToken, payload);
       setFeedback(response.message);
-      resetContactForm();
+      closeContactModal();
       await loadData();
     } catch (rawError) {
       setMutationError(getApiErrorDisplayMessage(rawError as ApiError));
@@ -275,7 +305,7 @@ export function BusinessCoreClientDetailPage() {
       const response = await deleteTenantBusinessContact(session.accessToken, contact.id);
       setFeedback(response.message);
       if (editingContactId === contact.id) {
-        resetContactForm();
+        closeContactModal();
       }
       await loadData();
     } catch (rawError) {
@@ -305,7 +335,7 @@ export function BusinessCoreClientDetailPage() {
         ? await updateTenantBusinessSite(session.accessToken, editingAddressId, payload)
         : await createTenantBusinessSite(session.accessToken, payload);
       setFeedback(response.message);
-      resetAddressForm();
+      closeAddressModal();
       await loadData();
     } catch (rawError) {
       setMutationError(getApiErrorDisplayMessage(rawError as ApiError));
@@ -330,7 +360,7 @@ export function BusinessCoreClientDetailPage() {
       const response = await deleteTenantBusinessSite(session.accessToken, address.id);
       setFeedback(response.message);
       if (editingAddressId === address.id) {
-        resetAddressForm();
+        closeAddressModal();
       }
       await loadData();
     } catch (rawError) {
@@ -466,138 +496,15 @@ export function BusinessCoreClientDetailPage() {
           actions={
             <AppToolbar compact>
               <button
-                className="btn btn-sm btn-outline-primary"
-                type="button"
-                onClick={resetContactForm}
-              >
-                {language === "es" ? "Nuevo contacto" : "New contact"}
-              </button>
-            </AppToolbar>
-          }
-        >
-          <div className="business-core-inline-form">
-            <div className="row g-3">
-              <div className="col-12 col-md-6">
-                <label className="form-label">
-                  {language === "es" ? "Nombre completo" : "Full name"}
-                </label>
-                <input
-                  className="form-control"
-                  value={contactForm.full_name}
-                  onChange={(event) =>
-                    setContactForm((current) => ({
-                      ...current,
-                      full_name: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="col-12 col-md-6">
-                <label className="form-label">
-                  {language === "es" ? "Cargo" : "Role"}
-                </label>
-                <input
-                  className="form-control"
-                  value={contactForm.role_title ?? ""}
-                  onChange={(event) =>
-                    setContactForm((current) => ({
-                      ...current,
-                      role_title: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="col-12 col-md-6">
-                <label className="form-label">Email</label>
-                <input
-                  className="form-control"
-                  type="email"
-                  value={contactForm.email ?? ""}
-                  onChange={(event) =>
-                    setContactForm((current) => ({
-                      ...current,
-                      email: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="col-12 col-md-6">
-                <label className="form-label">
-                  {language === "es" ? "Teléfono" : "Phone"}
-                </label>
-                <input
-                  className="form-control"
-                  value={contactForm.phone ?? ""}
-                  onChange={(event) =>
-                    setContactForm((current) => ({
-                      ...current,
-                      phone: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="col-12 d-flex flex-wrap gap-3">
-                <label className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={contactForm.is_primary}
-                    onChange={(event) =>
-                      setContactForm((current) => ({
-                        ...current,
-                        is_primary: event.target.checked,
-                      }))
-                    }
-                  />
-                  <span className="form-check-label">
-                    {language === "es" ? "Contacto principal" : "Primary contact"}
-                  </span>
-                </label>
-                <label className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={contactForm.is_active}
-                    onChange={(event) =>
-                      setContactForm((current) => ({
-                        ...current,
-                        is_active: event.target.checked,
-                      }))
-                    }
-                  />
-                  <span className="form-check-label">
-                    {language === "es" ? "Activo" : "Active"}
-                  </span>
-                </label>
-              </div>
-            </div>
-            <div className="business-core-inline-form__actions">
-              <button
-                className="btn btn-primary"
-                type="button"
-                disabled={isSavingContact}
-                onClick={() => void handleSaveContact()}
-              >
-                {editingContactId
-                  ? language === "es"
-                    ? "Guardar contacto"
-                    : "Save contact"
-                  : language === "es"
-                    ? "Agregar contacto"
-                    : "Add contact"}
-              </button>
-              {(editingContactId !== null || contactForm.full_name) ? (
-                <button
-                  className="btn btn-outline-secondary"
-                  type="button"
-                  onClick={resetContactForm}
-                >
-                  {language === "es" ? "Cancelar" : "Cancel"}
-                </button>
-              ) : null}
-            </div>
-          </div>
-
+              className="btn btn-sm btn-outline-primary"
+              type="button"
+              onClick={openCreateContactModal}
+            >
+              {language === "es" ? "Nuevo contacto" : "New contact"}
+            </button>
+          </AppToolbar>
+        }
+      >
           {contacts.length === 0 ? (
             <p className="mb-0 text-muted">
               {language === "es"
@@ -658,136 +565,13 @@ export function BusinessCoreClientDetailPage() {
             <button
               className="btn btn-sm btn-outline-primary"
               type="button"
-              onClick={resetAddressForm}
+              onClick={openCreateAddressModal}
             >
               {language === "es" ? "Nueva dirección" : "New address"}
             </button>
           </AppToolbar>
         }
       >
-        <div className="business-core-inline-form">
-          <div className="row g-3">
-            <div className="col-12">
-              <label className="form-label">
-                {language === "es" ? "Nombre dirección" : "Address name"}
-              </label>
-              <input
-                className="form-control"
-                value={addressForm.name}
-                onChange={(event) =>
-                  setAddressForm((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-              />
-            </div>
-            <div className="col-12">
-              <label className="form-label">
-                {language === "es" ? "Dirección" : "Address"}
-              </label>
-              <input
-                className="form-control"
-                value={addressForm.address_line ?? ""}
-                onChange={(event) =>
-                  setAddressForm((current) => ({
-                    ...current,
-                    address_line: event.target.value,
-                  }))
-                }
-              />
-            </div>
-            <div className="col-12 col-md-4">
-              <label className="form-label">
-                {language === "es" ? "Ciudad" : "City"}
-              </label>
-              <input
-                className="form-control"
-                value={addressForm.city ?? ""}
-                onChange={(event) =>
-                  setAddressForm((current) => ({
-                    ...current,
-                    city: event.target.value,
-                  }))
-                }
-              />
-            </div>
-            <div className="col-12 col-md-4">
-              <label className="form-label">
-                {language === "es" ? "Región" : "Region"}
-              </label>
-              <input
-                className="form-control"
-                value={addressForm.region ?? ""}
-                onChange={(event) =>
-                  setAddressForm((current) => ({
-                    ...current,
-                    region: event.target.value,
-                  }))
-                }
-              />
-            </div>
-            <div className="col-12 col-md-4">
-              <label className="form-label">
-                {language === "es" ? "País" : "Country"}
-              </label>
-              <input
-                className="form-control"
-                value={addressForm.country_code ?? "CL"}
-                onChange={(event) =>
-                  setAddressForm((current) => ({
-                    ...current,
-                    country_code: event.target.value,
-                  }))
-                }
-              />
-            </div>
-            <div className="col-12">
-              <label className="form-label">
-                {language === "es" ? "Notas de referencia" : "Reference notes"}
-              </label>
-              <textarea
-                className="form-control"
-                rows={3}
-                value={addressForm.reference_notes ?? ""}
-                onChange={(event) =>
-                  setAddressForm((current) => ({
-                    ...current,
-                    reference_notes: event.target.value,
-                  }))
-                }
-              />
-            </div>
-          </div>
-          <div className="business-core-inline-form__actions">
-            <button
-              className="btn btn-primary"
-              type="button"
-              disabled={isSavingAddress}
-              onClick={() => void handleSaveAddress()}
-            >
-              {editingAddressId
-                ? language === "es"
-                  ? "Guardar dirección"
-                  : "Save address"
-                : language === "es"
-                  ? "Agregar dirección"
-                  : "Add address"}
-            </button>
-            {(editingAddressId !== null ||
-              addressForm.name ||
-              addressForm.address_line) ? (
-              <button
-                className="btn btn-outline-secondary"
-                type="button"
-                onClick={resetAddressForm}
-              >
-                {language === "es" ? "Cancelar" : "Cancel"}
-              </button>
-            ) : null}
-          </div>
-        </div>
-
         {addresses.length === 0 ? (
           <p className="mb-0 text-muted">
             {language === "es"
@@ -845,6 +629,310 @@ export function BusinessCoreClientDetailPage() {
           </div>
         )}
       </PanelCard>
+
+      {isContactModalOpen ? (
+        <div
+          className="confirm-dialog-backdrop"
+          role="presentation"
+          onClick={closeContactModal}
+        >
+          <div
+            className="confirm-dialog business-core-client-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={editingContactId ? "Editar contacto" : "Nuevo contacto"}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="confirm-dialog__title">
+              {editingContactId
+                ? language === "es"
+                  ? "Editar contacto"
+                  : "Edit contact"
+                : language === "es"
+                  ? "Nuevo contacto"
+                  : "New contact"}
+            </div>
+            <div className="confirm-dialog__description">
+              {language === "es"
+                ? "Completa solo cuando realmente necesites agregar o corregir un contacto del cliente."
+                : "Fill this only when you actually need to add or correct a client contact."}
+            </div>
+            <div className="business-core-modal-grid">
+              <div className="business-core-modal-section">
+                <div className="row g-3">
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {language === "es" ? "Nombre completo" : "Full name"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={contactForm.full_name}
+                      onChange={(event) =>
+                        setContactForm((current) => ({
+                          ...current,
+                          full_name: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {language === "es" ? "Cargo" : "Role"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={contactForm.role_title ?? ""}
+                      onChange={(event) =>
+                        setContactForm((current) => ({
+                          ...current,
+                          role_title: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">Email</label>
+                    <input
+                      className="form-control"
+                      type="email"
+                      value={contactForm.email ?? ""}
+                      onChange={(event) =>
+                        setContactForm((current) => ({
+                          ...current,
+                          email: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {language === "es" ? "Teléfono" : "Phone"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={contactForm.phone ?? ""}
+                      onChange={(event) =>
+                        setContactForm((current) => ({
+                          ...current,
+                          phone: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 d-flex flex-wrap gap-3">
+                    <label className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={contactForm.is_primary}
+                        onChange={(event) =>
+                          setContactForm((current) => ({
+                            ...current,
+                            is_primary: event.target.checked,
+                          }))
+                        }
+                      />
+                      <span className="form-check-label">
+                        {language === "es" ? "Contacto principal" : "Primary contact"}
+                      </span>
+                    </label>
+                    <label className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={contactForm.is_active}
+                        onChange={(event) =>
+                          setContactForm((current) => ({
+                            ...current,
+                            is_active: event.target.checked,
+                          }))
+                        }
+                      />
+                      <span className="form-check-label">
+                        {language === "es" ? "Activo" : "Active"}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="confirm-dialog__actions">
+              <button
+                className="btn btn-outline-secondary"
+                type="button"
+                onClick={closeContactModal}
+              >
+                {language === "es" ? "Cancelar" : "Cancel"}
+              </button>
+              <button
+                className="btn btn-primary"
+                type="button"
+                disabled={isSavingContact}
+                onClick={() => void handleSaveContact()}
+              >
+                {editingContactId
+                  ? language === "es"
+                    ? "Guardar contacto"
+                    : "Save contact"
+                  : language === "es"
+                    ? "Agregar contacto"
+                    : "Add contact"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isAddressModalOpen ? (
+        <div
+          className="confirm-dialog-backdrop"
+          role="presentation"
+          onClick={closeAddressModal}
+        >
+          <div
+            className="confirm-dialog business-core-client-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={editingAddressId ? "Editar dirección" : "Nueva dirección"}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="confirm-dialog__title">
+              {editingAddressId
+                ? language === "es"
+                  ? "Editar dirección"
+                  : "Edit address"
+                : language === "es"
+                  ? "Nueva dirección"
+                  : "New address"}
+            </div>
+            <div className="confirm-dialog__description">
+              {language === "es"
+                ? "Agrega o corrige una dirección del cliente solo cuando haga falta."
+                : "Add or correct a client address only when needed."}
+            </div>
+            <div className="business-core-modal-grid">
+              <div className="business-core-modal-section">
+                <div className="row g-3">
+                  <div className="col-12">
+                    <label className="form-label">
+                      {language === "es" ? "Nombre dirección" : "Address name"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={addressForm.name}
+                      onChange={(event) =>
+                        setAddressForm((current) => ({
+                          ...current,
+                          name: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label">
+                      {language === "es" ? "Dirección" : "Address"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={addressForm.address_line ?? ""}
+                      onChange={(event) =>
+                        setAddressForm((current) => ({
+                          ...current,
+                          address_line: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-4">
+                    <label className="form-label">
+                      {language === "es" ? "Ciudad" : "City"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={addressForm.city ?? ""}
+                      onChange={(event) =>
+                        setAddressForm((current) => ({
+                          ...current,
+                          city: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-4">
+                    <label className="form-label">
+                      {language === "es" ? "Región" : "Region"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={addressForm.region ?? ""}
+                      onChange={(event) =>
+                        setAddressForm((current) => ({
+                          ...current,
+                          region: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-4">
+                    <label className="form-label">
+                      {language === "es" ? "País" : "Country"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={addressForm.country_code ?? "CL"}
+                      onChange={(event) =>
+                        setAddressForm((current) => ({
+                          ...current,
+                          country_code: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label">
+                      {language === "es" ? "Notas de referencia" : "Reference notes"}
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows={3}
+                      value={addressForm.reference_notes ?? ""}
+                      onChange={(event) =>
+                        setAddressForm((current) => ({
+                          ...current,
+                          reference_notes: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="confirm-dialog__actions">
+              <button
+                className="btn btn-outline-secondary"
+                type="button"
+                onClick={closeAddressModal}
+              >
+                {language === "es" ? "Cancelar" : "Cancel"}
+              </button>
+              <button
+                className="btn btn-primary"
+                type="button"
+                disabled={isSavingAddress}
+                onClick={() => void handleSaveAddress()}
+              >
+                {editingAddressId
+                  ? language === "es"
+                    ? "Guardar dirección"
+                    : "Save address"
+                  : language === "es"
+                    ? "Agregar dirección"
+                    : "Add address"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="business-core-detail-grid">
         <PanelCard
