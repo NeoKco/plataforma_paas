@@ -12,6 +12,7 @@
 - La captura rapida de `Clientes` ahora soporta tambien un `contacto secundario` para no perder respaldo operativo del cliente.
 - La tabla de `Clientes` ahora muestra una pista breve de contactos de respaldo (`+1 respaldo`, etc.) sin recargar la lectura principal.
 - Los catalogos genericos de `business-core` dejan de mostrar formularios abiertos por defecto; ahora `Nuevo` y `Editar` abren un modal bajo demanda.
+- El modal de `Clientes` deja de mostrar telefono y email dentro del bloque `Cliente`, para no sugerir un tercer contacto aparte del principal y el secundario.
 
 ## 2026-04-02
 

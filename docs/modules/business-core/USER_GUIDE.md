@@ -41,6 +41,7 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - en la ficha del cliente, los formularios para agregar o editar contactos y direcciones deben abrirse solo cuando el usuario los pide; la lectura normal debe mostrar primero la informacion ya existente.
 - el modal de `Nuevo cliente` o `Editar cliente` debe priorizar ancho util en escritorio, distribuyendo cliente, contacto principal y direccion en bloques laterales para evitar una experiencia demasiado alta o cansadora.
 - la captura rapida del cliente deberia contemplar al menos `contacto principal` y `contacto secundario`, para no perder respaldo operativo si el primero no responde.
+- el bloque `Cliente` del modal no deberia duplicar telefono o email como si fueran otro contacto; visualmente los datos de contacto deben vivir solo en `contacto principal` y `contacto secundario`.
 - en el resto de pantallas administrativas de `business-core`, el formulario de alta o edicion tampoco deberia aparecer desplegado por defecto; debe abrirse solo cuando el usuario pulse `Nuevo` o `Editar`.
 
 Eso genera:

@@ -717,8 +717,8 @@ export function BusinessCoreClientsPage() {
                 </div>
                 <div className="business-core-modal-section__hint">
                   {language === "es"
-                    ? "Datos comerciales y de identificación que usarán el resto de los módulos."
-                    : "Commercial and identity data reused by the rest of the modules."}
+                    ? "Solo identidad y datos comerciales del cliente. Los datos de contacto quedan abajo, en principal y secundario."
+                    : "Only client identity and commercial data. Contact information stays below, in primary and secondary contact blocks."}
                 </div>
                 <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12 col-md-6">
@@ -775,35 +775,6 @@ export function BusinessCoreClientsPage() {
                         setModalForm((current) => ({
                           ...current,
                           clientCode: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">
-                      {language === "es" ? "Teléfono" : "Phone"}
-                    </label>
-                    <input
-                      className="form-control"
-                      value={modalForm.phone}
-                      onChange={(event) =>
-                        setModalForm((current) => ({
-                          ...current,
-                          phone: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Email</label>
-                    <input
-                      className="form-control"
-                      type="email"
-                      value={modalForm.email}
-                      onChange={(event) =>
-                        setModalForm((current) => ({
-                          ...current,
-                          email: event.target.value,
                         }))
                       }
                     />
