@@ -34,6 +34,7 @@ class BusinessCoreSiteServiceTestCase(unittest.TestCase):
                 name="Casa matriz",
                 site_code="ADDR-123",
                 address_line="Av. Siempre Viva 123",
+                commune="Puente Alto",
                 city="Santiago",
                 region="RM",
                 country_code="CL",
@@ -52,6 +53,7 @@ class BusinessCoreSiteServiceTestCase(unittest.TestCase):
             name="Casa matriz",
             site_code="LEGACY-SITE-7",
             address_line="Av. Vieja 1",
+            commune="La Florida",
             city="Santiago",
             region="RM",
             country_code="CL",
@@ -79,6 +81,7 @@ class BusinessCoreSiteServiceTestCase(unittest.TestCase):
                 name="Casa matriz actualizada",
                 site_code="ADDR-NUEVO",
                 address_line="Av. Nueva 99",
+                commune="Puente Alto",
                 city="Santiago",
                 region="RM",
                 country_code="CL",
@@ -90,6 +93,7 @@ class BusinessCoreSiteServiceTestCase(unittest.TestCase):
 
         self.assertEqual(site.site_code, "LEGACY-SITE-7")
         self.assertEqual(site.name, "Casa matriz actualizada")
+        self.assertEqual(site.commune, "Puente Alto")
         self.assertEqual(site.reference_notes, "Frente a plaza")
 
 

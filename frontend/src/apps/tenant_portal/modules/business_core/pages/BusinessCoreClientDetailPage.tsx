@@ -45,7 +45,7 @@ import {
 } from "../../maintenance/services/workOrdersService";
 
 function buildGoogleMapsUrl(site: TenantBusinessSite): string | null {
-  const query = [site.address_line, site.city, site.region, site.country_code || "Chile"]
+  const query = [site.address_line, site.commune, site.city, site.region, site.country_code || "Chile"]
     .filter(Boolean)
     .join(", ")
     .trim();
@@ -79,6 +79,7 @@ function buildDefaultAddressForm(clientId: number): TenantBusinessSiteWriteReque
     name: "",
     site_code: null,
     address_line: null,
+    commune: null,
     city: null,
     region: null,
     country_code: "CL",
@@ -251,6 +252,7 @@ export function BusinessCoreClientDetailPage() {
       name: address.name,
       site_code: address.site_code,
       address_line: address.address_line,
+      commune: address.commune,
       city: address.city,
       region: address.region,
       country_code: address.country_code ?? "CL",
@@ -326,6 +328,7 @@ export function BusinessCoreClientDetailPage() {
         name: addressForm.name.trim(),
         site_code: null,
         address_line: normalizeNullable(addressForm.address_line),
+        commune: normalizeNullable(addressForm.commune),
         city: normalizeNullable(addressForm.city),
         region: normalizeNullable(addressForm.region),
         country_code: normalizeNullable(addressForm.country_code) ?? "CL",
@@ -439,7 +442,7 @@ export function BusinessCoreClientDetailPage() {
           <div className="business-core-detail-list">
             <div className="business-core-detail-item">
               <span className="business-core-detail-label">
-                {language === "es" ? "Razón social" : "Legal name"}
+                {language === "es" ? "Organización / Razón social" : "Organization / legal name"}
               </span>
               <span>{organization.legal_name || organization.name}</span>
             </div>
@@ -586,7 +589,7 @@ export function BusinessCoreClientDetailPage() {
                 <div className="business-core-related-card" key={site.id}>
                   <div className="business-core-related-title">{site.name}</div>
                   <div className="business-core-cell__meta">
-                    {[site.address_line, site.city, site.region]
+                    {[site.address_line, site.commune, site.city, site.region]
                       .filter(Boolean)
                       .join(", ") || "—"}
                   </div>
@@ -855,6 +858,21 @@ export function BusinessCoreClientDetailPage() {
                         setAddressForm((current) => ({
                           ...current,
                           address_line: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-4">
+                    <label className="form-label">
+                      {language === "es" ? "Comuna" : "Commune"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={addressForm.commune ?? ""}
+                      onChange={(event) =>
+                        setAddressForm((current) => ({
+                          ...current,
+                          commune: event.target.value,
                         }))
                       }
                     />

@@ -6,6 +6,7 @@ export type TenantBusinessSite = {
   name: string;
   site_code: string | null;
   address_line: string | null;
+  commune: string | null;
   city: string | null;
   region: string | null;
   country_code: string | null;
@@ -34,6 +35,7 @@ export type TenantBusinessSiteWriteRequest = {
   name: string;
   site_code: string | null;
   address_line: string | null;
+  commune: string | null;
   city: string | null;
   region: string | null;
   country_code: string | null;

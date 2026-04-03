@@ -116,6 +116,7 @@ Campos base:
 - `name`
 - `site_code`
 - `address_line`
+- `commune`
 - `city`
 - `region`
 - `country_code`
@@ -131,10 +132,12 @@ Observacion:
 - `site_code` se mantiene como identificador tecnico interno para integraciones/importadores
 - la UI normal del tenant no deberia exponer `site_code` como campo editable
 - `reference_notes` es un campo visible al usuario y no debe usarse para guardar metadatos legacy como `legacy_client_id`
+- `commune` debe vivir en `business_sites`, no comprimirse dentro de `city`, porque en Chile es una clave de busqueda y lectura operativa distinta.
 - la UX de ficha debe privilegiar lectura primero y edicion bajo demanda: formularios abiertos solo en modal o accion explicita, no desplegados por defecto
 - los modales de captura del dominio deberian seguir una plantilla comun: `ancho` para altas principales y `compacto` para ediciones puntuales, con bloques claros y formularios densos pero legibles
 - en `clients`, la captura inicial deberia soportar `contacto principal` y `contacto secundario`; contactos adicionales quedan para gestion posterior en la ficha del cliente
 - `BusinessCoreCatalogPage` deberia comportarse con el mismo patron: tabla visible por defecto y formulario solo bajo demanda en modal
+- `sort_order` puede seguir existiendo en el modelo para ordenamiento tecnico, pero la UI normal del tenant no deberia exponerlo mientras no haya una necesidad operativa concreta.
 
 ### 5. Contact-Site Links
 

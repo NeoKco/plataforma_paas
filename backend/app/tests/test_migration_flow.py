@@ -23,6 +23,7 @@ from migrations.tenant import v0014_finance_default_category_catalog
 from migrations.tenant import v0015_business_core_base
 from migrations.tenant import v0016_maintenance_base
 from migrations.tenant import v0017_business_core_taxonomy
+from migrations.tenant import v0018_business_core_site_commune
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -155,6 +156,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0015_business_core_base",
                 "0016_maintenance_base",
                 "0017_business_core_taxonomy",
+                "0018_business_core_site_commune",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -258,6 +260,7 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("organization_id", business_client_columns)
         self.assertIn("full_name", business_contact_columns)
         self.assertIn("client_id", business_site_columns)
+        self.assertIn("commune", business_site_columns)
         self.assertIn("code", business_function_profile_columns)
         self.assertIn("group_kind", business_work_group_columns)
         self.assertIn("color", business_task_type_columns)
@@ -324,6 +327,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0015_business_core_base",
                 "0016_maintenance_base",
                 "0017_business_core_taxonomy",
+                "0018_business_core_site_commune",
             ],
         )
 

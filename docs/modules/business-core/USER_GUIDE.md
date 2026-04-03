@@ -42,7 +42,9 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - el modal de `Nuevo cliente` o `Editar cliente` debe priorizar ancho util en escritorio, distribuyendo cliente, contacto principal y direccion en bloques laterales para evitar una experiencia demasiado alta o cansadora.
 - la captura rapida del cliente deberia contemplar al menos `contacto principal` y `contacto secundario`, para no perder respaldo operativo si el primero no responde.
 - el bloque `Cliente` del modal no deberia duplicar telefono o email como si fueran otro contacto; visualmente los datos de contacto deben vivir solo en `contacto principal` y `contacto secundario`.
+- la captura base del cliente deberia permitir completar tambien `organización / razón social` y la direccion principal con `comuna`, `ciudad` y `región`, porque son datos utiles para busqueda y lectura diaria.
 - en el resto de pantallas administrativas de `business-core`, el formulario de alta o edicion tampoco deberia aparecer desplegado por defecto; debe abrirse solo cuando el usuario pulse `Nuevo` o `Editar`.
+- el campo `Orden` (`sort_order`) no deberia mostrarse en la captura normal del usuario; debe quedar interno con valor por defecto mientras no exista una necesidad real de reordenamiento manual.
 
 Eso genera:
 

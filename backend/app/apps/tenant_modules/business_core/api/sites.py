@@ -28,6 +28,7 @@ def _build_site_item(site) -> BusinessSiteItemResponse:
         name=site.name,
         site_code=site.site_code,
         address_line=site.address_line,
+        commune=site.commune,
         city=site.city,
         region=site.region,
         country_code=site.country_code,

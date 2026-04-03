@@ -175,7 +175,6 @@ export function BusinessCoreWorkGroupsPage() {
             { value: "support", label: language === "es" ? "Soporte" : "Support" },
           ],
         },
-        { key: "sort_order", labelEs: "Orden", labelEn: "Sort order", type: "number", min: 0 },
         { key: "is_active", labelEs: "Activo", labelEn: "Active", type: "checkbox" },
         { key: "description", labelEs: "Descripción", labelEn: "Description", type: "textarea" },
       ]}

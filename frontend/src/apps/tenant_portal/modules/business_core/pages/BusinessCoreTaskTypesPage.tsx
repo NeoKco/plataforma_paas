@@ -169,7 +169,6 @@ export function BusinessCoreTaskTypesPage() {
         { key: "name", labelEs: "Nombre", labelEn: "Name", placeholderEs: "Ej: Mantención preventiva", placeholderEn: "Ex: Preventive maintenance" },
         { key: "color", labelEs: "Color", labelEn: "Color", placeholderEs: "#2563eb", placeholderEn: "#2563eb" },
         { key: "icon", labelEs: "Icono", labelEn: "Icon", placeholderEs: "calendar", placeholderEn: "calendar" },
-        { key: "sort_order", labelEs: "Orden", labelEn: "Sort order", type: "number", min: 0 },
         { key: "is_active", labelEs: "Activo", labelEn: "Active", type: "checkbox" },
         { key: "description", labelEs: "Descripción", labelEn: "Description", type: "textarea" },
       ]}

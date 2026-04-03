@@ -200,7 +200,6 @@ export function BusinessCoreOrganizationsPage() {
         },
         { key: "phone", labelEs: "Teléfono", labelEn: "Phone" },
         { key: "email", labelEs: "Email", labelEn: "Email", type: "email" },
-        { key: "sort_order", labelEs: "Orden", labelEn: "Sort order", type: "number", min: 0 },
         { key: "is_active", labelEs: "Activa", labelEn: "Active", type: "checkbox" },
         { key: "notes", labelEs: "Notas", labelEn: "Notes", type: "textarea" },
       ]}

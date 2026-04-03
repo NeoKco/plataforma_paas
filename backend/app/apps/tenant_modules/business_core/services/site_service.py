@@ -106,6 +106,9 @@ class BusinessSiteService:
                 if payload.address_line and payload.address_line.strip()
                 else None
             ),
+            "commune": (
+                payload.commune.strip() if payload.commune and payload.commune.strip() else None
+            ),
             "city": payload.city.strip() if payload.city and payload.city.strip() else None,
             "region": payload.region.strip() if payload.region and payload.region.strip() else None,
             "country_code": (

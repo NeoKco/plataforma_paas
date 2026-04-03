@@ -161,7 +161,6 @@ export function BusinessCoreFunctionProfilesPage() {
       fields={[
         { key: "code", labelEs: "Código", labelEn: "Code", placeholderEs: "Ej: tecnico", placeholderEn: "Ex: technician" },
         { key: "name", labelEs: "Nombre", labelEn: "Name", placeholderEs: "Ej: Técnico", placeholderEn: "Ex: Technician" },
-        { key: "sort_order", labelEs: "Orden", labelEn: "Sort order", type: "number", min: 0 },
         { key: "is_active", labelEs: "Activo", labelEn: "Active", type: "checkbox" },
         { key: "description", labelEs: "Descripción", labelEn: "Description", type: "textarea" },
       ]}

@@ -10,6 +10,7 @@ class BusinessSiteBase(BaseModel):
     name: str
     site_code: str | None = None
     address_line: str | None = None
+    commune: str | None = None
     city: str | None = None
     region: str | None = None
     country_code: str | None = "CL"

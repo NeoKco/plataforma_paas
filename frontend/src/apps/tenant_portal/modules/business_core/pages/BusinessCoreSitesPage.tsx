@@ -25,6 +25,7 @@ function buildDefaultForm(): TenantBusinessSiteWriteRequest {
     name: "",
     site_code: null,
     address_line: null,
+    commune: null,
     city: null,
     region: null,
     country_code: "CL",
@@ -103,6 +104,7 @@ export function BusinessCoreSitesPage() {
       name: site.name,
       site_code: site.site_code,
       address_line: site.address_line,
+      commune: site.commune,
       city: site.city,
       region: site.region,
       country_code: site.country_code,
@@ -122,6 +124,7 @@ export function BusinessCoreSitesPage() {
       name: form.name.trim(),
       site_code: null,
       address_line: normalizeNullable(form.address_line),
+      commune: normalizeNullable(form.commune),
       city: normalizeNullable(form.city),
       region: normalizeNullable(form.region),
       country_code: normalizeNullable(form.country_code) ?? "CL",
@@ -224,10 +227,10 @@ export function BusinessCoreSitesPage() {
         },
         { key: "name", labelEs: "Nombre dirección", labelEn: "Address name" },
         { key: "address_line", labelEs: "Dirección", labelEn: "Address" },
+        { key: "commune", labelEs: "Comuna", labelEn: "Commune" },
         { key: "city", labelEs: "Ciudad", labelEn: "City" },
         { key: "region", labelEs: "Región", labelEn: "Region" },
         { key: "country_code", labelEs: "País", labelEn: "Country" },
-        { key: "sort_order", labelEs: "Orden", labelEn: "Sort order", type: "number", min: 0 },
         { key: "is_active", labelEs: "Activo", labelEn: "Active", type: "checkbox" },
         { key: "reference_notes", labelEs: "Notas", labelEn: "Notes", type: "textarea" },
       ]}
@@ -240,7 +243,8 @@ export function BusinessCoreSitesPage() {
             <div>
               <div className="business-core-cell__title">{site.name}</div>
               <div className="business-core-cell__meta">
-                {site.city || site.region || (currentLanguage === "es" ? "sin ubicación" : "no location")}
+                {[site.commune, site.city, site.region].filter(Boolean).join(", ") ||
+                  (currentLanguage === "es" ? "sin ubicación" : "no location")}
               </div>
             </div>
           ),

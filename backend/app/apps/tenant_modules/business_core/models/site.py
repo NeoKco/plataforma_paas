@@ -17,6 +17,7 @@ class BusinessSite(TenantBase):
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     site_code: Mapped[str | None] = mapped_column(String(60), nullable=True, unique=True, index=True)
     address_line: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    commune: Mapped[str | None] = mapped_column(String(120), nullable=True)
     city: Mapped[str | None] = mapped_column(String(120), nullable=True)
     region: Mapped[str | None] = mapped_column(String(120), nullable=True)
     country_code: Mapped[str | None] = mapped_column(String(8), nullable=True, default="CL")

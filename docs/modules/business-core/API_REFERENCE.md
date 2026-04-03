@@ -89,6 +89,7 @@ Campos minimos de lectura:
 - `client_name`
 - `name`
 - `site_code`
+- `commune`
 - `city`
 - `region`
 - `is_active`

@@ -95,6 +95,7 @@ Transformacion:
 - un registro de `clientes` genera un `business_client`
 - la direccion principal (`calle`, `numero_casa`, `comuna`, `ciudad`, `region`, `codigo_postal`) genera un `business_site`
 - `contacto_1` y `contacto_2` deben migrarse como filas separadas de `business_contacts`
+- `comuna` ya no debe comprimirse dentro de `city`: en el destino vive como `business_sites.commune`
 
 Campos fuente relevantes:
 

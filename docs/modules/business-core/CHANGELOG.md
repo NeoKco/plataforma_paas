@@ -13,6 +13,9 @@
 - La tabla de `Clientes` ahora muestra una pista breve de contactos de respaldo (`+1 respaldo`, etc.) sin recargar la lectura principal.
 - Los catalogos genericos de `business-core` dejan de mostrar formularios abiertos por defecto; ahora `Nuevo` y `Editar` abren un modal bajo demanda.
 - El modal de `Clientes` deja de mostrar telefono y email dentro del bloque `Cliente`, para no sugerir un tercer contacto aparte del principal y el secundario.
+- Se agrega `comuna` al modelo de direcciones y a la captura/lectura de `Clientes`, `Direcciones` y ficha del cliente, alineando mejor el PaaS con `ieris_app`.
+- La captura y lectura del cliente aclaran visualmente `Organización / Razón social` para no esconder ese dato bajo una etiqueta demasiado estrecha.
+- Los modales normales de `business-core` dejan de exponer `Orden = 100`; `sort_order` queda interno con default y fuera de la captura común.
 
 ## 2026-04-02
 

@@ -71,6 +71,7 @@ type ClientModalForm = {
   secondaryContactEmail: string;
   addressName: string;
   addressLine: string;
+  commune: string;
   city: string;
   region: string;
   referenceNotes: string;
@@ -103,6 +104,7 @@ function buildDefaultModalForm(): ClientModalForm {
     secondaryContactEmail: "",
     addressName: "",
     addressLine: "",
+    commune: "",
     city: "",
     region: "",
     referenceNotes: "",
@@ -115,7 +117,13 @@ function normalizeNullable(value: string): string | null {
 }
 
 function buildGoogleMapsUrl(address: TenantBusinessSite): string | null {
-  const query = [address.address_line, address.city, address.region, address.country_code || "Chile"]
+  const query = [
+    address.address_line,
+    address.commune,
+    address.city,
+    address.region,
+    address.country_code || "Chile",
+  ]
     .filter(Boolean)
     .join(", ")
     .trim();
@@ -197,6 +205,7 @@ export function BusinessCoreClientsPage() {
         primaryContact?.phone,
         primaryAddress?.name,
         primaryAddress?.address_line,
+        primaryAddress?.commune,
         primaryAddress?.city,
         primaryAddress?.region,
       ]
@@ -284,6 +293,7 @@ export function BusinessCoreClientsPage() {
       secondaryContactEmail: secondaryContact?.email ?? "",
       addressName: primaryAddress?.name ?? "",
       addressLine: primaryAddress?.address_line ?? "",
+      commune: primaryAddress?.commune ?? "",
       city: primaryAddress?.city ?? "",
       region: primaryAddress?.region ?? "",
       referenceNotes: primaryAddress?.reference_notes ?? "",
@@ -400,6 +410,7 @@ export function BusinessCoreClientsPage() {
           name: modalForm.addressName.trim() || (language === "es" ? "Dirección principal" : "Primary address"),
           site_code: null,
           address_line: normalizeNullable(modalForm.addressLine),
+          commune: normalizeNullable(modalForm.commune),
           city: normalizeNullable(modalForm.city),
           region: normalizeNullable(modalForm.region),
           country_code: "CL",
@@ -610,7 +621,9 @@ export function BusinessCoreClientsPage() {
                     {primaryAddress?.address_line || "—"}
                   </div>
                   <div className="business-core-cell__meta">
-                    {[primaryAddress?.city, primaryAddress?.region].filter(Boolean).join(", ") || "—"}
+                    {[primaryAddress?.commune, primaryAddress?.city, primaryAddress?.region]
+                      .filter(Boolean)
+                      .join(", ") || "—"}
                   </div>
                   {mapsUrl ? (
                     <div className="business-core-cell__meta">
@@ -738,7 +751,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Razón social" : "Legal name"}
+                      {language === "es" ? "Organización / Razón social" : "Organization / legal name"}
                     </label>
                     <input
                       className="form-control"
@@ -1005,7 +1018,22 @@ export function BusinessCoreClientsPage() {
                       }
                     />
                   </div>
-                  <div className="col-12 col-md-6">
+                  <div className="col-12 col-md-4">
+                    <label className="form-label">
+                      {language === "es" ? "Comuna" : "Commune"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={modalForm.commune}
+                      onChange={(event) =>
+                        setModalForm((current) => ({
+                          ...current,
+                          commune: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-4">
                     <label className="form-label">
                       {language === "es" ? "Ciudad" : "City"}
                     </label>
@@ -1020,7 +1048,7 @@ export function BusinessCoreClientsPage() {
                       }
                     />
                   </div>
-                  <div className="col-12 col-md-6">
+                  <div className="col-12 col-md-4">
                     <label className="form-label">
                       {language === "es" ? "Región" : "Region"}
                     </label>

@@ -219,7 +219,6 @@ export function BusinessCoreContactsPage() {
         { key: "role_title", labelEs: "Cargo", labelEn: "Role title" },
         { key: "email", labelEs: "Email", labelEn: "Email", type: "email" },
         { key: "phone", labelEs: "Teléfono", labelEn: "Phone" },
-        { key: "sort_order", labelEs: "Orden", labelEn: "Sort order", type: "number", min: 0 },
         { key: "is_primary", labelEs: "Contacto principal", labelEn: "Primary contact", type: "checkbox" },
         { key: "is_active", labelEs: "Activo", labelEn: "Active", type: "checkbox" },
       ]}
