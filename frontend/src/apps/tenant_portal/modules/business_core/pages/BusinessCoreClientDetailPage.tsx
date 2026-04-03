@@ -44,6 +44,11 @@ import {
   type TenantMaintenanceWorkOrder,
 } from "../../maintenance/services/workOrdersService";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
+import {
+  buildAddressLine,
+  getVisibleAddressLabel,
+  parseAddressLine,
+} from "../utils/addressPresentation";
 
 function buildGoogleMapsUrl(site: TenantBusinessSite): string | null {
   const query = [site.address_line, site.commune, site.city, site.region, site.country_code || "Chile"]
@@ -74,12 +79,19 @@ function buildDefaultContactForm(organizationId: number): TenantBusinessContactW
   };
 }
 
-function buildDefaultAddressForm(clientId: number): TenantBusinessSiteWriteRequest {
+type AddressModalForm = TenantBusinessSiteWriteRequest & {
+  street: string;
+  streetNumber: string;
+};
+
+function buildDefaultAddressForm(clientId: number): AddressModalForm {
   return {
     client_id: clientId,
     name: "",
     site_code: null,
     address_line: null,
+    street: "",
+    streetNumber: "",
     commune: null,
     city: null,
     region: null,
@@ -113,7 +125,7 @@ export function BusinessCoreClientDetailPage() {
   const [contactForm, setContactForm] = useState<TenantBusinessContactWriteRequest>(
     buildDefaultContactForm(0)
   );
-  const [addressForm, setAddressForm] = useState<TenantBusinessSiteWriteRequest>(
+  const [addressForm, setAddressForm] = useState<AddressModalForm>(
     buildDefaultAddressForm(0)
   );
 
@@ -246,6 +258,7 @@ export function BusinessCoreClientDetailPage() {
   }
 
   function startEditAddress(address: TenantBusinessSite) {
+    const parsedAddress = parseAddressLine(address.address_line);
     setEditingAddressId(address.id);
     setMutationError(null);
     setAddressForm({
@@ -253,6 +266,8 @@ export function BusinessCoreClientDetailPage() {
       name: address.name,
       site_code: address.site_code,
       address_line: address.address_line,
+      street: parsedAddress.street,
+      streetNumber: parsedAddress.streetNumber,
       commune: address.commune,
       city: address.city,
       region: address.region,
@@ -323,12 +338,18 @@ export function BusinessCoreClientDetailPage() {
     setIsSavingAddress(true);
     setMutationError(null);
     try {
+      const composedAddressLine = buildAddressLine(
+        addressForm.street,
+        addressForm.streetNumber
+      );
       const payload: TenantBusinessSiteWriteRequest = {
         ...addressForm,
         client_id: client.id,
-        name: addressForm.name.trim(),
+        name:
+          composedAddressLine ||
+          (language === "es" ? "Dirección principal" : "Primary address"),
         site_code: null,
-        address_line: normalizeNullable(addressForm.address_line),
+        address_line: normalizeNullable(composedAddressLine),
         commune: normalizeNullable(addressForm.commune),
         city: normalizeNullable(addressForm.city),
         region: normalizeNullable(addressForm.region),
@@ -352,10 +373,10 @@ export function BusinessCoreClientDetailPage() {
     if (!session?.accessToken) {
       return;
     }
-    const confirmed = window.confirm(
+      const confirmed = window.confirm(
       language === "es"
-        ? `Eliminar dirección "${address.name}" del cliente?`
-        : `Delete address "${address.name}" from the client?`
+        ? `Eliminar dirección "${getVisibleAddressLabel(address)}" del cliente?`
+        : `Delete address "${getVisibleAddressLabel(address)}" from the client?`
     );
     if (!confirmed) {
       return;
@@ -588,7 +609,9 @@ export function BusinessCoreClientDetailPage() {
               const mapsUrl = buildGoogleMapsUrl(site);
               return (
                 <div className="business-core-related-card" key={site.id}>
-                  <div className="business-core-related-title">{site.name}</div>
+                  <div className="business-core-related-title">
+                    {getVisibleAddressLabel(site)}
+                  </div>
                   <div className="business-core-cell__meta">
                     {[site.address_line, site.commune, site.city, site.region]
                       .filter(Boolean)
@@ -833,32 +856,32 @@ export function BusinessCoreClientDetailPage() {
                     : "Capture the visible client address; the technical code stays internal."}
                 </div>
                 <div className="row g-3 business-core-form-grid--dense">
-                  <div className="col-12">
+                  <div className="col-12 col-md-8">
                     <label className="form-label">
-                      {language === "es" ? "Nombre dirección" : "Address name"}
+                      {language === "es" ? "Calle" : "Street"}
                     </label>
                     <input
                       className="form-control"
-                      value={addressForm.name}
+                      value={addressForm.street}
                       onChange={(event) =>
                         setAddressForm((current) => ({
                           ...current,
-                          name: event.target.value,
+                          street: event.target.value,
                         }))
                       }
                     />
                   </div>
-                  <div className="col-12">
+                  <div className="col-12 col-md-4">
                     <label className="form-label">
-                      {language === "es" ? "Dirección" : "Address"}
+                      {language === "es" ? "Número" : "Number"}
                     </label>
                     <input
                       className="form-control"
-                      value={addressForm.address_line ?? ""}
+                      value={addressForm.streetNumber}
                       onChange={(event) =>
                         setAddressForm((current) => ({
                           ...current,
-                          address_line: event.target.value,
+                          streetNumber: event.target.value,
                         }))
                       }
                     />

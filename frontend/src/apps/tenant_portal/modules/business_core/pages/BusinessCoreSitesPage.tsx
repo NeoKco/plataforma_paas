@@ -18,13 +18,25 @@ import {
   type TenantBusinessSite,
   type TenantBusinessSiteWriteRequest,
 } from "../services/sitesService";
+import {
+  buildAddressLine,
+  getVisibleAddressLabel,
+  parseAddressLine,
+} from "../utils/addressPresentation";
 
-function buildDefaultForm(): TenantBusinessSiteWriteRequest {
+type SiteForm = TenantBusinessSiteWriteRequest & {
+  street: string;
+  streetNumber: string;
+};
+
+function buildDefaultForm(): SiteForm {
   return {
     client_id: 0,
     name: "",
     site_code: null,
     address_line: null,
+    street: "",
+    streetNumber: "",
     commune: null,
     city: null,
     region: null,
@@ -50,7 +62,7 @@ export function BusinessCoreSitesPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [form, setForm] = useState<TenantBusinessSiteWriteRequest>(buildDefaultForm());
+  const [form, setForm] = useState<SiteForm>(buildDefaultForm());
 
   const clientById = useMemo(
     () => new Map(clients.map((client) => [client.id, client])),
@@ -96,6 +108,7 @@ export function BusinessCoreSitesPage() {
   }
 
   function startEdit(site: TenantBusinessSite) {
+    const parsedAddress = parseAddressLine(site.address_line);
     setEditingId(site.id);
     setFeedback(null);
     setError(null);
@@ -104,6 +117,8 @@ export function BusinessCoreSitesPage() {
       name: site.name,
       site_code: site.site_code,
       address_line: site.address_line,
+      street: parsedAddress.street,
+      streetNumber: parsedAddress.streetNumber,
       commune: site.commune,
       city: site.city,
       region: site.region,
@@ -118,12 +133,15 @@ export function BusinessCoreSitesPage() {
     if (!session?.accessToken) {
       return;
     }
+    const composedAddressLine = buildAddressLine(form.street, form.streetNumber);
     const payload: TenantBusinessSiteWriteRequest = {
       ...form,
       client_id: Number(form.client_id),
-      name: form.name.trim(),
+      name:
+        composedAddressLine ||
+        (language === "es" ? "Dirección principal" : "Primary address"),
       site_code: null,
-      address_line: normalizeNullable(form.address_line),
+      address_line: normalizeNullable(composedAddressLine),
       commune: normalizeNullable(form.commune),
       city: normalizeNullable(form.city),
       region: normalizeNullable(form.region),
@@ -225,8 +243,8 @@ export function BusinessCoreSitesPage() {
             label: client.client_code || `#${client.id}`,
           })),
         },
-        { key: "name", labelEs: "Nombre dirección", labelEn: "Address name" },
-        { key: "address_line", labelEs: "Dirección", labelEn: "Address" },
+        { key: "street", labelEs: "Calle", labelEn: "Street" },
+        { key: "streetNumber", labelEs: "Número", labelEn: "Number" },
         { key: "commune", labelEs: "Comuna", labelEn: "Commune" },
         { key: "city", labelEs: "Ciudad", labelEn: "City" },
         { key: "region", labelEs: "Región", labelEn: "Region" },
@@ -241,7 +259,9 @@ export function BusinessCoreSitesPage() {
           headerEn: "Address",
           render: (site, currentLanguage) => (
             <div>
-              <div className="business-core-cell__title">{site.name}</div>
+              <div className="business-core-cell__title">
+                {getVisibleAddressLabel(site)}
+              </div>
               <div className="business-core-cell__meta">
                 {[site.commune, site.city, site.region].filter(Boolean).join(", ") ||
                   (currentLanguage === "es" ? "sin ubicación" : "no location")}

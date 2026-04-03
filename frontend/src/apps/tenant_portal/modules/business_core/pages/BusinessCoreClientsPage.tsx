@@ -43,6 +43,10 @@ import {
   type TenantBusinessSiteWriteRequest,
 } from "../services/sitesService";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
+import {
+  buildAddressLine,
+  parseAddressLine,
+} from "../utils/addressPresentation";
 
 type ClientModalState = {
   mode: "create" | "edit";
@@ -70,8 +74,8 @@ type ClientModalForm = {
   secondaryContactRole: string;
   secondaryContactPhone: string;
   secondaryContactEmail: string;
-  addressName: string;
-  addressLine: string;
+  addressStreet: string;
+  addressNumber: string;
   commune: string;
   city: string;
   region: string;
@@ -103,8 +107,8 @@ function buildDefaultModalForm(): ClientModalForm {
     secondaryContactRole: "",
     secondaryContactPhone: "",
     secondaryContactEmail: "",
-    addressName: "",
-    addressLine: "",
+    addressStreet: "",
+    addressNumber: "",
     commune: "",
     city: "",
     region: "",
@@ -275,6 +279,7 @@ export function BusinessCoreClientsPage() {
       secondaryContactId: secondaryContact?.id ?? null,
       primaryAddressId: primaryAddress?.id ?? null,
     });
+    const parsedAddress = parseAddressLine(primaryAddress?.address_line);
     setModalForm({
       organizationName: row.organization?.name ?? "",
       legalName: row.organization?.legal_name ?? "",
@@ -292,8 +297,8 @@ export function BusinessCoreClientsPage() {
       secondaryContactRole: secondaryContact?.role_title ?? "",
       secondaryContactPhone: secondaryContact?.phone ?? "",
       secondaryContactEmail: secondaryContact?.email ?? "",
-      addressName: primaryAddress?.name ?? "",
-      addressLine: primaryAddress?.address_line ?? "",
+      addressStreet: parsedAddress.street,
+      addressNumber: parsedAddress.streetNumber,
       commune: primaryAddress?.commune ?? "",
       city: primaryAddress?.city ?? "",
       region: primaryAddress?.region ?? "",
@@ -405,12 +410,23 @@ export function BusinessCoreClientsPage() {
         }
       }
 
-      if (modalForm.addressName.trim() || modalForm.addressLine.trim()) {
+      const composedAddressLine = buildAddressLine(
+        modalForm.addressStreet,
+        modalForm.addressNumber
+      );
+      if (
+        composedAddressLine ||
+        modalForm.commune.trim() ||
+        modalForm.city.trim() ||
+        modalForm.region.trim()
+      ) {
         const addressPayload: TenantBusinessSiteWriteRequest = {
           client_id: client.id,
-          name: modalForm.addressName.trim() || (language === "es" ? "Dirección principal" : "Primary address"),
+          name:
+            composedAddressLine ||
+            (language === "es" ? "Dirección principal" : "Primary address"),
           site_code: null,
-          address_line: normalizeNullable(modalForm.addressLine),
+          address_line: normalizeNullable(composedAddressLine),
           commune: normalizeNullable(modalForm.commune),
           city: normalizeNullable(modalForm.city),
           region: normalizeNullable(modalForm.region),
@@ -991,30 +1007,30 @@ export function BusinessCoreClientsPage() {
                 <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Nombre dirección" : "Address name"}
+                      {language === "es" ? "Calle" : "Street"}
                     </label>
                     <input
                       className="form-control"
-                      value={modalForm.addressName}
+                      value={modalForm.addressStreet}
                       onChange={(event) =>
                         setModalForm((current) => ({
                           ...current,
-                          addressName: event.target.value,
+                          addressStreet: event.target.value,
                         }))
                       }
                     />
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Dirección" : "Address"}
+                      {language === "es" ? "Número" : "Number"}
                     </label>
                     <input
                       className="form-control"
-                      value={modalForm.addressLine}
+                      value={modalForm.addressNumber}
                       onChange={(event) =>
                         setModalForm((current) => ({
                           ...current,
-                          addressLine: event.target.value,
+                          addressNumber: event.target.value,
                         }))
                       }
                     />
