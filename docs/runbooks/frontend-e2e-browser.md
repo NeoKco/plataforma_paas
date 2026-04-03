@@ -202,6 +202,17 @@ scripts/dev/run_local_browser_baseline.sh --tenant-only
 scripts/dev/run_local_browser_baseline.sh --skip-build
 ```
 
+Limpieza posterior de tenants efímeros `e2e-*`:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/cleanup_e2e_tenants.py --apply
+```
+
+Ese script usa el lifecycle seguro `archive -> deprovision -> delete`, por lo que no deja bases tenant ni jobs colgando en `platform_control`.
+
 Validación local broker-only de DLQ:
 
 ```bash

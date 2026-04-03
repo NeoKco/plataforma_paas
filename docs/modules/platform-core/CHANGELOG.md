@@ -46,6 +46,7 @@ Resumen curado del bloque central.
 - smoke browser agregado para validar préstamos `finance` con alta y pago simple de cuota en `tenant_portal`
 - smoke browser agregado para validar préstamos `finance` con pago en lote y reversa en lote sobre cuotas seleccionadas
 - baseline de permisos tenant corregido para incluir acceso `maintenance` en roles operativos que ya navegan ese módulo dentro de `tenant_portal`
+- se agrega [cleanup_e2e_tenants.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_e2e_tenants.py) para barrer tenants efímeros `e2e-*` con lifecycle seguro y evitar acumulación en `platform_control`
 
 ## Documentación
 

@@ -83,6 +83,7 @@ Comandos útiles:
 - `npm run e2e`
 - `../../scripts/dev/run_local_browser_baseline.sh`
 - `../../scripts/dev/run_local_broker_dlq_baseline.sh`
+- `PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python /home/felipe/platform_paas/backend/app/scripts/cleanup_e2e_tenants.py --apply`
 
 Baseline institucionalizado:
 
@@ -94,6 +95,7 @@ Baseline institucionalizado:
 - los escenarios broker-only quedan documentados y validados aparte cuando se necesite una pasada específica con Redis/broker real
 - para desarrollo local existe además [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh), que corre migraciones, siembra baseline, levanta backend si hace falta y ejecuta `build + e2e:platform + e2e:tenant`
 - ese helper local acepta además `--target all|platform|tenant`, útil para revalidar solo la mitad necesaria sin correr toda la baseline principal
+- los smokes `platform_admin` que crean tenants efímeros `e2e-*` no hacen limpieza total por sí mismos; para barrerlos de forma segura queda disponible [cleanup_e2e_tenants.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_e2e_tenants.py), que usa `archive -> deprovision -> delete`
 - para validar específicamente los `3` smokes DLQ broker-only existe [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh), que levanta un stack paralelo `broker` sobre Redis y ejecuta solo esos casos
 - ese helper local acepta además `--target all|batch|row|filters`, útil para revalidar un smoke DLQ concreto sin correr todo el bloque
 - para CI manual de esos casos broker-only existe además [.github/workflows/frontend-broker-dlq-e2e.yml](../../.github/workflows/frontend-broker-dlq-e2e.yml), pensado para lanzarse con `workflow_dispatch`
