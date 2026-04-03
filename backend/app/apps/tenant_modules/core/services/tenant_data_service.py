@@ -257,6 +257,19 @@ class TenantDataService:
                         f"El plan actual alcanzo el limite de {role_limit_key}"
                     )
 
+        if (
+            user.role.strip().lower() == "admin"
+            and normalized_role != "admin"
+            and user.is_active
+            and self.user_repository.count_active_by_role(
+                tenant_db,
+                "admin",
+                exclude_user_id=user.id,
+            )
+            <= 0
+        ):
+            raise ValueError("Debe quedar al menos un administrador activo en el tenant")
+
         user.full_name = full_name
         user.email = email
         user.role = normalized_role
@@ -306,6 +319,19 @@ class TenantDataService:
             raise ValueError("No puedes desactivar tu propio usuario")
 
         if (
+            user.role.strip().lower() == "admin"
+            and user.is_active
+            and not is_active
+            and self.user_repository.count_active_by_role(
+                tenant_db,
+                "admin",
+                exclude_user_id=user.id,
+            )
+            <= 0
+        ):
+            raise ValueError("Debe quedar al menos un administrador activo en el tenant")
+
+        if (
             is_active
             and not user.is_active
             and max_active_users is not None
@@ -337,6 +363,34 @@ class TenantDataService:
 
         user.is_active = is_active
         return self.user_repository.save(tenant_db, user)
+
+    def delete_user(
+        self,
+        tenant_db: Session,
+        *,
+        user_id: int,
+        actor_user_id: int | None = None,
+    ) -> User:
+        user = self.user_repository.get_by_id(tenant_db, user_id)
+        if not user:
+            raise ValueError("Usuario tenant no encontrado")
+
+        if actor_user_id is not None and actor_user_id == user.id:
+            raise ValueError("No puedes eliminar tu propio usuario")
+
+        if (
+            user.role.strip().lower() == "admin"
+            and user.is_active
+            and self.user_repository.count_active_by_role(
+                tenant_db,
+                "admin",
+                exclude_user_id=user.id,
+            )
+            <= 0
+        ):
+            raise ValueError("Debe quedar al menos un administrador activo en el tenant")
+
+        return self.user_repository.delete(tenant_db, user)
 
     def _get_current_month_start(self) -> datetime:
         now = datetime.now(timezone.utc)

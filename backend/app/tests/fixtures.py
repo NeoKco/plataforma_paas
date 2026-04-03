@@ -42,6 +42,7 @@ def build_tenant_context(
                 "tenant.users.create",
                 "tenant.users.update",
                 "tenant.users.change_status",
+                "tenant.users.delete",
                 "tenant.finance.read",
                 "tenant.finance.create",
                 "tenant.business_core.read",

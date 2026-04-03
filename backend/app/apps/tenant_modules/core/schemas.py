@@ -200,6 +200,13 @@ class TenantUserMutationResponse(BaseModel):
     data: TenantUsersItemResponse
 
 
+class TenantUserDeleteResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    data: TenantUsersItemResponse
+
+
 class TenantSchemaJobData(BaseModel):
     job_id: int
     job_type: str

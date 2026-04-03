@@ -44,6 +44,7 @@ Documentación base:
 - frontend y backend deben consumir el catálogo de capacidades como fuente de verdad cuando aplique
 - en `platform_admin`, las capturas de alta más sensibles (`Tenants`, `Usuarios de plataforma`) no deberían quedar abiertas por defecto; la lectura principal debe mostrarse primero y la creación abrirse bajo demanda en modal
 - en `tenant_portal`, `Usuarios` debe seguir el mismo patrón: catálogo visible primero y alta solo bajo demanda desde botón
+- `tenant_portal > Usuarios` ya expone además edición y borrado seguro: el backend bloquea autoeliminación y protege al último admin activo antes de aceptar `DELETE /tenant/users/{id}` o degradaciones equivalentes
 
 ## Cómo extender este bloque
 

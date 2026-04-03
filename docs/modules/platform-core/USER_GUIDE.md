@@ -102,6 +102,8 @@ Si el tenant ya alcanzó el cupo de usuarios activos, `Tenant Portal > Users` bl
 Nota operativa:
 
 - en `Tenant Portal > Usuarios`, la lectura del catálogo queda primero y la creación de un usuario nuevo se abre solo bajo demanda desde `Nuevo usuario`
+- la tabla de acciones del usuario tenant ya permite `Editar`, `Activar/Desactivar` y `Eliminar`
+- el borrado protege dos casos: no puedes eliminar tu propia cuenta y tampoco al último administrador activo del tenant
 
 ### Límite de transacciones en finance
 

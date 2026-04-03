@@ -975,6 +975,13 @@ export type TenantUserMutationResponse = {
   data: TenantUsersItem;
 };
 
+export type TenantUserDeleteResponse = {
+  success: boolean;
+  message: string;
+  requested_by: TenantUserContext;
+  data: TenantUsersItem;
+};
+
 export type TenantFinanceEntryItem = {
   id: number;
   movement_type: string;

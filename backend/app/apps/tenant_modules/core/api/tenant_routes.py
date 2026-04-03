@@ -16,6 +16,7 @@ from app.apps.tenant_modules.core.schemas import (
     TenantModuleUsageResponse,
     TenantUserCreateRequest,
     TenantUserContextResponse,
+    TenantUserDeleteResponse,
     TenantUserData,
     TenantUserDetailResponse,
     TenantUserMutationResponse,
@@ -664,6 +665,30 @@ def tenant_update_user_status(
     return TenantUserMutationResponse(
         success=True,
         message="Estado del usuario tenant actualizado correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        data=_build_tenant_user_item(user),
+    )
+
+
+@router.delete("/users/{user_id}", response_model=TenantUserDeleteResponse)
+def tenant_delete_user(
+    user_id: int,
+    current_user=Depends(require_tenant_permission("tenant.users.delete")),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> TenantUserDeleteResponse:
+    try:
+        user = tenant_data_service.delete_user(
+            tenant_db=tenant_db,
+            user_id=user_id,
+            actor_user_id=current_user.get("user_id"),
+        )
+    except ValueError as exc:
+        status_code = 404 if "no encontrado" in str(exc).lower() else 400
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+
+    return TenantUserDeleteResponse(
+        success=True,
+        message="Usuario tenant eliminado correctamente",
         requested_by=_build_tenant_user_context(current_user),
         data=_build_tenant_user_item(user),
     )

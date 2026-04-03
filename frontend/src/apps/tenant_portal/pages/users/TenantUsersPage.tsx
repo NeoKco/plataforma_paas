@@ -15,7 +15,9 @@ import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import {
   createTenantUser,
+  deleteTenantUser,
   getTenantUsers,
+  updateTenantUser,
   updateTenantUserStatus,
 } from "../../../../services/tenant-api";
 import { getApiErrorDisplayMessage } from "../../../../services/api";
@@ -88,6 +90,18 @@ function formatTenantUserActionError(
       : "Your plan has already reached the total user limit.";
   }
 
+  if (message.includes("No puedes eliminar tu propio usuario")) {
+    return language === "es"
+      ? "No puedes eliminar tu propia cuenta desde este flujo."
+      : "You cannot delete your own account from this flow.";
+  }
+
+  if (message.includes("Debe quedar al menos un administrador activo")) {
+    return language === "es"
+      ? "Debe quedar al menos un administrador activo en el tenant."
+      : "At least one active admin must remain in the tenant.";
+  }
+
   return message;
 }
 
@@ -97,6 +111,12 @@ function getActionFeedbackLabel(scope: string, language: "es" | "en"): string {
   }
   if (scope === "create-user") {
     return language === "es" ? "Crear usuario" : "Create user";
+  }
+  if (scope.startsWith("update-user-")) {
+    return language === "es" ? "Editar usuario" : "Edit user";
+  }
+  if (scope.startsWith("delete-user-")) {
+    return language === "es" ? "Eliminar usuario" : "Delete user";
   }
   return scope;
 }
@@ -116,6 +136,7 @@ export function TenantUsersPage() {
   const [role, setRole] = useState("operator");
   const [isActive, setIsActive] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
 
   const users = usersResponse?.data || [];
 
@@ -189,11 +210,41 @@ export function TenantUsersPage() {
     setRole("operator");
     setIsActive(true);
     setIsCreateOpen(false);
+    setEditingUserId(null);
+  }
+
+  function openCreateModal() {
+    resetCreateForm();
+    setIsCreateOpen(true);
+  }
+
+  function openEditModal(user: TenantUsersItem) {
+    setEditingUserId(user.id);
+    setFullName(user.full_name);
+    setEmail(user.email);
+    setPassword("");
+    setRole(user.role);
+    setIsActive(user.is_active);
+    setIsCreateOpen(true);
   }
 
   function handleCreateUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!session?.accessToken) {
+      return;
+    }
+
+    if (editingUserId !== null) {
+      void runAction(`update-user-${editingUserId}`, async () => {
+        const response = await updateTenantUser(session.accessToken, editingUserId, {
+          full_name: fullName.trim(),
+          email: email.trim(),
+          password: password.trim() ? password : null,
+          role,
+        });
+        resetCreateForm();
+        return response;
+      });
       return;
     }
 
@@ -222,6 +273,25 @@ export function TenantUsersPage() {
     );
   }
 
+  function handleDeleteUser(user: TenantUsersItem) {
+    if (!session?.accessToken) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      language === "es"
+        ? `¿Eliminar al usuario ${user.full_name}? Esta acción borra la cuenta del tenant.`
+        : `Delete user ${user.full_name}? This action removes the tenant account.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    void runAction(`delete-user-${user.id}`, () =>
+      deleteTenantUser(session.accessToken, user.id)
+    );
+  }
+
   return (
     <div className="d-grid gap-4">
       <PageHeader
@@ -238,7 +308,7 @@ export function TenantUsersPage() {
             <button
               className="btn btn-primary"
               type="button"
-              onClick={() => setIsCreateOpen(true)}
+              onClick={openCreateModal}
             >
               {language === "es" ? "Nuevo usuario" : "New user"}
             </button>
@@ -293,19 +363,45 @@ export function TenantUsersPage() {
             className="tenant-crud-modal"
             role="dialog"
             aria-modal="true"
-            aria-label={language === "es" ? "Crear usuario del tenant" : "Create tenant user"}
+            aria-label={
+              editingUserId !== null
+                ? language === "es"
+                  ? "Editar usuario del tenant"
+                  : "Edit tenant user"
+                : language === "es"
+                  ? "Crear usuario del tenant"
+                  : "Create tenant user"
+            }
             onClick={(event) => event.stopPropagation()}
           >
             <div className="tenant-crud-modal__eyebrow">
-              {language === "es" ? "Alta bajo demanda" : "On-demand creation"}
+              {editingUserId !== null
+                ? language === "es"
+                  ? "Edición puntual"
+                  : "Focused edit"
+                : language === "es"
+                  ? "Alta bajo demanda"
+                  : "On-demand creation"}
             </div>
             <PanelCard
               icon="users"
-              title={language === "es" ? "Crear usuario" : "Create user"}
+              title={
+                editingUserId !== null
+                  ? language === "es"
+                    ? "Editar usuario"
+                    : "Edit user"
+                  : language === "es"
+                    ? "Crear usuario"
+                    : "Create user"
+              }
               subtitle={
-                language === "es"
-                  ? "Completa los datos de acceso inicial para una nueva cuenta."
-                  : "Fill in the initial access data for a new account."
+                editingUserId !== null
+                  ? language === "es"
+                    ? "Corrige identidad, correo, rol o contraseña de esta cuenta tenant."
+                    : "Adjust identity, email, role or password for this tenant account."
+                  : language === "es"
+                    ? "Completa los datos de acceso inicial para una nueva cuenta."
+                    : "Fill in the initial access data for a new account."
               }
             >
               <AppForm onSubmit={handleCreateUser}>
@@ -332,7 +428,15 @@ export function TenantUsersPage() {
                     type="password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    placeholder={language === "es" ? "Define una contraseña inicial" : "Define an initial password"}
+                    placeholder={
+                      editingUserId !== null
+                        ? language === "es"
+                          ? "Déjala vacía si no quieres cambiarla"
+                          : "Leave blank if you do not want to change it"
+                        : language === "es"
+                          ? "Define una contraseña inicial"
+                          : "Define an initial password"
+                    }
                   />
                 </AppFormField>
                 <AppFormField label={language === "es" ? "Rol" : "Role"}>
@@ -348,16 +452,18 @@ export function TenantUsersPage() {
                     ))}
                   </select>
                 </AppFormField>
-                <AppFormField label={language === "es" ? "Estado inicial" : "Initial status"}>
-                  <select
-                    className="form-select"
-                    value={isActive ? "active" : "inactive"}
-                    onChange={(event) => setIsActive(event.target.value === "active")}
-                  >
-                    <option value="active">{language === "es" ? "activo" : "active"}</option>
-                    <option value="inactive">{language === "es" ? "inactivo" : "inactive"}</option>
-                  </select>
-                </AppFormField>
+                {editingUserId === null ? (
+                  <AppFormField label={language === "es" ? "Estado inicial" : "Initial status"}>
+                    <select
+                      className="form-select"
+                      value={isActive ? "active" : "inactive"}
+                      onChange={(event) => setIsActive(event.target.value === "active")}
+                    >
+                      <option value="active">{language === "es" ? "activo" : "active"}</option>
+                      <option value="inactive">{language === "es" ? "inactivo" : "inactive"}</option>
+                    </select>
+                  </AppFormField>
+                ) : null}
                 <AppFormActions>
                   <button
                     className="btn btn-outline-secondary"
@@ -370,9 +476,20 @@ export function TenantUsersPage() {
                   <button
                     className="btn btn-primary"
                     type="submit"
-                    disabled={isActionSubmitting}
+                    disabled={
+                      isActionSubmitting ||
+                      !fullName.trim() ||
+                      !email.trim() ||
+                      (editingUserId === null && !password.trim())
+                    }
                   >
-                    {language === "es" ? "Crear usuario" : "Create user"}
+                    {editingUserId !== null
+                      ? language === "es"
+                        ? "Guardar cambios"
+                        : "Save changes"
+                      : language === "es"
+                        ? "Crear usuario"
+                        : "Create user"}
                   </button>
                 </AppFormActions>
               </AppForm>
@@ -441,6 +558,14 @@ export function TenantUsersPage() {
                   <button
                     type="button"
                     className="btn btn-sm btn-outline-primary"
+                    onClick={() => openEditModal(row)}
+                    disabled={isActionSubmitting}
+                  >
+                    {language === "es" ? "Editar" : "Edit"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-primary"
                     onClick={() => handleToggleStatus(row)}
                     disabled={isActionSubmitting}
                   >
@@ -451,6 +576,14 @@ export function TenantUsersPage() {
                       : language === "es"
                         ? "Activar"
                         : "Activate"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={() => handleDeleteUser(row)}
+                    disabled={isActionSubmitting}
+                  >
+                    {language === "es" ? "Eliminar" : "Delete"}
                   </button>
                 </AppToolbar>
               ),

@@ -50,6 +50,7 @@ Resumen curado del bloque central.
 - la alta de `Tenants` y de `Usuarios de plataforma` pasa a abrirse solo bajo demanda en modal, evitando formularios de creación desplegados por defecto en la lectura principal
 - la vista de `Usuarios de plataforma` deja de usar una grilla desbalanceada tras mover el alta a modal: el catálogo ahora toma el ancho útil completo y la ficha/acciones del usuario seleccionado quedan en un segundo nivel más armónico
 - `Tenant Portal > Usuarios` también pasa a alta bajo demanda: el catálogo queda primero, `Nuevo usuario` abre modal y el bloque de operador actual queda como contexto secundario
+- `Tenant Portal > Usuarios` suma acciones de `Editar` y `Eliminar` en la tabla; el borrado queda endurecido para bloquear autoeliminación y la eliminación del último admin activo del tenant
 
 ## Documentación
 

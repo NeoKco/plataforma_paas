@@ -8,6 +8,7 @@ import type {
   TenantModuleUsageResponse,
   TenantSchemaStatusResponse,
   TenantSchemaSyncResponse,
+  TenantUserDeleteResponse,
   TenantUserMutationResponse,
   TenantUsersResponse,
 } from "../types";
@@ -104,6 +105,30 @@ export function updateTenantUserStatus(
     method: "PATCH",
     token: accessToken,
     body: payload,
+  });
+}
+
+export function updateTenantUser(
+  accessToken: string,
+  userId: number,
+  payload: {
+    full_name: string;
+    email: string;
+    role: string;
+    password?: string | null;
+  }
+) {
+  return apiRequest<TenantUserMutationResponse>(`/tenant/users/${userId}`, {
+    method: "PUT",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function deleteTenantUser(accessToken: string, userId: number) {
+  return apiRequest<TenantUserDeleteResponse>(`/tenant/users/${userId}`, {
+    method: "DELETE",
+    token: accessToken,
   });
 }
 

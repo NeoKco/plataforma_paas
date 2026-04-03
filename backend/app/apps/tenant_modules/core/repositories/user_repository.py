@@ -63,3 +63,8 @@ class UserRepository:
         tenant_db.commit()
         tenant_db.refresh(user)
         return user
+
+    def delete(self, tenant_db: Session, user: User) -> User:
+        tenant_db.delete(user)
+        tenant_db.commit()
+        return user

@@ -20,6 +20,7 @@ set_test_environment()
 
 from app.apps.tenant_modules.core.api.tenant_routes import (  # noqa: E402
     tenant_create_user,
+    tenant_delete_user,
     tenant_info,
     tenant_me,
     tenant_me_db,
@@ -117,6 +118,13 @@ class TenantAuthDependenciesTestCase(unittest.TestCase):
         context = checker(self._request(role="manager"))
 
         self.assertIn("tenant.users.read", context["permissions"])
+
+    def test_require_tenant_permission_accepts_admin_delete_permission(self) -> None:
+        checker = require_tenant_permission("tenant.users.delete")
+
+        context = checker(self._request(role="admin"))
+
+        self.assertIn("tenant.users.delete", context["permissions"])
 
     def test_require_tenant_permission_accepts_maintenance_read_for_admin(self) -> None:
         checker = require_tenant_permission("tenant.maintenance.read")
@@ -1245,7 +1253,7 @@ class TenantServicesTestCase(unittest.TestCase):
         self.assertIn("No puedes desactivar", str(exc.exception))
 
     def test_tenant_data_service_update_user_status_rejects_activation_when_limit_reached(self) -> None:
-        user = SimpleNamespace(id=2, is_active=False)
+        user = SimpleNamespace(id=2, is_active=False, role="operator")
 
         class FakeUserRepository:
             def get_by_id(self, tenant_db, user_id):
@@ -1328,6 +1336,109 @@ class TenantServicesTestCase(unittest.TestCase):
         )
 
         self.assertTrue(updated_user.is_active)
+
+    def test_tenant_data_service_update_user_rejects_demoting_last_active_admin(self) -> None:
+        user = SimpleNamespace(
+            id=2,
+            is_active=True,
+            role="admin",
+            full_name="Admin Uno",
+            email="admin@empresa-bootstrap.local",
+        )
+
+        class FakeUserRepository:
+            def get_by_id(self, tenant_db, user_id):
+                return user
+
+            def get_by_email(self, tenant_db, email):
+                return user if email == user.email else None
+
+            def count_active_by_role(self, tenant_db, role, exclude_user_id=None):
+                return 0
+
+        service = TenantDataService(
+            tenant_info_repository=SimpleNamespace(),
+            user_repository=FakeUserRepository(),
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.update_user(
+                tenant_db=object(),
+                user_id=2,
+                full_name="Admin Uno",
+                email="admin@empresa-bootstrap.local",
+                role="manager",
+            )
+
+        self.assertIn("Debe quedar al menos un administrador activo", str(exc.exception))
+
+    def test_tenant_data_service_delete_user_rejects_self_deletion(self) -> None:
+        user = SimpleNamespace(id=1, is_active=True, role="admin")
+
+        class FakeUserRepository:
+            def get_by_id(self, tenant_db, user_id):
+                return user
+
+        service = TenantDataService(
+            tenant_info_repository=SimpleNamespace(),
+            user_repository=FakeUserRepository(),
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.delete_user(
+                tenant_db=object(),
+                user_id=1,
+                actor_user_id=1,
+            )
+
+        self.assertIn("No puedes eliminar tu propio usuario", str(exc.exception))
+
+    def test_tenant_data_service_delete_user_rejects_last_active_admin(self) -> None:
+        user = SimpleNamespace(id=2, is_active=True, role="admin")
+
+        class FakeUserRepository:
+            def get_by_id(self, tenant_db, user_id):
+                return user
+
+            def count_active_by_role(self, tenant_db, role, exclude_user_id=None):
+                return 0
+
+        service = TenantDataService(
+            tenant_info_repository=SimpleNamespace(),
+            user_repository=FakeUserRepository(),
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.delete_user(
+                tenant_db=object(),
+                user_id=2,
+                actor_user_id=1,
+            )
+
+        self.assertIn("Debe quedar al menos un administrador activo", str(exc.exception))
+
+    def test_tenant_data_service_delete_user_returns_deleted_user(self) -> None:
+        user = SimpleNamespace(id=3, is_active=False, role="operator")
+
+        class FakeUserRepository:
+            def get_by_id(self, tenant_db, user_id):
+                return user
+
+            def delete(self, tenant_db, user_to_delete):
+                return user_to_delete
+
+        service = TenantDataService(
+            tenant_info_repository=SimpleNamespace(),
+            user_repository=FakeUserRepository(),
+        )
+
+        deleted_user = service.delete_user(
+            tenant_db=object(),
+            user_id=3,
+            actor_user_id=1,
+        )
+
+        self.assertIs(deleted_user, user)
 
     def test_tenant_data_service_update_user_rejects_when_role_limit_reached(self) -> None:
         user = SimpleNamespace(
@@ -2240,6 +2351,29 @@ class TenantRoutesTestCase(unittest.TestCase):
             )
 
         self.assertFalse(response.data.is_active)
+
+    def test_tenant_delete_user_returns_deleted_user(self) -> None:
+        user = build_tenant_user_stub(
+            user_id=3,
+            full_name="Operador Dos",
+            email="operador2@empresa-bootstrap.local",
+            role="operator",
+            is_active=False,
+        )
+
+        with patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.delete_user",
+            return_value=user,
+        ):
+            response = tenant_delete_user(
+                user_id=3,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.email, "operador2@empresa-bootstrap.local")
 
     def test_tenant_data_service_resets_user_password_by_email(self) -> None:
         user = build_tenant_user_stub(
