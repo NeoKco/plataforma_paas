@@ -143,6 +143,7 @@ Observacion:
 - los modales de captura del dominio deberian seguir una plantilla comun: `ancho` para altas principales y `compacto` para ediciones puntuales, con bloques claros y formularios densos pero legibles
 - en `clients`, la captura inicial deberia soportar `contacto principal` y `contacto secundario`; contactos adicionales quedan para gestion posterior en la ficha del cliente
 - `BusinessCoreCatalogPage` deberia comportarse con el mismo patron: tabla visible por defecto y formulario solo bajo demanda en modal
+- `BusinessCoreOverviewPage` ya puede usar directamente `organizations` y `clients` para mostrar ultimas altas visibles del dominio; no hace falta crear primero un endpoint nuevo mientras la lectura siga siendo ligera y acotada
 - `sort_order` puede seguir existiendo en el modelo para ordenamiento tecnico, pero la UI normal del tenant no deberia exponerlo mientras no haya una necesidad operativa concreta.
 - `code` en `business_function_profiles`, `business_work_groups` y `business_task_types` debe tratarse como identificador tecnico interno. La UI normal no debe mostrarlo ni permitir editarlo; el backend puede autogenerarlo desde `name`.
 - cualquier marcador `legacy_*` proveniente de importacion debe limpiarse antes de guardar o mostrarse. La descripcion funcional solo debe contener texto humano escrito por el equipo.

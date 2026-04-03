@@ -29,6 +29,7 @@
 - Se deja explicito que placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto` no deben mostrarse como datos validos en la operacion diaria.
 - Se corrige la captura de `Clientes` para ocultar `Código cliente` en la UI normal y evitar que un usuario pueda editar un identificador tecnico interno o ver residuos `legacy` como dato operativo.
 - Se endurece ademas el backend de `clients` para que `client_code` deje de depender de la captura normal: ahora se preserva o genera internamente en la capa de servicio.
+- La vista `Resumen` de `business-core` deja de ser solo una portada estatica y pasa a mostrar las ultimas altas reales de `Empresas` y `Clientes`.
 
 ## 2026-04-02
 
