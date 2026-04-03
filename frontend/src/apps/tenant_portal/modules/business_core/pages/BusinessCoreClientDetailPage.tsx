@@ -474,12 +474,6 @@ export function BusinessCoreClientDetailPage() {
             </div>
             <div className="business-core-detail-item">
               <span className="business-core-detail-label">
-                {language === "es" ? "Código cliente" : "Client code"}
-              </span>
-              <span>{client.client_code || "—"}</span>
-            </div>
-            <div className="business-core-detail-item">
-              <span className="business-core-detail-label">
                 {language === "es" ? "Estado servicio" : "Service status"}
               </span>
               <AppBadge tone={client.is_active ? "success" : "warning"}>

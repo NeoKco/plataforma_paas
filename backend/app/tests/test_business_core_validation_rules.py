@@ -85,6 +85,9 @@ class BusinessCoreValidationRulesTestCase(unittest.TestCase):
         organization_repository = Mock()
         organization_repository.get_by_id.return_value = SimpleNamespace(
             id=7,
+            tax_id="76.123.456-7",
+            legal_name="Acme Limitada",
+            name="Acme Ltda",
             organization_kind="client",
         )
         client_repository.get_by_organization_id.return_value = SimpleNamespace(id=12)
@@ -110,6 +113,80 @@ class BusinessCoreValidationRulesTestCase(unittest.TestCase):
             "La organizacion seleccionada ya tiene un cliente asociado",
             str(exc.exception),
         )
+
+    def test_client_create_generates_internal_code_from_organization(self) -> None:
+        client_repository = Mock()
+        organization_repository = Mock()
+        organization_repository.get_by_id.return_value = SimpleNamespace(
+            id=7,
+            tax_id="76.123.456-7",
+            legal_name="Acme Limitada",
+            name="Acme Ltda",
+            organization_kind="client",
+        )
+        client_repository.get_by_organization_id.return_value = None
+        client_repository.get_by_client_code.return_value = None
+        client_repository.save.side_effect = lambda _tenant_db, client: client
+        service = BusinessClientService(
+            client_repository=client_repository,
+            organization_repository=organization_repository,
+        )
+
+        created = service.create_client(
+            object(),
+            BusinessClientCreateRequest(
+                organization_id=7,
+                client_code="LEGACY-CLIENT-7",
+                service_status="active",
+                commercial_notes=None,
+                is_active=True,
+                sort_order=100,
+            ),
+        )
+
+        self.assertEqual(created.client_code, "CLI-76-123-456-7")
+
+    def test_client_update_preserves_existing_internal_code(self) -> None:
+        client_repository = Mock()
+        organization_repository = Mock()
+        current_client = SimpleNamespace(
+            id=9,
+            organization_id=7,
+            client_code="CLI-76-123-456-7",
+            service_status="active",
+            commercial_notes=None,
+            is_active=True,
+            sort_order=100,
+        )
+        organization_repository.get_by_id.return_value = SimpleNamespace(
+            id=7,
+            tax_id="76.123.456-7",
+            legal_name="Acme Limitada",
+            name="Acme Ltda",
+            organization_kind="client",
+        )
+        client_repository.get_by_id.return_value = current_client
+        client_repository.get_by_organization_id.return_value = current_client
+        client_repository.save.side_effect = lambda _tenant_db, client: client
+        service = BusinessClientService(
+            client_repository=client_repository,
+            organization_repository=organization_repository,
+        )
+
+        updated = service.update_client(
+            object(),
+            9,
+            BusinessClientCreateRequest(
+                organization_id=7,
+                client_code="LEGACY-CLIENT-2",
+                service_status="active",
+                commercial_notes=None,
+                is_active=True,
+                sort_order=100,
+            ),
+        )
+
+        self.assertEqual(updated.client_code, "CLI-76-123-456-7")
 
     def test_contact_rejects_duplicate_email_in_same_organization(self) -> None:
         contact_repository = Mock()

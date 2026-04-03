@@ -14,6 +14,7 @@ from app.apps.tenant_modules.business_core.schemas import (
     BusinessClientUpdateRequest,
 )
 from app.apps.tenant_modules.business_core.services.taxonomy_support import (
+    build_internal_taxonomy_code,
     strip_legacy_visible_text,
 )
 
@@ -53,7 +54,11 @@ class BusinessClientService:
         payload: BusinessClientCreateRequest,
     ) -> BusinessClient:
         normalized = self._normalize_payload(payload)
-        self._validate_payload(tenant_db, normalized)
+        organization = self._validate_payload(tenant_db, normalized)
+        normalized["client_code"] = self._resolve_internal_client_code(
+            tenant_db,
+            organization=organization,
+        )
         client = BusinessClient(**normalized)
         return self.client_repository.save(tenant_db, client)
 
@@ -68,7 +73,16 @@ class BusinessClientService:
     ) -> BusinessClient:
         client = self._get_client_or_raise(tenant_db, client_id)
         normalized = self._normalize_payload(payload)
-        self._validate_payload(tenant_db, normalized, current_client=client)
+        organization = self._validate_payload(
+            tenant_db,
+            normalized,
+            current_client=client,
+        )
+        normalized["client_code"] = self._resolve_internal_client_code(
+            tenant_db,
+            organization=organization,
+            current_client=client,
+        )
 
         for field, value in normalized.items():
             setattr(client, field, value)
@@ -112,11 +126,6 @@ class BusinessClientService:
     ) -> dict:
         return {
             "organization_id": payload.organization_id,
-            "client_code": (
-                payload.client_code.strip().upper()
-                if payload.client_code and payload.client_code.strip()
-                else None
-            ),
             "service_status": payload.service_status.strip().lower(),
             "commercial_notes": (
                 strip_legacy_visible_text(payload.commercial_notes)
@@ -131,7 +140,7 @@ class BusinessClientService:
         payload: dict,
         *,
         current_client: BusinessClient | None = None,
-    ) -> None:
+    ) -> BusinessOrganization:
         organization = self.organization_repository.get_by_id(
             tenant_db,
             payload["organization_id"],
@@ -149,16 +158,41 @@ class BusinessClientService:
         if not payload["service_status"]:
             raise ValueError("El estado de servicio del cliente es obligatorio")
 
-        if payload["client_code"]:
-            existing_code = self.client_repository.get_by_client_code(
-                tenant_db,
-                payload["client_code"],
-            )
-            if existing_code and (current_client is None or existing_code.id != current_client.id):
-                raise ValueError("Ya existe un cliente con ese codigo")
-
         if (
             isinstance(organization, BusinessOrganization)
             and organization.organization_kind.strip().lower() == "internal"
         ):
             raise ValueError("La organizacion interna no puede registrarse como cliente")
+
+        return organization
+
+    def _resolve_internal_client_code(
+        self,
+        tenant_db: Session,
+        *,
+        organization: BusinessOrganization,
+        current_client: BusinessClient | None = None,
+    ) -> str:
+        if current_client is not None and current_client.client_code:
+            return current_client.client_code
+
+        seed = (
+            organization.tax_id
+            or organization.legal_name
+            or organization.name
+            or f"client-{organization.id}"
+        )
+        base_code = build_internal_taxonomy_code(
+            "cli",
+            seed,
+            fallback=f"org-{organization.id}",
+        ).upper()
+        candidate = base_code
+        suffix = 2
+
+        while True:
+            existing = self.client_repository.get_by_client_code(tenant_db, candidate)
+            if existing is None or (current_client is not None and existing.id == current_client.id):
+                return candidate
+            candidate = f"{base_code}-{suffix}"
+            suffix += 1

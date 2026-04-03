@@ -63,7 +63,6 @@ type ClientModalForm = {
   taxId: string;
   phone: string;
   email: string;
-  clientCode: string;
   serviceStatus: string;
   commercialNotes: string;
   primaryContactName: string;
@@ -96,7 +95,6 @@ function buildDefaultModalForm(): ClientModalForm {
     taxId: "",
     phone: "",
     email: "",
-    clientCode: "",
     serviceStatus: "active",
     commercialNotes: "",
     primaryContactName: "",
@@ -203,7 +201,6 @@ export function BusinessCoreClientsPage() {
         row.organization?.name,
         row.organization?.legal_name,
         row.organization?.tax_id,
-        row.client.client_code,
         stripLegacyVisibleText(row.client.commercial_notes),
         primaryContact?.full_name,
         primaryContact?.email,
@@ -286,7 +283,6 @@ export function BusinessCoreClientsPage() {
       taxId: row.organization?.tax_id ?? "",
       phone: row.organization?.phone ?? "",
       email: row.organization?.email ?? "",
-      clientCode: row.client.client_code ?? "",
       serviceStatus: row.client.service_status,
       commercialNotes: stripLegacyVisibleText(row.client.commercial_notes) ?? "",
       primaryContactName: primaryContact?.full_name ?? "",
@@ -349,7 +345,7 @@ export function BusinessCoreClientsPage() {
 
       const clientPayload: TenantBusinessClientWriteRequest = {
         organization_id: organization.id,
-        client_code: normalizeNullable(modalForm.clientCode),
+        client_code: null,
         service_status: modalForm.serviceStatus,
         commercial_notes: normalizeNullable(modalForm.commercialNotes),
         is_active: true,
@@ -585,7 +581,7 @@ export function BusinessCoreClientsPage() {
                   {row.organization?.name ?? (language === "es" ? "Sin nombre" : "No name")}
                 </div>
                 <div className="business-core-cell__meta">
-                  {row.client.client_code || "—"} · {row.organization?.tax_id || "—"}
+                  {row.organization?.tax_id || "—"}
                 </div>
               </div>
             ),
@@ -790,21 +786,6 @@ export function BusinessCoreClientsPage() {
                         setModalForm((current) => ({
                           ...current,
                           taxId: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">
-                      {language === "es" ? "Código cliente" : "Client code"}
-                    </label>
-                    <input
-                      className="form-control"
-                      value={modalForm.clientCode}
-                      onChange={(event) =>
-                        setModalForm((current) => ({
-                          ...current,
-                          clientCode: event.target.value,
                         }))
                       }
                     />

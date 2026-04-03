@@ -31,6 +31,7 @@ Estado actual:
 - se limpia la importacion visible desde `ieris_app` para que `legacy_*` no contamine notas operativas, catalogos y taxonomias compartidas
 - la lectura y edicion normal del dominio ya oculta o sanea placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto`, para no confundirlos con datos reales del negocio
 - la no duplicacion de `clients` se resuelve sobre la entidad base: primero no se repite la `organization`, y luego solo puede existir un `client` por `organization_id`
+- `client_code` se mantiene solo como identificador tecnico interno: la UI normal del tenant no debe mostrarlo ni permitir editarlo, y el backend lo preserva o genera internamente
 - el importador legacy ya no solo crea `sites`; tambien puede corregir direcciones legacy existentes cuando detecta que `comuna`, `ciudad` o `region` quedaron mal cargadas en una corrida anterior
 
 Pendientes visibles inmediatos:

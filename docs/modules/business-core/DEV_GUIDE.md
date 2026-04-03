@@ -85,6 +85,8 @@ Campos base:
 Observacion:
 
 - esto permite que una `organization` exista primero y solo algunas de ellas se activen como cliente
+- `client_code` puede seguir existiendo en el modelo y en integraciones, pero no debe formar parte de la captura normal del usuario
+- la capa de servicio debe preservarlo o generarlo internamente; no debe aceptar mutaciones manuales desde la operacion diaria
 
 ### 3. Contacts
 

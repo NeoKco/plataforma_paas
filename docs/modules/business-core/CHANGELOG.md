@@ -27,6 +27,8 @@
 - Se corrige la UX de direcciones en `Clientes`, `Ficha de cliente` y `Direcciones`: ahora la captura pide `Calle` y `Número`, y deja `name` como dato interno para no duplicar la dirección visible.
 - Se refuerza la regla documental del dominio: la direccion visible debe capturarse y editarse como dato humano unico, mientras `name`, `site_code` y cualquier otro identificador tecnico quedan internos.
 - Se deja explicito que placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto` no deben mostrarse como datos validos en la operacion diaria.
+- Se corrige la captura de `Clientes` para ocultar `Código cliente` en la UI normal y evitar que un usuario pueda editar un identificador tecnico interno o ver residuos `legacy` como dato operativo.
+- Se endurece ademas el backend de `clients` para que `client_code` deje de depender de la captura normal: ahora se preserva o genera internamente en la capa de servicio.
 
 ## 2026-04-02
 

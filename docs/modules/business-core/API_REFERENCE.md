@@ -80,6 +80,11 @@ Campos minimos de lectura:
 - `service_status`
 - `is_active`
 
+Notas de contrato:
+
+- `client_code` puede seguir apareciendo en respuestas o integraciones tecnicas, pero no debe considerarse editable desde la UI operativa del tenant.
+- la capa de servicio lo preserva o lo genera internamente para evitar mutaciones manuales o valores legacy visibles en la captura normal.
+
 ### Site summary
 
 Campos minimos de lectura:

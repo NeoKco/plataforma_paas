@@ -10,6 +10,10 @@ import {
   type TenantBusinessClient,
 } from "../services/clientsService";
 import {
+  getTenantBusinessOrganizations,
+  type TenantBusinessOrganization,
+} from "../services/organizationsService";
+import {
   createTenantBusinessSite,
   deleteTenantBusinessSite,
   getTenantBusinessSites,
@@ -57,6 +61,7 @@ export function BusinessCoreSitesPage() {
   const { language } = useLanguage();
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
+  const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -68,6 +73,10 @@ export function BusinessCoreSitesPage() {
     () => new Map(clients.map((client) => [client.id, client])),
     [clients]
   );
+  const organizationById = useMemo(
+    () => new Map(organizations.map((organization) => [organization.id, organization])),
+    [organizations]
+  );
 
   async function loadData() {
     if (!session?.accessToken) {
@@ -76,12 +85,14 @@ export function BusinessCoreSitesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [sitesResponse, clientsResponse] = await Promise.all([
+      const [sitesResponse, clientsResponse, organizationsResponse] = await Promise.all([
         getTenantBusinessSites(session.accessToken),
         getTenantBusinessClients(session.accessToken, { includeInactive: false }),
+        getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
       ]);
       setSites(sitesResponse.data);
       setClients(clientsResponse.data);
+      setOrganizations(organizationsResponse.data);
       setForm((current) => ({
         ...current,
         client_id: current.client_id || clientsResponse.data[0]?.id || 0,
@@ -240,7 +251,10 @@ export function BusinessCoreSitesPage() {
           type: "select",
           options: clients.map((client) => ({
             value: String(client.id),
-            label: client.client_code || `#${client.id}`,
+            label:
+              organizationById.get(client.organization_id)?.name ||
+              organizationById.get(client.organization_id)?.legal_name ||
+              `${language === "es" ? "Cliente" : "Client"} #${client.id}`,
           })),
         },
         { key: "street", labelEs: "Calle", labelEn: "Street" },
@@ -274,8 +288,9 @@ export function BusinessCoreSitesPage() {
           headerEs: "Cliente",
           headerEn: "Client",
           render: (site, currentLanguage) =>
-            clientById.get(site.client_id)?.client_code ||
-            (currentLanguage === "es" ? "cliente sin código" : "client without code"),
+            organizationById.get(clientById.get(site.client_id)?.organization_id ?? -1)?.name ||
+            organizationById.get(clientById.get(site.client_id)?.organization_id ?? -1)?.legal_name ||
+            `${currentLanguage === "es" ? "Cliente" : "Client"} #${site.client_id}`,
         },
         {
           key: "status",

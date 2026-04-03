@@ -55,6 +55,7 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - tampoco deberian mostrarse placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto` como si fueran datos validos de contacto.
 - la direccion propia de una empresa o proveedor sigue siendo una necesidad real, pero conviene resolverla como parte del modelo y no como un campo suelto pegado al modal. Hasta que exista esa ola, el foco de `Empresas` debe ser identidad + contacto principal.
 - si intentas registrar un cliente repetido, el control correcto no debe depender de la pantalla: la contraparte base no debe duplicarse y una misma organizacion no deberia tener mas de un cliente asociado.
+- `Código cliente` tampoco deberia verse ni editarse en la captura normal; si existe, debe resolverse como identificador interno del sistema y no como dato operativo del usuario.
 
 Eso genera:
 
