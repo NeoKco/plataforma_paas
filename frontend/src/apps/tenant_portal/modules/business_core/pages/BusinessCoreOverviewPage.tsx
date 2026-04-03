@@ -55,7 +55,6 @@ export function BusinessCoreOverviewPage() {
     Promise.all([
       getTenantBusinessOrganizations(session.accessToken, {
         includeInactive: true,
-        excludeClientOrganizations: true,
       }),
       getTenantBusinessClients(session.accessToken, {
         includeInactive: true,
@@ -85,11 +84,21 @@ export function BusinessCoreOverviewPage() {
     };
   }, [session?.accessToken]);
 
+  const clientOrganizationIds = useMemo(() => {
+    return new Set(clients.map((client) => client.organization_id));
+  }, [clients]);
+
+  const visibleOrganizations = useMemo(() => {
+    return organizations.filter(
+      (organization) => !clientOrganizationIds.has(organization.id)
+    );
+  }, [clientOrganizationIds, organizations]);
+
   const latestOrganizations = useMemo(() => {
-    return [...organizations]
+    return [...visibleOrganizations]
       .sort((left, right) => right.created_at.localeCompare(left.created_at))
-      .slice(0, 5);
-  }, [organizations]);
+      .slice(0, 2);
+  }, [visibleOrganizations]);
 
   const latestClients = useMemo<LatestClientRow[]>(() => {
     const organizationsById = new Map(
@@ -138,7 +147,7 @@ export function BusinessCoreOverviewPage() {
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
             label={language === "es" ? "Empresas visibles" : "Visible organizations"}
-            value={organizations.length}
+            value={visibleOrganizations.length}
             hint={language === "es" ? "Contrapartes del catálogo Empresa" : "Counterparties from the Organizations catalog"}
             icon="business-core"
             tone="info"
@@ -244,15 +253,28 @@ export function BusinessCoreOverviewPage() {
                 latestClients.map(({ client, organization }) => (
                   <div className="business-core-related-card" key={client.id}>
                     <div className="business-core-related-title">
-                      {organization?.name || (language === "es" ? "Sin organización" : "No organization")}
+                      {organization?.name || organization?.legal_name || `Cliente #${client.id}`}
                       <StatusBadge value={client.is_active ? "active" : "inactive"} />
                     </div>
                     <div className="business-core-cell__meta">
-                      {language === "es" ? "Estado servicio" : "Service status"}:{" "}
-                      {client.service_status || "n/a"}
+                      {organization?.legal_name && organization.legal_name !== organization.name
+                        ? organization.legal_name
+                        : language === "es"
+                          ? "Sin razon social adicional"
+                          : "No additional legal name"}
                     </div>
                     <div className="business-core-cell__meta">
-                      {language === "es" ? "Creado" : "Created"}:{" "}
+                      {language === "es" ? "RUT / Tax ID" : "Tax ID"}:{" "}
+                      {organization?.tax_id || "n/a"}
+                    </div>
+                    <div className="business-core-cell__meta">
+                      {language === "es" ? "Contacto base" : "Base contact"}:{" "}
+                      {[organization?.phone, organization?.email].filter(Boolean).join(" · ") ||
+                        (language === "es" ? "Sin telefono ni mail" : "No phone or email")}
+                    </div>
+                    <div className="business-core-cell__meta">
+                      {language === "es" ? "Estado servicio" : "Service status"}:{" "}
+                      {client.service_status || "n/a"} · {language === "es" ? "Creado" : "Created"}:{" "}
                       {formatDateTime(client.created_at, language)}
                     </div>
                   </div>

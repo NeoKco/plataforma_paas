@@ -2,6 +2,8 @@
 
 Este documento fija la forma recomendada de abrir nuevos modulos sobre `platform_paas`.
 
+Para el estandar operativo completo de CRUD, modales, maquetacion, validaciones y documentacion viva, ver tambien [Estandar de construccion de modulos](./module-build-standard.md).
+
 No obliga a reestructurar hoy todo el repositorio. La idea es dejar una convención clara para que los siguientes modulos no nazcan dispersos.
 
 ## Decision vigente

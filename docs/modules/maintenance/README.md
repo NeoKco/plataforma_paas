@@ -20,6 +20,7 @@ Estado actual:
 - `history` ya muestra órdenes cerradas con `status_logs` y `visits`
 - `agenda técnica` ya permite crear, editar y eliminar `visits`
 - ya acepta navegación contextual desde la ficha del cliente en `business-core`
+- el modulo ya sigue el patron oficial de CRUD con lectura primero y captura bajo demanda en modal
 
 Objetivo del modulo:
 
@@ -61,6 +62,25 @@ Pendientes visibles inmediatos:
 - agenda visual con conflictos y reprogramación más rica
 - importadores desde `ieris_app`
 - formularios más ergonómicos para crear mantenciones desde cliente/dirección/instalación
+
+## Checklist contra el estandar de modulos
+
+Referencia transversal:
+
+- [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md)
+
+Estado resumido del modulo:
+
+- documentacion canonica base: cumplido
+- modelo de datos tenant: cumplido
+- API operativa del primer corte: cumplido
+- frontend usable del primer corte: cumplido
+- CRUD con lectura primero y alta bajo demanda: cumplido
+- validaciones de negocio base: cumplido en primer corte
+- smoke/frontend de regresion especifico del modulo: parcial
+- agenda visual rica: pendiente
+- evidencias y checklist tecnico: pendiente
+- cierre completo de la UX operativa del modulo: en progreso
 
 Estado del importador legacy:
 

@@ -24,6 +24,7 @@ Esta seccion agrupa la documentacion de arquitectura del proyecto: estructura de
 - [Autenticacion y autorizacion](./authentication-and-authorization.md): JWT, middleware, roles y estado actual del enforcement.
 - [Roadmap de desarrollo](./development-roadmap.md): hoja de ruta completa del proyecto, desde bootstrap hasta modulos, frontend e infraestructura.
 - [Convencion modular por slice](./module-slice-convention.md): regla oficial para abrir modulos nuevos tomando `finance` como modulo base del SaaS.
+- [Estandar de construccion de modulos](./module-build-standard.md): forma oficial de cerrar dominios y CRUDs con lectura primero, alta bajo demanda, validaciones, modales y documentacion viva.
 - [Estandar documental por modulo](./module-slice-convention.md): misma convención, incluyendo la obligación de publicar `README`, `USER_GUIDE`, `DEV_GUIDE`, `ROADMAP` y `CHANGELOG` en `docs/modules/<modulo>/`.
 - [Mapa de dominios del PaaS](./domain-map.md): separacion entre `platform-core`, `business-core`, vertical cores y modulos funcionales.
 
