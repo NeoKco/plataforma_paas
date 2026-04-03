@@ -184,6 +184,14 @@ def normalize_legacy_phone(value: str | None) -> str | None:
     return normalized
 
 
+def is_placeholder_contact_row(contact: BusinessContact) -> bool:
+    return (
+        normalize_legacy_contact_name(contact.full_name) is None
+        and normalize_legacy_email(contact.email) is None
+        and normalize_legacy_phone(contact.phone) is None
+    )
+
+
 def append_note(*parts: str | None) -> str | None:
     clean = [part.strip() for part in parts if part and part.strip()]
     return "\n".join(clean) if clean else None
@@ -1378,6 +1386,17 @@ def import_business_core_and_maintenance(
                 f"legacy_visit_source=historico_mantenciones legacy_id={legacy_id}",
             ),
             counters=report["maintenance"]["visits"],
+        )
+
+    removed_placeholder_contacts = 0
+    for contact in tenant_db.query(BusinessContact).all():
+        if is_placeholder_contact_row(contact):
+            tenant_db.delete(contact)
+            removed_placeholder_contacts += 1
+    if removed_placeholder_contacts:
+        tenant_db.flush()
+        report["skipped_notes"].append(
+            f"Se eliminaron {removed_placeholder_contacts} contactos placeholder heredados sin datos reales"
         )
 
     return {
