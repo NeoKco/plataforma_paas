@@ -137,6 +137,7 @@ Alcance:
 - agenda integrada
 - conflictos visibles de programacion
 - trazabilidad de cambios
+- alinear todo el modulo con el [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md) hasta cerrar checklist completa
 
 ## Fase 5. Evidencias y checklist
 
@@ -196,6 +197,18 @@ Alcance:
 - integración con agenda visual: pendiente
 - evidencias y checklist: pendiente
 - importadores legacy: primer corte listo, falta validacion aplicada y endurecimiento
+
+## Checklist de salida del modulo
+
+Antes de considerar `maintenance` como primer corte realmente cerrado, deberia quedar:
+
+- CRUD principal con lectura primero en todas las vistas operativas
+- alta y edicion bajo demanda en modal o vista secundaria
+- resumen operativo real del modulo
+- agenda visual con conflictos
+- evidencias y checklist tecnico
+- smoke E2E propio del modulo
+- documentacion canonica al dia con cambios visibles
 
 Validacion reciente:
 

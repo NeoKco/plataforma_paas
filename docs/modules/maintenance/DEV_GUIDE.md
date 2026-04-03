@@ -2,6 +2,10 @@
 
 Guia de desarrollo para el modulo `maintenance`.
 
+Referencia transversal obligatoria:
+
+- [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md)
+
 ## Decision de naming
 
 Slug tecnico recomendado:
@@ -112,6 +116,26 @@ Fuente frontend principal:
 - los CRUD de `maintenance` deben priorizar lectura primero
 - los formularios de alta o edición no deberían quedar desplegados por defecto
 - `equipment_types`, `installations`, `visits` y `work_orders` ya abren captura en modal bajo demanda
+- cualquier nueva pantalla CRUD del modulo debe seguir el mismo patron y no volver a formularios fijos incrustados salvo que exista una razon operativa fuerte
+
+## Checklist de cumplimiento del modulo
+
+`maintenance` ya cumple hoy:
+
+- slice backend/frontend real
+- migraciones tenant
+- CRUD base operativo
+- lectura principal sin formularios abiertos por defecto
+- modales bajo demanda para alta y edición
+- documentacion canonica del dominio
+
+`maintenance` sigue debiendo:
+
+- agenda visual mas rica
+- evidencias y checklist
+- cierre UX por ficha/orden de trabajo
+- smoke E2E especifico del modulo con sus flujos principales
+- validaciones mas profundas de duplicados y conflictos de programacion
 
 ## Modelo objetivo recomendado en PaaS
 

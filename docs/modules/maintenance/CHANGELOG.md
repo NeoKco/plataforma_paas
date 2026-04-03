@@ -54,6 +54,7 @@
   - `Agenda técnica`
   - `Órdenes de trabajo`
 - los formularios dejan de quedar abiertos por defecto y pasan a modal, priorizando la lectura del catálogo o tabla operativa
+- se alinea la documentacion del modulo con el nuevo [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md), dejando checklist explícita de cumplimiento y pendientes de cierre
 
 ## 2026-04-01
 
