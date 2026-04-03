@@ -1,10 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
+import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 import { BusinessCoreCatalogPage } from "../components/common/BusinessCoreCatalogPage";
+import {
+  createTenantBusinessContact,
+  getTenantBusinessContacts,
+  updateTenantBusinessContact,
+  type TenantBusinessContact,
+  type TenantBusinessContactWriteRequest,
+} from "../services/contactsService";
 import {
   createTenantBusinessOrganization,
   deleteTenantBusinessOrganization,
@@ -15,7 +23,13 @@ import {
   type TenantBusinessOrganizationWriteRequest,
 } from "../services/organizationsService";
 
-function buildDefaultForm(): TenantBusinessOrganizationWriteRequest {
+type OrganizationForm = TenantBusinessOrganizationWriteRequest & {
+  primary_contact_name: string;
+  primary_contact_phone: string;
+  primary_contact_email: string;
+};
+
+function buildDefaultForm(): OrganizationForm {
   return {
     name: "",
     legal_name: null,
@@ -26,6 +40,9 @@ function buildDefaultForm(): TenantBusinessOrganizationWriteRequest {
     notes: null,
     is_active: true,
     sort_order: 100,
+    primary_contact_name: "",
+    primary_contact_phone: "",
+    primary_contact_email: "",
   };
 }
 
@@ -38,12 +55,23 @@ export function BusinessCoreOrganizationsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
+  const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [form, setForm] = useState<TenantBusinessOrganizationWriteRequest>(buildDefaultForm());
+  const [form, setForm] = useState<OrganizationForm>(buildDefaultForm());
+
+  const contactsByOrganizationId = useMemo(() => {
+    const grouped = new Map<number, TenantBusinessContact[]>();
+    contacts.forEach((contact) => {
+      const current = grouped.get(contact.organization_id) ?? [];
+      current.push(contact);
+      grouped.set(contact.organization_id, current);
+    });
+    return grouped;
+  }, [contacts]);
 
   async function loadOrganizations() {
     if (!session?.accessToken) {
@@ -52,10 +80,14 @@ export function BusinessCoreOrganizationsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getTenantBusinessOrganizations(session.accessToken, {
-        excludeClientOrganizations: true,
-      });
-      setOrganizations(response.data);
+      const [organizationsResponse, contactsResponse] = await Promise.all([
+        getTenantBusinessOrganizations(session.accessToken, {
+          excludeClientOrganizations: true,
+        }),
+        getTenantBusinessContacts(session.accessToken),
+      ]);
+      setOrganizations(organizationsResponse.data);
+      setContacts(contactsResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -75,6 +107,10 @@ export function BusinessCoreOrganizationsPage() {
   }
 
   function startEdit(organization: TenantBusinessOrganization) {
+    const primaryContact =
+      contactsByOrganizationId.get(organization.id)?.find((contact) => contact.is_primary) ??
+      contactsByOrganizationId.get(organization.id)?.[0] ??
+      null;
     setEditingId(organization.id);
     setFeedback(null);
     setError(null);
@@ -85,9 +121,12 @@ export function BusinessCoreOrganizationsPage() {
       organization_kind: organization.organization_kind,
       phone: organization.phone,
       email: organization.email,
-      notes: organization.notes,
+      notes: stripLegacyVisibleText(organization.notes),
       is_active: organization.is_active,
       sort_order: organization.sort_order,
+      primary_contact_name: primaryContact?.full_name ?? "",
+      primary_contact_phone: primaryContact?.phone ?? "",
+      primary_contact_email: primaryContact?.email ?? "",
     });
   }
 
@@ -102,7 +141,7 @@ export function BusinessCoreOrganizationsPage() {
       tax_id: normalizeNullable(form.tax_id),
       phone: normalizeNullable(form.phone),
       email: normalizeNullable(form.email),
-      notes: normalizeNullable(form.notes),
+      notes: stripLegacyVisibleText(normalizeNullable(form.notes)),
     };
     setIsSubmitting(true);
     setError(null);
@@ -110,6 +149,32 @@ export function BusinessCoreOrganizationsPage() {
       const response = editingId
         ? await updateTenantBusinessOrganization(session.accessToken, editingId, payload)
         : await createTenantBusinessOrganization(session.accessToken, payload);
+      const organizationId = response.data.id;
+      const currentPrimaryContact =
+        contactsByOrganizationId.get(organizationId)?.find((contact) => contact.is_primary) ??
+        contactsByOrganizationId.get(organizationId)?.[0] ??
+        null;
+      if (normalizeNullable(form.primary_contact_name)) {
+        const contactPayload: TenantBusinessContactWriteRequest = {
+          organization_id: organizationId,
+          full_name: form.primary_contact_name.trim(),
+          email: normalizeNullable(form.primary_contact_email),
+          phone: normalizeNullable(form.primary_contact_phone),
+          role_title: language === "es" ? "Contacto principal" : "Primary contact",
+          is_primary: true,
+          is_active: true,
+          sort_order: 100,
+        };
+        if (currentPrimaryContact) {
+          await updateTenantBusinessContact(
+            session.accessToken,
+            currentPrimaryContact.id,
+            contactPayload
+          );
+        } else {
+          await createTenantBusinessContact(session.accessToken, contactPayload);
+        }
+      }
       setFeedback(response.message);
       startCreate();
       await loadOrganizations();
@@ -198,8 +263,11 @@ export function BusinessCoreOrganizationsPage() {
             { value: "internal", label: language === "es" ? "Interna" : "Internal" },
           ],
         },
-        { key: "phone", labelEs: "Teléfono", labelEn: "Phone" },
-        { key: "email", labelEs: "Email", labelEn: "Email", type: "email" },
+        { key: "phone", labelEs: "Teléfono central", labelEn: "Main phone" },
+        { key: "email", labelEs: "Email central", labelEn: "Main email", type: "email" },
+        { key: "primary_contact_name", labelEs: "Contacto principal", labelEn: "Primary contact" },
+        { key: "primary_contact_phone", labelEs: "Teléfono contacto", labelEn: "Contact phone" },
+        { key: "primary_contact_email", labelEs: "Email contacto", labelEn: "Contact email", type: "email" },
         { key: "is_active", labelEs: "Activa", labelEn: "Active", type: "checkbox" },
         { key: "notes", labelEs: "Notas", labelEn: "Notes", type: "textarea" },
       ]}
@@ -216,6 +284,29 @@ export function BusinessCoreOrganizationsPage() {
               </div>
             </div>
           ),
+        },
+        {
+          key: "contact",
+          headerEs: "Contacto principal",
+          headerEn: "Primary contact",
+          render: (organization, currentLanguage) => {
+            const primaryContact =
+              contactsByOrganizationId.get(organization.id)?.find((contact) => contact.is_primary) ??
+              contactsByOrganizationId.get(organization.id)?.[0] ??
+              null;
+            return (
+              <div>
+                <div className="business-core-cell__title">
+                  {primaryContact?.full_name ||
+                    (currentLanguage === "es" ? "sin contacto" : "no contact")}
+                </div>
+                <div className="business-core-cell__meta">
+                  {[primaryContact?.phone, primaryContact?.email].filter(Boolean).join(" · ") ||
+                    "—"}
+                </div>
+              </div>
+            );
+          },
         },
         {
           key: "kind",

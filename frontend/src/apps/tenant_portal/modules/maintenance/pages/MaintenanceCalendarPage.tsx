@@ -17,6 +17,7 @@ import {
   getTenantMaintenanceWorkOrders,
   type TenantMaintenanceWorkOrder,
 } from "../services/workOrdersService";
+import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
 function buildDefaultForm(): TenantMaintenanceVisitWriteRequest {
   return {
@@ -143,7 +144,7 @@ export function MaintenanceCalendarPage() {
       actual_end_at: item.actual_end_at,
       assigned_tenant_user_id: item.assigned_tenant_user_id,
       assigned_group_label: item.assigned_group_label,
-      notes: item.notes,
+      notes: stripLegacyVisibleText(item.notes),
     });
   }
 
@@ -164,7 +165,7 @@ export function MaintenanceCalendarPage() {
         ? Number(form.assigned_tenant_user_id)
         : null,
       assigned_group_label: normalizeNullable(form.assigned_group_label),
-      notes: normalizeNullable(form.notes),
+      notes: stripLegacyVisibleText(normalizeNullable(form.notes)),
     };
     try {
       const response = editingId

@@ -22,10 +22,12 @@ Estado actual:
 - backend CRUD implementado para `function_profiles`, `work_groups` y `task_types`
 - frontend tenant operativo para las taxonomias de ola 1B
 - la vista principal de `clients` ya se rehizo inspirada en `ieris_app`: busqueda por nombre/contacto/direccion, alta unica desde la esquina superior derecha y ficha consolidada del cliente
+- la vista de `organizations` ya muestra y edita el contacto principal junto con la contraparte operativa, para no obligar a entrar al catalogo global de contactos solo para leer nombre, telefono o mail
 - la ficha del cliente ya conecta con `maintenance` para ver instalaciones y abrir/agendar mantenciones con contexto precargado
 - el `codigo de direccion` queda tratado como dato tecnico interno y no como campo editable de usuario
 - `comuna` queda modelada como dato propio de direccion, separado de `ciudad`, para alinear la captura y la busqueda con el uso real en Chile
 - `reference_notes` se reserva para observaciones humanas, no para arrastrar ids legacy visibles
+- se limpia la importacion visible desde `ieris_app` para que `legacy_*` no contamine notas operativas, catalogos y taxonomias compartidas
 
 Pendientes visibles inmediatos:
 
@@ -34,6 +36,7 @@ Pendientes visibles inmediatos:
 - assets o equipos instalados como dominio compartido
 - importadores desde `ieris_app`
 - integracion real con `maintenance`
+- direccion propia de `organizations` como entidad/modelo de primer nivel o bloque dedicado, sin improvisarla como texto plano en el modal
 
 Estado del importador legacy:
 

@@ -62,6 +62,8 @@ Observacion:
 
 - `organization_kind` no deberia limitarse a `client` o `provider`
 - conviene permitir etiquetas como `client`, `provider`, `partner`, `contractor`
+- la UX de `organizations` deberia incluir lectura y edicion del `contacto principal` sin obligar al usuario a ir al catálogo global de `contacts`
+- la direccion propia de `organizations` no debe improvisarse como nota o texto libre: requiere una ola de modelo posterior para resolver bien empresa/proveedor con direccion editable y visible
 
 ### 2. Clients
 
@@ -140,6 +142,7 @@ Observacion:
 - `sort_order` puede seguir existiendo en el modelo para ordenamiento tecnico, pero la UI normal del tenant no deberia exponerlo mientras no haya una necesidad operativa concreta.
 - `code` en `business_function_profiles`, `business_work_groups` y `business_task_types` debe tratarse como identificador tecnico interno. La UI normal no debe mostrarlo ni permitir editarlo; el backend puede autogenerarlo desde `name`.
 - cualquier marcador `legacy_*` proveniente de importacion debe limpiarse antes de guardar o mostrarse. La descripcion funcional solo debe contener texto humano escrito por el equipo.
+- cuando no sea posible limpiar un marcador legacy en DB porque hoy participa en deduplicacion o reimportacion, al menos debe ocultarse en la lectura/edicion del frontend hasta migrar esa trazabilidad a un canal interno.
 
 ### 5. Contact-Site Links
 

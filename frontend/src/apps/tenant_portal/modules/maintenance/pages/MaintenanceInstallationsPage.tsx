@@ -27,6 +27,7 @@ import {
   getTenantBusinessClients,
   type TenantBusinessClient,
 } from "../../business_core/services/clientsService";
+import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
 function buildDefaultForm(): TenantMaintenanceInstallationWriteRequest {
   return {
@@ -153,7 +154,7 @@ export function MaintenanceInstallationsPage() {
       warranty_until: item.warranty_until,
       installation_status: item.installation_status,
       location_note: item.location_note,
-      technical_notes: item.technical_notes,
+      technical_notes: stripLegacyVisibleText(item.technical_notes),
       is_active: item.is_active,
       sort_order: item.sort_order,
     });
@@ -177,7 +178,7 @@ export function MaintenanceInstallationsPage() {
       warranty_until: normalizeNullable(form.warranty_until),
       installation_status: form.installation_status.trim().toLowerCase() || "active",
       location_note: normalizeNullable(form.location_note),
-      technical_notes: normalizeNullable(form.technical_notes),
+      technical_notes: stripLegacyVisibleText(normalizeNullable(form.technical_notes)),
       is_active: form.is_active,
       sort_order: Number(form.sort_order),
     };

@@ -28,6 +28,7 @@ import {
   getTenantMaintenanceInstallations,
   type TenantMaintenanceInstallation,
 } from "../services/installationsService";
+import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
 function formatDateTime(value: string | null, language: "es" | "en"): string {
   if (!value) {
@@ -286,8 +287,8 @@ export function MaintenanceHistoryPage() {
                     {language === "es" ? "Programada" : "Scheduled"}:{" "}
                     {formatDateTime(item.scheduled_for, language)}
                   </div>
-                  {item.description ? (
-                    <p className="mb-0 mt-3">{item.description}</p>
+                  {stripLegacyVisibleText(item.description) ? (
+                    <p className="mb-0 mt-3">{stripLegacyVisibleText(item.description)}</p>
                   ) : null}
                 </div>
                 <div className="col-12 col-lg-3">
@@ -305,8 +306,8 @@ export function MaintenanceHistoryPage() {
                         <div className="maintenance-history-entry__meta">
                           {formatDateTime(log.changed_at, language)}
                         </div>
-                        {log.note ? (
-                          <div className="maintenance-history-entry__meta">{log.note}</div>
+                        {stripLegacyVisibleText(log.note) ? (
+                          <div className="maintenance-history-entry__meta">{stripLegacyVisibleText(log.note)}</div>
                         ) : null}
                       </div>
                     ))}
@@ -335,8 +336,8 @@ export function MaintenanceHistoryPage() {
                               {visit.assigned_group_label}
                             </div>
                           ) : null}
-                          {visit.notes ? (
-                            <div className="maintenance-history-entry__meta">{visit.notes}</div>
+                          {stripLegacyVisibleText(visit.notes) ? (
+                            <div className="maintenance-history-entry__meta">{stripLegacyVisibleText(visit.notes)}</div>
                           ) : null}
                         </div>
                       ))

@@ -35,6 +35,7 @@ import {
   getTenantBusinessSites,
   type TenantBusinessSite,
 } from "../../business_core/services/sitesService";
+import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
 function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
   return {
@@ -264,11 +265,11 @@ export function MaintenanceWorkOrdersPage() {
       installation_id: item.installation_id,
       external_reference: item.external_reference,
       title: item.title,
-      description: item.description,
+      description: stripLegacyVisibleText(item.description),
       priority: item.priority,
       scheduled_for: item.scheduled_for,
       cancellation_reason: item.cancellation_reason,
-      closure_notes: item.closure_notes,
+      closure_notes: stripLegacyVisibleText(item.closure_notes),
       assigned_tenant_user_id: item.assigned_tenant_user_id,
       maintenance_status: item.maintenance_status,
     });
@@ -286,11 +287,11 @@ export function MaintenanceWorkOrdersPage() {
       installation_id: form.installation_id ? Number(form.installation_id) : null,
       external_reference: normalizeNullable(form.external_reference),
       title: form.title.trim(),
-      description: normalizeNullable(form.description),
+      description: stripLegacyVisibleText(normalizeNullable(form.description)),
       priority: form.priority.trim().toLowerCase() || "normal",
       scheduled_for: normalizeNullable(form.scheduled_for),
       cancellation_reason: normalizeNullable(form.cancellation_reason),
-      closure_notes: normalizeNullable(form.closure_notes),
+      closure_notes: stripLegacyVisibleText(normalizeNullable(form.closure_notes)),
       assigned_tenant_user_id: form.assigned_tenant_user_id
         ? Number(form.assigned_tenant_user_id)
         : null,

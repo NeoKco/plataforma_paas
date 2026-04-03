@@ -14,6 +14,7 @@ import {
   type TenantMaintenanceEquipmentType,
   type TenantMaintenanceEquipmentTypeWriteRequest,
 } from "../services/equipmentTypesService";
+import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
 function buildDefaultForm(): TenantMaintenanceEquipmentTypeWriteRequest {
   return {
@@ -77,7 +78,7 @@ export function MaintenanceEquipmentTypesPage() {
     setForm({
       code: item.code,
       name: item.name,
-      description: item.description,
+      description: stripLegacyVisibleText(item.description),
       is_active: item.is_active,
       sort_order: item.sort_order,
     });
@@ -92,7 +93,7 @@ export function MaintenanceEquipmentTypesPage() {
     const payload: TenantMaintenanceEquipmentTypeWriteRequest = {
       code: normalizeNullable(form.code),
       name: form.name.trim(),
-      description: normalizeNullable(form.description),
+      description: stripLegacyVisibleText(normalizeNullable(form.description)),
       is_active: form.is_active,
       sort_order: Number(form.sort_order),
     };

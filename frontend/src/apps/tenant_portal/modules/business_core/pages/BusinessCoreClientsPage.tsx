@@ -42,6 +42,7 @@ import {
   type TenantBusinessSite,
   type TenantBusinessSiteWriteRequest,
 } from "../services/sitesService";
+import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
 type ClientModalState = {
   mode: "create" | "edit";
@@ -199,7 +200,7 @@ export function BusinessCoreClientsPage() {
         row.organization?.legal_name,
         row.organization?.tax_id,
         row.client.client_code,
-        row.client.commercial_notes,
+        stripLegacyVisibleText(row.client.commercial_notes),
         primaryContact?.full_name,
         primaryContact?.email,
         primaryContact?.phone,
@@ -282,7 +283,7 @@ export function BusinessCoreClientsPage() {
       email: row.organization?.email ?? "",
       clientCode: row.client.client_code ?? "",
       serviceStatus: row.client.service_status,
-      commercialNotes: row.client.commercial_notes ?? "",
+      commercialNotes: stripLegacyVisibleText(row.client.commercial_notes) ?? "",
       primaryContactName: primaryContact?.full_name ?? "",
       primaryContactRole: primaryContact?.role_title ?? "",
       primaryContactPhone: primaryContact?.phone ?? "",

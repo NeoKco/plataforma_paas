@@ -9,9 +9,14 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from app.apps.tenant_modules.business_core.models import (  # noqa: E402
+    BusinessClient,
     BusinessFunctionProfile,
+    BusinessOrganization,
     BusinessTaskType,
     BusinessWorkGroup,
+)
+from app.apps.tenant_modules.maintenance.models import (  # noqa: E402
+    MaintenanceEquipmentType,
 )
 from app.apps.tenant_modules.business_core.services.taxonomy_support import (  # noqa: E402
     strip_legacy_visible_text,
@@ -25,8 +30,8 @@ from app.common.db.control_database import ControlSessionLocal  # noqa: E402
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Limpia metadatos legacy visibles en taxonomias de business-core "
-            "sin tocar los codigos internos."
+            "Limpia metadatos legacy visibles en business-core y catalogos seguros "
+            "sin tocar codigos internos ni trazas de reimportacion."
         )
     )
     parser.add_argument("--tenant-slug", default="empresa-bootstrap")
@@ -48,22 +53,29 @@ def main() -> int:
         control_db.close()
 
     updated = {
+        "organizations": 0,
+        "clients": 0,
         "function_profiles": 0,
         "work_groups": 0,
         "task_types": 0,
+        "equipment_types": 0,
     }
 
     try:
-        for model, key in (
-            (BusinessFunctionProfile, "function_profiles"),
-            (BusinessWorkGroup, "work_groups"),
-            (BusinessTaskType, "task_types"),
+        for model, field_name, key in (
+            (BusinessOrganization, "notes", "organizations"),
+            (BusinessClient, "commercial_notes", "clients"),
+            (BusinessFunctionProfile, "description", "function_profiles"),
+            (BusinessWorkGroup, "description", "work_groups"),
+            (BusinessTaskType, "description", "task_types"),
+            (MaintenanceEquipmentType, "description", "equipment_types"),
         ):
             items = tenant_db.execute(select(model)).scalars().all()
             for item in items:
-                cleaned_description = strip_legacy_visible_text(item.description)
-                if cleaned_description != item.description:
-                    item.description = cleaned_description
+                current_value = getattr(item, field_name)
+                cleaned_value = strip_legacy_visible_text(current_value)
+                if cleaned_value != current_value:
+                    setattr(item, field_name, cleaned_value)
                     updated[key] += 1
 
         if args.apply:

@@ -12,6 +12,9 @@ from app.apps.tenant_modules.business_core.schemas import (
     BusinessOrganizationCreateRequest,
     BusinessOrganizationUpdateRequest,
 )
+from app.apps.tenant_modules.business_core.services.taxonomy_support import (
+    strip_legacy_visible_text,
+)
 
 
 class BusinessOrganizationService:
@@ -135,7 +138,7 @@ class BusinessOrganizationService:
             "organization_kind": payload.organization_kind.strip().lower(),
             "phone": payload.phone.strip() if payload.phone and payload.phone.strip() else None,
             "email": payload.email.strip() if payload.email and payload.email.strip() else None,
-            "notes": payload.notes.strip() if payload.notes and payload.notes.strip() else None,
+            "notes": strip_legacy_visible_text(payload.notes),
             "is_active": payload.is_active,
             "sort_order": payload.sort_order,
         }

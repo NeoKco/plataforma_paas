@@ -43,6 +43,7 @@ import {
   getTenantMaintenanceWorkOrders,
   type TenantMaintenanceWorkOrder,
 } from "../../maintenance/services/workOrdersService";
+import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
 function buildGoogleMapsUrl(site: TenantBusinessSite): string | null {
   const query = [site.address_line, site.commune, site.city, site.region, site.country_code || "Chile"]
@@ -481,10 +482,10 @@ export function BusinessCoreClientDetailPage() {
               <span>{primaryContact?.email || organization.email || "—"}</span>
             </div>
           </div>
-          {client.commercial_notes ? (
+          {stripLegacyVisibleText(client.commercial_notes) ? (
             <div className="business-core-detail-note">
               <strong>{language === "es" ? "Notas" : "Notes"}:</strong>{" "}
-              {client.commercial_notes}
+              {stripLegacyVisibleText(client.commercial_notes)}
             </div>
           ) : null}
         </PanelCard>

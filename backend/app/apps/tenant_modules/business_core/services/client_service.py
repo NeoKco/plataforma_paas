@@ -13,6 +13,9 @@ from app.apps.tenant_modules.business_core.schemas import (
     BusinessClientCreateRequest,
     BusinessClientUpdateRequest,
 )
+from app.apps.tenant_modules.business_core.services.taxonomy_support import (
+    strip_legacy_visible_text,
+)
 
 
 class BusinessClientService:
@@ -116,9 +119,7 @@ class BusinessClientService:
             ),
             "service_status": payload.service_status.strip().lower(),
             "commercial_notes": (
-                payload.commercial_notes.strip()
-                if payload.commercial_notes and payload.commercial_notes.strip()
-                else None
+                strip_legacy_visible_text(payload.commercial_notes)
             ),
             "is_active": payload.is_active,
             "sort_order": payload.sort_order,

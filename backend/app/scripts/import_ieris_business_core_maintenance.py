@@ -856,11 +856,7 @@ def import_business_core_and_maintenance(
             organization_kind=map_legacy_organization_kind(row.get("tipo")),
             phone=normalize_text(row.get("fono_contacto_1")),
             email=normalize_text(row.get("mail")) or normalize_text(row.get("mail_contacto_1")),
-            notes=append_note(
-                normalize_text(row.get("descripcion")),
-                f"legacy_source=empresa legacy_id={company_id}",
-                "legacy_es_predeterminada=true" if row.get("es_predeterminada") else None,
-            ),
+            notes=strip_legacy_visible_text(normalize_text(row.get("descripcion"))),
             counters=report["business_core"]["organizations"],
         )
         organization_by_legacy_company_id[company_id] = org
@@ -904,18 +900,14 @@ def import_business_core_and_maintenance(
         organization = get_or_create_organization(
             tenant_db,
             name=client_name,
-            legal_name=client_name,
+            legal_name=normalize_text(row.get("organizacion")) or client_name,
             tax_id=normalize_text(row.get("rut")),
             organization_kind="client",
             phone=normalize_text(row.get("fono_contacto_1")),
             email=normalize_text(row.get("mail_contacto_1")),
             notes=append_note(
                 normalize_text(row.get("observaciones")),
-                normalize_text(row.get("giro")),
                 normalize_text(row.get("motivo_baja")),
-                normalize_text(row.get("organizacion"))
-                and f"legacy_organizacion_text={normalize_text(row.get('organizacion'))}",
-                f"legacy_source=clientes legacy_id={legacy_client_id}",
             ),
             counters=report["business_core"]["organizations"],
         )
@@ -927,8 +919,8 @@ def import_business_core_and_maintenance(
             service_status="active" if to_bool_from_legacy_status(row.get("estado")) else "inactive",
             commercial_notes=append_note(
                 normalize_text(row.get("tipo_cliente"))
-                and f"legacy_tipo_cliente={normalize_text(row.get('tipo_cliente'))}",
-                normalize_text(row.get("giro")) and f"legacy_giro={normalize_text(row.get('giro'))}",
+                and f"Tipo de cliente: {normalize_text(row.get('tipo_cliente'))}",
+                normalize_text(row.get("giro")) and f"Giro: {normalize_text(row.get('giro'))}",
                 normalize_text(row.get("observaciones")),
             ),
             is_active=to_bool_from_legacy_status(row.get("estado")),
@@ -1040,11 +1032,7 @@ def import_business_core_and_maintenance(
             tenant_db,
             code=f"LEGACY-EQTYPE-{legacy_id}",
             name=type_name,
-            description=append_note(
-                normalize_text(row.get("descripcion")),
-                row.get("es_por_defecto") and "legacy_default=true",
-                f"legacy_id={legacy_id}",
-            ),
+            description=strip_legacy_visible_text(normalize_text(row.get("descripcion"))),
             counters=report["maintenance"]["equipment_types"],
         )
         equipment_type_by_legacy_id[legacy_id] = equipment_type
@@ -1128,9 +1116,8 @@ def import_business_core_and_maintenance(
             normalize_text(row.get("descripcion")),
             normalize_text(row.get("observaciones")),
             normalize_text(row.get("estado_del_equipo"))
-            and f"legacy_estado_equipo={normalize_text(row.get('estado_del_equipo'))}",
-            assignment_note,
-            f"legacy_source=mantenciones legacy_id={legacy_id}",
+            and f"Estado del equipo: {normalize_text(row.get('estado_del_equipo'))}",
+            assigned_group_label and f"Grupo asignado: {assigned_group_label}",
         )
         work_order, _created = get_or_create_work_order(
             tenant_db,
@@ -1211,14 +1198,13 @@ def import_business_core_and_maintenance(
                 normalize_text(row.get("descripcion")),
                 normalize_text(row.get("observaciones")),
                 normalize_text(row.get("cliente_direccion"))
-                and f"legacy_cliente_direccion={normalize_text(row.get('cliente_direccion'))}",
+                and f"Dirección legacy: {normalize_text(row.get('cliente_direccion'))}",
                 normalize_text(row.get("cliente_contacto"))
-                and f"legacy_cliente_contacto={normalize_text(row.get('cliente_contacto'))}",
+                and f"Contacto legacy: {normalize_text(row.get('cliente_contacto'))}",
                 normalize_text(row.get("cliente_telefono"))
-                and f"legacy_cliente_telefono={normalize_text(row.get('cliente_telefono'))}",
+                and f"Teléfono legacy: {normalize_text(row.get('cliente_telefono'))}",
                 normalize_text(row.get("estado_del_equipo"))
-                and f"legacy_estado_equipo={normalize_text(row.get('estado_del_equipo'))}",
-                f"legacy_source=historico_mantenciones legacy_id={legacy_id}",
+                and f"Estado del equipo: {normalize_text(row.get('estado_del_equipo'))}",
             ),
             maintenance_status="completed",
             scheduled_for=completed_at,

@@ -31,6 +31,8 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - `Clientes` muestra la cartera cliente del tenant.
 - una misma identidad base puede existir como `organization`, pero la vista `Empresas` no debe usarse para revisar la cartera comercial completa.
 - por defecto, la pantalla `Empresas` excluye las organizaciones ya usadas como clientes para evitar mezclar ambas lecturas.
+- en `Empresas`, la tabla operativa debe mostrar tambien el `contacto principal` con telefono y mail, para permitir lectura rapida sin abrir otros catalogos.
+- el modal de `Empresas` debe permitir editar al menos el contacto principal junto con la contraparte, porque en operacion diaria esa lectura suele ir unida.
 - la lectura principal del cliente deberia hacerse desde su ficha, no desde catalogos sueltos.
 - `Direcciones` es el nombre visible para la entidad tecnica `site`.
 - cada ficha de cliente debe consolidar identidad, contactos y direcciones, incluyendo acceso a Google Maps cuando exista direccion usable.
@@ -47,6 +49,8 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - el campo `Orden` (`sort_order`) no deberia mostrarse en la captura normal del usuario; debe quedar interno con valor por defecto mientras no exista una necesidad real de reordenamiento manual.
 - en perfiles funcionales, grupos y tipos de tarea, `Código` tambien debe quedar interno; el usuario no deberia verlo ni editarlo desde la UI normal.
 - las descripciones visibles de taxonomias no deben arrastrar marcadores `legacy_*`; si el dato no fue escrito por el usuario, no debe mostrarse en captura ni lectura.
+- lo mismo aplica para `Empresas`, `Clientes` y catálogos visibles de `Maintenance`: la operacion no debe mostrar marcadores `legacy_*` en notas, descripciones ni textos de apoyo.
+- la direccion propia de una empresa o proveedor sigue siendo una necesidad real, pero conviene resolverla como parte del modelo y no como un campo suelto pegado al modal. Hasta que exista esa ola, el foco de `Empresas` debe ser identidad + contacto principal.
 
 Eso genera:
 

@@ -77,6 +77,7 @@ Pendiente inmediato dentro de esta fase:
 - reemplazar selects y catálogos ad hoc de `maintenance` por entidades de `business-core`
 - amarrar órdenes y visitas a `sites`, `work_groups`, `function_profiles` y `task_types`
 - definir los primeros contratos frontend/backend de integración
+- abrir una ola de `organization addresses` si `Empresas` necesita capturar direccion propia de proveedor/partner sin mezclarla con `sites` de clientes
 
 ## Fase 4. Assets y responsables
 

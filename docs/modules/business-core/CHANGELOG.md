@@ -18,6 +18,9 @@
 - Los modales normales de `business-core` dejan de exponer `Orden = 100`; `sort_order` queda interno con default y fuera de la captura común.
 - Se corrige la UX de taxonomias compartidas para que `Código` quede interno y no editable por el usuario normal en perfiles funcionales, grupos y tipos de tarea.
 - Se limpia la lectura de descripciones para ocultar y no volver a importar metadatos `legacy_*` visibles en taxonomias compartidas.
+- Se corrige `Empresas` para mostrar y editar tambien el contacto principal desde la misma pantalla, incluyendo nombre, teléfono y mail visibles en el catálogo activo.
+- Se sanea el importador y la lectura visible para que notas de `Empresas`, `Clientes` y catálogos seguros no vuelvan a exponer marcadores `legacy_*`.
+- Se deja documentado que la dirección propia de `Empresas` requiere una ola de modelo dedicada y no debe improvisarse como texto suelto en el modal actual.
 
 ## 2026-04-02
 
