@@ -115,6 +115,7 @@ export function TenantUsersPage() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("operator");
   const [isActive, setIsActive] = useState(true);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const users = usersResponse?.data || [];
 
@@ -187,6 +188,7 @@ export function TenantUsersPage() {
     setPassword("");
     setRole("operator");
     setIsActive(true);
+    setIsCreateOpen(false);
   }
 
   function handleCreateUser(event: FormEvent<HTMLFormElement>) {
@@ -233,6 +235,13 @@ export function TenantUsersPage() {
         }
         actions={
           <AppToolbar compact>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => setIsCreateOpen(true)}
+            >
+              {language === "es" ? "Nuevo usuario" : "New user"}
+            </button>
             <button className="btn btn-outline-secondary" type="button" onClick={handleHeaderReload}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
@@ -274,78 +283,105 @@ export function TenantUsersPage() {
         />
       ) : null}
 
-      <div className="tenant-portal-split tenant-portal-split--users">
-        <PanelCard
-          icon="users"
-          title={language === "es" ? "Crear usuario" : "Create user"}
-          subtitle={
-            language === "es"
-              ? "Completa los datos de acceso inicial para una nueva cuenta."
-              : "Fill in the initial access data for a new account."
-          }
+      {isCreateOpen ? (
+        <div
+          className="tenant-crud-modal-backdrop"
+          role="presentation"
+          onClick={resetCreateForm}
         >
-          <AppForm onSubmit={handleCreateUser}>
-            <AppFormField label={language === "es" ? "Nombre completo" : "Full name"}>
-              <input
-                className="form-control"
-                value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
-                placeholder={language === "es" ? "Ej: María Pérez" : "Example: Maria Perez"}
-              />
-            </AppFormField>
-            <AppFormField label="Email">
-              <input
-                className="form-control"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder={language === "es" ? "Ej: maria@empresa-demo.local" : "Example: maria@empresa-demo.local"}
-              />
-            </AppFormField>
-            <AppFormField label={language === "es" ? "Contraseña" : "Password"}>
-              <input
-                className="form-control"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder={language === "es" ? "Define una contraseña inicial" : "Define an initial password"}
-              />
-            </AppFormField>
-            <AppFormField label={language === "es" ? "Rol" : "Role"}>
-                <select
-                  className="form-select"
-                  value={role}
-                  onChange={(event) => setRole(event.target.value)}
-                >
-                  {ROLE_OPTIONS.map((value) => (
-                    <option key={value} value={value}>
-                      {displayUserRole(value, language)}
-                    </option>
-                  ))}
-                </select>
-            </AppFormField>
-            <AppFormField label={language === "es" ? "Estado inicial" : "Initial status"}>
-                <select
-                  className="form-select"
-                  value={isActive ? "active" : "inactive"}
-                  onChange={(event) => setIsActive(event.target.value === "active")}
-                >
-                  <option value="active">{language === "es" ? "activo" : "active"}</option>
-                  <option value="inactive">{language === "es" ? "inactivo" : "inactive"}</option>
-                </select>
-            </AppFormField>
-            <AppFormActions>
-              <button
-                className="btn btn-primary"
-                type="submit"
-                disabled={isActionSubmitting}
-              >
-                {language === "es" ? "Crear usuario" : "Create user"}
-              </button>
-            </AppFormActions>
-          </AppForm>
-        </PanelCard>
+          <div
+            className="tenant-crud-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={language === "es" ? "Crear usuario del tenant" : "Create tenant user"}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="tenant-crud-modal__eyebrow">
+              {language === "es" ? "Alta bajo demanda" : "On-demand creation"}
+            </div>
+            <PanelCard
+              icon="users"
+              title={language === "es" ? "Crear usuario" : "Create user"}
+              subtitle={
+                language === "es"
+                  ? "Completa los datos de acceso inicial para una nueva cuenta."
+                  : "Fill in the initial access data for a new account."
+              }
+            >
+              <AppForm onSubmit={handleCreateUser}>
+                <AppFormField label={language === "es" ? "Nombre completo" : "Full name"}>
+                  <input
+                    className="form-control"
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                    placeholder={language === "es" ? "Ej: María Pérez" : "Example: Maria Perez"}
+                  />
+                </AppFormField>
+                <AppFormField label="Email">
+                  <input
+                    className="form-control"
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder={language === "es" ? "Ej: maria@empresa-demo.local" : "Example: maria@empresa-demo.local"}
+                  />
+                </AppFormField>
+                <AppFormField label={language === "es" ? "Contraseña" : "Password"}>
+                  <input
+                    className="form-control"
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder={language === "es" ? "Define una contraseña inicial" : "Define an initial password"}
+                  />
+                </AppFormField>
+                <AppFormField label={language === "es" ? "Rol" : "Role"}>
+                  <select
+                    className="form-select"
+                    value={role}
+                    onChange={(event) => setRole(event.target.value)}
+                  >
+                    {ROLE_OPTIONS.map((value) => (
+                      <option key={value} value={value}>
+                        {displayUserRole(value, language)}
+                      </option>
+                    ))}
+                  </select>
+                </AppFormField>
+                <AppFormField label={language === "es" ? "Estado inicial" : "Initial status"}>
+                  <select
+                    className="form-select"
+                    value={isActive ? "active" : "inactive"}
+                    onChange={(event) => setIsActive(event.target.value === "active")}
+                  >
+                    <option value="active">{language === "es" ? "activo" : "active"}</option>
+                    <option value="inactive">{language === "es" ? "inactivo" : "inactive"}</option>
+                  </select>
+                </AppFormField>
+                <AppFormActions>
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    onClick={resetCreateForm}
+                    disabled={isActionSubmitting}
+                  >
+                    {language === "es" ? "Cancelar" : "Cancel"}
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    type="submit"
+                    disabled={isActionSubmitting}
+                  >
+                    {language === "es" ? "Crear usuario" : "Create user"}
+                  </button>
+                </AppFormActions>
+              </AppForm>
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
 
+      <div className="tenant-users-page__context">
         <PanelCard
           icon="settings"
           title={language === "es" ? "Operador actual" : "Current operator"}

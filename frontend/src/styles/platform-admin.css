@@ -838,6 +838,37 @@ code {
   color: var(--color-danger);
 }
 
+.tenant-crud-modal-backdrop {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.36);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1.5rem;
+  position: fixed;
+  z-index: 1200;
+}
+
+.tenant-crud-modal {
+  max-height: calc(100vh - 3rem);
+  max-width: min(42rem, calc(100vw - 3rem));
+  overflow: auto;
+  width: 100%;
+}
+
+.tenant-crud-modal__eyebrow {
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.65rem;
+  text-transform: uppercase;
+}
+
+.tenant-users-page__context {
+  max-width: 36rem;
+}
+
 .app-toolbar {
   align-items: center;
   display: flex;
