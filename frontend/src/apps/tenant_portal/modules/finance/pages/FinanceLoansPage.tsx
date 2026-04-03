@@ -693,226 +693,282 @@ export function FinanceLoansPage() {
               }
             >
               <form className="d-grid gap-3" onSubmit={handleSubmit}>
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Nombre" : "Name"}</label>
-                <input
-                  className="form-control"
-                  value={formState.name}
-                  onChange={(event) => setFormState((current) => ({ ...current, name: event.target.value }))}
-                  placeholder={
-                    language === "es"
-                      ? "Ej: crédito vehículo"
-                      : "Ex: vehicle loan"
-                  }
-                />
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
-                <select
-                  className="form-select"
-                  value={formState.loanType}
-                  onChange={(event) => setFormState((current) => ({ ...current, loanType: event.target.value }))}
-                >
-                  <option value="borrowed">{language === "es" ? "Recibido" : "Borrowed"}</option>
-                  <option value="lent">{language === "es" ? "Prestado" : "Lent"}</option>
-                </select>
-              </div>
-            </div>
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">{language === "es" ? "Nombre" : "Name"}</label>
+                    <input
+                      className="form-control"
+                      value={formState.name}
+                      onChange={(event) =>
+                        setFormState((current) => ({ ...current, name: event.target.value }))
+                      }
+                      placeholder={language === "es" ? "Ej: crédito vehículo" : "Ex: vehicle loan"}
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
+                    <select
+                      className="form-select"
+                      value={formState.loanType}
+                      onChange={(event) =>
+                        setFormState((current) => ({ ...current, loanType: event.target.value }))
+                      }
+                    >
+                      <option value="borrowed">{language === "es" ? "Recibido" : "Borrowed"}</option>
+                      <option value="lent">{language === "es" ? "Prestado" : "Lent"}</option>
+                    </select>
+                  </div>
+                </div>
 
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Contraparte" : "Counterparty"}</label>
-                <input
-                  className="form-control"
-                  value={formState.counterpartyName}
-                  onChange={(event) =>
-                    setFormState((current) => ({ ...current, counterpartyName: event.target.value }))
-                  }
-                  placeholder={language === "es" ? "Ej: Banco Sur" : "Ex: South Bank"}
-                />
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label>
-                <select
-                  className="form-select"
-                  value={formState.currencyId}
-                  onChange={(event) => setFormState((current) => ({ ...current, currencyId: event.target.value }))}
-                >
-                  <option value="">{language === "es" ? "Selecciona una moneda" : "Select a currency"}</option>
-                  {activeCurrencies.map((currency) => (
-                    <option key={currency.id} value={currency.id}>
-                      {currency.code} · {currency.name}
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Contraparte" : "Counterparty"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={formState.counterpartyName}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          counterpartyName: event.target.value,
+                        }))
+                      }
+                      placeholder={language === "es" ? "Ej: Banco Sur" : "Ex: South Bank"}
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label>
+                    <select
+                      className="form-select"
+                      value={formState.currencyId}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          currencyId: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">
+                        {language === "es" ? "Selecciona una moneda" : "Select a currency"}
+                      </option>
+                      {activeCurrencies.map((currency) => (
+                        <option key={currency.id} value={currency.id}>
+                          {currency.code} · {currency.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="form-label">
+                    {language === "es" ? "Cuenta origen" : "Source account"}
+                  </label>
+                  <select
+                    className="form-select"
+                    value={formState.accountId}
+                    onChange={(event) =>
+                      setFormState((current) => ({ ...current, accountId: event.target.value }))
+                    }
+                  >
+                    <option value="">
+                      {language === "es"
+                        ? "Sin cuenta fija; se pedirá al operar cuotas"
+                        : "No fixed account; it will be requested when operating installments"}
                     </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+                    {availableAccounts.map((account) => (
+                      <option key={account.id} value={account.id}>
+                        {buildAccountOptionLabel(account)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            <div>
-              <label className="form-label">
-                {language === "es" ? "Cuenta origen" : "Source account"}
-              </label>
-              <select
-                className="form-select"
-                value={formState.accountId}
-                onChange={(event) =>
-                  setFormState((current) => ({ ...current, accountId: event.target.value }))
-                }
-              >
-                <option value="">
-                  {language === "es"
-                    ? "Sin cuenta fija; se pedirá al operar cuotas"
-                    : "No fixed account; it will be requested when operating installments"}
-                </option>
-                {availableAccounts.map((account) => (
-                  <option key={account.id} value={account.id}>
-                    {buildAccountOptionLabel(account)}
-                  </option>
-                ))}
-              </select>
-            </div>
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Capital inicial" : "Opening principal"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formState.principalAmount}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          principalAmount: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Saldo pendiente" : "Outstanding balance"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formState.currentBalance}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          currentBalance: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
 
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Capital inicial" : "Opening principal"}</label>
-                <input
-                  className="form-control"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formState.principalAmount}
-                  onChange={(event) => setFormState((current) => ({ ...current, principalAmount: event.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Saldo pendiente" : "Outstanding balance"}</label>
-                <input
-                  className="form-control"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formState.currentBalance}
-                  onChange={(event) => setFormState((current) => ({ ...current, currentBalance: event.target.value }))}
-                />
-              </div>
-            </div>
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Tasa interés %" : "Interest rate %"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formState.interestRate}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          interestRate: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Cuotas" : "Installments"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={formState.installmentsCount}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          installmentsCount: event.target.value,
+                        }))
+                      }
+                      placeholder={language === "es" ? "Ej: 12" : "Ex: 12"}
+                    />
+                  </div>
+                </div>
 
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Tasa interés %" : "Interest rate %"}</label>
-                <input
-                  className="form-control"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formState.interestRate}
-                  onChange={(event) => setFormState((current) => ({ ...current, interestRate: event.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Cuotas" : "Installments"}</label>
-                <input
-                  className="form-control"
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={formState.installmentsCount}
-                  onChange={(event) =>
-                    setFormState((current) => ({ ...current, installmentsCount: event.target.value }))
-                  }
-                  placeholder={language === "es" ? "Ej: 12" : "Ex: 12"}
-                />
-              </div>
-            </div>
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Frecuencia" : "Frequency"}
+                    </label>
+                    <select
+                      className="form-select"
+                      value={formState.paymentFrequency}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          paymentFrequency: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="monthly">{language === "es" ? "Mensual" : "Monthly"}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">{language === "es" ? "Activo" : "Active"}</label>
+                    <select
+                      className="form-select"
+                      value={formState.isActive ? "true" : "false"}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          isActive: event.target.value === "true",
+                        }))
+                      }
+                    >
+                      <option value="true">{language === "es" ? "Sí" : "Yes"}</option>
+                      <option value="false">No</option>
+                    </select>
+                  </div>
+                </div>
 
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Frecuencia" : "Frequency"}</label>
-                <select
-                  className="form-select"
-                  value={formState.paymentFrequency}
-                  onChange={(event) =>
-                    setFormState((current) => ({ ...current, paymentFrequency: event.target.value }))
-                  }
-                >
-                  <option value="monthly">{language === "es" ? "Mensual" : "Monthly"}</option>
-                </select>
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Activo" : "Active"}</label>
-                <select
-                  className="form-select"
-                  value={formState.isActive ? "true" : "false"}
-                  onChange={(event) =>
-                    setFormState((current) => ({ ...current, isActive: event.target.value === "true" }))
-                  }
-                >
-                  <option value="true">{language === "es" ? "Sí" : "Yes"}</option>
-                  <option value="false">No</option>
-                </select>
-              </div>
-            </div>
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">{language === "es" ? "Inicio" : "Start date"}</label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      value={formState.startDate}
+                      onChange={(event) =>
+                        setFormState((current) => ({ ...current, startDate: event.target.value }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">{language === "es" ? "Vencimiento" : "Due date"}</label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      value={formState.dueDate}
+                      onChange={(event) =>
+                        setFormState((current) => ({ ...current, dueDate: event.target.value }))
+                      }
+                    />
+                  </div>
+                </div>
 
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Inicio" : "Start date"}</label>
-                <input
-                  className="form-control"
-                  type="date"
-                  value={formState.startDate}
-                  onChange={(event) => setFormState((current) => ({ ...current, startDate: event.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Vencimiento" : "Due date"}</label>
-                <input
-                  className="form-control"
-                  type="date"
-                  value={formState.dueDate}
-                  onChange={(event) => setFormState((current) => ({ ...current, dueDate: event.target.value }))}
-                />
-              </div>
-            </div>
+                <div>
+                  <label className="form-label">{language === "es" ? "Nota" : "Note"}</label>
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    value={formState.note}
+                    onChange={(event) =>
+                      setFormState((current) => ({ ...current, note: event.target.value }))
+                    }
+                    placeholder={
+                      language === "es"
+                        ? "Ej: renegociado en marzo o con cuota variable"
+                        : "Ex: renegotiated in March or with variable installment"
+                    }
+                  />
+                </div>
 
-            <div>
-              <label className="form-label">{language === "es" ? "Nota" : "Note"}</label>
-              <textarea
-                className="form-control"
-                rows={3}
-                value={formState.note}
-                onChange={(event) => setFormState((current) => ({ ...current, note: event.target.value }))}
-                placeholder={
-                  language === "es"
-                    ? "Ej: renegociado en marzo o con cuota variable"
-                    : "Ex: renegotiated in March or with variable installment"
-                }
-              />
-            </div>
-
-            <AppToolbar compact>
-              <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-                {editingLoanId
-                  ? language === "es"
-                    ? "Guardar cambios"
-                    : "Save changes"
-                  : language === "es"
-                    ? "Registrar préstamo"
-                    : "Create loan"}
-              </button>
-              {editingLoanId ? (
-                <button
-                  className="btn btn-outline-secondary"
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={closeFormModal}
-                >
-                  {language === "es" ? "Cancelar edición" : "Cancel editing"}
-                </button>
-              ) : null}
-            </AppToolbar>
-          </form>
-        </PanelCard>
+                <AppToolbar compact>
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
+                    {editingLoanId
+                      ? language === "es"
+                        ? "Guardar cambios"
+                        : "Save changes"
+                      : language === "es"
+                        ? "Registrar préstamo"
+                        : "Create loan"}
+                  </button>
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={closeFormModal}
+                  >
+                    {editingLoanId
+                      ? language === "es"
+                        ? "Cancelar edición"
+                        : "Cancel editing"
+                      : language === "es"
+                        ? "Cancelar"
+                        : "Cancel"}
+                  </button>
+                </AppToolbar>
+              </form>
+            </PanelCard>
           </div>
         </div>
       ) : null}
@@ -925,55 +981,54 @@ export function FinanceLoansPage() {
             : "Filter by type or status to separate borrowed debt, lent debt, and settled portfolio."
         }
       >
-          <div className="d-grid gap-3">
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
-                <select
-                  className="form-select"
-                  value={filterLoanType}
-                  onChange={(event) => setFilterLoanType(event.target.value)}
-                >
-                  <option value="">{language === "es" ? "Todos" : "All"}</option>
-                  <option value="borrowed">{language === "es" ? "Recibidos" : "Borrowed"}</option>
-                  <option value="lent">{language === "es" ? "Prestados" : "Lent"}</option>
-                </select>
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Estado" : "Status"}</label>
-                <select
-                  className="form-select"
-                  value={filterLoanStatus}
-                  onChange={(event) => setFilterLoanStatus(event.target.value)}
-                >
-                  <option value="">{language === "es" ? "Todos" : "All"}</option>
-                  <option value="open">{language === "es" ? "Abiertos" : "Open"}</option>
-                  <option value="settled">{language === "es" ? "Liquidados" : "Settled"}</option>
-                  <option value="inactive">{language === "es" ? "Inactivos" : "Inactive"}</option>
-                </select>
-              </div>
+        <div className="d-grid gap-3">
+          <div className="tenant-inline-form-grid">
+            <div>
+              <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
+              <select
+                className="form-select"
+                value={filterLoanType}
+                onChange={(event) => setFilterLoanType(event.target.value)}
+              >
+                <option value="">{language === "es" ? "Todos" : "All"}</option>
+                <option value="borrowed">{language === "es" ? "Recibidos" : "Borrowed"}</option>
+                <option value="lent">{language === "es" ? "Prestados" : "Lent"}</option>
+              </select>
             </div>
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="finance-loans-include-inactive"
-                checked={includeInactive}
-                onChange={(event) => setIncludeInactive(event.target.checked)}
-              />
-              <label className="form-check-label" htmlFor="finance-loans-include-inactive">
-                {language === "es" ? "Incluir inactivos" : "Include inactive"}
-              </label>
-            </div>
-            <div className="tenant-detail-grid">
-              <DetailField label={language === "es" ? "Capital visible" : "Visible principal"} value={formatMoney(summary?.total_principal || 0, baseCurrencyCode, language)} />
-              <DetailField label={language === "es" ? "Prestado" : "Lent"} value={formatMoney(summary?.lent_balance || 0, baseCurrencyCode, language)} />
-              <DetailField label={language === "es" ? "Recibido" : "Borrowed"} value={formatMoney(summary?.borrowed_balance || 0, baseCurrencyCode, language)} />
-              <DetailField label={language === "es" ? "Ítems" : "Items"} value={summary?.total_items || 0} />
+            <div>
+              <label className="form-label">{language === "es" ? "Estado" : "Status"}</label>
+              <select
+                className="form-select"
+                value={filterLoanStatus}
+                onChange={(event) => setFilterLoanStatus(event.target.value)}
+              >
+                <option value="">{language === "es" ? "Todos" : "All"}</option>
+                <option value="open">{language === "es" ? "Abiertos" : "Open"}</option>
+                <option value="settled">{language === "es" ? "Liquidados" : "Settled"}</option>
+                <option value="inactive">{language === "es" ? "Inactivos" : "Inactive"}</option>
+              </select>
             </div>
           </div>
-        </PanelCard>
-      </div>
+          <div className="form-check">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              id="finance-loans-include-inactive"
+              checked={includeInactive}
+              onChange={(event) => setIncludeInactive(event.target.checked)}
+            />
+            <label className="form-check-label" htmlFor="finance-loans-include-inactive">
+              {language === "es" ? "Incluir inactivos" : "Include inactive"}
+            </label>
+          </div>
+          <div className="tenant-detail-grid">
+            <DetailField label={language === "es" ? "Capital visible" : "Visible principal"} value={formatMoney(summary?.total_principal || 0, baseCurrencyCode, language)} />
+            <DetailField label={language === "es" ? "Prestado" : "Lent"} value={formatMoney(summary?.lent_balance || 0, baseCurrencyCode, language)} />
+            <DetailField label={language === "es" ? "Recibido" : "Borrowed"} value={formatMoney(summary?.borrowed_balance || 0, baseCurrencyCode, language)} />
+            <DetailField label={language === "es" ? "Ítems" : "Items"} value={summary?.total_items || 0} />
+          </div>
+        </div>
+      </PanelCard>
 
       <PanelCard
         title={language === "es" ? "Cartera de préstamos" : "Loan portfolio"}

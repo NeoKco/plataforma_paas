@@ -945,6 +945,383 @@ export function FinanceTransactionsPage() {
                 </div>
               ) : null}
               <form className="d-grid gap-3" onSubmit={handleCreateTransaction}>
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
+                    <select
+                      className="form-select"
+                      value={formState.transactionType}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          transactionType: event.target.value,
+                          targetAccountId:
+                            event.target.value === "transfer"
+                              ? current.targetAccountId
+                              : "",
+                          categoryId:
+                            event.target.value === "transfer" ? "" : current.categoryId,
+                          tagIds: event.target.value === "transfer" ? [] : current.tagIds,
+                        }))
+                      }
+                    >
+                      <option value="income">{language === "es" ? "Ingreso" : "Income"}</option>
+                      <option value="expense">{language === "es" ? "Egreso" : "Expense"}</option>
+                      <option value="transfer">{language === "es" ? "Transferencia" : "Transfer"}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Cuenta origen" : "Source account"}
+                    </label>
+                    <select
+                      className="form-select"
+                      value={formState.accountId}
+                      onChange={(event) =>
+                        setFormState((current) => ({ ...current, accountId: event.target.value }))
+                      }
+                    >
+                      <option value="">
+                        {language === "es" ? "Selecciona una cuenta" : "Select an account"}
+                      </option>
+                      {accounts.map((account) => (
+                        <option key={account.id} value={account.id}>
+                          {account.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="tenant-inline-form-grid">
+                  {formState.transactionType === "transfer" ? (
+                    <div>
+                      <label className="form-label">
+                        {language === "es" ? "Cuenta destino" : "Target account"}
+                      </label>
+                      <select
+                        className="form-select"
+                        value={formState.targetAccountId}
+                        onChange={(event) =>
+                          setFormState((current) => ({
+                            ...current,
+                            targetAccountId: event.target.value,
+                          }))
+                        }
+                      >
+                        <option value="">
+                          {language === "es"
+                            ? "Selecciona una cuenta destino"
+                            : "Select a target account"}
+                        </option>
+                        {accounts
+                          .filter((account) => String(account.id) !== formState.accountId)
+                          .map((account) => (
+                            <option key={account.id} value={account.id}>
+                              {account.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="form-label">{language === "es" ? "Categoría" : "Category"}</label>
+                      <select
+                        className="form-select"
+                        value={formState.categoryId}
+                        onChange={(event) =>
+                          setFormState((current) => ({ ...current, categoryId: event.target.value }))
+                        }
+                      >
+                        <option value="">{language === "es" ? "Sin categoría" : "No category"}</option>
+                        {filteredCategories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="form-text">
+                        {filteredCategories.length > 0
+                          ? language === "es"
+                            ? `Solo se muestran categorías de tipo ${
+                                formState.transactionType === "income" ? "ingreso" : "egreso"
+                              }.`
+                            : `Only ${formState.transactionType === "income" ? "income" : "expense"} categories are shown.`
+                          : language === "es"
+                            ? `No hay categorías activas de tipo ${
+                                formState.transactionType === "income" ? "ingreso" : "egreso"
+                              }.`
+                            : `There are no active ${
+                                formState.transactionType === "income" ? "income" : "expense"
+                              } categories.`}
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label>
+                    <select
+                      className="form-select"
+                      value={formState.currencyId}
+                      onChange={(event) =>
+                        setFormState((current) => ({ ...current, currencyId: event.target.value }))
+                      }
+                    >
+                      <option value="">
+                        {language === "es" ? "Selecciona una moneda" : "Select a currency"}
+                      </option>
+                      {currencies.map((currency) => (
+                        <option key={currency.id} value={currency.id}>
+                          {currency.code} · {currency.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">{language === "es" ? "Monto" : "Amount"}</label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formState.amount}
+                      onChange={(event) =>
+                        setFormState((current) => ({ ...current, amount: event.target.value }))
+                      }
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">{language === "es" ? "Fecha y hora" : "Date and time"}</label>
+                    <input
+                      className="form-control"
+                      type="datetime-local"
+                      value={formState.transactionAt}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          transactionAt: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                {selectedCurrencyRequiresExchangeRate(baseCurrency, formState.currencyId) ? (
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Tipo de cambio" : "Exchange rate"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      step="0.0001"
+                      min="0"
+                      value={formState.exchangeRate}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          exchangeRate: event.target.value,
+                        }))
+                      }
+                      placeholder={language === "es" ? "Ej: 950.25" : "Ex: 950.25"}
+                    />
+                  </div>
+                ) : null}
+
+                <div>
+                  <label className="form-label">{language === "es" ? "Descripción" : "Description"}</label>
+                  <input
+                    className="form-control"
+                    value={formState.description}
+                    onChange={(event) =>
+                      setFormState((current) => ({
+                        ...current,
+                        description: event.target.value,
+                      }))
+                    }
+                    placeholder={
+                      language === "es"
+                        ? "Ej: Pago proveedor de mantención"
+                        : "Ex: Maintenance supplier payment"
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">{language === "es" ? "Notas" : "Notes"}</label>
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    value={formState.notes}
+                    onChange={(event) =>
+                      setFormState((current) => ({ ...current, notes: event.target.value }))
+                    }
+                    placeholder={
+                      language === "es"
+                        ? "Contexto adicional del movimiento"
+                        : "Additional movement context"
+                    }
+                  />
+                </div>
+
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Adjunto inicial" : "Initial attachment"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,application/pdf"
+                      disabled={isActionSubmitting}
+                      onChange={handleCreateAttachmentSelection}
+                    />
+                    <div className="form-text">
+                      {language === "es"
+                        ? "Opcional. Puedes dejar lista la boleta, factura o respaldo desde ahora. Las imágenes se comprimen antes de subir y el máximo final es 5 MB."
+                        : "Optional. You can queue the receipt, invoice, or backup file right now. Images are compressed before upload and the final max size is 5 MB."}
+                    </div>
+                    {createAttachmentFile ? (
+                      <div className="small mt-2">
+                        <strong>{language === "es" ? "Archivo listo:" : "Queued file:"}</strong>{" "}
+                        {createAttachmentFile.name} ·{" "}
+                        {formatFileSize(createAttachmentFile.size)}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Nota del adjunto inicial" : "Initial attachment note"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      value={createAttachmentNotes}
+                      onChange={(event) => setCreateAttachmentNotes(event.target.value)}
+                      placeholder={
+                        language === "es"
+                          ? "Ej: factura proveedor marzo"
+                          : "Ex: supplier invoice march"
+                      }
+                    />
+                    {createAttachmentFile ? (
+                      <div className="mt-2">
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          type="button"
+                          disabled={isActionSubmitting}
+                          onClick={() => {
+                            setCreateAttachmentFile(null);
+                            setCreateAttachmentNotes("");
+                          }}
+                        >
+                          {language === "es" ? "Quitar archivo" : "Remove file"}
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                {formState.transactionType !== "transfer" ? (
+                  <div>
+                    <label className="form-label">{language === "es" ? "Etiquetas" : "Tags"}</label>
+                    <select
+                      className="form-select"
+                      multiple
+                      value={formState.tagIds}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          tagIds: Array.from(
+                            event.target.selectedOptions,
+                            (option) => option.value
+                          ),
+                        }))
+                      }
+                    >
+                      {tags.map((tag) => (
+                        <option key={tag.id} value={String(tag.id)}>
+                          {tag.name}
+                          {tag.is_active ? "" : language === "es" ? " · inactiva" : " · inactive"}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="form-text">
+                      {language === "es"
+                        ? "Usa Ctrl o Cmd para seleccionar varias etiquetas sobre el mismo movimiento."
+                        : "Use Ctrl or Cmd to select multiple tags for the same movement."}
+                    </div>
+                  </div>
+                ) : null}
+
+                <AppToolbar>
+                  <label className="form-check d-flex align-items-center gap-2 mb-0">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={formState.isReconciled}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          isReconciled: event.target.checked,
+                        }))
+                      }
+                    />
+                    <span className="form-check-label">
+                      {language === "es" ? "Marcar conciliada" : "Mark reconciled"}
+                    </span>
+                  </label>
+                  <label className="form-check d-flex align-items-center gap-2 mb-0">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={formState.isFavorite}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          isFavorite: event.target.checked,
+                        }))
+                      }
+                    />
+                    <span className="form-check-label">
+                      {language === "es" ? "Favorita" : "Favorite"}
+                    </span>
+                  </label>
+                </AppToolbar>
+
+                <AppToolbar compact>
+                  <button className="btn btn-primary" type="submit" disabled={isActionSubmitting}>
+                    {editingTransactionId
+                      ? language === "es"
+                        ? "Guardar cambios"
+                        : "Save changes"
+                      : language === "es"
+                        ? "Registrar transacción"
+                        : "Create transaction"}
+                  </button>
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    disabled={isActionSubmitting}
+                    onClick={closeTransactionFormModal}
+                  >
+                    {editingTransactionId
+                      ? language === "es"
+                        ? "Cancelar edición"
+                        : "Cancel editing"
+                      : language === "es"
+                        ? "Cancelar"
+                        : "Cancel"}
+                  </button>
+                </AppToolbar>
+              </form>
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
 
       {actionFeedback ? (
         <div className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}>
@@ -1002,417 +1379,81 @@ export function FinanceTransactionsPage() {
             : "Quick operational balance view calculated from opening balance and transactions."
         }
       >
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
-                <select
-                  className="form-select"
-                  value={formState.transactionType}
-                  onChange={(event) =>
-                    setFormState((current) => ({
-                      ...current,
-                      transactionType: event.target.value,
-                      targetAccountId:
-                        event.target.value === "transfer" ? current.targetAccountId : "",
-                      categoryId: event.target.value === "transfer" ? "" : current.categoryId,
-                      tagIds: event.target.value === "transfer" ? [] : current.tagIds,
-                    }))
-                  }
-                >
-                  <option value="income">{language === "es" ? "Ingreso" : "Income"}</option>
-                  <option value="expense">{language === "es" ? "Egreso" : "Expense"}</option>
-                  <option value="transfer">{language === "es" ? "Transferencia" : "Transfer"}</option>
-                </select>
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Cuenta origen" : "Source account"}</label>
-                <select
-                  className="form-select"
-                  value={formState.accountId}
-                  onChange={(event) =>
-                    setFormState((current) => ({ ...current, accountId: event.target.value }))
-                  }
-                >
-                  <option value="">{language === "es" ? "Selecciona una cuenta" : "Select an account"}</option>
-                  {accounts.map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="tenant-inline-form-grid">
-              {formState.transactionType === "transfer" ? (
-                <div>
-                  <label className="form-label">{language === "es" ? "Cuenta destino" : "Target account"}</label>
-                  <select
-                    className="form-select"
-                    value={formState.targetAccountId}
-                    onChange={(event) =>
-                      setFormState((current) => ({
-                        ...current,
-                        targetAccountId: event.target.value,
-                      }))
-                    }
-                  >
-                    <option value="">{language === "es" ? "Selecciona una cuenta destino" : "Select a target account"}</option>
-                    {accounts
-                      .filter((account) => String(account.id) !== formState.accountId)
-                      .map((account) => (
-                        <option key={account.id} value={account.id}>
-                          {account.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              ) : (
-                <div>
-                  <label className="form-label">{language === "es" ? "Categoría" : "Category"}</label>
-                  <select
-                    className="form-select"
-                    value={formState.categoryId}
-                    onChange={(event) =>
-                      setFormState((current) => ({ ...current, categoryId: event.target.value }))
-                    }
-                  >
-                    <option value="">{language === "es" ? "Sin categoría" : "No category"}</option>
-                    {filteredCategories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="form-text">
-                    {filteredCategories.length > 0
-                      ? language === "es"
-                        ? `Solo se muestran categorías de tipo ${
-                            formState.transactionType === "income" ? "ingreso" : "egreso"
-                          }.`
-                        : `Only ${formState.transactionType === "income" ? "income" : "expense"} categories are shown.`
-                      : language === "es"
-                        ? `No hay categorías activas de tipo ${
-                            formState.transactionType === "income" ? "ingreso" : "egreso"
-                          }.`
-                        : `There are no active ${
-                            formState.transactionType === "income" ? "income" : "expense"
-                          } categories.`}
+        {accountBalances.length > 0 ? (
+          <div className="finance-balance-list">
+            {accountBalances.map((item) => {
+              const currency = currencyMap.get(item.currency_id);
+              return (
+                <div key={item.account_id} className="finance-balance-list__item">
+                  <div>
+                    <div className="finance-balance-list__title">{item.account_name}</div>
+                    <div className="small text-secondary">
+                      {displayPlatformCode(item.account_type)}
+                    </div>
+                  </div>
+                  <div className="text-end">
+                    <div className="finance-balance-list__value">
+                      {item.is_balance_hidden
+                        ? language === "es"
+                          ? "oculto"
+                          : "hidden"
+                        : formatMoney(item.balance, currency?.code, language)}
+                    </div>
+                    <div className="small text-secondary">
+                      {currency?.code || `#${item.currency_id}`}
+                    </div>
                   </div>
                 </div>
-              )}
-              <div>
-                <label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label>
-                <select
-                  className="form-select"
-                  value={formState.currencyId}
-                  onChange={(event) =>
-                    setFormState((current) => ({ ...current, currencyId: event.target.value }))
-                  }
-                >
-                  <option value="">{language === "es" ? "Selecciona una moneda" : "Select a currency"}</option>
-                  {currencies.map((currency) => (
-                    <option key={currency.id} value={currency.id}>
-                      {currency.code} · {currency.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Monto" : "Amount"}</label>
-                <input
-                  className="form-control"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formState.amount}
-                  onChange={(event) =>
-                    setFormState((current) => ({ ...current, amount: event.target.value }))
-                  }
-                  placeholder="0.00"
-                />
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Fecha y hora" : "Date and time"}</label>
-                <input
-                  className="form-control"
-                  type="datetime-local"
-                  value={formState.transactionAt}
-                  onChange={(event) =>
-                    setFormState((current) => ({
-                      ...current,
-                      transactionAt: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-
-            {selectedCurrencyRequiresExchangeRate(baseCurrency, formState.currencyId) ? (
-              <div>
-                <label className="form-label">{language === "es" ? "Tipo de cambio" : "Exchange rate"}</label>
-                <input
-                  className="form-control"
-                  type="number"
-                  step="0.0001"
-                  min="0"
-                  value={formState.exchangeRate}
-                  onChange={(event) =>
-                    setFormState((current) => ({
-                      ...current,
-                      exchangeRate: event.target.value,
-                    }))
-                  }
-                  placeholder={language === "es" ? "Ej: 950.25" : "Ex: 950.25"}
-                />
-              </div>
-            ) : null}
-
-            <div>
-              <label className="form-label">{language === "es" ? "Descripción" : "Description"}</label>
-              <input
-                className="form-control"
-                value={formState.description}
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    description: event.target.value,
-                  }))
-                }
-                placeholder={language === "es" ? "Ej: Pago proveedor de mantención" : "Ex: Maintenance supplier payment"}
-              />
-            </div>
-
-            <div>
-              <label className="form-label">{language === "es" ? "Notas" : "Notes"}</label>
-              <textarea
-                className="form-control"
-                rows={3}
-                value={formState.notes}
-                onChange={(event) =>
-                  setFormState((current) => ({ ...current, notes: event.target.value }))
-                }
-                placeholder={language === "es" ? "Contexto adicional del movimiento" : "Additional movement context"}
-              />
-            </div>
-
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">
-                  {language === "es" ? "Adjunto inicial" : "Initial attachment"}
-                </label>
-                <input
-                  className="form-control"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,application/pdf"
-                  disabled={isActionSubmitting}
-                  onChange={handleCreateAttachmentSelection}
-                />
-                <div className="form-text">
-                  {language === "es"
-                    ? "Opcional. Puedes dejar lista la boleta, factura o respaldo desde ahora. Las imágenes se comprimen antes de subir y el máximo final es 5 MB."
-                    : "Optional. You can queue the receipt, invoice, or backup file right now. Images are compressed before upload and the final max size is 5 MB."}
-                </div>
-                {createAttachmentFile ? (
-                  <div className="small mt-2">
-                    <strong>{language === "es" ? "Archivo listo:" : "Queued file:"}</strong>{" "}
-                    {createAttachmentFile.name} ·{" "}
-                    {formatFileSize(createAttachmentFile.size)}
-                  </div>
-                ) : null}
-              </div>
-              <div>
-                <label className="form-label">
-                  {language === "es" ? "Nota del adjunto inicial" : "Initial attachment note"}
-                </label>
-                <input
-                  className="form-control"
-                  type="text"
-                  value={createAttachmentNotes}
-                  onChange={(event) => setCreateAttachmentNotes(event.target.value)}
-                  placeholder={
-                    language === "es"
-                      ? "Ej: factura proveedor marzo"
-                      : "Ex: supplier invoice march"
-                  }
-                />
-                {createAttachmentFile ? (
-                  <div className="mt-2">
-                    <button
-                      className="btn btn-outline-secondary btn-sm"
-                      type="button"
-                      disabled={isActionSubmitting}
-                      onClick={() => {
-                        setCreateAttachmentFile(null);
-                        setCreateAttachmentNotes("");
-                      }}
-                    >
-                      {language === "es" ? "Quitar archivo" : "Remove file"}
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            {formState.transactionType !== "transfer" ? (
-              <div>
-                <label className="form-label">{language === "es" ? "Etiquetas" : "Tags"}</label>
-                <select
-                  className="form-select"
-                  multiple
-                  value={formState.tagIds}
-                  onChange={(event) =>
-                    setFormState((current) => ({
-                      ...current,
-                      tagIds: Array.from(event.target.selectedOptions, (option) => option.value),
-                    }))
-                  }
-                >
-                  {tags.map((tag) => (
-                    <option key={tag.id} value={String(tag.id)}>
-                      {tag.name}{tag.is_active ? "" : language === "es" ? " · inactiva" : " · inactive"}
-                    </option>
-                  ))}
-                </select>
-                <div className="form-text">
-                  {language === "es"
-                    ? "Usa Ctrl o Cmd para seleccionar varias etiquetas sobre el mismo movimiento."
-                    : "Use Ctrl or Cmd to select multiple tags for the same movement."}
-                </div>
-              </div>
-            ) : null}
-
-            <AppToolbar>
-              <label className="form-check d-flex align-items-center gap-2 mb-0">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={formState.isReconciled}
-                  onChange={(event) =>
-                    setFormState((current) => ({
-                      ...current,
-                      isReconciled: event.target.checked,
-                    }))
-                  }
-                />
-                <span className="form-check-label">{language === "es" ? "Marcar conciliada" : "Mark reconciled"}</span>
-              </label>
-              <label className="form-check d-flex align-items-center gap-2 mb-0">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={formState.isFavorite}
-                  onChange={(event) =>
-                    setFormState((current) => ({
-                      ...current,
-                      isFavorite: event.target.checked,
-                    }))
-                  }
-                />
-                <span className="form-check-label">{language === "es" ? "Favorita" : "Favorite"}</span>
-              </label>
-            </AppToolbar>
-
-            <AppToolbar compact>
-              <button className="btn btn-primary" type="submit" disabled={isActionSubmitting}>
-                {editingTransactionId
-                  ? language === "es"
-                    ? "Guardar cambios"
-                    : "Save changes"
-                  : language === "es"
-                    ? "Registrar transacción"
-                    : "Create transaction"}
-              </button>
-              {editingTransactionId ? (
-                <button
-                  className="btn btn-outline-secondary"
-                  type="button"
-                  disabled={isActionSubmitting}
-                  onClick={closeTransactionFormModal}
-                >
-                  {language === "es" ? "Cancelar edición" : "Cancel editing"}
-                </button>
-              ) : null}
-            </AppToolbar>
-          </form>
-        </PanelCard>
+              );
+            })}
           </div>
-        </div>
-      ) : null}
-          {accountBalances.length > 0 ? (
-            <div className="finance-balance-list">
-              {accountBalances.map((item) => {
-                const currency = currencyMap.get(item.currency_id);
-                return (
-                  <div key={item.account_id} className="finance-balance-list__item">
-                    <div>
-                      <div className="finance-balance-list__title">{item.account_name}</div>
-                      <div className="small text-secondary">
-                        {displayPlatformCode(item.account_type)}
-                      </div>
-                    </div>
-                    <div className="text-end">
-                      <div className="finance-balance-list__value">
-                        {item.is_balance_hidden
-                          ? language === "es"
-                            ? "oculto"
-                            : "hidden"
-                          : formatMoney(item.balance, currency?.code, language)}
-                      </div>
-                      <div className="small text-secondary">
-                        {currency?.code || `#${item.currency_id}`}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-secondary">{language === "es" ? "Aún no hay cuentas activas para calcular balances." : "There are no active accounts yet to calculate balances."}</div>
-          )}
+        ) : (
+          <div className="text-secondary">
+            {language === "es"
+              ? "Aún no hay cuentas activas para calcular balances."
+              : "There are no active accounts yet to calculate balances."}
+          </div>
+        )}
 
-          <hr />
+        <hr />
 
-          {usageError ? (
-            <ErrorState
-              title={language === "es" ? "Uso de finance no disponible" : "Finance usage unavailable"}
-              detail={usageError.payload?.detail || usageError.message}
-              requestId={usageError.payload?.request_id}
+        {usageError ? (
+          <ErrorState
+            title={language === "es" ? "Uso de finance no disponible" : "Finance usage unavailable"}
+            detail={usageError.payload?.detail || usageError.message}
+            requestId={usageError.payload?.request_id}
+          />
+        ) : usage ? (
+          <div className="tenant-detail-grid">
+            <DetailField label={language === "es" ? "Clave de módulo" : "Module key"} value={<code>{usage.module_key}</code>} />
+            <DetailField label={language === "es" ? "Usado" : "Used"} value={usage.used_entries} />
+            <DetailField
+              label={language === "es" ? "Límite" : "Limit"}
+              value={usage.unlimited ? (language === "es" ? "ilimitado" : "unlimited") : usage.max_entries ?? "—"}
             />
-          ) : usage ? (
-            <div className="tenant-detail-grid">
-              <DetailField label={language === "es" ? "Clave de módulo" : "Module key"} value={<code>{usage.module_key}</code>} />
-              <DetailField label={language === "es" ? "Usado" : "Used"} value={usage.used_entries} />
-              <DetailField
-                label={language === "es" ? "Límite" : "Limit"}
-                value={usage.unlimited ? (language === "es" ? "ilimitado" : "unlimited") : usage.max_entries ?? "—"}
-              />
-              <DetailField
-                label={language === "es" ? "Restante" : "Remaining"}
-                value={usage.unlimited ? "—" : usage.remaining_entries ?? "—"}
-              />
-              <DetailField
-                label={language === "es" ? "Fuente" : "Source"}
-                value={usage.limit_source ? displayPlatformCode(usage.limit_source) : language === "es" ? "ninguna" : "none"}
-              />
-              <DetailField
-                label={language === "es" ? "Estado" : "Status"}
-                value={
-                  usage.at_limit ? (
-                    <AppBadge tone="warning">{language === "es" ? "al límite" : "at limit"}</AppBadge>
-                  ) : (
-                    <AppBadge tone="success">ok</AppBadge>
-                  )
-                }
-              />
-            </div>
-          ) : null}
-        </PanelCard>
+            <DetailField
+              label={language === "es" ? "Restante" : "Remaining"}
+              value={usage.unlimited ? "—" : usage.remaining_entries ?? "—"}
+            />
+            <DetailField
+              label={language === "es" ? "Fuente" : "Source"}
+              value={usage.limit_source ? displayPlatformCode(usage.limit_source) : language === "es" ? "ninguna" : "none"}
+            />
+            <DetailField
+              label={language === "es" ? "Estado" : "Status"}
+              value={
+                usage.at_limit ? (
+                  <AppBadge tone="warning">{language === "es" ? "al límite" : "at limit"}</AppBadge>
+                ) : (
+                  <AppBadge tone="success">ok</AppBadge>
+                )
+              }
+            />
+          </div>
+        ) : null}
+      </PanelCard>
 
-      <div className="finance-transaction-layout">
+      <div className="d-grid gap-4">
         <PanelCard
           title={language === "es" ? "Transacciones recientes" : "Recent transactions"}
           subtitle={
@@ -1811,9 +1852,7 @@ export function FinanceTransactionsPage() {
                         </td>
                         <td>
                           <button
-                            className={`btn btn-sm ${
-                              isSelected ? "btn-outline-secondary" : "btn-outline-primary"
-                            }`}
+                            className="btn btn-sm btn-outline-secondary"
                             type="button"
                             onClick={() => void loadTransactionDetail(transaction.id)}
                           >

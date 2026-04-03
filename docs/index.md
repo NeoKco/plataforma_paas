@@ -25,6 +25,7 @@ En este momento la documentacion creada formalmente dentro del repositorio comie
 - [Estructura raiz del proyecto](./architecture/project-structure.md)
 - [Convencion modular por slice](./architecture/module-slice-convention.md)
 - [Estandar de construccion de modulos](./architecture/module-build-standard.md)
+- [Estandar de botones CRUD](./architecture/crud-button-standard.md)
 - [Flujo actual del backend](./architecture/backend-current-flow.md)
 - [Cierre del backend base](./architecture/backend-closure-status.md)
 - [Matriz de politicas y precedencias backend](./architecture/backend-policy-precedence-matrix.md)

@@ -32,6 +32,7 @@ Regla UX operativa:
 
 - la lectura del catálogo debe verse primero
 - la creación o edición no debería quedar abierta por defecto
+- `Movimientos`, `Presupuestos` y `Préstamos` ya abren la captura solo bajo demanda desde `Registrar transacción`, `Nuevo presupuesto` o `Nuevo préstamo`
 - `Cuentas`, `Categorías`, `Catálogos` y `Configuración` ya abren la captura solo bajo demanda desde `Nuevo`, `Nueva ...` o `Editar`
 
 ## Flujos principales
@@ -39,18 +40,19 @@ Regla UX operativa:
 ### Registrar una transacción
 
 1. Ir a `Finanzas > Movimientos`.
-2. Elegir `Tipo`.
-3. Seleccionar `Cuenta origen`.
-4. Elegir `Categoría` cuando aplique.
-5. Completar `Monto`, `Fecha y hora` y `Descripción`.
-6. Registrar.
+2. Elegir `Registrar transacción`.
+3. Elegir `Tipo`.
+4. Seleccionar `Cuenta origen`.
+5. Elegir `Categoría` cuando aplique.
+6. Completar `Monto`, `Fecha y hora` y `Descripción`.
+7. Registrar.
 
-Después del alta, el detalle operacional queda abierto para adjuntar boleta, factura o respaldo.
+Después del alta, el detalle de la transacción queda abierto en modal para adjuntar boleta, factura o respaldo.
 
 ### Adjuntar respaldo
 
-1. Seleccionar una transacción.
-2. Usar el bloque de adjuntos en el detalle operacional.
+1. Desde `Transacciones recientes`, elegir `Ver` o `Adjuntar`.
+2. Usar el bloque de adjuntos dentro del modal de detalle.
 3. Subir `JPG`, `PNG`, `WEBP` o `PDF`.
 
 Las imágenes se comprimen antes de subir y el backend valida un tamaño final máximo de `5 MB`.
@@ -83,9 +85,10 @@ Recuerda que borrar una moneda solo funciona cuando no es base y no tiene refere
 ### Registrar y clonar presupuestos
 
 1. Ir a `Finanzas > Presupuestos`.
-2. Elegir `Mes`, `Categoría` y `Monto presupuestado`.
-3. Registrar el presupuesto mensual.
-4. Si necesitas replicarlo al siguiente período, usa `Clonar al mes visible`.
+2. Elegir `Nuevo presupuesto`.
+3. Completar `Mes`, `Categoría` y `Monto presupuestado`.
+4. Registrar el presupuesto mensual.
+5. Si necesitas replicarlo al siguiente período, usa `Clonar al mes visible`.
 
 El portal muestra además una lectura rápida de `Presupuestado`, `Ejecutado`, `Desviación` y el estado derivado de cada fila para priorizar revisión.
 
@@ -101,9 +104,10 @@ Esto acelera la preparación del mes visible sin recargar manualmente cada categ
 ### Registrar un préstamo y cobrar/pagar una cuota
 
 1. Ir a `Finanzas > Préstamos`.
-2. Registrar nombre, contraparte, capital, saldo, cuotas y cuenta operativa.
-3. Abrir `Cronograma` desde la cartera.
-4. Usar `Registrar pago` sobre una cuota para aplicar un abono simple.
+2. Elegir `Nuevo préstamo`.
+3. Registrar nombre, contraparte, capital, saldo, cuotas y cuenta operativa.
+4. Abrir `Cronograma` desde la cartera.
+5. Usar `Registrar pago` sobre una cuota para aplicar un abono simple.
 
 El detalle del préstamo muestra cronograma, estado de cuotas y lectura contable derivada para revisar pagos y reversas desde el mismo módulo.
 

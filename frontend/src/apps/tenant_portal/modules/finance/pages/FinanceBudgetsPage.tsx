@@ -447,6 +447,130 @@ export function FinanceBudgetsPage() {
               }
             >
               <form className="d-grid gap-3" onSubmit={handleSubmit}>
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">{language === "es" ? "Mes" : "Month"}</label>
+                    <input
+                      className="form-control"
+                      type="month"
+                      value={formState.periodMonth}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          periodMonth: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Categoría" : "Category"}
+                    </label>
+                    <select
+                      className="form-select"
+                      value={formState.categoryId}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          categoryId: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">
+                        {language === "es"
+                          ? "Selecciona una categoría"
+                          : "Select a category"}
+                      </option>
+                      {categoriesForBudgets.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name} · {displayCategoryType(category.category_type, language)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="tenant-inline-form-grid">
+                  <div>
+                    <label className="form-label">
+                      {language === "es" ? "Monto presupuestado" : "Budget amount"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formState.amount}
+                      onChange={(event) =>
+                        setFormState((current) => ({ ...current, amount: event.target.value }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">{language === "es" ? "Activo" : "Active"}</label>
+                    <select
+                      className="form-select"
+                      value={formState.isActive ? "true" : "false"}
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          isActive: event.target.value === "true",
+                        }))
+                      }
+                    >
+                      <option value="true">{language === "es" ? "Sí" : "Yes"}</option>
+                      <option value="false">{language === "es" ? "No" : "No"}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="form-label">{language === "es" ? "Nota" : "Note"}</label>
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    value={formState.note}
+                    onChange={(event) =>
+                      setFormState((current) => ({ ...current, note: event.target.value }))
+                    }
+                    placeholder={
+                      language === "es"
+                        ? "Ej: tope aprobado para marketing de marzo"
+                        : "Example: approved marketing cap for March"
+                    }
+                  />
+                </div>
+
+                <AppToolbar compact>
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
+                    {editingBudgetId
+                      ? language === "es"
+                        ? "Guardar cambios"
+                        : "Save changes"
+                      : language === "es"
+                        ? "Registrar presupuesto"
+                        : "Create budget"}
+                  </button>
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={closeFormModal}
+                  >
+                    {editingBudgetId
+                      ? language === "es"
+                        ? "Cancelar edición"
+                        : "Cancel editing"
+                      : language === "es"
+                        ? "Cancelar"
+                        : "Cancel"}
+                  </button>
+                </AppToolbar>
+              </form>
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
 
       {actionFeedback ? (
         <div className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}>
@@ -551,293 +675,187 @@ export function FinanceBudgetsPage() {
             : "Filter by type or status to focus on categories with variance, inactive entries, or no usage."
         }
       >
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Mes" : "Month"}</label>
-                <input
-                  className="form-control"
-                  type="month"
-                  value={formState.periodMonth}
-                  onChange={(event) =>
-                    setFormState((current) => ({ ...current, periodMonth: event.target.value }))
-                  }
-                />
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Categoría" : "Category"}</label>
-                <select
-                  className="form-select"
-                  value={formState.categoryId}
-                  onChange={(event) =>
-                    setFormState((current) => ({ ...current, categoryId: event.target.value }))
-                  }
-                >
-                  <option value="">{language === "es" ? "Selecciona una categoría" : "Select a category"}</option>
-                  {categoriesForBudgets.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name} · {displayCategoryType(category.category_type, language)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Monto presupuestado" : "Budget amount"}</label>
-                <input
-                  className="form-control"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formState.amount}
-                  onChange={(event) =>
-                    setFormState((current) => ({ ...current, amount: event.target.value }))
-                  }
-                />
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Activo" : "Active"}</label>
-                <select
-                  className="form-select"
-                  value={formState.isActive ? "true" : "false"}
-                  onChange={(event) =>
-                    setFormState((current) => ({
-                      ...current,
-                      isActive: event.target.value === "true",
-                    }))
-                  }
-                >
-                  <option value="true">{language === "es" ? "Sí" : "Yes"}</option>
-                  <option value="false">{language === "es" ? "No" : "No"}</option>
-                </select>
-              </div>
-            </div>
-
+        <div className="d-grid gap-3">
+          <div className="tenant-inline-form-grid">
             <div>
-              <label className="form-label">{language === "es" ? "Nota" : "Note"}</label>
-              <textarea
+              <label className="form-label">{language === "es" ? "Mes visible" : "Visible month"}</label>
+              <input
                 className="form-control"
-                rows={3}
-                value={formState.note}
-                onChange={(event) =>
-                  setFormState((current) => ({ ...current, note: event.target.value }))
-                }
-                placeholder={
-                  language === "es"
-                    ? "Ej: tope aprobado para marketing de marzo"
-                    : "Example: approved marketing cap for March"
-                }
+                type="month"
+                value={filterMonth}
+                onChange={(event) => setFilterMonth(event.target.value)}
               />
             </div>
-
-            <AppToolbar compact>
-              <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-                {editingBudgetId
-                  ? language === "es"
-                    ? "Guardar cambios"
-                    : "Save changes"
-                  : language === "es"
-                    ? "Registrar presupuesto"
-                    : "Create budget"}
-              </button>
-              {editingBudgetId ? (
-                <button
-                  className="btn btn-outline-secondary"
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={closeFormModal}
-                >
-                  {language === "es" ? "Cancelar edición" : "Cancel editing"}
-                </button>
-              ) : null}
-            </AppToolbar>
-          </form>
-        </PanelCard>
+            <div>
+              <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
+              <select
+                className="form-select"
+                value={filterCategoryType}
+                onChange={(event) => setFilterCategoryType(event.target.value)}
+              >
+                <option value="">{language === "es" ? "Todos" : "All"}</option>
+                <option value="income">{language === "es" ? "Ingresos" : "Income"}</option>
+                <option value="expense">{language === "es" ? "Egresos" : "Expense"}</option>
+              </select>
+            </div>
           </div>
+          <div className="tenant-inline-form-grid">
+            <div>
+              <label className="form-label">{language === "es" ? "Estado derivado" : "Derived status"}</label>
+              <select
+                className="form-select"
+                value={filterBudgetStatus}
+                onChange={(event) => setFilterBudgetStatus(event.target.value)}
+              >
+                <option value="">{language === "es" ? "Todos" : "All"}</option>
+                <option value="within_budget">{language === "es" ? "Dentro del presupuesto" : "Within budget"}</option>
+                <option value="over_budget">{language === "es" ? "Sobre el presupuesto" : "Over budget"}</option>
+                <option value="unused">{language === "es" ? "Sin ejecución" : "Unused"}</option>
+                <option value="inactive">{language === "es" ? "Inactivo" : "Inactive"}</option>
+              </select>
+            </div>
+            <div className="d-flex align-items-end">
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="finance-budgets-include-inactive"
+                  checked={includeInactive}
+                  onChange={(event) => setIncludeInactive(event.target.checked)}
+                />
+                <label className="form-check-label" htmlFor="finance-budgets-include-inactive">
+                  {language === "es" ? "Incluir inactivos" : "Include inactive"}
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className="tenant-detail-grid">
+            <DetailField label={language === "es" ? "Presupuestado" : "Budgeted"} value={formatMoney(summary?.total_budgeted || 0, language, baseCurrencyCode)} />
+            <DetailField label={language === "es" ? "Ejecutado" : "Actual"} value={formatMoney(summary?.total_actual || 0, language, baseCurrencyCode)} />
+            <DetailField label={language === "es" ? "Desviación" : "Variance"} value={formatMoney(summary?.total_variance || 0, language, baseCurrencyCode)} />
+            <DetailField label={language === "es" ? "Filas" : "Rows"} value={summary?.total_items || 0} />
+          </div>
+          <div className="tenant-detail-grid">
+            <DetailField label={language === "es" ? "Ingreso presup." : "Budgeted income"} value={formatMoney(summary?.income_budgeted || 0, language, baseCurrencyCode)} />
+            <DetailField label={language === "es" ? "Ingreso real" : "Actual income"} value={formatMoney(summary?.income_actual || 0, language, baseCurrencyCode)} />
+            <DetailField label={language === "es" ? "Egreso presup." : "Budgeted expense"} value={formatMoney(summary?.expense_budgeted || 0, language, baseCurrencyCode)} />
+            <DetailField label={language === "es" ? "Egreso real" : "Actual expense"} value={formatMoney(summary?.expense_actual || 0, language, baseCurrencyCode)} />
+          </div>
+          <div className="tenant-inline-form-grid">
+            <div>
+              <label className="form-label">{language === "es" ? "Clonar desde" : "Clone from"}</label>
+              <input
+                className="form-control"
+                type="month"
+                value={cloneSourceMonth}
+                onChange={(event) => setCloneSourceMonth(event.target.value)}
+              />
+            </div>
+            <div className="d-flex align-items-end">
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="finance-budgets-overwrite-existing"
+                  checked={cloneOverwriteExisting}
+                  onChange={(event) => setCloneOverwriteExisting(event.target.checked)}
+                />
+                <label className="form-check-label" htmlFor="finance-budgets-overwrite-existing">
+                  {language === "es" ? "Sobrescribir categorías existentes" : "Overwrite existing categories"}
+                </label>
+              </div>
+            </div>
+          </div>
+          <AppToolbar compact>
+            <button
+              className="btn btn-outline-primary"
+              type="button"
+              disabled={isSubmitting || !cloneSourceMonth || cloneSourceMonth === filterMonth}
+              onClick={() => void handleCloneBudgets()}
+            >
+              {language === "es" ? "Clonar al mes visible" : "Clone into visible month"}
+            </button>
+          </AppToolbar>
+          <div className="tenant-inline-form-grid">
+            <div>
+              <label className="form-label">{language === "es" ? "Plantilla sugerida" : "Suggested template"}</label>
+              <select
+                className="form-select"
+                value={templateMode}
+                onChange={(event) => setTemplateMode(event.target.value)}
+              >
+                <option value="previous_month">
+                  {language === "es" ? "Mes anterior" : "Previous month"}
+                </option>
+                <option value="same_month_last_year">
+                  {language === "es" ? "Mismo mes año anterior" : "Same month last year"}
+                </option>
+                <option value="rolling_actual_average_3m">
+                  {language === "es" ? "Promedio real últimos 3 meses" : "Actual average last 3 months"}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label className="form-label">{language === "es" ? "Escalar %" : "Scale %"}</label>
+              <input
+                className="form-control"
+                type="number"
+                min="1"
+                step="1"
+                value={templateScalePercent}
+                onChange={(event) => setTemplateScalePercent(event.target.value)}
+                placeholder="100"
+              />
+              <div className="form-text">
+                {language === "es"
+                  ? "100 mantiene el monto; 110 agrega 10%; 90 reduce 10%."
+                  : "100 keeps the amount; 110 adds 10%; 90 reduces 10%."}
+              </div>
+            </div>
+            <div>
+              <label className="form-label">{language === "es" ? "Redondear a" : "Round to"}</label>
+              <input
+                className="form-control"
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={templateRoundToAmount}
+                onChange={(event) => setTemplateRoundToAmount(event.target.value)}
+                placeholder={language === "es" ? "Ej: 10, 50, 100" : "Ex: 10, 50, 100"}
+              />
+              <div className="form-text">
+                {language === "es"
+                  ? "Opcional. Redondea cada presupuesto al múltiplo indicado."
+                  : "Optional. Rounds each budget to the given multiple."}
+              </div>
+            </div>
+            <div className="d-flex align-items-end">
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="finance-budgets-template-overwrite-existing"
+                  checked={templateOverwriteExisting}
+                  onChange={(event) => setTemplateOverwriteExisting(event.target.checked)}
+                />
+                <label className="form-check-label" htmlFor="finance-budgets-template-overwrite-existing">
+                  {language === "es" ? "Sobrescribir con plantilla" : "Overwrite with template"}
+                </label>
+              </div>
+            </div>
+          </div>
+          <AppToolbar compact>
+            <button
+              className="btn btn-outline-secondary"
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => void handleApplyTemplate()}
+            >
+              {language === "es" ? "Aplicar plantilla al mes visible" : "Apply template to visible month"}
+            </button>
+          </AppToolbar>
         </div>
-      ) : null}
-          <div className="d-grid gap-3">
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Mes visible" : "Visible month"}</label>
-                <input
-                  className="form-control"
-                  type="month"
-                  value={filterMonth}
-                  onChange={(event) => setFilterMonth(event.target.value)}
-                />
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
-                <select
-                  className="form-select"
-                  value={filterCategoryType}
-                  onChange={(event) => setFilterCategoryType(event.target.value)}
-                >
-                  <option value="">{language === "es" ? "Todos" : "All"}</option>
-                  <option value="income">{language === "es" ? "Ingresos" : "Income"}</option>
-                  <option value="expense">{language === "es" ? "Egresos" : "Expense"}</option>
-                </select>
-              </div>
-            </div>
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Estado derivado" : "Derived status"}</label>
-                <select
-                  className="form-select"
-                  value={filterBudgetStatus}
-                  onChange={(event) => setFilterBudgetStatus(event.target.value)}
-                >
-                  <option value="">{language === "es" ? "Todos" : "All"}</option>
-                  <option value="within_budget">{language === "es" ? "Dentro del presupuesto" : "Within budget"}</option>
-                  <option value="over_budget">{language === "es" ? "Sobre el presupuesto" : "Over budget"}</option>
-                  <option value="unused">{language === "es" ? "Sin ejecución" : "Unused"}</option>
-                  <option value="inactive">{language === "es" ? "Inactivo" : "Inactive"}</option>
-                </select>
-              </div>
-              <div className="d-flex align-items-end">
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="finance-budgets-include-inactive"
-                    checked={includeInactive}
-                    onChange={(event) => setIncludeInactive(event.target.checked)}
-                  />
-                  <label className="form-check-label" htmlFor="finance-budgets-include-inactive">
-                    {language === "es" ? "Incluir inactivos" : "Include inactive"}
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div className="tenant-detail-grid">
-              <DetailField label={language === "es" ? "Presupuestado" : "Budgeted"} value={formatMoney(summary?.total_budgeted || 0, language, baseCurrencyCode)} />
-              <DetailField label={language === "es" ? "Ejecutado" : "Actual"} value={formatMoney(summary?.total_actual || 0, language, baseCurrencyCode)} />
-              <DetailField label={language === "es" ? "Desviación" : "Variance"} value={formatMoney(summary?.total_variance || 0, language, baseCurrencyCode)} />
-              <DetailField label={language === "es" ? "Filas" : "Rows"} value={summary?.total_items || 0} />
-            </div>
-            <div className="tenant-detail-grid">
-              <DetailField label={language === "es" ? "Ingreso presup." : "Budgeted income"} value={formatMoney(summary?.income_budgeted || 0, language, baseCurrencyCode)} />
-              <DetailField label={language === "es" ? "Ingreso real" : "Actual income"} value={formatMoney(summary?.income_actual || 0, language, baseCurrencyCode)} />
-              <DetailField label={language === "es" ? "Egreso presup." : "Budgeted expense"} value={formatMoney(summary?.expense_budgeted || 0, language, baseCurrencyCode)} />
-              <DetailField label={language === "es" ? "Egreso real" : "Actual expense"} value={formatMoney(summary?.expense_actual || 0, language, baseCurrencyCode)} />
-            </div>
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Clonar desde" : "Clone from"}</label>
-                <input
-                  className="form-control"
-                  type="month"
-                  value={cloneSourceMonth}
-                  onChange={(event) => setCloneSourceMonth(event.target.value)}
-                />
-              </div>
-              <div className="d-flex align-items-end">
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="finance-budgets-overwrite-existing"
-                    checked={cloneOverwriteExisting}
-                    onChange={(event) => setCloneOverwriteExisting(event.target.checked)}
-                  />
-                  <label className="form-check-label" htmlFor="finance-budgets-overwrite-existing">
-                    {language === "es" ? "Sobrescribir categorías existentes" : "Overwrite existing categories"}
-                  </label>
-                </div>
-              </div>
-            </div>
-            <AppToolbar compact>
-              <button
-                className="btn btn-outline-primary"
-                type="button"
-                disabled={isSubmitting || !cloneSourceMonth || cloneSourceMonth === filterMonth}
-                onClick={() => void handleCloneBudgets()}
-              >
-                {language === "es" ? "Clonar al mes visible" : "Clone into visible month"}
-              </button>
-            </AppToolbar>
-            <div className="tenant-inline-form-grid">
-              <div>
-                <label className="form-label">{language === "es" ? "Plantilla sugerida" : "Suggested template"}</label>
-                <select
-                  className="form-select"
-                  value={templateMode}
-                  onChange={(event) => setTemplateMode(event.target.value)}
-                >
-                  <option value="previous_month">
-                    {language === "es" ? "Mes anterior" : "Previous month"}
-                  </option>
-                  <option value="same_month_last_year">
-                    {language === "es" ? "Mismo mes año anterior" : "Same month last year"}
-                  </option>
-                  <option value="rolling_actual_average_3m">
-                    {language === "es" ? "Promedio real últimos 3 meses" : "Actual average last 3 months"}
-                  </option>
-                </select>
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Escalar %" : "Scale %"}</label>
-                <input
-                  className="form-control"
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={templateScalePercent}
-                  onChange={(event) => setTemplateScalePercent(event.target.value)}
-                  placeholder="100"
-                />
-                <div className="form-text">
-                  {language === "es"
-                    ? "100 mantiene el monto; 110 agrega 10%; 90 reduce 10%."
-                    : "100 keeps the amount; 110 adds 10%; 90 reduces 10%."}
-                </div>
-              </div>
-              <div>
-                <label className="form-label">{language === "es" ? "Redondear a" : "Round to"}</label>
-                <input
-                  className="form-control"
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  value={templateRoundToAmount}
-                  onChange={(event) => setTemplateRoundToAmount(event.target.value)}
-                  placeholder={language === "es" ? "Ej: 10, 50, 100" : "Ex: 10, 50, 100"}
-                />
-                <div className="form-text">
-                  {language === "es"
-                    ? "Opcional. Redondea cada presupuesto al múltiplo indicado."
-                    : "Optional. Rounds each budget to the given multiple."}
-                </div>
-              </div>
-              <div className="d-flex align-items-end">
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="finance-budgets-template-overwrite-existing"
-                    checked={templateOverwriteExisting}
-                    onChange={(event) => setTemplateOverwriteExisting(event.target.checked)}
-                  />
-                  <label className="form-check-label" htmlFor="finance-budgets-template-overwrite-existing">
-                    {language === "es" ? "Sobrescribir con plantilla" : "Overwrite with template"}
-                  </label>
-                </div>
-              </div>
-            </div>
-            <AppToolbar compact>
-              <button
-                className="btn btn-outline-secondary"
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => void handleApplyTemplate()}
-              >
-                {language === "es" ? "Aplicar plantilla al mes visible" : "Apply template to visible month"}
-              </button>
-            </AppToolbar>
-          </div>
-        </PanelCard>
+      </PanelCard>
 
       <PanelCard
         title={language === "es" ? "Foco presupuestario" : "Budget focus"}
