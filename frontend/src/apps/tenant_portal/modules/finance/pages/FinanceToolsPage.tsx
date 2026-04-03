@@ -724,7 +724,6 @@ export function FinanceToolsPage() {
             ]}
           />
         ) : null}
-      </div>
     </div>
   );
 }

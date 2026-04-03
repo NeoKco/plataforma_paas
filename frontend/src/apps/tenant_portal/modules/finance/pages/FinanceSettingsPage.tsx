@@ -76,6 +76,7 @@ export function FinanceSettingsPage() {
   const [settings, setSettings] = useState<TenantFinanceSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -120,6 +121,7 @@ export function FinanceSettingsPage() {
   function resetForms() {
     setEditingId(null);
     setError(null);
+    setIsFormOpen(false);
     setCurrencyForm(buildCurrencyForm());
     setExchangeRateForm({
       source_currency_id: currencies[0]?.id ?? 0,
@@ -272,7 +274,14 @@ export function FinanceSettingsPage() {
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
-            <button className="btn btn-primary" type="button" onClick={resetForms}>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => {
+                resetForms();
+                setIsFormOpen(true);
+              }}
+            >
               {language === "es" ? "Nuevo registro" : "New record"}
             </button>
           </AppToolbar>
@@ -321,66 +330,91 @@ export function FinanceSettingsPage() {
         ))}
       </div>
 
-      <div className="finance-catalog-layout">
-        <PanelCard
-          title={language === "es" ? "Alta o edición" : "Create or edit"}
-          subtitle={
-            activeTab === "currencies"
-              ? language === "es"
-                ? "Mantén monedas del módulo. Para cambiar la moneda base, edita o crea una moneda y marca “Moneda base”; la anterior se desmarca automáticamente."
-                : "Manage module currencies. To change the base currency, create or edit a currency and mark “Base currency”; the previous base is cleared automatically."
-              : language === "es"
-                ? "Mantén la configuración base que usará el módulo financiero."
-                : "Maintain the base configuration used by the finance module."
-          }
+      {isFormOpen ? (
+        <div
+          className="finance-form-backdrop"
+          role="presentation"
+          onClick={resetForms}
         >
-          {activeTab === "currencies" ? (
-            <CurrencyForm
-              value={currencyForm}
-              submitLabel={
-                editingId
+          <div
+            className="finance-form-modal finance-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={language === "es" ? "Alta o edición financiera" : "Finance create or edit"}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="finance-form-modal__eyebrow">
+              {editingId || activeTab === "exchangeRates"
+                ? language === "es"
+                  ? "Captura puntual"
+                  : "Targeted capture"
+                : language === "es"
+                  ? "Alta bajo demanda"
+                  : "On-demand creation"}
+            </div>
+            <PanelCard
+              title={language === "es" ? "Alta o edición" : "Create or edit"}
+              subtitle={
+                activeTab === "currencies"
                   ? language === "es"
-                    ? "Guardar cambios"
-                    : "Save changes"
+                    ? "Mantén monedas del módulo. Para cambiar la moneda base, edita o crea una moneda y marca “Moneda base”; la anterior se desmarca automáticamente."
+                    : "Manage module currencies. To change the base currency, create or edit a currency and mark “Base currency”; the previous base is cleared automatically."
                   : language === "es"
-                    ? "Crear moneda"
-                    : "Create currency"
+                    ? "Mantén la configuración base que usará el módulo financiero."
+                    : "Maintain the base configuration used by the finance module."
               }
-              isSubmitting={isSubmitting}
-              onChange={setCurrencyForm}
-              onSubmit={submitCurrent}
-              onCancel={editingId ? resetForms : undefined}
-            />
-          ) : activeTab === "exchangeRates" ? (
-            <ExchangeRateForm
-              value={exchangeRateForm}
-              currencies={currencies}
-              submitLabel={language === "es" ? "Crear tipo de cambio" : "Create exchange rate"}
-              isSubmitting={isSubmitting}
-              onChange={setExchangeRateForm}
-              onSubmit={submitCurrent}
-            />
-          ) : (
-            <SettingForm
-              value={settingForm}
-              submitLabel={
-                editingId
-                  ? language === "es"
-                    ? "Guardar cambios"
-                    : "Save changes"
-                  : language === "es"
-                    ? "Crear parámetro"
-                    : "Create parameter"
-              }
-              isSubmitting={isSubmitting}
-              onChange={setSettingForm}
-              onSubmit={submitCurrent}
-              onCancel={editingId ? resetForms : undefined}
-            />
-          )}
-        </PanelCard>
+            >
+              {activeTab === "currencies" ? (
+                <CurrencyForm
+                  value={currencyForm}
+                  submitLabel={
+                    editingId
+                      ? language === "es"
+                        ? "Guardar cambios"
+                        : "Save changes"
+                      : language === "es"
+                        ? "Crear moneda"
+                        : "Create currency"
+                  }
+                  isSubmitting={isSubmitting}
+                  onChange={setCurrencyForm}
+                  onSubmit={submitCurrent}
+                  onCancel={resetForms}
+                />
+              ) : activeTab === "exchangeRates" ? (
+                <ExchangeRateForm
+                  value={exchangeRateForm}
+                  currencies={currencies}
+                  submitLabel={language === "es" ? "Crear tipo de cambio" : "Create exchange rate"}
+                  isSubmitting={isSubmitting}
+                  onChange={setExchangeRateForm}
+                  onSubmit={submitCurrent}
+                  onCancel={resetForms}
+                />
+              ) : (
+                <SettingForm
+                  value={settingForm}
+                  submitLabel={
+                    editingId
+                      ? language === "es"
+                        ? "Guardar cambios"
+                        : "Save changes"
+                      : language === "es"
+                        ? "Crear parámetro"
+                        : "Create parameter"
+                  }
+                  isSubmitting={isSubmitting}
+                  onChange={setSettingForm}
+                  onSubmit={submitCurrent}
+                  onCancel={resetForms}
+                />
+              )}
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
 
-        {activeTab === "currencies" ? (
+      {activeTab === "currencies" ? (
           <>
           <div className="tenant-action-feedback tenant-action-feedback--success">
             <strong>{language === "es" ? "Moneda base actual:" : "Current base currency:"}</strong>{" "}
@@ -434,6 +468,7 @@ export function FinanceSettingsPage() {
                       type="button"
                       onClick={() => {
                         setEditingId(currency.id);
+                        setIsFormOpen(true);
                         setCurrencyForm({
                           code: currency.code,
                           name: currency.name,
@@ -559,6 +594,7 @@ export function FinanceSettingsPage() {
                       type="button"
                       onClick={() => {
                         setEditingId(setting.id);
+                        setIsFormOpen(true);
                         setSettingForm({
                           setting_key: setting.setting_key,
                           setting_value: setting.setting_value,
@@ -587,7 +623,6 @@ export function FinanceSettingsPage() {
             ]}
           />
         ) : null}
-      </div>
     </div>
   );
 }
