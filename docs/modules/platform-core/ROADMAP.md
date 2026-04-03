@@ -49,11 +49,14 @@ La base central ya es operable:
 - más regresión sobre provisioning y billing
 - seguir endureciendo copy, validaciones y observabilidad visible
 - mantener la política documental canónica al abrir más dominios
+- dejar el sidebar de `tenant_portal` backend-driven según `effective_enabled_modules`, para que cada tenant vea solo los módulos contratados y vigentes
+- tratar ese gating visual como trabajo posterior al cierre funcional de `maintenance`, no antes
 
 ## Deuda técnica visible
 
 - algunos recorridos siguen mejor cubiertos por backend tests que por browser E2E
 - la documentación central era abundante pero estaba dispersa; ya quedó indexada, pero aún puede seguir normalizándose
+- el backend ya calcula y aplica entitlements por módulo tenant, pero el menú frontend sigue hardcodeado y todavía no filtra por contrato/billing
 
 ## Regla futura
 

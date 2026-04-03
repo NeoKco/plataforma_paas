@@ -63,6 +63,8 @@ Lo pendiente es sobre todo:
 - la matriz visible de acceso por rol en `platform_admin` ya quedó centralizada para `SidebarNav`, redirecciones por ruta y gestión de `Usuarios de plataforma`, evitando permisos frontend dispersos entre páginas
 - la internacionalizacion transversal del frontend ya quedó resuelta en la superficie visible principal, helpers compartidos, formularios densos y estados operativos; lo que resta baja a editorial secundaria puntual, ayudas largas y futuras pantallas nuevas que se abran fuera del alcance actual
 - ya existe un stack E2E browser local con `Playwright` en `frontend/`, con smoke operativo sobre `platform_admin` para login, lifecycle tenant base (`create/archive/restore`), acceso rápido desde `Tenants` al login de `tenant_portal`, congelamiento de la matriz visible por rol para `admin`/`support` en `Usuarios de plataforma`, workspace tenant de `Billing` con reconcile individual y batch sobre eventos persistidos, `Histórico tenants` con filtros/export y detalle visible del retiro, visibilidad de jobs nuevos en `Provisioning`, ejecución manual de jobs `pending`, requeue de jobs `failed`, disparo de `schema auto-sync` y variantes broker-only para DLQ, y sobre `tenant_portal` para login condicionado por billing (`past_due` con gracia vs deuda vencida bloqueada), enforcement visible de límites de usuarios activos, de cuota admin y de cuota mensual, `finance`, precedencia entre `finance.entries` y `finance.entries.monthly`, bloqueo mensual de `finance.entries.monthly`, bloqueo mensual por tipo de `finance.entries.monthly.income` y `finance.entries.monthly.expense`, mantenimiento de cuentas/categorías, configuración financiera base (`currencies`, `exchange rates`, `settings`), presupuestos base y avanzados, préstamos base, batch y lectura/exportación contable derivada, además de `finance` en creación, adjunto, anulación y conciliación; en la práctica el frente browser principal ya queda casi cerrado y solo debería ampliarse ante nuevas regresiones o nuevos módulos
+- el `tenant_portal` todavía mantiene el sidebar hardcodeado; queda pendiente volverlo backend-driven sobre `effective_enabled_modules` para que cada tenant vea solo los módulos contratados y al día
+- esa pasada queda explícitamente postergada hasta terminar `maintenance` como módulo, para no mezclar cierre funcional con trabajo transversal de shell
 
 Nota de ejecucion:
 
@@ -93,6 +95,7 @@ Eso implica:
 
 - no hardcodear estados, modulos o claves de cuota cuando ya existen por API
 - preferir `GET /platform/capabilities` para poblar catalogos, labels y agrupaciones
+- preferir tambien `GET /tenant/info` para poblar el shell tenant con `effective_enabled_modules` en vez de dejar navegación fija
 - mantener en frontend la logica de presentacion, no la logica central de negocio
 
 ## Etapa F1. Auth y Shell Base
