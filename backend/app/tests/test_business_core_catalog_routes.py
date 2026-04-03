@@ -95,6 +95,7 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
             response = list_business_organizations(
                 organization_kind="client",
                 include_inactive=False,
+                exclude_client_organizations=False,
                 current_user=self._current_user(),
                 tenant_db=object(),
             )
@@ -103,7 +104,34 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data[0].name, "Acme Ltda")
         self.assertEqual(
             list_mock.call_args.kwargs,
-            {"organization_kind": "client", "include_inactive": False},
+            {
+                "organization_kind": "client",
+                "include_inactive": False,
+                "exclude_client_organizations": False,
+            },
+        )
+
+    def test_list_business_organizations_can_exclude_client_organizations(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.business_core.api.organizations.organization_service.list_organizations",
+            return_value=[],
+        ) as list_mock:
+            response = list_business_organizations(
+                organization_kind=None,
+                include_inactive=True,
+                exclude_client_organizations=True,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.total, 0)
+        self.assertEqual(
+            list_mock.call_args.kwargs,
+            {
+                "organization_kind": None,
+                "include_inactive": True,
+                "exclude_client_organizations": True,
+            },
         )
 
     def test_create_business_organization_translates_validation_error_to_400(self) -> None:

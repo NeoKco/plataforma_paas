@@ -25,6 +25,13 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - tecnicos o grupos
 - taxonomias de trabajo
 
+## Como leer Empresas vs Clientes
+
+- `Empresas` muestra la empresa propia, proveedores y partners operativos.
+- `Clientes` muestra la cartera cliente del tenant.
+- una misma identidad base puede existir como `organization`, pero la vista `Empresas` no debe usarse para revisar la cartera comercial completa.
+- por defecto, la pantalla `Empresas` excluye las organizaciones ya usadas como clientes para evitar mezclar ambas lecturas.
+
 Eso genera:
 
 - datos duplicados

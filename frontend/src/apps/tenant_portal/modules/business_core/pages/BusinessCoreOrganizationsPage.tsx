@@ -20,7 +20,7 @@ function buildDefaultForm(): TenantBusinessOrganizationWriteRequest {
     name: "",
     legal_name: null,
     tax_id: null,
-    organization_kind: "client",
+    organization_kind: "supplier",
     phone: null,
     email: null,
     notes: null,
@@ -52,7 +52,9 @@ export function BusinessCoreOrganizationsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getTenantBusinessOrganizations(session.accessToken);
+      const response = await getTenantBusinessOrganizations(session.accessToken, {
+        excludeClientOrganizations: true,
+      });
       setOrganizations(response.data);
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -161,12 +163,12 @@ export function BusinessCoreOrganizationsPage() {
 
   return (
     <BusinessCoreCatalogPage
-      titleEs="Empresas y contrapartes"
-      titleEn="Organizations and counterparts"
-      descriptionEs="Catálogo base para empresa propia, clientes institucionales, proveedores y partners."
-      descriptionEn="Base catalog for own company, institutional clients, suppliers, and partners."
-      helpEs="Usa organizaciones como identidad base. Cliente, proveedor o partner son roles posteriores; no mezcles todo en un mismo módulo operativo."
-      helpEn="Use organizations as the base identity. Client, supplier, or partner are later roles; do not mix everything inside an operational module."
+      titleEs="Empresas y contrapartes operativas"
+      titleEn="Operational organizations and counterparts"
+      descriptionEs="Catálogo para empresa propia, proveedores y partners. Los clientes operativos se gestionan en la vista de Clientes."
+      descriptionEn="Catalog for own company, suppliers, and partners. Operational clients are managed from the Clients view."
+      helpEs="Esta vista excluye por defecto las organizaciones ya usadas como clientes. Usa Clientes para la cartera comercial y Empresas para contrapartes operativas."
+      helpEn="This view excludes organizations already used as clients by default. Use Clients for the commercial portfolio and Organizations for operational counterparts."
       loadingLabelEs="Cargando organizaciones..."
       loadingLabelEn="Loading organizations..."
       isLoading={isLoading}
@@ -191,7 +193,6 @@ export function BusinessCoreOrganizationsPage() {
           labelEn: "Kind",
           type: "select",
           options: [
-            { value: "client", label: language === "es" ? "Cliente" : "Client" },
             { value: "supplier", label: language === "es" ? "Proveedor" : "Supplier" },
             { value: "partner", label: language === "es" ? "Partner" : "Partner" },
             { value: "internal", label: language === "es" ? "Interna" : "Internal" },

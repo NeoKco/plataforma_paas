@@ -42,12 +42,19 @@ export type TenantBusinessOrganizationWriteRequest = {
 
 export function getTenantBusinessOrganizations(
   accessToken: string,
-  options: { includeInactive?: boolean; organizationKind?: string } = {}
+  options: {
+    includeInactive?: boolean;
+    organizationKind?: string;
+    excludeClientOrganizations?: boolean;
+  } = {}
 ) {
   const params = new URLSearchParams();
   params.set("include_inactive", options.includeInactive === false ? "false" : "true");
   if (options.organizationKind) {
     params.set("organization_kind", options.organizationKind);
+  }
+  if (options.excludeClientOrganizations) {
+    params.set("exclude_client_organizations", "true");
   }
   return apiRequest<TenantBusinessOrganizationsResponse>(
     `/tenant/business-core/organizations?${params.toString()}`,

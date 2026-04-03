@@ -42,6 +42,7 @@ def _build_organization_item(organization) -> BusinessOrganizationItemResponse:
 def list_business_organizations(
     organization_kind: str | None = None,
     include_inactive: bool = True,
+    exclude_client_organizations: bool = False,
     current_user=Depends(require_business_core_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> BusinessOrganizationsResponse:
@@ -49,6 +50,7 @@ def list_business_organizations(
         tenant_db,
         organization_kind=organization_kind,
         include_inactive=include_inactive,
+        exclude_client_organizations=exclude_client_organizations,
     )
     return BusinessOrganizationsResponse(
         success=True,

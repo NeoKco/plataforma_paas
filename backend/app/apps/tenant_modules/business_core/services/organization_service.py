@@ -27,6 +27,7 @@ class BusinessOrganizationService:
         *,
         organization_kind: str | None = None,
         include_inactive: bool = True,
+        exclude_client_organizations: bool = False,
     ) -> list[BusinessOrganization]:
         if organization_kind:
             return self.organization_repository.list_by_kind(
@@ -37,6 +38,7 @@ class BusinessOrganizationService:
         return self.organization_repository.list_all(
             tenant_db,
             include_inactive=include_inactive,
+            exclude_client_organizations=exclude_client_organizations,
         )
 
     def create_organization(

@@ -1,5 +1,7 @@
 # Business Core Changelog
 
+- Se corrigio la lectura de `Empresas` para excluir por defecto las organizaciones ya usadas como clientes y evitar mezclar cartera comercial con contrapartes operativas.
+
 ## 2026-04-02
 
 - se crea la documentacion canonica inicial de `business-core`
