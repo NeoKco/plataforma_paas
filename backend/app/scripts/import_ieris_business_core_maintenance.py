@@ -134,6 +134,56 @@ def normalize_text(value: str | None) -> str | None:
     return normalized or None
 
 
+def normalize_legacy_contact_name(value: str | None) -> str | None:
+    normalized = normalize_text(value)
+    if normalized is None:
+        return None
+    lowered = normalized.lower()
+    if lowered in {
+        "sin contacto",
+        "sin mail",
+        "sin fono",
+        "sin telefono",
+        "sin teléfono",
+        "s/n",
+    }:
+        return None
+    return normalized
+
+
+def normalize_legacy_email(value: str | None) -> str | None:
+    normalized = normalize_text(value)
+    if normalized is None:
+        return None
+    lowered = normalized.lower()
+    if lowered in {"sin mail", "sin correo", "no email", "s/n"}:
+        return None
+    if "@" not in normalized:
+        return None
+    return normalized
+
+
+def normalize_legacy_phone(value: str | None) -> str | None:
+    normalized = normalize_text(value)
+    if normalized is None:
+        return None
+    lowered = normalized.lower()
+    if lowered in {
+        "sin fono",
+        "sin telefono",
+        "sin teléfono",
+        "sin contacto",
+        "sin contacto 1",
+        "sin contacto 2",
+        "s/n",
+    }:
+        return None
+    digits = "".join(char for char in normalized if char.isdigit())
+    if not digits:
+        return None
+    return normalized
+
+
 def append_note(*parts: str | None) -> str | None:
     clean = [part.strip() for part in parts if part and part.strip()]
     return "\n".join(clean) if clean else None
@@ -293,7 +343,26 @@ def get_or_create_organization(
             .first()
         )
     if existing is not None:
-        counters.existing += 1
+        changed = False
+        for field, value in {
+            "name": name,
+            "legal_name": legal_name,
+            "tax_id": tax_id,
+            "organization_kind": organization_kind,
+            "phone": phone,
+            "email": email,
+            "notes": notes,
+            "is_active": True,
+        }.items():
+            if getattr(existing, field) != value:
+                setattr(existing, field, value)
+                changed = True
+        if changed:
+            tenant_db.add(existing)
+            tenant_db.flush()
+            counters.updated += 1
+        else:
+            counters.existing += 1
         return existing
 
     item = BusinessOrganization(
@@ -334,7 +403,23 @@ def get_or_create_client(
             .first()
         )
     if existing is not None:
-        counters.existing += 1
+        changed = False
+        for field, value in {
+            "organization_id": organization_id,
+            "client_code": client_code,
+            "service_status": service_status,
+            "commercial_notes": commercial_notes,
+            "is_active": is_active,
+        }.items():
+            if getattr(existing, field) != value:
+                setattr(existing, field, value)
+                changed = True
+        if changed:
+            tenant_db.add(existing)
+            tenant_db.flush()
+            counters.updated += 1
+        else:
+            counters.existing += 1
         return existing
 
     item = BusinessClient(
@@ -369,7 +454,35 @@ def get_or_create_contact(
         query = query.filter(func.coalesce(func.lower(BusinessContact.email), "") == email.lower())
     existing = query.first()
     if existing is not None:
-        counters.existing += 1
+        changed = False
+        for field, value in {
+            "email": email,
+            "phone": phone,
+            "role_title": role_title,
+            "is_active": True,
+        }.items():
+            if getattr(existing, field) != value:
+                setattr(existing, field, value)
+                changed = True
+        if is_primary and not existing.is_primary:
+            has_other_primary = (
+                tenant_db.query(BusinessContact.id)
+                .filter(
+                    BusinessContact.organization_id == organization_id,
+                    BusinessContact.is_primary.is_(True),
+                    BusinessContact.id != existing.id,
+                )
+                .first()
+            )
+            if has_other_primary is None:
+                existing.is_primary = True
+                changed = True
+        if changed:
+            tenant_db.add(existing)
+            tenant_db.flush()
+            counters.updated += 1
+        else:
+            counters.existing += 1
         return existing
 
     if is_primary:
@@ -873,34 +986,35 @@ def import_business_core_and_maintenance(
             legal_name=company_name,
             tax_id=normalize_text(row.get("rut")),
             organization_kind=map_legacy_organization_kind(row.get("tipo")),
-            phone=normalize_text(row.get("fono_contacto_1")),
-            email=normalize_text(row.get("mail")) or normalize_text(row.get("mail_contacto_1")),
+            phone=normalize_legacy_phone(row.get("fono_contacto_1")),
+            email=normalize_legacy_email(row.get("mail"))
+            or normalize_legacy_email(row.get("mail_contacto_1")),
             notes=strip_legacy_visible_text(normalize_text(row.get("descripcion"))),
             counters=report["business_core"]["organizations"],
         )
         organization_by_legacy_company_id[company_id] = org
 
-        primary_contact_name = normalize_text(row.get("nombre_contacto"))
+        primary_contact_name = normalize_legacy_contact_name(row.get("nombre_contacto"))
         if primary_contact_name:
             get_or_create_contact(
                 tenant_db,
                 organization_id=org.id,
                 full_name=primary_contact_name,
-                email=normalize_text(row.get("mail_contacto_1")),
-                phone=normalize_text(row.get("fono_contacto_1")),
+                email=normalize_legacy_email(row.get("mail_contacto_1")),
+                phone=normalize_legacy_phone(row.get("fono_contacto_1")),
                 role_title="Contacto principal",
                 is_primary=True,
                 counters=report["business_core"]["contacts"],
             )
 
-        secondary_contact_name = normalize_text(row.get("contacto_2"))
+        secondary_contact_name = normalize_legacy_contact_name(row.get("contacto_2"))
         if secondary_contact_name:
             get_or_create_contact(
                 tenant_db,
                 organization_id=org.id,
                 full_name=secondary_contact_name,
-                email=normalize_text(row.get("mail_contacto_2")),
-                phone=normalize_text(row.get("fono_contacto_2")),
+                email=normalize_legacy_email(row.get("mail_contacto_2")),
+                phone=normalize_legacy_phone(row.get("fono_contacto_2")),
                 role_title="Contacto secundario",
                 is_primary=False,
                 counters=report["business_core"]["contacts"],
@@ -922,8 +1036,8 @@ def import_business_core_and_maintenance(
             legal_name=normalize_text(row.get("organizacion")) or client_name,
             tax_id=normalize_text(row.get("rut")),
             organization_kind="client",
-            phone=normalize_text(row.get("fono_contacto_1")),
-            email=normalize_text(row.get("mail_contacto_1")),
+            phone=normalize_legacy_phone(row.get("fono_contacto_1")),
+            email=normalize_legacy_email(row.get("mail_contacto_1")),
             notes=append_note(
                 normalize_text(row.get("observaciones")),
                 normalize_text(row.get("motivo_baja")),
@@ -947,27 +1061,27 @@ def import_business_core_and_maintenance(
         )
         client_by_legacy_client_id[legacy_client_id] = client
 
-        primary_contact_name = normalize_text(row.get("contacto_1"))
+        primary_contact_name = normalize_legacy_contact_name(row.get("contacto_1"))
         if primary_contact_name:
             get_or_create_contact(
                 tenant_db,
                 organization_id=organization.id,
                 full_name=primary_contact_name,
-                email=normalize_text(row.get("mail_contacto_1")),
-                phone=normalize_text(row.get("fono_contacto_1")),
+                email=normalize_legacy_email(row.get("mail_contacto_1")),
+                phone=normalize_legacy_phone(row.get("fono_contacto_1")),
                 role_title="Contacto principal",
                 is_primary=True,
                 counters=report["business_core"]["contacts"],
             )
 
-        secondary_contact_name = normalize_text(row.get("contacto_2"))
+        secondary_contact_name = normalize_legacy_contact_name(row.get("contacto_2"))
         if secondary_contact_name:
             get_or_create_contact(
                 tenant_db,
                 organization_id=organization.id,
                 full_name=secondary_contact_name,
-                email=normalize_text(row.get("mail_contacto_2")),
-                phone=normalize_text(row.get("fono_contacto_2")),
+                email=normalize_legacy_email(row.get("mail_contacto_2")),
+                phone=normalize_legacy_phone(row.get("fono_contacto_2")),
                 role_title="Contacto secundario",
                 is_primary=False,
                 counters=report["business_core"]["contacts"],
