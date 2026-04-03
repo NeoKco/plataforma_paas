@@ -577,6 +577,26 @@ code {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.platform-users-page__catalog {
+  display: grid;
+}
+
+.platform-users-page__catalog .panel-card {
+  width: 100%;
+}
+
+.platform-users-page__detail-grid {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.35fr) minmax(20rem, 0.85fr);
+}
+
+.platform-users-page__aside {
+  display: grid;
+  gap: 1rem;
+}
+
 .tenant-portal-metrics {
   display: grid;
   gap: 1rem;
@@ -1413,6 +1433,7 @@ code {
   .billing-data-grid,
   .settings-overview-grid,
   .settings-grid,
+  .platform-users-page__detail-grid,
   .provisioning-dlq-grid,
   .tenants-page-grid,
   .tenant-detail-grid,

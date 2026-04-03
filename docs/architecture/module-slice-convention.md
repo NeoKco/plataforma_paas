@@ -119,6 +119,28 @@ Antes de considerar un modulo como "real", deberia tener como minimo:
 - documentacion escrita corta
 - carpeta canonica en `docs/modules/<modulo>/` con los documentos base ya creados
 
+## Regla UX para CRUD
+
+Desde este punto del proyecto, cualquier CRUD nuevo deberia respetar esta regla de captura:
+
+- la lectura principal se muestra primero
+- la creacion no queda desplegada por defecto
+- el alta se abre solo bajo demanda desde un boton explicito como `Nuevo`, `Crear` o equivalente
+- la edicion puede vivir en modal, drawer o vista secundaria segun densidad, pero tampoco deberia invadir la lectura principal sin que el usuario la pida
+
+Traduccion practica:
+
+- no abrir formularios de alta permanentes encima del catalogo
+- no mezclar lectura y creacion en la misma columna por defecto
+- usar modales de alta en CRUD operativos mientras no exista una razon fuerte para una vista dedicada
+
+La idea es mantener:
+
+- lectura limpia
+- menor fatiga visual
+- menor riesgo de captura accidental
+- consistencia entre `platform_admin`, `tenant_portal` y modulos futuros
+
 ## Politica documental oficial
 
 La documentacion modular ya no debe quedar solo dispersa entre backend, frontend y runbooks.

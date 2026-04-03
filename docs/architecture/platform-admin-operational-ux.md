@@ -117,6 +117,10 @@ Reglas:
 - separar campos core de campos avanzados
 - no mostrar claves tecnicas sin label legible cuando ya exista metadata
 - si una clave de cuota se muestra, acompañarla con descripcion
+- en CRUD operativos, la creacion no deberia quedar abierta por defecto
+- la vista debe priorizar lectura y catalogo
+- el alta deberia abrirse solo bajo demanda desde un boton claro como `Nuevo tenant` o `Nuevo usuario`
+- este mismo patron deberia repetirse en cualquier CRUD nuevo de `platform_admin`
 
 ## Tablas
 

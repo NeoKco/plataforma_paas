@@ -65,6 +65,7 @@ Referencia:
 Nota operativa:
 
 - la creación de usuarios de plataforma también debería abrirse solo bajo demanda desde `Nuevo usuario`, dejando el catálogo como vista principal de lectura
+- el catálogo de usuarios debería ocupar el ancho útil completo; la ficha y las acciones del usuario seleccionado deben quedar debajo en un segundo nivel más compacto para evitar huecos visuales innecesarios
 
 Referencia:
 

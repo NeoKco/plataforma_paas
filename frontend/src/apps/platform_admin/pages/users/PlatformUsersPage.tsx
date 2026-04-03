@@ -653,7 +653,7 @@ export function PlatformUsersPage() {
             </div>
           ) : null}
 
-          <div className="settings-grid">
+          <div className="platform-users-page__catalog">
             <PanelCard
               icon="catalogs"
               title={
@@ -765,7 +765,7 @@ export function PlatformUsersPage() {
           ) : null}
 
           {selectedUser ? (
-            <div className="tenant-action-grid">
+            <div className="platform-users-page__detail-grid">
               <PanelCard
                 icon="users"
                 title={selectedUser.full_name}
@@ -844,7 +844,7 @@ export function PlatformUsersPage() {
                 </AppForm>
               </PanelCard>
 
-              <div className="d-grid gap-4">
+              <div className="platform-users-page__aside">
                 <PanelCard
                   icon="settings"
                   title={language === "es" ? "Estado operativo" : "Operational status"}
