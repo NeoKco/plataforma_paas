@@ -20,3 +20,4 @@
 - se deja explicito que `user_groups` sigue pendiente hasta abrir `business_work_group_members`
 - se valida el `dry-run` del importador contra `kanban_db` y el tenant `empresa-bootstrap`
 - se ejecuta el importador real sobre `empresa-bootstrap` y se valida idempotencia en segunda corrida
+- se agrega un smoke E2E tenant para validar visibilidad real en UI de datos importados de `business-core` sobre `empresa-bootstrap`

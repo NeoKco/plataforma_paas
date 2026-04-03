@@ -42,6 +42,7 @@ Archivos principales:
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
+- [tenant-portal-business-core-maintenance-import.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-business-core-maintenance-import.smoke.spec.ts)
 
 ## Alcance inicial
 
@@ -77,6 +78,7 @@ Cobertura actual:
 - carga de adjunto sobre transacción creada en `finance`
 - anulación básica de una transacción creada en `finance`
 - conciliación básica de una transacción creada en `finance`
+- visibilidad de datos ya importados desde `ieris_app` en `business-core` y `maintenance`
 
 Esto no reemplaza:
 
@@ -162,11 +164,17 @@ Resultado validado en local a la fecha:
 - `tenant_portal` ya cubre además el flujo base de préstamos con alta de cartera y pago simple de cuota
 - `tenant_portal` ya cubre además pago en lote y reversa en lote de cuotas sobre préstamos seleccionados
 - `tenant_portal` ya cubre además lectura contable derivada y exportaciones de préstamos tras pago y reversa
+- `tenant_portal` ya cubre además visibilidad real de datos importados desde `ieris_app` en `business-core` y `maintenance`
 - `tenant_portal` con `empresa-bootstrap` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
+- datos importados validados al menos para:
+  - organizaciones (`Ieris Ltda`)
+  - clientes (`Cecilia Tabales`)
+  - tipos de equipo (`heat pipe`)
+  - órdenes de trabajo (`Mantención sst`)
 - suite `platform_admin` validada en local con `12 passed` y `3 skipped` broker-only
 - los `3` escenarios broker-only de DLQ quedaron además verificados explícitamente en un stack paralelo local con backend `broker` + Redis, con `3 passed`
-- suite `tenant_portal` validada en local con `21 passed`
+- suite `tenant_portal` validada en local con `22 passed`
 - el stack browser principal ya quedó prácticamente cerrado; lo siguiente pasa a ser regresión incremental cuando aparezcan nuevos bordes reales
 
 ## Comandos

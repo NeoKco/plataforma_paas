@@ -29,6 +29,7 @@ Cobertura validada:
 - smoke de adjuntos en `finance`
 - smoke de anulación en `finance`
 - smoke de conciliación en `finance`
+- visibilidad de datos importados de `ieris_app` en `business-core` y `maintenance`
 
 Specs actuales:
 
@@ -65,6 +66,7 @@ Specs actuales:
 - [tenant-portal-finance.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance.smoke.spec.ts)
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
+- [tenant-portal-business-core-maintenance-import.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-business-core-maintenance-import.smoke.spec.ts)
 
 Variables de entorno:
 
@@ -133,9 +135,10 @@ Notas:
 - el smoke contable de `finance loans` valida lectura derivada tras pago + reversa y confirma exportaciones `CSV`/`JSON` desde el detalle del préstamo
 - los smokes de `finance loans` quedaron estabilizados para tolerar cronogramas ya abiertos, distinguir formularios simples vs batch y usar selectores consistentes sobre `Cuenta origen`, nota operativa y motivo de reversa
 - en esta iteración no hicieron falta cambios funcionales del módulo `finance`: los fallos detectados fueron de sincronización/selección E2E y el flujo real ya soportaba creación, pago simple, pago batch, reversa batch y exportación/lectura contable derivada
+- el smoke tenant de importación valida que `empresa-bootstrap` expone en UI datos ya migrados desde `ieris_app` para `business-core` y `maintenance`, sin depender de la BD legacy en runtime
 - estado validado al cierre actual:
 	- `npm run e2e:platform` → `12 passed`, `3 skipped`
-	- `npm run e2e:tenant` → `21 passed`
+	- `npm run e2e:tenant` → `22 passed`
 	- los `3 skipped` corresponden a escenarios DLQ broker-only cuando el entorno no usa `PROVISIONING_DISPATCH_BACKEND=broker`
 	- los `3` escenarios DLQ broker-only también quedaron verificados aparte sobre un stack local paralelo en modo `broker` apuntando a Redis, con `3 passed`
 	- fuera de esos casos dependientes de entorno, el frente E2E browser principal queda prácticamente cerrado

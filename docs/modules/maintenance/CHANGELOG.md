@@ -47,6 +47,7 @@
   - `work_orders`: `created 0 / existing 105`
   - `installations`: `created 0 / existing 197`
   - `sites`: `created 0 / existing 200`
+- se agrega un smoke E2E tenant para confirmar que tipos de equipo y órdenes importadas quedan visibles en el portal sobre `empresa-bootstrap`
 
 ## 2026-04-01
 
