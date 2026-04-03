@@ -99,6 +99,10 @@
   width: min(100%, 56rem);
 }
 
+.finance-form-modal--xwide {
+  width: min(100%, 72rem);
+}
+
 .finance-form-modal__eyebrow {
   display: inline-flex;
   align-items: center;
@@ -338,6 +342,15 @@
 .finance-transaction-layout {
   display: grid;
   gap: 1rem;
+}
+
+.finance-transaction-detail-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.finance-transaction-detail-grid--two {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .finance-report-grid {

@@ -103,6 +103,7 @@ export function FinanceLoansPage() {
   const [currencies, setCurrencies] = useState<TenantFinanceCurrency[]>([]);
   const [accounts, setAccounts] = useState<TenantFinanceAccount[]>([]);
   const [editingLoanId, setEditingLoanId] = useState<number | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState<number | null>(null);
   const [loanDetail, setLoanDetail] = useState<TenantFinanceLoanDetailResponse["data"] | null>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
@@ -275,8 +276,20 @@ export function FinanceLoansPage() {
     });
   }
 
+  function openCreateModal() {
+    resetForm();
+    setIsFormOpen(true);
+    setActionFeedback(null);
+  }
+
+  function closeFormModal() {
+    setIsFormOpen(false);
+    resetForm();
+  }
+
   function startEditingLoan(loan: TenantFinanceLoan) {
     setEditingLoanId(loan.id);
+    setIsFormOpen(true);
     setFormState({
       name: loan.name,
       loanType: loan.loan_type,
@@ -332,6 +345,7 @@ export function FinanceLoansPage() {
         : await createTenantFinanceLoan(session.accessToken, payload);
 
       await loadLoanWorkspace();
+      setIsFormOpen(false);
       setSelectedLoanId(response.data.id);
       resetForm();
       setActionFeedback({ type: "success", message: response.message });
@@ -576,6 +590,9 @@ export function FinanceLoansPage() {
                   : "Applying a payment creates an accounting movement linked to the loan. Reverse undoes that payment with a reason. Loan-linked installments are not voided from Transactions; they are reversed here."
               }
             />
+            <button className="btn btn-primary" type="button" onClick={openCreateModal}>
+              {language === "es" ? "Nuevo préstamo" : "New loan"}
+            </button>
           </AppToolbar>
         }
       />
@@ -633,24 +650,49 @@ export function FinanceLoansPage() {
         </div>
       ) : null}
 
-      <div className="tenant-portal-split tenant-portal-split--finance">
-        <PanelCard
-          title={
-            editingLoanId
-              ? language === "es"
-                ? "Editar préstamo"
-                : "Edit loan"
-              : language === "es"
-                ? "Registrar préstamo"
-                : "Create loan"
-          }
-          subtitle={
-            language === "es"
-              ? "Primer corte: cartera básica con saldo pendiente y contraparte, sin abrir todavía amortización avanzada."
-              : "First slice: basic portfolio with outstanding balance and counterparty, before opening advanced amortization."
-          }
-        >
-          <form className="d-grid gap-3" onSubmit={handleSubmit}>
+      {isFormOpen ? (
+        <div className="finance-form-backdrop" role="presentation" onClick={closeFormModal}>
+          <div
+            className="finance-form-modal finance-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              editingLoanId
+                ? language === "es"
+                  ? "Editar préstamo"
+                  : "Edit loan"
+                : language === "es"
+                  ? "Registrar préstamo"
+                  : "Create loan"
+            }
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="finance-form-modal__eyebrow">
+              {editingLoanId
+                ? language === "es"
+                  ? "Edición puntual"
+                  : "Targeted edit"
+                : language === "es"
+                  ? "Alta bajo demanda"
+                  : "On-demand creation"}
+            </div>
+            <PanelCard
+              title={
+                editingLoanId
+                  ? language === "es"
+                    ? "Editar préstamo"
+                    : "Edit loan"
+                  : language === "es"
+                    ? "Registrar préstamo"
+                    : "Create loan"
+              }
+              subtitle={
+                language === "es"
+                  ? "Primer corte: cartera básica con saldo pendiente y contraparte, sin abrir todavía amortización avanzada."
+                  : "First slice: basic portfolio with outstanding balance and counterparty, before opening advanced amortization."
+              }
+            >
+              <form className="d-grid gap-3" onSubmit={handleSubmit}>
             <div className="tenant-inline-form-grid">
               <div>
                 <label className="form-label">{language === "es" ? "Nombre" : "Name"}</label>
@@ -863,7 +905,7 @@ export function FinanceLoansPage() {
                   className="btn btn-outline-secondary"
                   type="button"
                   disabled={isSubmitting}
-                  onClick={resetForm}
+                  onClick={closeFormModal}
                 >
                   {language === "es" ? "Cancelar edición" : "Cancel editing"}
                 </button>
@@ -871,15 +913,18 @@ export function FinanceLoansPage() {
             </AppToolbar>
           </form>
         </PanelCard>
+          </div>
+        </div>
+      ) : null}
 
-        <PanelCard
-          title={language === "es" ? "Lectura de cartera" : "Portfolio reading"}
-          subtitle={
-            language === "es"
-              ? "Filtra por tipo o estado para separar deuda recibida, deuda prestada y cartera ya liquidada."
-              : "Filter by type or status to separate borrowed debt, lent debt, and settled portfolio."
-          }
-        >
+      <PanelCard
+        title={language === "es" ? "Lectura de cartera" : "Portfolio reading"}
+        subtitle={
+          language === "es"
+            ? "Filtra por tipo o estado para separar deuda recibida, deuda prestada y cartera ya liquidada."
+            : "Filter by type or status to separate borrowed debt, lent debt, and settled portfolio."
+        }
+      >
           <div className="d-grid gap-3">
             <div className="tenant-inline-form-grid">
               <div>

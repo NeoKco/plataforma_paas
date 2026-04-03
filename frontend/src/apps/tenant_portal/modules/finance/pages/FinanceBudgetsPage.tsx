@@ -73,6 +73,7 @@ export function FinanceBudgetsPage() {
   const [categories, setCategories] = useState<TenantFinanceCategory[]>([]);
   const [currencies, setCurrencies] = useState<TenantFinanceCurrency[]>([]);
   const [editingBudgetId, setEditingBudgetId] = useState<number | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [filterMonth, setFilterMonth] = useState(buildMonthValue());
   const [filterCategoryType, setFilterCategoryType] = useState("");
   const [filterBudgetStatus, setFilterBudgetStatus] = useState("");
@@ -173,8 +174,20 @@ export function FinanceBudgetsPage() {
     });
   }
 
+  function openCreateModal() {
+    resetForm();
+    setIsFormOpen(true);
+    setActionFeedback(null);
+  }
+
+  function closeFormModal() {
+    setIsFormOpen(false);
+    resetForm();
+  }
+
   function startEditingBudget(budget: TenantFinanceBudget) {
     setEditingBudgetId(budget.id);
+    setIsFormOpen(true);
     setFormState({
       periodMonth: buildMonthValueFromIso(budget.period_month),
       categoryId: String(budget.category_id),
@@ -208,6 +221,7 @@ export function FinanceBudgetsPage() {
 
       setFilterMonth(formState.periodMonth);
       await loadBudgetWorkspace();
+      setIsFormOpen(false);
       resetForm();
       setActionFeedback({ type: "success", message: response.message });
     } catch (rawError) {
@@ -381,11 +395,58 @@ export function FinanceBudgetsPage() {
                   : "Clone copies one month into another. Template applies a base with scaling and rounding. Guided focus adjusts visible items by actual variance without replacing the entire plan."
               }
             />
+            <button className="btn btn-primary" type="button" onClick={openCreateModal}>
+              {language === "es" ? "Nuevo presupuesto" : "New budget"}
+            </button>
           </AppToolbar>
         }
       />
 
       <FinanceModuleNav />
+
+      {isFormOpen ? (
+        <div className="finance-form-backdrop" role="presentation" onClick={closeFormModal}>
+          <div
+            className="finance-form-modal finance-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              editingBudgetId
+                ? language === "es"
+                  ? "Editar presupuesto"
+                  : "Edit budget"
+                : language === "es"
+                  ? "Registrar presupuesto"
+                  : "Create budget"
+            }
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="finance-form-modal__eyebrow">
+              {editingBudgetId
+                ? language === "es"
+                  ? "Edición puntual"
+                  : "Targeted edit"
+                : language === "es"
+                  ? "Alta bajo demanda"
+                  : "On-demand creation"}
+            </div>
+            <PanelCard
+              title={
+                editingBudgetId
+                  ? language === "es"
+                    ? "Editar presupuesto"
+                    : "Edit budget"
+                  : language === "es"
+                    ? "Registrar presupuesto"
+                    : "Create budget"
+              }
+              subtitle={
+                language === "es"
+                  ? "Primer corte: presupuesto mensual por categoría con comparación contra gasto o ingreso real."
+                  : "First slice: monthly budget by category with comparison against actual expense or income."
+              }
+            >
+              <form className="d-grid gap-3" onSubmit={handleSubmit}>
 
       {actionFeedback ? (
         <div className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}>
@@ -482,16 +543,14 @@ export function FinanceBudgetsPage() {
         </div>
       ) : null}
 
-      <div className="tenant-portal-split tenant-portal-split--finance">
-        <PanelCard
-          title={editingBudgetId ? (language === "es" ? "Editar presupuesto" : "Edit budget") : (language === "es" ? "Registrar presupuesto" : "Create budget")}
-          subtitle={
-            language === "es"
-              ? "Primer corte: presupuesto mensual por categoría con comparación contra gasto o ingreso real."
-              : "First slice: monthly budget by category with comparison against actual expense or income."
-          }
-        >
-          <form className="d-grid gap-3" onSubmit={handleSubmit}>
+      <PanelCard
+        title={language === "es" ? "Lectura del período" : "Period view"}
+        subtitle={
+          language === "es"
+            ? "Filtra por tipo o estado para concentrarte en categorías con desviación, inactivas o sin uso."
+            : "Filter by type or status to focus on categories with variance, inactive entries, or no usage."
+        }
+      >
             <div className="tenant-inline-form-grid">
               <div>
                 <label className="form-label">{language === "es" ? "Mes" : "Month"}</label>
@@ -587,7 +646,7 @@ export function FinanceBudgetsPage() {
                   className="btn btn-outline-secondary"
                   type="button"
                   disabled={isSubmitting}
-                  onClick={resetForm}
+                  onClick={closeFormModal}
                 >
                   {language === "es" ? "Cancelar edición" : "Cancel editing"}
                 </button>
@@ -595,15 +654,9 @@ export function FinanceBudgetsPage() {
             </AppToolbar>
           </form>
         </PanelCard>
-
-        <PanelCard
-          title={language === "es" ? "Lectura del período" : "Period view"}
-          subtitle={
-            language === "es"
-              ? "Filtra por tipo o estado para concentrarte en categorías con desviación, inactivas o sin uso."
-              : "Filter by type or status to focus on categories with variance, inactive entries, or no usage."
-          }
-        >
+          </div>
+        </div>
+      ) : null}
           <div className="d-grid gap-3">
             <div className="tenant-inline-form-grid">
               <div>
@@ -785,7 +838,6 @@ export function FinanceBudgetsPage() {
             </AppToolbar>
           </div>
         </PanelCard>
-      </div>
 
       <PanelCard
         title={language === "es" ? "Foco presupuestario" : "Budget focus"}

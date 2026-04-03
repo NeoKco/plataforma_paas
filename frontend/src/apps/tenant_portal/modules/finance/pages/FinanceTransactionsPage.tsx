@@ -103,7 +103,6 @@ const DEFAULT_FORM_STATE: TransactionFormState = {
 export function FinanceTransactionsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
-  const detailPanelRef = useRef<HTMLDivElement | null>(null);
   const [transactions, setTransactions] = useState<TenantFinanceTransaction[]>([]);
   const [summaryResponse, setSummaryResponse] =
     useState<TenantFinanceSummaryResponse | null>(null);
@@ -119,6 +118,8 @@ export function FinanceTransactionsPage() {
   const [selectedTransactionDetail, setSelectedTransactionDetail] =
     useState<TenantFinanceTransactionDetailResponse["data"] | null>(null);
   const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null);
+  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
+  const [isTransactionDetailOpen, setIsTransactionDetailOpen] = useState(false);
   const [formState, setFormState] = useState<TransactionFormState>(DEFAULT_FORM_STATE);
   const [reconciliationNote, setReconciliationNote] = useState("");
   const [reconciliationReasonCode, setReconciliationReasonCode] =
@@ -394,22 +395,9 @@ export function FinanceTransactionsPage() {
       return;
     }
 
-    if (selectedTransactionId === transactionId) {
-      setSelectedTransactionId(null);
-      setSelectedTransactionDetail(null);
-      setDetailError(null);
-      setAttachmentPreviewModal(null);
-      return;
-    }
-
     setSelectedTransactionId(transactionId);
+    setIsTransactionDetailOpen(true);
     await fetchTransactionDetail(transactionId);
-  }
-
-  function focusTransactionDetailPanel() {
-    window.setTimeout(() => {
-      detailPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
   }
 
   async function openTransactionAttachments(transactionId: number) {
@@ -417,8 +405,8 @@ export function FinanceTransactionsPage() {
       return;
     }
     setSelectedTransactionId(transactionId);
+    setIsTransactionDetailOpen(true);
     await fetchTransactionDetail(transactionId);
-    focusTransactionDetailPanel();
   }
 
   async function fetchTransactionDetail(transactionId: number) {
@@ -566,7 +554,9 @@ export function FinanceTransactionsPage() {
 
       await loadFinanceWorkspace();
       setSelectedTransactionId(response.data.id);
+      setIsTransactionDetailOpen(true);
       setEditingTransactionId(null);
+      setIsTransactionFormOpen(false);
       await fetchTransactionDetail(response.data.id);
       resetFormForCreate();
 
@@ -584,16 +574,16 @@ export function FinanceTransactionsPage() {
             type: "success",
             message:
               language === "es"
-                ? `${response.message} ${attachmentResponse.message} El detalle quedó abierto abajo.`
-                : `${response.message} ${attachmentResponse.message} The detail panel was opened below.`,
+                ? `${response.message} ${attachmentResponse.message} El detalle quedó abierto en modal.`
+                : `${response.message} ${attachmentResponse.message} The detail modal is now open.`,
           });
         } catch {
           setActionFeedback({
             type: "success",
             message:
               language === "es"
-                ? `${response.message} La transacción sí quedó creada, pero el adjunto inicial no se pudo cargar. Puedes reintentar desde el detalle abierto abajo.`
-                : `${response.message} The transaction was created, but the initial attachment could not be uploaded. You can retry from the opened detail panel below.`,
+                ? `${response.message} La transacción sí quedó creada, pero el adjunto inicial no se pudo cargar. Puedes reintentar desde el detalle abierto en modal.`
+                : `${response.message} The transaction was created, but the initial attachment could not be uploaded. You can retry from the opened detail modal.`,
           });
         }
       } else {
@@ -601,11 +591,10 @@ export function FinanceTransactionsPage() {
           type: "success",
           message:
             language === "es"
-              ? `${response.message} El detalle quedó abierto abajo para adjuntar boleta, factura u otro respaldo.`
-              : `${response.message} The detail panel was opened below so you can attach a receipt, invoice, or other backup.`,
+              ? `${response.message} El detalle quedó abierto en modal para adjuntar boleta, factura u otro respaldo.`
+              : `${response.message} The detail modal is now open so you can attach a receipt, invoice, or other backup.`,
         });
       }
-      focusTransactionDetailPanel();
     } catch (rawError) {
       setActionFeedback({
         type: "error",
@@ -683,6 +672,7 @@ export function FinanceTransactionsPage() {
         reason || undefined
       );
       if (selectedTransactionId === transaction.id) {
+        closeTransactionDetailModal();
         setSelectedTransactionId(null);
         setSelectedTransactionDetail(null);
         setDetailError(null);
@@ -741,6 +731,7 @@ export function FinanceTransactionsPage() {
   function startEditingTransaction(transaction: TenantFinanceTransaction) {
     setEditingTransactionId(transaction.id);
     setFormState(buildTransactionFormState(transaction));
+    setIsTransactionFormOpen(true);
     setActionFeedback(null);
   }
 
@@ -754,6 +745,22 @@ export function FinanceTransactionsPage() {
     });
     setCreateAttachmentFile(null);
     setCreateAttachmentNotes("");
+  }
+
+  function openTransactionCreateModal() {
+    resetFormForCreate();
+    setIsTransactionFormOpen(true);
+    setActionFeedback(null);
+  }
+
+  function closeTransactionFormModal() {
+    setIsTransactionFormOpen(false);
+    resetFormForCreate();
+  }
+
+  function closeTransactionDetailModal() {
+    setIsTransactionDetailOpen(false);
+    setAttachmentPreviewModal(null);
   }
 
   const selectedTransactions = transactions.filter((transaction) =>
@@ -870,11 +877,74 @@ export function FinanceTransactionsPage() {
                   : "Reconcile validates the movement without deleting it. Void removes it from balances and reports while keeping audit history. Attachments can be uploaded on create or from the operational detail."
               }
             />
+            <button className="btn btn-primary" type="button" onClick={openTransactionCreateModal}>
+              {language === "es" ? "Registrar transacción" : "Register transaction"}
+            </button>
           </AppToolbar>
         }
       />
 
       <FinanceModuleNav />
+
+      {isTransactionFormOpen ? (
+        <div
+          className="finance-form-backdrop"
+          role="presentation"
+          onClick={closeTransactionFormModal}
+        >
+          <div
+            className="finance-form-modal finance-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              editingTransactionId
+                ? language === "es"
+                  ? "Editar transacción"
+                  : "Edit transaction"
+                : language === "es"
+                  ? "Registrar transacción"
+                  : "Register transaction"
+            }
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="finance-form-modal__eyebrow">
+              {editingTransactionId
+                ? language === "es"
+                  ? "Edición puntual"
+                  : "Targeted edit"
+                : language === "es"
+                  ? "Alta bajo demanda"
+                  : "On-demand creation"}
+            </div>
+            <PanelCard
+              title={
+                editingTransactionId
+                  ? language === "es"
+                    ? "Editar transacción"
+                    : "Edit transaction"
+                  : language === "es"
+                    ? "Registrar transacción"
+                    : "Register transaction"
+              }
+              subtitle={
+                editingTransactionId
+                  ? language === "es"
+                    ? "Ajusta el movimiento seleccionado sin invadir la lectura principal."
+                    : "Adjust the selected movement without invading the main reading area."
+                  : language === "es"
+                    ? "Usa el contrato moderno de finance_transactions para ingresos, egresos y transferencias."
+                    : "Use the modern finance_transactions contract for income, expenses, and transfers."
+              }
+            >
+              {editingTransactionId ? (
+                <div className="tenant-action-feedback tenant-action-feedback--success">
+                  <strong>{language === "es" ? "Edición activa:" : "Active edit:"}</strong>{" "}
+                  {language === "es"
+                    ? `estás modificando la transacción #${editingTransactionId}.`
+                    : `you are editing transaction #${editingTransactionId}.`}
+                </div>
+              ) : null}
+              <form className="d-grid gap-3" onSubmit={handleCreateTransaction}>
 
       {actionFeedback ? (
         <div className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}>
@@ -924,28 +994,14 @@ export function FinanceTransactionsPage() {
         />
       ) : null}
 
-      <div className="tenant-portal-split tenant-portal-split--finance">
-        <PanelCard
-          title={editingTransactionId ? (language === "es" ? "Editar transacción" : "Edit transaction") : language === "es" ? "Registrar transacción" : "Create transaction"}
-          subtitle={
-            editingTransactionId
-              ? language === "es"
-                ? "Ajusta el movimiento seleccionado sin salir de la vista operativa."
-                : "Adjust the selected movement without leaving the operational view."
-              : language === "es"
-                ? "Usa el contrato moderno de finance_transactions para ingresos, egresos y transferencias."
-                : "Use the modern finance_transactions contract for income, expenses, and transfers."
-          }
-        >
-          {editingTransactionId ? (
-            <div className="tenant-action-feedback tenant-action-feedback--success">
-              <strong>{language === "es" ? "Edición activa:" : "Active edit:"}</strong>{" "}
-              {language === "es"
-                ? `estás modificando la transacción #${editingTransactionId}.`
-                : `you are editing transaction #${editingTransactionId}.`}
-            </div>
-          ) : null}
-          <form className="d-grid gap-3" onSubmit={handleCreateTransaction}>
+      <PanelCard
+        title={language === "es" ? "Balances por cuenta" : "Account balances"}
+        subtitle={
+          language === "es"
+            ? "Lectura rápida del saldo operativo calculado sobre saldo inicial y transacciones."
+            : "Quick operational balance view calculated from opening balance and transactions."
+        }
+      >
             <div className="tenant-inline-form-grid">
               <div>
                 <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
@@ -1275,7 +1331,7 @@ export function FinanceTransactionsPage() {
                   className="btn btn-outline-secondary"
                   type="button"
                   disabled={isActionSubmitting}
-                  onClick={resetFormForCreate}
+                  onClick={closeTransactionFormModal}
                 >
                   {language === "es" ? "Cancelar edición" : "Cancel editing"}
                 </button>
@@ -1283,15 +1339,9 @@ export function FinanceTransactionsPage() {
             </AppToolbar>
           </form>
         </PanelCard>
-
-        <PanelCard
-          title={language === "es" ? "Balances por cuenta" : "Account balances"}
-          subtitle={
-            language === "es"
-              ? "Lectura rápida del saldo operativo calculado sobre saldo inicial y transacciones."
-              : "Quick operational balance view calculated from opening balance and transactions."
-          }
-        >
+          </div>
+        </div>
+      ) : null}
           {accountBalances.length > 0 ? (
             <div className="finance-balance-list">
               {accountBalances.map((item) => {
@@ -1361,7 +1411,6 @@ export function FinanceTransactionsPage() {
             </div>
           ) : null}
         </PanelCard>
-      </div>
 
       <div className="finance-transaction-layout">
         <PanelCard
@@ -1768,7 +1817,7 @@ export function FinanceTransactionsPage() {
                             type="button"
                             onClick={() => void loadTransactionDetail(transaction.id)}
                           >
-                            {isSelected ? (language === "es" ? "Ocultar" : "Hide") : language === "es" ? "Ver" : "View"}
+                            {language === "es" ? "Ver" : "View"}
                           </button>
                         </td>
                         <td>{formatDateTime(transaction.transaction_at, language)}</td>
@@ -1923,292 +1972,343 @@ export function FinanceTransactionsPage() {
             </div>
           )}
         </PanelCard>
-
-	        <div ref={detailPanelRef}>
-	        <PanelCard
-	          title={language === "es" ? "Detalle operacional" : "Operational detail"}
-	          subtitle={
-	            language === "es"
-              ? "Al seleccionar una transacción puedes revisar su trazabilidad reciente."
-              : "Select a transaction to review its recent traceability."
-          }
-        >
-          {isDetailLoading ? <LoadingBlock label={language === "es" ? "Cargando detalle de la transacción..." : "Loading transaction detail..."} /> : null}
-          {detailError ? (
-            <ErrorState
-              title={language === "es" ? "Detalle no disponible" : "Detail unavailable"}
-              detail={detailError.payload?.detail || detailError.message}
-              requestId={detailError.payload?.request_id}
-            />
-          ) : null}
-
-          {!isDetailLoading && !detailError && selectedTransactionDetail ? (
-	              <div className="d-grid gap-3">
-	                <div className="tenant-action-feedback tenant-action-feedback--success">
-	                  <strong>{language === "es" ? "Adjuntos:" : "Attachments:"}</strong>{" "}
-	                  {language === "es"
-	                    ? "usa el bloque inferior para subir boletas, facturas o respaldos de esta transacción."
-	                    : "use the block below to upload receipts, invoices, or backup files for this transaction."}
-	                </div>
-	              <div className="tenant-detail-grid">
-                <DetailField
-                  label={language === "es" ? "Tipo" : "Type"}
-                  value={displayTransactionType(
-                    selectedTransactionDetail.transaction.transaction_type,
-                    language
-                  )}
-                />
-                <DetailField
-                  label={language === "es" ? "Cuenta origen" : "Source account"}
-                  value={
-                    selectedTransactionDetail.transaction.account_id
-                      ? accountMap.get(selectedTransactionDetail.transaction.account_id)?.name || "—"
-                      : "—"
-                  }
-                />
-                <DetailField
-                  label={language === "es" ? "Cuenta destino" : "Target account"}
-                  value={
-                    selectedTransactionDetail.transaction.target_account_id
-                      ? accountMap.get(selectedTransactionDetail.transaction.target_account_id)?.name ||
-                        "—"
-                      : "—"
-                  }
-                />
-                <DetailField
-                  label={language === "es" ? "Categoría" : "Category"}
-                  value={
-                    selectedTransactionDetail.transaction.category_id
-                      ? categoryMap.get(selectedTransactionDetail.transaction.category_id)?.name || "—"
-                      : "—"
-                  }
-                />
-                <DetailField
-                  label={language === "es" ? "Monto" : "Amount"}
-                  value={formatMoney(
-                    selectedTransactionDetail.transaction.amount,
-                    currencyMap.get(selectedTransactionDetail.transaction.currency_id)?.code,
-                    language
-                  )}
-                />
-                <DetailField
-                  label={language === "es" ? "Registrada en" : "Recorded at"}
-                  value={formatDateTime(selectedTransactionDetail.transaction.transaction_at, language)}
-                />
+        {isTransactionDetailOpen ? (
+          <div
+            className="finance-form-backdrop"
+            role="presentation"
+            onClick={closeTransactionDetailModal}
+          >
+            <div
+              className="finance-form-modal finance-form-modal--wide finance-form-modal--xwide"
+              role="dialog"
+              aria-modal="true"
+              aria-label={
+                language === "es" ? "Detalle operacional" : "Operational detail"
+              }
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="finance-form-modal__eyebrow">
+                {language === "es" ? "Lectura operacional" : "Operational reading"}
               </div>
+              <PanelCard
+                title={language === "es" ? "Detalle de transacción" : "Transaction detail"}
+                subtitle={
+                  language === "es"
+                    ? "Revisa trazabilidad, adjuntos y auditoría reciente sin salir de la tabla."
+                    : "Review traceability, attachments, and recent audit without leaving the table."
+                }
+              >
+                {isDetailLoading ? (
+                  <LoadingBlock
+                    label={
+                      language === "es"
+                        ? "Cargando detalle de la transacción..."
+                        : "Loading transaction detail..."
+                    }
+                  />
+                ) : null}
+                {detailError ? (
+                  <ErrorState
+                    title={language === "es" ? "Detalle no disponible" : "Detail unavailable"}
+                    detail={detailError.payload?.detail || detailError.message}
+                    requestId={detailError.payload?.request_id}
+                  />
+                ) : null}
 
-              <div>
-                <div className="tenant-detail__label">{language === "es" ? "Descripción" : "Description"}</div>
-                <div className="tenant-detail__value">
-                  {selectedTransactionDetail.transaction.description}
-                </div>
-              </div>
-
-              <div>
-                <button
-                  className="btn btn-outline-primary btn-sm"
-                  type="button"
-                  disabled={isActionSubmitting}
-                  onClick={() => startEditingTransaction(selectedTransactionDetail.transaction)}
-                >
-                  {language === "es" ? "Editar esta transacción" : "Edit this transaction"}
-                </button>
-              </div>
-
-              <div>
-                <div className="tenant-detail__label">{language === "es" ? "Notas" : "Notes"}</div>
-                <div className="tenant-detail__value">
-                  {selectedTransactionDetail.transaction.notes || (language === "es" ? "sin notas" : "no notes")}
-                </div>
-              </div>
-
-              <div className="d-grid gap-2">
-                <div className="tenant-detail__label">
-                  {language === "es" ? "Boletas / facturas adjuntas" : "Attached receipts / invoices"}
-                </div>
-                <div className="tenant-inline-form-grid">
-                  <div>
-                    <label className="form-label">
-                      {language === "es" ? "Nota del adjunto" : "Attachment note"}
-                    </label>
-                    <input
-                      className="form-control"
-                      type="text"
-                      value={attachmentNotes}
-                      onChange={(event) => setAttachmentNotes(event.target.value)}
-                      placeholder={
-                        language === "es"
-                          ? "Ej: boleta supermercado o factura proveedor"
-                          : "Ex: grocery receipt or supplier invoice"
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="form-label">
-                      {language === "es" ? "Subir archivo" : "Upload file"}
-                    </label>
-                    <input
-                      className="form-control"
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,application/pdf"
-                      disabled={isAttachmentSubmitting}
-                      onChange={(event) => void handleAttachmentUpload(event)}
-                    />
-                    <div className="form-text">
+                {!isDetailLoading && !detailError && selectedTransactionDetail ? (
+                  <div className="d-grid gap-3">
+                    <div className="tenant-action-feedback tenant-action-feedback--success">
+                      <strong>{language === "es" ? "Adjuntos:" : "Attachments:"}</strong>{" "}
                       {language === "es"
-                        ? "Se aceptan JPG, PNG, WEBP o PDF. Las imágenes se comprimen antes de subir y el máximo final es 5 MB."
-                        : "JPG, PNG, WEBP, or PDF accepted. Images are compressed before upload and the final max size is 5 MB."}
+                        ? "usa este modal para revisar auditoría y subir boletas, facturas o respaldos."
+                        : "use this modal to review audit data and upload receipts, invoices, or backups."}
+                    </div>
+                    <div className="tenant-detail-grid finance-transaction-detail-grid">
+                      <DetailField
+                        label={language === "es" ? "Tipo" : "Type"}
+                        value={displayTransactionType(
+                          selectedTransactionDetail.transaction.transaction_type,
+                          language
+                        )}
+                      />
+                      <DetailField
+                        label={language === "es" ? "Cuenta origen" : "Source account"}
+                        value={
+                          selectedTransactionDetail.transaction.account_id
+                            ? accountMap.get(selectedTransactionDetail.transaction.account_id)
+                                ?.name || "—"
+                            : "—"
+                        }
+                      />
+                      <DetailField
+                        label={language === "es" ? "Cuenta destino" : "Target account"}
+                        value={
+                          selectedTransactionDetail.transaction.target_account_id
+                            ? accountMap.get(
+                                selectedTransactionDetail.transaction.target_account_id
+                              )?.name || "—"
+                            : "—"
+                        }
+                      />
+                      <DetailField
+                        label={language === "es" ? "Categoría" : "Category"}
+                        value={
+                          selectedTransactionDetail.transaction.category_id
+                            ? categoryMap.get(
+                                selectedTransactionDetail.transaction.category_id
+                              )?.name || "—"
+                            : "—"
+                        }
+                      />
+                      <DetailField
+                        label={language === "es" ? "Monto" : "Amount"}
+                        value={formatMoney(
+                          selectedTransactionDetail.transaction.amount,
+                          currencyMap.get(selectedTransactionDetail.transaction.currency_id)?.code,
+                          language
+                        )}
+                      />
+                      <DetailField
+                        label={language === "es" ? "Registrada en" : "Recorded at"}
+                        value={formatDateTime(
+                          selectedTransactionDetail.transaction.transaction_at,
+                          language
+                        )}
+                      />
+                    </div>
+
+                    <div className="finance-transaction-detail-grid finance-transaction-detail-grid--two">
+                      <div>
+                        <div className="tenant-detail__label">
+                          {language === "es" ? "Descripción" : "Description"}
+                        </div>
+                        <div className="tenant-detail__value">
+                          {selectedTransactionDetail.transaction.description}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="tenant-detail__label">
+                          {language === "es" ? "Notas" : "Notes"}
+                        </div>
+                        <div className="tenant-detail__value">
+                          {selectedTransactionDetail.transaction.notes ||
+                            (language === "es" ? "sin notas" : "no notes")}
+                        </div>
+                      </div>
+                    </div>
+
+                    <AppToolbar compact>
+                      <button
+                        className="btn btn-outline-primary btn-sm"
+                        type="button"
+                        disabled={isActionSubmitting}
+                        onClick={() => startEditingTransaction(selectedTransactionDetail.transaction)}
+                      >
+                        {language === "es" ? "Editar esta transacción" : "Edit this transaction"}
+                      </button>
+                      <button
+                        className="btn btn-outline-secondary btn-sm"
+                        type="button"
+                        onClick={closeTransactionDetailModal}
+                      >
+                        {language === "es" ? "Cerrar detalle" : "Close detail"}
+                      </button>
+                    </AppToolbar>
+
+                    <div className="d-grid gap-2">
+                      <div className="tenant-detail__label">
+                        {language === "es"
+                          ? "Boletas / facturas adjuntas"
+                          : "Attached receipts / invoices"}
+                      </div>
+                      <div className="tenant-inline-form-grid">
+                        <div>
+                          <label className="form-label">
+                            {language === "es" ? "Nota del adjunto" : "Attachment note"}
+                          </label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            value={attachmentNotes}
+                            onChange={(event) => setAttachmentNotes(event.target.value)}
+                            placeholder={
+                              language === "es"
+                                ? "Ej: boleta supermercado o factura proveedor"
+                                : "Ex: grocery receipt or supplier invoice"
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label">
+                            {language === "es" ? "Subir archivo" : "Upload file"}
+                          </label>
+                          <input
+                            className="form-control"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                            disabled={isAttachmentSubmitting}
+                            onChange={(event) => void handleAttachmentUpload(event)}
+                          />
+                          <div className="form-text">
+                            {language === "es"
+                              ? "Se aceptan JPG, PNG, WEBP o PDF. Las imágenes se comprimen antes de subir y el máximo final es 5 MB."
+                              : "JPG, PNG, WEBP, or PDF accepted. Images are compressed before upload and the final max size is 5 MB."}
+                          </div>
+                        </div>
+                      </div>
+                      {selectedTransactionDetail.attachments.length > 0 ? (
+                        <div className="finance-audit-list">
+                          {selectedTransactionDetail.attachments.map((attachment) => {
+                            const previewUrl = attachmentPreviewUrls[attachment.id];
+                            return (
+                              <div key={attachment.id} className="finance-audit-list__item">
+                                <div className="finance-attachment-card">
+                                  <div className="finance-attachment-card__media">
+                                    {previewUrl ? (
+                                      <button
+                                        className="finance-attachment-card__preview"
+                                        type="button"
+                                        onClick={() =>
+                                          setAttachmentPreviewModal({
+                                            attachmentId: attachment.id,
+                                            fileName: attachment.file_name,
+                                            previewUrl,
+                                          })
+                                        }
+                                        title={
+                                          language === "es"
+                                            ? `Abrir vista previa de ${attachment.file_name}`
+                                            : `Open preview for ${attachment.file_name}`
+                                        }
+                                      >
+                                        <img
+                                          src={previewUrl}
+                                          alt={attachment.file_name}
+                                          loading="lazy"
+                                        />
+                                      </button>
+                                    ) : (
+                                      <div className="finance-attachment-card__file">
+                                        {isPdfAttachment(attachment) ? "PDF" : "FILE"}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="finance-attachment-card__content">
+                                    <strong>{attachment.file_name}</strong>
+                                    <div className="small text-secondary">
+                                      {displayAttachmentMeta(attachment, language)}
+                                    </div>
+                                    {attachment.notes ? <div>{attachment.notes}</div> : null}
+                                  </div>
+                                  <div className="d-flex gap-2 flex-wrap">
+                                    {previewUrl ? (
+                                      <button
+                                        className="btn btn-outline-primary btn-sm"
+                                        type="button"
+                                        onClick={() =>
+                                          setAttachmentPreviewModal({
+                                            attachmentId: attachment.id,
+                                            fileName: attachment.file_name,
+                                            previewUrl,
+                                          })
+                                        }
+                                      >
+                                        {language === "es" ? "Ver imagen" : "View image"}
+                                      </button>
+                                    ) : null}
+                                    <button
+                                      className="btn btn-outline-secondary btn-sm"
+                                      type="button"
+                                      disabled={isAttachmentSubmitting}
+                                      onClick={() => void handleAttachmentDownload(attachment)}
+                                    >
+                                      {language === "es" ? "Descargar" : "Download"}
+                                    </button>
+                                    <button
+                                      className="btn btn-outline-danger btn-sm"
+                                      type="button"
+                                      disabled={isAttachmentSubmitting}
+                                      onClick={() => void handleAttachmentDelete(attachment)}
+                                    >
+                                      {language === "es" ? "Eliminar" : "Delete"}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="tenant-detail__value">
+                          {language === "es"
+                            ? "Todavía no hay boletas o facturas cargadas para esta transacción."
+                            : "There are no uploaded receipts or invoices for this transaction yet."}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="tenant-detail__label mb-2">
+                        {language === "es" ? "Etiquetas" : "Tags"}
+                      </div>
+                      {selectedTransactionDetail.transaction.tag_ids.length > 0 ? (
+                        <div className="d-flex flex-wrap gap-2">
+                          {renderTransactionTagChips(
+                            selectedTransactionDetail.transaction.tag_ids,
+                            tagMap,
+                            language
+                          )}
+                        </div>
+                      ) : (
+                        <div className="tenant-detail__value">
+                          {language === "es" ? "sin etiquetas" : "no tags"}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="tenant-detail__label mb-2">
+                        {language === "es" ? "Auditoría reciente" : "Recent audit trail"}
+                      </div>
+                      {selectedTransactionDetail.audit_events.length > 0 ? (
+                        <div className="finance-audit-list">
+                          {selectedTransactionDetail.audit_events.map((event) => (
+                            <div key={event.id} className="finance-audit-list__item">
+                              <div className="d-flex justify-content-between gap-3">
+                                <strong>{displayPlatformCode(event.event_type)}</strong>
+                                <span className="small text-secondary">
+                                  {formatDateTime(event.created_at, language)}
+                                </span>
+                              </div>
+                              <div>{event.summary}</div>
+                              {event.payload ? (
+                                <pre className="finance-audit-list__payload">
+                                  {JSON.stringify(event.payload, null, 2)}
+                                </pre>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-secondary">
+                          {language === "es"
+                            ? "Esta transacción aún no tiene eventos de auditoría adicionales."
+                            : "This transaction does not have additional audit events yet."}
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-                {selectedTransactionDetail.attachments.length > 0 ? (
-                  <div className="finance-audit-list">
-                    {selectedTransactionDetail.attachments.map((attachment) => {
-                      const previewUrl = attachmentPreviewUrls[attachment.id];
-                      return (
-                      <div key={attachment.id} className="finance-audit-list__item">
-                        <div className="finance-attachment-card">
-                          <div className="finance-attachment-card__media">
-                            {previewUrl ? (
-                              <button
-                                className="finance-attachment-card__preview"
-                                type="button"
-                                onClick={() =>
-                                  setAttachmentPreviewModal({
-                                    attachmentId: attachment.id,
-                                    fileName: attachment.file_name,
-                                    previewUrl,
-                                  })
-                                }
-                                title={
-                                  language === "es"
-                                    ? `Abrir vista previa de ${attachment.file_name}`
-                                    : `Open preview for ${attachment.file_name}`
-                                }
-                              >
-                                <img
-                                  src={previewUrl}
-                                  alt={attachment.file_name}
-                                  loading="lazy"
-                                />
-                              </button>
-                            ) : (
-                              <div className="finance-attachment-card__file">
-                                {isPdfAttachment(attachment) ? "PDF" : "FILE"}
-                              </div>
-                            )}
-                          </div>
-                          <div className="finance-attachment-card__content">
-                            <strong>{attachment.file_name}</strong>
-                            <div className="small text-secondary">
-                              {displayAttachmentMeta(attachment, language)}
-                            </div>
-                            {attachment.notes ? <div>{attachment.notes}</div> : null}
-                          </div>
-                          <div className="d-flex gap-2 flex-wrap">
-                            {previewUrl ? (
-                              <button
-                                className="btn btn-outline-primary btn-sm"
-                                type="button"
-                                onClick={() =>
-                                  setAttachmentPreviewModal({
-                                    attachmentId: attachment.id,
-                                    fileName: attachment.file_name,
-                                    previewUrl,
-                                  })
-                                }
-                              >
-                                {language === "es" ? "Ver imagen" : "View image"}
-                              </button>
-                            ) : null}
-                            <button
-                              className="btn btn-outline-secondary btn-sm"
-                              type="button"
-                              disabled={isAttachmentSubmitting}
-                              onClick={() => void handleAttachmentDownload(attachment)}
-                            >
-                              {language === "es" ? "Descargar" : "Download"}
-                            </button>
-                            <button
-                              className="btn btn-outline-danger btn-sm"
-                              type="button"
-                              disabled={isAttachmentSubmitting}
-                              onClick={() => void handleAttachmentDelete(attachment)}
-                            >
-                              {language === "es" ? "Eliminar" : "Delete"}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )})}
-                  </div>
-                ) : (
-                  <div className="tenant-detail__value">
-                    {language === "es"
-                      ? "Todavía no hay boletas o facturas cargadas para esta transacción."
-                      : "There are no uploaded receipts or invoices for this transaction yet."}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="tenant-detail__label mb-2">
-                  {language === "es" ? "Etiquetas" : "Tags"}
-                </div>
-                {selectedTransactionDetail.transaction.tag_ids.length > 0 ? (
-                  <div className="d-flex flex-wrap gap-2">
-                    {renderTransactionTagChips(
-                      selectedTransactionDetail.transaction.tag_ids,
-                      tagMap,
-                      language
-                    )}
-                  </div>
-                ) : (
-                  <div className="tenant-detail__value">
-                    {language === "es" ? "sin etiquetas" : "no tags"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="tenant-detail__label mb-2">{language === "es" ? "Auditoría reciente" : "Recent audit trail"}</div>
-                {selectedTransactionDetail.audit_events.length > 0 ? (
-                  <div className="finance-audit-list">
-                    {selectedTransactionDetail.audit_events.map((event) => (
-                      <div key={event.id} className="finance-audit-list__item">
-                        <div className="d-flex justify-content-between gap-3">
-                          <strong>{displayPlatformCode(event.event_type)}</strong>
-                          <span className="small text-secondary">
-                            {formatDateTime(event.created_at, language)}
-                          </span>
-                        </div>
-                        <div>{event.summary}</div>
-                        {event.payload ? (
-                          <pre className="finance-audit-list__payload">
-                            {JSON.stringify(event.payload, null, 2)}
-                          </pre>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
+                ) : !isDetailLoading && !detailError ? (
                   <div className="text-secondary">
                     {language === "es"
-                      ? "Esta transacción aún no tiene eventos de auditoría adicionales."
-                      : "This transaction does not have additional audit events yet."}
+                      ? "Selecciona una transacción para revisar cuentas, montos, auditoría y adjuntar boletas o facturas."
+                      : "Select a transaction to review accounts, amounts, audit trail, and attach receipts or invoices."}
                   </div>
-                )}
-              </div>
+                ) : null}
+              </PanelCard>
             </div>
-	          ) : !isDetailLoading && !detailError ? (
-	            <div className="text-secondary">
-	              {language === "es"
-	                ? "Selecciona una transacción para revisar cuentas, montos, auditoría y adjuntar boletas o facturas. También puedes usar el botón Adjuntar desde la tabla."
-	                : "Select a transaction to review accounts, amounts, audit trail, and attach receipts or invoices. You can also use the Attach button from the table."}
-	            </div>
-	          ) : null}
-	        </PanelCard>
-	        </div>
+          </div>
+        ) : null}
           {attachmentPreviewModal ? (
             <div
               className="confirm-dialog-backdrop"
