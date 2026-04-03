@@ -40,6 +40,7 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - en la tabla de `Clientes`, la columna de contacto deberia avisar de forma breve cuando existe uno o mas contactos de respaldo, sin obligar a abrir de inmediato la ficha.
 - el `codigo de direccion` no forma parte de la captura normal del usuario: es un identificador tecnico interno y no deberia editarse desde pantallas operativas.
 - en la captura normal de direcciones no deberia pedirse `Nombre dirección` separado de `Dirección`; la UX correcta es pedir `Calle` y `Número`, y construir internamente el identificador tecnico si hace falta.
+- si una direccion ya existe, el usuario deberia verla y editarla como direccion humana completa; no deberia enfrentarse a nombres tecnicos internos ni a tener que escribir la misma direccion dos veces.
 - `Notas de referencia` si son visibles al usuario, asi que deben quedar para observaciones humanas del equipo y no para metadatos legacy o ids tecnicos.
 - en la ficha del cliente, los formularios para agregar o editar contactos y direcciones deben abrirse solo cuando el usuario los pide; la lectura normal debe mostrar primero la informacion ya existente.
 - el modal de `Nuevo cliente` o `Editar cliente` debe priorizar ancho util en escritorio, distribuyendo cliente, contacto principal y direccion en bloques laterales para evitar una experiencia demasiado alta o cansadora.
@@ -51,6 +52,7 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - en perfiles funcionales, grupos y tipos de tarea, `Código` tambien debe quedar interno; el usuario no deberia verlo ni editarlo desde la UI normal.
 - las descripciones visibles de taxonomias no deben arrastrar marcadores `legacy_*`; si el dato no fue escrito por el usuario, no debe mostrarse en captura ni lectura.
 - lo mismo aplica para `Empresas`, `Clientes` y catálogos visibles de `Maintenance`: la operacion no debe mostrar marcadores `legacy_*` en notas, descripciones ni textos de apoyo.
+- tampoco deberian mostrarse placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto` como si fueran datos validos de contacto.
 - la direccion propia de una empresa o proveedor sigue siendo una necesidad real, pero conviene resolverla como parte del modelo y no como un campo suelto pegado al modal. Hasta que exista esa ola, el foco de `Empresas` debe ser identidad + contacto principal.
 - si intentas registrar un cliente repetido, el control correcto no debe depender de la pantalla: la contraparte base no debe duplicarse y una misma organizacion no deberia tener mas de un cliente asociado.
 

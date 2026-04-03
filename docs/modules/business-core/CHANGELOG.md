@@ -25,6 +25,8 @@
 - Se corrige el importador legacy para que `business_sites` repare tambien filas ya existentes; con eso se normalizaron `comuna`, `ciudad` y `region` en las direcciones migradas desde `ieris_app`.
 - Se sanea ademas la importacion de `organizations` y `contacts` para que placeholders como `Sin Mail`, `Sin Fono` o `Sin contacto` no queden visibles como datos reales del negocio.
 - Se corrige la UX de direcciones en `Clientes`, `Ficha de cliente` y `Direcciones`: ahora la captura pide `Calle` y `Número`, y deja `name` como dato interno para no duplicar la dirección visible.
+- Se refuerza la regla documental del dominio: la direccion visible debe capturarse y editarse como dato humano unico, mientras `name`, `site_code` y cualquier otro identificador tecnico quedan internos.
+- Se deja explicito que placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto` no deben mostrarse como datos validos en la operacion diaria.
 
 ## 2026-04-02
 

@@ -26,8 +26,10 @@ Estado actual:
 - la ficha del cliente ya conecta con `maintenance` para ver instalaciones y abrir/agendar mantenciones con contexto precargado
 - el `codigo de direccion` queda tratado como dato tecnico interno y no como campo editable de usuario
 - `comuna` queda modelada como dato propio de direccion, separado de `ciudad`, para alinear la captura y la busqueda con el uso real en Chile
+- la captura visible de direcciones ya no pide `Nombre dirección` y `Dirección` como dos datos duplicados: en la UX normal solo se piden `Calle` y `Número`, y el identificador interno se deriva de esa captura
 - `reference_notes` se reserva para observaciones humanas, no para arrastrar ids legacy visibles
 - se limpia la importacion visible desde `ieris_app` para que `legacy_*` no contamine notas operativas, catalogos y taxonomias compartidas
+- la lectura y edicion normal del dominio ya oculta o sanea placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto`, para no confundirlos con datos reales del negocio
 - la no duplicacion de `clients` se resuelve sobre la entidad base: primero no se repite la `organization`, y luego solo puede existir un `client` por `organization_id`
 - el importador legacy ya no solo crea `sites`; tambien puede corregir direcciones legacy existentes cuando detecta que `comuna`, `ciudad` o `region` quedaron mal cargadas en una corrida anterior
 

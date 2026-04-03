@@ -131,8 +131,10 @@ Observacion:
 
 - `site` debe ser entidad de primer nivel
 - no conviene esconderlo como simple direccion dentro del cliente
+- en el storage puede seguir existiendo `name`, pero en la UX normal no debe pedirse como campo separado cuando solo duplica la direccion visible
 - `site_code` se mantiene como identificador tecnico interno para integraciones/importadores
 - la UI normal del tenant no deberia exponer `site_code` como campo editable
+- la captura visible debe pedir `street`/`street_number` o `Calle`/`Número`, y desde ahi derivar `address_line` y el `name` tecnico cuando sea necesario
 - `reference_notes` es un campo visible al usuario y no debe usarse para guardar metadatos legacy como `legacy_client_id`
 - `commune` debe vivir en `business_sites`, no comprimirse dentro de `city`, porque en Chile es una clave de busqueda y lectura operativa distinta.
 - la UX de ficha debe privilegiar lectura primero y edicion bajo demanda: formularios abiertos solo en modal o accion explicita, no desplegados por defecto
@@ -142,6 +144,7 @@ Observacion:
 - `sort_order` puede seguir existiendo en el modelo para ordenamiento tecnico, pero la UI normal del tenant no deberia exponerlo mientras no haya una necesidad operativa concreta.
 - `code` en `business_function_profiles`, `business_work_groups` y `business_task_types` debe tratarse como identificador tecnico interno. La UI normal no debe mostrarlo ni permitir editarlo; el backend puede autogenerarlo desde `name`.
 - cualquier marcador `legacy_*` proveniente de importacion debe limpiarse antes de guardar o mostrarse. La descripcion funcional solo debe contener texto humano escrito por el equipo.
+- placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto` tampoco deben persistir como datos visibles del negocio; el importador debe sanearlos o descartarlos.
 - cuando no sea posible limpiar un marcador legacy en DB porque hoy participa en deduplicacion o reimportacion, al menos debe ocultarse en la lectura/edicion del frontend hasta migrar esa trazabilidad a un canal interno.
 
 ### 5. Contact-Site Links
