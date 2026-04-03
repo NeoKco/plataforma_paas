@@ -21,6 +21,8 @@ Estado actual:
 - migracion tenant de taxonomias compartidas creada
 - backend CRUD implementado para `function_profiles`, `work_groups` y `task_types`
 - frontend tenant operativo para las taxonomias de ola 1B
+- la vista principal de `clients` ya se rehizo inspirada en `ieris_app`: busqueda por nombre/contacto/direccion, alta unica desde la esquina superior derecha y ficha consolidada del cliente
+- la ficha del cliente ya conecta con `maintenance` para ver instalaciones y abrir/agendar mantenciones con contexto precargado
 
 Pendientes visibles inmediatos:
 

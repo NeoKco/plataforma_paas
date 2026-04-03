@@ -118,3 +118,11 @@
   color: var(--app-text-muted, #6b7a90);
   font-size: 0.875rem;
 }
+
+.maintenance-context-banner {
+  background: #edf3ff;
+  border: 1px solid #bdd1ff;
+  border-radius: 1rem;
+  color: #1848a0;
+  padding: 0.85rem 1rem;
+}

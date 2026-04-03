@@ -39,6 +39,7 @@ El primer corte del modulo ya permite:
 - consumir clientes y sitios desde `business-core`
 - consultar historial tecnico de ordenes cerradas con cambios de estado y visitas registradas
 - programar visitas técnicas ligadas a órdenes de trabajo
+- abrir `Mantenciones` desde la ficha del cliente con cliente y dirección ya preseleccionados
 
 ## Lo que no entra en el primer corte
 
@@ -62,6 +63,13 @@ El primer corte del modulo ya permite:
 7. completar o anular la orden dejando observacion o motivo
 8. programar o corregir visitas desde agenda técnica
 9. revisar despues el historial tecnico con sus cambios de estado y visitas
+
+Tambien deberia funcionar asi:
+
+1. buscar cliente en `Core de negocio`
+2. abrir su ficha
+3. revisar direccion, contactos e instalaciones asociadas
+4. saltar a `Mantenciones` con el contexto del cliente ya cargado
 
 ## Mejora funcional recomendada
 

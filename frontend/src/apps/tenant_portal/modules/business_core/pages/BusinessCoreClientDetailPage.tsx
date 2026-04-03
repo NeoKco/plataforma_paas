@@ -35,6 +35,14 @@ import {
   type TenantBusinessSite,
   type TenantBusinessSiteWriteRequest,
 } from "../services/sitesService";
+import {
+  getTenantMaintenanceInstallations,
+  type TenantMaintenanceInstallation,
+} from "../../maintenance/services/installationsService";
+import {
+  getTenantMaintenanceWorkOrders,
+  type TenantMaintenanceWorkOrder,
+} from "../../maintenance/services/workOrdersService";
 
 function buildGoogleMapsUrl(site: TenantBusinessSite): string | null {
   const query = [site.address_line, site.city, site.region, site.country_code || "Chile"]
@@ -88,6 +96,8 @@ export function BusinessCoreClientDetailPage() {
   const [organization, setOrganization] = useState<TenantBusinessOrganization | null>(null);
   const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [addresses, setAddresses] = useState<TenantBusinessSite[]>([]);
+  const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
+  const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -107,6 +117,21 @@ export function BusinessCoreClientDetailPage() {
     () => contacts.find((contact) => contact.is_primary) ?? contacts[0] ?? null,
     [contacts]
   );
+  const relatedInstallations = useMemo(() => {
+    const siteIds = new Set(addresses.map((address) => address.id));
+    return installations.filter((installation) => siteIds.has(installation.site_id));
+  }, [addresses, installations]);
+  const recentWorkOrders = useMemo(
+    () =>
+      [...workOrders]
+        .sort((left, right) => {
+          const leftDate = new Date(left.scheduled_for || left.requested_at).getTime();
+          const rightDate = new Date(right.scheduled_for || right.requested_at).getTime();
+          return rightDate - leftDate;
+        })
+        .slice(0, 5),
+    [workOrders]
+  );
 
   async function loadData() {
     if (!session?.accessToken || !clientId) {
@@ -122,20 +147,24 @@ export function BusinessCoreClientDetailPage() {
       const clientData = clientResponse.data;
       setClient(clientData);
 
-      const [organizationResponse, contactsResponse, addressesResponse] = await Promise.all([
-        getTenantBusinessOrganization(session.accessToken, clientData.organization_id),
-        getTenantBusinessContacts(session.accessToken, {
-          organizationId: clientData.organization_id,
-        }),
-        getTenantBusinessSites(session.accessToken, { clientId: clientData.id }),
-      ]);
+        const [organizationResponse, contactsResponse, addressesResponse, installationsResponse, workOrdersResponse] = await Promise.all([
+          getTenantBusinessOrganization(session.accessToken, clientData.organization_id),
+          getTenantBusinessContacts(session.accessToken, {
+            organizationId: clientData.organization_id,
+          }),
+          getTenantBusinessSites(session.accessToken, { clientId: clientData.id }),
+          getTenantMaintenanceInstallations(session.accessToken),
+          getTenantMaintenanceWorkOrders(session.accessToken, { clientId: clientData.id }),
+        ]);
 
-      setOrganization(organizationResponse.data);
-      setContacts(contactsResponse.data);
-      setAddresses(addressesResponse.data);
-      setContactForm((current) =>
-        current.organization_id
-          ? current
+        setOrganization(organizationResponse.data);
+        setContacts(contactsResponse.data);
+        setAddresses(addressesResponse.data);
+        setInstallations(installationsResponse.data);
+        setWorkOrders(workOrdersResponse.data);
+        setContactForm((current) =>
+          current.organization_id
+            ? current
           : buildDefaultContactForm(clientData.organization_id)
       );
       setAddressForm((current) =>
@@ -825,6 +854,124 @@ export function BusinessCoreClientDetailPage() {
           </div>
         )}
       </PanelCard>
+
+      <div className="business-core-detail-grid">
+        <PanelCard
+          title={language === "es" ? "Instalaciones asociadas" : "Linked installations"}
+          subtitle={
+            language === "es"
+              ? "Resumen técnico conectado al cliente a través de sus direcciones."
+              : "Technical summary connected to the client through its addresses."
+          }
+          actions={
+            <AppToolbar compact>
+              <Link
+                className="btn btn-outline-secondary"
+                to={`/tenant-portal/maintenance/installations?clientId=${client.id}`}
+              >
+                {language === "es" ? "Ver instalaciones" : "View installations"}
+              </Link>
+            </AppToolbar>
+          }
+        >
+          {relatedInstallations.length === 0 ? (
+            <p className="mb-0 text-muted">
+              {language === "es"
+                ? "Este cliente todavía no tiene instalaciones técnicas registradas."
+                : "This client has no technical installations yet."}
+            </p>
+          ) : (
+            <div className="business-core-stack">
+              {relatedInstallations.slice(0, 5).map((installation) => {
+                const targetAddress = addresses.find((address) => address.id === installation.site_id);
+                const scheduleParams = new URLSearchParams({
+                  clientId: String(client.id),
+                  siteId: String(installation.site_id),
+                  installationId: String(installation.id),
+                  mode: "create",
+                }).toString();
+                return (
+                  <div className="business-core-related-card" key={installation.id}>
+                    <div className="business-core-related-title">{installation.name}</div>
+                    <div className="business-core-cell__meta">
+                      {[installation.manufacturer, installation.model, installation.serial_number]
+                        .filter(Boolean)
+                        .join(" · ") || "—"}
+                    </div>
+                    <div className="business-core-cell__meta">
+                      {targetAddress?.name || targetAddress?.address_line || "—"}
+                    </div>
+                    <div className="business-core-card__actions">
+                      <Link
+                        className="btn btn-sm btn-outline-primary"
+                        to={`/tenant-portal/maintenance/work-orders?${scheduleParams}`}
+                      >
+                        {language === "es" ? "Agendar mantención" : "Schedule maintenance"}
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </PanelCard>
+
+        <PanelCard
+          title={language === "es" ? "Mantenciones recientes" : "Recent work orders"}
+          subtitle={
+            language === "es"
+              ? "Lectura rápida del trabajo técnico ligado a este cliente."
+              : "Quick reading of technical work linked to this client."
+          }
+          actions={
+            <AppToolbar compact>
+              <Link
+                className="btn btn-outline-secondary"
+                to={`/tenant-portal/maintenance/work-orders?clientId=${client.id}`}
+              >
+                {language === "es" ? "Ver mantenciones" : "View work orders"}
+              </Link>
+            </AppToolbar>
+          }
+        >
+          {recentWorkOrders.length === 0 ? (
+            <p className="mb-0 text-muted">
+              {language === "es"
+                ? "Este cliente no tiene mantenciones registradas todavía."
+                : "This client has no work orders yet."}
+            </p>
+          ) : (
+            <div className="business-core-stack">
+              {recentWorkOrders.map((workOrder) => {
+                const scheduleParams = new URLSearchParams({
+                  clientId: String(client.id),
+                  siteId: String(workOrder.site_id),
+                  ...(workOrder.installation_id ? { installationId: String(workOrder.installation_id) } : {}),
+                }).toString();
+                return (
+                  <div className="business-core-related-card" key={workOrder.id}>
+                    <div className="business-core-related-title">{workOrder.title}</div>
+                    <div className="business-core-cell__meta">
+                      {workOrder.maintenance_status} · {workOrder.priority}
+                    </div>
+                    <div className="business-core-cell__meta">
+                      {workOrder.scheduled_for || workOrder.requested_at}
+                    </div>
+                    <div className="business-core-card__actions">
+                      <Link
+                        className="btn btn-sm btn-outline-primary"
+                        to={`/tenant-portal/maintenance/work-orders?${scheduleParams}`}
+                      >
+                        {language === "es" ? "Abrir en mantenciones" : "Open in maintenance"}
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </PanelCard>
+      </div>
     </div>
   );
 }

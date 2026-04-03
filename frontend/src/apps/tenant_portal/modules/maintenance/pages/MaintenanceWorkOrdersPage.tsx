@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../../components/data-display/DataTableCard";
@@ -98,6 +99,7 @@ function getStatusLabel(status: string, language: "es" | "en"): string {
 export function MaintenanceWorkOrdersPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
+  const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
@@ -108,6 +110,11 @@ export function MaintenanceWorkOrdersPage() {
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [form, setForm] = useState<TenantMaintenanceWorkOrderWriteRequest>(buildDefaultForm());
+
+  const requestedClientId = Number(searchParams.get("clientId") || 0);
+  const requestedSiteId = Number(searchParams.get("siteId") || 0);
+  const requestedInstallationId = Number(searchParams.get("installationId") || 0);
+  const requestedMode = searchParams.get("mode");
 
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
   const clientById = useMemo(
@@ -163,7 +170,10 @@ export function MaintenanceWorkOrdersPage() {
     try {
       const [workOrdersResponse, clientsResponse, sitesResponse, installationsResponse] =
         await Promise.all([
-          getTenantMaintenanceWorkOrders(session.accessToken),
+          getTenantMaintenanceWorkOrders(session.accessToken, {
+            ...(requestedClientId > 0 ? { clientId: requestedClientId } : {}),
+            ...(requestedSiteId > 0 ? { siteId: requestedSiteId } : {}),
+          }),
           getTenantBusinessClients(session.accessToken, { includeInactive: false }),
           getTenantBusinessSites(session.accessToken, { includeInactive: false }),
           getTenantMaintenanceInstallations(session.accessToken, { includeInactive: false }),
@@ -173,14 +183,26 @@ export function MaintenanceWorkOrdersPage() {
       setSites(sitesResponse.data);
       setInstallations(installationsResponse.data);
       setForm((current) => {
-        const nextClientId = current.client_id || clientsResponse.data[0]?.id || 0;
+        const nextClientId =
+          current.client_id ||
+          requestedClientId ||
+          clientsResponse.data[0]?.id ||
+          0;
         const candidateSites = sitesResponse.data.filter(
           (site) => site.client_id === nextClientId
         );
+        const nextSiteId =
+          current.site_id ||
+          (requestedSiteId > 0 ? requestedSiteId : 0) ||
+          candidateSites[0]?.id ||
+          0;
         return {
           ...current,
           client_id: nextClientId,
-          site_id: current.site_id || candidateSites[0]?.id || 0,
+          site_id: nextSiteId,
+          installation_id:
+            current.installation_id ||
+            (requestedInstallationId > 0 ? requestedInstallationId : null),
         };
       });
     } catch (rawError) {
@@ -193,6 +215,12 @@ export function MaintenanceWorkOrdersPage() {
   useEffect(() => {
     void loadData();
   }, [session?.accessToken]);
+
+  useEffect(() => {
+    if (!isLoading && requestedMode === "create") {
+      setEditingId(null);
+    }
+  }, [isLoading, requestedMode]);
 
   useEffect(() => {
     if (!filteredSites.some((site) => site.id === Number(form.site_id))) {
@@ -366,6 +394,14 @@ export function MaintenanceWorkOrdersPage() {
         }
       />
       <MaintenanceModuleNav />
+
+      {requestedClientId > 0 ? (
+        <div className="maintenance-context-banner">
+          {language === "es"
+            ? "Vista abierta desde la ficha del cliente. Las mantenciones se muestran filtradas por ese cliente y la nueva orden queda preseleccionada."
+            : "View opened from the client detail. Work orders are filtered by that client and new orders are preselected."}
+        </div>
+      ) : null}
 
       {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
       {error ? (

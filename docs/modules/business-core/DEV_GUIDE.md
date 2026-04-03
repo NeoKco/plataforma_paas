@@ -258,6 +258,8 @@ Estado real:
 
 - `1A` ya operativo en backend/frontend
 - `1B` ya operativo en backend/frontend para catalogos base
+- la lectura principal del usuario ya no debe apoyarse en catalogos planos de `contacts` o `sites`
+- el patron recomendado pasa a ser: tabla de clientes -> ficha del cliente -> salto contextual a `maintenance`
 - ya existe un importador inicial desde `ieris_app` hacia `business-core` y `maintenance`
 
 ## Importacion legacy

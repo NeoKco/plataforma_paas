@@ -19,6 +19,7 @@ Estado actual:
 - el frontend tenant ya opera sobre esas APIs en sus tres vistas principales
 - `history` ya muestra órdenes cerradas con `status_logs` y `visits`
 - `agenda técnica` ya permite crear, editar y eliminar `visits`
+- ya acepta navegación contextual desde la ficha del cliente en `business-core`
 
 Objetivo del modulo:
 
@@ -59,6 +60,7 @@ Pendientes visibles inmediatos:
 - timeline más rica por cliente e instalación
 - agenda visual con conflictos y reprogramación más rica
 - importadores desde `ieris_app`
+- formularios más ergonómicos para crear mantenciones desde cliente/dirección/instalación
 
 Estado del importador legacy:
 

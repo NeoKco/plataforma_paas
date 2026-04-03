@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { useLanguage } from "../../../../../store/language-context";
@@ -54,6 +55,7 @@ function normalizeNullable(value: string | null | undefined): string | null {
 export function MaintenanceInstallationsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
+  const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<TenantMaintenanceInstallation[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
@@ -66,6 +68,8 @@ export function MaintenanceInstallationsPage() {
   const [form, setForm] = useState<TenantMaintenanceInstallationWriteRequest>(
     buildDefaultForm()
   );
+  const requestedClientId = Number(searchParams.get("clientId") || 0);
+  const requestedSiteId = Number(searchParams.get("siteId") || 0);
 
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
   const clientById = useMemo(
@@ -75,6 +79,16 @@ export function MaintenanceInstallationsPage() {
   const equipmentTypeById = useMemo(
     () => new Map(equipmentTypes.map((item) => [item.id, item])),
     [equipmentTypes]
+  );
+  const visibleRows = useMemo(
+    () =>
+      requestedClientId > 0
+        ? rows.filter((row) => {
+            const site = siteById.get(row.site_id);
+            return site?.client_id === requestedClientId;
+          })
+        : rows,
+    [requestedClientId, rows, siteById]
   );
 
   async function loadData() {
@@ -97,7 +111,7 @@ export function MaintenanceInstallationsPage() {
       setEquipmentTypes(equipmentTypesResponse.data);
       setForm((current) => ({
         ...current,
-        site_id: current.site_id || sitesResponse.data[0]?.id || 0,
+        site_id: current.site_id || requestedSiteId || sitesResponse.data[0]?.id || 0,
         equipment_type_id:
           current.equipment_type_id || equipmentTypesResponse.data[0]?.id || 0,
       }));
@@ -230,7 +244,7 @@ export function MaintenanceInstallationsPage() {
   }
 
   return (
-    <MaintenanceCatalogPage
+      <MaintenanceCatalogPage
       titleEs="Instalaciones"
       titleEn="Installations"
       descriptionEs="Ficha técnica instalada por sitio para que las mantenciones tengan contexto real y no solo un cliente genérico."
@@ -241,7 +255,7 @@ export function MaintenanceInstallationsPage() {
       loadingLabelEn="Loading installations..."
       isLoading={isLoading}
       isSubmitting={isSubmitting}
-      rows={rows}
+      rows={visibleRows}
       error={error}
       feedback={feedback}
       editingId={editingId}
