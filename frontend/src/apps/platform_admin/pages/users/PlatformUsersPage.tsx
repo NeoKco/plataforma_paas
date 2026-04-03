@@ -97,6 +97,7 @@ export function PlatformUsersPage() {
   const [createRole, setCreateRole] = useState("support");
   const [createPassword, setCreatePassword] = useState("");
   const [createIsActive, setCreateIsActive] = useState(true);
+  const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
 
   const [editFullName, setEditFullName] = useState("");
   const [editRole, setEditRole] = useState("support");
@@ -246,6 +247,7 @@ export function PlatformUsersPage() {
       setCreateRole("support");
       setCreatePassword("");
       setCreateIsActive(true);
+      setIsCreateUserModalOpen(false);
       setActionFeedback({
         scope: "create-platform-user",
         type: "success",
@@ -268,6 +270,18 @@ export function PlatformUsersPage() {
     } finally {
       setIsActionSubmitting(false);
     }
+  }
+
+  function closeCreateUserModal() {
+    if (isActionSubmitting) {
+      return;
+    }
+    setIsCreateUserModalOpen(false);
+    setCreateFullName("");
+    setCreateEmail("");
+    setCreateRole("support");
+    setCreatePassword("");
+    setCreateIsActive(true);
   }
 
   async function handleUpdateUser(event: FormEvent<HTMLFormElement>) {
@@ -437,12 +451,141 @@ export function PlatformUsersPage() {
         }
         actions={
           <AppToolbar compact>
+            {creatableRoles.length > 0 ? (
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={() => setIsCreateUserModalOpen(true)}
+              >
+                {language === "es" ? "Nuevo usuario" : "New user"}
+              </button>
+            ) : null}
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadUsers()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
           </AppToolbar>
         }
       />
+
+      {isCreateUserModalOpen ? (
+        <div
+          className="confirm-dialog-backdrop"
+          role="presentation"
+          onClick={closeCreateUserModal}
+        >
+          <div
+            className="confirm-dialog platform-admin-form-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={language === "es" ? "Crear usuario de plataforma" : "Create platform user"}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="platform-admin-form-modal__eyebrow">
+              {language === "es" ? "Alta bajo demanda" : "On-demand creation"}
+            </div>
+            <div className="confirm-dialog__title">
+              {language === "es" ? "Alta de usuario de plataforma" : "Create platform user"}
+            </div>
+            <div className="confirm-dialog__description">
+              {language === "es"
+                ? "Crea otro operador para la consola central solo cuando realmente haga falta."
+                : "Create another operator for the central console only when it is really needed."}
+            </div>
+            {creatableRoles.length === 0 ? (
+              <p className="tenant-help-text mb-0">
+                {language === "es"
+                  ? "Tu rol actual es de solo lectura para este bloque. Solo `superadmin` y `admin` pueden crear usuarios de plataforma."
+                  : "Your current role is read-only for this block. Only `superadmin` and `admin` can create platform users."}
+              </p>
+            ) : (
+              <AppForm className="platform-admin-form-modal__form" onSubmit={handleCreateUser}>
+                <AppFormField label={language === "es" ? "Nombre completo" : "Full name"}>
+                  <input
+                    className="form-control"
+                    value={createFullName}
+                    onChange={(event) => setCreateFullName(event.target.value)}
+                    placeholder={language === "es" ? "Nombre completo" : "Full name"}
+                  />
+                </AppFormField>
+                <AppFormField label={language === "es" ? "Correo de acceso" : "Access email"}>
+                  <input
+                    className="form-control"
+                    type="email"
+                    value={createEmail}
+                    onChange={(event) => setCreateEmail(event.target.value)}
+                    placeholder={language === "es" ? "Correo de acceso" : "Access email"}
+                  />
+                </AppFormField>
+                <AppFormField label={language === "es" ? "Rol" : "Role"}>
+                  <select
+                    className="form-select"
+                    value={createRole}
+                    onChange={(event) => setCreateRole(event.target.value)}
+                  >
+                    {creatableRoles.map((role) => (
+                      <option key={role} value={role}>
+                        {displayPlatformCode(role, language)}
+                      </option>
+                    ))}
+                  </select>
+                </AppFormField>
+                <AppFormField label={language === "es" ? "Estado inicial" : "Initial status"}>
+                  <select
+                    className="form-select"
+                    value={createIsActive ? "active" : "inactive"}
+                    onChange={(event) => setCreateIsActive(event.target.value === "active")}
+                  >
+                    <option value="active">{displayPlatformCode("active", language)}</option>
+                    <option value="inactive">{displayPlatformCode("inactive", language)}</option>
+                  </select>
+                </AppFormField>
+                <AppFormField label={language === "es" ? "Contraseña inicial" : "Initial password"}>
+                  <input
+                    className="form-control"
+                    type="password"
+                    value={createPassword}
+                    onChange={(event) => setCreatePassword(event.target.value)}
+                    placeholder={language === "es" ? "Contraseña inicial" : "Initial password"}
+                  />
+                </AppFormField>
+                <AppFormField fullWidth>
+                  <p className="tenant-help-text">
+                    {currentPlatformRole === "superadmin"
+                      ? language === "es"
+                        ? "Usa `admin` para gestión operativa de usuarios y `support` para apoyo diario. `superadmin` queda reservado como cuenta raíz única y no se crea desde este flujo."
+                        : "Use `admin` for operational user management and `support` for daily assistance. `superadmin` remains reserved as the unique root account and is not created from this flow."
+                      : language === "es"
+                        ? "Como administrador, desde aquí solo puedes crear usuarios `support`."
+                        : "As an admin, from here you can only create `support` users."}
+                  </p>
+                </AppFormField>
+                <div className="confirm-dialog__actions">
+                  <button
+                    className="btn btn-outline-primary"
+                    type="button"
+                    onClick={closeCreateUserModal}
+                    disabled={isActionSubmitting}
+                  >
+                    {language === "es" ? "Cancelar" : "Cancel"}
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    type="submit"
+                    disabled={
+                      isActionSubmitting ||
+                      !createFullName.trim() ||
+                      !createEmail.trim() ||
+                      !createPassword.trim()
+                    }
+                  >
+                    {language === "es" ? "Crear usuario" : "Create user"}
+                  </button>
+                </div>
+              </AppForm>
+            )}
+          </div>
+        </div>
+      ) : null}
 
       {isLoading ? (
         <LoadingBlock
@@ -511,107 +654,6 @@ export function PlatformUsersPage() {
           ) : null}
 
           <div className="settings-grid">
-            <PanelCard
-              icon="users"
-              title={
-                language === "es"
-                  ? "Alta de usuario de plataforma"
-                  : "Create platform user"
-              }
-              subtitle={
-                language === "es"
-                  ? "Crea otro operador para la consola central con una contraseña inicial controlada."
-                  : "Create another operator for the central console with a controlled initial password."
-              }
-            >
-              {creatableRoles.length === 0 ? (
-                <p className="tenant-help-text">
-                  {language === "es"
-                    ? "Tu rol actual es de solo lectura para este bloque. Solo `superadmin` y `admin` pueden crear usuarios de plataforma."
-                    : "Your current role is read-only for this block. Only `superadmin` and `admin` can create platform users."}
-                </p>
-              ) : (
-                <AppForm onSubmit={handleCreateUser}>
-                  <AppFormField label={language === "es" ? "Nombre completo" : "Full name"}>
-                  <input
-                    className="form-control"
-                    value={createFullName}
-                    onChange={(event) => setCreateFullName(event.target.value)}
-                    placeholder={language === "es" ? "Nombre completo" : "Full name"}
-                  />
-                  </AppFormField>
-                  <AppFormField label={language === "es" ? "Correo de acceso" : "Access email"}>
-                  <input
-                    className="form-control"
-                    type="email"
-                    value={createEmail}
-                    onChange={(event) => setCreateEmail(event.target.value)}
-                    placeholder={language === "es" ? "Correo de acceso" : "Access email"}
-                  />
-                  </AppFormField>
-                  <AppFormField label={language === "es" ? "Rol" : "Role"}>
-                    <select
-                      className="form-select"
-                      value={createRole}
-                      onChange={(event) => setCreateRole(event.target.value)}
-                    >
-                      {creatableRoles.map((role) => (
-                        <option key={role} value={role}>
-                          {displayPlatformCode(role, language)}
-                        </option>
-                        ))}
-                      </select>
-                  </AppFormField>
-                  <AppFormField label={language === "es" ? "Estado inicial" : "Initial status"}>
-                    <select
-                      className="form-select"
-                      value={createIsActive ? "active" : "inactive"}
-                      onChange={(event) =>
-                        setCreateIsActive(event.target.value === "active")
-                      }
-                    >
-                      <option value="active">{displayPlatformCode("active", language)}</option>
-                      <option value="inactive">{displayPlatformCode("inactive", language)}</option>
-                    </select>
-                  </AppFormField>
-                  <AppFormField label={language === "es" ? "Contraseña inicial" : "Initial password"}>
-                  <input
-                    className="form-control"
-                    type="password"
-                    value={createPassword}
-                    onChange={(event) => setCreatePassword(event.target.value)}
-                    placeholder={language === "es" ? "Contraseña inicial" : "Initial password"}
-                  />
-                  </AppFormField>
-                  <AppFormField fullWidth>
-                  <p className="tenant-help-text">
-                    {currentPlatformRole === "superadmin"
-                      ? language === "es"
-                        ? "Usa `admin` para gestión operativa de usuarios y `support` para apoyo diario. `superadmin` queda reservado como cuenta raíz única y no se crea desde este flujo."
-                        : "Use `admin` for operational user management and `support` for daily assistance. `superadmin` remains reserved as the unique root account and is not created from this flow."
-                      : language === "es"
-                        ? "Como administrador, desde aquí solo puedes crear usuarios `support`."
-                        : "As an admin, from here you can only create `support` users."}
-                  </p>
-                  </AppFormField>
-                  <AppFormActions>
-                  <button
-                    className="btn btn-primary"
-                    type="submit"
-                    disabled={
-                      isActionSubmitting ||
-                      !createFullName.trim() ||
-                      !createEmail.trim() ||
-                      !createPassword.trim()
-                    }
-                  >
-                    {language === "es" ? "Crear usuario" : "Create user"}
-                  </button>
-                  </AppFormActions>
-                </AppForm>
-              )}
-            </PanelCard>
-
             <PanelCard
               icon="catalogs"
               title={

@@ -33,6 +33,10 @@ Referencia:
 4. archivar o restaurar cuando corresponda
 5. abrir el `tenant_portal` desde `Tenants` cuando el tenant ya esté activo y con DB operativa
 
+Nota operativa:
+
+- la alta de tenant ya no debería quedar desplegada por defecto en la misma pantalla; se abre solo cuando el operador pulsa `Nuevo tenant`
+
 Referencia:
 
 - [tenant-basic-cycle.md](/home/felipe/platform_paas/docs/runbooks/tenant-basic-cycle.md)
@@ -57,6 +61,10 @@ Referencia:
 2. edición de nombre y rol
 3. activación/desactivación
 4. reset de contraseña inicial
+
+Nota operativa:
+
+- la creación de usuarios de plataforma también debería abrirse solo bajo demanda desde `Nuevo usuario`, dejando el catálogo como vista principal de lectura
 
 Referencia:
 

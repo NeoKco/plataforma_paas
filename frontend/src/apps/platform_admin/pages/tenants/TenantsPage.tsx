@@ -173,6 +173,7 @@ export function TenantsPage() {
   const [createTenantSlugTouched, setCreateTenantSlugTouched] = useState(false);
   const [createTenantType, setCreateTenantType] = useState("empresa");
   const [createTenantPlanCode, setCreateTenantPlanCode] = useState("");
+  const [isCreateTenantModalOpen, setIsCreateTenantModalOpen] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState("");
   const [retirementSearch, setRetirementSearch] = useState("");
   const [catalogStatusFilter, setCatalogStatusFilter] = useState("");
@@ -742,6 +743,7 @@ export function TenantsPage() {
       setCreateTenantSlugTouched(false);
       setCreateTenantType("empresa");
       setCreateTenantPlanCode("");
+      setIsCreateTenantModalOpen(false);
       setActionFeedback({
         scope: "create-tenant",
         type: "success",
@@ -757,6 +759,18 @@ export function TenantsPage() {
     } finally {
       setIsActionSubmitting(false);
     }
+  }
+
+  function closeCreateTenantModal() {
+    if (isActionSubmitting) {
+      return;
+    }
+    setIsCreateTenantModalOpen(false);
+    setCreateTenantName("");
+    setCreateTenantSlug("");
+    setCreateTenantSlugTouched(false);
+    setCreateTenantType("empresa");
+    setCreateTenantPlanCode("");
   }
 
   function handleIdentitySubmit(event: FormEvent<HTMLFormElement>) {
@@ -1441,6 +1455,13 @@ export function TenantsPage() {
         }
         actions={
           <AppToolbar compact>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => setIsCreateTenantModalOpen(true)}
+            >
+              {language === "es" ? "Nuevo tenant" : "New tenant"}
+            </button>
             <Link className="btn btn-outline-primary" to="/tenant-history">
               {language === "es" ? "Abrir histórico" : "Open history"}
             </Link>
@@ -1448,25 +1469,32 @@ export function TenantsPage() {
         }
       />
 
-      {listError ? (
-        <ErrorState
-          detail={listError.payload?.detail || listError.message}
-          requestId={listError.payload?.request_id}
-        />
-      ) : null}
-
-      <div className="tenants-page-grid">
-        <div className="d-grid gap-4">
-          <PanelCard
-            title={language === "es" ? "Crear tenant" : "Create tenant"}
-            subtitle={
-              language === "es"
-                ? "Alta operativa básica: nombre, slug, tipo y plan inicial para disparar provisioning."
-                : "Basic operational onboarding: name, slug, type and initial plan to trigger provisioning."
-            }
+      {isCreateTenantModalOpen ? (
+        <div
+          className="confirm-dialog-backdrop"
+          role="presentation"
+          onClick={closeCreateTenantModal}
+        >
+          <div
+            className="confirm-dialog platform-admin-form-modal platform-admin-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={language === "es" ? "Crear tenant" : "Create tenant"}
+            onClick={(event) => event.stopPropagation()}
           >
+            <div className="platform-admin-form-modal__eyebrow">
+              {language === "es" ? "Alta bajo demanda" : "On-demand creation"}
+            </div>
+            <div className="confirm-dialog__title">
+              {language === "es" ? "Crear tenant" : "Create tenant"}
+            </div>
+            <div className="confirm-dialog__description">
+              {language === "es"
+                ? "Abre esta captura solo cuando realmente necesites dar de alta un tenant nuevo y disparar provisioning."
+                : "Open this form only when you really need to onboard a new tenant and trigger provisioning."}
+            </div>
             <AppForm
-              className="tenant-action-form tenant-create-form"
+              className="tenant-action-form tenant-create-form platform-admin-form-modal__form"
               onSubmit={handleCreateTenantSubmit}
             >
               <AppFormField fullWidth>
@@ -1562,7 +1590,15 @@ export function TenantsPage() {
                     : "Creating the tenant triggers provisioning to prepare its tenant database and leave bootstrap access ready."}
                 </p>
               </div>
-              <AppFormActions>
+              <div className="confirm-dialog__actions">
+                <button
+                  className="btn btn-outline-primary"
+                  type="button"
+                  onClick={closeCreateTenantModal}
+                  disabled={isActionSubmitting}
+                >
+                  {language === "es" ? "Cancelar" : "Cancel"}
+                </button>
                 <button
                   className="btn btn-primary"
                   type="submit"
@@ -1574,10 +1610,21 @@ export function TenantsPage() {
                 >
                   {language === "es" ? "Crear tenant" : "Create tenant"}
                 </button>
-              </AppFormActions>
+              </div>
             </AppForm>
-          </PanelCard>
+          </div>
+        </div>
+      ) : null}
 
+      {listError ? (
+        <ErrorState
+          detail={listError.payload?.detail || listError.message}
+          requestId={listError.payload?.request_id}
+        />
+      ) : null}
+
+      <div className="tenants-page-grid">
+        <div className="d-grid gap-4">
           <PanelCard
             title={language === "es" ? "Catálogo de tenants" : "Tenants catalog"}
             subtitle={

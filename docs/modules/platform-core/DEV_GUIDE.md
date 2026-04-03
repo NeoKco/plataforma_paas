@@ -42,6 +42,7 @@ Documentación base:
 - `restore` es flujo explícito, no cambio manual de estado
 - `delete` físico de tenants sigue fuera del alcance normal de operación
 - frontend y backend deben consumir el catálogo de capacidades como fuente de verdad cuando aplique
+- en `platform_admin`, las capturas de alta más sensibles (`Tenants`, `Usuarios de plataforma`) no deberían quedar abiertas por defecto; la lectura principal debe mostrarse primero y la creación abrirse bajo demanda en modal
 
 ## Cómo extender este bloque
 
