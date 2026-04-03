@@ -14,6 +14,7 @@ import {
   type TenantBusinessWorkGroup,
   type TenantBusinessWorkGroupWriteRequest,
 } from "../services/workGroupsService";
+import { buildInternalTaxonomyCode, stripLegacyVisibleText } from "../utils/taxonomyUi";
 
 function buildDefaultForm(): TenantBusinessWorkGroupWriteRequest {
   return {
@@ -74,7 +75,7 @@ export function BusinessCoreWorkGroupsPage() {
     setForm({
       code: item.code,
       name: item.name,
-      description: item.description,
+      description: stripLegacyVisibleText(item.description),
       group_kind: item.group_kind,
       is_active: item.is_active,
       sort_order: item.sort_order,
@@ -85,9 +86,12 @@ export function BusinessCoreWorkGroupsPage() {
     if (!session?.accessToken) return;
     const payload = {
       ...form,
-      code: normalizeNullable(form.code),
+      code:
+        editingId !== null
+          ? normalizeNullable(form.code ?? null) || buildInternalTaxonomyCode("group", form.name, editingId)
+          : buildInternalTaxonomyCode("group", form.name),
       name: form.name.trim(),
-      description: normalizeNullable(form.description),
+      description: stripLegacyVisibleText(normalizeNullable(form.description)),
     };
     setIsSubmitting(true);
     setError(null);
@@ -161,7 +165,6 @@ export function BusinessCoreWorkGroupsPage() {
       onReload={loadItems}
       onNew={startCreate}
       fields={[
-        { key: "code", labelEs: "Código", labelEn: "Code", placeholderEs: "Ej: terreno-norte", placeholderEn: "Ex: north-field" },
         { key: "name", labelEs: "Nombre", labelEn: "Name", placeholderEs: "Ej: Terreno Norte", placeholderEn: "Ex: North Field" },
         {
           key: "group_kind",
@@ -186,7 +189,9 @@ export function BusinessCoreWorkGroupsPage() {
           render: (item) => (
             <div>
               <div className="business-core-cell__title">{item.name}</div>
-              <div className="business-core-cell__meta">{item.code || "sin código"}</div>
+              <div className="business-core-cell__meta">
+                {stripLegacyVisibleText(item.description) || "—"}
+              </div>
             </div>
           ),
         },

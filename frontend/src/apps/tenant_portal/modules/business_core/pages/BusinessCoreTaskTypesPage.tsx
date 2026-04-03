@@ -14,10 +14,11 @@ import {
   type TenantBusinessTaskType,
   type TenantBusinessTaskTypeWriteRequest,
 } from "../services/taskTypesService";
+import { buildInternalTaxonomyCode, stripLegacyVisibleText } from "../utils/taxonomyUi";
 
 function buildDefaultForm(): TenantBusinessTaskTypeWriteRequest {
   return {
-    code: "",
+    code: null,
     name: "",
     description: null,
     color: "#2563eb",
@@ -75,7 +76,7 @@ export function BusinessCoreTaskTypesPage() {
     setForm({
       code: item.code,
       name: item.name,
-      description: item.description,
+      description: stripLegacyVisibleText(item.description),
       color: item.color,
       icon: item.icon,
       is_active: item.is_active,
@@ -87,9 +88,12 @@ export function BusinessCoreTaskTypesPage() {
     if (!session?.accessToken) return;
     const payload = {
       ...form,
-      code: form.code.trim(),
+      code:
+        editingId !== null
+          ? (form.code?.trim() ?? "") || buildInternalTaxonomyCode("task", form.name, editingId)
+          : buildInternalTaxonomyCode("task", form.name),
       name: form.name.trim(),
-      description: normalizeNullable(form.description),
+      description: stripLegacyVisibleText(normalizeNullable(form.description)),
       color: normalizeNullable(form.color),
       icon: normalizeNullable(form.icon),
     };
@@ -165,7 +169,6 @@ export function BusinessCoreTaskTypesPage() {
       onReload={loadItems}
       onNew={startCreate}
       fields={[
-        { key: "code", labelEs: "Código", labelEn: "Code", placeholderEs: "Ej: mantencion-preventiva", placeholderEn: "Ex: preventive-maintenance" },
         { key: "name", labelEs: "Nombre", labelEn: "Name", placeholderEs: "Ej: Mantención preventiva", placeholderEn: "Ex: Preventive maintenance" },
         { key: "color", labelEs: "Color", labelEn: "Color", placeholderEs: "#2563eb", placeholderEn: "#2563eb" },
         { key: "icon", labelEs: "Icono", labelEn: "Icon", placeholderEs: "calendar", placeholderEn: "calendar" },
@@ -180,7 +183,9 @@ export function BusinessCoreTaskTypesPage() {
           render: (item) => (
             <div>
               <div className="business-core-cell__title">{item.name}</div>
-              <div className="business-core-cell__meta">{item.code}</div>
+              <div className="business-core-cell__meta">
+                {stripLegacyVisibleText(item.description) || "—"}
+              </div>
             </div>
           ),
         },

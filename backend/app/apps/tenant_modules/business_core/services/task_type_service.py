@@ -8,6 +8,10 @@ from app.apps.tenant_modules.business_core.schemas import (
     BusinessTaskTypeCreateRequest,
     BusinessTaskTypeUpdateRequest,
 )
+from app.apps.tenant_modules.business_core.services.taxonomy_support import (
+    build_internal_taxonomy_code,
+    strip_legacy_visible_text,
+)
 
 
 class BusinessTaskTypeService:
@@ -91,9 +95,13 @@ class BusinessTaskTypeService:
         payload: BusinessTaskTypeCreateRequest | BusinessTaskTypeUpdateRequest,
     ) -> dict:
         return {
-            "code": payload.code.strip().lower(),
+            "code": (
+                payload.code.strip().lower()
+                if payload.code and payload.code.strip()
+                else build_internal_taxonomy_code("task", payload.name)
+            ),
             "name": payload.name.strip(),
-            "description": payload.description.strip() if payload.description and payload.description.strip() else None,
+            "description": strip_legacy_visible_text(payload.description),
             "color": payload.color.strip() if payload.color and payload.color.strip() else None,
             "icon": payload.icon.strip() if payload.icon and payload.icon.strip() else None,
             "is_active": payload.is_active,
@@ -107,8 +115,6 @@ class BusinessTaskTypeService:
         *,
         current_item: BusinessTaskType | None = None,
     ) -> None:
-        if not payload["code"]:
-            raise ValueError("El codigo del tipo de tarea es obligatorio")
         if not payload["name"]:
             raise ValueError("El nombre del tipo de tarea es obligatorio")
 

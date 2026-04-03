@@ -697,7 +697,7 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
             with self.assertRaises(HTTPException) as exc:
                 create_business_function_profile(
                     payload=BusinessFunctionProfileCreateRequest(
-                        code="tecnico",
+                        code=None,
                         name="Técnico",
                         description=None,
                         is_active=True,
@@ -797,7 +797,7 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
             with self.assertRaises(HTTPException) as exc:
                 create_business_work_group(
                     payload=BusinessWorkGroupCreateRequest(
-                        code="terreno-norte",
+                        code=None,
                         name="Terreno Norte",
                         description=None,
                         group_kind="field",
@@ -897,7 +897,7 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
             with self.assertRaises(HTTPException) as exc:
                 create_business_task_type(
                     payload=BusinessTaskTypeCreateRequest(
-                        code="mantencion-preventiva",
+                        code=None,
                         name="Mantención preventiva",
                         description=None,
                         color="#2563eb",

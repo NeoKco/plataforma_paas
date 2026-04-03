@@ -6,7 +6,7 @@ from app.apps.tenant_modules.business_core.schemas.common import BusinessCoreRes
 
 
 class BusinessTaskTypeBase(BaseModel):
-    code: str
+    code: str | None = None
     name: str
     description: str | None = None
     color: str | None = None

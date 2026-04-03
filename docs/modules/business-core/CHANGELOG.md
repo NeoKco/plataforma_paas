@@ -16,6 +16,8 @@
 - Se agrega `comuna` al modelo de direcciones y a la captura/lectura de `Clientes`, `Direcciones` y ficha del cliente, alineando mejor el PaaS con `ieris_app`.
 - La captura y lectura del cliente aclaran visualmente `Organización / Razón social` para no esconder ese dato bajo una etiqueta demasiado estrecha.
 - Los modales normales de `business-core` dejan de exponer `Orden = 100`; `sort_order` queda interno con default y fuera de la captura común.
+- Se corrige la UX de taxonomias compartidas para que `Código` quede interno y no editable por el usuario normal en perfiles funcionales, grupos y tipos de tarea.
+- Se limpia la lectura de descripciones para ocultar y no volver a importar metadatos `legacy_*` visibles en taxonomias compartidas.
 
 ## 2026-04-02
 

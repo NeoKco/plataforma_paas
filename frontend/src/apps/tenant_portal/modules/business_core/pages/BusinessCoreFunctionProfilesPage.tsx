@@ -14,10 +14,11 @@ import {
   type TenantBusinessFunctionProfile,
   type TenantBusinessFunctionProfileWriteRequest,
 } from "../services/functionProfilesService";
+import { buildInternalTaxonomyCode, stripLegacyVisibleText } from "../utils/taxonomyUi";
 
 function buildDefaultForm(): TenantBusinessFunctionProfileWriteRequest {
   return {
-    code: "",
+    code: null,
     name: "",
     description: null,
     is_active: true,
@@ -73,7 +74,7 @@ export function BusinessCoreFunctionProfilesPage() {
     setForm({
       code: item.code,
       name: item.name,
-      description: item.description,
+      description: stripLegacyVisibleText(item.description),
       is_active: item.is_active,
       sort_order: item.sort_order,
     });
@@ -83,9 +84,12 @@ export function BusinessCoreFunctionProfilesPage() {
     if (!session?.accessToken) return;
     const payload = {
       ...form,
-      code: form.code.trim(),
+      code:
+        editingId !== null
+          ? (form.code?.trim() ?? "") || buildInternalTaxonomyCode("profile", form.name, editingId)
+          : buildInternalTaxonomyCode("profile", form.name),
       name: form.name.trim(),
-      description: normalizeNullable(form.description),
+      description: stripLegacyVisibleText(normalizeNullable(form.description)),
     };
     setIsSubmitting(true);
     setError(null);
@@ -159,7 +163,6 @@ export function BusinessCoreFunctionProfilesPage() {
       onReload={loadItems}
       onNew={startCreate}
       fields={[
-        { key: "code", labelEs: "Código", labelEn: "Code", placeholderEs: "Ej: tecnico", placeholderEn: "Ex: technician" },
         { key: "name", labelEs: "Nombre", labelEn: "Name", placeholderEs: "Ej: Técnico", placeholderEn: "Ex: Technician" },
         { key: "is_active", labelEs: "Activo", labelEn: "Active", type: "checkbox" },
         { key: "description", labelEs: "Descripción", labelEn: "Description", type: "textarea" },
@@ -172,7 +175,9 @@ export function BusinessCoreFunctionProfilesPage() {
           render: (item) => (
             <div>
               <div className="business-core-cell__title">{item.name}</div>
-              <div className="business-core-cell__meta">{item.code}</div>
+              <div className="business-core-cell__meta">
+                {stripLegacyVisibleText(item.description) || "—"}
+              </div>
             </div>
           ),
         },

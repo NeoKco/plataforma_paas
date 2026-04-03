@@ -139,6 +139,18 @@ def append_note(*parts: str | None) -> str | None:
     return "\n".join(clean) if clean else None
 
 
+def strip_legacy_visible_text(value: str | None) -> str | None:
+    if not value:
+        return None
+    cleaned_lines: list[str] = []
+    for raw_line in value.splitlines():
+        line = raw_line.strip()
+        if line and not line.lower().startswith("legacy_"):
+            cleaned_lines.append(line)
+    cleaned = "\n".join(cleaned_lines).strip()
+    return cleaned or None
+
+
 def to_bool_from_legacy_status(value: str | None) -> bool:
     normalized = (value or "").strip().lower()
     return normalized not in {"inactivo", "inactive", "false", "0"}
@@ -982,10 +994,7 @@ def import_business_core_and_maintenance(
             tenant_db,
             code=f"LEGACY-FPROFILE-{legacy_id}",
             name=profile_name,
-            description=append_note(
-                normalize_text(row.get("description")),
-                f"legacy_id={legacy_id}",
-            ),
+            description=strip_legacy_visible_text(normalize_text(row.get("description"))),
             counters=report["business_core"]["function_profiles"],
         )
 
@@ -995,17 +1004,11 @@ def import_business_core_and_maintenance(
         if not group_name:
             report["business_core"]["work_groups"].skipped += 1
             continue
-        description = append_note(
-            normalize_text(row.get("description")),
-            row.get("por_defecto") and "legacy_default=true",
-            row.get("lider") is not None and f"legacy_leader_user_id={row.get('lider')}",
-            f"legacy_id={legacy_id}",
-        )
         get_or_create_work_group(
             tenant_db,
             code=f"LEGACY-WGROUP-{legacy_id}",
             name=group_name,
-            description=description,
+            description=strip_legacy_visible_text(normalize_text(row.get("description"))),
             counters=report["business_core"]["work_groups"],
         )
 
@@ -1019,15 +1022,11 @@ def import_business_core_and_maintenance(
         if not task_name:
             report["business_core"]["task_types"].skipped += 1
             continue
-        description = append_note(
-            row.get("por_defecto") and "legacy_default=true",
-            f"legacy_id={legacy_id}",
-        )
         get_or_create_task_type(
             tenant_db,
             code=f"LEGACY-TTASK-{legacy_id}",
             name=task_name,
-            description=description,
+            description=None,
             counters=report["business_core"]["task_types"],
         )
 

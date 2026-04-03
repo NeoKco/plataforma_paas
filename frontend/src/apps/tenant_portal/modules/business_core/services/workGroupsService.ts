@@ -26,7 +26,7 @@ export type TenantBusinessWorkGroupMutationResponse = {
 };
 
 export type TenantBusinessWorkGroupWriteRequest = {
-  code: string | null;
+  code?: string | null;
   name: string;
   description: string | null;
   group_kind: string;

@@ -25,7 +25,7 @@ export type TenantBusinessFunctionProfileMutationResponse = {
 };
 
 export type TenantBusinessFunctionProfileWriteRequest = {
-  code: string;
+  code?: string | null;
   name: string;
   description: string | null;
   is_active: boolean;

@@ -8,6 +8,10 @@ from app.apps.tenant_modules.business_core.schemas import (
     BusinessWorkGroupCreateRequest,
     BusinessWorkGroupUpdateRequest,
 )
+from app.apps.tenant_modules.business_core.services.taxonomy_support import (
+    build_internal_taxonomy_code,
+    strip_legacy_visible_text,
+)
 
 
 class BusinessWorkGroupService:
@@ -95,9 +99,13 @@ class BusinessWorkGroupService:
         payload: BusinessWorkGroupCreateRequest | BusinessWorkGroupUpdateRequest,
     ) -> dict:
         return {
-            "code": payload.code.strip().lower() if payload.code and payload.code.strip() else None,
+            "code": (
+                payload.code.strip().lower()
+                if payload.code and payload.code.strip()
+                else build_internal_taxonomy_code("group", payload.name)
+            ),
             "name": payload.name.strip(),
-            "description": payload.description.strip() if payload.description and payload.description.strip() else None,
+            "description": strip_legacy_visible_text(payload.description),
             "group_kind": payload.group_kind.strip().lower(),
             "is_active": payload.is_active,
             "sort_order": payload.sort_order,
@@ -115,15 +123,14 @@ class BusinessWorkGroupService:
         if not payload["group_kind"]:
             raise ValueError("El tipo de grupo es obligatorio")
 
-        if payload["code"]:
-            existing_by_code = self.work_group_repository.get_by_code(
-                tenant_db,
-                payload["code"],
-            )
-            if existing_by_code and (
-                current_item is None or existing_by_code.id != current_item.id
-            ):
-                raise ValueError("Ya existe un grupo de trabajo con ese codigo")
+        existing_by_code = self.work_group_repository.get_by_code(
+            tenant_db,
+            payload["code"],
+        )
+        if existing_by_code and (
+            current_item is None or existing_by_code.id != current_item.id
+        ):
+            raise ValueError("Ya existe un grupo de trabajo con ese codigo")
 
         existing_by_name = self.work_group_repository.get_by_name(
             tenant_db,

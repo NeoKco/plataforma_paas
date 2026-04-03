@@ -6,7 +6,7 @@ from app.apps.tenant_modules.business_core.schemas.common import BusinessCoreRes
 
 
 class BusinessFunctionProfileBase(BaseModel):
-    code: str
+    code: str | None = None
     name: str
     description: str | None = None
     is_active: bool = True

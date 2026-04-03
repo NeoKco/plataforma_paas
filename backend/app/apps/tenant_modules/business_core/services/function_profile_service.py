@@ -8,6 +8,10 @@ from app.apps.tenant_modules.business_core.schemas import (
     BusinessFunctionProfileCreateRequest,
     BusinessFunctionProfileUpdateRequest,
 )
+from app.apps.tenant_modules.business_core.services.taxonomy_support import (
+    build_internal_taxonomy_code,
+    strip_legacy_visible_text,
+)
 
 
 class BusinessFunctionProfileService:
@@ -93,9 +97,13 @@ class BusinessFunctionProfileService:
         payload: BusinessFunctionProfileCreateRequest | BusinessFunctionProfileUpdateRequest,
     ) -> dict:
         return {
-            "code": payload.code.strip().lower(),
+            "code": (
+                payload.code.strip().lower()
+                if payload.code and payload.code.strip()
+                else build_internal_taxonomy_code("profile", payload.name)
+            ),
             "name": payload.name.strip(),
-            "description": payload.description.strip() if payload.description and payload.description.strip() else None,
+            "description": strip_legacy_visible_text(payload.description),
             "is_active": payload.is_active,
             "sort_order": payload.sort_order,
         }
@@ -107,8 +115,6 @@ class BusinessFunctionProfileService:
         *,
         current_item: BusinessFunctionProfile | None = None,
     ) -> None:
-        if not payload["code"]:
-            raise ValueError("El codigo del perfil funcional es obligatorio")
         if not payload["name"]:
             raise ValueError("El nombre del perfil funcional es obligatorio")
 
