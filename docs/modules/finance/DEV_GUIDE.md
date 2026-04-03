@@ -108,7 +108,11 @@ Smokes vigentes:
 
 - los CRUD visibles de `finance` deben priorizar lectura primero
 - la alta o edición no debería invadir la vista principal si el usuario no la pidió
+- usar como referencia oficial el [Estandar de botones CRUD](/home/felipe/platform_paas/docs/architecture/crud-button-standard.md)
 - `Cuentas`, `Categorías`, `Catálogos auxiliares` y `Configuración` ya adoptan modal bajo demanda para creación y edición
+- `Movimientos` ya usa `Registrar transacción` en el header, detalle en modal bajo `Ver` y sin panel fijo de detalle operacional en la pantalla principal
+- `Presupuestos` ya usa `Nuevo presupuesto` en modal bajo demanda
+- `Préstamos` ya usa `Nuevo préstamo` en modal bajo demanda
 
 ## Testing
 
