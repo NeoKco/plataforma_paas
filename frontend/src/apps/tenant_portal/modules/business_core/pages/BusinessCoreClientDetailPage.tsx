@@ -637,12 +637,15 @@ export function BusinessCoreClientDetailPage() {
           onClick={closeContactModal}
         >
           <div
-            className="confirm-dialog business-core-client-modal"
+            className="confirm-dialog business-core-form-modal business-core-form-modal--compact"
             role="dialog"
             aria-modal="true"
             aria-label={editingContactId ? "Editar contacto" : "Nuevo contacto"}
             onClick={(event) => event.stopPropagation()}
           >
+            <div className="business-core-form-modal__eyebrow">
+              {language === "es" ? "Edición puntual" : "Targeted edit"}
+            </div>
             <div className="confirm-dialog__title">
               {editingContactId
                 ? language === "es"
@@ -659,7 +662,12 @@ export function BusinessCoreClientDetailPage() {
             </div>
             <div className="business-core-modal-grid">
               <div className="business-core-modal-section">
-                <div className="row g-3">
+                <div className="business-core-modal-section__hint">
+                  {language === "es"
+                    ? "Corrige o agrega el contacto sin salir de la ficha del cliente."
+                    : "Add or correct the contact without leaving the client detail page."}
+                </div>
+                <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12 col-md-6">
                     <label className="form-label">
                       {language === "es" ? "Nombre completo" : "Full name"}
@@ -790,12 +798,15 @@ export function BusinessCoreClientDetailPage() {
           onClick={closeAddressModal}
         >
           <div
-            className="confirm-dialog business-core-client-modal"
+            className="confirm-dialog business-core-form-modal business-core-form-modal--compact"
             role="dialog"
             aria-modal="true"
             aria-label={editingAddressId ? "Editar dirección" : "Nueva dirección"}
             onClick={(event) => event.stopPropagation()}
           >
+            <div className="business-core-form-modal__eyebrow">
+              {language === "es" ? "Edición puntual" : "Targeted edit"}
+            </div>
             <div className="confirm-dialog__title">
               {editingAddressId
                 ? language === "es"
@@ -812,7 +823,12 @@ export function BusinessCoreClientDetailPage() {
             </div>
             <div className="business-core-modal-grid">
               <div className="business-core-modal-section">
-                <div className="row g-3">
+                <div className="business-core-modal-section__hint">
+                  {language === "es"
+                    ? "Captura la dirección visible del cliente; el código técnico queda interno."
+                    : "Capture the visible client address; the technical code stays internal."}
+                </div>
+                <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12">
                     <label className="form-label">
                       {language === "es" ? "Nombre dirección" : "Address name"}

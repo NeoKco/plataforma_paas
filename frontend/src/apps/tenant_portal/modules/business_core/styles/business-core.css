@@ -171,8 +171,24 @@
   min-width: min(28rem, 100%);
 }
 
+.business-core-form-modal {
+  width: min(1380px, 96vw);
+  max-width: none;
+  max-height: min(88vh, 980px);
+  overflow: auto;
+  padding: 1.35rem 1.5rem;
+}
+
+.business-core-form-modal--compact {
+  width: min(860px, 94vw);
+}
+
+.business-core-form-modal--catalog {
+  width: min(980px, 94vw);
+}
+
 .business-core-client-modal {
-  max-width: min(1100px, 94vw);
+  width: min(1380px, 96vw);
 }
 
 .business-core-modal-grid {
@@ -180,14 +196,79 @@
   gap: 1rem;
 }
 
+.business-core-modal-grid--client {
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.95fr);
+  align-items: start;
+}
+
 .business-core-modal-section {
   border: 1px solid var(--app-border, #cfd7e6);
   border-radius: 0.9rem;
   padding: 1rem;
+  min-width: 0;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.8) 0%, #ffffff 100%);
 }
 
 .business-core-modal-section__title {
   font-size: 0.95rem;
   font-weight: 700;
   margin-bottom: 0.85rem;
+}
+
+.business-core-modal-section__hint {
+  color: var(--app-text-muted, #6b7a90);
+  font-size: 0.85rem;
+  margin: -0.35rem 0 0.9rem;
+}
+
+.business-core-modal-section--client-main {
+  grid-row: 1 / span 2;
+}
+
+.business-core-form-modal .confirm-dialog__actions {
+  position: sticky;
+  bottom: -1.35rem;
+  margin-top: 1rem;
+  padding: 1rem 0 0.15rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, #ffffff 22%);
+}
+
+.business-core-form-grid--dense .form-label {
+  color: var(--app-text-muted, #53637a);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.35rem;
+}
+
+.business-core-form-grid--dense .form-control,
+.business-core-form-grid--dense .form-select {
+  min-height: 2.85rem;
+}
+
+.business-core-form-grid--dense textarea.form-control {
+  min-height: 6.25rem;
+}
+
+.business-core-form-modal__eyebrow {
+  color: var(--app-primary, #0d6efd);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.45rem;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1199px) {
+  .business-core-form-modal {
+    width: min(1120px, 96vw);
+  }
+
+  .business-core-modal-grid--client {
+    grid-template-columns: 1fr;
+  }
+
+  .business-core-modal-section--client-main {
+    grid-row: auto;
+  }
 }

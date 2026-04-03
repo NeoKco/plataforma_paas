@@ -7,6 +7,11 @@
 - Se deja `site_code` como identificador tecnico interno, ocultandolo de las pantallas operativas para que no se edite como si fuera un dato de negocio.
 - Se corrige el importador legacy para que `reference_notes` no muestre `legacy_client_id` ni otros marcadores tecnicos visibles al usuario.
 - La ficha del cliente deja de mostrar formularios abiertos por defecto para contactos y direcciones; ahora esas altas y ediciones se abren solo bajo demanda en modal.
+- Se rehace el modal de `Clientes` para usar mas ancho util en escritorio, con layout lateral y menor altura percibida al capturar cliente, contacto principal y direccion.
+- Se deja un patron reusable de modal para `business-core`: variante ancha para altas principales y variante compacta para ediciones puntuales desde la ficha.
+- La captura rapida de `Clientes` ahora soporta tambien un `contacto secundario` para no perder respaldo operativo del cliente.
+- La tabla de `Clientes` ahora muestra una pista breve de contactos de respaldo (`+1 respaldo`, etc.) sin recargar la lectura principal.
+- Los catalogos genericos de `business-core` dejan de mostrar formularios abiertos por defecto; ahora `Nuevo` y `Editar` abren un modal bajo demanda.
 
 ## 2026-04-02
 

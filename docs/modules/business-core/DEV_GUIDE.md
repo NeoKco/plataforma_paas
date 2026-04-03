@@ -132,6 +132,9 @@ Observacion:
 - la UI normal del tenant no deberia exponer `site_code` como campo editable
 - `reference_notes` es un campo visible al usuario y no debe usarse para guardar metadatos legacy como `legacy_client_id`
 - la UX de ficha debe privilegiar lectura primero y edicion bajo demanda: formularios abiertos solo en modal o accion explicita, no desplegados por defecto
+- los modales de captura del dominio deberian seguir una plantilla comun: `ancho` para altas principales y `compacto` para ediciones puntuales, con bloques claros y formularios densos pero legibles
+- en `clients`, la captura inicial deberia soportar `contacto principal` y `contacto secundario`; contactos adicionales quedan para gestion posterior en la ficha del cliente
+- `BusinessCoreCatalogPage` deberia comportarse con el mismo patron: tabla visible por defecto y formulario solo bajo demanda en modal
 
 ### 5. Contact-Site Links
 

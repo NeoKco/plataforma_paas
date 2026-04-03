@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../../../components/data-display/DataTableCard";
@@ -91,6 +91,7 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
 }: BusinessCoreCatalogPageProps<TRow, TForm>) {
   const { language } = useLanguage();
   const [localError, setLocalError] = useState<string | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
 
   const localizedColumns = useMemo(
     () =>
@@ -102,14 +103,40 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
     [columns, language]
   );
 
+  useEffect(() => {
+    if (editingId !== null) {
+      setIsEditorOpen(true);
+    }
+  }, [editingId]);
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLocalError(null);
     try {
       await onSubmit();
+      setIsEditorOpen(false);
     } catch (rawError) {
       setLocalError((rawError as Error).message);
     }
+  }
+
+  function handleOpenNew() {
+    setLocalError(null);
+    onNew();
+    setIsEditorOpen(true);
+  }
+
+  function handleCloseEditor() {
+    if (isSubmitting) {
+      return;
+    }
+    setLocalError(null);
+    if (onCancel) {
+      onCancel();
+    } else {
+      onNew();
+    }
+    setIsEditorOpen(false);
   }
 
   return (
@@ -128,7 +155,7 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
             <button className="btn btn-outline-secondary" type="button" onClick={() => void onReload()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
-            <button className="btn btn-primary" type="button" onClick={onNew}>
+            <button className="btn btn-primary" type="button" onClick={handleOpenNew}>
               {language === "es" ? "Nuevo registro" : "New record"}
             </button>
           </AppToolbar>
@@ -153,153 +180,178 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
         <LoadingBlock label={language === "es" ? loadingLabelEs : loadingLabelEn} />
       ) : null}
 
-      <div className="business-core-catalog-layout">
-        <PanelCard
-          title={
-            editingId
-              ? language === "es"
-                ? "Editar registro"
-                : "Edit record"
-              : language === "es"
-                ? "Nuevo registro"
-                : "New record"
-          }
-          subtitle={
-            language === "es"
-              ? "Mantén esta base transversal limpia para que otros módulos la reutilicen."
-              : "Keep this shared base clean so other modules can reuse it."
-          }
-        >
-          <form className="business-core-form" onSubmit={(event) => void handleSubmit(event)}>
-            <div className="row g-3">
-              {fields.map((field) => {
-                const label = language === "es" ? field.labelEs : field.labelEn;
-                const placeholder =
-                  language === "es" ? field.placeholderEs : field.placeholderEn;
-                const value = form[field.key];
+      <DataTableCard
+        title={language === "es" ? "Catálogo activo" : "Active catalog"}
+        subtitle={
+          language === "es"
+            ? "Lista operativa del dominio compartido."
+            : "Operational list of the shared domain."
+        }
+        rows={rows}
+        columns={localizedColumns}
+      />
 
-                if (field.type === "checkbox") {
-                  return (
-                    <div className="col-12" key={String(field.key)}>
-                      <label className="form-check">
+      {isEditorOpen ? (
+        <div className="confirm-dialog-backdrop" role="presentation" onClick={handleCloseEditor}>
+          <div
+            className="confirm-dialog business-core-form-modal business-core-form-modal--catalog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={editingId ? "Editar registro" : "Nuevo registro"}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="business-core-form-modal__eyebrow">
+              {language === "es" ? "Captura puntual" : "Targeted capture"}
+            </div>
+            <div className="confirm-dialog__title">
+              {editingId
+                ? language === "es"
+                  ? "Editar registro"
+                  : "Edit record"
+                : language === "es"
+                  ? "Nuevo registro"
+                  : "New record"}
+            </div>
+            <div className="confirm-dialog__description">
+              {language === "es"
+                ? "Abre este formulario solo cuando realmente necesites crear o corregir un registro del core compartido."
+                : "Open this form only when you actually need to create or correct a shared core record."}
+            </div>
+            <PanelCard
+              title={
+                editingId
+                  ? language === "es"
+                    ? "Edición"
+                    : "Edition"
+                  : language === "es"
+                    ? "Alta"
+                    : "Creation"
+              }
+              subtitle={
+                language === "es"
+                  ? "Mantén esta base transversal limpia para que otros módulos la reutilicen."
+                  : "Keep this shared base clean so other modules can reuse it."
+              }
+            >
+              <form className="business-core-form" onSubmit={(event) => void handleSubmit(event)}>
+                <div className="row g-3 business-core-form-grid--dense">
+                  {fields.map((field) => {
+                    const label = language === "es" ? field.labelEs : field.labelEn;
+                    const placeholder =
+                      language === "es" ? field.placeholderEs : field.placeholderEn;
+                    const value = form[field.key];
+
+                    if (field.type === "checkbox") {
+                      return (
+                        <div className="col-12" key={String(field.key)}>
+                          <label className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              checked={Boolean(value)}
+                              onChange={(event) =>
+                                onFormChange({
+                                  ...form,
+                                  [field.key]: event.target.checked,
+                                })
+                              }
+                            />
+                            <span className="form-check-label">{label}</span>
+                          </label>
+                        </div>
+                      );
+                    }
+
+                    if (field.type === "textarea") {
+                      return (
+                        <div className="col-12" key={String(field.key)}>
+                          <label className="form-label">{label}</label>
+                          <textarea
+                            className="form-control"
+                            value={formatInputValue(value)}
+                            placeholder={placeholder}
+                            rows={4}
+                            onChange={(event) =>
+                              onFormChange({
+                                ...form,
+                                [field.key]: event.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      );
+                    }
+
+                    if (field.type === "select") {
+                      return (
+                        <div className="col-12 col-md-6" key={String(field.key)}>
+                          <label className="form-label">{label}</label>
+                          <select
+                            className="form-select"
+                            value={formatInputValue(value)}
+                            onChange={(event) =>
+                              onFormChange({
+                                ...form,
+                                [field.key]: event.target.value,
+                              })
+                            }
+                          >
+                            {(field.options ?? []).map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="col-12 col-md-6" key={String(field.key)}>
+                        <label className="form-label">{label}</label>
                         <input
-                          className="form-check-input"
-                          type="checkbox"
-                          checked={Boolean(value)}
+                          className="form-control"
+                          type={field.type === "number" ? "number" : field.type ?? "text"}
+                          min={field.min}
+                          value={formatInputValue(value)}
+                          placeholder={placeholder}
                           onChange={(event) =>
                             onFormChange({
                               ...form,
-                              [field.key]: event.target.checked,
+                              [field.key]:
+                                field.type === "number"
+                                  ? Number(event.target.value || 0)
+                                  : event.target.value,
                             })
                           }
                         />
-                        <span className="form-check-label">{label}</span>
-                      </label>
-                    </div>
-                  );
-                }
-
-                if (field.type === "textarea") {
-                  return (
-                    <div className="col-12" key={String(field.key)}>
-                      <label className="form-label">{label}</label>
-                      <textarea
-                        className="form-control"
-                        value={formatInputValue(value)}
-                        placeholder={placeholder}
-                        rows={4}
-                        onChange={(event) =>
-                          onFormChange({
-                            ...form,
-                            [field.key]: event.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                  );
-                }
-
-                if (field.type === "select") {
-                  return (
-                    <div className="col-12 col-md-6" key={String(field.key)}>
-                      <label className="form-label">{label}</label>
-                      <select
-                        className="form-select"
-                        value={formatInputValue(value)}
-                        onChange={(event) =>
-                          onFormChange({
-                            ...form,
-                            [field.key]: event.target.value,
-                          })
-                        }
-                      >
-                        {(field.options ?? []).map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div className="col-12 col-md-6" key={String(field.key)}>
-                    <label className="form-label">{label}</label>
-                    <input
-                      className="form-control"
-                      type={field.type === "number" ? "number" : field.type ?? "text"}
-                      min={field.min}
-                      value={formatInputValue(value)}
-                      placeholder={placeholder}
-                      onChange={(event) =>
-                        onFormChange({
-                          ...form,
-                          [field.key]:
-                            field.type === "number"
-                              ? Number(event.target.value || 0)
-                              : event.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                );
-              })}
-            </div>
-            <div className="business-core-form__actions">
-              <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-                {isSubmitting
-                  ? language === "es"
-                    ? "Guardando..."
-                    : "Saving..."
-                  : editingId
-                    ? language === "es"
-                      ? "Guardar cambios"
-                      : "Save changes"
-                    : language === "es"
-                      ? "Crear registro"
-                      : "Create record"}
-              </button>
-              {editingId && onCancel ? (
-                <button className="btn btn-outline-secondary" type="button" onClick={onCancel}>
-                  {language === "es" ? "Cancelar" : "Cancel"}
-                </button>
-              ) : null}
-            </div>
-          </form>
-        </PanelCard>
-
-        <DataTableCard
-          title={language === "es" ? "Catálogo activo" : "Active catalog"}
-          subtitle={
-            language === "es"
-              ? "Lista operativa del dominio compartido."
-              : "Operational list of the shared domain."
-          }
-          rows={rows}
-          columns={localizedColumns}
-        />
-      </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="business-core-form__actions">
+                  <button className="btn btn-outline-secondary" type="button" onClick={handleCloseEditor}>
+                    {language === "es" ? "Cancelar" : "Cancel"}
+                  </button>
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
+                    {isSubmitting
+                      ? language === "es"
+                        ? "Guardando..."
+                        : "Saving..."
+                      : editingId
+                        ? language === "es"
+                          ? "Guardar cambios"
+                          : "Save changes"
+                        : language === "es"
+                          ? "Crear registro"
+                          : "Create record"}
+                  </button>
+                </div>
+              </form>
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

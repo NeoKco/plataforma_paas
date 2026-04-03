@@ -48,6 +48,7 @@ type ClientModalState = {
   clientId: number | null;
   organizationId: number | null;
   primaryContactId: number | null;
+  secondaryContactId: number | null;
   primaryAddressId: number | null;
 };
 
@@ -64,6 +65,10 @@ type ClientModalForm = {
   primaryContactRole: string;
   primaryContactPhone: string;
   primaryContactEmail: string;
+  secondaryContactName: string;
+  secondaryContactRole: string;
+  secondaryContactPhone: string;
+  secondaryContactEmail: string;
   addressName: string;
   addressLine: string;
   city: string;
@@ -92,6 +97,10 @@ function buildDefaultModalForm(): ClientModalForm {
     primaryContactRole: "",
     primaryContactPhone: "",
     primaryContactEmail: "",
+    secondaryContactName: "",
+    secondaryContactRole: "",
+    secondaryContactPhone: "",
+    secondaryContactEmail: "",
     addressName: "",
     addressLine: "",
     city: "",
@@ -235,6 +244,7 @@ export function BusinessCoreClientsPage() {
       clientId: null,
       organizationId: null,
       primaryContactId: null,
+      secondaryContactId: null,
       primaryAddressId: null,
     });
     setModalForm(buildDefaultModalForm());
@@ -242,6 +252,8 @@ export function BusinessCoreClientsPage() {
 
   function openEditModal(row: ClientRow) {
     const primaryContact = row.contacts.find((contact) => contact.is_primary) ?? row.contacts[0] ?? null;
+    const secondaryContact =
+      row.contacts.find((contact) => !contact.is_primary && contact.id !== primaryContact?.id) ?? null;
     const primaryAddress = row.addresses[0] ?? null;
     setModalError(null);
     setFeedback(null);
@@ -250,6 +262,7 @@ export function BusinessCoreClientsPage() {
       clientId: row.client.id,
       organizationId: row.organization?.id ?? null,
       primaryContactId: primaryContact?.id ?? null,
+      secondaryContactId: secondaryContact?.id ?? null,
       primaryAddressId: primaryAddress?.id ?? null,
     });
     setModalForm({
@@ -265,6 +278,10 @@ export function BusinessCoreClientsPage() {
       primaryContactRole: primaryContact?.role_title ?? "",
       primaryContactPhone: primaryContact?.phone ?? "",
       primaryContactEmail: primaryContact?.email ?? "",
+      secondaryContactName: secondaryContact?.full_name ?? "",
+      secondaryContactRole: secondaryContact?.role_title ?? "",
+      secondaryContactPhone: secondaryContact?.phone ?? "",
+      secondaryContactEmail: secondaryContact?.email ?? "",
       addressName: primaryAddress?.name ?? "",
       addressLine: primaryAddress?.address_line ?? "",
       city: primaryAddress?.city ?? "",
@@ -352,6 +369,28 @@ export function BusinessCoreClientsPage() {
           );
         } else {
           await createTenantBusinessContact(session.accessToken, contactPayload);
+        }
+      }
+
+      if (modalForm.secondaryContactName.trim()) {
+        const secondaryContactPayload: TenantBusinessContactWriteRequest = {
+          organization_id: organization.id,
+          full_name: modalForm.secondaryContactName.trim(),
+          email: normalizeNullable(modalForm.secondaryContactEmail),
+          phone: normalizeNullable(modalForm.secondaryContactPhone),
+          role_title: normalizeNullable(modalForm.secondaryContactRole),
+          is_primary: false,
+          is_active: true,
+          sort_order: 200,
+        };
+        if (modalState.mode === "edit" && modalState.secondaryContactId) {
+          await updateTenantBusinessContact(
+            session.accessToken,
+            modalState.secondaryContactId,
+            secondaryContactPayload
+          );
+        } else {
+          await createTenantBusinessContact(session.accessToken, secondaryContactPayload);
         }
       }
 
@@ -529,6 +568,19 @@ export function BusinessCoreClientsPage() {
             render: (row) => {
               const primaryContact =
                 row.contacts.find((contact) => contact.is_primary) ?? row.contacts[0];
+              const secondaryContacts = row.contacts.filter(
+                (contact) => !contact.is_primary && contact.id !== primaryContact?.id
+              );
+              const secondaryLabel =
+                secondaryContacts.length === 1
+                  ? language === "es"
+                    ? `+1 respaldo`
+                    : `+1 backup`
+                  : secondaryContacts.length > 1
+                    ? language === "es"
+                      ? `+${secondaryContacts.length} respaldos`
+                      : `+${secondaryContacts.length} backups`
+                    : null;
               return (
                 <div>
                   <div className="business-core-cell__title">
@@ -539,6 +591,9 @@ export function BusinessCoreClientsPage() {
                       ? [primaryContact.phone, primaryContact.email].filter(Boolean).join(" · ") || "—"
                       : "—"}
                   </div>
+                  {secondaryLabel ? (
+                    <div className="business-core-cell__meta">{secondaryLabel}</div>
+                  ) : null}
                 </div>
               );
             },
@@ -631,12 +686,15 @@ export function BusinessCoreClientsPage() {
       {modalState ? (
         <div className="confirm-dialog-backdrop" role="presentation" onClick={closeModal}>
           <div
-            className="confirm-dialog business-core-client-modal"
+            className="confirm-dialog business-core-form-modal business-core-client-modal"
             role="dialog"
             aria-modal="true"
             aria-label={language === "es" ? "Cliente" : "Client"}
             onClick={(event) => event.stopPropagation()}
           >
+            <div className="business-core-form-modal__eyebrow">
+              {language === "es" ? "Captura base" : "Base capture"}
+            </div>
             <div className="confirm-dialog__title">
               {modalState.mode === "edit"
                 ? language === "es"
@@ -657,7 +715,12 @@ export function BusinessCoreClientsPage() {
                 <div className="business-core-modal-section__title">
                   {language === "es" ? "Cliente" : "Client"}
                 </div>
-                <div className="row g-3">
+                <div className="business-core-modal-section__hint">
+                  {language === "es"
+                    ? "Datos comerciales y de identificación que usarán el resto de los módulos."
+                    : "Commercial and identity data reused by the rest of the modules."}
+                </div>
+                <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12 col-md-6">
                     <label className="form-label">
                       {language === "es" ? "Nombre cliente" : "Client name"}
@@ -787,7 +850,12 @@ export function BusinessCoreClientsPage() {
                 <div className="business-core-modal-section__title">
                   {language === "es" ? "Contacto principal" : "Primary contact"}
                 </div>
-                <div className="row g-3">
+                <div className="business-core-modal-section__hint">
+                  {language === "es"
+                    ? "El contacto que debería aparecer primero en lectura diaria."
+                    : "The contact that should appear first in day-to-day reading."}
+                </div>
+                <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12 col-md-6">
                     <label className="form-label">
                       {language === "es" ? "Nombre completo" : "Full name"}
@@ -854,9 +922,88 @@ export function BusinessCoreClientsPage() {
 
               <div className="business-core-modal-section business-core-modal-section--client-side">
                 <div className="business-core-modal-section__title">
+                  {language === "es" ? "Contacto secundario" : "Secondary contact"}
+                </div>
+                <div className="business-core-modal-section__hint">
+                  {language === "es"
+                    ? "Respaldo operativo si el contacto principal no responde. Los contactos extra siguen pudiendo gestionarse luego desde la ficha."
+                    : "Operational backup if the primary contact does not respond. Extra contacts can still be managed later from the detail page."}
+                </div>
+                <div className="row g-3 business-core-form-grid--dense">
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {language === "es" ? "Nombre completo" : "Full name"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={modalForm.secondaryContactName}
+                      onChange={(event) =>
+                        setModalForm((current) => ({
+                          ...current,
+                          secondaryContactName: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {language === "es" ? "Cargo" : "Role"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={modalForm.secondaryContactRole}
+                      onChange={(event) =>
+                        setModalForm((current) => ({
+                          ...current,
+                          secondaryContactRole: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {language === "es" ? "Teléfono contacto" : "Contact phone"}
+                    </label>
+                    <input
+                      className="form-control"
+                      value={modalForm.secondaryContactPhone}
+                      onChange={(event) =>
+                        setModalForm((current) => ({
+                          ...current,
+                          secondaryContactPhone: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {language === "es" ? "Email contacto" : "Contact email"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="email"
+                      value={modalForm.secondaryContactEmail}
+                      onChange={(event) =>
+                        setModalForm((current) => ({
+                          ...current,
+                          secondaryContactEmail: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="business-core-modal-section business-core-modal-section--client-side">
+                <div className="business-core-modal-section__title">
                   {language === "es" ? "Dirección principal" : "Primary address"}
                 </div>
-                <div className="row g-3">
+                <div className="business-core-modal-section__hint">
+                  {language === "es"
+                    ? "Dirección operativa desde donde después colgarán instalaciones y mantenciones."
+                    : "Operating address where installations and work orders will later hang from."}
+                </div>
+                <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12 col-md-6">
                     <label className="form-label">
                       {language === "es" ? "Nombre dirección" : "Address name"}
