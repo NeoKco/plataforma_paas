@@ -16,6 +16,7 @@ Comportamiento:
 - genera un reporte JSON en `tmp/` por defecto
 - no debe copiar ids o trazas legacy a campos visibles para usuario como `reference_notes`
 - para `business_sites`, una corrida posterior tambien puede corregir registros legacy ya importados si detecta que `comuna`, `ciudad` o `region` quedaron mal asignadas
+- tambien sanea placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto`, convirtiendolos en `null` o eliminando contactos falsos si no contienen datos reales
 
 Precondicion obligatoria:
 

@@ -23,6 +23,7 @@
 - Se deja documentado que la dirección propia de `Empresas` requiere una ola de modelo dedicada y no debe improvisarse como texto suelto en el modal actual.
 - Se endurecen las reglas anti-duplicados del dominio para comparar organizaciones, contactos y direcciones con normalizacion, y se deja explicito que `Clientes` no debe repetirse sobre la misma organizacion base.
 - Se corrige el importador legacy para que `business_sites` repare tambien filas ya existentes; con eso se normalizaron `comuna`, `ciudad` y `region` en las direcciones migradas desde `ieris_app`.
+- Se sanea ademas la importacion de `organizations` y `contacts` para que placeholders como `Sin Mail`, `Sin Fono` o `Sin contacto` no queden visibles como datos reales del negocio.
 
 ## 2026-04-02
 
