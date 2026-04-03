@@ -34,6 +34,7 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - la lectura principal del cliente deberia hacerse desde su ficha, no desde catalogos sueltos.
 - `Direcciones` es el nombre visible para la entidad tecnica `site`.
 - cada ficha de cliente debe consolidar identidad, contactos y direcciones, incluyendo acceso a Google Maps cuando exista direccion usable.
+- la tabla de `Clientes` tambien debe permitir busqueda por nombre, RUT, contacto o direccion, para no obligar al usuario a cambiar de pantalla solo para ubicar una ficha.
 
 Eso genera:
 

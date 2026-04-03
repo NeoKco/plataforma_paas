@@ -2,6 +2,8 @@
 
 - Se corrigio la lectura de `Empresas` para excluir por defecto las organizaciones ya usadas como clientes y evitar mezclar cartera comercial con contrapartes operativas.
 - Se agrego la ficha de cliente y se renombro la lectura visible de `sites` a `Direcciones`, dejando a Google Maps como salida operativa desde cada direccion.
+- La ficha del cliente ahora permite alta, edicion y eliminacion basica de contactos y direcciones sin salir de la misma vista.
+- La vista principal de `Clientes` se rehizo para dejar una sola alta desde la esquina superior derecha, mostrar contacto y direccion junto al cliente y permitir busqueda por nombre, RUT, contacto o direccion.
 
 ## 2026-04-02
 

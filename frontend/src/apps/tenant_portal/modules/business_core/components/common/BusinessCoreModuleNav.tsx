@@ -18,14 +18,6 @@ export function BusinessCoreModuleNav() {
       label: language === "es" ? "Clientes" : "Clients",
     },
     {
-      to: "/tenant-portal/business-core/contacts",
-      label: language === "es" ? "Contactos" : "Contacts",
-    },
-    {
-      to: "/tenant-portal/business-core/sites",
-      label: language === "es" ? "Direcciones" : "Addresses",
-    },
-    {
       to: "/tenant-portal/business-core/function-profiles",
       label: language === "es" ? "Perfiles" : "Profiles",
     },

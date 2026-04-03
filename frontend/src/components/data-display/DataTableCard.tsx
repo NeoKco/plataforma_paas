@@ -13,6 +13,7 @@ type DataTableCardProps<T> = {
   subtitle?: string;
   rows: T[];
   columns: Array<Column<T>>;
+  actions?: ReactNode;
 };
 
 export function DataTableCard<T>({
@@ -20,6 +21,7 @@ export function DataTableCard<T>({
   subtitle,
   rows,
   columns,
+  actions,
 }: DataTableCardProps<T>) {
   const { language } = useLanguage();
 
@@ -31,16 +33,19 @@ export function DataTableCard<T>({
             <h2 className="panel-card__title">{title}</h2>
             {subtitle ? <p className="panel-card__subtitle mb-0">{subtitle}</p> : null}
           </div>
-          <span className="data-table-card__meta">
-            {rows.length}{" "}
-            {language === "es"
-              ? rows.length === 1
-                ? "fila"
-                : "filas"
-              : rows.length === 1
-                ? "row"
-                : "rows"}
-          </span>
+          <div className="d-flex flex-wrap gap-2 align-items-center">
+            {actions}
+            <span className="data-table-card__meta">
+              {rows.length}{" "}
+              {language === "es"
+                ? rows.length === 1
+                  ? "fila"
+                  : "filas"
+                : rows.length === 1
+                  ? "row"
+                  : "rows"}
+            </span>
+          </div>
         </div>
       </div>
       <AppTableWrap>
