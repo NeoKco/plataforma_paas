@@ -74,6 +74,13 @@ type MaintenanceCostLineFormState = {
   notes: string;
 };
 
+type MaintenanceEditableCostLineKey =
+  | "line_type"
+  | "description"
+  | "quantity"
+  | "unit_cost"
+  | "notes";
+
 export type MaintenanceCostingModalWorkOrder = {
   id: number;
   title: string;
@@ -419,7 +426,7 @@ export function MaintenanceCostingModal({
     setActualLines((current) => [...current, buildBlankCostLine()]);
   }
 
-  function updateEstimateLine(index: number, key: keyof MaintenanceCostLineFormState, value: string) {
+  function updateEstimateLine(index: number, key: MaintenanceEditableCostLineKey, value: string) {
     setEstimateLines((current) =>
       current.map((line, currentIndex) =>
         currentIndex === index ? { ...line, [key]: value } : line
@@ -427,7 +434,7 @@ export function MaintenanceCostingModal({
     );
   }
 
-  function updateActualLine(index: number, key: keyof MaintenanceCostLineFormState, value: string) {
+  function updateActualLine(index: number, key: MaintenanceEditableCostLineKey, value: string) {
     setActualLines((current) =>
       current.map((line, currentIndex) =>
         currentIndex === index ? { ...line, [key]: value } : line
@@ -454,7 +461,7 @@ export function MaintenanceCostingModal({
   function renderLineEditor(
     lines: MaintenanceCostLineFormState[],
     onAdd: () => void,
-    onUpdate: (index: number, key: keyof MaintenanceCostLineFormState, value: string) => void,
+    onUpdate: (index: number, key: MaintenanceEditableCostLineKey, value: string) => void,
     onRemove: (index: number) => void
   ) {
     return (

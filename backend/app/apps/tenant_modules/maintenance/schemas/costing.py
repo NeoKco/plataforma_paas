@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.apps.tenant_modules.maintenance.schemas.common import MaintenanceResponseBase
 
@@ -22,7 +22,7 @@ class MaintenanceCostEstimateWriteRequest(BaseModel):
     overhead_cost: float = 0
     target_margin_percent: float = 0
     notes: str | None = None
-    lines: list[MaintenanceCostLineWriteItem] = []
+    lines: list[MaintenanceCostLineWriteItem] = Field(default_factory=list)
 
 
 class MaintenanceCostActualWriteRequest(BaseModel):
@@ -33,7 +33,7 @@ class MaintenanceCostActualWriteRequest(BaseModel):
     overhead_cost: float = 0
     actual_price_charged: float = 0
     notes: str | None = None
-    lines: list[MaintenanceCostLineWriteItem] = []
+    lines: list[MaintenanceCostLineWriteItem] = Field(default_factory=list)
 
 
 class MaintenanceFinanceSyncRequest(BaseModel):
@@ -109,9 +109,9 @@ class MaintenanceCostActualItemResponse(BaseModel):
 class MaintenanceCostingDetailData(BaseModel):
     work_order_id: int
     estimate: MaintenanceCostEstimateItemResponse | None = None
-    estimate_lines: list[MaintenanceCostLineItemResponse] = []
+    estimate_lines: list[MaintenanceCostLineItemResponse] = Field(default_factory=list)
     actual: MaintenanceCostActualItemResponse | None = None
-    actual_lines: list[MaintenanceCostLineItemResponse] = []
+    actual_lines: list[MaintenanceCostLineItemResponse] = Field(default_factory=list)
 
 
 class MaintenanceCostingDetailResponse(MaintenanceResponseBase):
