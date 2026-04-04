@@ -198,7 +198,7 @@ export function TenantOverviewPage() {
                 value={tenant.billing_in_grace ? (language === "es" ? "sí" : "yes") : (language === "es" ? "no" : "no")}
               />
               <DetailField
-                label={language === "es" ? "Zona tenant" : "Tenant timezone"}
+                label={language === "es" ? "Zona por defecto" : "Default timezone"}
                 value={getTimeZoneLabel(tenant.timezone || "America/Santiago", language)}
               />
               <DetailField
@@ -252,13 +252,13 @@ export function TenantOverviewPage() {
                   }
                 />
                 <DetailField
-                  label={language === "es" ? "Zona usuario" : "User timezone"}
+                  label={language === "es" ? "Preferencia horaria" : "Timezone preference"}
                   value={
                     tenantInfo?.user.timezone
                       ? getTimeZoneLabel(tenantInfo.user.timezone, language)
                       : language === "es"
-                        ? "hereda tenant"
-                        : "inherits tenant"
+                        ? "hereda la zona del tenant"
+                        : "inherits tenant timezone"
                   }
                 />
                 <DetailField label={language === "es" ? "ID usuario" : "User ID"} value={tenantInfo?.user.id || "n/a"} />

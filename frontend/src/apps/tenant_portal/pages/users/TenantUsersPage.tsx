@@ -45,6 +45,15 @@ function displayUserRole(value: string, language: "es" | "en"): string {
   return displayPlatformCode(value, language);
 }
 
+function getInheritedTimezoneLabel(
+  tenantTimezone: string,
+  language: "es" | "en"
+): string {
+  return language === "es"
+    ? `Hereda del tenant (${getTimeZoneLabel(tenantTimezone, language)})`
+    : `Inherits tenant (${getTimeZoneLabel(tenantTimezone, language)})`;
+}
+
 function formatTenantUserActionError(
   scope: string,
   error: ApiError,
@@ -151,6 +160,7 @@ export function TenantUsersPage() {
   const [tenantTimeZone, setTenantTimeZone] = useState(DEFAULT_TENANT_TIMEZONE);
 
   const users = usersResponse?.data || [];
+  const tenantTimezoneValue = tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE;
 
   const overview = useMemo(() => {
     return {
@@ -512,15 +522,7 @@ export function TenantUsersPage() {
                     onChange={(event) => setUserTimeZone(event.target.value)}
                   >
                     <option value="inherit">
-                      {language === "es"
-                        ? `Heredar del tenant (${getTimeZoneLabel(
-                            tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE,
-                            language
-                          )})`
-                        : `Inherit tenant (${getTimeZoneLabel(
-                            tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE,
-                            language
-                          )})`}
+                      {getInheritedTimezoneLabel(tenantTimezoneValue, language)}
                     </option>
                     {TIMEZONE_OPTIONS.map((value) => (
                       <option key={value} value={value}>
@@ -581,30 +583,27 @@ export function TenantUsersPage() {
           title={language === "es" ? "Zona horaria del tenant" : "Tenant timezone"}
           subtitle={
             language === "es"
-              ? "Configura la zona por defecto para lectura y captura de fechas dentro del tenant."
-              : "Configure the default timezone for date rendering and input inside the tenant."
+              ? "La zona por defecto se aplica a todo el tenant. Solo cambia para un usuario si ese usuario define una preferencia propia."
+              : "The default timezone applies across the tenant. It only changes for a user when that user sets a personal preference."
           }
         >
           <div className="tenant-detail-grid">
             <DetailField
-              label={language === "es" ? "Zona efectiva actual" : "Current effective timezone"}
+              label={language === "es" ? "Zona activa ahora" : "Active timezone now"}
               value={getTimeZoneLabel(effectiveTimeZone, language)}
             />
             <DetailField
-              label={language === "es" ? "Zona default tenant" : "Tenant default timezone"}
-              value={getTimeZoneLabel(
-                tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE,
-                language
-              )}
+              label={language === "es" ? "Zona por defecto del tenant" : "Tenant default timezone"}
+              value={getTimeZoneLabel(tenantTimezoneValue, language)}
             />
             <DetailField
-              label={language === "es" ? "Override usuario actual" : "Current user override"}
+              label={language === "es" ? "Preferencia de tu usuario" : "Your user preference"}
               value={
                 tenantInfo?.user_timezone
                   ? getTimeZoneLabel(tenantInfo.user_timezone, language)
                   : language === "es"
-                    ? "hereda tenant"
-                    : "inherits tenant"
+                    ? "hereda la zona del tenant"
+                    : "inherits tenant timezone"
               }
             />
           </div>
@@ -613,11 +612,11 @@ export function TenantUsersPage() {
               label={language === "es" ? "Zona horaria por defecto" : "Default timezone"}
             >
               <select
-                className="form-select"
-                value={tenantTimeZone}
-                onChange={(event) => setTenantTimeZone(event.target.value)}
-                disabled={isTenantTimezoneSubmitting}
-              >
+              className="form-select"
+              value={tenantTimeZone}
+              onChange={(event) => setTenantTimeZone(event.target.value)}
+              disabled={isTenantTimezoneSubmitting}
+            >
                 {TIMEZONE_OPTIONS.map((value) => (
                   <option key={value} value={value}>
                     {getTimeZoneLabel(value, language)}
@@ -630,9 +629,7 @@ export function TenantUsersPage() {
             <button
               className="btn btn-outline-secondary"
               type="button"
-              onClick={() =>
-                setTenantTimeZone(tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE)
-              }
+              onClick={() => setTenantTimeZone(tenantTimezoneValue)}
               disabled={isTenantTimezoneSubmitting}
             >
               {language === "es" ? "Restaurar" : "Reset"}
@@ -643,7 +640,7 @@ export function TenantUsersPage() {
               onClick={() => void handleTenantTimeZoneSubmit()}
               disabled={
                 isTenantTimezoneSubmitting ||
-                tenantTimeZone === (tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE)
+                tenantTimeZone === tenantTimezoneValue
               }
             >
               {language === "es" ? "Guardar zona horaria" : "Save timezone"}
@@ -705,15 +702,7 @@ export function TenantUsersPage() {
               render: (row) =>
                 row.timezone
                   ? getTimeZoneLabel(row.timezone, language)
-                  : language === "es"
-                    ? `Hereda (${getTimeZoneLabel(
-                        tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE,
-                        language
-                      )})`
-                    : `Inherits (${getTimeZoneLabel(
-                        tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE,
-                        language
-                      )})`,
+                  : getInheritedTimezoneLabel(tenantTimezoneValue, language),
             },
             {
               key: "is_active",

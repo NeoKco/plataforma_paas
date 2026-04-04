@@ -106,7 +106,7 @@ Nota operativa:
 - el borrado protege dos casos: no puedes eliminar tu propia cuenta y tampoco al último administrador activo del tenant
 - en `Tenant Portal > Usuarios` ahora también se configura la zona horaria operativa:
   - arriba se define la zona por defecto del tenant
-  - en cada usuario puedes dejar herencia del tenant o un override puntual
+  - en cada usuario puedes dejar que herede esa zona o aplicar una preferencia puntual
   - la lectura/captura de fechas del portal usa esa zona efectiva
 
 ### Límite de transacciones en finance
