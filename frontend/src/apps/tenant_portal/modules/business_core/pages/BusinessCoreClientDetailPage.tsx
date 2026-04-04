@@ -9,6 +9,7 @@ import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
+import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
 import type { ApiError } from "../../../../../types";
 import { BusinessCoreModuleNav } from "../components/common/BusinessCoreModuleNav";
 import {
@@ -40,9 +41,9 @@ import {
   type TenantMaintenanceInstallation,
 } from "../../maintenance/services/installationsService";
 import {
-  getTenantMaintenanceWorkOrders,
-  type TenantMaintenanceWorkOrder,
-} from "../../maintenance/services/workOrdersService";
+  getTenantMaintenanceHistory,
+  type TenantMaintenanceHistoryWorkOrder,
+} from "../../maintenance/services/historyService";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 import {
   buildAddressLine,
@@ -103,7 +104,7 @@ function buildDefaultAddressForm(clientId: number): AddressModalForm {
 }
 
 export function BusinessCoreClientDetailPage() {
-  const { session } = useTenantAuth();
+  const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const { clientId } = useParams<{ clientId: string }>();
   const [client, setClient] = useState<TenantBusinessClient | null>(null);
@@ -111,7 +112,7 @@ export function BusinessCoreClientDetailPage() {
   const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [addresses, setAddresses] = useState<TenantBusinessSite[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
-  const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
+  const [maintenanceHistory, setMaintenanceHistory] = useState<TenantMaintenanceHistoryWorkOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -138,15 +139,8 @@ export function BusinessCoreClientDetailPage() {
     return installations.filter((installation) => siteIds.has(installation.site_id));
   }, [addresses, installations]);
   const recentWorkOrders = useMemo(
-    () =>
-      [...workOrders]
-        .sort((left, right) => {
-          const leftDate = new Date(left.scheduled_for || left.requested_at).getTime();
-          const rightDate = new Date(right.scheduled_for || right.requested_at).getTime();
-          return rightDate - leftDate;
-        })
-        .slice(0, 5),
-    [workOrders]
+    () => maintenanceHistory.filter((item) => item.maintenance_status === "completed").slice(0, 5),
+    [maintenanceHistory]
   );
 
   async function loadData() {
@@ -163,27 +157,22 @@ export function BusinessCoreClientDetailPage() {
       const clientData = clientResponse.data;
       setClient(clientData);
 
-      const [
-        organizationResponse,
-        contactsResponse,
-        addressesResponse,
-        installationsResponse,
-        workOrdersResponse,
-      ] = await Promise.all([
+      const [organizationResponse, contactsResponse, addressesResponse, installationsResponse, historyResponse] =
+        await Promise.all([
         getTenantBusinessOrganization(session.accessToken, clientData.organization_id),
         getTenantBusinessContacts(session.accessToken, {
           organizationId: clientData.organization_id,
         }),
         getTenantBusinessSites(session.accessToken, { clientId: clientData.id }),
         getTenantMaintenanceInstallations(session.accessToken),
-        getTenantMaintenanceWorkOrders(session.accessToken, { clientId: clientData.id }),
+        getTenantMaintenanceHistory(session.accessToken, { clientId: clientData.id }),
       ]);
 
       setOrganization(organizationResponse.data);
       setContacts(contactsResponse.data);
       setAddresses(addressesResponse.data);
       setInstallations(installationsResponse.data);
-      setWorkOrders(workOrdersResponse.data);
+      setMaintenanceHistory(historyResponse.data);
       setContactForm((current) =>
         current.organization_id
           ? current
@@ -197,6 +186,23 @@ export function BusinessCoreClientDetailPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function formatDateTime(value: string | null): string {
+    if (!value) {
+      return language === "es" ? "sin fecha" : "no date";
+    }
+    return formatDateTimeInTimeZone(value, language, effectiveTimeZone);
+  }
+
+  function getHistoryStatusLabel(status: string): string {
+    if (status === "completed") {
+      return language === "es" ? "realizada" : "completed";
+    }
+    if (status === "cancelled") {
+      return language === "es" ? "anulada" : "cancelled";
+    }
+    return status;
   }
 
   useEffect(() => {
@@ -1048,19 +1054,19 @@ export function BusinessCoreClientDetailPage() {
         </PanelCard>
 
         <PanelCard
-          title={language === "es" ? "Mantenciones recientes" : "Recent work orders"}
+          title={language === "es" ? "Mantenciones recientes" : "Recent maintenance"}
           subtitle={
             language === "es"
-              ? "Lectura rápida del trabajo técnico ligado a este cliente."
-              : "Quick reading of technical work linked to this client."
+              ? "Aquí deben verse solo mantenciones realizadas de este cliente, tomadas desde historial."
+              : "Only completed maintenance for this client, sourced from history, should be shown here."
           }
           actions={
             <AppToolbar compact>
               <Link
                 className="btn btn-outline-secondary"
-                to={`/tenant-portal/maintenance/work-orders?clientId=${client.id}`}
+                to={`/tenant-portal/maintenance/history?clientId=${client.id}`}
               >
-                {language === "es" ? "Ver mantenciones" : "View work orders"}
+                {language === "es" ? "Ver historial" : "View history"}
               </Link>
             </AppToolbar>
           }
@@ -1068,32 +1074,32 @@ export function BusinessCoreClientDetailPage() {
           {recentWorkOrders.length === 0 ? (
             <p className="mb-0 text-muted">
               {language === "es"
-                ? "Este cliente no tiene mantenciones registradas todavía."
-                : "This client has no work orders yet."}
+                ? "Este cliente todavía no tiene mantenciones realizadas en historial."
+                : "This client has no completed maintenance in history yet."}
             </p>
           ) : (
             <div className="business-core-stack">
               {recentWorkOrders.map((workOrder) => {
-                const scheduleParams = new URLSearchParams({
-                  clientId: String(client.id),
-                  siteId: String(workOrder.site_id),
-                  ...(workOrder.installation_id ? { installationId: String(workOrder.installation_id) } : {}),
-                }).toString();
+                const targetAddress = addresses.find((address) => address.id === workOrder.site_id);
                 return (
                   <div className="business-core-related-card" key={workOrder.id}>
                     <div className="business-core-related-title">{workOrder.title}</div>
                     <div className="business-core-cell__meta">
-                      {workOrder.maintenance_status} · {workOrder.priority}
+                      {getHistoryStatusLabel(workOrder.maintenance_status)} · {workOrder.priority}
                     </div>
                     <div className="business-core-cell__meta">
-                      {workOrder.scheduled_for || workOrder.requested_at}
+                      {targetAddress?.address_line || targetAddress?.name || "—"}
+                    </div>
+                    <div className="business-core-cell__meta">
+                      {language === "es" ? "Cierre" : "Closed"}:{" "}
+                      {formatDateTime(workOrder.completed_at || workOrder.cancelled_at)}
                     </div>
                     <div className="business-core-card__actions">
                       <Link
                         className="btn btn-sm btn-outline-primary"
-                        to={`/tenant-portal/maintenance/work-orders?${scheduleParams}`}
+                        to={`/tenant-portal/maintenance/history?clientId=${client.id}`}
                       >
-                        {language === "es" ? "Abrir en mantenciones" : "Open in maintenance"}
+                        {language === "es" ? "Abrir en historial" : "Open in history"}
                       </Link>
                     </div>
                   </div>
