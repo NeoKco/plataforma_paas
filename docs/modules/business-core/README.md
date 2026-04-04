@@ -33,6 +33,8 @@ Estado actual:
 - la lectura y edicion normal del dominio ya oculta o sanea placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto`, para no confundirlos con datos reales del negocio
 - la no duplicacion de `clients` se resuelve sobre la entidad base: primero no se repite la `organization`, y luego solo puede existir un `client` por `organization_id`
 - `client_code` se mantiene solo como identificador tecnico interno: la UI normal del tenant no debe mostrarlo ni permitir editarlo, y el backend lo preserva o genera internamente
+- un `client` con historial de `maintenance` ya no se elimina: desde ese punto debe desactivarse para no romper trazabilidad ni reportes
+- la captura de `Nuevo cliente` ya no deberia aceptar sin mas casos de pareja, familiar o tercero del mismo contexto operativo; si detecta coincidencias fuertes por RUT, nombre, telefono, email o direccion, debe derivar a la ficha existente para agregarlo como contacto y no como cliente paralelo
 - el importador legacy ya no solo crea `sites`; tambien puede corregir direcciones legacy existentes cuando detecta que `comuna`, `ciudad` o `region` quedaron mal cargadas en una corrida anterior
 - `business_work_group_members` ya existe como tabla y CRUD real para modelar membresias entre usuarios tenant y grupos de trabajo
 - la vista de `work_groups` ya expone conteo de miembros y acceso directo a la gestion de `Miembros`

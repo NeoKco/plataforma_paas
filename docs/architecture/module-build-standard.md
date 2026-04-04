@@ -129,6 +129,7 @@ Ejemplos:
 - no permitir borrar el ultimo administrador activo
 - no permitir borrar al usuario actual
 - no permitir eliminar entidades con dependencias criticas sin control
+- no permitir eliminar clientes con historial de trabajo operativo; en ese caso corresponde desactivarlos
 
 ### Duplicados
 
@@ -142,6 +143,15 @@ La validacion debe cubrir:
 - identificadores formales como `RUT` o `Tax ID`
 - relaciones unicas de negocio
 - combinaciones de campos cuando el dominio lo requiera
+
+Cuando el dominio tenga personas ligadas a una misma contraparte, la proteccion no debe limitarse a bloquear.
+
+La UX correcta es:
+
+- detectar coincidencias fuertes antes del alta
+- advertir que ya existe una entidad parecida
+- ofrecer abrir la ficha existente
+- desviar al usuario hacia `contacto adicional` cuando no corresponde crear una nueva contraparte
 
 ## Regla de Datos Visibles
 
