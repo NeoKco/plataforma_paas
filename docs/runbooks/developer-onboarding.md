@@ -5,11 +5,13 @@ Este runbook resume como levantar `platform_paas` localmente, donde mirar primer
 Si ya conoces el proyecto y solo quieres una rutina operativa corta, revisa:
 
 - `docs/runbooks/daily-workflow.md`
+- `docs/runbooks/frontend-e2e-browser.md`
 
 ## 1. Leer Primero
 
 Antes de tocar codigo, parte por estos documentos:
 
+- `docs/architecture/implementation-governance.md`
 - `docs/architecture/app-understanding-guide.md`
 - `docs/architecture/backend-closure-status.md`
 - `docs/architecture/frontend-roadmap.md`
@@ -245,10 +247,21 @@ Apoyos utiles:
 
 ## 10. Secuencia Recomendada para un Developer Nuevo
 
-1. leer estructura y cierre de backend
+1. leer estructura, gobernanza y cierre de backend
 2. levantar backend
 3. correr tests
 4. levantar frontend
 5. autenticarte en `platform_admin`
 6. comprobar `GET /platform/capabilities`
-7. empezar a trabajar sobre una pantalla o servicio concreto
+7. revisar baseline E2E si tocaras un flujo visible
+8. empezar a trabajar sobre una pantalla o servicio concreto
+
+## 11. Si otra IA debe continuar
+
+Antes de cerrar una iteracion, deja siempre:
+
+- `ROADMAP.md` del modulo actualizado
+- `CHANGELOG.md` actualizado
+- runbook actualizado si cambia la forma de validar
+- baseline tenant o seed explicitado si la prueba depende de datos concretos
+- comando rapido de verificacion si existe smoke E2E o suite focalizada

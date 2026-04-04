@@ -27,6 +27,24 @@ La app apunta a terminar en un estado donde exista:
 - modulos tenant desacoplados y activables
 - frontend para plataforma y tenant
 - despliegue, observabilidad, backup y seguridad operativa
+- gobernanza de implementacion y handoff repetible para developers e IAs
+
+## Gobernanza transversal
+
+Estado: `Completado`
+
+Objetivo:
+
+- fijar reglas comunes de implementacion, revision y cierre
+- alinear estructura de carpetas, documentacion viva y baseline E2E
+- dejar handoff repetible para otra IA sin depender de contexto informal
+
+Resultado actual:
+
+- existe una fuente canonica en [Gobernanza de implementacion](./implementation-governance.md)
+- la estructura por slice ya queda amarrada a backend, frontend, docs y E2E
+- onboarding, indices y runbooks ya apuntan a ese marco comun
+- `empresa-bootstrap` queda institucionalizado como tenant baseline para E2E browser tenant
 
 ## Prioridad de producto antes de nuevos modulos
 

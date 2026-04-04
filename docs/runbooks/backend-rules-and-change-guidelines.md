@@ -2,6 +2,10 @@
 
 Este documento deja por escrito como deben tratarse las reglas de la app en el backend de `platform_paas`.
 
+Marco transversal complementario:
+
+- [Gobernanza de implementacion](../architecture/implementation-governance.md)
+
 La idea es evitar tres problemas comunes:
 
 - meter logica de negocio en routers
@@ -207,6 +211,17 @@ Antes de implementar una regla nueva, revisar:
 6. si debe descubrirse desde `GET /platform/capabilities`
 7. que tests deben cubrirla
 8. que documentacion debe actualizarse
+
+## Regla de cierre
+
+Si la regla nueva cambia comportamiento visible o flujo operativo, no alcanza con el backend.
+
+Tambien debe revisarse:
+
+- si el frontend necesita ajuste o endurecimiento
+- si hay smoke E2E existente que deba actualizarse
+- si `docs/modules/<modulo>/DEV_GUIDE.md`, `USER_GUIDE.md`, `ROADMAP.md` y `CHANGELOG.md` deben cambiar
+- si el runbook de validacion u onboarding queda desfasado para otra IA
 
 ## Ejemplos practicos
 

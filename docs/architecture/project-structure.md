@@ -78,7 +78,9 @@ platform_paas/
 │       │   └── tenant_portal/
 │       │       ├── layout/
 │       │       ├── modules/
-│       │       │   └── finance/
+│       │       │   ├── business_core/
+│       │       │   ├── finance/
+│       │       │   └── maintenance/
 │       │       ├── pages/
 │       │       ├── routes/
 │       │       └── store/
@@ -168,6 +170,7 @@ platform_paas/
 Referencia de esta politica:
 
 - [Convencion modular por slice](./module-slice-convention.md)
+- [Gobernanza de implementacion](./implementation-governance.md)
 
 ## Estructura de `tenant_modules`
 
@@ -186,6 +189,18 @@ tenant_modules/
     ├── backend_module_basic/
     └── backend_module_full/
 ```
+
+## Estructura Canonica por Slice
+
+Sin mover hoy todo el repo, la regla oficial de continuidad es esta:
+
+- backend tenant por modulo bajo `backend/app/apps/tenant_modules/<modulo>/`
+- frontend tenant por modulo bajo `frontend/src/apps/tenant_portal/modules/<modulo>/`
+- documentos canonicos por modulo bajo `docs/modules/<modulo>/`
+- migraciones tenant versionadas bajo `backend/migrations/tenant/`
+- E2E browser en `frontend/e2e/` con baseline y runbooks actualizados
+
+Todo cambio nuevo debe poder ubicarse rapido dentro de esa grilla. Si un cambio no calza, primero hay que aclarar frontera de dominio o documentar la excepcion.
 
 ## Backend en Estado Actual
 

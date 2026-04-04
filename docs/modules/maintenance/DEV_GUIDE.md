@@ -4,6 +4,7 @@ Guia de desarrollo para el modulo `maintenance`.
 
 Referencia transversal obligatoria:
 
+- [Gobernanza de implementacion](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
 - [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md)
 
 ## Decision de naming

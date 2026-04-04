@@ -2,6 +2,11 @@
 
 Guía de desarrollo y extensión del módulo `finance`.
 
+Referencias transversales obligatorias:
+
+- [Gobernanza de implementacion](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+- [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md)
+
 ## Estructura
 
 ### Backend

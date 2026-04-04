@@ -2,6 +2,10 @@
 
 Este runbook deja el primer stack `E2E` browser del proyecto sobre `Playwright`.
 
+Marco transversal complementario:
+
+- [Gobernanza de implementacion](../architecture/implementation-governance.md)
+
 No busca cubrir todo el producto en la primera iteración.
 
 Busca dejar una base útil, mantenible y rápida para validar recorridos reales de:
@@ -86,6 +90,33 @@ Esto no reemplaza:
 - tests backend
 - pruebas guiadas manuales
 - validación visual profunda
+
+## Regla de mantenimiento de E2E
+
+Cuando un cambio visible toca un flujo ya cubierto por browser:
+
+- actualizar el spec existente antes de abrir uno nuevo
+- si solo cambia copy o estructura menor, al menos validar `--list`
+- si cambia el flujo real, correr el subset afectado o la baseline correspondiente
+- actualizar este runbook y [frontend/e2e/README.md](/home/felipe/platform_paas/frontend/e2e/README.md) si cambia tenant baseline, credenciales, scripts o alcance
+
+Si el flujo visible no tiene cobertura browser todavia, dejar explicitado en el roadmap o en el `CHANGELOG` del modulo por que sigue sin smoke.
+
+## Regla de handoff para otra IA
+
+La otra IA debe poder descubrir rapido:
+
+- cual es el tenant baseline
+- que spec valida el flujo tocado
+- que comando rapido confirma que la suite compila
+- que subset conviene correr primero
+- que dependencias de entorno existen
+
+Por eso, cada cambio E2E o cada cambio visible importante debe dejar actualizados:
+
+- [frontend/e2e/README.md](/home/felipe/platform_paas/frontend/e2e/README.md)
+- este runbook
+- el roadmap o changelog del modulo afectado cuando cambia cobertura real
 
 ## Precondiciones
 

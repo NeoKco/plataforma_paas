@@ -2,6 +2,11 @@
 
 `community-core` es un dominio vertical.
 
+Referencias transversales obligatorias:
+
+- [Gobernanza de implementacion](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+- [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md)
+
 No debe vivir en:
 
 - `platform-core`

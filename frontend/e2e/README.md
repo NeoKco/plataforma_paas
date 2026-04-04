@@ -2,6 +2,11 @@
 
 Estado actual de la suite `browser` del frontend con `Playwright`.
 
+Marco transversal complementario:
+
+- [Gobernanza de implementacion](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+- [E2E Browser Local](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md)
+
 Cobertura validada:
 
 - login de `platform_admin`
@@ -76,6 +81,18 @@ Variables de entorno:
 - si `Playwright` no encuentra su browser exacto, puedes apuntar `E2E_CHROMIUM_EXECUTABLE_PATH` a un `chromium` ya instalado
 - el baseline actualmente validado usa `empresa-bootstrap`, porque queda reservado como tenant estable para pruebas browser tenant
 - si tu entorno no tiene ese tenant o usa otra clave, sobreescribe `E2E_TENANT_*`
+
+## Regla oficial de continuidad
+
+Todo cambio visible que toque un flujo ya cubierto por `Playwright` debe revisar esta suite.
+
+Minimo esperado:
+
+- actualizar el spec afectado si cambió la interacción real
+- correr `npx playwright test <spec> --list` para validar compilación y wiring
+- actualizar este README y el runbook si cambian baseline, credenciales, seeds, scripts o alcance
+
+Si el flujo visible nuevo aun no tiene smoke, debe quedar anotado explícitamente en el `ROADMAP.md` o `CHANGELOG.md` del módulo.
 
 Comandos útiles:
 

@@ -2,6 +2,11 @@
 
 Guía de desarrollo para la parte central de la app.
 
+Referencias transversales obligatorias:
+
+- [Gobernanza de implementacion](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+- [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md)
+
 ## Alcance
 
 `platform-core` cubre:
@@ -19,7 +24,7 @@ Guía de desarrollo para la parte central de la app.
 
 Backend:
 
-- `backend/app/apps/platform/`
+- `backend/app/apps/platform_control/`
 - `backend/app/common/`
 - `backend/app/bootstrap/`
 

@@ -25,6 +25,7 @@ No reemplaza la documentación detallada ya existente. La ordena.
 ## Fuentes de detalle ya existentes
 
 - Arquitectura general: [index.md](/home/felipe/platform_paas/docs/architecture/index.md)
+- Gobernanza de implementacion: [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
 - Estructura del proyecto: [project-structure.md](/home/felipe/platform_paas/docs/architecture/project-structure.md)
 - Flujo backend actual: [backend-current-flow.md](/home/felipe/platform_paas/docs/architecture/backend-current-flow.md)
 - Roadmap de desarrollo: [development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md)

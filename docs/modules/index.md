@@ -4,6 +4,11 @@ Esta sección agrupa la documentación canónica por módulo o dominio funcional
 
 ## Regla oficial
 
+Todos los modulos documentados bajo esta carpeta heredan estas reglas transversales:
+
+- [Gobernanza de implementacion](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+- [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md)
+
 Desde este punto del proyecto, todo módulo nuevo debe nacer con un directorio propio en:
 
 - `docs/modules/<module>/`

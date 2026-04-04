@@ -2,7 +2,10 @@
 
 Este documento fija la forma recomendada de abrir nuevos modulos sobre `platform_paas`.
 
-Para el estandar operativo completo de CRUD, modales, maquetacion, validaciones y documentacion viva, ver tambien [Estandar de construccion de modulos](./module-build-standard.md).
+Para el estandar operativo completo de CRUD, modales, maquetacion, validaciones, revisiones y documentacion viva, ver tambien:
+
+- [Estandar de construccion de modulos](./module-build-standard.md)
+- [Gobernanza de implementacion](./implementation-governance.md)
 
 No obliga a reestructurar hoy todo el repositorio. La idea es dejar una convención clara para que los siguientes modulos no nazcan dispersos.
 
@@ -81,9 +84,11 @@ Hoy, en este repositorio, un modulo tenant bien cerrado deberia tener al menos:
 
 ### Frontend
 
-- `frontend/src/apps/tenant_portal/pages/<modulo>/`
-- componentes propios del modulo si hacen falta
-- uso de `services/`, `types.ts` y helpers comunes solo como soporte
+- `frontend/src/apps/tenant_portal/modules/<modulo>/pages/`
+- `frontend/src/apps/tenant_portal/modules/<modulo>/components/`
+- `frontend/src/apps/tenant_portal/modules/<modulo>/services/`
+- `frontend/src/apps/tenant_portal/modules/<modulo>/styles/` cuando el lenguaje visual del modulo lo requiera
+- `utils/` y `types.ts` solo cuando realmente clarifiquen el slice
 
 ### Migraciones
 

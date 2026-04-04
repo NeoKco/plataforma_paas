@@ -9,6 +9,7 @@ Esta seccion agrupa procedimientos operativos y pasos repetibles para trabajar c
 - [Implementacion backend tenant](./tenant-backend-implementation.md): guia paso a paso del flujo tenant desde JWT hasta consulta real a la DB del tenant.
 - [Implementacion modulo finance](./finance-module-implementation.md): primer modulo tenant funcional usando permisos, servicio, repositorio y DB tenant.
 - [Reglas backend y guia de cambios](./backend-rules-and-change-guidelines.md): donde vive cada tipo de regla, que puede operarse manualmente y cuando hace falta programar.
+- [E2E browser local](./frontend-e2e-browser.md): baseline browser oficial, reglas de mantenimiento de specs y handoff para otra IA.
 - [Onboarding de developers](./developer-onboarding.md): secuencia minima para levantar backend y frontend localmente, correr tests y ubicarse en el repo.
 - [Flujo diario de trabajo](./daily-workflow.md): rutina corta para arrancar, validar cambios, decidir pruebas manuales y cerrar el dia sin perder orden.
 - [Catalogo de variables de entorno backend](./backend-env-catalog.md): resumen por categoria de las variables de runtime y operacion del backend.

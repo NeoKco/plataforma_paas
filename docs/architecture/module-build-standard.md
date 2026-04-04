@@ -12,6 +12,7 @@ La idea no es solo crear codigo que funcione. El modulo debe quedar:
 
 Debe leerse junto con:
 
+- [Gobernanza de implementacion](./implementation-governance.md)
 - [Convencion modular por slice](./module-slice-convention.md)
 - [Estandar de botones CRUD](./crud-button-standard.md)
 - [UX operativa de platform admin](./platform-admin-operational-ux.md)
@@ -271,6 +272,8 @@ Ademas:
 
 Cada modulo debe cerrar pruebas segun riesgo.
 
+La matriz transversal de cierre vive en [Gobernanza de implementacion](./implementation-governance.md).
+
 Minimo esperado:
 
 - pruebas backend de servicios y rutas
@@ -291,6 +294,8 @@ Toda vez que cambie el comportamiento visible de un modulo, hay que actualizar d
 - `CHANGELOG.md`
 
 Si el cambio fija una regla transversal, tambien debe actualizarse `docs/architecture/`.
+
+Si el cambio modifica la forma de validar, preparar o continuar el trabajo, tambien debe actualizarse el runbook correspondiente y dejar handoff claro para otra IA.
 
 ## Definicion de Modulo Bien Cerrado
 

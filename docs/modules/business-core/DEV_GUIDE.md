@@ -2,6 +2,11 @@
 
 `business-core` se propone como dominio tenant transversal para negocio.
 
+Referencias transversales obligatorias:
+
+- [Gobernanza de implementacion](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+- [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md)
+
 No debe mezclarse con:
 
 - `platform-core`

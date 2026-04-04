@@ -23,6 +23,7 @@ La base central ya es operable:
 - lifecycle tenant base
 - UI visible de platform admin
 - primer stack E2E browser base
+- gobernanza transversal de implementacion, revision y handoff documentada
 - smoke browser de `platform_admin` para `create`, `archive` y `restore`
 - validación browser del acceso rápido desde `Tenants` hacia `tenant_portal` con `slug` precargado
 - validación browser del bloqueo visible del acceso rápido al `tenant_portal` cuando el tenant aún no es elegible

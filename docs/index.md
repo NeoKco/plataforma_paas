@@ -13,7 +13,7 @@ Este directorio centraliza la documentacion funcional, tecnica y operativa del p
 
 ## Estado Actual
 
-En este momento la documentacion creada formalmente dentro del repositorio comienza por arquitectura. Las demas secciones ya existen como carpetas y quedan preparadas para crecer de forma ordenada.
+La documentacion ya cubre arquitectura, modulos, runbooks, deploy, API y baseline E2E. El siguiente criterio oficial es mantenerla viva y alineada con cada cambio visible o estructural del producto.
 
 ## Documento Inicial Recomendado
 
@@ -25,6 +25,7 @@ En este momento la documentacion creada formalmente dentro del repositorio comie
 - [Estructura raiz del proyecto](./architecture/project-structure.md)
 - [Convencion modular por slice](./architecture/module-slice-convention.md)
 - [Estandar de construccion de modulos](./architecture/module-build-standard.md)
+- [Gobernanza de implementacion](./architecture/implementation-governance.md)
 - [Estandar de botones CRUD](./architecture/crud-button-standard.md)
 - [Flujo actual del backend](./architecture/backend-current-flow.md)
 - [Cierre del backend base](./architecture/backend-closure-status.md)
