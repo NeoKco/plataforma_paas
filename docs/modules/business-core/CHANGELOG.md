@@ -37,6 +37,8 @@
 - La vista de `Grupos` ahora muestra `member_count` y permite entrar a `Miembros` para mantener liderazgo, perfil funcional, vigencia y grupo principal.
 - `business-core` deja de tener la membresia de grupos solo como diseno: `maintenance` ya puede consumir grupos reales desde esta base compartida.
 - Se corrige `Grupos` para no caer con `500` si un tenant sigue en esquema antiguo sin `business_work_group_members`; en ese caso el conteo de miembros cae a `0` hasta migrar el tenant.
+- `Clientes` ahora bloquea la eliminacion cuando ya existen mantenciones registradas y obliga a desactivar el cliente para preservar trazabilidad.
+- La captura de `Nuevo cliente` ahora detecta coincidencias fuertes por RUT, nombre, telefono, email o direccion y deriva al operador hacia la ficha existente para agregar pareja, familiar u otro tercero como contacto en vez de duplicar el cliente.
 
 ## 2026-04-02
 
