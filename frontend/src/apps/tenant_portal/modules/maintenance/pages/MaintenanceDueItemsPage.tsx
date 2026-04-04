@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
@@ -22,8 +22,10 @@ import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubbl
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
 import {
   createTenantMaintenanceSchedule,
+  getTenantMaintenanceScheduleSuggestion,
   getTenantMaintenanceSchedules,
   type TenantMaintenanceSchedule,
+  type TenantMaintenanceScheduleSuggestion,
   type TenantMaintenanceScheduleWriteRequest,
 } from "../services/schedulesService";
 import {
@@ -172,6 +174,7 @@ function getDueLabel(status: string, language: "es" | "en"): string {
 export function MaintenanceDueItemsPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const accessToken = session?.accessToken ?? null;
   const [rows, setRows] = useState<TenantMaintenanceDueItem[]>([]);
   const [schedules, setSchedules] = useState<TenantMaintenanceSchedule[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
@@ -183,6 +186,7 @@ export function MaintenanceDueItemsPage() {
   const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -190,10 +194,12 @@ export function MaintenanceDueItemsPage() {
   const [selectedDueItem, setSelectedDueItem] = useState<TenantMaintenanceDueItem | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [scheduleSuggestion, setScheduleSuggestion] = useState<TenantMaintenanceScheduleSuggestion | null>(null);
   const [scheduleForm, setScheduleForm] = useState<TenantMaintenanceScheduleWriteRequest>(buildDefaultScheduleForm());
   const [dueScheduleForm, setDueScheduleForm] = useState<DueScheduleForm>(buildDefaultDueScheduleForm());
   const [dueContactForm, setDueContactForm] = useState<DueContactForm>(buildDefaultDueContactForm());
   const [duePostponeForm, setDuePostponeForm] = useState<DuePostponeForm>(buildDefaultDuePostponeForm());
+  const nextDueWasManuallyEditedRef = useRef(false);
 
   const clientById = useMemo(() => new Map(clients.map((item) => [item.id, item])), [clients]);
   const organizationById = useMemo(
@@ -240,6 +246,73 @@ export function MaintenanceDueItemsPage() {
     !scheduleForm.name.trim() ||
     !scheduleForm.next_due_at ||
     missingSiteForScheduleClient;
+
+  useEffect(() => {
+    if (!isPlanModalOpen || !accessToken || Number(scheduleForm.client_id) <= 0) {
+      setScheduleSuggestion(null);
+      setIsSuggestionLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const accessTokenForSuggestion = accessToken;
+    const selectedClientId = Number(scheduleForm.client_id);
+    const selectedSiteId = scheduleForm.site_id;
+    const selectedInstallationId = scheduleForm.installation_id;
+
+    async function loadSuggestion() {
+      setIsSuggestionLoading(true);
+      try {
+        const response = await getTenantMaintenanceScheduleSuggestion(accessTokenForSuggestion, {
+          clientId: selectedClientId,
+          siteId: selectedSiteId,
+          installationId: selectedInstallationId,
+        });
+        if (cancelled) {
+          return;
+        }
+        setScheduleSuggestion(response.data);
+        if (!nextDueWasManuallyEditedRef.current) {
+          setScheduleForm((current) => {
+            if (
+              Number(current.client_id) !== selectedClientId ||
+              current.site_id !== selectedSiteId ||
+              current.installation_id !== selectedInstallationId
+            ) {
+              return current;
+            }
+            return {
+              ...current,
+              last_executed_at: response.data.last_executed_at,
+              next_due_at: response.data.suggested_next_due_at
+                ? toDateTimeLocalInputValue(response.data.suggested_next_due_at, effectiveTimeZone)
+                : current.next_due_at,
+            };
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          setScheduleSuggestion(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsSuggestionLoading(false);
+        }
+      }
+    }
+
+    void loadSuggestion();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    effectiveTimeZone,
+    isPlanModalOpen,
+    scheduleForm.client_id,
+    scheduleForm.installation_id,
+    scheduleForm.site_id,
+    accessToken,
+  ]);
 
   const metrics = useMemo(() => {
     return rows.reduce(
@@ -469,6 +542,8 @@ export function MaintenanceDueItemsPage() {
   function startCreatePlan() {
     setFeedback(null);
     setError(null);
+    setScheduleSuggestion(null);
+    nextDueWasManuallyEditedRef.current = false;
     const defaultClientId = clients[0]?.id || 0;
     const candidateSites = sites.filter((site) => site.client_id === defaultClientId);
     const defaultSiteId = candidateSites[0]?.id || null;
@@ -484,17 +559,6 @@ export function MaintenanceDueItemsPage() {
     setIsPlanModalOpen(true);
   }
 
-  function buildSuggestedNextDue(installation: TenantMaintenanceInstallation): string {
-    const baseCandidate =
-      installation.last_service_at || installation.installed_at || new Date().toISOString();
-    const nextDue = new Date(baseCandidate);
-    if (Number.isNaN(nextDue.getTime())) {
-      return "";
-    }
-    nextDue.setMonth(nextDue.getMonth() + 6);
-    return toDateTimeLocalInputValue(nextDue.toISOString(), effectiveTimeZone);
-  }
-
   function startCreatePlanFromInstallation(installation: TenantMaintenanceInstallation) {
     const site = siteById.get(installation.site_id);
     if (!site) {
@@ -502,6 +566,8 @@ export function MaintenanceDueItemsPage() {
     }
     setFeedback(null);
     setError(null);
+    setScheduleSuggestion(null);
+    nextDueWasManuallyEditedRef.current = false;
     setScheduleForm({
       ...buildDefaultScheduleForm(),
       client_id: site.client_id,
@@ -511,9 +577,50 @@ export function MaintenanceDueItemsPage() {
         language === "es"
           ? `Plan preventivo ${installation.name}`
           : `Preventive plan ${installation.name}`,
-      next_due_at: buildSuggestedNextDue(installation),
     });
     setIsPlanModalOpen(true);
+  }
+
+  function getScheduleSuggestionText(): string {
+    if (isSuggestionLoading) {
+      return language === "es"
+        ? "Buscando historial técnico para sugerir la próxima mantención..."
+        : "Checking technical history to suggest the next maintenance date...";
+    }
+    if (nextDueWasManuallyEditedRef.current) {
+      return language === "es"
+        ? "Fecha ajustada manualmente. Puedes volver a cambiar cliente, dirección o instalación para recalcular la sugerencia."
+        : "Date adjusted manually. Change the client, address, or installation again to recalculate the suggestion.";
+    }
+    if (scheduleSuggestion?.source === "history_completed_this_year" && scheduleSuggestion.reference_completed_at) {
+      return language === "es"
+        ? `Sugerida desde historial cerrado el ${formatDateTime(
+            scheduleSuggestion.reference_completed_at,
+            language,
+            effectiveTimeZone,
+          )}. Se propone el mismo día y mes para el próximo año.`
+        : `Suggested from closed history on ${formatDateTime(
+            scheduleSuggestion.reference_completed_at,
+            language,
+            effectiveTimeZone,
+          )}. The same month/day is proposed for next year.`;
+    }
+    if (scheduleSuggestion?.source === "installation_baseline" && scheduleSuggestion.reference_completed_at) {
+      return language === "es"
+        ? `No se encontró una mantención cerrada este año. Se usa la base de la instalación (${formatDateTime(
+            scheduleSuggestion.reference_completed_at,
+            language,
+            effectiveTimeZone,
+          )}) para sugerir la próxima fecha.`
+        : `No closed maintenance was found for this year. The installation baseline (${formatDateTime(
+            scheduleSuggestion.reference_completed_at,
+            language,
+            effectiveTimeZone,
+          )}) is used to suggest the next date.`;
+    }
+    return language === "es"
+      ? "Si existe una mantención cerrada este año en historial, se propondrá automáticamente el mismo día y mes para el año siguiente."
+      : "If a closed maintenance exists this year in history, the same month/day will be suggested automatically for next year.";
   }
 
   function openContactDueItem(item: TenantMaintenanceDueItem) {
@@ -991,7 +1098,9 @@ export function MaintenanceDueItemsPage() {
                       className="form-select"
                       value={scheduleForm.client_id}
                       onChange={(event) =>
-                        setScheduleForm((current) => {
+                        {
+                          nextDueWasManuallyEditedRef.current = false;
+                          setScheduleForm((current) => {
                           const nextClientId = Number(event.target.value);
                           const candidateSites = sites.filter((site) => site.client_id === nextClientId);
                           const nextSiteId = candidateSites[0]?.id || null;
@@ -1003,8 +1112,11 @@ export function MaintenanceDueItemsPage() {
                             client_id: nextClientId,
                             site_id: nextSiteId,
                             installation_id: candidateInstallations[0]?.id || null,
+                            last_executed_at: null,
+                            next_due_at: "",
                           };
-                        })
+                          });
+                        }
                       }
                     >
                       <option value={0}>{language === "es" ? "Selecciona un cliente" : "Select a client"}</option>
@@ -1021,7 +1133,9 @@ export function MaintenanceDueItemsPage() {
                       className="form-select"
                       value={scheduleForm.site_id ?? ""}
                       onChange={(event) =>
-                        setScheduleForm((current) => {
+                        {
+                          nextDueWasManuallyEditedRef.current = false;
+                          setScheduleForm((current) => {
                           const nextSiteId = event.target.value ? Number(event.target.value) : null;
                           const candidateInstallations = nextSiteId
                             ? installations.filter((item) => item.site_id === nextSiteId)
@@ -1030,8 +1144,11 @@ export function MaintenanceDueItemsPage() {
                             ...current,
                             site_id: nextSiteId,
                             installation_id: candidateInstallations[0]?.id || null,
+                            last_executed_at: null,
+                            next_due_at: "",
                           };
-                        })
+                          });
+                        }
                       }
                     >
                       <option value="">{language === "es" ? "Selecciona una dirección" : "Select an address"}</option>
@@ -1048,10 +1165,15 @@ export function MaintenanceDueItemsPage() {
                       className="form-select"
                       value={scheduleForm.installation_id ?? ""}
                       onChange={(event) =>
-                        setScheduleForm((current) => ({
-                          ...current,
-                          installation_id: event.target.value ? Number(event.target.value) : null,
-                        }))
+                        {
+                          nextDueWasManuallyEditedRef.current = false;
+                          setScheduleForm((current) => ({
+                            ...current,
+                            installation_id: event.target.value ? Number(event.target.value) : null,
+                            last_executed_at: null,
+                            next_due_at: "",
+                          }));
+                        }
                       }
                     >
                       <option value="">{language === "es" ? "Selecciona una instalación" : "Select an installation"}</option>
@@ -1194,13 +1316,15 @@ export function MaintenanceDueItemsPage() {
                       className="form-control"
                       type="datetime-local"
                       value={scheduleForm.next_due_at}
-                      onChange={(event) =>
+                      onChange={(event) => {
+                        nextDueWasManuallyEditedRef.current = true;
                         setScheduleForm((current) => ({
                           ...current,
                           next_due_at: event.target.value,
-                        }))
-                      }
+                        }));
+                      }}
                     />
+                    <div className="form-text">{getScheduleSuggestionText()}</div>
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">{language === "es" ? "Plan preventivo" : "Preventive plan"}</label>

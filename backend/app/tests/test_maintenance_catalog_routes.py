@@ -26,6 +26,9 @@ from app.apps.tenant_modules.maintenance.api.installations import (
     list_maintenance_installations,
     update_maintenance_installation_status,
 )
+from app.apps.tenant_modules.maintenance.api.schedules import (
+    get_maintenance_schedule_suggestion,
+)
 from app.apps.tenant_modules.maintenance.api.visits import (
     create_maintenance_visit,
     delete_maintenance_visit,
@@ -412,6 +415,37 @@ class MaintenanceCatalogRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.total, 1)
         self.assertEqual(response.data[0].status_logs[0].to_status, "completed")
         self.assertEqual(response.data[0].visits[0].assigned_group_label, "Técnicos norte")
+
+    def test_get_maintenance_schedule_suggestion_returns_history_seed(self) -> None:
+        reference_completed_at = datetime(2026, 4, 3, 18, 0, tzinfo=timezone.utc)
+        with patch(
+            "app.apps.tenant_modules.maintenance.api.schedules.schedule_service.suggest_schedule_seed",
+            return_value={
+                "client_id": 11,
+                "site_id": 31,
+                "installation_id": 9,
+                "suggested_next_due_at": datetime(2027, 4, 3, 18, 0, tzinfo=timezone.utc),
+                "last_executed_at": reference_completed_at,
+                "source": "history_completed_this_year",
+                "reference_work_order_id": 51,
+                "reference_completed_at": reference_completed_at,
+            },
+        ) as suggestion_mock:
+            response = get_maintenance_schedule_suggestion(
+                client_id=11,
+                site_id=31,
+                installation_id=9,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data.source, "history_completed_this_year")
+        self.assertEqual(response.data.reference_work_order_id, 51)
+        self.assertEqual(response.data.suggested_next_due_at.year, 2027)
+        self.assertEqual(
+            suggestion_mock.call_args.kwargs,
+            {"client_id": 11, "site_id": 31, "installation_id": 9},
+        )
 
     def test_list_maintenance_status_logs_translates_missing_work_order_to_404(self) -> None:
         with patch(

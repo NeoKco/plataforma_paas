@@ -10,6 +10,7 @@ from app.apps.tenant_modules.business_core.models import (
 from app.apps.tenant_modules.maintenance.models import (
     MaintenanceInstallation,
     MaintenanceSchedule,
+    MaintenanceWorkOrder,
 )
 from app.apps.tenant_modules.maintenance.repositories import (
     MaintenanceScheduleRepository,
@@ -72,6 +73,69 @@ class MaintenanceScheduleService:
         tenant_db.commit()
         tenant_db.refresh(item)
         return item
+
+    def suggest_schedule_seed(
+        self,
+        tenant_db: Session,
+        *,
+        client_id: int,
+        site_id: int | None = None,
+        installation_id: int | None = None,
+    ) -> dict:
+        reference_work_order = None
+        if installation_id is not None:
+            reference_work_order = self._get_latest_completed_work_order(
+                tenant_db,
+                client_id=client_id,
+                site_id=site_id,
+                installation_id=installation_id,
+            )
+        if reference_work_order is None:
+            reference_work_order = self._get_latest_completed_work_order(
+                tenant_db,
+                client_id=client_id,
+                site_id=site_id,
+                installation_id=None,
+            )
+        reference_completed_at = self._get_work_order_reference_date(reference_work_order)
+        if reference_completed_at is not None and reference_completed_at.year == datetime.now(timezone.utc).year:
+            return {
+                "client_id": client_id,
+                "site_id": site_id,
+                "installation_id": installation_id,
+                "suggested_next_due_at": self._shift_months(reference_completed_at, 12),
+                "last_executed_at": reference_completed_at,
+                "source": "history_completed_this_year",
+                "reference_work_order_id": getattr(reference_work_order, "id", None),
+                "reference_completed_at": reference_completed_at,
+            }
+
+        installation_reference = self._get_installation_reference_date(
+            tenant_db,
+            installation_id=installation_id,
+        )
+        if installation_reference is not None:
+            return {
+                "client_id": client_id,
+                "site_id": site_id,
+                "installation_id": installation_id,
+                "suggested_next_due_at": self._add_frequency(installation_reference, 6, "months"),
+                "last_executed_at": None,
+                "source": "installation_baseline",
+                "reference_work_order_id": None,
+                "reference_completed_at": installation_reference,
+            }
+
+        return {
+            "client_id": client_id,
+            "site_id": site_id,
+            "installation_id": installation_id,
+            "suggested_next_due_at": None,
+            "last_executed_at": None,
+            "source": "none",
+            "reference_work_order_id": None,
+            "reference_completed_at": None,
+        }
 
     def get_schedule(self, tenant_db: Session, schedule_id: int) -> MaintenanceSchedule:
         item = self.schedule_repository.get_by_id(tenant_db, schedule_id)
@@ -210,6 +274,55 @@ class MaintenanceScheduleService:
             )
             if task_type_exists is None:
                 raise ValueError("El tipo de mantencion seleccionado no existe")
+
+    def _get_latest_completed_work_order(
+        self,
+        tenant_db: Session,
+        *,
+        client_id: int,
+        site_id: int | None,
+        installation_id: int | None,
+    ) -> MaintenanceWorkOrder | None:
+        query = (
+            tenant_db.query(MaintenanceWorkOrder)
+            .filter(MaintenanceWorkOrder.client_id == client_id)
+            .filter(MaintenanceWorkOrder.maintenance_status == "completed")
+        )
+        if site_id is not None:
+            query = query.filter(MaintenanceWorkOrder.site_id == site_id)
+        if installation_id is not None:
+            query = query.filter(MaintenanceWorkOrder.installation_id == installation_id)
+        return (
+            query.order_by(
+                MaintenanceWorkOrder.completed_at.desc().nullslast(),
+                MaintenanceWorkOrder.scheduled_for.desc().nullslast(),
+                MaintenanceWorkOrder.requested_at.desc(),
+                MaintenanceWorkOrder.id.desc(),
+            )
+            .first()
+        )
+
+    def _get_work_order_reference_date(self, item: MaintenanceWorkOrder | None) -> datetime | None:
+        if item is None:
+            return None
+        return item.completed_at or item.scheduled_for or item.requested_at
+
+    def _get_installation_reference_date(
+        self,
+        tenant_db: Session,
+        *,
+        installation_id: int | None,
+    ) -> datetime | None:
+        if installation_id is None:
+            return None
+        installation = (
+            tenant_db.query(MaintenanceInstallation)
+            .filter(MaintenanceInstallation.id == installation_id)
+            .first()
+        )
+        if installation is None:
+            return None
+        return installation.last_service_at or installation.installed_at
 
     def _add_frequency(self, value: datetime, frequency_value: int, frequency_unit: str) -> datetime:
         if frequency_unit == "days":

@@ -10,6 +10,8 @@ from app.apps.tenant_modules.maintenance.schemas import (
     MaintenanceScheduleCreateRequest,
     MaintenanceScheduleItemResponse,
     MaintenanceScheduleMutationResponse,
+    MaintenanceScheduleSuggestionItemResponse,
+    MaintenanceScheduleSuggestionResponse,
     MaintenanceSchedulesResponse,
     MaintenanceScheduleStatusRequest,
     MaintenanceScheduleUpdateRequest,
@@ -53,6 +55,19 @@ def _build_item(item) -> MaintenanceScheduleItemResponse:
     )
 
 
+def _build_suggestion_item(data: dict) -> MaintenanceScheduleSuggestionItemResponse:
+    return MaintenanceScheduleSuggestionItemResponse(
+        client_id=data["client_id"],
+        site_id=data["site_id"],
+        installation_id=data["installation_id"],
+        suggested_next_due_at=data["suggested_next_due_at"],
+        last_executed_at=data["last_executed_at"],
+        source=data["source"],
+        reference_work_order_id=data["reference_work_order_id"],
+        reference_completed_at=data["reference_completed_at"],
+    )
+
+
 @router.get("", response_model=MaintenanceSchedulesResponse)
 def list_maintenance_schedules(
     client_id: int | None = None,
@@ -75,6 +90,31 @@ def list_maintenance_schedules(
         requested_by=build_maintenance_requested_by(current_user),
         total=len(items),
         data=[_build_item(item) for item in items],
+    )
+
+
+@router.get("/suggestion", response_model=MaintenanceScheduleSuggestionResponse)
+def get_maintenance_schedule_suggestion(
+    client_id: int,
+    site_id: int | None = None,
+    installation_id: int | None = None,
+    current_user=Depends(require_maintenance_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> MaintenanceScheduleSuggestionResponse:
+    try:
+        item = schedule_service.suggest_schedule_seed(
+            tenant_db,
+            client_id=client_id,
+            site_id=site_id,
+            installation_id=installation_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return MaintenanceScheduleSuggestionResponse(
+        success=True,
+        message="Sugerencia de programacion calculada correctamente",
+        requested_by=build_maintenance_requested_by(current_user),
+        data=_build_suggestion_item(item),
     )
 
 

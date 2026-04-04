@@ -80,6 +80,10 @@ Estado del corte hoy:
 - el cierre/anulacion ya saca la orden de la bandeja activa y la deja en `Historial`
 - `Pendientes` ya genera y muestra vencimientos preventivos por cliente/direccion/instalacion sin mezclar ese flujo con `Mantenciones`
 - `Nueva programación` ya respeta el mismo patrón modal y visual de `Nueva mantención`
+- `Nueva programación` ya intenta sugerir `Próxima mantención` desde historial cerrado del año actual:
+  - misma instalación primero
+  - misma dirección como fallback
+  - si encuentra una mantención `completed` de este año, propone el mismo día/mes para el próximo año
 - `Pendientes` ya permite `Ver cliente`, `Contactar`, `Posponer` y `Agendar` desde la misma fila
 - `Pendientes` ya agrega una lectura agrupada por organización para coordinar carga sin perder la operación por cliente/dirección
 - `Pendientes` ya muestra instalaciones activas sin plan preventivo y permite abrir `Crear plan` con cliente/dirección/instalación precargados

@@ -39,6 +39,23 @@ export type TenantMaintenanceScheduleMutationResponse = {
   data: TenantMaintenanceSchedule;
 };
 
+export type TenantMaintenanceScheduleSuggestion = {
+  client_id: number;
+  site_id: number | null;
+  installation_id: number | null;
+  suggested_next_due_at: string | null;
+  last_executed_at: string | null;
+  source: string;
+  reference_work_order_id: number | null;
+  reference_completed_at: string | null;
+};
+
+export type TenantMaintenanceScheduleSuggestionResponse = {
+  success: boolean;
+  message: string;
+  data: TenantMaintenanceScheduleSuggestion;
+};
+
 export type TenantMaintenanceScheduleWriteRequest = {
   client_id: number;
   site_id: number | null;
@@ -98,5 +115,27 @@ export function createTenantMaintenanceSchedule(
       token: accessToken,
       body: payload,
     }
+  );
+}
+
+export function getTenantMaintenanceScheduleSuggestion(
+  accessToken: string,
+  options: {
+    clientId: number;
+    siteId?: number | null;
+    installationId?: number | null;
+  }
+) {
+  const params = new URLSearchParams();
+  params.set("client_id", String(options.clientId));
+  if (options.siteId !== undefined && options.siteId !== null) {
+    params.set("site_id", String(options.siteId));
+  }
+  if (options.installationId !== undefined && options.installationId !== null) {
+    params.set("installation_id", String(options.installationId));
+  }
+  return apiRequest<TenantMaintenanceScheduleSuggestionResponse>(
+    `/tenant/maintenance/schedules/suggestion?${params.toString()}`,
+    { token: accessToken }
   );
 }

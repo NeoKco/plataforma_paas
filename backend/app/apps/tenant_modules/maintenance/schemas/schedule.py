@@ -46,6 +46,19 @@ class MaintenanceScheduleItemResponse(MaintenanceScheduleBase):
     updated_at: datetime
 
 
+class MaintenanceScheduleSuggestionItemResponse(BaseModel):
+    client_id: int
+    site_id: int | None = None
+    installation_id: int | None = None
+    suggested_next_due_at: datetime | None = None
+    suggested_frequency_value: int | None = None
+    suggested_frequency_unit: str | None = None
+    last_executed_at: datetime | None = None
+    source: str = "none"
+    reference_work_order_id: int | None = None
+    reference_completed_at: datetime | None = None
+
+
 class MaintenanceScheduleMutationResponse(MaintenanceResponseBase):
     data: MaintenanceScheduleItemResponse
 
@@ -53,3 +66,7 @@ class MaintenanceScheduleMutationResponse(MaintenanceResponseBase):
 class MaintenanceSchedulesResponse(MaintenanceResponseBase):
     total: int
     data: list[MaintenanceScheduleItemResponse]
+
+
+class MaintenanceScheduleSuggestionResponse(MaintenanceResponseBase):
+    data: MaintenanceScheduleSuggestionItemResponse

@@ -129,6 +129,13 @@ Fuente frontend principal:
 - la asignacion ya se formalizo con FKs reales a `work_groups` y `tenant_users`, dejando `assigned_group_label` solo como compatibilidad temporal en datos o lecturas legacy
 - `Pendientes` ya existe como bandeja preventiva separada de `Mantenciones`, para no mezclar trabajo abierto con vencimientos por gestionar
 - `Nueva programación` debe respetar exactamente el mismo patrón modal/visual de `Nueva mantención`; no se aceptan formularios incrustados ni maquetaciones divergentes dentro del mismo módulo
+- `Nueva programación` no debe depender de memoria manual para `Próxima mantención`; debe consultar sugerencia backend
+- la sugerencia oficial vive en `/tenant/maintenance/schedules/suggestion`
+- regla vigente:
+  - buscar primero `maintenance_work_orders.completed` de la misma instalación
+  - si no existe, caer a la misma dirección
+  - si el cierre útil ocurrió en el año calendario actual, proponer el mismo día/mes para el año siguiente
+  - si no hay historial útil de este año, mantener fallback base por instalación
 - `Pendientes` ya debe exponer acciones operativas directas por fila: `Ver cliente`, `Contactar`, `Posponer`, `Agendar`
 - la agrupación por organización en `Pendientes` es una lectura complementaria; nunca debe reemplazar la unidad operativa real de cliente/dirección/instalación
 - el reporte `instalaciones activas sin plan preventivo` debe cruzar instalaciones activas contra schedules activos y permitir abrir `Nueva programación` ya precargada

@@ -88,6 +88,11 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await expect(page.getByRole("heading", { name: /Nueva programación|New schedule/i })).toBeVisible();
   await expect(page.getByLabel(/Cliente|Client/i)).toBeVisible();
   await expect(page.getByLabel(/Próxima mantención|Next due/i)).toBeVisible();
+  await expect(
+    page.getByText(
+      /Si existe una mantención cerrada este año en historial|Sugerida desde historial cerrado|No se encontró una mantención cerrada este año|Buscando historial técnico para sugerir la próxima mantención|If a closed maintenance exists this year in history|Suggested from closed history|No closed maintenance was found for this year|Checking technical history to suggest the next maintenance date/i
+    )
+  ).toBeVisible();
   await expect(page.getByLabel(/Duración estimada|Estimated duration/i)).toBeVisible();
   await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
   await expect(
