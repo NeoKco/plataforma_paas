@@ -17,6 +17,7 @@ import {
   createTenantUser,
   deleteTenantUser,
   getTenantUsers,
+  updateTenantTimeZone,
   updateTenantUser,
   updateTenantUserStatus,
 } from "../../../../services/tenant-api";
@@ -25,6 +26,11 @@ import { useLanguage } from "../../../../store/language-context";
 import { useTenantAuth } from "../../../../store/tenant-auth-context";
 import { getTenantPortalActionSuccessMessage } from "../../../../utils/action-feedback";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
+import {
+  DEFAULT_TENANT_TIMEZONE,
+  TIMEZONE_OPTIONS,
+  getTimeZoneLabel,
+} from "../../../../utils/timezone-options";
 import type { ApiError, TenantUsersItem, TenantUsersResponse } from "../../../../types";
 
 type ActionFeedback = {
@@ -112,6 +118,9 @@ function getActionFeedbackLabel(scope: string, language: "es" | "en"): string {
   if (scope === "create-user") {
     return language === "es" ? "Crear usuario" : "Create user";
   }
+  if (scope === "tenant-timezone") {
+    return language === "es" ? "Zona horaria" : "Timezone";
+  }
   if (scope.startsWith("update-user-")) {
     return language === "es" ? "Editar usuario" : "Edit user";
   }
@@ -122,21 +131,24 @@ function getActionFeedbackLabel(scope: string, language: "es" | "en"): string {
 }
 
 export function TenantUsersPage() {
-  const { session } = useTenantAuth();
+  const { session, tenantInfo, effectiveTimeZone, refreshTenantInfo } = useTenantAuth();
   const { language } = useLanguage();
   const [usersResponse, setUsersResponse] = useState<TenantUsersResponse | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
+  const [isTenantTimezoneSubmitting, setIsTenantTimezoneSubmitting] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("operator");
+  const [userTimeZone, setUserTimeZone] = useState("inherit");
   const [isActive, setIsActive] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const [tenantTimeZone, setTenantTimeZone] = useState(DEFAULT_TENANT_TIMEZONE);
 
   const users = usersResponse?.data || [];
 
@@ -176,6 +188,10 @@ export function TenantUsersPage() {
     void loadUsers();
   }, [session?.accessToken]);
 
+  useEffect(() => {
+    setTenantTimeZone(tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE);
+  }, [tenantInfo?.timezone]);
+
   async function runAction(
     scope: string,
     action: () => Promise<{ message: string }>
@@ -186,6 +202,7 @@ export function TenantUsersPage() {
     try {
       const result = await action();
       await loadUsers();
+      await refreshTenantInfo();
       setActionFeedback({
         scope,
         type: "success",
@@ -208,6 +225,7 @@ export function TenantUsersPage() {
     setEmail("");
     setPassword("");
     setRole("operator");
+    setUserTimeZone("inherit");
     setIsActive(true);
     setIsCreateOpen(false);
     setEditingUserId(null);
@@ -224,8 +242,41 @@ export function TenantUsersPage() {
     setEmail(user.email);
     setPassword("");
     setRole(user.role);
+    setUserTimeZone(user.timezone || "inherit");
     setIsActive(user.is_active);
     setIsCreateOpen(true);
+  }
+
+  async function handleTenantTimeZoneSubmit() {
+    if (!session?.accessToken) {
+      return;
+    }
+
+    setIsTenantTimezoneSubmitting(true);
+    setActionFeedback(null);
+
+    try {
+      const response = await updateTenantTimeZone(session.accessToken, {
+        timezone: tenantTimeZone,
+      });
+      await refreshTenantInfo();
+      setActionFeedback({
+        scope: "tenant-timezone",
+        type: "success",
+        message:
+          language === "es"
+            ? `${response.message} La lectura de fechas del tenant ya usa esta zona por defecto.`
+            : `${response.message} Tenant date rendering now uses this timezone by default.`,
+      });
+    } catch (rawError) {
+      setActionFeedback({
+        scope: "tenant-timezone",
+        type: "error",
+        message: getApiErrorDisplayMessage(rawError as ApiError),
+      });
+    } finally {
+      setIsTenantTimezoneSubmitting(false);
+    }
   }
 
   function handleCreateUser(event: FormEvent<HTMLFormElement>) {
@@ -241,6 +292,7 @@ export function TenantUsersPage() {
           email: email.trim(),
           password: password.trim() ? password : null,
           role,
+          timezone: userTimeZone === "inherit" ? null : userTimeZone,
         });
         resetCreateForm();
         return response;
@@ -255,6 +307,7 @@ export function TenantUsersPage() {
         password,
         role,
         is_active: isActive,
+        timezone: userTimeZone === "inherit" ? null : userTimeZone,
       });
       resetCreateForm();
       return response;
@@ -452,6 +505,30 @@ export function TenantUsersPage() {
                     ))}
                   </select>
                 </AppFormField>
+                <AppFormField label={language === "es" ? "Zona horaria" : "Timezone"}>
+                  <select
+                    className="form-select"
+                    value={userTimeZone}
+                    onChange={(event) => setUserTimeZone(event.target.value)}
+                  >
+                    <option value="inherit">
+                      {language === "es"
+                        ? `Heredar del tenant (${getTimeZoneLabel(
+                            tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE,
+                            language
+                          )})`
+                        : `Inherit tenant (${getTimeZoneLabel(
+                            tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE,
+                            language
+                          )})`}
+                    </option>
+                    {TIMEZONE_OPTIONS.map((value) => (
+                      <option key={value} value={value}>
+                        {getTimeZoneLabel(value, language)}
+                      </option>
+                    ))}
+                  </select>
+                </AppFormField>
                 {editingUserId === null ? (
                   <AppFormField label={language === "es" ? "Estado inicial" : "Initial status"}>
                     <select
@@ -501,6 +578,81 @@ export function TenantUsersPage() {
       <div className="tenant-users-page__context">
         <PanelCard
           icon="settings"
+          title={language === "es" ? "Zona horaria del tenant" : "Tenant timezone"}
+          subtitle={
+            language === "es"
+              ? "Configura la zona por defecto para lectura y captura de fechas dentro del tenant."
+              : "Configure the default timezone for date rendering and input inside the tenant."
+          }
+        >
+          <div className="tenant-detail-grid">
+            <DetailField
+              label={language === "es" ? "Zona efectiva actual" : "Current effective timezone"}
+              value={getTimeZoneLabel(effectiveTimeZone, language)}
+            />
+            <DetailField
+              label={language === "es" ? "Zona default tenant" : "Tenant default timezone"}
+              value={getTimeZoneLabel(
+                tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE,
+                language
+              )}
+            />
+            <DetailField
+              label={language === "es" ? "Override usuario actual" : "Current user override"}
+              value={
+                tenantInfo?.user_timezone
+                  ? getTimeZoneLabel(tenantInfo.user_timezone, language)
+                  : language === "es"
+                    ? "hereda tenant"
+                    : "inherits tenant"
+              }
+            />
+          </div>
+          <div className="app-form-grid mt-3">
+            <AppFormField
+              label={language === "es" ? "Zona horaria por defecto" : "Default timezone"}
+            >
+              <select
+                className="form-select"
+                value={tenantTimeZone}
+                onChange={(event) => setTenantTimeZone(event.target.value)}
+                disabled={isTenantTimezoneSubmitting}
+              >
+                {TIMEZONE_OPTIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {getTimeZoneLabel(value, language)}
+                  </option>
+                ))}
+              </select>
+            </AppFormField>
+          </div>
+          <AppFormActions>
+            <button
+              className="btn btn-outline-secondary"
+              type="button"
+              onClick={() =>
+                setTenantTimeZone(tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE)
+              }
+              disabled={isTenantTimezoneSubmitting}
+            >
+              {language === "es" ? "Restaurar" : "Reset"}
+            </button>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => void handleTenantTimeZoneSubmit()}
+              disabled={
+                isTenantTimezoneSubmitting ||
+                tenantTimeZone === (tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE)
+              }
+            >
+              {language === "es" ? "Guardar zona horaria" : "Save timezone"}
+            </button>
+          </AppFormActions>
+        </PanelCard>
+
+        <PanelCard
+          icon="settings"
           title={language === "es" ? "Operador actual" : "Current operator"}
           subtitle={
             language === "es"
@@ -517,6 +669,10 @@ export function TenantUsersPage() {
             <DetailField
               label={language === "es" ? "Rol" : "Role"}
               value={session?.role ? displayUserRole(session.role, language) : "n/a"}
+            />
+            <DetailField
+              label={language === "es" ? "Zona efectiva" : "Effective timezone"}
+              value={getTimeZoneLabel(effectiveTimeZone, language)}
             />
             <DetailField label={language === "es" ? "ID usuario" : "User ID"} value={session?.userId || "n/a"} />
           </div>
@@ -542,6 +698,22 @@ export function TenantUsersPage() {
               key: "role",
               header: language === "es" ? "Rol" : "Role",
               render: (row) => displayUserRole(row.role, language),
+            },
+            {
+              key: "timezone",
+              header: language === "es" ? "Zona horaria" : "Timezone",
+              render: (row) =>
+                row.timezone
+                  ? getTimeZoneLabel(row.timezone, language)
+                  : language === "es"
+                    ? `Hereda (${getTimeZoneLabel(
+                        tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE,
+                        language
+                      )})`
+                    : `Inherits (${getTimeZoneLabel(
+                        tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE,
+                        language
+                      )})`,
             },
             {
               key: "is_active",

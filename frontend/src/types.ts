@@ -885,6 +885,9 @@ export type TenantInfoData = {
   tenant_slug: string;
   tenant_name: string | null;
   tenant_type: string | null;
+  timezone: string | null;
+  user_timezone: string | null;
+  effective_timezone: string | null;
   plan_code: string | null;
   plan_enabled_modules: string[] | null;
   billing_status: string | null;
@@ -924,6 +927,8 @@ export type TenantUserData = {
   id: number;
   email: string;
   role: string;
+  timezone: string | null;
+  effective_timezone: string | null;
 };
 
 export type TenantInfoResponse = {
@@ -957,6 +962,8 @@ export type TenantUsersItem = {
   full_name: string;
   email: string;
   role: string;
+  timezone: string | null;
+  effective_timezone: string | null;
   is_active: boolean;
 };
 

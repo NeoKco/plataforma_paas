@@ -338,6 +338,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0016_maintenance_base",
                 "0017_business_core_taxonomy",
                 "0018_business_core_site_commune",
+                "0019_core_user_timezones",
             ],
         )
 

@@ -8,6 +8,7 @@ import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
+import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
 import type { ApiError } from "../../../../../types";
 import { BusinessCoreModuleNav } from "../components/common/BusinessCoreModuleNav";
 import {
@@ -24,20 +25,17 @@ type LatestClientRow = {
   organization: TenantBusinessOrganization | null;
 };
 
-function formatDateTime(value: string, language: "es" | "en") {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-  return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(parsed);
+function formatDateTime(
+  value: string,
+  language: "es" | "en",
+  timeZone?: string | null
+) {
+  return formatDateTimeInTimeZone(value, language, timeZone);
 }
 
 export function BusinessCoreOverviewPage() {
   const { language } = useLanguage();
-  const { session } = useTenantAuth();
+  const { session, effectiveTimeZone } = useTenantAuth();
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -226,7 +224,11 @@ export function BusinessCoreOverviewPage() {
                     </div>
                     <div className="business-core-cell__meta">
                       {language === "es" ? "Creada" : "Created"}:{" "}
-                      {formatDateTime(organization.created_at, language)}
+                      {formatDateTime(
+                        organization.created_at,
+                        language,
+                        effectiveTimeZone
+                      )}
                     </div>
                   </div>
                 ))
@@ -275,7 +277,7 @@ export function BusinessCoreOverviewPage() {
                     <div className="business-core-cell__meta">
                       {language === "es" ? "Estado servicio" : "Service status"}:{" "}
                       {client.service_status || "n/a"} · {language === "es" ? "Creado" : "Created"}:{" "}
-                      {formatDateTime(client.created_at, language)}
+                      {formatDateTime(client.created_at, language, effectiveTimeZone)}
                     </div>
                   </div>
                 ))

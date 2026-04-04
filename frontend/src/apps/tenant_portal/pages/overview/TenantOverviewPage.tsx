@@ -12,6 +12,7 @@ import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { getTenantInfo, getTenantModuleUsage } from "../../../../services/tenant-api";
 import { useLanguage } from "../../../../store/language-context";
 import { useTenantAuth } from "../../../../store/tenant-auth-context";
+import { getTimeZoneLabel } from "../../../../utils/timezone-options";
 import {
   displayPlatformCode,
   displayTenantAccessDetail,
@@ -196,6 +197,17 @@ export function TenantOverviewPage() {
                 label={language === "es" ? "Gracia billing" : "Billing grace"}
                 value={tenant.billing_in_grace ? (language === "es" ? "sí" : "yes") : (language === "es" ? "no" : "no")}
               />
+              <DetailField
+                label={language === "es" ? "Zona tenant" : "Tenant timezone"}
+                value={getTimeZoneLabel(tenant.timezone || "America/Santiago", language)}
+              />
+              <DetailField
+                label={language === "es" ? "Zona efectiva" : "Effective timezone"}
+                value={getTimeZoneLabel(
+                  tenant.effective_timezone || tenant.timezone || "America/Santiago",
+                  language
+                )}
+              />
             </div>
             {tenant.access_detail ? (
               <div className="tenant-inline-note">
@@ -237,6 +249,16 @@ export function TenantOverviewPage() {
                   label={language === "es" ? "Rol" : "Role"}
                   value={
                     tenantInfo?.user.role ? displayPlatformCode(tenantInfo.user.role, language) : "n/a"
+                  }
+                />
+                <DetailField
+                  label={language === "es" ? "Zona usuario" : "User timezone"}
+                  value={
+                    tenantInfo?.user.timezone
+                      ? getTimeZoneLabel(tenantInfo.user.timezone, language)
+                      : language === "es"
+                        ? "hereda tenant"
+                        : "inherits tenant"
                   }
                 />
                 <DetailField label={language === "es" ? "ID usuario" : "User ID"} value={tenantInfo?.user.id || "n/a"} />

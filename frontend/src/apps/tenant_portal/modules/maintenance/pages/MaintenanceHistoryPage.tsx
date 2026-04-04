@@ -9,6 +9,7 @@ import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
+import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
 import type { ApiError } from "../../../../../types";
 import {
   getTenantBusinessClients,
@@ -30,11 +31,15 @@ import {
 } from "../services/installationsService";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
-function formatDateTime(value: string | null, language: "es" | "en"): string {
+function formatDateTime(
+  value: string | null,
+  language: "es" | "en",
+  timeZone?: string | null
+): string {
   if (!value) {
     return language === "es" ? "sin fecha" : "no date";
   }
-  return new Date(value).toLocaleString(language === "es" ? "es-CL" : "en-US");
+  return formatDateTimeInTimeZone(value, language, timeZone);
 }
 
 function getStatusLabel(status: string, language: "es" | "en"): string {
@@ -69,7 +74,7 @@ function getStatusTone(status: string): "success" | "danger" | "warning" | "info
 }
 
 export function MaintenanceHistoryPage() {
-  const { session } = useTenantAuth();
+  const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const [rows, setRows] = useState<TenantMaintenanceHistoryWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
@@ -205,12 +210,12 @@ export function MaintenanceHistoryPage() {
               <div>
                 <div>
                   {item.maintenance_status === "completed"
-                    ? formatDateTime(item.completed_at, language)
-                    : formatDateTime(item.cancelled_at, language)}
+                    ? formatDateTime(item.completed_at, language, effectiveTimeZone)
+                    : formatDateTime(item.cancelled_at, language, effectiveTimeZone)}
                 </div>
                 <div className="maintenance-cell__meta">
                   {language === "es" ? "Solicitada" : "Requested"}{" "}
-                  {formatDateTime(item.requested_at, language)}
+                  {formatDateTime(item.requested_at, language, effectiveTimeZone)}
                 </div>
               </div>
             ),
@@ -285,7 +290,7 @@ export function MaintenanceHistoryPage() {
                   </div>
                   <div className="maintenance-cell__meta">
                     {language === "es" ? "Programada" : "Scheduled"}:{" "}
-                    {formatDateTime(item.scheduled_for, language)}
+                    {formatDateTime(item.scheduled_for, language, effectiveTimeZone)}
                   </div>
                   {stripLegacyVisibleText(item.description) ? (
                     <p className="mb-0 mt-3">{stripLegacyVisibleText(item.description)}</p>
@@ -304,7 +309,7 @@ export function MaintenanceHistoryPage() {
                             log.to_status}
                         </div>
                         <div className="maintenance-history-entry__meta">
-                          {formatDateTime(log.changed_at, language)}
+                          {formatDateTime(log.changed_at, language, effectiveTimeZone)}
                         </div>
                         {stripLegacyVisibleText(log.note) ? (
                           <div className="maintenance-history-entry__meta">{stripLegacyVisibleText(log.note)}</div>
@@ -329,7 +334,11 @@ export function MaintenanceHistoryPage() {
                             {getStatusLabel(visit.visit_status, language)}
                           </div>
                           <div className="maintenance-history-entry__meta">
-                            {formatDateTime(visit.scheduled_start_at, language)}
+                            {formatDateTime(
+                              visit.scheduled_start_at,
+                              language,
+                              effectiveTimeZone
+                            )}
                           </div>
                           {visit.assigned_group_label ? (
                             <div className="maintenance-history-entry__meta">

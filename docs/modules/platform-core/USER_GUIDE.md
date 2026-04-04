@@ -104,6 +104,10 @@ Nota operativa:
 - en `Tenant Portal > Usuarios`, la lectura del catálogo queda primero y la creación de un usuario nuevo se abre solo bajo demanda desde `Nuevo usuario`
 - la tabla de acciones del usuario tenant ya permite `Editar`, `Activar/Desactivar` y `Eliminar`
 - el borrado protege dos casos: no puedes eliminar tu propia cuenta y tampoco al último administrador activo del tenant
+- en `Tenant Portal > Usuarios` ahora también se configura la zona horaria operativa:
+  - arriba se define la zona por defecto del tenant
+  - en cada usuario puedes dejar herencia del tenant o un override puntual
+  - la lectura/captura de fechas del portal usa esa zona efectiva
 
 ### Límite de transacciones en finance
 

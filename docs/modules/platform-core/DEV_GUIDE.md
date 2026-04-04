@@ -45,6 +45,11 @@ Documentación base:
 - en `platform_admin`, las capturas de alta más sensibles (`Tenants`, `Usuarios de plataforma`) no deberían quedar abiertas por defecto; la lectura principal debe mostrarse primero y la creación abrirse bajo demanda en modal
 - en `tenant_portal`, `Usuarios` debe seguir el mismo patrón: catálogo visible primero y alta solo bajo demanda desde botón
 - `tenant_portal > Usuarios` ya expone además edición y borrado seguro: el backend bloquea autoeliminación y protege al último admin activo antes de aceptar `DELETE /tenant/users/{id}` o degradaciones equivalentes
+- `tenant_portal > Usuarios` también es la fuente de verdad para la zona horaria operativa del tenant:
+  - `tenant_info.timezone` define la zona por defecto del tenant
+  - `users.timezone` permite override por usuario
+  - la precedencia efectiva es `users.timezone -> tenant_info.timezone -> default plataforma`
+  - los módulos del tenant deben consumir la zona efectiva desde `/tenant/info` y no asumir UTC ni el reloj del navegador como única fuente
 
 ## Cómo extender este bloque
 

@@ -9,12 +9,15 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 import { authErrorEvents } from "../services/api";
+import { getTenantInfo } from "../services/tenant-api";
+import type { TenantInfoData, TenantUserData } from "../types";
 import {
   loginTenant,
   logoutTenant,
   refreshTenantSession,
 } from "../services/tenant-api";
 import type { TenantSession } from "../types";
+import { DEFAULT_TENANT_TIMEZONE, getBrowserTimeZone } from "../utils/timezone-options";
 import {
   buildTenantSession,
   clearStoredSession,
@@ -33,6 +36,9 @@ const SESSION_STORAGE_KEY = "platform_paas.tenant_session";
 
 type TenantAuthContextValue = {
   session: TenantSession | null;
+  tenantInfo: TenantInfoData | null;
+  tenantUser: TenantUserData | null;
+  effectiveTimeZone: string;
   isAuthenticated: boolean;
   isHydrated: boolean;
   hadStoredSession: boolean;
@@ -40,6 +46,7 @@ type TenantAuthContextValue = {
   login: (tenantSlug: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
+  refreshTenantInfo: () => Promise<void>;
   continueSession: () => Promise<void>;
 };
 
@@ -47,6 +54,8 @@ const TenantAuthContext = createContext<TenantAuthContextValue | null>(null);
 
 export function TenantAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<TenantSession | null>(null);
+  const [tenantInfo, setTenantInfo] = useState<TenantInfoData | null>(null);
+  const [tenantUser, setTenantUser] = useState<TenantUserData | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [hadStoredSession, setHadStoredSession] = useState(false);
   const [isExpiryWarningOpen, setIsExpiryWarningOpen] = useState(false);
@@ -66,10 +75,38 @@ export function TenantAuthProvider({ children }: { children: ReactNode }) {
     persistSession(SESSION_STORAGE_KEY, session);
   }, [isHydrated, session]);
 
+  const refreshTenantInfo = useCallback(async () => {
+    if (!session?.accessToken) {
+      setTenantInfo(null);
+      setTenantUser(null);
+      return;
+    }
+
+    try {
+      const response = await getTenantInfo(session.accessToken);
+      setTenantInfo(response.tenant);
+      setTenantUser(response.user);
+    } catch {
+      setTenantInfo(null);
+      setTenantUser(null);
+    }
+  }, [session?.accessToken]);
+
+  useEffect(() => {
+    if (!session?.accessToken) {
+      setTenantInfo(null);
+      setTenantUser(null);
+      return;
+    }
+    void refreshTenantInfo();
+  }, [refreshTenantInfo, session?.accessToken]);
+
   useEffect(() => {
     function handleTenantAuthError() {
       setHadStoredSession(true);
       setSession(null);
+      setTenantInfo(null);
+      setTenantUser(null);
     }
 
     window.addEventListener(authErrorEvents.tenant, handleTenantAuthError);
@@ -108,6 +145,8 @@ export function TenantAuthProvider({ children }: { children: ReactNode }) {
     clearStoredSession(SESSION_STORAGE_KEY);
     setIsExpiryWarningOpen(false);
     setSession(null);
+    setTenantInfo(null);
+    setTenantUser(null);
   }, [session]);
 
   const refresh = useCallback(async () => {
@@ -224,6 +263,14 @@ export function TenantAuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<TenantAuthContextValue>(
     () => ({
       session,
+      tenantInfo,
+      tenantUser,
+      effectiveTimeZone:
+        tenantInfo?.effective_timezone ||
+        tenantUser?.effective_timezone ||
+        tenantInfo?.timezone ||
+        getBrowserTimeZone() ||
+        DEFAULT_TENANT_TIMEZONE,
       isAuthenticated: Boolean(session?.accessToken),
       isHydrated,
       hadStoredSession,
@@ -231,6 +278,7 @@ export function TenantAuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       refresh,
+      refreshTenantInfo,
       continueSession,
     }),
     [
@@ -241,7 +289,10 @@ export function TenantAuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       refresh,
+      refreshTenantInfo,
       session,
+      tenantInfo,
+      tenantUser,
     ]
   );
 

@@ -3,6 +3,7 @@ import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
+import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
 import type { ApiError } from "../../../../../types";
 import { MaintenanceCatalogPage } from "../components/common/MaintenanceCatalogPage";
 import {
@@ -38,11 +39,15 @@ function normalizeNullable(value: string | null): string | null {
   return trimmed ? trimmed : null;
 }
 
-function formatDateTime(value: string | null, language: "es" | "en"): string {
+function formatDateTime(
+  value: string | null,
+  language: "es" | "en",
+  timeZone?: string | null
+): string {
   if (!value) {
     return language === "es" ? "sin fecha" : "no date";
   }
-  return new Date(value).toLocaleString(language === "es" ? "es-CL" : "en-US");
+  return formatDateTimeInTimeZone(value, language, timeZone);
 }
 
 function getStatusLabel(status: string, language: "es" | "en"): string {
@@ -77,7 +82,7 @@ function getStatusTone(status: string): "success" | "danger" | "warning" | "info
 }
 
 export function MaintenanceCalendarPage() {
-  const { session } = useTenantAuth();
+  const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const [rows, setRows] = useState<TenantMaintenanceVisit[]>([]);
   const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
@@ -318,9 +323,9 @@ export function MaintenanceCalendarPage() {
           headerEn: "Window",
           render: (item) => (
             <div>
-              <div>{formatDateTime(item.scheduled_start_at, language)}</div>
+              <div>{formatDateTime(item.scheduled_start_at, language, effectiveTimeZone)}</div>
               <div className="maintenance-cell__meta">
-                {formatDateTime(item.scheduled_end_at, language)}
+                {formatDateTime(item.scheduled_end_at, language, effectiveTimeZone)}
               </div>
             </div>
           ),

@@ -11,6 +11,7 @@ import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
+import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
 import type { ApiError } from "../../../../../types";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
@@ -64,11 +65,15 @@ function normalizeNullable(value: string | null): string | null {
   return trimmed ? trimmed : null;
 }
 
-function formatDateTime(value: string | null, language: "es" | "en"): string {
+function formatDateTime(
+  value: string | null,
+  language: "es" | "en",
+  timeZone?: string | null
+): string {
   if (!value) {
     return language === "es" ? "sin fecha" : "no date";
   }
-  return new Date(value).toLocaleString(language === "es" ? "es-CL" : "en-US");
+  return formatDateTimeInTimeZone(value, language, timeZone);
 }
 
 function getStatusTone(status: string): "success" | "warning" | "danger" | "info" | "neutral" {
@@ -103,7 +108,7 @@ function getStatusLabel(status: string, language: "es" | "en"): string {
 }
 
 export function MaintenanceWorkOrdersPage() {
-  const { session } = useTenantAuth();
+  const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<TenantMaintenanceWorkOrder[]>([]);
@@ -897,10 +902,10 @@ export function MaintenanceWorkOrdersPage() {
               header: language === "es" ? "Fecha y hora" : "Date and time",
               render: (item) => (
                 <div>
-                  <div>{formatDateTime(item.scheduled_for, language)}</div>
+                  <div>{formatDateTime(item.scheduled_for, language, effectiveTimeZone)}</div>
                   <div className="maintenance-cell__meta">
                     {language === "es" ? "Solicitada" : "Requested"}{" "}
-                    {formatDateTime(item.requested_at, language)}
+                    {formatDateTime(item.requested_at, language, effectiveTimeZone)}
                   </div>
                 </div>
               ),

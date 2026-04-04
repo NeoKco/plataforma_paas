@@ -188,7 +188,13 @@ Reglas:
 - verificar que editar un registro no cambie la hora si el usuario no tocó ese campo
 - si el producto opera sobre una zona principal, documentarla y mantener consistencia visual
 
-Si más adelante el PaaS soporta múltiples zonas horarias por tenant o usuario, esta conversión debe salir de una configuración explícita y no de suposiciones ocultas.
+La zona operativa debe salir de una configuración explícita y no de suposiciones ocultas.
+
+Precedencia esperada:
+
+- override del usuario si existe
+- si no existe, zona por defecto del tenant
+- solo como fallback final, zona default de plataforma
 
 ## Regla de Maquetacion
 

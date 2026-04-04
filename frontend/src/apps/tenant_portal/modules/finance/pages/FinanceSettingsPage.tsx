@@ -53,12 +53,15 @@ function buildCurrencyForm(): TenantFinanceCurrencyWriteRequest {
   };
 }
 
-function buildExchangeRateForm(currencyId: number | null): TenantFinanceExchangeRateWriteRequest {
+function buildExchangeRateForm(
+  currencyId: number | null,
+  timeZone?: string | null
+): TenantFinanceExchangeRateWriteRequest {
   return {
     source_currency_id: currencyId ?? 0,
     target_currency_id: currencyId ?? 0,
     rate: 1,
-    effective_at: currentDateTimeLocalInputValue(),
+    effective_at: currentDateTimeLocalInputValue(timeZone),
     source: "manual",
     note: null,
   };
@@ -69,7 +72,7 @@ function buildSettingForm(): TenantFinanceSettingWriteRequest {
 }
 
 export function FinanceSettingsPage() {
-  const { session } = useTenantAuth();
+  const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState<SettingsTab>("currencies");
   const [currencies, setCurrencies] = useState<TenantFinanceCurrency[]>([]);
@@ -82,7 +85,9 @@ export function FinanceSettingsPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [currencyForm, setCurrencyForm] = useState<TenantFinanceCurrencyWriteRequest>(buildCurrencyForm());
-  const [exchangeRateForm, setExchangeRateForm] = useState<TenantFinanceExchangeRateWriteRequest>(buildExchangeRateForm(null));
+  const [exchangeRateForm, setExchangeRateForm] = useState<TenantFinanceExchangeRateWriteRequest>(
+    buildExchangeRateForm(null, effectiveTimeZone)
+  );
   const [settingForm, setSettingForm] = useState<TenantFinanceSettingWriteRequest>(buildSettingForm());
   const baseCurrency = currencies.find((currency) => currency.is_base) || null;
 
@@ -107,6 +112,7 @@ export function FinanceSettingsPage() {
         ...current,
         source_currency_id: current.source_currency_id || fallbackSource,
         target_currency_id: current.target_currency_id || fallbackTarget,
+        effective_at: current.effective_at || currentDateTimeLocalInputValue(effectiveTimeZone),
       }));
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -125,12 +131,8 @@ export function FinanceSettingsPage() {
     setIsFormOpen(false);
     setCurrencyForm(buildCurrencyForm());
     setExchangeRateForm({
-      source_currency_id: currencies[0]?.id ?? 0,
+      ...buildExchangeRateForm(currencies[0]?.id ?? 0, effectiveTimeZone),
       target_currency_id: currencies[1]?.id ?? currencies[0]?.id ?? 0,
-      rate: 1,
-      effective_at: currentDateTimeLocalInputValue(),
-      source: "manual",
-      note: null,
     });
     setSettingForm(buildSettingForm());
   }

@@ -56,6 +56,8 @@ Resumen curado del bloque central.
 - la vista de `Usuarios de plataforma` deja de usar una grilla desbalanceada tras mover el alta a modal: el catálogo ahora toma el ancho útil completo y la ficha/acciones del usuario seleccionado quedan en un segundo nivel más armónico
 - `Tenant Portal > Usuarios` también pasa a alta bajo demanda: el catálogo queda primero, `Nuevo usuario` abre modal y el bloque de operador actual queda como contexto secundario
 - `Tenant Portal > Usuarios` suma acciones de `Editar` y `Eliminar` en la tabla; el borrado queda endurecido para bloquear autoeliminación y la eliminación del último admin activo del tenant
+- `Tenant Portal > Usuarios` pasa a administrar también la zona horaria: el tenant define una zona por defecto y cada usuario puede heredarla o sobrescribirla
+- `/tenant/info` expone `timezone`, `user_timezone` y `effective_timezone`, y las vistas del portal pasan a reutilizar esa zona efectiva para leer/capturar fechas operativas
 
 ## Documentación
 

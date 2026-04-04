@@ -58,6 +58,7 @@ Resumen curado de hitos del módulo `finance`.
 - `Préstamos` pasa a `Nuevo préstamo` bajo demanda en modal
 - se formalizó el [Estandar de botones CRUD](/home/felipe/platform_paas/docs/architecture/crud-button-standard.md) tomando `business-core` como referencia visual y operativa
 - se corrigió un bug de horario en `Movimientos`: el formulario usaba `toISOString().slice(0, 16)` para `datetime-local`, adelantando la hora local al guardar; ahora `Transacciones` y `Configuración` convierten fecha/hora local con helper dedicado
+- `Transacciones` y `Configuración` pasan a usar la zona horaria efectiva del tenant/usuario en vez de asumir solo la del navegador
 
 ### E2E browser
 

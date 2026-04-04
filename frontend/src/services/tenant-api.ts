@@ -52,6 +52,20 @@ export function getTenantInfo(accessToken: string) {
   });
 }
 
+export function updateTenantTimeZone(
+  accessToken: string,
+  payload: { timezone: string }
+) {
+  return apiRequest<{ success: boolean; message: string; tenant_timezone: string }>(
+    "/tenant/info/timezone",
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
 export function getTenantModuleUsage(accessToken: string) {
   return apiRequest<TenantModuleUsageResponse>("/tenant/module-usage", {
     token: accessToken,
@@ -85,6 +99,7 @@ export function createTenantUser(
     password: string;
     role: string;
     is_active: boolean;
+    timezone?: string | null;
   }
 ) {
   return apiRequest<TenantUserMutationResponse>("/tenant/users", {
@@ -116,6 +131,7 @@ export function updateTenantUser(
     email: string;
     role: string;
     password?: string | null;
+    timezone?: string | null;
   }
 ) {
   return apiRequest<TenantUserMutationResponse>(`/tenant/users/${userId}`, {

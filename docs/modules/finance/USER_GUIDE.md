@@ -49,7 +49,7 @@ Regla UX operativa:
 
 Después del alta, el detalle de la transacción queda abierto en modal para adjuntar boleta, factura o respaldo.
 
-La fecha y hora visible del formulario debe respetar la hora local operativa del usuario. Si el backend guarda en UTC, el frontend debe traducirlo correctamente antes de mostrarlo o reabrirlo en edición.
+La fecha y hora visible del formulario debe respetar la zona operativa efectiva del usuario dentro del tenant. Si el backend guarda en UTC, el frontend debe traducirlo correctamente antes de mostrarlo o reabrirlo en edición.
 
 ### Adjuntar respaldo
 

@@ -13,6 +13,7 @@ import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import {
   currentDateTimeLocalInputValue,
+  formatDateTimeInTimeZone,
   fromDateTimeLocalInputValue,
   toDateTimeLocalInputValue,
 } from "../../../../../utils/dateTimeLocal";
@@ -89,24 +90,26 @@ type TransactionFormState = {
   isFavorite: boolean;
 };
 
-const DEFAULT_FORM_STATE: TransactionFormState = {
-  transactionType: "expense",
-  accountId: "",
-  targetAccountId: "",
-  categoryId: "",
-  tagIds: [],
-  currencyId: "",
-  amount: "",
-  exchangeRate: "",
-  transactionAt: currentDateTimeLocalInputValue(),
-  description: "",
-  notes: "",
-  isReconciled: false,
-  isFavorite: false,
-};
+function buildDefaultFormState(timeZone?: string | null): TransactionFormState {
+  return {
+    transactionType: "expense",
+    accountId: "",
+    targetAccountId: "",
+    categoryId: "",
+    tagIds: [],
+    currencyId: "",
+    amount: "",
+    exchangeRate: "",
+    transactionAt: currentDateTimeLocalInputValue(timeZone),
+    description: "",
+    notes: "",
+    isReconciled: false,
+    isFavorite: false,
+  };
+}
 
 export function FinanceTransactionsPage() {
-  const { session } = useTenantAuth();
+  const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const [transactions, setTransactions] = useState<TenantFinanceTransaction[]>([]);
   const [summaryResponse, setSummaryResponse] =
@@ -125,7 +128,9 @@ export function FinanceTransactionsPage() {
   const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null);
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
   const [isTransactionDetailOpen, setIsTransactionDetailOpen] = useState(false);
-  const [formState, setFormState] = useState<TransactionFormState>(DEFAULT_FORM_STATE);
+  const [formState, setFormState] = useState<TransactionFormState>(() =>
+    buildDefaultFormState()
+  );
   const [reconciliationNote, setReconciliationNote] = useState("");
   const [reconciliationReasonCode, setReconciliationReasonCode] =
     useState<ReconciliationReasonCode>("operator_review");
@@ -548,7 +553,7 @@ export function FinanceTransactionsPage() {
     try {
       const pendingCreateAttachmentFile = createAttachmentFile;
       const pendingCreateAttachmentNotes = normalizeNullableString(createAttachmentNotes);
-      const payload = buildTransactionWritePayload(formState);
+      const payload = buildTransactionWritePayload(formState, effectiveTimeZone);
       const response = editingTransactionId
         ? await updateTenantFinanceTransaction(
             session.accessToken,
@@ -735,7 +740,7 @@ export function FinanceTransactionsPage() {
 
   function startEditingTransaction(transaction: TenantFinanceTransaction) {
     setEditingTransactionId(transaction.id);
-    setFormState(buildTransactionFormState(transaction));
+    setFormState(buildTransactionFormState(transaction, effectiveTimeZone));
     setIsTransactionFormOpen(true);
     setActionFeedback(null);
   }
@@ -743,10 +748,10 @@ export function FinanceTransactionsPage() {
   function resetFormForCreate() {
     setEditingTransactionId(null);
     setFormState({
-      ...DEFAULT_FORM_STATE,
+      ...buildDefaultFormState(effectiveTimeZone),
       accountId: accounts[0] ? String(accounts[0].id) : "",
       currencyId: baseCurrency ? String(baseCurrency.id) : "",
-      transactionAt: currentDateTimeLocalInputValue(),
+      transactionAt: currentDateTimeLocalInputValue(effectiveTimeZone),
     });
     setCreateAttachmentFile(null);
     setCreateAttachmentNotes("");
@@ -1864,7 +1869,7 @@ export function FinanceTransactionsPage() {
                             {language === "es" ? "Ver" : "View"}
                           </button>
                         </td>
-                        <td>{formatDateTime(transaction.transaction_at, language)}</td>
+                        <td>{formatDateTime(transaction.transaction_at, language, effectiveTimeZone)}</td>
                         <td>
                           <StatusBadge value={displayTransactionType(transaction.transaction_type, language)} />
                         </td>
@@ -2116,7 +2121,8 @@ export function FinanceTransactionsPage() {
                         label={language === "es" ? "Registrada en" : "Recorded at"}
                         value={formatDateTime(
                           selectedTransactionDetail.transaction.transaction_at,
-                          language
+                          language,
+                          effectiveTimeZone
                         )}
                       />
                     </div>
@@ -2240,7 +2246,11 @@ export function FinanceTransactionsPage() {
                                   <div className="finance-attachment-card__content">
                                     <strong>{attachment.file_name}</strong>
                                     <div className="small text-secondary">
-                                      {displayAttachmentMeta(attachment, language)}
+                                      {displayAttachmentMeta(
+                                        attachment,
+                                        language,
+                                        effectiveTimeZone
+                                      )}
                                     </div>
                                     {attachment.notes ? <div>{attachment.notes}</div> : null}
                                   </div>
@@ -2321,7 +2331,11 @@ export function FinanceTransactionsPage() {
                               <div className="d-flex justify-content-between gap-3">
                                 <strong>{displayPlatformCode(event.event_type)}</strong>
                                 <span className="small text-secondary">
-                                  {formatDateTime(event.created_at, language)}
+                                  {formatDateTime(
+                                    event.created_at,
+                                    language,
+                                    effectiveTimeZone
+                                  )}
                                 </span>
                               </div>
                               <div>{event.summary}</div>
@@ -2425,14 +2439,12 @@ function formatMoney(value: number, currencyCode = "USD", language: "es" | "en" 
   }).format(value);
 }
 
-function formatDateTime(value: string | null, language: "es" | "en" = "es"): string {
-  if (!value) {
-    return "—";
-  }
-  return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(value));
+function formatDateTime(
+  value: string | null,
+  language: "es" | "en" = "es",
+  timeZone?: string | null
+): string {
+  return formatDateTimeInTimeZone(value, language, timeZone);
 }
 
 function displayTransactionType(value: string, language: "es" | "en" = "es"): string {
@@ -2460,12 +2472,13 @@ function selectedCurrencyRequiresExchangeRate(
 
 function displayAttachmentMeta(
   attachment: TenantFinanceTransactionAttachment,
-  language: "es" | "en"
+  language: "es" | "en",
+  timeZone?: string | null
 ) {
   const parts = [
     formatFileSize(attachment.file_size),
     attachment.content_type || "application/octet-stream",
-    formatDateTime(attachment.created_at, language),
+    formatDateTime(attachment.created_at, language, timeZone),
   ];
   return parts.join(" · ");
 }
@@ -2588,7 +2601,8 @@ function buildApiFilters(filters: {
 }
 
 function buildTransactionWritePayload(
-  formState: TransactionFormState
+  formState: TransactionFormState,
+  timeZone?: string | null
 ) {
   return {
     transaction_type: formState.transactionType,
@@ -2610,7 +2624,7 @@ function buildTransactionWritePayload(
     discount_amount: 0,
     exchange_rate: normalizeNullableFloat(formState.exchangeRate),
     amortization_months: null,
-    transaction_at: fromDateTimeLocalInputValue(formState.transactionAt),
+    transaction_at: fromDateTimeLocalInputValue(formState.transactionAt, timeZone),
     alternative_date: null,
     description: formState.description.trim(),
     notes: normalizeNullableString(formState.notes),
@@ -2626,7 +2640,8 @@ function buildTransactionWritePayload(
 }
 
 function buildTransactionFormState(
-  transaction: TenantFinanceTransaction
+  transaction: TenantFinanceTransaction,
+  timeZone?: string | null
 ): TransactionFormState {
   return {
     transactionType: transaction.transaction_type,
@@ -2639,7 +2654,7 @@ function buildTransactionFormState(
     currencyId: String(transaction.currency_id),
     amount: String(transaction.amount),
     exchangeRate: transaction.exchange_rate ? String(transaction.exchange_rate) : "",
-    transactionAt: toDateTimeLocalInputValue(transaction.transaction_at),
+    transactionAt: toDateTimeLocalInputValue(transaction.transaction_at, timeZone),
     description: transaction.description,
     notes: transaction.notes || "",
     isReconciled: transaction.is_reconciled,
