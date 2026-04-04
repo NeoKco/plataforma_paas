@@ -25,6 +25,7 @@ import {
 } from "../../business_core/services/sitesService";
 import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
+import { MaintenanceCostingModal } from "../components/common/MaintenanceCostingModal";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
 import {
   getTenantMaintenanceHistory,
@@ -95,6 +96,8 @@ export function MaintenanceHistoryPage() {
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [editingRow, setEditingRow] = useState<TenantMaintenanceHistoryWorkOrder | null>(null);
+  const [costingWorkOrder, setCostingWorkOrder] =
+    useState<TenantMaintenanceHistoryWorkOrder | null>(null);
   const [historyForm, setHistoryForm] = useState({
     description: "",
     closure_notes: "",
@@ -163,6 +166,16 @@ export function MaintenanceHistoryPage() {
       closure_notes: stripLegacyVisibleText(item.closure_notes) || "",
       cancellation_reason: stripLegacyVisibleText(item.cancellation_reason) || "",
     });
+  }
+
+  function openCostingModal(item: TenantMaintenanceHistoryWorkOrder) {
+    setFeedback(null);
+    setError(null);
+    setCostingWorkOrder(item);
+  }
+
+  function closeCostingModal() {
+    setCostingWorkOrder(null);
   }
 
   async function handleHistorySubmit() {
@@ -310,6 +323,13 @@ export function MaintenanceHistoryPage() {
                   <AppBadge tone={getStatusTone(item.maintenance_status)}>
                     {getStatusLabel(item.maintenance_status, language)}
                   </AppBadge>
+                  <button
+                    className="btn btn-sm btn-outline-primary"
+                    type="button"
+                    onClick={() => openCostingModal(item)}
+                  >
+                    {language === "es" ? "Costos" : "Costing"}
+                  </button>
                   <button
                     className="btn btn-sm btn-outline-primary"
                     type="button"
@@ -585,6 +605,26 @@ export function MaintenanceHistoryPage() {
           </div>
         </div>
       ) : null}
+
+      <MaintenanceCostingModal
+        accessToken={session?.accessToken}
+        clientLabel={costingWorkOrder ? getClientDisplayName(costingWorkOrder.client_id) : "—"}
+        siteLabel={costingWorkOrder ? getSiteDisplayName(costingWorkOrder.site_id) : "—"}
+        installationLabel={
+          costingWorkOrder?.installation_id
+            ? installationById.get(costingWorkOrder.installation_id)?.name ||
+              `#${costingWorkOrder.installation_id}`
+            : language === "es"
+              ? "Instalación pendiente"
+              : "Installation pending"
+        }
+        effectiveTimeZone={effectiveTimeZone}
+        isOpen={Boolean(costingWorkOrder)}
+        language={language}
+        onClose={closeCostingModal}
+        onFeedback={setFeedback}
+        workOrder={costingWorkOrder}
+      />
     </div>
   );
 }

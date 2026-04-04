@@ -236,11 +236,11 @@ Avance actual:
   - guardar costo real
   - registrar monto cobrado
   - sincronizar manualmente ingreso/egreso hacia `finance`
+- `Historial` ya reutiliza el mismo modal `Costos y cobro` para no duplicar UX ni lógica de costeo
 
 Pendiente inmediato de esta fase:
 
 - detalle granular por líneas de costo
-- decidir si `Costos y cobro` se replica también en `Historial`
 - cerrar la sincronización automática opcional por política tenant
 
 ## Mejoras de producto recomendadas
@@ -276,7 +276,6 @@ Pendiente inmediato de esta fase:
 - decidir el segundo corte del roadmap:
   - líneas de costo
   - sync automática opcional
-  - exposición de costeo también en historial
 
 ## Backlog pendiente visible
 

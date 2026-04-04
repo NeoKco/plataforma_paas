@@ -45,6 +45,7 @@ El primer corte del modulo ya permite:
 - editar una orden aun no cerrada
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
 - abrir `Costos` desde una mantención abierta para registrar costo estimado, costo real, cobro y sincronización manual a Finanzas
+- abrir el mismo modal `Costos` desde `Historial` para revisar o completar el cierre económico de una orden ya cerrada
 - sacar automaticamente de la bandeja activa una orden al completarla o anularla
 - mantener catalogo de tipos de equipo
 - mantener instalaciones tecnicas ligadas a sitios del dominio base
@@ -103,6 +104,7 @@ Lectura funcional de cada vista:
   - el costeo se maneja en modal, igual que la captura principal del módulo
 - `Instalaciones`: parque instalado por cliente y direccion
 - `Historial`: trabajo ya realizado o anulado
+  - cada tarjeta ya permite abrir `Costos` y `Editar cierre`
 - `Agenda`: calendario visual del trabajo abierto
 
 Regla UX operativa:

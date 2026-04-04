@@ -38,6 +38,7 @@ Estado actual:
   - `maintenance_cost_estimates`
   - `maintenance_cost_actuals`
   - modal de costeo sobre `Mantenciones`
+  - el mismo modal reutilizado también desde `Historial`
   - sincronización manual controlada hacia `finance`
 
 Objetivo del modulo:
@@ -81,6 +82,7 @@ Estado del corte hoy:
 - `Pendientes` ya agrega una lectura agrupada por organización para coordinar carga sin perder la operación por cliente/dirección
 - `Pendientes` ya muestra instalaciones activas sin plan preventivo y permite abrir `Crear plan` con cliente/dirección/instalación precargados
 - `Mantenciones` ya permite abrir `Costos` por OT para guardar estimado, costo real, monto cobrado y sincronizar manualmente a `finance`
+- `Historial` ya permite abrir el mismo modal `Costos` sobre órdenes cerradas, sin volver editable la programación operativa
 
 Pendientes visibles inmediatos:
 

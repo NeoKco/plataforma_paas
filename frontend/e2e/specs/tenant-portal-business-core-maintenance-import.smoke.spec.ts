@@ -117,6 +117,11 @@ test("tenant portal shows imported business core and maintenance data from ieris
     /Historial t[eé]cnico|Technical history/i
   );
   await expect(getCatalogRow(page, /Mantenci[oó]n sst/i)).toBeVisible();
+  await page.getByRole("button", { name: /Costos|Costing/i }).first().click();
+  await expect(page.getByRole("heading", { name: /Costos y cobro|Costing and billing/i })).toBeVisible();
+  await expect(page.getByLabel(/Costo estimado total|Estimated total cost/i)).toBeVisible();
+  await expect(page.getByLabel(/Monto cobrado|Amount charged/i)).toBeVisible();
+  await page.getByRole("button", { name: /Cerrar|Close/i }).click();
 
   await openTenantImportedPage(
     page,

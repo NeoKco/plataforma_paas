@@ -133,6 +133,7 @@ Fuente frontend principal:
 - la agrupación por organización en `Pendientes` es una lectura complementaria; nunca debe reemplazar la unidad operativa real de cliente/dirección/instalación
 - el reporte `instalaciones activas sin plan preventivo` debe cruzar instalaciones activas contra schedules activos y permitir abrir `Nueva programación` ya precargada
 - el primer corte de costeo/cobro ya vive en `work_orders` como acción modal `Costos`, no como pantalla separada ni como formulario incrustado
+- el mismo modal `Costos` ya debe poder abrirse también desde `Historial`, reutilizando el mismo contrato y sin duplicar la lógica de formularios
 - la sincronización `maintenance -> finance` debe seguir siendo manual en este corte:
   - `maintenance` calcula y conserva costo/cobro
   - `finance` registra el hecho económico con `source_type/source_id`
