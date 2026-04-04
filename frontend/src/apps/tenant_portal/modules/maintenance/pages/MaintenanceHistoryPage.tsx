@@ -114,6 +114,14 @@ export function MaintenanceHistoryPage() {
     () => new Map(installations.map((item) => [item.id, item])),
     [installations]
   );
+  const completedRows = useMemo(
+    () => rows.filter((item) => item.maintenance_status === "completed"),
+    [rows]
+  );
+  const cancelledRows = useMemo(
+    () => rows.filter((item) => item.maintenance_status === "cancelled"),
+    [rows]
+  );
 
   async function loadData() {
     if (!session?.accessToken) {
@@ -219,141 +227,83 @@ export function MaintenanceHistoryPage() {
     return locality ? `${base} · ${locality}` : base;
   }
 
-  return (
-    <div className="d-grid gap-4">
-      <PageHeader
-        eyebrow={language === "es" ? "Mantenciones" : "Maintenance"}
-        icon="tenant-history"
-        title={language === "es" ? "Historial técnico" : "Technical history"}
-        description={
-          language === "es"
-            ? "Órdenes cerradas con trazabilidad, visitas registradas y lectura operativa por cliente y sitio."
-            : "Closed work orders with traceability, registered visits, and operational reading by client and site."
-        }
-        actions={
-          <AppToolbar compact>
-            <MaintenanceHelpBubble
-              label={language === "es" ? "Ayuda" : "Help"}
-              helpText={
-                language === "es"
-                  ? "Aquí no se consulta una tabla paralela de histórico de la app vieja. La lectura se deriva del lifecycle de las órdenes cerradas en el PaaS."
-                  : "This does not read a parallel legacy history table. The view is derived from the lifecycle of closed work orders in the PaaS."
-              }
-            />
-            <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
-              {language === "es" ? "Recargar" : "Reload"}
-            </button>
-          </AppToolbar>
-        }
-      />
-      <MaintenanceModuleNav />
+  const historyColumns = [
+    {
+      key: "order",
+      header: language === "es" ? "Orden" : "Order",
+      render: (item: TenantMaintenanceHistoryWorkOrder) => (
+        <div>
+          <div className="maintenance-cell__title">{item.title}</div>
+          <div className="maintenance-cell__meta">
+            {getClientDisplayName(item.client_id) + " · " + getSiteDisplayName(item.site_id)}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: language === "es" ? "Estado final" : "Final status",
+      render: (item: TenantMaintenanceHistoryWorkOrder) => (
+        <AppBadge tone={getStatusTone(item.maintenance_status)}>
+          {getStatusLabel(item.maintenance_status, language)}
+        </AppBadge>
+      ),
+    },
+    {
+      key: "dates",
+      header: language === "es" ? "Fechas" : "Dates",
+      render: (item: TenantMaintenanceHistoryWorkOrder) => (
+        <div>
+          <div>
+            {item.maintenance_status === "completed"
+              ? formatDateTime(item.completed_at, language, effectiveTimeZone)
+              : formatDateTime(item.cancelled_at, language, effectiveTimeZone)}
+          </div>
+          <div className="maintenance-cell__meta">
+            {language === "es" ? "Solicitada" : "Requested"}{" "}
+            {formatDateTime(item.requested_at, language, effectiveTimeZone)}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "traceability",
+      header: language === "es" ? "Trazabilidad" : "Traceability",
+      render: (item: TenantMaintenanceHistoryWorkOrder) => (
+        <div>
+          <div>
+            {item.status_logs.length}{" "}
+            {language === "es"
+              ? item.status_logs.length === 1
+                ? "log"
+                : "logs"
+              : item.status_logs.length === 1
+                ? "log"
+                : "logs"}
+          </div>
+          <div className="maintenance-cell__meta">
+            {item.visits.length}{" "}
+            {language === "es"
+              ? item.visits.length === 1
+                ? "visita"
+                : "visitas"
+              : item.visits.length === 1
+                ? "visit"
+                : "visits"}
+          </div>
+        </div>
+      ),
+    },
+  ];
 
-      {error ? (
-        <ErrorState
-          title={
-            language === "es"
-              ? "No se pudo cargar el historial"
-              : "The history could not be loaded"
-          }
-          detail={getApiErrorDisplayMessage(error)}
-          requestId={error.payload?.request_id}
-        />
-      ) : null}
-
-      {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
-
-      {isLoading ? (
-        <LoadingBlock label={language === "es" ? "Cargando historial..." : "Loading history..."} />
-      ) : null}
-
-      <DataTableCard
-        title={language === "es" ? "Órdenes cerradas" : "Closed work orders"}
-        subtitle={
-          language === "es"
-            ? "Cada fila mantiene visitas y cambios de estado sin mover registros a otra tabla operativa."
-            : "Each row keeps visits and status changes without moving records into another operating table."
-        }
-        rows={rows}
-        columns={[
-          {
-            key: "order",
-            header: language === "es" ? "Orden" : "Order",
-            render: (item) => (
-              <div>
-                <div className="maintenance-cell__title">{item.title}</div>
-                <div className="maintenance-cell__meta">
-                  {getClientDisplayName(item.client_id) + " · " + getSiteDisplayName(item.site_id)}
-                </div>
-              </div>
-            ),
-          },
-          {
-            key: "status",
-            header: language === "es" ? "Estado final" : "Final status",
-            render: (item) => (
-              <AppBadge tone={getStatusTone(item.maintenance_status)}>
-                {getStatusLabel(item.maintenance_status, language)}
-              </AppBadge>
-            ),
-          },
-          {
-            key: "dates",
-            header: language === "es" ? "Fechas" : "Dates",
-            render: (item) => (
-              <div>
-                <div>
-                  {item.maintenance_status === "completed"
-                    ? formatDateTime(item.completed_at, language, effectiveTimeZone)
-                    : formatDateTime(item.cancelled_at, language, effectiveTimeZone)}
-                </div>
-                <div className="maintenance-cell__meta">
-                  {language === "es" ? "Solicitada" : "Requested"}{" "}
-                  {formatDateTime(item.requested_at, language, effectiveTimeZone)}
-                </div>
-              </div>
-            ),
-          },
-          {
-            key: "traceability",
-            header: language === "es" ? "Trazabilidad" : "Traceability",
-            render: (item) => (
-              <div>
-                <div>
-                  {item.status_logs.length}{" "}
-                  {language === "es"
-                    ? item.status_logs.length === 1
-                      ? "log"
-                      : "logs"
-                    : item.status_logs.length === 1
-                      ? "log"
-                      : "logs"}
-                </div>
-                <div className="maintenance-cell__meta">
-                  {item.visits.length}{" "}
-                  {language === "es"
-                    ? item.visits.length === 1
-                      ? "visita"
-                      : "visitas"
-                    : item.visits.length === 1
-                      ? "visit"
-                      : "visits"}
-                </div>
-              </div>
-            ),
-          },
-        ]}
-      />
-
+  function renderHistoryCards(items: TenantMaintenanceHistoryWorkOrder[]) {
+    return (
       <div className="row g-3">
-        {rows.map((item) => (
+        {items.map((item) => (
           <div className="col-12" key={item.id}>
             <PanelCard
               title={item.title}
-              subtitle={
-                language === "es"
-                  ? `${getClientDisplayName(item.client_id)} · ${getSiteDisplayName(item.site_id)}`
-                  : `${getClientDisplayName(item.client_id)} · ${getSiteDisplayName(item.site_id)}`
-              }
+              subtitle={`${getClientDisplayName(item.client_id)} · ${getSiteDisplayName(item.site_id)}`}
               actions={
                 <AppToolbar compact>
                   <AppBadge tone={getStatusTone(item.maintenance_status)}>
@@ -414,7 +364,9 @@ export function MaintenanceHistoryPage() {
                           {formatDateTime(log.changed_at, language, effectiveTimeZone)}
                         </div>
                         {stripLegacyVisibleText(log.note) ? (
-                          <div className="maintenance-history-entry__meta">{stripLegacyVisibleText(log.note)}</div>
+                          <div className="maintenance-history-entry__meta">
+                            {stripLegacyVisibleText(log.note)}
+                          </div>
                         ) : null}
                       </div>
                     ))}
@@ -448,7 +400,9 @@ export function MaintenanceHistoryPage() {
                             </div>
                           ) : null}
                           {stripLegacyVisibleText(visit.notes) ? (
-                            <div className="maintenance-history-entry__meta">{stripLegacyVisibleText(visit.notes)}</div>
+                            <div className="maintenance-history-entry__meta">
+                              {stripLegacyVisibleText(visit.notes)}
+                            </div>
                           ) : null}
                         </div>
                       ))
@@ -460,6 +414,81 @@ export function MaintenanceHistoryPage() {
           </div>
         ))}
       </div>
+    );
+  }
+
+  return (
+    <div className="d-grid gap-4">
+      <PageHeader
+        eyebrow={language === "es" ? "Mantenciones" : "Maintenance"}
+        icon="tenant-history"
+        title={language === "es" ? "Historial técnico" : "Technical history"}
+        description={
+          language === "es"
+            ? "Órdenes cerradas con trazabilidad, visitas registradas y lectura operativa por cliente y sitio."
+            : "Closed work orders with traceability, registered visits, and operational reading by client and site."
+        }
+        actions={
+          <AppToolbar compact>
+            <MaintenanceHelpBubble
+              label={language === "es" ? "Ayuda" : "Help"}
+              helpText={
+                language === "es"
+                  ? "Aquí no se consulta una tabla paralela de histórico de la app vieja. La lectura se deriva del lifecycle de las órdenes cerradas en el PaaS."
+                  : "This does not read a parallel legacy history table. The view is derived from the lifecycle of closed work orders in the PaaS."
+              }
+            />
+            <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
+              {language === "es" ? "Recargar" : "Reload"}
+            </button>
+          </AppToolbar>
+        }
+      />
+      <MaintenanceModuleNav />
+
+      {error ? (
+        <ErrorState
+          title={
+            language === "es"
+              ? "No se pudo cargar el historial"
+              : "The history could not be loaded"
+          }
+          detail={getApiErrorDisplayMessage(error)}
+          requestId={error.payload?.request_id}
+        />
+      ) : null}
+
+      {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
+
+      {isLoading ? (
+        <LoadingBlock label={language === "es" ? "Cargando historial..." : "Loading history..."} />
+      ) : null}
+
+      <DataTableCard
+        title={language === "es" ? "Mantenciones realizadas" : "Completed maintenance"}
+        subtitle={
+          language === "es"
+            ? "Trabajo efectivamente ejecutado y ya cerrado."
+            : "Work effectively executed and already closed."
+        }
+        rows={completedRows}
+        columns={historyColumns}
+      />
+
+      {renderHistoryCards(completedRows)}
+
+      <DataTableCard
+        title={language === "es" ? "Mantenciones anuladas" : "Cancelled maintenance"}
+        subtitle={
+          language === "es"
+            ? "Trabajo cancelado, separado de las mantenciones realmente ejecutadas."
+            : "Cancelled work, separated from work that was actually executed."
+        }
+        rows={cancelledRows}
+        columns={historyColumns}
+      />
+
+      {renderHistoryCards(cancelledRows)}
 
       {editingRow ? (
         <div className="maintenance-form-backdrop" role="presentation" onClick={() => setEditingRow(null)}>

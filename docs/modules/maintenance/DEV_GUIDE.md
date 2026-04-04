@@ -122,6 +122,7 @@ Fuente frontend principal:
 - para crear o editar una orden operativa se exige `client_id`, `site_id` e `installation_id` validos
 - `Mantenciones` es una bandeja de trabajo abierto, no un mezclador de abiertas y cerradas
 - `Historial` debe derivarse de `completed` y `cancelled`
+- la lectura operativa no deberia mezclar ambas bandejas en una sola lista larga; conviene separar `realizadas` y `anuladas` tanto en resumenes como en vistas de historial.
 - una orden cerrada no debe volver a editarse desde la bandeja operativa
 - desde `Historial` solo deberian exponerse correcciones de descripcion/cierre, congelando fecha, hora, cliente, direccion e instalacion
 - `Agenda` debe pintar mantenciones abiertas sobre calendario visual, no visitas como lista catalogada

@@ -31,7 +31,7 @@
 - Se endurece ademas el backend de `clients` para que `client_code` deje de depender de la captura normal: ahora se preserva o genera internamente en la capa de servicio.
 - La vista `Resumen` de `business-core` deja de ser solo una portada estatica y pasa a mostrar las ultimas altas reales de `Empresas` y `Clientes`.
 - Se ajusta `Resumen` para que `Empresas` muestre solo las 2 ultimas altas visibles y `Clientes` los 5 ultimos, usando datos reales del cliente y su organizacion en vez de tarjetas ambiguas.
-- Se corrige la ficha del cliente para que `Mantenciones recientes` deje de mezclar trabajo abierto y lea solo mantenciones `realizadas` del cliente desde el historial tecnico cerrado.
+- Se corrige la ficha del cliente para que el bloque `Mantenciones realizadas` deje de mezclar trabajo abierto, lea solo historial tecnico cerrado del cliente y muestre estado final, fecha y descripcion util sin botones de navegacion redundantes.
 
 ## 2026-04-02
 

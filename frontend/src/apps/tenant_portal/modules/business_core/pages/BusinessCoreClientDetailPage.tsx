@@ -138,10 +138,7 @@ export function BusinessCoreClientDetailPage() {
     const siteIds = new Set(addresses.map((address) => address.id));
     return installations.filter((installation) => siteIds.has(installation.site_id));
   }, [addresses, installations]);
-  const recentWorkOrders = useMemo(
-    () => maintenanceHistory.filter((item) => item.maintenance_status === "completed").slice(0, 5),
-    [maintenanceHistory]
-  );
+  const recentWorkOrders = useMemo(() => maintenanceHistory.slice(0, 5), [maintenanceHistory]);
 
   async function loadData() {
     if (!session?.accessToken || !clientId) {
@@ -1054,33 +1051,30 @@ export function BusinessCoreClientDetailPage() {
         </PanelCard>
 
         <PanelCard
-          title={language === "es" ? "Mantenciones recientes" : "Recent maintenance"}
+          title={language === "es" ? "Mantenciones realizadas" : "Completed maintenance"}
           subtitle={
             language === "es"
-              ? "Aquí deben verse solo mantenciones realizadas de este cliente, tomadas desde historial."
-              : "Only completed maintenance for this client, sourced from history, should be shown here."
-          }
-          actions={
-            <AppToolbar compact>
-              <Link
-                className="btn btn-outline-secondary"
-                to={`/tenant-portal/maintenance/history?clientId=${client.id}`}
-              >
-                {language === "es" ? "Ver historial" : "View history"}
-              </Link>
-            </AppToolbar>
+              ? "Trabajo cerrado de este cliente, tomado desde historial técnico."
+              : "Closed work for this client, sourced from technical history."
           }
         >
           {recentWorkOrders.length === 0 ? (
             <p className="mb-0 text-muted">
               {language === "es"
-                ? "Este cliente todavía no tiene mantenciones realizadas en historial."
-                : "This client has no completed maintenance in history yet."}
+                ? "Este cliente todavía no tiene mantenciones cerradas en historial."
+                : "This client has no closed maintenance in history yet."}
             </p>
           ) : (
             <div className="business-core-stack">
               {recentWorkOrders.map((workOrder) => {
                 const targetAddress = addresses.find((address) => address.id === workOrder.site_id);
+                const installation = relatedInstallations.find(
+                  (item) => item.id === workOrder.installation_id
+                );
+                const visibleDescription =
+                  stripLegacyVisibleText(workOrder.description) ||
+                  stripLegacyVisibleText(workOrder.closure_notes) ||
+                  stripLegacyVisibleText(workOrder.cancellation_reason);
                 return (
                   <div className="business-core-related-card" key={workOrder.id}>
                     <div className="business-core-related-title">{workOrder.title}</div>
@@ -1091,17 +1085,18 @@ export function BusinessCoreClientDetailPage() {
                       {targetAddress?.address_line || targetAddress?.name || "—"}
                     </div>
                     <div className="business-core-cell__meta">
+                      {language === "es" ? "Instalación" : "Installation"}:{" "}
+                      {installation?.name || (language === "es" ? "sin instalación" : "no installation")}
+                    </div>
+                    <div className="business-core-cell__meta">
                       {language === "es" ? "Cierre" : "Closed"}:{" "}
                       {formatDateTime(workOrder.completed_at || workOrder.cancelled_at)}
                     </div>
-                    <div className="business-core-card__actions">
-                      <Link
-                        className="btn btn-sm btn-outline-primary"
-                        to={`/tenant-portal/maintenance/history?clientId=${client.id}`}
-                      >
-                        {language === "es" ? "Abrir en historial" : "Open in history"}
-                      </Link>
-                    </div>
+                    {visibleDescription ? (
+                      <div className="business-core-cell__meta">
+                        {visibleDescription}
+                      </div>
+                    ) : null}
                   </div>
                 );
               })}

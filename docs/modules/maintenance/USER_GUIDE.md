@@ -32,6 +32,7 @@ El primer corte del modulo ya permite:
 
 - ver solo mantenciones abiertas en la bandeja `Mantenciones`
 - ver mantenciones realizadas o anuladas en `Historial`
+- `Historial` ahora separa `Mantenciones realizadas` y `Mantenciones anuladas`, para no mezclar trabajo ejecutado con trabajo cancelado.
 - leer la bandeja por cliente, direccion e instalacion
 - ordenar operativamente por fecha y hora de trabajo mas reciente
 - crear una orden nueva
