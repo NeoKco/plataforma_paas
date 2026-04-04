@@ -50,6 +50,14 @@ from app.apps.tenant_modules.business_core.schemas.work_group import (
     BusinessWorkGroupsResponse,
     BusinessWorkGroupUpdateRequest,
 )
+from app.apps.tenant_modules.business_core.schemas.work_group_member import (
+    BusinessWorkGroupMemberCreateRequest,
+    BusinessWorkGroupItemResponse as _BusinessWorkGroupItemResponseShadow,
+    BusinessWorkGroupMemberItemResponse,
+    BusinessWorkGroupMemberMutationResponse,
+    BusinessWorkGroupMembersResponse,
+    BusinessWorkGroupMemberUpdateRequest,
+)
 
 __all__ = [
     "BusinessCoreStatusUpdateRequest",
@@ -83,6 +91,11 @@ __all__ = [
     "BusinessWorkGroupItemResponse",
     "BusinessWorkGroupMutationResponse",
     "BusinessWorkGroupsResponse",
+    "BusinessWorkGroupMemberCreateRequest",
+    "BusinessWorkGroupMemberUpdateRequest",
+    "BusinessWorkGroupMemberItemResponse",
+    "BusinessWorkGroupMemberMutationResponse",
+    "BusinessWorkGroupMembersResponse",
     "BusinessTaskTypeCreateRequest",
     "BusinessTaskTypeUpdateRequest",
     "BusinessTaskTypeItemResponse",

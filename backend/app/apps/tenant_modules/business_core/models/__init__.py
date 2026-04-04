@@ -7,6 +7,9 @@ from app.apps.tenant_modules.business_core.models.organization import BusinessOr
 from app.apps.tenant_modules.business_core.models.site import BusinessSite
 from app.apps.tenant_modules.business_core.models.task_type import BusinessTaskType
 from app.apps.tenant_modules.business_core.models.work_group import BusinessWorkGroup
+from app.apps.tenant_modules.business_core.models.work_group_member import (
+    BusinessWorkGroupMember,
+)
 
 __all__ = [
     "BusinessOrganization",
@@ -15,5 +18,6 @@ __all__ = [
     "BusinessSite",
     "BusinessFunctionProfile",
     "BusinessWorkGroup",
+    "BusinessWorkGroupMember",
     "BusinessTaskType",
 ]

@@ -19,6 +19,9 @@ from app.apps.tenant_modules.business_core.repositories.task_type_repository imp
 from app.apps.tenant_modules.business_core.repositories.work_group_repository import (
     BusinessWorkGroupRepository,
 )
+from app.apps.tenant_modules.business_core.repositories.work_group_member_repository import (
+    BusinessWorkGroupMemberRepository,
+)
 
 __all__ = [
     "BusinessOrganizationRepository",
@@ -27,5 +30,6 @@ __all__ = [
     "BusinessSiteRepository",
     "BusinessFunctionProfileRepository",
     "BusinessWorkGroupRepository",
+    "BusinessWorkGroupMemberRepository",
     "BusinessTaskTypeRepository",
 ]

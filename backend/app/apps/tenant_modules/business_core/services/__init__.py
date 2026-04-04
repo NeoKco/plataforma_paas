@@ -19,6 +19,9 @@ from app.apps.tenant_modules.business_core.services.task_type_service import (
 from app.apps.tenant_modules.business_core.services.work_group_service import (
     BusinessWorkGroupService,
 )
+from app.apps.tenant_modules.business_core.services.work_group_member_service import (
+    BusinessWorkGroupMemberService,
+)
 
 __all__ = [
     "BusinessOrganizationService",
@@ -27,5 +30,6 @@ __all__ = [
     "BusinessSiteService",
     "BusinessFunctionProfileService",
     "BusinessWorkGroupService",
+    "BusinessWorkGroupMemberService",
     "BusinessTaskTypeService",
 ]
