@@ -11,6 +11,7 @@ from app.apps.tenant_modules.finance.models import FinanceCurrency  # noqa: E402
 from app.apps.tenant_modules.maintenance.models import (  # noqa: E402
     MaintenanceCostActual,
     MaintenanceCostEstimate,
+    MaintenanceCostLine,
     MaintenanceWorkOrder,
 )
 from app.apps.tenant_modules.maintenance.schemas import (  # noqa: E402
@@ -34,6 +35,12 @@ class _FakeQuery:
     def first(self):
         return self.mapping.get(self.target)
 
+    def all(self):
+        value = self.mapping.get(self.target, [])
+        if isinstance(value, list):
+            return value
+        return []
+
 
 class _FakeTenantDb:
     def __init__(self, mapping):
@@ -49,6 +56,16 @@ class _FakeTenantDb:
             self.mapping[MaintenanceCostEstimate] = item
         if isinstance(item, MaintenanceCostActual):
             self.mapping[MaintenanceCostActual] = item
+        if isinstance(item, MaintenanceCostLine):
+            self.mapping.setdefault(MaintenanceCostLine, []).append(item)
+
+    def delete(self, item):
+        if isinstance(item, MaintenanceCostLine):
+            self.mapping[MaintenanceCostLine] = [
+                current
+                for current in self.mapping.get(MaintenanceCostLine, [])
+                if current is not item
+            ]
 
     def commit(self):
         return None
@@ -86,6 +103,46 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
         self.assertEqual(estimate.created_by_user_id, 8)
         self.assertEqual(estimate.updated_by_user_id, 8)
 
+    def test_upsert_cost_estimate_derives_summary_from_lines(self) -> None:
+        work_order = SimpleNamespace(id=19, title="Mantención SST")
+        tenant_db = _FakeTenantDb({MaintenanceWorkOrder: work_order, MaintenanceCostLine: []})
+        service = MaintenanceCostingService(finance_service=Mock())
+
+        detail = service.upsert_cost_estimate(
+            tenant_db,
+            19,
+            MaintenanceCostEstimateWriteRequest(
+                target_margin_percent=25,
+                lines=[
+                    SimpleNamespace(
+                        id=None,
+                        line_type="labor",
+                        description="Técnico 1",
+                        quantity=2,
+                        unit_cost=12000,
+                        notes=None,
+                    ),
+                    SimpleNamespace(
+                        id=None,
+                        line_type="travel",
+                        description="Combustible",
+                        quantity=1,
+                        unit_cost=8000,
+                        notes="Ruta sur",
+                    ),
+                ],
+            ),
+            actor_user_id=4,
+        )
+
+        estimate = detail["estimate"]
+        self.assertEqual(estimate.labor_cost, 24000)
+        self.assertEqual(estimate.travel_cost, 8000)
+        self.assertEqual(estimate.total_estimated_cost, 32000)
+        self.assertEqual(estimate.suggested_price, 42666.67)
+        self.assertEqual(len(detail["estimate_lines"]), 2)
+        self.assertEqual(detail["estimate_lines"][0].cost_stage, "estimate")
+
     def test_upsert_cost_actual_derives_total_profit_and_margin(self) -> None:
         work_order = SimpleNamespace(id=22, title="Visita técnica")
         tenant_db = _FakeTenantDb({MaintenanceWorkOrder: work_order})
@@ -113,6 +170,47 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
         self.assertEqual(actual.actual_margin_percent, 33.33)
         self.assertEqual(actual.created_by_user_id, 3)
         self.assertEqual(actual.updated_by_user_id, 3)
+
+    def test_upsert_cost_actual_derives_summary_from_lines(self) -> None:
+        work_order = SimpleNamespace(id=28, title="Visita técnica")
+        tenant_db = _FakeTenantDb({MaintenanceWorkOrder: work_order, MaintenanceCostLine: []})
+        service = MaintenanceCostingService(finance_service=Mock())
+
+        detail = service.upsert_cost_actual(
+            tenant_db,
+            28,
+            MaintenanceCostActualWriteRequest(
+                actual_price_charged=50000,
+                lines=[
+                    SimpleNamespace(
+                        id=None,
+                        line_type="material",
+                        description="Repuesto",
+                        quantity=2,
+                        unit_cost=7000,
+                        notes=None,
+                    ),
+                    SimpleNamespace(
+                        id=None,
+                        line_type="service",
+                        description="Apoyo externo",
+                        quantity=1,
+                        unit_cost=9000,
+                        notes=None,
+                    ),
+                ],
+            ),
+            actor_user_id=6,
+        )
+
+        actual = detail["actual"]
+        self.assertEqual(actual.materials_cost, 14000)
+        self.assertEqual(actual.external_services_cost, 9000)
+        self.assertEqual(actual.total_actual_cost, 23000)
+        self.assertEqual(actual.actual_profit, 27000)
+        self.assertEqual(actual.actual_margin_percent, 54.0)
+        self.assertEqual(len(detail["actual_lines"]), 2)
+        self.assertEqual(detail["actual_lines"][0].cost_stage, "actual")
 
     def test_sync_to_finance_creates_income_and_expense_transactions(self) -> None:
         work_order = SimpleNamespace(

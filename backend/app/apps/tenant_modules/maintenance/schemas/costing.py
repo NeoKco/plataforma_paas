@@ -5,6 +5,15 @@ from pydantic import BaseModel
 from app.apps.tenant_modules.maintenance.schemas.common import MaintenanceResponseBase
 
 
+class MaintenanceCostLineWriteItem(BaseModel):
+    id: int | None = None
+    line_type: str
+    description: str | None = None
+    quantity: float = 1
+    unit_cost: float = 0
+    notes: str | None = None
+
+
 class MaintenanceCostEstimateWriteRequest(BaseModel):
     labor_cost: float = 0
     travel_cost: float = 0
@@ -13,6 +22,7 @@ class MaintenanceCostEstimateWriteRequest(BaseModel):
     overhead_cost: float = 0
     target_margin_percent: float = 0
     notes: str | None = None
+    lines: list[MaintenanceCostLineWriteItem] = []
 
 
 class MaintenanceCostActualWriteRequest(BaseModel):
@@ -23,6 +33,7 @@ class MaintenanceCostActualWriteRequest(BaseModel):
     overhead_cost: float = 0
     actual_price_charged: float = 0
     notes: str | None = None
+    lines: list[MaintenanceCostLineWriteItem] = []
 
 
 class MaintenanceFinanceSyncRequest(BaseModel):
@@ -48,6 +59,23 @@ class MaintenanceCostEstimateItemResponse(BaseModel):
     total_estimated_cost: float
     target_margin_percent: float
     suggested_price: float
+    notes: str | None = None
+    created_by_user_id: int | None = None
+    updated_by_user_id: int | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class MaintenanceCostLineItemResponse(BaseModel):
+    id: int
+    work_order_id: int
+    cost_stage: str
+    line_type: str
+    description: str | None = None
+    quantity: float
+    unit_cost: float
+    total_cost: float
+    finance_transaction_id: int | None = None
     notes: str | None = None
     created_by_user_id: int | None = None
     updated_by_user_id: int | None = None
@@ -81,7 +109,9 @@ class MaintenanceCostActualItemResponse(BaseModel):
 class MaintenanceCostingDetailData(BaseModel):
     work_order_id: int
     estimate: MaintenanceCostEstimateItemResponse | None = None
+    estimate_lines: list[MaintenanceCostLineItemResponse] = []
     actual: MaintenanceCostActualItemResponse | None = None
+    actual_lines: list[MaintenanceCostLineItemResponse] = []
 
 
 class MaintenanceCostingDetailResponse(MaintenanceResponseBase):

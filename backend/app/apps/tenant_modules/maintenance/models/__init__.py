@@ -2,6 +2,7 @@ from app.apps.tenant_modules.maintenance.models.cost_actual import MaintenanceCo
 from app.apps.tenant_modules.maintenance.models.cost_estimate import (
     MaintenanceCostEstimate,
 )
+from app.apps.tenant_modules.maintenance.models.cost_line import MaintenanceCostLine
 from app.apps.tenant_modules.maintenance.models.due_item import MaintenanceDueItem
 from app.apps.tenant_modules.maintenance.models.equipment_type import (
     MaintenanceEquipmentType,
@@ -17,6 +18,7 @@ from app.apps.tenant_modules.maintenance.models.work_order import MaintenanceWor
 __all__ = [
     "MaintenanceCostActual",
     "MaintenanceCostEstimate",
+    "MaintenanceCostLine",
     "MaintenanceDueItem",
     "MaintenanceEquipmentType",
     "MaintenanceInstallation",

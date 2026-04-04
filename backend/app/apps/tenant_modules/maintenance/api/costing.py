@@ -11,6 +11,7 @@ from app.apps.tenant_modules.maintenance.schemas import (
     MaintenanceCostActualWriteRequest,
     MaintenanceCostEstimateItemResponse,
     MaintenanceCostEstimateWriteRequest,
+    MaintenanceCostLineItemResponse,
     MaintenanceCostingDetailData,
     MaintenanceCostingDetailResponse,
     MaintenanceCostingMutationResponse,
@@ -72,11 +73,32 @@ def _build_actual(item) -> MaintenanceCostActualItemResponse | None:
     )
 
 
+def _build_line(item) -> MaintenanceCostLineItemResponse:
+    return MaintenanceCostLineItemResponse(
+        id=item.id,
+        work_order_id=item.work_order_id,
+        cost_stage=item.cost_stage,
+        line_type=item.line_type,
+        description=item.description,
+        quantity=item.quantity,
+        unit_cost=item.unit_cost,
+        total_cost=item.total_cost,
+        finance_transaction_id=item.finance_transaction_id,
+        notes=item.notes,
+        created_by_user_id=item.created_by_user_id,
+        updated_by_user_id=item.updated_by_user_id,
+        created_at=item.created_at,
+        updated_at=item.updated_at,
+    )
+
+
 def _build_data(detail: dict) -> MaintenanceCostingDetailData:
     return MaintenanceCostingDetailData(
         work_order_id=detail["work_order"].id,
         estimate=_build_estimate(detail.get("estimate")),
+        estimate_lines=[_build_line(item) for item in detail.get("estimate_lines", [])],
         actual=_build_actual(detail.get("actual")),
+        actual_lines=[_build_line(item) for item in detail.get("actual_lines", [])],
     )
 
 

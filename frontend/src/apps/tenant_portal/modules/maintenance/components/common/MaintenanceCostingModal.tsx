@@ -28,6 +28,8 @@ import {
   updateTenantMaintenanceWorkOrderCostEstimate,
   type TenantMaintenanceCostActual,
   type TenantMaintenanceCostEstimate,
+  type TenantMaintenanceCostLine,
+  type TenantMaintenanceCostLineWriteItem,
   type TenantMaintenanceCostingDetail,
 } from "../../services/costingService";
 
@@ -60,6 +62,15 @@ type MaintenanceFinanceSyncFormState = {
   expense_category_id: string;
   currency_id: string;
   transaction_at: string;
+  notes: string;
+};
+
+type MaintenanceCostLineFormState = {
+  id: number | null;
+  line_type: string;
+  description: string;
+  quantity: string;
+  unit_cost: string;
   notes: string;
 };
 
@@ -125,6 +136,30 @@ function buildDefaultCostActualForm(
   };
 }
 
+function buildDefaultCostLines(
+  lines?: TenantMaintenanceCostLine[] | null
+): MaintenanceCostLineFormState[] {
+  return (lines ?? []).map((line) => ({
+    id: line.id,
+    line_type: line.line_type,
+    description: line.description ?? "",
+    quantity: String(line.quantity ?? 1),
+    unit_cost: String(line.unit_cost ?? 0),
+    notes: line.notes ?? "",
+  }));
+}
+
+function buildBlankCostLine(): MaintenanceCostLineFormState {
+  return {
+    id: null,
+    line_type: "labor",
+    description: "",
+    quantity: "1",
+    unit_cost: "0",
+    notes: "",
+  };
+}
+
 function sumCostForm(values: {
   labor_cost: string;
   travel_cost: string;
@@ -139,6 +174,56 @@ function sumCostForm(values: {
     normalizeNumericInput(values.external_services_cost) +
     normalizeNumericInput(values.overhead_cost)
   );
+}
+
+function sumCostLines(lines: MaintenanceCostLineFormState[]) {
+  return lines.reduce(
+    (current, line) => {
+      const totalCost = normalizeNumericInput(line.quantity) * normalizeNumericInput(line.unit_cost);
+      switch (line.line_type) {
+        case "labor":
+          current.labor_cost += totalCost;
+          break;
+        case "travel":
+          current.travel_cost += totalCost;
+          break;
+        case "material":
+          current.materials_cost += totalCost;
+          break;
+        case "service":
+          current.external_services_cost += totalCost;
+          break;
+        case "overhead":
+          current.overhead_cost += totalCost;
+          break;
+        default:
+          break;
+      }
+      current.total += totalCost;
+      return current;
+    },
+    {
+      labor_cost: 0,
+      travel_cost: 0,
+      materials_cost: 0,
+      external_services_cost: 0,
+      overhead_cost: 0,
+      total: 0,
+    }
+  );
+}
+
+function normalizeLineWritePayload(
+  lines: MaintenanceCostLineFormState[]
+): TenantMaintenanceCostLineWriteItem[] {
+  return lines.map((line) => ({
+    id: line.id,
+    line_type: line.line_type,
+    description: normalizeNullable(line.description),
+    quantity: normalizeNumericInput(line.quantity),
+    unit_cost: normalizeNumericInput(line.unit_cost),
+    notes: normalizeNullable(line.notes),
+  }));
 }
 
 export function MaintenanceCostingModal({
@@ -165,9 +250,11 @@ export function MaintenanceCostingModal({
   const [estimateForm, setEstimateForm] = useState<MaintenanceCostEstimateFormState>(
     buildDefaultCostEstimateForm()
   );
+  const [estimateLines, setEstimateLines] = useState<MaintenanceCostLineFormState[]>([]);
   const [actualForm, setActualForm] = useState<MaintenanceCostActualFormState>(
     buildDefaultCostActualForm()
   );
+  const [actualLines, setActualLines] = useState<MaintenanceCostLineFormState[]>([]);
   const [financeSyncForm, setFinanceSyncForm] = useState<MaintenanceFinanceSyncFormState>({
     sync_income: true,
     sync_expense: true,
@@ -202,7 +289,14 @@ export function MaintenanceCostingModal({
     () => financeCurrencies.filter((currency) => currency.is_active),
     [financeCurrencies]
   );
-  const estimatedTotalPreview = useMemo(() => sumCostForm(estimateForm), [estimateForm]);
+  const estimateLineTotals = useMemo(() => sumCostLines(estimateLines), [estimateLines]);
+  const actualLineTotals = useMemo(() => sumCostLines(actualLines), [actualLines]);
+  const estimateUsesLines = estimateLines.length > 0;
+  const actualUsesLines = actualLines.length > 0;
+  const estimatedTotalPreview = useMemo(
+    () => (estimateUsesLines ? estimateLineTotals.total : sumCostForm(estimateForm)),
+    [estimateForm, estimateLineTotals.total, estimateUsesLines]
+  );
   const estimatedSuggestedPricePreview = useMemo(() => {
     const margin = normalizeNumericInput(estimateForm.target_margin_percent);
     if (estimatedTotalPreview <= 0) {
@@ -216,7 +310,10 @@ export function MaintenanceCostingModal({
     }
     return Number((estimatedTotalPreview / (1 - margin / 100)).toFixed(2));
   }, [estimateForm.target_margin_percent, estimatedTotalPreview]);
-  const actualTotalPreview = useMemo(() => sumCostForm(actualForm), [actualForm]);
+  const actualTotalPreview = useMemo(
+    () => (actualUsesLines ? actualLineTotals.total : sumCostForm(actualForm)),
+    [actualForm, actualLineTotals.total, actualUsesLines]
+  );
   const actualProfitPreview = useMemo(
     () => normalizeNumericInput(actualForm.actual_price_charged) - actualTotalPreview,
     [actualForm.actual_price_charged, actualTotalPreview]
@@ -277,7 +374,9 @@ export function MaintenanceCostingModal({
         setFinanceCurrencies(currencies);
         setCostingDetail(detail);
         setEstimateForm(buildDefaultCostEstimateForm(detail.estimate));
+        setEstimateLines(buildDefaultCostLines(detail.estimate_lines));
         setActualForm(buildDefaultCostActualForm(detail.actual));
+        setActualLines(buildDefaultCostLines(detail.actual_lines));
         setFinanceSyncForm({
           sync_income: true,
           sync_expense: true,
@@ -312,6 +411,154 @@ export function MaintenanceCostingModal({
   }
   const currentWorkOrder = workOrder;
 
+  function addEstimateLine() {
+    setEstimateLines((current) => [...current, buildBlankCostLine()]);
+  }
+
+  function addActualLine() {
+    setActualLines((current) => [...current, buildBlankCostLine()]);
+  }
+
+  function updateEstimateLine(index: number, key: keyof MaintenanceCostLineFormState, value: string) {
+    setEstimateLines((current) =>
+      current.map((line, currentIndex) =>
+        currentIndex === index ? { ...line, [key]: value } : line
+      )
+    );
+  }
+
+  function updateActualLine(index: number, key: keyof MaintenanceCostLineFormState, value: string) {
+    setActualLines((current) =>
+      current.map((line, currentIndex) =>
+        currentIndex === index ? { ...line, [key]: value } : line
+      )
+    );
+  }
+
+  function removeEstimateLine(index: number) {
+    setEstimateLines((current) => current.filter((_, currentIndex) => currentIndex !== index));
+  }
+
+  function removeActualLine(index: number) {
+    setActualLines((current) => current.filter((_, currentIndex) => currentIndex !== index));
+  }
+
+  const costLineTypeOptions = [
+    { value: "labor", label: language === "es" ? "Mano de obra" : "Labor" },
+    { value: "travel", label: language === "es" ? "Traslado" : "Travel" },
+    { value: "material", label: language === "es" ? "Material" : "Material" },
+    { value: "service", label: language === "es" ? "Servicio externo" : "External service" },
+    { value: "overhead", label: language === "es" ? "Indirecto" : "Overhead" },
+  ];
+
+  function renderLineEditor(
+    lines: MaintenanceCostLineFormState[],
+    onAdd: () => void,
+    onUpdate: (index: number, key: keyof MaintenanceCostLineFormState, value: string) => void,
+    onRemove: (index: number) => void
+  ) {
+    return (
+      <div className="maintenance-cost-lines">
+        <div className="maintenance-cost-lines__header">
+          <div>
+            <div className="maintenance-history-entry__title">
+              {language === "es" ? "Detalle por líneas" : "Detailed lines"}
+            </div>
+            <div className="maintenance-history-entry__meta">
+              {language === "es"
+                ? "Si agregas líneas, el resumen de costos se deriva automáticamente desde aquí."
+                : "If you add lines, the cost summary is automatically derived from them."}
+            </div>
+          </div>
+          <button className="btn btn-sm btn-outline-primary" type="button" onClick={onAdd}>
+            {language === "es" ? "Agregar línea" : "Add line"}
+          </button>
+        </div>
+        {lines.length === 0 ? (
+          <div className="maintenance-history-entry__meta">
+            {language === "es"
+              ? "Sin líneas todavía. Puedes seguir usando el resumen manual o agregar detalle."
+              : "No lines yet. You can keep using the manual summary or add detail."}
+          </div>
+        ) : (
+          <div className="maintenance-cost-lines__items">
+            {lines.map((line, index) => {
+              const lineTotal =
+                normalizeNumericInput(line.quantity) * normalizeNumericInput(line.unit_cost);
+              return (
+                <div className="maintenance-cost-lines__item" key={line.id ?? `new-${index}`}>
+                  <div className="row g-3">
+                    <div className="col-12 col-md-3">
+                      <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
+                      <select
+                        className="form-select"
+                        value={line.line_type}
+                        onChange={(event) => onUpdate(index, "line_type", event.target.value)}
+                      >
+                        {costLineTypeOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-12 col-md-5">
+                      <label className="form-label">{language === "es" ? "Descripción" : "Description"}</label>
+                      <input
+                        className="form-control"
+                        value={line.description}
+                        onChange={(event) => onUpdate(index, "description", event.target.value)}
+                      />
+                    </div>
+                    <div className="col-6 col-md-2">
+                      <label className="form-label">{language === "es" ? "Cantidad" : "Quantity"}</label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={line.quantity}
+                        onChange={(event) => onUpdate(index, "quantity", event.target.value)}
+                      />
+                    </div>
+                    <div className="col-6 col-md-2">
+                      <label className="form-label">{language === "es" ? "Costo unitario" : "Unit cost"}</label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={line.unit_cost}
+                        onChange={(event) => onUpdate(index, "unit_cost", event.target.value)}
+                      />
+                    </div>
+                    <div className="col-12 col-md-8">
+                      <label className="form-label">{language === "es" ? "Notas" : "Notes"}</label>
+                      <input
+                        className="form-control"
+                        value={line.notes}
+                        onChange={(event) => onUpdate(index, "notes", event.target.value)}
+                      />
+                    </div>
+                    <div className="col-8 col-md-2">
+                      <label className="form-label">{language === "es" ? "Total" : "Total"}</label>
+                      <input className="form-control" value={lineTotal.toFixed(2)} readOnly />
+                    </div>
+                    <div className="col-4 col-md-2 maintenance-cost-lines__remove">
+                      <button className="btn btn-outline-danger" type="button" onClick={() => onRemove(index)}>
+                        {language === "es" ? "Quitar" : "Remove"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   async function handleEstimateSubmit() {
     if (!accessToken) {
       return;
@@ -330,10 +577,12 @@ export function MaintenanceCostingModal({
           overhead_cost: normalizeNumericInput(estimateForm.overhead_cost),
           target_margin_percent: normalizeNumericInput(estimateForm.target_margin_percent),
           notes: normalizeNullable(estimateForm.notes),
+          lines: normalizeLineWritePayload(estimateLines),
         }
       );
       setCostingDetail(response.data);
       setEstimateForm(buildDefaultCostEstimateForm(response.data.estimate));
+      setEstimateLines(buildDefaultCostLines(response.data.estimate_lines));
       onFeedback?.(response.message);
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -360,10 +609,12 @@ export function MaintenanceCostingModal({
           overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
           actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
           notes: normalizeNullable(actualForm.notes),
+          lines: normalizeLineWritePayload(actualLines),
         }
       );
       setCostingDetail(response.data);
       setActualForm(buildDefaultCostActualForm(response.data.actual));
+      setActualLines(buildDefaultCostLines(response.data.actual_lines));
       onFeedback?.(response.message);
     } catch (rawError) {
       setError(rawError as ApiError);

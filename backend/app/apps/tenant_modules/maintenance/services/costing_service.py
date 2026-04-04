@@ -11,11 +11,20 @@ from app.apps.tenant_modules.finance.services.transaction_service import Finance
 from app.apps.tenant_modules.maintenance.models import (
     MaintenanceCostActual,
     MaintenanceCostEstimate,
+    MaintenanceCostLine,
     MaintenanceWorkOrder,
 )
 
 
 class MaintenanceCostingService:
+    LINE_TYPE_TO_BUCKET = {
+        "labor": "labor_cost",
+        "travel": "travel_cost",
+        "material": "materials_cost",
+        "service": "external_services_cost",
+        "overhead": "overhead_cost",
+    }
+
     def __init__(self, finance_service: FinanceService | None = None) -> None:
         self.finance_service = finance_service or FinanceService()
 
@@ -23,10 +32,13 @@ class MaintenanceCostingService:
         work_order = self._get_work_order_or_raise(tenant_db, work_order_id)
         estimate = self._get_estimate(tenant_db, work_order_id)
         actual = self._get_actual(tenant_db, work_order_id)
+        lines = self._get_cost_lines(tenant_db, work_order_id)
         return {
             "work_order": work_order,
             "estimate": estimate,
             "actual": actual,
+            "estimate_lines": [line for line in lines if line.cost_stage == "estimate"],
+            "actual_lines": [line for line in lines if line.cost_stage == "actual"],
         }
 
     def upsert_cost_estimate(
@@ -38,8 +50,13 @@ class MaintenanceCostingService:
         actor_user_id: int | None = None,
     ) -> dict:
         work_order = self._get_work_order_or_raise(tenant_db, work_order_id)
-        normalized = self._normalize_cost_payload(payload)
-        total_estimated_cost = self._sum_costs(normalized)
+        line_payloads = self._normalize_line_payloads(payload.lines)
+        if line_payloads:
+            normalized = self._sum_lines_by_bucket(line_payloads)
+            total_estimated_cost = self._sum_line_totals(line_payloads)
+        else:
+            normalized = self._normalize_cost_payload(payload)
+            total_estimated_cost = self._sum_costs(normalized)
         target_margin_percent = max(payload.target_margin_percent, 0)
         suggested_price = self._calculate_suggested_price(
             total_estimated_cost,
@@ -65,13 +82,22 @@ class MaintenanceCostingService:
         estimate.notes = self._normalize_text(payload.notes)
         estimate.updated_by_user_id = actor_user_id
 
+        estimate_lines = self._sync_cost_lines(
+            tenant_db,
+            work_order.id,
+            "estimate",
+            line_payloads,
+            actor_user_id=actor_user_id,
+        )
         tenant_db.commit()
         tenant_db.refresh(estimate)
         actual = self._get_actual(tenant_db, work_order_id)
         return {
-          "work_order": work_order,
-          "estimate": estimate,
-          "actual": actual,
+            "work_order": work_order,
+            "estimate": estimate,
+            "actual": actual,
+            "estimate_lines": estimate_lines,
+            "actual_lines": self._get_cost_lines(tenant_db, work_order_id, cost_stage="actual"),
         }
 
     def upsert_cost_actual(
@@ -83,8 +109,13 @@ class MaintenanceCostingService:
         actor_user_id: int | None = None,
     ) -> dict:
         work_order = self._get_work_order_or_raise(tenant_db, work_order_id)
-        normalized = self._normalize_cost_payload(payload)
-        total_actual_cost = self._sum_costs(normalized)
+        line_payloads = self._normalize_line_payloads(payload.lines)
+        if line_payloads:
+            normalized = self._sum_lines_by_bucket(line_payloads)
+            total_actual_cost = self._sum_line_totals(line_payloads)
+        else:
+            normalized = self._normalize_cost_payload(payload)
+            total_actual_cost = self._sum_costs(normalized)
         actual_income = max(payload.actual_price_charged, 0)
         actual_profit = actual_income - total_actual_cost
         actual_margin_percent = (
@@ -112,6 +143,13 @@ class MaintenanceCostingService:
         actual.notes = self._normalize_text(payload.notes)
         actual.updated_by_user_id = actor_user_id
 
+        actual_lines = self._sync_cost_lines(
+            tenant_db,
+            work_order.id,
+            "actual",
+            line_payloads,
+            actor_user_id=actor_user_id,
+        )
         tenant_db.commit()
         tenant_db.refresh(actual)
         estimate = self._get_estimate(tenant_db, work_order_id)
@@ -119,6 +157,8 @@ class MaintenanceCostingService:
             "work_order": work_order,
             "estimate": estimate,
             "actual": actual,
+            "estimate_lines": self._get_cost_lines(tenant_db, work_order_id, cost_stage="estimate"),
+            "actual_lines": actual_lines,
         }
 
     def sync_to_finance(
@@ -241,6 +281,8 @@ class MaintenanceCostingService:
             "work_order": work_order,
             "estimate": estimate,
             "actual": actual,
+            "estimate_lines": self._get_cost_lines(tenant_db, work_order_id, cost_stage="estimate"),
+            "actual_lines": self._get_cost_lines(tenant_db, work_order_id, cost_stage="actual"),
         }
 
     def _get_work_order_or_raise(self, tenant_db: Session, work_order_id: int) -> MaintenanceWorkOrder:
@@ -267,6 +309,22 @@ class MaintenanceCostingService:
             .first()
         )
 
+    def _get_cost_lines(
+        self,
+        tenant_db: Session,
+        work_order_id: int,
+        *,
+        cost_stage: str | None = None,
+    ) -> list[MaintenanceCostLine]:
+        lines = (
+            tenant_db.query(MaintenanceCostLine)
+            .filter(MaintenanceCostLine.work_order_id == work_order_id)
+            .all()
+        )
+        if cost_stage is None:
+            return lines
+        return [line for line in lines if line.cost_stage == cost_stage]
+
     def _normalize_cost_payload(self, payload) -> dict:
         return {
             "labor_cost": self._normalize_number(payload.labor_cost),
@@ -275,6 +333,86 @@ class MaintenanceCostingService:
             "external_services_cost": self._normalize_number(payload.external_services_cost),
             "overhead_cost": self._normalize_number(payload.overhead_cost),
         }
+
+    def _normalize_line_payloads(self, lines) -> list[dict]:
+        normalized_lines: list[dict] = []
+        for item in lines:
+            line_type = (item.line_type or "").strip().lower()
+            if line_type not in self.LINE_TYPE_TO_BUCKET:
+                raise ValueError("Cada linea de costo debe usar un tipo valido")
+            quantity = self._normalize_number(item.quantity)
+            unit_cost = self._normalize_number(item.unit_cost)
+            normalized_lines.append(
+                {
+                    "id": item.id,
+                    "line_type": line_type,
+                    "description": self._normalize_text(item.description),
+                    "quantity": quantity,
+                    "unit_cost": unit_cost,
+                    "total_cost": round(quantity * unit_cost, 2),
+                    "notes": self._normalize_text(item.notes),
+                }
+            )
+        return normalized_lines
+
+    def _sum_lines_by_bucket(self, lines: list[dict]) -> dict:
+        buckets = {
+            "labor_cost": 0.0,
+            "travel_cost": 0.0,
+            "materials_cost": 0.0,
+            "external_services_cost": 0.0,
+            "overhead_cost": 0.0,
+        }
+        for item in lines:
+            bucket_name = self.LINE_TYPE_TO_BUCKET[item["line_type"]]
+            buckets[bucket_name] += item["total_cost"]
+        return {key: round(value, 2) for key, value in buckets.items()}
+
+    def _sum_line_totals(self, lines: list[dict]) -> float:
+        return round(sum(item["total_cost"] for item in lines), 2)
+
+    def _sync_cost_lines(
+        self,
+        tenant_db: Session,
+        work_order_id: int,
+        cost_stage: str,
+        payload_lines: list[dict],
+        *,
+        actor_user_id: int | None = None,
+    ) -> list[MaintenanceCostLine]:
+        existing_lines = self._get_cost_lines(tenant_db, work_order_id, cost_stage=cost_stage)
+        existing_by_id = {line.id: line for line in existing_lines}
+        payload_ids = {
+            item["id"] for item in payload_lines if item["id"] is not None
+        }
+        synced_lines: list[MaintenanceCostLine] = []
+
+        for item in payload_lines:
+            line = existing_by_id.get(item["id"]) if item["id"] is not None else None
+            if line is None:
+                line = MaintenanceCostLine(
+                    work_order_id=work_order_id,
+                    cost_stage=cost_stage,
+                    created_by_user_id=actor_user_id,
+                )
+                tenant_db.add(line)
+            elif line.work_order_id != work_order_id or line.cost_stage != cost_stage:
+                raise ValueError("La linea de costo no pertenece a esta mantencion")
+
+            line.line_type = item["line_type"]
+            line.description = item["description"]
+            line.quantity = item["quantity"]
+            line.unit_cost = item["unit_cost"]
+            line.total_cost = item["total_cost"]
+            line.notes = item["notes"]
+            line.updated_by_user_id = actor_user_id
+            synced_lines.append(line)
+
+        for line in existing_lines:
+            if line.id is not None and line.id not in payload_ids:
+                tenant_db.delete(line)
+
+        return synced_lines
 
     def _normalize_number(self, value: float | int | None) -> float:
         normalized = float(value or 0)

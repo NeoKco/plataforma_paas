@@ -18,6 +18,23 @@ export type TenantMaintenanceCostEstimate = {
   updated_at: string;
 };
 
+export type TenantMaintenanceCostLine = {
+  id: number;
+  work_order_id: number;
+  cost_stage: string;
+  line_type: string;
+  description: string | null;
+  quantity: number;
+  unit_cost: number;
+  total_cost: number;
+  finance_transaction_id: number | null;
+  notes: string | null;
+  created_by_user_id: number | null;
+  updated_by_user_id: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type TenantMaintenanceCostActual = {
   id: number;
   work_order_id: number;
@@ -44,7 +61,9 @@ export type TenantMaintenanceCostActual = {
 export type TenantMaintenanceCostingDetail = {
   work_order_id: number;
   estimate: TenantMaintenanceCostEstimate | null;
+  estimate_lines: TenantMaintenanceCostLine[];
   actual: TenantMaintenanceCostActual | null;
+  actual_lines: TenantMaintenanceCostLine[];
 };
 
 export type TenantMaintenanceCostingResponse = {
@@ -61,6 +80,7 @@ export type TenantMaintenanceCostEstimateWriteRequest = {
   overhead_cost: number;
   target_margin_percent: number;
   notes: string | null;
+  lines: TenantMaintenanceCostLineWriteItem[];
 };
 
 export type TenantMaintenanceCostActualWriteRequest = {
@@ -70,6 +90,16 @@ export type TenantMaintenanceCostActualWriteRequest = {
   external_services_cost: number;
   overhead_cost: number;
   actual_price_charged: number;
+  notes: string | null;
+  lines: TenantMaintenanceCostLineWriteItem[];
+};
+
+export type TenantMaintenanceCostLineWriteItem = {
+  id: number | null;
+  line_type: string;
+  description: string | null;
+  quantity: number;
+  unit_cost: number;
   notes: string | null;
 };
 

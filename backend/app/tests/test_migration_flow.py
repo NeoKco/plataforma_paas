@@ -28,6 +28,7 @@ from migrations.tenant import v0019_core_user_timezones
 from migrations.tenant import v0020_work_group_members_and_maintenance_assignments
 from migrations.tenant import v0021_maintenance_schedules_and_due_items
 from migrations.tenant import v0022_maintenance_costing_and_finance_sync
+from migrations.tenant import v0023_maintenance_cost_lines
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -165,6 +166,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0020_work_group_members_and_maintenance_assignments",
                 "0021_maintenance_schedules_and_due_items",
                 "0022_maintenance_costing_and_finance_sync",
+                "0023_maintenance_cost_lines",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -203,6 +205,7 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("maintenance_due_items", tables)
         self.assertIn("maintenance_cost_estimates", tables)
         self.assertIn("maintenance_cost_actuals", tables)
+        self.assertIn("maintenance_cost_lines", tables)
         self.assertIn("maintenance_visits", tables)
         self.assertIn("maintenance_status_logs", tables)
         self.assertIn("tenant_schema_migrations", tables)
@@ -386,6 +389,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0020_work_group_members_and_maintenance_assignments",
                 "0021_maintenance_schedules_and_due_items",
                 "0022_maintenance_costing_and_finance_sync",
+                "0023_maintenance_cost_lines",
             ],
         )
 
