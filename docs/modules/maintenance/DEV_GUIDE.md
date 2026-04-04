@@ -132,6 +132,10 @@ Fuente frontend principal:
 - `Pendientes` ya debe exponer acciones operativas directas por fila: `Ver cliente`, `Contactar`, `Posponer`, `Agendar`
 - la agrupación por organización en `Pendientes` es una lectura complementaria; nunca debe reemplazar la unidad operativa real de cliente/dirección/instalación
 - el reporte `instalaciones activas sin plan preventivo` debe cruzar instalaciones activas contra schedules activos y permitir abrir `Nueva programación` ya precargada
+- el primer corte de costeo/cobro ya vive en `work_orders` como acción modal `Costos`, no como pantalla separada ni como formulario incrustado
+- la sincronización `maintenance -> finance` debe seguir siendo manual en este corte:
+  - `maintenance` calcula y conserva costo/cobro
+  - `finance` registra el hecho económico con `source_type/source_id`
 
 ## Checklist de cumplimiento del modulo
 
@@ -178,6 +182,8 @@ Entidades de segundo corte:
 
 - `maintenance_schedules`
 - `maintenance_due_items`
+- `maintenance_cost_estimates`
+- `maintenance_cost_actuals`
 - `maintenance_evidence`
 - `maintenance_checklists`
 - `maintenance_visit_reports`
@@ -224,6 +230,7 @@ Con modulos tenant:
 - `calendar`: la orden crea o actualiza eventos visibles
 - `business-core`: cliente, sitio, activo, grupo y tipo de tarea
 - `finance`: no mezclar gasto tecnico dentro del modulo base
+- `finance`: el costeo técnico ya puede sincronizar manualmente ingreso/egreso usando `finance_transactions.source_type/source_id`
 - `projects`: podra reutilizar el mismo sitio, cliente y responsable
 - `iot`: deberia colgarse del mismo sitio o activo instalado
 

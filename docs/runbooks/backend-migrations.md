@@ -98,9 +98,9 @@ cd /home/felipe/platform_paas/backend
 
 Estado local validado al cierre actual:
 
-- `empresa-demo` -> `0021_maintenance_schedules_and_due_items`
-- `condominio-demo` -> `0021_maintenance_schedules_and_due_items`
-- `empresa-bootstrap` -> `0021_maintenance_schedules_and_due_items`
+- `empresa-demo` -> `0022_maintenance_costing_and_finance_sync`
+- `condominio-demo` -> `0022_maintenance_costing_and_finance_sync`
+- `empresa-bootstrap` -> `0022_maintenance_costing_and_finance_sync`
 
 ## Integracion con el backend
 

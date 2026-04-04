@@ -412,6 +412,11 @@ export function MaintenanceWorkOrdersPage() {
     }
     return Number(((actualProfitPreview / income) * 100).toFixed(2));
   }, [actualForm.actual_price_charged, actualProfitPreview]);
+  const financeSyncBlocked =
+    !costingDetail?.actual ||
+    !financeSyncForm.currency_id ||
+    (financeSyncForm.sync_income && !financeSyncForm.income_account_id) ||
+    (financeSyncForm.sync_expense && !financeSyncForm.expense_account_id);
 
   async function loadData() {
     if (!session?.accessToken) {
@@ -1276,6 +1281,322 @@ export function MaintenanceWorkOrdersPage() {
                   </button>
                 </div>
               </form>
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
+
+      {isCostingModalOpen ? (
+        <div className="maintenance-form-backdrop" role="presentation" onClick={closeCostingModal}>
+          <div
+            className="maintenance-form-modal maintenance-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={language === "es" ? "Costos y cobro de mantención" : "Maintenance costing and billing"}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="maintenance-form-modal__eyebrow">
+              {language === "es" ? "Costeo y finanzas" : "Costing and finance"}
+            </div>
+            <PanelCard
+              title={language === "es" ? "Costos y cobro" : "Costing and billing"}
+              subtitle={
+                language === "es"
+                  ? "Calcula costo estimado, registra costo real y sincroniza manualmente los movimientos a Finanzas."
+                  : "Calculate estimated cost, register actual cost, and manually sync transactions into Finance."
+              }
+            >
+              {isCostingLoading ? (
+                <LoadingBlock label={language === "es" ? "Cargando costeo..." : "Loading costing..."} />
+              ) : costingWorkOrder ? (
+                <div className="d-grid gap-3">
+                  <div className="maintenance-history-entry">
+                    <div className="maintenance-history-entry__title">
+                      {stripLegacyVisibleText(costingWorkOrder.title)}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {getClientDisplayName(costingWorkOrder.client_id)} · {getSiteDisplayName(costingWorkOrder.site_id)}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {language === "es" ? "Instalación" : "Installation"}:{" "}
+                      {costingWorkOrder.installation_id
+                        ? installationById.get(costingWorkOrder.installation_id)?.name || `#${costingWorkOrder.installation_id}`
+                        : language === "es"
+                          ? "pendiente"
+                          : "pending"}
+                    </div>
+                  </div>
+
+                  <form
+                    className="maintenance-form"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void handleEstimateSubmit();
+                    }}
+                  >
+                    <div className="maintenance-history-entry">
+                      <div className="maintenance-history-entry__title">
+                        {language === "es" ? "Costeo estimado" : "Estimated costing"}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es"
+                          ? "Úsalo para proyectar costo interno y precio sugerido antes de ejecutar."
+                          : "Use it to project internal cost and suggested price before execution."}
+                      </div>
+                      <div className="row g-3 mt-1">
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Mano de obra" : "Labor"}</label>
+                          <input className="form-control" type="number" min="0" step="0.01" value={estimateForm.labor_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, labor_cost: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Traslado" : "Travel"}</label>
+                          <input className="form-control" type="number" min="0" step="0.01" value={estimateForm.travel_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, travel_cost: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Materiales" : "Materials"}</label>
+                          <input className="form-control" type="number" min="0" step="0.01" value={estimateForm.materials_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, materials_cost: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Servicios externos" : "External services"}</label>
+                          <input className="form-control" type="number" min="0" step="0.01" value={estimateForm.external_services_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, external_services_cost: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Indirectos" : "Overhead"}</label>
+                          <input className="form-control" type="number" min="0" step="0.01" value={estimateForm.overhead_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, overhead_cost: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Margen objetivo (%)" : "Target margin (%)"}</label>
+                          <input className="form-control" type="number" min="0" max="99.99" step="0.01" value={estimateForm.target_margin_percent} onChange={(event) => setEstimateForm((current) => ({ ...current, target_margin_percent: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label">{language === "es" ? "Costo estimado total" : "Estimated total cost"}</label>
+                          <input className="form-control" value={estimatedTotalPreview.toFixed(2)} readOnly />
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label">{language === "es" ? "Precio sugerido" : "Suggested price"}</label>
+                          <input className="form-control" value={estimatedSuggestedPricePreview.toFixed(2)} readOnly />
+                        </div>
+                        <div className="col-12">
+                          <label className="form-label">{language === "es" ? "Notas de estimación" : "Estimate notes"}</label>
+                          <textarea className="form-control" rows={3} value={estimateForm.notes} onChange={(event) => setEstimateForm((current) => ({ ...current, notes: event.target.value }))} />
+                        </div>
+                      </div>
+                      <div className="maintenance-form__actions">
+                        <button className="btn btn-outline-primary" type="submit" disabled={isEstimateSubmitting}>
+                          {isEstimateSubmitting
+                            ? language === "es"
+                              ? "Guardando..."
+                              : "Saving..."
+                            : language === "es"
+                              ? "Guardar estimado"
+                              : "Save estimate"}
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+
+                  <form
+                    className="maintenance-form"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void handleActualSubmit();
+                    }}
+                  >
+                    <div className="maintenance-history-entry">
+                      <div className="maintenance-history-entry__title">
+                        {language === "es" ? "Costo real y cobro" : "Actual cost and billing"}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es"
+                          ? "Registra lo que realmente costó y lo que se cobró para medir utilidad."
+                          : "Register the real cost and amount charged to measure profit."}
+                      </div>
+                      <div className="row g-3 mt-1">
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Mano de obra real" : "Actual labor"}</label>
+                          <input className="form-control" type="number" min="0" step="0.01" value={actualForm.labor_cost} onChange={(event) => setActualForm((current) => ({ ...current, labor_cost: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Traslado real" : "Actual travel"}</label>
+                          <input className="form-control" type="number" min="0" step="0.01" value={actualForm.travel_cost} onChange={(event) => setActualForm((current) => ({ ...current, travel_cost: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Materiales reales" : "Actual materials"}</label>
+                          <input className="form-control" type="number" min="0" step="0.01" value={actualForm.materials_cost} onChange={(event) => setActualForm((current) => ({ ...current, materials_cost: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Servicios externos reales" : "Actual external services"}</label>
+                          <input className="form-control" type="number" min="0" step="0.01" value={actualForm.external_services_cost} onChange={(event) => setActualForm((current) => ({ ...current, external_services_cost: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Indirectos reales" : "Actual overhead"}</label>
+                          <input className="form-control" type="number" min="0" step="0.01" value={actualForm.overhead_cost} onChange={(event) => setActualForm((current) => ({ ...current, overhead_cost: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Monto cobrado" : "Amount charged"}</label>
+                          <input className="form-control" type="number" min="0" step="0.01" value={actualForm.actual_price_charged} onChange={(event) => setActualForm((current) => ({ ...current, actual_price_charged: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Costo real total" : "Actual total cost"}</label>
+                          <input className="form-control" value={actualTotalPreview.toFixed(2)} readOnly />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Utilidad" : "Profit"}</label>
+                          <input className="form-control" value={actualProfitPreview.toFixed(2)} readOnly />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Margen real (%)" : "Actual margin (%)"}</label>
+                          <input className="form-control" value={actualMarginPreview === null ? "—" : actualMarginPreview.toFixed(2)} readOnly />
+                        </div>
+                        <div className="col-12">
+                          <label className="form-label">{language === "es" ? "Notas de cierre económico" : "Financial close notes"}</label>
+                          <textarea className="form-control" rows={3} value={actualForm.notes} onChange={(event) => setActualForm((current) => ({ ...current, notes: event.target.value }))} />
+                        </div>
+                      </div>
+                      <div className="maintenance-form__actions">
+                        <button className="btn btn-outline-primary" type="submit" disabled={isActualSubmitting}>
+                          {isActualSubmitting
+                            ? language === "es"
+                              ? "Guardando..."
+                              : "Saving..."
+                            : language === "es"
+                              ? "Guardar costo real"
+                              : "Save actual cost"}
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+
+                  <form
+                    className="maintenance-form"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void handleFinanceSyncSubmit();
+                    }}
+                  >
+                    <div className="maintenance-history-entry">
+                      <div className="maintenance-history-entry__title">
+                        {language === "es" ? "Sincronizar a finanzas" : "Sync to finance"}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es"
+                          ? "Crea o actualiza el ingreso y egreso ligados a esta mantención usando source_type/source_id."
+                          : "Create or update the linked income and expense using source_type/source_id."}
+                      </div>
+                      {!activeFinanceAccounts.length || !activeCurrencies.length ? (
+                        <div className="alert alert-warning mt-3 mb-0">
+                          {language === "es"
+                            ? "Primero debes tener cuentas y monedas activas en Finanzas para sincronizar."
+                            : "You need active accounts and currencies in Finance before syncing."}
+                        </div>
+                      ) : null}
+                      <div className="row g-3 mt-1">
+                        <div className="col-12 col-md-6">
+                          <label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label>
+                          <select className="form-select" value={financeSyncForm.currency_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, currency_id: event.target.value }))}>
+                            <option value="">{language === "es" ? "Selecciona una moneda" : "Select a currency"}</option>
+                            {activeCurrencies.map((currency) => (
+                              <option key={currency.id} value={currency.id}>
+                                {currency.code} · {currency.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label">{language === "es" ? "Fecha contable" : "Transaction date"}</label>
+                          <input className="form-control" type="datetime-local" value={financeSyncForm.transaction_at} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, transaction_at: event.target.value }))} />
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <div className="form-check mt-4">
+                            <input id="maintenance-sync-income" className="form-check-input" type="checkbox" checked={financeSyncForm.sync_income} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, sync_income: event.target.checked }))} />
+                            <label className="form-check-label" htmlFor="maintenance-sync-income">
+                              {language === "es" ? "Sincronizar ingreso" : "Sync income"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <div className="form-check mt-4">
+                            <input id="maintenance-sync-expense" className="form-check-input" type="checkbox" checked={financeSyncForm.sync_expense} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, sync_expense: event.target.checked }))} />
+                            <label className="form-check-label" htmlFor="maintenance-sync-expense">
+                              {language === "es" ? "Sincronizar egreso" : "Sync expense"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label">{language === "es" ? "Cuenta ingreso" : "Income account"}</label>
+                          <select className="form-select" value={financeSyncForm.income_account_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, income_account_id: event.target.value }))} disabled={!financeSyncForm.sync_income}>
+                            <option value="">{language === "es" ? "Selecciona una cuenta" : "Select an account"}</option>
+                            {activeFinanceAccounts.map((account) => (
+                              <option key={account.id} value={account.id}>
+                                {account.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label">{language === "es" ? "Categoría ingreso" : "Income category"}</label>
+                          <select className="form-select" value={financeSyncForm.income_category_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, income_category_id: event.target.value }))} disabled={!financeSyncForm.sync_income}>
+                            <option value="">{language === "es" ? "Sin categoría específica" : "No specific category"}</option>
+                            {incomeCategories.map((category) => (
+                              <option key={category.id} value={category.id}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label">{language === "es" ? "Cuenta egreso" : "Expense account"}</label>
+                          <select className="form-select" value={financeSyncForm.expense_account_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, expense_account_id: event.target.value }))} disabled={!financeSyncForm.sync_expense}>
+                            <option value="">{language === "es" ? "Selecciona una cuenta" : "Select an account"}</option>
+                            {activeFinanceAccounts.map((account) => (
+                              <option key={account.id} value={account.id}>
+                                {account.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label">{language === "es" ? "Categoría egreso" : "Expense category"}</label>
+                          <select className="form-select" value={financeSyncForm.expense_category_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, expense_category_id: event.target.value }))} disabled={!financeSyncForm.sync_expense}>
+                            <option value="">{language === "es" ? "Sin categoría específica" : "No specific category"}</option>
+                            {expenseCategories.map((category) => (
+                              <option key={category.id} value={category.id}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-12">
+                          <label className="form-label">{language === "es" ? "Notas para finanzas" : "Finance notes"}</label>
+                          <textarea className="form-control" rows={2} value={financeSyncForm.notes} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, notes: event.target.value }))} />
+                        </div>
+                        <div className="col-12">
+                          <div className="maintenance-history-entry__meta">
+                            {language === "es" ? "Ingreso vinculado" : "Linked income"}:{" "}
+                            {costingDetail?.actual?.income_transaction_id ?? "—"} ·{" "}
+                            {language === "es" ? "Egreso vinculado" : "Linked expense"}:{" "}
+                            {costingDetail?.actual?.expense_transaction_id ?? "—"}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="maintenance-form__actions">
+                        <button className="btn btn-outline-secondary" type="button" onClick={closeCostingModal}>
+                          {language === "es" ? "Cerrar" : "Close"}
+                        </button>
+                        <button className="btn btn-primary" type="submit" disabled={isFinanceSyncSubmitting || financeSyncBlocked}>
+                          {isFinanceSyncSubmitting
+                            ? language === "es"
+                              ? "Sincronizando..."
+                              : "Syncing..."
+                            : language === "es"
+                              ? "Sincronizar con finanzas"
+                              : "Sync with Finance"}
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              ) : null}
             </PanelCard>
           </div>
         </div>

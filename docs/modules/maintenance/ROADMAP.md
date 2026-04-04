@@ -124,6 +124,7 @@ Pendiente inmediato de esta fase:
 - agenda visual con conflictos, filtros y reprogramación más rica
 - abrir programaciones automáticas y bandeja preventiva de vencimientos
 - abrir costeo y cobro por orden de trabajo
+- primer corte de costeo/cobro por orden de trabajo ya operativo en `Mantenciones`
 
 ## Fase 4. Endurecimiento operativo
 
@@ -221,7 +222,26 @@ Avance actual:
   - leer la carga agrupada por organización sin perder la acción por cliente/dirección
   - detectar instalaciones activas sin plan preventivo y abrir la creación de programación ya precargada
   - agendar una OT desde el pendiente
-- sigue pendiente el corte de costeo/cobro y la sincronización económica hacia `finance`
+- se agrega migración tenant `0022_maintenance_costing_and_finance_sync`
+- tablas ya versionadas:
+  - `maintenance_cost_estimates`
+  - `maintenance_cost_actuals`
+- backend ya expone APIs reales para:
+  - `GET /tenant/maintenance/work-orders/{id}/costing`
+  - `PUT /tenant/maintenance/work-orders/{id}/cost-estimate`
+  - `PUT /tenant/maintenance/work-orders/{id}/cost-actual`
+  - `POST /tenant/maintenance/work-orders/{id}/finance-sync`
+- frontend tenant ya permite desde `Mantenciones`:
+  - guardar costo estimado
+  - guardar costo real
+  - registrar monto cobrado
+  - sincronizar manualmente ingreso/egreso hacia `finance`
+
+Pendiente inmediato de esta fase:
+
+- detalle granular por líneas de costo
+- decidir si `Costos y cobro` se replica también en `Historial`
+- cerrar la sincronización automática opcional por política tenant
 
 ## Mejoras de producto recomendadas
 
@@ -252,9 +272,11 @@ Avance actual:
 
 ## Siguiente paso recomendado
 
-- aplicar migraciones tenant faltantes en el tenant destino del importador
-- validar el importador inicial con `dry-run` y luego `--apply`
-- despues integrar agenda visual/reprogramacion con conflictos
+- aplicar migraciones tenant faltantes de `0022` en tenants activos
+- decidir el segundo corte del roadmap:
+  - líneas de costo
+  - sync automática opcional
+  - exposición de costeo también en historial
 
 ## Backlog pendiente visible
 

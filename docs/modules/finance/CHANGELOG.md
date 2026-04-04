@@ -63,6 +63,7 @@ Resumen curado de hitos del módulo `finance`.
 ### Integración futura con maintenance
 
 - se fija documentalmente que la futura integración `maintenance` -> `finance` debe usar `finance_transactions.source_type/source_id` como enlace canónico, sin duplicar el núcleo contable dentro del módulo técnico
+- el primer corte real de esa integración queda operativo desde `maintenance` con sincronización manual de ingreso/egreso por OT, manteniendo a `finance` como dueño del registro económico y a `maintenance` como dueño del costeo operativo
 
 ### E2E browser
 

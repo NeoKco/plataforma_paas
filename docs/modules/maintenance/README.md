@@ -34,6 +34,11 @@ Estado actual:
   - bandeja automatica visible en `Pendientes`
   - alta manual de programaciones
   - agendamiento desde pendiente hacia `work_orders`
+- ya existe el primer corte de `Costos y cobro` por OT con:
+  - `maintenance_cost_estimates`
+  - `maintenance_cost_actuals`
+  - modal de costeo sobre `Mantenciones`
+  - sincronización manual controlada hacia `finance`
 
 Objetivo del modulo:
 
@@ -75,6 +80,7 @@ Estado del corte hoy:
 - `Pendientes` ya permite `Ver cliente`, `Contactar`, `Posponer` y `Agendar` desde la misma fila
 - `Pendientes` ya agrega una lectura agrupada por organización para coordinar carga sin perder la operación por cliente/dirección
 - `Pendientes` ya muestra instalaciones activas sin plan preventivo y permite abrir `Crear plan` con cliente/dirección/instalación precargados
+- `Mantenciones` ya permite abrir `Costos` por OT para guardar estimado, costo real, monto cobrado y sincronizar manualmente a `finance`
 
 Pendientes visibles inmediatos:
 

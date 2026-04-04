@@ -89,6 +89,10 @@ Smokes vigentes:
   - si no existe, zona por defecto del tenant
   - solo al final, fallback de plataforma
 - La futura integración con `maintenance` debe apoyarse sobre `finance_transactions.source_type/source_id`; `finance` registra el hecho económico, pero `maintenance` sigue siendo dueño de la programación, ejecución y costeo operativo.
+- El primer corte de esa integración ya está operativo en `maintenance`:
+  - `maintenance` guarda costo estimado y costo real propios
+  - la acción manual `finance-sync` crea o actualiza transacciones de ingreso/egreso con `source_type/source_id`
+  - `finance` no asume la lógica de costeo técnico; solo registra y conserva el hecho contable enlazado
 
 ## Cómo extender el módulo
 

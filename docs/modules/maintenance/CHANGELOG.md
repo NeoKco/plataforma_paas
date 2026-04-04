@@ -2,6 +2,22 @@
 
 ## 2026-04-04
 
+- se implementa el primer corte real de `Costos y cobro` por OT:
+  - migración tenant `0022_maintenance_costing_and_finance_sync`
+  - tablas `maintenance_cost_estimates` y `maintenance_cost_actuals`
+  - APIs reales para:
+    - `GET /work-orders/{id}/costing`
+    - `PUT /work-orders/{id}/cost-estimate`
+    - `PUT /work-orders/{id}/cost-actual`
+    - `POST /work-orders/{id}/finance-sync`
+- `Mantenciones` agrega acción `Costos` por fila:
+  - costo estimado
+  - costo real
+  - monto cobrado
+  - sincronización manual a `Finanzas`
+- el puente hacia `finance` queda enlazado por `source_type/source_id`, sin duplicar el núcleo financiero dentro del módulo técnico
+- se actualizan pruebas backend de migración y del nuevo `MaintenanceCostingService`
+- el smoke E2E de `maintenance` ahora valida también la apertura del modal `Costos y cobro`
 - `Nueva programación` en `Pendientes` se alinea visual y estructuralmente con `Nueva mantención`:
   - mismo patrón modal
   - misma carcasa `panel-card` y misma jerarquía visual de encabezado/subtítulo

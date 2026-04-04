@@ -66,6 +66,13 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await expect(page.getByLabel(/Grupo responsable|Responsible group/i)).toBeVisible();
   await expect(page.getByLabel(/Técnico responsable|Assigned technician/i)).toBeVisible();
   await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+  await page.getByRole("button", { name: /Costos|Costing/i }).first().click();
+  await expect(page.getByRole("heading", { name: /Costos y cobro|Costing and billing/i })).toBeVisible();
+  await expect(page.getByLabel(/Costo estimado total|Estimated total cost/i)).toBeVisible();
+  await expect(page.getByLabel(/Monto cobrado|Amount charged/i)).toBeVisible();
+  await expect(page.getByLabel(/Sincronizar ingreso|Sync income/i)).toBeVisible();
+  await expect(page.getByRole("button", { name: /Cerrar|Close/i })).toBeVisible();
+  await page.getByRole("button", { name: /Cerrar|Close/i }).click();
 
   await openTenantImportedPage(
     page,

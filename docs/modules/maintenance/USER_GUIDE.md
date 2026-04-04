@@ -44,6 +44,7 @@ El primer corte del modulo ya permite:
 - crear una orden nueva
 - editar una orden aun no cerrada
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
+- abrir `Costos` desde una mantención abierta para registrar costo estimado, costo real, cobro y sincronización manual a Finanzas
 - sacar automaticamente de la bandeja activa una orden al completarla o anularla
 - mantener catalogo de tipos de equipo
 - mantener instalaciones tecnicas ligadas a sitios del dominio base
@@ -98,6 +99,8 @@ Lectura funcional de cada vista:
   - desde la tabla puedes abrir `Ver cliente`, `Contactar`, `Posponer` o `Agendar`
   - también aparece un reporte de instalaciones activas sin plan preventivo para abrir `Crear plan` con el contexto ya cargado
 - `Mantenciones`: solo trabajo abierto (`scheduled` / `in_progress`)
+  - cada fila ya permite abrir `Costos`
+  - el costeo se maneja en modal, igual que la captura principal del módulo
 - `Instalaciones`: parque instalado por cliente y direccion
 - `Historial`: trabajo ya realizado o anulado
 - `Agenda`: calendario visual del trabajo abierto
@@ -112,6 +115,10 @@ Regla UX operativa:
 - el usuario no debe ver referencias `legacy_*` como datos operativos
 - una mantencion cerrada no debe seguir apareciendo editable en la bandeja activa
 - en historial solo deberian poder corregirse descripcion o cierre, no reprogramar fecha/hora
+- la sincronización a `Finanzas` es manual y controlada:
+  - primero se registra costo real
+  - luego se eligen cuenta, categoría y moneda
+  - recién entonces se genera o actualiza el ingreso/egreso financiero
 
 ## Mejora funcional recomendada
 
