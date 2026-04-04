@@ -26,6 +26,14 @@
 - el smoke E2E de `maintenance` ahora valida también la apertura del modal `Costos y cobro`
 - el smoke E2E ahora valida `Costos` tanto desde `Mantenciones` como desde `Historial`
 - el smoke E2E valida también la presencia de `Agregar línea` dentro del modal de costeo
+- se cierra la política tenant del puente `maintenance -> finance`:
+  - migración tenant `0024_maintenance_finance_sync_policy`
+  - `tenant_info` ahora guarda modo `manual` o `auto_on_close`
+  - se guardan cuentas, categorías y moneda por defecto
+  - `Resumen técnico` expone una tarjeta visible para administrar esa política
+  - al completar una OT, el backend intenta el auto-sync si la política tenant está activa
+  - el auto-sync no bloquea el cierre cuando la configuración financiera aún está incompleta
+- el smoke E2E de `maintenance` valida además la presencia de `Sincronización automática a finanzas` en `Resumen técnico`
 - `Nueva programación` en `Pendientes` se alinea visual y estructuralmente con `Nueva mantención`:
   - mismo patrón modal
   - misma carcasa `panel-card` y misma jerarquía visual de encabezado/subtítulo

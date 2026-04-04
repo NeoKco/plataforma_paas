@@ -55,6 +55,10 @@ test("tenant portal shows imported business core and maintenance data from ieris
     /Resumen t[eé]cnico|Technical overview/i
   );
   await expect(page.getByText(/Últimas 5 mantenciones realizadas|Last 5 completed maintenance/i)).toBeVisible();
+  await expect(
+    page.getByText(/Sincronización automática a finanzas|Automatic finance sync/i)
+  ).toBeVisible();
+  await expect(page.getByLabel(/Modo de sincronización|Sync mode/i)).toBeVisible();
 
   await openTenantImportedPage(
     page,

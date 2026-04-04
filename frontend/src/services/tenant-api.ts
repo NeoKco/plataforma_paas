@@ -66,6 +66,39 @@ export function updateTenantTimeZone(
   );
 }
 
+export function updateTenantMaintenanceFinanceSync(
+  accessToken: string,
+  payload: {
+    maintenance_finance_sync_mode: string;
+    maintenance_finance_auto_sync_income: boolean;
+    maintenance_finance_auto_sync_expense: boolean;
+    maintenance_finance_income_account_id?: number | null;
+    maintenance_finance_expense_account_id?: number | null;
+    maintenance_finance_income_category_id?: number | null;
+    maintenance_finance_expense_category_id?: number | null;
+    maintenance_finance_currency_id?: number | null;
+  }
+) {
+  return apiRequest<{
+    success: boolean;
+    message: string;
+    data: {
+      maintenance_finance_sync_mode: string;
+      maintenance_finance_auto_sync_income: boolean;
+      maintenance_finance_auto_sync_expense: boolean;
+      maintenance_finance_income_account_id: number | null;
+      maintenance_finance_expense_account_id: number | null;
+      maintenance_finance_income_category_id: number | null;
+      maintenance_finance_expense_category_id: number | null;
+      maintenance_finance_currency_id: number | null;
+    };
+  }>("/tenant/info/maintenance-finance-sync", {
+    method: "PATCH",
+    token: accessToken,
+    body: payload,
+  });
+}
+
 export function getTenantModuleUsage(accessToken: string) {
   return apiRequest<TenantModuleUsageResponse>("/tenant/module-usage", {
     token: accessToken,

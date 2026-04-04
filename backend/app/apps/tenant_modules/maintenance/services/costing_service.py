@@ -302,7 +302,7 @@ class MaintenanceCostingService:
         actor_user_id: int | None = None,
     ) -> dict | None:
         work_order = self._get_work_order_or_raise(tenant_db, work_order_id)
-        if work_order.maintenance_status != "completed":
+        if getattr(work_order, "maintenance_status", None) != "completed":
             return None
 
         actual = self._get_actual(tenant_db, work_order_id)

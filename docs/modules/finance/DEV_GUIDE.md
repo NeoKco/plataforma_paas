@@ -93,6 +93,10 @@ Smokes vigentes:
   - `maintenance` guarda costo estimado y costo real propios
   - la acción manual `finance-sync` crea o actualiza transacciones de ingreso/egreso con `source_type/source_id`
   - `finance` no asume la lógica de costeo técnico; solo registra y conserva el hecho contable enlazado
+- El siguiente corte ya deja además política tenant-side para auto-sync:
+  - la configuración vive en `tenant_info` y se administra desde `Mantenciones > Resumen`
+  - `finance` sigue sin volverse dueño del workflow técnico
+  - `source_type/source_id` sigue siendo el enlace canónico
 
 ## Cómo extender el módulo
 

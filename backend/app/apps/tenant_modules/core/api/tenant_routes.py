@@ -141,7 +141,16 @@ def tenant_info(
             tenant_info=tenant_record,
         )
         if tenant_record is not None
-        else tenant_data_service.get_maintenance_finance_sync_policy(tenant_db)
+        else {
+            "maintenance_finance_sync_mode": "manual",
+            "maintenance_finance_auto_sync_income": True,
+            "maintenance_finance_auto_sync_expense": True,
+            "maintenance_finance_income_account_id": None,
+            "maintenance_finance_expense_account_id": None,
+            "maintenance_finance_income_category_id": None,
+            "maintenance_finance_expense_category_id": None,
+            "maintenance_finance_currency_id": None,
+        }
     )
 
     return TenantInfoResponse(

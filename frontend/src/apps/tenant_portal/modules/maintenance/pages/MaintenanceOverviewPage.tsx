@@ -11,6 +11,19 @@ import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
 import type { ApiError } from "../../../../../types";
+import { updateTenantMaintenanceFinanceSync } from "../../../../../services/tenant-api";
+import {
+  getTenantFinanceAccounts,
+  type TenantFinanceAccount,
+} from "../../finance/services/accountsService";
+import {
+  getTenantFinanceCategories,
+  type TenantFinanceCategory,
+} from "../../finance/services/categoriesService";
+import {
+  getTenantFinanceCurrencies,
+  type TenantFinanceCurrency,
+} from "../../finance/services/currenciesService";
 import {
   getTenantBusinessClients,
   type TenantBusinessClient,
@@ -64,13 +77,28 @@ function getStatusTone(status: string): "success" | "warning" | "danger" | "info
 }
 
 export function MaintenanceOverviewPage() {
-  const { session, effectiveTimeZone } = useTenantAuth();
+  const { session, tenantInfo, effectiveTimeZone, refreshTenantInfo } = useTenantAuth();
   const { language } = useLanguage();
   const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [historyRows, setHistoryRows] = useState<TenantMaintenanceHistoryWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
+  const [financeAccounts, setFinanceAccounts] = useState<TenantFinanceAccount[]>([]);
+  const [financeCategories, setFinanceCategories] = useState<TenantFinanceCategory[]>([]);
+  const [financeCurrencies, setFinanceCurrencies] = useState<TenantFinanceCurrency[]>([]);
+  const [financeConfigNotice, setFinanceConfigNotice] = useState<string | null>(null);
+  const [isSavingFinanceConfig, setIsSavingFinanceConfig] = useState(false);
+  const [financeConfigForm, setFinanceConfigForm] = useState({
+    maintenance_finance_sync_mode: "manual",
+    maintenance_finance_auto_sync_income: true,
+    maintenance_finance_auto_sync_expense: true,
+    maintenance_finance_income_account_id: "",
+    maintenance_finance_expense_account_id: "",
+    maintenance_finance_income_category_id: "",
+    maintenance_finance_expense_category_id: "",
+    maintenance_finance_currency_id: "",
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
 
@@ -103,6 +131,28 @@ export function MaintenanceOverviewPage() {
   );
 
   const latestCompleted = useMemo(() => historyRows.slice(0, 5), [historyRows]);
+  const incomeCategories = useMemo(
+    () =>
+      financeCategories.filter(
+        (category) => category.is_active && category.category_type === "income"
+      ),
+    [financeCategories]
+  );
+  const expenseCategories = useMemo(
+    () =>
+      financeCategories.filter(
+        (category) => category.is_active && category.category_type === "expense"
+      ),
+    [financeCategories]
+  );
+  const activeAccounts = useMemo(
+    () => financeAccounts.filter((account) => account.is_active),
+    [financeAccounts]
+  );
+  const activeCurrencies = useMemo(
+    () => financeCurrencies.filter((currency) => currency.is_active),
+    [financeCurrencies]
+  );
 
   async function loadData() {
     if (!session?.accessToken) {
@@ -124,6 +174,20 @@ export function MaintenanceOverviewPage() {
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
+      const financeCatalogResults = await Promise.allSettled([
+        getTenantFinanceAccounts(session.accessToken, false),
+        getTenantFinanceCategories(session.accessToken, { includeInactive: false }),
+        getTenantFinanceCurrencies(session.accessToken, false),
+      ]);
+      if (financeCatalogResults[0].status === "fulfilled") {
+        setFinanceAccounts(financeCatalogResults[0].value.data);
+      }
+      if (financeCatalogResults[1].status === "fulfilled") {
+        setFinanceCategories(financeCatalogResults[1].value.data);
+      }
+      if (financeCatalogResults[2].status === "fulfilled") {
+        setFinanceCurrencies(financeCatalogResults[2].value.data);
+      }
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -134,6 +198,46 @@ export function MaintenanceOverviewPage() {
   useEffect(() => {
     void loadData();
   }, [session?.accessToken]);
+
+  useEffect(() => {
+    setFinanceConfigForm({
+      maintenance_finance_sync_mode:
+        tenantInfo?.maintenance_finance_sync_mode || "manual",
+      maintenance_finance_auto_sync_income:
+        tenantInfo?.maintenance_finance_auto_sync_income ?? true,
+      maintenance_finance_auto_sync_expense:
+        tenantInfo?.maintenance_finance_auto_sync_expense ?? true,
+      maintenance_finance_income_account_id:
+        tenantInfo?.maintenance_finance_income_account_id != null
+          ? String(tenantInfo.maintenance_finance_income_account_id)
+          : "",
+      maintenance_finance_expense_account_id:
+        tenantInfo?.maintenance_finance_expense_account_id != null
+          ? String(tenantInfo.maintenance_finance_expense_account_id)
+          : "",
+      maintenance_finance_income_category_id:
+        tenantInfo?.maintenance_finance_income_category_id != null
+          ? String(tenantInfo.maintenance_finance_income_category_id)
+          : "",
+      maintenance_finance_expense_category_id:
+        tenantInfo?.maintenance_finance_expense_category_id != null
+          ? String(tenantInfo.maintenance_finance_expense_category_id)
+          : "",
+      maintenance_finance_currency_id:
+        tenantInfo?.maintenance_finance_currency_id != null
+          ? String(tenantInfo.maintenance_finance_currency_id)
+          : "",
+    });
+  }, [
+    tenantInfo?.maintenance_finance_auto_sync_expense,
+    tenantInfo?.maintenance_finance_auto_sync_income,
+    tenantInfo?.maintenance_finance_currency_id,
+    tenantInfo?.maintenance_finance_expense_account_id,
+    tenantInfo?.maintenance_finance_expense_category_id,
+    tenantInfo?.maintenance_finance_income_account_id,
+    tenantInfo?.maintenance_finance_income_category_id,
+    tenantInfo?.maintenance_finance_sync_mode,
+  ]);
 
   function getClientLabel(clientId: number): string {
     const client = clientById.get(clientId);
@@ -159,6 +263,46 @@ export function MaintenanceOverviewPage() {
       .filter((value): value is string => Boolean(value))
       .join(", ");
     return locality ? `${base} · ${locality}` : base;
+  }
+
+  async function saveMaintenanceFinanceConfig() {
+    if (!session?.accessToken || session.role !== "admin") {
+      return;
+    }
+    setIsSavingFinanceConfig(true);
+    setFinanceConfigNotice(null);
+    try {
+      const response = await updateTenantMaintenanceFinanceSync(session.accessToken, {
+        maintenance_finance_sync_mode: financeConfigForm.maintenance_finance_sync_mode,
+        maintenance_finance_auto_sync_income:
+          financeConfigForm.maintenance_finance_auto_sync_income,
+        maintenance_finance_auto_sync_expense:
+          financeConfigForm.maintenance_finance_auto_sync_expense,
+        maintenance_finance_income_account_id: financeConfigForm.maintenance_finance_income_account_id
+          ? Number(financeConfigForm.maintenance_finance_income_account_id)
+          : null,
+        maintenance_finance_expense_account_id: financeConfigForm.maintenance_finance_expense_account_id
+          ? Number(financeConfigForm.maintenance_finance_expense_account_id)
+          : null,
+        maintenance_finance_income_category_id:
+          financeConfigForm.maintenance_finance_income_category_id
+            ? Number(financeConfigForm.maintenance_finance_income_category_id)
+            : null,
+        maintenance_finance_expense_category_id:
+          financeConfigForm.maintenance_finance_expense_category_id
+            ? Number(financeConfigForm.maintenance_finance_expense_category_id)
+            : null,
+        maintenance_finance_currency_id: financeConfigForm.maintenance_finance_currency_id
+          ? Number(financeConfigForm.maintenance_finance_currency_id)
+          : null,
+      });
+      setFinanceConfigNotice(response.message);
+      await refreshTenantInfo();
+    } catch (rawError) {
+      setFinanceConfigNotice(getApiErrorDisplayMessage(rawError as ApiError));
+    } finally {
+      setIsSavingFinanceConfig(false);
+    }
   }
 
   return (
@@ -296,6 +440,270 @@ export function MaintenanceOverviewPage() {
             ))}
           </div>
         )}
+      </PanelCard>
+
+      <PanelCard
+        title={
+          language === "es"
+            ? "Sincronización automática a finanzas"
+            : "Automatic finance sync"
+        }
+        subtitle={
+          language === "es"
+            ? "Controla si al cerrar una mantención se generan automáticamente el ingreso y egreso vinculados por source_type/source_id."
+            : "Control whether closing a maintenance job automatically generates the linked income and expense through source_type/source_id."
+        }
+      >
+        <div className="d-flex flex-wrap justify-content-between gap-2 align-items-start mb-3">
+          <div className="maintenance-cell__meta">
+            {language === "es"
+              ? "Modo recomendado: manual mientras se estabilizan cuentas/categorías. Activa automático solo cuando ya exista un mapeo fijo del tenant."
+              : "Recommended mode: manual while accounts/categories are still stabilizing. Enable automatic sync only once the tenant has a fixed mapping."}
+          </div>
+          <AppBadge
+            tone={
+              financeConfigForm.maintenance_finance_sync_mode === "auto_on_close"
+                ? "warning"
+                : "neutral"
+            }
+          >
+            {financeConfigForm.maintenance_finance_sync_mode === "auto_on_close"
+              ? language === "es"
+                ? "auto al cerrar"
+                : "auto on close"
+              : language === "es"
+                ? "manual"
+                : "manual"}
+          </AppBadge>
+        </div>
+
+        <div className="row g-3">
+          <div className="col-12 col-lg-4">
+            <label className="form-label">
+              {language === "es" ? "Modo de sincronización" : "Sync mode"}
+            </label>
+            <select
+              className="form-select"
+              value={financeConfigForm.maintenance_finance_sync_mode}
+              onChange={(event) =>
+                setFinanceConfigForm((current) => ({
+                  ...current,
+                  maintenance_finance_sync_mode: event.target.value,
+                }))
+              }
+            >
+              <option value="manual">{language === "es" ? "Manual" : "Manual"}</option>
+              <option value="auto_on_close">
+                {language === "es" ? "Automática al cerrar" : "Automatic on close"}
+              </option>
+            </select>
+          </div>
+          <div className="col-12 col-lg-4">
+            <label className="form-label">
+              {language === "es" ? "Cuenta ingreso por defecto" : "Default income account"}
+            </label>
+            <select
+              className="form-select"
+              value={financeConfigForm.maintenance_finance_income_account_id}
+              onChange={(event) =>
+                setFinanceConfigForm((current) => ({
+                  ...current,
+                  maintenance_finance_income_account_id: event.target.value,
+                }))
+              }
+            >
+              <option value="">{language === "es" ? "Sin cuenta fija" : "No fixed account"}</option>
+              {activeAccounts.map((account) => (
+                <option key={`income-account-${account.id}`} value={String(account.id)}>
+                  {account.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-12 col-lg-4">
+            <label className="form-label">
+              {language === "es" ? "Cuenta egreso por defecto" : "Default expense account"}
+            </label>
+            <select
+              className="form-select"
+              value={financeConfigForm.maintenance_finance_expense_account_id}
+              onChange={(event) =>
+                setFinanceConfigForm((current) => ({
+                  ...current,
+                  maintenance_finance_expense_account_id: event.target.value,
+                }))
+              }
+            >
+              <option value="">{language === "es" ? "Sin cuenta fija" : "No fixed account"}</option>
+              {activeAccounts.map((account) => (
+                <option key={`expense-account-${account.id}`} value={String(account.id)}>
+                  {account.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-12 col-lg-4">
+            <div className="form-check mt-4 pt-2">
+              <input
+                id="maintenance-finance-auto-income"
+                className="form-check-input"
+                type="checkbox"
+                checked={financeConfigForm.maintenance_finance_auto_sync_income}
+                onChange={(event) =>
+                  setFinanceConfigForm((current) => ({
+                    ...current,
+                    maintenance_finance_auto_sync_income: event.target.checked,
+                  }))
+                }
+              />
+              <label className="form-check-label" htmlFor="maintenance-finance-auto-income">
+                {language === "es" ? "Auto-sync ingreso" : "Auto-sync income"}
+              </label>
+            </div>
+          </div>
+          <div className="col-12 col-lg-4">
+            <div className="form-check mt-4 pt-2">
+              <input
+                id="maintenance-finance-auto-expense"
+                className="form-check-input"
+                type="checkbox"
+                checked={financeConfigForm.maintenance_finance_auto_sync_expense}
+                onChange={(event) =>
+                  setFinanceConfigForm((current) => ({
+                    ...current,
+                    maintenance_finance_auto_sync_expense: event.target.checked,
+                  }))
+                }
+              />
+              <label className="form-check-label" htmlFor="maintenance-finance-auto-expense">
+                {language === "es" ? "Auto-sync egreso" : "Auto-sync expense"}
+              </label>
+            </div>
+          </div>
+          <div className="col-12 col-lg-4">
+            <label className="form-label">
+              {language === "es" ? "Moneda por defecto" : "Default currency"}
+            </label>
+            <select
+              className="form-select"
+              value={financeConfigForm.maintenance_finance_currency_id}
+              onChange={(event) =>
+                setFinanceConfigForm((current) => ({
+                  ...current,
+                  maintenance_finance_currency_id: event.target.value,
+                }))
+              }
+            >
+              <option value="">{language === "es" ? "Usar base de finance" : "Use finance base currency"}</option>
+              {activeCurrencies.map((currency) => (
+                <option key={`currency-${currency.id}`} value={String(currency.id)}>
+                  {currency.code} · {currency.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-12 col-lg-6">
+            <label className="form-label">
+              {language === "es" ? "Categoría ingreso por defecto" : "Default income category"}
+            </label>
+            <select
+              className="form-select"
+              value={financeConfigForm.maintenance_finance_income_category_id}
+              onChange={(event) =>
+                setFinanceConfigForm((current) => ({
+                  ...current,
+                  maintenance_finance_income_category_id: event.target.value,
+                }))
+              }
+            >
+              <option value="">{language === "es" ? "Sin categoría fija" : "No fixed category"}</option>
+              {incomeCategories.map((category) => (
+                <option key={`income-category-${category.id}`} value={String(category.id)}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-12 col-lg-6">
+            <label className="form-label">
+              {language === "es" ? "Categoría egreso por defecto" : "Default expense category"}
+            </label>
+            <select
+              className="form-select"
+              value={financeConfigForm.maintenance_finance_expense_category_id}
+              onChange={(event) =>
+                setFinanceConfigForm((current) => ({
+                  ...current,
+                  maintenance_finance_expense_category_id: event.target.value,
+                }))
+              }
+            >
+              <option value="">{language === "es" ? "Sin categoría fija" : "No fixed category"}</option>
+              {expenseCategories.map((category) => (
+                <option key={`expense-category-${category.id}`} value={String(category.id)}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {financeConfigNotice ? (
+          <div className="maintenance-history-entry__meta mt-3">{financeConfigNotice}</div>
+        ) : null}
+
+        <div className="d-flex justify-content-end gap-2 mt-3">
+          <button
+            className="btn btn-outline-secondary"
+            type="button"
+            onClick={() =>
+              setFinanceConfigForm({
+                maintenance_finance_sync_mode:
+                  tenantInfo?.maintenance_finance_sync_mode || "manual",
+                maintenance_finance_auto_sync_income:
+                  tenantInfo?.maintenance_finance_auto_sync_income ?? true,
+                maintenance_finance_auto_sync_expense:
+                  tenantInfo?.maintenance_finance_auto_sync_expense ?? true,
+                maintenance_finance_income_account_id:
+                  tenantInfo?.maintenance_finance_income_account_id != null
+                    ? String(tenantInfo.maintenance_finance_income_account_id)
+                    : "",
+                maintenance_finance_expense_account_id:
+                  tenantInfo?.maintenance_finance_expense_account_id != null
+                    ? String(tenantInfo.maintenance_finance_expense_account_id)
+                    : "",
+                maintenance_finance_income_category_id:
+                  tenantInfo?.maintenance_finance_income_category_id != null
+                    ? String(tenantInfo.maintenance_finance_income_category_id)
+                    : "",
+                maintenance_finance_expense_category_id:
+                  tenantInfo?.maintenance_finance_expense_category_id != null
+                    ? String(tenantInfo.maintenance_finance_expense_category_id)
+                    : "",
+                maintenance_finance_currency_id:
+                  tenantInfo?.maintenance_finance_currency_id != null
+                    ? String(tenantInfo.maintenance_finance_currency_id)
+                    : "",
+              })
+            }
+          >
+            {language === "es" ? "Restaurar" : "Reset"}
+          </button>
+          <button
+            className="btn btn-primary"
+            type="button"
+            disabled={isSavingFinanceConfig || session?.role !== "admin"}
+            onClick={() => void saveMaintenanceFinanceConfig()}
+          >
+            {isSavingFinanceConfig
+              ? language === "es"
+                ? "Guardando..."
+                : "Saving..."
+              : language === "es"
+                ? "Guardar política"
+                : "Save policy"}
+          </button>
+        </div>
       </PanelCard>
     </div>
   );

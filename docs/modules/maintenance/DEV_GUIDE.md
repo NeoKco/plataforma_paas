@@ -137,9 +137,14 @@ Fuente frontend principal:
 - el segundo corte de costeo ya agrega `maintenance_cost_lines`:
   - por ahora sirve para detallar costo técnico granular por etapa `estimate` y `actual`
   - si existen líneas, el resumen por rubro se deriva automáticamente desde ellas
-- la sincronización `maintenance -> finance` debe seguir siendo manual en este corte:
-  - `maintenance` calcula y conserva costo/cobro
-  - `finance` registra el hecho económico con `source_type/source_id`
+- la sincronización `maintenance -> finance` ya soporta dos políticas tenant:
+  - `manual`
+  - `auto_on_close`
+- aun en `auto_on_close`, `maintenance` sigue siendo dueño del costeo y `finance` sigue siendo dueño del hecho económico
+- la política vive en `tenant_info` y viaja en `/tenant/info`, porque afecta el workflow operativo del módulo técnico y no solo parámetros internos de `finance`
+- `auto_on_close` es best-effort:
+  - no bloquea el cierre de la OT si faltan defaults financieros
+  - si la configuración está incompleta, el operador sigue pudiendo usar sync manual
 
 ## Checklist de cumplimiento del modulo
 
@@ -235,6 +240,7 @@ Con modulos tenant:
 - `business-core`: cliente, sitio, activo, grupo y tipo de tarea
 - `finance`: no mezclar gasto tecnico dentro del modulo base
 - `finance`: el costeo técnico ya puede sincronizar manualmente ingreso/egreso usando `finance_transactions.source_type/source_id`
+- `Resumen técnico` ya expone además la política tenant para auto-sync `maintenance -> finance`, consumiendo `/tenant/info` y persistiendo vía `/tenant/info/maintenance-finance-sync`
 - `projects`: podra reutilizar el mismo sitio, cliente y responsable
 - `iot`: deberia colgarse del mismo sitio o activo instalado
 

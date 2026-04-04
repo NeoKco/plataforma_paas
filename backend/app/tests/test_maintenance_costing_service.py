@@ -33,7 +33,10 @@ class _FakeQuery:
         return self
 
     def first(self):
-        return self.mapping.get(self.target)
+        value = self.mapping.get(self.target)
+        if isinstance(value, list):
+            return value[0] if value else None
+        return value
 
     def all(self):
         value = self.mapping.get(self.target, [])

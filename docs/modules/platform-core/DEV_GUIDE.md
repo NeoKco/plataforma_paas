@@ -50,6 +50,10 @@ Documentación base:
   - `users.timezone` permite override por usuario
   - la precedencia efectiva es `users.timezone -> tenant_info.timezone -> default plataforma`
   - los módulos del tenant deben consumir la zona efectiva desde `/tenant/info` y no asumir UTC ni el reloj del navegador como única fuente
+- `/tenant/info` ya expone además configuración tenant-side consumida por módulos:
+  - zona horaria
+  - política `maintenance -> finance`
+  - la edición de esa política sigue siendo self-service del tenant admin mediante `/tenant/info/maintenance-finance-sync`
 
 ## Cómo extender este bloque
 

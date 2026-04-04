@@ -41,6 +41,7 @@ Estado actual:
   - modal de costeo sobre `Mantenciones`
   - el mismo modal reutilizado también desde `Historial`
   - sincronización manual controlada hacia `finance`
+  - política tenant visible para decidir si ese puente sigue manual o pasa a `auto_on_close`
 
 Objetivo del modulo:
 
@@ -90,6 +91,10 @@ Estado del corte hoy:
   - materiales
   - servicios externos
   - indirectos
+- `Resumen técnico` ya expone la política tenant `maintenance -> finance`:
+  - modo `manual`
+  - modo `auto_on_close`
+  - cuentas/categorías/moneda por defecto
 
 Pendientes visibles inmediatos:
 
@@ -98,6 +103,7 @@ Pendientes visibles inmediatos:
 - agenda visual con conflictos, responsables y reprogramación más rica
 - programaciones automáticas de mantención y bandeja de vencimientos por gestionar
 - costeo y cobro de mantenciones con puente formal hacia `finance`
+- automatización opcional tenant-side del puente `maintenance -> finance`
 - importadores desde `ieris_app`
 - edición de cierre directamente desde historial/ficha de trabajo
 - filtros operativos por técnico o grupo en agenda
@@ -120,6 +126,7 @@ Estado resumido del modulo:
 - agenda visual rica: pendiente
 - asignacion real por grupo/usuario en ordenes y agenda: cumplido en primer corte
 - programacion preventiva y bandeja automatica: cumplido en primer corte base
+- costeo/cobro por OT y puente controlado a `finance`: cumplido en primer corte base
 - evidencias y checklist tecnico: pendiente
 - cierre completo de la UX operativa del modulo: en progreso avanzado
 

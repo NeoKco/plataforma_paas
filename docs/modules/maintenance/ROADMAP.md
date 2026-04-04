@@ -70,7 +70,7 @@ Criterio de salida:
 
 Estado:
 
-- `En progreso`
+- `Completado en primer corte`
 
 Objetivo:
 
@@ -201,6 +201,7 @@ Criterio de salida:
 - existe bandeja automatica por vencer / vencidas / gestionadas
 - cada OT puede registrar costo estimado, costo real y monto cobrado
 - `finance` puede recibir el resultado economico con enlace al origen operativo
+- el tenant puede optar entre sync `manual` o `auto_on_close` sin bloquear el cierre operativo
 
 Avance actual:
 
@@ -232,12 +233,22 @@ Avance actual:
   - `PUT /tenant/maintenance/work-orders/{id}/cost-estimate`
   - `PUT /tenant/maintenance/work-orders/{id}/cost-actual`
   - `POST /tenant/maintenance/work-orders/{id}/finance-sync`
+- `tenant_info` ya guarda la política de puente `maintenance -> finance`:
+  - `maintenance_finance_sync_mode`
+  - flags de auto-sync ingreso/egreso
+  - cuentas/categorías/moneda por defecto
 - frontend tenant ya permite desde `Mantenciones`:
   - guardar costo estimado
   - guardar costo real
   - registrar monto cobrado
   - detallar costo por líneas y derivar resumen automático desde ellas
   - sincronizar manualmente ingreso/egreso hacia `finance`
+- `Resumen técnico` ya permite editar la política tenant para:
+  - mantener sync manual
+  - activar `auto_on_close`
+  - fijar defaults de cuentas/categorías/moneda
+- al completar una OT, el backend ya intenta el auto-sync cuando la política tenant está activa y configurada
+- el auto-sync no bloquea el cierre operativo si la configuración financiera está incompleta
 - `Historial` ya reutiliza el mismo modal `Costos y cobro` para no duplicar UX ni lógica de costeo
 
 Pendiente inmediato de esta fase:

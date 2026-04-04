@@ -79,6 +79,7 @@ Cobertura actual:
 - anulación básica de una transacción creada en `finance`
 - conciliación básica de una transacción creada en `finance`
 - visibilidad de datos ya importados desde `ieris_app` en `business-core` y `maintenance`
+- visibilidad de la política tenant de auto-sync `maintenance -> finance` desde `Resumen técnico`
 
 Esto no reemplaza:
 
@@ -120,6 +121,47 @@ Baseline recomendado para desarrollo local:
 Se prioriza `empresa-bootstrap` como baseline browser estable del repo para no mezclar la automatización con el tenant operativo `empresa-demo`.
 
 Si tu entorno no tiene `empresa-bootstrap` operativo o usa otra clave, sobreescribe `E2E_TENANT_*`.
+
+## Secuencia corta para otra IA
+
+Si otra IA tiene que correr la baseline sin rearmar el contexto del proyecto, esta es la secuencia mínima recomendada:
+
+1. confirmar backend en `127.0.0.1:8000`
+2. confirmar tenant baseline `empresa-bootstrap`
+3. validar el spec de importación/mantenciones:
+
+```bash
+cd /home/felipe/platform_paas/frontend
+npx playwright test e2e/specs/tenant-portal-business-core-maintenance-import.smoke.spec.ts --list
+```
+
+4. correr baseline tenant:
+
+```bash
+cd /home/felipe/platform_paas/frontend
+npm run e2e:tenant
+```
+
+5. si falla `webServer`, usar:
+
+```bash
+cd /home/felipe/platform_paas/frontend
+E2E_USE_EXISTING_FRONTEND=1 npm run e2e:tenant
+```
+
+o el helper institucional:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_local_browser_baseline.sh --target tenant
+```
+
+Qué debe validar esa IA en `maintenance`:
+
+- `Resumen técnico`
+- `Pendientes`
+- `Costos y cobro`
+- `Sincronización automática a finanzas`
 
 Comandos separados:
 
@@ -165,6 +207,7 @@ Resultado validado en local a la fecha:
 - `tenant_portal` ya cubre además pago en lote y reversa en lote de cuotas sobre préstamos seleccionados
 - `tenant_portal` ya cubre además lectura contable derivada y exportaciones de préstamos tras pago y reversa
 - `tenant_portal` ya cubre además visibilidad real de datos importados desde `ieris_app` en `business-core` y `maintenance`
+- `tenant_portal` ya cubre además visibilidad de la política tenant para sincronización automática `maintenance -> finance` en `Resumen técnico`
 - `tenant_portal` con `empresa-bootstrap` pasando
 - flujo `finance` cubierto en creación, adjunto, anulación y conciliación
 - datos importados validados al menos para:

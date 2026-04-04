@@ -47,6 +47,7 @@ El primer corte del modulo ya permite:
 - abrir `Costos` desde una mantención abierta para registrar costo estimado, costo real, cobro y sincronización manual a Finanzas
 - abrir el mismo modal `Costos` desde `Historial` para revisar o completar el cierre económico de una orden ya cerrada
 - registrar detalle por líneas dentro de `Costos y cobro`, para que el resumen se derive automáticamente cuando quieras bajar a mano de obra, traslado, materiales, servicios externos o indirectos
+- definir en `Resumen` si el tenant deja el puente con `Finanzas` en modo manual o lo automatiza al cerrar
 - sacar automaticamente de la bandeja activa una orden al completarla o anularla
 - mantener catalogo de tipos de equipo
 - mantener instalaciones tecnicas ligadas a sitios del dominio base
@@ -95,6 +96,7 @@ Tambien deberia funcionar asi:
 Lectura funcional de cada vista:
 
 - `Resumen`: tablero corto con abiertas y ultimas 5 realizadas
+  - también muestra la política tenant `Sincronización automática a finanzas`
 - `Pendientes`: bandeja automática de mantenciones por gestionar, visible cuando el cliente ya entró en ventana de vencimiento
   - `Nueva programación` sigue el mismo patrón visual, jerarquía de lectura y modal de `Nueva mantención`
   - la misma pantalla agrega una lectura agrupada por organización para coordinar mejor varias contrapartes sin depender de memoria
@@ -123,6 +125,9 @@ Regla UX operativa:
   - primero se registra costo real
   - luego se eligen cuenta, categoría y moneda
   - recién entonces se genera o actualiza el ingreso/egreso financiero
+- si el tenant activa `Automática al cerrar` en `Resumen`:
+  - la OT completada intenta generar ingreso/egreso usando las cuentas, categorías y moneda por defecto del tenant
+  - si falta alguna cuenta o no hay monto real para sincronizar, la OT igual se cierra y luego puede resolverse con sync manual
 
 ## Mejora funcional recomendada
 

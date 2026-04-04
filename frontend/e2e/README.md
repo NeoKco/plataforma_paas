@@ -30,6 +30,7 @@ Cobertura validada:
 - smoke de anulación en `finance`
 - smoke de conciliación en `finance`
 - visibilidad de datos importados de `ieris_app` en `business-core` y `maintenance`
+- configuración tenant de auto-sync `maintenance -> finance` visible desde `Resumen técnico`
 
 Specs actuales:
 
@@ -85,6 +86,43 @@ Comandos útiles:
 - `../../scripts/dev/run_local_broker_dlq_baseline.sh`
 - `PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python /home/felipe/platform_paas/backend/app/scripts/cleanup_e2e_tenants.py --apply`
 
+## Handoff rápido para otra IA
+
+Si otra IA necesita correr la baseline tenant sin volver a descubrir el repo:
+
+1. usar `empresa-bootstrap` como tenant baseline
+2. validar primero que el spec compila/lista
+3. luego correr `tenant` completo
+4. si `Playwright` falla levantando frontend, reutilizar uno existente o usar el helper del repo
+
+Secuencia mínima:
+
+```bash
+cd /home/felipe/platform_paas/frontend
+npx playwright test e2e/specs/tenant-portal-business-core-maintenance-import.smoke.spec.ts --list
+npm run e2e:tenant
+```
+
+Si el frontend ya está levantado:
+
+```bash
+cd /home/felipe/platform_paas/frontend
+E2E_USE_EXISTING_FRONTEND=1 npm run e2e:tenant
+```
+
+Si quiere la ruta más estable del repo:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_local_browser_baseline.sh --target tenant
+```
+
+Señales de éxito esperadas:
+
+- login sobre `empresa-bootstrap`
+- datos importados visibles en `business-core`
+- `maintenance` mostrando `Pendientes`, `Costos y cobro` y `Sincronización automática a finanzas`
+
 Baseline institucionalizado:
 
 - el baseline browser oficial del repo queda automatizado en GitHub Actions mediante [.github/workflows/frontend-browser-e2e.yml](../../.github/workflows/frontend-browser-e2e.yml)
@@ -138,6 +176,7 @@ Notas:
 - los smokes de `finance loans` quedaron estabilizados para tolerar cronogramas ya abiertos, distinguir formularios simples vs batch y usar selectores consistentes sobre `Cuenta origen`, nota operativa y motivo de reversa
 - en esta iteración no hicieron falta cambios funcionales del módulo `finance`: los fallos detectados fueron de sincronización/selección E2E y el flujo real ya soportaba creación, pago simple, pago batch, reversa batch y exportación/lectura contable derivada
 - el smoke tenant de importación valida que `empresa-bootstrap` expone en UI datos ya migrados desde `ieris_app` para `business-core` y `maintenance`, sin depender de la BD legacy en runtime
+- ese mismo smoke ya valida además la tarjeta visible de política tenant para auto-sync `maintenance -> finance` dentro de `Resumen técnico`
 - estado validado al cierre actual:
 	- `npm run e2e:platform` → `12 passed`, `3 skipped`
 	- `npm run e2e:tenant` → `22 passed`
