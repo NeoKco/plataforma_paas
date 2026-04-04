@@ -16,10 +16,16 @@
   - monto cobrado
   - sincronización manual a `Finanzas`
 - `Historial` reutiliza el mismo modal `Costos y cobro`, evitando mantener dos UX o dos implementaciones distintas del cierre económico
+- se implementa el segundo corte de costeo detallado:
+  - migración tenant `0023_maintenance_cost_lines`
+  - tabla `maintenance_cost_lines`
+  - detalle por líneas en `estimate` y `actual`
+  - derivación automática del resumen por rubro cuando existen líneas
 - el puente hacia `finance` queda enlazado por `source_type/source_id`, sin duplicar el núcleo financiero dentro del módulo técnico
 - se actualizan pruebas backend de migración y del nuevo `MaintenanceCostingService`
 - el smoke E2E de `maintenance` ahora valida también la apertura del modal `Costos y cobro`
 - el smoke E2E ahora valida `Costos` tanto desde `Mantenciones` como desde `Historial`
+- el smoke E2E valida también la presencia de `Agregar línea` dentro del modal de costeo
 - `Nueva programación` en `Pendientes` se alinea visual y estructuralmente con `Nueva mantención`:
   - mismo patrón modal
   - misma carcasa `panel-card` y misma jerarquía visual de encabezado/subtítulo

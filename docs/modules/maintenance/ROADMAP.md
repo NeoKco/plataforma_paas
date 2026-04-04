@@ -226,6 +226,7 @@ Avance actual:
 - tablas ya versionadas:
   - `maintenance_cost_estimates`
   - `maintenance_cost_actuals`
+  - `maintenance_cost_lines`
 - backend ya expone APIs reales para:
   - `GET /tenant/maintenance/work-orders/{id}/costing`
   - `PUT /tenant/maintenance/work-orders/{id}/cost-estimate`
@@ -235,12 +236,12 @@ Avance actual:
   - guardar costo estimado
   - guardar costo real
   - registrar monto cobrado
+  - detallar costo por líneas y derivar resumen automático desde ellas
   - sincronizar manualmente ingreso/egreso hacia `finance`
 - `Historial` ya reutiliza el mismo modal `Costos y cobro` para no duplicar UX ni lógica de costeo
 
 Pendiente inmediato de esta fase:
 
-- detalle granular por líneas de costo
 - cerrar la sincronización automática opcional por política tenant
 
 ## Mejoras de producto recomendadas
@@ -274,7 +275,6 @@ Pendiente inmediato de esta fase:
 
 - aplicar migraciones tenant faltantes de `0022` en tenants activos
 - decidir el segundo corte del roadmap:
-  - líneas de costo
   - sync automática opcional
 
 ## Backlog pendiente visible

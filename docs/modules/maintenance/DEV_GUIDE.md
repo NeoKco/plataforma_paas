@@ -134,6 +134,9 @@ Fuente frontend principal:
 - el reporte `instalaciones activas sin plan preventivo` debe cruzar instalaciones activas contra schedules activos y permitir abrir `Nueva programación` ya precargada
 - el primer corte de costeo/cobro ya vive en `work_orders` como acción modal `Costos`, no como pantalla separada ni como formulario incrustado
 - el mismo modal `Costos` ya debe poder abrirse también desde `Historial`, reutilizando el mismo contrato y sin duplicar la lógica de formularios
+- el segundo corte de costeo ya agrega `maintenance_cost_lines`:
+  - por ahora sirve para detallar costo técnico granular por etapa `estimate` y `actual`
+  - si existen líneas, el resumen por rubro se deriva automáticamente desde ellas
 - la sincronización `maintenance -> finance` debe seguir siendo manual en este corte:
   - `maintenance` calcula y conserva costo/cobro
   - `finance` registra el hecho económico con `source_type/source_id`

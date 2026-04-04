@@ -46,6 +46,7 @@ El primer corte del modulo ya permite:
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
 - abrir `Costos` desde una mantención abierta para registrar costo estimado, costo real, cobro y sincronización manual a Finanzas
 - abrir el mismo modal `Costos` desde `Historial` para revisar o completar el cierre económico de una orden ya cerrada
+- registrar detalle por líneas dentro de `Costos y cobro`, para que el resumen se derive automáticamente cuando quieras bajar a mano de obra, traslado, materiales, servicios externos o indirectos
 - sacar automaticamente de la bandeja activa una orden al completarla o anularla
 - mantener catalogo de tipos de equipo
 - mantener instalaciones tecnicas ligadas a sitios del dominio base
@@ -102,6 +103,7 @@ Lectura funcional de cada vista:
 - `Mantenciones`: solo trabajo abierto (`scheduled` / `in_progress`)
   - cada fila ya permite abrir `Costos`
   - el costeo se maneja en modal, igual que la captura principal del módulo
+  - `Costos` ya permite resumen manual o detalle por líneas
 - `Instalaciones`: parque instalado por cliente y direccion
 - `Historial`: trabajo ya realizado o anulado
   - cada tarjeta ya permite abrir `Costos` y `Editar cierre`
