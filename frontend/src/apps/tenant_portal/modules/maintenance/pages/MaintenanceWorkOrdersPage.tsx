@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../../components/data-display/DataTableCard";
@@ -32,9 +32,14 @@ import {
   type TenantBusinessClient,
 } from "../../business_core/services/clientsService";
 import {
+  getTenantBusinessOrganizations,
+  type TenantBusinessOrganization,
+} from "../../business_core/services/organizationsService";
+import {
   getTenantBusinessSites,
   type TenantBusinessSite,
 } from "../../business_core/services/sitesService";
+import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
 function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
@@ -103,6 +108,7 @@ export function MaintenanceWorkOrdersPage() {
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
+  const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -119,6 +125,10 @@ export function MaintenanceWorkOrdersPage() {
   const requestedMode = searchParams.get("mode");
 
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
+  const organizationById = useMemo(
+    () => new Map(organizations.map((organization) => [organization.id, organization])),
+    [organizations]
+  );
   const clientById = useMemo(
     () => new Map(clients.map((client) => [client.id, client])),
     [clients]
@@ -143,6 +153,30 @@ export function MaintenanceWorkOrdersPage() {
         : installations,
     [form.site_id, installations]
   );
+
+  const sortedRows = useMemo(
+    () =>
+      [...rows].sort((left, right) => {
+        const leftDate = new Date(left.scheduled_for || left.requested_at).getTime();
+        const rightDate = new Date(right.scheduled_for || right.requested_at).getTime();
+        return rightDate - leftDate;
+      }),
+    [rows]
+  );
+
+  const noClientsAvailable = clients.length === 0;
+  const selectedClientSites = form.client_id > 0 ? filteredSites : [];
+  const selectedSiteInstallations = form.site_id > 0 ? filteredInstallations : [];
+  const missingSiteForSelectedClient = form.client_id > 0 && selectedClientSites.length === 0;
+  const missingInstallationForSelectedSite =
+    form.site_id > 0 && selectedSiteInstallations.length === 0;
+  const submitBlocked =
+    noClientsAvailable ||
+    Number(form.client_id) <= 0 ||
+    Number(form.site_id) <= 0 ||
+    !form.installation_id ||
+    missingSiteForSelectedClient ||
+    missingInstallationForSelectedSite;
 
   const summary = useMemo(() => {
     return rows.reduce(
@@ -170,18 +204,26 @@ export function MaintenanceWorkOrdersPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [workOrdersResponse, clientsResponse, sitesResponse, installationsResponse] =
+      const [
+        workOrdersResponse,
+        clientsResponse,
+        organizationsResponse,
+        sitesResponse,
+        installationsResponse,
+      ] =
         await Promise.all([
           getTenantMaintenanceWorkOrders(session.accessToken, {
             ...(requestedClientId > 0 ? { clientId: requestedClientId } : {}),
             ...(requestedSiteId > 0 ? { siteId: requestedSiteId } : {}),
           }),
           getTenantBusinessClients(session.accessToken, { includeInactive: false }),
+          getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
           getTenantBusinessSites(session.accessToken, { includeInactive: false }),
           getTenantMaintenanceInstallations(session.accessToken, { includeInactive: false }),
         ]);
       setRows(workOrdersResponse.data);
       setClients(clientsResponse.data);
+      setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
       setInstallations(installationsResponse.data);
       setForm((current) => {
@@ -198,13 +240,18 @@ export function MaintenanceWorkOrdersPage() {
           (requestedSiteId > 0 ? requestedSiteId : 0) ||
           candidateSites[0]?.id ||
           0;
+        const candidateInstallations = installationsResponse.data.filter(
+          (installation) => installation.site_id === nextSiteId
+        );
         return {
           ...current,
           client_id: nextClientId,
           site_id: nextSiteId,
           installation_id:
             current.installation_id ||
-            (requestedInstallationId > 0 ? requestedInstallationId : null),
+            (requestedInstallationId > 0 ? requestedInstallationId : null) ||
+            candidateInstallations[0]?.id ||
+            null,
         };
       });
     } catch (rawError) {
@@ -239,7 +286,7 @@ export function MaintenanceWorkOrdersPage() {
     if (!filteredInstallations.some((item) => item.id === Number(form.installation_id))) {
       setForm((current) => ({
         ...current,
-        installation_id: null,
+        installation_id: filteredInstallations[0]?.id || null,
       }));
     }
   }, [filteredInstallations, form.installation_id]);
@@ -247,6 +294,9 @@ export function MaintenanceWorkOrdersPage() {
   function startCreate(openForm = false) {
     const clientId = clients[0]?.id || 0;
     const candidateSites = sites.filter((site) => site.client_id === clientId);
+    const candidateInstallations = installations.filter(
+      (installation) => installation.site_id === (candidateSites[0]?.id || 0)
+    );
     setEditingId(null);
     setFeedback(null);
     setError(null);
@@ -255,7 +305,31 @@ export function MaintenanceWorkOrdersPage() {
       ...buildDefaultForm(),
       client_id: clientId,
       site_id: candidateSites[0]?.id || 0,
+      installation_id: candidateInstallations[0]?.id || null,
     });
+  }
+
+  function getClientDisplayName(clientId: number): string {
+    const client = clientById.get(clientId);
+    const organization = organizationById.get(client?.organization_id ?? -1);
+    return (
+      stripLegacyVisibleText(organization?.name) ||
+      stripLegacyVisibleText(organization?.legal_name) ||
+      (language === "es" ? "Cliente sin nombre" : "Unnamed client")
+    );
+  }
+
+  function getSiteDisplayName(siteId: number): string {
+    const site = siteById.get(siteId);
+    if (!site) {
+      return language === "es" ? "Dirección sin registrar" : "Missing address";
+    }
+    const visibleAddress = stripLegacyVisibleText(getVisibleAddressLabel(site));
+    const locality = [site.commune, site.city, site.region]
+      .map((value) => stripLegacyVisibleText(value))
+      .filter(Boolean)
+      .join(", ");
+    return locality ? `${visibleAddress || site.name} · ${locality}` : visibleAddress || site.name;
   }
 
   function startEdit(item: TenantMaintenanceWorkOrder) {
@@ -289,7 +363,7 @@ export function MaintenanceWorkOrdersPage() {
       client_id: Number(form.client_id),
       site_id: Number(form.site_id),
       installation_id: form.installation_id ? Number(form.installation_id) : null,
-      external_reference: normalizeNullable(form.external_reference),
+      external_reference: editingId ? normalizeNullable(form.external_reference) : null,
       title: form.title.trim(),
       description: stripLegacyVisibleText(normalizeNullable(form.description)),
       priority: form.priority.trim().toLowerCase() || "normal",
@@ -392,7 +466,19 @@ export function MaintenanceWorkOrdersPage() {
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
-            <button className="btn btn-primary" type="button" onClick={() => startCreate(true)}>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => startCreate(true)}
+              disabled={noClientsAvailable}
+              title={
+                noClientsAvailable
+                  ? language === "es"
+                    ? "Primero crea un cliente en Core de negocio"
+                    : "Create a client in Business core first"
+                  : undefined
+              }
+            >
               {language === "es" ? "Nueva orden" : "New work order"}
             </button>
           </AppToolbar>
@@ -405,6 +491,17 @@ export function MaintenanceWorkOrdersPage() {
           {language === "es"
             ? "Vista abierta desde la ficha del cliente. Las mantenciones se muestran filtradas por ese cliente y la nueva orden queda preseleccionada."
             : "View opened from the client detail. Work orders are filtered by that client and new orders are preselected."}
+        </div>
+      ) : null}
+
+      {noClientsAvailable ? (
+        <div className="alert alert-warning mb-0">
+          {language === "es"
+            ? "Antes de agendar una mantención debes crear un cliente en Core de negocio."
+            : "Create a client in Business core before scheduling maintenance."}{" "}
+          <Link to="/tenant-portal/business-core/clients">
+            {language === "es" ? "Ir a clientes" : "Go to clients"}
+          </Link>
         </div>
       ) : null}
 
@@ -529,9 +626,12 @@ export function MaintenanceWorkOrdersPage() {
                     }))
                   }
                 >
+                  <option value={0}>
+                    {language === "es" ? "Selecciona un cliente" : "Select a client"}
+                  </option>
                   {clients.map((client) => (
                     <option key={client.id} value={client.id}>
-                      {client.client_code || `#${client.id}`}
+                      {getClientDisplayName(client.id)}
                     </option>
                   ))}
                 </select>
@@ -548,9 +648,12 @@ export function MaintenanceWorkOrdersPage() {
                     }))
                   }
                 >
+                  <option value={0}>
+                    {language === "es" ? "Selecciona una dirección" : "Select an address"}
+                  </option>
                   {filteredSites.map((site) => (
                     <option key={site.id} value={site.id}>
-                      {site.name}
+                      {getSiteDisplayName(site.id)}
                     </option>
                   ))}
                 </select>
@@ -569,7 +672,11 @@ export function MaintenanceWorkOrdersPage() {
                     }))
                   }
                 >
-                  <option value="">{language === "es" ? "Sin instalación" : "No installation"}</option>
+                  <option value="">
+                    {language === "es"
+                      ? "Selecciona una instalación"
+                      : "Select an installation"}
+                  </option>
                   {filteredInstallations.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name}
@@ -617,21 +724,6 @@ export function MaintenanceWorkOrdersPage() {
               </div>
               <div className="col-12 col-md-6">
                 <label className="form-label">
-                  {language === "es" ? "Referencia externa" : "External reference"}
-                </label>
-                <input
-                  className="form-control"
-                  value={form.external_reference ?? ""}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      external_reference: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="col-12 col-md-6">
-                <label className="form-label">
                   {language === "es" ? "Programada para" : "Scheduled for"}
                 </label>
                 <input
@@ -646,6 +738,30 @@ export function MaintenanceWorkOrdersPage() {
                   }
                 />
               </div>
+              {missingSiteForSelectedClient ? (
+                <div className="col-12">
+                  <div className="alert alert-warning mb-0">
+                    {language === "es"
+                      ? "Este cliente aún no tiene dirección operativa. Crea la dirección antes de agendar la mantención."
+                      : "This client does not have an operational address yet. Create it before scheduling maintenance."}{" "}
+                    <Link to="/tenant-portal/business-core/clients">
+                      {language === "es" ? "Ir a clientes" : "Go to clients"}
+                    </Link>
+                  </div>
+                </div>
+              ) : null}
+              {missingInstallationForSelectedSite ? (
+                <div className="col-12">
+                  <div className="alert alert-warning mb-0">
+                    {language === "es"
+                      ? "La dirección seleccionada aún no tiene instalación. Crea la instalación antes de agendar la mantención."
+                      : "The selected address does not have an installation yet. Create the installation before scheduling maintenance."}{" "}
+                    <Link to="/tenant-portal/maintenance/installations">
+                      {language === "es" ? "Ir a instalaciones" : "Go to installations"}
+                    </Link>
+                  </div>
+                </div>
+              ) : null}
               <div className="col-12">
                 <label className="form-label">{language === "es" ? "Título" : "Title"}</label>
                 <input
@@ -716,7 +832,11 @@ export function MaintenanceWorkOrdersPage() {
                   >
                     {language === "es" ? "Cancelar" : "Cancel"}
                   </button>
-                  <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
+                  <button
+                    className="btn btn-primary"
+                    type="submit"
+                    disabled={isSubmitting || submitBlocked}
+                  >
                     {isSubmitting
                       ? language === "es"
                         ? "Guardando..."
@@ -743,38 +863,38 @@ export function MaintenanceWorkOrdersPage() {
               ? "Primer corte con lifecycle auditable sin mover registros a histórico."
               : "First slice with auditable lifecycle without moving records to history tables."
           }
-          rows={rows}
+          rows={sortedRows}
           columns={[
             {
               key: "order",
               header: language === "es" ? "Orden" : "Order",
               render: (item) => {
-                const site = siteById.get(item.site_id);
-                const client = clientById.get(item.client_id);
                 return (
                   <div>
-                    <div className="maintenance-cell__title">{item.title}</div>
+                    <div className="maintenance-cell__title">
+                      {stripLegacyVisibleText(item.title) || "—"}
+                    </div>
                     <div className="maintenance-cell__meta">
-                      {(client?.client_code || `#${item.client_id}`) +
-                        " · " +
-                        (site?.name || `#${item.site_id}`)}
+                      {stripLegacyVisibleText(item.description) ||
+                        (language === "es" ? "Sin detalle adicional" : "No additional detail")}
                     </div>
                   </div>
                 );
               },
             },
             {
-              key: "status",
-              header: language === "es" ? "Estado" : "Status",
+              key: "client",
+              header: language === "es" ? "Cliente" : "Client",
               render: (item) => (
-                <AppBadge tone={getStatusTone(item.maintenance_status)}>
-                  {getStatusLabel(item.maintenance_status, language)}
-                </AppBadge>
+                <div>
+                  <div className="maintenance-cell__title">{getClientDisplayName(item.client_id)}</div>
+                  <div className="maintenance-cell__meta">{getSiteDisplayName(item.site_id)}</div>
+                </div>
               ),
             },
             {
               key: "schedule",
-              header: language === "es" ? "Programación" : "Schedule",
+              header: language === "es" ? "Fecha y hora" : "Date and time",
               render: (item) => (
                 <div>
                   <div>{formatDateTime(item.scheduled_for, language)}</div>
@@ -786,14 +906,23 @@ export function MaintenanceWorkOrdersPage() {
               ),
             },
             {
+              key: "status",
+              header: language === "es" ? "Estado" : "Status",
+              render: (item) => (
+                <AppBadge tone={getStatusTone(item.maintenance_status)}>
+                  {getStatusLabel(item.maintenance_status, language)}
+                </AppBadge>
+              ),
+            },
+            {
               key: "installation",
               header: language === "es" ? "Instalación" : "Installation",
               render: (item) =>
                 item.installation_id
                   ? installationById.get(item.installation_id)?.name || `#${item.installation_id}`
                   : language === "es"
-                    ? "Sin instalación"
-                    : "No installation",
+                    ? "Crear instalación antes de agendar"
+                    : "Create installation before scheduling",
             },
             {
               key: "actions",

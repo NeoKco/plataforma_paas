@@ -19,6 +19,7 @@ from app.apps.tenant_modules.maintenance.schemas import (
 )
 
 FINAL_WORK_ORDER_STATUSES = {"completed", "cancelled"}
+LEGACY_REFERENCE_PREFIXES = ("legacy-", "legacy_")
 
 
 class MaintenanceWorkOrderService:
@@ -93,6 +94,7 @@ class MaintenanceWorkOrderService:
                 "No puedes editar una mantencion cerrada o anulada; reprograma o crea una nueva orden"
             )
         normalized = self._normalize_payload(payload)
+        normalized["external_reference"] = item.external_reference
         self._validate_payload(tenant_db, normalized, current_item=item)
         for field, value in normalized.items():
             setattr(item, field, value)
@@ -194,6 +196,10 @@ class MaintenanceWorkOrderService:
             raise ValueError("El titulo de la mantencion es obligatorio")
         if not payload["priority"]:
             raise ValueError("La prioridad de la mantencion es obligatoria")
+        if payload["installation_id"] is None:
+            raise ValueError(
+                "Debes seleccionar una instalacion antes de agendar la mantencion"
+            )
 
         client_exists = (
             tenant_db.query(BusinessClient.id)
@@ -229,6 +235,15 @@ class MaintenanceWorkOrderService:
                 raise ValueError("El estado inicial de la mantencion es obligatorio")
 
         if payload["external_reference"]:
+            normalized_reference = payload["external_reference"].strip().lower()
+            is_current_legacy_reference = (
+                current_item is not None
+                and current_item.external_reference == payload["external_reference"]
+            )
+            if normalized_reference.startswith(LEGACY_REFERENCE_PREFIXES) and not is_current_legacy_reference:
+                raise ValueError(
+                    "La referencia externa legacy es interna y no puede capturarse manualmente"
+                )
             existing = self.work_order_repository.get_by_external_reference(
                 tenant_db,
                 payload["external_reference"],

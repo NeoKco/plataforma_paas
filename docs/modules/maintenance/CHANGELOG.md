@@ -54,6 +54,10 @@
   - `Agenda técnica`
   - `Órdenes de trabajo`
 - los formularios dejan de quedar abiertos por defecto y pasan a modal, priorizando la lectura del catálogo o tabla operativa
+- `Órdenes de trabajo` deja de mostrar `client_code` y referencias `legacy_*` como datos operativos visibles
+- la tabla principal ahora lee cliente por nombre humano, direccion y fecha/hora, ordenada por programacion/solicitud mas reciente
+- la captura de orden deja `external_reference` como dato interno no editable y exige instalacion real antes de guardar
+- cuando falta cliente, direccion o instalacion, la pantalla informa la dependencia y deriva a `Core de negocio` o `Instalaciones`
 - se alinea la documentacion del modulo con el nuevo [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md), dejando checklist explícita de cumplimiento y pendientes de cierre
 
 ## 2026-04-01

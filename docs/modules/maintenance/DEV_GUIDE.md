@@ -106,7 +106,7 @@ Fuente frontend principal:
 
 - el cierre mueve registros desde `mantenciones` a `historico_mantenciones`, en vez de mantener una sola entidad con lifecycle auditable
 - la asignacion es flexible (`usuario` o `grupo`), pero no existe un modelo de responsables ni una agenda de terreno suficientemente formal
-- una mantencion se asocia a `cliente`, pero no necesariamente a una `instalacion`
+- en la fuente una mantencion puede quedar sin instalacion y apoyarse demasiado en referencias legacy visibles
 - se crean tareas y eventos de agenda desde el servicio de mantenciones, lo que aumenta acoplamiento
 - no existe una frontera clara entre mantencion operativa y expediente tecnico
 - el frontend trabaja con tablas compactas y modales, pero no con una lectura por ficha/orden de trabajo
@@ -117,6 +117,9 @@ Fuente frontend principal:
 - los formularios de alta o edición no deberían quedar desplegados por defecto
 - `equipment_types`, `installations`, `visits` y `work_orders` ya abren captura en modal bajo demanda
 - cualquier nueva pantalla CRUD del modulo debe seguir el mismo patron y no volver a formularios fijos incrustados salvo que exista una razon operativa fuerte
+- en `work_orders`, cliente y direccion deben leerse con nombre humano desde `business-core`, nunca por `client_code` o marcas `legacy_*`
+- `external_reference` queda como dato interno para migracion e integraciones; no debe exponerse como campo editable en la UX normal
+- para crear o editar una orden operativa se exige `client_id`, `site_id` e `installation_id` validos
 
 ## Checklist de cumplimiento del modulo
 
@@ -264,6 +267,7 @@ Backend:
 - CRUD seguro de instalaciones
 - creacion de orden con validacion de cliente, sitio e instalacion
 - cierre y anulacion de orden sin perdida de trazabilidad
+- preservacion segura de referencias externas legacy sin exponerlas a edicion manual
 - filtros de historial por cliente y periodo
 
 Frontend:

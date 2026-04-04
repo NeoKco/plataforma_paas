@@ -31,6 +31,8 @@ La version actual de `ieris_app` resuelve la operacion base, pero tiene limites 
 El primer corte del modulo ya permite:
 
 - ver ordenes de trabajo activas y cerradas
+- leer la tabla de mantenciones por cliente, direccion e instalacion
+- ordenar operativamente por fecha y hora programada/solicitada mas reciente
 - crear una orden nueva
 - editar una orden aun no cerrada
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
@@ -56,8 +58,8 @@ El primer corte del modulo ya permite:
 ## Flujo operativo esperado
 
 1. seleccionar cliente
-2. elegir sitio
-3. elegir instalacion si corresponde
+2. elegir direccion del cliente
+3. elegir instalacion real
 4. programar fecha y hora
 5. crear la orden con prioridad y contexto tecnico
 6. cambiar estado a `en curso` cuando el trabajo arranca
@@ -77,12 +79,15 @@ Regla UX operativa:
 - la lectura del catálogo debe verse primero
 - altas y ediciones no deberían quedar desplegadas por defecto
 - la captura se abre solo cuando el usuario pide `Nuevo` o `Editar`
+- los identificadores `legacy_*` o referencias externas internas no deben verse ni editarse en la captura normal
+- si falta cliente, direccion o instalacion, el modal debe informar la dependencia faltante antes de permitir agendar
 
 ## Mejora funcional recomendada
 
 La version PaaS ya mejora a la actual en estos puntos y todavia tiene mejoras pendientes:
 
 - una mantencion debe quedar ligada a una instalacion concreta cuando exista
+- la pantalla debe mostrar el cliente por nombre humano y no por codigos internos
 - el estado no debe depender de borrar el registro activo
 - hoy ya existe una lectura clara de `programada`, `en curso`, `completada` y `anulada`
 - sigue pendiente una linea de tiempo tecnica por cliente

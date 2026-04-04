@@ -20,7 +20,7 @@ class MaintenanceWorkOrderRepository:
         if maintenance_status:
             query = query.filter(MaintenanceWorkOrder.maintenance_status == maintenance_status)
         return query.order_by(
-            MaintenanceWorkOrder.scheduled_for.asc().nullslast(),
+            MaintenanceWorkOrder.scheduled_for.desc().nullslast(),
             MaintenanceWorkOrder.requested_at.desc(),
             MaintenanceWorkOrder.id.desc(),
         ).all()

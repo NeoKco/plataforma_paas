@@ -1,0 +1,147 @@
+import os
+import unittest
+from types import SimpleNamespace
+from unittest.mock import Mock
+
+os.environ["DEBUG"] = "true"
+os.environ["APP_ENV"] = "test"
+
+from app.apps.tenant_modules.business_core.models import BusinessClient, BusinessSite  # noqa: E402
+from app.apps.tenant_modules.maintenance.models import MaintenanceInstallation  # noqa: E402
+from app.apps.tenant_modules.maintenance.schemas import (  # noqa: E402
+    MaintenanceWorkOrderCreateRequest,
+    MaintenanceWorkOrderUpdateRequest,
+)
+from app.apps.tenant_modules.maintenance.services.work_order_service import (  # noqa: E402
+    MaintenanceWorkOrderService,
+)
+
+
+class _FakeQuery:
+    def __init__(self, target, mapping):
+        self.target = target
+        self.mapping = mapping
+
+    def filter(self, *_args, **_kwargs):
+        return self
+
+    def first(self):
+        return self.mapping.get(self.target)
+
+
+class _FakeTenantDb:
+    def __init__(self, mapping):
+        self.mapping = mapping
+
+    def query(self, target):
+        return _FakeQuery(target, self.mapping)
+
+
+class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
+    def test_update_work_order_preserves_existing_internal_external_reference(self) -> None:
+        existing_item = SimpleNamespace(
+            id=12,
+            client_id=11,
+            site_id=31,
+            installation_id=9,
+            external_reference="LEGACY-HIST-MAINT-34",
+            title="Mantencion mensual",
+            description=None,
+            priority="normal",
+            scheduled_for=None,
+            cancellation_reason=None,
+            closure_notes=None,
+            assigned_tenant_user_id=None,
+            maintenance_status="scheduled",
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        work_order_repository.get_by_external_reference.return_value = existing_item
+        work_order_repository.save.side_effect = lambda _tenant_db, item: item
+
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessClient.id: SimpleNamespace(id=11),
+                BusinessSite: SimpleNamespace(id=31, client_id=11),
+                MaintenanceInstallation: SimpleNamespace(id=9, site_id=31),
+            }
+        )
+
+        item = service.update_work_order(
+            tenant_db,
+            12,
+            MaintenanceWorkOrderUpdateRequest(
+                client_id=11,
+                site_id=31,
+                installation_id=9,
+                external_reference="WO-EDITABLE-001",
+                title="Mantencion mensual ajustada",
+                description="Detalle corregido",
+                priority="high",
+            ),
+        )
+
+        self.assertEqual(item.external_reference, "LEGACY-HIST-MAINT-34")
+        self.assertEqual(item.title, "Mantencion mensual ajustada")
+
+    def test_create_work_order_requires_installation(self) -> None:
+        work_order_repository = Mock()
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessClient.id: SimpleNamespace(id=11),
+                BusinessSite: SimpleNamespace(id=31, client_id=11),
+            }
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Debes seleccionar una instalacion antes de agendar la mantencion",
+        ):
+            service.create_work_order(
+                tenant_db,
+                MaintenanceWorkOrderCreateRequest(
+                    client_id=11,
+                    site_id=31,
+                    installation_id=None,
+                    title="Mantencion mensual",
+                ),
+            )
+
+    def test_create_work_order_rejects_manual_legacy_external_reference(self) -> None:
+        work_order_repository = Mock()
+        work_order_repository.get_by_external_reference.return_value = None
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessClient.id: SimpleNamespace(id=11),
+                BusinessSite: SimpleNamespace(id=31, client_id=11),
+                MaintenanceInstallation: SimpleNamespace(id=9, site_id=31),
+            }
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "La referencia externa legacy es interna y no puede capturarse manualmente",
+        ):
+            service.create_work_order(
+                tenant_db,
+                MaintenanceWorkOrderCreateRequest(
+                    client_id=11,
+                    site_id=31,
+                    installation_id=9,
+                    external_reference="LEGACY-HIST-MAINT-34",
+                    title="Mantencion mensual",
+                ),
+            )
+
+
+if __name__ == "__main__":
+    unittest.main()
