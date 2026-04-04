@@ -28,6 +28,12 @@ Estado actual:
 - `Resumen` ya muestra las 5 ultimas mantenciones realizadas con cliente, direccion y fecha de cierre
 - `Instalaciones` ya muestra instalacion, cliente y direccion visible
 - las ordenes y visitas ya soportan `grupo responsable` y `tecnico responsable` apoyados sobre `business-core`
+- ya existe el primer corte de `Pendientes` preventivos con:
+  - `maintenance_schedules`
+  - `maintenance_due_items`
+  - bandeja automatica visible en `Pendientes`
+  - alta manual de programaciones
+  - agendamiento desde pendiente hacia `work_orders`
 
 Objetivo del modulo:
 
@@ -52,6 +58,7 @@ Primer corte del modulo en PaaS:
 - tipos de equipo o activos tecnicos enlazados a `business-core`
 - agenda visual mensual de trabajo abierto
 - alta de mantencion desde agenda y desde ficha del cliente
+- programaciones preventivas base y bandeja `Pendientes`
 
 Estado del corte hoy:
 
@@ -63,6 +70,7 @@ Estado del corte hoy:
 - `business-core` ya entrega clientes, sitios, perfiles funcionales, grupos y tipos de tarea para conectarlo correctamente
 - la bandeja `Mantenciones` ya queda reservada para trabajo abierto
 - el cierre/anulacion ya saca la orden de la bandeja activa y la deja en `Historial`
+- `Pendientes` ya genera y muestra vencimientos preventivos por cliente/direccion/instalacion sin mezclar ese flujo con `Mantenciones`
 
 Pendientes visibles inmediatos:
 
@@ -92,6 +100,7 @@ Estado resumido del modulo:
 - smoke/frontend de regresion especifico del modulo: parcial
 - agenda visual rica: pendiente
 - asignacion real por grupo/usuario en ordenes y agenda: cumplido en primer corte
+- programacion preventiva y bandeja automatica: cumplido en primer corte base
 - evidencias y checklist tecnico: pendiente
 - cierre completo de la UX operativa del modulo: en progreso avanzado
 

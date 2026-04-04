@@ -26,6 +26,7 @@ from migrations.tenant import v0017_business_core_taxonomy
 from migrations.tenant import v0018_business_core_site_commune
 from migrations.tenant import v0019_core_user_timezones
 from migrations.tenant import v0020_work_group_members_and_maintenance_assignments
+from migrations.tenant import v0021_maintenance_schedules_and_due_items
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -161,6 +162,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0018_business_core_site_commune",
                 "0019_core_user_timezones",
                 "0020_work_group_members_and_maintenance_assignments",
+                "0021_maintenance_schedules_and_due_items",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -195,6 +197,8 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("maintenance_equipment_types", tables)
         self.assertIn("maintenance_installations", tables)
         self.assertIn("maintenance_work_orders", tables)
+        self.assertIn("maintenance_schedules", tables)
+        self.assertIn("maintenance_due_items", tables)
         self.assertIn("maintenance_visits", tables)
         self.assertIn("maintenance_status_logs", tables)
         self.assertIn("tenant_schema_migrations", tables)
@@ -255,6 +259,12 @@ class MigrationFlowTestCase(unittest.TestCase):
         maintenance_visit_columns = {
             column["name"] for column in inspect(engine).get_columns("maintenance_visits")
         }
+        maintenance_schedule_columns = {
+            column["name"] for column in inspect(engine).get_columns("maintenance_schedules")
+        }
+        maintenance_due_item_columns = {
+            column["name"] for column in inspect(engine).get_columns("maintenance_due_items")
+        }
         maintenance_status_log_columns = {
             column["name"]
             for column in inspect(engine).get_columns("maintenance_status_logs")
@@ -286,6 +296,13 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("equipment_type_id", maintenance_installation_columns)
         self.assertIn("installation_id", maintenance_work_order_columns)
         self.assertIn("assigned_work_group_id", maintenance_work_order_columns)
+        self.assertIn("schedule_id", maintenance_work_order_columns)
+        self.assertIn("due_item_id", maintenance_work_order_columns)
+        self.assertIn("billing_mode", maintenance_work_order_columns)
+        self.assertIn("next_due_at", maintenance_schedule_columns)
+        self.assertIn("billing_mode", maintenance_schedule_columns)
+        self.assertIn("due_status", maintenance_due_item_columns)
+        self.assertIn("work_order_id", maintenance_due_item_columns)
         self.assertIn("visit_status", maintenance_visit_columns)
         self.assertIn("assigned_work_group_id", maintenance_visit_columns)
         self.assertIn("to_status", maintenance_status_log_columns)
@@ -350,6 +367,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0018_business_core_site_commune",
                 "0019_core_user_timezones",
                 "0020_work_group_members_and_maintenance_assignments",
+                "0021_maintenance_schedules_and_due_items",
             ],
         )
 

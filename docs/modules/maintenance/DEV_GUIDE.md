@@ -127,6 +127,7 @@ Fuente frontend principal:
 - desde `Historial` solo deberian exponerse correcciones de descripcion/cierre, congelando fecha, hora, cliente, direccion e instalacion
 - `Agenda` debe pintar mantenciones abiertas sobre calendario visual, no visitas como lista catalogada
 - la asignacion ya se formalizo con FKs reales a `work_groups` y `tenant_users`, dejando `assigned_group_label` solo como compatibilidad temporal en datos o lecturas legacy
+- `Pendientes` ya existe como bandeja preventiva separada de `Mantenciones`, para no mezclar trabajo abierto con vencimientos por gestionar
 
 ## Checklist de cumplimiento del modulo
 
@@ -147,6 +148,7 @@ Fuente frontend principal:
 - smoke E2E especifico del modulo con sus flujos principales
 - validaciones mas profundas de duplicados y conflictos de programacion
 - filtros operativos por grupo y tecnico dentro de la agenda mensual
+- acciones operativas mas ricas dentro de `Pendientes` (`contact`, `postpone`, agrupación por organización)
 
 ## Modelo objetivo recomendado en PaaS
 
@@ -170,6 +172,8 @@ Entidades que viven o deberian vivir en `business-core`:
 
 Entidades de segundo corte:
 
+- `maintenance_schedules`
+- `maintenance_due_items`
 - `maintenance_evidence`
 - `maintenance_checklists`
 - `maintenance_visit_reports`
@@ -234,6 +238,7 @@ Frontend actual:
 
 - `frontend/src/apps/tenant_portal/modules/maintenance/`
 - primer corte operativo ya visible en:
+  - `due-items`
   - `work-orders`
   - `installations`
   - `equipment-types`
@@ -270,6 +275,23 @@ Estado real:
 - sigue faltando una capa formal de mapeo persistente `legacy_id -> new_id`
 - el importador hoy es idempotente por codigos, referencias externas y marcadores legacy en notas
 
+Etapa 1.6:
+
+- `maintenance_schedules` y `maintenance_due_items` ya implementados como primer corte base
+- endpoints reales ya expuestos para:
+  - `GET/POST/PUT /tenant/maintenance/schedules`
+  - `PATCH /tenant/maintenance/schedules/{id}/status`
+  - `GET /tenant/maintenance/due-items`
+  - `POST /tenant/maintenance/due-items/{id}/contact`
+  - `POST /tenant/maintenance/due-items/{id}/postpone`
+  - `POST /tenant/maintenance/due-items/{id}/schedule`
+- `schedule_due_item` crea una `work_order` real y deja enlazados:
+  - `maintenance_work_orders.schedule_id`
+  - `maintenance_work_orders.due_item_id`
+  - `maintenance_work_orders.billing_mode`
+- al completar una OT asociada, la programación recalcula `next_due_at`
+- existe el script inicial [run_maintenance_due_generation.py](/home/felipe/platform_paas/backend/app/scripts/run_maintenance_due_generation.py) para generar vencimientos por tenant
+
 Etapa 2:
 
 - integracion real con sitios y activos
@@ -277,12 +299,13 @@ Etapa 2:
 - checklist operativo
 - evidencias adjuntas
 - mejor lectura de ficha por cliente
+- filtros y gestión comercial más ricos en `Pendientes`
 
 Etapa 3:
 
-- expedientes tecnicos relacionados
-- SLA, alertas y automatizaciones
-- tablero tecnico y vista movil de terreno
+- costeo operativo y cobro
+- sincronizacion controlada hacia `finance`
+- reportes de rentabilidad
 
 ## Pruebas que deberia tener el modulo
 
@@ -297,6 +320,7 @@ Backend:
 
 Frontend:
 
+- smoke de `Pendientes`
 - smoke de crear orden
 - smoke de cambio de estado
 - smoke de crear instalacion

@@ -30,6 +30,9 @@ La version actual de `ieris_app` resuelve la operacion base, pero tiene limites 
 
 El primer corte del modulo ya permite:
 
+- crear programaciones base de mantención periódica
+- ver una bandeja `Pendientes` con mantenciones por vencer o vencidas que entraron en ventana automáticamente
+- agendar una mantención desde `Pendientes` y convertirla en orden de trabajo real
 - ver solo mantenciones abiertas en la bandeja `Mantenciones`
 - ver mantenciones realizadas o anuladas en `Historial`
 - `Historial` ahora separa `Mantenciones realizadas` y `Mantenciones anuladas`, para no mezclar trabajo ejecutado con trabajo cancelado.
@@ -63,15 +66,18 @@ El primer corte del modulo ya permite:
 ## Flujo operativo esperado
 
 1. seleccionar cliente
-2. elegir direccion del cliente
-3. elegir instalacion real
-4. programar fecha y hora
-5. crear la orden con prioridad y contexto tecnico
-6. cambiar estado a `en curso` cuando el trabajo arranca
-7. completar o anular la orden dejando observacion o motivo
-8. al cerrar, la orden deja de verse en `Mantenciones`
-9. revisar despues el historial tecnico con sus cambios de estado y visitas
-10. usar `Agenda` para ver visualmente el trabajo abierto del mes y crear nuevas mantenciones desde una fecha
+2. si el cliente requiere mantención recurrente, crear su programación base en `Pendientes`
+3. cuando entre en ventana, aparecerá automáticamente en la bandeja preventiva
+4. agendar desde `Pendientes` o crear una orden manual en `Mantenciones`
+5. elegir direccion del cliente
+6. elegir instalacion real
+7. programar fecha y hora
+8. crear la orden con prioridad y contexto tecnico
+9. cambiar estado a `en curso` cuando el trabajo arranca
+10. completar o anular la orden dejando observacion o motivo
+11. al cerrar, la orden deja de verse en `Mantenciones`
+12. revisar despues el historial tecnico con sus cambios de estado y visitas
+13. usar `Agenda` para ver visualmente el trabajo abierto del mes y crear nuevas mantenciones desde una fecha
 
 Tambien deberia funcionar asi:
 
@@ -83,6 +89,7 @@ Tambien deberia funcionar asi:
 Lectura funcional de cada vista:
 
 - `Resumen`: tablero corto con abiertas y ultimas 5 realizadas
+- `Pendientes`: bandeja automática de mantenciones por gestionar, visible cuando el cliente ya entró en ventana de vencimiento
 - `Mantenciones`: solo trabajo abierto (`scheduled` / `in_progress`)
 - `Instalaciones`: parque instalado por cliente y direccion
 - `Historial`: trabajo ya realizado o anulado

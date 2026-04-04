@@ -175,7 +175,7 @@ Alcance:
 
 Estado:
 
-- `Pendiente`
+- `En progreso`
 
 Objetivo:
 
@@ -200,6 +200,26 @@ Criterio de salida:
 - existe bandeja automatica por vencer / vencidas / gestionadas
 - cada OT puede registrar costo estimado, costo real y monto cobrado
 - `finance` puede recibir el resultado economico con enlace al origen operativo
+
+Avance actual:
+
+- migracion tenant `0021_maintenance_schedules_and_due_items` creada
+- tablas ya versionadas:
+  - `maintenance_schedules`
+  - `maintenance_due_items`
+- `maintenance_work_orders` ya guarda:
+  - `schedule_id`
+  - `due_item_id`
+  - `billing_mode`
+- API real ya disponible para:
+  - `schedules`
+  - `due-items`
+- frontend tenant ya muestra la vista `Pendientes`
+- desde `Pendientes` ya se puede:
+  - crear una programación
+  - ver mantenciones preventivas visibles
+  - agendar una OT desde el pendiente
+- sigue pendiente el corte de costeo/cobro y la sincronización económica hacia `finance`
 
 ## Mejoras de producto recomendadas
 

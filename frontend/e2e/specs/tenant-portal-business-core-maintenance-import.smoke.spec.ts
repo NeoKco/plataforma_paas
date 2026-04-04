@@ -69,6 +69,16 @@ test("tenant portal shows imported business core and maintenance data from ieris
 
   await openTenantImportedPage(
     page,
+    "/tenant-portal/maintenance/due-items",
+    /Pendientes|Due maintenance/i
+  );
+  await page.getByRole("button", { name: /Nueva programación|New schedule/i }).click();
+  await expect(page.getByLabel(/Cliente|Client/i)).toBeVisible();
+  await expect(page.getByLabel(/Próxima fecha|Next due/i)).toBeVisible();
+  await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+
+  await openTenantImportedPage(
+    page,
     "/tenant-portal/maintenance/installations",
     /Instalaciones|Installations/i
   );

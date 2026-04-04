@@ -2,6 +2,25 @@
 
 ## 2026-04-04
 
+- se implementa el primer corte real de programación preventiva:
+  - migración tenant `0021_maintenance_schedules_and_due_items`
+  - tablas `maintenance_schedules` y `maintenance_due_items`
+  - columnas nuevas en `maintenance_work_orders`: `schedule_id`, `due_item_id`, `billing_mode`
+- se agregan APIs reales para:
+  - `schedules`
+  - `due-items`
+  - `schedule -> due-item -> work-order`
+- `Pendientes` queda operativo en frontend como bandeja automática por cliente/dirección/instalación
+- desde `Pendientes` ya se puede:
+  - crear una programación
+  - ver vencimientos visibles
+  - agendar una mantención real hacia `work_orders`
+- al completar una OT asociada a programación, el backend recalcula `next_due_at`
+- se agrega el script [run_maintenance_due_generation.py](/home/felipe/platform_paas/backend/app/scripts/run_maintenance_due_generation.py) para generar vencimientos preventivos por tenant
+- se actualizan:
+  - pruebas backend de migración
+  - smoke E2E tenant de `maintenance`
+  - documentación operativa y técnica del módulo
 - el enlace contextual `Ir a instalaciones` desde `Mantenciones` y `Agenda` ahora abre el alta de instalación con el cliente ya fijado por contexto y sin permitir cambiarlo
 - el alta normal de `Instalaciones` deja de exponer `Orden`; el valor sigue interno con default técnico para no ensuciar la UX operativa
 - se documenta el modelo canónico de siguiente expansión para `maintenance` en [PREVENTIVE_SCHEDULING_AND_COSTING_MODEL.md](/home/felipe/platform_paas/docs/modules/maintenance/PREVENTIVE_SCHEDULING_AND_COSTING_MODEL.md), alineando:
