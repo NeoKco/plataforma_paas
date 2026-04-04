@@ -176,6 +176,20 @@ Ademas:
 - en moviles deben caer bien a una sola columna
 - los formularios largos deben usar grillas o bloques, no una sola torre infinita
 
+## Regla de Fechas y Horarios
+
+El backend puede guardar timestamps en UTC, pero el frontend debe mostrar y editar la hora operativa correcta del usuario.
+
+Reglas:
+
+- no usar `toISOString().slice(...)` directo para poblar inputs `datetime-local`
+- usar helpers dedicados para convertir `ISO -> datetime-local`
+- usar helpers dedicados para convertir `datetime-local -> ISO`
+- verificar que editar un registro no cambie la hora si el usuario no tocó ese campo
+- si el producto opera sobre una zona principal, documentarla y mantener consistencia visual
+
+Si más adelante el PaaS soporta múltiples zonas horarias por tenant o usuario, esta conversión debe salir de una configuración explícita y no de suposiciones ocultas.
+
 ## Regla de Maquetacion
 
 Las pantallas deben sentirse armonicas y operables.

@@ -83,6 +83,7 @@ Smokes vigentes:
 - Adjuntos del módulo viven dentro del propio backend del módulo, no en carpetas externas de staging.
 - Las imágenes adjuntas se comprimen en frontend antes del upload y se normalizan a `image/webp`.
 - La moneda base afecta formateo y lectura agregada, pero no recalcula histórico automáticamente.
+- Las marcas de tiempo del backend se guardan en UTC o con zona válida; los formularios `datetime-local` del frontend deben convertir a valor local con helper dedicado y no con `toISOString().slice(...)` directo, porque eso adelanta la hora visible y termina guardando desfases operativos de varias horas.
 
 ## Cómo extender el módulo
 

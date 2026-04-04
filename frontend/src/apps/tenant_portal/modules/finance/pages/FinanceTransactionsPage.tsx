@@ -11,6 +11,11 @@ import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
+import {
+  currentDateTimeLocalInputValue,
+  fromDateTimeLocalInputValue,
+  toDateTimeLocalInputValue,
+} from "../../../../../utils/dateTimeLocal";
 import { displayPlatformCode } from "../../../../../utils/platform-labels";
 import type { ApiError } from "../../../../../types";
 import { FinanceHelpBubble } from "../components/common/FinanceHelpBubble";
@@ -93,7 +98,7 @@ const DEFAULT_FORM_STATE: TransactionFormState = {
   currencyId: "",
   amount: "",
   exchangeRate: "",
-  transactionAt: buildDateTimeLocalValue(),
+  transactionAt: currentDateTimeLocalInputValue(),
   description: "",
   notes: "",
   isReconciled: false,
@@ -741,7 +746,7 @@ export function FinanceTransactionsPage() {
       ...DEFAULT_FORM_STATE,
       accountId: accounts[0] ? String(accounts[0].id) : "",
       currencyId: baseCurrency ? String(baseCurrency.id) : "",
-      transactionAt: buildDateTimeLocalValue(),
+      transactionAt: currentDateTimeLocalInputValue(),
     });
     setCreateAttachmentFile(null);
     setCreateAttachmentNotes("");
@@ -2413,18 +2418,6 @@ function normalizeNullableFloat(value: string): number | null {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
-function buildDateTimeLocalValue() {
-  return new Date().toISOString().slice(0, 16);
-}
-
-function buildDateTimeLocalValueFromIso(value: string) {
-  return new Date(value).toISOString().slice(0, 16);
-}
-
-function buildIsoFromDateTimeLocal(value: string) {
-  return new Date(value).toISOString();
-}
-
 function formatMoney(value: number, currencyCode = "USD", language: "es" | "en" = "es"): string {
   return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
@@ -2617,7 +2610,7 @@ function buildTransactionWritePayload(
     discount_amount: 0,
     exchange_rate: normalizeNullableFloat(formState.exchangeRate),
     amortization_months: null,
-    transaction_at: buildIsoFromDateTimeLocal(formState.transactionAt),
+    transaction_at: fromDateTimeLocalInputValue(formState.transactionAt),
     alternative_date: null,
     description: formState.description.trim(),
     notes: normalizeNullableString(formState.notes),
@@ -2646,7 +2639,7 @@ function buildTransactionFormState(
     currencyId: String(transaction.currency_id),
     amount: String(transaction.amount),
     exchangeRate: transaction.exchange_rate ? String(transaction.exchange_rate) : "",
-    transactionAt: buildDateTimeLocalValueFromIso(transaction.transaction_at),
+    transactionAt: toDateTimeLocalInputValue(transaction.transaction_at),
     description: transaction.description,
     notes: transaction.notes || "",
     isReconciled: transaction.is_reconciled,

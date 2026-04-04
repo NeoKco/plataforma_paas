@@ -9,6 +9,7 @@ import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
+import { currentDateTimeLocalInputValue } from "../../../../../utils/dateTimeLocal";
 import type { ApiError } from "../../../../../types";
 import { FinanceHelpBubble } from "../components/common/FinanceHelpBubble";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
@@ -57,7 +58,7 @@ function buildExchangeRateForm(currencyId: number | null): TenantFinanceExchange
     source_currency_id: currencyId ?? 0,
     target_currency_id: currencyId ?? 0,
     rate: 1,
-    effective_at: new Date().toISOString().slice(0, 16),
+    effective_at: currentDateTimeLocalInputValue(),
     source: "manual",
     note: null,
   };
@@ -127,7 +128,7 @@ export function FinanceSettingsPage() {
       source_currency_id: currencies[0]?.id ?? 0,
       target_currency_id: currencies[1]?.id ?? currencies[0]?.id ?? 0,
       rate: 1,
-      effective_at: new Date().toISOString().slice(0, 16),
+      effective_at: currentDateTimeLocalInputValue(),
       source: "manual",
       note: null,
     });
