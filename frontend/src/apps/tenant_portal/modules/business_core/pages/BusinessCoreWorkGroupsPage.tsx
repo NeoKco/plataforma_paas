@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { useLanguage } from "../../../../../store/language-context";
@@ -33,6 +34,7 @@ function normalizeNullable(value: string | null): string | null {
 }
 
 export function BusinessCoreWorkGroupsPage() {
+  const navigate = useNavigate();
   const { session } = useTenantAuth();
   const { language } = useLanguage();
   const [items, setItems] = useState<TenantBusinessWorkGroup[]>([]);
@@ -209,6 +211,15 @@ export function BusinessCoreWorkGroupsPage() {
                   : currentLanguage === "es" ? "Operaciones" : "Operations",
         },
         {
+          key: "members",
+          headerEs: "Miembros",
+          headerEn: "Members",
+          render: (item, currentLanguage) =>
+            currentLanguage === "es"
+              ? `${item.member_count} asignados`
+              : `${item.member_count} assigned`,
+        },
+        {
           key: "status",
           headerEs: "Estado",
           headerEn: "Status",
@@ -228,6 +239,13 @@ export function BusinessCoreWorkGroupsPage() {
             <AppToolbar compact>
               <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => startEdit(item)}>
                 {currentLanguage === "es" ? "Editar" : "Edit"}
+              </button>
+              <button
+                className="btn btn-sm btn-outline-secondary"
+                type="button"
+                onClick={() => navigate(`/tenant-portal/business-core/work-groups/${item.id}/members`)}
+              >
+                {currentLanguage === "es" ? "Miembros" : "Members"}
               </button>
               <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => void handleToggle(item)}>
                 {item.is_active

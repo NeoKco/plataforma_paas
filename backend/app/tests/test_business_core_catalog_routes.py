@@ -56,6 +56,10 @@ from app.apps.tenant_modules.business_core.api.work_groups import (
     list_business_work_groups,
     update_business_work_group_status,
 )
+from app.apps.tenant_modules.business_core.api.work_group_members import (
+    create_business_work_group_member,
+    list_business_work_group_members,
+)
 from app.apps.tenant_modules.business_core.schemas import (
     BusinessClientCreateRequest,
     BusinessContactCreateRequest,
@@ -65,6 +69,7 @@ from app.apps.tenant_modules.business_core.schemas import (
     BusinessSiteCreateRequest,
     BusinessTaskTypeCreateRequest,
     BusinessWorkGroupCreateRequest,
+    BusinessWorkGroupMemberCreateRequest,
 )
 
 
@@ -963,6 +968,100 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
             )
 
         self.assertEqual(response.data.code, "mantencion-preventiva")
+
+    def test_list_business_work_groups_includes_member_count(self) -> None:
+        group = SimpleNamespace(
+            id=13,
+            code="grupo-sst-norte",
+            name="Grupo SST Norte",
+            description="Equipo de terreno",
+            group_kind="field",
+            is_active=True,
+            sort_order=100,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.work_groups.work_group_service.list_work_groups",
+            return_value=[group],
+        ), patch(
+            "app.apps.tenant_modules.business_core.api.work_groups.work_group_member_service.get_member_counts",
+            return_value={13: 4},
+        ):
+            response = list_business_work_groups(
+                include_inactive=False,
+                group_kind="field",
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data[0].member_count, 4)
+
+    def test_list_business_work_group_members_returns_user_projection(self) -> None:
+        member = SimpleNamespace(
+            id=9,
+            group_id=13,
+            tenant_user_id=5,
+            function_profile_id=7,
+            is_primary=True,
+            is_lead=False,
+            is_active=True,
+            starts_at=None,
+            ends_at=None,
+            notes="Turno base",
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+        )
+        tenant_db = SimpleNamespace(
+            query=lambda model: SimpleNamespace(
+                filter=lambda *_args, **_kwargs: SimpleNamespace(
+                    first=lambda: (
+                        SimpleNamespace(id=5, full_name="Felipe Hormazabal", email="felipe@demo.local")
+                        if model.__name__ == "User"
+                        else SimpleNamespace(id=7, name="Tecnico")
+                    )
+                )
+            )
+        )
+
+        with patch(
+            "app.apps.tenant_modules.business_core.api.work_group_members.work_group_member_service.list_members",
+            return_value=[member],
+        ):
+            response = list_business_work_group_members(
+                work_group_id=13,
+                current_user=self._current_user(),
+                tenant_db=tenant_db,
+            )
+
+        self.assertEqual(response.total, 1)
+        self.assertEqual(response.data[0].user_full_name, "Felipe Hormazabal")
+        self.assertEqual(response.data[0].function_profile_name, "Tecnico")
+
+    def test_create_business_work_group_member_translates_validation_error_to_400(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.business_core.api.work_group_members.work_group_member_service.create_member",
+            side_effect=ValueError("Ese usuario ya pertenece al grupo seleccionado"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                create_business_work_group_member(
+                    work_group_id=13,
+                    payload=BusinessWorkGroupMemberCreateRequest(
+                        tenant_user_id=5,
+                        function_profile_id=None,
+                        is_primary=False,
+                        is_lead=False,
+                        is_active=True,
+                        starts_at=None,
+                        ends_at=None,
+                        notes=None,
+                    ),
+                    current_user=self._current_user(),
+                    tenant_db=object(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
 
 
 if __name__ == "__main__":

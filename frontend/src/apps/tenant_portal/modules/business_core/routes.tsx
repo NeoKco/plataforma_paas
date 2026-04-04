@@ -59,6 +59,13 @@ export const businessCoreTenantPortalRoutes: RouteObject[] = [
     },
   },
   {
+    path: "work-groups/:workGroupId/members",
+    lazy: async () => {
+      const module = await import("./pages/BusinessCoreWorkGroupMembersPage");
+      return { Component: module.BusinessCoreWorkGroupMembersPage };
+    },
+  },
+  {
     path: "task-types",
     lazy: async () => {
       const module = await import("./pages/BusinessCoreTaskTypesPage");

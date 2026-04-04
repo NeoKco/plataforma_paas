@@ -8,6 +8,7 @@ export type TenantMaintenanceVisit = {
   scheduled_end_at: string | null;
   actual_start_at: string | null;
   actual_end_at: string | null;
+  assigned_work_group_id: number | null;
   assigned_tenant_user_id: number | null;
   assigned_group_label: string | null;
   notes: string | null;
@@ -35,6 +36,7 @@ export type TenantMaintenanceVisitWriteRequest = {
   scheduled_end_at: string | null;
   actual_start_at: string | null;
   actual_end_at: string | null;
+  assigned_work_group_id: number | null;
   assigned_tenant_user_id: number | null;
   assigned_group_label: string | null;
   notes: string | null;

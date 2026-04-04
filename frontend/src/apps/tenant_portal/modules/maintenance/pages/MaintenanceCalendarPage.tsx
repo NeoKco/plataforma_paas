@@ -7,10 +7,11 @@ import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
+import { getTenantUsers } from "../../../../../services/tenant-api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
-import type { ApiError } from "../../../../../types";
+import type { ApiError, TenantUsersItem } from "../../../../../types";
 import {
   getTenantBusinessClients,
   type TenantBusinessClient,
@@ -19,6 +20,10 @@ import {
   getTenantBusinessOrganizations,
   type TenantBusinessOrganization,
 } from "../../business_core/services/organizationsService";
+import {
+  getTenantBusinessWorkGroups,
+  type TenantBusinessWorkGroup,
+} from "../../business_core/services/workGroupsService";
 import {
   getTenantBusinessSites,
   type TenantBusinessSite,
@@ -47,6 +52,7 @@ function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
     client_id: 0,
     site_id: 0,
     installation_id: null,
+    assigned_work_group_id: null,
     external_reference: null,
     title: "",
     description: null,
@@ -137,6 +143,8 @@ export function MaintenanceCalendarPage() {
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
+  const [workGroups, setWorkGroups] = useState<TenantBusinessWorkGroup[]>([]);
+  const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
   const [currentMonth, setCurrentMonth] = useState(() => toMonthStart(new Date()));
   const [selectedDateKey, setSelectedDateKey] = useState(() => toDateKey(new Date()));
   const [isLoading, setIsLoading] = useState(true);
@@ -156,6 +164,14 @@ export function MaintenanceCalendarPage() {
     [organizations]
   );
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
+  const workGroupById = useMemo(
+    () => new Map(workGroups.map((group) => [group.id, group])),
+    [workGroups]
+  );
+  const tenantUserById = useMemo(
+    () => new Map(tenantUsers.map((user) => [user.id, user])),
+    [tenantUsers]
+  );
 
   const filteredSites = useMemo(
     () =>
@@ -171,6 +187,16 @@ export function MaintenanceCalendarPage() {
         ? installations.filter((item) => item.site_id === Number(form.site_id))
         : installations,
     [form.site_id, installations]
+  );
+
+  const activeWorkGroups = useMemo(
+    () => workGroups.filter((group) => group.is_active),
+    [workGroups]
+  );
+
+  const activeTenantUsers = useMemo(
+    () => tenantUsers.filter((user) => user.is_active),
+    [tenantUsers]
   );
 
   const activeRows = useMemo(
@@ -249,18 +275,24 @@ export function MaintenanceCalendarPage() {
         organizationsResponse,
         sitesResponse,
         installationsResponse,
+        workGroupsResponse,
+        tenantUsersResponse,
       ] = await Promise.all([
         getTenantMaintenanceWorkOrders(session.accessToken),
         getTenantBusinessClients(session.accessToken, { includeInactive: false }),
         getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
         getTenantBusinessSites(session.accessToken, { includeInactive: false }),
         getTenantMaintenanceInstallations(session.accessToken, { includeInactive: false }),
+        getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false }),
+        getTenantUsers(session.accessToken),
       ]);
       setWorkOrders(workOrdersResponse.data);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
       setInstallations(installationsResponse.data);
+      setWorkGroups(workGroupsResponse.data);
+      setTenantUsers(tenantUsersResponse.data);
       setForm((current) => ({
         ...current,
         client_id: current.client_id || clientsResponse.data[0]?.id || 0,
@@ -343,6 +375,7 @@ export function MaintenanceCalendarPage() {
       client_id: clientId,
       site_id: siteId,
       installation_id: candidateInstallations[0]?.id || null,
+      assigned_work_group_id: null,
       scheduled_for: toLocalDateTimeValue(date),
     });
   }
@@ -361,6 +394,7 @@ export function MaintenanceCalendarPage() {
       client_id: item.client_id,
       site_id: item.site_id,
       installation_id: item.installation_id,
+      assigned_work_group_id: item.assigned_work_group_id,
       external_reference: item.external_reference,
       title: item.title,
       description: stripLegacyVisibleText(item.description),
@@ -383,6 +417,7 @@ export function MaintenanceCalendarPage() {
       client_id: Number(form.client_id),
       site_id: Number(form.site_id),
       installation_id: form.installation_id ? Number(form.installation_id) : null,
+      assigned_work_group_id: form.assigned_work_group_id ? Number(form.assigned_work_group_id) : null,
       external_reference: editingId ? normalizeNullable(form.external_reference) : null,
       title: form.title.trim(),
       description: stripLegacyVisibleText(normalizeNullable(form.description)),
@@ -617,6 +652,22 @@ export function MaintenanceCalendarPage() {
                           ? "sin instalación"
                           : "no installation"}
                     </div>
+                    <div className="maintenance-history-entry__meta">
+                      {language === "es" ? "Grupo" : "Group"}:{" "}
+                      {item.assigned_work_group_id
+                        ? workGroupById.get(item.assigned_work_group_id)?.name || `#${item.assigned_work_group_id}`
+                        : language === "es"
+                          ? "sin grupo"
+                          : "no group"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {language === "es" ? "Técnico" : "Technician"}:{" "}
+                      {item.assigned_tenant_user_id
+                        ? tenantUserById.get(item.assigned_tenant_user_id)?.full_name || `#${item.assigned_tenant_user_id}`
+                        : language === "es"
+                          ? "sin técnico"
+                          : "no technician"}
+                    </div>
                   </div>
                   <AppBadge tone={item.maintenance_status === "in_progress" ? "info" : "warning"}>
                     {item.maintenance_status === "in_progress"
@@ -751,6 +802,54 @@ export function MaintenanceCalendarPage() {
                       {filteredInstallations.map((item) => (
                         <option key={item.id} value={item.id}>
                           {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {language === "es" ? "Grupo responsable" : "Responsible group"}
+                    </label>
+                    <select
+                      className="form-select"
+                      value={form.assigned_work_group_id ?? ""}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          assigned_work_group_id: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    >
+                      <option value="">
+                        {language === "es" ? "Sin grupo asignado" : "No group assigned"}
+                      </option>
+                      {activeWorkGroups.map((group) => (
+                        <option key={group.id} value={group.id}>
+                          {group.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {language === "es" ? "Técnico responsable" : "Assigned technician"}
+                    </label>
+                    <select
+                      className="form-select"
+                      value={form.assigned_tenant_user_id ?? ""}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          assigned_tenant_user_id: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    >
+                      <option value="">
+                        {language === "es" ? "Sin técnico asignado" : "No technician assigned"}
+                      </option>
+                      {activeTenantUsers.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.full_name}
                         </option>
                       ))}
                     </select>

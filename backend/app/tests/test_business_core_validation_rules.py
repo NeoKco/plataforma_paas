@@ -11,6 +11,7 @@ from app.apps.tenant_modules.business_core.schemas import (  # noqa: E402
     BusinessContactCreateRequest,
     BusinessOrganizationCreateRequest,
     BusinessSiteCreateRequest,
+    BusinessWorkGroupMemberCreateRequest,
 )
 from app.apps.tenant_modules.business_core.services.client_service import (  # noqa: E402
     BusinessClientService,
@@ -23,6 +24,9 @@ from app.apps.tenant_modules.business_core.services.organization_service import 
 )
 from app.apps.tenant_modules.business_core.services.site_service import (  # noqa: E402
     BusinessSiteService,
+)
+from app.apps.tenant_modules.business_core.services.work_group_member_service import (  # noqa: E402
+    BusinessWorkGroupMemberService,
 )
 
 
@@ -257,6 +261,70 @@ class BusinessCoreValidationRulesTestCase(unittest.TestCase):
             )
 
         self.assertIn("Ya existe un contacto con ese teléfono", str(exc.exception))
+
+    def test_work_group_member_rejects_duplicate_group_membership(self) -> None:
+        work_group_repository = Mock()
+        work_group_member_repository = Mock()
+        work_group_repository.get_by_id.return_value = SimpleNamespace(id=7, name="Terreno norte")
+        work_group_member_repository.get_by_group_and_user.return_value = SimpleNamespace(id=22)
+        service = BusinessWorkGroupMemberService(
+            work_group_repository=work_group_repository,
+            work_group_member_repository=work_group_member_repository,
+        )
+        tenant_db = Mock()
+        user_query = Mock()
+        user_query.filter.return_value.first.return_value = SimpleNamespace(id=5)
+        tenant_db.query.return_value = user_query
+
+        with self.assertRaises(ValueError) as exc:
+            service.create_member(
+                tenant_db,
+                7,
+                BusinessWorkGroupMemberCreateRequest(
+                    tenant_user_id=5,
+                    function_profile_id=None,
+                    is_primary=False,
+                    is_lead=False,
+                    is_active=True,
+                    starts_at=None,
+                    ends_at=None,
+                    notes=None,
+                ),
+            )
+
+        self.assertIn("ya pertenece al grupo seleccionado", str(exc.exception).lower())
+
+    def test_work_group_member_rejects_invalid_date_window(self) -> None:
+        work_group_repository = Mock()
+        work_group_member_repository = Mock()
+        work_group_repository.get_by_id.return_value = SimpleNamespace(id=7, name="Terreno norte")
+        work_group_member_repository.get_by_group_and_user.return_value = None
+        service = BusinessWorkGroupMemberService(
+            work_group_repository=work_group_repository,
+            work_group_member_repository=work_group_member_repository,
+        )
+        tenant_db = Mock()
+        user_query = Mock()
+        user_query.filter.return_value.first.return_value = SimpleNamespace(id=5)
+        tenant_db.query.return_value = user_query
+
+        with self.assertRaises(ValueError) as exc:
+            service.create_member(
+                tenant_db,
+                7,
+                BusinessWorkGroupMemberCreateRequest(
+                    tenant_user_id=5,
+                    function_profile_id=None,
+                    is_primary=False,
+                    is_lead=False,
+                    is_active=True,
+                    starts_at="2026-04-10T09:00:00",
+                    ends_at="2026-04-09T09:00:00",
+                    notes=None,
+                ),
+            )
+
+        self.assertIn("fecha final", str(exc.exception).lower())
 
     def test_site_rejects_duplicate_address_in_same_client(self) -> None:
         site_repository = Mock()

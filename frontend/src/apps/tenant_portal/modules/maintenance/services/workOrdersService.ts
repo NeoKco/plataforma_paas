@@ -5,6 +5,7 @@ export type TenantMaintenanceWorkOrder = {
   client_id: number;
   site_id: number;
   installation_id: number | null;
+  assigned_work_group_id: number | null;
   external_reference: string | null;
   title: string;
   description: string | null;
@@ -12,6 +13,7 @@ export type TenantMaintenanceWorkOrder = {
   scheduled_for: string | null;
   cancellation_reason: string | null;
   closure_notes: string | null;
+  assigned_work_group_id: number | null;
   assigned_tenant_user_id: number | null;
   maintenance_status: string;
   requested_at: string;
@@ -39,6 +41,7 @@ export type TenantMaintenanceWorkOrderWriteRequest = {
   client_id: number;
   site_id: number;
   installation_id: number | null;
+  assigned_work_group_id: number | null;
   external_reference: string | null;
   title: string;
   description: string | null;

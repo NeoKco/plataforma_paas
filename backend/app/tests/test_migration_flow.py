@@ -25,6 +25,7 @@ from migrations.tenant import v0016_maintenance_base
 from migrations.tenant import v0017_business_core_taxonomy
 from migrations.tenant import v0018_business_core_site_commune
 from migrations.tenant import v0019_core_user_timezones
+from migrations.tenant import v0020_work_group_members_and_maintenance_assignments
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -159,6 +160,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0017_business_core_taxonomy",
                 "0018_business_core_site_commune",
                 "0019_core_user_timezones",
+                "0020_work_group_members_and_maintenance_assignments",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -188,6 +190,7 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("business_sites", tables)
         self.assertIn("business_function_profiles", tables)
         self.assertIn("business_work_groups", tables)
+        self.assertIn("business_work_group_members", tables)
         self.assertIn("business_task_types", tables)
         self.assertIn("maintenance_equipment_types", tables)
         self.assertIn("maintenance_installations", tables)
@@ -273,11 +276,18 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("timezone", tenant_user_columns)
         self.assertIn("code", business_function_profile_columns)
         self.assertIn("group_kind", business_work_group_columns)
+        business_work_group_member_columns = {
+            column["name"] for column in inspect(engine).get_columns("business_work_group_members")
+        }
+        self.assertIn("tenant_user_id", business_work_group_member_columns)
+        self.assertIn("function_profile_id", business_work_group_member_columns)
         self.assertIn("color", business_task_type_columns)
         self.assertIn("name", maintenance_equipment_type_columns)
         self.assertIn("equipment_type_id", maintenance_installation_columns)
         self.assertIn("installation_id", maintenance_work_order_columns)
+        self.assertIn("assigned_work_group_id", maintenance_work_order_columns)
         self.assertIn("visit_status", maintenance_visit_columns)
+        self.assertIn("assigned_work_group_id", maintenance_visit_columns)
         self.assertIn("to_status", maintenance_status_log_columns)
 
         with engine.connect() as conn:
@@ -339,6 +349,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0017_business_core_taxonomy",
                 "0018_business_core_site_commune",
                 "0019_core_user_timezones",
+                "0020_work_group_members_and_maintenance_assignments",
             ],
         )
 
@@ -386,6 +397,29 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("business_clients", tables)
         self.assertIn("business_contacts", tables)
         self.assertIn("business_sites", tables)
+
+    def test_work_group_members_migration_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            MigrationRunner(
+                engine=engine,
+                package_name="migrations.tenant",
+                table_name="tenant_schema_migrations",
+            ).apply_pending()
+            v0020_work_group_members_and_maintenance_assignments.upgrade(conn)
+            v0020_work_group_members_and_maintenance_assignments.upgrade(conn)
+
+        inspector = inspect(engine)
+        self.assertIn("business_work_group_members", set(inspector.get_table_names()))
+        work_order_columns = {
+            column["name"] for column in inspector.get_columns("maintenance_work_orders")
+        }
+        visit_columns = {
+            column["name"] for column in inspector.get_columns("maintenance_visits")
+        }
+        self.assertIn("assigned_work_group_id", work_order_columns)
+        self.assertIn("assigned_work_group_id", visit_columns)
 
     def test_finance_transactions_migration_backfills_legacy_entries(self) -> None:
         engine = self._build_engine()
