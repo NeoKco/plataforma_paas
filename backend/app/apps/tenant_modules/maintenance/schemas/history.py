@@ -23,6 +23,7 @@ class MaintenanceVisitItemResponse(BaseModel):
     scheduled_end_at: datetime | None = None
     actual_start_at: datetime | None = None
     actual_end_at: datetime | None = None
+    assigned_work_group_id: int | None = None
     assigned_tenant_user_id: int | None = None
     assigned_group_label: str | None = None
     notes: str | None = None
@@ -41,6 +42,8 @@ class MaintenanceHistoryWorkOrderItemResponse(BaseModel):
     priority: str
     cancellation_reason: str | None = None
     closure_notes: str | None = None
+    assigned_work_group_id: int | None = None
+    assigned_tenant_user_id: int | None = None
     maintenance_status: str
     requested_at: datetime
     scheduled_for: datetime | None = None

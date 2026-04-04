@@ -29,6 +29,7 @@ def _build_visit_item(item) -> MaintenanceVisitItemResponse:
         scheduled_end_at=item.scheduled_end_at,
         actual_start_at=item.actual_start_at,
         actual_end_at=item.actual_end_at,
+        assigned_work_group_id=item.assigned_work_group_id,
         assigned_tenant_user_id=item.assigned_tenant_user_id,
         assigned_group_label=item.assigned_group_label,
         notes=item.notes,

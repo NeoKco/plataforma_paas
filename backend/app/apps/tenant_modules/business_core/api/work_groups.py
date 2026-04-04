@@ -14,14 +14,22 @@ from app.apps.tenant_modules.business_core.schemas import (
     BusinessWorkGroupsResponse,
     BusinessWorkGroupUpdateRequest,
 )
-from app.apps.tenant_modules.business_core.services import BusinessWorkGroupService
+from app.apps.tenant_modules.business_core.services import (
+    BusinessWorkGroupMemberService,
+    BusinessWorkGroupService,
+)
 from app.common.db.session_manager import get_tenant_db
 
 router = APIRouter(prefix="/tenant/business-core/work-groups", tags=["Tenant Business Core"])
 work_group_service = BusinessWorkGroupService()
+work_group_member_service = BusinessWorkGroupMemberService()
 
 
-def _build_work_group_item(item) -> BusinessWorkGroupItemResponse:
+def _build_work_group_item(
+    item,
+    *,
+    member_count: int = 0,
+) -> BusinessWorkGroupItemResponse:
     return BusinessWorkGroupItemResponse(
         id=item.id,
         code=item.code,
@@ -30,6 +38,7 @@ def _build_work_group_item(item) -> BusinessWorkGroupItemResponse:
         group_kind=item.group_kind,
         is_active=item.is_active,
         sort_order=item.sort_order,
+        member_count=member_count,
         created_at=item.created_at,
         updated_at=item.updated_at,
     )
@@ -47,12 +56,19 @@ def list_business_work_groups(
         include_inactive=include_inactive,
         group_kind=group_kind,
     )
+    member_counts = work_group_member_service.get_member_counts(
+        tenant_db,
+        [item.id for item in items],
+    )
     return BusinessWorkGroupsResponse(
         success=True,
         message="Grupos de trabajo recuperados correctamente",
         requested_by=build_business_core_requested_by(current_user),
         total=len(items),
-        data=[_build_work_group_item(item) for item in items],
+        data=[
+            _build_work_group_item(item, member_count=member_counts.get(item.id, 0))
+            for item in items
+        ],
     )
 
 

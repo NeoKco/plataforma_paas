@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.business_core.models import BusinessWorkGroupMember

@@ -2,7 +2,12 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.business_core.models import BusinessClient, BusinessSite
+from app.apps.tenant_modules.business_core.models import (
+    BusinessClient,
+    BusinessSite,
+    BusinessWorkGroup,
+)
+from app.apps.tenant_modules.core.models.user import User
 from app.apps.tenant_modules.maintenance.models import (
     MaintenanceInstallation,
     MaintenanceWorkOrder,
@@ -180,6 +185,7 @@ class MaintenanceWorkOrderService:
             "scheduled_for": payload.scheduled_for,
             "cancellation_reason": payload.cancellation_reason.strip() if payload.cancellation_reason and payload.cancellation_reason.strip() else None,
             "closure_notes": payload.closure_notes.strip() if payload.closure_notes and payload.closure_notes.strip() else None,
+            "assigned_work_group_id": payload.assigned_work_group_id,
             "assigned_tenant_user_id": payload.assigned_tenant_user_id,
         }
         if isinstance(payload, MaintenanceWorkOrderCreateRequest):
@@ -230,6 +236,24 @@ class MaintenanceWorkOrderService:
                 raise ValueError("La instalacion seleccionada no existe")
             if installation.site_id != payload["site_id"]:
                 raise ValueError("La instalacion seleccionada no pertenece al sitio indicado")
+
+        if payload["assigned_work_group_id"] is not None:
+            work_group_exists = (
+                tenant_db.query(BusinessWorkGroup.id)
+                .filter(BusinessWorkGroup.id == payload["assigned_work_group_id"])
+                .first()
+            )
+            if work_group_exists is None:
+                raise ValueError("El grupo responsable seleccionado no existe")
+
+        if payload["assigned_tenant_user_id"] is not None:
+            tenant_user_exists = (
+                tenant_db.query(User.id)
+                .filter(User.id == payload["assigned_tenant_user_id"])
+                .first()
+            )
+            if tenant_user_exists is None:
+                raise ValueError("El tecnico responsable seleccionado no existe")
 
         if "maintenance_status" in payload:
             if not payload["maintenance_status"]:

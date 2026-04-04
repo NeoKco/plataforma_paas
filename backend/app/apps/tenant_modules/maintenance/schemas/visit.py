@@ -12,6 +12,7 @@ class MaintenanceVisitBase(BaseModel):
     scheduled_end_at: datetime | None = None
     actual_start_at: datetime | None = None
     actual_end_at: datetime | None = None
+    assigned_work_group_id: int | None = None
     assigned_tenant_user_id: int | None = None
     assigned_group_label: str | None = None
     notes: str | None = None

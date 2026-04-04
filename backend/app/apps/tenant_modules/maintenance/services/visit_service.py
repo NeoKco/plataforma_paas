@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 
+from app.apps.tenant_modules.business_core.models import BusinessWorkGroup
+from app.apps.tenant_modules.core.models.user import User
 from app.apps.tenant_modules.maintenance.models import MaintenanceWorkOrder, MaintenanceVisit
 from app.apps.tenant_modules.maintenance.repositories import MaintenanceVisitRepository
 
@@ -106,6 +108,7 @@ class MaintenanceVisitService:
             "scheduled_end_at": payload.scheduled_end_at,
             "actual_start_at": payload.actual_start_at,
             "actual_end_at": payload.actual_end_at,
+            "assigned_work_group_id": payload.assigned_work_group_id,
             "assigned_tenant_user_id": payload.assigned_tenant_user_id,
             "assigned_group_label": payload.assigned_group_label.strip()
             if payload.assigned_group_label and payload.assigned_group_label.strip()
@@ -147,3 +150,20 @@ class MaintenanceVisitService:
             raise ValueError(
                 "No puedes mover una visita a una mantencion cerrada o anulada"
             )
+        if payload["assigned_work_group_id"] is not None:
+            work_group = (
+                tenant_db.query(BusinessWorkGroup)
+                .filter(BusinessWorkGroup.id == payload["assigned_work_group_id"])
+                .first()
+            )
+            if work_group is None:
+                raise ValueError("El grupo responsable seleccionado no existe")
+            payload["assigned_group_label"] = work_group.name
+        if payload["assigned_tenant_user_id"] is not None:
+            tenant_user_exists = (
+                tenant_db.query(User.id)
+                .filter(User.id == payload["assigned_tenant_user_id"])
+                .first()
+            )
+            if tenant_user_exists is None:
+                raise ValueError("El tecnico responsable seleccionado no existe")

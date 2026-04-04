@@ -27,6 +27,7 @@ def _build_item(item) -> MaintenanceWorkOrderItemResponse:
         client_id=item.client_id,
         site_id=item.site_id,
         installation_id=item.installation_id,
+        assigned_work_group_id=item.assigned_work_group_id,
         external_reference=item.external_reference,
         title=item.title,
         description=item.description,

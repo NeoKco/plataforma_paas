@@ -20,6 +20,12 @@ class MaintenanceVisit(TenantBase):
     actual_start_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     actual_end_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     assigned_tenant_user_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    assigned_work_group_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("business_work_groups.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     assigned_group_label: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[DateTime] = mapped_column(

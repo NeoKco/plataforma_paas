@@ -52,7 +52,6 @@ from app.apps.tenant_modules.business_core.schemas.work_group import (
 )
 from app.apps.tenant_modules.business_core.schemas.work_group_member import (
     BusinessWorkGroupMemberCreateRequest,
-    BusinessWorkGroupItemResponse as _BusinessWorkGroupItemResponseShadow,
     BusinessWorkGroupMemberItemResponse,
     BusinessWorkGroupMemberMutationResponse,
     BusinessWorkGroupMembersResponse,

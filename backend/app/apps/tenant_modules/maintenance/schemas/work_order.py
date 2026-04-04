@@ -16,6 +16,7 @@ class MaintenanceWorkOrderBase(BaseModel):
     scheduled_for: datetime | None = None
     cancellation_reason: str | None = None
     closure_notes: str | None = None
+    assigned_work_group_id: int | None = None
     assigned_tenant_user_id: int | None = None
 
 
