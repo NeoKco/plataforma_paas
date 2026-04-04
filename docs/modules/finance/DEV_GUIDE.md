@@ -130,7 +130,7 @@ Frontend:
 
 - build de `frontend`
 - smoke browser Playwright
-- baseline tenant actual validado sobre `empresa-demo`
+- baseline tenant actual validado sobre `empresa-bootstrap`
 - cobertura tenant validada para creación de transacción, carga de adjunto, anulación, conciliación, límites efectivos, mantenimiento de cuentas/categorías, configuración financiera base (`currencies`, `exchange rates`, `settings`), flujo base de presupuestos, plantillas y ajustes guiados de presupuestos, flujo base de préstamos, operaciones batch/reversal de préstamos y lectura contable derivada con exportaciones `CSV`/`JSON`
 - el smoke avanzado de presupuestos usa categoría y meses efímeros para validar `template apply` con escala/redondeo y la acción guiada `deactivate_unused` sin acoplarse al catálogo inicial del tenant
 - el smoke contable de préstamos usa un préstamo efímero, aplica pago simple + reversa y verifica la tabla derivada junto con las descargas `finance-loan-accounting-*.csv/json`

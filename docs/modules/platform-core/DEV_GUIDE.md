@@ -90,15 +90,15 @@ Smokes actuales del bloque central:
 
 Baseline E2E tenant actualmente validado para continuar pruebas browser:
 
-- `E2E_TENANT_SLUG=empresa-demo`
-- `E2E_TENANT_EMAIL=admin@empresa-demo.local`
+- `E2E_TENANT_SLUG=empresa-bootstrap`
+- `E2E_TENANT_EMAIL=admin@empresa-bootstrap.local`
 - `E2E_TENANT_PASSWORD=TenantAdmin123!`
 
 Nota operativa:
 
-- para esta iteración el baseline validado de tenant browser vuelve a ser `empresa-demo`
+- para esta iteración el baseline validado de tenant browser sigue siendo `empresa-bootstrap`
 - los smokes de límites tenant (`core.users.active` y `finance.entries`) ahora preparan y limpian overrides de forma determinista por control DB
-- si otro entorno no tiene `empresa-demo` disponible, hay que sobreescribir `E2E_TENANT_*` y revalidar el baseline
+- si otro entorno no tiene `empresa-bootstrap` disponible, hay que sobreescribir `E2E_TENANT_*` y revalidar el baseline
 
 Cobertura actual:
 

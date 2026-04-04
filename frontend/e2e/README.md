@@ -73,7 +73,7 @@ Variables de entorno:
 - usar `.env.e2e.example` como referencia
 - si tu demo local usa otro tenant o credenciales, sobreescribe `E2E_TENANT_*` y `E2E_PLATFORM_*`
 - si `Playwright` no encuentra su browser exacto, puedes apuntar `E2E_CHROMIUM_EXECUTABLE_PATH` a un `chromium` ya instalado
-- el baseline actualmente validado usa `empresa-demo`, porque quedó `active`, sincronizado a `0020` y con datos reales importados desde `ieris_app` para los smokes tenant
+- el baseline actualmente validado usa `empresa-bootstrap`, porque queda reservado como tenant estable para pruebas browser tenant
 - si tu entorno no tiene ese tenant o usa otra clave, sobreescribe `E2E_TENANT_*`
 
 Comandos útiles:
@@ -106,10 +106,10 @@ Notas:
 - el backend debe estar levantado antes de correr las pruebas
 - el frontend puede levantarse automáticamente desde `playwright.config.ts`, o reutilizar uno existente con `E2E_USE_EXISTING_FRONTEND=1`
 - para instalar el navegador local usa `npm run e2e:install`
-- el baseline tenant actualmente validado es `empresa-demo`
+- el baseline tenant actualmente validado es `empresa-bootstrap`
 - credenciales validadas para esta iteración:
-	- `E2E_TENANT_SLUG=empresa-demo`
-	- `E2E_TENANT_EMAIL=admin@empresa-demo.local`
+	- `E2E_TENANT_SLUG=empresa-bootstrap`
+	- `E2E_TENANT_EMAIL=admin@empresa-bootstrap.local`
 	- `E2E_TENANT_PASSWORD=TenantAdmin123!`
 - cuando el smoke sube una imagen en `finance`, el frontend la comprime antes del upload y el nombre final visible queda en `WEBP`
 - `npm run e2e:platform` ya ejecuta todo el bloque `platform-admin*.spec.ts`, no solo el smoke de login/navegación base
@@ -122,7 +122,7 @@ Notas:
 - el smoke de `Billing` crea un tenant efímero, siembra un evento `invoice.payment_failed` por backend-control y valida la lectura del workspace tenant más el reconcile individual sobre la fila persistida
 - el smoke batch de `Billing` crea un tenant efímero, siembra dos eventos persistidos del mismo filtro y valida `Reconciliar eventos filtrados` sobre el workspace tenant
 - el smoke de `Histórico tenants` crea un tenant efímero, le siembra billing, lo archiva y elimina para validar filtros, exportaciones y lectura del snapshot histórico desde UI real
-- el smoke de login billing tenant usa el baseline `empresa-demo`, fuerza primero `past_due` con gracia para validar acceso permitido y luego `invoice overdue` sin gracia para congelar el mensaje visible de bloqueo en el login
+- el smoke de login billing tenant usa el baseline `empresa-bootstrap`, fuerza primero `past_due` con gracia para validar acceso permitido y luego `invoice overdue` sin gracia para congelar el mensaje visible de bloqueo en el login
 - el smoke admin de `tenant users` valida bloqueo de creación de un admin extra y bloqueo de reactivación de un admin inactivo cuando `core.users.admin` queda agotado
 - el smoke mensual de `tenant users` siembra un usuario del mes por backend-control y valida que `core.users.monthly` bloquee nuevas altas en el portal
 - el smoke de precedencia de `finance` fuerza a la vez `finance.entries` y `finance.entries.monthly` para validar que el bloqueo visible prioriza el límite total
@@ -137,7 +137,7 @@ Notas:
 - el smoke contable de `finance loans` valida lectura derivada tras pago + reversa y confirma exportaciones `CSV`/`JSON` desde el detalle del préstamo
 - los smokes de `finance loans` quedaron estabilizados para tolerar cronogramas ya abiertos, distinguir formularios simples vs batch y usar selectores consistentes sobre `Cuenta origen`, nota operativa y motivo de reversa
 - en esta iteración no hicieron falta cambios funcionales del módulo `finance`: los fallos detectados fueron de sincronización/selección E2E y el flujo real ya soportaba creación, pago simple, pago batch, reversa batch y exportación/lectura contable derivada
-- el smoke tenant de importación valida que `empresa-demo` expone en UI datos ya migrados desde `ieris_app` para `business-core` y `maintenance`, sin depender de la BD legacy en runtime
+- el smoke tenant de importación valida que `empresa-bootstrap` expone en UI datos ya migrados desde `ieris_app` para `business-core` y `maintenance`, sin depender de la BD legacy en runtime
 - estado validado al cierre actual:
 	- `npm run e2e:platform` → `12 passed`, `3 skipped`
 	- `npm run e2e:tenant` → `22 passed`

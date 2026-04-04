@@ -41,7 +41,7 @@ Resumen curado del bloque central.
 - smoke browser broker-only agregado para reencolar en lote filas DLQ filtradas desde `Provisioning`
 - smoke browser broker-only agregado para validar filtros DLQ por texto de error y opciones visibles de requeue individual
 - baseline E2E tenant actualizado y validado sobre `empresa-bootstrap` en vez de `empresa-demo`
-- baseline E2E tenant actualizado nuevamente sobre `empresa-demo`, ahora activo, sincronizado a `0020` y con datos reales importados desde `ieris_app`
+- el baseline E2E tenant se mantiene sobre `empresa-bootstrap` como tenant reservado para pruebas browser, dejando `empresa-demo` para trabajo funcional con datos reales
 - smokes browser de límites tenant endurecidos para fijar y limpiar overrides por control DB
 - enforcement backend agregado al endpoint moderno de creación de transacciones `finance` para respetar `finance.entries`
 - smoke browser agregado para validar precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`
