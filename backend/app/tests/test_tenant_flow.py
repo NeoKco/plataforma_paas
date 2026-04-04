@@ -1084,6 +1084,50 @@ class TenantServicesTestCase(unittest.TestCase):
         self.assertIs(service.get_user_by_id(object(), 1), user)
         self.assertEqual(service.list_users(object()), users)
 
+    def test_tenant_data_service_updates_tenant_timezone(self) -> None:
+        tenant_record = build_tenant_record_stub(timezone="America/Santiago")
+
+        class FakeTenantInfoRepository:
+            def get_first(self, tenant_db):
+                return tenant_record
+
+        tenant_db = SimpleNamespace(
+            add=lambda item: None,
+            commit=lambda: None,
+            refresh=lambda item: None,
+        )
+        service = TenantDataService(
+            tenant_info_repository=FakeTenantInfoRepository(),
+            user_repository=SimpleNamespace(),
+        )
+
+        updated = service.update_tenant_timezone(tenant_db, "America/Lima")
+
+        self.assertIs(updated, tenant_record)
+        self.assertEqual(updated.timezone, "America/Lima")
+
+    def test_tenant_data_service_rejects_invalid_timezone(self) -> None:
+        tenant_record = build_tenant_record_stub(timezone="America/Santiago")
+
+        class FakeTenantInfoRepository:
+            def get_first(self, tenant_db):
+                return tenant_record
+
+        tenant_db = SimpleNamespace(
+            add=lambda item: None,
+            commit=lambda: None,
+            refresh=lambda item: None,
+        )
+        service = TenantDataService(
+            tenant_info_repository=FakeTenantInfoRepository(),
+            user_repository=SimpleNamespace(),
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.update_tenant_timezone(tenant_db, "Mars/Phobos")
+
+        self.assertEqual(str(exc.exception), "Zona horaria no soportada")
+
     def test_tenant_data_service_create_user_rejects_duplicate_email(self) -> None:
         existing_user = SimpleNamespace(id=1, email="admin@empresa-bootstrap.local")
 
@@ -2374,6 +2418,10 @@ class TenantRoutesTestCase(unittest.TestCase):
             "app.apps.tenant_modules.core.api.tenant_routes."
             "tenant_data_service.update_user_status",
             return_value=user,
+        ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.get_tenant_info",
+            return_value=build_tenant_record_stub(timezone="America/Santiago"),
         ):
             response = tenant_update_user_status(
                 request=self._request(),
@@ -2398,6 +2446,10 @@ class TenantRoutesTestCase(unittest.TestCase):
             "app.apps.tenant_modules.core.api.tenant_routes."
             "tenant_data_service.delete_user",
             return_value=user,
+        ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.get_tenant_info",
+            return_value=build_tenant_record_stub(timezone="America/Santiago"),
         ):
             response = tenant_delete_user(
                 user_id=3,
@@ -2407,6 +2459,23 @@ class TenantRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertEqual(response.data.email, "operador2@empresa-bootstrap.local")
+
+    def test_tenant_update_timezone_returns_updated_timezone(self) -> None:
+        tenant_record = build_tenant_record_stub(timezone="America/Lima")
+
+        with patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.update_tenant_timezone",
+            return_value=tenant_record,
+        ):
+            response = tenant_update_timezone(
+                payload=TenantTimezoneUpdateRequest(timezone="America/Lima"),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.tenant_timezone, "America/Lima")
 
     def test_tenant_data_service_resets_user_password_by_email(self) -> None:
         user = build_tenant_user_stub(
