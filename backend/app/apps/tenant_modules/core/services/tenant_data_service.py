@@ -8,6 +8,7 @@ from app.apps.tenant_modules.core.repositories.tenant_info_repository import (
     TenantInfoRepository,
 )
 from app.apps.tenant_modules.core.repositories.user_repository import UserRepository
+from app.common.timezone_utils import normalize_timezone, resolve_effective_timezone
 from app.common.policies.module_limit_catalog import (
     CORE_USERS_ACTIVE_LIMIT_KEY,
     CORE_USERS_LIMIT_KEY,
@@ -39,6 +40,30 @@ class TenantDataService:
 
     def get_tenant_info(self, tenant_db: Session) -> TenantInfo | None:
         return self.tenant_info_repository.get_first(tenant_db)
+
+    def get_effective_timezone(
+        self,
+        tenant_db: Session,
+        *,
+        user: User | None = None,
+        tenant_info: TenantInfo | None = None,
+    ) -> str:
+        resolved_tenant = tenant_info or self.get_tenant_info(tenant_db)
+        return resolve_effective_timezone(
+            getattr(resolved_tenant, "timezone", None),
+            getattr(user, "timezone", None),
+        )
+
+    def update_tenant_timezone(self, tenant_db: Session, timezone: str) -> TenantInfo:
+        tenant_info = self.tenant_info_repository.get_first(tenant_db)
+        if not tenant_info:
+            raise ValueError("Informacion tenant no encontrada")
+
+        tenant_info.timezone = normalize_timezone(timezone)
+        tenant_db.add(tenant_info)
+        tenant_db.commit()
+        tenant_db.refresh(tenant_info)
+        return tenant_info
 
     def get_user_by_id(self, tenant_db: Session, user_id: int) -> User | None:
         return self.user_repository.get_by_id(tenant_db, user_id)
@@ -164,6 +189,7 @@ class TenantDataService:
         password: str,
         role: str,
         is_active: bool = True,
+        timezone: str | None = None,
         max_users: int | None = None,
         max_active_users: int | None = None,
         max_monthly_users: int | None = None,
@@ -218,6 +244,7 @@ class TenantDataService:
             email=email,
             password_hash=hash_password(password),
             role=normalized_role,
+            timezone=normalize_timezone(timezone, allow_none=True),
             is_active=is_active,
         )
         return self.user_repository.save(tenant_db, user)
@@ -230,6 +257,7 @@ class TenantDataService:
         email: str,
         role: str,
         password: str | None = None,
+        timezone: str | None = None,
         role_module_limits: dict[str, int] | None = None,
     ) -> User:
         user = self.user_repository.get_by_id(tenant_db, user_id)
@@ -273,6 +301,7 @@ class TenantDataService:
         user.full_name = full_name
         user.email = email
         user.role = normalized_role
+        user.timezone = normalize_timezone(timezone, allow_none=True)
 
         if password:
             user.password_hash = hash_password(password)

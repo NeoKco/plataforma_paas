@@ -56,6 +56,9 @@ class TenantInfoData(BaseModel):
     tenant_slug: str
     tenant_name: str | None = None
     tenant_type: str | None = None
+    timezone: str | None = None
+    user_timezone: str | None = None
+    effective_timezone: str | None = None
     plan_code: str | None = None
     plan_enabled_modules: list[str] | None = None
     billing_status: str | None = None
@@ -95,6 +98,8 @@ class TenantUserData(BaseModel):
     id: int
     email: str
     role: str
+    timezone: str | None = None
+    effective_timezone: str | None = None
 
 
 class TenantInfoResponse(BaseModel):
@@ -150,6 +155,7 @@ class TenantUserCreateRequest(BaseModel):
     password: str
     role: str = "operator"
     is_active: bool = True
+    timezone: str | None = None
 
 
 class TenantUserUpdateRequest(BaseModel):
@@ -157,6 +163,11 @@ class TenantUserUpdateRequest(BaseModel):
     email: str
     role: str
     password: str | None = None
+    timezone: str | None = None
+
+
+class TenantTimezoneUpdateRequest(BaseModel):
+    timezone: str
 
 
 class TenantUserStatusUpdateRequest(BaseModel):
@@ -175,6 +186,8 @@ class TenantUsersItemResponse(BaseModel):
     full_name: str
     email: str
     role: str
+    timezone: str | None = None
+    effective_timezone: str | None = None
     is_active: bool
 
 
@@ -205,6 +218,13 @@ class TenantUserDeleteResponse(BaseModel):
     message: str
     requested_by: TenantUserContextResponse
     data: TenantUsersItemResponse
+
+
+class TenantTimezoneMutationResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    tenant_timezone: str
 
 
 class TenantSchemaJobData(BaseModel):

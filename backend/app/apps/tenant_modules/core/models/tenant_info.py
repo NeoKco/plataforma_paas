@@ -11,6 +11,7 @@ class TenantInfo(TenantBase):
     tenant_name: Mapped[str] = mapped_column(String(150), nullable=False)
     tenant_slug: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     tenant_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    timezone: Mapped[str] = mapped_column(String(64), nullable=False, default="America/Santiago")
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

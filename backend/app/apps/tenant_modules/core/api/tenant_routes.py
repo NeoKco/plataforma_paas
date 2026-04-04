@@ -12,6 +12,8 @@ from app.apps.tenant_modules.core.schemas import (
     TenantSchemaJobData,
     TenantSchemaStatusResponse,
     TenantSchemaSyncResponse,
+    TenantTimezoneMutationResponse,
+    TenantTimezoneUpdateRequest,
     TenantModuleUsageItemResponse,
     TenantModuleUsageResponse,
     TenantUserCreateRequest,
@@ -43,6 +45,7 @@ from app.common.auth.dependencies import (
 )
 from app.common.config.settings import settings
 from app.common.db.session_manager import get_control_db, get_tenant_db
+from app.common.timezone_utils import DEFAULT_TENANT_TIMEZONE, resolve_effective_timezone
 
 router = APIRouter(prefix="/tenant", tags=["Tenant Protected"])
 tenant_data_service = TenantDataService()
@@ -79,12 +82,20 @@ def _build_tenant_schema_job(job) -> TenantSchemaJobData | None:
     )
 
 
-def _build_tenant_user_item(user) -> TenantUsersItemResponse:
+def _build_tenant_user_item(
+    user,
+    tenant_timezone: str | None = None,
+) -> TenantUsersItemResponse:
     return TenantUsersItemResponse(
         id=user.id,
         full_name=user.full_name,
         email=user.email,
         role=user.role,
+        timezone=getattr(user, "timezone", None),
+        effective_timezone=resolve_effective_timezone(
+            tenant_timezone or DEFAULT_TENANT_TIMEZONE,
+            getattr(user, "timezone", None),
+        ),
         is_active=user.is_active,
     )
 
@@ -117,6 +128,10 @@ def tenant_info(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TenantInfoResponse:
     tenant_record = tenant_data_service.get_tenant_info(tenant_db)
+    tenant_user = tenant_data_service.get_user_by_id(tenant_db, request.state.tenant_user_id)
+    tenant_timezone = getattr(tenant_record, "timezone", None) or DEFAULT_TENANT_TIMEZONE
+    user_timezone = getattr(tenant_user, "timezone", None)
+    effective_timezone = resolve_effective_timezone(tenant_timezone, user_timezone)
 
     return TenantInfoResponse(
         success=True,
@@ -124,6 +139,9 @@ def tenant_info(
             tenant_slug=request.state.tenant_slug,
             tenant_name=tenant_record.tenant_name if tenant_record else None,
             tenant_type=tenant_record.tenant_type if tenant_record else None,
+            timezone=tenant_timezone,
+            user_timezone=user_timezone,
+            effective_timezone=effective_timezone,
             plan_code=getattr(request.state, "tenant_plan_code", None),
             plan_enabled_modules=(
                 list(getattr(request.state, "tenant_plan_enabled_modules", ()))
@@ -343,8 +361,33 @@ def tenant_info(
             id=request.state.tenant_user_id,
             email=request.state.tenant_email,
             role=request.state.tenant_role,
+            timezone=user_timezone,
+            effective_timezone=effective_timezone,
         ),
         token_scope=request.state.token_scope,
+    )
+
+
+@router.patch("/info/timezone", response_model=TenantTimezoneMutationResponse)
+def tenant_update_timezone(
+    payload: TenantTimezoneUpdateRequest,
+    current_user=Depends(require_tenant_admin),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> TenantTimezoneMutationResponse:
+    try:
+        tenant_info_record = tenant_data_service.update_tenant_timezone(
+            tenant_db,
+            payload.timezone,
+        )
+    except ValueError as exc:
+        status_code = 404 if "no encontrada" in str(exc).lower() else 400
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+
+    return TenantTimezoneMutationResponse(
+        success=True,
+        message="Zona horaria del tenant actualizada correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        tenant_timezone=tenant_info_record.timezone,
     )
 
 
@@ -497,13 +540,15 @@ def tenant_users(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TenantUsersResponse:
     users = tenant_data_service.list_users(tenant_db)
+    tenant_record = tenant_data_service.get_tenant_info(tenant_db)
+    tenant_timezone = getattr(tenant_record, "timezone", None) or DEFAULT_TENANT_TIMEZONE
 
     return TenantUsersResponse(
         success=True,
         message="Usuarios del tenant recuperados correctamente",
         requested_by=_build_tenant_user_context(current_user),
         total=len(users),
-        data=[_build_tenant_user_item(user) for user in users],
+        data=[_build_tenant_user_item(user, tenant_timezone) for user in users],
     )
 
 
@@ -516,12 +561,14 @@ def tenant_user_detail(
     user = tenant_data_service.get_user_by_id(tenant_db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Usuario tenant no encontrado")
+    tenant_record = tenant_data_service.get_tenant_info(tenant_db)
+    tenant_timezone = getattr(tenant_record, "timezone", None) or DEFAULT_TENANT_TIMEZONE
 
     return TenantUserDetailResponse(
         success=True,
         message="Usuario tenant recuperado correctamente",
         requested_by=_build_tenant_user_context(current_user),
-        data=_build_tenant_user_item(user),
+        data=_build_tenant_user_item(user, tenant_timezone),
     )
 
 
@@ -540,6 +587,7 @@ def tenant_create_user(
             password=payload.password,
             role=payload.role,
             is_active=payload.is_active,
+            timezone=payload.timezone,
             max_users=(
                 getattr(
                     request.state,
@@ -582,7 +630,10 @@ def tenant_create_user(
         success=True,
         message="Usuario tenant creado correctamente",
         requested_by=_build_tenant_user_context(current_user),
-        data=_build_tenant_user_item(user),
+        data=_build_tenant_user_item(
+            user,
+            (getattr(tenant_data_service.get_tenant_info(tenant_db), "timezone", None) or DEFAULT_TENANT_TIMEZONE),
+        ),
     )
 
 
@@ -602,6 +653,7 @@ def tenant_update_user(
             email=payload.email,
             role=payload.role,
             password=payload.password,
+            timezone=payload.timezone,
             role_module_limits=(
                 getattr(
                     request.state,
@@ -621,7 +673,10 @@ def tenant_update_user(
         success=True,
         message="Usuario tenant actualizado correctamente",
         requested_by=_build_tenant_user_context(current_user),
-        data=_build_tenant_user_item(user),
+        data=_build_tenant_user_item(
+            user,
+            (getattr(tenant_data_service.get_tenant_info(tenant_db), "timezone", None) or DEFAULT_TENANT_TIMEZONE),
+        ),
     )
 
 
@@ -666,7 +721,10 @@ def tenant_update_user_status(
         success=True,
         message="Estado del usuario tenant actualizado correctamente",
         requested_by=_build_tenant_user_context(current_user),
-        data=_build_tenant_user_item(user),
+        data=_build_tenant_user_item(
+            user,
+            (getattr(tenant_data_service.get_tenant_info(tenant_db), "timezone", None) or DEFAULT_TENANT_TIMEZONE),
+        ),
     )
 
 
@@ -690,7 +748,10 @@ def tenant_delete_user(
         success=True,
         message="Usuario tenant eliminado correctamente",
         requested_by=_build_tenant_user_context(current_user),
-        data=_build_tenant_user_item(user),
+        data=_build_tenant_user_item(
+            user,
+            (getattr(tenant_data_service.get_tenant_info(tenant_db), "timezone", None) or DEFAULT_TENANT_TIMEZONE),
+        ),
     )
 
 

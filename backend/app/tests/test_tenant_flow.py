@@ -27,6 +27,7 @@ from app.apps.tenant_modules.core.api.tenant_routes import (  # noqa: E402
     tenant_module_usage,
     tenant_schema_status,
     tenant_sync_schema,
+    tenant_update_timezone,
     tenant_update_user,
     tenant_update_user_status,
     tenant_user_detail,
@@ -40,6 +41,7 @@ from app.apps.tenant_modules.core.api.auth_routes import (  # noqa: E402
 from app.apps.tenant_modules.core.schemas import (  # noqa: E402
     TenantLoginRequest,
     TenantRefreshTokenRequest,
+    TenantTimezoneUpdateRequest,
     TenantUserCreateRequest,
     TenantUserStatusUpdateRequest,
     TenantUserUpdateRequest,
@@ -1530,6 +1532,10 @@ class TenantRoutesTestCase(unittest.TestCase):
             "tenant_data_service.get_tenant_info",
             return_value=tenant_record,
         ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.get_user_by_id",
+            return_value=build_tenant_user_stub(timezone="America/Lima"),
+        ), patch(
             "app.apps.tenant_modules.core.api.tenant_routes.settings.TENANT_API_READ_REQUESTS_PER_MINUTE",
             60,
         ), patch(
@@ -1544,6 +1550,11 @@ class TenantRoutesTestCase(unittest.TestCase):
 
         self.assertEqual(response.tenant.tenant_name, "Empresa Bootstrap")
         self.assertEqual(response.user.email, "admin@empresa-bootstrap.local")
+        self.assertEqual(response.tenant.timezone, "America/Santiago")
+        self.assertEqual(response.tenant.user_timezone, "America/Lima")
+        self.assertEqual(response.tenant.effective_timezone, "America/Lima")
+        self.assertEqual(response.user.timezone, "America/Lima")
+        self.assertEqual(response.user.effective_timezone, "America/Lima")
         self.assertEqual(response.tenant.plan_code, "pro")
         self.assertEqual(response.tenant.plan_enabled_modules, ["core", "finance", "users"])
         self.assertEqual(response.tenant.plan_module_limits, {"finance.entries": 250})
@@ -2110,6 +2121,10 @@ class TenantRoutesTestCase(unittest.TestCase):
             "app.apps.tenant_modules.core.api.tenant_routes."
             "tenant_data_service.list_users",
             return_value=users,
+        ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.get_tenant_info",
+            return_value=build_tenant_record_stub(timezone="America/Santiago"),
         ):
             response = tenant_users(
                 current_user=self._current_user(),
@@ -2118,6 +2133,7 @@ class TenantRoutesTestCase(unittest.TestCase):
 
         self.assertEqual(response.total, 2)
         self.assertEqual(response.data[1].role, "operator")
+        self.assertEqual(response.data[1].effective_timezone, "America/Santiago")
 
     def test_tenant_user_detail_returns_user(self) -> None:
         user = build_tenant_user_stub(
@@ -2131,6 +2147,10 @@ class TenantRoutesTestCase(unittest.TestCase):
             "app.apps.tenant_modules.core.api.tenant_routes."
             "tenant_data_service.get_user_by_id",
             return_value=user,
+        ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.get_tenant_info",
+            return_value=build_tenant_record_stub(timezone="America/Santiago"),
         ):
             response = tenant_user_detail(
                 user_id=2,
@@ -2139,6 +2159,7 @@ class TenantRoutesTestCase(unittest.TestCase):
             )
 
         self.assertEqual(response.data.email, "operador@empresa-bootstrap.local")
+        self.assertEqual(response.data.effective_timezone, "America/Santiago")
 
     def test_tenant_create_user_returns_created_user(self) -> None:
         user = build_tenant_user_stub(
@@ -2152,7 +2173,11 @@ class TenantRoutesTestCase(unittest.TestCase):
             "app.apps.tenant_modules.core.api.tenant_routes."
             "tenant_data_service.create_user",
             return_value=user,
-        ) as create_user_mock:
+        ) as create_user_mock, patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.get_tenant_info",
+            return_value=build_tenant_record_stub(timezone="America/Santiago"),
+        ):
             request = self._request()
             request.state.tenant_effective_module_limits = {
                 "core.users.active": 10,
@@ -2248,7 +2273,11 @@ class TenantRoutesTestCase(unittest.TestCase):
             "app.apps.tenant_modules.core.api.tenant_routes."
             "tenant_data_service.update_user_status",
             return_value=user,
-        ) as update_user_status_mock:
+        ) as update_user_status_mock, patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.get_tenant_info",
+            return_value=build_tenant_record_stub(timezone="America/Santiago"),
+        ):
             request = self._request()
             request.state.tenant_effective_module_limits = {
                 "core.users.active": 5,
@@ -2279,7 +2308,11 @@ class TenantRoutesTestCase(unittest.TestCase):
             "app.apps.tenant_modules.core.api.tenant_routes."
             "tenant_data_service.update_user",
             return_value=user,
-        ) as update_user_mock:
+        ) as update_user_mock, patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.get_tenant_info",
+            return_value=build_tenant_record_stub(timezone="America/Santiago"),
+        ):
             request = self._request()
             request.state.tenant_effective_module_limits = {"core.users.manager": 3}
             response = tenant_update_user(

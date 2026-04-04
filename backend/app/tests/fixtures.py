@@ -83,6 +83,7 @@ def build_tenant_user_stub(
     full_name: str = "Tenant Admin",
     email: str = "admin@empresa-bootstrap.local",
     role: str = "admin",
+    timezone: str | None = None,
     is_active: bool = True,
 ):
     return SimpleNamespace(
@@ -90,6 +91,7 @@ def build_tenant_user_stub(
         full_name=full_name,
         email=email,
         role=role,
+        timezone=timezone,
         is_active=is_active,
     )
 
@@ -98,6 +100,7 @@ def build_tenant_record_stub(
     tenant_name: str = "Empresa Bootstrap",
     tenant_slug: str = "empresa-bootstrap",
     tenant_type: str = "empresa",
+    timezone: str = "America/Santiago",
     plan_code: str | None = None,
     billing_provider: str | None = None,
     billing_provider_customer_id: str | None = None,
@@ -124,6 +127,7 @@ def build_tenant_record_stub(
         tenant_name=tenant_name,
         tenant_slug=tenant_slug,
         tenant_type=tenant_type,
+        timezone=timezone,
         plan_code=plan_code,
         billing_provider=billing_provider,
         billing_provider_customer_id=billing_provider_customer_id,

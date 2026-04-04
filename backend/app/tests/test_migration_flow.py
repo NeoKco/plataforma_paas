@@ -24,6 +24,7 @@ from migrations.tenant import v0015_business_core_base
 from migrations.tenant import v0016_maintenance_base
 from migrations.tenant import v0017_business_core_taxonomy
 from migrations.tenant import v0018_business_core_site_commune
+from migrations.tenant import v0019_core_user_timezones
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -157,6 +158,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0016_maintenance_base",
                 "0017_business_core_taxonomy",
                 "0018_business_core_site_commune",
+                "0019_core_user_timezones",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -219,6 +221,12 @@ class MigrationFlowTestCase(unittest.TestCase):
         business_site_columns = {
             column["name"] for column in inspect(engine).get_columns("business_sites")
         }
+        tenant_info_columns = {
+            column["name"] for column in inspect(engine).get_columns("tenant_info")
+        }
+        tenant_user_columns = {
+            column["name"] for column in inspect(engine).get_columns("users")
+        }
         business_function_profile_columns = {
             column["name"]
             for column in inspect(engine).get_columns("business_function_profiles")
@@ -261,6 +269,8 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("full_name", business_contact_columns)
         self.assertIn("client_id", business_site_columns)
         self.assertIn("commune", business_site_columns)
+        self.assertIn("timezone", tenant_info_columns)
+        self.assertIn("timezone", tenant_user_columns)
         self.assertIn("code", business_function_profile_columns)
         self.assertIn("group_kind", business_work_group_columns)
         self.assertIn("color", business_task_type_columns)
