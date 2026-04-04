@@ -27,6 +27,7 @@ from migrations.tenant import v0018_business_core_site_commune
 from migrations.tenant import v0019_core_user_timezones
 from migrations.tenant import v0020_work_group_members_and_maintenance_assignments
 from migrations.tenant import v0021_maintenance_schedules_and_due_items
+from migrations.tenant import v0022_maintenance_costing_and_finance_sync
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -163,6 +164,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0019_core_user_timezones",
                 "0020_work_group_members_and_maintenance_assignments",
                 "0021_maintenance_schedules_and_due_items",
+                "0022_maintenance_costing_and_finance_sync",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -199,6 +201,8 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("maintenance_work_orders", tables)
         self.assertIn("maintenance_schedules", tables)
         self.assertIn("maintenance_due_items", tables)
+        self.assertIn("maintenance_cost_estimates", tables)
+        self.assertIn("maintenance_cost_actuals", tables)
         self.assertIn("maintenance_visits", tables)
         self.assertIn("maintenance_status_logs", tables)
         self.assertIn("tenant_schema_migrations", tables)
@@ -265,6 +269,12 @@ class MigrationFlowTestCase(unittest.TestCase):
         maintenance_due_item_columns = {
             column["name"] for column in inspect(engine).get_columns("maintenance_due_items")
         }
+        maintenance_cost_estimate_columns = {
+            column["name"] for column in inspect(engine).get_columns("maintenance_cost_estimates")
+        }
+        maintenance_cost_actual_columns = {
+            column["name"] for column in inspect(engine).get_columns("maintenance_cost_actuals")
+        }
         maintenance_status_log_columns = {
             column["name"]
             for column in inspect(engine).get_columns("maintenance_status_logs")
@@ -303,6 +313,13 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("billing_mode", maintenance_schedule_columns)
         self.assertIn("due_status", maintenance_due_item_columns)
         self.assertIn("work_order_id", maintenance_due_item_columns)
+        self.assertIn("total_estimated_cost", maintenance_cost_estimate_columns)
+        self.assertIn("suggested_price", maintenance_cost_estimate_columns)
+        self.assertIn("total_actual_cost", maintenance_cost_actual_columns)
+        self.assertIn("actual_price_charged", maintenance_cost_actual_columns)
+        self.assertIn("income_transaction_id", maintenance_cost_actual_columns)
+        self.assertIn("expense_transaction_id", maintenance_cost_actual_columns)
+        self.assertIn("finance_synced_at", maintenance_cost_actual_columns)
         self.assertIn("visit_status", maintenance_visit_columns)
         self.assertIn("assigned_work_group_id", maintenance_visit_columns)
         self.assertIn("to_status", maintenance_status_log_columns)
@@ -368,6 +385,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0019_core_user_timezones",
                 "0020_work_group_members_and_maintenance_assignments",
                 "0021_maintenance_schedules_and_due_items",
+                "0022_maintenance_costing_and_finance_sync",
             ],
         )
 

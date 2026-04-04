@@ -12,10 +12,26 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { getTenantUsers } from "../../../../../services/tenant-api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
-import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
+import {
+  formatDateTimeInTimeZone,
+  fromDateTimeLocalInputValue,
+  toDateTimeLocalInputValue,
+} from "../../../../../utils/dateTimeLocal";
 import type { ApiError, TenantUsersItem } from "../../../../../types";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
+import {
+  getTenantFinanceAccounts,
+  type TenantFinanceAccount,
+} from "../../finance/services/accountsService";
+import {
+  getTenantFinanceCategories,
+  type TenantFinanceCategory,
+} from "../../finance/services/categoriesService";
+import {
+  getTenantFinanceCurrencies,
+  type TenantFinanceCurrency,
+} from "../../finance/services/currenciesService";
 import {
   createTenantMaintenanceWorkOrder,
   deleteTenantMaintenanceWorkOrder,
@@ -25,6 +41,15 @@ import {
   type TenantMaintenanceWorkOrder,
   type TenantMaintenanceWorkOrderWriteRequest,
 } from "../services/workOrdersService";
+import {
+  getTenantMaintenanceWorkOrderCosting,
+  syncTenantMaintenanceWorkOrderToFinance,
+  updateTenantMaintenanceWorkOrderCostActual,
+  updateTenantMaintenanceWorkOrderCostEstimate,
+  type TenantMaintenanceCostingDetail,
+  type TenantMaintenanceCostActual,
+  type TenantMaintenanceCostEstimate,
+} from "../services/costingService";
 import {
   getTenantMaintenanceInstallations,
   type TenantMaintenanceInstallation,
@@ -50,6 +75,38 @@ import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
 const ACTIVE_WORK_ORDER_STATUSES = new Set(["scheduled", "in_progress"]);
 
+type MaintenanceCostEstimateFormState = {
+  labor_cost: string;
+  travel_cost: string;
+  materials_cost: string;
+  external_services_cost: string;
+  overhead_cost: string;
+  target_margin_percent: string;
+  notes: string;
+};
+
+type MaintenanceCostActualFormState = {
+  labor_cost: string;
+  travel_cost: string;
+  materials_cost: string;
+  external_services_cost: string;
+  overhead_cost: string;
+  actual_price_charged: string;
+  notes: string;
+};
+
+type MaintenanceFinanceSyncFormState = {
+  sync_income: boolean;
+  sync_expense: boolean;
+  income_account_id: string;
+  expense_account_id: string;
+  income_category_id: string;
+  expense_category_id: string;
+  currency_id: string;
+  transaction_at: string;
+  notes: string;
+};
+
 function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
   return {
     client_id: 0,
@@ -71,6 +128,55 @@ function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
 function normalizeNullable(value: string | null): string | null {
   const trimmed = value?.trim() ?? "";
   return trimmed ? trimmed : null;
+}
+
+function normalizeNumericInput(value: string): number {
+  const normalized = Number(value || 0);
+  return Number.isFinite(normalized) ? normalized : 0;
+}
+
+function buildDefaultCostEstimateForm(
+  estimate?: TenantMaintenanceCostEstimate | null
+): MaintenanceCostEstimateFormState {
+  return {
+    labor_cost: String(estimate?.labor_cost ?? 0),
+    travel_cost: String(estimate?.travel_cost ?? 0),
+    materials_cost: String(estimate?.materials_cost ?? 0),
+    external_services_cost: String(estimate?.external_services_cost ?? 0),
+    overhead_cost: String(estimate?.overhead_cost ?? 0),
+    target_margin_percent: String(estimate?.target_margin_percent ?? 0),
+    notes: estimate?.notes ?? "",
+  };
+}
+
+function buildDefaultCostActualForm(
+  actual?: TenantMaintenanceCostActual | null
+): MaintenanceCostActualFormState {
+  return {
+    labor_cost: String(actual?.labor_cost ?? 0),
+    travel_cost: String(actual?.travel_cost ?? 0),
+    materials_cost: String(actual?.materials_cost ?? 0),
+    external_services_cost: String(actual?.external_services_cost ?? 0),
+    overhead_cost: String(actual?.overhead_cost ?? 0),
+    actual_price_charged: String(actual?.actual_price_charged ?? 0),
+    notes: actual?.notes ?? "",
+  };
+}
+
+function sumCostForm(values: {
+  labor_cost: string;
+  travel_cost: string;
+  materials_cost: string;
+  external_services_cost: string;
+  overhead_cost: string;
+}): number {
+  return (
+    normalizeNumericInput(values.labor_cost) +
+    normalizeNumericInput(values.travel_cost) +
+    normalizeNumericInput(values.materials_cost) +
+    normalizeNumericInput(values.external_services_cost) +
+    normalizeNumericInput(values.overhead_cost)
+  );
 }
 
 function formatDateTime(
@@ -130,10 +236,37 @@ export function MaintenanceWorkOrdersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isCostingModalOpen, setIsCostingModalOpen] = useState(false);
+  const [isCostingLoading, setIsCostingLoading] = useState(false);
+  const [isEstimateSubmitting, setIsEstimateSubmitting] = useState(false);
+  const [isActualSubmitting, setIsActualSubmitting] = useState(false);
+  const [isFinanceSyncSubmitting, setIsFinanceSyncSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [requestedCreateHandled, setRequestedCreateHandled] = useState(false);
   const [form, setForm] = useState<TenantMaintenanceWorkOrderWriteRequest>(buildDefaultForm());
+  const [costingWorkOrder, setCostingWorkOrder] = useState<TenantMaintenanceWorkOrder | null>(null);
+  const [costingDetail, setCostingDetail] = useState<TenantMaintenanceCostingDetail | null>(null);
+  const [financeAccounts, setFinanceAccounts] = useState<TenantFinanceAccount[]>([]);
+  const [financeCategories, setFinanceCategories] = useState<TenantFinanceCategory[]>([]);
+  const [financeCurrencies, setFinanceCurrencies] = useState<TenantFinanceCurrency[]>([]);
+  const [estimateForm, setEstimateForm] = useState<MaintenanceCostEstimateFormState>(
+    buildDefaultCostEstimateForm()
+  );
+  const [actualForm, setActualForm] = useState<MaintenanceCostActualFormState>(
+    buildDefaultCostActualForm()
+  );
+  const [financeSyncForm, setFinanceSyncForm] = useState<MaintenanceFinanceSyncFormState>({
+    sync_income: true,
+    sync_expense: true,
+    income_account_id: "",
+    expense_account_id: "",
+    income_category_id: "",
+    expense_category_id: "",
+    currency_id: "",
+    transaction_at: "",
+    notes: "",
+  });
 
   const requestedClientId = Number(searchParams.get("clientId") || 0);
   const requestedSiteId = Number(searchParams.get("siteId") || 0);
@@ -187,6 +320,22 @@ export function MaintenanceWorkOrdersPage() {
     () => tenantUsers.filter((user) => user.is_active),
     [tenantUsers]
   );
+  const activeFinanceAccounts = useMemo(
+    () => financeAccounts.filter((account) => account.is_active),
+    [financeAccounts]
+  );
+  const incomeCategories = useMemo(
+    () => financeCategories.filter((category) => category.is_active && category.category_type === "income"),
+    [financeCategories]
+  );
+  const expenseCategories = useMemo(
+    () => financeCategories.filter((category) => category.is_active && category.category_type === "expense"),
+    [financeCategories]
+  );
+  const activeCurrencies = useMemo(
+    () => financeCurrencies.filter((currency) => currency.is_active),
+    [financeCurrencies]
+  );
 
   const sortedRows = useMemo(
     () =>
@@ -237,6 +386,32 @@ export function MaintenanceWorkOrdersPage() {
       { total: 0, scheduled: 0, inProgress: 0, completed: 0, cancelled: 0 }
     );
   }, [rows]);
+  const estimatedTotalPreview = useMemo(() => sumCostForm(estimateForm), [estimateForm]);
+  const estimatedSuggestedPricePreview = useMemo(() => {
+    const margin = normalizeNumericInput(estimateForm.target_margin_percent);
+    if (estimatedTotalPreview <= 0) {
+      return 0;
+    }
+    if (margin <= 0) {
+      return estimatedTotalPreview;
+    }
+    if (margin >= 100) {
+      return estimatedTotalPreview;
+    }
+    return Number((estimatedTotalPreview / (1 - margin / 100)).toFixed(2));
+  }, [estimateForm.target_margin_percent, estimatedTotalPreview]);
+  const actualTotalPreview = useMemo(() => sumCostForm(actualForm), [actualForm]);
+  const actualProfitPreview = useMemo(
+    () => normalizeNumericInput(actualForm.actual_price_charged) - actualTotalPreview,
+    [actualForm.actual_price_charged, actualTotalPreview]
+  );
+  const actualMarginPreview = useMemo(() => {
+    const income = normalizeNumericInput(actualForm.actual_price_charged);
+    if (income <= 0) {
+      return null;
+    }
+    return Number(((actualProfitPreview / income) * 100).toFixed(2));
+  }, [actualForm.actual_price_charged, actualProfitPreview]);
 
   async function loadData() {
     if (!session?.accessToken) {
@@ -401,6 +576,192 @@ export function MaintenanceWorkOrdersPage() {
       assigned_tenant_user_id: item.assigned_tenant_user_id,
       maintenance_status: item.maintenance_status,
     });
+  }
+
+  function closeCostingModal() {
+    setIsCostingModalOpen(false);
+    setIsCostingLoading(false);
+    setIsEstimateSubmitting(false);
+    setIsActualSubmitting(false);
+    setIsFinanceSyncSubmitting(false);
+    setCostingWorkOrder(null);
+    setCostingDetail(null);
+    setEstimateForm(buildDefaultCostEstimateForm());
+    setActualForm(buildDefaultCostActualForm());
+    setFinanceSyncForm({
+      sync_income: true,
+      sync_expense: true,
+      income_account_id: "",
+      expense_account_id: "",
+      income_category_id: "",
+      expense_category_id: "",
+      currency_id: "",
+      transaction_at: "",
+      notes: "",
+    });
+  }
+
+  async function openCostingModal(item: TenantMaintenanceWorkOrder) {
+    if (!session?.accessToken) {
+      return;
+    }
+    setError(null);
+    setFeedback(null);
+    setIsCostingModalOpen(true);
+    setIsCostingLoading(true);
+    setCostingWorkOrder(item);
+    try {
+      const [costingResponse, accountsResponse, categoriesResponse, currenciesResponse] =
+        await Promise.all([
+          getTenantMaintenanceWorkOrderCosting(session.accessToken, item.id),
+          getTenantFinanceAccounts(session.accessToken, false),
+          getTenantFinanceCategories(session.accessToken, {
+            includeInactive: false,
+          }),
+          getTenantFinanceCurrencies(session.accessToken, false),
+        ]);
+      const detail = costingResponse.data;
+      const accounts = accountsResponse.data;
+      const categories = categoriesResponse.data;
+      const currencies = currenciesResponse.data;
+      const incomeCategory = categories.find((category) => category.category_type === "income");
+      const expenseCategory = categories.find((category) => category.category_type === "expense");
+      const defaultCurrency = currencies.find((currency) => currency.is_base) || currencies[0];
+      const transactionAtSource =
+        detail.actual?.finance_synced_at ||
+        item.completed_at ||
+        item.scheduled_for ||
+        item.requested_at;
+
+      setFinanceAccounts(accounts);
+      setFinanceCategories(categories);
+      setFinanceCurrencies(currencies);
+      setCostingDetail(detail);
+      setEstimateForm(buildDefaultCostEstimateForm(detail.estimate));
+      setActualForm(buildDefaultCostActualForm(detail.actual));
+      setFinanceSyncForm({
+        sync_income: true,
+        sync_expense: true,
+        income_account_id: "",
+        expense_account_id: "",
+        income_category_id: detail.actual?.income_transaction_id ? String(incomeCategory?.id ?? "") : String(incomeCategory?.id ?? ""),
+        expense_category_id: detail.actual?.expense_transaction_id ? String(expenseCategory?.id ?? "") : String(expenseCategory?.id ?? ""),
+        currency_id: String(defaultCurrency?.id ?? ""),
+        transaction_at: toDateTimeLocalInputValue(transactionAtSource, effectiveTimeZone),
+        notes: detail.actual?.notes ?? detail.estimate?.notes ?? "",
+      });
+    } catch (rawError) {
+      setIsCostingModalOpen(false);
+      setCostingWorkOrder(null);
+      setError(rawError as ApiError);
+    } finally {
+      setIsCostingLoading(false);
+    }
+  }
+
+  async function handleEstimateSubmit() {
+    if (!session?.accessToken || !costingWorkOrder) {
+      return;
+    }
+    setIsEstimateSubmitting(true);
+    setError(null);
+    try {
+      const response = await updateTenantMaintenanceWorkOrderCostEstimate(
+        session.accessToken,
+        costingWorkOrder.id,
+        {
+          labor_cost: normalizeNumericInput(estimateForm.labor_cost),
+          travel_cost: normalizeNumericInput(estimateForm.travel_cost),
+          materials_cost: normalizeNumericInput(estimateForm.materials_cost),
+          external_services_cost: normalizeNumericInput(estimateForm.external_services_cost),
+          overhead_cost: normalizeNumericInput(estimateForm.overhead_cost),
+          target_margin_percent: normalizeNumericInput(estimateForm.target_margin_percent),
+          notes: normalizeNullable(estimateForm.notes),
+        }
+      );
+      setCostingDetail(response.data);
+      setEstimateForm(buildDefaultCostEstimateForm(response.data.estimate));
+      setFeedback(response.message);
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsEstimateSubmitting(false);
+    }
+  }
+
+  async function handleActualSubmit() {
+    if (!session?.accessToken || !costingWorkOrder) {
+      return;
+    }
+    setIsActualSubmitting(true);
+    setError(null);
+    try {
+      const response = await updateTenantMaintenanceWorkOrderCostActual(
+        session.accessToken,
+        costingWorkOrder.id,
+        {
+          labor_cost: normalizeNumericInput(actualForm.labor_cost),
+          travel_cost: normalizeNumericInput(actualForm.travel_cost),
+          materials_cost: normalizeNumericInput(actualForm.materials_cost),
+          external_services_cost: normalizeNumericInput(actualForm.external_services_cost),
+          overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
+          actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
+          notes: normalizeNullable(actualForm.notes),
+        }
+      );
+      setCostingDetail(response.data);
+      setActualForm(buildDefaultCostActualForm(response.data.actual));
+      setFeedback(response.message);
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsActualSubmitting(false);
+    }
+  }
+
+  async function handleFinanceSyncSubmit() {
+    if (!session?.accessToken || !costingWorkOrder || !financeSyncForm.currency_id) {
+      return;
+    }
+    setIsFinanceSyncSubmitting(true);
+    setError(null);
+    try {
+      const response = await syncTenantMaintenanceWorkOrderToFinance(
+        session.accessToken,
+        costingWorkOrder.id,
+        {
+          sync_income: financeSyncForm.sync_income,
+          sync_expense: financeSyncForm.sync_expense,
+          income_account_id: financeSyncForm.income_account_id
+            ? Number(financeSyncForm.income_account_id)
+            : null,
+          expense_account_id: financeSyncForm.expense_account_id
+            ? Number(financeSyncForm.expense_account_id)
+            : null,
+          income_category_id: financeSyncForm.income_category_id
+            ? Number(financeSyncForm.income_category_id)
+            : null,
+          expense_category_id: financeSyncForm.expense_category_id
+            ? Number(financeSyncForm.expense_category_id)
+            : null,
+          currency_id: Number(financeSyncForm.currency_id),
+          transaction_at: financeSyncForm.transaction_at
+            ? fromDateTimeLocalInputValue(financeSyncForm.transaction_at, effectiveTimeZone)
+            : null,
+          notes: normalizeNullable(financeSyncForm.notes),
+        }
+      );
+      setCostingDetail(response.data);
+      setFinanceSyncForm((current) => ({
+        ...current,
+        notes: response.data.actual?.notes ?? current.notes,
+      }));
+      setFeedback(response.message);
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsFinanceSyncSubmitting(false);
+    }
   }
 
   async function handleSubmit() {
@@ -1019,6 +1380,13 @@ export function MaintenanceWorkOrdersPage() {
                   onClick={() => startEdit(item)}
                 >
                   {language === "es" ? "Editar" : "Edit"}
+                </button>
+                <button
+                  className="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  onClick={() => void openCostingModal(item)}
+                >
+                  {language === "es" ? "Costos" : "Costing"}
                 </button>
                 {item.maintenance_status === "scheduled" ? (
                   <button
