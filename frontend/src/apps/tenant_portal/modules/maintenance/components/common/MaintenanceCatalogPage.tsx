@@ -32,6 +32,7 @@ type FieldConfig<TForm> = {
   placeholderEn?: string;
   options?: SelectOption[];
   min?: number;
+  disabled?: boolean;
 };
 
 type MaintenanceCatalogPageProps<TRow, TForm> = {
@@ -56,6 +57,7 @@ type MaintenanceCatalogPageProps<TRow, TForm> = {
   onCancel?: () => void;
   onReload: () => Promise<void>;
   onNew: () => void;
+  openCreateSignal?: string | number | null;
   columns: Array<{
     key: string;
     headerEs: string;
@@ -93,6 +95,7 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
   onCancel,
   onReload,
   onNew,
+  openCreateSignal,
   columns,
 }: MaintenanceCatalogPageProps<TRow, TForm>) {
   const { language } = useLanguage();
@@ -125,6 +128,13 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
       setIsFormOpen(true);
     }
   }, [editingId]);
+
+  useEffect(() => {
+    if (openCreateSignal && !editingId) {
+      setLocalError(null);
+      setIsFormOpen(true);
+    }
+  }, [editingId, openCreateSignal]);
 
   function handleOpenCreate() {
     setLocalError(null);
@@ -246,6 +256,7 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
                               className="form-check-input"
                               type="checkbox"
                               checked={Boolean(value)}
+                              disabled={field.disabled}
                               onChange={(event) =>
                                 onFormChange({
                                   ...form,
@@ -268,6 +279,7 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
                             value={formatInputValue(value)}
                             placeholder={placeholder}
                             rows={4}
+                            disabled={field.disabled}
                             onChange={(event) =>
                               onFormChange({
                                 ...form,
@@ -286,6 +298,7 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
                           <select
                             className="form-select"
                             value={formatInputValue(value)}
+                            disabled={field.disabled}
                             onChange={(event) =>
                               onFormChange({
                                 ...form,
@@ -312,6 +325,7 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
                           min={field.min}
                           value={formatInputValue(value)}
                           placeholder={placeholder}
+                          disabled={field.disabled}
                           onChange={(event) =>
                             onFormChange({
                               ...form,

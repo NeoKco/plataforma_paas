@@ -150,6 +150,8 @@ Observacion:
 - cualquier marcador `legacy_*` proveniente de importacion debe limpiarse antes de guardar o mostrarse. La descripcion funcional solo debe contener texto humano escrito por el equipo.
 - placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto` tampoco deben persistir como datos visibles del negocio; el importador debe sanearlos o descartarlos.
 - cuando no sea posible limpiar un marcador legacy en DB porque hoy participa en deduplicacion o reimportacion, al menos debe ocultarse en la lectura/edicion del frontend hasta migrar esa trazabilidad a un canal interno.
+- la eliminacion de `clients` no debe entenderse como limpieza en cascada de negocio; si el cliente ya tiene mantenciones registradas, el backend debe bloquear el borrado y exigir desactivacion.
+- en la alta de `clients`, la proteccion anti-duplicado debe vivir antes del primer `POST`, porque el flujo actual crea `organization`, `client`, `contacts` y `site` en varias llamadas. La UX debe interceptar coincidencias fuertes y redirigir a la ficha existente para agregar contactos en vez de abrir otra cartera paralela.
 
 ### 5. Contact-Site Links
 

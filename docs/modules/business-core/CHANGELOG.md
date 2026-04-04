@@ -36,6 +36,7 @@
 - Se implementa `business_work_group_members` como tabla, migracion tenant y CRUD real para modelar la pertenencia entre usuarios tenant y grupos de trabajo.
 - La vista de `Grupos` ahora muestra `member_count` y permite entrar a `Miembros` para mantener liderazgo, perfil funcional, vigencia y grupo principal.
 - `business-core` deja de tener la membresia de grupos solo como diseno: `maintenance` ya puede consumir grupos reales desde esta base compartida.
+- Se corrige `Grupos` para no caer con `500` si un tenant sigue en esquema antiguo sin `business_work_group_members`; en ese caso el conteo de miembros cae a `0` hasta migrar el tenant.
 
 ## 2026-04-02
 

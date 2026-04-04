@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import ProgrammingError
 
 from app.apps.tenant_modules.business_core.models import (
     BusinessFunctionProfile,
@@ -89,7 +90,13 @@ class BusinessWorkGroupMemberService:
         tenant_db: Session,
         group_ids: list[int],
     ) -> dict[int, int]:
-        return self.work_group_member_repository.count_by_group_ids(tenant_db, group_ids)
+        try:
+            return self.work_group_member_repository.count_by_group_ids(tenant_db, group_ids)
+        except ProgrammingError as exc:
+            if "business_work_group_members" in str(exc):
+                tenant_db.rollback()
+                return {}
+            raise
 
     def _get_group_or_raise(
         self,

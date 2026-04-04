@@ -1,5 +1,10 @@
 # Maintenance Changelog
 
+## 2026-04-04
+
+- el enlace contextual `Ir a instalaciones` desde `Mantenciones` y `Agenda` ahora abre el alta de instalación con el cliente ya fijado por contexto y sin permitir cambiarlo
+- el alta normal de `Instalaciones` deja de exponer `Orden`; el valor sigue interno con default técnico para no ensuciar la UX operativa
+
 ## 2026-04-02
 
 - se crea la base tenant inicial del modulo con `0016_maintenance_base`

@@ -926,7 +926,9 @@ export function MaintenanceCalendarPage() {
                         {language === "es"
                           ? "La dirección seleccionada aún no tiene instalación. Crea la instalación antes de agendar la mantención."
                           : "The selected address does not have an installation yet. Create the installation before scheduling maintenance."}{" "}
-                        <Link to="/tenant-portal/maintenance/installations">
+                        <Link
+                          to={`/tenant-portal/maintenance/installations?clientId=${Number(form.client_id) || 0}&siteId=${Number(form.site_id) || 0}&mode=create`}
+                        >
                           {language === "es" ? "Ir a instalaciones" : "Go to installations"}
                         </Link>
                       </div>

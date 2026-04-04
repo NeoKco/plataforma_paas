@@ -34,8 +34,13 @@ import {
 import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
-function buildDefaultForm(): TenantMaintenanceInstallationWriteRequest {
+type MaintenanceInstallationForm = TenantMaintenanceInstallationWriteRequest & {
+  client_id: number;
+};
+
+function buildDefaultForm(): MaintenanceInstallationForm {
   return {
+    client_id: 0,
     site_id: 0,
     equipment_type_id: 0,
     name: "",
@@ -72,11 +77,12 @@ export function MaintenanceInstallationsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [form, setForm] = useState<TenantMaintenanceInstallationWriteRequest>(
-    buildDefaultForm()
-  );
+  const [form, setForm] = useState<MaintenanceInstallationForm>(buildDefaultForm());
+  const [openCreateSignal, setOpenCreateSignal] = useState<string | null>(null);
+  const [requestedCreateHandled, setRequestedCreateHandled] = useState(false);
   const requestedClientId = Number(searchParams.get("clientId") || 0);
   const requestedSiteId = Number(searchParams.get("siteId") || 0);
+  const requestedMode = searchParams.get("mode");
 
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
   const clientById = useMemo(
@@ -101,6 +107,13 @@ export function MaintenanceInstallationsPage() {
         : rows,
     [requestedClientId, rows, siteById]
   );
+  const filteredSites = useMemo(
+    () =>
+      form.client_id > 0
+        ? sites.filter((site) => site.client_id === Number(form.client_id))
+        : sites,
+    [form.client_id, sites]
+  );
 
   async function loadData() {
     if (!session?.accessToken) {
@@ -122,9 +135,25 @@ export function MaintenanceInstallationsPage() {
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setEquipmentTypes(equipmentTypesResponse.data);
+      const initialClientId =
+        requestedClientId ||
+        sitesResponse.data.find((site) => site.id === requestedSiteId)?.client_id ||
+        clientsResponse.data[0]?.id ||
+        0;
+      const candidateSites = sitesResponse.data.filter(
+        (site) => site.client_id === initialClientId
+      );
+      const initialSiteId =
+        (requestedSiteId > 0 &&
+        candidateSites.some((site) => site.id === requestedSiteId)
+          ? requestedSiteId
+          : 0) ||
+        candidateSites[0]?.id ||
+        0;
       setForm((current) => ({
         ...current,
-        site_id: current.site_id || requestedSiteId || sitesResponse.data[0]?.id || 0,
+        client_id: current.client_id || initialClientId,
+        site_id: current.site_id || initialSiteId,
         equipment_type_id:
           current.equipment_type_id || equipmentTypesResponse.data[0]?.id || 0,
       }));
@@ -164,13 +193,59 @@ export function MaintenanceInstallationsPage() {
     void loadData();
   }, [session?.accessToken]);
 
+  useEffect(() => {
+    if (!filteredSites.some((site) => site.id === Number(form.site_id))) {
+      setForm((current) => ({
+        ...current,
+        site_id: filteredSites[0]?.id || 0,
+      }));
+    }
+  }, [filteredSites, form.site_id]);
+
+  useEffect(() => {
+    if (
+      requestedMode !== "create" ||
+      requestedCreateHandled ||
+      isLoading ||
+      clients.length === 0 ||
+      equipmentTypes.length === 0
+    ) {
+      return;
+    }
+    startCreate();
+    setOpenCreateSignal(`installation-create:${requestedClientId}:${requestedSiteId}`);
+    setRequestedCreateHandled(true);
+  }, [
+    requestedClientId,
+    requestedCreateHandled,
+    requestedMode,
+    requestedSiteId,
+    isLoading,
+    clients,
+    equipmentTypes,
+  ]);
+
   function startCreate() {
     setEditingId(null);
     setFeedback(null);
     setError(null);
+    const clientId =
+      requestedClientId ||
+      sites.find((site) => site.id === requestedSiteId)?.client_id ||
+      clients[0]?.id ||
+      0;
+    const candidateSites = sites.filter((site) => site.client_id === clientId);
+    const siteId =
+      (requestedSiteId > 0 &&
+      candidateSites.some((site) => site.id === requestedSiteId)
+        ? requestedSiteId
+        : 0) ||
+      candidateSites[0]?.id ||
+      0;
     setForm({
       ...buildDefaultForm(),
-      site_id: sites[0]?.id || 0,
+      client_id: clientId,
+      site_id: siteId,
       equipment_type_id: equipmentTypes[0]?.id || 0,
     });
   }
@@ -179,7 +254,9 @@ export function MaintenanceInstallationsPage() {
     setEditingId(item.id);
     setFeedback(null);
     setError(null);
+    const site = siteById.get(item.site_id);
     setForm({
+      client_id: site?.client_id || 0,
       site_id: item.site_id,
       equipment_type_id: item.equipment_type_id,
       name: item.name,
@@ -193,7 +270,7 @@ export function MaintenanceInstallationsPage() {
       location_note: item.location_note,
       technical_notes: stripLegacyVisibleText(item.technical_notes),
       is_active: item.is_active,
-      sort_order: item.sort_order,
+      sort_order: 100,
     });
   }
 
@@ -217,7 +294,7 @@ export function MaintenanceInstallationsPage() {
       location_note: normalizeNullable(form.location_note),
       technical_notes: stripLegacyVisibleText(normalizeNullable(form.technical_notes)),
       is_active: form.is_active,
-      sort_order: Number(form.sort_order),
+      sort_order: 100,
     };
     try {
       const response = editingId
@@ -298,9 +375,11 @@ export function MaintenanceInstallationsPage() {
       feedback={feedback}
       editingId={editingId}
       form={form}
+      openCreateSignal={openCreateSignal}
       onFormChange={(next) =>
         setForm({
           ...next,
+          client_id: Number(next.client_id),
           site_id: Number(next.site_id),
           equipment_type_id: Number(next.equipment_type_id),
         })
@@ -311,11 +390,22 @@ export function MaintenanceInstallationsPage() {
       onNew={startCreate}
       fields={[
         {
+          key: "client_id",
+          labelEs: "Cliente",
+          labelEn: "Client",
+          type: "select",
+          disabled: requestedClientId > 0,
+          options: clients.map((client) => ({
+            value: String(client.id),
+            label: getClientDisplayName(client.id),
+          })),
+        },
+        {
           key: "site_id",
           labelEs: "Dirección del cliente",
           labelEn: "Client address",
           type: "select",
-          options: sites.map((site) => ({
+          options: filteredSites.map((site) => ({
             value: String(site.id),
             label: getSiteDisplayName(site),
           })),
@@ -365,13 +455,6 @@ export function MaintenanceInstallationsPage() {
             },
             { value: "retired", label: language === "es" ? "Retirada" : "Retired" },
           ],
-        },
-        {
-          key: "sort_order",
-          labelEs: "Orden",
-          labelEn: "Sort order",
-          type: "number",
-          min: 0,
         },
         {
           key: "is_active",

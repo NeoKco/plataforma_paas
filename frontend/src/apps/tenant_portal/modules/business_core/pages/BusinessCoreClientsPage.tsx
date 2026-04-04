@@ -88,6 +88,11 @@ type ClientRow = {
   addresses: TenantBusinessSite[];
 };
 
+type DuplicateClientCandidate = {
+  row: ClientRow;
+  reasons: string[];
+};
+
 function buildDefaultModalForm(): ClientModalForm {
   return {
     organizationName: "",
@@ -117,6 +122,32 @@ function buildDefaultModalForm(): ClientModalForm {
 function normalizeNullable(value: string): string | null {
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
+}
+
+function normalizeHumanKey(value: string | null | undefined): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizePhoneKey(value: string | null | undefined): string {
+  return (value ?? "").replace(/[^0-9+]/g, "").trim();
+}
+
+function normalizeEmailKey(value: string | null | undefined): string {
+  return (value ?? "").trim().toLowerCase();
+}
+
+function normalizeTaxIdKey(value: string | null | undefined): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/[^0-9A-Z]/g, "")
+    .trim();
 }
 
 function buildGoogleMapsUrl(address: TenantBusinessSite): string | null {
@@ -152,6 +183,9 @@ export function BusinessCoreClientsPage() {
   const [modalError, setModalError] = useState<string | null>(null);
   const [modalState, setModalState] = useState<ClientModalState | null>(null);
   const [modalForm, setModalForm] = useState<ClientModalForm>(buildDefaultModalForm());
+  const [duplicateCandidate, setDuplicateCandidate] = useState<DuplicateClientCandidate | null>(
+    null
+  );
 
   const organizationById = useMemo(
     () => new Map(organizations.map((organization) => [organization.id, organization])),
@@ -249,6 +283,7 @@ export function BusinessCoreClientsPage() {
 
   function openCreateModal() {
     setModalError(null);
+    setDuplicateCandidate(null);
     setFeedback(null);
     setModalState({
       mode: "create",
@@ -267,6 +302,7 @@ export function BusinessCoreClientsPage() {
       row.contacts.find((contact) => !contact.is_primary && contact.id !== primaryContact?.id) ?? null;
     const primaryAddress = row.addresses[0] ?? null;
     setModalError(null);
+    setDuplicateCandidate(null);
     setFeedback(null);
     setModalState({
       mode: "edit",
@@ -308,15 +344,146 @@ export function BusinessCoreClientsPage() {
     }
     setModalState(null);
     setModalError(null);
+    setDuplicateCandidate(null);
     setModalForm(buildDefaultModalForm());
+  }
+
+  function findDuplicateCandidate(form: ClientModalForm): DuplicateClientCandidate | null {
+    const taxIdKey = normalizeTaxIdKey(form.taxId);
+    const organizationNameKey = normalizeHumanKey(form.organizationName);
+    const legalNameKey = normalizeHumanKey(form.legalName);
+    const phoneKeys = [
+      normalizePhoneKey(form.phone),
+      normalizePhoneKey(form.primaryContactPhone),
+      normalizePhoneKey(form.secondaryContactPhone),
+    ].filter(Boolean);
+    const emailKeys = [
+      normalizeEmailKey(form.email),
+      normalizeEmailKey(form.primaryContactEmail),
+      normalizeEmailKey(form.secondaryContactEmail),
+    ].filter(Boolean);
+    const addressLine = buildAddressLine(form.addressStreet, form.addressNumber);
+    const addressKey = normalizeHumanKey(
+      [addressLine, form.commune, form.city, form.region].filter(Boolean).join(" | ")
+    );
+
+    let bestMatch: DuplicateClientCandidate | null = null;
+    let bestScore = 0;
+
+    clientRows.forEach((row) => {
+      const reasons: string[] = [];
+      let score = 0;
+      const organization = row.organization;
+      const existingAddressKeys = row.addresses.map((address) =>
+        normalizeHumanKey(
+          [
+            address.address_line || address.name,
+            address.commune,
+            address.city,
+            address.region,
+          ]
+            .filter(Boolean)
+            .join(" | ")
+        )
+      );
+      const existingPhoneKeys = [
+        normalizePhoneKey(organization?.phone),
+        ...row.contacts.map((contact) => normalizePhoneKey(contact.phone)),
+      ].filter(Boolean);
+      const existingEmailKeys = [
+        normalizeEmailKey(organization?.email),
+        ...row.contacts.map((contact) => normalizeEmailKey(contact.email)),
+      ].filter(Boolean);
+
+      if (taxIdKey && normalizeTaxIdKey(organization?.tax_id) === taxIdKey) {
+        reasons.push(
+          language === "es"
+            ? "coincide el RUT / Tax ID"
+            : "the Tax ID matches"
+        );
+        score += 100;
+      }
+      if (
+        organizationNameKey &&
+        [
+          normalizeHumanKey(organization?.name),
+          normalizeHumanKey(organization?.legal_name),
+        ].includes(organizationNameKey)
+      ) {
+        reasons.push(
+          language === "es"
+            ? "coincide el nombre del cliente"
+            : "the client name matches"
+        );
+        score += 70;
+      }
+      if (
+        legalNameKey &&
+        [
+          normalizeHumanKey(organization?.name),
+          normalizeHumanKey(organization?.legal_name),
+        ].includes(legalNameKey)
+      ) {
+        reasons.push(
+          language === "es"
+            ? "coincide la razón social"
+            : "the legal name matches"
+        );
+        score += 70;
+      }
+      if (addressKey && existingAddressKeys.includes(addressKey)) {
+        reasons.push(
+          language === "es"
+            ? "coincide la dirección principal"
+            : "the main address matches"
+        );
+        score += 80;
+      }
+      if (phoneKeys.some((phone) => existingPhoneKeys.includes(phone))) {
+        reasons.push(
+          language === "es"
+            ? "coincide un teléfono existente"
+            : "an existing phone matches"
+        );
+        score += 75;
+      }
+      if (emailKeys.some((email) => existingEmailKeys.includes(email))) {
+        reasons.push(
+          language === "es"
+            ? "coincide un email existente"
+            : "an existing email matches"
+        );
+        score += 75;
+      }
+
+      if (score > bestScore && reasons.length > 0) {
+        bestScore = score;
+        bestMatch = { row, reasons };
+      }
+    });
+
+    return bestMatch;
   }
 
   async function handleSaveClient() {
     if (!session?.accessToken || !modalState) {
       return;
     }
+    if (modalState.mode === "create") {
+      const candidate = findDuplicateCandidate(modalForm);
+      if (candidate) {
+        setDuplicateCandidate(candidate);
+        setModalError(
+          language === "es"
+            ? "Ya existe un cliente muy parecido. Antes de crear otro, abre la ficha existente y agrega a la pareja o familiar como contacto si corresponde."
+            : "A very similar client already exists. Before creating another one, open the existing detail and add the spouse or family member as a contact if appropriate."
+        );
+        return;
+      }
+    }
     setIsSubmitting(true);
     setModalError(null);
+    setDuplicateCandidate(null);
     try {
       const organizationPayload: TenantBusinessOrganizationWriteRequest = {
         name: modalForm.organizationName.trim(),
@@ -483,8 +650,8 @@ export function BusinessCoreClientsPage() {
     }
     const confirmed = window.confirm(
       language === "es"
-        ? `Eliminar "${row.organization?.name ?? "cliente"}" solo funcionará si no tiene direcciones asociadas.`
-        : `Deleting "${row.organization?.name ?? "client"}" only works if it has no linked addresses.`
+        ? `Eliminar "${row.organization?.name ?? "cliente"}" solo funcionará si no tiene direcciones ni mantenciones asociadas. Si ya tiene historial, debe desactivarse.`
+        : `Deleting "${row.organization?.name ?? "client"}" only works if it has no linked addresses or maintenance history. If it already has history, it must be deactivated.`
     );
     if (!confirmed) {
       return;
@@ -736,6 +903,40 @@ export function BusinessCoreClientsPage() {
                 : "Load the client's base data here. Additional maintenance details will later live on top of its installations."}
             </div>
             {modalError ? <div className="alert alert-danger mb-3">{modalError}</div> : null}
+            {duplicateCandidate ? (
+              <div className="alert alert-warning mb-3">
+                <div className="fw-semibold mb-1">
+                  {language === "es"
+                    ? `Cliente ya existente: ${duplicateCandidate.row.organization?.name ?? "cliente"}`
+                    : `Existing client: ${duplicateCandidate.row.organization?.name ?? "client"}`}
+                </div>
+                <div className="mb-2">
+                  {language === "es"
+                    ? `Se detectó coincidencia porque ${duplicateCandidate.reasons.join(", ")}.`
+                    : `A match was detected because ${duplicateCandidate.reasons.join(", ")}.`}
+                </div>
+                <div className="d-flex gap-2 flex-wrap">
+                  <button
+                    className="btn btn-sm btn-primary"
+                    type="button"
+                    onClick={() => {
+                      const clientId = duplicateCandidate.row.client.id;
+                      closeModal();
+                      navigate(`/tenant-portal/business-core/clients/${clientId}`);
+                    }}
+                  >
+                    {language === "es" ? "Abrir ficha existente" : "Open existing detail"}
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    onClick={() => setDuplicateCandidate(null)}
+                  >
+                    {language === "es" ? "Seguir revisando" : "Keep reviewing"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
             <div className="business-core-modal-grid business-core-modal-grid--client">
               <div className="business-core-modal-section business-core-modal-section--client-main">
                 <div className="business-core-modal-section__title">

@@ -59,6 +59,9 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - la direccion propia de una empresa o proveedor sigue siendo una necesidad real, pero conviene resolverla como parte del modelo y no como un campo suelto pegado al modal. Hasta que exista esa ola, el foco de `Empresas` debe ser identidad + contacto principal.
 - si intentas registrar un cliente repetido, el control correcto no debe depender de la pantalla: la contraparte base no debe duplicarse y una misma organizacion no deberia tener mas de un cliente asociado.
 - `Código cliente` tampoco deberia verse ni editarse en la captura normal; si existe, debe resolverse como identificador interno del sistema y no como dato operativo del usuario.
+- un cliente con historial de mantenciones no deberia eliminarse; desde ese punto en adelante solo corresponde desactivarlo para no romper trazabilidad ni reportes.
+- si aparece la pareja, un familiar o un tercero ligado al mismo domicilio o contexto operativo, no deberia crearse como cliente nuevo por defecto; primero debe revisarse si corresponde agregarlo como contacto del cliente existente.
+- la captura de `Nuevo cliente` deberia advertir coincidencias fuertes por RUT, nombre, telefono, email o direccion y desviar al usuario hacia la ficha existente antes de duplicar la cartera.
 
 Eso genera:
 

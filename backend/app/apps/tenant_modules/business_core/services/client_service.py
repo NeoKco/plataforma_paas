@@ -5,6 +5,7 @@ from app.apps.tenant_modules.business_core.models import (
     BusinessOrganization,
     BusinessSite,
 )
+from app.apps.tenant_modules.maintenance.models import MaintenanceWorkOrder
 from app.apps.tenant_modules.business_core.repositories import (
     BusinessClientRepository,
     BusinessOrganizationRepository,
@@ -100,6 +101,16 @@ class BusinessClientService:
 
     def delete_client(self, tenant_db: Session, client_id: int) -> BusinessClient:
         client = self._get_client_or_raise(tenant_db, client_id)
+
+        work_order_exists = (
+            tenant_db.query(MaintenanceWorkOrder.id)
+            .filter(MaintenanceWorkOrder.client_id == client.id)
+            .first()
+        )
+        if work_order_exists is not None:
+            raise ValueError(
+                "No puedes eliminar el cliente porque ya tiene mantenciones registradas. Debes desactivarlo."
+            )
 
         site_exists = (
             tenant_db.query(BusinessSite.id)

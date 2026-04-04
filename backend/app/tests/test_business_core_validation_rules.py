@@ -2,6 +2,7 @@ import os
 import unittest
 from types import SimpleNamespace
 from unittest.mock import Mock
+from sqlalchemy.exc import ProgrammingError
 
 os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
@@ -192,6 +193,22 @@ class BusinessCoreValidationRulesTestCase(unittest.TestCase):
 
         self.assertEqual(updated.client_code, "CLI-76-123-456-7")
 
+    def test_client_delete_rejects_when_work_orders_exist(self) -> None:
+        client_repository = Mock()
+        organization_repository = Mock()
+        tenant_db = Mock()
+        tenant_db.query.return_value.filter.return_value.first.return_value = SimpleNamespace(id=55)
+        client_repository.get_by_id.return_value = SimpleNamespace(id=9)
+        service = BusinessClientService(
+            client_repository=client_repository,
+            organization_repository=organization_repository,
+        )
+
+        with self.assertRaises(ValueError) as exc:
+            service.delete_client(tenant_db, 9)
+
+        self.assertIn("ya tiene mantenciones registradas", str(exc.exception))
+
     def test_contact_rejects_duplicate_email_in_same_organization(self) -> None:
         contact_repository = Mock()
         organization_repository = Mock()
@@ -325,6 +342,25 @@ class BusinessCoreValidationRulesTestCase(unittest.TestCase):
             )
 
         self.assertIn("fecha final", str(exc.exception).lower())
+
+    def test_work_group_member_counts_fall_back_to_empty_when_schema_is_old(self) -> None:
+        work_group_repository = Mock()
+        work_group_member_repository = Mock()
+        work_group_member_repository.count_by_group_ids.side_effect = ProgrammingError(
+            "select count(*) from business_work_group_members",
+            {},
+            Exception("UndefinedTable: business_work_group_members"),
+        )
+        service = BusinessWorkGroupMemberService(
+            work_group_repository=work_group_repository,
+            work_group_member_repository=work_group_member_repository,
+        )
+        tenant_db = Mock()
+
+        counts = service.get_member_counts(tenant_db, [7, 8])
+
+        self.assertEqual(counts, {})
+        tenant_db.rollback.assert_called_once()
 
     def test_site_rejects_duplicate_address_in_same_client(self) -> None:
         site_repository = Mock()
