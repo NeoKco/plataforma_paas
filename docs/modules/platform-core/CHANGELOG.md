@@ -1,5 +1,11 @@
 # Platform Core Changelog
 
+## 2026-04-04
+
+- se agrega [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md) como canon transversal de estandares, revisiones, estructura minima, documentacion viva y handoff para continuidad con otra IA
+- se actualizan [project-structure.md](/home/felipe/platform_paas/docs/architecture/project-structure.md), [development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md), [developer-onboarding.md](/home/felipe/platform_paas/docs/runbooks/developer-onboarding.md), [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md) y [frontend/e2e/README.md](/home/felipe/platform_paas/frontend/e2e/README.md) para dejar un marco único de implementación y validación browser
+- se endurece la política oficial de continuidad: todo cambio visible debe actualizar documentación canónica, revisar cobertura E2E existente y dejar handoff explícito para el siguiente developer o IA
+
 ## 2026-04-03
 
 - se agrega el script operativo [sync_active_tenant_schemas.py](/home/felipe/platform_paas/backend/app/scripts/sync_active_tenant_schemas.py) para sincronizar en linea los esquemas tenant activos sin depender del worker
