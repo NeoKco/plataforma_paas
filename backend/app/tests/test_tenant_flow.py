@@ -27,6 +27,7 @@ from app.apps.tenant_modules.core.api.tenant_routes import (  # noqa: E402
     tenant_module_usage,
     tenant_schema_status,
     tenant_sync_schema,
+    tenant_update_maintenance_finance_sync,
     tenant_update_timezone,
     tenant_update_user,
     tenant_update_user_status,
@@ -40,6 +41,7 @@ from app.apps.tenant_modules.core.api.auth_routes import (  # noqa: E402
 )
 from app.apps.tenant_modules.core.schemas import (  # noqa: E402
     TenantLoginRequest,
+    TenantMaintenanceFinanceSyncUpdateRequest,
     TenantRefreshTokenRequest,
     TenantTimezoneUpdateRequest,
     TenantUserCreateRequest,
@@ -1599,6 +1601,9 @@ class TenantRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.tenant.effective_timezone, "America/Lima")
         self.assertEqual(response.user.timezone, "America/Lima")
         self.assertEqual(response.user.effective_timezone, "America/Lima")
+        self.assertEqual(response.tenant.maintenance_finance_sync_mode, "manual")
+        self.assertTrue(response.tenant.maintenance_finance_auto_sync_income)
+        self.assertTrue(response.tenant.maintenance_finance_auto_sync_expense)
         self.assertEqual(response.tenant.plan_code, "pro")
         self.assertEqual(response.tenant.plan_enabled_modules, ["core", "finance", "users"])
         self.assertEqual(response.tenant.plan_module_limits, {"finance.entries": 250})
@@ -2476,6 +2481,54 @@ class TenantRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertEqual(response.tenant_timezone, "America/Lima")
+
+    def test_tenant_update_maintenance_finance_sync_returns_policy(self) -> None:
+        tenant_record = build_tenant_record_stub(
+            maintenance_finance_sync_mode="auto_on_close",
+            maintenance_finance_auto_sync_income=True,
+            maintenance_finance_auto_sync_expense=False,
+            maintenance_finance_income_account_id=11,
+            maintenance_finance_expense_account_id=None,
+            maintenance_finance_income_category_id=21,
+            maintenance_finance_expense_category_id=None,
+            maintenance_finance_currency_id=1,
+        )
+
+        with patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.update_maintenance_finance_sync_policy",
+            return_value=tenant_record,
+        ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_service.get_maintenance_finance_sync_policy",
+            return_value={
+                "maintenance_finance_sync_mode": "auto_on_close",
+                "maintenance_finance_auto_sync_income": True,
+                "maintenance_finance_auto_sync_expense": False,
+                "maintenance_finance_income_account_id": 11,
+                "maintenance_finance_expense_account_id": None,
+                "maintenance_finance_income_category_id": 21,
+                "maintenance_finance_expense_category_id": None,
+                "maintenance_finance_currency_id": 1,
+            },
+        ):
+            response = tenant_update_maintenance_finance_sync(
+                payload=TenantMaintenanceFinanceSyncUpdateRequest(
+                    maintenance_finance_sync_mode="auto_on_close",
+                    maintenance_finance_auto_sync_income=True,
+                    maintenance_finance_auto_sync_expense=False,
+                    maintenance_finance_income_account_id=11,
+                    maintenance_finance_income_category_id=21,
+                    maintenance_finance_currency_id=1,
+                ),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.data.maintenance_finance_sync_mode, "auto_on_close")
+        self.assertEqual(response.data.maintenance_finance_income_account_id, 11)
+        self.assertEqual(response.data.maintenance_finance_currency_id, 1)
 
     def test_tenant_data_service_resets_user_password_by_email(self) -> None:
         user = build_tenant_user_stub(

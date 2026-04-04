@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.finance.models import FinanceCurrency
+from app.apps.tenant_modules.core.services.tenant_data_service import TenantDataService
 from app.apps.tenant_modules.finance.schemas import (
     FinanceTransactionCreateRequest,
     FinanceTransactionUpdateRequest,
@@ -27,6 +28,7 @@ class MaintenanceCostingService:
 
     def __init__(self, finance_service: FinanceService | None = None) -> None:
         self.finance_service = finance_service or FinanceService()
+        self.tenant_data_service = TenantDataService()
 
     def get_costing_detail(self, tenant_db: Session, work_order_id: int) -> dict:
         work_order = self._get_work_order_or_raise(tenant_db, work_order_id)
@@ -153,13 +155,20 @@ class MaintenanceCostingService:
         tenant_db.commit()
         tenant_db.refresh(actual)
         estimate = self._get_estimate(tenant_db, work_order_id)
-        return {
+        detail = {
             "work_order": work_order,
             "estimate": estimate,
             "actual": actual,
             "estimate_lines": self._get_cost_lines(tenant_db, work_order_id, cost_stage="estimate"),
             "actual_lines": actual_lines,
         }
+        self.maybe_auto_sync_by_tenant_policy(
+            tenant_db,
+            work_order_id,
+            actor_user_id=actor_user_id,
+        )
+        refreshed_detail = self.get_costing_detail(tenant_db, work_order_id)
+        return refreshed_detail if refreshed_detail.get("actual") is not None else detail
 
     def sync_to_finance(
         self,
@@ -284,6 +293,73 @@ class MaintenanceCostingService:
             "estimate_lines": self._get_cost_lines(tenant_db, work_order_id, cost_stage="estimate"),
             "actual_lines": self._get_cost_lines(tenant_db, work_order_id, cost_stage="actual"),
         }
+
+    def maybe_auto_sync_by_tenant_policy(
+        self,
+        tenant_db: Session,
+        work_order_id: int,
+        *,
+        actor_user_id: int | None = None,
+    ) -> dict | None:
+        work_order = self._get_work_order_or_raise(tenant_db, work_order_id)
+        if work_order.maintenance_status != "completed":
+            return None
+
+        actual = self._get_actual(tenant_db, work_order_id)
+        if actual is None:
+            return None
+
+        try:
+            policy = self.tenant_data_service.get_maintenance_finance_sync_policy(tenant_db)
+        except ValueError:
+            return None
+
+        if policy["maintenance_finance_sync_mode"] != "auto_on_close":
+            return None
+
+        sync_income = (
+            policy["maintenance_finance_auto_sync_income"]
+            and actual.actual_price_charged > 0
+            and policy["maintenance_finance_income_account_id"] is not None
+        )
+        sync_expense = (
+            policy["maintenance_finance_auto_sync_expense"]
+            and actual.total_actual_cost > 0
+            and policy["maintenance_finance_expense_account_id"] is not None
+        )
+        if not sync_income and not sync_expense:
+            return None
+
+        currency_id = policy["maintenance_finance_currency_id"]
+        if currency_id is None:
+            try:
+                currency_id = self._get_base_currency_or_raise(tenant_db).id
+            except ValueError:
+                return None
+
+        try:
+            return self.sync_to_finance(
+                tenant_db,
+                work_order_id,
+                type(
+                    "_AutoSyncPayload",
+                    (),
+                    {
+                        "sync_income": sync_income,
+                        "sync_expense": sync_expense,
+                        "income_account_id": policy["maintenance_finance_income_account_id"],
+                        "expense_account_id": policy["maintenance_finance_expense_account_id"],
+                        "income_category_id": policy["maintenance_finance_income_category_id"],
+                        "expense_category_id": policy["maintenance_finance_expense_category_id"],
+                        "currency_id": currency_id,
+                        "transaction_at": None,
+                        "notes": "Auto sync maintenance-finance",
+                    },
+                )(),
+                actor_user_id=actor_user_id,
+            )
+        except ValueError:
+            return None
 
     def _get_work_order_or_raise(self, tenant_db: Session, work_order_id: int) -> MaintenanceWorkOrder:
         work_order = (
@@ -453,6 +529,15 @@ class MaintenanceCostingService:
         if currency is None:
             raise ValueError("La moneda seleccionada no existe en finance")
         return currency
+
+    def _get_base_currency_or_raise(self, tenant_db: Session) -> FinanceCurrency:
+        currencies = tenant_db.query(FinanceCurrency).all()
+        for currency in currencies:
+            if getattr(currency, "is_base", False):
+                return currency
+        if currencies:
+            return currencies[0]
+        raise ValueError("No existe una moneda base configurada para finance")
 
     def _build_work_order_label(self, work_order: MaintenanceWorkOrder) -> str:
         return f"#{work_order.id} · {work_order.title}"

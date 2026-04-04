@@ -120,6 +120,14 @@ def build_tenant_record_stub(
     api_read_requests_per_minute: int | None = None,
     api_write_requests_per_minute: int | None = None,
     module_limits_json: str | None = None,
+    maintenance_finance_sync_mode: str = "manual",
+    maintenance_finance_auto_sync_income: bool = True,
+    maintenance_finance_auto_sync_expense: bool = True,
+    maintenance_finance_income_account_id: int | None = None,
+    maintenance_finance_expense_account_id: int | None = None,
+    maintenance_finance_income_category_id: int | None = None,
+    maintenance_finance_expense_category_id: int | None = None,
+    maintenance_finance_currency_id: int | None = None,
 ):
     return SimpleNamespace(
         name=tenant_name,
@@ -147,6 +155,14 @@ def build_tenant_record_stub(
         api_read_requests_per_minute=api_read_requests_per_minute,
         api_write_requests_per_minute=api_write_requests_per_minute,
         module_limits_json=module_limits_json,
+        maintenance_finance_sync_mode=maintenance_finance_sync_mode,
+        maintenance_finance_auto_sync_income=maintenance_finance_auto_sync_income,
+        maintenance_finance_auto_sync_expense=maintenance_finance_auto_sync_expense,
+        maintenance_finance_income_account_id=maintenance_finance_income_account_id,
+        maintenance_finance_expense_account_id=maintenance_finance_expense_account_id,
+        maintenance_finance_income_category_id=maintenance_finance_income_category_id,
+        maintenance_finance_expense_category_id=maintenance_finance_expense_category_id,
+        maintenance_finance_currency_id=maintenance_finance_currency_id,
     )
 
 

@@ -92,6 +92,14 @@ class TenantInfoData(BaseModel):
     effective_module_limit_sources: dict[str, str] | None = None
     effective_api_read_requests_per_minute: int | None = None
     effective_api_write_requests_per_minute: int | None = None
+    maintenance_finance_sync_mode: str = "manual"
+    maintenance_finance_auto_sync_income: bool = True
+    maintenance_finance_auto_sync_expense: bool = True
+    maintenance_finance_income_account_id: int | None = None
+    maintenance_finance_expense_account_id: int | None = None
+    maintenance_finance_income_category_id: int | None = None
+    maintenance_finance_expense_category_id: int | None = None
+    maintenance_finance_currency_id: int | None = None
 
 
 class TenantUserData(BaseModel):
@@ -170,6 +178,17 @@ class TenantTimezoneUpdateRequest(BaseModel):
     timezone: str
 
 
+class TenantMaintenanceFinanceSyncUpdateRequest(BaseModel):
+    maintenance_finance_sync_mode: str = "manual"
+    maintenance_finance_auto_sync_income: bool = True
+    maintenance_finance_auto_sync_expense: bool = True
+    maintenance_finance_income_account_id: int | None = None
+    maintenance_finance_expense_account_id: int | None = None
+    maintenance_finance_income_category_id: int | None = None
+    maintenance_finance_expense_category_id: int | None = None
+    maintenance_finance_currency_id: int | None = None
+
+
 class TenantUserStatusUpdateRequest(BaseModel):
     is_active: bool
 
@@ -225,6 +244,24 @@ class TenantTimezoneMutationResponse(BaseModel):
     message: str
     requested_by: TenantUserContextResponse
     tenant_timezone: str
+
+
+class TenantMaintenanceFinanceSyncData(BaseModel):
+    maintenance_finance_sync_mode: str = "manual"
+    maintenance_finance_auto_sync_income: bool = True
+    maintenance_finance_auto_sync_expense: bool = True
+    maintenance_finance_income_account_id: int | None = None
+    maintenance_finance_expense_account_id: int | None = None
+    maintenance_finance_income_category_id: int | None = None
+    maintenance_finance_expense_category_id: int | None = None
+    maintenance_finance_currency_id: int | None = None
+
+
+class TenantMaintenanceFinanceSyncMutationResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    data: TenantMaintenanceFinanceSyncData
 
 
 class TenantSchemaJobData(BaseModel):

@@ -7,6 +7,9 @@ from app.apps.tenant_modules.core.schemas import (
     TenantHealthResponse,
     TenantInfoData,
     TenantInfoResponse,
+    TenantMaintenanceFinanceSyncData,
+    TenantMaintenanceFinanceSyncMutationResponse,
+    TenantMaintenanceFinanceSyncUpdateRequest,
     TenantMeDbResponse,
     TenantMeResponse,
     TenantSchemaJobData,
@@ -132,6 +135,14 @@ def tenant_info(
     tenant_timezone = getattr(tenant_record, "timezone", None) or DEFAULT_TENANT_TIMEZONE
     user_timezone = getattr(tenant_user, "timezone", None)
     effective_timezone = resolve_effective_timezone(tenant_timezone, user_timezone)
+    maintenance_finance_policy = (
+        tenant_data_service.get_maintenance_finance_sync_policy(
+            tenant_db,
+            tenant_info=tenant_record,
+        )
+        if tenant_record is not None
+        else tenant_data_service.get_maintenance_finance_sync_policy(tenant_db)
+    )
 
     return TenantInfoResponse(
         success=True,
@@ -356,6 +367,30 @@ def tenant_info(
                     )
                 )
             ),
+            maintenance_finance_sync_mode=maintenance_finance_policy[
+                "maintenance_finance_sync_mode"
+            ],
+            maintenance_finance_auto_sync_income=maintenance_finance_policy[
+                "maintenance_finance_auto_sync_income"
+            ],
+            maintenance_finance_auto_sync_expense=maintenance_finance_policy[
+                "maintenance_finance_auto_sync_expense"
+            ],
+            maintenance_finance_income_account_id=maintenance_finance_policy[
+                "maintenance_finance_income_account_id"
+            ],
+            maintenance_finance_expense_account_id=maintenance_finance_policy[
+                "maintenance_finance_expense_account_id"
+            ],
+            maintenance_finance_income_category_id=maintenance_finance_policy[
+                "maintenance_finance_income_category_id"
+            ],
+            maintenance_finance_expense_category_id=maintenance_finance_policy[
+                "maintenance_finance_expense_category_id"
+            ],
+            maintenance_finance_currency_id=maintenance_finance_policy[
+                "maintenance_finance_currency_id"
+            ],
         ),
         user=TenantUserData(
             id=request.state.tenant_user_id,
@@ -388,6 +423,43 @@ def tenant_update_timezone(
         message="Zona horaria del tenant actualizada correctamente",
         requested_by=_build_tenant_user_context(current_user),
         tenant_timezone=tenant_info_record.timezone,
+    )
+
+
+@router.patch(
+    "/info/maintenance-finance-sync",
+    response_model=TenantMaintenanceFinanceSyncMutationResponse,
+)
+def tenant_update_maintenance_finance_sync(
+    payload: TenantMaintenanceFinanceSyncUpdateRequest,
+    current_user=Depends(require_tenant_admin),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> TenantMaintenanceFinanceSyncMutationResponse:
+    try:
+        tenant_info_record = tenant_data_service.update_maintenance_finance_sync_policy(
+            tenant_db,
+            sync_mode=payload.maintenance_finance_sync_mode,
+            auto_sync_income=payload.maintenance_finance_auto_sync_income,
+            auto_sync_expense=payload.maintenance_finance_auto_sync_expense,
+            income_account_id=payload.maintenance_finance_income_account_id,
+            expense_account_id=payload.maintenance_finance_expense_account_id,
+            income_category_id=payload.maintenance_finance_income_category_id,
+            expense_category_id=payload.maintenance_finance_expense_category_id,
+            currency_id=payload.maintenance_finance_currency_id,
+        )
+    except ValueError as exc:
+        status_code = 404 if "no encontrada" in str(exc).lower() else 400
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+
+    policy = tenant_data_service.get_maintenance_finance_sync_policy(
+        tenant_db,
+        tenant_info=tenant_info_record,
+    )
+    return TenantMaintenanceFinanceSyncMutationResponse(
+        success=True,
+        message="Politica maintenance-finance actualizada correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        data=TenantMaintenanceFinanceSyncData(**policy),
     )
 
 

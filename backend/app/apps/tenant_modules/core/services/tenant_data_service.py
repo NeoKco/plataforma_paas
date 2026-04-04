@@ -4,6 +4,11 @@ from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.core.models.tenant_info import TenantInfo
 from app.apps.tenant_modules.core.models.user import User
+from app.apps.tenant_modules.finance.models import (
+    FinanceAccount,
+    FinanceCategory,
+    FinanceCurrency,
+)
 from app.apps.tenant_modules.core.repositories.tenant_info_repository import (
     TenantInfoRepository,
 )
@@ -27,6 +32,7 @@ class TenantDataService:
     ACTIVE_MODULE_LIMIT_KEY = CORE_USERS_ACTIVE_LIMIT_KEY
     MONTHLY_MODULE_LIMIT_KEY = CORE_USERS_MONTHLY_LIMIT_KEY
     ROLE_LIMIT_KEYS = CORE_USERS_ROLE_LIMIT_KEYS
+    MAINTENANCE_FINANCE_SYNC_MODES = {"manual", "auto_on_close"}
 
     def __init__(
         self,
@@ -65,8 +71,140 @@ class TenantDataService:
         tenant_db.refresh(tenant_info)
         return tenant_info
 
+    def update_maintenance_finance_sync_policy(
+        self,
+        tenant_db: Session,
+        *,
+        sync_mode: str,
+        auto_sync_income: bool,
+        auto_sync_expense: bool,
+        income_account_id: int | None,
+        expense_account_id: int | None,
+        income_category_id: int | None,
+        expense_category_id: int | None,
+        currency_id: int | None,
+    ) -> TenantInfo:
+        tenant_info = self.tenant_info_repository.get_first(tenant_db)
+        if not tenant_info:
+            raise ValueError("Informacion tenant no encontrada")
+
+        normalized_mode = (sync_mode or "").strip().lower()
+        if normalized_mode not in self.MAINTENANCE_FINANCE_SYNC_MODES:
+            raise ValueError("El modo de sincronizacion maintenance-finance no es valido")
+
+        if auto_sync_income and income_account_id is not None:
+            self._get_finance_account_or_raise(tenant_db, income_account_id)
+        if auto_sync_expense and expense_account_id is not None:
+            self._get_finance_account_or_raise(tenant_db, expense_account_id)
+        if income_category_id is not None:
+            self._get_finance_category_or_raise(tenant_db, income_category_id)
+        if expense_category_id is not None:
+            self._get_finance_category_or_raise(tenant_db, expense_category_id)
+        if currency_id is not None:
+            self._get_finance_currency_or_raise(tenant_db, currency_id)
+
+        tenant_info.maintenance_finance_sync_mode = normalized_mode
+        tenant_info.maintenance_finance_auto_sync_income = auto_sync_income
+        tenant_info.maintenance_finance_auto_sync_expense = auto_sync_expense
+        tenant_info.maintenance_finance_income_account_id = income_account_id
+        tenant_info.maintenance_finance_expense_account_id = expense_account_id
+        tenant_info.maintenance_finance_income_category_id = income_category_id
+        tenant_info.maintenance_finance_expense_category_id = expense_category_id
+        tenant_info.maintenance_finance_currency_id = currency_id
+        tenant_db.add(tenant_info)
+        tenant_db.commit()
+        tenant_db.refresh(tenant_info)
+        return tenant_info
+
+    def get_maintenance_finance_sync_policy(
+        self,
+        tenant_db: Session,
+        *,
+        tenant_info: TenantInfo | None = None,
+    ) -> dict:
+        resolved = tenant_info or self.get_tenant_info(tenant_db)
+        if resolved is None:
+            raise ValueError("Informacion tenant no encontrada")
+        return {
+            "maintenance_finance_sync_mode": getattr(
+                resolved,
+                "maintenance_finance_sync_mode",
+                "manual",
+            )
+            or "manual",
+            "maintenance_finance_auto_sync_income": bool(
+                getattr(resolved, "maintenance_finance_auto_sync_income", True)
+            ),
+            "maintenance_finance_auto_sync_expense": bool(
+                getattr(resolved, "maintenance_finance_auto_sync_expense", True)
+            ),
+            "maintenance_finance_income_account_id": getattr(
+                resolved,
+                "maintenance_finance_income_account_id",
+                None,
+            ),
+            "maintenance_finance_expense_account_id": getattr(
+                resolved,
+                "maintenance_finance_expense_account_id",
+                None,
+            ),
+            "maintenance_finance_income_category_id": getattr(
+                resolved,
+                "maintenance_finance_income_category_id",
+                None,
+            ),
+            "maintenance_finance_expense_category_id": getattr(
+                resolved,
+                "maintenance_finance_expense_category_id",
+                None,
+            ),
+            "maintenance_finance_currency_id": getattr(
+                resolved,
+                "maintenance_finance_currency_id",
+                None,
+            ),
+        }
+
     def get_user_by_id(self, tenant_db: Session, user_id: int) -> User | None:
         return self.user_repository.get_by_id(tenant_db, user_id)
+
+    def _get_finance_account_or_raise(self, tenant_db: Session, account_id: int) -> FinanceAccount:
+        account = (
+            tenant_db.query(FinanceAccount)
+            .filter(FinanceAccount.id == account_id)
+            .first()
+        )
+        if account is None:
+            raise ValueError("La cuenta financiera seleccionada no existe")
+        return account
+
+    def _get_finance_category_or_raise(
+        self,
+        tenant_db: Session,
+        category_id: int,
+    ) -> FinanceCategory:
+        category = (
+            tenant_db.query(FinanceCategory)
+            .filter(FinanceCategory.id == category_id)
+            .first()
+        )
+        if category is None:
+            raise ValueError("La categoria financiera seleccionada no existe")
+        return category
+
+    def _get_finance_currency_or_raise(
+        self,
+        tenant_db: Session,
+        currency_id: int,
+    ) -> FinanceCurrency:
+        currency = (
+            tenant_db.query(FinanceCurrency)
+            .filter(FinanceCurrency.id == currency_id)
+            .first()
+        )
+        if currency is None:
+            raise ValueError("La moneda financiera seleccionada no existe")
+        return currency
 
     def list_users(self, tenant_db: Session) -> list[User]:
         return self.user_repository.list_all(tenant_db)

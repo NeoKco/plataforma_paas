@@ -14,6 +14,9 @@ from app.apps.tenant_modules.maintenance.models import (
     MaintenanceSchedule,
     MaintenanceWorkOrder,
 )
+from app.apps.tenant_modules.maintenance.services.costing_service import (
+    MaintenanceCostingService,
+)
 from app.apps.tenant_modules.maintenance.repositories import (
     MaintenanceStatusLogRepository,
     MaintenanceVisitRepository,
@@ -35,10 +38,12 @@ class MaintenanceWorkOrderService:
         work_order_repository: MaintenanceWorkOrderRepository | None = None,
         status_log_repository: MaintenanceStatusLogRepository | None = None,
         visit_repository: MaintenanceVisitRepository | None = None,
+        costing_service: MaintenanceCostingService | None = None,
     ) -> None:
         self.work_order_repository = work_order_repository or MaintenanceWorkOrderRepository()
         self.status_log_repository = status_log_repository or MaintenanceStatusLogRepository()
         self.visit_repository = visit_repository or MaintenanceVisitRepository()
+        self.costing_service = costing_service or MaintenanceCostingService()
 
     def list_work_orders(
         self,
@@ -177,6 +182,13 @@ class MaintenanceWorkOrderService:
                 follow_up_changes = True
         if follow_up_changes:
             tenant_db.commit()
+            tenant_db.refresh(item)
+        if next_status == "completed":
+            self.costing_service.maybe_auto_sync_by_tenant_policy(
+                tenant_db,
+                item.id,
+                actor_user_id=changed_by_user_id,
+            )
             tenant_db.refresh(item)
         return item
 

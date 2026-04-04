@@ -14,6 +14,7 @@ from app.apps.tenant_modules.business_core.models import (  # noqa: E402
 from app.apps.tenant_modules.core.models.user import User  # noqa: E402
 from app.apps.tenant_modules.maintenance.models import MaintenanceInstallation  # noqa: E402
 from app.apps.tenant_modules.maintenance.schemas import (  # noqa: E402
+    MaintenanceStatusUpdateRequest,
     MaintenanceWorkOrderCreateRequest,
     MaintenanceWorkOrderUpdateRequest,
 )
@@ -270,6 +271,48 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
 
         self.assertEqual(created.assigned_work_group_id, 4)
         self.assertEqual(created.assigned_tenant_user_id, 3)
+
+    def test_complete_work_order_triggers_auto_sync_policy_check(self) -> None:
+        existing_item = SimpleNamespace(
+            id=23,
+            maintenance_status="scheduled",
+            completed_at=None,
+            cancelled_at=None,
+            due_item_id=None,
+            schedule_id=None,
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        status_log_repository = Mock()
+        visit_repository = Mock()
+        costing_service = Mock()
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+            status_log_repository=status_log_repository,
+            visit_repository=visit_repository,
+            costing_service=costing_service,
+        )
+        tenant_db = Mock()
+        tenant_db.add.return_value = None
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.return_value = None
+
+        updated = service.update_work_order_status(
+            tenant_db,
+            23,
+            MaintenanceStatusUpdateRequest(
+                maintenance_status="completed",
+                note="Cierre operativo",
+            ),
+            changed_by_user_id=7,
+        )
+
+        self.assertEqual(updated.maintenance_status, "completed")
+        costing_service.maybe_auto_sync_by_tenant_policy.assert_called_once_with(
+            tenant_db,
+            23,
+            actor_user_id=7,
+        )
 
 
 if __name__ == "__main__":

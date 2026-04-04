@@ -276,6 +276,69 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
         self.assertEqual(expense_call.kwargs["source_type"], "maintenance_work_order_expense")
         self.assertEqual(expense_call.kwargs["source_id"], 31)
 
+    def test_maybe_auto_sync_by_tenant_policy_syncs_completed_work_order(self) -> None:
+        work_order = SimpleNamespace(
+            id=41,
+            title="Mantención auto",
+            maintenance_status="completed",
+            completed_at=datetime(2026, 4, 4, 17, 0, tzinfo=timezone.utc),
+            scheduled_for=datetime(2026, 4, 4, 15, 0, tzinfo=timezone.utc),
+            requested_at=datetime(2026, 4, 1, 12, 0, tzinfo=timezone.utc),
+        )
+        actual = SimpleNamespace(
+            id=8,
+            work_order_id=41,
+            total_actual_cost=20000,
+            actual_price_charged=35000,
+            actual_income=35000,
+            actual_profit=15000,
+            actual_margin_percent=42.86,
+            notes="Auto",
+            income_transaction_id=None,
+            expense_transaction_id=None,
+            finance_synced_at=None,
+            updated_by_user_id=None,
+        )
+        currency = SimpleNamespace(id=1, is_base=True)
+        finance_service = Mock()
+        finance_service.create_transaction.side_effect = [
+            SimpleNamespace(id=601),
+            SimpleNamespace(id=602),
+        ]
+        tenant_db = _FakeTenantDb(
+            {
+                MaintenanceWorkOrder: work_order,
+                MaintenanceCostActual: actual,
+                MaintenanceCostEstimate: None,
+                MaintenanceCostLine: [],
+                FinanceCurrency: [currency],
+            }
+        )
+        service = MaintenanceCostingService(finance_service=finance_service)
+        service.tenant_data_service = SimpleNamespace(
+            get_maintenance_finance_sync_policy=lambda _tenant_db: {
+                "maintenance_finance_sync_mode": "auto_on_close",
+                "maintenance_finance_auto_sync_income": True,
+                "maintenance_finance_auto_sync_expense": True,
+                "maintenance_finance_income_account_id": 11,
+                "maintenance_finance_expense_account_id": 12,
+                "maintenance_finance_income_category_id": 21,
+                "maintenance_finance_expense_category_id": 22,
+                "maintenance_finance_currency_id": None,
+            }
+        )
+
+        detail = service.maybe_auto_sync_by_tenant_policy(
+            tenant_db,
+            41,
+            actor_user_id=4,
+        )
+
+        self.assertIsNotNone(detail)
+        self.assertEqual(actual.income_transaction_id, 601)
+        self.assertEqual(actual.expense_transaction_id, 602)
+        self.assertEqual(finance_service.create_transaction.call_count, 2)
+
 
 if __name__ == "__main__":
     unittest.main()

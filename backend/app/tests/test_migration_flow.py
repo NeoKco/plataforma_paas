@@ -29,6 +29,7 @@ from migrations.tenant import v0020_work_group_members_and_maintenance_assignmen
 from migrations.tenant import v0021_maintenance_schedules_and_due_items
 from migrations.tenant import v0022_maintenance_costing_and_finance_sync
 from migrations.tenant import v0023_maintenance_cost_lines
+from migrations.tenant import v0024_maintenance_finance_sync_policy
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -167,6 +168,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0021_maintenance_schedules_and_due_items",
                 "0022_maintenance_costing_and_finance_sync",
                 "0023_maintenance_cost_lines",
+                "0024_maintenance_finance_sync_policy",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -296,6 +298,9 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("client_id", business_site_columns)
         self.assertIn("commune", business_site_columns)
         self.assertIn("timezone", tenant_info_columns)
+        self.assertIn("maintenance_finance_sync_mode", tenant_info_columns)
+        self.assertIn("maintenance_finance_income_account_id", tenant_info_columns)
+        self.assertIn("maintenance_finance_currency_id", tenant_info_columns)
         self.assertIn("timezone", tenant_user_columns)
         self.assertIn("code", business_function_profile_columns)
         self.assertIn("group_kind", business_work_group_columns)
@@ -390,6 +395,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0021_maintenance_schedules_and_due_items",
                 "0022_maintenance_costing_and_finance_sync",
                 "0023_maintenance_cost_lines",
+                "0024_maintenance_finance_sync_policy",
             ],
         )
 
