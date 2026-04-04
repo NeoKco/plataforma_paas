@@ -39,6 +39,16 @@ export type TenantMaintenanceDueItemMutationResponse = {
   data: TenantMaintenanceDueItem;
 };
 
+export type TenantMaintenanceDueItemContactRequest = {
+  contact_status: string;
+  contact_note: string | null;
+};
+
+export type TenantMaintenanceDueItemPostponeRequest = {
+  postponed_until: string;
+  resolution_note: string | null;
+};
+
 export type TenantMaintenanceDueItemScheduleRequest = {
   scheduled_for: string | null;
   site_id: number | null;
@@ -85,6 +95,36 @@ export function scheduleTenantMaintenanceDueItem(
 ) {
   return apiRequest<TenantMaintenanceDueItemScheduleResponse>(
     `/tenant/maintenance/due-items/${dueItemId}/schedule`,
+    {
+      method: "POST",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function updateTenantMaintenanceDueItemContact(
+  accessToken: string,
+  dueItemId: number,
+  payload: TenantMaintenanceDueItemContactRequest
+) {
+  return apiRequest<TenantMaintenanceDueItemMutationResponse>(
+    `/tenant/maintenance/due-items/${dueItemId}/contact`,
+    {
+      method: "POST",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function postponeTenantMaintenanceDueItem(
+  accessToken: string,
+  dueItemId: number,
+  payload: TenantMaintenanceDueItemPostponeRequest
+) {
+  return apiRequest<TenantMaintenanceDueItemMutationResponse>(
+    `/tenant/maintenance/due-items/${dueItemId}/postpone`,
     {
       method: "POST",
       token: accessToken,

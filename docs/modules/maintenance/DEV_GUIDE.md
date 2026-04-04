@@ -128,6 +128,8 @@ Fuente frontend principal:
 - `Agenda` debe pintar mantenciones abiertas sobre calendario visual, no visitas como lista catalogada
 - la asignacion ya se formalizo con FKs reales a `work_groups` y `tenant_users`, dejando `assigned_group_label` solo como compatibilidad temporal en datos o lecturas legacy
 - `Pendientes` ya existe como bandeja preventiva separada de `Mantenciones`, para no mezclar trabajo abierto con vencimientos por gestionar
+- `Nueva programación` debe respetar exactamente el mismo patrón modal/visual de `Nueva mantención`; no se aceptan formularios incrustados ni maquetaciones divergentes dentro del mismo módulo
+- `Pendientes` ya debe exponer acciones operativas directas por fila: `Ver cliente`, `Contactar`, `Posponer`, `Agendar`
 
 ## Checklist de cumplimiento del modulo
 
@@ -148,7 +150,7 @@ Fuente frontend principal:
 - smoke E2E especifico del modulo con sus flujos principales
 - validaciones mas profundas de duplicados y conflictos de programacion
 - filtros operativos por grupo y tecnico dentro de la agenda mensual
-- acciones operativas mas ricas dentro de `Pendientes` (`contact`, `postpone`, agrupación por organización)
+- agrupacion visual por organizacion mas rica dentro de `Pendientes` sin perder la operacion por cliente/direccion/instalacion
 
 ## Modelo objetivo recomendado en PaaS
 

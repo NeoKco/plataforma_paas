@@ -73,9 +73,19 @@ test("tenant portal shows imported business core and maintenance data from ieris
     /Pendientes|Due maintenance/i
   );
   await page.getByRole("button", { name: /Nueva programación|New schedule/i }).click();
+  await expect(page.getByRole("heading", { name: /Nueva programación|New schedule/i })).toBeVisible();
   await expect(page.getByLabel(/Cliente|Client/i)).toBeVisible();
-  await expect(page.getByLabel(/Próxima fecha|Next due/i)).toBeVisible();
+  await expect(page.getByLabel(/Próxima mantención|Next due/i)).toBeVisible();
+  await expect(page.getByLabel(/Duración estimada|Estimated duration/i)).toBeVisible();
   await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+  const dueRows = page.locator("tbody tr");
+  if ((await dueRows.count()) > 0) {
+    const firstDueRow = dueRows.first();
+    await expect(firstDueRow.getByRole("link", { name: /Ver cliente|Open client/i })).toBeVisible();
+    await expect(firstDueRow.getByRole("button", { name: /Contactar|Contact/i })).toBeVisible();
+    await expect(firstDueRow.getByRole("button", { name: /Posponer|Postpone/i })).toBeVisible();
+    await expect(firstDueRow.getByRole("button", { name: /Agendar|Schedule/i })).toBeVisible();
+  }
 
   await openTenantImportedPage(
     page,

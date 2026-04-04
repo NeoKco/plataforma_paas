@@ -32,7 +32,10 @@ El primer corte del modulo ya permite:
 
 - crear programaciones base de mantención periódica
 - ver una bandeja `Pendientes` con mantenciones por vencer o vencidas que entraron en ventana automáticamente
+- registrar estado de contacto desde `Pendientes`
+- posponer un pendiente a una nueva fecha visible
 - agendar una mantención desde `Pendientes` y convertirla en orden de trabajo real
+- abrir la ficha del cliente desde `Pendientes` para revisar datos y coordinar antes de agendar
 - ver solo mantenciones abiertas en la bandeja `Mantenciones`
 - ver mantenciones realizadas o anuladas en `Historial`
 - `Historial` ahora separa `Mantenciones realizadas` y `Mantenciones anuladas`, para no mezclar trabajo ejecutado con trabajo cancelado.
@@ -90,6 +93,8 @@ Lectura funcional de cada vista:
 
 - `Resumen`: tablero corto con abiertas y ultimas 5 realizadas
 - `Pendientes`: bandeja automática de mantenciones por gestionar, visible cuando el cliente ya entró en ventana de vencimiento
+  - `Nueva programación` sigue el mismo patrón visual, jerarquía de lectura y modal de `Nueva mantención`
+  - desde la tabla puedes abrir `Ver cliente`, `Contactar`, `Posponer` o `Agendar`
 - `Mantenciones`: solo trabajo abierto (`scheduled` / `in_progress`)
 - `Instalaciones`: parque instalado por cliente y direccion
 - `Historial`: trabajo ya realizado o anulado

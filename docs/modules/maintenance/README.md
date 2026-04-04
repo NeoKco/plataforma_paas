@@ -71,6 +71,8 @@ Estado del corte hoy:
 - la bandeja `Mantenciones` ya queda reservada para trabajo abierto
 - el cierre/anulacion ya saca la orden de la bandeja activa y la deja en `Historial`
 - `Pendientes` ya genera y muestra vencimientos preventivos por cliente/direccion/instalacion sin mezclar ese flujo con `Mantenciones`
+- `Nueva programación` ya respeta el mismo patrón modal y visual de `Nueva mantención`
+- `Pendientes` ya permite `Ver cliente`, `Contactar`, `Posponer` y `Agendar` desde la misma fila
 
 Pendientes visibles inmediatos:
 

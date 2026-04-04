@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { PageHeader } from "../../../../../components/common/PageHeader";
+import { PanelCard } from "../../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../../components/data-display/DataTableCard";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
@@ -10,7 +12,11 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { getTenantUsers } from "../../../../../services/tenant-api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
-import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
+import {
+  formatDateTimeInTimeZone,
+  fromDateTimeLocalInputValue,
+  toDateTimeLocalInputValue,
+} from "../../../../../utils/dateTimeLocal";
 import type { ApiError, TenantUsersItem } from "../../../../../types";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
@@ -20,6 +26,8 @@ import {
 } from "../services/schedulesService";
 import {
   getTenantMaintenanceDueItems,
+  postponeTenantMaintenanceDueItem,
+  updateTenantMaintenanceDueItemContact,
   scheduleTenantMaintenanceDueItem,
   type TenantMaintenanceDueItem,
 } from "../services/dueItemsService";
@@ -85,6 +93,16 @@ type DueScheduleForm = {
   assigned_tenant_user_id: number | null;
 };
 
+type DueContactForm = {
+  contact_status: string;
+  contact_note: string;
+};
+
+type DuePostponeForm = {
+  postponed_until: string;
+  resolution_note: string;
+};
+
 function buildDefaultDueScheduleForm(): DueScheduleForm {
   return {
     scheduled_for: "",
@@ -95,6 +113,20 @@ function buildDefaultDueScheduleForm(): DueScheduleForm {
     priority: "normal",
     assigned_work_group_id: null,
     assigned_tenant_user_id: null,
+  };
+}
+
+function buildDefaultDueContactForm(): DueContactForm {
+  return {
+    contact_status: "contacted",
+    contact_note: "",
+  };
+}
+
+function buildDefaultDuePostponeForm(): DuePostponeForm {
+  return {
+    postponed_until: "",
+    resolution_note: "",
   };
 }
 
@@ -150,11 +182,15 @@ export function MaintenanceDueItemsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isPostponeModalOpen, setIsPostponeModalOpen] = useState(false);
   const [selectedDueItem, setSelectedDueItem] = useState<TenantMaintenanceDueItem | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [scheduleForm, setScheduleForm] = useState<TenantMaintenanceScheduleWriteRequest>(buildDefaultScheduleForm());
   const [dueScheduleForm, setDueScheduleForm] = useState<DueScheduleForm>(buildDefaultDueScheduleForm());
+  const [dueContactForm, setDueContactForm] = useState<DueContactForm>(buildDefaultDueContactForm());
+  const [duePostponeForm, setDuePostponeForm] = useState<DuePostponeForm>(buildDefaultDuePostponeForm());
 
   const clientById = useMemo(() => new Map(clients.map((item) => [item.id, item])), [clients]);
   const organizationById = useMemo(
@@ -188,6 +224,19 @@ export function MaintenanceDueItemsPage() {
         : [],
     [dueScheduleForm.site_id, installations]
   );
+  const noClientsAvailable = clients.length === 0;
+  const selectedScheduleSites = scheduleForm.client_id > 0 ? filteredSitesForSchedule : [];
+  const selectedScheduleInstallations = scheduleForm.site_id ? filteredInstallationsForSchedule : [];
+  const missingSiteForScheduleClient =
+    scheduleForm.client_id > 0 && selectedScheduleSites.length === 0;
+  const missingInstallationForScheduleSite =
+    !!scheduleForm.site_id && selectedScheduleInstallations.length === 0;
+  const scheduleSubmitBlocked =
+    noClientsAvailable ||
+    Number(scheduleForm.client_id) <= 0 ||
+    !scheduleForm.name.trim() ||
+    !scheduleForm.next_due_at ||
+    missingSiteForScheduleClient;
 
   const metrics = useMemo(() => {
     return rows.reduce(
@@ -265,6 +314,12 @@ export function MaintenanceDueItemsPage() {
     return getOrganizationName(clientId);
   }
 
+  function getClientOptionLabel(client: TenantBusinessClient): string {
+    const primarySite = sites.find((site) => site.client_id === client.id);
+    const clientName = getClientName(client.id);
+    return primarySite ? `${clientName} · ${getSiteLabel(primarySite.id)}` : clientName;
+  }
+
   function getSiteLabel(siteId: number | null): string {
     if (!siteId) {
       return language === "es" ? "Dirección pendiente" : "Missing address";
@@ -285,8 +340,47 @@ export function MaintenanceDueItemsPage() {
 
   function startCreatePlan() {
     setFeedback(null);
-    setScheduleForm(buildDefaultScheduleForm());
+    setError(null);
+    const defaultClientId = clients[0]?.id || 0;
+    const candidateSites = sites.filter((site) => site.client_id === defaultClientId);
+    const defaultSiteId = candidateSites[0]?.id || null;
+    const candidateInstallations = defaultSiteId
+      ? installations.filter((item) => item.site_id === defaultSiteId)
+      : [];
+    setScheduleForm({
+      ...buildDefaultScheduleForm(),
+      client_id: defaultClientId,
+      site_id: defaultSiteId,
+      installation_id: candidateInstallations[0]?.id || null,
+    });
     setIsPlanModalOpen(true);
+  }
+
+  function openContactDueItem(item: TenantMaintenanceDueItem) {
+    setSelectedDueItem(item);
+    setDueContactForm({
+      contact_status:
+        item.contact_status && item.contact_status !== "not_contacted"
+          ? item.contact_status
+          : "contacted",
+      contact_note: item.contact_note ?? "",
+    });
+    setFeedback(null);
+    setIsContactModalOpen(true);
+  }
+
+  function openPostponeDueItem(item: TenantMaintenanceDueItem) {
+    const fallbackDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+    setSelectedDueItem(item);
+    setDuePostponeForm({
+      postponed_until: toDateTimeLocalInputValue(
+        item.postponed_until || item.due_at || fallbackDate,
+        effectiveTimeZone,
+      ),
+      resolution_note: item.resolution_note ?? "",
+    });
+    setFeedback(null);
+    setIsPostponeModalOpen(true);
   }
 
   function openScheduleDueItem(item: TenantMaintenanceDueItem) {
@@ -348,6 +442,55 @@ export function MaintenanceDueItemsPage() {
       });
       setFeedback(language === "es" ? "Mantención agendada." : "Maintenance scheduled.");
       setIsScheduleModalOpen(false);
+      setSelectedDueItem(null);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleContactDueItem(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session?.accessToken || !selectedDueItem) {
+      return;
+    }
+    setIsSubmitting(true);
+    setFeedback(null);
+    try {
+      await updateTenantMaintenanceDueItemContact(session.accessToken, selectedDueItem.id, {
+        contact_status: dueContactForm.contact_status,
+        contact_note: dueContactForm.contact_note.trim() || null,
+      });
+      setFeedback(language === "es" ? "Contacto actualizado." : "Contact updated.");
+      setIsContactModalOpen(false);
+      setSelectedDueItem(null);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handlePostponeDueItem(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session?.accessToken || !selectedDueItem || !duePostponeForm.postponed_until) {
+      return;
+    }
+    setIsSubmitting(true);
+    setFeedback(null);
+    try {
+      await postponeTenantMaintenanceDueItem(session.accessToken, selectedDueItem.id, {
+        postponed_until: fromDateTimeLocalInputValue(
+          duePostponeForm.postponed_until,
+          effectiveTimeZone,
+        ),
+        resolution_note: duePostponeForm.resolution_note.trim() || null,
+      });
+      setFeedback(language === "es" ? "Pendiente pospuesto." : "Due item postponed.");
+      setIsPostponeModalOpen(false);
       setSelectedDueItem(null);
       await loadData();
     } catch (rawError) {
@@ -507,6 +650,26 @@ export function MaintenanceDueItemsPage() {
             header: language === "es" ? "Acciones" : "Actions",
             render: (item) => (
               <AppToolbar compact>
+                <Link
+                  className="btn btn-sm btn-outline-secondary"
+                  to={`/tenant-portal/business-core/clients/${item.client_id}`}
+                >
+                  {language === "es" ? "Ver cliente" : "Open client"}
+                </Link>
+                <button
+                  className="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  onClick={() => openContactDueItem(item)}
+                >
+                  {language === "es" ? "Contactar" : "Contact"}
+                </button>
+                <button
+                  className="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  onClick={() => openPostponeDueItem(item)}
+                >
+                  {language === "es" ? "Posponer" : "Postpone"}
+                </button>
                 <button className="btn btn-sm btn-primary" type="button" onClick={() => openScheduleDueItem(item)}>
                   {language === "es" ? "Agendar" : "Schedule"}
                 </button>
@@ -517,13 +680,21 @@ export function MaintenanceDueItemsPage() {
       />
 
       {isPlanModalOpen ? (
-        <div className="maintenance-modal">
-          <div className="maintenance-modal__backdrop" onClick={() => setIsPlanModalOpen(false)} />
-          <div className="maintenance-modal__dialog maintenance-modal__dialog--wide">
+        <div
+          className="maintenance-form-backdrop"
+          role="presentation"
+          onClick={() => setIsPlanModalOpen(false)}
+        >
+          <div
+            className="maintenance-form-modal maintenance-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="panel-card maintenance-form-card">
               <div className="panel-card__header">
                 <div>
-                  <div className="maintenance-form-card__eyebrow">
+                  <div className="maintenance-form-modal__eyebrow">
                     {language === "es" ? "Alta bajo demanda" : "On-demand create"}
                   </div>
                   <h2 className="panel-card__title mb-1">
@@ -531,46 +702,60 @@ export function MaintenanceDueItemsPage() {
                   </h2>
                   <p className="panel-card__subtitle mb-0">
                     {language === "es"
-                      ? "Define la regla permanente para que el cliente aparezca solo cuando entre en ventana."
-                      : "Define the permanent rule so the client appears automatically once it enters its visible window."}
+                      ? "Define la regla preventiva base para que este cliente aparezca solo cuando entre en ventana y luego pueda agendarse como mantención real."
+                      : "Define the preventive base rule so this client only appears once it enters the visible window and can then be scheduled as a real maintenance job."}
                   </p>
                 </div>
               </div>
               <form className="maintenance-form-card__body" onSubmit={handleCreatePlan}>
                 <div className="row g-3">
-                  <div className="col-12 col-lg-6">
+                  <div className="col-12 col-md-6">
                     <label className="form-label">{language === "es" ? "Cliente" : "Client"}</label>
                     <select
                       className="form-select"
                       value={scheduleForm.client_id}
                       onChange={(event) =>
-                        setScheduleForm((current) => ({
-                          ...current,
-                          client_id: Number(event.target.value),
-                          site_id: null,
-                          installation_id: null,
-                        }))
+                        setScheduleForm((current) => {
+                          const nextClientId = Number(event.target.value);
+                          const candidateSites = sites.filter((site) => site.client_id === nextClientId);
+                          const nextSiteId = candidateSites[0]?.id || null;
+                          const candidateInstallations = nextSiteId
+                            ? installations.filter((item) => item.site_id === nextSiteId)
+                            : [];
+                          return {
+                            ...current,
+                            client_id: nextClientId,
+                            site_id: nextSiteId,
+                            installation_id: candidateInstallations[0]?.id || null,
+                          };
+                        })
                       }
                     >
                       <option value={0}>{language === "es" ? "Selecciona un cliente" : "Select a client"}</option>
                       {clients.map((client) => (
                         <option key={client.id} value={client.id}>
-                          {getClientName(client.id)}
+                          {getClientOptionLabel(client)}
                         </option>
                       ))}
                     </select>
                   </div>
-                  <div className="col-12 col-lg-6">
+                  <div className="col-12 col-md-6">
                     <label className="form-label">{language === "es" ? "Dirección" : "Address"}</label>
                     <select
                       className="form-select"
                       value={scheduleForm.site_id ?? ""}
                       onChange={(event) =>
-                        setScheduleForm((current) => ({
-                          ...current,
-                          site_id: event.target.value ? Number(event.target.value) : null,
-                          installation_id: null,
-                        }))
+                        setScheduleForm((current) => {
+                          const nextSiteId = event.target.value ? Number(event.target.value) : null;
+                          const candidateInstallations = nextSiteId
+                            ? installations.filter((item) => item.site_id === nextSiteId)
+                            : [];
+                          return {
+                            ...current,
+                            site_id: nextSiteId,
+                            installation_id: candidateInstallations[0]?.id || null,
+                          };
+                        })
                       }
                     >
                       <option value="">{language === "es" ? "Selecciona una dirección" : "Select an address"}</option>
@@ -581,7 +766,7 @@ export function MaintenanceDueItemsPage() {
                       ))}
                     </select>
                   </div>
-                  <div className="col-12 col-lg-6">
+                  <div className="col-12 col-md-6">
                     <label className="form-label">{language === "es" ? "Instalación" : "Installation"}</label>
                     <select
                       className="form-select"
@@ -601,7 +786,7 @@ export function MaintenanceDueItemsPage() {
                       ))}
                     </select>
                   </div>
-                  <div className="col-12 col-lg-6">
+                  <div className="col-12 col-md-6">
                     <label className="form-label">{language === "es" ? "Tipo de mantención" : "Task type"}</label>
                     <select
                       className="form-select"
@@ -621,17 +806,47 @@ export function MaintenanceDueItemsPage() {
                       ))}
                     </select>
                   </div>
-                  <div className="col-12">
-                    <label className="form-label">{language === "es" ? "Nombre del plan" : "Plan name"}</label>
-                    <input
-                      className="form-control"
-                      value={scheduleForm.name}
-                      onChange={(event) =>
-                        setScheduleForm((current) => ({ ...current, name: event.target.value }))
-                      }
-                    />
-                  </div>
-                  <div className="col-12 col-lg-4">
+                  {noClientsAvailable ? (
+                    <div className="col-12">
+                      <div className="alert alert-warning mb-0">
+                        {language === "es"
+                          ? "No existen clientes disponibles para crear una programación preventiva. Debes crear primero el cliente y su dirección operativa."
+                          : "There are no available clients to create a preventive schedule. Create the client and its operational address first."}{" "}
+                        <Link to="/tenant-portal/business-core/clients">
+                          {language === "es" ? "Ir a clientes" : "Go to clients"}
+                        </Link>
+                      </div>
+                    </div>
+                  ) : null}
+                  {missingSiteForScheduleClient ? (
+                    <div className="col-12">
+                      <div className="alert alert-warning mb-0">
+                        {language === "es"
+                          ? "Este cliente aún no tiene dirección operativa. Crea la dirección antes de dejar activa la programación."
+                          : "This client does not have an operational address yet. Create the address before activating the schedule."}{" "}
+                        <Link to="/tenant-portal/business-core/clients">
+                          {language === "es" ? "Ir a clientes" : "Go to clients"}
+                        </Link>
+                      </div>
+                    </div>
+                  ) : null}
+                  {missingInstallationForScheduleSite ? (
+                    <div className="col-12">
+                      <div className="alert alert-warning mb-0">
+                        {language === "es"
+                          ? "La dirección seleccionada aún no tiene instalación. Puedes guardar la programación, pero no podrás agendar la mantención hasta crear la instalación."
+                          : "The selected address does not have an installation yet. You can save the schedule, but you will not be able to schedule maintenance until the installation exists."}{" "}
+                        {scheduleForm.client_id && scheduleForm.site_id ? (
+                          <Link
+                            to={`/tenant-portal/maintenance/installations?clientId=${Number(scheduleForm.client_id)}&siteId=${Number(scheduleForm.site_id)}&mode=create`}
+                          >
+                            {language === "es" ? "Ir a instalaciones" : "Go to installations"}
+                          </Link>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="col-12 col-md-4">
                     <label className="form-label">{language === "es" ? "Frecuencia" : "Frequency"}</label>
                     <input
                       className="form-control"
@@ -646,7 +861,7 @@ export function MaintenanceDueItemsPage() {
                       }
                     />
                   </div>
-                  <div className="col-12 col-lg-4">
+                  <div className="col-12 col-md-4">
                     <label className="form-label">{language === "es" ? "Unidad" : "Unit"}</label>
                     <select
                       className="form-select"
@@ -664,7 +879,7 @@ export function MaintenanceDueItemsPage() {
                       <option value="years">{language === "es" ? "Años" : "Years"}</option>
                     </select>
                   </div>
-                  <div className="col-12 col-lg-4">
+                  <div className="col-12 col-md-4">
                     <label className="form-label">{language === "es" ? "Aviso previo (días)" : "Lead days"}</label>
                     <input
                       className="form-control"
@@ -679,21 +894,7 @@ export function MaintenanceDueItemsPage() {
                       }
                     />
                   </div>
-                  <div className="col-12 col-lg-6">
-                    <label className="form-label">{language === "es" ? "Próxima mantención" : "Next due"}</label>
-                    <input
-                      className="form-control"
-                      type="datetime-local"
-                      value={scheduleForm.next_due_at}
-                      onChange={(event) =>
-                        setScheduleForm((current) => ({
-                          ...current,
-                          next_due_at: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="col-12 col-lg-6">
+                  <div className="col-12 col-md-6">
                     <label className="form-label">{language === "es" ? "Prioridad" : "Priority"}</label>
                     <select
                       className="form-select"
@@ -711,11 +912,51 @@ export function MaintenanceDueItemsPage() {
                       <option value="critical">{language === "es" ? "Crítica" : "Critical"}</option>
                     </select>
                   </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Próxima mantención" : "Next due"}</label>
+                    <input
+                      className="form-control"
+                      type="datetime-local"
+                      value={scheduleForm.next_due_at}
+                      onChange={(event) =>
+                        setScheduleForm((current) => ({
+                          ...current,
+                          next_due_at: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Plan preventivo" : "Preventive plan"}</label>
+                    <input
+                      className="form-control"
+                      value={scheduleForm.name}
+                      onChange={(event) =>
+                        setScheduleForm((current) => ({ ...current, name: event.target.value }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Duración estimada (min)" : "Estimated duration (min)"}</label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      min={15}
+                      step={15}
+                      value={scheduleForm.estimated_duration_minutes ?? 60}
+                      onChange={(event) =>
+                        setScheduleForm((current) => ({
+                          ...current,
+                          estimated_duration_minutes: Number(event.target.value),
+                        }))
+                      }
+                    />
+                  </div>
                   <div className="col-12">
-                    <label className="form-label">{language === "es" ? "Notas" : "Notes"}</label>
+                    <label className="form-label">{language === "es" ? "Notas operativas" : "Operational notes"}</label>
                     <textarea
                       className="form-control"
-                      rows={3}
+                      rows={4}
                       value={scheduleForm.notes ?? ""}
                       onChange={(event) =>
                         setScheduleForm((current) => ({ ...current, notes: event.target.value }))
@@ -727,7 +968,7 @@ export function MaintenanceDueItemsPage() {
                   <button className="btn btn-outline-secondary" type="button" onClick={() => setIsPlanModalOpen(false)}>
                     {language === "es" ? "Cancelar" : "Cancel"}
                   </button>
-                  <button className="btn btn-primary" type="submit" disabled={isSubmitting || !scheduleForm.client_id || !scheduleForm.name.trim() || !scheduleForm.next_due_at}>
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting || scheduleSubmitBlocked}>
                     {isSubmitting
                       ? language === "es"
                         ? "Guardando..."
@@ -743,14 +984,184 @@ export function MaintenanceDueItemsPage() {
         </div>
       ) : null}
 
+      {isContactModalOpen && selectedDueItem ? (
+        <div
+          className="maintenance-form-backdrop"
+          role="presentation"
+          onClick={() => setIsContactModalOpen(false)}
+        >
+          <div
+            className="maintenance-form-modal"
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="maintenance-form-modal__eyebrow">
+              {language === "es" ? "Gestión operativa" : "Operational update"}
+            </div>
+            <PanelCard
+              title={language === "es" ? "Actualizar contacto" : "Update contact"}
+              subtitle={
+                language === "es"
+                  ? "Registra el estado de coordinación para que la bandeja no dependa de memoria o seguimiento informal."
+                  : "Record the coordination status so this tray does not depend on memory or informal follow-up."
+              }
+            >
+              <form className="maintenance-form" onSubmit={handleContactDueItem}>
+                <div className="row g-3">
+                  <div className="col-12">
+                    <label className="form-label">{language === "es" ? "Cliente" : "Client"}</label>
+                    <input className="form-control" value={getClientName(selectedDueItem.client_id)} disabled />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label">{language === "es" ? "Estado de contacto" : "Contact status"}</label>
+                    <select
+                      className="form-select"
+                      value={dueContactForm.contact_status}
+                      onChange={(event) =>
+                        setDueContactForm((current) => ({
+                          ...current,
+                          contact_status: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="contact_pending">{language === "es" ? "Contacto pendiente" : "Contact pending"}</option>
+                      <option value="contacted">{language === "es" ? "Contactado" : "Contacted"}</option>
+                      <option value="pending_confirmation">{language === "es" ? "Pendiente confirmación" : "Pending confirmation"}</option>
+                      <option value="confirmed">{language === "es" ? "Confirmado" : "Confirmed"}</option>
+                      <option value="no_response">{language === "es" ? "No responde" : "No response"}</option>
+                      <option value="rejected">{language === "es" ? "Rechazado" : "Rejected"}</option>
+                    </select>
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label">{language === "es" ? "Nota de gestión" : "Coordination note"}</label>
+                    <textarea
+                      className="form-control"
+                      rows={4}
+                      value={dueContactForm.contact_note}
+                      onChange={(event) =>
+                        setDueContactForm((current) => ({
+                          ...current,
+                          contact_note: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="maintenance-form__actions">
+                  <button className="btn btn-outline-secondary" type="button" onClick={() => setIsContactModalOpen(false)}>
+                    {language === "es" ? "Cancelar" : "Cancel"}
+                  </button>
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
+                    {isSubmitting
+                      ? language === "es"
+                        ? "Guardando..."
+                        : "Saving..."
+                      : language === "es"
+                        ? "Guardar contacto"
+                        : "Save contact"}
+                  </button>
+                </div>
+              </form>
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
+
+      {isPostponeModalOpen && selectedDueItem ? (
+        <div
+          className="maintenance-form-backdrop"
+          role="presentation"
+          onClick={() => setIsPostponeModalOpen(false)}
+        >
+          <div
+            className="maintenance-form-modal"
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="maintenance-form-modal__eyebrow">
+              {language === "es" ? "Reprogramación preventiva" : "Preventive reschedule"}
+            </div>
+            <PanelCard
+              title={language === "es" ? "Posponer pendiente" : "Postpone due item"}
+              subtitle={
+                language === "es"
+                  ? "Mueve este pendiente a una nueva fecha visible sin perder su trazabilidad comercial."
+                  : "Move this due item to a new visible date without losing its commercial traceability."
+              }
+            >
+              <form className="maintenance-form" onSubmit={handlePostponeDueItem}>
+                <div className="row g-3">
+                  <div className="col-12">
+                    <label className="form-label">{language === "es" ? "Cliente" : "Client"}</label>
+                    <input className="form-control" value={getClientName(selectedDueItem.client_id)} disabled />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label">{language === "es" ? "Nueva fecha visible" : "New visible date"}</label>
+                    <input
+                      className="form-control"
+                      type="datetime-local"
+                      value={duePostponeForm.postponed_until}
+                      onChange={(event) =>
+                        setDuePostponeForm((current) => ({
+                          ...current,
+                          postponed_until: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label">{language === "es" ? "Motivo operativo" : "Operational reason"}</label>
+                    <textarea
+                      className="form-control"
+                      rows={4}
+                      value={duePostponeForm.resolution_note}
+                      onChange={(event) =>
+                        setDuePostponeForm((current) => ({
+                          ...current,
+                          resolution_note: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="maintenance-form__actions">
+                  <button className="btn btn-outline-secondary" type="button" onClick={() => setIsPostponeModalOpen(false)}>
+                    {language === "es" ? "Cancelar" : "Cancel"}
+                  </button>
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting || !duePostponeForm.postponed_until}>
+                    {isSubmitting
+                      ? language === "es"
+                        ? "Guardando..."
+                        : "Saving..."
+                      : language === "es"
+                        ? "Guardar nueva fecha"
+                        : "Save new date"}
+                  </button>
+                </div>
+              </form>
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
+
       {isScheduleModalOpen && selectedDueItem ? (
-        <div className="maintenance-modal">
-          <div className="maintenance-modal__backdrop" onClick={() => setIsScheduleModalOpen(false)} />
-          <div className="maintenance-modal__dialog maintenance-modal__dialog--wide">
+        <div
+          className="maintenance-form-backdrop"
+          role="presentation"
+          onClick={() => setIsScheduleModalOpen(false)}
+        >
+          <div
+            className="maintenance-form-modal maintenance-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="panel-card maintenance-form-card">
               <div className="panel-card__header">
                 <div>
-                  <div className="maintenance-form-card__eyebrow">
+                  <div className="maintenance-form-modal__eyebrow">
                     {language === "es" ? "Agendamiento" : "Scheduling"}
                   </div>
                   <h2 className="panel-card__title mb-1">

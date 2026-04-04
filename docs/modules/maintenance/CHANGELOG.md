@@ -2,6 +2,18 @@
 
 ## 2026-04-04
 
+- `Nueva programación` en `Pendientes` se alinea visual y estructuralmente con `Nueva mantención`:
+  - mismo patrón modal
+  - misma carcasa `panel-card` y misma jerarquía visual de encabezado/subtítulo
+  - misma lectura de grid/formulario
+  - mismas alertas operativas por dirección e instalación faltante
+  - exposición de duración estimada en el plan preventivo
+- `Pendientes` agrega acción `Ver cliente` para abrir la ficha del cliente antes de coordinar o agendar
+- `Pendientes` agrega acciones operativas reales por fila:
+  - `Contactar`
+  - `Posponer`
+  - `Agendar`
+- el smoke E2E de `maintenance` ahora valida también el patrón visual/modal de `Nueva programación` y las acciones operativas visibles en `Pendientes`
 - se implementa el primer corte real de programación preventiva:
   - migración tenant `0021_maintenance_schedules_and_due_items`
   - tablas `maintenance_schedules` y `maintenance_due_items`
