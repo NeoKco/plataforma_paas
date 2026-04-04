@@ -50,6 +50,7 @@
 - el smoke E2E de `maintenance` ahora valida también el patrón visual/modal de `Nueva programación` y las acciones operativas visibles en `Pendientes`
 - `Nueva programación` ahora consulta una sugerencia backend por historial:
   - si existe una mantención `completed` del año actual en historial, propone automáticamente el mismo día/mes para el próximo año
+  - en ese mismo caso, también propone frecuencia anual como valor inicial
   - la búsqueda prioriza misma instalación y luego misma dirección
   - si no existe cierre útil de este año, conserva el fallback base desde instalación
 - se implementa el primer corte real de programación preventiva:

@@ -102,6 +102,7 @@ Lectura funcional de cada vista:
   - `Próxima mantención` se sugiere automáticamente si existe una mantención cerrada este año en historial
   - la sugerencia toma primero la misma instalación y, si no hay cierre útil, cae a la misma dirección
   - cuando existe cierre este año, se propone el mismo día y mes para el próximo año
+  - en ese mismo caso, también se propone frecuencia anual como punto de partida
   - la misma pantalla agrega una lectura agrupada por organización para coordinar mejor varias contrapartes sin depender de memoria
   - desde la tabla puedes abrir `Ver cliente`, `Contactar`, `Posponer` o `Agendar`
   - también aparece un reporte de instalaciones activas sin plan preventivo para abrir `Crear plan` con el contexto ya cargado

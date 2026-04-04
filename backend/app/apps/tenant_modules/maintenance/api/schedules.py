@@ -61,6 +61,8 @@ def _build_suggestion_item(data: dict) -> MaintenanceScheduleSuggestionItemRespo
         site_id=data["site_id"],
         installation_id=data["installation_id"],
         suggested_next_due_at=data["suggested_next_due_at"],
+        suggested_frequency_value=data["suggested_frequency_value"],
+        suggested_frequency_unit=data["suggested_frequency_unit"],
         last_executed_at=data["last_executed_at"],
         source=data["source"],
         reference_work_order_id=data["reference_work_order_id"],

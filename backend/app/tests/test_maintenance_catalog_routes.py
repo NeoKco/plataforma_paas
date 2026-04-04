@@ -425,6 +425,8 @@ class MaintenanceCatalogRoutesTestCase(unittest.TestCase):
                 "site_id": 31,
                 "installation_id": 9,
                 "suggested_next_due_at": datetime(2027, 4, 3, 18, 0, tzinfo=timezone.utc),
+                "suggested_frequency_value": 1,
+                "suggested_frequency_unit": "years",
                 "last_executed_at": reference_completed_at,
                 "source": "history_completed_this_year",
                 "reference_work_order_id": 51,
@@ -441,6 +443,8 @@ class MaintenanceCatalogRoutesTestCase(unittest.TestCase):
 
         self.assertEqual(response.data.source, "history_completed_this_year")
         self.assertEqual(response.data.reference_work_order_id, 51)
+        self.assertEqual(response.data.suggested_frequency_value, 1)
+        self.assertEqual(response.data.suggested_frequency_unit, "years")
         self.assertEqual(response.data.suggested_next_due_at.year, 2027)
         self.assertEqual(
             suggestion_mock.call_args.kwargs,

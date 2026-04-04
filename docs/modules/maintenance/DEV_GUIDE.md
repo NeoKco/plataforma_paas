@@ -135,6 +135,7 @@ Fuente frontend principal:
   - buscar primero `maintenance_work_orders.completed` de la misma instalación
   - si no existe, caer a la misma dirección
   - si el cierre útil ocurrió en el año calendario actual, proponer el mismo día/mes para el año siguiente
+  - en ese mismo caso, proponer también `1 year` como frecuencia inicial
   - si no hay historial útil de este año, mantener fallback base por instalación
 - `Pendientes` ya debe exponer acciones operativas directas por fila: `Ver cliente`, `Contactar`, `Posponer`, `Agendar`
 - la agrupación por organización en `Pendientes` es una lectura complementaria; nunca debe reemplazar la unidad operativa real de cliente/dirección/instalación

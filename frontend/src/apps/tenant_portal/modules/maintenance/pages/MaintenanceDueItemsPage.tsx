@@ -200,6 +200,7 @@ export function MaintenanceDueItemsPage() {
   const [dueContactForm, setDueContactForm] = useState<DueContactForm>(buildDefaultDueContactForm());
   const [duePostponeForm, setDuePostponeForm] = useState<DuePostponeForm>(buildDefaultDuePostponeForm());
   const nextDueWasManuallyEditedRef = useRef(false);
+  const frequencyWasManuallyEditedRef = useRef(false);
 
   const clientById = useMemo(() => new Map(clients.map((item) => [item.id, item])), [clients]);
   const organizationById = useMemo(
@@ -284,6 +285,14 @@ export function MaintenanceDueItemsPage() {
             return {
               ...current,
               last_executed_at: response.data.last_executed_at,
+              frequency_value:
+                !frequencyWasManuallyEditedRef.current && response.data.suggested_frequency_value
+                  ? response.data.suggested_frequency_value
+                  : current.frequency_value,
+              frequency_unit:
+                !frequencyWasManuallyEditedRef.current && response.data.suggested_frequency_unit
+                  ? response.data.suggested_frequency_unit
+                  : current.frequency_unit,
               next_due_at: response.data.suggested_next_due_at
                 ? toDateTimeLocalInputValue(response.data.suggested_next_due_at, effectiveTimeZone)
                 : current.next_due_at,
@@ -544,6 +553,7 @@ export function MaintenanceDueItemsPage() {
     setError(null);
     setScheduleSuggestion(null);
     nextDueWasManuallyEditedRef.current = false;
+    frequencyWasManuallyEditedRef.current = false;
     const defaultClientId = clients[0]?.id || 0;
     const candidateSites = sites.filter((site) => site.client_id === defaultClientId);
     const defaultSiteId = candidateSites[0]?.id || null;
@@ -568,6 +578,7 @@ export function MaintenanceDueItemsPage() {
     setError(null);
     setScheduleSuggestion(null);
     nextDueWasManuallyEditedRef.current = false;
+    frequencyWasManuallyEditedRef.current = false;
     setScheduleForm({
       ...buildDefaultScheduleForm(),
       client_id: site.client_id,
@@ -623,6 +634,32 @@ export function MaintenanceDueItemsPage() {
       : "If a closed maintenance exists this year in history, the same month/day will be suggested automatically for next year.";
   }
 
+  function getScheduleFrequencySuggestionText(): string {
+    if (isSuggestionLoading) {
+      return language === "es"
+        ? "La frecuencia sugerida se calculará junto con la próxima mantención."
+        : "The suggested frequency will be calculated together with the next due date.";
+    }
+    if (frequencyWasManuallyEditedRef.current) {
+      return language === "es"
+        ? "Frecuencia ajustada manualmente."
+        : "Frequency adjusted manually.";
+    }
+    if (scheduleSuggestion?.source === "history_completed_this_year") {
+      return language === "es"
+        ? "Se propone frecuencia anual porque ya existe una mantención cerrada este año en historial."
+        : "Annual frequency is suggested because a closed maintenance already exists this year in history.";
+    }
+    if (scheduleSuggestion?.source === "installation_baseline") {
+      return language === "es"
+        ? "Se mantiene la frecuencia base del módulo mientras no exista un cierre útil este año."
+        : "The module baseline frequency is kept while there is no useful closed maintenance this year.";
+    }
+    return language === "es"
+      ? "Define la frecuencia real del plan si difiere de la sugerencia."
+      : "Set the real plan frequency if it differs from the suggestion.";
+  }
+
   function openContactDueItem(item: TenantMaintenanceDueItem) {
     setSelectedDueItem(item);
     setDueContactForm({
@@ -676,6 +713,7 @@ export function MaintenanceDueItemsPage() {
     try {
       await createTenantMaintenanceSchedule(session.accessToken, {
         ...scheduleForm,
+        next_due_at: fromDateTimeLocalInputValue(scheduleForm.next_due_at, effectiveTimeZone),
         description: scheduleForm.description?.trim() || null,
         notes: scheduleForm.notes?.trim() || null,
       });
@@ -1100,6 +1138,7 @@ export function MaintenanceDueItemsPage() {
                       onChange={(event) =>
                         {
                           nextDueWasManuallyEditedRef.current = false;
+                          frequencyWasManuallyEditedRef.current = false;
                           setScheduleForm((current) => {
                           const nextClientId = Number(event.target.value);
                           const candidateSites = sites.filter((site) => site.client_id === nextClientId);
@@ -1113,6 +1152,8 @@ export function MaintenanceDueItemsPage() {
                             site_id: nextSiteId,
                             installation_id: candidateInstallations[0]?.id || null,
                             last_executed_at: null,
+                            frequency_value: buildDefaultScheduleForm().frequency_value,
+                            frequency_unit: buildDefaultScheduleForm().frequency_unit,
                             next_due_at: "",
                           };
                           });
@@ -1135,6 +1176,7 @@ export function MaintenanceDueItemsPage() {
                       onChange={(event) =>
                         {
                           nextDueWasManuallyEditedRef.current = false;
+                          frequencyWasManuallyEditedRef.current = false;
                           setScheduleForm((current) => {
                           const nextSiteId = event.target.value ? Number(event.target.value) : null;
                           const candidateInstallations = nextSiteId
@@ -1145,6 +1187,8 @@ export function MaintenanceDueItemsPage() {
                             site_id: nextSiteId,
                             installation_id: candidateInstallations[0]?.id || null,
                             last_executed_at: null,
+                            frequency_value: buildDefaultScheduleForm().frequency_value,
+                            frequency_unit: buildDefaultScheduleForm().frequency_unit,
                             next_due_at: "",
                           };
                           });
@@ -1167,10 +1211,13 @@ export function MaintenanceDueItemsPage() {
                       onChange={(event) =>
                         {
                           nextDueWasManuallyEditedRef.current = false;
+                          frequencyWasManuallyEditedRef.current = false;
                           setScheduleForm((current) => ({
                             ...current,
                             installation_id: event.target.value ? Number(event.target.value) : null,
                             last_executed_at: null,
+                            frequency_value: buildDefaultScheduleForm().frequency_value,
+                            frequency_unit: buildDefaultScheduleForm().frequency_unit,
                             next_due_at: "",
                           }));
                         }
@@ -1251,25 +1298,28 @@ export function MaintenanceDueItemsPage() {
                       type="number"
                       min={1}
                       value={scheduleForm.frequency_value}
-                      onChange={(event) =>
+                      onChange={(event) => {
+                        frequencyWasManuallyEditedRef.current = true;
                         setScheduleForm((current) => ({
                           ...current,
                           frequency_value: Number(event.target.value),
-                        }))
-                      }
+                        }));
+                      }}
                     />
+                    <div className="form-text">{getScheduleFrequencySuggestionText()}</div>
                   </div>
                   <div className="col-12 col-md-4">
                     <label className="form-label">{language === "es" ? "Unidad" : "Unit"}</label>
                     <select
                       className="form-select"
                       value={scheduleForm.frequency_unit}
-                      onChange={(event) =>
+                      onChange={(event) => {
+                        frequencyWasManuallyEditedRef.current = true;
                         setScheduleForm((current) => ({
                           ...current,
                           frequency_unit: event.target.value,
-                        }))
-                      }
+                        }));
+                      }}
                     >
                       <option value="days">{language === "es" ? "Días" : "Days"}</option>
                       <option value="weeks">{language === "es" ? "Semanas" : "Weeks"}</option>

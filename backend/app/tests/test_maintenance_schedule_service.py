@@ -39,6 +39,8 @@ class MaintenanceScheduleServiceTestCase(unittest.TestCase):
         self.assertEqual(suggestion["source"], "history_completed_this_year")
         self.assertEqual(suggestion["reference_work_order_id"], 81)
         self.assertEqual(suggestion["last_executed_at"], reference_completed_at)
+        self.assertEqual(suggestion["suggested_frequency_value"], 1)
+        self.assertEqual(suggestion["suggested_frequency_unit"], "years")
         self.assertEqual(suggestion["suggested_next_due_at"].year, 2027)
         self.assertEqual(suggestion["suggested_next_due_at"].month, 4)
         self.assertEqual(suggestion["suggested_next_due_at"].day, 3)
@@ -81,6 +83,8 @@ class MaintenanceScheduleServiceTestCase(unittest.TestCase):
 
         self.assertEqual(suggestion["source"], "installation_baseline")
         self.assertIsNone(suggestion["last_executed_at"])
+        self.assertEqual(suggestion["suggested_frequency_value"], 6)
+        self.assertEqual(suggestion["suggested_frequency_unit"], "months")
         self.assertEqual(suggestion["reference_completed_at"], installation_reference)
         self.assertEqual(suggestion["suggested_next_due_at"].year, 2026)
         self.assertEqual(suggestion["suggested_next_due_at"].month, 7)
@@ -117,6 +121,8 @@ class MaintenanceScheduleServiceTestCase(unittest.TestCase):
 
         self.assertEqual(suggestion["source"], "history_completed_this_year")
         self.assertEqual(suggestion["reference_work_order_id"], 77)
+        self.assertEqual(suggestion["suggested_frequency_value"], 1)
+        self.assertEqual(suggestion["suggested_frequency_unit"], "years")
         self.assertEqual(suggestion["suggested_next_due_at"].year, 2027)
         self.assertEqual(suggestion["suggested_next_due_at"].month, 2)
         self.assertEqual(suggestion["suggested_next_due_at"].day, 10)

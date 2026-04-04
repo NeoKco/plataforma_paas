@@ -84,6 +84,7 @@ Estado del corte hoy:
   - misma instalación primero
   - misma dirección como fallback
   - si encuentra una mantención `completed` de este año, propone el mismo día/mes para el próximo año
+- cuando esa sugerencia viene de historial del año actual, también propone `1 año` como frecuencia inicial del plan
 - `Pendientes` ya permite `Ver cliente`, `Contactar`, `Posponer` y `Agendar` desde la misma fila
 - `Pendientes` ya agrega una lectura agrupada por organización para coordinar carga sin perder la operación por cliente/dirección
 - `Pendientes` ya muestra instalaciones activas sin plan preventivo y permite abrir `Crear plan` con cliente/dirección/instalación precargados

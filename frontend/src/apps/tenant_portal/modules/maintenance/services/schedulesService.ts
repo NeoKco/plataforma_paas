@@ -44,6 +44,8 @@ export type TenantMaintenanceScheduleSuggestion = {
   site_id: number | null;
   installation_id: number | null;
   suggested_next_due_at: string | null;
+  suggested_frequency_value: number | null;
+  suggested_frequency_unit: string | null;
   last_executed_at: string | null;
   source: string;
   reference_work_order_id: number | null;

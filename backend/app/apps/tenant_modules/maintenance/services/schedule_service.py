@@ -104,6 +104,8 @@ class MaintenanceScheduleService:
                 "site_id": site_id,
                 "installation_id": installation_id,
                 "suggested_next_due_at": self._shift_months(reference_completed_at, 12),
+                "suggested_frequency_value": 1,
+                "suggested_frequency_unit": "years",
                 "last_executed_at": reference_completed_at,
                 "source": "history_completed_this_year",
                 "reference_work_order_id": getattr(reference_work_order, "id", None),
@@ -120,6 +122,8 @@ class MaintenanceScheduleService:
                 "site_id": site_id,
                 "installation_id": installation_id,
                 "suggested_next_due_at": self._add_frequency(installation_reference, 6, "months"),
+                "suggested_frequency_value": 6,
+                "suggested_frequency_unit": "months",
                 "last_executed_at": None,
                 "source": "installation_baseline",
                 "reference_work_order_id": None,
@@ -131,6 +135,8 @@ class MaintenanceScheduleService:
             "site_id": site_id,
             "installation_id": installation_id,
             "suggested_next_due_at": None,
+            "suggested_frequency_value": None,
+            "suggested_frequency_unit": None,
             "last_executed_at": None,
             "source": "none",
             "reference_work_order_id": None,
@@ -206,9 +212,9 @@ class MaintenanceScheduleService:
             "frequency_unit": payload.frequency_unit.strip().lower(),
             "lead_days": payload.lead_days,
             "start_mode": payload.start_mode.strip(),
-            "base_date": payload.base_date,
-            "last_executed_at": payload.last_executed_at,
-            "next_due_at": payload.next_due_at,
+            "base_date": self._normalize_datetime(payload.base_date),
+            "last_executed_at": self._normalize_datetime(payload.last_executed_at),
+            "next_due_at": self._normalize_datetime(payload.next_due_at),
             "default_priority": payload.default_priority.strip().lower(),
             "estimated_duration_minutes": payload.estimated_duration_minutes,
             "billing_mode": payload.billing_mode.strip().lower(),
@@ -234,6 +240,8 @@ class MaintenanceScheduleService:
             raise ValueError("Los dias de aviso no pueden ser negativos")
         if payload["billing_mode"] not in VALID_BILLING_MODES:
             raise ValueError("El modo de cobro no es valido")
+        if payload["next_due_at"] is None:
+            raise ValueError("La proxima mantencion es obligatoria")
         if payload["last_executed_at"] and payload["next_due_at"] <= payload["last_executed_at"]:
             raise ValueError("La proxima fecha debe ser posterior a la ultima mantencion")
 
@@ -350,3 +358,10 @@ class MaintenanceScheduleService:
         if month in {4, 6, 9, 11}:
             return 30
         return 31
+
+    def _normalize_datetime(self, value: datetime | None) -> datetime | None:
+        if value is None:
+            return None
+        if value.tzinfo is None or value.tzinfo.utcoffset(value) is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
