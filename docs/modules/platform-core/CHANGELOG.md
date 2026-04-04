@@ -1,5 +1,10 @@
 # Platform Core Changelog
 
+## 2026-04-03
+
+- se agrega el script operativo [sync_active_tenant_schemas.py](/home/felipe/platform_paas/backend/app/scripts/sync_active_tenant_schemas.py) para sincronizar en linea los esquemas tenant activos sin depender del worker
+- se actualiza [backend-migrations.md](/home/felipe/platform_paas/docs/runbooks/backend-migrations.md) para dejar explicito el flujo de migracion masiva y directa de tenants existentes
+
 Resumen curado del bloque central.
 
 ## Base cerrada

@@ -80,6 +80,22 @@ PYTHONPATH=/home/felipe/platform_paas/backend \
   --password TU_PASSWORD
 ```
 
+### Sincronizar todos los tenants activos en linea
+
+Usa este script cuando cambió el esquema tenant y quieres dejar `platform_control` y las tenant DB alineadas sin depender del worker:
+
+```bash
+cd /home/felipe/platform_paas/backend
+/home/felipe/platform_paas/platform_paas_venv/bin/python app/scripts/sync_active_tenant_schemas.py
+```
+
+Opcionalmente puedes restringirlo:
+
+```bash
+cd /home/felipe/platform_paas/backend
+/home/felipe/platform_paas/platform_paas_venv/bin/python app/scripts/sync_active_tenant_schemas.py --slug empresa-demo
+```
+
 ## Integracion con el backend
 
 Hoy las migraciones tambien entran por estas vias:
@@ -117,6 +133,7 @@ Importante:
 - el provisioning inicial ya deja encolado un follow-up `sync_tenant_schema`
 - para post-deploy masivo ya existe `POST /platform/tenants/schema-sync/bulk`
 - como respaldo operativo también existe `backend/app/scripts/enqueue_active_tenant_schema_sync.py`
+- para una sincronizacion inmediata y directa sin cola ahora existe `backend/app/scripts/sync_active_tenant_schemas.py`
 - el wrapper `deploy/verify_backend_deploy.sh` ya ejecuta esa corrida masiva post-deploy por defecto, salvo que `BACKEND_AUTO_SYNC_POST_DEPLOY=false`
 - si una migracion tenant queda marcada como aplicada pero faltan columnas fisicas, la correccion debe entrar como nueva migracion reparadora; por ejemplo, `0013_finance_transaction_voids_repair` repara tenants que hubieran quedado en `0012_finance_transaction_voids` sin las columnas reales de anulacion
 
