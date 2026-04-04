@@ -67,6 +67,7 @@
 - la agenda ya permite crear mantenciones directamente desde una fecha del calendario
 - `Historial` ya permite corregir descripcion/notas de cierre sin volver editable la programacion original
 - `Historial` se separa visualmente en `Mantenciones realizadas` y `Mantenciones anuladas` para dejar mas clara la lectura operativa.
+- Se documenta formalmente el modelo de asignacion de mantenciones por grupo y usuario en `ASSIGNMENT_MODEL.md`, tomando como base `ieris_app` pero separando mejor permiso, perfil funcional y equipo operativo.
 - el smoke E2E de datos importados se actualiza para validar `Resumen`, `Instalaciones`, `Historial` y `Agenda`
 - se alinea la documentacion del modulo con el nuevo [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md), dejando checklist explícita de cumplimiento y pendientes de cierre
 - se importa `business-core` y `maintenance` desde `ieris_app` tambien sobre `empresa-demo` para usarlo como tenant de trabajo con datos reales

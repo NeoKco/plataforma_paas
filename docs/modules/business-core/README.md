@@ -38,6 +38,7 @@ Estado actual:
 Pendientes visibles inmediatos:
 
 - membresias de `work_groups` (`business_work_group_members`)
+- integrar esa membresia con `maintenance` para asignacion por grupo y tecnico
 - responsables por sitio
 - assets o equipos instalados como dominio compartido
 - importadores desde `ieris_app`

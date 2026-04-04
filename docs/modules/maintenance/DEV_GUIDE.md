@@ -126,6 +126,7 @@ Fuente frontend principal:
 - una orden cerrada no debe volver a editarse desde la bandeja operativa
 - desde `Historial` solo deberian exponerse correcciones de descripcion/cierre, congelando fecha, hora, cliente, direccion e instalacion
 - `Agenda` debe pintar mantenciones abiertas sobre calendario visual, no visitas como lista catalogada
+- la asignacion futura debe formalizarse con FKs reales a `work_groups` y `tenant_users`, dejando `assigned_group_label` solo como compatibilidad temporal
 
 ## Checklist de cumplimiento del modulo
 
@@ -172,6 +173,16 @@ Entidades de segundo corte:
 - `maintenance_checklists`
 - `maintenance_visit_reports`
 - `maintenance_assignment_targets` si se formaliza asignacion a usuario/grupo
+
+Modelo canónico de asignacion:
+
+- [ASSIGNMENT_MODEL.md](/home/felipe/platform_paas/docs/modules/maintenance/ASSIGNMENT_MODEL.md)
+
+Regla recomendada:
+
+- la `work_order` planifica sobre grupo o usuario
+- la `visit` congela quien ejecuta realmente
+- `function_profile` clasifica pero no reemplaza ni permiso ni grupo
 
 ## Estados recomendados
 

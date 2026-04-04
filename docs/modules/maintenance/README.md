@@ -66,6 +66,7 @@ Estado del corte hoy:
 Pendientes visibles inmediatos:
 
 - uso mas profundo de `work_groups`, `function_profiles` y `task_types`
+- modelo formal de asignacion por `grupo` y `usuario`, apoyado sobre membresias reales
 - timeline más rica por cliente e instalación
 - agenda visual con conflictos, responsables y reprogramación más rica
 - importadores desde `ieris_app`
@@ -123,6 +124,8 @@ Nota importante:
   Hitos documentales y tecnicos del modulo.
 - [MIGRATION_MATRIX.md](/home/felipe/platform_paas/docs/modules/maintenance/MIGRATION_MATRIX.md)
   Mapa fuente -> destino desde `ieris_app` hacia `maintenance` y su dependencia con `business-core`.
+- [ASSIGNMENT_MODEL.md](/home/felipe/platform_paas/docs/modules/maintenance/ASSIGNMENT_MODEL.md)
+  Modelo canónico para asignar mantenciones a grupos y usuarios sin mezclar permisos del sistema con roles funcionales.
 - [imports/README.md](/home/felipe/platform_paas/docs/modules/maintenance/imports/README.md)
   Guia de uso del importador inicial desde la BD legacy de `ieris_app`.
 

@@ -212,6 +212,11 @@ Campos base de membresia:
 - `tenant_user_id`
 - `function_profile_id`
 - `is_lead`
+- `is_primary`
+- `is_active`
+- `starts_at`
+- `ends_at`
+- `notes`
 
 ### 8. Task Types
 
@@ -239,6 +244,12 @@ Relaciones minimas del primer corte:
 - `site` N <-> N `contacts` via `business_site_contacts`
 - `work_group` N <-> N `tenant_users` via membresia
 - `function_profile` 1 -> N `business_work_group_members`
+
+Uso recomendado por modulos:
+
+- `maintenance` deberia asignar `grupo` a la orden y `usuario` a la visita cuando ya exista responsable concreto
+- `projects` puede reutilizar la misma membresia para cuadrillas o equipos
+- `iot` podria reutilizarla para responsables de terreno o soporte
 
 ## Reglas de modelado
 
