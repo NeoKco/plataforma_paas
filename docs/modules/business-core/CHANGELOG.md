@@ -33,6 +33,9 @@
 - Se ajusta `Resumen` para que `Empresas` muestre solo las 2 ultimas altas visibles y `Clientes` los 5 ultimos, usando datos reales del cliente y su organizacion en vez de tarjetas ambiguas.
 - Se corrige la ficha del cliente para que el bloque `Mantenciones realizadas` deje de mezclar trabajo abierto, lea solo historial tecnico cerrado del cliente y muestre estado final, fecha y descripcion util sin botones de navegacion redundantes.
 - La ficha del cliente ahora muestra tambien el responsable de cada mantencion cerrada, priorizando grupo asignado y luego tecnico del tenant si ese dato ya existe en las visitas historicas.
+- Se implementa `business_work_group_members` como tabla, migracion tenant y CRUD real para modelar la pertenencia entre usuarios tenant y grupos de trabajo.
+- La vista de `Grupos` ahora muestra `member_count` y permite entrar a `Miembros` para mantener liderazgo, perfil funcional, vigencia y grupo principal.
+- `business-core` deja de tener la membresia de grupos solo como diseno: `maintenance` ya puede consumir grupos reales desde esta base compartida.
 
 ## 2026-04-02
 

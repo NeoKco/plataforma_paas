@@ -68,6 +68,12 @@
 - `Historial` ya permite corregir descripcion/notas de cierre sin volver editable la programacion original
 - `Historial` se separa visualmente en `Mantenciones realizadas` y `Mantenciones anuladas` para dejar mas clara la lectura operativa.
 - Se documenta formalmente el modelo de asignacion de mantenciones por grupo y usuario en `ASSIGNMENT_MODEL.md`, tomando como base `ieris_app` pero separando mejor permiso, perfil funcional y equipo operativo.
+- Se implementa el primer corte real de asignacion por responsable:
+  - `maintenance_work_orders.assigned_work_group_id`
+  - `maintenance_visits.assigned_work_group_id`
+  - validacion de `assigned_tenant_user_id`
+  - formularios de `Mantenciones` y `Agenda` con `Grupo responsable` y `Técnico responsable`
+- `maintenance` deja de depender solo de etiquetas de grupo o texto libre para planificacion; ahora consume `work_groups` reales de `business-core`.
 - el smoke E2E de datos importados se actualiza para validar `Resumen`, `Instalaciones`, `Historial` y `Agenda`
 - se alinea la documentacion del modulo con el nuevo [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md), dejando checklist explícita de cumplimiento y pendientes de cierre
 - se importa `business-core` y `maintenance` desde `ieris_app` tambien sobre `empresa-demo` para usarlo como tenant de trabajo con datos reales

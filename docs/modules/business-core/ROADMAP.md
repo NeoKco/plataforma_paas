@@ -64,7 +64,7 @@ Alcance:
 
 Estado:
 
-- `Pendiente`
+- `En progreso`
 
 Alcance:
 
@@ -74,9 +74,9 @@ Alcance:
 
 Pendiente inmediato dentro de esta fase:
 
-- reemplazar selects y catálogos ad hoc de `maintenance` por entidades de `business-core`
-- amarrar órdenes y visitas a `sites`, `work_groups`, `function_profiles` y `task_types`
-- definir los primeros contratos frontend/backend de integración
+- profundizar filtros y agenda de `maintenance` por `work_groups` y `tenant_users`
+- enriquecer snapshot historico por responsable usando membresias reales
+- definir los siguientes contratos frontend/backend de integracion
 - abrir una ola de `organization addresses` si `Empresas` necesita capturar direccion propia de proveedor/partner sin mezclarla con `sites` de clientes
 
 ## Fase 4. Assets y responsables
@@ -94,7 +94,6 @@ Alcance:
 
 Pendiente documentado:
 
-- `business_work_group_members`
 - `business_site_responsibles`
 - `business_assets`
 - `business_asset_types`
@@ -107,13 +106,13 @@ Pendiente documentado:
 
 ## Siguiente paso recomendado
 
-- conectar `maintenance` contra `business-core`
-- dejar memberships de `work_groups` para una ola posterior
-- validar y aplicar el importador inicial desde `ieris_app`
+- cerrar la siguiente ola de integracion con `maintenance` sobre responsables reales
+- abrir `site_responsibles`
+- endurecer el importador inicial desde `ieris_app`
 
 ## Backlog pendiente visible
 
-- `work_group_members`: pendiente
+- `work_group_members`: backend/frontend base listo
 - `site_responsibles`: pendiente
 - `assets` y `asset_types`: pendiente
 - importadores legacy desde `ieris_app`: primer corte listo, falta aplicacion y endurecimiento
@@ -138,6 +137,11 @@ Pendiente documentado:
   - `function_profiles`: vista tenant operativa
   - `work_groups`: vista tenant operativa
   - `task_types`: vista tenant operativa
+- `wave 2.5 memberships` completo:
+  - `business_work_group_members`: migracion tenant lista
+  - CRUD tenant listo
+  - conteo de miembros visible en `work_groups`
+  - gestion de `Miembros` disponible por grupo
 - `importador legacy` inicial listo:
   - `organizations`
   - `clients`

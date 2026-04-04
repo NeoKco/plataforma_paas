@@ -34,15 +34,16 @@ Estado actual:
 - la no duplicacion de `clients` se resuelve sobre la entidad base: primero no se repite la `organization`, y luego solo puede existir un `client` por `organization_id`
 - `client_code` se mantiene solo como identificador tecnico interno: la UI normal del tenant no debe mostrarlo ni permitir editarlo, y el backend lo preserva o genera internamente
 - el importador legacy ya no solo crea `sites`; tambien puede corregir direcciones legacy existentes cuando detecta que `comuna`, `ciudad` o `region` quedaron mal cargadas en una corrida anterior
+- `business_work_group_members` ya existe como tabla y CRUD real para modelar membresias entre usuarios tenant y grupos de trabajo
+- la vista de `work_groups` ya expone conteo de miembros y acceso directo a la gestion de `Miembros`
+- `maintenance` ya consume `work_groups` reales para asignar grupo responsable en ordenes y visitas, en vez de depender solo de etiquetas legacy o texto libre
 
 Pendientes visibles inmediatos:
 
-- membresias de `work_groups` (`business_work_group_members`)
-- integrar esa membresia con `maintenance` para asignacion por grupo y tecnico
 - responsables por sitio
 - assets o equipos instalados como dominio compartido
 - importadores desde `ieris_app`
-- integracion real con `maintenance`
+- integracion mas profunda con `maintenance` para filtros por grupo, snapshot historico enriquecido y agenda por responsable
 - direccion propia de `organizations` como entidad/modelo de primer nivel o bloque dedicado, sin improvisarla como texto plano en el modal
 
 Estado del importador legacy:
@@ -107,6 +108,7 @@ Lectura base recomendada:
 - un `contact` pertenece a una `organization` y puede quedar asociado a uno o mas `sites`
 - un `site` cuelga de un `client`
 - un `work_group` representa un equipo interno reusable por modulos operativos
+- un `work_group_member` representa la membresia real usuario-grupo con perfil funcional, vigencia y flags operativos
 - un `function_profile` representa perfiles funcionales configurables
 - un `task_type` representa taxonomias de trabajo reutilizables
 

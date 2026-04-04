@@ -27,6 +27,7 @@ Estado actual:
   - `Historial`: `completed` y `cancelled`
 - `Resumen` ya muestra las 5 ultimas mantenciones realizadas con cliente, direccion y fecha de cierre
 - `Instalaciones` ya muestra instalacion, cliente y direccion visible
+- las ordenes y visitas ya soportan `grupo responsable` y `tecnico responsable` apoyados sobre `business-core`
 
 Objetivo del modulo:
 
@@ -65,8 +66,7 @@ Estado del corte hoy:
 
 Pendientes visibles inmediatos:
 
-- uso mas profundo de `work_groups`, `function_profiles` y `task_types`
-- modelo formal de asignacion por `grupo` y `usuario`, apoyado sobre membresias reales
+- uso mas profundo de `function_profiles` y `task_types`
 - timeline más rica por cliente e instalación
 - agenda visual con conflictos, responsables y reprogramación más rica
 - importadores desde `ieris_app`
@@ -89,6 +89,7 @@ Estado resumido del modulo:
 - validaciones de negocio base: cumplido en primer corte
 - smoke/frontend de regresion especifico del modulo: parcial
 - agenda visual rica: pendiente
+- asignacion real por grupo/usuario en ordenes y agenda: cumplido en primer corte
 - evidencias y checklist tecnico: pendiente
 - cierre completo de la UX operativa del modulo: en progreso avanzado
 

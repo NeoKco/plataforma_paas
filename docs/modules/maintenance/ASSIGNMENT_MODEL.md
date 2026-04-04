@@ -13,6 +13,14 @@ Resolver esta necesidad operativa real:
 
 En el PaaS esto no deberia resolverse con texto libre ni mezclando permisos del sistema con roles funcionales.
 
+Estado actual:
+
+- `business_work_group_members` ya existe como tabla y CRUD tenant
+- `maintenance_work_orders` ya usa `assigned_work_group_id`
+- `maintenance_visits` ya usa `assigned_work_group_id`
+- la UI de `Mantenciones` y `Agenda` ya permite asignar `grupo` y `usuario`
+- `assigned_group_label` queda como compatibilidad temporal para legacy/importacion
+
 ## Regla conceptual base
 
 - `tenant user` define quien puede entrar al tenant
@@ -97,7 +105,7 @@ Uso recomendado:
 
 ### 4. Membership real
 
-Tabla que debe abrirse:
+Tabla ya abierta:
 
 - `business_work_group_members`
 
@@ -228,13 +236,13 @@ El historial deberia congelar:
 
 ## Orden recomendado de implementacion
 
-1. abrir `business_work_group_members`
-2. extender lectura de `tenant_users` con perfil funcional y grupos
-3. agregar FKs reales en `maintenance_work_orders`
-4. agregar FKs reales en `maintenance_visits`
-5. dejar `assigned_group_label` como compatibilidad temporal
-6. mover agenda a filtros por `grupo` y `tecnico`
-7. congelar snapshot de responsables al cerrar
+1. `business_work_group_members`: completado
+2. extender lectura de `tenant_users` con perfil funcional y grupos: pendiente parcial
+3. FKs reales en `maintenance_work_orders`: completado
+4. FKs reales en `maintenance_visits`: completado
+5. `assigned_group_label` como compatibilidad temporal: completado
+6. mover agenda a filtros por `grupo` y `tecnico`: pendiente
+7. congelar snapshot de responsables al cerrar: siguiente ola
 
 ## Resultado esperado
 

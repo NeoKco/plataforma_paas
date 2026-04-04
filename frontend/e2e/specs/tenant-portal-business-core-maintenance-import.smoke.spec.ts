@@ -40,10 +40,32 @@ test("tenant portal shows imported business core and maintenance data from ieris
 
   await openTenantImportedPage(
     page,
+    "/tenant-portal/business-core/work-groups",
+    /Grupos de trabajo|Work groups/i
+  );
+  await expect(getCatalogRow(page, /lider|mantenciones|sst/i)).toBeVisible();
+  await page.getByRole("link", { name: /Miembros|Members/i }).first().click();
+  await expect(
+    page.getByRole("heading", { name: /Miembros del grupo|Group members/i })
+  ).toBeVisible();
+
+  await openTenantImportedPage(
+    page,
     "/tenant-portal/maintenance",
     /Resumen t[eé]cnico|Technical overview/i
   );
   await expect(page.getByText(/Últimas 5 mantenciones realizadas|Last 5 completed maintenance/i)).toBeVisible();
+
+  await openTenantImportedPage(
+    page,
+    "/tenant-portal/maintenance/work-orders",
+    /Ordenes de trabajo|Work orders|Órdenes de trabajo/i
+  );
+  await expect(getCatalogRow(page, /mantencion|visita/i)).toBeVisible();
+  await page.getByRole("button", { name: /Nueva mantenci[oó]n|Nueva orden|New work order/i }).click();
+  await expect(page.getByLabel(/Grupo responsable|Responsible group/i)).toBeVisible();
+  await expect(page.getByLabel(/Técnico responsable|Assigned technician/i)).toBeVisible();
+  await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
 
   await openTenantImportedPage(
     page,
@@ -65,4 +87,7 @@ test("tenant portal shows imported business core and maintenance data from ieris
     /Agenda t[eé]cnica|Technical calendar/i
   );
   await expect(page.getByRole("button", { name: /Nueva mantenci[oó]n|New maintenance/i })).toBeVisible();
+  await page.getByRole("button", { name: /Nueva mantenci[oó]n|New maintenance/i }).click();
+  await expect(page.getByLabel(/Grupo responsable|Responsible group/i)).toBeVisible();
+  await expect(page.getByLabel(/Técnico responsable|Assigned technician/i)).toBeVisible();
 });

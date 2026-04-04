@@ -118,8 +118,7 @@ Avance actual:
 
 Pendiente inmediato de esta fase:
 
-- usar `work_groups`, `function_profiles` y `task_types` de forma más profunda
-- abrir `business_work_group_members` y modelo de asignacion real por grupo/usuario
+- usar `function_profiles` y `task_types` de forma más profunda
 - mejorar cierre operacional desde historial/ficha
 - endurecer y ejecutar importadores desde `ieris_app`
 - agenda visual con conflictos, filtros y reprogramación más rica
@@ -140,7 +139,7 @@ Alcance:
 - mejores estados de ciclo de vida
 - agenda integrada
 - conflictos visibles de programacion
-- asignacion formal a grupo y tecnico con snapshot en historial
+- snapshot historico mas rico de grupo y tecnico con filtros operativos reales
 - trazabilidad de cambios
 - alinear todo el modulo con el [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md) hasta cerrar checklist completa
 - controles de cierre donde fecha/hora queden congeladas al pasar a historial
@@ -202,7 +201,7 @@ Alcance:
 - `status_logs` operativos: backend/frontend lectura lista
 - integración con agenda visual: pendiente
 - agenda visual mensual base: lista
-- modelo canónico de asignacion grupo/usuario: documentado, pendiente de implementacion
+- modelo canónico de asignacion grupo/usuario: documentado e implementado en primer corte
 - evidencias y checklist: pendiente
 - importadores legacy: primer corte listo, falta validacion aplicada y endurecimiento
 

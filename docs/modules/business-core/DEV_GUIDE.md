@@ -218,6 +218,13 @@ Campos base de membresia:
 - `ends_at`
 - `notes`
 
+Estado actual:
+
+- `business_work_group_members` ya esta implementada en migracion tenant
+- ya existe CRUD tenant para listar, crear, editar y eliminar membresias
+- `work_groups` ya expone `member_count` para lectura rapida en catalogo
+- la UX del dominio ya permite entrar a `Miembros` desde cada grupo y mantener ahi perfil funcional, liderazgo, vigencia y pertenencia principal
+
 ### 8. Task Types
 
 Tabla sugerida:
@@ -247,7 +254,7 @@ Relaciones minimas del primer corte:
 
 Uso recomendado por modulos:
 
-- `maintenance` deberia asignar `grupo` a la orden y `usuario` a la visita cuando ya exista responsable concreto
+- `maintenance` ya puede asignar `grupo` a la orden y `usuario` a la visita cuando ya exista responsable concreto
 - `projects` puede reutilizar la misma membresia para cuadrillas o equipos
 - `iot` podria reutilizarla para responsables de terreno o soporte
 

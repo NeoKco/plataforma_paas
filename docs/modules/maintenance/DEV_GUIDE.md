@@ -126,7 +126,7 @@ Fuente frontend principal:
 - una orden cerrada no debe volver a editarse desde la bandeja operativa
 - desde `Historial` solo deberian exponerse correcciones de descripcion/cierre, congelando fecha, hora, cliente, direccion e instalacion
 - `Agenda` debe pintar mantenciones abiertas sobre calendario visual, no visitas como lista catalogada
-- la asignacion futura debe formalizarse con FKs reales a `work_groups` y `tenant_users`, dejando `assigned_group_label` solo como compatibilidad temporal
+- la asignacion ya se formalizo con FKs reales a `work_groups` y `tenant_users`, dejando `assigned_group_label` solo como compatibilidad temporal en datos o lecturas legacy
 
 ## Checklist de cumplimiento del modulo
 
@@ -146,6 +146,7 @@ Fuente frontend principal:
 - cierre UX por ficha/orden de trabajo
 - smoke E2E especifico del modulo con sus flujos principales
 - validaciones mas profundas de duplicados y conflictos de programacion
+- filtros operativos por grupo y tecnico dentro de la agenda mensual
 
 ## Modelo objetivo recomendado en PaaS
 
@@ -172,7 +173,7 @@ Entidades de segundo corte:
 - `maintenance_evidence`
 - `maintenance_checklists`
 - `maintenance_visit_reports`
-- `maintenance_assignment_targets` si se formaliza asignacion a usuario/grupo
+- ya no hace falta `maintenance_assignment_targets` como tabla separada en el primer corte, porque la asignacion real vive en FKs directas sobre `work_orders` y `visits`
 
 Modelo canónico de asignacion:
 
@@ -180,8 +181,8 @@ Modelo canónico de asignacion:
 
 Regla recomendada:
 
-- la `work_order` planifica sobre grupo o usuario
-- la `visit` congela quien ejecuta realmente
+- la `work_order` ya planifica sobre grupo o usuario
+- la `visit` ya puede congelar quien ejecuta realmente
 - `function_profile` clasifica pero no reemplaza ni permiso ni grupo
 
 ## Estados recomendados
