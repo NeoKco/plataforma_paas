@@ -69,6 +69,8 @@ Pendientes visibles inmediatos:
 - uso mas profundo de `function_profiles` y `task_types`
 - timeline más rica por cliente e instalación
 - agenda visual con conflictos, responsables y reprogramación más rica
+- programaciones automáticas de mantención y bandeja de vencimientos por gestionar
+- costeo y cobro de mantenciones con puente formal hacia `finance`
 - importadores desde `ieris_app`
 - edición de cierre directamente desde historial/ficha de trabajo
 - filtros operativos por técnico o grupo en agenda
@@ -127,6 +129,8 @@ Nota importante:
   Mapa fuente -> destino desde `ieris_app` hacia `maintenance` y su dependencia con `business-core`.
 - [ASSIGNMENT_MODEL.md](/home/felipe/platform_paas/docs/modules/maintenance/ASSIGNMENT_MODEL.md)
   Modelo canónico para asignar mantenciones a grupos y usuarios sin mezclar permisos del sistema con roles funcionales.
+- [PREVENTIVE_SCHEDULING_AND_COSTING_MODEL.md](/home/felipe/platform_paas/docs/modules/maintenance/PREVENTIVE_SCHEDULING_AND_COSTING_MODEL.md)
+  Modelo canónico para programaciones automáticas, bandeja de vencimientos, costeo operativo y puente hacia `finance`.
 - [imports/README.md](/home/felipe/platform_paas/docs/modules/maintenance/imports/README.md)
   Guia de uso del importador inicial desde la BD legacy de `ieris_app`.
 

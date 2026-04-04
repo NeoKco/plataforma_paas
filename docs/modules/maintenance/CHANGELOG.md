@@ -4,6 +4,18 @@
 
 - el enlace contextual `Ir a instalaciones` desde `Mantenciones` y `Agenda` ahora abre el alta de instalación con el cliente ya fijado por contexto y sin permitir cambiarlo
 - el alta normal de `Instalaciones` deja de exponer `Orden`; el valor sigue interno con default técnico para no ensuciar la UX operativa
+- se documenta el modelo canónico de siguiente expansión para `maintenance` en [PREVENTIVE_SCHEDULING_AND_COSTING_MODEL.md](/home/felipe/platform_paas/docs/modules/maintenance/PREVENTIVE_SCHEDULING_AND_COSTING_MODEL.md), alineando:
+  - programaciones automáticas
+  - bandeja preventiva por cliente/sitio/instalación
+  - costeo y cobro por OT
+  - integración formal con `finance` vía `source_type/source_id`
+- se deja explicitado como backlog futuro no bloqueante:
+  - contratos de mantención
+  - alertas WhatsApp/email
+  - asignación automática de técnicos
+  - IA para estimar costos
+  - optimización de rutas
+  - scoring de clientes
 
 ## 2026-04-02
 

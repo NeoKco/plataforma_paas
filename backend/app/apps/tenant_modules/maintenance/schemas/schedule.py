@@ -1,0 +1,55 @@
+from datetime import datetime
+
+from pydantic import BaseModel
+
+from app.apps.tenant_modules.maintenance.schemas.common import MaintenanceResponseBase
+
+
+class MaintenanceScheduleBase(BaseModel):
+    client_id: int
+    site_id: int | None = None
+    installation_id: int | None = None
+    task_type_id: int | None = None
+    name: str
+    description: str | None = None
+    frequency_value: int
+    frequency_unit: str = "months"
+    lead_days: int = 30
+    start_mode: str = "from_manual_due_date"
+    base_date: datetime | None = None
+    last_executed_at: datetime | None = None
+    next_due_at: datetime
+    default_priority: str = "normal"
+    estimated_duration_minutes: int | None = None
+    billing_mode: str = "per_work_order"
+    is_active: bool = True
+    auto_create_due_items: bool = True
+    notes: str | None = None
+
+
+class MaintenanceScheduleCreateRequest(MaintenanceScheduleBase):
+    pass
+
+
+class MaintenanceScheduleUpdateRequest(MaintenanceScheduleBase):
+    pass
+
+
+class MaintenanceScheduleStatusRequest(BaseModel):
+    is_active: bool
+
+
+class MaintenanceScheduleItemResponse(MaintenanceScheduleBase):
+    id: int
+    created_by_user_id: int | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class MaintenanceScheduleMutationResponse(MaintenanceResponseBase):
+    data: MaintenanceScheduleItemResponse
+
+
+class MaintenanceSchedulesResponse(MaintenanceResponseBase):
+    total: int
+    data: list[MaintenanceScheduleItemResponse]

@@ -122,6 +122,8 @@ Pendiente inmediato de esta fase:
 - mejorar cierre operacional desde historial/ficha
 - endurecer y ejecutar importadores desde `ieris_app`
 - agenda visual con conflictos, filtros y reprogramación más rica
+- abrir programaciones automáticas y bandeja preventiva de vencimientos
+- abrir costeo y cobro por orden de trabajo
 
 ## Fase 4. Endurecimiento operativo
 
@@ -169,6 +171,36 @@ Alcance:
 - reportes tecnicos
 - mejoras moviles para terreno
 
+## Fase 6.5. Programacion preventiva y costeo
+
+Estado:
+
+- `Pendiente`
+
+Objetivo:
+
+- pasar de operacion reactiva a preventiva sin romper el slice ya operativo
+
+Alcance:
+
+- `maintenance_schedules`
+- `maintenance_due_items`
+- bandeja automatica `Pendientes`
+- agendamiento desde bandeja hacia `work_orders`
+- costeo estimado y real por OT
+- sincronizacion controlada hacia `finance`
+
+Documento de referencia:
+
+- [PREVENTIVE_SCHEDULING_AND_COSTING_MODEL.md](/home/felipe/platform_paas/docs/modules/maintenance/PREVENTIVE_SCHEDULING_AND_COSTING_MODEL.md)
+
+Criterio de salida:
+
+- el sistema ya no depende de recordar clientes u organizaciones manualmente para gestionar mantenciones recurrentes
+- existe bandeja automatica por vencer / vencidas / gestionadas
+- cada OT puede registrar costo estimado, costo real y monto cobrado
+- `finance` puede recibir el resultado economico con enlace al origen operativo
+
 ## Mejoras de producto recomendadas
 
 - asociar mantencion a instalacion especifica
@@ -177,6 +209,17 @@ Alcance:
 - ficha lateral con contexto completo del cliente y del equipo
 - cierre con evidencia y checklist
 - reprogramacion clara sin perder historial
+- agrupacion visual por organizacion, pero gestion operativa por cliente/sitio/instalacion
+- reporte de clientes con instalacion activa y sin plan de mantencion
+
+## Mejoras futuras no bloqueantes
+
+- contratos de mantencion
+- alertas por WhatsApp o email
+- asignacion automatica de tecnicos
+- IA para estimar costos
+- optimizacion de rutas
+- scoring de clientes
 
 ## Riesgos
 
@@ -202,6 +245,7 @@ Alcance:
 - integración con agenda visual: pendiente
 - agenda visual mensual base: lista
 - modelo canónico de asignacion grupo/usuario: documentado e implementado en primer corte
+- modelo canónico de programacion preventiva y costeo: documentado
 - evidencias y checklist: pendiente
 - importadores legacy: primer corte listo, falta validacion aplicada y endurecimiento
 

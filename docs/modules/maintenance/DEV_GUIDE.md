@@ -342,3 +342,25 @@ Limitaciones actuales:
 - `finance` sigue siendo el reemplazo del frente economico del sistema fuente
 - `maintenance` se abre como modulo propio y de alta prioridad operativa
 - `business-core` pasa a ser requisito previo para que `maintenance`, `projects` e `iot` no dupliquen dominio
+
+## Proxima extension canonica
+
+La siguiente expansion recomendada del modulo no debe modelarse como una lista manual de mantenciones.
+
+Debe abrirse como:
+
+- programaciones permanentes
+- bandeja automatica de vencimientos
+- costeo y cobro por orden de trabajo
+- integracion formal con `finance`
+
+Documento canónico:
+
+- [PREVENTIVE_SCHEDULING_AND_COSTING_MODEL.md](/home/felipe/platform_paas/docs/modules/maintenance/PREVENTIVE_SCHEDULING_AND_COSTING_MODEL.md)
+
+Decision de encaje con el slice actual:
+
+- `Pendientes` alimenta `work_orders`; no las reemplaza
+- `Agenda` sigue siendo calendario de trabajo abierto, no fuente primaria de vencimientos
+- `Costos` no deberia invadir `Nueva orden`; conviene abrirlo como accion especializada sobre la OT
+- `finance` registra ingresos y egresos enlazados con `source_type/source_id`, sin duplicar su logica dentro de `maintenance`

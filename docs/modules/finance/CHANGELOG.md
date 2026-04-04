@@ -60,6 +60,10 @@ Resumen curado de hitos del módulo `finance`.
 - se corrigió un bug de horario en `Movimientos`: el formulario usaba `toISOString().slice(0, 16)` para `datetime-local`, adelantando la hora local al guardar; ahora `Transacciones` y `Configuración` convierten fecha/hora local con helper dedicado
 - `Transacciones` y `Configuración` pasan a usar la zona horaria efectiva del tenant/usuario en vez de asumir solo la del navegador
 
+### Integración futura con maintenance
+
+- se fija documentalmente que la futura integración `maintenance` -> `finance` debe usar `finance_transactions.source_type/source_id` como enlace canónico, sin duplicar el núcleo contable dentro del módulo técnico
+
 ### E2E browser
 
 - se incorporó stack Playwright base

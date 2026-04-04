@@ -88,6 +88,7 @@ Smokes vigentes:
   - override de usuario si existe
   - si no existe, zona por defecto del tenant
   - solo al final, fallback de plataforma
+- La futura integración con `maintenance` debe apoyarse sobre `finance_transactions.source_type/source_id`; `finance` registra el hecho económico, pero `maintenance` sigue siendo dueño de la programación, ejecución y costeo operativo.
 
 ## Cómo extender el módulo
 

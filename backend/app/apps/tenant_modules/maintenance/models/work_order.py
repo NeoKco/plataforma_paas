@@ -32,6 +32,9 @@ class MaintenanceWorkOrder(TenantBase):
         nullable=True,
         index=True,
     )
+    schedule_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    due_item_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    billing_mode: Mapped[str | None] = mapped_column(String(30), nullable=True, index=True)
     external_reference: Mapped[str | None] = mapped_column(
         String(80),
         nullable=True,

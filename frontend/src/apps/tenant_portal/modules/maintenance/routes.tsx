@@ -10,6 +10,13 @@ export const maintenanceTenantPortalRoutes: RouteObject[] = [
     },
   },
   {
+    path: "due-items",
+    lazy: async () => {
+      const module = await import("./pages/MaintenanceDueItemsPage");
+      return { Component: module.MaintenanceDueItemsPage };
+    },
+  },
+  {
     path: "work-orders",
     lazy: async () => {
       const module = await import("./pages/MaintenanceWorkOrdersPage");

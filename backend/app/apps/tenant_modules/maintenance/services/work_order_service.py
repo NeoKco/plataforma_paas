@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -9,7 +9,9 @@ from app.apps.tenant_modules.business_core.models import (
 )
 from app.apps.tenant_modules.core.models.user import User
 from app.apps.tenant_modules.maintenance.models import (
+    MaintenanceDueItem,
     MaintenanceInstallation,
+    MaintenanceSchedule,
     MaintenanceWorkOrder,
 )
 from app.apps.tenant_modules.maintenance.repositories import (
@@ -143,6 +145,39 @@ class MaintenanceWorkOrderService:
         )
         tenant_db.commit()
         tenant_db.refresh(item)
+        note = payload.note.strip() if payload.note and payload.note.strip() else None
+        follow_up_changes = False
+        if item.due_item_id and next_status in {"completed", "cancelled"}:
+            due_item = (
+                tenant_db.query(MaintenanceDueItem)
+                .filter(MaintenanceDueItem.id == item.due_item_id)
+                .first()
+            )
+            if due_item is not None:
+                due_item.due_status = "completed" if next_status == "completed" else "cancelled"
+                if note:
+                    due_item.resolution_note = note
+                tenant_db.add(due_item)
+                follow_up_changes = True
+        if next_status == "completed" and item.schedule_id:
+            schedule = (
+                tenant_db.query(MaintenanceSchedule)
+                .filter(MaintenanceSchedule.id == item.schedule_id)
+                .first()
+            )
+            if schedule is not None:
+                completed_at = item.completed_at or datetime.now(timezone.utc)
+                schedule.last_executed_at = completed_at
+                schedule.next_due_at = self._add_frequency(
+                    completed_at,
+                    schedule.frequency_value,
+                    schedule.frequency_unit,
+                )
+                tenant_db.add(schedule)
+                follow_up_changes = True
+        if follow_up_changes:
+            tenant_db.commit()
+            tenant_db.refresh(item)
         return item
 
     def delete_work_order(
@@ -275,3 +310,30 @@ class MaintenanceWorkOrderService:
             )
             if existing and (current_item is None or existing.id != current_item.id):
                 raise ValueError("Ya existe una mantencion con esa referencia externa")
+
+    def _add_frequency(self, value: datetime, frequency_value: int, frequency_unit: str) -> datetime:
+        if frequency_unit == "days":
+            return value + timedelta(days=frequency_value)
+        if frequency_unit == "weeks":
+            return value + timedelta(weeks=frequency_value)
+        if frequency_unit == "months":
+            return self._shift_months(value, frequency_value)
+        if frequency_unit == "years":
+            return self._shift_months(value, frequency_value * 12)
+        raise ValueError("La unidad de frecuencia no es valida")
+
+    def _shift_months(self, value: datetime, months: int) -> datetime:
+        month_index = value.month - 1 + months
+        year = value.year + month_index // 12
+        month = month_index % 12 + 1
+        day = min(value.day, self._days_in_month(year, month))
+        return value.replace(year=year, month=month, day=day)
+
+    def _days_in_month(self, year: int, month: int) -> int:
+        if month == 2:
+            if year % 400 == 0 or (year % 4 == 0 and year % 100 != 0):
+                return 29
+            return 28
+        if month in {4, 6, 9, 11}:
+            return 30
+        return 31

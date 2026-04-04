@@ -11,6 +11,11 @@ export function MaintenanceModuleNav() {
       icon: "maintenance" as const,
     },
     {
+      to: "/tenant-portal/maintenance/due-items",
+      label: language === "es" ? "Pendientes" : "Due",
+      icon: "planning" as const,
+    },
+    {
       to: "/tenant-portal/maintenance/work-orders",
       label: language === "es" ? "Mantenciones" : "Work orders",
       icon: "planning" as const,
