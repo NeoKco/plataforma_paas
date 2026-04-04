@@ -162,3 +162,134 @@
   color: #1848a0;
   padding: 0.85rem 1rem;
 }
+
+.maintenance-calendar {
+  display: grid;
+  gap: 1rem;
+}
+
+.maintenance-calendar__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.maintenance-calendar__heading {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.maintenance-calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.maintenance-calendar__weekday {
+  color: var(--app-text-muted, #6b7a90);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.maintenance-calendar__grid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.maintenance-calendar__day {
+  min-height: 10.5rem;
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  border: 1px solid var(--app-border, #cfd7e6);
+  border-radius: 1rem;
+  background: #fff;
+  text-align: left;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.maintenance-calendar__day:hover {
+  border-color: #9cbcff;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08);
+}
+
+.maintenance-calendar__day.is-outside {
+  background: #f7f9fc;
+  color: #8a97ab;
+}
+
+.maintenance-calendar__day.is-today {
+  border-color: #2e6bff;
+}
+
+.maintenance-calendar__day.is-selected {
+  background: #f8fbff;
+  border-color: #7aa6ff;
+}
+
+.maintenance-calendar__day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-weight: 700;
+}
+
+.maintenance-calendar__day-action {
+  color: #1d4ed8;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.maintenance-calendar__events {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.maintenance-calendar__event {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.75rem;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.maintenance-calendar__event strong {
+  font-size: 0.74rem;
+}
+
+.maintenance-calendar__event.is-scheduled {
+  background: #2563eb;
+}
+
+.maintenance-calendar__event.is-in_progress {
+  background: #0f766e;
+}
+
+.maintenance-calendar__more {
+  color: #4a5b74;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+@media (max-width: 991px) {
+  .maintenance-calendar__weekdays {
+    display: none;
+  }
+
+  .maintenance-calendar__grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .maintenance-calendar__day {
+    min-height: auto;
+  }
+}

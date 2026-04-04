@@ -39,6 +39,8 @@ class MaintenanceHistoryWorkOrderItemResponse(BaseModel):
     title: str
     description: str | None = None
     priority: str
+    cancellation_reason: str | None = None
+    closure_notes: str | None = None
     maintenance_status: str
     requested_at: datetime
     scheduled_for: datetime | None = None

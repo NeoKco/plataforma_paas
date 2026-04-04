@@ -142,6 +142,56 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
                 ),
             )
 
+    def test_update_closed_work_order_only_changes_closure_fields(self) -> None:
+        existing_item = SimpleNamespace(
+            id=18,
+            client_id=11,
+            site_id=31,
+            installation_id=9,
+            external_reference="LEGACY-HIST-MAINT-18",
+            title="Mantencion cerrada",
+            description="Descripcion vieja",
+            priority="normal",
+            scheduled_for="2026-04-04T10:00:00",
+            cancellation_reason=None,
+            closure_notes="Cierre viejo",
+            assigned_tenant_user_id=None,
+            maintenance_status="completed",
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        work_order_repository.save.side_effect = lambda _tenant_db, item: item
+
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+        )
+
+        item = service.update_work_order(
+            object(),
+            18,
+            MaintenanceWorkOrderUpdateRequest(
+                client_id=999,
+                site_id=999,
+                installation_id=999,
+                external_reference="WO-NO-IMPORTA",
+                title="Intento de cambio",
+                description="Descripcion corregida",
+                priority="critical",
+                scheduled_for=None,
+                cancellation_reason="motivo nuevo",
+                closure_notes="cierre corregido",
+            ),
+        )
+
+        self.assertEqual(item.description, "Descripcion corregida")
+        self.assertEqual(item.closure_notes, "cierre corregido")
+        self.assertEqual(item.cancellation_reason, "motivo nuevo")
+        self.assertEqual(item.client_id, 11)
+        self.assertEqual(item.site_id, 31)
+        self.assertEqual(item.installation_id, 9)
+        self.assertEqual(item.scheduled_for, "2026-04-04T10:00:00")
+        self.assertEqual(item.title, "Mantencion cerrada")
+
 
 if __name__ == "__main__":
     unittest.main()

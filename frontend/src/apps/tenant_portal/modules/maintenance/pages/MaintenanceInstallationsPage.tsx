@@ -27,6 +27,11 @@ import {
   getTenantBusinessClients,
   type TenantBusinessClient,
 } from "../../business_core/services/clientsService";
+import {
+  getTenantBusinessOrganizations,
+  type TenantBusinessOrganization,
+} from "../../business_core/services/organizationsService";
+import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
 function buildDefaultForm(): TenantMaintenanceInstallationWriteRequest {
@@ -60,6 +65,7 @@ export function MaintenanceInstallationsPage() {
   const [rows, setRows] = useState<TenantMaintenanceInstallation[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
+  const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [equipmentTypes, setEquipmentTypes] = useState<TenantMaintenanceEquipmentType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,6 +82,10 @@ export function MaintenanceInstallationsPage() {
   const clientById = useMemo(
     () => new Map(clients.map((client) => [client.id, client])),
     [clients]
+  );
+  const organizationById = useMemo(
+    () => new Map(organizations.map((organization) => [organization.id, organization])),
+    [organizations]
   );
   const equipmentTypeById = useMemo(
     () => new Map(equipmentTypes.map((item) => [item.id, item])),
@@ -99,16 +109,18 @@ export function MaintenanceInstallationsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [installationsResponse, sitesResponse, clientsResponse, equipmentTypesResponse] =
+      const [installationsResponse, sitesResponse, clientsResponse, organizationsResponse, equipmentTypesResponse] =
         await Promise.all([
           getTenantMaintenanceInstallations(session.accessToken),
           getTenantBusinessSites(session.accessToken, { includeInactive: false }),
           getTenantBusinessClients(session.accessToken, { includeInactive: false }),
+          getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
           getTenantMaintenanceEquipmentTypes(session.accessToken, { includeInactive: false }),
         ]);
       setRows(installationsResponse.data);
       setSites(sitesResponse.data);
       setClients(clientsResponse.data);
+      setOrganizations(organizationsResponse.data);
       setEquipmentTypes(equipmentTypesResponse.data);
       setForm((current) => ({
         ...current,
@@ -121,6 +133,31 @@ export function MaintenanceInstallationsPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function getClientDisplayName(clientId: number): string {
+    const client = clientById.get(clientId);
+    const organization = organizationById.get(client?.organization_id ?? -1);
+    return (
+      stripLegacyVisibleText(organization?.name) ||
+      stripLegacyVisibleText(organization?.legal_name) ||
+      (language === "es" ? "Cliente sin nombre" : "Unnamed client")
+    );
+  }
+
+  function getSiteDisplayName(site: TenantBusinessSite | undefined): string {
+    if (!site) {
+      return language === "es" ? "Dirección sin registrar" : "Missing address";
+    }
+    const base =
+      stripLegacyVisibleText(getVisibleAddressLabel(site)) ||
+      stripLegacyVisibleText(site.name) ||
+      (language === "es" ? "Dirección sin nombre" : "Unnamed address");
+    const locality = [site.commune, site.city, site.region]
+      .map((value) => stripLegacyVisibleText(value))
+      .filter((value): value is string => Boolean(value))
+      .join(", ");
+    return locality ? `${base} · ${locality}` : base;
   }
 
   useEffect(() => {
@@ -275,12 +312,12 @@ export function MaintenanceInstallationsPage() {
       fields={[
         {
           key: "site_id",
-          labelEs: "Sitio",
-          labelEn: "Site",
+          labelEs: "Dirección del cliente",
+          labelEn: "Client address",
           type: "select",
           options: sites.map((site) => ({
             value: String(site.id),
-            label: site.name,
+            label: getSiteDisplayName(site),
           })),
         },
         {
@@ -371,22 +408,34 @@ export function MaintenanceInstallationsPage() {
           ),
         },
         {
-          key: "site",
-          headerEs: "Sitio",
-          headerEn: "Site",
+          key: "client",
+          headerEs: "Cliente",
+          headerEn: "Client",
           render: (item, currentLanguage) => {
             const site = siteById.get(item.site_id);
-            const client = site ? clientById.get(site.client_id) : null;
             return (
               <div>
                 <div className="maintenance-cell__title">
-                  {site?.name || (currentLanguage === "es" ? "Sitio no encontrado" : "Site not found")}
+                  {site
+                    ? getClientDisplayName(site.client_id)
+                    : currentLanguage === "es"
+                      ? "Cliente no encontrado"
+                      : "Client not found"}
                 </div>
                 <div className="maintenance-cell__meta">
-                  {client?.client_code || (currentLanguage === "es" ? "sin cliente" : "no client")}
+                  {site ? getSiteDisplayName(site) : currentLanguage === "es" ? "sin dirección" : "no address"}
                 </div>
               </div>
             );
+          },
+        },
+        {
+          key: "address",
+          headerEs: "Dirección",
+          headerEn: "Address",
+          render: (item, currentLanguage) => {
+            const site = siteById.get(item.site_id);
+            return site ? getSiteDisplayName(site) : currentLanguage === "es" ? "sin dirección" : "no address";
           },
         },
         {

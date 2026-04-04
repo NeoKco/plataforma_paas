@@ -111,14 +111,17 @@ Avance actual:
   - `work_orders`
 - frontend tenant ya conectado a esas tres APIs
 - historial tecnico ya visible con `status_logs` y `visits`
-- `visits` ya son editables desde agenda técnica base
+- `Mantenciones` ya muestra solo trabajo abierto (`scheduled` / `in_progress`)
+- `Historial` ya agrupa trabajo realizado o anulado
+- `Resumen` ya muestra ultimas 5 mantenciones realizadas
+- `Agenda` ya es una vista mensual de mantenciones abiertas con alta desde calendario
 
 Pendiente inmediato de esta fase:
 
 - usar `work_groups`, `function_profiles` y `task_types` de forma más profunda
-- mejorar lectura operacional de historial
+- mejorar cierre operacional desde historial/ficha
 - endurecer y ejecutar importadores desde `ieris_app`
-- agenda visual con conflictos y reprogramación más rica
+- agenda visual con conflictos, filtros y reprogramación más rica
 
 ## Fase 4. Endurecimiento operativo
 
@@ -138,6 +141,7 @@ Alcance:
 - conflictos visibles de programacion
 - trazabilidad de cambios
 - alinear todo el modulo con el [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md) hasta cerrar checklist completa
+- controles de cierre donde fecha/hora queden congeladas al pasar a historial
 
 ## Fase 5. Evidencias y checklist
 
@@ -195,6 +199,7 @@ Alcance:
 - `visits`: backend/frontend base listo
 - `status_logs` operativos: backend/frontend lectura lista
 - integración con agenda visual: pendiente
+- agenda visual mensual base: lista
 - evidencias y checklist: pendiente
 - importadores legacy: primer corte listo, falta validacion aplicada y endurecimiento
 

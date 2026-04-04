@@ -18,9 +18,15 @@ Estado actual:
 - el primer corte backend ya expone APIs reales para `equipment_types`, `installations` y `work_orders`
 - el frontend tenant ya opera sobre esas APIs en sus tres vistas principales
 - `history` ya muestra órdenes cerradas con `status_logs` y `visits`
-- `agenda técnica` ya permite crear, editar y eliminar `visits`
+- `agenda técnica` ya muestra una agenda visual mensual de mantenciones abiertas
+- ya permite crear mantenciones desde la propia agenda visual
 - ya acepta navegación contextual desde la ficha del cliente en `business-core`
 - el modulo ya sigue el patron oficial de CRUD con lectura primero y captura bajo demanda en modal
+- `mantenciones` ya separa abiertas vs realizadas:
+  - `Mantenciones`: solo `scheduled` y `in_progress`
+  - `Historial`: `completed` y `cancelled`
+- `Resumen` ya muestra las 5 ultimas mantenciones realizadas con cliente, direccion y fecha de cierre
+- `Instalaciones` ya muestra instalacion, cliente y direccion visible
 
 Objetivo del modulo:
 
@@ -43,7 +49,8 @@ Primer corte del modulo en PaaS:
 - historial de mantenciones por cliente
 - instalaciones por cliente usando `sites` de `business-core`
 - tipos de equipo o activos tecnicos enlazados a `business-core`
-- integracion con agenda/calendario
+- agenda visual mensual de trabajo abierto
+- alta de mantencion desde agenda y desde ficha del cliente
 
 Estado del corte hoy:
 
@@ -53,15 +60,17 @@ Estado del corte hoy:
 - frontend operativo ya disponible para esas tres vistas
 - historial tecnico visible ya disponible
 - `business-core` ya entrega clientes, sitios, perfiles funcionales, grupos y tipos de tarea para conectarlo correctamente
+- la bandeja `Mantenciones` ya queda reservada para trabajo abierto
+- el cierre/anulacion ya saca la orden de la bandeja activa y la deja en `Historial`
 
 Pendientes visibles inmediatos:
 
 - uso mas profundo de `work_groups`, `function_profiles` y `task_types`
-- agenda integrada
 - timeline más rica por cliente e instalación
-- agenda visual con conflictos y reprogramación más rica
+- agenda visual con conflictos, responsables y reprogramación más rica
 - importadores desde `ieris_app`
-- formularios más ergonómicos para crear mantenciones desde cliente/dirección/instalación
+- edición de cierre directamente desde historial/ficha de trabajo
+- filtros operativos por técnico o grupo en agenda
 
 ## Checklist contra el estandar de modulos
 
@@ -80,7 +89,7 @@ Estado resumido del modulo:
 - smoke/frontend de regresion especifico del modulo: parcial
 - agenda visual rica: pendiente
 - evidencias y checklist tecnico: pendiente
-- cierre completo de la UX operativa del modulo: en progreso
+- cierre completo de la UX operativa del modulo: en progreso avanzado
 
 Estado del importador legacy:
 

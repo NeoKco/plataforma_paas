@@ -89,12 +89,13 @@ class MaintenanceWorkOrderService:
         payload: MaintenanceWorkOrderUpdateRequest,
     ) -> MaintenanceWorkOrder:
         item = self._get_or_raise(tenant_db, work_order_id)
-        if item.maintenance_status in FINAL_WORK_ORDER_STATUSES:
-            raise ValueError(
-                "No puedes editar una mantencion cerrada o anulada; reprograma o crea una nueva orden"
-            )
         normalized = self._normalize_payload(payload)
         normalized["external_reference"] = item.external_reference
+        if item.maintenance_status in FINAL_WORK_ORDER_STATUSES:
+            item.description = normalized["description"]
+            item.closure_notes = normalized["closure_notes"]
+            item.cancellation_reason = normalized["cancellation_reason"]
+            return self.work_order_repository.save(tenant_db, item)
         self._validate_payload(tenant_db, normalized, current_item=item)
         for field, value in normalized.items():
             setattr(item, field, value)

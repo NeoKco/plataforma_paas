@@ -34,6 +34,8 @@ export type TenantMaintenanceHistoryWorkOrder = {
   title: string;
   description: string | null;
   priority: string;
+  cancellation_reason: string | null;
+  closure_notes: string | null;
   maintenance_status: string;
   requested_at: string;
   scheduled_for: string | null;

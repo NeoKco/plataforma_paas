@@ -58,6 +58,15 @@
 - la tabla principal ahora lee cliente por nombre humano, direccion y fecha/hora, ordenada por programacion/solicitud mas reciente
 - la captura de orden deja `external_reference` como dato interno no editable y exige instalacion real antes de guardar
 - cuando falta cliente, direccion o instalacion, la pantalla informa la dependencia y deriva a `Core de negocio` o `Instalaciones`
+- la bandeja `Mantenciones` deja de mezclar abiertas y cerradas:
+  - `Mantenciones` muestra solo `scheduled` e `in_progress`
+  - `Historial` concentra `completed` y `cancelled`
+- `Resumen` deja de ser estatico y pasa a mostrar las ultimas 5 mantenciones realizadas con cliente, direccion y fecha
+- `Instalaciones` ahora muestra instalacion, cliente y direccion visible del lugar donde esta instalado el SST o equipo tecnico
+- `Agenda` deja de ser una lista de visitas y pasa a una agenda visual mensual de mantenciones abiertas
+- la agenda ya permite crear mantenciones directamente desde una fecha del calendario
+- `Historial` ya permite corregir descripcion/notas de cierre sin volver editable la programacion original
+- el smoke E2E de datos importados se actualiza para validar `Resumen`, `Instalaciones`, `Historial` y `Agenda`
 - se alinea la documentacion del modulo con el nuevo [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md), dejando checklist explícita de cumplimiento y pendientes de cierre
 - se importa `business-core` y `maintenance` desde `ieris_app` tambien sobre `empresa-demo` para usarlo como tenant de trabajo con datos reales
 

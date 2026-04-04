@@ -40,15 +40,29 @@ test("tenant portal shows imported business core and maintenance data from ieris
 
   await openTenantImportedPage(
     page,
-    "/tenant-portal/maintenance/equipment-types",
-    /Tipos de equipo|Equipment types/i
+    "/tenant-portal/maintenance",
+    /Resumen t[eé]cnico|Technical overview/i
+  );
+  await expect(page.getByText(/Últimas 5 mantenciones realizadas|Last 5 completed maintenance/i)).toBeVisible();
+
+  await openTenantImportedPage(
+    page,
+    "/tenant-portal/maintenance/installations",
+    /Instalaciones|Installations/i
   );
   await expect(getCatalogRow(page, /heat pipe/i)).toBeVisible();
 
   await openTenantImportedPage(
     page,
-    "/tenant-portal/maintenance/work-orders",
-    /Órdenes de trabajo|Work orders/i
+    "/tenant-portal/maintenance/history",
+    /Historial t[eé]cnico|Technical history/i
   );
   await expect(getCatalogRow(page, /Mantenci[oó]n sst/i)).toBeVisible();
+
+  await openTenantImportedPage(
+    page,
+    "/tenant-portal/maintenance/calendar",
+    /Agenda t[eé]cnica|Technical calendar/i
+  );
+  await expect(page.getByRole("button", { name: /Nueva mantenci[oó]n|New maintenance/i })).toBeVisible();
 });

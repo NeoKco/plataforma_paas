@@ -365,6 +365,8 @@ class MaintenanceCatalogRoutesTestCase(unittest.TestCase):
             title="Mantención mensual",
             description=None,
             priority="normal",
+            cancellation_reason=None,
+            closure_notes="Cierre técnico",
             maintenance_status="completed",
             requested_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
             scheduled_for=None,

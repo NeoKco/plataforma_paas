@@ -43,6 +43,8 @@ import {
 import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
+const ACTIVE_WORK_ORDER_STATUSES = new Set(["scheduled", "in_progress"]);
+
 function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
   return {
     client_id: 0,
@@ -122,6 +124,7 @@ export function MaintenanceWorkOrdersPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [requestedCreateHandled, setRequestedCreateHandled] = useState(false);
   const [form, setForm] = useState<TenantMaintenanceWorkOrderWriteRequest>(buildDefaultForm());
 
   const requestedClientId = Number(searchParams.get("clientId") || 0);
@@ -169,6 +172,11 @@ export function MaintenanceWorkOrdersPage() {
     [rows]
   );
 
+  const activeRows = useMemo(
+    () => sortedRows.filter((item) => ACTIVE_WORK_ORDER_STATUSES.has(item.maintenance_status)),
+    [sortedRows]
+  );
+
   const noClientsAvailable = clients.length === 0;
   const selectedClientSites = form.client_id > 0 ? filteredSites : [];
   const selectedSiteInstallations = form.site_id > 0 ? filteredInstallations : [];
@@ -186,7 +194,9 @@ export function MaintenanceWorkOrdersPage() {
   const summary = useMemo(() => {
     return rows.reduce(
       (accumulator, row) => {
-        accumulator.total += 1;
+        if (ACTIVE_WORK_ORDER_STATUSES.has(row.maintenance_status)) {
+          accumulator.total += 1;
+        }
         if (row.maintenance_status === "scheduled") {
           accumulator.scheduled += 1;
         } else if (row.maintenance_status === "in_progress") {
@@ -215,36 +225,27 @@ export function MaintenanceWorkOrdersPage() {
         organizationsResponse,
         sitesResponse,
         installationsResponse,
-      ] =
-        await Promise.all([
-          getTenantMaintenanceWorkOrders(session.accessToken, {
-            ...(requestedClientId > 0 ? { clientId: requestedClientId } : {}),
-            ...(requestedSiteId > 0 ? { siteId: requestedSiteId } : {}),
-          }),
-          getTenantBusinessClients(session.accessToken, { includeInactive: false }),
-          getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
-          getTenantBusinessSites(session.accessToken, { includeInactive: false }),
-          getTenantMaintenanceInstallations(session.accessToken, { includeInactive: false }),
-        ]);
+      ] = await Promise.all([
+        getTenantMaintenanceWorkOrders(session.accessToken, {
+          ...(requestedClientId > 0 ? { clientId: requestedClientId } : {}),
+          ...(requestedSiteId > 0 ? { siteId: requestedSiteId } : {}),
+        }),
+        getTenantBusinessClients(session.accessToken, { includeInactive: false }),
+        getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
+        getTenantBusinessSites(session.accessToken, { includeInactive: false }),
+        getTenantMaintenanceInstallations(session.accessToken, { includeInactive: false }),
+      ]);
       setRows(workOrdersResponse.data);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
       setInstallations(installationsResponse.data);
+
       setForm((current) => {
-        const nextClientId =
-          current.client_id ||
-          requestedClientId ||
-          clientsResponse.data[0]?.id ||
-          0;
-        const candidateSites = sitesResponse.data.filter(
-          (site) => site.client_id === nextClientId
-        );
+        const nextClientId = current.client_id || requestedClientId || clientsResponse.data[0]?.id || 0;
+        const candidateSites = sitesResponse.data.filter((site) => site.client_id === nextClientId);
         const nextSiteId =
-          current.site_id ||
-          (requestedSiteId > 0 ? requestedSiteId : 0) ||
-          candidateSites[0]?.id ||
-          0;
+          current.site_id || (requestedSiteId > 0 ? requestedSiteId : 0) || candidateSites[0]?.id || 0;
         const candidateInstallations = installationsResponse.data.filter(
           (installation) => installation.site_id === nextSiteId
         );
@@ -271,11 +272,11 @@ export function MaintenanceWorkOrdersPage() {
   }, [session?.accessToken]);
 
   useEffect(() => {
-    if (!isLoading && requestedMode === "create") {
-      setEditingId(null);
-      setIsFormOpen(true);
+    if (!isLoading && requestedMode === "create" && !requestedCreateHandled) {
+      setRequestedCreateHandled(true);
+      startCreate(true);
     }
-  }, [isLoading, requestedMode]);
+  }, [isLoading, requestedMode, requestedCreateHandled]);
 
   useEffect(() => {
     if (!filteredSites.some((site) => site.id === Number(form.site_id))) {
@@ -296,12 +297,11 @@ export function MaintenanceWorkOrdersPage() {
     }
   }, [filteredInstallations, form.installation_id]);
 
-  function startCreate(openForm = false) {
-    const clientId = clients[0]?.id || 0;
+  function startCreate(openForm = false, scheduledFor: string | null = null) {
+    const clientId = requestedClientId || clients[0]?.id || 0;
     const candidateSites = sites.filter((site) => site.client_id === clientId);
-    const candidateInstallations = installations.filter(
-      (installation) => installation.site_id === (candidateSites[0]?.id || 0)
-    );
+    const siteId = requestedSiteId || candidateSites[0]?.id || 0;
+    const candidateInstallations = installations.filter((installation) => installation.site_id === siteId);
     setEditingId(null);
     setFeedback(null);
     setError(null);
@@ -309,8 +309,9 @@ export function MaintenanceWorkOrdersPage() {
     setForm({
       ...buildDefaultForm(),
       client_id: clientId,
-      site_id: candidateSites[0]?.id || 0,
-      installation_id: candidateInstallations[0]?.id || null,
+      site_id: siteId,
+      installation_id: requestedInstallationId || candidateInstallations[0]?.id || null,
+      scheduled_for: scheduledFor,
     });
   }
 
@@ -329,12 +330,21 @@ export function MaintenanceWorkOrdersPage() {
     if (!site) {
       return language === "es" ? "Dirección sin registrar" : "Missing address";
     }
-    const visibleAddress = stripLegacyVisibleText(getVisibleAddressLabel(site));
+    const visibleAddress =
+      stripLegacyVisibleText(getVisibleAddressLabel(site)) ||
+      stripLegacyVisibleText(site.name) ||
+      (language === "es" ? "Dirección sin nombre" : "Unnamed address");
     const locality = [site.commune, site.city, site.region]
       .map((value) => stripLegacyVisibleText(value))
-      .filter(Boolean)
+      .filter((value): value is string => Boolean(value))
       .join(", ");
-    return locality ? `${visibleAddress || site.name} · ${locality}` : visibleAddress || site.name;
+    return locality ? `${visibleAddress} · ${locality}` : visibleAddress;
+  }
+
+  function getClientOptionLabel(client: TenantBusinessClient): string {
+    const primarySite = sites.find((site) => site.client_id === client.id);
+    const clientName = getClientDisplayName(client.id);
+    return primarySite ? `${clientName} · ${getSiteDisplayName(primarySite.id)}` : clientName;
   }
 
   function startEdit(item: TenantMaintenanceWorkOrder) {
@@ -351,7 +361,7 @@ export function MaintenanceWorkOrdersPage() {
       description: stripLegacyVisibleText(item.description),
       priority: item.priority,
       scheduled_for: item.scheduled_for,
-      cancellation_reason: item.cancellation_reason,
+      cancellation_reason: null,
       closure_notes: stripLegacyVisibleText(item.closure_notes),
       assigned_tenant_user_id: item.assigned_tenant_user_id,
       maintenance_status: item.maintenance_status,
@@ -373,11 +383,9 @@ export function MaintenanceWorkOrdersPage() {
       description: stripLegacyVisibleText(normalizeNullable(form.description)),
       priority: form.priority.trim().toLowerCase() || "normal",
       scheduled_for: normalizeNullable(form.scheduled_for),
-      cancellation_reason: normalizeNullable(form.cancellation_reason),
-      closure_notes: stripLegacyVisibleText(normalizeNullable(form.closure_notes)),
-      assigned_tenant_user_id: form.assigned_tenant_user_id
-        ? Number(form.assigned_tenant_user_id)
-        : null,
+      cancellation_reason: null,
+      closure_notes: editingId ? stripLegacyVisibleText(normalizeNullable(form.closure_notes)) : null,
+      assigned_tenant_user_id: form.assigned_tenant_user_id ? Number(form.assigned_tenant_user_id) : null,
       ...(editingId ? {} : { maintenance_status: form.maintenance_status || "scheduled" }),
     };
     try {
@@ -394,10 +402,7 @@ export function MaintenanceWorkOrdersPage() {
     }
   }
 
-  async function handleStatusChange(
-    workOrder: TenantMaintenanceWorkOrder,
-    nextStatus: string
-  ) {
+  async function handleStatusChange(workOrder: TenantMaintenanceWorkOrder, nextStatus: string) {
     if (!session?.accessToken) {
       return;
     }
@@ -433,10 +438,7 @@ export function MaintenanceWorkOrdersPage() {
       return;
     }
     try {
-      const response = await deleteTenantMaintenanceWorkOrder(
-        session.accessToken,
-        workOrder.id
-      );
+      const response = await deleteTenantMaintenanceWorkOrder(session.accessToken, workOrder.id);
       if (editingId === workOrder.id) {
         startCreate(false);
       }
@@ -452,11 +454,11 @@ export function MaintenanceWorkOrdersPage() {
       <PageHeader
         eyebrow={language === "es" ? "Mantenciones" : "Maintenance"}
         icon="maintenance"
-        title={language === "es" ? "Órdenes de trabajo" : "Work orders"}
+        title={language === "es" ? "Mantenciones abiertas" : "Open maintenance work"}
         description={
           language === "es"
-            ? "Gestión operativa de mantenciones programadas, en curso, completadas y anuladas."
-            : "Operational management of scheduled, in-progress, completed, and cancelled work orders."
+            ? "Aquí solo se trabajan las mantenciones programadas o en curso. Las realizadas o anuladas pasan de inmediato al historial."
+            : "Only scheduled or in-progress maintenance is worked here. Completed or cancelled work moves immediately to history."
         }
         actions={
           <AppToolbar compact>
@@ -464,8 +466,8 @@ export function MaintenanceWorkOrdersPage() {
               label={language === "es" ? "Ayuda" : "Help"}
               helpText={
                 language === "es"
-                  ? "Una orden debe colgar de un cliente, un sitio y opcionalmente una instalación específica. Cambia de estado sin mover registros a otra tabla."
-                  : "A work order must hang from a client, a site, and optionally a specific installation. Change status without moving records to another table."
+                  ? "Toda mantención debe colgar de un cliente, una dirección y una instalación real. Si falta uno de esos tres, primero debes crearlo."
+                  : "Every maintenance work item must belong to a real client, address, and installation. If any is missing, create it first."
               }
             />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
@@ -494,16 +496,16 @@ export function MaintenanceWorkOrdersPage() {
       {requestedClientId > 0 ? (
         <div className="maintenance-context-banner">
           {language === "es"
-            ? "Vista abierta desde la ficha del cliente. Las mantenciones se muestran filtradas por ese cliente y la nueva orden queda preseleccionada."
-            : "View opened from the client detail. Work orders are filtered by that client and new orders are preselected."}
+            ? "Vista abierta desde la ficha del cliente. Las mantenciones quedan filtradas por ese cliente y la nueva orden se precarga con sus datos."
+            : "View opened from the client detail. Work orders are filtered by that client and the new work order is preloaded with its data."}
         </div>
       ) : null}
 
       {noClientsAvailable ? (
         <div className="alert alert-warning mb-0">
           {language === "es"
-            ? "Antes de agendar una mantención debes crear un cliente en Core de negocio."
-            : "Create a client in Business core before scheduling maintenance."}{" "}
+            ? "Antes de agendar una mantención debe existir un cliente en Core de negocio."
+            : "A client must exist in Business core before scheduling maintenance."}{" "}
           <Link to="/tenant-portal/business-core/clients">
             {language === "es" ? "Ir a clientes" : "Go to clients"}
           </Link>
@@ -511,27 +513,25 @@ export function MaintenanceWorkOrdersPage() {
       ) : null}
 
       {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
+
       {error ? (
         <ErrorState
-          title={
-            language === "es"
-              ? "No se pudo cargar la vista"
-              : "The view could not be loaded"
-          }
+          title={language === "es" ? "No se pudo cargar la vista" : "The view could not be loaded"}
           detail={getApiErrorDisplayMessage(error)}
           requestId={error.payload?.request_id}
         />
       ) : null}
+
       {isLoading ? (
-        <LoadingBlock label={language === "es" ? "Cargando órdenes..." : "Loading work orders..."} />
+        <LoadingBlock label={language === "es" ? "Cargando mantenciones..." : "Loading maintenance..."} />
       ) : null}
 
       <div className="row g-3">
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
-            label={language === "es" ? "Total" : "Total"}
+            label={language === "es" ? "Abiertas" : "Open"}
             value={summary.total}
-            hint={language === "es" ? "Órdenes visibles" : "Visible work orders"}
+            hint={language === "es" ? "Mantenciones visibles aquí" : "Maintenance work visible here"}
             icon="maintenance"
             tone="info"
           />
@@ -540,7 +540,7 @@ export function MaintenanceWorkOrdersPage() {
           <MetricCard
             label={language === "es" ? "Programadas" : "Scheduled"}
             value={summary.scheduled}
-            hint={language === "es" ? "Pendientes de ejecución" : "Waiting to be executed"}
+            hint={language === "es" ? "Pendientes de ejecutar" : "Waiting to be executed"}
             icon="planning"
             tone="warning"
           />
@@ -549,28 +549,41 @@ export function MaintenanceWorkOrdersPage() {
           <MetricCard
             label={language === "es" ? "En curso" : "In progress"}
             value={summary.inProgress}
-            hint={language === "es" ? "Trabajo abierto" : "Open work"}
+            hint={language === "es" ? "Trabajo activo de terreno" : "Active field work"}
             icon="focus"
             tone="info"
           />
         </div>
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
-            label={language === "es" ? "Cerradas" : "Closed"}
+            label={language === "es" ? "Historial" : "History"}
             value={summary.completed + summary.cancelled}
-            hint={language === "es" ? "Completadas o anuladas" : "Completed or cancelled"}
+            hint={language === "es" ? "Realizadas o anuladas" : "Completed or cancelled"}
             icon="reports"
             tone="success"
           />
         </div>
       </div>
 
-      {isFormOpen ? (
-        <div
-          className="maintenance-form-backdrop"
-          role="presentation"
-          onClick={() => startCreate(false)}
+      {activeRows.length === 0 && !isLoading ? (
+        <PanelCard
+          title={language === "es" ? "No hay mantenciones abiertas" : "There are no open work orders"}
+          subtitle={
+            language === "es"
+              ? "Las mantenciones realizadas o anuladas ya no aparecen aquí; revísalas en Historial. Usa Nueva orden para programar trabajo nuevo."
+              : "Completed or cancelled maintenance no longer appears here; review it in History. Use New work order to schedule new work."
+          }
         >
+          <div className="maintenance-cell__meta">
+            {language === "es"
+              ? "La bandeja diaria queda reservada solo para trabajo pendiente."
+              : "The day-to-day tray is reserved only for pending work."}
+          </div>
+        </PanelCard>
+      ) : null}
+
+      {isFormOpen ? (
+        <div className="maintenance-form-backdrop" role="presentation" onClick={() => startCreate(false)}>
           <div
             className="maintenance-form-modal maintenance-form-modal--wide"
             role="dialog"
@@ -578,11 +591,11 @@ export function MaintenanceWorkOrdersPage() {
             aria-label={
               editingId
                 ? language === "es"
-                  ? "Editar orden"
-                  : "Edit work order"
+                  ? "Editar mantención"
+                  : "Edit maintenance work"
                 : language === "es"
-                  ? "Nueva orden"
-                  : "New work order"
+                  ? "Nueva mantención"
+                  : "New maintenance work"
             }
             onClick={(event) => event.stopPropagation()}
           >
@@ -599,16 +612,16 @@ export function MaintenanceWorkOrdersPage() {
               title={
                 editingId
                   ? language === "es"
-                    ? "Editar orden"
-                    : "Edit work order"
+                    ? "Editar mantención"
+                    : "Edit maintenance work"
                   : language === "es"
-                    ? "Nueva orden"
-                    : "New work order"
+                    ? "Nueva mantención"
+                    : "New maintenance work"
               }
               subtitle={
                 language === "es"
-                  ? "Primer corte operativo apoyado sobre business-core y trazabilidad de estado."
-                  : "First operational slice supported by business-core and status traceability."
+                  ? "Programa solo trabajo abierto. Al completarlo, saldrá de esta bandeja y quedará en historial."
+                  : "Schedule only open work. Once completed, it will leave this tray and remain in history."
               }
             >
               <form
@@ -619,229 +632,189 @@ export function MaintenanceWorkOrdersPage() {
                 }}
               >
                 <div className="row g-3">
-              <div className="col-12 col-md-6">
-                <label className="form-label">{language === "es" ? "Cliente" : "Client"}</label>
-                <select
-                  className="form-select"
-                  value={form.client_id}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      client_id: Number(event.target.value),
-                    }))
-                  }
-                >
-                  <option value={0}>
-                    {language === "es" ? "Selecciona un cliente" : "Select a client"}
-                  </option>
-                  {clients.map((client) => (
-                    <option key={client.id} value={client.id}>
-                      {getClientDisplayName(client.id)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-12 col-md-6">
-                <label className="form-label">{language === "es" ? "Sitio" : "Site"}</label>
-                <select
-                  className="form-select"
-                  value={form.site_id}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      site_id: Number(event.target.value),
-                    }))
-                  }
-                >
-                  <option value={0}>
-                    {language === "es" ? "Selecciona una dirección" : "Select an address"}
-                  </option>
-                  {filteredSites.map((site) => (
-                    <option key={site.id} value={site.id}>
-                      {getSiteDisplayName(site.id)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-12 col-md-6">
-                <label className="form-label">
-                  {language === "es" ? "Instalación" : "Installation"}
-                </label>
-                <select
-                  className="form-select"
-                  value={form.installation_id ?? ""}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      installation_id: event.target.value ? Number(event.target.value) : null,
-                    }))
-                  }
-                >
-                  <option value="">
-                    {language === "es"
-                      ? "Selecciona una instalación"
-                      : "Select an installation"}
-                  </option>
-                  {filteredInstallations.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {!editingId ? (
-                <div className="col-12 col-md-6">
-                  <label className="form-label">
-                    {language === "es" ? "Estado inicial" : "Initial status"}
-                  </label>
-                  <select
-                    className="form-select"
-                    value={form.maintenance_status}
-                    onChange={(event) =>
-                      setForm((current) => ({
-                        ...current,
-                        maintenance_status: event.target.value,
-                      }))
-                    }
-                  >
-                    <option value="scheduled">{language === "es" ? "Programada" : "Scheduled"}</option>
-                    <option value="in_progress">{language === "es" ? "En curso" : "In progress"}</option>
-                  </select>
-                </div>
-              ) : null}
-              <div className="col-12 col-md-6">
-                <label className="form-label">{language === "es" ? "Prioridad" : "Priority"}</label>
-                <select
-                  className="form-select"
-                  value={form.priority}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      priority: event.target.value,
-                    }))
-                  }
-                >
-                  <option value="low">{language === "es" ? "Baja" : "Low"}</option>
-                  <option value="normal">{language === "es" ? "Normal" : "Normal"}</option>
-                  <option value="high">{language === "es" ? "Alta" : "High"}</option>
-                  <option value="critical">{language === "es" ? "Crítica" : "Critical"}</option>
-                </select>
-              </div>
-              <div className="col-12 col-md-6">
-                <label className="form-label">
-                  {language === "es" ? "Programada para" : "Scheduled for"}
-                </label>
-                <input
-                  className="form-control"
-                  type="datetime-local"
-                  value={form.scheduled_for ?? ""}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      scheduled_for: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              {missingSiteForSelectedClient ? (
-                <div className="col-12">
-                  <div className="alert alert-warning mb-0">
-                    {language === "es"
-                      ? "Este cliente aún no tiene dirección operativa. Crea la dirección antes de agendar la mantención."
-                      : "This client does not have an operational address yet. Create it before scheduling maintenance."}{" "}
-                    <Link to="/tenant-portal/business-core/clients">
-                      {language === "es" ? "Ir a clientes" : "Go to clients"}
-                    </Link>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Cliente" : "Client"}</label>
+                    <select
+                      className="form-select"
+                      value={form.client_id}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          client_id: Number(event.target.value),
+                        }))
+                      }
+                    >
+                      <option value={0}>
+                        {language === "es" ? "Selecciona un cliente" : "Select a client"}
+                      </option>
+                      {clients.map((client) => (
+                        <option key={client.id} value={client.id}>
+                          {getClientOptionLabel(client)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
-              ) : null}
-              {missingInstallationForSelectedSite ? (
-                <div className="col-12">
-                  <div className="alert alert-warning mb-0">
-                    {language === "es"
-                      ? "La dirección seleccionada aún no tiene instalación. Crea la instalación antes de agendar la mantención."
-                      : "The selected address does not have an installation yet. Create the installation before scheduling maintenance."}{" "}
-                    <Link to="/tenant-portal/maintenance/installations">
-                      {language === "es" ? "Ir a instalaciones" : "Go to installations"}
-                    </Link>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Dirección" : "Address"}</label>
+                    <select
+                      className="form-select"
+                      value={form.site_id}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          site_id: Number(event.target.value),
+                        }))
+                      }
+                    >
+                      <option value={0}>
+                        {language === "es" ? "Selecciona una dirección" : "Select an address"}
+                      </option>
+                      {filteredSites.map((site) => (
+                        <option key={site.id} value={site.id}>
+                          {getSiteDisplayName(site.id)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
-              ) : null}
-              <div className="col-12">
-                <label className="form-label">{language === "es" ? "Título" : "Title"}</label>
-                <input
-                  className="form-control"
-                  value={form.title}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      title: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="col-12">
-                <label className="form-label">
-                  {language === "es" ? "Descripción" : "Description"}
-                </label>
-                <textarea
-                  className="form-control"
-                  rows={4}
-                  value={form.description ?? ""}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      description: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="col-12 col-md-6">
-                <label className="form-label">
-                  {language === "es" ? "Motivo de anulación" : "Cancellation reason"}
-                </label>
-                <textarea
-                  className="form-control"
-                  rows={3}
-                  value={form.cancellation_reason ?? ""}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      cancellation_reason: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="col-12 col-md-6">
-                <label className="form-label">
-                  {language === "es" ? "Notas de cierre" : "Closure notes"}
-                </label>
-                <textarea
-                  className="form-control"
-                  rows={3}
-                  value={form.closure_notes ?? ""}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      closure_notes: event.target.value,
-                    }))
-                  }
-                />
-              </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {language === "es" ? "Instalación" : "Installation"}
+                    </label>
+                    <select
+                      className="form-select"
+                      value={form.installation_id ?? ""}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          installation_id: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    >
+                      <option value="">
+                        {language === "es"
+                          ? "Selecciona una instalación"
+                          : "Select an installation"}
+                      </option>
+                      {filteredInstallations.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {!editingId ? (
+                    <div className="col-12 col-md-6">
+                      <label className="form-label">
+                        {language === "es" ? "Estado inicial" : "Initial status"}
+                      </label>
+                      <select
+                        className="form-select"
+                        value={form.maintenance_status}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            maintenance_status: event.target.value,
+                          }))
+                        }
+                      >
+                        <option value="scheduled">{language === "es" ? "Programada" : "Scheduled"}</option>
+                        <option value="in_progress">{language === "es" ? "En curso" : "In progress"}</option>
+                      </select>
+                    </div>
+                  ) : null}
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Prioridad" : "Priority"}</label>
+                    <select
+                      className="form-select"
+                      value={form.priority}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          priority: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="low">{language === "es" ? "Baja" : "Low"}</option>
+                      <option value="normal">{language === "es" ? "Normal" : "Normal"}</option>
+                      <option value="high">{language === "es" ? "Alta" : "High"}</option>
+                      <option value="critical">{language === "es" ? "Crítica" : "Critical"}</option>
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {language === "es" ? "Fecha y hora programada" : "Scheduled date and time"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="datetime-local"
+                      value={form.scheduled_for ?? ""}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          scheduled_for: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  {missingSiteForSelectedClient ? (
+                    <div className="col-12">
+                      <div className="alert alert-warning mb-0">
+                        {language === "es"
+                          ? "Este cliente aún no tiene dirección operativa. Crea la dirección antes de agendar la mantención."
+                          : "This client does not have an operational address yet. Create it before scheduling maintenance."}{" "}
+                        <Link to="/tenant-portal/business-core/clients">
+                          {language === "es" ? "Ir a clientes" : "Go to clients"}
+                        </Link>
+                      </div>
+                    </div>
+                  ) : null}
+                  {missingInstallationForSelectedSite ? (
+                    <div className="col-12">
+                      <div className="alert alert-warning mb-0">
+                        {language === "es"
+                          ? "La dirección seleccionada aún no tiene instalación. Crea la instalación antes de agendar la mantención."
+                          : "The selected address does not have an installation yet. Create the installation before scheduling maintenance."}{" "}
+                        <Link to="/tenant-portal/maintenance/installations">
+                          {language === "es" ? "Ir a instalaciones" : "Go to installations"}
+                        </Link>
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="col-12">
+                    <label className="form-label">{language === "es" ? "Trabajo a realizar" : "Work to be done"}</label>
+                    <input
+                      className="form-control"
+                      value={form.title}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          title: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label">
+                      {language === "es" ? "Detalle técnico" : "Technical detail"}
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows={4}
+                      value={form.description ?? ""}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          description: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
                 </div>
                 <div className="maintenance-form__actions">
-                  <button
-                    className="btn btn-outline-secondary"
-                    type="button"
-                    onClick={() => startCreate(false)}
-                  >
+                  <button className="btn btn-outline-secondary" type="button" onClick={() => startCreate(false)}>
                     {language === "es" ? "Cancelar" : "Cancel"}
                   </button>
-                  <button
-                    className="btn btn-primary"
-                    type="submit"
-                    disabled={isSubmitting || submitBlocked}
-                  >
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting || submitBlocked}>
                     {isSubmitting
                       ? language === "es"
                         ? "Guardando..."
@@ -862,128 +835,118 @@ export function MaintenanceWorkOrdersPage() {
       ) : null}
 
       <DataTableCard
-          title={language === "es" ? "Órdenes activas y cerradas" : "Open and closed work orders"}
-          subtitle={
-            language === "es"
-              ? "Primer corte con lifecycle auditable sin mover registros a histórico."
-              : "First slice with auditable lifecycle without moving records to history tables."
-          }
-          rows={sortedRows}
-          columns={[
-            {
-              key: "order",
-              header: language === "es" ? "Orden" : "Order",
-              render: (item) => {
-                return (
-                  <div>
-                    <div className="maintenance-cell__title">
-                      {stripLegacyVisibleText(item.title) || "—"}
-                    </div>
-                    <div className="maintenance-cell__meta">
-                      {stripLegacyVisibleText(item.description) ||
-                        (language === "es" ? "Sin detalle adicional" : "No additional detail")}
-                    </div>
-                  </div>
-                );
-              },
-            },
-            {
-              key: "client",
-              header: language === "es" ? "Cliente" : "Client",
-              render: (item) => (
-                <div>
-                  <div className="maintenance-cell__title">{getClientDisplayName(item.client_id)}</div>
-                  <div className="maintenance-cell__meta">{getSiteDisplayName(item.site_id)}</div>
+        title={language === "es" ? "Mantenciones abiertas" : "Open maintenance work"}
+        subtitle={
+          language === "es"
+            ? "Solo se muestran programadas o en curso. Al completar o anular, pasan de inmediato al historial."
+            : "Only scheduled or in-progress work is shown here. Once completed or cancelled, it immediately moves to history."
+        }
+        rows={activeRows}
+        columns={[
+          {
+            key: "order",
+            header: language === "es" ? "Trabajo" : "Work",
+            render: (item) => (
+              <div>
+                <div className="maintenance-cell__title">
+                  {stripLegacyVisibleText(item.title) || "—"}
                 </div>
-              ),
-            },
-            {
-              key: "schedule",
-              header: language === "es" ? "Fecha y hora" : "Date and time",
-              render: (item) => (
-                <div>
-                  <div>{formatDateTime(item.scheduled_for, language, effectiveTimeZone)}</div>
-                  <div className="maintenance-cell__meta">
-                    {language === "es" ? "Solicitada" : "Requested"}{" "}
-                    {formatDateTime(item.requested_at, language, effectiveTimeZone)}
-                  </div>
+                <div className="maintenance-cell__meta">
+                  {stripLegacyVisibleText(item.description) ||
+                    (language === "es" ? "Sin detalle adicional" : "No additional detail")}
                 </div>
-              ),
-            },
-            {
-              key: "status",
-              header: language === "es" ? "Estado" : "Status",
-              render: (item) => (
-                <AppBadge tone={getStatusTone(item.maintenance_status)}>
-                  {getStatusLabel(item.maintenance_status, language)}
-                </AppBadge>
-              ),
-            },
-            {
-              key: "installation",
-              header: language === "es" ? "Instalación" : "Installation",
-              render: (item) =>
-                item.installation_id
-                  ? installationById.get(item.installation_id)?.name || `#${item.installation_id}`
-                  : language === "es"
-                    ? "Crear instalación antes de agendar"
-                    : "Create installation before scheduling",
-            },
-            {
-              key: "actions",
-              header: language === "es" ? "Acciones" : "Actions",
-              render: (item) => (
-                <AppToolbar compact>
+              </div>
+            ),
+          },
+          {
+            key: "client",
+            header: language === "es" ? "Cliente" : "Client",
+            render: (item) => (
+              <div>
+                <div className="maintenance-cell__title">{getClientDisplayName(item.client_id)}</div>
+                <div className="maintenance-cell__meta">{getSiteDisplayName(item.site_id)}</div>
+              </div>
+            ),
+          },
+          {
+            key: "schedule",
+            header: language === "es" ? "Fecha y hora" : "Date and time",
+            render: (item) => (
+              <div>
+                <div>{formatDateTime(item.scheduled_for, language, effectiveTimeZone)}</div>
+                <div className="maintenance-cell__meta">
+                  {language === "es" ? "Solicitada" : "Requested"}{" "}
+                  {formatDateTime(item.requested_at, language, effectiveTimeZone)}
+                </div>
+              </div>
+            ),
+          },
+          {
+            key: "status",
+            header: language === "es" ? "Estado" : "Status",
+            render: (item) => (
+              <AppBadge tone={getStatusTone(item.maintenance_status)}>
+                {getStatusLabel(item.maintenance_status, language)}
+              </AppBadge>
+            ),
+          },
+          {
+            key: "installation",
+            header: language === "es" ? "Instalación" : "Installation",
+            render: (item) =>
+              item.installation_id
+                ? installationById.get(item.installation_id)?.name || `#${item.installation_id}`
+                : language === "es"
+                  ? "Instalación pendiente"
+                  : "Installation pending",
+          },
+          {
+            key: "actions",
+            header: language === "es" ? "Acciones" : "Actions",
+            render: (item) => (
+              <AppToolbar compact>
+                <button
+                  className="btn btn-sm btn-outline-primary"
+                  type="button"
+                  onClick={() => startEdit(item)}
+                >
+                  {language === "es" ? "Editar" : "Edit"}
+                </button>
+                {item.maintenance_status === "scheduled" ? (
                   <button
-                    className="btn btn-sm btn-outline-primary"
+                    className="btn btn-sm btn-outline-info"
                     type="button"
-                    onClick={() => startEdit(item)}
+                    onClick={() => void handleStatusChange(item, "in_progress")}
                   >
-                    {language === "es" ? "Editar" : "Edit"}
+                    {language === "es" ? "Iniciar" : "Start"}
                   </button>
-                  {item.maintenance_status !== "in_progress" &&
-                  item.maintenance_status !== "completed" &&
-                  item.maintenance_status !== "cancelled" ? (
-                    <button
-                      className="btn btn-sm btn-outline-info"
-                      type="button"
-                      onClick={() => void handleStatusChange(item, "in_progress")}
-                    >
-                      {language === "es" ? "Iniciar" : "Start"}
-                    </button>
-                  ) : null}
-                  {item.maintenance_status !== "completed" &&
-                  item.maintenance_status !== "cancelled" ? (
-                    <button
-                      className="btn btn-sm btn-outline-success"
-                      type="button"
-                      onClick={() => void handleStatusChange(item, "completed")}
-                    >
-                      {language === "es" ? "Completar" : "Complete"}
-                    </button>
-                  ) : null}
-                  {item.maintenance_status !== "cancelled" &&
-                  item.maintenance_status !== "completed" ? (
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      type="button"
-                      onClick={() => void handleStatusChange(item, "cancelled")}
-                    >
-                      {language === "es" ? "Anular" : "Cancel"}
-                    </button>
-                  ) : null}
-                  <button
-                    className="btn btn-sm btn-outline-danger"
-                    type="button"
-                    onClick={() => void handleDelete(item)}
-                  >
-                    {language === "es" ? "Eliminar" : "Delete"}
-                  </button>
-                </AppToolbar>
-              ),
-            },
-          ]}
-        />
+                ) : null}
+                <button
+                  className="btn btn-sm btn-outline-success"
+                  type="button"
+                  onClick={() => void handleStatusChange(item, "completed")}
+                >
+                  {language === "es" ? "Completar" : "Complete"}
+                </button>
+                <button
+                  className="btn btn-sm btn-outline-danger"
+                  type="button"
+                  onClick={() => void handleStatusChange(item, "cancelled")}
+                >
+                  {language === "es" ? "Anular" : "Cancel"}
+                </button>
+                <button
+                  className="btn btn-sm btn-outline-danger"
+                  type="button"
+                  onClick={() => void handleDelete(item)}
+                >
+                  {language === "es" ? "Eliminar" : "Delete"}
+                </button>
+              </AppToolbar>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

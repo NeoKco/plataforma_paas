@@ -16,15 +16,24 @@ import {
   type TenantBusinessClient,
 } from "../../business_core/services/clientsService";
 import {
+  getTenantBusinessOrganizations,
+  type TenantBusinessOrganization,
+} from "../../business_core/services/organizationsService";
+import {
   getTenantBusinessSites,
   type TenantBusinessSite,
 } from "../../business_core/services/sitesService";
+import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
 import {
   getTenantMaintenanceHistory,
   type TenantMaintenanceHistoryWorkOrder,
 } from "../services/historyService";
+import {
+  updateTenantMaintenanceWorkOrder,
+  type TenantMaintenanceWorkOrderWriteRequest,
+} from "../services/workOrdersService";
 import {
   getTenantMaintenanceInstallations,
   type TenantMaintenanceInstallation,
@@ -78,14 +87,27 @@ export function MaintenanceHistoryPage() {
   const { language } = useLanguage();
   const [rows, setRows] = useState<TenantMaintenanceHistoryWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
+  const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [editingRow, setEditingRow] = useState<TenantMaintenanceHistoryWorkOrder | null>(null);
+  const [historyForm, setHistoryForm] = useState({
+    description: "",
+    closure_notes: "",
+    cancellation_reason: "",
+  });
 
   const clientById = useMemo(
     () => new Map(clients.map((client) => [client.id, client])),
     [clients]
+  );
+  const organizationById = useMemo(
+    () => new Map(organizations.map((organization) => [organization.id, organization])),
+    [organizations]
   );
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
   const installationById = useMemo(
@@ -100,15 +122,17 @@ export function MaintenanceHistoryPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [historyResponse, clientsResponse, sitesResponse, installationsResponse] =
+      const [historyResponse, clientsResponse, organizationsResponse, sitesResponse, installationsResponse] =
         await Promise.all([
           getTenantMaintenanceHistory(session.accessToken),
           getTenantBusinessClients(session.accessToken, { includeInactive: true }),
+          getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
           getTenantBusinessSites(session.accessToken, { includeInactive: true }),
           getTenantMaintenanceInstallations(session.accessToken, { includeInactive: true }),
         ]);
       setRows(historyResponse.data);
       setClients(clientsResponse.data);
+      setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
       setInstallations(installationsResponse.data);
     } catch (rawError) {
@@ -121,6 +145,79 @@ export function MaintenanceHistoryPage() {
   useEffect(() => {
     void loadData();
   }, [session?.accessToken]);
+
+  function startEdit(item: TenantMaintenanceHistoryWorkOrder) {
+    setEditingRow(item);
+    setFeedback(null);
+    setError(null);
+    setHistoryForm({
+      description: stripLegacyVisibleText(item.description) || "",
+      closure_notes: stripLegacyVisibleText(item.closure_notes) || "",
+      cancellation_reason: stripLegacyVisibleText(item.cancellation_reason) || "",
+    });
+  }
+
+  async function handleHistorySubmit() {
+    if (!session?.accessToken || !editingRow) {
+      return;
+    }
+    setIsSubmitting(true);
+    setError(null);
+    const payload: TenantMaintenanceWorkOrderWriteRequest = {
+      client_id: editingRow.client_id,
+      site_id: editingRow.site_id,
+      installation_id: editingRow.installation_id,
+      external_reference: editingRow.external_reference,
+      title: editingRow.title,
+      description: historyForm.description.trim() || null,
+      priority: editingRow.priority,
+      scheduled_for: editingRow.scheduled_for,
+      cancellation_reason: historyForm.cancellation_reason.trim() || null,
+      closure_notes: historyForm.closure_notes.trim() || null,
+      assigned_tenant_user_id: editingRow.created_by_user_id,
+      maintenance_status: editingRow.maintenance_status,
+    };
+    try {
+      const response = await updateTenantMaintenanceWorkOrder(
+        session.accessToken,
+        editingRow.id,
+        payload
+      );
+      setFeedback(response.message);
+      setEditingRow(null);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function getClientDisplayName(clientId: number): string {
+    const client = clientById.get(clientId);
+    const organization = organizationById.get(client?.organization_id ?? -1);
+    return (
+      stripLegacyVisibleText(organization?.name) ||
+      stripLegacyVisibleText(organization?.legal_name) ||
+      (language === "es" ? "Cliente sin nombre" : "Unnamed client")
+    );
+  }
+
+  function getSiteDisplayName(siteId: number): string {
+    const site = siteById.get(siteId);
+    if (!site) {
+      return language === "es" ? "Dirección sin registrar" : "Missing address";
+    }
+    const base =
+      stripLegacyVisibleText(getVisibleAddressLabel(site)) ||
+      stripLegacyVisibleText(site.name) ||
+      (language === "es" ? "Dirección sin nombre" : "Unnamed address");
+    const locality = [site.commune, site.city, site.region]
+      .map((value) => stripLegacyVisibleText(value))
+      .filter((value): value is string => Boolean(value))
+      .join(", ");
+    return locality ? `${base} · ${locality}` : base;
+  }
 
   return (
     <div className="d-grid gap-4">
@@ -163,6 +260,8 @@ export function MaintenanceHistoryPage() {
         />
       ) : null}
 
+      {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
+
       {isLoading ? (
         <LoadingBlock label={language === "es" ? "Cargando historial..." : "Loading history..."} />
       ) : null}
@@ -179,20 +278,14 @@ export function MaintenanceHistoryPage() {
           {
             key: "order",
             header: language === "es" ? "Orden" : "Order",
-            render: (item) => {
-              const site = siteById.get(item.site_id);
-              const client = clientById.get(item.client_id);
-              return (
-                <div>
-                  <div className="maintenance-cell__title">{item.title}</div>
-                  <div className="maintenance-cell__meta">
-                    {(client?.client_code || `#${item.client_id}`) +
-                      " · " +
-                      (site?.name || `#${item.site_id}`)}
-                  </div>
+            render: (item) => (
+              <div>
+                <div className="maintenance-cell__title">{item.title}</div>
+                <div className="maintenance-cell__meta">
+                  {getClientDisplayName(item.client_id) + " · " + getSiteDisplayName(item.site_id)}
                 </div>
-              );
-            },
+              </div>
+            ),
           },
           {
             key: "status",
@@ -258,17 +351,22 @@ export function MaintenanceHistoryPage() {
               title={item.title}
               subtitle={
                 language === "es"
-                  ? `${clientById.get(item.client_id)?.client_code || `#${item.client_id}`} · ${
-                      siteById.get(item.site_id)?.name || `#${item.site_id}`
-                    }`
-                  : `${clientById.get(item.client_id)?.client_code || `#${item.client_id}`} · ${
-                      siteById.get(item.site_id)?.name || `#${item.site_id}`
-                    }`
+                  ? `${getClientDisplayName(item.client_id)} · ${getSiteDisplayName(item.site_id)}`
+                  : `${getClientDisplayName(item.client_id)} · ${getSiteDisplayName(item.site_id)}`
               }
               actions={
-                <AppBadge tone={getStatusTone(item.maintenance_status)}>
-                  {getStatusLabel(item.maintenance_status, language)}
-                </AppBadge>
+                <AppToolbar compact>
+                  <AppBadge tone={getStatusTone(item.maintenance_status)}>
+                    {getStatusLabel(item.maintenance_status, language)}
+                  </AppBadge>
+                  <button
+                    className="btn btn-sm btn-outline-primary"
+                    type="button"
+                    onClick={() => startEdit(item)}
+                  >
+                    {language === "es" ? "Editar cierre" : "Edit closure"}
+                  </button>
+                </AppToolbar>
               }
             >
               <div className="row g-3">
@@ -276,10 +374,6 @@ export function MaintenanceHistoryPage() {
                   <h3 className="panel-card__title h6 mb-3">
                     {language === "es" ? "Resumen" : "Summary"}
                   </h3>
-                  <div className="maintenance-cell__meta">
-                    {language === "es" ? "Referencia" : "Reference"}:{" "}
-                    {item.external_reference || (language === "es" ? "sin referencia" : "no reference")}
-                  </div>
                   <div className="maintenance-cell__meta">
                     {language === "es" ? "Instalación" : "Installation"}:{" "}
                     {item.installation_id
@@ -291,6 +385,14 @@ export function MaintenanceHistoryPage() {
                   <div className="maintenance-cell__meta">
                     {language === "es" ? "Programada" : "Scheduled"}:{" "}
                     {formatDateTime(item.scheduled_for, language, effectiveTimeZone)}
+                  </div>
+                  <div className="maintenance-cell__meta">
+                    {language === "es" ? "Cierre" : "Closed"}:{" "}
+                    {formatDateTime(
+                      item.completed_at || item.cancelled_at,
+                      language,
+                      effectiveTimeZone
+                    )}
                   </div>
                   {stripLegacyVisibleText(item.description) ? (
                     <p className="mb-0 mt-3">{stripLegacyVisibleText(item.description)}</p>
@@ -358,6 +460,101 @@ export function MaintenanceHistoryPage() {
           </div>
         ))}
       </div>
+
+      {editingRow ? (
+        <div className="maintenance-form-backdrop" role="presentation" onClick={() => setEditingRow(null)}>
+          <div
+            className="maintenance-form-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={language === "es" ? "Editar cierre de mantención" : "Edit maintenance closure"}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="maintenance-form-modal__eyebrow">
+              {language === "es" ? "Cierre e historial" : "Closure and history"}
+            </div>
+            <PanelCard
+              title={language === "es" ? "Editar cierre" : "Edit closure"}
+              subtitle={
+                language === "es"
+                  ? "Aquí solo puedes corregir descripción o notas de cierre. Fecha, hora, cliente, dirección e instalación ya no cambian."
+                  : "Here you can only adjust description or closure notes. Date, time, client, address, and installation can no longer change."
+              }
+            >
+              <form
+                className="maintenance-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void handleHistorySubmit();
+                }}
+              >
+                <div className="row g-3">
+                  <div className="col-12">
+                    <label className="form-label">{language === "es" ? "Trabajo realizado" : "Completed work"}</label>
+                    <input className="form-control" value={editingRow.title} disabled />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label">{language === "es" ? "Descripción" : "Description"}</label>
+                    <textarea
+                      className="form-control"
+                      rows={4}
+                      value={historyForm.description}
+                      onChange={(event) =>
+                        setHistoryForm((current) => ({
+                          ...current,
+                          description: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Notas de cierre" : "Closure notes"}</label>
+                    <textarea
+                      className="form-control"
+                      rows={4}
+                      value={historyForm.closure_notes}
+                      onChange={(event) =>
+                        setHistoryForm((current) => ({
+                          ...current,
+                          closure_notes: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Motivo de anulación" : "Cancellation reason"}</label>
+                    <textarea
+                      className="form-control"
+                      rows={4}
+                      value={historyForm.cancellation_reason}
+                      onChange={(event) =>
+                        setHistoryForm((current) => ({
+                          ...current,
+                          cancellation_reason: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="maintenance-form__actions">
+                  <button className="btn btn-outline-secondary" type="button" onClick={() => setEditingRow(null)}>
+                    {language === "es" ? "Cancelar" : "Cancel"}
+                  </button>
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
+                    {isSubmitting
+                      ? language === "es"
+                        ? "Guardando..."
+                        : "Saving..."
+                      : language === "es"
+                        ? "Guardar cierre"
+                        : "Save closure"}
+                  </button>
+                </div>
+              </form>
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

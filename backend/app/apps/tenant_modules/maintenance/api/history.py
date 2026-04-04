@@ -60,6 +60,8 @@ def _build_history_item(entry: dict) -> MaintenanceHistoryWorkOrderItemResponse:
         title=item.title,
         description=item.description,
         priority=item.priority,
+        cancellation_reason=item.cancellation_reason,
+        closure_notes=item.closure_notes,
         maintenance_status=item.maintenance_status,
         requested_at=item.requested_at,
         scheduled_for=item.scheduled_for,

@@ -1,36 +1,61 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { PageHeader } from "../../../../../components/common/PageHeader";
+import { PanelCard } from "../../../../../components/common/PanelCard";
+import { ErrorState } from "../../../../../components/feedback/ErrorState";
+import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
+import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
 import type { ApiError } from "../../../../../types";
-import { MaintenanceCatalogPage } from "../components/common/MaintenanceCatalogPage";
 import {
-  createTenantMaintenanceVisit,
-  deleteTenantMaintenanceVisit,
-  getTenantMaintenanceVisits,
-  updateTenantMaintenanceVisit,
-  type TenantMaintenanceVisit,
-  type TenantMaintenanceVisitWriteRequest,
-} from "../services/visitsService";
+  getTenantBusinessClients,
+  type TenantBusinessClient,
+} from "../../business_core/services/clientsService";
 import {
-  getTenantMaintenanceWorkOrders,
-  type TenantMaintenanceWorkOrder,
-} from "../services/workOrdersService";
+  getTenantBusinessOrganizations,
+  type TenantBusinessOrganization,
+} from "../../business_core/services/organizationsService";
+import {
+  getTenantBusinessSites,
+  type TenantBusinessSite,
+} from "../../business_core/services/sitesService";
+import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
+import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
+import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
+import {
+  createTenantMaintenanceWorkOrder,
+  getTenantMaintenanceWorkOrders,
+  updateTenantMaintenanceWorkOrder,
+  type TenantMaintenanceWorkOrder,
+  type TenantMaintenanceWorkOrderWriteRequest,
+} from "../services/workOrdersService";
+import {
+  getTenantMaintenanceInstallations,
+  type TenantMaintenanceInstallation,
+} from "../services/installationsService";
 
-function buildDefaultForm(): TenantMaintenanceVisitWriteRequest {
+const ACTIVE_WORK_ORDER_STATUSES = new Set(["scheduled", "in_progress"]);
+const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+
+function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
   return {
-    work_order_id: 0,
-    visit_status: "scheduled",
-    scheduled_start_at: null,
-    scheduled_end_at: null,
-    actual_start_at: null,
-    actual_end_at: null,
+    client_id: 0,
+    site_id: 0,
+    installation_id: null,
+    external_reference: null,
+    title: "",
+    description: null,
+    priority: "normal",
+    scheduled_for: null,
+    cancellation_reason: null,
+    closure_notes: null,
     assigned_tenant_user_id: null,
-    assigned_group_label: null,
-    notes: null,
+    maintenance_status: "scheduled",
   };
 }
 
@@ -50,52 +75,165 @@ function formatDateTime(
   return formatDateTimeInTimeZone(value, language, timeZone);
 }
 
-function getStatusLabel(status: string, language: "es" | "en"): string {
-  switch (status) {
-    case "scheduled":
-      return language === "es" ? "Programada" : "Scheduled";
-    case "in_progress":
-      return language === "es" ? "En curso" : "In progress";
-    case "completed":
-      return language === "es" ? "Completada" : "Completed";
-    case "cancelled":
-      return language === "es" ? "Anulada" : "Cancelled";
-    default:
-      return status;
-  }
+function toMonthStart(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
-function getStatusTone(status: string): "success" | "danger" | "warning" | "info" | "neutral" {
-  if (status === "completed") {
-    return "success";
-  }
-  if (status === "cancelled") {
-    return "danger";
-  }
-  if (status === "in_progress") {
-    return "info";
-  }
-  if (status === "scheduled") {
-    return "warning";
-  }
-  return "neutral";
+function toDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function toLocalDateTimeValue(date: Date) {
+  return `${toDateKey(date)}T09:00`;
+}
+
+function getCalendarGridStart(date: Date) {
+  const monthStart = toMonthStart(date);
+  const dayIndex = (monthStart.getDay() + 6) % 7;
+  const start = new Date(monthStart);
+  start.setDate(monthStart.getDate() - dayIndex);
+  return start;
+}
+
+function getMonthLabel(date: Date, language: "es" | "en") {
+  return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
+function getWeekdayLabel(day: (typeof WEEKDAY_KEYS)[number], language: "es" | "en") {
+  const labels = {
+    es: {
+      mon: "Lun",
+      tue: "Mar",
+      wed: "Mié",
+      thu: "Jue",
+      fri: "Vie",
+      sat: "Sáb",
+      sun: "Dom",
+    },
+    en: {
+      mon: "Mon",
+      tue: "Tue",
+      wed: "Wed",
+      thu: "Thu",
+      fri: "Fri",
+      sat: "Sat",
+      sun: "Sun",
+    },
+  };
+  return labels[language][day];
 }
 
 export function MaintenanceCalendarPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
-  const [rows, setRows] = useState<TenantMaintenanceVisit[]>([]);
   const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
+  const [clients, setClients] = useState<TenantBusinessClient[]>([]);
+  const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
+  const [sites, setSites] = useState<TenantBusinessSite[]>([]);
+  const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
+  const [currentMonth, setCurrentMonth] = useState(() => toMonthStart(new Date()));
+  const [selectedDateKey, setSelectedDateKey] = useState(() => toDateKey(new Date()));
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [form, setForm] = useState<TenantMaintenanceVisitWriteRequest>(buildDefaultForm());
+  const [form, setForm] = useState<TenantMaintenanceWorkOrderWriteRequest>(buildDefaultForm());
 
-  const workOrderById = useMemo(
-    () => new Map(workOrders.map((item) => [item.id, item])),
+  const clientById = useMemo(
+    () => new Map(clients.map((client) => [client.id, client])),
+    [clients]
+  );
+  const organizationById = useMemo(
+    () => new Map(organizations.map((organization) => [organization.id, organization])),
+    [organizations]
+  );
+  const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
+
+  const filteredSites = useMemo(
+    () =>
+      form.client_id > 0
+        ? sites.filter((site) => site.client_id === Number(form.client_id))
+        : sites,
+    [form.client_id, sites]
+  );
+
+  const filteredInstallations = useMemo(
+    () =>
+      form.site_id > 0
+        ? installations.filter((item) => item.site_id === Number(form.site_id))
+        : installations,
+    [form.site_id, installations]
+  );
+
+  const activeRows = useMemo(
+    () =>
+      [...workOrders]
+        .filter((item) => ACTIVE_WORK_ORDER_STATUSES.has(item.maintenance_status))
+        .sort((left, right) => {
+          const leftDate = new Date(left.scheduled_for || left.requested_at).getTime();
+          const rightDate = new Date(right.scheduled_for || right.requested_at).getTime();
+          return leftDate - rightDate;
+        }),
     [workOrders]
+  );
+
+  const noClientsAvailable = clients.length === 0;
+  const selectedClientSites = form.client_id > 0 ? filteredSites : [];
+  const selectedSiteInstallations = form.site_id > 0 ? filteredInstallations : [];
+  const missingSiteForSelectedClient = form.client_id > 0 && selectedClientSites.length === 0;
+  const missingInstallationForSelectedSite =
+    form.site_id > 0 && selectedSiteInstallations.length === 0;
+  const submitBlocked =
+    noClientsAvailable ||
+    Number(form.client_id) <= 0 ||
+    Number(form.site_id) <= 0 ||
+    !form.installation_id ||
+    missingSiteForSelectedClient ||
+    missingInstallationForSelectedSite;
+
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, TenantMaintenanceWorkOrder[]>();
+    for (const item of activeRows) {
+      const source = item.scheduled_for || item.requested_at;
+      if (!source) {
+        continue;
+      }
+      const key = source.slice(0, 10);
+      const dayRows = map.get(key) ?? [];
+      dayRows.push(item);
+      map.set(key, dayRows);
+    }
+    return map;
+  }, [activeRows]);
+
+  const calendarDays = useMemo(() => {
+    const start = getCalendarGridStart(currentMonth);
+    return Array.from({ length: 42 }, (_, index) => {
+      const day = new Date(start);
+      day.setDate(start.getDate() + index);
+      const key = toDateKey(day);
+      return {
+        date: day,
+        key,
+        isCurrentMonth: day.getMonth() === currentMonth.getMonth(),
+        isToday: key === toDateKey(new Date()),
+        isSelected: key === selectedDateKey,
+        events: eventsByDate.get(key) ?? [],
+      };
+    });
+  }, [currentMonth, eventsByDate, selectedDateKey]);
+
+  const selectedDayEvents = useMemo(
+    () => eventsByDate.get(selectedDateKey) ?? [],
+    [eventsByDate, selectedDateKey]
   );
 
   async function loadData() {
@@ -105,15 +243,27 @@ export function MaintenanceCalendarPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [visitsResponse, workOrdersResponse] = await Promise.all([
-        getTenantMaintenanceVisits(session.accessToken),
+      const [
+        workOrdersResponse,
+        clientsResponse,
+        organizationsResponse,
+        sitesResponse,
+        installationsResponse,
+      ] = await Promise.all([
         getTenantMaintenanceWorkOrders(session.accessToken),
+        getTenantBusinessClients(session.accessToken, { includeInactive: false }),
+        getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
+        getTenantBusinessSites(session.accessToken, { includeInactive: false }),
+        getTenantMaintenanceInstallations(session.accessToken, { includeInactive: false }),
       ]);
-      setRows(visitsResponse.data);
       setWorkOrders(workOrdersResponse.data);
+      setClients(clientsResponse.data);
+      setOrganizations(organizationsResponse.data);
+      setSites(sitesResponse.data);
+      setInstallations(installationsResponse.data);
       setForm((current) => ({
         ...current,
-        work_order_id: current.work_order_id || workOrdersResponse.data[0]?.id || 0,
+        client_id: current.client_id || clientsResponse.data[0]?.id || 0,
       }));
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -126,30 +276,100 @@ export function MaintenanceCalendarPage() {
     void loadData();
   }, [session?.accessToken]);
 
-  function startCreate() {
+  useEffect(() => {
+    if (!filteredSites.some((site) => site.id === Number(form.site_id))) {
+      setForm((current) => ({
+        ...current,
+        site_id: filteredSites[0]?.id || 0,
+        installation_id: null,
+      }));
+    }
+  }, [filteredSites, form.site_id]);
+
+  useEffect(() => {
+    if (!filteredInstallations.some((item) => item.id === Number(form.installation_id))) {
+      setForm((current) => ({
+        ...current,
+        installation_id: filteredInstallations[0]?.id || null,
+      }));
+    }
+  }, [filteredInstallations, form.installation_id]);
+
+  function getClientDisplayName(clientId: number): string {
+    const client = clientById.get(clientId);
+    const organization = organizationById.get(client?.organization_id ?? -1);
+    return (
+      stripLegacyVisibleText(organization?.name) ||
+      stripLegacyVisibleText(organization?.legal_name) ||
+      (language === "es" ? "Cliente sin nombre" : "Unnamed client")
+    );
+  }
+
+  function getSiteDisplayName(siteId: number): string {
+    const site = siteById.get(siteId);
+    if (!site) {
+      return language === "es" ? "Dirección sin registrar" : "Missing address";
+    }
+    const base =
+      stripLegacyVisibleText(getVisibleAddressLabel(site)) ||
+      stripLegacyVisibleText(site.name) ||
+      (language === "es" ? "Dirección sin nombre" : "Unnamed address");
+    const locality = [site.commune, site.city, site.region]
+      .map((value) => stripLegacyVisibleText(value))
+      .filter((value): value is string => Boolean(value))
+      .join(", ");
+    return locality ? `${base} · ${locality}` : base;
+  }
+
+  function getClientOptionLabel(client: TenantBusinessClient): string {
+    const primarySite = sites.find((site) => site.client_id === client.id);
+    const clientName = getClientDisplayName(client.id);
+    return primarySite ? `${clientName} · ${getSiteDisplayName(primarySite.id)}` : clientName;
+  }
+
+  function startCreateForDate(date: Date) {
+    const clientId = clients[0]?.id || 0;
+    const candidateSites = sites.filter((site) => site.client_id === clientId);
+    const siteId = candidateSites[0]?.id || 0;
+    const candidateInstallations = installations.filter((installation) => installation.site_id === siteId);
+    setSelectedDateKey(toDateKey(date));
+    setCurrentMonth(toMonthStart(date));
     setEditingId(null);
     setFeedback(null);
     setError(null);
+    setIsFormOpen(true);
     setForm({
       ...buildDefaultForm(),
-      work_order_id: workOrders[0]?.id || 0,
+      client_id: clientId,
+      site_id: siteId,
+      installation_id: candidateInstallations[0]?.id || null,
+      scheduled_for: toLocalDateTimeValue(date),
     });
   }
 
-  function startEdit(item: TenantMaintenanceVisit) {
+  function startGeneralCreate() {
+    startCreateForDate(new Date());
+  }
+
+  function startEdit(item: TenantMaintenanceWorkOrder) {
     setEditingId(item.id);
     setFeedback(null);
     setError(null);
+    setIsFormOpen(true);
+    setSelectedDateKey((item.scheduled_for || item.requested_at).slice(0, 10));
     setForm({
-      work_order_id: item.work_order_id,
-      visit_status: item.visit_status,
-      scheduled_start_at: item.scheduled_start_at,
-      scheduled_end_at: item.scheduled_end_at,
-      actual_start_at: item.actual_start_at,
-      actual_end_at: item.actual_end_at,
+      client_id: item.client_id,
+      site_id: item.site_id,
+      installation_id: item.installation_id,
+      external_reference: item.external_reference,
+      title: item.title,
+      description: stripLegacyVisibleText(item.description),
+      priority: item.priority,
+      scheduled_for: item.scheduled_for,
+      cancellation_reason: null,
+      closure_notes: stripLegacyVisibleText(item.closure_notes),
       assigned_tenant_user_id: item.assigned_tenant_user_id,
-      assigned_group_label: item.assigned_group_label,
-      notes: stripLegacyVisibleText(item.notes),
+      maintenance_status: item.maintenance_status,
     });
   }
 
@@ -159,25 +379,28 @@ export function MaintenanceCalendarPage() {
     }
     setIsSubmitting(true);
     setError(null);
-    const payload: TenantMaintenanceVisitWriteRequest = {
-      work_order_id: Number(form.work_order_id),
-      visit_status: form.visit_status.trim().toLowerCase() || "scheduled",
-      scheduled_start_at: normalizeNullable(form.scheduled_start_at),
-      scheduled_end_at: normalizeNullable(form.scheduled_end_at),
-      actual_start_at: normalizeNullable(form.actual_start_at),
-      actual_end_at: normalizeNullable(form.actual_end_at),
-      assigned_tenant_user_id: form.assigned_tenant_user_id
-        ? Number(form.assigned_tenant_user_id)
-        : null,
-      assigned_group_label: normalizeNullable(form.assigned_group_label),
-      notes: stripLegacyVisibleText(normalizeNullable(form.notes)),
+    const payload: TenantMaintenanceWorkOrderWriteRequest = {
+      client_id: Number(form.client_id),
+      site_id: Number(form.site_id),
+      installation_id: form.installation_id ? Number(form.installation_id) : null,
+      external_reference: editingId ? normalizeNullable(form.external_reference) : null,
+      title: form.title.trim(),
+      description: stripLegacyVisibleText(normalizeNullable(form.description)),
+      priority: form.priority.trim().toLowerCase() || "normal",
+      scheduled_for: normalizeNullable(form.scheduled_for),
+      cancellation_reason: null,
+      closure_notes: editingId ? stripLegacyVisibleText(normalizeNullable(form.closure_notes)) : null,
+      assigned_tenant_user_id: form.assigned_tenant_user_id ? Number(form.assigned_tenant_user_id) : null,
+      ...(editingId ? {} : { maintenance_status: form.maintenance_status || "scheduled" }),
     };
     try {
       const response = editingId
-        ? await updateTenantMaintenanceVisit(session.accessToken, editingId, payload)
-        : await createTenantMaintenanceVisit(session.accessToken, payload);
+        ? await updateTenantMaintenanceWorkOrder(session.accessToken, editingId, payload)
+        : await createTenantMaintenanceWorkOrder(session.accessToken, payload);
       setFeedback(response.message);
-      startCreate();
+      setIsFormOpen(false);
+      setEditingId(null);
+      setForm(buildDefaultForm());
       await loadData();
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -186,192 +409,483 @@ export function MaintenanceCalendarPage() {
     }
   }
 
-  async function handleDelete(item: TenantMaintenanceVisit) {
-    if (!session?.accessToken) {
-      return;
-    }
-    const confirmed = window.confirm(
-      language === "es"
-        ? "Eliminar la visita programada. ¿Continuar?"
-        : "Delete the scheduled visit. Continue?"
-    );
-    if (!confirmed) {
-      return;
-    }
-    try {
-      const response = await deleteTenantMaintenanceVisit(session.accessToken, item.id);
-      if (editingId === item.id) {
-        startCreate();
-      }
-      setFeedback(response.message);
-      await loadData();
-    } catch (rawError) {
-      setError(rawError as ApiError);
-    }
-  }
-
   return (
-    <MaintenanceCatalogPage
-      titleEs="Agenda técnica"
-      titleEn="Technical calendar"
-      descriptionEs="Programación ligera de visitas sobre órdenes de trabajo activas, sin llegar todavía al calendario visual con conflictos."
-      descriptionEn="Lightweight visit scheduling on active work orders, without the full visual conflict calendar yet."
-      helpEs="Este bloque sirve para programar visitas reales de terreno. La agenda visual y los conflictos horarios vendrán después; aquí importa dejar orden, hora y responsable."
-      helpEn="This block is for scheduling real field visits. The visual calendar and time conflicts will come later; here the important thing is leaving order, time, and owner recorded."
-      loadingLabelEs="Cargando visitas..."
-      loadingLabelEn="Loading visits..."
-      isLoading={isLoading}
-      isSubmitting={isSubmitting}
-      rows={rows}
-      error={error}
-      feedback={feedback}
-      editingId={editingId}
-      form={form}
-      onFormChange={(next) =>
-        setForm({
-          ...next,
-          work_order_id: Number(next.work_order_id),
-        })
-      }
-      onSubmit={handleSubmit}
-      onCancel={startCreate}
-      onReload={loadData}
-      onNew={startCreate}
-      fields={[
-        {
-          key: "work_order_id",
-          labelEs: "Orden de trabajo",
-          labelEn: "Work order",
-          type: "select",
-          options: workOrders.map((item) => ({
-            value: String(item.id),
-            label: item.external_reference
-              ? `${item.external_reference} · ${item.title}`
-              : item.title,
-          })),
-        },
-        {
-          key: "visit_status",
-          labelEs: "Estado visita",
-          labelEn: "Visit status",
-          type: "select",
-          options: [
-            { value: "scheduled", label: language === "es" ? "Programada" : "Scheduled" },
-            { value: "in_progress", label: language === "es" ? "En curso" : "In progress" },
-            { value: "completed", label: language === "es" ? "Completada" : "Completed" },
-            { value: "cancelled", label: language === "es" ? "Anulada" : "Cancelled" },
-          ],
-        },
-        {
-          key: "scheduled_start_at",
-          labelEs: "Inicio programado",
-          labelEn: "Scheduled start",
-          type: "datetime-local",
-        },
-        {
-          key: "scheduled_end_at",
-          labelEs: "Fin programado",
-          labelEn: "Scheduled end",
-          type: "datetime-local",
-        },
-        {
-          key: "actual_start_at",
-          labelEs: "Inicio real",
-          labelEn: "Actual start",
-          type: "datetime-local",
-        },
-        {
-          key: "actual_end_at",
-          labelEs: "Fin real",
-          labelEn: "Actual end",
-          type: "datetime-local",
-        },
-        {
-          key: "assigned_group_label",
-          labelEs: "Grupo responsable",
-          labelEn: "Assigned group",
-        },
-        {
-          key: "notes",
-          labelEs: "Notas",
-          labelEn: "Notes",
-          type: "textarea",
-        },
-      ]}
-      columns={[
-        {
-          key: "visit",
-          headerEs: "Visita",
-          headerEn: "Visit",
-          render: (item) => {
-            const workOrder = workOrderById.get(item.work_order_id);
-            return (
-              <div>
-                <div className="maintenance-cell__title">
-                  {workOrder?.title || `#${item.work_order_id}`}
+    <div className="d-grid gap-4">
+      <PageHeader
+        eyebrow={language === "es" ? "Mantenciones" : "Maintenance"}
+        icon="planning"
+        title={language === "es" ? "Agenda técnica" : "Technical calendar"}
+        description={
+          language === "es"
+            ? "Calendario visual de mantenciones abiertas. Desde aquí puedes programar trabajo nuevo sobre cliente, dirección e instalación reales."
+            : "Visual calendar for open maintenance work. From here you can schedule new work on a real client, address, and installation."
+        }
+        actions={
+          <AppToolbar compact>
+            <MaintenanceHelpBubble
+              label={language === "es" ? "Ayuda" : "Help"}
+              helpText={
+                language === "es"
+                  ? "La agenda muestra solo mantenciones abiertas. Al completar o anular una orden, desaparece de aquí y queda en Historial."
+                  : "The calendar shows only open maintenance work. Once an order is completed or cancelled, it disappears from here and remains in History."
+              }
+            />
+            <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
+              {language === "es" ? "Recargar" : "Reload"}
+            </button>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={startGeneralCreate}
+              disabled={noClientsAvailable}
+            >
+              {language === "es" ? "Nueva mantención" : "New maintenance work"}
+            </button>
+          </AppToolbar>
+        }
+      />
+      <MaintenanceModuleNav />
+
+      {noClientsAvailable ? (
+        <div className="alert alert-warning mb-0">
+          {language === "es"
+            ? "Antes de agendar una mantención debe existir un cliente en Core de negocio."
+            : "A client must exist in Business core before scheduling maintenance."}{" "}
+          <Link to="/tenant-portal/business-core/clients">
+            {language === "es" ? "Ir a clientes" : "Go to clients"}
+          </Link>
+        </div>
+      ) : null}
+
+      {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
+
+      {error ? (
+        <ErrorState
+          title={language === "es" ? "No se pudo cargar la agenda" : "The calendar could not be loaded"}
+          detail={getApiErrorDisplayMessage(error)}
+          requestId={error.payload?.request_id}
+        />
+      ) : null}
+
+      {isLoading ? (
+        <LoadingBlock label={language === "es" ? "Cargando agenda técnica..." : "Loading technical calendar..."} />
+      ) : null}
+
+      <PanelCard
+        title={language === "es" ? "Agenda visual" : "Visual calendar"}
+        subtitle={
+          language === "es"
+            ? "Cada bloque representa una mantención abierta programada para ese día. Haz clic sobre el día para crear una nueva."
+            : "Each block represents an open maintenance job scheduled for that day. Click a day to create a new one."
+        }
+        actions={
+          <div className="maintenance-calendar__toolbar">
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
+              onClick={() => setCurrentMonth(toMonthStart(new Date()))}
+            >
+              {language === "es" ? "Hoy" : "Today"}
+            </button>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
+              onClick={() =>
+                setCurrentMonth(
+                  (current) => new Date(current.getFullYear(), current.getMonth() - 1, 1)
+                )
+              }
+            >
+              {language === "es" ? "Anterior" : "Back"}
+            </button>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
+              onClick={() =>
+                setCurrentMonth(
+                  (current) => new Date(current.getFullYear(), current.getMonth() + 1, 1)
+                )
+              }
+            >
+              {language === "es" ? "Siguiente" : "Next"}
+            </button>
+          </div>
+        }
+      >
+        <div className="maintenance-calendar">
+          <div className="maintenance-calendar__heading">
+            {getMonthLabel(currentMonth, language)}
+          </div>
+          <div className="maintenance-calendar__weekdays">
+            {WEEKDAY_KEYS.map((day) => (
+              <div key={day} className="maintenance-calendar__weekday">
+                {getWeekdayLabel(day, language)}
+              </div>
+            ))}
+          </div>
+          <div className="maintenance-calendar__grid">
+            {calendarDays.map((day) => (
+              <button
+                key={day.key}
+                type="button"
+                className={[
+                  "maintenance-calendar__day",
+                  day.isCurrentMonth ? "" : "is-outside",
+                  day.isToday ? "is-today" : "",
+                  day.isSelected ? "is-selected" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                onClick={() => {
+                  setSelectedDateKey(day.key);
+                  if (day.isCurrentMonth) {
+                    startCreateForDate(day.date);
+                  }
+                }}
+              >
+                <div className="maintenance-calendar__day-header">
+                  <span>{day.date.getDate()}</span>
+                  {day.isCurrentMonth ? (
+                    <span className="maintenance-calendar__day-action">
+                      {language === "es" ? "+ mant." : "+ maint."}
+                    </span>
+                  ) : null}
                 </div>
-                <div className="maintenance-cell__meta">
-                  {workOrder?.external_reference || getStatusLabel(item.visit_status, language)}
+                <div className="maintenance-calendar__events">
+                  {day.events.slice(0, 4).map((item) => (
+                    <span
+                      key={item.id}
+                      className={`maintenance-calendar__event is-${item.maintenance_status}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        startEdit(item);
+                      }}
+                    >
+                      <strong>
+                        {formatDateTime(item.scheduled_for, language, effectiveTimeZone).split(",")[1]?.trim() ||
+                          formatDateTime(item.scheduled_for, language, effectiveTimeZone)}
+                      </strong>
+                      <span>{stripLegacyVisibleText(item.title) || "—"}</span>
+                    </span>
+                  ))}
+                  {day.events.length > 4 ? (
+                    <span className="maintenance-calendar__more">
+                      {language === "es"
+                        ? `+${day.events.length - 4} más`
+                        : `+${day.events.length - 4} more`}
+                    </span>
+                  ) : null}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </PanelCard>
+
+      <PanelCard
+        title={language === "es" ? "Mantenciones del día seleccionado" : "Maintenance for selected day"}
+        subtitle={
+          language === "es"
+            ? "Lectura rápida del día escogido, con cliente, dirección y horario."
+            : "Quick reading of the selected day, with client, address, and schedule."
+        }
+      >
+        {selectedDayEvents.length === 0 ? (
+          <div className="maintenance-cell__meta">
+            {language === "es" ? "No hay mantenciones abiertas para este día." : "There is no open maintenance work for this day."}
+          </div>
+        ) : (
+          <div className="d-grid gap-3">
+            {selectedDayEvents.map((item) => (
+              <div key={item.id} className="maintenance-history-entry">
+                <div className="d-flex flex-wrap justify-content-between gap-2 align-items-start">
+                  <div className="d-grid gap-1">
+                    <div className="maintenance-history-entry__title">
+                      {stripLegacyVisibleText(item.title) || "—"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {getClientDisplayName(item.client_id)}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {getSiteDisplayName(item.site_id)}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {language === "es" ? "Instalación" : "Installation"}:{" "}
+                      {item.installation_id
+                        ? installations.find((installation) => installation.id === item.installation_id)?.name || `#${item.installation_id}`
+                        : language === "es"
+                          ? "sin instalación"
+                          : "no installation"}
+                    </div>
+                  </div>
+                  <AppBadge tone={item.maintenance_status === "in_progress" ? "info" : "warning"}>
+                    {item.maintenance_status === "in_progress"
+                      ? language === "es"
+                        ? "En curso"
+                        : "In progress"
+                      : language === "es"
+                        ? "Programada"
+                        : "Scheduled"}
+                  </AppBadge>
+                </div>
+                <div className="maintenance-history-entry__meta mt-2">
+                  {formatDateTime(item.scheduled_for, language, effectiveTimeZone)}
                 </div>
               </div>
-            );
-          },
-        },
-        {
-          key: "window",
-          headerEs: "Ventana",
-          headerEn: "Window",
-          render: (item) => (
-            <div>
-              <div>{formatDateTime(item.scheduled_start_at, language, effectiveTimeZone)}</div>
-              <div className="maintenance-cell__meta">
-                {formatDateTime(item.scheduled_end_at, language, effectiveTimeZone)}
-              </div>
+            ))}
+          </div>
+        )}
+      </PanelCard>
+
+      {isFormOpen ? (
+        <div className="maintenance-form-backdrop" role="presentation" onClick={() => setIsFormOpen(false)}>
+          <div
+            className="maintenance-form-modal maintenance-form-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              editingId
+                ? language === "es"
+                  ? "Editar mantención desde agenda"
+                  : "Edit maintenance from calendar"
+                : language === "es"
+                  ? "Nueva mantención desde agenda"
+                  : "New maintenance from calendar"
+            }
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="maintenance-form-modal__eyebrow">
+              {editingId
+                ? language === "es"
+                  ? "Edición desde agenda"
+                  : "Calendar edit"
+                : language === "es"
+                  ? "Alta desde agenda"
+                  : "Calendar creation"}
             </div>
-          ),
-        },
-        {
-          key: "status",
-          headerEs: "Estado",
-          headerEn: "Status",
-          render: (item) => (
-            <AppBadge tone={getStatusTone(item.visit_status)}>
-              {getStatusLabel(item.visit_status, language)}
-            </AppBadge>
-          ),
-        },
-        {
-          key: "assignment",
-          headerEs: "Responsable",
-          headerEn: "Owner",
-          render: (item, currentLanguage) =>
-            item.assigned_group_label ||
-            (currentLanguage === "es" ? "sin grupo" : "no group"),
-        },
-        {
-          key: "actions",
-          headerEs: "Acciones",
-          headerEn: "Actions",
-          render: (item, currentLanguage) => (
-            <AppToolbar compact>
-              <button
-                className="btn btn-sm btn-outline-primary"
-                type="button"
-                onClick={() => startEdit(item)}
+            <PanelCard
+              title={
+                editingId
+                  ? language === "es"
+                    ? "Editar mantención"
+                    : "Edit maintenance work"
+                  : language === "es"
+                    ? "Nueva mantención"
+                    : "New maintenance work"
+              }
+              subtitle={
+                language === "es"
+                  ? "La agenda programa mantenciones abiertas; al completarlas, desaparecerán de aquí."
+                  : "The calendar schedules open maintenance work; once completed, it will disappear from here."
+              }
+            >
+              <form
+                className="maintenance-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void handleSubmit();
+                }}
               >
-                {currentLanguage === "es" ? "Editar" : "Edit"}
-              </button>
-              <button
-                className="btn btn-sm btn-outline-danger"
-                type="button"
-                onClick={() => void handleDelete(item)}
-              >
-                {currentLanguage === "es" ? "Eliminar" : "Delete"}
-              </button>
-            </AppToolbar>
-          ),
-        },
-      ]}
-    />
+                <div className="row g-3">
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Cliente" : "Client"}</label>
+                    <select
+                      className="form-select"
+                      value={form.client_id}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          client_id: Number(event.target.value),
+                        }))
+                      }
+                    >
+                      <option value={0}>
+                        {language === "es" ? "Selecciona un cliente" : "Select a client"}
+                      </option>
+                      {clients.map((client) => (
+                        <option key={client.id} value={client.id}>
+                          {getClientOptionLabel(client)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Dirección" : "Address"}</label>
+                    <select
+                      className="form-select"
+                      value={form.site_id}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          site_id: Number(event.target.value),
+                        }))
+                      }
+                    >
+                      <option value={0}>
+                        {language === "es" ? "Selecciona una dirección" : "Select an address"}
+                      </option>
+                      {filteredSites.map((site) => (
+                        <option key={site.id} value={site.id}>
+                          {getSiteDisplayName(site.id)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Instalación" : "Installation"}</label>
+                    <select
+                      className="form-select"
+                      value={form.installation_id ?? ""}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          installation_id: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    >
+                      <option value="">
+                        {language === "es"
+                          ? "Selecciona una instalación"
+                          : "Select an installation"}
+                      </option>
+                      {filteredInstallations.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {!editingId ? (
+                    <div className="col-12 col-md-6">
+                      <label className="form-label">
+                        {language === "es" ? "Estado inicial" : "Initial status"}
+                      </label>
+                      <select
+                        className="form-select"
+                        value={form.maintenance_status}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            maintenance_status: event.target.value,
+                          }))
+                        }
+                      >
+                        <option value="scheduled">{language === "es" ? "Programada" : "Scheduled"}</option>
+                        <option value="in_progress">{language === "es" ? "En curso" : "In progress"}</option>
+                      </select>
+                    </div>
+                  ) : null}
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Prioridad" : "Priority"}</label>
+                    <select
+                      className="form-select"
+                      value={form.priority}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          priority: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="low">{language === "es" ? "Baja" : "Low"}</option>
+                      <option value="normal">{language === "es" ? "Normal" : "Normal"}</option>
+                      <option value="high">{language === "es" ? "Alta" : "High"}</option>
+                      <option value="critical">{language === "es" ? "Crítica" : "Critical"}</option>
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {language === "es" ? "Fecha y hora programada" : "Scheduled date and time"}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="datetime-local"
+                      value={form.scheduled_for ?? ""}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          scheduled_for: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  {missingSiteForSelectedClient ? (
+                    <div className="col-12">
+                      <div className="alert alert-warning mb-0">
+                        {language === "es"
+                          ? "Este cliente aún no tiene dirección operativa. Crea la dirección antes de agendar la mantención."
+                          : "This client does not have an operational address yet. Create it before scheduling maintenance."}{" "}
+                        <Link to="/tenant-portal/business-core/clients">
+                          {language === "es" ? "Ir a clientes" : "Go to clients"}
+                        </Link>
+                      </div>
+                    </div>
+                  ) : null}
+                  {missingInstallationForSelectedSite ? (
+                    <div className="col-12">
+                      <div className="alert alert-warning mb-0">
+                        {language === "es"
+                          ? "La dirección seleccionada aún no tiene instalación. Crea la instalación antes de agendar la mantención."
+                          : "The selected address does not have an installation yet. Create the installation before scheduling maintenance."}{" "}
+                        <Link to="/tenant-portal/maintenance/installations">
+                          {language === "es" ? "Ir a instalaciones" : "Go to installations"}
+                        </Link>
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="col-12">
+                    <label className="form-label">{language === "es" ? "Trabajo a realizar" : "Work to be done"}</label>
+                    <input
+                      className="form-control"
+                      value={form.title}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          title: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label">
+                      {language === "es" ? "Detalle técnico" : "Technical detail"}
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows={4}
+                      value={form.description ?? ""}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          description: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="maintenance-form__actions">
+                  <button className="btn btn-outline-secondary" type="button" onClick={() => setIsFormOpen(false)}>
+                    {language === "es" ? "Cancelar" : "Cancel"}
+                  </button>
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting || submitBlocked}>
+                    {isSubmitting
+                      ? language === "es"
+                        ? "Guardando..."
+                        : "Saving..."
+                      : editingId
+                        ? language === "es"
+                          ? "Guardar cambios"
+                          : "Save changes"
+                        : language === "es"
+                          ? "Crear mantención"
+                          : "Create maintenance"}
+                  </button>
+                </div>
+              </form>
+            </PanelCard>
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }

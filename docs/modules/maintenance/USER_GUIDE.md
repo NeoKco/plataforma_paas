@@ -30,19 +30,24 @@ La version actual de `ieris_app` resuelve la operacion base, pero tiene limites 
 
 El primer corte del modulo ya permite:
 
-- ver ordenes de trabajo activas y cerradas
-- leer la tabla de mantenciones por cliente, direccion e instalacion
-- ordenar operativamente por fecha y hora programada/solicitada mas reciente
+- ver solo mantenciones abiertas en la bandeja `Mantenciones`
+- ver mantenciones realizadas o anuladas en `Historial`
+- leer la bandeja por cliente, direccion e instalacion
+- ordenar operativamente por fecha y hora de trabajo mas reciente
 - crear una orden nueva
 - editar una orden aun no cerrada
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
+- sacar automaticamente de la bandeja activa una orden al completarla o anularla
 - mantener catalogo de tipos de equipo
 - mantener instalaciones tecnicas ligadas a sitios del dominio base
 - consumir clientes y sitios desde `business-core`
 - consultar historial tecnico de ordenes cerradas con cambios de estado y visitas registradas
-- programar visitas técnicas ligadas a órdenes de trabajo
+- corregir desde `Historial` solo descripcion, notas de cierre o motivo de anulacion
+- ver una agenda visual mensual de mantenciones abiertas
+- crear mantenciones desde la agenda visual
 - abrir `Mantenciones` desde la ficha del cliente con cliente y dirección ya preseleccionados
 - abrir altas y ediciones desde modal bajo demanda, dejando catálogo y lectura como primer plano
+- ver en `Resumen` las ultimas 5 mantenciones realizadas con datos de cliente, direccion y fecha
 
 ## Lo que no entra en el primer corte
 
@@ -50,10 +55,9 @@ El primer corte del modulo ya permite:
 - `CRM`
 - `cotizaciones`
 - expediente tecnico completo
-- agenda integrada
 - historial enriquecido por visitas
 - evidencias y checklist
-- agenda visual con conflictos y reprogramación rica
+- agenda visual con conflictos, filtros por técnico/grupo y reprogramación rica
 
 ## Flujo operativo esperado
 
@@ -64,8 +68,9 @@ El primer corte del modulo ya permite:
 5. crear la orden con prioridad y contexto tecnico
 6. cambiar estado a `en curso` cuando el trabajo arranca
 7. completar o anular la orden dejando observacion o motivo
-8. programar o corregir visitas desde agenda técnica
+8. al cerrar, la orden deja de verse en `Mantenciones`
 9. revisar despues el historial tecnico con sus cambios de estado y visitas
+10. usar `Agenda` para ver visualmente el trabajo abierto del mes y crear nuevas mantenciones desde una fecha
 
 Tambien deberia funcionar asi:
 
@@ -74,6 +79,14 @@ Tambien deberia funcionar asi:
 3. revisar direccion, contactos e instalaciones asociadas
 4. saltar a `Mantenciones` con el contexto del cliente ya cargado
 
+Lectura funcional de cada vista:
+
+- `Resumen`: tablero corto con abiertas y ultimas 5 realizadas
+- `Mantenciones`: solo trabajo abierto (`scheduled` / `in_progress`)
+- `Instalaciones`: parque instalado por cliente y direccion
+- `Historial`: trabajo ya realizado o anulado
+- `Agenda`: calendario visual del trabajo abierto
+
 Regla UX operativa:
 
 - la lectura del catálogo debe verse primero
@@ -81,6 +94,9 @@ Regla UX operativa:
 - la captura se abre solo cuando el usuario pide `Nuevo` o `Editar`
 - los identificadores `legacy_*` o referencias externas internas no deben verse ni editarse en la captura normal
 - si falta cliente, direccion o instalacion, el modal debe informar la dependencia faltante antes de permitir agendar
+- el usuario no debe ver referencias `legacy_*` como datos operativos
+- una mantencion cerrada no debe seguir apareciendo editable en la bandeja activa
+- en historial solo deberian poder corregirse descripcion o cierre, no reprogramar fecha/hora
 
 ## Mejora funcional recomendada
 
@@ -89,9 +105,10 @@ La version PaaS ya mejora a la actual en estos puntos y todavia tiene mejoras pe
 - una mantencion debe quedar ligada a una instalacion concreta cuando exista
 - la pantalla debe mostrar el cliente por nombre humano y no por codigos internos
 - el estado no debe depender de borrar el registro activo
+- la bandeja diaria debe mostrar solo trabajo pendiente
 - hoy ya existe una lectura clara de `programada`, `en curso`, `completada` y `anulada`
 - sigue pendiente una linea de tiempo tecnica por cliente
-- sigue pendiente un flujo mas simple de visitas, evidencias y cierre en terreno
+- sigue pendiente un flujo mas simple de evidencias y cierre en terreno
 
 ## Roles recomendados
 

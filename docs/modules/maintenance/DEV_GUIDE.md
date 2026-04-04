@@ -120,6 +120,11 @@ Fuente frontend principal:
 - en `work_orders`, cliente y direccion deben leerse con nombre humano desde `business-core`, nunca por `client_code` o marcas `legacy_*`
 - `external_reference` queda como dato interno para migracion e integraciones; no debe exponerse como campo editable en la UX normal
 - para crear o editar una orden operativa se exige `client_id`, `site_id` e `installation_id` validos
+- `Mantenciones` es una bandeja de trabajo abierto, no un mezclador de abiertas y cerradas
+- `Historial` debe derivarse de `completed` y `cancelled`
+- una orden cerrada no debe volver a editarse desde la bandeja operativa
+- desde `Historial` solo deberian exponerse correcciones de descripcion/cierre, congelando fecha, hora, cliente, direccion e instalacion
+- `Agenda` debe pintar mantenciones abiertas sobre calendario visual, no visitas como lista catalogada
 
 ## Checklist de cumplimiento del modulo
 
@@ -134,7 +139,7 @@ Fuente frontend principal:
 
 `maintenance` sigue debiendo:
 
-- agenda visual mas rica
+- agenda visual con conflictos y responsables reales
 - evidencias y checklist
 - cierre UX por ficha/orden de trabajo
 - smoke E2E especifico del modulo con sus flujos principales
@@ -176,6 +181,13 @@ Lifecycle base ya operativo:
 - `completed`
 - `cancelled`
 
+Regla UX/operativa aplicada:
+
+- `scheduled` y `in_progress` viven en `Mantenciones`
+- `completed` y `cancelled` viven en `Historial`
+- el cierre mueve de vista, no de tabla
+- una vez cerrada, no deberia poder reabrirse desde el CRUD normal sin una accion explicita futura
+
 El historico deberia ser una vista derivada de las ordenes cerradas, no otra tabla obligatoria para operar.
 
 ## Integraciones recomendadas
@@ -213,7 +225,7 @@ Frontend actual:
   - `installations`
   - `equipment-types`
   - `history`
-  - `calendar` como agenda ligera de visitas
+  - `calendar` como agenda visual mensual de mantenciones abiertas
 
 Documentacion:
 
@@ -248,7 +260,7 @@ Estado real:
 Etapa 2:
 
 - integracion real con sitios y activos
-- agenda integrada
+- agenda con filtros por tecnico/grupo y conflictos
 - checklist operativo
 - evidencias adjuntas
 - mejor lectura de ficha por cliente
