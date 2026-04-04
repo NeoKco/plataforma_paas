@@ -64,7 +64,7 @@ Resumen curado de hitos del módulo `finance`.
 
 - se incorporó stack Playwright base
 - smoke `platform_admin` operativo
-- smoke `tenant finance` revalidado usando `empresa-bootstrap`
+- smoke `tenant finance` revalidado usando `empresa-demo`
 - smoke `tenant finance` ampliado a creación, adjunto, anulación, conciliación, enforcement visible de límites, catálogos básicos (`accounts`, `categories`), configuración base (`currencies`, `exchange rates`, `settings`), presupuestos base (`create`, `clone`), plantillas/ajustes guiados de presupuestos, préstamos base (`create`, `payment`), batch/reversal de préstamos y lectura/exportación contable derivada
 - se agregó un smoke específico para `Presupuestos` avanzados que valida `previous_month` con escala/redondeo y la acción guiada de desactivación sobre categorías enfocadas
 - se agregó un smoke específico para `Préstamos` contables que valida pago simple + reversa, tabla derivada y exportaciones `CSV`/`JSON`

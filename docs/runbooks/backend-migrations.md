@@ -96,6 +96,12 @@ cd /home/felipe/platform_paas/backend
 /home/felipe/platform_paas/platform_paas_venv/bin/python app/scripts/sync_active_tenant_schemas.py --slug empresa-demo
 ```
 
+Estado local validado al cierre actual:
+
+- `empresa-demo` -> `0020_work_group_members_and_maintenance_assignments`
+- `condominio-demo` -> `0020_work_group_members_and_maintenance_assignments`
+- `empresa-bootstrap` -> `0020_work_group_members_and_maintenance_assignments`
+
 ## Integracion con el backend
 
 Hoy las migraciones tambien entran por estas vias:

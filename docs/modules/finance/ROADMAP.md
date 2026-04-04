@@ -33,7 +33,7 @@ Ya cubre:
 - manejo de moneda base y formateo de montos
 - ayudas contextuales en UI
 - importador idempotente con compresión de imágenes
-- E2E browser base revalidado con `empresa-bootstrap`
+- E2E browser base revalidado con `empresa-demo`
 - E2E browser de `finance` validado para creación, adjunto, anulación, conciliación, límites visibles, mantenimiento de cuentas/categorías, configuración financiera base (`currencies`, `exchange rates`, `settings`), flujo base de presupuestos, plantillas y ajustes guiados de presupuestos, flujo base de préstamos, batch/reversal de préstamos y lectura contable derivada con exportaciones
 
 ## Próximo nivel recomendado
