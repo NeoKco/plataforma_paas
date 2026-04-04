@@ -28,11 +28,14 @@ Validacion ya realizada:
 
 - `dry-run` validado contra la BD legacy `kanban_db`
 - tenant destino validado: `empresa-bootstrap`
+- tenant destino validado tambien: `empresa-demo`
 - antes de esa corrida se aplicaron en ese tenant:
   - `0015_business_core_base`
   - `0016_maintenance_base`
   - `0017_business_core_taxonomy`
+- luego `empresa-demo` tambien se alineo a `0018_business_core_site_commune`
 - `--apply` ejecutado con exito sobre `empresa-bootstrap`
+- `--apply` ejecutado con exito sobre `empresa-demo`
 - segunda corrida en `dry-run` validada como idempotente
 - luego se reaplico `--apply` para corregir direcciones legacy ya existentes y normalizar `commune/city/region` en `empresa-bootstrap`
 

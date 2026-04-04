@@ -59,6 +59,7 @@
 - la captura de orden deja `external_reference` como dato interno no editable y exige instalacion real antes de guardar
 - cuando falta cliente, direccion o instalacion, la pantalla informa la dependencia y deriva a `Core de negocio` o `Instalaciones`
 - se alinea la documentacion del modulo con el nuevo [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md), dejando checklist explícita de cumplimiento y pendientes de cierre
+- se importa `business-core` y `maintenance` desde `ieris_app` tambien sobre `empresa-demo` para usarlo como tenant de trabajo con datos reales
 
 ## 2026-04-01
 
