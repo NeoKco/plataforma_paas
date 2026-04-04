@@ -78,6 +78,9 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await expect(page.getByLabel(/Próxima mantención|Next due/i)).toBeVisible();
   await expect(page.getByLabel(/Duración estimada|Estimated duration/i)).toBeVisible();
   await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+  await expect(
+    page.getByRole("heading", { name: /Agrupación por organización|Organization grouping/i })
+  ).toBeVisible();
   const dueRows = page.locator("tbody tr");
   if ((await dueRows.count()) > 0) {
     const firstDueRow = dueRows.first();

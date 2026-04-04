@@ -130,6 +130,7 @@ Fuente frontend principal:
 - `Pendientes` ya existe como bandeja preventiva separada de `Mantenciones`, para no mezclar trabajo abierto con vencimientos por gestionar
 - `Nueva programación` debe respetar exactamente el mismo patrón modal/visual de `Nueva mantención`; no se aceptan formularios incrustados ni maquetaciones divergentes dentro del mismo módulo
 - `Pendientes` ya debe exponer acciones operativas directas por fila: `Ver cliente`, `Contactar`, `Posponer`, `Agendar`
+- la agrupación por organización en `Pendientes` es una lectura complementaria; nunca debe reemplazar la unidad operativa real de cliente/dirección/instalación
 
 ## Checklist de cumplimiento del modulo
 
@@ -150,7 +151,7 @@ Fuente frontend principal:
 - smoke E2E especifico del modulo con sus flujos principales
 - validaciones mas profundas de duplicados y conflictos de programacion
 - filtros operativos por grupo y tecnico dentro de la agenda mensual
-- agrupacion visual por organizacion mas rica dentro de `Pendientes` sin perder la operacion por cliente/direccion/instalacion
+- reporte explicito de clientes con instalación activa y sin plan de mantención
 
 ## Modelo objetivo recomendado en PaaS
 

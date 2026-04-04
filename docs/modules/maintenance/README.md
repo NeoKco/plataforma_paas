@@ -73,6 +73,7 @@ Estado del corte hoy:
 - `Pendientes` ya genera y muestra vencimientos preventivos por cliente/direccion/instalacion sin mezclar ese flujo con `Mantenciones`
 - `Nueva programación` ya respeta el mismo patrón modal y visual de `Nueva mantención`
 - `Pendientes` ya permite `Ver cliente`, `Contactar`, `Posponer` y `Agendar` desde la misma fila
+- `Pendientes` ya agrega una lectura agrupada por organización para coordinar carga sin perder la operación por cliente/dirección
 
 Pendientes visibles inmediatos:
 

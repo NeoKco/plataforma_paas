@@ -94,6 +94,7 @@ Lectura funcional de cada vista:
 - `Resumen`: tablero corto con abiertas y ultimas 5 realizadas
 - `Pendientes`: bandeja automática de mantenciones por gestionar, visible cuando el cliente ya entró en ventana de vencimiento
   - `Nueva programación` sigue el mismo patrón visual, jerarquía de lectura y modal de `Nueva mantención`
+  - la misma pantalla agrega una lectura agrupada por organización para coordinar mejor varias contrapartes sin depender de memoria
   - desde la tabla puedes abrir `Ver cliente`, `Contactar`, `Posponer` o `Agendar`
 - `Mantenciones`: solo trabajo abierto (`scheduled` / `in_progress`)
 - `Instalaciones`: parque instalado por cliente y direccion

@@ -255,6 +255,55 @@ export function MaintenanceDueItemsPage() {
     );
   }, [rows]);
 
+  const organizationGroups = useMemo(() => {
+    const groups = new Map<
+      number,
+      {
+        organizationId: number;
+        organizationName: string;
+        items: TenantMaintenanceDueItem[];
+        overdueCount: number;
+        upcomingCount: number;
+        contactedCount: number;
+      }
+    >();
+
+    rows.forEach((row) => {
+      const client = clientById.get(row.client_id);
+      const organizationId = client?.organization_id ?? -1;
+      const organizationName = getOrganizationName(row.client_id);
+      const current = groups.get(organizationId) ?? {
+        organizationId,
+        organizationName,
+        items: [],
+        overdueCount: 0,
+        upcomingCount: 0,
+        contactedCount: 0,
+      };
+      current.items.push(row);
+      if (row.due_status === "due") {
+        current.overdueCount += 1;
+      }
+      if (row.due_status === "upcoming") {
+        current.upcomingCount += 1;
+      }
+      if (row.due_status === "contacted") {
+        current.contactedCount += 1;
+      }
+      groups.set(organizationId, current);
+    });
+
+    return Array.from(groups.values()).sort((left, right) => {
+      if (right.overdueCount !== left.overdueCount) {
+        return right.overdueCount - left.overdueCount;
+      }
+      if (right.items.length !== left.items.length) {
+        return right.items.length - left.items.length;
+      }
+      return left.organizationName.localeCompare(right.organizationName);
+    });
+  }, [clientById, rows]);
+
   async function loadData() {
     if (!session?.accessToken) {
       return;
@@ -336,6 +385,36 @@ export function MaintenanceDueItemsPage() {
       return language === "es" ? "Instalación pendiente" : "Installation pending";
     }
     return installationById.get(installationId)?.name || `#${installationId}`;
+  }
+
+  function renderDueActions(item: TenantMaintenanceDueItem) {
+    return (
+      <AppToolbar compact>
+        <Link
+          className="btn btn-sm btn-outline-secondary"
+          to={`/tenant-portal/business-core/clients/${item.client_id}`}
+        >
+          {language === "es" ? "Ver cliente" : "Open client"}
+        </Link>
+        <button
+          className="btn btn-sm btn-outline-secondary"
+          type="button"
+          onClick={() => openContactDueItem(item)}
+        >
+          {language === "es" ? "Contactar" : "Contact"}
+        </button>
+        <button
+          className="btn btn-sm btn-outline-secondary"
+          type="button"
+          onClick={() => openPostponeDueItem(item)}
+        >
+          {language === "es" ? "Posponer" : "Postpone"}
+        </button>
+        <button className="btn btn-sm btn-primary" type="button" onClick={() => openScheduleDueItem(item)}>
+          {language === "es" ? "Agendar" : "Schedule"}
+        </button>
+      </AppToolbar>
+    );
   }
 
   function startCreatePlan() {
@@ -648,36 +727,89 @@ export function MaintenanceDueItemsPage() {
           {
             key: "actions",
             header: language === "es" ? "Acciones" : "Actions",
-            render: (item) => (
-              <AppToolbar compact>
-                <Link
-                  className="btn btn-sm btn-outline-secondary"
-                  to={`/tenant-portal/business-core/clients/${item.client_id}`}
-                >
-                  {language === "es" ? "Ver cliente" : "Open client"}
-                </Link>
-                <button
-                  className="btn btn-sm btn-outline-secondary"
-                  type="button"
-                  onClick={() => openContactDueItem(item)}
-                >
-                  {language === "es" ? "Contactar" : "Contact"}
-                </button>
-                <button
-                  className="btn btn-sm btn-outline-secondary"
-                  type="button"
-                  onClick={() => openPostponeDueItem(item)}
-                >
-                  {language === "es" ? "Posponer" : "Postpone"}
-                </button>
-                <button className="btn btn-sm btn-primary" type="button" onClick={() => openScheduleDueItem(item)}>
-                  {language === "es" ? "Agendar" : "Schedule"}
-                </button>
-              </AppToolbar>
-            ),
+            render: (item) => renderDueActions(item),
           },
         ]}
       />
+
+      <PanelCard
+        title={language === "es" ? "Agrupación por organización" : "Organization grouping"}
+        subtitle={
+          language === "es"
+            ? "Lectura ejecutiva para coordinar carga por organización sin perder la operación por cliente, dirección e instalación."
+            : "Executive reading to coordinate workload by organization without losing the operational unit of client, address, and installation."
+        }
+      >
+        {organizationGroups.length === 0 ? (
+          <div className="maintenance-cell__meta">
+            {language === "es"
+              ? "Aún no hay organizaciones con mantenciones visibles en esta bandeja."
+              : "There are no organizations with visible maintenance in this tray yet."}
+          </div>
+        ) : (
+          <div className="maintenance-due-groups">
+            {organizationGroups.map((group) => (
+              <section key={`${group.organizationId}-${group.organizationName}`} className="maintenance-due-group">
+                <div className="maintenance-due-group__header">
+                  <div>
+                    <h3 className="maintenance-due-group__title">{group.organizationName}</h3>
+                    <p className="maintenance-due-group__subtitle">
+                      {language === "es"
+                        ? `${group.items.length} mantenciones visibles para coordinar`
+                        : `${group.items.length} visible maintenance items to coordinate`}
+                    </p>
+                  </div>
+                  <div className="maintenance-due-group__badges">
+                    {group.overdueCount > 0 ? (
+                      <AppBadge tone="danger">
+                        {language === "es"
+                          ? `${group.overdueCount} vencida${group.overdueCount === 1 ? "" : "s"}`
+                          : `${group.overdueCount} overdue`}
+                      </AppBadge>
+                    ) : null}
+                    {group.upcomingCount > 0 ? (
+                      <AppBadge tone="warning">
+                        {language === "es"
+                          ? `${group.upcomingCount} por vencer`
+                          : `${group.upcomingCount} upcoming`}
+                      </AppBadge>
+                    ) : null}
+                    {group.contactedCount > 0 ? (
+                      <AppBadge tone="info">
+                        {language === "es"
+                          ? `${group.contactedCount} contactada${group.contactedCount === 1 ? "" : "s"}`
+                          : `${group.contactedCount} contacted`}
+                      </AppBadge>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="maintenance-due-group__items">
+                  {group.items.map((item) => (
+                    <article key={item.id} className="maintenance-due-group__item">
+                      <div className="maintenance-due-group__item-main">
+                        <div className="maintenance-cell__title">{getClientName(item.client_id)}</div>
+                        <div className="maintenance-cell__meta">
+                          {getSiteLabel(item.site_id)} · {getInstallationName(item.installation_id)}
+                        </div>
+                        <div className="maintenance-cell__meta">
+                          {stripLegacyVisibleText(item.schedule_name) || "—"} ·{" "}
+                          {formatDateTime(item.due_at, language, effectiveTimeZone)}
+                        </div>
+                      </div>
+                      <div className="maintenance-due-group__item-status">
+                        <AppBadge tone={getDueTone(item.due_status)}>
+                          {getDueLabel(item.due_status, language)}
+                        </AppBadge>
+                      </div>
+                      <div className="maintenance-due-group__item-actions">{renderDueActions(item)}</div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+      </PanelCard>
 
       {isPlanModalOpen ? (
         <div

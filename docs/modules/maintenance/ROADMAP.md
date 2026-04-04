@@ -218,6 +218,7 @@ Avance actual:
 - desde `Pendientes` ya se puede:
   - crear una programación
   - ver mantenciones preventivas visibles
+  - leer la carga agrupada por organización sin perder la acción por cliente/dirección
   - agendar una OT desde el pendiente
 - sigue pendiente el corte de costeo/cobro y la sincronización económica hacia `finance`
 
