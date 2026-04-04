@@ -736,23 +736,23 @@ export function MaintenanceCostingModal({
                   <div className="row g-3 mt-1">
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Mano de obra" : "Labor"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={estimateForm.labor_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, labor_cost: event.target.value }))} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.labor_cost.toFixed(2) : estimateForm.labor_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, labor_cost: event.target.value }))} disabled={estimateUsesLines} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Traslado" : "Travel"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={estimateForm.travel_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, travel_cost: event.target.value }))} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.travel_cost.toFixed(2) : estimateForm.travel_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, travel_cost: event.target.value }))} disabled={estimateUsesLines} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Materiales" : "Materials"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={estimateForm.materials_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, materials_cost: event.target.value }))} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.materials_cost.toFixed(2) : estimateForm.materials_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, materials_cost: event.target.value }))} disabled={estimateUsesLines} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Servicios externos" : "External services"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={estimateForm.external_services_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, external_services_cost: event.target.value }))} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.external_services_cost.toFixed(2) : estimateForm.external_services_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, external_services_cost: event.target.value }))} disabled={estimateUsesLines} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Indirectos" : "Overhead"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={estimateForm.overhead_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, overhead_cost: event.target.value }))} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.overhead_cost.toFixed(2) : estimateForm.overhead_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, overhead_cost: event.target.value }))} disabled={estimateUsesLines} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Margen objetivo (%)" : "Target margin (%)"}</label>
@@ -769,6 +769,14 @@ export function MaintenanceCostingModal({
                     <div className="col-12">
                       <label className="form-label">{language === "es" ? "Notas de estimación" : "Estimate notes"}</label>
                       <textarea className="form-control" rows={3} value={estimateForm.notes} onChange={(event) => setEstimateForm((current) => ({ ...current, notes: event.target.value }))} />
+                    </div>
+                    <div className="col-12">
+                      {renderLineEditor(
+                        estimateLines,
+                        addEstimateLine,
+                        updateEstimateLine,
+                        removeEstimateLine
+                      )}
                     </div>
                   </div>
                   <div className="maintenance-form__actions">
@@ -804,23 +812,23 @@ export function MaintenanceCostingModal({
                   <div className="row g-3 mt-1">
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Mano de obra real" : "Actual labor"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={actualForm.labor_cost} onChange={(event) => setActualForm((current) => ({ ...current, labor_cost: event.target.value }))} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.labor_cost.toFixed(2) : actualForm.labor_cost} onChange={(event) => setActualForm((current) => ({ ...current, labor_cost: event.target.value }))} disabled={actualUsesLines} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Traslado real" : "Actual travel"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={actualForm.travel_cost} onChange={(event) => setActualForm((current) => ({ ...current, travel_cost: event.target.value }))} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.travel_cost.toFixed(2) : actualForm.travel_cost} onChange={(event) => setActualForm((current) => ({ ...current, travel_cost: event.target.value }))} disabled={actualUsesLines} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Materiales reales" : "Actual materials"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={actualForm.materials_cost} onChange={(event) => setActualForm((current) => ({ ...current, materials_cost: event.target.value }))} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.materials_cost.toFixed(2) : actualForm.materials_cost} onChange={(event) => setActualForm((current) => ({ ...current, materials_cost: event.target.value }))} disabled={actualUsesLines} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Servicios externos reales" : "Actual external services"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={actualForm.external_services_cost} onChange={(event) => setActualForm((current) => ({ ...current, external_services_cost: event.target.value }))} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.external_services_cost.toFixed(2) : actualForm.external_services_cost} onChange={(event) => setActualForm((current) => ({ ...current, external_services_cost: event.target.value }))} disabled={actualUsesLines} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Indirectos reales" : "Actual overhead"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={actualForm.overhead_cost} onChange={(event) => setActualForm((current) => ({ ...current, overhead_cost: event.target.value }))} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.overhead_cost.toFixed(2) : actualForm.overhead_cost} onChange={(event) => setActualForm((current) => ({ ...current, overhead_cost: event.target.value }))} disabled={actualUsesLines} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Monto cobrado" : "Amount charged"}</label>
@@ -841,6 +849,14 @@ export function MaintenanceCostingModal({
                     <div className="col-12">
                       <label className="form-label">{language === "es" ? "Notas de cierre económico" : "Financial close notes"}</label>
                       <textarea className="form-control" rows={3} value={actualForm.notes} onChange={(event) => setActualForm((current) => ({ ...current, notes: event.target.value }))} />
+                    </div>
+                    <div className="col-12">
+                      {renderLineEditor(
+                        actualLines,
+                        addActualLine,
+                        updateActualLine,
+                        removeActualLine
+                      )}
                     </div>
                   </div>
                   <div className="maintenance-form__actions">
