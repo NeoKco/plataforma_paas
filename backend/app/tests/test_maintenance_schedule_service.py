@@ -7,12 +7,59 @@ from unittest.mock import Mock
 os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
 
+from app.apps.tenant_modules.maintenance.schemas import MaintenanceScheduleCreateRequest  # noqa: E402
 from app.apps.tenant_modules.maintenance.services.schedule_service import (  # noqa: E402
     MaintenanceScheduleService,
 )
 
 
 class MaintenanceScheduleServiceTestCase(unittest.TestCase):
+    def test_create_schedule_normalizes_naive_next_due_at_against_aware_history_date(self) -> None:
+        tenant_db = Mock()
+        tenant_db.query.side_effect = [
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=17))))),
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=31, client_id=17))))),
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=9, site_id=31))))),
+        ]
+        tenant_db.add.return_value = None
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.side_effect = lambda item: None
+
+        schedule_repository = Mock()
+        schedule_repository.find_equivalent_active.return_value = None
+
+        service = MaintenanceScheduleService(schedule_repository=schedule_repository)
+
+        created = service.create_schedule(
+            tenant_db,
+            MaintenanceScheduleCreateRequest(
+                client_id=17,
+                site_id=31,
+                installation_id=9,
+                task_type_id=None,
+                name="Plan anual SST",
+                description=None,
+                frequency_value=1,
+                frequency_unit="years",
+                lead_days=30,
+                start_mode="from_manual_due_date",
+                base_date=None,
+                last_executed_at=datetime(2026, 3, 3, 15, 0, tzinfo=timezone.utc),
+                next_due_at=datetime(2027, 3, 3, 15, 0),
+                default_priority="normal",
+                estimated_duration_minutes=90,
+                billing_mode="per_work_order",
+                is_active=True,
+                auto_create_due_items=True,
+                notes=None,
+            ),
+            created_by_user_id=4,
+        )
+
+        self.assertEqual(created.last_executed_at.tzinfo, timezone.utc)
+        self.assertEqual(created.next_due_at.tzinfo, timezone.utc)
+        self.assertEqual(created.next_due_at.year, 2027)
+
     def test_suggest_schedule_seed_uses_completed_history_from_current_year(self) -> None:
         reference_completed_at = datetime(2026, 4, 3, 18, 30, tzinfo=timezone.utc)
         work_order_query = Mock()
