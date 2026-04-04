@@ -18,6 +18,10 @@ DESCRIPTION = "Create work group members and add maintenance work group assignme
 
 metadata = MetaData()
 
+Table("business_work_groups", metadata, Column("id", Integer, primary_key=True))
+Table("users", metadata, Column("id", Integer, primary_key=True))
+Table("business_function_profiles", metadata, Column("id", Integer, primary_key=True))
+
 business_work_group_members = Table(
     "business_work_group_members",
     metadata,

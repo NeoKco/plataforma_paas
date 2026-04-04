@@ -13,7 +13,6 @@ export type TenantMaintenanceWorkOrder = {
   scheduled_for: string | null;
   cancellation_reason: string | null;
   closure_notes: string | null;
-  assigned_work_group_id: number | null;
   assigned_tenant_user_id: number | null;
   maintenance_status: string;
   requested_at: string;

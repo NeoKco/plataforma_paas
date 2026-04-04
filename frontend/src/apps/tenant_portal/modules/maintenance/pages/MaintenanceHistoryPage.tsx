@@ -175,6 +175,7 @@ export function MaintenanceHistoryPage() {
       client_id: editingRow.client_id,
       site_id: editingRow.site_id,
       installation_id: editingRow.installation_id,
+      assigned_work_group_id: editingRow.assigned_work_group_id,
       external_reference: editingRow.external_reference,
       title: editingRow.title,
       description: historyForm.description.trim() || null,
@@ -182,7 +183,7 @@ export function MaintenanceHistoryPage() {
       scheduled_for: editingRow.scheduled_for,
       cancellation_reason: historyForm.cancellation_reason.trim() || null,
       closure_notes: historyForm.closure_notes.trim() || null,
-      assigned_tenant_user_id: editingRow.created_by_user_id,
+      assigned_tenant_user_id: editingRow.assigned_tenant_user_id,
       maintenance_status: editingRow.maintenance_status,
     };
     try {

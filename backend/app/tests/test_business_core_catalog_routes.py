@@ -779,7 +779,10 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
         with patch(
             "app.apps.tenant_modules.business_core.api.work_groups.work_group_service.list_work_groups",
             return_value=[item],
-        ) as list_mock:
+        ) as list_mock, patch(
+            "app.apps.tenant_modules.business_core.api.work_groups.work_group_member_service.get_member_counts",
+            return_value={41: 0},
+        ):
             response = list_business_work_groups(
                 include_inactive=False,
                 group_kind="field",
