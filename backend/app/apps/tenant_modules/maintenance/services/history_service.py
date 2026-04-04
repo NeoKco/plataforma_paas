@@ -38,6 +38,10 @@ class MaintenanceHistoryService:
             )
             if item.maintenance_status in FINAL_HISTORY_STATUSES
         ]
+        closed_orders.sort(
+            key=lambda item: item.completed_at or item.cancelled_at or item.updated_at,
+            reverse=True,
+        )
         return [
             {
                 "work_order": item,
