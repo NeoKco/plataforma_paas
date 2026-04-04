@@ -74,6 +74,7 @@ Estado del corte hoy:
 - `Nueva programación` ya respeta el mismo patrón modal y visual de `Nueva mantención`
 - `Pendientes` ya permite `Ver cliente`, `Contactar`, `Posponer` y `Agendar` desde la misma fila
 - `Pendientes` ya agrega una lectura agrupada por organización para coordinar carga sin perder la operación por cliente/dirección
+- `Pendientes` ya muestra instalaciones activas sin plan preventivo y permite abrir `Crear plan` con cliente/dirección/instalación precargados
 
 Pendientes visibles inmediatos:
 

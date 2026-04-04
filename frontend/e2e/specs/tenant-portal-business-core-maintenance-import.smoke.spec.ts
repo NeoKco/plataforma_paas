@@ -81,6 +81,9 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await expect(
     page.getByRole("heading", { name: /Agrupación por organización|Organization grouping/i })
   ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /Instalaciones activas sin plan preventivo|Active installations without preventive plan/i })
+  ).toBeVisible();
   const dueRows = page.locator("tbody tr");
   if ((await dueRows.count()) > 0) {
     const firstDueRow = dueRows.first();

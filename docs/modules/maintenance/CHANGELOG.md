@@ -14,6 +14,7 @@
   - `Posponer`
   - `Agendar`
 - `Pendientes` agrega lectura ejecutiva agrupada por organización, manteniendo la operación por cliente/dirección/instalación
+- `Pendientes` agrega reporte de instalaciones activas sin plan preventivo, con acción `Crear plan` ya precargada desde cliente/dirección/instalación
 - el smoke E2E de `maintenance` ahora valida también el patrón visual/modal de `Nueva programación` y las acciones operativas visibles en `Pendientes`
 - se implementa el primer corte real de programación preventiva:
   - migración tenant `0021_maintenance_schedules_and_due_items`

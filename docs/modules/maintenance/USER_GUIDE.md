@@ -96,6 +96,7 @@ Lectura funcional de cada vista:
   - `Nueva programación` sigue el mismo patrón visual, jerarquía de lectura y modal de `Nueva mantención`
   - la misma pantalla agrega una lectura agrupada por organización para coordinar mejor varias contrapartes sin depender de memoria
   - desde la tabla puedes abrir `Ver cliente`, `Contactar`, `Posponer` o `Agendar`
+  - también aparece un reporte de instalaciones activas sin plan preventivo para abrir `Crear plan` con el contexto ya cargado
 - `Mantenciones`: solo trabajo abierto (`scheduled` / `in_progress`)
 - `Instalaciones`: parque instalado por cliente y direccion
 - `Historial`: trabajo ya realizado o anulado

@@ -22,6 +22,8 @@ import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubbl
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
 import {
   createTenantMaintenanceSchedule,
+  getTenantMaintenanceSchedules,
+  type TenantMaintenanceSchedule,
   type TenantMaintenanceScheduleWriteRequest,
 } from "../services/schedulesService";
 import {
@@ -171,6 +173,7 @@ export function MaintenanceDueItemsPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const [rows, setRows] = useState<TenantMaintenanceDueItem[]>([]);
+  const [schedules, setSchedules] = useState<TenantMaintenanceSchedule[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
@@ -255,6 +258,49 @@ export function MaintenanceDueItemsPage() {
     );
   }, [rows]);
 
+  const uncoveredInstallations = useMemo(() => {
+    const activeSchedules = schedules.filter((item) => item.is_active);
+    return installations
+      .filter((installation) => installation.is_active)
+      .map((installation) => {
+        const site = siteById.get(installation.site_id);
+        const client = site ? clientById.get(site.client_id) : null;
+        if (!site || !client || !client.is_active) {
+          return null;
+        }
+        const covered = activeSchedules.some((schedule) => {
+          if (schedule.client_id !== client.id) {
+            return false;
+          }
+          if (schedule.installation_id === installation.id) {
+            return true;
+          }
+          if (!schedule.installation_id && schedule.site_id === site.id) {
+            return true;
+          }
+          return !schedule.installation_id && !schedule.site_id;
+        });
+        if (covered) {
+          return null;
+        }
+        return {
+          installation,
+          site,
+          client,
+        };
+      })
+      .filter((item): item is { installation: TenantMaintenanceInstallation; site: TenantBusinessSite; client: TenantBusinessClient } => Boolean(item))
+      .sort((left, right) => {
+        const leftOrganization = getOrganizationName(left.client.id);
+        const rightOrganization = getOrganizationName(right.client.id);
+        return (
+          leftOrganization.localeCompare(rightOrganization) ||
+          getSiteLabel(left.site.id).localeCompare(getSiteLabel(right.site.id)) ||
+          left.installation.name.localeCompare(right.installation.name)
+        );
+      });
+  }, [clientById, getOrganizationName, getSiteLabel, installationById, installations, schedules, siteById]);
+
   const organizationGroups = useMemo(() => {
     const groups = new Map<
       number,
@@ -313,6 +359,7 @@ export function MaintenanceDueItemsPage() {
     try {
       const [
         dueItemsResponse,
+        schedulesResponse,
         clientsResponse,
         organizationsResponse,
         sitesResponse,
@@ -322,6 +369,7 @@ export function MaintenanceDueItemsPage() {
         tenantUsersResponse,
       ] = await Promise.all([
         getTenantMaintenanceDueItems(session.accessToken),
+        getTenantMaintenanceSchedules(session.accessToken, { includeInactive: false }),
         getTenantBusinessClients(session.accessToken, { includeInactive: false }),
         getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
         getTenantBusinessSites(session.accessToken, { includeInactive: false }),
@@ -331,6 +379,7 @@ export function MaintenanceDueItemsPage() {
         getTenantUsers(session.accessToken),
       ]);
       setRows(dueItemsResponse.data);
+      setSchedules(schedulesResponse.data);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
@@ -431,6 +480,38 @@ export function MaintenanceDueItemsPage() {
       client_id: defaultClientId,
       site_id: defaultSiteId,
       installation_id: candidateInstallations[0]?.id || null,
+    });
+    setIsPlanModalOpen(true);
+  }
+
+  function buildSuggestedNextDue(installation: TenantMaintenanceInstallation): string {
+    const baseCandidate =
+      installation.last_service_at || installation.installed_at || new Date().toISOString();
+    const nextDue = new Date(baseCandidate);
+    if (Number.isNaN(nextDue.getTime())) {
+      return "";
+    }
+    nextDue.setMonth(nextDue.getMonth() + 6);
+    return toDateTimeLocalInputValue(nextDue.toISOString(), effectiveTimeZone);
+  }
+
+  function startCreatePlanFromInstallation(installation: TenantMaintenanceInstallation) {
+    const site = siteById.get(installation.site_id);
+    if (!site) {
+      return;
+    }
+    setFeedback(null);
+    setError(null);
+    setScheduleForm({
+      ...buildDefaultScheduleForm(),
+      client_id: site.client_id,
+      site_id: site.id,
+      installation_id: installation.id,
+      name:
+        language === "es"
+          ? `Plan preventivo ${installation.name}`
+          : `Preventive plan ${installation.name}`,
+      next_due_at: buildSuggestedNextDue(installation),
     });
     setIsPlanModalOpen(true);
   }
@@ -806,6 +887,69 @@ export function MaintenanceDueItemsPage() {
                   ))}
                 </div>
               </section>
+            ))}
+          </div>
+        )}
+      </PanelCard>
+
+      <PanelCard
+        title={
+          language === "es"
+            ? "Instalaciones activas sin plan preventivo"
+            : "Active installations without preventive plan"
+        }
+        subtitle={
+          language === "es"
+            ? "Reporte operativo para detectar clientes que ya tienen instalación activa pero todavía no entran al ciclo preventivo."
+            : "Operational report to detect clients with active installations that are not yet covered by the preventive cycle."
+        }
+      >
+        {uncoveredInstallations.length === 0 ? (
+          <div className="maintenance-cell__meta">
+            {language === "es"
+              ? "No hay instalaciones activas pendientes de programación preventiva."
+              : "There are no active installations pending preventive scheduling."}
+          </div>
+        ) : (
+          <div className="maintenance-due-groups">
+            {uncoveredInstallations.map(({ installation, site, client }) => (
+              <article
+                key={`uncovered-${installation.id}`}
+                className="maintenance-due-group__item"
+              >
+                <div className="maintenance-due-group__item-main">
+                  <div className="maintenance-cell__title">{getClientName(client.id)}</div>
+                  <div className="maintenance-cell__meta">{getSiteLabel(site.id)}</div>
+                  <div className="maintenance-cell__meta">
+                    {installation.name}
+                    {installation.installation_status
+                      ? ` · ${stripLegacyVisibleText(installation.installation_status)}`
+                      : ""}
+                  </div>
+                </div>
+                <div className="maintenance-due-group__item-status">
+                  <AppBadge tone="warning">
+                    {language === "es" ? "Sin plan" : "No plan"}
+                  </AppBadge>
+                </div>
+                <div className="maintenance-due-group__item-actions">
+                  <AppToolbar compact>
+                    <Link
+                      className="btn btn-sm btn-outline-secondary"
+                      to={`/tenant-portal/business-core/clients/${client.id}`}
+                    >
+                      {language === "es" ? "Ver cliente" : "Open client"}
+                    </Link>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      type="button"
+                      onClick={() => startCreatePlanFromInstallation(installation)}
+                    >
+                      {language === "es" ? "Crear plan" : "Create plan"}
+                    </button>
+                  </AppToolbar>
+                </div>
+              </article>
             ))}
           </div>
         )}
