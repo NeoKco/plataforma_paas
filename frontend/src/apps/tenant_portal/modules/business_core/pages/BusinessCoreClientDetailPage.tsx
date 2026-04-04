@@ -9,8 +9,9 @@ import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
+import { getTenantUsers } from "../../../../../services/tenant-api";
 import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
-import type { ApiError } from "../../../../../types";
+import type { ApiError, TenantUsersItem } from "../../../../../types";
 import { BusinessCoreModuleNav } from "../components/common/BusinessCoreModuleNav";
 import {
   getTenantBusinessClient,
@@ -113,6 +114,7 @@ export function BusinessCoreClientDetailPage() {
   const [addresses, setAddresses] = useState<TenantBusinessSite[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
   const [maintenanceHistory, setMaintenanceHistory] = useState<TenantMaintenanceHistoryWorkOrder[]>([]);
+  const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -139,6 +141,10 @@ export function BusinessCoreClientDetailPage() {
     return installations.filter((installation) => siteIds.has(installation.site_id));
   }, [addresses, installations]);
   const recentWorkOrders = useMemo(() => maintenanceHistory.slice(0, 5), [maintenanceHistory]);
+  const tenantUserById = useMemo(
+    () => new Map(tenantUsers.map((user) => [user.id, user])),
+    [tenantUsers]
+  );
 
   async function loadData() {
     if (!session?.accessToken || !clientId) {
@@ -154,7 +160,14 @@ export function BusinessCoreClientDetailPage() {
       const clientData = clientResponse.data;
       setClient(clientData);
 
-      const [organizationResponse, contactsResponse, addressesResponse, installationsResponse, historyResponse] =
+      const [
+        organizationResponse,
+        contactsResponse,
+        addressesResponse,
+        installationsResponse,
+        historyResponse,
+        tenantUsersResponse,
+      ] =
         await Promise.all([
         getTenantBusinessOrganization(session.accessToken, clientData.organization_id),
         getTenantBusinessContacts(session.accessToken, {
@@ -163,6 +176,7 @@ export function BusinessCoreClientDetailPage() {
         getTenantBusinessSites(session.accessToken, { clientId: clientData.id }),
         getTenantMaintenanceInstallations(session.accessToken),
         getTenantMaintenanceHistory(session.accessToken, { clientId: clientData.id }),
+        getTenantUsers(session.accessToken),
       ]);
 
       setOrganization(organizationResponse.data);
@@ -170,6 +184,7 @@ export function BusinessCoreClientDetailPage() {
       setAddresses(addressesResponse.data);
       setInstallations(installationsResponse.data);
       setMaintenanceHistory(historyResponse.data);
+      setTenantUsers(tenantUsersResponse.data);
       setContactForm((current) =>
         current.organization_id
           ? current
@@ -200,6 +215,38 @@ export function BusinessCoreClientDetailPage() {
       return language === "es" ? "anulada" : "cancelled";
     }
     return status;
+  }
+
+  function getResponsibleLabel(workOrder: TenantMaintenanceHistoryWorkOrder): string {
+    const latestVisit = [...workOrder.visits].sort((left, right) => {
+      const leftDate =
+        left.actual_end_at ||
+        left.actual_start_at ||
+        left.scheduled_end_at ||
+        left.scheduled_start_at ||
+        left.updated_at;
+      const rightDate =
+        right.actual_end_at ||
+        right.actual_start_at ||
+        right.scheduled_end_at ||
+        right.scheduled_start_at ||
+        right.updated_at;
+      return new Date(rightDate).getTime() - new Date(leftDate).getTime();
+    })[0];
+
+    const groupLabel = stripLegacyVisibleText(latestVisit?.assigned_group_label);
+    if (groupLabel) {
+      return groupLabel;
+    }
+
+    const assignedUser = latestVisit?.assigned_tenant_user_id
+      ? tenantUserById.get(latestVisit.assigned_tenant_user_id)
+      : null;
+    if (assignedUser?.full_name?.trim()) {
+      return assignedUser.full_name.trim();
+    }
+
+    return language === "es" ? "sin responsable asignado" : "no assigned operator";
   }
 
   useEffect(() => {
@@ -1087,6 +1134,10 @@ export function BusinessCoreClientDetailPage() {
                     <div className="business-core-cell__meta">
                       {language === "es" ? "Instalación" : "Installation"}:{" "}
                       {installation?.name || (language === "es" ? "sin instalación" : "no installation")}
+                    </div>
+                    <div className="business-core-cell__meta">
+                      {language === "es" ? "Responsable" : "Responsible"}:{" "}
+                      {getResponsibleLabel(workOrder)}
                     </div>
                     <div className="business-core-cell__meta">
                       {language === "es" ? "Cierre" : "Closed"}:{" "}

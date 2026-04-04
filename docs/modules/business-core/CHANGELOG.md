@@ -32,6 +32,7 @@
 - La vista `Resumen` de `business-core` deja de ser solo una portada estatica y pasa a mostrar las ultimas altas reales de `Empresas` y `Clientes`.
 - Se ajusta `Resumen` para que `Empresas` muestre solo las 2 ultimas altas visibles y `Clientes` los 5 ultimos, usando datos reales del cliente y su organizacion en vez de tarjetas ambiguas.
 - Se corrige la ficha del cliente para que el bloque `Mantenciones realizadas` deje de mezclar trabajo abierto, lea solo historial tecnico cerrado del cliente y muestre estado final, fecha y descripcion util sin botones de navegacion redundantes.
+- La ficha del cliente ahora muestra tambien el responsable de cada mantencion cerrada, priorizando grupo asignado y luego tecnico del tenant si ese dato ya existe en las visitas historicas.
 
 ## 2026-04-02
 
