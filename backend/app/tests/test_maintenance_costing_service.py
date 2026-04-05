@@ -12,6 +12,8 @@ from app.apps.tenant_modules.maintenance.models import (  # noqa: E402
     MaintenanceCostActual,
     MaintenanceCostEstimate,
     MaintenanceCostLine,
+    MaintenanceSchedule,
+    MaintenanceScheduleCostLine,
     MaintenanceWorkOrder,
 )
 from app.apps.tenant_modules.maintenance.schemas import (  # noqa: E402
@@ -30,6 +32,9 @@ class _FakeQuery:
         self.mapping = mapping
 
     def filter(self, *_args, **_kwargs):
+        return self
+
+    def order_by(self, *_args, **_kwargs):
         return self
 
     def first(self):
@@ -69,6 +74,9 @@ class _FakeTenantDb:
                 for current in self.mapping.get(MaintenanceCostLine, [])
                 if current is not item
             ]
+
+    def flush(self):
+        return None
 
     def commit(self):
         return None
@@ -341,6 +349,61 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
         self.assertEqual(actual.income_transaction_id, 601)
         self.assertEqual(actual.expense_transaction_id, 602)
         self.assertEqual(finance_service.create_transaction.call_count, 2)
+
+    def test_seed_estimate_from_schedule_copies_default_lines(self) -> None:
+        work_order = SimpleNamespace(id=51, title="Mantención programada")
+        schedule = SimpleNamespace(
+            id=14,
+            estimate_target_margin_percent=15,
+            estimate_notes="Base preventiva anual",
+        )
+        schedule_lines = [
+            SimpleNamespace(
+                id=1,
+                schedule_id=14,
+                line_type="material",
+                description="Kit filtro",
+                quantity=2,
+                unit_cost=4500,
+                notes=None,
+                sort_order=0,
+            ),
+            SimpleNamespace(
+                id=2,
+                schedule_id=14,
+                line_type="service",
+                description="Calibración externa",
+                quantity=1,
+                unit_cost=12000,
+                notes="Proveedor homologado",
+                sort_order=1,
+            ),
+        ]
+        tenant_db = _FakeTenantDb(
+            {
+                MaintenanceWorkOrder: work_order,
+                MaintenanceSchedule: schedule,
+                MaintenanceScheduleCostLine: schedule_lines,
+                MaintenanceCostLine: [],
+            }
+        )
+        service = MaintenanceCostingService(finance_service=Mock())
+
+        detail = service.seed_estimate_from_schedule(
+            tenant_db,
+            51,
+            14,
+            actor_user_id=6,
+        )
+
+        self.assertIsNotNone(detail)
+        estimate = detail["estimate"]
+        self.assertEqual(estimate.materials_cost, 9000)
+        self.assertEqual(estimate.external_services_cost, 12000)
+        self.assertEqual(estimate.total_estimated_cost, 21000)
+        self.assertEqual(estimate.target_margin_percent, 15)
+        self.assertEqual(estimate.notes, "Base preventiva anual")
+        self.assertEqual(len(detail["estimate_lines"]), 2)
 
 
 if __name__ == "__main__":

@@ -42,13 +42,14 @@ class MaintenanceScheduleService:
         installation_id: int | None = None,
         include_inactive: bool = True,
     ) -> list[MaintenanceSchedule]:
-        return self.schedule_repository.list_filtered(
+        items = self.schedule_repository.list_filtered(
             tenant_db,
             client_id=client_id,
             site_id=site_id,
             installation_id=installation_id,
             include_inactive=include_inactive,
         )
+        return [self._attach_estimate_lines(tenant_db, item) for item in items]
 
     def create_schedule(
         self,
@@ -157,7 +158,7 @@ class MaintenanceScheduleService:
         item = self.schedule_repository.get_by_id(tenant_db, schedule_id)
         if item is None:
             raise ValueError("La programacion solicitada no existe")
-        return item
+        return self._attach_estimate_lines(tenant_db, item)
 
     def update_schedule(
         self,
@@ -366,6 +367,19 @@ class MaintenanceScheduleService:
             .order_by(MaintenanceScheduleCostLine.sort_order.asc(), MaintenanceScheduleCostLine.id.asc())
             .all()
         )
+
+    def _attach_estimate_lines(
+        self,
+        tenant_db: Session,
+        item: MaintenanceSchedule,
+    ) -> MaintenanceSchedule:
+        item.estimate_lines = (
+            tenant_db.query(MaintenanceScheduleCostLine)
+            .filter(MaintenanceScheduleCostLine.schedule_id == item.id)
+            .order_by(MaintenanceScheduleCostLine.sort_order.asc(), MaintenanceScheduleCostLine.id.asc())
+            .all()
+        )
+        return item
 
     def _get_latest_completed_work_order(
         self,
