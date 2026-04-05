@@ -41,6 +41,7 @@ El primer corte del modulo ya permite:
 - `Historial` ahora separa `Mantenciones realizadas` y `Mantenciones anuladas`, para no mezclar trabajo ejecutado con trabajo cancelado.
 - leer la bandeja por cliente, direccion e instalacion
 - ordenar operativamente por fecha y hora de trabajo mas reciente
+- abrir `Ver ficha` desde `Mantenciones` o `Historial` para revisar una orden completa sin salir de la lectura principal
 - crear una orden nueva
 - editar una orden aun no cerrada
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
@@ -116,6 +117,7 @@ Lectura funcional de cada vista:
   - desde la tabla puedes abrir `Ver cliente`, `Contactar`, `Posponer` o `Agendar`
   - también aparece un reporte de instalaciones activas sin plan preventivo para abrir `Crear plan` con el contexto ya cargado
 - `Mantenciones`: solo trabajo abierto (`scheduled` / `in_progress`)
+  - cada fila ya permite abrir `Ver ficha`
   - cada fila ya permite abrir `Costos`
   - cada fila ya permite abrir `Checklist`
   - cada fila ya permite abrir `Reprogramar` para cambiar slot o responsables sin perder trazabilidad
@@ -123,14 +125,23 @@ Lectura funcional de cada vista:
   - `Costos` ya permite resumen manual o detalle por líneas
 - `Instalaciones`: parque instalado por cliente y direccion
 - `Historial`: trabajo ya realizado o anulado
-  - cada tarjeta ya permite abrir `Ver costos`, `Ver checklist` y `Editar cierre`
+  - cada tarjeta ya permite abrir `Ver ficha`, `Ver costos`, `Ver checklist` y `Editar cierre`
   - `Ver costos` es solo lectura; el histórico no se edita desde el flujo normal
   - `Ver checklist` también es solo lectura y deja visible la trazabilidad técnica del cierre
+  - desde `Ver ficha` también se puede abrir `Editar cierre` sin volver a la tarjeta principal
 - `Agenda`: calendario visual del trabajo abierto
   - ahora marca conflictos visibles cuando dos mantenciones abiertas comparten horario y recurso técnico/instalación
   - si aun así intentas guardar un cruce real, el backend lo rechaza para evitar doble asignación en el mismo slot
   - también permite filtrar la agenda mensual por grupo responsable o técnico responsable
   - al abrir una mantención desde la agenda, puedes usar `Reprogramar` y dejar un motivo visible en historial técnico
+
+Lectura de la ficha de mantención:
+
+- resume cliente, dirección, instalación, responsables, prioridad y estado actual
+- expone fechas clave de creación, programación, cierre y última actualización
+- carga `Cambios y eventos` y `Visitas asociadas` bajo demanda para no recargar la bandeja principal
+- si la OT sigue abierta, desde la ficha puedes saltar a `Costos` o `Checklist`
+- si la OT ya está en `Historial`, desde la ficha puedes abrir `Editar cierre`
 
 Regla UX operativa:
 

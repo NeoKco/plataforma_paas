@@ -18,6 +18,8 @@ Estado actual:
 - el primer corte backend ya expone APIs reales para `equipment_types`, `installations` y `work_orders`
 - el frontend tenant ya opera sobre esas APIs en sus tres vistas principales
 - `history` ya muestra órdenes cerradas con `status_logs` y `visits`
+- `Mantenciones` y `Historial` ya comparten `Ver ficha` para abrir una lectura consolidada de cada OT
+- la `Ficha de mantención` ya muestra contexto operativo, fechas, trazabilidad, visitas, cierre técnico y accesos contextuales a `Costos`, `Checklist` o `Editar cierre`
 - `agenda técnica` ya muestra una agenda visual mensual de mantenciones abiertas
 - ya permite crear mantenciones desde la propia agenda visual
 - ya acepta navegación contextual desde la ficha del cliente en `business-core`
@@ -110,17 +112,18 @@ Estado del corte hoy:
 - `Historial` ya permite abrir `Ver checklist` en modo solo lectura para revisar ese cierre técnico sin reabrir la orden
 - el backend ya endurece la agenda y rechaza cruces de slot activo por instalación, grupo o técnico, incluso si el intento no viene desde la misma pantalla web
 - `Mantenciones` y `Agenda` ya permiten `Reprogramar` con una nota opcional para dejar trazabilidad del cambio de slot y responsables en historial técnico
+- `Historial` ya permite abrir `Editar cierre` también desde la nueva `Ficha de mantención`, sin exponer reprogramación ni edición operativa de una OT cerrada
 
 Pendientes visibles inmediatos:
 
 - uso mas profundo de `function_profiles` y `task_types`
 - timeline más rica por cliente e instalación
-- agenda visual con conflictos, responsables y ventanas de visita más ricas
+- agenda visual con responsables y ventanas de visita más ricas
 - programaciones automáticas de mantención y bandeja de vencimientos por gestionar
 - costeo y cobro de mantenciones con puente formal hacia `finance`
 - automatización opcional tenant-side del puente `maintenance -> finance`
 - importadores desde `ieris_app`
-- edición de cierre directamente desde historial/ficha de trabajo
+- profundizar la `Ficha de mantención` con snapshots y lecturas más ricas por cliente/instalación
 - reprogramación operativa más rica con visitas/ventanas de terreno
 
 ## Checklist contra el estandar de modulos
@@ -143,7 +146,7 @@ Estado resumido del modulo:
 - programacion preventiva y bandeja automatica: cumplido en primer corte base
 - costeo/cobro por OT y puente controlado a `finance`: cumplido en primer corte base
 - evidencias y checklist tecnico: cumplido en primer corte base
-- cierre completo de la UX operativa del modulo: en progreso avanzado
+- cierre completo de la UX operativa del modulo: en progreso avanzado con `Ficha de mantención` ya operativa
 
 Estado del importador legacy:
 

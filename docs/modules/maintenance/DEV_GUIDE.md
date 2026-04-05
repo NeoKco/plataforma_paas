@@ -126,6 +126,10 @@ Fuente frontend principal:
 - la lectura operativa no deberia mezclar ambas bandejas en una sola lista larga; conviene separar `realizadas` y `anuladas` tanto en resumenes como en vistas de historial.
 - una orden cerrada no debe volver a editarse desde la bandeja operativa
 - desde `Historial` solo deberian exponerse correcciones de descripcion/cierre, congelando fecha, hora, cliente, direccion e instalacion
+- `Mantenciones` e `Historial` ya comparten una `Ficha de mantención` como lectura secundaria de la OT:
+  - se abre bajo demanda con `Ver ficha`
+  - concentra contexto operativo, fechas, cierre técnico, `status_logs` y `visits`
+  - desde una ficha histórica puede abrirse `Editar cierre`, pero no reprogramación ni edición completa de scheduling
 - `Agenda` debe pintar mantenciones abiertas sobre calendario visual, no visitas como lista catalogada
 - la asignacion ya se formalizo con FKs reales a `work_groups` y `tenant_users`, dejando `assigned_group_label` solo como compatibilidad temporal en datos o lecturas legacy
 - `Pendientes` ya existe como bandeja preventiva separada de `Mantenciones`, para no mezclar trabajo abierto con vencimientos por gestionar
@@ -177,9 +181,9 @@ Fuente frontend principal:
 - documentacion canonica del dominio
 
 `maintenance` sigue debiendo:
-- cierre UX por ficha/orden de trabajo
 - smoke E2E especifico del modulo con sus flujos principales
 - mejoras móviles de captura en terreno
+- snapshots y timeline más ricos dentro de la ficha/orden de trabajo
 - reprogramación operativa con visitas/ventanas más finas y con mejor trazabilidad
 
 ## Modelo objetivo recomendado en PaaS
@@ -346,7 +350,7 @@ Etapa 2:
 - agenda con filtros por tecnico/grupo y conflictos
 - checklist operativo
 - evidencias adjuntas
-- mejor lectura de ficha por cliente
+- lectura base por ficha/orden ya lista; falta enriquecerla por cliente/instalación
 - filtros y gestión comercial más ricos en `Pendientes`
 
 Etapa 3:
@@ -401,7 +405,7 @@ Limitaciones actuales:
 ## Mejoras concretas recomendadas
 
 - asociar cada mantencion a una instalacion cuando corresponda
-- reemplazar la tabla compacta por una lista operativa con ficha lateral
+- profundizar la nueva ficha/orden de trabajo con snapshots más ricos por cliente, instalación y responsables
 - profundizar el flujo `reprogramar` con ventanas de visita y coordinación de terreno
 - usar adjuntos/evidencias del modulo, no filesystem ad hoc
 - preparar el modulo para crecer luego hacia expediente tecnico sin acoplarlo desde el inicio

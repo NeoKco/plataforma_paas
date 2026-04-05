@@ -2,6 +2,11 @@
 
 ## 2026-04-05
 
+- `Mantenciones` y `Historial` ahora comparten una nueva acción `Ver ficha` por orden de trabajo:
+  - abre una `Ficha de mantención` reutilizable con contexto operativo, fechas clave, detalle técnico, cierre técnico, `status_logs` y `visits`
+  - la lectura detallada carga trazabilidad y visitas bajo demanda, sin romper el patrón de lectura primero del módulo
+  - desde la ficha histórica ya se puede abrir `Editar cierre` para corregir observación técnica o motivo de anulación desde el mismo contexto
+  - desde la ficha abierta también se puede saltar a `Costos` y `Checklist` sin duplicar vistas paralelas
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso

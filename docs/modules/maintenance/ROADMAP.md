@@ -119,7 +119,6 @@ Avance actual:
 Pendiente inmediato de esta fase:
 
 - usar `function_profiles` y `task_types` de forma más profunda
-- mejorar cierre operacional desde historial/ficha
 - endurecer y ejecutar importadores desde `ieris_app`
 - agenda visual con conflictos, filtros y reprogramación auditada ya lista; faltan ventanas de visita más finas
 - abrir programaciones automáticas y bandeja preventiva de vencimientos
@@ -130,7 +129,7 @@ Pendiente inmediato de esta fase:
 
 Estado:
 
-- `Pendiente`
+- `En progreso avanzado`
 
 Objetivo:
 
@@ -146,6 +145,14 @@ Alcance:
 - trazabilidad de cambios
 - alinear todo el modulo con el [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md) hasta cerrar checklist completa
 - controles de cierre donde fecha/hora queden congeladas al pasar a historial
+
+Avance actual:
+
+- `Mantenciones` y `Historial` ya exponen `Ver ficha` como lectura secundaria compartida por OT
+- la `Ficha de mantención` ya reúne contexto operativo, fechas clave, cierre técnico, `status_logs` y `visits`
+- la trazabilidad detallada se carga bajo demanda, manteniendo el patrón de lectura primero en las bandejas principales
+- `Historial` ya puede abrir `Editar cierre` desde esa ficha sin volver editable la programación histórica
+- conflictos visibles, bloqueo backend `409`, filtros de agenda y reprogramación auditada ya quedaron operativos en el mismo frente de endurecimiento
 
 ## Fase 5. Evidencias y checklist
 
@@ -304,8 +311,8 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- profundizar la lectura por ficha/orden de trabajo sin romper el patrón de lectura primero
 - enriquecer la reprogramación operativa con visitas y ventanas más finas por terreno
+- profundizar la `Ficha de mantención` con snapshots más ricos por cliente, instalación y responsables
 
 ## Backlog pendiente visible
 
@@ -321,6 +328,7 @@ Pendiente inmediato de esta fase:
 - bloqueo backend de cruces por instalación/grupo/técnico: listo en primer corte
 - filtros operativos por grupo y técnico en agenda mensual: listos
 - reprogramación auditada sin perder historial: lista en primer corte
+- lectura por ficha/orden de trabajo: lista en primer corte
 - modelo canónico de asignacion grupo/usuario: documentado e implementado en primer corte
 - modelo canónico de programacion preventiva y costeo: documentado
 - costeo estimado default por programación: listo en primer corte
