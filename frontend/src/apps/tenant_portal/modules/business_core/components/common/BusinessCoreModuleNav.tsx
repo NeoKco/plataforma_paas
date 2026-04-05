@@ -18,6 +18,10 @@ export function BusinessCoreModuleNav() {
       label: language === "es" ? "Clientes" : "Clients",
     },
     {
+      to: "/tenant-portal/business-core/duplicates",
+      label: language === "es" ? "Depuración" : "Cleanup",
+    },
+    {
       to: "/tenant-portal/business-core/function-profiles",
       label: language === "es" ? "Perfiles" : "Profiles",
     },

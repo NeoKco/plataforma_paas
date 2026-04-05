@@ -1,5 +1,6 @@
 # Business Core Changelog
 
+- Se agrega la vista `Depuración` en `business-core` para auditar duplicados de `Clientes`, `Direcciones` e `Instalaciones`, cruzando dependencias visibles de `sites`, `installations` y `work_orders` antes de habilitar borrado seguro.
 - Se corrigio la lectura de `Empresas` para excluir por defecto las organizaciones ya usadas como clientes y evitar mezclar cartera comercial con contrapartes operativas.
 - Se agrego la ficha de cliente y se renombro la lectura visible de `sites` a `Direcciones`, dejando a Google Maps como salida operativa desde cada direccion.
 - La ficha del cliente ahora permite alta, edicion y eliminacion basica de contactos y direcciones sin salir de la misma vista.

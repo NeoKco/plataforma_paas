@@ -45,6 +45,13 @@ export const businessCoreTenantPortalRoutes: RouteObject[] = [
     },
   },
   {
+    path: "duplicates",
+    lazy: async () => {
+      const module = await import("./pages/BusinessCoreDuplicatesPage");
+      return { Component: module.BusinessCoreDuplicatesPage };
+    },
+  },
+  {
     path: "function-profiles",
     lazy: async () => {
       const module = await import("./pages/BusinessCoreFunctionProfilesPage");

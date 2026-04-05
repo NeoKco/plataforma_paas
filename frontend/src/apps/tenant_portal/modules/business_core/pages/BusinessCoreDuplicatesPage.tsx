@@ -28,7 +28,6 @@ import {
   type TenantBusinessSite,
 } from "../services/sitesService";
 import {
-  buildAddressLine,
   getVisibleAddressLabel,
 } from "../utils/addressPresentation";
 import {
@@ -400,10 +399,10 @@ export function BusinessCoreDuplicatesPage() {
     try {
       const [clientsResponse, organizationsResponse, sitesResponse, installationsResponse, equipmentTypesResponse, workOrdersResponse] =
         await Promise.all([
-          getTenantBusinessClients(session.accessToken),
+          getTenantBusinessClients(session.accessToken, { includeInactive: true }),
           getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
-          getTenantBusinessSites(session.accessToken),
-          getTenantMaintenanceInstallations(session.accessToken),
+          getTenantBusinessSites(session.accessToken, { includeInactive: true }),
+          getTenantMaintenanceInstallations(session.accessToken, { includeInactive: true }),
           getTenantMaintenanceEquipmentTypes(session.accessToken, { includeInactive: true }),
           getTenantMaintenanceWorkOrders(session.accessToken),
         ]);
@@ -421,6 +420,10 @@ export function BusinessCoreDuplicatesPage() {
   }
 
   useEffect(() => {
+    if (!session?.accessToken) {
+      setIsLoading(false);
+      return;
+    }
     void loadData();
   }, [session?.accessToken]);
 
