@@ -1,5 +1,5 @@
 import { readFile } from "fs/promises";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "../support/test";
 import { loginTenant } from "../support/auth";
 
 function buildTodayDateValue() {

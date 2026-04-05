@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../support/test";
 import { seedTenantBillingSyncEvent } from "../support/backend-control";
 import { loginTenant } from "../support/auth";
 import { e2eEnv } from "../support/env";

@@ -107,6 +107,13 @@ Regla operativa añadida tras la estabilización tenant de `2026-04-04`:
 - si el flujo abre `Nueva cuenta`, `Nuevo usuario`, `Nueva mantención`, `Nueva programación`, `Detalle operacional` o cualquier diálogo similar, el spec debe localizar primero el modal visible y trabajar dentro de él
 - si una acción deja abierto un modal de detalle, el spec debe cerrarlo explícitamente antes de volver a interactuar con botones de fila como `Conciliar`, `Anular`, `Activar` o equivalentes
 
+Regla operativa añadida para fallos Playwright:
+
+- la suite debe retener `trace`, screenshot final y video en cualquier fallo real
+- además, cada spec adjunta un `error-context` en markdown con URL final, headings visibles, diálogos abiertos y `storageState`
+- el objetivo es que toda regresión visible deje evidencia utilizable sin depender de reproducción manual inmediata
+- los artefactos quedan en [frontend/e2e/test-results](../../frontend/e2e/test-results) y el reporte consolidado en [frontend/e2e/playwright-report](../../frontend/e2e/playwright-report)
+
 Si el flujo visible no tiene cobertura browser todavia, dejar explicitado en el roadmap o en el `CHANGELOG` del modulo por que sigue sin smoke.
 
 ## Regla de handoff para otra IA

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "../support/test";
 import { loginTenant } from "../support/auth";
 import { seedTenantUser, setTenantModuleLimit } from "../support/backend-control";
 import { e2eEnv } from "../support/env";

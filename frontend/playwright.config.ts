@@ -26,7 +26,7 @@ export default defineConfig({
   use: {
     baseURL,
     headless: process.env.E2E_HEADED === "1" ? false : true,
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },

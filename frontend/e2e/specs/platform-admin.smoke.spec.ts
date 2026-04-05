@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../support/test";
 import { loginPlatform } from "../support/auth";
 
 test("platform admin login and core navigation smoke", async ({ page }) => {

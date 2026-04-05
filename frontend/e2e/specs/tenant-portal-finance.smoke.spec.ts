@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../support/test";
 import { loginTenant } from "../support/auth";
 import {
   createBasicExpenseTransaction,

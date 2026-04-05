@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "../support/test";
 import { loginTenant } from "../support/auth";
 
 async function openTenantImportedPage(page: Page, path: string, heading: RegExp) {

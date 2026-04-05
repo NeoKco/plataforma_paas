@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../support/test";
 import { seedTenantBillingSyncEvent } from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
 import { openCreateTenantForm } from "../support/platform-admin";

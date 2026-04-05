@@ -99,6 +99,13 @@ Regla práctica adicional para esta iteración:
 - cuando una alta deja abierto un `detail modal` operativo, el spec debe decidir explícitamente si continúa dentro de ese modal o si lo cierra antes de volver a interactuar con la grilla
 - esto aplica ya tanto a `tenant_portal` como a `platform_admin`, especialmente en flujos de `Nuevo tenant` y `Nuevo usuario`
 
+Regla operativa adicional para artefactos de fallo:
+
+- todo fallo `Playwright` debe dejar `trace`, screenshot final, video retenido y un adjunto `error-context`
+- `error-context` resume al menos título del test, archivo, proyecto, URL final, headings visibles, diálogos abiertos y `storageState`
+- la configuración oficial usa `trace: retain-on-failure`, `screenshot: only-on-failure` y `video: retain-on-failure`
+- los artefactos se concentran en [frontend/e2e/test-results](test-results) y el reporte HTML en [frontend/e2e/playwright-report](playwright-report)
+
 Si el flujo visible nuevo aun no tiene smoke, debe quedar anotado explícitamente en el `ROADMAP.md` o `CHANGELOG.md` del módulo.
 
 Comandos útiles:
