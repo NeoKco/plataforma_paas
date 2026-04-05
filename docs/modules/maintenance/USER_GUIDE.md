@@ -157,6 +157,7 @@ Lectura funcional de cada vista:
   - cada tarjeta ya permite abrir `Ver ficha`, `Ver costos`, `Ver checklist` y `Editar cierre`
   - `Ver costos` es solo lectura; el histórico no se edita desde el flujo normal
   - `Ver checklist` también es solo lectura y deja visible la trazabilidad técnica del cierre
+  - si la OT está `completed`, `admin` y `manager` también pueden corregir la `Fecha efectiva de cierre` cuando el registro se hizo después; ese ajuste deja traza explícita en `Cambios y eventos`
   - desde `Ver ficha` también se puede abrir `Editar cierre` sin volver a la tarjeta principal
 - `Agenda`: calendario visual del trabajo abierto
   - ahora marca conflictos visibles cuando dos mantenciones abiertas comparten horario y recurso técnico/instalación
@@ -191,6 +192,7 @@ Regla UX operativa:
 - el usuario no debe ver referencias `legacy_*` como datos operativos
 - una mantencion cerrada no debe seguir apareciendo editable en la bandeja activa
 - en historial solo deberian poder corregirse descripcion o cierre, no reprogramar fecha/hora
+- excepción controlada: `admin` y `manager` pueden corregir la `Fecha efectiva de cierre` de una OT ya completada cuando el cierre real ocurrió antes de su registro administrativo; el ajuste exige motivo y queda auditado en historial
 - el cierre económico histórico debe consultarse en solo lectura; cualquier ajuste excepcional futuro debe quedar como acción separada y auditada
 - la sincronización a `Finanzas` es manual y controlada:
   - primero se registra costo real

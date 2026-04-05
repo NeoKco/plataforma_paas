@@ -124,6 +124,7 @@ Estado del corte hoy:
 - el backend ya endurece la agenda y rechaza cruces de slot activo por instalación, grupo o técnico, incluso si el intento no viene desde la misma pantalla web
 - `Mantenciones` y `Agenda` ya permiten `Reprogramar` con una nota opcional para dejar trazabilidad del cambio de slot y responsables en historial técnico
 - `Historial` ya permite abrir `Editar cierre` también desde la nueva `Ficha de mantención`, sin exponer reprogramación ni edición operativa de una OT cerrada
+- en OT `completed`, `Editar cierre` ahora también permite a `admin` y `manager` corregir la fecha efectiva de cierre cuando el registro administrativo ocurrió más tarde; ese cambio deja traza explícita en `maintenance_status_logs`
 - `Historial` ya permite `Reabrir` una OT cerrada para devolverla rápidamente a la bandeja activa cuando el error es solo operativo; si hubo impacto en `finance`, se mantiene el runbook/script de reversa como camino formal
 - ya existe un runbook operativo para revertir cierres erróneos y devolver una OT desde `Historial` a un estado activo mediante [docs/runbooks/maintenance-status-recovery.md](/home/felipe/platform_paas/docs/runbooks/maintenance-status-recovery.md)
 - `Mantenciones` ya permite abrir `Visitas` desde la fila o desde la `Ficha de mantención`, para bajar a una coordinación más fina por ventana de terreno

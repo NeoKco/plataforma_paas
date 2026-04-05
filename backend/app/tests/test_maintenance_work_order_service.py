@@ -49,6 +49,18 @@ class _FakeTenantDb:
     def query(self, target):
         return _FakeQuery(target, self.mapping)
 
+    def add(self, _item):
+        return None
+
+    def commit(self):
+        return None
+
+    def refresh(self, _item):
+        return None
+
+    def rollback(self):
+        return None
+
 
 class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
     def test_update_work_order_preserves_existing_internal_external_reference(self) -> None:
@@ -211,6 +223,125 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
         self.assertEqual(item.installation_id, 9)
         self.assertEqual(item.scheduled_for, "2026-04-04T10:00:00")
         self.assertEqual(item.title, "Mantencion cerrada")
+
+    def test_update_completed_work_order_allows_admin_to_adjust_completed_at_with_audit(self) -> None:
+        previous_completed_at = datetime(2026, 4, 4, 18, 0, tzinfo=timezone.utc)
+        new_completed_at = datetime(2026, 4, 4, 15, 30, tzinfo=timezone.utc)
+        existing_item = SimpleNamespace(
+            id=118,
+            client_id=11,
+            site_id=31,
+            installation_id=9,
+            schedule_id=5,
+            external_reference="LEGACY-HIST-MAINT-118",
+            title="Mantencion cerrada",
+            description="Descripcion vieja",
+            priority="normal",
+            scheduled_for="2026-04-04T10:00:00",
+            cancellation_reason=None,
+            closure_notes="Cierre viejo",
+            assigned_work_group_id=4,
+            assigned_tenant_user_id=None,
+            maintenance_status="completed",
+            completed_at=previous_completed_at,
+        )
+        schedule = SimpleNamespace(
+            id=5,
+            frequency_value=6,
+            frequency_unit="months",
+            last_executed_at=previous_completed_at,
+            next_due_at=None,
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        work_order_repository.save.side_effect = lambda _tenant_db, item: item
+        status_log_repository = Mock()
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+            status_log_repository=status_log_repository,
+        )
+        tenant_db = _FakeTenantDb({MaintenanceSchedule: schedule})
+
+        item = service.update_work_order(
+            tenant_db,
+            118,
+            MaintenanceWorkOrderUpdateRequest(
+                client_id=11,
+                site_id=31,
+                installation_id=9,
+                assigned_work_group_id=4,
+                external_reference="WO-NO-IMPORTA",
+                title="Intento de cambio",
+                description="Descripcion corregida",
+                priority="critical",
+                scheduled_for=None,
+                cancellation_reason=None,
+                closure_notes="cierre corregido",
+                completed_at_override=new_completed_at,
+                closure_adjustment_note="Se cerró varias horas después por carga operativa",
+            ),
+            changed_by_user_id=7,
+            actor_role="admin",
+        )
+
+        self.assertEqual(item.completed_at, new_completed_at)
+        self.assertEqual(schedule.last_executed_at, new_completed_at)
+        self.assertIsNotNone(schedule.next_due_at)
+        status_log_repository.create.assert_called_once()
+        self.assertIn(
+            "Registro posterior al cierre original",
+            status_log_repository.create.call_args.kwargs["note"],
+        )
+
+    def test_update_completed_work_order_rejects_operator_completed_at_adjustment(self) -> None:
+        existing_item = SimpleNamespace(
+            id=119,
+            client_id=11,
+            site_id=31,
+            installation_id=9,
+            schedule_id=None,
+            external_reference="LEGACY-HIST-MAINT-119",
+            title="Mantencion cerrada",
+            description="Descripcion vieja",
+            priority="normal",
+            scheduled_for="2026-04-04T10:00:00",
+            cancellation_reason=None,
+            closure_notes="Cierre viejo",
+            assigned_work_group_id=4,
+            assigned_tenant_user_id=None,
+            maintenance_status="completed",
+            completed_at=datetime(2026, 4, 4, 18, 0, tzinfo=timezone.utc),
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        work_order_repository.save.side_effect = lambda _tenant_db, item: item
+        service = MaintenanceWorkOrderService(work_order_repository=work_order_repository)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Solo perfiles admin o manager pueden ajustar la fecha efectiva de cierre",
+        ):
+            service.update_work_order(
+                _FakeTenantDb({}),
+                119,
+                MaintenanceWorkOrderUpdateRequest(
+                    client_id=11,
+                    site_id=31,
+                    installation_id=9,
+                    assigned_work_group_id=4,
+                    external_reference="WO-NO-IMPORTA",
+                    title="Intento de cambio",
+                    description="Descripcion corregida",
+                    priority="critical",
+                    scheduled_for=None,
+                    cancellation_reason=None,
+                    closure_notes="cierre corregido",
+                    completed_at_override=datetime(2026, 4, 4, 15, 30, tzinfo=timezone.utc),
+                    closure_adjustment_note="Cierre tardío",
+                ),
+                changed_by_user_id=8,
+                actor_role="operator",
+            )
 
     def test_create_work_order_rejects_unknown_assigned_work_group(self) -> None:
         work_order_repository = Mock()

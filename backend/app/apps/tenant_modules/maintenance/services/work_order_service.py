@@ -120,6 +120,7 @@ class MaintenanceWorkOrderService:
         payload: MaintenanceWorkOrderUpdateRequest,
         *,
         changed_by_user_id: int | None = None,
+        actor_role: str | None = None,
     ) -> MaintenanceWorkOrder:
         item = self._get_or_raise(tenant_db, work_order_id)
         normalized = self._normalize_payload(payload)
@@ -128,7 +129,18 @@ class MaintenanceWorkOrderService:
             item.description = normalized["description"]
             item.closure_notes = normalized["closure_notes"]
             item.cancellation_reason = normalized["cancellation_reason"]
-            return self.work_order_repository.save(tenant_db, item)
+            if item.maintenance_status == "completed":
+                self._apply_completed_at_override_if_needed(
+                    tenant_db,
+                    item,
+                    payload,
+                    changed_by_user_id=changed_by_user_id,
+                    actor_role=actor_role,
+                )
+            saved = self.work_order_repository.save(tenant_db, item)
+            if item.maintenance_status == "completed" and payload.completed_at_override is not None:
+                self._sync_schedule_after_completed_at_adjustment(tenant_db, saved)
+            return saved
         self._validate_payload(tenant_db, normalized, current_item=item)
         reschedule_note = self._build_reschedule_audit_note(
             item,
@@ -244,6 +256,82 @@ class MaintenanceWorkOrderService:
             )
             tenant_db.refresh(item)
         return item
+
+    def _apply_completed_at_override_if_needed(
+        self,
+        tenant_db: Session,
+        item: MaintenanceWorkOrder,
+        payload: MaintenanceWorkOrderUpdateRequest,
+        *,
+        changed_by_user_id: int | None = None,
+        actor_role: str | None = None,
+    ) -> None:
+        if payload.completed_at_override is None:
+            return
+
+        if actor_role not in REOPEN_ALLOWED_ROLES:
+            raise ValueError(
+                "Solo perfiles admin o manager pueden ajustar la fecha efectiva de cierre"
+            )
+
+        current_completed_at = getattr(item, "completed_at", None)
+        next_completed_at = payload.completed_at_override
+        if current_completed_at == next_completed_at:
+            return
+
+        if next_completed_at > datetime.now(timezone.utc):
+            raise ValueError("La fecha efectiva de cierre no puede quedar en el futuro")
+
+        adjustment_note = (
+            payload.closure_adjustment_note.strip()
+            if payload.closure_adjustment_note and payload.closure_adjustment_note.strip()
+            else None
+        )
+        if not adjustment_note:
+            raise ValueError(
+                "Debes registrar el motivo por el que corriges la fecha efectiva de cierre"
+            )
+
+        item.completed_at = next_completed_at
+        previous_label = current_completed_at.isoformat() if current_completed_at else "sin fecha previa"
+        self.status_log_repository.create(
+            tenant_db,
+            work_order_id=item.id,
+            from_status="completed",
+            to_status="completed",
+            note=(
+                "Ajuste fecha efectiva de cierre. "
+                f"Previo: {previous_label}. "
+                f"Nuevo: {next_completed_at.isoformat()}. "
+                "Registro posterior al cierre original. "
+                f"Motivo: {adjustment_note}"
+            ),
+            changed_by_user_id=changed_by_user_id,
+        )
+
+    def _sync_schedule_after_completed_at_adjustment(
+        self,
+        tenant_db: Session,
+        item: MaintenanceWorkOrder,
+    ) -> None:
+        if item.maintenance_status != "completed" or not item.schedule_id or not item.completed_at:
+            return
+        schedule = (
+            tenant_db.query(MaintenanceSchedule)
+            .filter(MaintenanceSchedule.id == item.schedule_id)
+            .first()
+        )
+        if schedule is None:
+            return
+        schedule.last_executed_at = item.completed_at
+        schedule.next_due_at = self._add_frequency(
+            item.completed_at,
+            schedule.frequency_value,
+            schedule.frequency_unit,
+        )
+        tenant_db.add(schedule)
+        tenant_db.commit()
+        tenant_db.refresh(item)
 
     def delete_work_order(
         self,

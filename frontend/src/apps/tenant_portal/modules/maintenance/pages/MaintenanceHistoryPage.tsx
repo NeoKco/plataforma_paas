@@ -10,7 +10,11 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { getTenantUsers } from "../../../../../services/tenant-api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
-import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
+import {
+  formatDateTimeInTimeZone,
+  fromDateTimeLocalInputValue,
+  toDateTimeLocalInputValue,
+} from "../../../../../utils/dateTimeLocal";
 import type { ApiError, TenantUsersItem } from "../../../../../types";
 import {
   getTenantBusinessClients,
@@ -90,6 +94,13 @@ function getStatusLogTitle(
   language: "es" | "en"
 ): string {
   const note = (log.note || "").trim().toLowerCase();
+  if (
+    log.from_status === "completed" &&
+    log.to_status === "completed" &&
+    note.startsWith("ajuste fecha efectiva de cierre")
+  ) {
+    return language === "es" ? "Ajuste de fecha de cierre" : "Closure date adjustment";
+  }
   if (log.from_status && log.from_status === log.to_status && note.startsWith("reprogramación")) {
     return language === "es" ? "Reprogramación" : "Reschedule";
   }
@@ -125,6 +136,7 @@ export function MaintenanceHistoryPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const canReopenFromHistory = session?.role === "admin" || session?.role === "manager";
+  const canAdjustCompletedAt = session?.role === "admin" || session?.role === "manager";
   const [rows, setRows] = useState<TenantMaintenanceHistoryWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
@@ -152,6 +164,8 @@ export function MaintenanceHistoryPage() {
     description: "",
     closure_notes: "",
     cancellation_reason: "",
+    completed_at_override: "",
+    closure_adjustment_note: "",
   });
 
   const clientById = useMemo(
@@ -276,6 +290,10 @@ export function MaintenanceHistoryPage() {
       description: stripLegacyVisibleText(item.description) || "",
       closure_notes: stripLegacyVisibleText(item.closure_notes) || "",
       cancellation_reason: stripLegacyVisibleText(item.cancellation_reason) || "",
+      completed_at_override: item.completed_at
+        ? toDateTimeLocalInputValue(item.completed_at, effectiveTimeZone)
+        : "",
+      closure_adjustment_note: "",
     });
   }
 
@@ -327,6 +345,14 @@ export function MaintenanceHistoryPage() {
       scheduled_for: editingRow.scheduled_for,
       cancellation_reason: historyForm.cancellation_reason.trim() || null,
       closure_notes: historyForm.closure_notes.trim() || null,
+      completed_at_override:
+        editingRow.maintenance_status === "completed" && canAdjustCompletedAt && historyForm.completed_at_override
+          ? fromDateTimeLocalInputValue(historyForm.completed_at_override, effectiveTimeZone)
+          : undefined,
+      closure_adjustment_note:
+        editingRow.maintenance_status === "completed" && canAdjustCompletedAt
+          ? historyForm.closure_adjustment_note.trim() || null
+          : undefined,
       assigned_tenant_user_id: editingRow.assigned_tenant_user_id,
       maintenance_status: editingRow.maintenance_status,
     };
@@ -864,8 +890,12 @@ export function MaintenanceHistoryPage() {
               title={language === "es" ? "Editar cierre" : "Edit closure"}
               subtitle={
                 language === "es"
-                  ? "Aquí solo puedes corregir descripción o notas de cierre. Fecha, hora, cliente, dirección e instalación ya no cambian."
-                  : "Here you can only adjust description or closure notes. Date, time, client, address, and installation can no longer change."
+                  ? canAdjustCompletedAt && editingRow.maintenance_status === "completed"
+                    ? "Aquí puedes corregir descripción, notas y la fecha efectiva del cierre cuando el registro se hizo más tarde. El ajuste queda auditado en Cambios y eventos."
+                    : "Aquí solo puedes corregir descripción o notas de cierre. Fecha, hora, cliente, dirección e instalación ya no cambian."
+                  : canAdjustCompletedAt && editingRow.maintenance_status === "completed"
+                    ? "Here you can adjust description, notes and the effective closure timestamp when the record was entered later. The adjustment is audited in Changes and events."
+                    : "Here you can only adjust description or closure notes. Date, time, client, address, and installation can no longer change."
               }
             >
               <form
@@ -908,6 +938,44 @@ export function MaintenanceHistoryPage() {
                       }
                     />
                   </div>
+                  {editingRow.maintenance_status === "completed" && canAdjustCompletedAt ? (
+                    <>
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">{language === "es" ? "Fecha efectiva de cierre" : "Effective closure date"}</label>
+                        <input
+                          className="form-control"
+                          type="datetime-local"
+                          value={historyForm.completed_at_override}
+                          onChange={(event) =>
+                            setHistoryForm((current) => ({
+                              ...current,
+                              completed_at_override: event.target.value,
+                            }))
+                          }
+                        />
+                        <div className="maintenance-history-entry__meta mt-2">
+                          {language === "es"
+                            ? "Solo admin y manager pueden corregir esta fecha. Se registrará como ajuste posterior al cierre original."
+                            : "Only admin and manager can adjust this timestamp. It will be recorded as an update performed after the original closure."}
+                        </div>
+                      </div>
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">{language === "es" ? "Motivo del ajuste" : "Adjustment reason"}</label>
+                        <textarea
+                          className="form-control"
+                          rows={4}
+                          value={historyForm.closure_adjustment_note}
+                          onChange={(event) =>
+                            setHistoryForm((current) => ({
+                              ...current,
+                              closure_adjustment_note: event.target.value,
+                            }))
+                          }
+                          placeholder={language === "es" ? "Ej.: el trabajo terminó en terreno antes, pero se registró al volver a oficina." : "E.g. the field work ended earlier, but it was recorded later from the office."}
+                        />
+                      </div>
+                    </>
+                  ) : null}
                   <div className="col-12 col-md-6">
                     <label className="form-label">{language === "es" ? "Motivo de anulación" : "Cancellation reason"}</label>
                     <textarea

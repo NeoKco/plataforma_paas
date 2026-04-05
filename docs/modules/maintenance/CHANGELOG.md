@@ -2,6 +2,11 @@
 
 ## 2026-04-05
 
+- `Historial -> Editar cierre` ahora permite a `admin` y `manager` ajustar la fecha efectiva de cierre en OT `completed`:
+  - pensado para cierres registrados horas después de la ejecución real
+  - exige motivo del ajuste
+  - deja trazabilidad en `Cambios y eventos` como ajuste posterior al cierre original
+  - actualiza también la referencia preventiva del schedule cuando la OT venía enlazada a programación
 - el modal `Costos y cobro` ahora se alinea con el flujo operativo esperado del equipo:
   - `Costeo estimado` puede elegir y aplicar cualquier `Plantilla de costeo de mantención` activa previamente creada
   - `Costo real y cobro` ahora copia valores de la plantilla al resumen editable, para ajustar traslado, materiales o monto cobrado sin quedar bloqueado por la plantilla

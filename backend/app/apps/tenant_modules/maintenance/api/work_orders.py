@@ -132,6 +132,7 @@ def update_maintenance_work_order(
             work_order_id,
             payload,
             changed_by_user_id=current_user["user_id"],
+            actor_role=current_user["role"],
         )
     except MaintenanceWorkOrderConflictError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc

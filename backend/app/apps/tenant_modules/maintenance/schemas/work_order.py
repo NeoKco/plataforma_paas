@@ -26,6 +26,8 @@ class MaintenanceWorkOrderCreateRequest(MaintenanceWorkOrderBase):
 
 class MaintenanceWorkOrderUpdateRequest(MaintenanceWorkOrderBase):
     reschedule_note: str | None = None
+    completed_at_override: datetime | None = None
+    closure_adjustment_note: str | None = None
 
 
 class MaintenanceWorkOrderItemResponse(MaintenanceWorkOrderBase):
