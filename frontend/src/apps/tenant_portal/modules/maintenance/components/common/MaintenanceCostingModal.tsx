@@ -623,6 +623,8 @@ export function MaintenanceCostingModal({
     allowComplete &&
     workOrder?.maintenance_status !== "completed" &&
     workOrder?.maintenance_status !== "cancelled";
+  const isWorkOrderClosed =
+    workOrder?.maintenance_status === "completed" || workOrder?.maintenance_status === "cancelled";
   const closeBlockedByFinancePolicy = canCompleteFromModal && autoSyncOnClose && closeAutoSyncIssues.length > 0;
   const financeTransactionDatePreview = useMemo(
     () =>
@@ -1006,6 +1008,22 @@ export function MaintenanceCostingModal({
     setIsFinanceSyncSubmitting(true);
     setError(null);
     try {
+      if (!isReadOnly) {
+        const savedActualResponse = await updateTenantMaintenanceWorkOrderCostActual(accessToken, currentWorkOrder.id, {
+          labor_cost: normalizeNumericInput(actualForm.labor_cost),
+          travel_cost: normalizeNumericInput(actualForm.travel_cost),
+          materials_cost: normalizeNumericInput(actualForm.materials_cost),
+          external_services_cost: normalizeNumericInput(actualForm.external_services_cost),
+          overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
+          actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
+          notes: normalizeNullable(actualForm.notes),
+          lines: normalizeLineWritePayload(actualLines),
+        });
+        setCostingDetail(savedActualResponse.data);
+        setActualForm(buildDefaultCostActualForm(savedActualResponse.data.actual));
+        setActualLines(buildDefaultCostLines(savedActualResponse.data.actual_lines));
+      }
+
       const response = await syncTenantMaintenanceWorkOrderToFinance(accessToken, currentWorkOrder.id, {
         sync_income: financeSyncForm.sync_income,
         sync_expense: financeSyncForm.sync_expense,
@@ -1421,10 +1439,10 @@ export function MaintenanceCostingModal({
               >
                 <div className="maintenance-history-entry">
                   <div className="maintenance-history-entry__title">
-                      {isReadOnly ? (language === "es" ? "Histórico de sincronización con finanzas" : "Finance sync history") : autoSyncOnClose ? (language === "es" ? "Reintento o ajuste de sincronización" : "Finance sync retry or adjustment") : language === "es" ? "Sincronizar a finanzas" : "Sync to finance"}
+                      {isReadOnly ? (language === "es" ? "Histórico de sincronización con finanzas" : "Finance sync history") : autoSyncOnClose ? (isWorkOrderClosed ? (language === "es" ? "Reintento o ajuste de sincronización" : "Finance sync retry or adjustment") : (language === "es" ? "Sincronización manual opcional" : "Optional manual finance sync")) : language === "es" ? "Sincronizar a finanzas" : "Sync to finance"}
                   </div>
                   <div className="maintenance-history-entry__meta">
-                      {isReadOnly ? (language === "es" ? "Consulta los vínculos financieros ya registrados para esta mantención cerrada." : "Review the financial links already registered for this closed maintenance.") : autoSyncOnClose ? (language === "es" ? "Al guardar y cerrar la mantención, el backend intentará sincronizar automáticamente con Finanzas usando los defaults de Resumen. Este bloque queda como respaldo para reintentar o corregir la sincronización si hizo falta." : "When you save and close the maintenance, the backend will try to sync automatically with Finance using the Overview defaults. This block remains as a fallback to retry or correct the sync if needed.") : language === "es" ? "Crea o actualiza el ingreso y egreso ligados a esta mantención usando source_type/source_id. Los defaults iniciales se cargan desde Resumen." : "Create or update the linked income and expense using source_type/source_id. Initial defaults are loaded from Overview."}
+                      {isReadOnly ? (language === "es" ? "Consulta los vínculos financieros ya registrados para esta mantención cerrada." : "Review the financial links already registered for this closed maintenance.") : autoSyncOnClose ? (isWorkOrderClosed ? (language === "es" ? "La OT ya está cerrada. Usa este bloque para reintentar o corregir la sincronización con Finanzas si el intento automático no bastó." : "The work order is already closed. Use this block to retry or correct the Finance sync if the automatic attempt was not enough.") : (language === "es" ? "No hace falta usar este botón para el flujo normal: al guardar y cerrar la mantención, el backend intentará sincronizar automáticamente con Finanzas usando los defaults de Resumen. Este bloque solo sirve si quieres adelantar la sincronización antes del cierre." : "You do not need this button for the normal flow: when you save and close the maintenance, the backend will try to sync automatically with Finance using the Overview defaults. This block only exists if you want to force the sync before closing.")) : language === "es" ? "Crea o actualiza el ingreso y egreso ligados a esta mantención usando source_type/source_id. Los defaults iniciales se cargan desde Resumen." : "Create or update the linked income and expense using source_type/source_id. Initial defaults are loaded from Overview."}
                   </div>
                   {!isReadOnly && (!activeFinanceAccounts.length || !activeCurrencies.length) ? (
                     <div className="alert alert-warning mt-3 mb-0">{language === "es" ? "Primero debes tener cuentas y monedas activas en Finanzas para sincronizar." : "You need active accounts and currencies in Finance before syncing."}</div>
@@ -1468,7 +1486,7 @@ export function MaintenanceCostingModal({
                     <button className="btn btn-outline-secondary" type="button" onClick={onClose}>{language === "es" ? "Cerrar" : "Close"}</button>
                     {!isReadOnly ? (
                       <button className="btn btn-primary" type="submit" disabled={isFinanceSyncSubmitting || financeSyncBlocked}>
-                        {isFinanceSyncSubmitting ? (language === "es" ? "Sincronizando..." : "Syncing...") : autoSyncOnClose ? (language === "es" ? "Reintentar / ajustar sincronización" : "Retry / adjust sync") : language === "es" ? "Sincronizar con finanzas" : "Sync with Finance"}
+                        {isFinanceSyncSubmitting ? (language === "es" ? "Sincronizando..." : "Syncing...") : autoSyncOnClose ? (isWorkOrderClosed ? (language === "es" ? "Reintentar / ajustar sincronización" : "Retry / adjust sync") : (language === "es" ? "Sincronizar ahora (opcional)" : "Sync now (optional)")) : language === "es" ? "Sincronizar con finanzas" : "Sync with Finance"}
                       </button>
                     ) : null}
                   </div>
