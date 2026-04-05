@@ -12,7 +12,7 @@ async function openTenantImportedPage(page: Page, path: string, heading: RegExp)
   }
 
   await expect(page).toHaveURL(new RegExp(`${path.replace(/\//g, "\\/")}($|[/?#])`));
-  await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
 }
 
 function getCatalogRow(page: Page, text: string | RegExp) {
