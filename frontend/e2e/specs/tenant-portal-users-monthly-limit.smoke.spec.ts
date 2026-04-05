@@ -73,7 +73,6 @@ test("tenant portal blocks user creation when monthly user quota is exhausted", 
       .getByPlaceholder(/Define una contraseña inicial|Define an initial password/i)
       .fill("TenantUser123!");
     await createUserForm.getByRole("combobox").nth(0).selectOption("operator");
-    await createUserForm.getByRole("combobox").nth(1).selectOption("active");
     await createUserForm.getByRole("button", { name: /Crear usuario|Create user/i }).click();
 
     await expect(getActionFeedback(page, "error")).toContainText(

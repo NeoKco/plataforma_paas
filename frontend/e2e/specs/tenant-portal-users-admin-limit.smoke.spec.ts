@@ -86,13 +86,17 @@ test("tenant portal blocks extra admin creation and admin reactivation when admi
       .getByPlaceholder(/Define una contraseña inicial|Define an initial password/i)
       .fill("TenantAdmin123!");
     await createUserForm.getByRole("combobox").nth(0).selectOption("admin");
-    await createUserForm.getByRole("combobox").nth(1).selectOption("active");
     await createUserForm.getByRole("button", { name: /Crear usuario|Create user/i }).click();
 
     await expect(getActionFeedback(page, "error")).toContainText(
       /No puedes crear otro administrador|You cannot create another admin/i
     );
     await expect(page.getByText(blockedAdminEmail, { exact: true })).toHaveCount(0);
+
+    await createUserForm.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+    await expect(
+      page.getByRole("dialog", { name: /Crear usuario del tenant|Create tenant user/i })
+    ).toHaveCount(0);
 
     await expect(inactiveAdminRow).toBeVisible();
 
