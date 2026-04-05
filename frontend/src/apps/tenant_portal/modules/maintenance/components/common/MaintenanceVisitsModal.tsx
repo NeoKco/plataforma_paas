@@ -911,7 +911,7 @@ export function MaintenanceVisitsModal({
                       {language === "es" ? "Usar ventana OT" : "Use work order window"}
                     </button>
                     <button className="btn btn-sm btn-outline-primary" type="button" onClick={applyWorkOrderAssigneePreset}>
-                      {language === "es" ? "Copiar responsables OT" : "Copy work order assignees"}
+                      {language === "es" ? "Copiar grupo/líder OT" : "Copy work order group/leader"}
                     </button>
                     <button className="btn btn-sm btn-outline-primary" type="button" onClick={markVisitInProgressNow}>
                       {language === "es" ? "Marcar salida ahora" : "Mark departure now"}
@@ -1008,7 +1008,7 @@ export function MaintenanceVisitsModal({
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Grupo responsable" : "Responsible group"}
+                      {language === "es" ? "Grupo/líder" : "Group/leader"}
                     </label>
                     <select
                       className="form-select"
@@ -1075,7 +1075,7 @@ export function MaintenanceVisitsModal({
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Técnico responsable" : "Assigned technician"}
+                      {language === "es" ? "Líder responsable" : "Responsible leader"}
                     </label>
                     <select
                       className="form-select"

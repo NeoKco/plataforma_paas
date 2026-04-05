@@ -1141,7 +1141,7 @@ export function MaintenanceWorkOrdersPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Grupo responsable" : "Responsible group"}
+                      {language === "es" ? "Grupo/líder" : "Group/leader"}
                     </label>
                     <select
                       className="form-select"
@@ -1166,7 +1166,7 @@ export function MaintenanceWorkOrdersPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Técnico responsable" : "Assigned technician"}
+                      {language === "es" ? "Líder responsable" : "Responsible leader"}
                     </label>
                     <select
                       className="form-select"
