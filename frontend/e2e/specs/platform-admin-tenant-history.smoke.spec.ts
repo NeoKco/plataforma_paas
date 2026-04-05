@@ -68,7 +68,7 @@ test("platform admin can review tenant history filters exports and detail", asyn
 
   await archivePanel
     .getByPlaceholder(/Buscar por nombre, slug, actor o billing|Search by name, slug, actor or billing/i)
-    .fill(tenantSlug);
+    .fill(tenant.slug);
   await archivePanel.locator("select.form-select").nth(1).selectOption("past_due");
   await archivePanel.getByRole("button", { name: /Aplicar filtros|Apply filters/i }).click();
 
@@ -77,7 +77,7 @@ test("platform admin can review tenant history filters exports and detail", asyn
     .filter({ hasText: /Retirados recientes|Recent retirements/i })
     .first();
 
-  const historyRow = historyTable.locator("table tbody tr").filter({ hasText: tenantSlug }).first();
+  const historyRow = historyTable.locator("table tbody tr").filter({ hasText: tenant.slug }).first();
   await expect(historyRow).toBeVisible();
   await expect(historyRow).toContainText(/past due|con deuda/i);
   await expect(historyRow).toContainText(/1 billing/i);
@@ -100,7 +100,10 @@ test("platform admin can review tenant history filters exports and detail", asyn
   await historyRow.getByRole("button", { name: /Ver detalle|View detail/i }).click();
 
   await expect(
-    page.locator(".panel-card").filter({ hasText: new RegExp(`Detalle histórico: ${tenantName}|Historical detail: ${tenantName}`) }).first()
+    page
+      .locator(".panel-card")
+      .filter({ hasText: new RegExp(`Detalle histórico: ${tenant.name}|Historical detail: ${tenant.name}`) })
+      .first()
   ).toBeVisible();
   await expect(page.getByText(/Policy efectiva al retiro|Effective policy at retirement/i)).toBeVisible();
   await expect(page.getByRole("heading", { name: /Billing reciente|Recent billing/i })).toBeVisible();
@@ -108,6 +111,9 @@ test("platform admin can review tenant history filters exports and detail", asyn
 
   await historyRow.getByRole("button", { name: /Ocultar detalle|Hide detail/i }).click();
   await expect(
-    page.locator(".panel-card").filter({ hasText: new RegExp(`Detalle histórico: ${tenantName}|Historical detail: ${tenantName}`) }).first()
+    page
+      .locator(".panel-card")
+      .filter({ hasText: new RegExp(`Detalle histórico: ${tenant.name}|Historical detail: ${tenant.name}`) })
+      .first()
   ).toHaveCount(0);
 });

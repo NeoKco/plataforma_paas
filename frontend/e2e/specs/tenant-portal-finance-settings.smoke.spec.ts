@@ -206,10 +206,11 @@ test("tenant portal finance settings manages currencies, exchange rates and para
 
   const exchangeRateRow = page
     .locator("tbody tr")
-    .filter({ hasText: new RegExp(`${sourceCurrencyCode}\s*→\s*${targetCurrencyCode}|${sourceCurrencyCode}`, "i") })
+    .filter({ hasText: new RegExp(`${sourceCurrencyCode}\\s*→\\s*${targetCurrencyCode}|${sourceCurrencyCode}`, "i") })
     .filter({ hasText: exchangeRateValue })
     .first();
-  await expect(exchangeRateRow).toBeVisible();
+  await expect.poll(async () => exchangeRateRow.count()).toBeGreaterThan(0);
+  await expect(exchangeRateRow).toBeVisible({ timeout: 10000 });
 
   page.once("dialog", (dialog) => dialog.accept());
   await exchangeRateRow.getByRole("button", { name: /Eliminar|Delete/i }).click();
