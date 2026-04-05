@@ -113,6 +113,7 @@ Como decidir rapido:
 - si tiene historial pero no debe seguir operando, `Desactivar`
 - si quieres concentrar la operacion en una sola ficha, `Consolidar en sugerida`
 - si en `Organizaciones` quieres decidir manualmente el dato final por campo, usa `Ajuste manual previo`
+- revisa luego `Diff final por campo` para validar el resultado exacto antes de consolidar
 
 Que consolida hoy:
 
@@ -127,6 +128,7 @@ Que no consolida todavia:
 - `organizations` en su version profunda documental asistida por decision humana
 - cuando hay varios `Clientes` en conflicto, la pantalla ahora intenta consolidarlos guiadamente antes de cerrar la fusión de la organización base; aun así, el criterio documental final sigue siendo operacional y no reemplaza revisión humana
 - el ajuste manual actual permite elegir por campo visible qué organización aporta cada dato, pero no versiona decisiones ni agrega una justificación formal por campo
+- el diff actual muestra cambio actual vs final por campo, pero no reemplaza una auditoría histórica completa
 - merge profundo de `contacts` mas alla de consolidar equivalentes dentro de la misma organización o mover/desactivar duplicados evidentes al fusionar `Clientes`
 - notas historicas libres
 - fusion documental profunda entre fichas

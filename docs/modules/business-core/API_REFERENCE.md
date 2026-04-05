@@ -89,6 +89,7 @@ Reasignaciones actuales por tipo:
 
 - duplicado de `organization` -> mueve `contacts`, puede consolidar multiples `clients` en una ficha sugerida, integrar campos documentales visibles, reasignar la ficha final y luego desactiva origenes
 - la selección manual por campo de `organization` vive hoy en frontend y reutiliza `PUT /tenant/business-core/organizations/{organization_id}` para persistir la ficha final consolidada
+- el diff previo por campo también vive en frontend y se calcula sobre datasets ya cargados, sin abrir endpoints nuevos
 - duplicado de `client` -> mueve `contacts`, `sites` y `work_orders`
 - duplicado de `contact` -> conserva la mejor ficha visible, integra email/telefono/rol faltantes y desactiva equivalentes dentro de la misma `organization`
 - duplicado de `site` -> mueve `installations` y `work_orders`

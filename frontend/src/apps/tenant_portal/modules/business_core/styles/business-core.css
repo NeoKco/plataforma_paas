@@ -564,6 +564,45 @@
   padding-top: 0.75rem;
 }
 
+.business-core-duplicates-merge-assistant__diff {
+  border-top: 1px solid rgba(13, 110, 253, 0.12);
+  display: grid;
+  gap: 0.65rem;
+  padding-top: 0.75rem;
+}
+
+.business-core-duplicates-merge-diff-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.business-core-duplicates-merge-diff-item {
+  background: #fff;
+  border: 1px solid rgba(13, 110, 253, 0.1);
+  border-radius: 0.75rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.7rem 0.8rem;
+}
+
+.business-core-duplicates-merge-diff-item.is-changed {
+  border-color: rgba(25, 135, 84, 0.28);
+  background: rgba(25, 135, 84, 0.04);
+}
+
+.business-core-duplicates-merge-diff-item__field {
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+
+.business-core-duplicates-merge-diff-item__values,
+.business-core-duplicates-merge-diff-item__meta {
+  color: var(--app-text-muted, #53637a);
+  display: grid;
+  gap: 0.15rem;
+  font-size: 0.82rem;
+}
+
 @media (max-width: 1199px) {
   .business-core-form-modal {
     width: min(1120px, 96vw);

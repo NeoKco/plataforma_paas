@@ -509,6 +509,40 @@ function resolveOrganizationMergePayload(
   return resolved;
 }
 
+function buildOrganizationMergeDiffRows(
+  target: TenantBusinessOrganization,
+  sources: TenantBusinessOrganization[],
+  selections: OrganizationMergeSelectionMap = {}
+) {
+  const resolved = resolveOrganizationMergePayload(target, sources, selections);
+  const organizations = [target, ...sources];
+
+  return ORGANIZATION_MERGE_FIELDS.map((field) => {
+    const selection = selections[field] ?? "auto";
+    const selectedOrganizationId =
+      selection !== "auto" ? Number(selection.replace("organization:", "")) : null;
+    const selectedOrganization =
+      selectedOrganizationId !== null
+        ? organizations.find((organization) => organization.id === selectedOrganizationId) ?? null
+        : null;
+    const currentValue = getMeaningfulText(getOrganizationFieldValue(target, field));
+    const nextValue = getMeaningfulText(resolved[field]);
+
+    return {
+      field,
+      currentValue,
+      nextValue,
+      isChanged: (currentValue ?? null) !== (nextValue ?? null),
+      sourceLabel: selectedOrganization
+        ? stripLegacyVisibleText(selectedOrganization.name) ||
+          stripLegacyVisibleText(selectedOrganization.legal_name) ||
+          `#${selectedOrganization.id}`
+        : null,
+      isAutomatic: selection === "auto",
+    };
+  });
+}
+
 function countOrganizationDocumentFieldsToMerge(
   target: TenantBusinessOrganization,
   sources: TenantBusinessOrganization[],
@@ -2197,6 +2231,7 @@ export function BusinessCoreDuplicatesPage() {
       .map((member) => member.organization);
     const selections = organizationMergeSelections[group.id] ?? {};
     const preview = resolveOrganizationMergePayload(target, sources, selections);
+    const diffRows = buildOrganizationMergeDiffRows(target, sources, selections);
 
     return (
       <div className="business-core-duplicates-merge-assistant">
@@ -2249,6 +2284,38 @@ export function BusinessCoreDuplicatesPage() {
             {preview.notes ? (
               <span>{language === "es" ? "notas integradas" : "merged notes"}</span>
             ) : null}
+          </div>
+        </div>
+        <div className="business-core-duplicates-merge-assistant__diff">
+          <div className="business-core-cell__meta">
+            {language === "es" ? "Diff final por campo" : "Final field diff"}
+          </div>
+          <div className="business-core-duplicates-merge-diff-list">
+            {diffRows.map((row) => (
+              <div
+                key={`${group.id}-${row.field}`}
+                className={`business-core-duplicates-merge-diff-item${row.isChanged ? " is-changed" : ""}`}
+              >
+                <div className="business-core-duplicates-merge-diff-item__field">
+                  {getOrganizationMergeFieldLabel(row.field)}
+                </div>
+                <div className="business-core-duplicates-merge-diff-item__values">
+                  <span>
+                    {language === "es" ? "Actual:" : "Current:"} {row.currentValue ?? "—"}
+                  </span>
+                  <span>
+                    {language === "es" ? "Final:" : "Final:"} {row.nextValue ?? "—"}
+                  </span>
+                </div>
+                <div className="business-core-duplicates-merge-diff-item__meta">
+                  {row.isAutomatic
+                    ? language === "es"
+                      ? "origen automático"
+                      : "automatic source"
+                    : `${language === "es" ? "origen manual" : "manual source"}: ${row.sourceLabel ?? "—"}`}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -184,6 +184,7 @@ Resumen previo por grupo:
 - el slice ya calcula y muestra antes de consolidar cuantas fichas origen, direcciones, instalaciones u `OT` seran movidas
 - para `organizations`, el corte ya puede asimilar guiadamente varios `clients` del mismo grupo: elige una ficha sugerida, mueve `sites` y `work_orders`, reasigna la ficha final a la organización objetivo, integra campos documentales visibles y luego consolida `contacts`
 - adicionalmente, `organizations` ya expone una capa frontend de decisión manual por campo antes del `PUT` final reutilizando contratos existentes
+- esa misma capa ahora calcula y renderiza un diff explícito `current -> final` por campo antes de ejecutar la consolidación
 - para `contacts`, el resumen previo indica cuantas fichas origen se desactivaran, cuantos primarios conviene revisar y cuantos campos visibles se integraran antes de consolidar
 - ese resumen vive en frontend usando los datasets cargados del modulo y evita disparar un backend nuevo en este corte
 

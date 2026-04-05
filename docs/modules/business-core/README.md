@@ -81,6 +81,7 @@ Limites conocidos del corte actual:
 
 - el merge de `organizations` ya resuelve también conflictos de múltiples `Clientes` dentro del mismo grupo e integra campos documentales visibles, pero todavía no cubre decisiones manuales más complejas de identidad
 - antes de consolidar `organizations`, la UI ahora ofrece un bloque `Ajuste manual previo` para elegir por campo qué ficha aporta `name`, `legal_name`, `tax_id`, `phone`, `email` y `notes`
+- ese bloque ahora muestra ademas un `Diff final por campo` para auditar exactamente qué valor actual cambia y cuál quedará como resultado final
 - no hace merge profundo total de `contacts`; por ahora integra email, teléfono y rol faltantes, y sigue moviendo o desactivando reutilizables al fusionar `clients` u `organizations`
 - no mezcla notas humanas ni historiales textuales
 - no construye aun un merge profundo auditable de identidad completa
