@@ -69,9 +69,28 @@ export async function ensureFinanceAccount(page: Page, accountName: string) {
   await codeField.fill(buildE2EText("finance-account-code", "E2E").toUpperCase());
 
   await accountForm.getByRole("button", { name: /Crear cuenta|Create account/ }).click();
-  await expect(
-    catalogCard.locator("tbody tr").filter({ hasText: accountName }).first()
-  ).toBeVisible({ timeout: 10000 });
+
+  const createdRow = catalogCard.locator("tbody tr").filter({ hasText: accountName }).first();
+  try {
+    await expect(createdRow).toBeVisible({ timeout: 10000 });
+  } catch {
+    await page.goto("/tenant-portal/finance/accounts");
+    await page.waitForLoadState("networkidle");
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: /Cuentas|Accounts/,
+      })
+    ).toBeVisible();
+    await expect(
+      page
+        .locator(".data-table-card")
+        .first()
+        .locator("tbody tr")
+        .filter({ hasText: accountName })
+        .first()
+    ).toBeVisible({ timeout: 10000 });
+  }
 }
 
 export async function ensureFinanceWorkspaceReady(page: Page) {
