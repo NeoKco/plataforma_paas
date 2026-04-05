@@ -81,7 +81,11 @@ Alcance real de la consolidacion actual:
 - `Contactos`: deja una sola ficha sugerida activa, integra email/teléfono/rol faltantes y desactiva duplicados equivalentes dentro de la misma organización
 - `Direcciones`: mueve `Instalaciones` y `OT`
 - `Instalaciones`: mueve `OT`
- - `Responsables de sitio`: descartado; no se usa porque el responsable operacional viene dado por el grupo y su líder en cada mantención o instalación
+
+Regla de negocio vigente:
+
+- el responsable operacional de una mantención o instalación lo determina el grupo asignado y su líder
+- no se usa un responsable separado por dirección o sitio
 
 Limites conocidos del corte actual:
 

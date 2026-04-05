@@ -4,7 +4,7 @@ Estado actual:
 
 - `Wave 2 operativa para taxonomias compartidas`
 - `Slice operativo de Duplicados ya visible en UI tenant`
-- `Slice de assets, asset_types y site_responsibles implementado`
+- `Slice de assets y asset_types implementado`
 
 Prioridad:
 
@@ -101,19 +101,14 @@ Alcance:
 
 - `assets`
 - tipos de activo
-- responsables por sitio
 - adopcion por `iot`
 
-Pendiente documentado:
-
-- `business_site_responsibles`
 - `business_assets`
 - `business_asset_types`
 - `business_organization_addresses`
 
 Completado recientemente:
 
-- `business_site_responsibles`: tabla, API y vista administrativa para asignar responsables de sitio a usuarios tenant reales
 - `business_asset_types`: tabla, API, vista administrativa y migracion tenant
 - `business_assets`: tabla, API, vista administrativa y migracion tenant
 - `business_organization_addresses`: primera ola de direccion propia para empresas/proveedores
@@ -134,7 +129,6 @@ Completado recientemente:
 ## Backlog pendiente visible
 
 - `work_group_members`: backend/frontend base listo
-- `site_responsibles`: completado
 - `assets` y `asset_types`: completado
 - importadores legacy desde `ieris_app`: primer corte listo, falta aplicacion y endurecimiento
 - auditoria operativa de duplicados: UI ya lista para `organizations`, `clients`, `contacts`, `sites` e `installations`, con sugerencia de ficha a conservar, consolidacion operativa y desactivacion segura; falta merge/asimilacion profunda guiada
