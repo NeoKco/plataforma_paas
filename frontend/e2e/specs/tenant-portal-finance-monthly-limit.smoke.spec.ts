@@ -69,8 +69,8 @@ test("tenant portal finance blocks creation when monthly entries quota is exhaus
     await ensureTenantPortalSession(page, { forceFreshLogin: true });
     await openFinanceTransactionsPage(page);
 
-    const form = getFinanceTransactionForm(page);
-    await ensureFinanceTransactionFormReady(
+    let form = getFinanceTransactionForm(page);
+    form = await ensureFinanceTransactionFormReady(
       page,
       form,
       `e2e-finance-monthly-account-${Date.now()}`

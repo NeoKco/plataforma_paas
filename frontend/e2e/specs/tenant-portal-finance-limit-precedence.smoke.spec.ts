@@ -98,8 +98,8 @@ test("tenant portal finance prioritizes total limit when total and monthly quota
       String(usageAfterSeed.totalEntries)
     );
 
-    const form = getFinanceTransactionForm(page);
-    await ensureFinanceTransactionFormReady(
+    let form = getFinanceTransactionForm(page);
+    form = await ensureFinanceTransactionFormReady(
       page,
       form,
       `e2e-finance-precedence-account-${Date.now()}`

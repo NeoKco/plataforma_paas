@@ -22,14 +22,10 @@ test("tenant portal finance can upload an attachment to a created transaction", 
   await openFinanceTransactionsPage(page);
   await createBasicExpenseTransaction(page, uniqueDescription);
 
-  const detailPanel = page
-    .locator("section")
-    .filter({
-      has: page.getByRole("heading", {
-        name: /Detalle operacional|Operational detail/,
-      }),
-    })
-    .first();
+  const detailPanel = page.getByRole("dialog", {
+    name: /Detalle operacional|Operational detail/i,
+  });
+  await expect(detailPanel).toBeVisible();
 
   await detailPanel
     .getByPlaceholder(
@@ -53,6 +49,14 @@ test("tenant portal finance can void a created transaction", async ({ page }) =>
   await loginTenant(page);
   await openFinanceTransactionsPage(page);
   await createBasicExpenseTransaction(page, uniqueDescription);
+
+  const detailPanel = page.getByRole("dialog", {
+    name: /Detalle operacional|Operational detail/i,
+  });
+  if ((await detailPanel.count()) > 0) {
+    await detailPanel.getByRole("button", { name: /Cerrar detalle|Close detail/i }).click();
+    await expect(detailPanel).toHaveCount(0);
+  }
 
   const row = getTransactionRowContainerByDescription(page, uniqueDescription);
 

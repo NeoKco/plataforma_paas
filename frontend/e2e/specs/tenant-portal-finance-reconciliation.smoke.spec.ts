@@ -14,6 +14,14 @@ test("tenant portal finance can reconcile a created transaction", async ({ page 
   await openFinanceTransactionsPage(page);
   await createBasicExpenseTransaction(page, uniqueDescription);
 
+  const detailPanel = page.getByRole("dialog", {
+    name: /Detalle operacional|Operational detail/i,
+  });
+  if ((await detailPanel.count()) > 0) {
+    await detailPanel.getByRole("button", { name: /Cerrar detalle|Close detail/i }).click();
+    await expect(detailPanel).toHaveCount(0);
+  }
+
   const row = getTransactionRowContainerByDescription(page, uniqueDescription);
 
   const dialogHandler = async (

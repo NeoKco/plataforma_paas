@@ -46,12 +46,12 @@ export async function ensureFinanceAccount(page: Page, accountName: string) {
     return;
   }
 
+  await page.getByRole("button", { name: /Nueva cuenta|New account/i }).click();
   const accountForm = page
+    .getByRole("dialog", { name: /Nueva cuenta|New account/i })
     .locator("form")
-    .filter({
-      has: page.getByRole("button", { name: /Crear cuenta|Create account/i }),
-    })
     .first();
+  await expect(accountForm).toBeVisible();
 
   await accountForm
     .locator(".app-form-field")
@@ -110,13 +110,20 @@ export async function ensureFinanceTransactionFormReady(
   form: Locator,
   accountName: string
 ) {
-  const sourceAccountReady = await hasAvailableSourceAccount(form);
+  let activeForm = form;
+  if ((await activeForm.count()) === 0) {
+    activeForm = await openFinanceTransactionCreateForm(page);
+  }
+
+  const sourceAccountReady = await hasAvailableSourceAccount(activeForm);
   if (!sourceAccountReady) {
     await ensureFinanceAccount(page, accountName);
     await openFinanceTransactionsPage(page);
+    activeForm = await openFinanceTransactionCreateForm(page);
   }
 
-  await ensureSourceAccountSelected(form);
+  await ensureSourceAccountSelected(activeForm);
+  return activeForm;
 }
 
 export async function createBasicExpenseTransaction(
@@ -151,10 +158,9 @@ export async function createBasicTransaction(
     amount?: string;
   }
 ) {
-  const form = getFinanceTransactionForm(page);
   const uniqueAccountName = `e2e-caja-${Date.now()}`;
-  await openFinanceTransactionCreateForm(page);
-  await ensureFinanceTransactionFormReady(page, form, uniqueAccountName);
+  let form = await openFinanceTransactionCreateForm(page);
+  form = await ensureFinanceTransactionFormReady(page, form, uniqueAccountName);
 
   await form.getByRole("combobox").first().selectOption(options.transactionType);
   await form.locator('input[type="number"]').first().fill(options.amount || "12345");
@@ -171,6 +177,19 @@ export async function createBasicTransaction(
     /Transacci[oó]n|Transaction/i
   );
   await expect(getTransactionRowByDescription(page, options.description)).toBeVisible();
+
+  const transactionFormDialog = page.getByRole("dialog", {
+    name: /Registrar transacción|Register transaction|Create transaction/i,
+  });
+  if ((await transactionFormDialog.count()) > 0) {
+    const cancelButton = transactionFormDialog.getByRole("button", {
+      name: /Cancelar|Cancel/i,
+    });
+    if ((await cancelButton.count()) > 0) {
+      await cancelButton.click();
+      await expect(transactionFormDialog).toHaveCount(0);
+    }
+  }
 }
 
 export function getTransactionSuccessFeedback(page: Page) {

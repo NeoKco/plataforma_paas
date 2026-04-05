@@ -96,8 +96,12 @@ test("tenant portal finance shows limit enforcement when entries quota is exhaus
       .poll(async () => String(await getUsedEntries(page)))
       .toBe(exhaustedLimit);
 
-    const form = getFinanceTransactionForm(page);
-    await ensureFinanceTransactionFormReady(page, form, `e2e-finance-limit-account-${Date.now()}`);
+    let form = getFinanceTransactionForm(page);
+    form = await ensureFinanceTransactionFormReady(
+      page,
+      form,
+      `e2e-finance-limit-account-${Date.now()}`
+    );
     await form.locator('input[type="number"]').first().fill("12345");
     await form
       .getByPlaceholder(/Pago proveedor de mantención|Maintenance supplier payment/i)

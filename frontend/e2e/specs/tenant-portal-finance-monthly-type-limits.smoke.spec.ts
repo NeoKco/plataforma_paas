@@ -41,8 +41,8 @@ async function expectBlockedTypeTransaction(
     moduleKey: "finance.entries.monthly.income" | "finance.entries.monthly.expense";
   }
 ) {
-  const form = getFinanceTransactionForm(page);
-  await ensureFinanceTransactionFormReady(
+  let form = getFinanceTransactionForm(page);
+  form = await ensureFinanceTransactionFormReady(
     page,
     form,
     `e2e-finance-monthly-type-account-${Date.now()}`
