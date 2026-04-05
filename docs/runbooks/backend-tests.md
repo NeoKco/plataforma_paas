@@ -66,6 +66,7 @@ Notas:
 - `--target` acepta `all`, `auth`, `tenant`, `finance`, `provisioning` y `platform`
 - `--with-postgres` falla rapido si faltan `PGTEST_HOST`, `PGTEST_ADMIN_USER` o `PGTEST_ADMIN_PASSWORD`
 - la suite HTTP smoke levanta `uvicorn` temporal y requiere socket local disponible
+- `scripts/dev/run_local_backend_baseline.sh --with-postgres` intenta reutilizar primero `PGTEST_*` ya exportadas; si no existen, carga `.env` del repo y reutiliza `POSTGRES_ADMIN_PASSWORD` antes de caer al fallback local `postgres`
 
 Helper local repetible:
 
@@ -114,6 +115,8 @@ Replica local simplificada:
 cd /home/felipe/platform_paas
 scripts/dev/run_local_backend_baseline.sh --target all --with-postgres
 ```
+
+Si tu PostgreSQL local no usa la clave `postgres`, define `POSTGRES_ADMIN_PASSWORD` en `.env` o exporta `PGTEST_ADMIN_PASSWORD` antes de correr el helper.
 
 ## Convencion de Fixtures
 
