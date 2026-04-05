@@ -15,6 +15,8 @@ Usar este flujo cuando pasó alguno de estos casos:
 
 Ahora `Historial` ya muestra una acción `Reabrir`.
 
+Ese atajo solo está visible para perfiles administrativos del tenant (`admin` y `manager`).
+
 Usar ese atajo cuando:
 
 - solo necesitas devolver la OT a la bandeja activa;

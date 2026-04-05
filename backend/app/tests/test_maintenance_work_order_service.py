@@ -725,6 +725,7 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
                 note="Reabrir",
             ),
             changed_by_user_id=7,
+            actor_role="admin",
         )
 
         self.assertEqual(tenant_db.execute.call_count, 3)
@@ -771,6 +772,44 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
                     note="Reabrir",
                 ),
                 changed_by_user_id=7,
+                actor_role="admin",
+            )
+
+    def test_reopen_work_order_status_rejects_non_admin_profiles(self) -> None:
+        existing_item = SimpleNamespace(
+            id=23,
+            maintenance_status="completed",
+            completed_at=None,
+            cancelled_at=None,
+            due_item_id=None,
+            schedule_id=None,
+            scheduled_for="2026-04-05T10:00:00+00:00",
+            installation_id=9,
+            assigned_work_group_id=4,
+            assigned_tenant_user_id=3,
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+            status_log_repository=Mock(),
+            visit_repository=Mock(),
+            costing_service=Mock(),
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Solo perfiles administrativos pueden reabrir mantenciones desde historial",
+        ):
+            service.update_work_order_status(
+                Mock(),
+                23,
+                MaintenanceStatusUpdateRequest(
+                    maintenance_status="scheduled",
+                    note="Reabrir",
+                ),
+                changed_by_user_id=7,
+                actor_role="operator",
             )
 
 

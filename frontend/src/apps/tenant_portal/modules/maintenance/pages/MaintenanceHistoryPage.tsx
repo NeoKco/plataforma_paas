@@ -124,6 +124,7 @@ function inferReopenStatus(item: TenantMaintenanceHistoryWorkOrder): "scheduled"
 export function MaintenanceHistoryPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const canReopenFromHistory = session?.role === "admin" || session?.role === "manager";
   const [rows, setRows] = useState<TenantMaintenanceHistoryWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
@@ -580,13 +581,15 @@ export function MaintenanceHistoryPage() {
                   >
                     {language === "es" ? "Ver checklist" : "View checklist"}
                   </button>
-                  <button
-                    className="btn btn-sm btn-outline-warning"
-                    type="button"
-                    onClick={() => void handleReopen(item)}
-                  >
-                    {language === "es" ? "Reabrir" : "Reopen"}
-                  </button>
+                  {canReopenFromHistory ? (
+                    <button
+                      className="btn btn-sm btn-outline-warning"
+                      type="button"
+                      onClick={() => void handleReopen(item)}
+                    >
+                      {language === "es" ? "Reabrir" : "Reopen"}
+                    </button>
+                  ) : null}
                   <button
                     className="btn btn-sm btn-outline-primary"
                     type="button"
@@ -1013,7 +1016,7 @@ export function MaintenanceHistoryPage() {
             : undefined
         }
         onReopen={
-          detailWorkOrder
+          detailWorkOrder && canReopenFromHistory
             ? () => {
                 closeDetailModal();
                 void handleReopen(detailWorkOrder);

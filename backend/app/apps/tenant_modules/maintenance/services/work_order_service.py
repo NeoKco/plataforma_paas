@@ -36,6 +36,7 @@ from app.apps.tenant_modules.maintenance.schemas import (
 
 FINAL_WORK_ORDER_STATUSES = {"completed", "cancelled"}
 ACTIVE_WORK_ORDER_STATUSES = {"scheduled", "in_progress"}
+REOPEN_ALLOWED_ROLES = {"admin", "manager"}
 LEGACY_REFERENCE_PREFIXES = ("legacy-", "legacy_")
 CONFLICT_LOCK_NAMESPACES = {
     "installation": 4101,
@@ -157,6 +158,7 @@ class MaintenanceWorkOrderService:
         payload: MaintenanceStatusUpdateRequest,
         *,
         changed_by_user_id: int | None = None,
+        actor_role: str | None = None,
     ) -> MaintenanceWorkOrder:
         item = self._get_or_raise(tenant_db, work_order_id)
         next_status = payload.maintenance_status.strip().lower()
@@ -165,6 +167,14 @@ class MaintenanceWorkOrderService:
         previous_status = item.maintenance_status
         if previous_status == next_status:
             raise ValueError("La mantencion ya se encuentra en ese estado")
+        if (
+            previous_status in FINAL_WORK_ORDER_STATUSES
+            and next_status in ACTIVE_WORK_ORDER_STATUSES
+            and actor_role not in REOPEN_ALLOWED_ROLES
+        ):
+            raise ValueError(
+                "Solo perfiles administrativos pueden reabrir mantenciones desde historial"
+            )
 
         self._validate_status_transition_conflicts(
             tenant_db,
