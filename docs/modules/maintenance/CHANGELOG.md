@@ -1,5 +1,19 @@
 # Maintenance Changelog
 
+## 2026-04-05
+
+- se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
+  - edición directa desde la misma vista
+  - archivado y reactivación sin borrar historial de uso
+  - métrica visible de `programaciones vinculadas`
+  - nueva migración tenant `0027_maintenance_schedule_template_links`
+  - `maintenance_schedules.cost_template_id` enlaza la programación con la plantilla aplicada
+- `Agenda técnica` y `Mantenciones abiertas` ahora muestran conflictos visibles cuando dos OT abiertas comparten el mismo horario y además cruzan por instalación, grupo responsable o técnico responsable
+- los formularios de alta/edición de `Agenda` y `Mantenciones` advierten el cruce antes de guardar
+- se validan los cambios con:
+  - `python -m unittest app.tests.test_maintenance_cost_template_service app.tests.test_maintenance_schedule_service app.tests.test_migration_flow`
+  - `npm run build`
+
 ## 2026-04-04
 
 - se implementa el primer corte real de `Costos y cobro` por OT:

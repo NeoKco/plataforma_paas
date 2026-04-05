@@ -49,6 +49,8 @@ El primer corte del modulo ya permite:
 - registrar detalle por líneas dentro de `Costos y cobro`, para que el resumen se derive automáticamente cuando quieras bajar a mano de obra, traslado, materiales, servicios externos o indirectos
 - definir en `Nueva programación` un costeo estimado por defecto con varias líneas de materiales, servicios, mano de obra, traslado e indirectos
 - guardar y reutilizar `Plantillas de costeo de mantención` dentro de `Nueva programación`, sin salir del módulo ni depender de catálogos compartidos
+- editar, archivar o reactivar esas `Plantillas de costeo de mantención` desde la misma vista operativa
+- ver cuántas programaciones preventivas quedaron vinculadas a cada plantilla de costeo
 - hacer que una OT agendada desde `Pendientes` nazca ya con ese costeo estimado precargado
 - definir en `Resumen` si el tenant deja el puente con `Finanzas` en modo manual o lo automatiza al cerrar
 - sacar automaticamente de la bandeja activa una orden al completarla o anularla
@@ -71,7 +73,7 @@ El primer corte del modulo ya permite:
 - expediente tecnico completo
 - historial enriquecido por visitas
 - evidencias y checklist
-- agenda visual con conflictos, filtros por técnico/grupo y reprogramación rica
+- filtros por técnico/grupo y reprogramación rica
 
 ## Flujo operativo esperado
 
@@ -104,6 +106,7 @@ Lectura funcional de cada vista:
   - `Nueva programación` sigue el mismo patrón visual, jerarquía de lectura y modal de `Nueva mantención`
   - `Nueva programación` ya permite precargar `Costeo estimado por defecto` para que la OT programada no parta vacía
   - la misma pantalla ya permite aplicar o guardar `Plantillas de costeo de mantención` para reutilizar estructuras de costo frecuentes del equipo técnico
+  - ahora también permite editar, archivar/reactivar y revisar cuántas programaciones usan cada plantilla
   - `Próxima mantención` se sugiere automáticamente si existe una mantención cerrada este año en historial
   - la sugerencia toma primero la misma instalación y, si no hay cierre útil, cae a la misma dirección
   - cuando existe cierre este año, se propone el mismo día y mes para el próximo año
@@ -120,6 +123,7 @@ Lectura funcional de cada vista:
   - cada tarjeta ya permite abrir `Ver costos` y `Editar cierre`
   - `Ver costos` es solo lectura; el histórico no se edita desde el flujo normal
 - `Agenda`: calendario visual del trabajo abierto
+  - ahora marca conflictos visibles cuando dos mantenciones abiertas comparten horario y recurso técnico/instalación
 
 Regla UX operativa:
 
@@ -145,6 +149,7 @@ Regla UX operativa:
 - si el equipo técnico repite siempre la misma estructura de estimate:
   - puede guardarla como `Plantilla de costeo de mantención`
   - luego puede aplicarla en nuevas programaciones sin reconstruir material, servicio, mano de obra o margen desde cero
+  - también puede archivarla cuando deje de usarse, sin perder la referencia de programaciones ya vinculadas
 
 ## Mejora funcional recomendada
 
@@ -170,6 +175,7 @@ Roles operativos sugeridos para el modulo:
 ## Errores comunes que el modulo debe cubrir bien
 
 - superposicion con agenda de otro trabajo
+  - la vista ya avisa cruces visibles cuando coinciden instalación, grupo o técnico en el mismo horario
 - falta de instalacion asociada cuando el cliente tiene varias
 - tipo de equipo inexistente o desactivado
 - cierre o anulacion sin observacion util para el equipo

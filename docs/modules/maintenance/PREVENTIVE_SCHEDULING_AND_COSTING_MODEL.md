@@ -106,6 +106,7 @@ Campos recomendados:
 - `site_id` nullable
 - `installation_id` nullable
 - `task_type_id` nullable
+- `cost_template_id` nullable
 - `name`
 - `description`
 - `frequency_value`
@@ -191,6 +192,12 @@ La forma mas limpia de resolverlo es con una clave funcional como:
 - `schedule_id + due_at`
 
 o una `cycle_key` calculada, si luego necesitas manejar periodos mas complejos.
+
+Traza de reutilización de costos ya aplicada:
+
+- si una programación nace desde una `Plantilla de costeo de mantención`, debe guardar `cost_template_id`
+- eso permite métricas de uso simples sin convertir la funcionalidad en catálogo transversal
+- el archivado de plantillas no debe romper la referencia histórica de schedules ya vinculados
 
 ### Ajustes recomendados a `maintenance_work_orders`
 

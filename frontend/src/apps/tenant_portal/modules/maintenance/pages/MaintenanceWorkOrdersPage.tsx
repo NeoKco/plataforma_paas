@@ -51,6 +51,11 @@ import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 
 const ACTIVE_WORK_ORDER_STATUSES = new Set(["scheduled", "in_progress"]);
 
+type WorkOrderConflictSummary = {
+  count: number;
+  reasons: string[];
+};
+
 function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
   return {
     client_id: 0,
@@ -72,6 +77,47 @@ function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
 function normalizeNullable(value: string | null): string | null {
   const trimmed = value?.trim() ?? "";
   return trimmed ? trimmed : null;
+}
+
+function toMinuteKey(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+  return value.replace(" ", "T").slice(0, 16);
+}
+
+function getConflictReasons(
+  left: Pick<
+    TenantMaintenanceWorkOrder,
+    "scheduled_for" | "installation_id" | "assigned_work_group_id" | "assigned_tenant_user_id"
+  >,
+  right: Pick<
+    TenantMaintenanceWorkOrder,
+    "scheduled_for" | "installation_id" | "assigned_work_group_id" | "assigned_tenant_user_id"
+  >
+): string[] {
+  if (!toMinuteKey(left.scheduled_for) || toMinuteKey(left.scheduled_for) !== toMinuteKey(right.scheduled_for)) {
+    return [];
+  }
+  const reasons: string[] = [];
+  if (left.installation_id && right.installation_id && left.installation_id === right.installation_id) {
+    reasons.push("installation");
+  }
+  if (
+    left.assigned_work_group_id &&
+    right.assigned_work_group_id &&
+    left.assigned_work_group_id === right.assigned_work_group_id
+  ) {
+    reasons.push("group");
+  }
+  if (
+    left.assigned_tenant_user_id &&
+    right.assigned_tenant_user_id &&
+    left.assigned_tenant_user_id === right.assigned_tenant_user_id
+  ) {
+    reasons.push("technician");
+  }
+  return reasons;
 }
 
 function formatDateTime(
@@ -204,6 +250,48 @@ export function MaintenanceWorkOrdersPage() {
     () => sortedRows.filter((item) => ACTIVE_WORK_ORDER_STATUSES.has(item.maintenance_status)),
     [sortedRows]
   );
+  const conflictSummaryById = useMemo(() => {
+    const map = new Map<number, WorkOrderConflictSummary>();
+    for (let index = 0; index < activeRows.length; index += 1) {
+      const current = activeRows[index];
+      for (let nestedIndex = index + 1; nestedIndex < activeRows.length; nestedIndex += 1) {
+        const candidate = activeRows[nestedIndex];
+        const reasons = getConflictReasons(current, candidate);
+        if (reasons.length === 0) {
+          continue;
+        }
+        const currentSummary = map.get(current.id) ?? { count: 0, reasons: [] };
+        currentSummary.count += 1;
+        currentSummary.reasons = [...new Set([...currentSummary.reasons, ...reasons])];
+        map.set(current.id, currentSummary);
+
+        const candidateSummary = map.get(candidate.id) ?? { count: 0, reasons: [] };
+        candidateSummary.count += 1;
+        candidateSummary.reasons = [...new Set([...candidateSummary.reasons, ...reasons])];
+        map.set(candidate.id, candidateSummary);
+      }
+    }
+    return map;
+  }, [activeRows]);
+  const conflictingCount = useMemo(
+    () => activeRows.filter((item) => (conflictSummaryById.get(item.id)?.count ?? 0) > 0).length,
+    [activeRows, conflictSummaryById]
+  );
+  const formConflictPreview = useMemo(() => {
+    const probeScheduledFor = toMinuteKey(form.scheduled_for);
+    if (!probeScheduledFor) {
+      return [] as TenantMaintenanceWorkOrder[];
+    }
+    const probe = {
+      scheduled_for: form.scheduled_for,
+      installation_id: form.installation_id,
+      assigned_work_group_id: form.assigned_work_group_id,
+      assigned_tenant_user_id: form.assigned_tenant_user_id,
+    };
+    return activeRows.filter(
+      (item) => item.id !== editingId && getConflictReasons(item, probe).length > 0
+    );
+  }, [activeRows, editingId, form.assigned_tenant_user_id, form.assigned_work_group_id, form.installation_id, form.scheduled_for]);
 
   const noClientsAvailable = clients.length === 0;
   const selectedClientSites = form.client_id > 0 ? filteredSites : [];
@@ -611,7 +699,28 @@ export function MaintenanceWorkOrdersPage() {
             tone="success"
           />
         </div>
+        <div className="col-12 col-md-6 col-xl-3">
+          <MetricCard
+            label={language === "es" ? "Conflictos" : "Conflicts"}
+            value={conflictingCount}
+            hint={
+              language === "es"
+                ? "Cruces visibles por instalación, grupo o técnico en el mismo horario"
+                : "Visible clashes by installation, group, or technician in the same slot"
+            }
+            icon="planning"
+            tone={conflictingCount > 0 ? "danger" : "default"}
+          />
+        </div>
       </div>
+
+      {conflictingCount > 0 ? (
+        <div className="alert alert-warning mb-0">
+          {language === "es"
+            ? "La bandeja detectó cruces de agenda en mantenciones abiertas. Revísalos antes de seguir asignando el mismo horario."
+            : "The tray detected schedule clashes in open work orders. Review them before assigning the same time slot again."}
+        </div>
+      ) : null}
 
       {activeRows.length === 0 && !isLoading ? (
         <PanelCard
@@ -672,6 +781,13 @@ export function MaintenanceWorkOrdersPage() {
                   : "Schedule only open work. Once completed, it will leave this tray and remain in history."
               }
             >
+              {formConflictPreview.length > 0 ? (
+                <div className="alert alert-warning mb-3">
+                  {language === "es"
+                    ? `Este horario ya cruza con ${formConflictPreview.length} mantención(es) abierta(s) por instalación, grupo o técnico.`
+                    : `This slot already clashes with ${formConflictPreview.length} open work order(s) by installation, group, or technician.`}
+                </div>
+              ) : null}
               <form
                 className="maintenance-form"
                 onSubmit={(event) => {
@@ -1025,9 +1141,18 @@ export function MaintenanceWorkOrdersPage() {
             key: "status",
             header: language === "es" ? "Estado" : "Status",
             render: (item) => (
-              <AppBadge tone={getStatusTone(item.maintenance_status)}>
-                {getStatusLabel(item.maintenance_status, language)}
-              </AppBadge>
+              <div className="d-grid gap-1">
+                <AppBadge tone={getStatusTone(item.maintenance_status)}>
+                  {getStatusLabel(item.maintenance_status, language)}
+                </AppBadge>
+                {(conflictSummaryById.get(item.id)?.count ?? 0) > 0 ? (
+                  <div className="maintenance-cell__meta text-danger">
+                    {language === "es"
+                      ? `Conflictos visibles: ${conflictSummaryById.get(item.id)?.count ?? 0}`
+                      : `Visible conflicts: ${conflictSummaryById.get(item.id)?.count ?? 0}`}
+                  </div>
+                ) : null}
+              </div>
             ),
           },
           {

@@ -47,6 +47,11 @@ import {
 const ACTIVE_WORK_ORDER_STATUSES = new Set(["scheduled", "in_progress"]);
 const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 
+type WorkOrderConflictSummary = {
+  count: number;
+  reasons: string[];
+};
+
 function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
   return {
     client_id: 0,
@@ -68,6 +73,47 @@ function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
 function normalizeNullable(value: string | null): string | null {
   const trimmed = value?.trim() ?? "";
   return trimmed ? trimmed : null;
+}
+
+function toMinuteKey(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+  return value.replace(" ", "T").slice(0, 16);
+}
+
+function getConflictReasons(
+  left: Pick<
+    TenantMaintenanceWorkOrder,
+    "scheduled_for" | "installation_id" | "assigned_work_group_id" | "assigned_tenant_user_id"
+  >,
+  right: Pick<
+    TenantMaintenanceWorkOrder,
+    "scheduled_for" | "installation_id" | "assigned_work_group_id" | "assigned_tenant_user_id"
+  >
+): string[] {
+  if (!toMinuteKey(left.scheduled_for) || toMinuteKey(left.scheduled_for) !== toMinuteKey(right.scheduled_for)) {
+    return [];
+  }
+  const reasons: string[] = [];
+  if (left.installation_id && right.installation_id && left.installation_id === right.installation_id) {
+    reasons.push("installation");
+  }
+  if (
+    left.assigned_work_group_id &&
+    right.assigned_work_group_id &&
+    left.assigned_work_group_id === right.assigned_work_group_id
+  ) {
+    reasons.push("group");
+  }
+  if (
+    left.assigned_tenant_user_id &&
+    right.assigned_tenant_user_id &&
+    left.assigned_tenant_user_id === right.assigned_tenant_user_id
+  ) {
+    reasons.push("technician");
+  }
+  return reasons;
 }
 
 function formatDateTime(
@@ -210,6 +256,48 @@ export function MaintenanceCalendarPage() {
         }),
     [workOrders]
   );
+  const conflictSummaryById = useMemo(() => {
+    const map = new Map<number, WorkOrderConflictSummary>();
+    for (let index = 0; index < activeRows.length; index += 1) {
+      const current = activeRows[index];
+      for (let nestedIndex = index + 1; nestedIndex < activeRows.length; nestedIndex += 1) {
+        const candidate = activeRows[nestedIndex];
+        const reasons = getConflictReasons(current, candidate);
+        if (reasons.length === 0) {
+          continue;
+        }
+        const currentSummary = map.get(current.id) ?? { count: 0, reasons: [] };
+        currentSummary.count += 1;
+        currentSummary.reasons = [...new Set([...currentSummary.reasons, ...reasons])];
+        map.set(current.id, currentSummary);
+
+        const candidateSummary = map.get(candidate.id) ?? { count: 0, reasons: [] };
+        candidateSummary.count += 1;
+        candidateSummary.reasons = [...new Set([...candidateSummary.reasons, ...reasons])];
+        map.set(candidate.id, candidateSummary);
+      }
+    }
+    return map;
+  }, [activeRows]);
+  const conflictingCount = useMemo(
+    () => activeRows.filter((item) => (conflictSummaryById.get(item.id)?.count ?? 0) > 0).length,
+    [activeRows, conflictSummaryById]
+  );
+  const formConflictPreview = useMemo(() => {
+    const probeScheduledFor = toMinuteKey(form.scheduled_for);
+    if (!probeScheduledFor) {
+      return [] as TenantMaintenanceWorkOrder[];
+    }
+    const probe = {
+      scheduled_for: form.scheduled_for,
+      installation_id: form.installation_id,
+      assigned_work_group_id: form.assigned_work_group_id,
+      assigned_tenant_user_id: form.assigned_tenant_user_id,
+    };
+    return activeRows.filter(
+      (item) => item.id !== editingId && getConflictReasons(item, probe).length > 0
+    );
+  }, [activeRows, editingId, form.assigned_tenant_user_id, form.assigned_work_group_id, form.installation_id, form.scheduled_for]);
 
   const noClientsAvailable = clients.length === 0;
   const selectedClientSites = form.client_id > 0 ? filteredSites : [];
@@ -506,6 +594,14 @@ export function MaintenanceCalendarPage() {
         <LoadingBlock label={language === "es" ? "Cargando agenda técnica..." : "Loading technical calendar..."} />
       ) : null}
 
+      {conflictingCount > 0 ? (
+        <div className="alert alert-warning mb-0">
+          {language === "es"
+            ? `La agenda detectó ${conflictingCount} mantención(es) abierta(s) con cruces visibles de instalación, grupo o técnico.`
+            : `The calendar detected ${conflictingCount} open work order(s) with visible installation, group, or technician clashes.`}
+        </div>
+      ) : null}
+
       <PanelCard
         title={language === "es" ? "Agenda visual" : "Visual calendar"}
         subtitle={
@@ -586,6 +682,11 @@ export function MaintenanceCalendarPage() {
                     </span>
                   ) : null}
                 </div>
+                {day.events.some((item) => (conflictSummaryById.get(item.id)?.count ?? 0) > 0) ? (
+                  <div className="maintenance-cell__meta text-danger text-start">
+                    {language === "es" ? "Conflicto visible" : "Visible conflict"}
+                  </div>
+                ) : null}
                 <div className="maintenance-calendar__events">
                   {day.events.slice(0, 4).map((item) => (
                     <span
@@ -600,7 +701,10 @@ export function MaintenanceCalendarPage() {
                         {formatDateTime(item.scheduled_for, language, effectiveTimeZone).split(",")[1]?.trim() ||
                           formatDateTime(item.scheduled_for, language, effectiveTimeZone)}
                       </strong>
-                      <span>{stripLegacyVisibleText(item.title) || "—"}</span>
+                      <span>
+                        {(conflictSummaryById.get(item.id)?.count ?? 0) > 0 ? "⚠ " : ""}
+                        {stripLegacyVisibleText(item.title) || "—"}
+                      </span>
                     </span>
                   ))}
                   {day.events.length > 4 ? (
@@ -679,6 +783,13 @@ export function MaintenanceCalendarPage() {
                         : "Scheduled"}
                   </AppBadge>
                 </div>
+                {(conflictSummaryById.get(item.id)?.count ?? 0) > 0 ? (
+                  <div className="maintenance-history-entry__meta text-danger mt-2">
+                    {language === "es"
+                      ? `Conflictos visibles: ${conflictSummaryById.get(item.id)?.count ?? 0}`
+                      : `Visible conflicts: ${conflictSummaryById.get(item.id)?.count ?? 0}`}
+                  </div>
+                ) : null}
                 <div className="maintenance-history-entry__meta mt-2">
                   {formatDateTime(item.scheduled_for, language, effectiveTimeZone)}
                 </div>
@@ -730,6 +841,13 @@ export function MaintenanceCalendarPage() {
                   : "The calendar schedules open maintenance work; once completed, it will disappear from here."
               }
             >
+              {formConflictPreview.length > 0 ? (
+                <div className="alert alert-warning mb-3">
+                  {language === "es"
+                    ? `Este horario ya cruza con ${formConflictPreview.length} mantención(es) abierta(s) por instalación, grupo o técnico.`
+                    : `This slot already clashes with ${formConflictPreview.length} open work order(s) by installation, group, or technician.`}
+                </div>
+              ) : null}
               <form
                 className="maintenance-form"
                 onSubmit={(event) => {

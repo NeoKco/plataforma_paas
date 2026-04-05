@@ -69,6 +69,11 @@ Plantillas de costeo de mantención:
 - `PUT /tenant/maintenance/cost-templates/<id>`
 - `PATCH /tenant/maintenance/cost-templates/<id>/status`
 
+Notas operativas vigentes:
+
+- la respuesta de `cost-templates` ya incluye `usage_count`
+- las programaciones preventivas ahora pueden persistir `cost_template_id` para dejar trazado qué plantilla fue aplicada
+
 Ordenes de trabajo:
 
 - `GET /tenant/maintenance/work-orders`

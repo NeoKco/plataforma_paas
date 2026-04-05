@@ -153,6 +153,8 @@ Fuente frontend principal:
 - `maintenance` ya tiene además `Plantillas de costeo de mantención` como feature propia del módulo:
   - viven en `maintenance_cost_templates` y `maintenance_cost_template_lines`
   - se crean y aplican desde `Nueva programación`
+  - ahora también se editan, archivan/reactivan y exponen `usage_count`
+  - `maintenance_schedules.cost_template_id` deja trazado qué plantilla originó la programación preventiva
   - no deben modelarse ni nombrarse como catálogo transversal, porque su alcance funcional es exclusivo de Mantenciones
 - la sincronización `maintenance -> finance` ya soporta dos políticas tenant:
   - `manual`
@@ -176,13 +178,12 @@ Fuente frontend principal:
 
 `maintenance` sigue debiendo:
 
-- agenda visual con conflictos y responsables reales
 - evidencias y checklist
 - cierre UX por ficha/orden de trabajo
 - smoke E2E especifico del modulo con sus flujos principales
-- validaciones mas profundas de duplicados y conflictos de programacion
+- validaciones mas profundas de duplicados y conflictos de programacion en backend concurrente
 - filtros operativos por grupo y tecnico dentro de la agenda mensual
-- costeo/cobro por OT y sincronización económica hacia `finance`
+- evidencias y checklist tecnico
 
 ## Modelo objetivo recomendado en PaaS
 
@@ -258,6 +259,7 @@ Con modulos tenant:
 - `finance`: no mezclar gasto tecnico dentro del modulo base
 - `finance`: el costeo técnico ya puede sincronizar manualmente ingreso/egreso usando `finance_transactions.source_type/source_id`
 - `Resumen técnico` ya expone además la política tenant para auto-sync `maintenance -> finance`, consumiendo `/tenant/info` y persistiendo vía `/tenant/info/maintenance-finance-sync`
+- `Agenda técnica` y `Mantenciones abiertas` ya calculan conflictos visibles en frontend cuando dos OT abiertas comparten slot horario e instalación/grupo/técnico
 - `projects`: podra reutilizar el mismo sitio, cliente y responsable
 - `iot`: deberia colgarse del mismo sitio o activo instalado
 

@@ -265,7 +265,7 @@ Avance actual:
 
 Pendiente inmediato de esta fase:
 
-- extender la gestión de `Plantillas de costeo de mantención` con edición, archivado y métricas de uso si la operación lo pide
+- cerrar `evidencias y checklist técnico`
 
 ## Mejoras de producto recomendadas
 
@@ -296,9 +296,9 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- aplicar migraciones tenant faltantes de `0026` en tenants activos
-- decidir el siguiente corte del roadmap:
-  - edición y archivado de plantillas de costeo de mantención
+- aplicar migración tenant `0027_maintenance_schedule_template_links` en tenants activos
+- abordar el siguiente corte pendiente visible:
+  - evidencias y checklist técnico
 
 ## Backlog pendiente visible
 
@@ -308,8 +308,9 @@ Pendiente inmediato de esta fase:
 - `history`: backend/frontend base listo
 - `visits`: backend/frontend base listo
 - `status_logs` operativos: backend/frontend lectura lista
-- integración con agenda visual: pendiente
+- integración con agenda visual: en progreso
 - agenda visual mensual base: lista
+- conflictos visibles en agenda y bandeja abierta: listos en frontend
 - modelo canónico de asignacion grupo/usuario: documentado e implementado en primer corte
 - modelo canónico de programacion preventiva y costeo: documentado
 - costeo estimado default por programación: listo en primer corte
