@@ -149,6 +149,8 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await expect(workOrderDetailDialog).toBeVisible();
   await expect(workOrderDetailDialog.locator(".panel-card__title").filter({ hasText: /Ficha de mantención|Maintenance detail/i }).first()).toBeVisible();
   await expect(workOrderDetailDialog.getByText(/Instalación|Installation/i).first()).toBeVisible();
+  await expect(workOrderDetailDialog.getByText(/Tipo de tarea|Task type/i).first()).toBeVisible();
+  await expect(workOrderDetailDialog.getByText(/Perfil funcional|Function profile/i).first()).toBeVisible();
   await expect(workOrderDetailDialog.getByText(/Cambios y eventos|Changes and events/i).first()).toBeVisible();
   await expect(workOrderDetailDialog.getByText(/Visitas asociadas|Linked visits/i).first()).toBeVisible();
   await expect(workOrderDetailDialog.getByRole("button", { name: /Visitas|Visits/i })).toBeVisible();
@@ -256,6 +258,8 @@ test("tenant portal shows imported business core and maintenance data from ieris
     name: /Ficha de mantención|Maintenance detail/i,
   });
   await expect(historyDetailDialog).toBeVisible();
+  await expect(historyDetailDialog.getByText(/Tipo de tarea|Task type/i).first()).toBeVisible();
+  await expect(historyDetailDialog.getByText(/Perfil funcional|Function profile/i).first()).toBeVisible();
   await expect(historyDetailDialog.getByRole("button", { name: /Editar cierre|Edit closure/i })).toBeVisible();
   await expect(page.getByText(/Ficha histórica|Historical detail/i).last()).toBeVisible();
   await historyDetailDialog.getByRole("button", { name: /Cerrar|Close/i }).click();

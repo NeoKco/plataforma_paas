@@ -118,7 +118,7 @@ Avance actual:
 
 Pendiente inmediato de esta fase:
 
-- usar `function_profiles` y `task_types` de forma más profunda
+- endurecer reglas operativas basadas en `function_profiles` y `task_types`
 - endurecer y ejecutar importadores desde `ieris_app`
 - agenda visual con conflictos, filtros y reprogramación auditada ya lista; faltan ventanas de visita más finas
 - abrir programaciones automáticas y bandeja preventiva de vencimientos
@@ -153,6 +153,7 @@ Avance actual:
 - la trazabilidad detallada se carga bajo demanda, manteniendo el patrón de lectura primero en las bandejas principales
 - `Historial` ya puede abrir `Editar cierre` desde esa ficha sin volver editable la programación histórica
 - `Mantenciones` ya puede gestionar `Visitas` por OT con ventanas programadas, ejecución real y responsables desde una modal operativa
+- `Mantenciones`, `Historial` y la ficha ya leen `Tipo de tarea` desde `maintenance_schedules.task_type_id` y `Perfil funcional` desde membresías reales de `business_work_groups`
 - conflictos visibles, bloqueo backend `409`, filtros de agenda y reprogramación auditada ya quedaron operativos en el mismo frente de endurecimiento
 
 ## Fase 5. Evidencias y checklist

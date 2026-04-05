@@ -115,10 +115,11 @@ Estado del corte hoy:
 - `Mantenciones` y `Agenda` ya permiten `Reprogramar` con una nota opcional para dejar trazabilidad del cambio de slot y responsables en historial técnico
 - `Historial` ya permite abrir `Editar cierre` también desde la nueva `Ficha de mantención`, sin exponer reprogramación ni edición operativa de una OT cerrada
 - `Mantenciones` ya permite abrir `Visitas` desde la fila o desde la `Ficha de mantención`, para bajar a una coordinación más fina por ventana de terreno
+- `Mantenciones`, `Historial` y la `Ficha de mantención` ya muestran `Tipo de tarea` y `Perfil funcional` cuando la OT viene enlazada a una programación preventiva y el técnico pertenece formalmente al grupo responsable
 
 Pendientes visibles inmediatos:
 
-- uso mas profundo de `function_profiles` y `task_types`
+- reglas operativas más profundas basadas en `function_profiles` y `task_types`
 - timeline más rica por cliente e instalación
 - agenda visual con responsables y ventanas de visita más ricas
 - programaciones automáticas de mantención y bandeja de vencimientos por gestionar

@@ -11,6 +11,10 @@
   - permite abrir una modal específica para registrar ventanas programadas, ejecución real, responsables y notas de terreno
   - la misma acción queda disponible desde la `Ficha de mantención`
   - reutiliza el slice ya existente de `maintenance_visits`, sin nueva migración tenant
+- `Mantenciones`, `Historial` y la `Ficha de mantención` ahora consumen de forma más profunda taxonomías de `business-core`:
+  - muestran `Tipo de tarea` derivado desde la programación preventiva enlazada
+  - muestran `Perfil funcional` del técnico cuando existe membresía activa en el grupo responsable
+  - esta lectura enriquece la coordinación operativa sin duplicar catálogos dentro de `maintenance`
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso
