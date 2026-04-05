@@ -87,7 +87,7 @@ Limite actual del flujo:
 
 Reasignaciones actuales por tipo:
 
-- duplicado de `client` -> mueve `sites` y `work_orders`
+- duplicado de `client` -> mueve `contacts`, `sites` y `work_orders`
 - duplicado de `site` -> mueve `installations` y `work_orders`
 - duplicado de `installation` -> mueve `work_orders`
 

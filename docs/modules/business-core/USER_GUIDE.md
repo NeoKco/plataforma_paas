@@ -113,16 +113,22 @@ Como decidir rapido:
 
 Que consolida hoy:
 
-- `Clientes`: mueve `Direcciones` y `OT`
+- `Clientes`: mueve `Contactos`, `Direcciones` y `OT`
 - `Direcciones`: mueve `Instalaciones` y `OT`
 - `Instalaciones`: mueve `OT`
 
 Que no consolida todavia:
 
 - `organizations`
-- `contacts`
+- merge profundo de `contacts` mas alla de mover o desactivar duplicados evidentes
 - notas historicas libres
 - fusion documental profunda entre fichas
+
+Nota operativa:
+
+- cuando consolidas `Clientes`, los contactos reutilizables se mueven a la organización destino
+- si un contacto ya existe en destino con identidad equivalente, el duplicado se desactiva
+- las organizaciones origen siguen existiendo y deben revisarse manualmente
 
 Señal importante:
 

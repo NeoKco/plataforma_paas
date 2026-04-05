@@ -316,9 +316,16 @@ Reglas de consolidacion operativa vigentes:
 
 Secuencia de consolidacion actual:
 
-- consolidacion de `clients`: reasigna `sites` y `work_orders`, luego desactiva `clients` origen
+- consolidacion de `clients`: reasigna `contacts`, `sites` y `work_orders`, luego desactiva `clients` origen
 - consolidacion de `sites`: reasigna `installations` y `work_orders`, luego desactiva `sites` origen
 - consolidacion de `installations`: reasigna `work_orders`, luego desactiva `installations` origen
+
+Detalle actual del merge de `clients`:
+
+- los `contacts` de organizaciones origen se comparan contra la organización destino por identidad normalizada
+- si el contacto no existe en destino, se mueve a la organización sugerida
+- si ya existe un equivalente, el contacto origen se desactiva para no duplicar lectura operativa
+- las `organizations` origen no se fusionan en este corte
 
 Limites tecnicos vigentes:
 

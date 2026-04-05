@@ -69,14 +69,14 @@ Resuelve hoy:
 
 Alcance real de la consolidacion actual:
 
-- `Clientes`: mueve `Direcciones` y `OT`
+- `Clientes`: mueve `Contactos`, `Direcciones` y `OT`
 - `Direcciones`: mueve `Instalaciones` y `OT`
 - `Instalaciones`: mueve `OT`
 
 Limites conocidos del corte actual:
 
-- no fusiona `organizations`
-- no fusiona `contacts`
+- no fusiona `organizations`; las organizaciones origen quedan para revision manual
+- no hace merge profundo de `contacts`; solo mueve reutilizables y desactiva duplicados evidentes
 - no mezcla notas humanas ni historiales textuales
 - no construye aun un merge profundo auditable de identidad completa
 

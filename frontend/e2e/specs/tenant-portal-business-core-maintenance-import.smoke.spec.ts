@@ -73,6 +73,9 @@ test("tenant portal shows imported business core and maintenance data from ieris
     page.getByText(/sugerida para conservar por grupo|suggested record to keep per group/i)
   ).toBeVisible();
   await expect(page.getByText(/fichas origen|source records|OT a mover|work orders to move/i).first()).toBeVisible();
+  await expect(
+    page.getByText(/contactos a mover|contacts to move|contactos a desactivar|contacts to deactivate/i).first()
+  ).toBeVisible();
   await expect(page.getByText(/consolidarla hacia la sugerida|consolidate it into the suggested one/i)).toBeVisible();
   await expect(page.getByRole("button", { name: /Recargar|Reload/i })).toBeVisible();
 

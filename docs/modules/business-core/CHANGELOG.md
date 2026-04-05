@@ -1,5 +1,6 @@
 # Business Core Changelog
 
+- La consolidación de `Clientes` ahora reaprovecha también `Contactos`: mueve los reutilizables hacia la organización destino y desactiva duplicados evidentes, dejando las organizaciones origen para revisión manual.
 - La documentación de `business-core` queda alineada con el nombre visible `Duplicados`, el acceso desde `Resumen`, el resumen previo de impacto por grupo y el alcance real de la consolidación operativa actual.
 - Se agrega la vista `Depuración` en `business-core` para auditar duplicados de `Clientes`, `Direcciones` e `Instalaciones`, cruzando dependencias visibles de `sites`, `installations` y `work_orders` antes de habilitar borrado seguro.
 - La misma vista ahora sugiere qué ficha conviene conservar por grupo y agrega desactivación directa para duplicados con historial que no conviene borrar.
