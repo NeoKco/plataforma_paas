@@ -50,7 +50,7 @@ Estado actual:
 - `business_work_group_members` ya existe como tabla y CRUD real para modelar membresias entre usuarios tenant y grupos de trabajo
 - la vista de `work_groups` ya expone conteo de miembros y acceso directo a la gestion de `Miembros`
 - `maintenance` ya consume `work_groups` reales para asignar grupo responsable en ordenes y visitas, en vez de depender solo de etiquetas legacy o texto libre
-- la nueva vista `Depuración` ya detecta grupos duplicados de `Clientes`, `Direcciones` e `Instalaciones`, sugiere qué ficha conviene conservar y permite consolidar referencias operativas hacia esa ficha antes de borrar o desactivar para apoyar la limpieza operativa de la BD
+- la nueva vista `Depuración` ya detecta grupos duplicados de `Clientes`, `Contactos`, `Direcciones` e `Instalaciones`, sugiere qué ficha conviene conservar y permite consolidar referencias operativas o desactivar duplicados hacia esa ficha antes de borrar para apoyar la limpieza operativa de la BD
 
 ## Slice operativo actual: Duplicados
 
@@ -59,6 +59,7 @@ Este slice ya quedo operativo dentro de `Core de negocio`.
 Resuelve hoy:
 
 - auditar duplicados de `Clientes`
+- auditar duplicados de `Contactos`
 - auditar duplicados de `Direcciones`
 - auditar duplicados de `Instalaciones`
 - sugerir que ficha conviene conservar
@@ -70,13 +71,14 @@ Resuelve hoy:
 Alcance real de la consolidacion actual:
 
 - `Clientes`: mueve `Contactos`, `Direcciones` y `OT`
+- `Contactos`: deja una sola ficha sugerida activa y desactiva duplicados equivalentes dentro de la misma organización
 - `Direcciones`: mueve `Instalaciones` y `OT`
 - `Instalaciones`: mueve `OT`
 
 Limites conocidos del corte actual:
 
 - no fusiona `organizations`; las organizaciones origen quedan para revision manual
-- no hace merge profundo de `contacts`; solo mueve reutilizables y desactiva duplicados evidentes
+- no hace merge profundo de `contacts`; por ahora consolida equivalentes dentro de la misma organización y sigue moviendo reutilizables al fusionar `clients`
 - no mezcla notas humanas ni historiales textuales
 - no construye aun un merge profundo auditable de identidad completa
 

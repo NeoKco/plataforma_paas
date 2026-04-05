@@ -157,7 +157,7 @@ Observacion:
 - cuando no sea posible limpiar un marcador legacy en DB porque hoy participa en deduplicacion o reimportacion, al menos debe ocultarse en la lectura/edicion del frontend hasta migrar esa trazabilidad a un canal interno.
 - la eliminacion de `clients` no debe entenderse como limpieza en cascada de negocio; si el cliente ya tiene mantenciones registradas, el backend debe bloquear el borrado y exigir desactivacion.
 - en la alta de `clients`, la proteccion anti-duplicado debe vivir antes del primer `POST`, porque el flujo actual crea `organization`, `client`, `contacts` y `site` en varias llamadas. La UX debe interceptar coincidencias fuertes y redirigir a la ficha existente para agregar contactos en vez de abrir otra cartera paralela.
-- cuando esa proteccion preventiva no alcanzo y la base ya quedo contaminada, el dominio debe ofrecer una auditoria operativa de duplicados: el corte actual puede resolverlo en frontend agrupando `clients`, `sites` e `installations` por claves normalizadas exactas, calculando dependencias con `work_orders`, sugiriendo una ficha a conservar y habilitando `DELETE`, desactivacion segura o consolidacion operativa segun el nivel de historial.
+- cuando esa proteccion preventiva no alcanzo y la base ya quedo contaminada, el dominio debe ofrecer una auditoria operativa de duplicados: el corte actual puede resolverlo en frontend agrupando `clients`, `contacts`, `sites` e `installations` por claves normalizadas exactas, calculando dependencias con `work_orders`, sugiriendo una ficha a conservar y habilitando `DELETE`, desactivacion segura o consolidacion operativa segun el nivel de historial.
 
 Slice frontend actual de duplicados:
 
@@ -168,6 +168,7 @@ Slice frontend actual de duplicados:
 Heuristicas actuales de agrupacion:
 
 - `clients`: por `tax_id` normalizado, y luego por `name + primary address`
+- `contacts`: por `organization_id + full_name + (email|phone)` normalizados
 - `sites`: por `client_id + visible address` normalizada
 - `installations`: por `site_id + serial_number`, y fallback por identidad tecnica visible
 
@@ -180,6 +181,7 @@ Heuristica actual para `sugerida para conservar`:
 Resumen previo por grupo:
 
 - el slice ya calcula y muestra antes de consolidar cuantas fichas origen, direcciones, instalaciones u `OT` seran movidas
+- para `contacts`, el resumen previo indica cuantas fichas origen se desactivaran y cuantos primarios conviene revisar antes de consolidar
 - ese resumen vive en frontend usando los datasets cargados del modulo y evita disparar un backend nuevo en este corte
 
 ### 5. Contact-Site Links

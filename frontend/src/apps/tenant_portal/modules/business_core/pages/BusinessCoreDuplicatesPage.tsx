@@ -20,6 +20,7 @@ import {
   updateTenantBusinessClientStatus,
 } from "../services/clientsService";
 import {
+  deleteTenantBusinessContact,
   getTenantBusinessContacts,
   type TenantBusinessContact,
   updateTenantBusinessContact,
@@ -56,7 +57,7 @@ import {
   updateTenantMaintenanceWorkOrder,
 } from "../../maintenance/services/workOrdersService";
 
-type DuplicateEntityKind = "clients" | "sites" | "installations";
+type DuplicateEntityKind = "clients" | "contacts" | "sites" | "installations";
 
 type ClientAuditRow = {
   client: TenantBusinessClient;
@@ -66,6 +67,12 @@ type ClientAuditRow = {
   sitesCount: number;
   installationsCount: number;
   workOrdersCount: number;
+};
+
+type ContactAuditRow = {
+  contact: TenantBusinessContact;
+  organization: TenantBusinessOrganization | null;
+  client: TenantBusinessClient | null;
 };
 
 type SiteAuditRow = {
@@ -209,6 +216,16 @@ function getInstallationKeepScore(row: InstallationAuditRow) {
   );
 }
 
+function getContactKeepScore(row: ContactAuditRow) {
+  return (
+    (row.contact.is_primary ? 100 : 0) +
+    (row.contact.is_active ? 10 : 0) +
+    (row.contact.email ? 4 : 0) +
+    (row.contact.phone ? 3 : 0) +
+    (row.contact.role_title ? 1 : 0)
+  );
+}
+
 function getPreferredClientId(group: DuplicateGroup<ClientAuditRow>) {
   return [...group.members]
     .sort((left, right) => {
@@ -255,6 +272,37 @@ function getPreferredInstallationId(group: DuplicateGroup<InstallationAuditRow>)
       }
       return left.installation.id - right.installation.id;
     })[0]?.installation.id;
+}
+
+function getPreferredContactId(group: DuplicateGroup<ContactAuditRow>) {
+  return [...group.members]
+    .sort((left, right) => {
+      const scoreDiff = getContactKeepScore(right) - getContactKeepScore(left);
+      if (scoreDiff !== 0) {
+        return scoreDiff;
+      }
+      const dateDiff = compareIsoDateAsc(left.contact.created_at, right.contact.created_at);
+      if (dateDiff !== 0) {
+        return dateDiff;
+      }
+      return left.contact.id - right.contact.id;
+    })[0]?.contact.id;
+}
+
+function buildContactWritePayload(
+  contact: TenantBusinessContact,
+  overrides: Partial<TenantBusinessContact> = {}
+) {
+  return {
+    organization_id: overrides.organization_id ?? contact.organization_id,
+    full_name: overrides.full_name ?? contact.full_name,
+    email: overrides.email ?? contact.email,
+    phone: overrides.phone ?? contact.phone,
+    role_title: overrides.role_title ?? contact.role_title,
+    is_primary: overrides.is_primary ?? contact.is_primary,
+    is_active: overrides.is_active ?? contact.is_active,
+    sort_order: overrides.sort_order ?? contact.sort_order,
+  };
 }
 
 function buildSiteWritePayload(site: TenantBusinessSite, overrides: Partial<TenantBusinessSite> = {}) {
@@ -352,6 +400,61 @@ function summarizeClientContactMerge(
     });
   return { contactsToMove, contactsToDeactivate, sourceOrganizations };
 }
+
+  function buildContactDuplicateGroups(rows: ContactAuditRow[]): DuplicateGroup<ContactAuditRow>[] {
+    const groups: DuplicateGroup<ContactAuditRow>[] = [];
+    const byIdentity = new Map<string, ContactAuditRow[]>();
+
+    rows.forEach((row) => {
+      const nameKey = normalizeHumanKey(row.contact.full_name);
+      const emailKey = normalizeEmailKey(row.contact.email);
+      const phoneKey = normalizePhoneKey(row.contact.phone);
+      if (!nameKey || (!emailKey && !phoneKey)) {
+        return;
+      }
+      const compoundKey = `${row.contact.organization_id}::${nameKey}::${emailKey}::${phoneKey}`;
+      const current = byIdentity.get(compoundKey) ?? [];
+      current.push(row);
+      byIdentity.set(compoundKey, current);
+    });
+
+    byIdentity.forEach((members, key) => {
+      if (members.length < 2) {
+        return;
+      }
+      const organization = members[0]?.organization;
+      const label =
+        stripLegacyVisibleText(organization?.name) ||
+        stripLegacyVisibleText(organization?.legal_name) ||
+        `#${members[0]?.contact.organization_id ?? "?"}`;
+      groups.push({
+        id: `contacts-identity-${key}`,
+        kind: "contacts",
+        titleEs: `Contactos duplicados en ${label}`,
+        titleEn: `Duplicate contacts in ${label}`,
+        subtitleEs:
+          "Comparten nombre y canal de contacto dentro de la misma organización; conviene dejar una sola ficha operativa.",
+        subtitleEn:
+          "They share the same name and contact channel inside the same organization; it is better to keep a single operational record.",
+        searchText: members
+          .map((member) =>
+            [
+              member.contact.full_name,
+              member.contact.email,
+              member.contact.phone,
+              member.organization?.name,
+              member.organization?.legal_name,
+            ]
+              .filter(Boolean)
+              .join(" ")
+          )
+          .join(" "),
+        members,
+      });
+    });
+
+    return sortByMemberCount(groups);
+  }
 
 function buildClientDuplicateGroups(rows: ClientAuditRow[]): DuplicateGroup<ClientAuditRow>[] {
   const groups: DuplicateGroup<ClientAuditRow>[] = [];
@@ -549,6 +652,10 @@ export function BusinessCoreDuplicatesPage() {
     [organizations]
   );
   const clientById = useMemo(() => new Map(clients.map((item) => [item.id, item])), [clients]);
+  const clientByOrganizationId = useMemo(
+    () => new Map(clients.map((item) => [item.organization_id, item])),
+    [clients]
+  );
   const siteById = useMemo(() => new Map(sites.map((item) => [item.id, item])), [sites]);
   const equipmentTypeById = useMemo(
     () => new Map(equipmentTypes.map((item) => [item.id, item])),
@@ -687,6 +794,14 @@ export function BusinessCoreDuplicatesPage() {
     });
   }, [clientById, installationsBySiteId, organizationById, sites, workOrdersBySiteId]);
 
+  const contactRows = useMemo<ContactAuditRow[]>(() => {
+    return contacts.map((contact) => ({
+      contact,
+      organization: organizationById.get(contact.organization_id) ?? null,
+      client: clientByOrganizationId.get(contact.organization_id) ?? null,
+    }));
+  }, [clientByOrganizationId, contacts, organizationById]);
+
   const installationRows = useMemo<InstallationAuditRow[]>(() => {
     return installations.map((installation) => {
       const site = siteById.get(installation.site_id) ?? null;
@@ -703,6 +818,7 @@ export function BusinessCoreDuplicatesPage() {
   }, [clientById, equipmentTypeById, installations, organizationById, siteById, workOrdersByInstallationId]);
 
   const clientGroups = useMemo(() => buildClientDuplicateGroups(clientRows), [clientRows]);
+  const contactGroups = useMemo(() => buildContactDuplicateGroups(contactRows), [contactRows]);
   const siteGroups = useMemo(() => buildSiteDuplicateGroups(siteRows), [siteRows]);
   const installationGroups = useMemo(
     () => buildInstallationDuplicateGroups(installationRows),
@@ -724,6 +840,10 @@ export function BusinessCoreDuplicatesPage() {
     () => filterGroups(clientGroups, "clients"),
     [clientGroups, entityFilter, search]
   );
+  const visibleContactGroups = useMemo(
+    () => filterGroups(contactGroups, "contacts"),
+    [contactGroups, entityFilter, search]
+  );
   const visibleSiteGroups = useMemo(
     () => filterGroups(siteGroups, "sites"),
     [siteGroups, entityFilter, search]
@@ -734,7 +854,10 @@ export function BusinessCoreDuplicatesPage() {
   );
 
   const totalVisibleGroups =
-    visibleClientGroups.length + visibleSiteGroups.length + visibleInstallationGroups.length;
+    visibleClientGroups.length +
+    visibleContactGroups.length +
+    visibleSiteGroups.length +
+    visibleInstallationGroups.length;
   const safeDeleteCandidates =
     visibleClientGroups.reduce(
       (total, group) =>
@@ -742,6 +865,10 @@ export function BusinessCoreDuplicatesPage() {
         group.members.filter(
           (member) => member.sitesCount === 0 && member.installationsCount === 0 && member.workOrdersCount === 0
         ).length,
+      0
+    ) +
+    visibleContactGroups.reduce(
+      (total, group) => total + group.members.filter((member) => !member.contact.is_primary).length,
       0
     ) +
     visibleSiteGroups.reduce(
@@ -771,6 +898,31 @@ export function BusinessCoreDuplicatesPage() {
     setError(null);
     try {
       const response = await deleteTenantBusinessClient(session.accessToken, row.client.id);
+      setFeedback(response.message);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
+  async function handleDeleteContact(row: ContactAuditRow) {
+    if (!session?.accessToken) {
+      return;
+    }
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Eliminar el contacto "${row.contact.full_name}". Solo conviene hacerlo si es una ficha duplicada y no es el contacto principal que quieres conservar.`
+        : `Delete contact "${row.contact.full_name}". This only makes sense if it is a duplicate record and not the primary contact you want to keep.`
+    );
+    if (!confirmed) {
+      return;
+    }
+    setIsMutating(true);
+    setError(null);
+    try {
+      const response = await deleteTenantBusinessContact(session.accessToken, row.contact.id);
       setFeedback(response.message);
       await loadData();
     } catch (rawError) {
@@ -852,6 +1004,35 @@ export function BusinessCoreDuplicatesPage() {
       const response = await updateTenantBusinessClientStatus(
         session.accessToken,
         row.client.id,
+        false
+      );
+      setFeedback(response.message);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
+  async function handleDeactivateContact(row: ContactAuditRow) {
+    if (!session?.accessToken || !row.contact.is_active) {
+      return;
+    }
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Desactivar el contacto "${row.contact.full_name}" para conservar trazabilidad sin dejarlo operativo.`
+        : `Deactivate contact "${row.contact.full_name}" to preserve traceability without leaving it operational.`
+    );
+    if (!confirmed) {
+      return;
+    }
+    setIsMutating(true);
+    setError(null);
+    try {
+      const response = await updateTenantBusinessContactStatus(
+        session.accessToken,
+        row.contact.id,
         false
       );
       setFeedback(response.message);
@@ -1089,6 +1270,53 @@ export function BusinessCoreDuplicatesPage() {
     }
   }
 
+  async function handleMergeContactGroup(group: DuplicateGroup<ContactAuditRow>) {
+    if (!session?.accessToken) {
+      return;
+    }
+    const targetId = getPreferredContactId(group);
+    const target = group.members.find((member) => member.contact.id === targetId);
+    const sources = group.members.filter((member) => member.contact.id !== targetId);
+    if (!target || sources.length === 0) {
+      return;
+    }
+    const primarySources = sources.filter((member) => member.contact.is_primary).length;
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Consolidar ${sources.length} contacto(s) duplicado(s) en "${target.contact.full_name}". Los contactos origen se desactivarán y ${primarySources > 0 && !target.contact.is_primary ? "la ficha sugerida quedará como principal" : "se conservará la mejor ficha visible"}.`
+        : `Consolidate ${sources.length} duplicate contact(s) into "${target.contact.full_name}". Source contacts will be deactivated and ${primarySources > 0 && !target.contact.is_primary ? "the suggested record will become primary" : "the best visible record will be kept"}.`
+    );
+    if (!confirmed) {
+      return;
+    }
+    setIsMutating(true);
+    setError(null);
+    try {
+      if (primarySources > 0 && !target.contact.is_primary) {
+        await updateTenantBusinessContact(
+          session.accessToken,
+          target.contact.id,
+          buildContactWritePayload(target.contact, { is_primary: true })
+        );
+      }
+      for (const source of sources) {
+        if (source.contact.is_active) {
+          await updateTenantBusinessContactStatus(session.accessToken, source.contact.id, false);
+        }
+      }
+      setFeedback(
+        language === "es"
+          ? `Consolidación aplicada sobre ${sources.length} contacto(s) duplicado(s).`
+          : `Consolidation applied to ${sources.length} duplicate contact(s).`
+      );
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
   async function handleMergeInstallationGroup(group: DuplicateGroup<InstallationAuditRow>) {
     if (!session?.accessToken) {
       return;
@@ -1292,6 +1520,137 @@ export function BusinessCoreDuplicatesPage() {
                       {language === "es"
                         ? "Tiene dependencias; desactiva en vez de borrar."
                         : "It has linked records; deactivate instead of deleting."}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  function renderContactGroup(group: DuplicateGroup<ContactAuditRow>) {
+    const preferredContactId = getPreferredContactId(group);
+    const sourceMembers = group.members.filter((member) => member.contact.id !== preferredContactId);
+    const primarySourcesCount = sourceMembers.filter((member) => member.contact.is_primary).length;
+    return (
+      <div key={group.id} className="business-core-duplicates-group">
+        <div className="business-core-duplicates-group__header">
+          <div>
+            <h3 className="business-core-duplicates-group__title">
+              {language === "es" ? group.titleEs : group.titleEn}
+            </h3>
+            <p className="business-core-duplicates-group__subtitle">
+              {language === "es" ? group.subtitleEs : group.subtitleEn}
+            </p>
+            <div className="business-core-duplicates-group__summary">
+              <span>
+                {sourceMembers.length} {language === "es" ? "contactos origen" : "source contacts"}
+              </span>
+              <span>
+                {primarySourcesCount} {language === "es" ? "primarios a revisar" : "primary records to review"}
+              </span>
+            </div>
+          </div>
+          <div className="business-core-duplicates-group__header-actions">
+            <AppBadge tone="warning">
+              {group.members.length} {language === "es" ? "contactos" : "contacts"}
+            </AppBadge>
+            <button
+              className="btn btn-sm btn-outline-primary"
+              type="button"
+              disabled={isMutating || group.members.length < 2}
+              onClick={() => void handleMergeContactGroup(group)}
+            >
+              {language === "es" ? "Consolidar en sugerida" : "Consolidate into suggested"}
+            </button>
+          </div>
+        </div>
+        <div className="business-core-duplicates-list">
+          {group.members.map((member) => {
+            const isPreferred = member.contact.id === preferredContactId;
+            const canDelete = !member.contact.is_primary;
+            return (
+              <div key={member.contact.id} className="business-core-duplicates-item">
+                <div className="business-core-duplicates-item__body">
+                  <div className="business-core-cell__title">{member.contact.full_name}</div>
+                  <div className="business-core-cell__meta">
+                    {member.organization
+                      ? getClientName(member.organization, language)
+                      : language === "es"
+                        ? "sin organización"
+                        : "no organization"}
+                  </div>
+                  <div className="business-core-cell__meta">
+                    {[member.contact.email, member.contact.phone, member.contact.role_title]
+                      .filter(Boolean)
+                      .join(" · ") || "—"}
+                  </div>
+                  {isPreferred ? (
+                    <div className="business-core-duplicates-recommendation">
+                      <AppBadge tone="info">
+                        {language === "es" ? "Sugerida para conservar" : "Suggested to keep"}
+                      </AppBadge>
+                      <span>
+                        {language === "es"
+                          ? "Es el contacto con mejor completitud visible o rol principal dentro de la organización."
+                          : "It is the contact with better visible completeness or the main role inside the organization."}
+                      </span>
+                    </div>
+                  ) : null}
+                  <div className="business-core-duplicates-impact">
+                    <AppBadge tone={member.contact.is_active ? "success" : "neutral"}>
+                      {member.contact.is_active
+                        ? language === "es"
+                          ? "activo"
+                          : "active"
+                        : language === "es"
+                          ? "inactivo"
+                          : "inactive"}
+                    </AppBadge>
+                    {member.contact.is_primary ? (
+                      <AppBadge tone="info">
+                        {language === "es" ? "principal" : "primary"}
+                      </AppBadge>
+                    ) : null}
+                    {member.client ? (
+                      <span>{language === "es" ? "ligado a cliente" : "linked to client"}</span>
+                    ) : (
+                      <span>{language === "es" ? "sin cliente activo" : "no active client"}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="business-core-duplicates-item__actions">
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    onClick={() => navigate("/tenant-portal/business-core/contacts")}
+                  >
+                    {language === "es" ? "Ver catálogo" : "Open catalog"}
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-danger"
+                    type="button"
+                    disabled={!canDelete || isMutating}
+                    onClick={() => void handleDeleteContact(member)}
+                  >
+                    {language === "es" ? "Eliminar" : "Delete"}
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-warning"
+                    type="button"
+                    disabled={isPreferred || !member.contact.is_active || isMutating}
+                    onClick={() => void handleDeactivateContact(member)}
+                  >
+                    {language === "es" ? "Desactivar" : "Deactivate"}
+                  </button>
+                  {!canDelete ? (
+                    <div className="business-core-cell__meta text-warning">
+                      {language === "es"
+                        ? "Si es el contacto principal, conviene conservarlo o consolidarlo antes de borrar."
+                        : "If it is the primary contact, it is better to keep or consolidate it before deleting."}
                     </div>
                   ) : null}
                 </div>
@@ -1573,8 +1932,8 @@ export function BusinessCoreDuplicatesPage() {
         title={language === "es" ? "Depuración de duplicados" : "Duplicate cleanup"}
         description={
           language === "es"
-            ? "Busca clientes, direcciones e instalaciones duplicadas y decide qué fichas pueden borrarse sin romper trazabilidad."
-            : "Find duplicated clients, addresses, and installations and decide which records can be deleted without breaking traceability."
+            ? "Busca clientes, contactos, direcciones e instalaciones duplicadas y decide qué fichas pueden borrarse o consolidarse sin romper trazabilidad."
+            : "Find duplicated clients, contacts, addresses, and installations and decide which records can be deleted or consolidated without breaking traceability."
         }
         actions={
           <AppToolbar compact>
@@ -1582,8 +1941,8 @@ export function BusinessCoreDuplicatesPage() {
               label={language === "es" ? "Ayuda" : "Help"}
               helpText={
                 language === "es"
-                  ? "Este primer corte audita duplicados por coincidencias exactas normalizadas y muestra dependencias para evitar borrados que rompan mantenimiento o historial."
-                  : "This first slice audits duplicates by normalized exact matches and shows dependencies to avoid deletions that would break maintenance or history."
+                  ? "Este corte audita duplicados por coincidencias exactas normalizadas y muestra dependencias para evitar borrados que rompan mantenimiento, contactos principales o historial."
+                  : "This slice audits duplicates by normalized exact matches and shows dependencies to avoid deletions that would break maintenance, primary contacts, or history."
               }
             />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
@@ -1620,8 +1979,8 @@ export function BusinessCoreDuplicatesPage() {
             type="search"
             placeholder={
               language === "es"
-                ? "Buscar por cliente, dirección, serie o instalación"
-                : "Search by client, address, serial, or installation"
+                ? "Buscar por cliente, contacto, dirección, serie o instalación"
+                : "Search by client, contact, address, serial, or installation"
             }
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -1633,6 +1992,7 @@ export function BusinessCoreDuplicatesPage() {
           >
             <option value="all">{language === "es" ? "Todos los grupos" : "All groups"}</option>
             <option value="clients">{language === "es" ? "Solo clientes" : "Clients only"}</option>
+            <option value="contacts">{language === "es" ? "Solo contactos" : "Contacts only"}</option>
             <option value="sites">{language === "es" ? "Solo direcciones" : "Addresses only"}</option>
             <option value="installations">{language === "es" ? "Solo instalaciones" : "Installations only"}</option>
           </select>
@@ -1645,6 +2005,10 @@ export function BusinessCoreDuplicatesPage() {
           <div className="business-core-duplicates-metric">
             <strong>{visibleClientGroups.length}</strong>
             <span>{language === "es" ? "grupos de clientes" : "client groups"}</span>
+          </div>
+          <div className="business-core-duplicates-metric">
+            <strong>{visibleContactGroups.length}</strong>
+            <span>{language === "es" ? "grupos de contactos" : "contact groups"}</span>
           </div>
           <div className="business-core-duplicates-metric">
             <strong>{visibleSiteGroups.length}</strong>
@@ -1661,8 +2025,8 @@ export function BusinessCoreDuplicatesPage() {
         </div>
         <div className="business-core-duplicates-note">
           {language === "es"
-            ? "La interfaz marca una ficha sugerida para conservar por grupo. Si la duplicada ya tiene historial, conviene desactivarla o consolidarla hacia la sugerida; si está vacía, puedes borrarla."
-            : "The interface marks one suggested record to keep per group. If the duplicate already has history, it is better to deactivate it or consolidate it into the suggested one; if it is empty, you can delete it."}
+            ? "La interfaz marca una ficha sugerida para conservar por grupo. Si la duplicada ya tiene historial, rol principal o trazabilidad, conviene desactivarla o consolidarla hacia la sugerida; si está vacía, puedes borrarla."
+            : "The interface marks one suggested record to keep per group. If the duplicate already has history, a primary role, or traceability, it is better to deactivate it or consolidate it into the suggested one; if it is empty, you can delete it."}
         </div>
       </PanelCard>
 
@@ -1683,6 +2047,27 @@ export function BusinessCoreDuplicatesPage() {
         ) : (
           <div className="business-core-duplicates-stack">
             {visibleClientGroups.map(renderClientGroup)}
+          </div>
+        )}
+      </PanelCard>
+
+      <PanelCard
+        title={language === "es" ? "Contactos duplicados" : "Duplicate contacts"}
+        subtitle={
+          language === "es"
+            ? "Coincidencias exactas de nombre + canal de contacto dentro de la misma organización."
+            : "Exact matches of name + contact channel inside the same organization."
+        }
+      >
+        {visibleContactGroups.length === 0 ? (
+          <div className="business-core-cell__meta">
+            {language === "es"
+              ? "No se encontraron contactos duplicados con el filtro actual."
+              : "No duplicate contacts were found with the current filter."}
+          </div>
+        ) : (
+          <div className="business-core-duplicates-stack">
+            {visibleContactGroups.map(renderContactGroup)}
           </div>
         )}
       </PanelCard>
