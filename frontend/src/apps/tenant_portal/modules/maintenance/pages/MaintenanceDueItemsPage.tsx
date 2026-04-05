@@ -24,6 +24,8 @@ import {
   createTenantMaintenanceCostTemplate,
   getTenantMaintenanceCostTemplates,
   type TenantMaintenanceCostTemplate,
+  updateTenantMaintenanceCostTemplate,
+  updateTenantMaintenanceCostTemplateStatus,
 } from "../services/costTemplatesService";
 import {
   createTenantMaintenanceSchedule,
@@ -74,6 +76,7 @@ function buildDefaultScheduleForm(): TenantMaintenanceScheduleWriteRequest {
     site_id: null,
     installation_id: null,
     task_type_id: null,
+    cost_template_id: null,
     name: "",
     description: null,
     frequency_value: 6,
@@ -112,6 +115,19 @@ function sumScheduleEstimateLines(lines: TenantMaintenanceScheduleEstimateLineWr
     (total, line) => total + Number(line.quantity || 0) * Number(line.unit_cost || 0),
     0,
   );
+}
+
+function sortCostTemplates(items: TenantMaintenanceCostTemplate[]): TenantMaintenanceCostTemplate[] {
+  return [...items].sort((left, right) => {
+    if (left.is_active !== right.is_active) {
+      return left.is_active ? -1 : 1;
+    }
+    const nameCompare = left.name.localeCompare(right.name);
+    if (nameCompare !== 0) {
+      return nameCompare;
+    }
+    return left.id - right.id;
+  });
 }
 
 type DueScheduleForm = {
@@ -240,6 +256,7 @@ export function MaintenanceDueItemsPage() {
   const [scheduleSuggestion, setScheduleSuggestion] = useState<TenantMaintenanceScheduleSuggestion | null>(null);
   const [scheduleForm, setScheduleForm] = useState<TenantMaintenanceScheduleWriteRequest>(buildDefaultScheduleForm());
   const [selectedCostTemplateId, setSelectedCostTemplateId] = useState<number | null>(null);
+  const [editingCostTemplateId, setEditingCostTemplateId] = useState<number | null>(null);
   const [isCostTemplateDraftOpen, setIsCostTemplateDraftOpen] = useState(false);
   const [costTemplateDraft, setCostTemplateDraft] = useState<CostTemplateDraftForm>(buildDefaultCostTemplateDraft());
   const [dueScheduleForm, setDueScheduleForm] = useState<DueScheduleForm>(buildDefaultDueScheduleForm());
@@ -258,6 +275,7 @@ export function MaintenanceDueItemsPage() {
     () => new Map(installations.map((item) => [item.id, item])),
     [installations]
   );
+  const taskTypeById = useMemo(() => new Map(taskTypes.map((item) => [item.id, item])), [taskTypes]);
 
   const filteredSitesForSchedule = useMemo(
     () =>
@@ -308,6 +326,18 @@ export function MaintenanceDueItemsPage() {
         }
         return item.task_type_id === null || item.task_type_id === scheduleForm.task_type_id;
       }),
+    [costTemplates, scheduleForm.task_type_id]
+  );
+  const visibleCostTemplates = useMemo(
+    () =>
+      sortCostTemplates(
+        costTemplates.filter((item) => {
+          if (!scheduleForm.task_type_id) {
+            return true;
+          }
+          return item.task_type_id === null || item.task_type_id === scheduleForm.task_type_id;
+        })
+      ),
     [costTemplates, scheduleForm.task_type_id]
   );
   const selectedCostTemplate = useMemo(
@@ -530,7 +560,7 @@ export function MaintenanceDueItemsPage() {
       ] = await Promise.all([
         getTenantMaintenanceDueItems(session.accessToken),
         getTenantMaintenanceSchedules(session.accessToken, { includeInactive: false }),
-        getTenantMaintenanceCostTemplates(session.accessToken, { includeInactive: false }),
+        getTenantMaintenanceCostTemplates(session.accessToken, { includeInactive: true }),
         getTenantBusinessClients(session.accessToken, { includeInactive: false }),
         getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
         getTenantBusinessSites(session.accessToken, { includeInactive: false }),
@@ -541,7 +571,7 @@ export function MaintenanceDueItemsPage() {
       ]);
       setRows(dueItemsResponse.data);
       setSchedules(schedulesResponse.data);
-      setCostTemplates(costTemplatesResponse.data);
+      setCostTemplates(sortCostTemplates(costTemplatesResponse.data));
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
@@ -755,15 +785,14 @@ export function MaintenanceDueItemsPage() {
     }));
   }
 
-  function applySelectedCostTemplate() {
-    if (!selectedCostTemplate) {
-      return;
-    }
+  function applyCostTemplate(template: TenantMaintenanceCostTemplate) {
+    setSelectedCostTemplateId(template.id);
     setScheduleForm((current) => ({
       ...current,
-      estimate_target_margin_percent: selectedCostTemplate.estimate_target_margin_percent,
-      estimate_notes: selectedCostTemplate.estimate_notes,
-      estimate_lines: selectedCostTemplate.lines.map((line) => ({
+      cost_template_id: template.id,
+      estimate_target_margin_percent: template.estimate_target_margin_percent,
+      estimate_notes: template.estimate_notes,
+      estimate_lines: template.lines.map((line) => ({
         line_type: line.line_type,
         description: line.description,
         quantity: line.quantity,
@@ -773,14 +802,22 @@ export function MaintenanceDueItemsPage() {
     }));
     setCostTemplateFeedback(
       language === "es"
-        ? `Plantilla aplicada: ${selectedCostTemplate.name}`
-        : `Template applied: ${selectedCostTemplate.name}`
+        ? `Plantilla aplicada: ${template.name}`
+        : `Template applied: ${template.name}`
     );
   }
 
+  function applySelectedCostTemplate() {
+    if (!selectedCostTemplate) {
+      return;
+    }
+    applyCostTemplate(selectedCostTemplate);
+  }
+
   function openSaveCostTemplateDraft() {
-    const taskTypeName = taskTypes.find((item) => item.id === scheduleForm.task_type_id)?.name ?? "";
+    const taskTypeName = taskTypeById.get(scheduleForm.task_type_id ?? -1)?.name ?? "";
     setCostTemplateFeedback(null);
+    setEditingCostTemplateId(null);
     setCostTemplateDraft({
       name:
         scheduleForm.name.trim() ||
@@ -789,6 +826,37 @@ export function MaintenanceDueItemsPage() {
       description: scheduleForm.description ?? "",
     });
     setIsCostTemplateDraftOpen(true);
+  }
+
+  function startEditCostTemplate(template: TenantMaintenanceCostTemplate) {
+    setSelectedCostTemplateId(template.id);
+    setEditingCostTemplateId(template.id);
+    setCostTemplateFeedback(null);
+    setScheduleForm((current) => ({
+      ...current,
+      task_type_id: template.task_type_id,
+      cost_template_id: template.id,
+      estimate_target_margin_percent: template.estimate_target_margin_percent,
+      estimate_notes: template.estimate_notes,
+      estimate_lines: template.lines.map((line) => ({
+        line_type: line.line_type,
+        description: line.description,
+        quantity: line.quantity,
+        unit_cost: line.unit_cost,
+        notes: line.notes,
+      })),
+    }));
+    setCostTemplateDraft({
+      name: template.name,
+      description: template.description ?? "",
+    });
+    setIsCostTemplateDraftOpen(true);
+  }
+
+  function closeCostTemplateDraft() {
+    setEditingCostTemplateId(null);
+    setIsCostTemplateDraftOpen(false);
+    setCostTemplateDraft(buildDefaultCostTemplateDraft());
   }
 
   async function handleSaveCostTemplate() {
@@ -814,7 +882,7 @@ export function MaintenanceDueItemsPage() {
     setIsTemplateSaving(true);
     setCostTemplateFeedback(null);
     try {
-      const response = await createTenantMaintenanceCostTemplate(session.accessToken, {
+      const payload = {
         name: costTemplateDraft.name.trim(),
         description: costTemplateDraft.description.trim() || null,
         task_type_id: scheduleForm.task_type_id,
@@ -828,15 +896,81 @@ export function MaintenanceDueItemsPage() {
           unit_cost: Number(line.unit_cost || 0),
           notes: line.notes?.trim() || null,
         })),
-      });
-      setCostTemplates((current) => [...current, response.data].sort((left, right) => left.name.localeCompare(right.name)));
+      };
+      const response = editingCostTemplateId
+        ? await updateTenantMaintenanceCostTemplate(
+            session.accessToken,
+            editingCostTemplateId,
+            payload
+          )
+        : await createTenantMaintenanceCostTemplate(session.accessToken, payload);
+      setCostTemplates((current) =>
+        sortCostTemplates(
+          editingCostTemplateId
+            ? current.map((item) => (item.id === response.data.id ? response.data : item))
+            : [...current, response.data]
+        )
+      );
       setSelectedCostTemplateId(response.data.id);
-      setIsCostTemplateDraftOpen(false);
-      setCostTemplateDraft(buildDefaultCostTemplateDraft());
+      setScheduleForm((current) => ({
+        ...current,
+        cost_template_id: response.data.id,
+      }));
+      closeCostTemplateDraft();
       setCostTemplateFeedback(
-        language === "es"
-          ? `Plantilla guardada: ${response.data.name}`
-          : `Template saved: ${response.data.name}`
+        editingCostTemplateId
+          ? language === "es"
+            ? `Plantilla actualizada: ${response.data.name}`
+            : `Template updated: ${response.data.name}`
+          : language === "es"
+            ? `Plantilla guardada: ${response.data.name}`
+            : `Template saved: ${response.data.name}`
+      );
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsTemplateSaving(false);
+    }
+  }
+
+  async function handleCostTemplateStatusChange(
+    template: TenantMaintenanceCostTemplate,
+    isActive: boolean
+  ) {
+    if (!session?.accessToken) {
+      return;
+    }
+    setIsTemplateSaving(true);
+    setCostTemplateFeedback(null);
+    try {
+      const response = await updateTenantMaintenanceCostTemplateStatus(
+        session.accessToken,
+        template.id,
+        isActive
+      );
+      setCostTemplates((current) =>
+        sortCostTemplates(
+          current.map((item) => (item.id === response.data.id ? response.data : item))
+        )
+      );
+      if (!isActive && selectedCostTemplateId === template.id) {
+        setSelectedCostTemplateId(null);
+      }
+      if (!isActive) {
+        setScheduleForm((current) =>
+          current.cost_template_id === template.id
+            ? { ...current, cost_template_id: null }
+            : current
+        );
+      }
+      setCostTemplateFeedback(
+        isActive
+          ? language === "es"
+            ? `Plantilla reactivada: ${template.name}`
+            : `Template reactivated: ${template.name}`
+          : language === "es"
+            ? `Plantilla archivada: ${template.name}`
+            : `Template archived: ${template.name}`
       );
     } catch (rawError) {
       setError(rawError as ApiError);

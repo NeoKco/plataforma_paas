@@ -31,6 +31,7 @@ export type TenantMaintenanceSchedule = {
   site_id: number | null;
   installation_id: number | null;
   task_type_id: number | null;
+  cost_template_id: number | null;
   name: string;
   description: string | null;
   frequency_value: number;
@@ -91,6 +92,7 @@ export type TenantMaintenanceScheduleWriteRequest = {
   site_id: number | null;
   installation_id: number | null;
   task_type_id: number | null;
+  cost_template_id: number | null;
   name: string;
   description: string | null;
   frequency_value: number;

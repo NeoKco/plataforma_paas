@@ -33,6 +33,7 @@ export type TenantMaintenanceCostTemplate = {
   estimate_target_margin_percent: number;
   estimate_notes: string | null;
   is_active: boolean;
+  usage_count: number;
   lines: TenantMaintenanceCostTemplateLine[];
   created_by_user_id: number | null;
   updated_by_user_id: number | null;
@@ -91,6 +92,36 @@ export function createTenantMaintenanceCostTemplate(
       method: "POST",
       token: accessToken,
       body: payload,
+    }
+  );
+}
+
+export function updateTenantMaintenanceCostTemplate(
+  accessToken: string,
+  templateId: number,
+  payload: TenantMaintenanceCostTemplateWriteRequest
+) {
+  return apiRequest<TenantMaintenanceCostTemplateMutationResponse>(
+    `/tenant/maintenance/cost-templates/${templateId}`,
+    {
+      method: "PUT",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function updateTenantMaintenanceCostTemplateStatus(
+  accessToken: string,
+  templateId: number,
+  isActive: boolean
+) {
+  return apiRequest<TenantMaintenanceCostTemplateMutationResponse>(
+    `/tenant/maintenance/cost-templates/${templateId}/status`,
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: { is_active: isActive },
     }
   );
 }
