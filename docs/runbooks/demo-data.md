@@ -40,6 +40,8 @@ Este baseline intenta dejar siempre estos tres casos:
 - `condominio-demo`: tenant `active`, con DB tenant provisionada y datos demo para `tenant_portal`
 - `empresa-bootstrap`: tenant `active`, con DB tenant provisionada y util para administracion desde `platform_admin`
 
+Al resetear `empresa-demo` a estado `pending` sin DB, el script tambien neutraliza jobs tecnicos vivos (`pending`, `retry_pending`, `running`) del tenant para no dejar reintentos stale de `sync_tenant_schema` contra una configuracion DB vacia.
+
 Si `POSTGRES_ADMIN_PASSWORD` esta disponible, el script provisiona de punta a punta los tenants activos. Si ya estaban provisionados, solo reusa la configuracion y vuelve a sembrar datos demo tenant.
 
 ## Escenarios que Crea
@@ -124,3 +126,4 @@ Para demos de frontend y manuales visuales, conviene usar en cambio:
 - el seed de demo no crea por si mismo bases PostgreSQL tenant
 - el enriquecimiento de DB tenant depende de que el tenant ya tenga configuracion de DB valida
 - los planes usados dependen de los planes efectivamente definidos por entorno
+- `sync-schema` no debe usarse como reemplazo del provisioning inicial; si faltan `db_host`, `db_port`, `db_name` o `db_user`, el tenant necesita `create_tenant_database`

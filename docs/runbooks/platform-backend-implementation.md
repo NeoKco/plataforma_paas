@@ -250,11 +250,13 @@ Regla practica:
 
 - si el tenant responde `Tenant database configuration is incomplete`, falta provisioning
 - si el tenant responde que el schema tenant esta incompleto o faltan tablas como `finance_entries`, corresponde `sync-schema`
+- si un job `sync_tenant_schema` cae por `Tenant database configuration is incomplete`, ahora termina en `failed` terminal en lugar de reintentarse, porque el problema no es transitorio sino falta de provisioning
 
 En otras palabras:
 
 - `sync-schema` no reemplaza el provisioning inicial
 - cambiar un tenant a `active` manualmente no completa su configuracion de DB
+- resetear un tenant demo a `pending` sin DB debe ir acompañado de neutralizar jobs tecnicos vivos para no dejar `retry_pending` incoherentes
 
 Referencia tecnica principal:
 

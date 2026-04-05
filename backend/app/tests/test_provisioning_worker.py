@@ -1450,6 +1450,54 @@ class ProvisioningServiceRetryTestCase(unittest.TestCase):
             tenant_id=tenant.id,
         )
 
+    def test_run_sync_schema_job_fails_terminally_when_db_config_is_incomplete(self) -> None:
+        job = self._build_job(job_type="sync_tenant_schema")
+        tenant = self._build_tenant()
+        finalized_jobs: list[tuple[str, datetime | None]] = []
+
+        class FakeDb:
+            def commit(self):
+                pass
+
+        class FakeProvisioningJobRepository:
+            def get_by_id(self, db, job_id):
+                return job
+
+            def refresh(self, db, job_obj):
+                return None
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+        fake_tenant_service = MagicMock()
+        fake_tenant_service.sync_tenant_schema.side_effect = ValueError(
+            "Tenant database configuration is incomplete"
+        )
+
+        service = ProvisioningService(
+            tenant_repository=FakeTenantRepository(),
+            provisioning_job_repository=FakeProvisioningJobRepository(),
+            provisioning_dispatch_service=SimpleNamespace(
+                finalize_job=lambda job: finalized_jobs.append(
+                    (job.status, job.next_retry_at)
+                )
+            ),
+            tenant_service=fake_tenant_service,
+            tenant_secret_service=SimpleNamespace(),
+            logging_service=MagicMock(),
+        )
+
+        with self.assertRaises(ValueError):
+            service.run_job(FakeDb(), 1)
+
+        self.assertEqual(job.status, "failed")
+        self.assertEqual(job.error_code, "tenant_schema_sync_failed")
+        self.assertEqual(job.error_message, "Tenant database configuration is incomplete")
+        self.assertIsNone(job.next_retry_at)
+        self.assertEqual(tenant.status, "pending")
+        self.assertEqual(finalized_jobs, [("failed", None)])
+
     def test_requeue_failed_deprovision_job_keeps_archived_status(self) -> None:
         job = self._build_job(
             attempts=3,

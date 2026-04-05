@@ -180,6 +180,7 @@ Si un tenant muestra `Tenant database configuration is incomplete`:
 - no basta con `sync-schema`
 - primero hay que completar el provisioning `create_tenant_database`
 - si no existe job pendiente, hay que crearlo o reencolar uno fallido antes de ejecutar el worker
+- los jobs `sync_tenant_schema` que fallen exactamente por ese motivo ahora quedan en `failed` terminal, no en `retry_pending`, para evitar loops sobre una configuracion DB vacia
 
 Si quieres ejercitar billing:
 
@@ -238,6 +239,8 @@ Errores frecuentes de tenant:
 - `Tenant database configuration is incomplete`: faltan `db_host`, `db_port`, `db_name` o `db_user`; corresponde provisioning
 - `Tenant DB password not configured for this tenant`: falta secreto tenant o no esta accesible; revisar `.env`
 - `finance_entries` o `tenant_info` inexistente: la DB tenant existe pero su schema esta incompleto; corresponde `sync-schema`
+
+Si el entorno de demo se resiembra con `seed_frontend_demo_baseline.py`, el tenant `empresa-demo` puede volver a `pending` sin DB a proposito. Desde ahora ese reset tambien falla cualquier job tecnico vivo del tenant para no dejar reintentos inconsistentes.
 
 Apoyos utiles:
 

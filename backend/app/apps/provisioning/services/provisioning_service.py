@@ -153,7 +153,12 @@ class ProvisioningService:
             current_stage = getattr(exc, "_provisioning_stage", current_stage)
             job.error_code = self._classify_error_code(current_stage)
             job.error_message = str(exc)
-            if job.attempts >= job.max_attempts:
+            should_retry = self._should_retry_job_failure(
+                job.job_type,
+                current_stage,
+                exc,
+            )
+            if job.attempts >= job.max_attempts or not should_retry:
                 job.status = "failed"
                 if self._should_mark_tenant_error_on_failure(job.job_type):
                     tenant.status = "error"
@@ -273,6 +278,23 @@ class ProvisioningService:
 
     def _should_reset_tenant_to_pending_on_retry(self, job_type: str) -> bool:
         return job_type == "create_tenant_database"
+
+    def _should_retry_job_failure(
+        self,
+        job_type: str,
+        current_stage: str,
+        exc: Exception,
+    ) -> bool:
+        detail = str(exc).strip().lower()
+
+        if (
+            job_type == "sync_tenant_schema"
+            and current_stage == "sync_tenant_schema"
+            and detail == "tenant database configuration is incomplete"
+        ):
+            return False
+
+        return True
 
     def _run_sync_tenant_schema(self, db: Session, tenant: Tenant) -> dict:
         current_stage = "sync_tenant_schema"
