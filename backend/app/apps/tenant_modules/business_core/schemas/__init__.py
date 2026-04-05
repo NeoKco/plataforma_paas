@@ -57,6 +57,12 @@ from app.apps.tenant_modules.business_core.schemas.work_group_member import (
     BusinessWorkGroupMembersResponse,
     BusinessWorkGroupMemberUpdateRequest,
 )
+from app.apps.tenant_modules.business_core.schemas.merge_audit import (
+    BusinessCoreMergeAuditCreateRequest,
+    BusinessCoreMergeAuditItemResponse,
+    BusinessCoreMergeAuditMutationResponse,
+    BusinessCoreMergeAuditsResponse,
+)
 
 __all__ = [
     "BusinessCoreStatusUpdateRequest",
@@ -100,4 +106,8 @@ __all__ = [
     "BusinessTaskTypeItemResponse",
     "BusinessTaskTypeMutationResponse",
     "BusinessTaskTypesResponse",
+    "BusinessCoreMergeAuditCreateRequest",
+    "BusinessCoreMergeAuditItemResponse",
+    "BusinessCoreMergeAuditMutationResponse",
+    "BusinessCoreMergeAuditsResponse",
 ]

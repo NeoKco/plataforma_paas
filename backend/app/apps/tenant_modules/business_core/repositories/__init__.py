@@ -22,6 +22,9 @@ from app.apps.tenant_modules.business_core.repositories.work_group_repository im
 from app.apps.tenant_modules.business_core.repositories.work_group_member_repository import (
     BusinessWorkGroupMemberRepository,
 )
+from app.apps.tenant_modules.business_core.repositories.merge_audit_repository import (
+    BusinessCoreMergeAuditRepository,
+)
 
 __all__ = [
     "BusinessOrganizationRepository",
@@ -32,4 +35,5 @@ __all__ = [
     "BusinessWorkGroupRepository",
     "BusinessWorkGroupMemberRepository",
     "BusinessTaskTypeRepository",
+    "BusinessCoreMergeAuditRepository",
 ]

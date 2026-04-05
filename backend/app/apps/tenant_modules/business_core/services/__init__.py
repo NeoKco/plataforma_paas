@@ -22,6 +22,9 @@ from app.apps.tenant_modules.business_core.services.work_group_service import (
 from app.apps.tenant_modules.business_core.services.work_group_member_service import (
     BusinessWorkGroupMemberService,
 )
+from app.apps.tenant_modules.business_core.services.merge_audit_service import (
+    BusinessCoreMergeAuditService,
+)
 
 __all__ = [
     "BusinessOrganizationService",
@@ -32,4 +35,5 @@ __all__ = [
     "BusinessWorkGroupService",
     "BusinessWorkGroupMemberService",
     "BusinessTaskTypeService",
+    "BusinessCoreMergeAuditService",
 ]

@@ -13,6 +13,9 @@ from app.apps.tenant_modules.business_core.models.work_group import BusinessWork
 from app.apps.tenant_modules.business_core.models.work_group_member import (
     BusinessWorkGroupMember,
 )
+from app.apps.tenant_modules.business_core.models.merge_audit import (
+    BusinessCoreMergeAudit,
+)
 
 __all__ = [
     "BusinessOrganization",
@@ -24,4 +27,5 @@ __all__ = [
     "BusinessWorkGroupMember",
     "BusinessTaskType",
     "BusinessTaskTypeFunctionProfile",
+    "BusinessCoreMergeAudit",
 ]

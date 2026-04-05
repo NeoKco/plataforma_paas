@@ -35,6 +35,9 @@ import {
   updateTenantBusinessOrganizationStatus,
 } from "../services/organizationsService";
 import {
+  createTenantBusinessCoreMergeAudit,
+} from "../services/mergeAuditsService";
+import {
   deleteTenantBusinessSite,
   getTenantBusinessSites,
   type TenantBusinessSite,
@@ -85,6 +88,15 @@ type OrganizationMergeFieldKey =
   | "notes";
 
 type OrganizationMergeSelectionMap = Partial<Record<OrganizationMergeFieldKey, string>>;
+
+type OrganizationMergeDiffRow = {
+  field: OrganizationMergeFieldKey;
+  currentValue: string | null;
+  nextValue: string | null;
+  sourceLabel: string | null;
+  isAutomatic: boolean;
+  isChanged: boolean;
+};
 
 type ClientAuditRow = {
   client: TenantBusinessClient;
@@ -513,7 +525,7 @@ function buildOrganizationMergeDiffRows(
   target: TenantBusinessOrganization,
   sources: TenantBusinessOrganization[],
   selections: OrganizationMergeSelectionMap = {}
-) {
+): OrganizationMergeDiffRow[] {
   const resolved = resolveOrganizationMergePayload(target, sources, selections);
   const organizations = [target, ...sources];
 
@@ -541,6 +553,43 @@ function buildOrganizationMergeDiffRows(
       isAutomatic: selection === "auto",
     };
   });
+}
+
+function buildOrganizationMergeAuditPayload(
+  target: TenantBusinessOrganization,
+  sources: TenantBusinessOrganization[],
+  summary: ReturnType<typeof summarizeOrganizationMerge>,
+  selections: OrganizationMergeSelectionMap,
+  diffRows: OrganizationMergeDiffRow[],
+  preferredClientId: number | null,
+  sourceClientIds: number[]
+) {
+  return {
+    entity_kind: "organization",
+    entity_id: target.id,
+    summary: `organization:${target.id} merged from ${sources.length} source(s)`,
+    payload: {
+      target: {
+        id: target.id,
+        name: target.name,
+        legal_name: target.legal_name,
+        tax_id: target.tax_id,
+      },
+      source_ids: sources.map((source) => source.id),
+      summary,
+      preferred_client_id: preferredClientId,
+      source_client_ids: sourceClientIds,
+      selections,
+      diff_rows: diffRows.map((row) => ({
+        field: row.field,
+        current_value: row.currentValue,
+        next_value: row.nextValue,
+        source_label: row.sourceLabel,
+        is_automatic: row.isAutomatic,
+        is_changed: row.isChanged,
+      })),
+    },
+  };
 }
 
 function countOrganizationDocumentFieldsToMerge(
@@ -1966,6 +2015,23 @@ export function BusinessCoreDuplicatesPage() {
             false
           );
         }
+      }
+
+      try {
+        await createTenantBusinessCoreMergeAudit(
+          session.accessToken,
+          buildOrganizationMergeAuditPayload(
+            target.organization,
+            sources.map((source) => source.organization),
+            summary,
+            selections,
+            diffRows,
+            preferredClientRow?.client.id ?? null,
+            sourceClientRows.map((row) => row.client.id)
+          )
+        );
+      } catch (auditError) {
+        console.warn("Unable to persist organization merge audit", auditError);
       }
 
       setFeedback(
