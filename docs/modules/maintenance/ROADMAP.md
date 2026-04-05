@@ -157,8 +157,8 @@ Avance actual:
 - `Mantenciones` y `Visitas` ya validan que técnico y grupo correspondan a una membresía activa y vigente antes de guardar
 - `Agenda técnica` ya replica el filtro visual de técnicos por membresía activa dentro del grupo responsable
 - `Pendientes`, `Mantenciones`, `Agenda` y `Visitas` ya exigen además `Perfil funcional` declarado cuando la OT preventiva trae `Tipo de tarea`
-- el módulo ya soporta un mapa explícito liviano `task_type -> function_profiles` usando la línea `profiles:` dentro de la descripción del `Tipo de tarea`, sin exigir migración nueva
-- `Business Core -> Tipos de tarea` ya expone UI para editar esa compatibilidad fina sin obligar al usuario a escribir metadata manual
+- el módulo ya formalizó el mapa `task_type -> function_profiles` en una estructura dedicada, con migración desde la metadata legacy `profiles:`
+- `Business Core -> Tipos de tarea` ya expone UI para editar esa compatibilidad fina sin obligar al usuario a escribir metadata manual ni tocar descripciones técnicas
 - `Business Core -> Taxonomías` ya muestra una matriz transversal para revisar la cobertura de compatibilidad entre tipos y perfiles
 - `Business Core -> Taxonomías` ya cruza además membresías activas/vigentes de grupos para mostrar cobertura operativa real y alertar sobre tipos/perfiles huérfanos
 - conflictos visibles, bloqueo backend `409`, filtros de agenda y reprogramación auditada ya quedaron operativos en el mismo frente de endurecimiento
@@ -166,7 +166,7 @@ Avance actual:
 
 Pendiente fino de este frente:
 
-- endurecer y formalizar ese mapa explícito en una estructura dedicada cuando el módulo salga de la etapa liviana hoy editada desde UI pero persistida como metadato `profiles:`
+- seguir limpiando metadata legacy `profiles:` a medida que los tenants migren sus descripciones históricas
 
 ## Fase 5. Evidencias y checklist
 

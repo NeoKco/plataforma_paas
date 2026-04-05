@@ -122,13 +122,12 @@ Estado del corte hoy:
 - `Mantenciones` y `Visitas` ya restringen la asignación para que un técnico solo pueda guardarse si tiene membresía activa y vigente en el `grupo responsable` seleccionado
 - `Agenda técnica` ya replica ese mismo filtro visual para que la asignación desde calendario no ofrezca técnicos fuera del grupo responsable
 - cuando la OT viene de una programación preventiva con `Tipo de tarea`, `Pendientes`, `Mantenciones`, `Agenda` y `Visitas` solo permiten técnicos cuyo miembro de grupo tenga `Perfil funcional` declarado; el backend también lo exige al guardar
-- `Business Core -> Tipos de tarea` ya permite marcar `Perfiles compatibles`; internamente se conserva como metadata liviana `profiles:` dentro de la descripción para no requerir migración nueva
+- `Business Core -> Tipos de tarea` ya permite marcar `Perfiles compatibles`; ahora esa compatibilidad se persiste en una estructura dedicada `task_type -> function_profile`, manteniendo fallback de lectura para metadata legacy `profiles:` mientras exista historial previo
 - `Business Core -> Taxonomías` ya expone una matriz visual `Tipo de tarea x Perfil funcional` para auditar compatibilidad fina sin abrir cada catálogo por separado
 - esa misma matriz ya muestra cobertura operativa real usando membresías activas/vigentes de grupos, para detectar tipos sin técnicos compatibles y perfiles funcionales huérfanos
 
 Pendientes visibles inmediatos:
 
-- compatibilidad explícita más fina entre `function_profiles`, `task_types` y capacidad del equipo, más allá de exigir perfil funcional declarado en OT preventivas
 - timeline más rica por cliente e instalación
 - agenda visual con responsables y ventanas de visita más ricas
 - programaciones automáticas de mantención y bandeja de vencimientos por gestionar

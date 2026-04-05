@@ -34,11 +34,12 @@
 - `Business Core -> Tipos de tarea` ahora expone una UI explícita de `Perfiles compatibles`:
   - el usuario ya no necesita editar la metadata `profiles:` a mano
   - la tabla muestra badges con perfiles compatibles por tipo de tarea
-  - el almacenamiento sigue siendo liviano para no abrir todavía una migración nueva
+  - el almacenamiento ahora usa una tabla dedicada `business_task_type_function_profiles`
+  - la migración backfill conserva compatibilidad de lectura con metadata legacy `profiles:` mientras exista data previa
 - `Business Core -> Taxonomías` ahora agrega una matriz visual:
   - cruza `Tipos de tarea` con `Perfiles funcionales`
   - permite buscar y filtrar solo mapeos explícitos
-  - facilita revisar gaps de compatibilidad antes de asignar reglas más duras o abrir migración dedicada
+  - facilita revisar gaps de compatibilidad antes de endurecer asignaciones operativas reales
 - la matriz ahora también muestra cobertura operativa real:
   - cuenta miembros activos/vigentes por perfil funcional
   - resume técnicos/grupos compatibles por tipo de tarea
