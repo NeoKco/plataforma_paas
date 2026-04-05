@@ -193,6 +193,8 @@ export function MaintenanceCalendarPage() {
   const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
   const [currentMonth, setCurrentMonth] = useState(() => toMonthStart(new Date()));
   const [selectedDateKey, setSelectedDateKey] = useState(() => toDateKey(new Date()));
+  const [calendarAssignedWorkGroupFilter, setCalendarAssignedWorkGroupFilter] = useState<number | null>(null);
+  const [calendarAssignedTechnicianFilter, setCalendarAssignedTechnicianFilter] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -283,6 +285,19 @@ export function MaintenanceCalendarPage() {
     () => activeRows.filter((item) => (conflictSummaryById.get(item.id)?.count ?? 0) > 0).length,
     [activeRows, conflictSummaryById]
   );
+  const visibleCalendarRows = useMemo(
+    () =>
+      activeRows.filter((item) => {
+        const matchesWorkGroup =
+          calendarAssignedWorkGroupFilter === null ||
+          item.assigned_work_group_id === calendarAssignedWorkGroupFilter;
+        const matchesTechnician =
+          calendarAssignedTechnicianFilter === null ||
+          item.assigned_tenant_user_id === calendarAssignedTechnicianFilter;
+        return matchesWorkGroup && matchesTechnician;
+      }),
+    [activeRows, calendarAssignedTechnicianFilter, calendarAssignedWorkGroupFilter]
+  );
   const formConflictPreview = useMemo(() => {
     const probeScheduledFor = toMinuteKey(form.scheduled_for);
     if (!probeScheduledFor) {
@@ -315,7 +330,7 @@ export function MaintenanceCalendarPage() {
 
   const eventsByDate = useMemo(() => {
     const map = new Map<string, TenantMaintenanceWorkOrder[]>();
-    for (const item of activeRows) {
+    for (const item of visibleCalendarRows) {
       const source = item.scheduled_for || item.requested_at;
       if (!source) {
         continue;
@@ -326,7 +341,7 @@ export function MaintenanceCalendarPage() {
       map.set(key, dayRows);
     }
     return map;
-  }, [activeRows]);
+  }, [visibleCalendarRows]);
 
   const calendarDays = useMemo(() => {
     const start = getCalendarGridStart(currentMonth);
@@ -643,6 +658,55 @@ export function MaintenanceCalendarPage() {
           </div>
         }
       >
+        <div className="d-flex flex-wrap gap-2 align-items-end mb-3">
+          <div>
+            <label className="form-label mb-1">
+              {language === "es" ? "Filtrar por grupo" : "Filter by group"}
+            </label>
+            <select
+              className="form-select form-select-sm"
+              value={calendarAssignedWorkGroupFilter ?? ""}
+              onChange={(event) =>
+                setCalendarAssignedWorkGroupFilter(
+                  event.target.value ? Number(event.target.value) : null
+                )
+              }
+            >
+              <option value="">{language === "es" ? "Todos los grupos" : "All groups"}</option>
+              {activeWorkGroups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="form-label mb-1">
+              {language === "es" ? "Filtrar por técnico" : "Filter by technician"}
+            </label>
+            <select
+              className="form-select form-select-sm"
+              value={calendarAssignedTechnicianFilter ?? ""}
+              onChange={(event) =>
+                setCalendarAssignedTechnicianFilter(
+                  event.target.value ? Number(event.target.value) : null
+                )
+              }
+            >
+              <option value="">{language === "es" ? "Todos los técnicos" : "All technicians"}</option>
+              {activeTenantUsers.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.full_name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="maintenance-cell__meta mb-1">
+            {language === "es"
+              ? `${visibleCalendarRows.length} mantención(es) visibles de ${activeRows.length} abierta(s)`
+              : `${visibleCalendarRows.length} visible maintenance work order(s) out of ${activeRows.length} open`}
+          </div>
+        </div>
         <div className="maintenance-calendar">
           <div className="maintenance-calendar__heading">
             {getMonthLabel(currentMonth, language)}
