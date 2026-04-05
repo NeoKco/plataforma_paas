@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PanelCard } from "../../../../../../components/common/PanelCard";
 import { ErrorState } from "../../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../../components/feedback/LoadingBlock";
@@ -79,11 +79,20 @@ export function MaintenanceFieldReportModal({
   const [checklistItems, setChecklistItems] = useState<ChecklistFormItem[]>([]);
   const [uploadNotes, setUploadNotes] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const closureSectionRef = useRef<HTMLDivElement | null>(null);
+  const checklistSectionRef = useRef<HTMLDivElement | null>(null);
+  const evidenceSectionRef = useRef<HTMLDivElement | null>(null);
 
   const completedCount = useMemo(
     () => checklistItems.filter((item) => item.is_completed).length,
     [checklistItems]
   );
+
+  const evidenceCount = report?.evidences.length ?? 0;
+
+  function scrollToSection(sectionRef: React.RefObject<HTMLDivElement | null>) {
+    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   useEffect(() => {
     if (!isOpen || !accessToken || !workOrder) {
@@ -255,6 +264,42 @@ export function MaintenanceFieldReportModal({
             {` · ${clientLabel} · ${siteLabel} · ${installationLabel}`}
           </div>
 
+          <div className="maintenance-mobile-quick-actions mb-3">
+            <div className="maintenance-mobile-quick-actions__header">
+              <div>
+                <div className="maintenance-history-entry__title">
+                  {language === "es" ? "Acciones rápidas en terreno" : "Field quick actions"}
+                </div>
+                <div className="maintenance-history-entry__meta">
+                  {language === "es"
+                    ? "Atajos móviles para completar cierre, checklist y evidencias sin recorrer toda la modal."
+                    : "Mobile shortcuts to complete closure, checklist, and evidence without scrolling through the full modal."}
+                </div>
+              </div>
+              <div className="maintenance-mobile-quick-actions__metrics">
+                <div className="maintenance-mobile-quick-actions__metric">
+                  <strong>{completedCount}/{checklistItems.length}</strong>
+                  <span>{language === "es" ? "checklist" : "checklist"}</span>
+                </div>
+                <div className="maintenance-mobile-quick-actions__metric">
+                  <strong>{evidenceCount}</strong>
+                  <span>{language === "es" ? "evidencias" : "evidence"}</span>
+                </div>
+              </div>
+            </div>
+            <div className="maintenance-mobile-quick-actions__buttons">
+              <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => scrollToSection(closureSectionRef)}>
+                {language === "es" ? "Ir a cierre" : "Jump to closure"}
+              </button>
+              <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => scrollToSection(checklistSectionRef)}>
+                {language === "es" ? "Ir a checklist" : "Jump to checklist"}
+              </button>
+              <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => scrollToSection(evidenceSectionRef)}>
+                {language === "es" ? "Ir a evidencias" : "Jump to evidence"}
+              </button>
+            </div>
+          </div>
+
           {error ? (
             <ErrorState
               title={
@@ -271,7 +316,7 @@ export function MaintenanceFieldReportModal({
             <LoadingBlock label={language === "es" ? "Cargando checklist..." : "Loading checklist..."} />
           ) : (
             <div className="d-grid gap-3">
-              <div className="row g-3">
+              <div ref={closureSectionRef} className="row g-3">
                 <div className="col-12 col-lg-4">
                   <div className="maintenance-history-entry">
                     <div className="maintenance-history-entry__title">
@@ -298,7 +343,7 @@ export function MaintenanceFieldReportModal({
                 </div>
               </div>
 
-              <div className="panel-card border-0 bg-light-subtle">
+              <div ref={checklistSectionRef} className="panel-card border-0 bg-light-subtle">
                 <div className="panel-card__header pb-2">
                   <div>
                     <h3 className="panel-card__title mb-1">
@@ -359,7 +404,7 @@ export function MaintenanceFieldReportModal({
                 </div>
               </div>
 
-              <div className="panel-card border-0 bg-light-subtle">
+              <div ref={evidenceSectionRef} className="panel-card border-0 bg-light-subtle">
                 <div className="panel-card__header pb-2">
                   <div>
                     <h3 className="panel-card__title mb-1">
@@ -382,8 +427,14 @@ export function MaintenanceFieldReportModal({
                             className="form-control"
                             type="file"
                             accept=".pdf,image/png,image/jpeg,image/webp"
+                            capture="environment"
                             onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
                           />
+                          <div className="form-text text-muted">
+                            {language === "es"
+                              ? "En móvil puedes abrir cámara o galería según lo permita el dispositivo."
+                              : "On mobile, the device may offer camera or gallery capture."}
+                          </div>
                         </div>
                         <div className="col-12 col-lg-5">
                           <label className="form-label">{language === "es" ? "Nota" : "Note"}</label>
@@ -459,7 +510,7 @@ export function MaintenanceFieldReportModal({
             </div>
           )}
 
-          <div className="maintenance-form__actions mt-4">
+          <div className="maintenance-form__actions maintenance-form__actions--sticky-mobile mt-4">
             <button className="btn btn-outline-secondary" type="button" onClick={onClose}>
               {language === "es" ? "Cerrar" : "Close"}
             </button>

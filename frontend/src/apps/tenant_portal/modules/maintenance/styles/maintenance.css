@@ -54,6 +54,55 @@
   margin-top: 1rem;
 }
 
+.maintenance-mobile-quick-actions {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid #bdd1ff;
+  border-radius: 1rem;
+  background: linear-gradient(180deg, #f8fbff 0%, #edf3ff 100%);
+}
+
+.maintenance-mobile-quick-actions__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.maintenance-mobile-quick-actions__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.maintenance-mobile-quick-actions__metric {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 5.5rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(46, 107, 255, 0.18);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.maintenance-mobile-quick-actions__metric strong {
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.maintenance-mobile-quick-actions__metric span {
+  color: var(--app-text-muted, #6b7a90);
+  font-size: 0.78rem;
+}
+
+.maintenance-mobile-quick-actions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .maintenance-form-backdrop {
   position: fixed;
   inset: 0;
@@ -392,6 +441,34 @@
 }
 
 @media (max-width: 991px) {
+  .maintenance-form-backdrop {
+    align-items: flex-end;
+    padding: 0.75rem;
+  }
+
+  .maintenance-form-modal {
+    width: 100%;
+    max-height: 92vh;
+  }
+
+  .maintenance-mobile-quick-actions__buttons .btn {
+    flex: 1 1 10rem;
+  }
+
+  .maintenance-form__actions--sticky-mobile {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin-inline: -0.25rem;
+    margin-bottom: -0.25rem;
+    padding: 0.9rem 0.25rem 0.25rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(248, 251, 255, 0.96) 35%, rgba(248, 251, 255, 1) 100%);
+  }
+
+  .maintenance-form__actions--sticky-mobile .btn {
+    flex: 1 1 12rem;
+  }
+
   .maintenance-calendar__weekdays {
     display: none;
   }
