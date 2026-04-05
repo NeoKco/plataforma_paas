@@ -48,6 +48,11 @@
   - resume snapshot del activo, próximas mantenciones y últimas OT de la instalación
   - reutiliza el `Checklist y evidencias` de la última OT cerrada como base documental del activo
   - permite avanzar el roadmap de extensión técnica sin abrir todavía un módulo documental separado
+- `Maintenance -> Reportes` ahora agrega el primer corte de reportes técnicos:
+  - lectura mensual de cierres completados/anulados
+  - cobertura de observación de cierre, visitas ejecutadas y flujo preventivo
+  - resumen por tipo de equipo
+  - listado de instalaciones activas sin servicio reciente ni OT abierta
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso

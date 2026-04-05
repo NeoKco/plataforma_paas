@@ -51,4 +51,11 @@ export const maintenanceTenantPortalRoutes: RouteObject[] = [
       return { Component: module.MaintenanceCalendarPage };
     },
   },
+  {
+    path: "reports",
+    lazy: async () => {
+      const module = await import("./pages/MaintenanceReportsPage");
+      return { Component: module.MaintenanceReportsPage };
+    },
+  },
 ];

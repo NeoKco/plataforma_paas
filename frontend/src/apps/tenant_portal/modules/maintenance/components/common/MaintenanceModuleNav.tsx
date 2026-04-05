@@ -40,6 +40,11 @@ export function MaintenanceModuleNav() {
       label: language === "es" ? "Agenda" : "Calendar",
       icon: "overview" as const,
     },
+    {
+      to: "/tenant-portal/maintenance/reports",
+      label: language === "es" ? "Reportes" : "Reports",
+      icon: "reports" as const,
+    },
   ];
 
   return (

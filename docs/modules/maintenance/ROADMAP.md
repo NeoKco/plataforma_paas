@@ -208,6 +208,12 @@ Avance actual:
   - lista mantenciones abiertas/cerradas asociadas a esa instalación
   - muestra próxima atención y último cierre
   - reutiliza el `field report` de la última OT cerrada como base documental del activo
+- `Reportes` ya expone un primer corte de reportes técnicos:
+  - lectura mensual de cierres completados/anulados
+  - cobertura de observación de cierre útil
+  - trazabilidad de visitas ejecutadas
+  - cobertura de flujo preventivo
+  - instalaciones activas sin servicio reciente ni OT abierta
 - el módulo todavía no abre un expediente técnico documental completo ni reportes especializados; ese frente sigue desacoplado para no mezclar demasiado pronto operación y archivo técnico
 
 ## Fase 6.5. Programacion preventiva y costeo
