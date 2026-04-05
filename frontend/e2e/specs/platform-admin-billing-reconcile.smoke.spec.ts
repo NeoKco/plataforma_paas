@@ -1,13 +1,12 @@
 import { expect, test } from "../support/test";
 import { seedTenantBillingSyncEvent } from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
+import { buildE2ETenantIdentity } from "../support/e2e-data";
 import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can review and reconcile a tenant billing event", async ({ page }) => {
-  const uniqueSuffix = Date.now();
-  const tenantName = `E2E Billing ${uniqueSuffix}`;
-  const tenantSlug = `e2e-billing-${uniqueSuffix}`;
-  const providerEventId = `evt_e2e_billing_${uniqueSuffix}`;
+  const tenant = buildE2ETenantIdentity("billing");
+  const providerEventId = `evt_${tenant.id}`;
   const currentPeriodEndsAtIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   const graceUntilIso = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -19,8 +18,8 @@ test("platform admin can review and reconcile a tenant billing event", async ({ 
   ).toBeVisible();
 
   const createForm = await openCreateTenantForm(page);
-  await createForm.getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i).fill(tenantName);
-  await createForm.getByPlaceholder("empresa-centro").fill(tenantSlug);
+  await createForm.getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i).fill(tenant.name);
+  await createForm.getByPlaceholder("empresa-centro").fill(tenant.slug);
   await createForm.getByRole("button", { name: /Crear tenant|Create tenant/i }).click();
 
   await expect(
@@ -31,13 +30,13 @@ test("platform admin can review and reconcile a tenant billing event", async ({ 
   ).toContainText(/creado|created/i);
 
   const seededEvent = seedTenantBillingSyncEvent({
-    tenantSlug,
+    tenantSlug: tenant.slug,
     providerEventId,
-    billingStatusReason: `E2E billing past due ${uniqueSuffix}`,
+    billingStatusReason: `E2E billing past due ${tenant.id}`,
     billingCurrentPeriodEndsAtIso: currentPeriodEndsAtIso,
     billingGraceUntilIso: graceUntilIso,
-    providerCustomerId: `cus_e2e_${uniqueSuffix}`,
-    providerSubscriptionId: `sub_e2e_${uniqueSuffix}`,
+    providerCustomerId: `cus_${tenant.id}`,
+    providerSubscriptionId: `sub_${tenant.id}`,
   });
 
   expect(seededEvent.processingResult).toBe("applied");
@@ -72,10 +71,10 @@ test("platform admin can review and reconcile a tenant billing event", async ({ 
 
   await expect(
     page.getByRole("heading", {
-      name: new RegExp(`Espacio tenant de billing: ${tenantName}|Tenant billing workspace: ${tenantName}`),
+      name: new RegExp(`Espacio tenant de billing: ${tenant.name}|Tenant billing workspace: ${tenant.name}`),
     })
   ).toBeVisible();
-  await expect(page.getByText(tenantSlug, { exact: true })).toBeVisible();
+  await expect(page.getByText(tenant.slug, { exact: true })).toBeVisible();
   await expect(page.getByText(/con deuda|past due/i).first()).toBeVisible();
 
   const tenantEventsTable = page

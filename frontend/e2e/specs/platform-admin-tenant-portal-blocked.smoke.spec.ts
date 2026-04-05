@@ -1,13 +1,12 @@
 import { expect, test } from "../support/test";
 import { loginPlatform } from "../support/auth";
+import { buildE2ETenantIdentity } from "../support/e2e-data";
 import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin sees tenant portal access blocked when tenant is not eligible", async ({
   page,
 }) => {
-  const uniqueSuffix = Date.now();
-  const tenantName = `E2E Tenant Portal Blocked ${uniqueSuffix}`;
-  const tenantSlug = `e2e-tenant-portal-blocked-${uniqueSuffix}`;
+  const tenant = buildE2ETenantIdentity("tenant-portal-blocked");
 
   await loginPlatform(page);
   await page.goto("/tenants");
@@ -19,8 +18,8 @@ test("platform admin sees tenant portal access blocked when tenant is not eligib
   const createForm = await openCreateTenantForm(page);
   await createForm
     .getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i)
-    .fill(tenantName);
-  await createForm.getByPlaceholder("empresa-centro").fill(tenantSlug);
+    .fill(tenant.name);
+  await createForm.getByPlaceholder("empresa-centro").fill(tenant.slug);
   await createForm
     .getByRole("button", { name: /Crear tenant|Create tenant/ })
     .click();
@@ -33,7 +32,7 @@ test("platform admin sees tenant portal access blocked when tenant is not eligib
   ).toContainText(/creado|created/i);
 
   await expect(
-    page.getByRole("heading", { name: tenantName, exact: true })
+    page.getByRole("heading", { name: tenant.name, exact: true })
   ).toBeVisible();
 
   await page.getByRole("button", { name: /Archivar tenant|Archive tenant/ }).click();

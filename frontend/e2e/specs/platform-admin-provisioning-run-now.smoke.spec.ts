@@ -1,13 +1,12 @@
 import { expect, test } from "../support/test";
 import { loginPlatform } from "../support/auth";
+import { buildE2ETenantIdentity } from "../support/e2e-data";
 import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can run a pending provisioning job from provisioning", async ({
   page,
 }) => {
-  const uniqueSuffix = Date.now();
-  const tenantName = `E2E Provisioning Run ${uniqueSuffix}`;
-  const tenantSlug = `e2e-provisioning-run-${uniqueSuffix}`;
+  const tenant = buildE2ETenantIdentity("provisioning-run");
 
   await loginPlatform(page);
   await page.goto("/tenants");
@@ -16,8 +15,8 @@ test("platform admin can run a pending provisioning job from provisioning", asyn
   const createForm = await openCreateTenantForm(page);
   await createForm
     .getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i)
-    .fill(tenantName);
-  await createForm.getByPlaceholder("empresa-centro").fill(tenantSlug);
+    .fill(tenant.name);
+  await createForm.getByPlaceholder("empresa-centro").fill(tenant.slug);
   await createForm
     .getByRole("button", { name: /Crear tenant|Create tenant/ })
     .click();
@@ -39,7 +38,7 @@ test("platform admin can run a pending provisioning job from provisioning", asyn
 
   const tenantActionRow = page
     .locator("table tbody tr")
-    .filter({ has: page.getByText(tenantSlug, { exact: true }) })
+    .filter({ has: page.getByText(tenant.slug, { exact: true }) })
     .first();
 
   await expect
@@ -74,7 +73,7 @@ test("platform admin can run a pending provisioning job from provisioning", asyn
   await expect(
     page
       .locator("table tbody tr")
-      .filter({ has: page.getByText(tenantSlug, { exact: true }) })
+      .filter({ has: page.getByText(tenant.slug, { exact: true }) })
       .getByRole("button", { name: /Ejecutar ahora|Run now/i })
   ).toHaveCount(0);
 });

@@ -1,14 +1,13 @@
 import { expect, test } from "../support/test";
 import { seedFailedProvisioningJob } from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
+import { buildE2ETenantIdentity } from "../support/e2e-data";
 import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can requeue a failed provisioning job from provisioning", async ({
   page,
 }) => {
-  const uniqueSuffix = Date.now();
-  const tenantName = `E2E Provisioning Retry ${uniqueSuffix}`;
-  const tenantSlug = `e2e-provisioning-retry-${uniqueSuffix}`;
+  const tenant = buildE2ETenantIdentity("provisioning-retry");
 
   await loginPlatform(page);
   await page.goto("/tenants");
@@ -17,8 +16,8 @@ test("platform admin can requeue a failed provisioning job from provisioning", a
   const createForm = await openCreateTenantForm(page);
   await createForm
     .getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i)
-    .fill(tenantName);
-  await createForm.getByPlaceholder("empresa-centro").fill(tenantSlug);
+    .fill(tenant.name);
+  await createForm.getByPlaceholder("empresa-centro").fill(tenant.slug);
   await createForm
     .getByRole("button", { name: /Crear tenant|Create tenant/ })
     .click();
@@ -31,8 +30,8 @@ test("platform admin can requeue a failed provisioning job from provisioning", a
   ).toContainText(/creado|created/i);
 
   const seededJob = seedFailedProvisioningJob({
-    tenantSlug,
-    errorMessage: `E2E failed retry job ${uniqueSuffix}`,
+    tenantSlug: tenant.slug,
+    errorMessage: `E2E failed retry job ${tenant.id}`,
   });
 
   await page.goto("/provisioning");

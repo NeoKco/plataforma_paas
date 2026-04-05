@@ -1,13 +1,12 @@
 import { expect, test } from "../support/test";
 import { seedTenantBillingSyncEvent } from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
+import { buildE2ETenantIdentity } from "../support/e2e-data";
 import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can review tenant history filters exports and detail", async ({ page }) => {
-  const uniqueSuffix = Date.now();
-  const tenantName = `E2E History ${uniqueSuffix}`;
-  const tenantSlug = `e2e-history-${uniqueSuffix}`;
-  const providerEventId = `evt_e2e_history_${uniqueSuffix}`;
+  const tenant = buildE2ETenantIdentity("history");
+  const providerEventId = `evt_${tenant.id}`;
 
   await loginPlatform(page);
   await page.goto("/tenants");
@@ -17,8 +16,8 @@ test("platform admin can review tenant history filters exports and detail", asyn
   ).toBeVisible();
 
   const createForm = await openCreateTenantForm(page);
-  await createForm.getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i).fill(tenantName);
-  await createForm.getByPlaceholder("empresa-centro").fill(tenantSlug);
+  await createForm.getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i).fill(tenant.name);
+  await createForm.getByPlaceholder("empresa-centro").fill(tenant.slug);
   await createForm.getByRole("button", { name: /Crear tenant|Create tenant/i }).click();
 
   await expect(
@@ -29,11 +28,11 @@ test("platform admin can review tenant history filters exports and detail", asyn
   ).toContainText(/creado|created/i);
 
   const seededEvent = seedTenantBillingSyncEvent({
-    tenantSlug,
+    tenantSlug: tenant.slug,
     providerEventId,
-    billingStatusReason: `E2E tenant history ${uniqueSuffix}`,
-    providerCustomerId: `cus_history_${uniqueSuffix}`,
-    providerSubscriptionId: `sub_history_${uniqueSuffix}`,
+    billingStatusReason: `E2E tenant history ${tenant.id}`,
+    providerCustomerId: `cus_history_${tenant.id}`,
+    providerSubscriptionId: `sub_history_${tenant.id}`,
   });
 
   expect(seededEvent.processingResult).toBe("applied");

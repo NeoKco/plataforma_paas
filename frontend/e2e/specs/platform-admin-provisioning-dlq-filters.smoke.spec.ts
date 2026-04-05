@@ -4,6 +4,7 @@ import {
   seedProvisioningDeadLetterJob,
 } from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
+import { buildE2ETenantIdentity } from "../support/e2e-data";
 import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can filter DLQ rows by error text and review requeue options", async ({
@@ -15,11 +16,9 @@ test("platform admin can filter DLQ rows by error text and review requeue option
     "DLQ browser smoke requires provisioning broker backend"
   );
 
-  const uniqueSuffix = Date.now();
-  const tenantName = `E2E Provisioning DLQ Filters ${uniqueSuffix}`;
-  const tenantSlug = `e2e-provisioning-dlq-filters-${uniqueSuffix}`;
-  const errorCode = `e2e_dlq_filters_${uniqueSuffix}`;
-  const matchingErrorFragment = `target-${uniqueSuffix}`;
+  const tenant = buildE2ETenantIdentity("provisioning-dlq-filters");
+  const errorCode = `e2e-dlq-filters-${tenant.id}`;
+  const matchingErrorFragment = `target-${tenant.id}`;
 
   await loginPlatform(page);
   await page.goto("/tenants");
@@ -28,8 +27,8 @@ test("platform admin can filter DLQ rows by error text and review requeue option
   const createForm = await openCreateTenantForm(page);
   await createForm
     .getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i)
-    .fill(tenantName);
-  await createForm.getByPlaceholder("empresa-centro").fill(tenantSlug);
+    .fill(tenant.name);
+  await createForm.getByPlaceholder("empresa-centro").fill(tenant.slug);
   await createForm
     .getByRole("button", { name: /Crear tenant|Create tenant/ })
     .click();
@@ -42,15 +41,15 @@ test("platform admin can filter DLQ rows by error text and review requeue option
   ).toContainText(/creado|created/i);
 
   const matchingJob = seedProvisioningDeadLetterJob({
-    tenantSlug,
+    tenantSlug: tenant.slug,
     errorCode,
     errorMessage: `E2E DLQ matching ${matchingErrorFragment}`,
   });
 
   const otherJob = seedProvisioningDeadLetterJob({
-    tenantSlug,
+    tenantSlug: tenant.slug,
     errorCode,
-    errorMessage: `E2E DLQ non-matching ${uniqueSuffix}`,
+    errorMessage: `E2E DLQ non-matching ${tenant.id}`,
   });
 
   await page.goto("/provisioning");
@@ -62,7 +61,7 @@ test("platform admin can filter DLQ rows by error text and review requeue option
   const filtersForm = page.locator("form.tenant-action-form").filter({
     has: page.getByText(/Filtros DLQ|DLQ filters/i),
   });
-  await filtersForm.locator("input.form-control").nth(2).fill(tenantSlug);
+  await filtersForm.locator("input.form-control").nth(2).fill(tenant.slug);
   await filtersForm.locator("input.form-control").nth(3).fill(errorCode);
   await filtersForm
     .locator("input.form-control")

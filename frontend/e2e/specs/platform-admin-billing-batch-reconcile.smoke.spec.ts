@@ -1,12 +1,11 @@
 import { expect, test } from "../support/test";
 import { seedTenantBillingSyncEvent } from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
+import { buildE2ETenantIdentity } from "../support/e2e-data";
 import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can batch reconcile filtered tenant billing events", async ({ page }) => {
-  const uniqueSuffix = Date.now();
-  const tenantName = `E2E Billing Batch ${uniqueSuffix}`;
-  const tenantSlug = `e2e-billing-batch-${uniqueSuffix}`;
+  const tenant = buildE2ETenantIdentity("billing-batch");
   const eventType = "invoice.payment_failed";
 
   await loginPlatform(page);
@@ -17,8 +16,8 @@ test("platform admin can batch reconcile filtered tenant billing events", async 
   ).toBeVisible();
 
   const createForm = await openCreateTenantForm(page);
-  await createForm.getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i).fill(tenantName);
-  await createForm.getByPlaceholder("empresa-centro").fill(tenantSlug);
+  await createForm.getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i).fill(tenant.name);
+  await createForm.getByPlaceholder("empresa-centro").fill(tenant.slug);
   await createForm.getByRole("button", { name: /Crear tenant|Create tenant/i }).click();
 
   await expect(
@@ -29,20 +28,20 @@ test("platform admin can batch reconcile filtered tenant billing events", async 
   ).toContainText(/creado|created/i);
 
   const firstEvent = seedTenantBillingSyncEvent({
-    tenantSlug,
-    providerEventId: `evt_e2e_billing_batch_a_${uniqueSuffix}`,
+    tenantSlug: tenant.slug,
+    providerEventId: `evt_${tenant.id}_a`,
     eventType,
-    billingStatusReason: `E2E batch billing A ${uniqueSuffix}`,
-    providerCustomerId: `cus_batch_${uniqueSuffix}`,
-    providerSubscriptionId: `sub_batch_${uniqueSuffix}`,
+    billingStatusReason: `E2E batch billing A ${tenant.id}`,
+    providerCustomerId: `cus_batch_${tenant.id}`,
+    providerSubscriptionId: `sub_batch_${tenant.id}`,
   });
   const secondEvent = seedTenantBillingSyncEvent({
-    tenantSlug,
-    providerEventId: `evt_e2e_billing_batch_b_${uniqueSuffix}`,
+    tenantSlug: tenant.slug,
+    providerEventId: `evt_${tenant.id}_b`,
     eventType,
-    billingStatusReason: `E2E batch billing B ${uniqueSuffix}`,
-    providerCustomerId: `cus_batch_${uniqueSuffix}`,
-    providerSubscriptionId: `sub_batch_${uniqueSuffix}`,
+    billingStatusReason: `E2E batch billing B ${tenant.id}`,
+    providerCustomerId: `cus_batch_${tenant.id}`,
+    providerSubscriptionId: `sub_batch_${tenant.id}`,
   });
 
   expect(firstEvent.processingResult).toBe("applied");

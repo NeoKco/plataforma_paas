@@ -106,6 +106,12 @@ Regla operativa adicional para artefactos de fallo:
 - la configuración oficial usa `trace: retain-on-failure`, `screenshot: only-on-failure` y `video: retain-on-failure`
 - los artefactos se concentran en [frontend/e2e/test-results](test-results) y el reporte HTML en [frontend/e2e/playwright-report](playwright-report)
 
+Regla operativa adicional para datos efímeros:
+
+- los slugs, nombres y emails efímeros de `platform_admin` ya deben salir del helper [frontend/e2e/support/e2e-data.ts](support/e2e-data.ts)
+- evitar seguir creando variantes locales con `Date.now()` disperso cuando el dato se usa para `tenantSlug`, usuarios de plataforma o identificadores visibles del smoke
+- los helpers compartidos, como [frontend/e2e/support/finance.ts](support/finance.ts), también deben reutilizar ese generador cuando necesiten nombres o códigos únicos
+
 Si el flujo visible nuevo aun no tiene smoke, debe quedar anotado explícitamente en el `ROADMAP.md` o `CHANGELOG.md` del módulo.
 
 Comandos útiles:

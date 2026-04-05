@@ -1,13 +1,12 @@
 import { expect, test } from "../support/test";
 import { loginPlatform } from "../support/auth";
+import { buildE2ETenantIdentity } from "../support/e2e-data";
 import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can see a newly created tenant in provisioning", async ({
   page,
 }) => {
-  const uniqueSuffix = Date.now();
-  const tenantName = `E2E Provisioning ${uniqueSuffix}`;
-  const tenantSlug = `e2e-provisioning-${uniqueSuffix}`;
+  const tenant = buildE2ETenantIdentity("provisioning");
 
   await loginPlatform(page);
   await page.goto("/tenants");
@@ -16,8 +15,8 @@ test("platform admin can see a newly created tenant in provisioning", async ({
   const createForm = await openCreateTenantForm(page);
   await createForm
     .getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i)
-    .fill(tenantName);
-  await createForm.getByPlaceholder("empresa-centro").fill(tenantSlug);
+    .fill(tenant.name);
+  await createForm.getByPlaceholder("empresa-centro").fill(tenant.slug);
   await createForm
     .getByRole("button", { name: /Crear tenant|Create tenant/ })
     .click();
@@ -39,7 +38,7 @@ test("platform admin can see a newly created tenant in provisioning", async ({
 
   await expect
     .poll(async () => {
-      return page.getByText(tenantSlug, { exact: true }).count();
+      return page.getByText(tenant.slug, { exact: true }).count();
     })
     .toBeGreaterThan(0);
 });
