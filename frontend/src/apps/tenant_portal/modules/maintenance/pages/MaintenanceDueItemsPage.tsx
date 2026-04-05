@@ -21,6 +21,11 @@ import type { ApiError, TenantUsersItem } from "../../../../../types";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
 import {
+  createTenantMaintenanceCostTemplate,
+  getTenantMaintenanceCostTemplates,
+  type TenantMaintenanceCostTemplate,
+} from "../services/costTemplatesService";
+import {
   createTenantMaintenanceSchedule,
   getTenantMaintenanceScheduleSuggestion,
   getTenantMaintenanceSchedules,
@@ -130,6 +135,11 @@ type DuePostponeForm = {
   resolution_note: string;
 };
 
+type CostTemplateDraftForm = {
+  name: string;
+  description: string;
+};
+
 function buildDefaultDueScheduleForm(): DueScheduleForm {
   return {
     scheduled_for: "",
@@ -154,6 +164,13 @@ function buildDefaultDuePostponeForm(): DuePostponeForm {
   return {
     postponed_until: "",
     resolution_note: "",
+  };
+}
+
+function buildDefaultCostTemplateDraft(): CostTemplateDraftForm {
+  return {
+    name: "",
+    description: "",
   };
 }
 
@@ -204,12 +221,14 @@ export function MaintenanceDueItemsPage() {
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
+  const [costTemplates, setCostTemplates] = useState<TenantMaintenanceCostTemplate[]>([]);
   const [taskTypes, setTaskTypes] = useState<TenantBusinessTaskType[]>([]);
   const [workGroups, setWorkGroups] = useState<TenantBusinessWorkGroup[]>([]);
   const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
+  const [isTemplateSaving, setIsTemplateSaving] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -217,8 +236,12 @@ export function MaintenanceDueItemsPage() {
   const [selectedDueItem, setSelectedDueItem] = useState<TenantMaintenanceDueItem | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [costTemplateFeedback, setCostTemplateFeedback] = useState<string | null>(null);
   const [scheduleSuggestion, setScheduleSuggestion] = useState<TenantMaintenanceScheduleSuggestion | null>(null);
   const [scheduleForm, setScheduleForm] = useState<TenantMaintenanceScheduleWriteRequest>(buildDefaultScheduleForm());
+  const [selectedCostTemplateId, setSelectedCostTemplateId] = useState<number | null>(null);
+  const [isCostTemplateDraftOpen, setIsCostTemplateDraftOpen] = useState(false);
+  const [costTemplateDraft, setCostTemplateDraft] = useState<CostTemplateDraftForm>(buildDefaultCostTemplateDraft());
   const [dueScheduleForm, setDueScheduleForm] = useState<DueScheduleForm>(buildDefaultDueScheduleForm());
   const [dueContactForm, setDueContactForm] = useState<DueContactForm>(buildDefaultDueContactForm());
   const [duePostponeForm, setDuePostponeForm] = useState<DuePostponeForm>(buildDefaultDuePostponeForm());
@@ -274,6 +297,33 @@ export function MaintenanceDueItemsPage() {
     () => sumScheduleEstimateLines(scheduleForm.estimate_lines),
     [scheduleForm.estimate_lines]
   );
+  const filteredCostTemplates = useMemo(
+    () =>
+      costTemplates.filter((item) => {
+        if (!item.is_active) {
+          return false;
+        }
+        if (!scheduleForm.task_type_id) {
+          return true;
+        }
+        return item.task_type_id === null || item.task_type_id === scheduleForm.task_type_id;
+      }),
+    [costTemplates, scheduleForm.task_type_id]
+  );
+  const selectedCostTemplate = useMemo(
+    () => filteredCostTemplates.find((item) => item.id === selectedCostTemplateId) ?? null,
+    [filteredCostTemplates, selectedCostTemplateId]
+  );
+
+  useEffect(() => {
+    if (!selectedCostTemplateId) {
+      return;
+    }
+    const exists = filteredCostTemplates.some((item) => item.id === selectedCostTemplateId);
+    if (!exists) {
+      setSelectedCostTemplateId(null);
+    }
+  }, [filteredCostTemplates, selectedCostTemplateId]);
 
   useEffect(() => {
     if (!isPlanModalOpen || !accessToken || Number(scheduleForm.client_id) <= 0) {
@@ -469,6 +519,7 @@ export function MaintenanceDueItemsPage() {
       const [
         dueItemsResponse,
         schedulesResponse,
+        costTemplatesResponse,
         clientsResponse,
         organizationsResponse,
         sitesResponse,
@@ -479,6 +530,7 @@ export function MaintenanceDueItemsPage() {
       ] = await Promise.all([
         getTenantMaintenanceDueItems(session.accessToken),
         getTenantMaintenanceSchedules(session.accessToken, { includeInactive: false }),
+        getTenantMaintenanceCostTemplates(session.accessToken, { includeInactive: false }),
         getTenantBusinessClients(session.accessToken, { includeInactive: false }),
         getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
         getTenantBusinessSites(session.accessToken, { includeInactive: false }),
@@ -489,6 +541,7 @@ export function MaintenanceDueItemsPage() {
       ]);
       setRows(dueItemsResponse.data);
       setSchedules(schedulesResponse.data);
+      setCostTemplates(costTemplatesResponse.data);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
@@ -578,7 +631,11 @@ export function MaintenanceDueItemsPage() {
   function startCreatePlan() {
     setFeedback(null);
     setError(null);
+    setCostTemplateFeedback(null);
     setScheduleSuggestion(null);
+    setSelectedCostTemplateId(null);
+    setIsCostTemplateDraftOpen(false);
+    setCostTemplateDraft(buildDefaultCostTemplateDraft());
     nextDueWasManuallyEditedRef.current = false;
     frequencyWasManuallyEditedRef.current = false;
     const defaultClientId = clients[0]?.id || 0;
@@ -603,7 +660,11 @@ export function MaintenanceDueItemsPage() {
     }
     setFeedback(null);
     setError(null);
+    setCostTemplateFeedback(null);
     setScheduleSuggestion(null);
+    setSelectedCostTemplateId(null);
+    setIsCostTemplateDraftOpen(false);
+    setCostTemplateDraft(buildDefaultCostTemplateDraft());
     nextDueWasManuallyEditedRef.current = false;
     frequencyWasManuallyEditedRef.current = false;
     setScheduleForm({
@@ -692,6 +753,96 @@ export function MaintenanceDueItemsPage() {
       ...current,
       estimate_lines: [...current.estimate_lines, buildBlankScheduleEstimateLine()],
     }));
+  }
+
+  function applySelectedCostTemplate() {
+    if (!selectedCostTemplate) {
+      return;
+    }
+    setScheduleForm((current) => ({
+      ...current,
+      estimate_target_margin_percent: selectedCostTemplate.estimate_target_margin_percent,
+      estimate_notes: selectedCostTemplate.estimate_notes,
+      estimate_lines: selectedCostTemplate.lines.map((line) => ({
+        line_type: line.line_type,
+        description: line.description,
+        quantity: line.quantity,
+        unit_cost: line.unit_cost,
+        notes: line.notes,
+      })),
+    }));
+    setCostTemplateFeedback(
+      language === "es"
+        ? `Plantilla aplicada: ${selectedCostTemplate.name}`
+        : `Template applied: ${selectedCostTemplate.name}`
+    );
+  }
+
+  function openSaveCostTemplateDraft() {
+    const taskTypeName = taskTypes.find((item) => item.id === scheduleForm.task_type_id)?.name ?? "";
+    setCostTemplateFeedback(null);
+    setCostTemplateDraft({
+      name:
+        scheduleForm.name.trim() ||
+        taskTypeName ||
+        (language === "es" ? "Plantilla de costeo" : "Costing template"),
+      description: scheduleForm.description ?? "",
+    });
+    setIsCostTemplateDraftOpen(true);
+  }
+
+  async function handleSaveCostTemplate() {
+    if (!session?.accessToken) {
+      return;
+    }
+    if (!costTemplateDraft.name.trim()) {
+      setCostTemplateFeedback(
+        language === "es"
+          ? "Debes indicar un nombre para guardar la plantilla."
+          : "Provide a name before saving the template."
+      );
+      return;
+    }
+    if (scheduleForm.estimate_lines.length === 0) {
+      setCostTemplateFeedback(
+        language === "es"
+          ? "La plantilla necesita al menos una línea de costeo."
+          : "The template needs at least one costing line."
+      );
+      return;
+    }
+    setIsTemplateSaving(true);
+    setCostTemplateFeedback(null);
+    try {
+      const response = await createTenantMaintenanceCostTemplate(session.accessToken, {
+        name: costTemplateDraft.name.trim(),
+        description: costTemplateDraft.description.trim() || null,
+        task_type_id: scheduleForm.task_type_id,
+        estimate_target_margin_percent: scheduleForm.estimate_target_margin_percent,
+        estimate_notes: scheduleForm.estimate_notes?.trim() || null,
+        is_active: true,
+        lines: scheduleForm.estimate_lines.map((line) => ({
+          line_type: line.line_type,
+          description: line.description?.trim() || null,
+          quantity: Number(line.quantity || 0),
+          unit_cost: Number(line.unit_cost || 0),
+          notes: line.notes?.trim() || null,
+        })),
+      });
+      setCostTemplates((current) => [...current, response.data].sort((left, right) => left.name.localeCompare(right.name)));
+      setSelectedCostTemplateId(response.data.id);
+      setIsCostTemplateDraftOpen(false);
+      setCostTemplateDraft(buildDefaultCostTemplateDraft());
+      setCostTemplateFeedback(
+        language === "es"
+          ? `Plantilla guardada: ${response.data.name}`
+          : `Template saved: ${response.data.name}`
+      );
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsTemplateSaving(false);
+    }
   }
 
   function updateScheduleEstimateLine(
@@ -1484,6 +1635,159 @@ export function MaintenanceDueItemsPage() {
                         }))
                       }
                     />
+                  </div>
+                  <div className="col-12">
+                    <div className="panel-card border-0 bg-light-subtle">
+                      <div className="panel-card__header pb-2">
+                        <div>
+                          <h3 className="panel-card__title mb-1">
+                            {language === "es"
+                              ? "Plantillas de costeo de mantención"
+                              : "Maintenance costing templates"}
+                          </h3>
+                          <p className="panel-card__subtitle mb-0">
+                            {language === "es"
+                              ? "Función exclusiva de Mantenciones para reutilizar estructuras de costo estimado sin convertirlas en un catálogo compartido con otros módulos."
+                              : "Maintenance-only feature to reuse estimated costing structures without turning them into a shared cross-module catalog."}
+                          </p>
+                        </div>
+                        <button
+                          className="btn btn-sm btn-outline-primary"
+                          type="button"
+                          onClick={openSaveCostTemplateDraft}
+                        >
+                          {language === "es" ? "Guardar como plantilla" : "Save as template"}
+                        </button>
+                      </div>
+                      <div className="panel-card__body pt-0 d-grid gap-3">
+                        <div className="row g-3 align-items-end">
+                          <div className="col-12 col-md-8">
+                            <label className="form-label">
+                              {language === "es" ? "Aplicar plantilla existente" : "Apply existing template"}
+                            </label>
+                            <select
+                              className="form-select"
+                              value={selectedCostTemplateId ?? ""}
+                              onChange={(event) =>
+                                setSelectedCostTemplateId(
+                                  event.target.value ? Number(event.target.value) : null
+                                )
+                              }
+                            >
+                              <option value="">
+                                {language === "es"
+                                  ? "Selecciona una plantilla de mantención"
+                                  : "Select a maintenance template"}
+                              </option>
+                              {filteredCostTemplates.map((template) => {
+                                const taskTypeName =
+                                  taskTypes.find((taskType) => taskType.id === template.task_type_id)?.name ??
+                                  (language === "es" ? "General" : "General");
+                                return (
+                                  <option key={template.id} value={template.id}>
+                                    {template.name} · {taskTypeName}
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          </div>
+                          <div className="col-12 col-md-4">
+                            <button
+                              className="btn btn-outline-secondary w-100"
+                              type="button"
+                              onClick={applySelectedCostTemplate}
+                              disabled={!selectedCostTemplate}
+                            >
+                              {language === "es" ? "Aplicar plantilla" : "Apply template"}
+                            </button>
+                          </div>
+                        </div>
+                        {filteredCostTemplates.length === 0 ? (
+                          <div className="maintenance-history-entry__meta">
+                            {language === "es"
+                              ? "Todavía no hay plantillas guardadas para Mantenciones. Puedes guardar el costeo que armes abajo y luego reutilizarlo en otras programaciones del módulo."
+                              : "There are no saved Maintenance templates yet. You can save the costing you build below and reuse it in other module schedules."}
+                          </div>
+                        ) : null}
+                        {selectedCostTemplate ? (
+                          <div className="maintenance-history-entry__meta">
+                            <strong>{selectedCostTemplate.name}</strong>
+                            {selectedCostTemplate.description
+                              ? ` · ${selectedCostTemplate.description}`
+                              : ""}
+                            {` · ${selectedCostTemplate.lines.length} `}
+                            {language === "es" ? "líneas base" : "base lines"}
+                          </div>
+                        ) : null}
+                        {isCostTemplateDraftOpen ? (
+                          <div className="maintenance-cost-lines__item">
+                            <div className="row g-3">
+                              <div className="col-12 col-md-6">
+                                <label className="form-label">
+                                  {language === "es" ? "Nombre de plantilla" : "Template name"}
+                                </label>
+                                <input
+                                  className="form-control"
+                                  value={costTemplateDraft.name}
+                                  onChange={(event) =>
+                                    setCostTemplateDraft((current) => ({
+                                      ...current,
+                                      name: event.target.value,
+                                    }))
+                                  }
+                                />
+                              </div>
+                              <div className="col-12 col-md-6">
+                                <label className="form-label">
+                                  {language === "es" ? "Descripción breve" : "Short description"}
+                                </label>
+                                <input
+                                  className="form-control"
+                                  value={costTemplateDraft.description}
+                                  onChange={(event) =>
+                                    setCostTemplateDraft((current) => ({
+                                      ...current,
+                                      description: event.target.value,
+                                    }))
+                                  }
+                                />
+                              </div>
+                              <div className="col-12">
+                                <div className="maintenance-form__actions justify-content-start pt-0">
+                                  <button
+                                    className="btn btn-primary"
+                                    type="button"
+                                    onClick={() => void handleSaveCostTemplate()}
+                                    disabled={isTemplateSaving}
+                                  >
+                                    {isTemplateSaving
+                                      ? language === "es"
+                                        ? "Guardando..."
+                                        : "Saving..."
+                                      : language === "es"
+                                        ? "Guardar plantilla"
+                                        : "Save template"}
+                                  </button>
+                                  <button
+                                    className="btn btn-outline-secondary"
+                                    type="button"
+                                    onClick={() => {
+                                      setIsCostTemplateDraftOpen(false);
+                                      setCostTemplateDraft(buildDefaultCostTemplateDraft());
+                                    }}
+                                  >
+                                    {language === "es" ? "Cancelar" : "Cancel"}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : null}
+                        {costTemplateFeedback ? (
+                          <div className="alert alert-info mb-0">{costTemplateFeedback}</div>
+                        ) : null}
+                      </div>
+                    </div>
                   </div>
                   <div className="col-12">
                     <div className="panel-card border-0 bg-light-subtle">

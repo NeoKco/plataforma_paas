@@ -19,7 +19,6 @@ DESCRIPTION = "Add maintenance cost templates"
 metadata = MetaData()
 
 Table("business_task_types", metadata, Column("id", Integer, primary_key=True))
-Table("maintenance_cost_templates", metadata, Column("id", Integer, primary_key=True))
 
 maintenance_cost_templates = Table(
     "maintenance_cost_templates",

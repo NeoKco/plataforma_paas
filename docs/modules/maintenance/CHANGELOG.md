@@ -40,6 +40,12 @@
   - `maintenance_schedules` ahora guarda `estimate_target_margin_percent` y `estimate_notes`
   - `Nueva programación` permite definir varias líneas default de materiales, servicios, mano de obra, traslado e indirectos
   - al agendar una OT desde `Pendientes`, el backend copia esas líneas al costeo estimado inicial del work order
+- se implementa la reutilización interna de costeo estimado dentro de `maintenance`:
+  - migración tenant `0026_maintenance_cost_templates`
+  - tablas `maintenance_cost_templates` y `maintenance_cost_template_lines`
+  - `Nueva programación` permite guardar el costeo actual como `Plantilla de costeo de mantención`
+  - esas plantillas son exclusivas del módulo `maintenance`; no se modelan como catálogo transversal ni se comparten con otros módulos
+  - desde la misma `Nueva programación` se puede aplicar una plantilla existente para precargar margen, notas y líneas de estimate
 - el smoke E2E de `maintenance` ahora valida también `Costeo estimado por defecto` en `Nueva programación` y el histórico de costos en solo lectura
 - `Nueva programación` en `Pendientes` se alinea visual y estructuralmente con `Nueva mantención`:
   - mismo patrón modal

@@ -48,6 +48,7 @@ El primer corte del modulo ya permite:
 - abrir `Ver costos` desde `Historial` para revisar en modo solo lectura el cierre económico ya congelado de una orden cerrada
 - registrar detalle por líneas dentro de `Costos y cobro`, para que el resumen se derive automáticamente cuando quieras bajar a mano de obra, traslado, materiales, servicios externos o indirectos
 - definir en `Nueva programación` un costeo estimado por defecto con varias líneas de materiales, servicios, mano de obra, traslado e indirectos
+- guardar y reutilizar `Plantillas de costeo de mantención` dentro de `Nueva programación`, sin salir del módulo ni depender de catálogos compartidos
 - hacer que una OT agendada desde `Pendientes` nazca ya con ese costeo estimado precargado
 - definir en `Resumen` si el tenant deja el puente con `Finanzas` en modo manual o lo automatiza al cerrar
 - sacar automaticamente de la bandeja activa una orden al completarla o anularla
@@ -102,6 +103,7 @@ Lectura funcional de cada vista:
 - `Pendientes`: bandeja automática de mantenciones por gestionar, visible cuando el cliente ya entró en ventana de vencimiento
   - `Nueva programación` sigue el mismo patrón visual, jerarquía de lectura y modal de `Nueva mantención`
   - `Nueva programación` ya permite precargar `Costeo estimado por defecto` para que la OT programada no parta vacía
+  - la misma pantalla ya permite aplicar o guardar `Plantillas de costeo de mantención` para reutilizar estructuras de costo frecuentes del equipo técnico
   - `Próxima mantención` se sugiere automáticamente si existe una mantención cerrada este año en historial
   - la sugerencia toma primero la misma instalación y, si no hay cierre útil, cae a la misma dirección
   - cuando existe cierre este año, se propone el mismo día y mes para el próximo año
@@ -140,6 +142,9 @@ Regla UX operativa:
 - si la OT nace desde una programación preventiva con costeo default:
   - `Costeo estimado` ya se abre precargado con sus líneas base
   - el operador puede ajustar ese estimado antes de ejecutar la mantención real
+- si el equipo técnico repite siempre la misma estructura de estimate:
+  - puede guardarla como `Plantilla de costeo de mantención`
+  - luego puede aplicarla en nuevas programaciones sin reconstruir material, servicio, mano de obra o margen desde cero
 
 ## Mejora funcional recomendada
 

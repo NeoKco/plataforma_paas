@@ -142,6 +142,13 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await expect(getFieldControl(planDialog, /Cliente|Client/i)).toBeVisible();
   await expect(getFieldControl(planDialog, /Próxima mantención|Next due/i)).toBeVisible();
   await expect(getFieldControl(planDialog, /Frecuencia|Frequency/i)).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: /Plantillas de costeo de mantención|Maintenance costing templates/i,
+    })
+  ).toBeVisible();
+  await expect(getFieldControl(planDialog, /Aplicar plantilla existente|Apply existing template/i)).toBeVisible();
+  await expect(planDialog.getByRole("button", { name: /Guardar como plantilla|Save as template/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: /Costeo estimado por defecto|Default estimated costing/i })).toBeVisible();
   await expect(getFieldControl(planDialog, /Margen objetivo|Target margin/i)).toBeVisible();
   await expect(

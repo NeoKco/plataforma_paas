@@ -583,7 +583,7 @@ La agenda no debe convertirse en la fuente de verdad de vencimientos; esa fuente
 
 - soportar alta masiva de schedules por CSV en una fase posterior
 - permitir agendamiento multiple para varias mantenciones del mismo cliente o sitio
-- agregar plantillas de costo por tipo de mantencion
+- consolidar `Plantillas de costeo de mantención` con edición y archivado, manteniéndolas como capacidad propia del módulo
 - separar en reportes `preventiva`, `correctiva`, `emergencia`, `garantia`
 - mas adelante, detectar creacion de schedule desde instalacion o venta cerrada si otro modulo entrega ese disparador
 

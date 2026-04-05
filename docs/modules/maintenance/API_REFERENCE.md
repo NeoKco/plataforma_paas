@@ -61,6 +61,14 @@ Instalaciones:
 - `PATCH /tenant/maintenance/installations/<id>/status`
 - `DELETE /tenant/maintenance/installations/<id>`
 
+Plantillas de costeo de mantención:
+
+- `GET /tenant/maintenance/cost-templates`
+- `POST /tenant/maintenance/cost-templates`
+- `GET /tenant/maintenance/cost-templates/<id>`
+- `PUT /tenant/maintenance/cost-templates/<id>`
+- `PATCH /tenant/maintenance/cost-templates/<id>/status`
+
 Ordenes de trabajo:
 
 - `GET /tenant/maintenance/work-orders`

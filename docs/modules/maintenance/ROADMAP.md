@@ -244,11 +244,16 @@ Avance actual:
   - detallar costo por líneas y derivar resumen automático desde ellas
   - sincronizar manualmente ingreso/egreso hacia `finance`
 - se agrega migración tenant `0025_maintenance_schedule_estimate_defaults`
+- se agrega migración tenant `0026_maintenance_cost_templates`
 - tablas y columnas ya versionadas para el seed preventivo del costeo:
   - `maintenance_schedule_cost_lines`
   - `maintenance_schedules.estimate_target_margin_percent`
   - `maintenance_schedules.estimate_notes`
+- nuevas tablas tenant para reutilización interna de costos en `maintenance`:
+  - `maintenance_cost_templates`
+  - `maintenance_cost_template_lines`
 - `Nueva programación` ya permite definir costeo estimado por defecto con múltiples líneas de material, servicio, mano de obra, traslado e indirectos
+- `Nueva programación` ahora también permite guardar ese costeo como `Plantilla de costeo de mantención` y volver a aplicarlo en otras programaciones del mismo módulo
 - cuando una OT se agenda desde `Pendientes`, el backend ya copia automáticamente esas líneas al `Costeo estimado` inicial de la orden
 - `Resumen técnico` ya permite editar la política tenant para:
   - mantener sync manual
@@ -260,7 +265,7 @@ Avance actual:
 
 Pendiente inmediato de esta fase:
 
-- decidir si el siguiente corte agrega catálogo reusable tenant de insumos/servicios o si por ahora basta con las líneas default por programación
+- extender la gestión de `Plantillas de costeo de mantención` con edición, archivado y métricas de uso si la operación lo pide
 
 ## Mejoras de producto recomendadas
 
@@ -291,9 +296,9 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- aplicar migraciones tenant faltantes de `0025` en tenants activos
+- aplicar migraciones tenant faltantes de `0026` en tenants activos
 - decidir el siguiente corte del roadmap:
-  - catálogo reusable de materiales/servicios
+  - edición y archivado de plantillas de costeo de mantención
 
 ## Backlog pendiente visible
 

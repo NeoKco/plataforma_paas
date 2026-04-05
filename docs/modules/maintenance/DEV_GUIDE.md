@@ -150,6 +150,10 @@ Fuente frontend principal:
   - se guardan sobre `maintenance_schedule_cost_lines`
   - aceptan múltiples materiales y servicios, además de mano de obra, traslado e indirectos
   - al agendar una OT desde `Pendientes`, esas líneas se copian al `estimate` inicial del work order
+- `maintenance` ya tiene además `Plantillas de costeo de mantención` como feature propia del módulo:
+  - viven en `maintenance_cost_templates` y `maintenance_cost_template_lines`
+  - se crean y aplican desde `Nueva programación`
+  - no deben modelarse ni nombrarse como catálogo transversal, porque su alcance funcional es exclusivo de Mantenciones
 - la sincronización `maintenance -> finance` ya soporta dos políticas tenant:
   - `manual`
   - `auto_on_close`
