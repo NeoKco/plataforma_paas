@@ -83,6 +83,13 @@ type VisitCoordinationSummary = {
   nextOpenVisit: TenantMaintenanceVisit | null;
 };
 
+type VisitSequenceItem = {
+  visit: TenantMaintenanceVisit;
+  durationMinutes: number | null;
+  gapFromPreviousMinutes: number | null;
+  overlapsPrevious: boolean;
+};
+
 function normalizeNullable(value: string): string | null {
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
@@ -163,6 +170,55 @@ function getVisitStatusLabel(status: string, language: "es" | "en") {
   }
 }
 
+function formatDurationMinutes(value: number | null, language: "es" | "en") {
+  if (value === null || value < 0) {
+    return language === "es" ? "duración no definida" : "duration not defined";
+  }
+  if (value < 60) {
+    return language === "es" ? `${value} min` : `${value} min`;
+  }
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+  if (minutes === 0) {
+    return language === "es" ? `${hours} h` : `${hours} h`;
+  }
+  return language === "es" ? `${hours} h ${minutes} min` : `${hours} h ${minutes} min`;
+}
+
+function buildVisitSequence(visits: TenantMaintenanceVisit[]): VisitSequenceItem[] {
+  const orderedVisits = [...visits].sort((left, right) => {
+    const leftTimestamp =
+      toTimestamp(left.scheduled_start_at) ?? toTimestamp(left.created_at) ?? Number.POSITIVE_INFINITY;
+    const rightTimestamp =
+      toTimestamp(right.scheduled_start_at) ?? toTimestamp(right.created_at) ?? Number.POSITIVE_INFINITY;
+    return leftTimestamp - rightTimestamp;
+  });
+
+  return orderedVisits.map((visit, index) => {
+    const startTimestamp = toTimestamp(visit.scheduled_start_at);
+    const endTimestamp = toTimestamp(visit.scheduled_end_at);
+    const previousVisit = orderedVisits[index - 1];
+    const previousEndTimestamp = toTimestamp(previousVisit?.scheduled_end_at);
+    const durationMinutes =
+      startTimestamp !== null && endTimestamp !== null && endTimestamp >= startTimestamp
+        ? Math.round((endTimestamp - startTimestamp) / 60000)
+        : null;
+
+    return {
+      visit,
+      durationMinutes,
+      gapFromPreviousMinutes:
+        index > 0 && startTimestamp !== null && previousEndTimestamp !== null
+          ? Math.round((startTimestamp - previousEndTimestamp) / 60000)
+          : null,
+      overlapsPrevious:
+        index > 0 && startTimestamp !== null && previousEndTimestamp !== null
+          ? startTimestamp < previousEndTimestamp
+          : false,
+    };
+  });
+}
+
 function isMembershipActive(member: WorkGroupMembership) {
   if (!member.is_active) {
     return false;
@@ -194,6 +250,33 @@ function buildFormState(
       visit?.assigned_tenant_user_id ?? workOrder.assigned_tenant_user_id ?? ""
     ),
     notes: visit?.notes ?? "",
+  };
+}
+
+function buildFollowUpFormState(
+  workOrder: MaintenanceVisitsModalWorkOrder,
+  visit: TenantMaintenanceVisit
+): VisitFormState {
+  const nextStart = toLocalInput(
+    visit.scheduled_end_at ?? visit.scheduled_start_at ?? workOrder.scheduled_for
+  );
+  const nextEnd =
+    visit.scheduled_start_at && visit.scheduled_end_at && nextStart
+      ? shiftEndKeepingDuration(
+          toLocalInput(visit.scheduled_start_at),
+          toLocalInput(visit.scheduled_end_at),
+          nextStart
+        )
+      : "";
+  return {
+    visit_status: "scheduled",
+    scheduled_start_at: nextStart,
+    scheduled_end_at: nextEnd,
+    actual_start_at: "",
+    actual_end_at: "",
+    assigned_work_group_id: String(visit.assigned_work_group_id ?? workOrder.assigned_work_group_id ?? ""),
+    assigned_tenant_user_id: String(visit.assigned_tenant_user_id ?? workOrder.assigned_tenant_user_id ?? ""),
+    notes: "",
   };
 }
 
@@ -281,6 +364,11 @@ export function MaintenanceVisitsModal({
       nextOpenVisit: orderedOpenVisits[0] ?? null,
     };
   }, [visits]);
+  const visitSequence = useMemo(() => buildVisitSequence(visits), [visits]);
+  const overlappingVisitCount = useMemo(
+    () => visitSequence.filter((item) => item.overlapsPrevious).length,
+    [visitSequence]
+  );
 
   function getTechnicianOptionLabel(userId: number): string {
     const baseLabel = technicianById.get(userId) || `#${userId}`;
@@ -334,6 +422,15 @@ export function MaintenanceVisitsModal({
     }
     setEditingVisitId(visit.id);
     setForm(buildFormState(workOrder, visit));
+    setError(null);
+  }
+
+  function startFollowUpFromVisit(visit: TenantMaintenanceVisit) {
+    if (!workOrder) {
+      return;
+    }
+    setEditingVisitId(null);
+    setForm(buildFollowUpFormState(workOrder, visit));
     setError(null);
   }
 
@@ -577,6 +674,94 @@ export function MaintenanceVisitsModal({
                 </div>
               ) : null}
             </div>
+          </div>
+
+          <div className="maintenance-visit-sequence mb-3">
+            <div className="maintenance-visit-sequence__header">
+              <div>
+                <div className="maintenance-history-entry__title">
+                  {language === "es" ? "Secuencia de terreno" : "Field sequence"}
+                </div>
+                <div className="maintenance-history-entry__meta">
+                  {language === "es"
+                    ? "Ordena las ventanas ya registradas y ayuda a preparar visitas de seguimiento sin reconstruir responsables ni duración desde cero."
+                    : "Orders registered windows and helps prepare follow-up visits without rebuilding assignees or duration from scratch."}
+                </div>
+              </div>
+            </div>
+            {overlappingVisitCount > 0 ? (
+              <div className="maintenance-history-entry__meta text-warning">
+                {language === "es"
+                  ? `${overlappingVisitCount} visita(s) se solapan con la ventana anterior y conviene revisarlas antes de salir a terreno.`
+                  : `${overlappingVisitCount} visit(s) overlap the previous window and should be reviewed before going to the field.`}
+              </div>
+            ) : null}
+            {visitSequence.length === 0 ? (
+              <div className="maintenance-history-entry__meta">
+                {language === "es"
+                  ? "Aún no hay secuencia de visitas registrada para esta OT."
+                  : "There is no recorded visit sequence for this work order yet."}
+              </div>
+            ) : (
+              <div className="maintenance-visit-sequence__list">
+                {visitSequence.map((item, index) => (
+                  <div key={item.visit.id} className="maintenance-visit-sequence__item">
+                    <div className="maintenance-visit-sequence__step">
+                      <span className="maintenance-visit-sequence__index">{index + 1}</span>
+                    </div>
+                    <div className="maintenance-visit-sequence__content">
+                      <div className="d-flex flex-wrap gap-2 align-items-center mb-1">
+                        <div className="maintenance-history-entry__title">
+                          {getVisitStatusLabel(item.visit.visit_status, language)}
+                        </div>
+                        {index === 0 ? (
+                          <span className="maintenance-visit-sequence__badge">
+                            {language === "es" ? "Primer tramo" : "First leg"}
+                          </span>
+                        ) : null}
+                        {item.overlapsPrevious ? (
+                          <span className="maintenance-visit-sequence__badge is-warning">
+                            {language === "es" ? "Solapa" : "Overlap"}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Ventana" : "Window"}: {formatDateTime(item.visit.scheduled_start_at, language, effectiveTimeZone)}
+                        {item.visit.scheduled_end_at
+                          ? ` → ${formatDateTime(item.visit.scheduled_end_at, language, effectiveTimeZone)}`
+                          : ""}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Duración" : "Duration"}: {formatDurationMinutes(
+                          item.durationMinutes,
+                          language
+                        )}
+                      </div>
+                      {item.gapFromPreviousMinutes !== null ? (
+                        <div className={`maintenance-history-entry__meta${item.overlapsPrevious ? " text-warning" : ""}`}>
+                          {item.overlapsPrevious
+                            ? language === "es"
+                              ? `Se solapa ${Math.abs(item.gapFromPreviousMinutes)} min con la ventana anterior.`
+                              : `It overlaps the previous window by ${Math.abs(item.gapFromPreviousMinutes)} min.`
+                            : language === "es"
+                              ? `Queda ${item.gapFromPreviousMinutes} min después de la visita anterior.`
+                              : `It starts ${item.gapFromPreviousMinutes} min after the previous visit.`}
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="maintenance-visit-sequence__actions">
+                      <button
+                        className="btn btn-sm btn-outline-primary"
+                        type="button"
+                        onClick={() => startFollowUpFromVisit(item.visit)}
+                      >
+                        {language === "es" ? "Crear seguimiento" : "Create follow-up"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {form ? (

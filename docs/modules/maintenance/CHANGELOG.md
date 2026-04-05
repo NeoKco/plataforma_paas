@@ -64,6 +64,10 @@
   - resume visitas abiertas, en curso, completadas y abiertas sin responsable
   - muestra la próxima ventana abierta para lectura rápida de terreno
   - incorpora atajos para copiar ventana/responsables de la OT y marcar salida o cierre rápido
+- `Visitas` ahora agrega un primer corte multi-ventana:
+  - ordena la secuencia de terreno por visita
+  - alerta solapes con la ventana anterior
+  - permite crear una visita de seguimiento reutilizando duración y responsables de la visita base
 - se deja explícitamente pendiente el slice de trazabilidad de `Plantilla de costeo de mantención` aplicada al cierre económico final de cada OT
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista

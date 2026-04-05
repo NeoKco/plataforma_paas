@@ -167,6 +167,10 @@ Avance actual:
 - `Visitas` ahora agrega un primer bloque explícito de coordinación operativa:
   - resume abiertas/en curso/completadas y responsables pendientes
   - expone atajos para copiar ventana/responsables de la OT y marcar salida/cierre rápido en terreno
+- `Visitas` ahora agrega además un primer corte multi-ventana:
+  - ordena la secuencia de visitas por ventana
+  - marca solapes contra la visita anterior
+  - permite crear una visita de seguimiento reutilizando duración y responsables base
 
 Pendiente fino de este frente:
 
@@ -351,7 +355,7 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- profundizar `Visitas` con edición multi-ventana y coordinación más rica sobre secuencias de terreno
+- profundizar `Visitas` con edición masiva o coordinación encadenada sobre varias ventanas abiertas
 
 ## Backlog pendiente visible
 

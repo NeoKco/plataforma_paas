@@ -167,7 +167,12 @@ test("tenant portal shows imported business core and maintenance data from ieris
     await expect(visitsDialog).toBeVisible();
     await expect(page.getByRole("heading", { name: /Visitas de mantención|Maintenance visits/i })).toBeVisible();
     await expect(visitsDialog.getByText(/Coordinación operativa|Operational coordination/i)).toBeVisible();
+    await expect(visitsDialog.getByText(/Secuencia de terreno|Field sequence/i)).toBeVisible();
     await expect(visitsDialog.getByRole("button", { name: /Nueva visita|New visit/i })).toBeVisible();
+    const followUpButtons = visitsDialog.getByRole("button", { name: /Crear seguimiento|Create follow-up/i });
+    if ((await followUpButtons.count()) > 0) {
+      await expect(followUpButtons.first()).toBeVisible();
+    }
     await visitsDialog.getByRole("button", { name: /Nueva visita|New visit/i }).click();
     await expect(visitsDialog.getByText(/Atajos de coordinación|Coordination shortcuts/i)).toBeVisible();
     await expect(visitsDialog.getByRole("button", { name: /Usar ventana OT|Use work order window/i })).toBeVisible();

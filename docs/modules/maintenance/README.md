@@ -122,6 +122,10 @@ Estado del corte hoy:
   - cuenta visitas abiertas, en curso, completadas y abiertas sin responsable
   - muestra la próxima ventana abierta visible para coordinación rápida
   - incorpora atajos para copiar ventana/responsables de la OT y registrar inicio/cierre de salida en terreno
+- `Visitas` ahora agrega también una primera lectura multi-ventana:
+  - ordena la secuencia de terreno por ventana programada
+  - alerta cuando una visita se solapa con la anterior
+  - permite crear una visita de seguimiento reutilizando duración y responsables de la visita base
 - `Mantenciones` y `Agenda` ya pueden, al reprogramar una OT, alinear también la primera visita abierta con el nuevo horario y responsables para no dejar desfasada la ventana principal de terreno
 - esa reprogramación ahora también muestra una lectura más fina de ventanas de terreno:
   - previsualiza la ventana actual y la propuesta para la primera visita abierta que se sincronizará
