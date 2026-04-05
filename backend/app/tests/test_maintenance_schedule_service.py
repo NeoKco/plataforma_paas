@@ -8,6 +8,7 @@ os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
 
 from app.apps.tenant_modules.maintenance.schemas import MaintenanceScheduleCreateRequest  # noqa: E402
+from app.apps.tenant_modules.maintenance.models import MaintenanceScheduleCostLine  # noqa: E402
 from app.apps.tenant_modules.maintenance.services.schedule_service import (  # noqa: E402
     MaintenanceScheduleService,
 )
@@ -16,12 +17,19 @@ from app.apps.tenant_modules.maintenance.services.schedule_service import (  # n
 class MaintenanceScheduleServiceTestCase(unittest.TestCase):
     def test_create_schedule_normalizes_naive_next_due_at_against_aware_history_date(self) -> None:
         tenant_db = Mock()
+        empty_lines_query = Mock()
+        empty_lines_query.filter.return_value = empty_lines_query
+        empty_lines_query.order_by.return_value = empty_lines_query
+        empty_lines_query.all.return_value = []
         tenant_db.query.side_effect = [
             Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=17))))),
             Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=31, client_id=17))))),
             Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=9, site_id=31))))),
+            empty_lines_query,
+            empty_lines_query,
         ]
         tenant_db.add.return_value = None
+        tenant_db.flush.return_value = None
         tenant_db.commit.return_value = None
         tenant_db.refresh.side_effect = lambda item: None
 
