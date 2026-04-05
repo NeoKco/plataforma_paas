@@ -18,6 +18,7 @@ import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubbl
 import { MaintenanceCostingModal } from "../components/common/MaintenanceCostingModal";
 import { MaintenanceFieldReportModal } from "../components/common/MaintenanceFieldReportModal";
 import { MaintenanceWorkOrderDetailModal } from "../components/common/MaintenanceWorkOrderDetailModal";
+import { MaintenanceVisitsModal } from "../components/common/MaintenanceVisitsModal";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
 import {
   createTenantMaintenanceWorkOrder,
@@ -187,6 +188,7 @@ export function MaintenanceWorkOrdersPage() {
   const [isRescheduleMode, setIsRescheduleMode] = useState(false);
   const [costingWorkOrder, setCostingWorkOrder] = useState<TenantMaintenanceWorkOrder | null>(null);
   const [detailWorkOrder, setDetailWorkOrder] = useState<TenantMaintenanceWorkOrder | null>(null);
+  const [visitsWorkOrder, setVisitsWorkOrder] = useState<TenantMaintenanceWorkOrder | null>(null);
   const [fieldReportWorkOrder, setFieldReportWorkOrder] =
     useState<TenantMaintenanceWorkOrder | null>(null);
 
@@ -526,6 +528,16 @@ export function MaintenanceWorkOrdersPage() {
 
   function closeDetailModal() {
     setDetailWorkOrder(null);
+  }
+
+  function openVisitsModal(item: TenantMaintenanceWorkOrder) {
+    setFeedback(null);
+    setError(null);
+    setVisitsWorkOrder(item);
+  }
+
+  function closeVisitsModal() {
+    setVisitsWorkOrder(null);
   }
 
   function openFieldReportModal(item: TenantMaintenanceWorkOrder) {
@@ -1192,7 +1204,35 @@ export function MaintenanceWorkOrdersPage() {
               }
             : undefined
         }
+        onManageVisits={
+          detailWorkOrder
+            ? () => {
+                closeDetailModal();
+                openVisitsModal(detailWorkOrder);
+              }
+            : undefined
+        }
         workOrder={detailWorkOrder}
+      />
+      <MaintenanceVisitsModal
+        accessToken={session?.accessToken}
+        clientLabel={visitsWorkOrder ? getClientDisplayName(visitsWorkOrder.client_id) : "—"}
+        siteLabel={visitsWorkOrder ? getSiteDisplayName(visitsWorkOrder.site_id) : "—"}
+        installationLabel={
+          visitsWorkOrder?.installation_id
+            ? installationById.get(visitsWorkOrder.installation_id)?.name || `#${visitsWorkOrder.installation_id}`
+            : language === "es"
+              ? "Instalación pendiente"
+              : "Installation pending"
+        }
+        effectiveTimeZone={effectiveTimeZone}
+        isOpen={Boolean(visitsWorkOrder)}
+        language={language}
+        onClose={closeVisitsModal}
+        onFeedback={setFeedback}
+        technicians={activeTenantUsers.map((item) => ({ id: item.id, full_name: item.full_name }))}
+        workGroups={activeWorkGroups.map((item) => ({ id: item.id, name: item.name }))}
+        workOrder={visitsWorkOrder}
       />
       <MaintenanceFieldReportModal
         accessToken={session?.accessToken}
@@ -1337,6 +1377,13 @@ export function MaintenanceWorkOrdersPage() {
                   onClick={() => startReschedule(item)}
                 >
                   {language === "es" ? "Reprogramar" : "Reschedule"}
+                </button>
+                <button
+                  className="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  onClick={() => openVisitsModal(item)}
+                >
+                  {language === "es" ? "Visitas" : "Visits"}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-secondary"

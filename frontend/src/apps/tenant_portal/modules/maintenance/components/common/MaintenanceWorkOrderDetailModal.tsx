@@ -46,6 +46,7 @@ type Props = {
   onClose: () => void;
   onOpenCosting?: () => void;
   onOpenChecklist?: () => void;
+  onManageVisits?: () => void;
   onEditClosure?: () => void;
   workOrder: MaintenanceWorkOrderDetailItem | null;
 };
@@ -113,6 +114,7 @@ export function MaintenanceWorkOrderDetailModal({
   onClose,
   onOpenCosting,
   onOpenChecklist,
+  onManageVisits,
   onEditClosure,
   workOrder,
 }: Props) {
@@ -366,6 +368,11 @@ export function MaintenanceWorkOrderDetailModal({
             {onOpenChecklist ? (
               <button className="btn btn-outline-primary" type="button" onClick={onOpenChecklist}>
                 {language === "es" ? "Ver checklist" : "View checklist"}
+              </button>
+            ) : null}
+            {onManageVisits ? (
+              <button className="btn btn-outline-primary" type="button" onClick={onManageVisits}>
+                {language === "es" ? "Visitas" : "Visits"}
               </button>
             ) : null}
             {onEditClosure ? (
