@@ -149,6 +149,48 @@ function buildDefaultCostEstimateForm(
   };
 }
 
+function hasMeaningfulActualData(
+  actual: TenantMaintenanceCostActual | null,
+  actualLines: TenantMaintenanceCostLine[]
+) {
+  if ((actualLines ?? []).length > 0) {
+    return true;
+  }
+  if (!actual) {
+    return false;
+  }
+  return (
+    actual.labor_cost > 0 ||
+    actual.travel_cost > 0 ||
+    actual.materials_cost > 0 ||
+    actual.external_services_cost > 0 ||
+    actual.overhead_cost > 0 ||
+    actual.actual_price_charged > 0 ||
+    Boolean(actual.notes?.trim())
+  );
+}
+
+function hasMeaningfulEstimateData(
+  estimate: TenantMaintenanceCostEstimate | null,
+  estimateLines: TenantMaintenanceCostLine[]
+) {
+  if ((estimateLines ?? []).length > 0) {
+    return true;
+  }
+  if (!estimate) {
+    return false;
+  }
+  return (
+    estimate.labor_cost > 0 ||
+    estimate.travel_cost > 0 ||
+    estimate.materials_cost > 0 ||
+    estimate.external_services_cost > 0 ||
+    estimate.overhead_cost > 0 ||
+    estimate.target_margin_percent > 0 ||
+    Boolean(estimate.notes?.trim())
+  );
+}
+
 function buildDefaultCostActualForm(
   actual?: TenantMaintenanceCostActual | null
 ): MaintenanceCostActualFormState {
@@ -508,6 +550,10 @@ export function MaintenanceCostingModal({
         const categories = categoriesResponse.data;
         const currencies = currenciesResponse.data;
         const templates = sortCostTemplates(costTemplatesResponse.data);
+        const matchingTemplates = taskTypeId
+          ? templates.filter((template) => template.is_active && template.task_type_id === taskTypeId)
+          : [];
+        const autoTemplate = matchingTemplates.length === 1 ? matchingTemplates[0] : null;
         const incomeCategory = categories.find((category) => category.category_type === "income");
         const expenseCategory = categories.find((category) => category.category_type === "expense");
         const defaultCurrency = currencies.find((currency) => currency.is_base) || currencies[0];
@@ -522,10 +568,55 @@ export function MaintenanceCostingModal({
         setFinanceCurrencies(currencies);
         setCostTemplates(templates);
         setCostingDetail(detail);
-        setEstimateForm(buildDefaultCostEstimateForm(detail.estimate));
-        setEstimateLines(buildDefaultCostLines(detail.estimate_lines));
-        setActualForm(buildDefaultCostActualForm(detail.actual));
-        setActualLines(buildDefaultCostLines(detail.actual_lines));
+        const hasEstimateData = hasMeaningfulEstimateData(detail.estimate, detail.estimate_lines);
+        const hasActualData = hasMeaningfulActualData(detail.actual, detail.actual_lines);
+
+        if (autoTemplate && !hasEstimateData) {
+          setSelectedEstimateCostTemplateId(autoTemplate.id);
+          setEstimateLines(buildCostLineFormsFromTemplate(autoTemplate));
+          setEstimateForm((current) => ({
+            ...buildDefaultCostEstimateForm(detail.estimate),
+            target_margin_percent: String(autoTemplate.estimate_target_margin_percent ?? 0),
+            notes: autoTemplate.estimate_notes ?? current.notes,
+          }));
+        } else {
+          setEstimateForm(buildDefaultCostEstimateForm(detail.estimate));
+          setEstimateLines(buildDefaultCostLines(detail.estimate_lines));
+          setSelectedEstimateCostTemplateId(null);
+        }
+
+        if (autoTemplate && !hasActualData) {
+          const templateCost = autoTemplate.lines.reduce(
+            (current, line) => current + (line.total_cost ?? 0),
+            0
+          );
+          const margin = Number(autoTemplate.estimate_target_margin_percent ?? 0);
+          const suggestedCharged =
+            templateCost > 0
+              ? margin > 0 && margin < 100
+                ? Number((templateCost / (1 - margin / 100)).toFixed(2))
+                : Number(templateCost.toFixed(2))
+              : 0;
+          setSelectedActualCostTemplateId(autoTemplate.id);
+          setActualLines(buildCostLineFormsFromTemplate(autoTemplate));
+          setActualForm({
+            ...buildDefaultCostActualForm(detail.actual),
+            actual_price_charged: String(suggestedCharged),
+            notes: autoTemplate.estimate_notes ?? detail.actual?.notes ?? "",
+          });
+        } else {
+          setActualForm(buildDefaultCostActualForm(detail.actual));
+          setActualLines(buildDefaultCostLines(detail.actual_lines));
+          setSelectedActualCostTemplateId(null);
+        }
+
+        setCostTemplateFeedback(
+          autoTemplate && (!hasEstimateData || !hasActualData)
+            ? language === "es"
+              ? `Se precargó automáticamente la plantilla ${autoTemplate.name} para ${taskTypeLabel || "este tipo de tarea"}.`
+              : `Template ${autoTemplate.name} was automatically preloaded for ${taskTypeLabel || "this task type"}.`
+            : null
+        );
         setCompletionNote(currentWorkOrder.closure_notes ?? "");
         setFinanceSyncForm({
           sync_income: true,
