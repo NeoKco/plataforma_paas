@@ -15,6 +15,7 @@ import {
   getTenantMaintenanceWorkOrders,
   type TenantMaintenanceWorkOrder,
 } from "../../services/workOrdersService";
+import { getTenantBusinessAssets, type TenantBusinessAsset } from "../../../business_core/services/assetsService";
 
 type InstallationRecordInstallation = {
   id: number;
@@ -104,6 +105,7 @@ export function MaintenanceInstallationTechnicalRecordModal({
   const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [latestFieldReport, setLatestFieldReport] =
     useState<TenantMaintenanceFieldReport | null>(null);
+  const [siteAssets, setSiteAssets] = useState<TenantBusinessAsset[]>([]);
 
   useEffect(() => {
     async function loadRecord() {
@@ -118,6 +120,12 @@ export function MaintenanceInstallationTechnicalRecordModal({
         });
         const orders = workOrdersResponse.data;
         setWorkOrders(orders);
+
+        const assetsResponse = await getTenantBusinessAssets(accessToken, {
+          siteId: (installation as { site_id?: number }).site_id,
+          includeInactive: true,
+        });
+        setSiteAssets(assetsResponse.data);
 
         const latestClosedOrder = [...orders]
           .filter(
@@ -196,6 +204,7 @@ export function MaintenanceInstallationTechnicalRecordModal({
   );
 
   const recentOrders = useMemo(() => workOrders.slice(0, 5), [workOrders]);
+  const recentAssets = useMemo(() => siteAssets.slice(0, 5), [siteAssets]);
 
   if (!isOpen || !installation) {
     return null;
@@ -227,6 +236,39 @@ export function MaintenanceInstallationTechnicalRecordModal({
             <strong>{installation.name}</strong>
             {` · ${clientLabel} · ${siteLabel} · ${equipmentTypeLabel}`}
           </div>
+
+          <PanelCard
+            title={language === "es" ? "Activos compartidos del sitio" : "Shared site assets"}
+            subtitle={
+              language === "es"
+                ? "Inventario reusable de Business Core vinculado al mismo sitio."
+                : "Reusable Business Core inventory linked to the same site."
+            }
+          >
+            {recentAssets.length === 0 ? (
+              <div className="text-muted">
+                {language === "es" ? "No hay activos registrados para este sitio." : "There are no assets registered for this site."}
+              </div>
+            ) : (
+              <div className="d-grid gap-2">
+                {recentAssets.map((asset) => (
+                  <div key={asset.id} className="border rounded p-2">
+                    <div className="d-flex justify-content-between align-items-start gap-2">
+                      <div>
+                        <div className="fw-semibold">{asset.name}</div>
+                        <div className="text-muted small">
+                          {asset.asset_type_name} · {asset.asset_code || asset.serial_number || "—"}
+                        </div>
+                      </div>
+                      <AppBadge tone={asset.is_active ? "success" : "warning"}>
+                        {asset.is_active ? (language === "es" ? "activo" : "active") : (language === "es" ? "inactivo" : "inactive")}
+                      </AppBadge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </PanelCard>
 
           {error ? (
             <ErrorState

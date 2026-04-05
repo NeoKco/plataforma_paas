@@ -41,6 +41,14 @@ Segundo bloque recomendado:
 - `business_asset_types`
 - `business_site_responsibles`
 
+Direccion propia de organizaciones:
+
+- `business_organizations.address_line`
+- `business_organizations.commune`
+- `business_organizations.city`
+- `business_organizations.region`
+- `business_organizations.country_code`
+
 Estado de este segundo bloque:
 
 - `business_site_responsibles`: implementado
@@ -491,6 +499,7 @@ Si `projects` e `iot` estan en el horizonte, conviene considerar desde ya:
 - `asset` o `installed_equipment` como entidad reutilizable
 - `asset_type` como taxonomia compartida de equipos instalados
 - `organization` con roles de relacion, no solo etiqueta de cliente/proveedor
+- `organization` con direccion propia separada de `site`
 - perfiles funcionales configurables, no hardcodeados por modulo
 ## Estado de implementacion
 - El primer slice backend ya existe en el PaaS para `organizations`, `clients`, `contacts` y `sites`.

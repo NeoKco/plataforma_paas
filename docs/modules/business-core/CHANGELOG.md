@@ -1,5 +1,7 @@
 # Business Core Changelog
 
+- Se agrega direccion propia de `Organizations` en una primera ola: el modelo, la API y la vista administrativa ahora permiten capturar `address_line`, `commune`, `city`, `region` y `country_code` sin mezclar la direccion con `sites`.
+- `Maintenance` ahora abre accesos directos desde `Instalaciones` hacia `Activos` y `Responsables` del mismo sitio en `business-core`, y el expediente tecnico de instalacion muestra activos compartidos del sitio.
 - Se agrega `Tipos de activo` y `Activos`: tablas tenant, APIs CRUD, migracion y vistas administrativas para clasificar e inventariar equipos instalados por sitio.
 - La navegación y las rutas de `business-core` ahora exponen `Activos` y `Tipos de activo` como slice visible dentro del módulo.
 - Se agrega `Responsables de sitio`: tabla tenant, API CRUD y vista administrativa para vincular sitios con usuarios reales, tipo de responsabilidad, principalidad y vigencia.

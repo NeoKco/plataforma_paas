@@ -8,6 +8,11 @@ export type TenantBusinessOrganization = {
   organization_kind: string;
   phone: string | null;
   email: string | null;
+  address_line: string | null;
+  commune: string | null;
+  city: string | null;
+  region: string | null;
+  country_code: string | null;
   notes: string | null;
   is_active: boolean;
   sort_order: number;
@@ -35,6 +40,11 @@ export type TenantBusinessOrganizationWriteRequest = {
   organization_kind: string;
   phone: string | null;
   email: string | null;
+  address_line: string | null;
+  commune: string | null;
+  city: string | null;
+  region: string | null;
+  country_code: string | null;
   notes: string | null;
   is_active: boolean;
   sort_order: number;

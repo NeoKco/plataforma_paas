@@ -209,6 +209,11 @@ def strip_legacy_visible_text(value: str | None) -> str | None:
     return cleaned or None
 
 
+def normalize_visible_text(value: str | None) -> str | None:
+    normalized = strip_legacy_visible_text(normalize_text(value))
+    return normalized
+
+
 def to_bool_from_legacy_status(value: str | None) -> bool:
     normalized = (value or "").strip().lower()
     return normalized not in {"inactivo", "inactive", "false", "0"}
@@ -337,6 +342,9 @@ def get_or_create_organization(
     notes: str | None,
     counters: ImportCounters,
 ) -> BusinessOrganization:
+    name = normalize_visible_text(name) or name.strip()
+    legal_name = normalize_visible_text(legal_name)
+    notes = normalize_visible_text(notes)
     existing = None
     if tax_id:
         existing = (
@@ -534,6 +542,12 @@ def get_or_create_site(
     is_active: bool,
     counters: ImportCounters,
 ) -> BusinessSite:
+    name = normalize_visible_text(name) or name.strip()
+    address_line = normalize_visible_text(address_line)
+    commune = normalize_visible_text(commune)
+    city = normalize_visible_text(city)
+    region = normalize_visible_text(region)
+    reference_notes = normalize_visible_text(reference_notes)
     existing = (
         tenant_db.query(BusinessSite)
         .filter(BusinessSite.site_code == site_code)

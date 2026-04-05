@@ -570,6 +570,13 @@ export function MaintenanceInstallationsPage() {
                 {currentLanguage === "es" ? "Activos" : "Assets"}
               </button>
               <button
+                className="btn btn-sm btn-outline-warning"
+                type="button"
+                onClick={() => navigate(`/tenant-portal/business-core/site-responsibles?siteId=${item.site_id}`)}
+              >
+                {currentLanguage === "es" ? "Responsables" : "Responsibles"}
+              </button>
+              <button
                 className="btn btn-sm btn-outline-info"
                 type="button"
                 onClick={() => openTechnicalRecord(item)}

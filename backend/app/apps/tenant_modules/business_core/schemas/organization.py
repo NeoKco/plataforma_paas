@@ -12,6 +12,11 @@ class BusinessOrganizationBase(BaseModel):
     organization_kind: str = "client"
     phone: str | None = None
     email: str | None = None
+    address_line: str | None = None
+    commune: str | None = None
+    city: str | None = None
+    region: str | None = None
+    country_code: str | None = None
     notes: str | None = None
     is_active: bool = True
     sort_order: int = 100

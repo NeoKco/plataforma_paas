@@ -79,7 +79,7 @@ Pendiente inmediato dentro de esta fase:
 - profundizar filtros y agenda de `maintenance` por `work_groups` y `tenant_users`
 - enriquecer snapshot historico por responsable usando membresias reales
 - definir los siguientes contratos frontend/backend de integracion
-- abrir una ola de `organization addresses` si `Empresas` necesita capturar direccion propia de proveedor/partner sin mezclarla con `sites` de clientes
+- cerrar la primera ola de `organization addresses` para `Empresas` sin mezclarla con `sites` de clientes
 - seguir endureciendo la nueva auditoria de duplicados con heuristicas de merge mas profundas y soporte posterior de consolidacion guiada completa, mas alla de la reasignacion operativa del corte actual
 
 Estado actual del slice `Duplicados`:
@@ -109,12 +109,14 @@ Pendiente documentado:
 - `business_site_responsibles`
 - `business_assets`
 - `business_asset_types`
+- `business_organization_addresses`
 
 Completado recientemente:
 
 - `business_site_responsibles`: tabla, API y vista administrativa para asignar responsables de sitio a usuarios tenant reales
 - `business_asset_types`: tabla, API, vista administrativa y migracion tenant
 - `business_assets`: tabla, API, vista administrativa y migracion tenant
+- `business_organization_addresses`: primera ola de direccion propia para empresas/proveedores
 
 ## Riesgos a evitar
 

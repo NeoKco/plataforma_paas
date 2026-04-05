@@ -35,6 +35,7 @@ Estado actual:
 - frontend tenant operativo para las taxonomias de ola 1B
 - backend CRUD implementado para `assets` y `asset_types`
 - frontend tenant operativo para `assets`, `asset_types` y `site_responsibles`
+- primera ola de direccion propia de `organizations` habilitada en modelo, API y vista administrativa
 - la vista `Resumen` ya consume datos reales y muestra solo las 2 ultimas `Empresas` creadas y los 5 ultimos `Clientes`, con datos operativos legibles del cliente en vez de una portada ciega
 - la vista principal de `clients` ya se rehizo inspirada en `ieris_app`: busqueda por nombre/contacto/direccion, alta unica desde la esquina superior derecha y ficha consolidada del cliente
 - la vista de `organizations` ya muestra y edita el contacto principal junto con la contraparte operativa, para no obligar a entrar al catalogo global de contactos solo para leer nombre, telefono o mail
@@ -95,7 +96,6 @@ Pendientes visibles inmediatos:
 
 - importadores desde `ieris_app`
 - integracion mas profunda con `maintenance` para filtros por grupo, snapshot historico enriquecido y agenda por responsable
-- direccion propia de `organizations` como entidad/modelo de primer nivel o bloque dedicado, sin improvisarla como texto plano en el modal
 - futura depuracion avanzada de duplicados con merge/asimilacion profunda de fichas; el corte actual ya consolida referencias operativas visibles, persiste auditoria de `organizations` y todavia no fusiona contactos, organizaciones ni notas historicas en una sola entidad final
 
 Estado del importador legacy:
@@ -134,6 +134,7 @@ Primer corte tecnico sugerido:
 - `asset_types`
 - `assets`
 - `site_responsibles`
+- `organization_addresses`
 - relaciones minimas entre cliente, sitio y contacto
 
 Alcance recomendado inmediatamente despues:

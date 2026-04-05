@@ -37,6 +37,11 @@ function buildDefaultForm(): OrganizationForm {
     organization_kind: "supplier",
     phone: null,
     email: null,
+    address_line: null,
+    commune: null,
+    city: null,
+    region: null,
+    country_code: "CL",
     notes: null,
     is_active: true,
     sort_order: 100,
@@ -121,6 +126,11 @@ export function BusinessCoreOrganizationsPage() {
       organization_kind: organization.organization_kind,
       phone: organization.phone,
       email: organization.email,
+      address_line: organization.address_line,
+      commune: organization.commune,
+      city: organization.city,
+      region: organization.region,
+      country_code: organization.country_code,
       notes: stripLegacyVisibleText(organization.notes),
       is_active: organization.is_active,
       sort_order: organization.sort_order,
@@ -141,6 +151,11 @@ export function BusinessCoreOrganizationsPage() {
       tax_id: normalizeNullable(form.tax_id),
       phone: normalizeNullable(form.phone),
       email: normalizeNullable(form.email),
+        address_line: normalizeNullable(form.address_line),
+        commune: normalizeNullable(form.commune),
+        city: normalizeNullable(form.city),
+        region: normalizeNullable(form.region),
+        country_code: normalizeNullable(form.country_code) ?? "CL",
       notes: stripLegacyVisibleText(normalizeNullable(form.notes)),
     };
     setIsSubmitting(true);
@@ -265,6 +280,11 @@ export function BusinessCoreOrganizationsPage() {
         },
         { key: "phone", labelEs: "Teléfono central", labelEn: "Main phone" },
         { key: "email", labelEs: "Email central", labelEn: "Main email", type: "email" },
+        { key: "address_line", labelEs: "Dirección", labelEn: "Address" },
+        { key: "commune", labelEs: "Comuna", labelEn: "Commune" },
+        { key: "city", labelEs: "Ciudad", labelEn: "City" },
+        { key: "region", labelEs: "Región", labelEn: "Region" },
+        { key: "country_code", labelEs: "País", labelEn: "Country" },
         { key: "primary_contact_name", labelEs: "Contacto principal", labelEn: "Primary contact" },
         { key: "primary_contact_phone", labelEs: "Teléfono contacto", labelEn: "Contact phone" },
         { key: "primary_contact_email", labelEs: "Email contacto", labelEn: "Contact email", type: "email" },
@@ -281,6 +301,15 @@ export function BusinessCoreOrganizationsPage() {
               <div className="business-core-cell__title">{organization.name}</div>
               <div className="business-core-cell__meta">
                 {organization.legal_name || (language === "es" ? "sin razón social" : "no legal name")}
+              </div>
+              <div className="business-core-cell__meta">
+                {organization.address_line
+                  ? [organization.address_line, organization.commune, organization.city, organization.region]
+                      .filter(Boolean)
+                      .join(" · ")
+                  : language === "es"
+                    ? "sin dirección"
+                    : "no address"}
               </div>
             </div>
           ),

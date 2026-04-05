@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getTenantUsers } from "../../../../../services/tenant-api";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { useLanguage } from "../../../../../store/language-context";
@@ -36,6 +37,8 @@ function normalizeNullable(value: string | null): string | null {
 export function BusinessCoreSiteResponsiblesPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
+  const [searchParams] = useSearchParams();
+  const requestedSiteId = Number(searchParams.get("siteId") || 0);
   const [rows, setRows] = useState<TenantBusinessSiteResponsible[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
@@ -49,6 +52,10 @@ export function BusinessCoreSiteResponsiblesPage() {
   const activeSites = useMemo(() => sites.filter((site) => site.is_active), [sites]);
   const activeUsers = useMemo(() => tenantUsers.filter((user) => user.is_active), [tenantUsers]);
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
+  const visibleRows = useMemo(
+    () => (requestedSiteId > 0 ? rows.filter((row) => row.site_id === requestedSiteId) : rows),
+    [requestedSiteId, rows]
+  );
 
   async function loadData() {
     if (!session?.accessToken) return;
@@ -56,7 +63,9 @@ export function BusinessCoreSiteResponsiblesPage() {
     setError(null);
     try {
       const [responsiblesResponse, sitesResponse, usersResponse] = await Promise.all([
-        getTenantBusinessSiteResponsibles(session.accessToken),
+        getTenantBusinessSiteResponsibles(session.accessToken, {
+          siteId: requestedSiteId > 0 ? requestedSiteId : undefined,
+        }),
         getTenantBusinessSites(session.accessToken, { includeInactive: false }),
         getTenantUsers(session.accessToken),
       ]);
@@ -168,7 +177,7 @@ export function BusinessCoreSiteResponsiblesPage() {
       loadingLabelEn="Loading site responsibles..."
       isLoading={isLoading}
       isSubmitting={isSubmitting}
-      rows={rows}
+      rows={visibleRows}
       error={error}
       feedback={feedback}
       editingId={editingId}

@@ -171,6 +171,24 @@ Notas de contrato:
 - `site_code` sigue existiendo en el modelo por razones tecnicas, pero la UI normal del tenant no deberia exponerlo como editable.
 - `reference_notes` debe reservarse para notas humanas visibles al usuario, no para ids o trazas legacy.
 
+### Organization summary
+
+Campos minimos de lectura:
+
+- `id`
+- `name`
+- `legal_name`
+- `tax_id`
+- `organization_kind`
+- `phone`
+- `email`
+- `address_line`
+- `commune`
+- `city`
+- `region`
+- `country_code`
+- `is_active`
+
 ### Asset type summary
 
 Campos minimos de lectura:
