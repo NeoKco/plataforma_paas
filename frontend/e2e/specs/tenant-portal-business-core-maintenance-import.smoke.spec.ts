@@ -75,8 +75,24 @@ test("tenant portal shows imported business core and maintenance data from ieris
   );
   await expect(getCatalogRow(page, /mantenci[oó]n|visita/i)).toBeVisible();
   await page.getByRole("button", { name: /Nueva mantenci[oó]n|Nueva orden|New work order/i }).click();
-  await expect(page.getByLabel(/Grupo responsable|Responsible group/i)).toBeVisible();
-  await expect(page.getByLabel(/Técnico responsable|Assigned technician/i)).toBeVisible();
+  const workOrderDialog = page.getByRole("dialog", {
+    name: /Nueva mantención|New maintenance work/i,
+  });
+  await expect(workOrderDialog).toBeVisible();
+  await expect(
+    workOrderDialog
+      .locator("div")
+      .filter({ hasText: /Grupo responsable|Responsible group/i })
+      .locator("select")
+      .first()
+  ).toBeVisible();
+  await expect(
+    workOrderDialog
+      .locator("div")
+      .filter({ hasText: /Técnico responsable|Assigned technician/i })
+      .locator("select")
+      .first()
+  ).toBeVisible();
   await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
   await page.getByRole("button", { name: /Costos|Costing/i }).first().click();
   await expect(page.getByRole("heading", { name: /Costos y cobro|Costing and billing/i })).toBeVisible();
