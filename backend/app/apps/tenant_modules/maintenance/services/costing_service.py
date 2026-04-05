@@ -186,7 +186,7 @@ class MaintenanceCostingService:
         if actual is None:
             raise ValueError("Primero debes registrar el costo real antes de sincronizar con finance")
 
-        transaction_at = payload.transaction_at or work_order.completed_at or work_order.scheduled_for or work_order.requested_at or datetime.now(timezone.utc)
+        transaction_at = work_order.completed_at or datetime.now(timezone.utc)
         currency_id = self._get_currency_or_raise(tenant_db, payload.currency_id).id
         summary_label = self._build_work_order_label(work_order)
         note = self._normalize_text(payload.notes)

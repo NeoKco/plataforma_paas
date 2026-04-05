@@ -6,7 +6,6 @@ import { getApiErrorDisplayMessage } from "../../../../../../services/api";
 import type { ApiError } from "../../../../../../types";
 import {
   formatDateTimeInTimeZone,
-  fromDateTimeLocalInputValue,
   toDateTimeLocalInputValue,
 } from "../../../../../../utils/dateTimeLocal";
 import {
@@ -299,12 +298,13 @@ function getSuggestedPriceFromTemplate(template: TenantMaintenanceCostTemplate):
 function buildActualFormFromTemplate(
   template: TenantMaintenanceCostTemplate
 ): MaintenanceCostActualFormState {
+  const totals = sumCostLines(buildCostLineFormsFromTemplate(template));
   return {
-    labor_cost: "0",
-    travel_cost: "0",
-    materials_cost: "0",
-    external_services_cost: "0",
-    overhead_cost: "0",
+    labor_cost: String(totals.labor_cost),
+    travel_cost: String(totals.travel_cost),
+    materials_cost: String(totals.materials_cost),
+    external_services_cost: String(totals.external_services_cost),
+    overhead_cost: String(totals.overhead_cost),
     actual_price_charged: String(getSuggestedPriceFromTemplate(template)),
     notes: template.estimate_notes ?? "",
   };
@@ -624,6 +624,14 @@ export function MaintenanceCostingModal({
     workOrder?.maintenance_status !== "completed" &&
     workOrder?.maintenance_status !== "cancelled";
   const closeBlockedByFinancePolicy = canCompleteFromModal && autoSyncOnClose && closeAutoSyncIssues.length > 0;
+  const financeTransactionDatePreview = useMemo(
+    () =>
+      toDateTimeLocalInputValue(
+        workOrder?.completed_at ?? new Date().toISOString(),
+        effectiveTimeZone
+      ),
+    [effectiveTimeZone, workOrder?.completed_at]
+  );
 
   useEffect(() => {
     if (!isOpen || !accessToken || !workOrder) {
@@ -704,7 +712,7 @@ export function MaintenanceCostingModal({
         }
 
         if (autoTemplate && !hasActualData) {
-          setActualLines(buildCostLineFormsFromTemplate(autoTemplate));
+          setActualLines([]);
           setActualForm({
             ...buildActualFormFromTemplate(autoTemplate),
             notes: autoTemplate.estimate_notes ?? detail.actual?.notes ?? "",
@@ -762,7 +770,10 @@ export function MaintenanceCostingModal({
             currencies,
             tenantInfo?.maintenance_finance_currency_id ?? defaultCurrency?.id ?? null
           ),
-          transaction_at: toDateTimeLocalInputValue(transactionAtSource, effectiveTimeZone),
+          transaction_at: toDateTimeLocalInputValue(
+            currentWorkOrder.completed_at ?? transactionAtSource,
+            effectiveTimeZone
+          ),
           notes: detail.actual?.notes ?? detail.estimate?.notes ?? "",
         });
       } catch (rawError) {
@@ -823,12 +834,12 @@ export function MaintenanceCostingModal({
       return;
     }
     setActualTemplateId(String(template.id));
-    setActualLines(buildCostLineFormsFromTemplate(template));
+    setActualLines([]);
     setActualForm(buildActualFormFromTemplate(template));
     setCostBaseMessage(
       language === "es"
-        ? `Plantilla ${template.name} aplicada al costo real y cobro. Puedes modificar traslado, materiales, cobro y cualquier línea antes de cerrar.`
-        : `Template ${template.name} applied to actual cost and billing. You can edit travel, materials, charged amount, and any line before closing.`
+        ? `Plantilla ${template.name} copiada al costo real y cobro. Los valores quedaron libres para que ajustes traslado, materiales, cobro o agregues líneas manuales si lo necesitas.`
+        : `Template ${template.name} was copied into actual cost and billing. Values remain editable so you can adjust travel, materials, charged amount, or add manual lines if needed.`
     );
   }
 
@@ -1011,9 +1022,7 @@ export function MaintenanceCostingModal({
           ? Number(financeSyncForm.expense_category_id)
           : null,
         currency_id: Number(financeSyncForm.currency_id),
-        transaction_at: financeSyncForm.transaction_at
-          ? fromDateTimeLocalInputValue(financeSyncForm.transaction_at, effectiveTimeZone)
-          : null,
+        transaction_at: null,
         notes: normalizeNullable(financeSyncForm.notes),
       });
       setCostingDetail(response.data);
@@ -1312,8 +1321,8 @@ export function MaintenanceCostingModal({
                   </div>
                   <div className="maintenance-history-entry__meta">
                     {language === "es"
-                      ? "Aquí también puedes aplicar cualquier plantilla activa y después modificar traslado, materiales, líneas o monto cobrado según el cierre real."
-                      : "Here you can also apply any active template and then adjust travel, materials, lines, or charged amount for the real close."}
+                      ? "Aquí la plantilla solo copia valores base al resumen real. Después puedes ajustar traslado, materiales, cobro o agregar líneas manuales para detallar el cierre real."
+                      : "Here the template only copies base values into the real summary. You can then adjust travel, materials, charged amount, or add manual lines to detail the real close."}
                   </div>
                   <div className="row g-3 mt-1">
                     {!isReadOnly ? (
@@ -1412,10 +1421,10 @@ export function MaintenanceCostingModal({
               >
                 <div className="maintenance-history-entry">
                   <div className="maintenance-history-entry__title">
-                    {isReadOnly ? (language === "es" ? "Histórico de sincronización con finanzas" : "Finance sync history") : language === "es" ? "Sincronizar a finanzas" : "Sync to finance"}
+                      {isReadOnly ? (language === "es" ? "Histórico de sincronización con finanzas" : "Finance sync history") : autoSyncOnClose ? (language === "es" ? "Reintento o ajuste de sincronización" : "Finance sync retry or adjustment") : language === "es" ? "Sincronizar a finanzas" : "Sync to finance"}
                   </div>
                   <div className="maintenance-history-entry__meta">
-                    {isReadOnly ? (language === "es" ? "Consulta los vínculos financieros ya registrados para esta mantención cerrada." : "Review the financial links already registered for this closed maintenance.") : language === "es" ? "Crea o actualiza el ingreso y egreso ligados a esta mantención usando source_type/source_id. Los defaults iniciales se cargan desde Resumen." : "Create or update the linked income and expense using source_type/source_id. Initial defaults are loaded from Overview."}
+                      {isReadOnly ? (language === "es" ? "Consulta los vínculos financieros ya registrados para esta mantención cerrada." : "Review the financial links already registered for this closed maintenance.") : autoSyncOnClose ? (language === "es" ? "Al guardar y cerrar la mantención, el backend intentará sincronizar automáticamente con Finanzas usando los defaults de Resumen. Este bloque queda como respaldo para reintentar o corregir la sincronización si hizo falta." : "When you save and close the maintenance, the backend will try to sync automatically with Finance using the Overview defaults. This block remains as a fallback to retry or correct the sync if needed.") : language === "es" ? "Crea o actualiza el ingreso y egreso ligados a esta mantención usando source_type/source_id. Los defaults iniciales se cargan desde Resumen." : "Create or update the linked income and expense using source_type/source_id. Initial defaults are loaded from Overview."}
                   </div>
                   {!isReadOnly && (!activeFinanceAccounts.length || !activeCurrencies.length) ? (
                     <div className="alert alert-warning mt-3 mb-0">{language === "es" ? "Primero debes tener cuentas y monedas activas en Finanzas para sincronizar." : "You need active accounts and currencies in Finance before syncing."}</div>
@@ -1442,7 +1451,7 @@ export function MaintenanceCostingModal({
                     ) : (
                       <>
                         <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label><select className="form-select" value={financeSyncForm.currency_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, currency_id: event.target.value }))}><option value="">{language === "es" ? "Selecciona una moneda" : "Select a currency"}</option>{activeCurrencies.map((currency) => <option key={currency.id} value={currency.id}>{currency.code} · {currency.name}</option>)}</select></div>
-                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Fecha contable" : "Transaction date"}</label><input className="form-control" type="datetime-local" value={financeSyncForm.transaction_at} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, transaction_at: event.target.value }))} /></div>
+                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Fecha contable" : "Transaction date"}</label><input className="form-control" type="datetime-local" value={financeTransactionDatePreview || financeSyncForm.transaction_at} readOnly disabled /></div>
                         <div className="col-12 col-md-6"><div className="form-check mt-4"><input id="maintenance-sync-income-modal" className="form-check-input" type="checkbox" checked={financeSyncForm.sync_income} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, sync_income: event.target.checked }))} /><label className="form-check-label" htmlFor="maintenance-sync-income-modal">{language === "es" ? "Sincronizar ingreso" : "Sync income"}</label></div></div>
                         <div className="col-12 col-md-6"><div className="form-check mt-4"><input id="maintenance-sync-expense-modal" className="form-check-input" type="checkbox" checked={financeSyncForm.sync_expense} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, sync_expense: event.target.checked }))} /><label className="form-check-label" htmlFor="maintenance-sync-expense-modal">{language === "es" ? "Sincronizar egreso" : "Sync expense"}</label></div></div>
                         <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Cuenta ingreso" : "Income account"}</label><select className="form-select" value={financeSyncForm.income_account_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, income_account_id: event.target.value }))} disabled={!financeSyncForm.sync_income}><option value="">{language === "es" ? "Selecciona una cuenta" : "Select an account"}</option>{activeFinanceAccounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}</select></div>
@@ -1450,6 +1459,7 @@ export function MaintenanceCostingModal({
                         <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Cuenta egreso" : "Expense account"}</label><select className="form-select" value={financeSyncForm.expense_account_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, expense_account_id: event.target.value }))} disabled={!financeSyncForm.sync_expense}><option value="">{language === "es" ? "Selecciona una cuenta" : "Select an account"}</option>{activeFinanceAccounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}</select></div>
                         <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Categoría egreso" : "Expense category"}</label><select className="form-select" value={financeSyncForm.expense_category_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, expense_category_id: event.target.value }))} disabled={!financeSyncForm.sync_expense}><option value="">{language === "es" ? "Sin categoría específica" : "No specific category"}</option>{expenseCategories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></div>
                         <div className="col-12"><label className="form-label">{language === "es" ? "Notas para finanzas" : "Finance notes"}</label><textarea className="form-control" rows={2} value={financeSyncForm.notes} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, notes: event.target.value }))} /></div>
+                        <div className="col-12"><div className="maintenance-history-entry__meta">{language === "es" ? (currentWorkOrder.completed_at ? "La fecha contable se toma siempre desde la hora real de cierre de la OT." : "La fecha contable se fijará automáticamente al momento real de cerrar o sincronizar la OT.") : (currentWorkOrder.completed_at ? "The transaction date always uses the real work-order close timestamp." : "The transaction date will be fixed automatically at the real moment the work order is closed or synced.")}</div></div>
                         <div className="col-12"><div className="maintenance-history-entry__meta">{language === "es" ? "Ingreso vinculado" : "Linked income"}: {costingDetail?.actual?.income_transaction_id ?? "—"} · {language === "es" ? "Egreso vinculado" : "Linked expense"}: {costingDetail?.actual?.expense_transaction_id ?? "—"}</div></div>
                       </>
                     )}
@@ -1458,7 +1468,7 @@ export function MaintenanceCostingModal({
                     <button className="btn btn-outline-secondary" type="button" onClick={onClose}>{language === "es" ? "Cerrar" : "Close"}</button>
                     {!isReadOnly ? (
                       <button className="btn btn-primary" type="submit" disabled={isFinanceSyncSubmitting || financeSyncBlocked}>
-                        {isFinanceSyncSubmitting ? (language === "es" ? "Sincronizando..." : "Syncing...") : language === "es" ? "Sincronizar con finanzas" : "Sync with Finance"}
+                        {isFinanceSyncSubmitting ? (language === "es" ? "Sincronizando..." : "Syncing...") : autoSyncOnClose ? (language === "es" ? "Reintentar / ajustar sincronización" : "Retry / adjust sync") : language === "es" ? "Sincronizar con finanzas" : "Sync with Finance"}
                       </button>
                     ) : null}
                   </div>
