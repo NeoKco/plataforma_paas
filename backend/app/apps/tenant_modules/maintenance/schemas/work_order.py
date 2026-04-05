@@ -25,7 +25,7 @@ class MaintenanceWorkOrderCreateRequest(MaintenanceWorkOrderBase):
 
 
 class MaintenanceWorkOrderUpdateRequest(MaintenanceWorkOrderBase):
-    pass
+    reschedule_note: str | None = None
 
 
 class MaintenanceWorkOrderItemResponse(MaintenanceWorkOrderBase):

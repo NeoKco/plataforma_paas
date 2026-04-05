@@ -104,6 +104,8 @@ class MaintenanceWorkOrderService:
         tenant_db: Session,
         work_order_id: int,
         payload: MaintenanceWorkOrderUpdateRequest,
+        *,
+        changed_by_user_id: int | None = None,
     ) -> MaintenanceWorkOrder:
         item = self._get_or_raise(tenant_db, work_order_id)
         normalized = self._normalize_payload(payload)
@@ -114,9 +116,26 @@ class MaintenanceWorkOrderService:
             item.cancellation_reason = normalized["cancellation_reason"]
             return self.work_order_repository.save(tenant_db, item)
         self._validate_payload(tenant_db, normalized, current_item=item)
+        reschedule_note = self._build_reschedule_audit_note(
+            item,
+            normalized,
+            payload.reschedule_note,
+        )
         for field, value in normalized.items():
             setattr(item, field, value)
-        return self.work_order_repository.save(tenant_db, item)
+        saved = self.work_order_repository.save(tenant_db, item)
+        if reschedule_note:
+            self.status_log_repository.create(
+                tenant_db,
+                work_order_id=saved.id,
+                from_status=saved.maintenance_status,
+                to_status=saved.maintenance_status,
+                note=reschedule_note,
+                changed_by_user_id=changed_by_user_id,
+            )
+            tenant_db.commit()
+            tenant_db.refresh(saved)
+        return saved
 
     def update_work_order_status(
         self,
@@ -444,6 +463,62 @@ class MaintenanceWorkOrderService:
             f"{conflict_count} mantención(es) abierta(s) por {reason_text}. "
             "Ajusta la fecha/hora o reasigna los recursos antes de guardar."
         )
+
+    def _build_reschedule_audit_note(
+        self,
+        current_item: MaintenanceWorkOrder,
+        normalized_payload: dict,
+        requested_note: str | None,
+    ) -> str | None:
+        if current_item.maintenance_status not in ACTIVE_WORK_ORDER_STATUSES:
+            return None
+
+        changes: list[str] = []
+        previous_schedule = getattr(current_item, "scheduled_for", None)
+        next_schedule = normalized_payload.get("scheduled_for")
+        if previous_schedule != next_schedule:
+            changes.append(
+                "fecha/hora: "
+                f"{self._format_audit_value(previous_schedule)} -> {self._format_audit_value(next_schedule)}"
+            )
+
+        previous_installation = getattr(current_item, "installation_id", None)
+        next_installation = normalized_payload.get("installation_id")
+        if previous_installation != next_installation:
+            changes.append(
+                f"instalación: {self._format_audit_value(previous_installation)} -> {self._format_audit_value(next_installation)}"
+            )
+
+        previous_group = getattr(current_item, "assigned_work_group_id", None)
+        next_group = normalized_payload.get("assigned_work_group_id")
+        if previous_group != next_group:
+            changes.append(
+                f"grupo: {self._format_audit_value(previous_group)} -> {self._format_audit_value(next_group)}"
+            )
+
+        previous_technician = getattr(current_item, "assigned_tenant_user_id", None)
+        next_technician = normalized_payload.get("assigned_tenant_user_id")
+        if previous_technician != next_technician:
+            changes.append(
+                "técnico: "
+                f"{self._format_audit_value(previous_technician)} -> {self._format_audit_value(next_technician)}"
+            )
+
+        if not changes:
+            return None
+
+        base_note = "Reprogramación: " + "; ".join(changes)
+        trimmed_note = requested_note.strip() if requested_note and requested_note.strip() else None
+        if trimmed_note:
+            return f"{base_note}. Motivo: {trimmed_note}"
+        return base_note
+
+    def _format_audit_value(self, value) -> str:
+        if value is None:
+            return "sin asignar"
+        if isinstance(value, datetime):
+            return value.isoformat()
+        return str(value)
 
     def _add_frequency(self, value: datetime, frequency_value: int, frequency_unit: str) -> datetime:
         if frequency_unit == "days":
