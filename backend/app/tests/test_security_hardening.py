@@ -134,9 +134,9 @@ class JWTSecurityServiceTestCase(unittest.TestCase):
 class TenantSecretServiceTestCase(unittest.TestCase):
     def test_store_and_resolve_tenant_db_password(self) -> None:
         service = TenantSecretService()
-        fake_settings = SimpleNamespace()
 
         with tempfile.TemporaryDirectory() as temp_dir:
+            fake_settings = SimpleNamespace(BASE_DIR=Path(temp_dir))
             env_path = Path(temp_dir) / ".env"
             env_var = service.store_tenant_db_password(
                 tenant_slug="empresa-bootstrap",
