@@ -6,6 +6,7 @@ from app.apps.tenant_modules.business_core.models import (
     BusinessClient,
     BusinessSite,
     BusinessWorkGroup,
+    BusinessWorkGroupMember,
 )
 from app.apps.tenant_modules.core.models.user import User
 from app.apps.tenant_modules.maintenance.models import (
@@ -332,6 +333,8 @@ class MaintenanceWorkOrderService:
             if tenant_user_exists is None:
                 raise ValueError("El tecnico responsable seleccionado no existe")
 
+        self._validate_assignment_membership(tenant_db, payload)
+
         if "maintenance_status" in payload:
             if not payload["maintenance_status"]:
                 raise ValueError("El estado inicial de la mantencion es obligatorio")
@@ -364,6 +367,39 @@ class MaintenanceWorkOrderService:
             maintenance_status=effective_status,
             current_item=current_item,
         )
+
+    def _validate_assignment_membership(self, tenant_db: Session, payload: dict) -> None:
+        assigned_work_group_id = payload.get("assigned_work_group_id")
+        assigned_tenant_user_id = payload.get("assigned_tenant_user_id")
+        if assigned_work_group_id is None or assigned_tenant_user_id is None:
+            return
+
+        membership = (
+            tenant_db.query(BusinessWorkGroupMember)
+            .filter(BusinessWorkGroupMember.group_id == assigned_work_group_id)
+            .filter(BusinessWorkGroupMember.tenant_user_id == assigned_tenant_user_id)
+            .first()
+        )
+        if membership is None:
+            raise ValueError(
+                "El tecnico responsable seleccionado no pertenece al grupo responsable indicado"
+            )
+        if not getattr(membership, "is_active", True):
+            raise ValueError(
+                "El tecnico responsable seleccionado no tiene una membresía activa en el grupo responsable"
+            )
+
+        now = datetime.now(timezone.utc)
+        starts_at = getattr(membership, "starts_at", None)
+        ends_at = getattr(membership, "ends_at", None)
+        if starts_at and starts_at > now:
+            raise ValueError(
+                "El tecnico responsable seleccionado aún no inicia su membresía activa en el grupo responsable"
+            )
+        if ends_at and ends_at < now:
+            raise ValueError(
+                "El tecnico responsable seleccionado ya no tiene una membresía vigente en el grupo responsable"
+            )
 
     def _validate_status_transition_conflicts(
         self,

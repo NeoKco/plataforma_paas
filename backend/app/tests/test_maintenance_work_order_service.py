@@ -10,6 +10,7 @@ from app.apps.tenant_modules.business_core.models import (  # noqa: E402
     BusinessClient,
     BusinessSite,
     BusinessWorkGroup,
+    BusinessWorkGroupMember,
 )
 from app.apps.tenant_modules.core.models.user import User  # noqa: E402
 from app.apps.tenant_modules.maintenance.models import MaintenanceInstallation  # noqa: E402
@@ -251,6 +252,7 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
             Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=9, site_id=31))))),
             Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=4))))),
             Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=3))))),
+            Mock(filter=Mock(return_value=Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=20, is_active=True, starts_at=None, ends_at=None))))))),
         ]
         tenant_db.add.return_value = None
         tenant_db.flush.return_value = None
@@ -272,6 +274,77 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
 
         self.assertEqual(created.assigned_work_group_id, 4)
         self.assertEqual(created.assigned_tenant_user_id, 3)
+
+    def test_create_work_order_rejects_technician_outside_group_membership(self) -> None:
+        work_order_repository = Mock()
+        work_order_repository.get_by_external_reference.return_value = None
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessClient.id: SimpleNamespace(id=11),
+                BusinessSite: SimpleNamespace(id=31, client_id=11),
+                MaintenanceInstallation: SimpleNamespace(id=9, site_id=31),
+                BusinessWorkGroup.id: SimpleNamespace(id=4),
+                User.id: SimpleNamespace(id=3),
+                BusinessWorkGroupMember: None,
+            }
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "no pertenece al grupo responsable indicado",
+        ):
+            service.create_work_order(
+                tenant_db,
+                MaintenanceWorkOrderCreateRequest(
+                    client_id=11,
+                    site_id=31,
+                    installation_id=9,
+                    assigned_work_group_id=4,
+                    assigned_tenant_user_id=3,
+                    title="Mantencion mensual",
+                ),
+            )
+
+    def test_create_work_order_rejects_inactive_group_membership(self) -> None:
+        work_order_repository = Mock()
+        work_order_repository.get_by_external_reference.return_value = None
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessClient.id: SimpleNamespace(id=11),
+                BusinessSite: SimpleNamespace(id=31, client_id=11),
+                MaintenanceInstallation: SimpleNamespace(id=9, site_id=31),
+                BusinessWorkGroup.id: SimpleNamespace(id=4),
+                User.id: SimpleNamespace(id=3),
+                BusinessWorkGroupMember: SimpleNamespace(
+                    id=20,
+                    is_active=False,
+                    starts_at=None,
+                    ends_at=None,
+                ),
+            }
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "membresía activa",
+        ):
+            service.create_work_order(
+                tenant_db,
+                MaintenanceWorkOrderCreateRequest(
+                    client_id=11,
+                    site_id=31,
+                    installation_id=9,
+                    assigned_work_group_id=4,
+                    assigned_tenant_user_id=3,
+                    title="Mantencion mensual",
+                ),
+            )
 
     def test_update_work_order_creates_reschedule_audit_log(self) -> None:
         existing_item = SimpleNamespace(
