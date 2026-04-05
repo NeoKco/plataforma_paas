@@ -42,15 +42,25 @@ import {
   type TenantBusinessOrganization,
 } from "../../business_core/services/organizationsService";
 import {
+  getTenantBusinessWorkGroupMembers,
   getTenantBusinessWorkGroups,
+  type TenantBusinessWorkGroupMember,
   type TenantBusinessWorkGroup,
 } from "../../business_core/services/workGroupsService";
 import {
   getTenantBusinessSites,
   type TenantBusinessSite,
 } from "../../business_core/services/sitesService";
+import {
+  getTenantBusinessTaskTypes,
+  type TenantBusinessTaskType,
+} from "../../business_core/services/taskTypesService";
 import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
+import {
+  getTenantMaintenanceSchedules,
+  type TenantMaintenanceSchedule,
+} from "../services/schedulesService";
 
 const ACTIVE_WORK_ORDER_STATUSES = new Set(["scheduled", "in_progress"]);
 
@@ -176,6 +186,9 @@ export function MaintenanceWorkOrdersPage() {
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
   const [workGroups, setWorkGroups] = useState<TenantBusinessWorkGroup[]>([]);
+  const [workGroupMembers, setWorkGroupMembers] = useState<TenantBusinessWorkGroupMember[]>([]);
+  const [taskTypes, setTaskTypes] = useState<TenantBusinessTaskType[]>([]);
+  const [schedules, setSchedules] = useState<TenantMaintenanceSchedule[]>([]);
   const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -214,9 +227,21 @@ export function MaintenanceWorkOrdersPage() {
     () => new Map(workGroups.map((group) => [group.id, group])),
     [workGroups]
   );
+  const taskTypeById = useMemo(() => new Map(taskTypes.map((item) => [item.id, item])), [taskTypes]);
+  const scheduleById = useMemo(() => new Map(schedules.map((item) => [item.id, item])), [schedules]);
   const tenantUserById = useMemo(
     () => new Map(tenantUsers.map((user) => [user.id, user])),
     [tenantUsers]
+  );
+  const workGroupMemberByKey = useMemo(
+    () =>
+      new Map(
+        workGroupMembers.map((member) => [
+          `${member.group_id}:${member.tenant_user_id}`,
+          member,
+        ])
+      ),
+    [workGroupMembers]
   );
 
   const filteredSites = useMemo(
@@ -351,6 +376,8 @@ export function MaintenanceWorkOrdersPage() {
         sitesResponse,
         installationsResponse,
         workGroupsResponse,
+        taskTypesResponse,
+        schedulesResponse,
         tenantUsersResponse,
       ] = await Promise.all([
         getTenantMaintenanceWorkOrders(session.accessToken, {
@@ -362,14 +389,24 @@ export function MaintenanceWorkOrdersPage() {
         getTenantBusinessSites(session.accessToken, { includeInactive: false }),
         getTenantMaintenanceInstallations(session.accessToken, { includeInactive: false }),
         getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false }),
+        getTenantBusinessTaskTypes(session.accessToken, { includeInactive: false }),
+        getTenantMaintenanceSchedules(session.accessToken, { includeInactive: true }),
         getTenantUsers(session.accessToken),
       ]);
+      const workGroupMembersResponses = await Promise.all(
+        workGroupsResponse.data.map((group) =>
+          getTenantBusinessWorkGroupMembers(session.accessToken as string, group.id)
+        )
+      );
       setRows(workOrdersResponse.data);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
       setInstallations(installationsResponse.data);
       setWorkGroups(workGroupsResponse.data);
+      setWorkGroupMembers(workGroupMembersResponses.flatMap((response) => response.data));
+      setTaskTypes(taskTypesResponse.data);
+      setSchedules(schedulesResponse.data);
       setTenantUsers(tenantUsersResponse.data);
 
       setForm((current) => {
@@ -473,6 +510,26 @@ export function MaintenanceWorkOrdersPage() {
       .filter((value): value is string => Boolean(value))
       .join(", ");
     return locality ? `${visibleAddress} · ${locality}` : visibleAddress;
+  }
+
+  function getTaskTypeLabel(item: Pick<TenantMaintenanceWorkOrder, "schedule_id">): string {
+    const taskTypeId = item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id : null;
+    if (!taskTypeId) {
+      return language === "es" ? "Sin tipo" : "No task type";
+    }
+    return taskTypeById.get(taskTypeId)?.name || `#${taskTypeId}`;
+  }
+
+  function getTechnicianFunctionProfileLabel(
+    item: Pick<TenantMaintenanceWorkOrder, "assigned_work_group_id" | "assigned_tenant_user_id">
+  ): string {
+    if (!item.assigned_work_group_id || !item.assigned_tenant_user_id) {
+      return language === "es" ? "Sin perfil" : "No profile";
+    }
+    return (
+      workGroupMemberByKey.get(`${item.assigned_work_group_id}:${item.assigned_tenant_user_id}`)
+        ?.function_profile_name || (language === "es" ? "Sin perfil" : "No profile")
+    );
   }
 
   function getClientOptionLabel(client: TenantBusinessClient): string {
@@ -1169,6 +1226,10 @@ export function MaintenanceWorkOrdersPage() {
               ? "Instalación pendiente"
               : "Installation pending"
         }
+        taskTypeLabel={detailWorkOrder ? getTaskTypeLabel(detailWorkOrder) : undefined}
+        technicianProfileLabel={
+          detailWorkOrder ? getTechnicianFunctionProfileLabel(detailWorkOrder) : undefined
+        }
         workGroupLabel={
           detailWorkOrder?.assigned_work_group_id
             ? workGroupById.get(detailWorkOrder.assigned_work_group_id)?.name || `#${detailWorkOrder.assigned_work_group_id}`
@@ -1308,8 +1369,14 @@ export function MaintenanceWorkOrdersPage() {
                       ? "Sin técnico"
                       : "No technician"}
                 </div>
+                <div className="maintenance-cell__meta">{getTechnicianFunctionProfileLabel(item)}</div>
               </div>
             ),
+          },
+          {
+            key: "taskType",
+            header: language === "es" ? "Tipo de tarea" : "Task type",
+            render: (item) => getTaskTypeLabel(item),
           },
           {
             key: "schedule",

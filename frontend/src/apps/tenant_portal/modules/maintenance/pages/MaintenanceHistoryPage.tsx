@@ -21,13 +21,19 @@ import {
   type TenantBusinessOrganization,
 } from "../../business_core/services/organizationsService";
 import {
+  getTenantBusinessWorkGroupMembers,
   getTenantBusinessWorkGroups,
+  type TenantBusinessWorkGroupMember,
   type TenantBusinessWorkGroup,
 } from "../../business_core/services/workGroupsService";
 import {
   getTenantBusinessSites,
   type TenantBusinessSite,
 } from "../../business_core/services/sitesService";
+import {
+  getTenantBusinessTaskTypes,
+  type TenantBusinessTaskType,
+} from "../../business_core/services/taskTypesService";
 import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceCostingModal } from "../components/common/MaintenanceCostingModal";
@@ -47,6 +53,10 @@ import {
   type TenantMaintenanceInstallation,
 } from "../services/installationsService";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
+import {
+  getTenantMaintenanceSchedules,
+  type TenantMaintenanceSchedule,
+} from "../services/schedulesService";
 
 function formatDateTime(
   value: string | null,
@@ -110,6 +120,9 @@ export function MaintenanceHistoryPage() {
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
   const [workGroups, setWorkGroups] = useState<TenantBusinessWorkGroup[]>([]);
+  const [workGroupMembers, setWorkGroupMembers] = useState<TenantBusinessWorkGroupMember[]>([]);
+  const [taskTypes, setTaskTypes] = useState<TenantBusinessTaskType[]>([]);
+  const [schedules, setSchedules] = useState<TenantMaintenanceSchedule[]>([]);
   const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -145,9 +158,21 @@ export function MaintenanceHistoryPage() {
     () => new Map(workGroups.map((group) => [group.id, group])),
     [workGroups]
   );
+  const taskTypeById = useMemo(() => new Map(taskTypes.map((item) => [item.id, item])), [taskTypes]);
+  const scheduleById = useMemo(() => new Map(schedules.map((item) => [item.id, item])), [schedules]);
   const tenantUserById = useMemo(
     () => new Map(tenantUsers.map((user) => [user.id, user])),
     [tenantUsers]
+  );
+  const workGroupMemberByKey = useMemo(
+    () =>
+      new Map(
+        workGroupMembers.map((member) => [
+          `${member.group_id}:${member.tenant_user_id}`,
+          member,
+        ])
+      ),
+    [workGroupMembers]
   );
   const completedRows = useMemo(
     () => rows.filter((item) => item.maintenance_status === "completed"),
@@ -165,7 +190,7 @@ export function MaintenanceHistoryPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [historyResponse, clientsResponse, organizationsResponse, sitesResponse, installationsResponse, workGroupsResponse, tenantUsersResponse] =
+      const [historyResponse, clientsResponse, organizationsResponse, sitesResponse, installationsResponse, workGroupsResponse, taskTypesResponse, schedulesResponse, tenantUsersResponse] =
         await Promise.all([
           getTenantMaintenanceHistory(session.accessToken),
           getTenantBusinessClients(session.accessToken, { includeInactive: true }),
@@ -173,14 +198,24 @@ export function MaintenanceHistoryPage() {
           getTenantBusinessSites(session.accessToken, { includeInactive: true }),
           getTenantMaintenanceInstallations(session.accessToken, { includeInactive: true }),
           getTenantBusinessWorkGroups(session.accessToken, { includeInactive: true }),
+          getTenantBusinessTaskTypes(session.accessToken, { includeInactive: true }),
+          getTenantMaintenanceSchedules(session.accessToken, { includeInactive: true }),
           getTenantUsers(session.accessToken),
         ]);
+      const workGroupMembersResponses = await Promise.all(
+        workGroupsResponse.data.map((group) =>
+          getTenantBusinessWorkGroupMembers(session.accessToken as string, group.id)
+        )
+      );
       setRows(historyResponse.data);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
       setInstallations(installationsResponse.data);
       setWorkGroups(workGroupsResponse.data);
+      setWorkGroupMembers(workGroupMembersResponses.flatMap((response) => response.data));
+      setTaskTypes(taskTypesResponse.data);
+      setSchedules(schedulesResponse.data);
       setTenantUsers(tenantUsersResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -297,6 +332,26 @@ export function MaintenanceHistoryPage() {
     return locality ? `${base} · ${locality}` : base;
   }
 
+  function getTaskTypeLabel(item: Pick<TenantMaintenanceHistoryWorkOrder, "schedule_id">): string {
+    const taskTypeId = item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id : null;
+    if (!taskTypeId) {
+      return language === "es" ? "Sin tipo" : "No task type";
+    }
+    return taskTypeById.get(taskTypeId)?.name || `#${taskTypeId}`;
+  }
+
+  function getTechnicianFunctionProfileLabel(
+    item: Pick<TenantMaintenanceHistoryWorkOrder, "assigned_work_group_id" | "assigned_tenant_user_id">
+  ): string {
+    if (!item.assigned_work_group_id || !item.assigned_tenant_user_id) {
+      return language === "es" ? "Sin perfil" : "No profile";
+    }
+    return (
+      workGroupMemberByKey.get(`${item.assigned_work_group_id}:${item.assigned_tenant_user_id}`)
+        ?.function_profile_name || (language === "es" ? "Sin perfil" : "No profile")
+    );
+  }
+
   const historyColumns = [
     {
       key: "order",
@@ -317,6 +372,16 @@ export function MaintenanceHistoryPage() {
         <AppBadge tone={getStatusTone(item.maintenance_status)}>
           {getStatusLabel(item.maintenance_status, language)}
         </AppBadge>
+      ),
+    },
+    {
+      key: "taskType",
+      header: language === "es" ? "Tipo y perfil" : "Task and profile",
+      render: (item: TenantMaintenanceHistoryWorkOrder) => (
+        <div>
+          <div>{getTaskTypeLabel(item)}</div>
+          <div className="maintenance-cell__meta">{getTechnicianFunctionProfileLabel(item)}</div>
+        </div>
       ),
     },
     {
@@ -426,6 +491,12 @@ export function MaintenanceHistoryPage() {
                   <div className="maintenance-cell__meta">
                     {language === "es" ? "Programada" : "Scheduled"}:{" "}
                     {formatDateTime(item.scheduled_for, language, effectiveTimeZone)}
+                  </div>
+                  <div className="maintenance-cell__meta">
+                    {language === "es" ? "Tipo de tarea" : "Task type"}: {getTaskTypeLabel(item)}
+                  </div>
+                  <div className="maintenance-cell__meta">
+                    {language === "es" ? "Perfil funcional" : "Function profile"}: {getTechnicianFunctionProfileLabel(item)}
                   </div>
                   <div className="maintenance-cell__meta">
                     {language === "es" ? "Cierre" : "Closed"}:{" "}
@@ -705,6 +776,10 @@ export function MaintenanceHistoryPage() {
             : language === "es"
               ? "Instalación pendiente"
               : "Installation pending"
+        }
+        taskTypeLabel={detailWorkOrder ? getTaskTypeLabel(detailWorkOrder) : undefined}
+        technicianProfileLabel={
+          detailWorkOrder ? getTechnicianFunctionProfileLabel(detailWorkOrder) : undefined
         }
         workGroupLabel={
           detailWorkOrder?.assigned_work_group_id
