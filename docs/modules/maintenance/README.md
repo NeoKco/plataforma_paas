@@ -98,6 +98,7 @@ Estado del corte hoy:
 - `Pendientes` ya agrega una lectura agrupada por organización para coordinar carga sin perder la operación por cliente/dirección
 - `Pendientes` ya muestra instalaciones activas sin plan preventivo y permite abrir `Crear plan` con cliente/dirección/instalación precargados
 - `Mantenciones` ya permite abrir `Costos` por OT para guardar estimado, costo real, monto cobrado y sincronizar manualmente a `finance`
+- el mismo modal `Costos` ahora también permite crear `Plantillas de costeo de mantención` desde el estimado o desde el costo real actual, y volver a aplicarlas sobre otras OT del módulo
 - `Historial` ya permite abrir el mismo modal `Costos` sobre órdenes cerradas, sin volver editable la programación operativa
 - `Costos y cobro` ya permite detalle granular por líneas:
   - mano de obra
@@ -105,6 +106,7 @@ Estado del corte hoy:
   - materiales
   - servicios externos
   - indirectos
+- al reaplicar una plantilla en `Costos`, se rellenan líneas y notas de costo; el `monto cobrado` sigue siendo manual porque representa el cierre comercial real de cada OT
 - `Resumen técnico` ya expone la política tenant `maintenance -> finance`:
   - modo `manual`
   - modo `auto_on_close`

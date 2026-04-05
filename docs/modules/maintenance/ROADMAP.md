@@ -272,6 +272,7 @@ Avance actual:
   - registrar monto cobrado
   - detallar costo por líneas y derivar resumen automático desde ellas
   - sincronizar manualmente ingreso/egreso hacia `finance`
+  - crear y reaplicar plantillas de costeo también desde el modal `Costos` de cada OT, no solo desde `Nueva programación`
 - se agrega migración tenant `0025_maintenance_schedule_estimate_defaults`
 - se agrega migración tenant `0026_maintenance_cost_templates`
 - tablas y columnas ya versionadas para el seed preventivo del costeo:

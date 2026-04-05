@@ -95,6 +95,11 @@
   - costo real
   - monto cobrado
   - sincronización manual a `Finanzas`
+- el modal `Costos y cobro` ahora también puede:
+  - crear una `Plantilla de costeo de mantención` desde el estimado o desde el costo real actual
+  - aplicar una plantilla existente sobre `Costeo estimado`
+  - aplicar una plantilla existente sobre `Costo real`
+  - mantener `Monto cobrado` como dato manual, separado de la plantilla reusable
 - `Historial` cambia a acción `Ver costos` en modo solo lectura, para congelar la lectura económica de OT ya cerradas sin seguir mutándolas desde la UX normal
 - se implementa el segundo corte de costeo detallado:
   - migración tenant `0023_maintenance_cost_lines`

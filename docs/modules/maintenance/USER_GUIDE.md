@@ -54,6 +54,9 @@ El primer corte del modulo ya permite:
 - editar una orden aun no cerrada
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
 - abrir `Costos` desde una mantención abierta para registrar costo estimado, costo real, cobro y sincronización manual a Finanzas
+- dentro de `Costos` puedes crear una `Plantilla de costeo de mantención` desde el estimado o desde el costo real actual
+- esa plantilla luego puede aplicarse tanto al `Costeo estimado` como al `Costo real`
+- el `Monto cobrado` no se pisa con la plantilla; queda manual para respetar el cierre comercial real
 - abrir `Ver costos` desde `Historial` para revisar en modo solo lectura el cierre económico ya congelado de una orden cerrada
 - abrir `Checklist` desde una mantención abierta para registrar checklist técnico, observación de cierre y evidencias del trabajo ejecutado
 - abrir `Ver checklist` desde `Historial` para consultar ese cierre técnico en modo solo lectura

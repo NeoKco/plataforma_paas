@@ -32,6 +32,11 @@ import {
   type TenantMaintenanceCostLineWriteItem,
   type TenantMaintenanceCostingDetail,
 } from "../../services/costingService";
+import {
+  createTenantMaintenanceCostTemplate,
+  getTenantMaintenanceCostTemplates,
+  type TenantMaintenanceCostTemplate,
+} from "../../services/costTemplatesService";
 
 type MaintenanceCostEstimateFormState = {
   labor_cost: string;
@@ -80,6 +85,13 @@ type MaintenanceEditableCostLineKey =
   | "quantity"
   | "unit_cost"
   | "notes";
+
+type CostTemplateDraftForm = {
+  name: string;
+  description: string;
+};
+
+type CostTemplateSource = "estimate" | "actual";
 
 export type MaintenanceCostingModalWorkOrder = {
   id: number;
@@ -168,6 +180,26 @@ function buildBlankCostLine(): MaintenanceCostLineFormState {
   };
 }
 
+function buildDefaultCostTemplateDraft(): CostTemplateDraftForm {
+  return {
+    name: "",
+    description: "",
+  };
+}
+
+function sortCostTemplates(items: TenantMaintenanceCostTemplate[]): TenantMaintenanceCostTemplate[] {
+  return [...items].sort((left, right) => {
+    if (left.is_active !== right.is_active) {
+      return left.is_active ? -1 : 1;
+    }
+    const nameCompare = left.name.localeCompare(right.name);
+    if (nameCompare !== 0) {
+      return nameCompare;
+    }
+    return left.id - right.id;
+  });
+}
+
 function sumCostForm(values: {
   labor_cost: string;
   travel_cost: string;
@@ -234,6 +266,53 @@ function normalizeLineWritePayload(
   }));
 }
 
+function buildCostLineFormsFromTemplate(template: TenantMaintenanceCostTemplate) {
+  return template.lines.map((line) => ({
+    id: null,
+    line_type: line.line_type,
+    description: line.description ?? "",
+    quantity: String(line.quantity ?? 1),
+    unit_cost: String(line.unit_cost ?? 0),
+    notes: line.notes ?? "",
+  }));
+}
+
+function buildTemplateLinesFromSummary(
+  values: {
+    labor_cost: string;
+    travel_cost: string;
+    materials_cost: string;
+    external_services_cost: string;
+    overhead_cost: string;
+  },
+  language: "es" | "en"
+): TenantMaintenanceCostLineWriteItem[] {
+  const labels = {
+    labor: language === "es" ? "Mano de obra" : "Labor",
+    travel: language === "es" ? "Traslado" : "Travel",
+    material: language === "es" ? "Materiales" : "Materials",
+    service: language === "es" ? "Servicios externos" : "External services",
+    overhead: language === "es" ? "Indirectos" : "Overhead",
+  };
+  const items: Array<[TenantMaintenanceCostLineWriteItem["line_type"], number, string]> = [
+    ["labor", normalizeNumericInput(values.labor_cost), labels.labor],
+    ["travel", normalizeNumericInput(values.travel_cost), labels.travel],
+    ["material", normalizeNumericInput(values.materials_cost), labels.material],
+    ["service", normalizeNumericInput(values.external_services_cost), labels.service],
+    ["overhead", normalizeNumericInput(values.overhead_cost), labels.overhead],
+  ];
+  return items
+    .filter(([, amount]) => amount > 0)
+    .map(([line_type, unit_cost, description]) => ({
+      id: null,
+      line_type,
+      description,
+      quantity: 1,
+      unit_cost,
+      notes: null,
+    }));
+}
+
 export function MaintenanceCostingModal({
   accessToken,
   clientLabel,
@@ -257,6 +336,16 @@ export function MaintenanceCostingModal({
   const [financeAccounts, setFinanceAccounts] = useState<TenantFinanceAccount[]>([]);
   const [financeCategories, setFinanceCategories] = useState<TenantFinanceCategory[]>([]);
   const [financeCurrencies, setFinanceCurrencies] = useState<TenantFinanceCurrency[]>([]);
+  const [costTemplates, setCostTemplates] = useState<TenantMaintenanceCostTemplate[]>([]);
+  const [selectedEstimateCostTemplateId, setSelectedEstimateCostTemplateId] = useState<number | null>(null);
+  const [selectedActualCostTemplateId, setSelectedActualCostTemplateId] = useState<number | null>(null);
+  const [costTemplateDraft, setCostTemplateDraft] = useState<CostTemplateDraftForm>(
+    buildDefaultCostTemplateDraft()
+  );
+  const [costTemplateDraftSource, setCostTemplateDraftSource] = useState<CostTemplateSource>("estimate");
+  const [isCostTemplateDraftOpen, setIsCostTemplateDraftOpen] = useState(false);
+  const [isTemplateSaving, setIsTemplateSaving] = useState(false);
+  const [costTemplateFeedback, setCostTemplateFeedback] = useState<string | null>(null);
   const [estimateForm, setEstimateForm] = useState<MaintenanceCostEstimateFormState>(
     buildDefaultCostEstimateForm()
   );
@@ -298,6 +387,18 @@ export function MaintenanceCostingModal({
   const activeCurrencies = useMemo(
     () => financeCurrencies.filter((currency) => currency.is_active),
     [financeCurrencies]
+  );
+  const activeCostTemplates = useMemo(
+    () => costTemplates.filter((template) => template.is_active),
+    [costTemplates]
+  );
+  const selectedEstimateCostTemplate = useMemo(
+    () => activeCostTemplates.find((template) => template.id === selectedEstimateCostTemplateId) ?? null,
+    [activeCostTemplates, selectedEstimateCostTemplateId]
+  );
+  const selectedActualCostTemplate = useMemo(
+    () => activeCostTemplates.find((template) => template.id === selectedActualCostTemplateId) ?? null,
+    [activeCostTemplates, selectedActualCostTemplateId]
   );
   const estimateLineTotals = useMemo(() => sumCostLines(estimateLines), [estimateLines]);
   const actualLineTotals = useMemo(() => sumCostLines(actualLines), [actualLines]);
@@ -354,12 +455,19 @@ export function MaintenanceCostingModal({
       setIsLoading(true);
       setError(null);
       try {
-        const [costingResponse, accountsResponse, categoriesResponse, currenciesResponse] =
+        const [
+          costingResponse,
+          accountsResponse,
+          categoriesResponse,
+          currenciesResponse,
+          costTemplatesResponse,
+        ] =
           await Promise.all([
             getTenantMaintenanceWorkOrderCosting(currentAccessToken, currentWorkOrder.id),
             getTenantFinanceAccounts(currentAccessToken, false),
             getTenantFinanceCategories(currentAccessToken, { includeInactive: false }),
             getTenantFinanceCurrencies(currentAccessToken, false),
+            getTenantMaintenanceCostTemplates(currentAccessToken, { includeInactive: false }),
           ]);
 
         if (cancelled) {
@@ -370,6 +478,7 @@ export function MaintenanceCostingModal({
         const accounts = accountsResponse.data;
         const categories = categoriesResponse.data;
         const currencies = currenciesResponse.data;
+        const templates = sortCostTemplates(costTemplatesResponse.data);
         const incomeCategory = categories.find((category) => category.category_type === "income");
         const expenseCategory = categories.find((category) => category.category_type === "expense");
         const defaultCurrency = currencies.find((currency) => currency.is_base) || currencies[0];
@@ -382,6 +491,7 @@ export function MaintenanceCostingModal({
         setFinanceAccounts(accounts);
         setFinanceCategories(categories);
         setFinanceCurrencies(currencies);
+        setCostTemplates(templates);
         setCostingDetail(detail);
         setEstimateForm(buildDefaultCostEstimateForm(detail.estimate));
         setEstimateLines(buildDefaultCostLines(detail.estimate_lines));
@@ -469,6 +579,121 @@ export function MaintenanceCostingModal({
       return;
     }
     setActualLines((current) => current.filter((_, currentIndex) => currentIndex !== index));
+  }
+
+  function applyTemplateToEstimate(template: TenantMaintenanceCostTemplate) {
+    setSelectedEstimateCostTemplateId(template.id);
+    setEstimateLines(buildCostLineFormsFromTemplate(template));
+    setEstimateForm((current) => ({
+      ...current,
+      target_margin_percent: String(template.estimate_target_margin_percent ?? 0),
+      notes: template.estimate_notes ?? current.notes,
+    }));
+    setCostTemplateFeedback(
+      language === "es"
+        ? `Plantilla aplicada al estimado: ${template.name}`
+        : `Template applied to estimate: ${template.name}`
+    );
+  }
+
+  function applyTemplateToActual(template: TenantMaintenanceCostTemplate) {
+    setSelectedActualCostTemplateId(template.id);
+    setActualLines(buildCostLineFormsFromTemplate(template));
+    setActualForm((current) => ({
+      ...current,
+      notes: template.estimate_notes ?? current.notes,
+    }));
+    setCostTemplateFeedback(
+      language === "es"
+        ? `Plantilla aplicada al costo real: ${template.name}`
+        : `Template applied to actual cost: ${template.name}`
+    );
+  }
+
+  function openSaveCostTemplateDraft(source: CostTemplateSource) {
+    setCostTemplateDraftSource(source);
+    setCostTemplateFeedback(null);
+    setCostTemplateDraft({
+      name:
+        currentWorkOrder.title.trim() ||
+        (language === "es" ? "Plantilla de costeo" : "Costing template"),
+      description:
+        source === "estimate"
+          ? estimateForm.notes.trim()
+          : actualForm.notes.trim(),
+    });
+    setIsCostTemplateDraftOpen(true);
+  }
+
+  function closeCostTemplateDraft() {
+    setIsCostTemplateDraftOpen(false);
+    setCostTemplateDraft(buildDefaultCostTemplateDraft());
+    setCostTemplateDraftSource("estimate");
+  }
+
+  async function handleSaveCostTemplate() {
+    if (!accessToken) {
+      return;
+    }
+    if (!costTemplateDraft.name.trim()) {
+      setCostTemplateFeedback(
+        language === "es"
+          ? "Debes indicar un nombre para guardar la plantilla."
+          : "Provide a name before saving the template."
+      );
+      return;
+    }
+    const lines =
+      costTemplateDraftSource === "estimate"
+        ? estimateLines.length > 0
+          ? normalizeLineWritePayload(estimateLines)
+          : buildTemplateLinesFromSummary(estimateForm, language)
+        : actualLines.length > 0
+          ? normalizeLineWritePayload(actualLines)
+          : buildTemplateLinesFromSummary(actualForm, language);
+    if (lines.length === 0) {
+      setCostTemplateFeedback(
+        language === "es"
+          ? "La plantilla necesita al menos una línea o un resumen con costos mayores a cero."
+          : "The template needs at least one line or a summary with costs greater than zero."
+      );
+      return;
+    }
+    setIsTemplateSaving(true);
+    setCostTemplateFeedback(null);
+    try {
+      const response = await createTenantMaintenanceCostTemplate(accessToken, {
+        name: costTemplateDraft.name.trim(),
+        description: costTemplateDraft.description.trim() || null,
+        task_type_id: null,
+        estimate_target_margin_percent:
+          costTemplateDraftSource === "estimate"
+            ? normalizeNumericInput(estimateForm.target_margin_percent)
+            : 0,
+        estimate_notes:
+          costTemplateDraftSource === "estimate"
+            ? normalizeNullable(estimateForm.notes)
+            : normalizeNullable(actualForm.notes),
+        is_active: true,
+        lines,
+      });
+      setCostTemplates((current) => sortCostTemplates([...current, response.data]));
+      if (costTemplateDraftSource === "estimate") {
+        setSelectedEstimateCostTemplateId(response.data.id);
+      } else {
+        setSelectedActualCostTemplateId(response.data.id);
+      }
+      closeCostTemplateDraft();
+      setCostTemplateFeedback(
+        language === "es"
+          ? `Plantilla guardada: ${response.data.name}`
+          : `Template saved: ${response.data.name}`
+      );
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsTemplateSaving(false);
+    }
   }
 
   const costLineTypeOptions = [
@@ -766,6 +991,201 @@ export function MaintenanceCostingModal({
                   )}
                 </div>
               </div>
+
+              {!isReadOnly ? (
+                <div className="maintenance-history-entry">
+                  <div className="d-flex flex-wrap justify-content-between gap-2 align-items-start">
+                    <div>
+                      <div className="maintenance-history-entry__title">
+                        {language === "es" ? "Plantillas de costeo" : "Costing templates"}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es"
+                          ? "Puedes guardar una estructura reusable desde el estimado o el costo real. La plantilla rellena costos y líneas; el monto cobrado queda manual por tratarse de un dato comercial real."
+                          : "You can save a reusable structure from estimate or actual cost. The template fills costs and lines; the charged amount stays manual because it is a real commercial value."}
+                      </div>
+                    </div>
+                    <div className="d-flex flex-wrap gap-2">
+                      <button
+                        className="btn btn-sm btn-outline-primary"
+                        type="button"
+                        onClick={() => openSaveCostTemplateDraft("estimate")}
+                      >
+                        {language === "es" ? "Crear desde estimado" : "Create from estimate"}
+                      </button>
+                      <button
+                        className="btn btn-sm btn-outline-primary"
+                        type="button"
+                        onClick={() => openSaveCostTemplateDraft("actual")}
+                      >
+                        {language === "es" ? "Crear desde costo real" : "Create from actual cost"}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="row g-3 mt-1">
+                    <div className="col-12 col-lg-6">
+                      <label className="form-label">
+                        {language === "es" ? "Aplicar al costeo estimado" : "Apply to estimate"}
+                      </label>
+                      <div className="d-flex gap-2">
+                        <select
+                          className="form-select"
+                          value={selectedEstimateCostTemplateId ?? ""}
+                          onChange={(event) =>
+                            setSelectedEstimateCostTemplateId(
+                              event.target.value ? Number(event.target.value) : null
+                            )
+                          }
+                        >
+                          <option value="">
+                            {language === "es"
+                              ? "Selecciona una plantilla"
+                              : "Select a template"}
+                          </option>
+                          {activeCostTemplates.map((template) => (
+                            <option key={template.id} value={template.id}>
+                              {template.name}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          className="btn btn-outline-secondary"
+                          type="button"
+                          onClick={() =>
+                            selectedEstimateCostTemplate
+                              ? applyTemplateToEstimate(selectedEstimateCostTemplate)
+                              : undefined
+                          }
+                          disabled={!selectedEstimateCostTemplate}
+                        >
+                          {language === "es" ? "Aplicar" : "Apply"}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="col-12 col-lg-6">
+                      <label className="form-label">
+                        {language === "es" ? "Aplicar al costo real" : "Apply to actual cost"}
+                      </label>
+                      <div className="d-flex gap-2">
+                        <select
+                          className="form-select"
+                          value={selectedActualCostTemplateId ?? ""}
+                          onChange={(event) =>
+                            setSelectedActualCostTemplateId(
+                              event.target.value ? Number(event.target.value) : null
+                            )
+                          }
+                        >
+                          <option value="">
+                            {language === "es"
+                              ? "Selecciona una plantilla"
+                              : "Select a template"}
+                          </option>
+                          {activeCostTemplates.map((template) => (
+                            <option key={template.id} value={template.id}>
+                              {template.name}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          className="btn btn-outline-secondary"
+                          type="button"
+                          onClick={() =>
+                            selectedActualCostTemplate
+                              ? applyTemplateToActual(selectedActualCostTemplate)
+                              : undefined
+                          }
+                          disabled={!selectedActualCostTemplate}
+                        >
+                          {language === "es" ? "Aplicar" : "Apply"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  {activeCostTemplates.length === 0 ? (
+                    <div className="maintenance-history-entry__meta mt-3">
+                      {language === "es"
+                        ? "Todavía no hay plantillas activas. Guarda una desde este mismo modal para reutilizarla después."
+                        : "There are no active templates yet. Save one from this modal and reuse it later."}
+                    </div>
+                  ) : null}
+                  {isCostTemplateDraftOpen ? (
+                    <div className="maintenance-cost-lines__item mt-3">
+                      <div className="row g-3">
+                        <div className="col-12 col-md-6">
+                          <label className="form-label">
+                            {language === "es" ? "Nombre de plantilla" : "Template name"}
+                          </label>
+                          <input
+                            className="form-control"
+                            value={costTemplateDraft.name}
+                            onChange={(event) =>
+                              setCostTemplateDraft((current) => ({
+                                ...current,
+                                name: event.target.value,
+                              }))
+                            }
+                          />
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label">
+                            {language === "es" ? "Descripción breve" : "Short description"}
+                          </label>
+                          <input
+                            className="form-control"
+                            value={costTemplateDraft.description}
+                            onChange={(event) =>
+                              setCostTemplateDraft((current) => ({
+                                ...current,
+                                description: event.target.value,
+                              }))
+                            }
+                          />
+                        </div>
+                        <div className="col-12">
+                          <div className="maintenance-history-entry__meta">
+                            {costTemplateDraftSource === "estimate"
+                              ? language === "es"
+                                ? "La plantilla se construirá desde el costeo estimado actual."
+                                : "The template will be built from the current estimate."
+                              : language === "es"
+                                ? "La plantilla se construirá desde el costo real actual."
+                                : "The template will be built from the current actual cost."}
+                          </div>
+                        </div>
+                        <div className="col-12">
+                          <div className="maintenance-form__actions justify-content-start pt-0">
+                            <button
+                              className="btn btn-outline-secondary"
+                              type="button"
+                              onClick={closeCostTemplateDraft}
+                            >
+                              {language === "es" ? "Cancelar" : "Cancel"}
+                            </button>
+                            <button
+                              className="btn btn-primary"
+                              type="button"
+                              onClick={() => void handleSaveCostTemplate()}
+                              disabled={isTemplateSaving}
+                            >
+                              {isTemplateSaving
+                                ? language === "es"
+                                  ? "Guardando..."
+                                  : "Saving..."
+                                : language === "es"
+                                  ? "Guardar plantilla"
+                                  : "Save template"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+                  {costTemplateFeedback ? (
+                    <div className="alert alert-info mt-3 mb-0">{costTemplateFeedback}</div>
+                  ) : null}
+                </div>
+              ) : null}
 
               <form
                 className="maintenance-form"
