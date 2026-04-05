@@ -44,16 +44,20 @@ def get_task_type_assignment_rule(
     )
     if task_type is None:
         return None
-    compatible_profiles = (
-        tenant_db.query(BusinessFunctionProfile)
-        .join(
-            BusinessTaskTypeFunctionProfile,
-            BusinessTaskTypeFunctionProfile.function_profile_id == BusinessFunctionProfile.id,
+    compatible_profiles = []
+    try:
+        compatible_profiles = (
+            tenant_db.query(BusinessFunctionProfile)
+            .join(
+                BusinessTaskTypeFunctionProfile,
+                BusinessTaskTypeFunctionProfile.function_profile_id == BusinessFunctionProfile.id,
+            )
+            .filter(BusinessTaskTypeFunctionProfile.task_type_id == task_type_id)
+            .order_by(BusinessFunctionProfile.sort_order.asc(), BusinessFunctionProfile.name.asc())
+            .all()
         )
-        .filter(BusinessTaskTypeFunctionProfile.task_type_id == task_type_id)
-        .order_by(BusinessFunctionProfile.sort_order.asc(), BusinessFunctionProfile.name.asc())
-        .all()
-    )
+    except AttributeError:
+        compatible_profiles = []
     allowed_profile_names = [item.name for item in compatible_profiles]
     if not allowed_profile_names:
         allowed_profile_names = parse_task_type_allowed_profile_names(

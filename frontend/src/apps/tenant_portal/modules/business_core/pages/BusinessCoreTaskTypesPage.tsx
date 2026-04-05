@@ -20,7 +20,6 @@ import {
 } from "../services/functionProfilesService";
 import { buildInternalTaxonomyCode, stripLegacyVisibleText } from "../utils/taxonomyUi";
 import {
-  getTaskTypeAllowedProfileNames,
   stripTaskTypeAllowedProfilesMetadata,
 } from "../../maintenance/services/assignmentCapability";
 
@@ -53,7 +52,7 @@ export function BusinessCoreTaskTypesPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [form, setForm] = useState<TenantBusinessTaskTypeWriteRequest>(buildDefaultForm());
   const [functionProfiles, setFunctionProfiles] = useState<TenantBusinessFunctionProfile[]>([]);
-  const [compatibleProfileNames, setCompatibleProfileNames] = useState<string[]>([]);
+  const [compatibleProfileIds, setCompatibleProfileIds] = useState<number[]>([]);
 
   async function loadItems() {
     if (!session?.accessToken) return;
@@ -82,7 +81,7 @@ export function BusinessCoreTaskTypesPage() {
     setFeedback(null);
     setError(null);
     setForm(buildDefaultForm());
-    setCompatibleProfileNames([]);
+    setCompatibleProfileIds([]);
   }
 
   function startEdit(item: TenantBusinessTaskType) {
@@ -99,7 +98,7 @@ export function BusinessCoreTaskTypesPage() {
       sort_order: item.sort_order,
       compatible_function_profile_ids: item.compatible_function_profile_ids,
     });
-    setCompatibleProfileNames(getTaskTypeAllowedProfileNames(item));
+    setCompatibleProfileIds(item.compatible_function_profile_ids);
   }
 
   async function handleSubmit() {
@@ -114,9 +113,7 @@ export function BusinessCoreTaskTypesPage() {
       description: stripLegacyVisibleText(normalizeNullable(form.description)),
       color: normalizeNullable(form.color),
       icon: normalizeNullable(form.icon),
-      compatible_function_profile_ids: functionProfiles
-        .filter((profile) => compatibleProfileNames.includes(profile.name))
-        .map((profile) => profile.id),
+      compatible_function_profile_ids: compatibleProfileIds,
     };
     setIsSubmitting(true);
     setError(null);
@@ -212,7 +209,7 @@ export function BusinessCoreTaskTypesPage() {
               </div>
             ) : (
               functionProfiles.map((profile) => {
-                const checked = compatibleProfileNames.includes(profile.name);
+                const checked = compatibleProfileIds.includes(profile.id);
                 return (
                   <div className="col-12 col-md-6" key={profile.id}>
                     <label className="form-check border rounded px-3 py-2 h-100">
@@ -221,10 +218,10 @@ export function BusinessCoreTaskTypesPage() {
                         type="checkbox"
                         checked={checked}
                         onChange={(event) =>
-                          setCompatibleProfileNames((current) =>
+                          setCompatibleProfileIds((current) =>
                             event.target.checked
-                              ? [...current, profile.name]
-                              : current.filter((item) => item !== profile.name)
+                              ? [...current, profile.id]
+                              : current.filter((item) => item !== profile.id)
                           )
                         }
                       />
@@ -259,8 +256,8 @@ export function BusinessCoreTaskTypesPage() {
                 {stripLegacyVisibleText(stripTaskTypeAllowedProfilesMetadata(item.description)) || "—"}
               </div>
               <div className="d-flex flex-wrap gap-1 mt-2">
-                {getTaskTypeAllowedProfileNames(item).length > 0 ? (
-                  getTaskTypeAllowedProfileNames(item).map((profileName) => (
+                {item.compatible_function_profile_names.length > 0 ? (
+                  item.compatible_function_profile_names.map((profileName) => (
                     <AppBadge key={profileName} tone="info">
                       {profileName}
                     </AppBadge>

@@ -22,7 +22,16 @@ task_type_service = BusinessTaskTypeService()
 
 
 def _build_task_type_item(tenant_db: Session, item) -> BusinessTaskTypeItemResponse:
-    compatible_profiles = task_type_service.get_task_type_compatible_profiles(tenant_db, item.id)
+    compatible_profile_ids = list(getattr(item, "compatible_function_profile_ids", []) or [])
+    compatible_profile_names = list(getattr(item, "compatible_function_profile_names", []) or [])
+
+    if hasattr(tenant_db, "query") and (
+        not compatible_profile_ids or not compatible_profile_names
+    ):
+        compatible_profiles = task_type_service.get_task_type_compatible_profiles(tenant_db, item.id)
+        compatible_profile_ids = [profile.id for profile in compatible_profiles]
+        compatible_profile_names = [profile.name for profile in compatible_profiles]
+
     return BusinessTaskTypeItemResponse(
         id=item.id,
         code=item.code,
@@ -32,8 +41,8 @@ def _build_task_type_item(tenant_db: Session, item) -> BusinessTaskTypeItemRespo
         icon=item.icon,
         is_active=item.is_active,
         sort_order=item.sort_order,
-        compatible_function_profile_ids=[profile.id for profile in compatible_profiles],
-        compatible_function_profile_names=[profile.name for profile in compatible_profiles],
+        compatible_function_profile_ids=compatible_profile_ids,
+        compatible_function_profile_names=compatible_profile_names,
         created_at=item.created_at,
         updated_at=item.updated_at,
     )
