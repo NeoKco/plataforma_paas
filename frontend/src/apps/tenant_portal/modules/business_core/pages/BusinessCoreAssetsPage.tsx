@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { useLanguage } from "../../../../../store/language-context";
@@ -45,6 +46,8 @@ function normalizeNullable(value: string | null): string | null {
 export function BusinessCoreAssetsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
+  const [searchParams] = useSearchParams();
+  const requestedSiteId = Number(searchParams.get("siteId") || 0);
   const [items, setItems] = useState<TenantBusinessAsset[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [assetTypes, setAssetTypes] = useState<TenantBusinessAssetType[]>([]);
@@ -57,6 +60,10 @@ export function BusinessCoreAssetsPage() {
 
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
   const assetTypeById = useMemo(() => new Map(assetTypes.map((type) => [type.id, type])), [assetTypes]);
+  const visibleItems = useMemo(
+    () => (requestedSiteId > 0 ? items.filter((item) => item.site_id === requestedSiteId) : items),
+    [items, requestedSiteId]
+  );
 
   async function loadItems() {
     if (!session?.accessToken) return;
@@ -64,7 +71,10 @@ export function BusinessCoreAssetsPage() {
     setError(null);
     try {
       const [assetsResponse, sitesResponse, assetTypesResponse] = await Promise.all([
-        getTenantBusinessAssets(session.accessToken),
+        getTenantBusinessAssets(session.accessToken, {
+          includeInactive: true,
+          siteId: requestedSiteId > 0 ? requestedSiteId : undefined,
+        }),
         getTenantBusinessSites(session.accessToken, { includeInactive: false }),
         getTenantBusinessAssetTypes(session.accessToken, { includeInactive: false }),
       ]);
@@ -193,7 +203,7 @@ export function BusinessCoreAssetsPage() {
       loadingLabelEn="Loading assets..."
       isLoading={isLoading}
       isSubmitting={isSubmitting}
-      rows={items}
+      rows={visibleItems}
       error={error}
       feedback={feedback}
       editingId={editingId}

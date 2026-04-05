@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { useLanguage } from "../../../../../store/language-context";
@@ -67,6 +67,7 @@ function normalizeNullable(value: string | null | undefined): string | null {
 export function MaintenanceInstallationsPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<TenantMaintenanceInstallation[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
@@ -561,6 +562,13 @@ export function MaintenanceInstallationsPage() {
           headerEn: "Actions",
           render: (item, currentLanguage) => (
             <AppToolbar compact>
+              <button
+                className="btn btn-sm btn-outline-success"
+                type="button"
+                onClick={() => navigate(`/tenant-portal/business-core/assets?siteId=${item.site_id}`)}
+              >
+                {currentLanguage === "es" ? "Activos" : "Assets"}
+              </button>
               <button
                 className="btn btn-sm btn-outline-info"
                 type="button"
