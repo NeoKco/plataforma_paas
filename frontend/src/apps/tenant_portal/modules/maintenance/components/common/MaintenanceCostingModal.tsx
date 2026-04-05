@@ -37,6 +37,7 @@ import {
   getTenantMaintenanceCostTemplates,
   type TenantMaintenanceCostTemplate,
 } from "../../services/costTemplatesService";
+import { updateTenantMaintenanceWorkOrderStatus } from "../../services/workOrdersService";
 
 type MaintenanceCostEstimateFormState = {
   labor_cost: string;
@@ -99,13 +100,16 @@ export type MaintenanceCostingModalWorkOrder = {
   client_id: number;
   site_id: number;
   installation_id: number | null;
+  maintenance_status: string;
   requested_at: string;
   scheduled_for: string | null;
   completed_at: string | null;
+  closure_notes?: string | null;
 };
 
 type MaintenanceCostingModalProps = {
   accessToken?: string | null;
+  allowComplete?: boolean;
   clientLabel: string;
   siteLabel: string;
   installationLabel: string;
@@ -114,7 +118,10 @@ type MaintenanceCostingModalProps = {
   language: "es" | "en";
   mode?: "edit" | "readonly";
   onClose: () => void;
+  onCompleted?: (workOrderId: number) => void | Promise<void>;
   onFeedback?: (message: string) => void;
+  taskTypeId?: number | null;
+  taskTypeLabel?: string | null;
   workOrder: MaintenanceCostingModalWorkOrder | null;
 };
 
@@ -315,6 +322,7 @@ function buildTemplateLinesFromSummary(
 
 export function MaintenanceCostingModal({
   accessToken,
+  allowComplete = false,
   clientLabel,
   siteLabel,
   installationLabel,
@@ -323,13 +331,17 @@ export function MaintenanceCostingModal({
   language,
   mode = "edit",
   onClose,
+  onCompleted,
   onFeedback,
+  taskTypeId = null,
+  taskTypeLabel = null,
   workOrder,
 }: MaintenanceCostingModalProps) {
   const isReadOnly = mode === "readonly";
   const [isLoading, setIsLoading] = useState(false);
   const [isEstimateSubmitting, setIsEstimateSubmitting] = useState(false);
   const [isActualSubmitting, setIsActualSubmitting] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
   const [isFinanceSyncSubmitting, setIsFinanceSyncSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [costingDetail, setCostingDetail] = useState<TenantMaintenanceCostingDetail | null>(null);
@@ -354,6 +366,7 @@ export function MaintenanceCostingModal({
     buildDefaultCostActualForm()
   );
   const [actualLines, setActualLines] = useState<MaintenanceCostLineFormState[]>([]);
+  const [completionNote, setCompletionNote] = useState("");
   const [financeSyncForm, setFinanceSyncForm] = useState<MaintenanceFinanceSyncFormState>({
     sync_income: true,
     sync_expense: true,
@@ -400,6 +413,17 @@ export function MaintenanceCostingModal({
     () => activeCostTemplates.find((template) => template.id === selectedActualCostTemplateId) ?? null,
     [activeCostTemplates, selectedActualCostTemplateId]
   );
+  const matchingTaskTypeTemplates = useMemo(
+    () =>
+      taskTypeId
+        ? activeCostTemplates.filter((template) => template.task_type_id === taskTypeId)
+        : activeCostTemplates,
+    [activeCostTemplates, taskTypeId]
+  );
+  const suggestedTaskTypeTemplate = useMemo(
+    () => matchingTaskTypeTemplates[0] ?? null,
+    [matchingTaskTypeTemplates]
+  );
   const estimateLineTotals = useMemo(() => sumCostLines(estimateLines), [estimateLines]);
   const actualLineTotals = useMemo(() => sumCostLines(actualLines), [actualLines]);
   const estimateUsesLines = estimateLines.length > 0;
@@ -441,6 +465,11 @@ export function MaintenanceCostingModal({
     !financeSyncForm.currency_id ||
     (financeSyncForm.sync_income && !financeSyncForm.income_account_id) ||
     (financeSyncForm.sync_expense && !financeSyncForm.expense_account_id);
+  const canCompleteFromModal =
+    !isReadOnly &&
+    allowComplete &&
+    workOrder?.maintenance_status !== "completed" &&
+    workOrder?.maintenance_status !== "cancelled";
 
   useEffect(() => {
     if (!isOpen || !accessToken || !workOrder) {
@@ -497,6 +526,7 @@ export function MaintenanceCostingModal({
         setEstimateLines(buildDefaultCostLines(detail.estimate_lines));
         setActualForm(buildDefaultCostActualForm(detail.actual));
         setActualLines(buildDefaultCostLines(detail.actual_lines));
+        setCompletionNote(currentWorkOrder.closure_notes ?? "");
         setFinanceSyncForm({
           sync_income: true,
           sync_expense: true,
@@ -599,8 +629,20 @@ export function MaintenanceCostingModal({
   function applyTemplateToActual(template: TenantMaintenanceCostTemplate) {
     setSelectedActualCostTemplateId(template.id);
     setActualLines(buildCostLineFormsFromTemplate(template));
+    const templateCost = template.lines.reduce((current, line) => current + (line.total_cost ?? 0), 0);
+    const margin = Number(template.estimate_target_margin_percent ?? 0);
+    const suggestedCharged =
+      templateCost > 0
+        ? margin > 0 && margin < 100
+          ? Number((templateCost / (1 - margin / 100)).toFixed(2))
+          : Number(templateCost.toFixed(2))
+        : 0;
     setActualForm((current) => ({
       ...current,
+      actual_price_charged:
+        normalizeNumericInput(current.actual_price_charged) > 0
+          ? current.actual_price_charged
+          : String(suggestedCharged),
       notes: template.estimate_notes ?? current.notes,
     }));
     setCostTemplateFeedback(
@@ -886,6 +928,52 @@ export function MaintenanceCostingModal({
     }
   }
 
+  async function handleCompleteWithActualCost() {
+    if (!accessToken || !canCompleteFromModal) {
+      return;
+    }
+    setIsCompleting(true);
+    setError(null);
+    try {
+      const costingResponse = await updateTenantMaintenanceWorkOrderCostActual(
+        accessToken,
+        currentWorkOrder.id,
+        {
+          labor_cost: normalizeNumericInput(actualForm.labor_cost),
+          travel_cost: normalizeNumericInput(actualForm.travel_cost),
+          materials_cost: normalizeNumericInput(actualForm.materials_cost),
+          external_services_cost: normalizeNumericInput(actualForm.external_services_cost),
+          overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
+          actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
+          notes: normalizeNullable(actualForm.notes),
+          lines: normalizeLineWritePayload(actualLines),
+        }
+      );
+      setCostingDetail(costingResponse.data);
+      setActualForm(buildDefaultCostActualForm(costingResponse.data.actual));
+      setActualLines(buildDefaultCostLines(costingResponse.data.actual_lines));
+
+      const statusResponse = await updateTenantMaintenanceWorkOrderStatus(
+        accessToken,
+        currentWorkOrder.id,
+        "completed",
+        normalizeNullable(completionNote)
+      );
+
+      const combinedMessage =
+        language === "es"
+          ? "Costo real guardado y mantención cerrada correctamente"
+          : "Actual cost saved and maintenance closed successfully";
+      onFeedback?.(combinedMessage);
+      await onCompleted?.(statusResponse.data.id);
+      onClose();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsCompleting(false);
+    }
+  }
+
   async function handleFinanceSyncSubmit() {
     if (!accessToken || !financeSyncForm.currency_id) {
       return;
@@ -1023,6 +1111,15 @@ export function MaintenanceCostingModal({
                     </div>
                   </div>
                   <div className="row g-3 mt-1">
+                    {!isReadOnly && suggestedTaskTypeTemplate ? (
+                      <div className="col-12">
+                        <div className="alert alert-info mb-0">
+                          {language === "es"
+                            ? `Sugerencia para ${taskTypeLabel || "este tipo de tarea"}: ${suggestedTaskTypeTemplate.name}. Puedes aplicarla al estimado o al costo real para cerrar más rápido.`
+                            : `Suggested for ${taskTypeLabel || "this task type"}: ${suggestedTaskTypeTemplate.name}. You can apply it to estimate or actual cost for a faster close.`}
+                        </div>
+                      </div>
+                    ) : null}
                     <div className="col-12 col-lg-6">
                       <label className="form-label">
                         {language === "es" ? "Aplicar al costeo estimado" : "Apply to estimate"}
@@ -1327,6 +1424,29 @@ export function MaintenanceCostingModal({
                       <label className="form-label">{language === "es" ? "Notas de cierre económico" : "Financial close notes"}</label>
                       <textarea className="form-control" rows={3} value={actualForm.notes} onChange={(event) => setActualForm((current) => ({ ...current, notes: event.target.value }))} readOnly={isReadOnly} />
                     </div>
+                    {canCompleteFromModal ? (
+                      <div className="col-12">
+                        <label className="form-label">
+                          {language === "es" ? "Nota operativa de cierre" : "Operational closure note"}
+                        </label>
+                        <textarea
+                          className="form-control"
+                          rows={2}
+                          value={completionNote}
+                          onChange={(event) => setCompletionNote(event.target.value)}
+                          placeholder={
+                            language === "es"
+                              ? "Ej.: trabajo ejecutado, repuestos usados, hallazgos y condición de entrega"
+                              : "E.g. work performed, used spare parts, findings, and delivery condition"
+                          }
+                        />
+                        <div className="maintenance-history-entry__meta mt-2">
+                          {language === "es"
+                            ? "Al cerrar desde aquí se guarda primero el costo real y luego se cambia el estado a completada."
+                            : "Closing from here saves actual cost first and then changes the status to completed."}
+                        </div>
+                      </div>
+                    ) : null}
                     <div className="col-12">
                       {renderLineEditor(
                         actualLines,
@@ -1348,6 +1468,22 @@ export function MaintenanceCostingModal({
                             ? "Guardar costo real"
                             : "Save actual cost"}
                       </button>
+                      {canCompleteFromModal ? (
+                        <button
+                          className="btn btn-success"
+                          type="button"
+                          onClick={() => void handleCompleteWithActualCost()}
+                          disabled={isActualSubmitting || isCompleting}
+                        >
+                          {isCompleting
+                            ? language === "es"
+                              ? "Cerrando..."
+                              : "Closing..."
+                            : language === "es"
+                              ? "Guardar y cerrar mantención"
+                              : "Save and close maintenance"}
+                        </button>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>

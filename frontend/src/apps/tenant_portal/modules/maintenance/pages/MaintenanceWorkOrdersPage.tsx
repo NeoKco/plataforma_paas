@@ -1389,6 +1389,7 @@ export function MaintenanceWorkOrdersPage() {
 
       <MaintenanceCostingModal
         accessToken={session?.accessToken}
+        allowComplete
         clientLabel={costingWorkOrder ? getClientDisplayName(costingWorkOrder.client_id) : "—"}
         siteLabel={costingWorkOrder ? getSiteDisplayName(costingWorkOrder.site_id) : "—"}
         installationLabel={
@@ -1403,7 +1404,10 @@ export function MaintenanceWorkOrdersPage() {
         language={language}
         mode="edit"
         onClose={closeCostingModal}
+        onCompleted={() => void loadData()}
         onFeedback={setFeedback}
+        taskTypeId={costingWorkOrder?.schedule_id ? scheduleById.get(costingWorkOrder.schedule_id)?.task_type_id ?? null : null}
+        taskTypeLabel={costingWorkOrder ? getTaskTypeLabel(costingWorkOrder) : null}
         workOrder={costingWorkOrder}
       />
       <MaintenanceWorkOrderDetailModal
@@ -1679,9 +1683,9 @@ export function MaintenanceWorkOrdersPage() {
                 <button
                   className="btn btn-sm btn-outline-success"
                   type="button"
-                  onClick={() => void handleStatusChange(item, "completed")}
+                  onClick={() => void openCostingModal(item)}
                 >
-                  {language === "es" ? "Completar" : "Complete"}
+                  {language === "es" ? "Cerrar con costos" : "Close with costing"}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-danger"
