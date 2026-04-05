@@ -121,7 +121,7 @@ Pendiente inmediato de esta fase:
 - usar `function_profiles` y `task_types` de forma más profunda
 - mejorar cierre operacional desde historial/ficha
 - endurecer y ejecutar importadores desde `ieris_app`
-- agenda visual con conflictos, filtros y reprogramación más rica
+- agenda visual con conflictos, filtros y reprogramación auditada ya lista; faltan ventanas de visita más finas
 - abrir programaciones automáticas y bandeja preventiva de vencimientos
 - abrir costeo y cobro por orden de trabajo
 - primer corte de costeo/cobro por orden de trabajo ya operativo en `Mantenciones`

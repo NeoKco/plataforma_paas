@@ -16,6 +16,7 @@
   - permite ajustar fecha/hora, instalación y responsables sin borrar historial
   - guarda `Motivo de reprogramación` opcional
   - deja traza visible en `Historial técnico` reutilizando `status_logs`
+  - no requiere nueva migración tenant; se valida sobre el schema ya sincronizado en `0028_maintenance_field_reports`
 - se implementa el primer corte real de `Checklist y evidencias` por OT:
   - nueva migración tenant `0028_maintenance_field_reports`
   - tablas `maintenance_work_order_checklist_items` y `maintenance_work_order_evidences`

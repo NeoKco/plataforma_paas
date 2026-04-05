@@ -402,11 +402,11 @@ Limitaciones actuales:
 
 - asociar cada mantencion a una instalacion cuando corresponda
 - reemplazar la tabla compacta por una lista operativa con ficha lateral
-- separar claramente acciones `cerrar`, `anular`, `reprogramar`
+- profundizar el flujo `reprogramar` con ventanas de visita y coordinación de terreno
 - usar adjuntos/evidencias del modulo, no filesystem ad hoc
 - preparar el modulo para crecer luego hacia expediente tecnico sin acoplarlo desde el inicio
 - exponer `status_logs` y `visits` en el frontend antes de sumar agenda completa
-- agregar agenda visual con conflictos y reprogramación sin romper el slice ya operativo
+- agregar agenda visual con visitas más finas sin romper el slice ya operativo
 
 ## Decisiones ya tomadas
 

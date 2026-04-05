@@ -73,8 +73,8 @@ El primer corte del modulo ya permite:
 - `CRM`
 - `cotizaciones`
 - expediente tecnico completo
-- historial enriquecido por visitas
-- filtros por técnico/grupo y reprogramación rica
+- vistas de visita más finas por terreno
+- reprogramación de terreno más avanzada con ventanas operativas
 
 ## Flujo operativo esperado
 
