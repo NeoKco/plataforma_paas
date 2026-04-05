@@ -212,6 +212,8 @@ Eso permite validar primero la consola de plataforma y después el flujo tenant 
 
 `npm run e2e:tenant` ya ejecuta todo `tenant-portal*.spec.ts`, incluyendo el smoke de límites y los smokes de `finance`.
 
+Los helpers [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh) y [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh) limpian automáticamente los tenants efímeros `e2e-*` al terminar; si se necesita inspeccionarlos después del run, ambos aceptan `--skip-e2e-cleanup`.
+
 Resultado validado en local a la fecha:
 
 - `platform_admin` smoke pasando

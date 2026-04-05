@@ -15,6 +15,8 @@ RUN_TENANT=1
 STARTED_BACKEND=0
 BACKEND_PID=""
 TARGET="all"
+RUN_E2E_CLEANUP=1
+E2E_CLEANUP_PREFIX="${E2E_CLEANUP_PREFIX:-e2e-}"
 
 usage() {
   cat <<'EOF'
@@ -26,12 +28,14 @@ Opciones:
   --platform-only   Ejecuta solo build + baseline platform
   --tenant-only     Ejecuta solo build + baseline tenant
   --skip-build      Omite npm run build
+  --skip-e2e-cleanup Omite el cleanup final de tenants `e2e-*`
   --help            Muestra esta ayuda
 
 Variables útiles:
   E2E_PLATFORM_EMAIL / E2E_PLATFORM_PASSWORD
   E2E_TENANT_SLUG / E2E_TENANT_EMAIL / E2E_TENANT_PASSWORD
   E2E_BACKEND_PYTHON
+  E2E_CLEANUP_PREFIX
   BACKEND_HOST / BACKEND_PORT
   FRONTEND_HOST / FRONTEND_PORT
 EOF
@@ -60,6 +64,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-build)
       RUN_BUILD=0
+      ;;
+    --skip-e2e-cleanup)
+      RUN_E2E_CLEANUP=0
       ;;
     --help)
       usage
@@ -131,13 +138,30 @@ raise SystemExit(f"Health check failed for {url}: {last_error}")
 PY
 }
 
+run_e2e_cleanup() {
+  echo "==> Cleanup tenants E2E con prefijo $E2E_CLEANUP_PREFIX"
+  (
+    cd "$BACKEND_DIR"
+    PYTHONPATH="$BACKEND_DIR" "$PYTHON_BIN" app/scripts/cleanup_e2e_tenants.py --prefix "$E2E_CLEANUP_PREFIX" --apply
+  )
+}
+
 cleanup() {
+  local exit_code="${1:-0}"
+  set +e
+
+  if [[ "$RUN_E2E_CLEANUP" -eq 1 ]]; then
+    run_e2e_cleanup || true
+  fi
+
   if [[ "$STARTED_BACKEND" -eq 1 && -n "$BACKEND_PID" ]]; then
     kill "$BACKEND_PID" >/dev/null 2>&1 || true
     wait "$BACKEND_PID" 2>/dev/null || true
   fi
+
+  return "$exit_code"
 }
-trap cleanup EXIT
+trap 'cleanup "$?"' EXIT
 
 echo "==> Migraciones de control"
 (

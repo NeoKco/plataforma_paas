@@ -16,6 +16,8 @@ REDIS_URL="${BROKER_REDIS_URL:-redis://$REDIS_HOST:$REDIS_PORT/$REDIS_DB}"
 BACKEND_PID=""
 FRONTEND_PID=""
 TARGET="all"
+RUN_E2E_CLEANUP=1
+E2E_CLEANUP_PREFIX="${E2E_CLEANUP_PREFIX:-e2e-}"
 
 usage() {
   cat <<'EOF'
@@ -26,10 +28,12 @@ Ejecuta la validación local broker-only para los 3 smokes DLQ de provisioning.
 
 Opciones:
   --target VALUE   Selecciona `all`, `batch`, `row` o `filters`
+  --skip-e2e-cleanup Omite el cleanup final de tenants `e2e-*`
   --help           Muestra esta ayuda
 
 Variables útiles:
   E2E_BACKEND_PYTHON
+  E2E_CLEANUP_PREFIX
   BROKER_BACKEND_HOST / BROKER_BACKEND_PORT
   BROKER_FRONTEND_HOST / BROKER_FRONTEND_PORT
   BROKER_REDIS_HOST / BROKER_REDIS_PORT / BROKER_REDIS_DB / BROKER_REDIS_URL
@@ -49,6 +53,10 @@ while [[ $# -gt 0 ]]; do
     --help)
       usage
       exit 0
+      ;;
+    --skip-e2e-cleanup)
+      RUN_E2E_CLEANUP=0
+      shift
       ;;
     *)
       echo "Opción no reconocida: $1" >&2
@@ -97,6 +105,17 @@ PY
 }
 
 cleanup() {
+  local exit_code="${1:-0}"
+  set +e
+
+  if [[ "$RUN_E2E_CLEANUP" -eq 1 ]]; then
+    echo "==> Cleanup tenants E2E con prefijo $E2E_CLEANUP_PREFIX"
+    (
+      cd "$BACKEND_DIR"
+      PYTHONPATH="$BACKEND_DIR" "$PYTHON_BIN" app/scripts/cleanup_e2e_tenants.py --prefix "$E2E_CLEANUP_PREFIX" --apply
+    ) || true
+  fi
+
   if [[ -n "$BACKEND_PID" ]]; then
     kill "$BACKEND_PID" >/dev/null 2>&1 || true
     wait "$BACKEND_PID" 2>/dev/null || true
@@ -105,8 +124,10 @@ cleanup() {
     kill "$FRONTEND_PID" >/dev/null 2>&1 || true
     wait "$FRONTEND_PID" 2>/dev/null || true
   fi
+
+  return "$exit_code"
 }
-trap cleanup EXIT
+trap 'cleanup "$?"' EXIT
 
 echo "==> Verificando Redis broker en $REDIS_URL"
 if command -v redis-cli >/dev/null 2>&1; then
