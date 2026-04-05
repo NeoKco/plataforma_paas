@@ -8,6 +8,7 @@ from app.apps.tenant_modules.maintenance.dependencies import (
 )
 from app.apps.tenant_modules.maintenance.schemas import (
     MaintenanceScheduleCreateRequest,
+    MaintenanceScheduleEstimateLineItemResponse,
     MaintenanceScheduleItemResponse,
     MaintenanceScheduleMutationResponse,
     MaintenanceScheduleSuggestionItemResponse,
@@ -46,9 +47,29 @@ def _build_item(item) -> MaintenanceScheduleItemResponse:
         default_priority=item.default_priority,
         estimated_duration_minutes=item.estimated_duration_minutes,
         billing_mode=item.billing_mode,
+        estimate_target_margin_percent=item.estimate_target_margin_percent,
+        estimate_notes=item.estimate_notes,
         is_active=item.is_active,
         auto_create_due_items=item.auto_create_due_items,
         notes=item.notes,
+        estimate_lines=[
+            MaintenanceScheduleEstimateLineItemResponse(
+                id=line.id,
+                schedule_id=line.schedule_id,
+                line_type=line.line_type,
+                description=line.description,
+                quantity=line.quantity,
+                unit_cost=line.unit_cost,
+                total_cost=line.total_cost,
+                sort_order=line.sort_order,
+                notes=line.notes,
+                created_by_user_id=line.created_by_user_id,
+                updated_by_user_id=line.updated_by_user_id,
+                created_at=line.created_at,
+                updated_at=line.updated_at,
+            )
+            for line in getattr(item, "estimate_lines", [])
+        ],
         created_by_user_id=item.created_by_user_id,
         created_at=item.created_at,
         updated_at=item.updated_at,

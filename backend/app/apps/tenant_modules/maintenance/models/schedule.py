@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.common.db.tenant_base import TenantBase
@@ -44,6 +44,8 @@ class MaintenanceSchedule(TenantBase):
     default_priority: Mapped[str] = mapped_column(String(30), nullable=False, default="normal", index=True)
     estimated_duration_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     billing_mode: Mapped[str] = mapped_column(String(30), nullable=False, default="per_work_order", index=True)
+    estimate_target_margin_percent: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    estimate_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
     auto_create_due_items: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)

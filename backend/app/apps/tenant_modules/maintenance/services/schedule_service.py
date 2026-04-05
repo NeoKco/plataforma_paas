@@ -10,6 +10,7 @@ from app.apps.tenant_modules.business_core.models import (
 from app.apps.tenant_modules.maintenance.models import (
     MaintenanceInstallation,
     MaintenanceSchedule,
+    MaintenanceScheduleCostLine,
     MaintenanceWorkOrder,
 )
 from app.apps.tenant_modules.maintenance.repositories import (
@@ -22,6 +23,7 @@ from app.apps.tenant_modules.maintenance.schemas import (
 
 VALID_FREQUENCY_UNITS = {"days", "weeks", "months", "years"}
 VALID_BILLING_MODES = {"per_work_order", "contract", "warranty", "no_charge"}
+VALID_ESTIMATE_LINE_TYPES = {"labor", "travel", "material", "service", "overhead"}
 
 
 class MaintenanceScheduleService:
@@ -70,8 +72,16 @@ class MaintenanceScheduleService:
             raise ValueError("Ya existe una programacion activa equivalente para este cliente")
         item = MaintenanceSchedule(**normalized, created_by_user_id=created_by_user_id)
         tenant_db.add(item)
+        tenant_db.flush()
+        estimate_lines = self._sync_estimate_lines(
+            tenant_db,
+            item.id,
+            payload.estimate_lines,
+            actor_user_id=created_by_user_id,
+        )
         tenant_db.commit()
         tenant_db.refresh(item)
+        item.estimate_lines = estimate_lines
         return item
 
     def suggest_schedule_seed(
@@ -171,7 +181,17 @@ class MaintenanceScheduleService:
             raise ValueError("Ya existe una programacion activa equivalente para este cliente")
         for field, value in normalized.items():
             setattr(item, field, value)
-        return self.schedule_repository.save(tenant_db, item)
+        tenant_db.add(item)
+        estimate_lines = self._sync_estimate_lines(
+            tenant_db,
+            item.id,
+            payload.estimate_lines,
+            actor_user_id=None,
+        )
+        tenant_db.commit()
+        tenant_db.refresh(item)
+        item.estimate_lines = estimate_lines
+        return item
 
     def set_schedule_active(
         self,
@@ -218,6 +238,8 @@ class MaintenanceScheduleService:
             "default_priority": payload.default_priority.strip().lower(),
             "estimated_duration_minutes": payload.estimated_duration_minutes,
             "billing_mode": payload.billing_mode.strip().lower(),
+            "estimate_target_margin_percent": max(payload.estimate_target_margin_percent, 0),
+            "estimate_notes": payload.estimate_notes.strip() if payload.estimate_notes and payload.estimate_notes.strip() else None,
             "is_active": payload.is_active,
             "auto_create_due_items": payload.auto_create_due_items,
             "notes": payload.notes.strip() if payload.notes and payload.notes.strip() else None,
@@ -244,6 +266,8 @@ class MaintenanceScheduleService:
             raise ValueError("La proxima mantencion es obligatoria")
         if payload["last_executed_at"] and payload["next_due_at"] <= payload["last_executed_at"]:
             raise ValueError("La proxima fecha debe ser posterior a la ultima mantencion")
+        if payload["estimate_target_margin_percent"] < 0:
+            raise ValueError("El margen objetivo no puede ser negativo")
 
         client_exists = (
             tenant_db.query(BusinessClient.id)
@@ -282,6 +306,66 @@ class MaintenanceScheduleService:
             )
             if task_type_exists is None:
                 raise ValueError("El tipo de mantencion seleccionado no existe")
+
+    def _sync_estimate_lines(
+        self,
+        tenant_db: Session,
+        schedule_id: int,
+        payload_lines,
+        *,
+        actor_user_id: int | None = None,
+    ) -> list[MaintenanceScheduleCostLine]:
+        existing = (
+            tenant_db.query(MaintenanceScheduleCostLine)
+            .filter(MaintenanceScheduleCostLine.schedule_id == schedule_id)
+            .all()
+        )
+        existing_by_id = {item.id: item for item in existing}
+        keep_ids: set[int] = set()
+        saved: list[MaintenanceScheduleCostLine] = []
+
+        for index, raw_line in enumerate(payload_lines or []):
+            line_type = raw_line.line_type.strip().lower()
+            if line_type not in VALID_ESTIMATE_LINE_TYPES:
+                raise ValueError("El tipo de línea estimada no es válido")
+            quantity = max(raw_line.quantity, 0)
+            unit_cost = max(raw_line.unit_cost, 0)
+            description = raw_line.description.strip() if raw_line.description and raw_line.description.strip() else None
+            notes = raw_line.notes.strip() if raw_line.notes and raw_line.notes.strip() else None
+            total_cost = round(quantity * unit_cost, 2)
+
+            current = existing_by_id.get(raw_line.id) if raw_line.id is not None else None
+            if current is None:
+                current = MaintenanceScheduleCostLine(
+                    schedule_id=schedule_id,
+                    created_by_user_id=actor_user_id,
+                )
+                tenant_db.add(current)
+
+            current.line_type = line_type
+            current.description = description
+            current.quantity = quantity
+            current.unit_cost = unit_cost
+            current.total_cost = total_cost
+            current.sort_order = index
+            current.notes = notes
+            current.updated_by_user_id = actor_user_id
+            saved.append(current)
+            if getattr(current, "id", None) is not None:
+                keep_ids.add(current.id)
+
+        for current in existing:
+            current_id = getattr(current, "id", None)
+            if current_id is not None and current_id not in keep_ids:
+                tenant_db.delete(current)
+
+        tenant_db.flush()
+        return (
+            tenant_db.query(MaintenanceScheduleCostLine)
+            .filter(MaintenanceScheduleCostLine.schedule_id == schedule_id)
+            .order_by(MaintenanceScheduleCostLine.sort_order.asc(), MaintenanceScheduleCostLine.id.asc())
+            .all()
+        )
 
     def _get_latest_completed_work_order(
         self,

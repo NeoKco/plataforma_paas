@@ -49,9 +49,27 @@ class MaintenanceScheduleServiceTestCase(unittest.TestCase):
                 default_priority="normal",
                 estimated_duration_minutes=90,
                 billing_mode="per_work_order",
+                estimate_target_margin_percent=25,
+                estimate_notes="Kit preventivo base",
                 is_active=True,
                 auto_create_due_items=True,
                 notes=None,
+                estimate_lines=[
+                    {
+                        "line_type": "material",
+                        "description": "Filtro",
+                        "quantity": 2,
+                        "unit_cost": 3500,
+                        "notes": None,
+                    },
+                    {
+                        "line_type": "service",
+                        "description": "Calibración externa",
+                        "quantity": 1,
+                        "unit_cost": 12000,
+                        "notes": "Proveedor homologado",
+                    },
+                ],
             ),
             created_by_user_id=4,
         )
@@ -59,6 +77,9 @@ class MaintenanceScheduleServiceTestCase(unittest.TestCase):
         self.assertEqual(created.last_executed_at.tzinfo, timezone.utc)
         self.assertEqual(created.next_due_at.tzinfo, timezone.utc)
         self.assertEqual(created.next_due_at.year, 2027)
+        self.assertEqual(created.estimate_target_margin_percent, 25)
+        self.assertEqual(created.estimate_notes, "Kit preventivo base")
+        self.assertEqual(len(created.estimate_lines), 2)
 
     def test_suggest_schedule_seed_uses_completed_history_from_current_year(self) -> None:
         reference_completed_at = datetime(2026, 4, 3, 18, 30, tzinfo=timezone.utc)

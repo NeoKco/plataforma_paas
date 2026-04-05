@@ -22,6 +22,9 @@ from app.apps.tenant_modules.maintenance.schemas import (
 from app.apps.tenant_modules.maintenance.services.work_order_service import (
     MaintenanceWorkOrderService,
 )
+from app.apps.tenant_modules.maintenance.services.costing_service import (
+    MaintenanceCostingService,
+)
 
 
 class MaintenanceDueItemService:
@@ -31,11 +34,13 @@ class MaintenanceDueItemService:
         schedule_repository: MaintenanceScheduleRepository | None = None,
         work_order_repository: MaintenanceWorkOrderRepository | None = None,
         work_order_service: MaintenanceWorkOrderService | None = None,
+        costing_service: MaintenanceCostingService | None = None,
     ) -> None:
         self.due_item_repository = due_item_repository or MaintenanceDueItemRepository()
         self.schedule_repository = schedule_repository or MaintenanceScheduleRepository()
         self.work_order_repository = work_order_repository or MaintenanceWorkOrderRepository()
         self.work_order_service = work_order_service or MaintenanceWorkOrderService()
+        self.costing_service = costing_service or MaintenanceCostingService()
 
     def list_due_items(
         self,
@@ -166,6 +171,12 @@ class MaintenanceDueItemService:
         work_order.due_item_id = item.id
         work_order.billing_mode = schedule.billing_mode
         work_order = self.work_order_repository.save(tenant_db, work_order)
+        self.costing_service.seed_estimate_from_schedule(
+            tenant_db,
+            work_order.id,
+            schedule.id,
+            actor_user_id=created_by_user_id,
+        )
 
         item.site_id = site_id
         item.installation_id = installation_id

@@ -47,6 +47,8 @@ from app.apps.tenant_modules.maintenance.schemas.installation import (
 )
 from app.apps.tenant_modules.maintenance.schemas.schedule import (
     MaintenanceScheduleCreateRequest,
+    MaintenanceScheduleEstimateLineItemResponse,
+    MaintenanceScheduleEstimateLineWriteItem,
     MaintenanceScheduleItemResponse,
     MaintenanceScheduleMutationResponse,
     MaintenanceScheduleSuggestionItemResponse,
@@ -99,6 +101,8 @@ __all__ = [
     "MaintenanceInstallationMutationResponse",
     "MaintenanceInstallationsResponse",
     "MaintenanceScheduleCreateRequest",
+    "MaintenanceScheduleEstimateLineWriteItem",
+    "MaintenanceScheduleEstimateLineItemResponse",
     "MaintenanceScheduleUpdateRequest",
     "MaintenanceScheduleStatusRequest",
     "MaintenanceScheduleItemResponse",

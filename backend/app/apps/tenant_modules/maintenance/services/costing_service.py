@@ -13,6 +13,8 @@ from app.apps.tenant_modules.maintenance.models import (
     MaintenanceCostActual,
     MaintenanceCostEstimate,
     MaintenanceCostLine,
+    MaintenanceSchedule,
+    MaintenanceScheduleCostLine,
     MaintenanceWorkOrder,
 )
 
@@ -358,6 +360,98 @@ class MaintenanceCostingService:
                 )(),
                 actor_user_id=actor_user_id,
             )
+
+        def seed_estimate_from_schedule(
+            self,
+            tenant_db: Session,
+            work_order_id: int,
+            schedule_id: int,
+            *,
+            actor_user_id: int | None = None,
+        ) -> dict | None:
+            work_order = self._get_work_order_or_raise(tenant_db, work_order_id)
+            estimate = self._get_estimate(tenant_db, work_order_id)
+            if estimate is not None:
+                return self.get_costing_detail(tenant_db, work_order_id)
+
+            schedule = (
+                tenant_db.query(MaintenanceSchedule)
+                .filter(MaintenanceSchedule.id == schedule_id)
+                .first()
+            )
+            if schedule is None:
+                return None
+
+            schedule_lines = (
+                tenant_db.query(MaintenanceScheduleCostLine)
+                .filter(MaintenanceScheduleCostLine.schedule_id == schedule_id)
+                .order_by(MaintenanceScheduleCostLine.sort_order.asc(), MaintenanceScheduleCostLine.id.asc())
+                .all()
+            )
+            if not schedule_lines:
+                return None
+
+            estimate = MaintenanceCostEstimate(
+                work_order_id=work_order.id,
+                created_by_user_id=actor_user_id,
+                updated_by_user_id=actor_user_id,
+            )
+            tenant_db.add(estimate)
+            tenant_db.flush()
+
+            normalized = {
+                "labor_cost": 0.0,
+                "travel_cost": 0.0,
+                "materials_cost": 0.0,
+                "external_services_cost": 0.0,
+                "overhead_cost": 0.0,
+            }
+            seeded_lines: list[MaintenanceCostLine] = []
+            total_estimated_cost = 0.0
+
+            for line in schedule_lines:
+                bucket = self.LINE_TYPE_TO_BUCKET.get(line.line_type)
+                total_cost = round((line.quantity or 0) * (line.unit_cost or 0), 2)
+                if bucket:
+                    normalized[bucket] += total_cost
+                total_estimated_cost += total_cost
+                seeded = MaintenanceCostLine(
+                    work_order_id=work_order.id,
+                    cost_stage="estimate",
+                    line_type=line.line_type,
+                    description=line.description,
+                    quantity=line.quantity,
+                    unit_cost=line.unit_cost,
+                    total_cost=total_cost,
+                    notes=line.notes,
+                    created_by_user_id=actor_user_id,
+                    updated_by_user_id=actor_user_id,
+                )
+                tenant_db.add(seeded)
+                seeded_lines.append(seeded)
+
+            estimate.labor_cost = normalized["labor_cost"]
+            estimate.travel_cost = normalized["travel_cost"]
+            estimate.materials_cost = normalized["materials_cost"]
+            estimate.external_services_cost = normalized["external_services_cost"]
+            estimate.overhead_cost = normalized["overhead_cost"]
+            estimate.total_estimated_cost = round(total_estimated_cost, 2)
+            estimate.target_margin_percent = max(getattr(schedule, "estimate_target_margin_percent", 0) or 0, 0)
+            estimate.suggested_price = self._calculate_suggested_price(
+                estimate.total_estimated_cost,
+                estimate.target_margin_percent,
+            )
+            estimate.notes = self._normalize_text(getattr(schedule, "estimate_notes", None))
+
+            tenant_db.commit()
+            tenant_db.refresh(estimate)
+            return {
+                "work_order": work_order,
+                "estimate": estimate,
+                "actual": self._get_actual(tenant_db, work_order_id),
+                "estimate_lines": self._get_cost_lines(tenant_db, work_order_id, cost_stage="estimate"),
+                "actual_lines": self._get_cost_lines(tenant_db, work_order_id, cost_stage="actual"),
+            }
         except ValueError:
             return None
 

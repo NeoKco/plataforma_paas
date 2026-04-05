@@ -114,12 +114,14 @@ class MaintenanceDueItemServiceTestCase(unittest.TestCase):
         work_order_repository.save.side_effect = lambda _tenant_db, item: item
         work_order_service = Mock()
         work_order_service.create_work_order.return_value = created_work_order
+        costing_service = Mock()
 
         service = MaintenanceDueItemService(
             due_item_repository=due_item_repository,
             schedule_repository=schedule_repository,
             work_order_repository=work_order_repository,
             work_order_service=work_order_service,
+            costing_service=costing_service,
         )
         tenant_db = _FakeTenantDb(
             {
@@ -152,6 +154,12 @@ class MaintenanceDueItemServiceTestCase(unittest.TestCase):
         self.assertEqual(saved_due_item.assigned_work_group_id, 5)
         self.assertEqual(saved_due_item.assigned_tenant_user_id, 3)
         work_order_service.create_work_order.assert_called_once()
+        costing_service.seed_estimate_from_schedule.assert_called_once_with(
+            tenant_db,
+            91,
+            14,
+            actor_user_id=2,
+        )
         work_order_repository.save.assert_called_once()
         due_item_repository.save.assert_called_once()
 
