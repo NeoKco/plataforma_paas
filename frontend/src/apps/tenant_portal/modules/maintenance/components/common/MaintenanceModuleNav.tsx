@@ -31,6 +31,11 @@ export function MaintenanceModuleNav() {
       icon: "categories" as const,
     },
     {
+      to: "/tenant-portal/maintenance/cost-templates",
+      label: language === "es" ? "Plantillas" : "Templates",
+      icon: "categories" as const,
+    },
+    {
       to: "/tenant-portal/maintenance/history",
       label: language === "es" ? "Historial" : "History",
       icon: "tenant-history" as const,
