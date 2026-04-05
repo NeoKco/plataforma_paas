@@ -78,7 +78,7 @@ Pendiente inmediato dentro de esta fase:
 - enriquecer snapshot historico por responsable usando membresias reales
 - definir los siguientes contratos frontend/backend de integracion
 - abrir una ola de `organization addresses` si `Empresas` necesita capturar direccion propia de proveedor/partner sin mezclarla con `sites` de clientes
-- seguir endureciendo la nueva auditoria de duplicados con heuristicas de merge y soporte posterior de consolidacion guiada, mas alla del borrado seguro del primer corte
+- seguir endureciendo la nueva auditoria de duplicados con heuristicas de merge mas profundas y soporte posterior de consolidacion guiada completa, mas alla de la reasignacion operativa del corte actual
 
 ## Fase 4. Assets y responsables
 
@@ -110,7 +110,7 @@ Pendiente documentado:
 - cerrar la siguiente ola de integracion con `maintenance` sobre responsables reales
 - abrir `site_responsibles`
 - endurecer el importador inicial desde `ieris_app`
-- profundizar la depuracion de duplicados para soportar consolidacion y no solo deteccion + borrado seguro
+- profundizar la depuracion de duplicados para soportar consolidacion profunda de entidades y no solo reasignacion operativa + desactivacion segura
 
 ## Backlog pendiente visible
 
@@ -118,7 +118,7 @@ Pendiente documentado:
 - `site_responsibles`: pendiente
 - `assets` y `asset_types`: pendiente
 - importadores legacy desde `ieris_app`: primer corte listo, falta aplicacion y endurecimiento
-- auditoria operativa de duplicados: UI ya lista para `clients`, `sites` e `installations`, con sugerencia de ficha a conservar y desactivacion segura; falta merge/asimilacion guiada
+- auditoria operativa de duplicados: UI ya lista para `clients`, `sites` e `installations`, con sugerencia de ficha a conservar, consolidacion operativa y desactivacion segura; falta merge/asimilacion profunda guiada
 - integración con `projects`: pendiente
 - integración con `iot`: pendiente
 ## Estado actual

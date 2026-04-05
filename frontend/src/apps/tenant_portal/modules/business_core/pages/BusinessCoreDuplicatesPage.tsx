@@ -27,6 +27,7 @@ import {
   deleteTenantBusinessSite,
   getTenantBusinessSites,
   type TenantBusinessSite,
+  updateTenantBusinessSite,
   updateTenantBusinessSiteStatus,
 } from "../services/sitesService";
 import {
@@ -36,6 +37,7 @@ import {
   deleteTenantMaintenanceInstallation,
   getTenantMaintenanceInstallations,
   type TenantMaintenanceInstallation,
+  updateTenantMaintenanceInstallation,
   updateTenantMaintenanceInstallationStatus,
 } from "../../maintenance/services/installationsService";
 import {
@@ -45,6 +47,7 @@ import {
 import {
   getTenantMaintenanceWorkOrders,
   type TenantMaintenanceWorkOrder,
+  updateTenantMaintenanceWorkOrder,
 } from "../../maintenance/services/workOrdersService";
 
 type DuplicateEntityKind = "clients" | "sites" | "installations";
@@ -225,6 +228,70 @@ function getPreferredInstallationId(group: DuplicateGroup<InstallationAuditRow>)
       }
       return left.installation.id - right.installation.id;
     })[0]?.installation.id;
+}
+
+function buildSiteWritePayload(site: TenantBusinessSite, overrides: Partial<TenantBusinessSite> = {}) {
+  return {
+    client_id: overrides.client_id ?? site.client_id,
+    name: overrides.name ?? site.name,
+    site_code: overrides.site_code ?? site.site_code,
+    address_line: overrides.address_line ?? site.address_line,
+    commune: overrides.commune ?? site.commune,
+    city: overrides.city ?? site.city,
+    region: overrides.region ?? site.region,
+    country_code: overrides.country_code ?? site.country_code,
+    reference_notes: overrides.reference_notes ?? site.reference_notes,
+    is_active: overrides.is_active ?? site.is_active,
+    sort_order: overrides.sort_order ?? site.sort_order,
+  };
+}
+
+function buildInstallationWritePayload(
+  installation: TenantMaintenanceInstallation,
+  overrides: Partial<TenantMaintenanceInstallation> = {}
+) {
+  return {
+    site_id: overrides.site_id ?? installation.site_id,
+    equipment_type_id: overrides.equipment_type_id ?? installation.equipment_type_id,
+    name: overrides.name ?? installation.name,
+    serial_number: overrides.serial_number ?? installation.serial_number,
+    manufacturer: overrides.manufacturer ?? installation.manufacturer,
+    model: overrides.model ?? installation.model,
+    installed_at: overrides.installed_at ?? installation.installed_at,
+    last_service_at: overrides.last_service_at ?? installation.last_service_at,
+    warranty_until: overrides.warranty_until ?? installation.warranty_until,
+    installation_status: overrides.installation_status ?? installation.installation_status,
+    location_note: overrides.location_note ?? installation.location_note,
+    technical_notes: overrides.technical_notes ?? installation.technical_notes,
+    is_active: overrides.is_active ?? installation.is_active,
+    sort_order: overrides.sort_order ?? installation.sort_order,
+  };
+}
+
+function buildWorkOrderWritePayload(
+  workOrder: TenantMaintenanceWorkOrder,
+  overrides: Partial<TenantMaintenanceWorkOrder> = {}
+) {
+  return {
+    client_id: overrides.client_id ?? workOrder.client_id,
+    site_id: overrides.site_id ?? workOrder.site_id,
+    installation_id:
+      overrides.installation_id !== undefined
+        ? overrides.installation_id
+        : workOrder.installation_id,
+    assigned_work_group_id:
+      overrides.assigned_work_group_id ?? workOrder.assigned_work_group_id,
+    external_reference: overrides.external_reference ?? workOrder.external_reference,
+    title: overrides.title ?? workOrder.title,
+    description: overrides.description ?? workOrder.description,
+    priority: overrides.priority ?? workOrder.priority,
+    scheduled_for: overrides.scheduled_for ?? workOrder.scheduled_for,
+    cancellation_reason: overrides.cancellation_reason ?? workOrder.cancellation_reason,
+    closure_notes: overrides.closure_notes ?? workOrder.closure_notes,
+    assigned_tenant_user_id:
+      overrides.assigned_tenant_user_id ?? workOrder.assigned_tenant_user_id,
+    maintenance_status: overrides.maintenance_status ?? workOrder.maintenance_status,
+  };
 }
 
 function buildClientDuplicateGroups(rows: ClientAuditRow[]): DuplicateGroup<ClientAuditRow>[] {
@@ -780,6 +847,207 @@ export function BusinessCoreDuplicatesPage() {
     }
   }
 
+  async function handleMergeClientGroup(group: DuplicateGroup<ClientAuditRow>) {
+    if (!session?.accessToken) {
+      return;
+    }
+    const targetId = getPreferredClientId(group);
+    const target = group.members.find((member) => member.client.id === targetId);
+    const sources = group.members.filter((member) => member.client.id !== targetId);
+    if (!target || sources.length === 0) {
+      return;
+    }
+    const totalSites = sources.reduce(
+      (total, source) => total + sites.filter((site) => site.client_id === source.client.id).length,
+      0
+    );
+    const totalWorkOrders = sources.reduce(
+      (total, source) =>
+        total + workOrders.filter((workOrder) => workOrder.client_id === source.client.id).length,
+      0
+    );
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Consolidar ${sources.length} ficha(s) duplicada(s) en "${getClientName(target.organization, language)}". Se moverán ${totalSites} direcciones y ${totalWorkOrders} OT al cliente sugerido, y luego se desactivarán las fichas origen.`
+        : `Consolidate ${sources.length} duplicate record(s) into "${getClientName(target.organization, language)}". ${totalSites} addresses and ${totalWorkOrders} work orders will be moved to the suggested client, and the source records will then be deactivated.`
+    );
+    if (!confirmed) {
+      return;
+    }
+    setIsMutating(true);
+    setError(null);
+    try {
+      for (const source of sources) {
+        const relatedSites = sites.filter((site) => site.client_id === source.client.id);
+        for (const site of relatedSites) {
+          await updateTenantBusinessSite(
+            session.accessToken,
+            site.id,
+            buildSiteWritePayload(site, { client_id: target.client.id })
+          );
+        }
+        const relatedWorkOrders = workOrders.filter(
+          (workOrder) => workOrder.client_id === source.client.id
+        );
+        for (const workOrder of relatedWorkOrders) {
+          await updateTenantMaintenanceWorkOrder(
+            session.accessToken,
+            workOrder.id,
+            buildWorkOrderWritePayload(workOrder, { client_id: target.client.id })
+          );
+        }
+        if (source.client.is_active) {
+          await updateTenantBusinessClientStatus(session.accessToken, source.client.id, false);
+        }
+      }
+      setFeedback(
+        language === "es"
+          ? `Consolidación aplicada sobre ${sources.length} ficha(s) duplicada(s).`
+          : `Consolidation applied to ${sources.length} duplicate record(s).`
+      );
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
+  async function handleMergeSiteGroup(group: DuplicateGroup<SiteAuditRow>) {
+    if (!session?.accessToken) {
+      return;
+    }
+    const targetId = getPreferredSiteId(group);
+    const target = group.members.find((member) => member.site.id === targetId);
+    const sources = group.members.filter((member) => member.site.id !== targetId);
+    if (!target || sources.length === 0) {
+      return;
+    }
+    const totalInstallations = sources.reduce(
+      (total, source) =>
+        total + installations.filter((item) => item.site_id === source.site.id).length,
+      0
+    );
+    const totalWorkOrders = sources.reduce(
+      (total, source) =>
+        total + workOrders.filter((workOrder) => workOrder.site_id === source.site.id).length,
+      0
+    );
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Consolidar ${sources.length} dirección(es) duplicada(s) en "${getVisibleAddressLabel(target.site)}". Se moverán ${totalInstallations} instalaciones y ${totalWorkOrders} OT al sitio sugerido, y luego se desactivarán los sitios origen.`
+        : `Consolidate ${sources.length} duplicate address(es) into "${getVisibleAddressLabel(target.site)}". ${totalInstallations} installations and ${totalWorkOrders} work orders will be moved to the suggested site, and the source sites will then be deactivated.`
+    );
+    if (!confirmed) {
+      return;
+    }
+    setIsMutating(true);
+    setError(null);
+    try {
+      for (const source of sources) {
+        const relatedInstallations = installations.filter(
+          (item) => item.site_id === source.site.id
+        );
+        for (const installation of relatedInstallations) {
+          await updateTenantMaintenanceInstallation(
+            session.accessToken,
+            installation.id,
+            buildInstallationWritePayload(installation, { site_id: target.site.id })
+          );
+        }
+        const relatedWorkOrders = workOrders.filter(
+          (workOrder) => workOrder.site_id === source.site.id
+        );
+        for (const workOrder of relatedWorkOrders) {
+          await updateTenantMaintenanceWorkOrder(
+            session.accessToken,
+            workOrder.id,
+            buildWorkOrderWritePayload(workOrder, {
+              client_id: target.site.client_id,
+              site_id: target.site.id,
+            })
+          );
+        }
+        if (source.site.is_active) {
+          await updateTenantBusinessSiteStatus(session.accessToken, source.site.id, false);
+        }
+      }
+      setFeedback(
+        language === "es"
+          ? `Consolidación aplicada sobre ${sources.length} dirección(es) duplicada(s).`
+          : `Consolidation applied to ${sources.length} duplicate address(es).`
+      );
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
+  async function handleMergeInstallationGroup(group: DuplicateGroup<InstallationAuditRow>) {
+    if (!session?.accessToken) {
+      return;
+    }
+    const targetId = getPreferredInstallationId(group);
+    const target = group.members.find((member) => member.installation.id === targetId);
+    const sources = group.members.filter((member) => member.installation.id !== targetId);
+    if (!target || sources.length === 0) {
+      return;
+    }
+    const totalWorkOrders = sources.reduce(
+      (total, source) =>
+        total +
+        workOrders.filter((workOrder) => workOrder.installation_id === source.installation.id).length,
+      0
+    );
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Consolidar ${sources.length} instalación(es) duplicada(s) en "${target.installation.name}". Se moverán ${totalWorkOrders} OT a la instalación sugerida y luego se desactivarán las instalaciones origen.`
+        : `Consolidate ${sources.length} duplicate installation(s) into "${target.installation.name}". ${totalWorkOrders} work orders will be moved to the suggested installation and the source installations will then be deactivated.`
+    );
+    if (!confirmed) {
+      return;
+    }
+    setIsMutating(true);
+    setError(null);
+    try {
+      for (const source of sources) {
+        const relatedWorkOrders = workOrders.filter(
+          (workOrder) => workOrder.installation_id === source.installation.id
+        );
+        for (const workOrder of relatedWorkOrders) {
+          await updateTenantMaintenanceWorkOrder(
+            session.accessToken,
+            workOrder.id,
+            buildWorkOrderWritePayload(workOrder, {
+              client_id: target.client?.id ?? workOrder.client_id,
+              site_id: target.site?.id ?? workOrder.site_id,
+              installation_id: target.installation.id,
+            })
+          );
+        }
+        if (source.installation.is_active) {
+          await updateTenantMaintenanceInstallationStatus(
+            session.accessToken,
+            source.installation.id,
+            false
+          );
+        }
+      }
+      setFeedback(
+        language === "es"
+          ? `Consolidación aplicada sobre ${sources.length} instalación(es) duplicada(s).`
+          : `Consolidation applied to ${sources.length} duplicate installation(s).`
+      );
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
   function renderClientGroup(group: DuplicateGroup<ClientAuditRow>) {
     const preferredClientId = getPreferredClientId(group);
     return (
@@ -793,9 +1061,19 @@ export function BusinessCoreDuplicatesPage() {
               {language === "es" ? group.subtitleEs : group.subtitleEn}
             </p>
           </div>
-          <AppBadge tone="warning">
-            {group.members.length} {language === "es" ? "fichas" : "records"}
-          </AppBadge>
+          <div className="business-core-duplicates-group__header-actions">
+            <AppBadge tone="warning">
+              {group.members.length} {language === "es" ? "fichas" : "records"}
+            </AppBadge>
+            <button
+              className="btn btn-sm btn-outline-primary"
+              type="button"
+              disabled={isMutating || group.members.length < 2}
+              onClick={() => void handleMergeClientGroup(group)}
+            >
+              {language === "es" ? "Consolidar en sugerida" : "Consolidate into suggested"}
+            </button>
+          </div>
         </div>
         <div className="business-core-duplicates-list">
           {group.members.map((member) => {
@@ -901,9 +1179,19 @@ export function BusinessCoreDuplicatesPage() {
               {language === "es" ? group.subtitleEs : group.subtitleEn}
             </p>
           </div>
-          <AppBadge tone="warning">
-            {group.members.length} {language === "es" ? "direcciones" : "addresses"}
-          </AppBadge>
+          <div className="business-core-duplicates-group__header-actions">
+            <AppBadge tone="warning">
+              {group.members.length} {language === "es" ? "direcciones" : "addresses"}
+            </AppBadge>
+            <button
+              className="btn btn-sm btn-outline-primary"
+              type="button"
+              disabled={isMutating || group.members.length < 2}
+              onClick={() => void handleMergeSiteGroup(group)}
+            >
+              {language === "es" ? "Consolidar en sugerida" : "Consolidate into suggested"}
+            </button>
+          </div>
         </div>
         <div className="business-core-duplicates-list">
           {group.members.map((member) => {
@@ -1001,9 +1289,19 @@ export function BusinessCoreDuplicatesPage() {
               {language === "es" ? group.subtitleEs : group.subtitleEn}
             </p>
           </div>
-          <AppBadge tone="warning">
-            {group.members.length} {language === "es" ? "instalaciones" : "installations"}
-          </AppBadge>
+          <div className="business-core-duplicates-group__header-actions">
+            <AppBadge tone="warning">
+              {group.members.length} {language === "es" ? "instalaciones" : "installations"}
+            </AppBadge>
+            <button
+              className="btn btn-sm btn-outline-primary"
+              type="button"
+              disabled={isMutating || group.members.length < 2}
+              onClick={() => void handleMergeInstallationGroup(group)}
+            >
+              {language === "es" ? "Consolidar en sugerida" : "Consolidate into suggested"}
+            </button>
+          </div>
         </div>
         <div className="business-core-duplicates-list">
           {group.members.map((member) => {
@@ -1187,8 +1485,8 @@ export function BusinessCoreDuplicatesPage() {
         </div>
         <div className="business-core-duplicates-note">
           {language === "es"
-            ? "La interfaz marca una ficha sugerida para conservar por grupo. Si la duplicada ya tiene historial, conviene desactivarla; si está vacía, puedes borrarla." 
-            : "The interface marks one suggested record to keep per group. If the duplicate already has history, it is better to deactivate it; if it is empty, you can delete it."}
+            ? "La interfaz marca una ficha sugerida para conservar por grupo. Si la duplicada ya tiene historial, conviene desactivarla o consolidarla hacia la sugerida; si está vacía, puedes borrarla."
+            : "The interface marks one suggested record to keep per group. If the duplicate already has history, it is better to deactivate it or consolidate it into the suggested one; if it is empty, you can delete it."}
         </div>
       </PanelCard>
 

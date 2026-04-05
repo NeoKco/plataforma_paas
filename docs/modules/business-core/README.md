@@ -39,7 +39,7 @@ Estado actual:
 - `business_work_group_members` ya existe como tabla y CRUD real para modelar membresias entre usuarios tenant y grupos de trabajo
 - la vista de `work_groups` ya expone conteo de miembros y acceso directo a la gestion de `Miembros`
 - `maintenance` ya consume `work_groups` reales para asignar grupo responsable en ordenes y visitas, en vez de depender solo de etiquetas legacy o texto libre
-- la nueva vista `Depuración` ya detecta grupos duplicados de `Clientes`, `Direcciones` e `Instalaciones`, sugiere qué ficha conviene conservar y muestra dependencias visibles antes de borrar o desactivar para apoyar la limpieza operativa de la BD
+- la nueva vista `Depuración` ya detecta grupos duplicados de `Clientes`, `Direcciones` e `Instalaciones`, sugiere qué ficha conviene conservar y permite consolidar referencias operativas hacia esa ficha antes de borrar o desactivar para apoyar la limpieza operativa de la BD
 
 Pendientes visibles inmediatos:
 
@@ -48,7 +48,7 @@ Pendientes visibles inmediatos:
 - importadores desde `ieris_app`
 - integracion mas profunda con `maintenance` para filtros por grupo, snapshot historico enriquecido y agenda por responsable
 - direccion propia de `organizations` como entidad/modelo de primer nivel o bloque dedicado, sin improvisarla como texto plano en el modal
-- futura depuracion avanzada de duplicados con merge/asimilacion de fichas; el primer corte actual solo agrupa coincidencias exactas normalizadas y habilita borrado seguro cuando no hay dependencias
+- futura depuracion avanzada de duplicados con merge/asimilacion profunda de fichas; el corte actual ya consolida referencias operativas visibles, pero todavia no fusiona contactos, organizaciones ni notas historicas en una sola entidad final
 
 Estado del importador legacy:
 

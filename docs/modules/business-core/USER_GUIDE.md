@@ -62,7 +62,7 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - un cliente con historial de mantenciones no deberia eliminarse; desde ese punto en adelante solo corresponde desactivarlo para no romper trazabilidad ni reportes.
 - si aparece la pareja, un familiar o un tercero ligado al mismo domicilio o contexto operativo, no deberia crearse como cliente nuevo por defecto; primero debe revisarse si corresponde agregarlo como contacto del cliente existente.
 - la captura de `Nuevo cliente` deberia advertir coincidencias fuertes por RUT, nombre, telefono, email o direccion y desviar al usuario hacia la ficha existente antes de duplicar la cartera.
-- cuando ya existen duplicados en la base, la pantalla `Depuración` debe agrupar `Clientes`, `Direcciones` e `Instalaciones` por coincidencias exactas normalizadas, sugerir qué ficha conservar y mostrar dependencias visibles para ayudar a decidir qué ficha borrar o desactivar sin romper historial.
+- cuando ya existen duplicados en la base, la pantalla `Depuración` debe agrupar `Clientes`, `Direcciones` e `Instalaciones` por coincidencias exactas normalizadas, sugerir qué ficha conservar y mostrar dependencias visibles para ayudar a decidir qué ficha borrar, desactivar o consolidar sin romper historial.
 
 Eso genera:
 
