@@ -64,7 +64,9 @@ import {
   type TenantBusinessTaskType,
 } from "../../business_core/services/taskTypesService";
 import {
+  getTenantBusinessWorkGroupMembers,
   getTenantBusinessWorkGroups,
+  type TenantBusinessWorkGroupMember,
   type TenantBusinessWorkGroup,
 } from "../../business_core/services/workGroupsService";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
@@ -227,6 +229,24 @@ function getDueLabel(status: string, language: "es" | "en"): string {
   }
 }
 
+function isMembershipActive(member: {
+  is_active: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+}) {
+  if (!member.is_active) {
+    return false;
+  }
+  const now = new Date();
+  if (member.starts_at && new Date(member.starts_at) > now) {
+    return false;
+  }
+  if (member.ends_at && new Date(member.ends_at) < now) {
+    return false;
+  }
+  return true;
+}
+
 export function MaintenanceDueItemsPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
@@ -240,6 +260,7 @@ export function MaintenanceDueItemsPage() {
   const [costTemplates, setCostTemplates] = useState<TenantMaintenanceCostTemplate[]>([]);
   const [taskTypes, setTaskTypes] = useState<TenantBusinessTaskType[]>([]);
   const [workGroups, setWorkGroups] = useState<TenantBusinessWorkGroup[]>([]);
+  const [workGroupMembers, setWorkGroupMembers] = useState<TenantBusinessWorkGroupMember[]>([]);
   const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -276,6 +297,16 @@ export function MaintenanceDueItemsPage() {
     [installations]
   );
   const taskTypeById = useMemo(() => new Map(taskTypes.map((item) => [item.id, item])), [taskTypes]);
+  const workGroupMemberByKey = useMemo(
+    () =>
+      new Map(
+        workGroupMembers.map((member) => [
+          `${member.group_id}:${member.tenant_user_id}`,
+          member,
+        ])
+      ),
+    [workGroupMembers]
+  );
 
   const filteredSitesForSchedule = useMemo(
     () =>
@@ -284,6 +315,37 @@ export function MaintenanceDueItemsPage() {
         : sites,
     [scheduleForm.client_id, sites]
   );
+  const activeTenantUsers = useMemo(
+    () => tenantUsers.filter((user) => user.is_active),
+    [tenantUsers]
+  );
+  const dueScheduleRequiresFunctionalProfile = Boolean(selectedDueItem?.task_type_id);
+  const dueScheduleTaskTypeLabel = useMemo(() => {
+    if (!selectedDueItem?.task_type_id) {
+      return null;
+    }
+    return taskTypeById.get(selectedDueItem.task_type_id)?.name || `#${selectedDueItem.task_type_id}`;
+  }, [selectedDueItem?.task_type_id, taskTypeById]);
+  const selectableDueScheduleTechnicians = useMemo(() => {
+    if (!dueScheduleForm.assigned_work_group_id) {
+      return activeTenantUsers;
+    }
+    const memberships = workGroupMembers.filter(
+      (member) =>
+        member.group_id === dueScheduleForm.assigned_work_group_id && isMembershipActive(member)
+    );
+    const allowedIds = new Set(
+      memberships
+        .filter((member) => !dueScheduleRequiresFunctionalProfile || member.function_profile_id !== null)
+        .map((member) => member.tenant_user_id)
+    );
+    return activeTenantUsers.filter((user) => allowedIds.has(user.id));
+  }, [
+    activeTenantUsers,
+    dueScheduleForm.assigned_work_group_id,
+    dueScheduleRequiresFunctionalProfile,
+    workGroupMembers,
+  ]);
   const filteredInstallationsForSchedule = useMemo(
     () =>
       scheduleForm.site_id
@@ -569,6 +631,11 @@ export function MaintenanceDueItemsPage() {
         getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false }),
         getTenantUsers(session.accessToken),
       ]);
+      const workGroupMembersResponses = await Promise.all(
+        workGroupsResponse.data.map((group) =>
+          getTenantBusinessWorkGroupMembers(session.accessToken as string, group.id)
+        )
+      );
       setRows(dueItemsResponse.data);
       setSchedules(schedulesResponse.data);
       setCostTemplates(sortCostTemplates(costTemplatesResponse.data));
@@ -578,6 +645,7 @@ export function MaintenanceDueItemsPage() {
       setInstallations(installationsResponse.data);
       setTaskTypes(taskTypesResponse.data);
       setWorkGroups(workGroupsResponse.data);
+      setWorkGroupMembers(workGroupMembersResponses.flatMap((response) => response.data));
       setTenantUsers(tenantUsersResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -626,6 +694,17 @@ export function MaintenanceDueItemsPage() {
       return language === "es" ? "Instalación pendiente" : "Installation pending";
     }
     return installationById.get(installationId)?.name || `#${installationId}`;
+  }
+
+  function getDueScheduleTechnicianLabel(userId: number): string {
+    const fullName = activeTenantUsers.find((user) => user.id === userId)?.full_name || `#${userId}`;
+    if (!dueScheduleForm.assigned_work_group_id) {
+      return fullName;
+    }
+    const profileLabel = workGroupMemberByKey.get(
+      `${dueScheduleForm.assigned_work_group_id}:${userId}`
+    )?.function_profile_name;
+    return profileLabel ? `${fullName} · ${profileLabel}` : fullName;
   }
 
   function renderDueActions(item: TenantMaintenanceDueItem) {
@@ -2417,6 +2496,7 @@ export function MaintenanceDueItemsPage() {
                         setDueScheduleForm((current) => ({
                           ...current,
                           assigned_work_group_id: event.target.value ? Number(event.target.value) : null,
+                          assigned_tenant_user_id: null,
                         }))
                       }
                     >
@@ -2441,12 +2521,30 @@ export function MaintenanceDueItemsPage() {
                       }
                     >
                       <option value="">{language === "es" ? "Sin técnico asignado" : "No technician assigned"}</option>
-                      {tenantUsers.filter((user) => user.is_active).map((user) => (
+                      {selectableDueScheduleTechnicians.map((user) => (
                         <option key={user.id} value={user.id}>
-                          {user.full_name}
+                          {getDueScheduleTechnicianLabel(user.id)}
                         </option>
                       ))}
                     </select>
+                    {dueScheduleRequiresFunctionalProfile && dueScheduleTaskTypeLabel ? (
+                      <div className="form-text text-muted">
+                        {language === "es"
+                          ? `Esta programación usa el tipo de tarea ${dueScheduleTaskTypeLabel}; solo se muestran técnicos con perfil funcional declarado en el grupo.`
+                          : `This schedule uses task type ${dueScheduleTaskTypeLabel}; only technicians with a declared functional profile in the group are shown.`}
+                      </div>
+                    ) : null}
+                    {dueScheduleForm.assigned_work_group_id && selectableDueScheduleTechnicians.length === 0 ? (
+                      <div className="form-text text-warning">
+                        {dueScheduleRequiresFunctionalProfile
+                          ? language === "es"
+                            ? "Este grupo no tiene técnicos con membresía activa y perfil funcional declarado para este tipo de tarea."
+                            : "This group has no technicians with an active membership and declared functional profile for this task type."
+                          : language === "es"
+                            ? "Este grupo no tiene técnicos con membresía activa para asignar."
+                            : "This group has no technicians with an active membership available for assignment."}
+                      </div>
+                    ) : null}
                   </div>
                   <div className="col-12 col-lg-6">
                     <label className="form-label">{language === "es" ? "Prioridad" : "Priority"}</label>
