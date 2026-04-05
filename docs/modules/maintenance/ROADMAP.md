@@ -151,7 +151,7 @@ Alcance:
 
 Estado:
 
-- `Pendiente`
+- `Cumplido en primer corte`
 
 Alcance:
 
@@ -159,6 +159,14 @@ Alcance:
 - checklist tecnico
 - observacion de cierre estandarizada
 - storage real del modulo
+
+Salida ya cubierta:
+
+- `maintenance_work_order_checklist_items` y `maintenance_work_order_evidences`
+- modal `Checklist y evidencias` reutilizable en `Mantenciones` y `Historial`
+- observacion de cierre estandarizada vía `closure_notes`
+- upload, descarga y borrado controlado de evidencias
+- storage fisico dedicado configurado con `MAINTENANCE_EVIDENCE_DIR`
 
 ## Fase 6. Extension tecnica
 
@@ -265,7 +273,7 @@ Avance actual:
 
 Pendiente inmediato de esta fase:
 
-- cerrar `evidencias y checklist técnico`
+- endurecer validaciones concurrentes de conflicto de agenda en backend
 
 ## Mejoras de producto recomendadas
 
@@ -296,9 +304,8 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- aplicar migración tenant `0027_maintenance_schedule_template_links` en tenants activos
-- abordar el siguiente corte pendiente visible:
-  - evidencias y checklist técnico
+- endurecer validaciones concurrentes de conflicto de agenda en backend
+- agregar filtros operativos por grupo y técnico en la agenda mensual
 
 ## Backlog pendiente visible
 
@@ -314,7 +321,7 @@ Pendiente inmediato de esta fase:
 - modelo canónico de asignacion grupo/usuario: documentado e implementado en primer corte
 - modelo canónico de programacion preventiva y costeo: documentado
 - costeo estimado default por programación: listo en primer corte
-- evidencias y checklist: pendiente
+- evidencias y checklist: listos en primer corte
 - importadores legacy: primer corte listo, falta validacion aplicada y endurecimiento
 
 ## Checklist de salida del modulo

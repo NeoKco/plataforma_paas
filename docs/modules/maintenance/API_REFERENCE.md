@@ -98,13 +98,19 @@ Historial:
 - `GET /tenant/maintenance/work-orders/<id>/status-logs`
 - `GET /tenant/maintenance/work-orders/<id>/visits`
 
-Adjuntos y checklist en fase posterior:
+Checklist y evidencias:
 
-- `GET /tenant/maintenance/work-orders/<id>/attachments`
-- `POST /tenant/maintenance/work-orders/<id>/attachments`
-- `DELETE /tenant/maintenance/work-orders/<id>/attachments/<attachment_id>`
-- `GET /tenant/maintenance/work-orders/<id>/checklist`
-- `PUT /tenant/maintenance/work-orders/<id>/checklist`
+- `GET /tenant/maintenance/work-orders/<id>/field-report`
+- `PUT /tenant/maintenance/work-orders/<id>/field-report`
+- `POST /tenant/maintenance/work-orders/<id>/evidences`
+- `DELETE /tenant/maintenance/work-orders/<id>/evidences/<evidence_id>`
+- `GET /tenant/maintenance/work-orders/<id>/evidences/<evidence_id>/download`
+
+Notas operativas vigentes:
+
+- `field-report` devuelve `closure_notes`, `checklist_items` y `evidences` en una sola lectura técnica
+- `evidences` acepta PDF e imágenes (`png`, `jpeg`, `webp`) con storage real del módulo
+- `Historial` consume el mismo contrato, pero congelado en modo solo lectura
 
 ## Diferencias deseadas frente a la app fuente
 

@@ -10,9 +10,26 @@
   - `maintenance_schedules.cost_template_id` enlaza la programación con la plantilla aplicada
 - `Agenda técnica` y `Mantenciones abiertas` ahora muestran conflictos visibles cuando dos OT abiertas comparten el mismo horario y además cruzan por instalación, grupo responsable o técnico responsable
 - los formularios de alta/edición de `Agenda` y `Mantenciones` advierten el cruce antes de guardar
+- se implementa el primer corte real de `Checklist y evidencias` por OT:
+  - nueva migración tenant `0028_maintenance_field_reports`
+  - tablas `maintenance_work_order_checklist_items` y `maintenance_work_order_evidences`
+  - nuevo storage dedicado del módulo vía `MAINTENANCE_EVIDENCE_DIR`
+  - APIs reales para:
+    - `GET /tenant/maintenance/work-orders/{id}/field-report`
+    - `PUT /tenant/maintenance/work-orders/{id}/field-report`
+    - `POST /tenant/maintenance/work-orders/{id}/evidences`
+    - `DELETE /tenant/maintenance/work-orders/{id}/evidences/{evidence_id}`
+    - `GET /tenant/maintenance/work-orders/{id}/evidences/{evidence_id}/download`
+  - `Mantenciones` agrega la acción `Checklist`
+  - `Historial` agrega la acción `Ver checklist` en modo solo lectura
 - se validan los cambios con:
-  - `python -m unittest app.tests.test_maintenance_cost_template_service app.tests.test_maintenance_schedule_service app.tests.test_migration_flow`
+  - `python -m unittest app.tests.test_maintenance_field_report_service app.tests.test_maintenance_cost_template_service app.tests.test_maintenance_schedule_service app.tests.test_migration_flow`
   - `npm run build`
+  - `npm run e2e -- e2e/specs/tenant-portal-business-core-maintenance-import.smoke.spec.ts`
+- tenants activos sincronizados hasta `0028_maintenance_field_reports`:
+  - `empresa-demo`
+  - `condominio-demo`
+  - `empresa-bootstrap`
 
 ## 2026-04-04
 

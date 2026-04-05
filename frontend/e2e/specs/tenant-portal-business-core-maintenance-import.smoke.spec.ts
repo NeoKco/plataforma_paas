@@ -126,6 +126,22 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await expect(costingDialog.getByLabel(/Sincronizar ingreso|Sync income/i)).toBeVisible();
   await expect(costingDialog.getByRole("button", { name: /Cerrar|Close/i })).toBeVisible();
   await costingDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
+  await page.getByRole("button", { name: /Checklist/i }).first().click();
+  const fieldReportDialog = page.getByRole("dialog", {
+    name: /Checklist y evidencias de mantención|Maintenance checklist and evidence/i,
+  });
+  await expect(fieldReportDialog).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Checklist y evidencias|Checklist and evidence/i })).toBeVisible();
+  await expect(page.getByText(/Avance checklist|Checklist progress/i)).toBeVisible();
+  await expect(fieldReportDialog.getByRole("heading", { name: /Checklist técnico|Technical checklist/i })).toBeVisible();
+  await expect(fieldReportDialog.getByRole("heading", { name: /^Evidencias$|^Evidence$/i })).toBeVisible();
+  await expect(
+    fieldReportDialog
+      .locator("textarea")
+      .first()
+  ).toBeVisible();
+  await expect(fieldReportDialog.getByRole("button", { name: /Guardar checklist|Save checklist/i })).toBeVisible();
+  await fieldReportDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
 
   await openTenantImportedPage(
     page,
@@ -203,6 +219,16 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await expect(historyCostingDialog.getByRole("button", { name: /Guardar estimado|Save estimate/i })).toHaveCount(0);
   await expect(historyCostingDialog.getByRole("button", { name: /Guardar costo real|Save actual cost/i })).toHaveCount(0);
   await historyCostingDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
+  await page.getByRole("button", { name: /Ver checklist|View checklist/i }).first().click();
+  const historyFieldReportDialog = page.getByRole("dialog", {
+    name: /Checklist y evidencias de mantención|Maintenance checklist and evidence/i,
+  });
+  await expect(historyFieldReportDialog).toBeVisible();
+  await expect(historyFieldReportDialog.getByRole("button", { name: /Guardar checklist|Save checklist/i })).toHaveCount(0);
+  await expect(historyFieldReportDialog.locator('input[type="file"]')).toHaveCount(0);
+  await expect(historyFieldReportDialog.getByRole("heading", { name: /Checklist técnico|Technical checklist/i })).toBeVisible();
+  await expect(historyFieldReportDialog.getByRole("heading", { name: /^Evidencias$|^Evidence$/i })).toBeVisible();
+  await historyFieldReportDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
 
   await openTenantImportedPage(
     page,

@@ -28,7 +28,7 @@ Entra en `maintenance`:
 - instalaciones y visitas tecnicas apoyadas sobre `business-core`
 - activos tecnicos o tipos de equipo enlazados al dominio base
 - sincronizacion con agenda
-- evidencias y checklist basico de mantencion en fases posteriores
+- evidencias y checklist basico de mantencion
 
 No entra en el primer corte:
 
@@ -177,12 +177,11 @@ Fuente frontend principal:
 - documentacion canonica del dominio
 
 `maintenance` sigue debiendo:
-
 - evidencias y checklist
 - cierre UX por ficha/orden de trabajo
 - smoke E2E especifico del modulo con sus flujos principales
 - validaciones mas profundas de duplicados y conflictos de programacion en backend concurrente
-- filtros operativos por grupo y tecnico dentro de la agenda mensual
+- mejoras móviles de captura en terreno
 - evidencias y checklist tecnico
 
 ## Modelo objetivo recomendado en PaaS
@@ -211,10 +210,17 @@ Entidades de segundo corte:
 - `maintenance_due_items`
 - `maintenance_cost_estimates`
 - `maintenance_cost_actuals`
-- `maintenance_evidence`
-- `maintenance_checklists`
+- `maintenance_work_order_evidences`
+- `maintenance_work_order_checklist_items`
 - `maintenance_visit_reports`
 - ya no hace falta `maintenance_assignment_targets` como tabla separada en el primer corte, porque la asignacion real vive en FKs directas sobre `work_orders` y `visits`
+
+Regla vigente para cierre tecnico y evidencias:
+
+- el corte actual usa un `field report` ligado directo a `work_orders`
+- el backend concentra ese slice en `/tenant/maintenance/work-orders/{id}/field-report`
+- los adjuntos se almacenan en filesystem dedicado del módulo, configurado por `MAINTENANCE_EVIDENCE_DIR`
+- `Mantenciones` abre este contrato en modo editable y `Historial` en modo solo lectura
 
 Modelo canónico de asignacion:
 

@@ -46,6 +46,8 @@ El primer corte del modulo ya permite:
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
 - abrir `Costos` desde una mantención abierta para registrar costo estimado, costo real, cobro y sincronización manual a Finanzas
 - abrir `Ver costos` desde `Historial` para revisar en modo solo lectura el cierre económico ya congelado de una orden cerrada
+- abrir `Checklist` desde una mantención abierta para registrar checklist técnico, observación de cierre y evidencias del trabajo ejecutado
+- abrir `Ver checklist` desde `Historial` para consultar ese cierre técnico en modo solo lectura
 - registrar detalle por líneas dentro de `Costos y cobro`, para que el resumen se derive automáticamente cuando quieras bajar a mano de obra, traslado, materiales, servicios externos o indirectos
 - definir en `Nueva programación` un costeo estimado por defecto con varias líneas de materiales, servicios, mano de obra, traslado e indirectos
 - guardar y reutilizar `Plantillas de costeo de mantención` dentro de `Nueva programación`, sin salir del módulo ni depender de catálogos compartidos
@@ -72,7 +74,6 @@ El primer corte del modulo ya permite:
 - `cotizaciones`
 - expediente tecnico completo
 - historial enriquecido por visitas
-- evidencias y checklist
 - filtros por técnico/grupo y reprogramación rica
 
 ## Flujo operativo esperado
@@ -116,12 +117,14 @@ Lectura funcional de cada vista:
   - también aparece un reporte de instalaciones activas sin plan preventivo para abrir `Crear plan` con el contexto ya cargado
 - `Mantenciones`: solo trabajo abierto (`scheduled` / `in_progress`)
   - cada fila ya permite abrir `Costos`
+  - cada fila ya permite abrir `Checklist`
   - el costeo se maneja en modal, igual que la captura principal del módulo
   - `Costos` ya permite resumen manual o detalle por líneas
 - `Instalaciones`: parque instalado por cliente y direccion
 - `Historial`: trabajo ya realizado o anulado
-  - cada tarjeta ya permite abrir `Ver costos` y `Editar cierre`
+  - cada tarjeta ya permite abrir `Ver costos`, `Ver checklist` y `Editar cierre`
   - `Ver costos` es solo lectura; el histórico no se edita desde el flujo normal
+  - `Ver checklist` también es solo lectura y deja visible la trazabilidad técnica del cierre
 - `Agenda`: calendario visual del trabajo abierto
   - ahora marca conflictos visibles cuando dos mantenciones abiertas comparten horario y recurso técnico/instalación
 
@@ -150,6 +153,11 @@ Regla UX operativa:
   - puede guardarla como `Plantilla de costeo de mantención`
   - luego puede aplicarla en nuevas programaciones sin reconstruir material, servicio, mano de obra o margen desde cero
   - también puede archivarla cuando deje de usarse, sin perder la referencia de programaciones ya vinculadas
+- si la OT necesita trazabilidad de terreno:
+  - `Checklist` permite marcar el cumplimiento técnico base
+  - cada ítem puede dejar una nota corta
+  - la observación de cierre queda estandarizada en el mismo modal
+  - también se pueden adjuntar PDFs o imágenes como evidencia del trabajo ejecutado
 
 ## Mejora funcional recomendada
 
@@ -161,7 +169,7 @@ La version PaaS ya mejora a la actual en estos puntos y todavia tiene mejoras pe
 - la bandeja diaria debe mostrar solo trabajo pendiente
 - hoy ya existe una lectura clara de `programada`, `en curso`, `completada` y `anulada`
 - sigue pendiente una linea de tiempo tecnica por cliente
-- sigue pendiente un flujo mas simple de evidencias y cierre en terreno
+- el flujo base de evidencias y cierre en terreno ya existe; sigue pendiente enriquecerlo para escenarios móviles más avanzados
 
 ## Roles recomendados
 

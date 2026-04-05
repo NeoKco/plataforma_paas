@@ -42,6 +42,12 @@ Estado actual:
   - el mismo modal reutilizado también desde `Historial`
   - sincronización manual controlada hacia `finance`
   - política tenant visible para decidir si ese puente sigue manual o pasa a `auto_on_close`
+- ya existe el primer corte de `Checklist y evidencias` por OT con:
+  - `maintenance_work_order_checklist_items`
+  - `maintenance_work_order_evidences`
+  - modal técnico reutilizado desde `Mantenciones` e `Historial`
+  - observación de cierre estandarizada y adjuntos PDF/imagen
+  - storage real del módulo vía `MAINTENANCE_EVIDENCE_DIR`
 
 Objetivo del modulo:
 
@@ -100,6 +106,8 @@ Estado del corte hoy:
   - modo `manual`
   - modo `auto_on_close`
   - cuentas/categorías/moneda por defecto
+- `Mantenciones` ya permite abrir `Checklist` por OT para registrar observación de cierre, checklist técnico y evidencias de terreno
+- `Historial` ya permite abrir `Ver checklist` en modo solo lectura para revisar ese cierre técnico sin reabrir la orden
 
 Pendientes visibles inmediatos:
 
@@ -132,7 +140,7 @@ Estado resumido del modulo:
 - asignacion real por grupo/usuario en ordenes y agenda: cumplido en primer corte
 - programacion preventiva y bandeja automatica: cumplido en primer corte base
 - costeo/cobro por OT y puente controlado a `finance`: cumplido en primer corte base
-- evidencias y checklist tecnico: pendiente
+- evidencias y checklist tecnico: cumplido en primer corte base
 - cierre completo de la UX operativa del modulo: en progreso avanzado
 
 Estado del importador legacy:
