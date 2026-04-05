@@ -1851,6 +1851,84 @@ export function MaintenanceDueItemsPage() {
                               : ""}
                             {` · ${selectedCostTemplate.lines.length} `}
                             {language === "es" ? "líneas base" : "base lines"}
+                            {` · ${selectedCostTemplate.usage_count} `}
+                            {language === "es" ? "programaciones vinculadas" : "linked schedules"}
+                          </div>
+                        ) : null}
+                        {visibleCostTemplates.length > 0 ? (
+                          <div className="d-grid gap-2">
+                            {visibleCostTemplates.map((template) => {
+                              const taskTypeName =
+                                taskTypeById.get(template.task_type_id ?? -1)?.name ??
+                                (language === "es" ? "General" : "General");
+                              return (
+                                <div key={template.id} className="maintenance-history-entry">
+                                  <div className="d-flex flex-wrap justify-content-between gap-2 align-items-start">
+                                    <div>
+                                      <div className="maintenance-history-entry__title d-flex flex-wrap gap-2 align-items-center">
+                                        <span>{template.name}</span>
+                                        <AppBadge tone={template.is_active ? "info" : "neutral"}>
+                                          {template.is_active
+                                            ? language === "es"
+                                              ? "Activa"
+                                              : "Active"
+                                            : language === "es"
+                                              ? "Archivada"
+                                              : "Archived"}
+                                        </AppBadge>
+                                      </div>
+                                      <div className="maintenance-history-entry__meta">
+                                        {taskTypeName}
+                                        {template.description ? ` · ${template.description}` : ""}
+                                      </div>
+                                      <div className="maintenance-history-entry__meta">
+                                        {template.lines.length} {language === "es" ? "líneas" : "lines"}
+                                        {` · ${template.usage_count} `}
+                                        {language === "es" ? "programaciones vinculadas" : "linked schedules"}
+                                        {` · ${language === "es" ? "Actualizada" : "Updated"} `}
+                                        {formatDateTime(template.updated_at, language, effectiveTimeZone)}
+                                      </div>
+                                    </div>
+                                    <AppToolbar compact>
+                                      {template.is_active ? (
+                                        <button
+                                          className="btn btn-sm btn-outline-secondary"
+                                          type="button"
+                                          onClick={() => applyCostTemplate(template)}
+                                        >
+                                          {language === "es" ? "Aplicar" : "Apply"}
+                                        </button>
+                                      ) : null}
+                                      <button
+                                        className="btn btn-sm btn-outline-primary"
+                                        type="button"
+                                        onClick={() => startEditCostTemplate(template)}
+                                      >
+                                        {language === "es" ? "Editar" : "Edit"}
+                                      </button>
+                                      <button
+                                        className="btn btn-sm btn-outline-secondary"
+                                        type="button"
+                                        onClick={() =>
+                                          void handleCostTemplateStatusChange(
+                                            template,
+                                            !template.is_active
+                                          )
+                                        }
+                                      >
+                                        {template.is_active
+                                          ? language === "es"
+                                            ? "Archivar"
+                                            : "Archive"
+                                          : language === "es"
+                                            ? "Reactivar"
+                                            : "Reactivate"}
+                                      </button>
+                                    </AppToolbar>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         ) : null}
                         {isCostTemplateDraftOpen ? (
@@ -1889,6 +1967,13 @@ export function MaintenanceDueItemsPage() {
                               <div className="col-12">
                                 <div className="maintenance-form__actions justify-content-start pt-0">
                                   <button
+                                    className="btn btn-outline-secondary"
+                                    type="button"
+                                    onClick={closeCostTemplateDraft}
+                                  >
+                                    {language === "es" ? "Cancelar" : "Cancel"}
+                                  </button>
+                                  <button
                                     className="btn btn-primary"
                                     type="button"
                                     onClick={() => void handleSaveCostTemplate()}
@@ -1898,19 +1983,13 @@ export function MaintenanceDueItemsPage() {
                                       ? language === "es"
                                         ? "Guardando..."
                                         : "Saving..."
-                                      : language === "es"
-                                        ? "Guardar plantilla"
-                                        : "Save template"}
-                                  </button>
-                                  <button
-                                    className="btn btn-outline-secondary"
-                                    type="button"
-                                    onClick={() => {
-                                      setIsCostTemplateDraftOpen(false);
-                                      setCostTemplateDraft(buildDefaultCostTemplateDraft());
-                                    }}
-                                  >
-                                    {language === "es" ? "Cancelar" : "Cancel"}
+                                      : editingCostTemplateId
+                                        ? language === "es"
+                                          ? "Actualizar plantilla"
+                                          : "Update template"
+                                        : language === "es"
+                                          ? "Guardar plantilla"
+                                          : "Save template"}
                                   </button>
                                 </div>
                               </div>
