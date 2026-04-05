@@ -159,6 +159,29 @@ Observacion:
 - en la alta de `clients`, la proteccion anti-duplicado debe vivir antes del primer `POST`, porque el flujo actual crea `organization`, `client`, `contacts` y `site` en varias llamadas. La UX debe interceptar coincidencias fuertes y redirigir a la ficha existente para agregar contactos en vez de abrir otra cartera paralela.
 - cuando esa proteccion preventiva no alcanzo y la base ya quedo contaminada, el dominio debe ofrecer una auditoria operativa de duplicados: el corte actual puede resolverlo en frontend agrupando `clients`, `sites` e `installations` por claves normalizadas exactas, calculando dependencias con `work_orders`, sugiriendo una ficha a conservar y habilitando `DELETE`, desactivacion segura o consolidacion operativa segun el nivel de historial.
 
+Slice frontend actual de duplicados:
+
+- ruta tenant: `/tenant-portal/business-core/duplicates`
+- entrada visible: `Core de negocio -> Duplicados`
+- acceso directo adicional desde `BusinessCoreOverviewPage`
+
+Heuristicas actuales de agrupacion:
+
+- `clients`: por `tax_id` normalizado, y luego por `name + primary address`
+- `sites`: por `client_id + visible address` normalizada
+- `installations`: por `site_id + serial_number`, y fallback por identidad tecnica visible
+
+Heuristica actual para `sugerida para conservar`:
+
+- prioriza mayor trazabilidad operativa
+- prioriza mayor completitud visible
+- prioriza registro mas antiguo cuando el score empata
+
+Resumen previo por grupo:
+
+- el slice ya calcula y muestra antes de consolidar cuantas fichas origen, direcciones, instalaciones u `OT` seran movidas
+- ese resumen vive en frontend usando los datasets cargados del modulo y evita disparar un backend nuevo en este corte
+
 ### 5. Contact-Site Links
 
 Tabla sugerida:
@@ -290,6 +313,18 @@ Reglas de consolidacion operativa vigentes:
 - la consolidacion actual debe mover primero referencias operativas y solo despues desactivar el origen
 - la ficha `sugerida para conservar` debe priorizar mayor trazabilidad, mayor completitud visible y antiguedad
 - no debe intentarse aun merge profundo de `organizations` o `contacts` sin un flujo dedicado y auditable
+
+Secuencia de consolidacion actual:
+
+- consolidacion de `clients`: reasigna `sites` y `work_orders`, luego desactiva `clients` origen
+- consolidacion de `sites`: reasigna `installations` y `work_orders`, luego desactiva `sites` origen
+- consolidacion de `installations`: reasigna `work_orders`, luego desactiva `installations` origen
+
+Limites tecnicos vigentes:
+
+- no se reasignan aun `contacts` ni relaciones de identidad externa
+- no se fusionan notas ni snapshots historicos libres
+- el corte actual privilegia seguridad operativa y trazabilidad antes que merge profundo
 
 ## Permisos sugeridos
 

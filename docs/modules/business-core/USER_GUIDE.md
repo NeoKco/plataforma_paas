@@ -73,7 +73,7 @@ Eso genera:
 
 ## Depuracion de duplicados
 
-La pantalla `Depuración` sirve para limpiar base existente cuando la prevencion de duplicados ya no alcanzo.
+La pantalla visible como `Duplicados` sirve para limpiar base existente cuando la prevencion de duplicados ya no alcanzo.
 
 Donde esta:
 
@@ -81,13 +81,35 @@ Donde esta:
 - ruta directa: `/tenant-portal/business-core/duplicates`
 - acceso rapido adicional: `Core de negocio -> Resumen -> Abrir duplicados`
 
+Como reconocer que estas en el slice correcto:
+
+- el menu superior muestra `Duplicados`
+- la portada `Resumen` muestra una tarjeta `Limpieza de duplicados`
+- cada grupo duplicado muestra un resumen previo de consolidacion antes del boton `Consolidar en sugerida`
+
+Que veras dentro del slice:
+
+- un bloque `Auditoría de duplicados`
+- filtros por texto y por tipo de entidad
+- grupos de `Clientes duplicados`
+- grupos de `Direcciones duplicadas`
+- grupos de `Instalaciones duplicadas`
+- una ficha marcada como `Sugerida para conservar`
+- resumen previo del impacto de consolidacion por grupo
+
 Flujo recomendado:
 
-1. abrir `Core de negocio -> Depuración`
+1. abrir `Core de negocio -> Duplicados`
 2. revisar la ficha marcada como `Sugerida para conservar`
 3. si la duplicada no tiene dependencias, usar `Eliminar`
 4. si la duplicada tiene historial que debe conservarse, usar `Desactivar`
 5. si quieres dejar una sola ficha operativa, usar `Consolidar en sugerida`
+
+Como decidir rapido:
+
+- si una ficha esta vacia o sin uso, `Eliminar`
+- si tiene historial pero no debe seguir operando, `Desactivar`
+- si quieres concentrar la operacion en una sola ficha, `Consolidar en sugerida`
 
 Que consolida hoy:
 
@@ -101,6 +123,11 @@ Que no consolida todavia:
 - `contacts`
 - notas historicas libres
 - fusion documental profunda entre fichas
+
+Señal importante:
+
+- si no encuentras la pantalla, no esta dentro de `Clientes` ni dentro de `Direcciones`
+- vive como slice propio dentro de `Core de negocio`
 
 ## Lectura simple por modulo
 

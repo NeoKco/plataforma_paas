@@ -11,6 +11,11 @@ Donde encontrar la pantalla de duplicados:
 - entrar a `Tenant portal -> Core de negocio -> Duplicados`
 - ruta directa frontend: `/tenant-portal/business-core/duplicates`
 - tambien queda un acceso directo visible desde `Core de negocio -> Resumen`
+- cada grupo duplicado ahora muestra un resumen previo de consolidacion con cuantas fichas origen, direcciones, instalaciones u OT se moverian antes de ejecutar la accion
+
+Nombre visible actual del slice:
+
+- `Duplicados`
 
 Objetivo:
 
@@ -46,6 +51,34 @@ Estado actual:
 - la vista de `work_groups` ya expone conteo de miembros y acceso directo a la gestion de `Miembros`
 - `maintenance` ya consume `work_groups` reales para asignar grupo responsable en ordenes y visitas, en vez de depender solo de etiquetas legacy o texto libre
 - la nueva vista `Depuración` ya detecta grupos duplicados de `Clientes`, `Direcciones` e `Instalaciones`, sugiere qué ficha conviene conservar y permite consolidar referencias operativas hacia esa ficha antes de borrar o desactivar para apoyar la limpieza operativa de la BD
+
+## Slice operativo actual: Duplicados
+
+Este slice ya quedo operativo dentro de `Core de negocio`.
+
+Resuelve hoy:
+
+- auditar duplicados de `Clientes`
+- auditar duplicados de `Direcciones`
+- auditar duplicados de `Instalaciones`
+- sugerir que ficha conviene conservar
+- mostrar dependencias visibles antes de tocar datos
+- permitir `Eliminar` cuando no hay dependencias
+- permitir `Desactivar` cuando hay historial que no conviene perder
+- permitir `Consolidar en sugerida` moviendo referencias operativas visibles antes de desactivar origen
+
+Alcance real de la consolidacion actual:
+
+- `Clientes`: mueve `Direcciones` y `OT`
+- `Direcciones`: mueve `Instalaciones` y `OT`
+- `Instalaciones`: mueve `OT`
+
+Limites conocidos del corte actual:
+
+- no fusiona `organizations`
+- no fusiona `contacts`
+- no mezcla notas humanas ni historiales textuales
+- no construye aun un merge profundo auditable de identidad completa
 
 Pendientes visibles inmediatos:
 

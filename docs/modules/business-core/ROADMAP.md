@@ -3,6 +3,7 @@
 Estado actual:
 
 - `Wave 2 operativa para taxonomias compartidas`
+- `Slice operativo de Duplicados ya visible en UI tenant`
 
 Prioridad:
 
@@ -79,6 +80,14 @@ Pendiente inmediato dentro de esta fase:
 - definir los siguientes contratos frontend/backend de integracion
 - abrir una ola de `organization addresses` si `Empresas` necesita capturar direccion propia de proveedor/partner sin mezclarla con `sites` de clientes
 - seguir endureciendo la nueva auditoria de duplicados con heuristicas de merge mas profundas y soporte posterior de consolidacion guiada completa, mas alla de la reasignacion operativa del corte actual
+
+Estado actual del slice `Duplicados`:
+
+- acceso visible desde `Core de negocio -> Duplicados`
+- acceso rapido adicional desde `Resumen`
+- sugerencia de ficha a conservar por grupo
+- desactivacion segura
+- consolidacion operativa con resumen previo del impacto
 
 ## Fase 4. Assets y responsables
 

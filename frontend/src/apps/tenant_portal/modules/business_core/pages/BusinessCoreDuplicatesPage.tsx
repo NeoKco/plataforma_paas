@@ -20,6 +20,12 @@ import {
   updateTenantBusinessClientStatus,
 } from "../services/clientsService";
 import {
+  getTenantBusinessContacts,
+  type TenantBusinessContact,
+  updateTenantBusinessContact,
+  updateTenantBusinessContactStatus,
+} from "../services/contactsService";
+import {
   getTenantBusinessOrganizations,
   type TenantBusinessOrganization,
 } from "../services/organizationsService";
@@ -56,6 +62,7 @@ type ClientAuditRow = {
   client: TenantBusinessClient;
   organization: TenantBusinessOrganization | null;
   primarySite: TenantBusinessSite | null;
+  contactsCount: number;
   sitesCount: number;
   installationsCount: number;
   workOrdersCount: number;
@@ -114,6 +121,26 @@ function normalizeSerialKey(value: string | null | undefined): string {
     .toUpperCase()
     .replace(/[^0-9A-Z]/g, "")
     .trim();
+}
+
+function normalizeEmailKey(value: string | null | undefined): string {
+  return normalizeHumanKey(value);
+}
+
+function normalizePhoneKey(value: string | null | undefined): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^0-9]/g, "")
+    .trim();
+}
+
+function buildContactIdentityKey(contact: TenantBusinessContact): string {
+  return [
+    normalizeHumanKey(contact.full_name),
+    normalizeEmailKey(contact.email),
+    normalizePhoneKey(contact.phone),
+  ].join("::");
 }
 
 function getClientName(organization: TenantBusinessOrganization | null, language: "es" | "en") {
@@ -294,6 +321,38 @@ function buildWorkOrderWritePayload(
   };
 }
 
+function summarizeClientContactMerge(
+  group: DuplicateGroup<ClientAuditRow>,
+  contactsByOrganizationId: Map<number, TenantBusinessContact[]>
+) {
+  const targetId = getPreferredClientId(group);
+  const target = group.members.find((member) => member.client.id === targetId);
+  if (!target) {
+    return { contactsToMove: 0, contactsToDeactivate: 0, sourceOrganizations: 0 };
+  }
+  const targetKeys = new Set(
+    (contactsByOrganizationId.get(target.client.organization_id) ?? []).map(buildContactIdentityKey)
+  );
+  let contactsToMove = 0;
+  let contactsToDeactivate = 0;
+  let sourceOrganizations = 0;
+  group.members
+    .filter((member) => member.client.id !== targetId)
+    .forEach((source) => {
+      sourceOrganizations += 1;
+      (contactsByOrganizationId.get(source.client.organization_id) ?? []).forEach((contact) => {
+        const identityKey = buildContactIdentityKey(contact);
+        if (targetKeys.has(identityKey)) {
+          contactsToDeactivate += 1;
+          return;
+        }
+        contactsToMove += 1;
+        targetKeys.add(identityKey);
+      });
+    });
+  return { contactsToMove, contactsToDeactivate, sourceOrganizations };
+}
+
 function buildClientDuplicateGroups(rows: ClientAuditRow[]): DuplicateGroup<ClientAuditRow>[] {
   const groups: DuplicateGroup<ClientAuditRow>[] = [];
 
@@ -472,6 +531,7 @@ export function BusinessCoreDuplicatesPage() {
   const { language } = useLanguage();
   const navigate = useNavigate();
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
+  const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
@@ -494,6 +554,15 @@ export function BusinessCoreDuplicatesPage() {
     () => new Map(equipmentTypes.map((item) => [item.id, item])),
     [equipmentTypes]
   );
+  const contactsByOrganizationId = useMemo(() => {
+    const grouped = new Map<number, TenantBusinessContact[]>();
+    contacts.forEach((contact) => {
+      const current = grouped.get(contact.organization_id) ?? [];
+      current.push(contact);
+      grouped.set(contact.organization_id, current);
+    });
+    return grouped;
+  }, [contacts]);
   const sitesByClientId = useMemo(() => {
     const grouped = new Map<number, TenantBusinessSite[]>();
     sites.forEach((site) => {
@@ -550,9 +619,10 @@ export function BusinessCoreDuplicatesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [clientsResponse, organizationsResponse, sitesResponse, installationsResponse, equipmentTypesResponse, workOrdersResponse] =
+      const [clientsResponse, contactsResponse, organizationsResponse, sitesResponse, installationsResponse, equipmentTypesResponse, workOrdersResponse] =
         await Promise.all([
           getTenantBusinessClients(session.accessToken, { includeInactive: true }),
+          getTenantBusinessContacts(session.accessToken, { includeInactive: true }),
           getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
           getTenantBusinessSites(session.accessToken, { includeInactive: true }),
           getTenantMaintenanceInstallations(session.accessToken, { includeInactive: true }),
@@ -560,6 +630,7 @@ export function BusinessCoreDuplicatesPage() {
           getTenantMaintenanceWorkOrders(session.accessToken),
         ]);
       setClients(clientsResponse.data);
+      setContacts(contactsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
       setInstallations(installationsResponse.data);
@@ -593,12 +664,15 @@ export function BusinessCoreDuplicatesPage() {
         client,
         organization: organizationById.get(client.organization_id) ?? null,
         primarySite: clientSites[0] ?? null,
+        contactsCount:
+          contactsByOrganizationId.get(client.organization_id)?.filter((contact) => contact.is_active)
+            .length ?? 0,
         sitesCount: clientSites.length,
         installationsCount,
         workOrdersCount: workOrdersByClientId.get(client.id)?.length ?? 0,
       };
     });
-  }, [clients, installationsBySiteId, organizationById, sitesByClientId, workOrdersByClientId]);
+  }, [clients, contactsByOrganizationId, installationsBySiteId, organizationById, sitesByClientId, workOrdersByClientId]);
 
   const siteRows = useMemo<SiteAuditRow[]>(() => {
     return sites.map((site) => {
@@ -866,10 +940,12 @@ export function BusinessCoreDuplicatesPage() {
         total + workOrders.filter((workOrder) => workOrder.client_id === source.client.id).length,
       0
     );
+    const { contactsToMove, contactsToDeactivate, sourceOrganizations } =
+      summarizeClientContactMerge(group, contactsByOrganizationId);
     const confirmed = window.confirm(
       language === "es"
-        ? `Consolidar ${sources.length} ficha(s) duplicada(s) en "${getClientName(target.organization, language)}". Se moverán ${totalSites} direcciones y ${totalWorkOrders} OT al cliente sugerido, y luego se desactivarán las fichas origen.`
-        : `Consolidate ${sources.length} duplicate record(s) into "${getClientName(target.organization, language)}". ${totalSites} addresses and ${totalWorkOrders} work orders will be moved to the suggested client, and the source records will then be deactivated.`
+        ? `Consolidar ${sources.length} ficha(s) duplicada(s) en "${getClientName(target.organization, language)}". Se moverán ${totalSites} direcciones, ${totalWorkOrders} OT y ${contactsToMove} contacto(s) al cliente sugerido; ${contactsToDeactivate} contacto(s) duplicado(s) se desactivarán y quedarán ${sourceOrganizations} organización(es) origen para revisión manual.`
+        : `Consolidate ${sources.length} duplicate record(s) into "${getClientName(target.organization, language)}". ${totalSites} addresses, ${totalWorkOrders} work orders, and ${contactsToMove} contact(s) will be moved to the suggested client; ${contactsToDeactivate} duplicated contact(s) will be deactivated and ${sourceOrganizations} source organization(s) will remain for manual review.`
     );
     if (!confirmed) {
       return;
@@ -877,7 +953,35 @@ export function BusinessCoreDuplicatesPage() {
     setIsMutating(true);
     setError(null);
     try {
+      const targetContactKeys = new Set(
+        (contactsByOrganizationId.get(target.client.organization_id) ?? []).map(buildContactIdentityKey)
+      );
       for (const source of sources) {
+        const relatedContacts = contactsByOrganizationId.get(source.client.organization_id) ?? [];
+        for (const contact of relatedContacts) {
+          const identityKey = buildContactIdentityKey(contact);
+          if (targetContactKeys.has(identityKey)) {
+            if (contact.is_active) {
+              await updateTenantBusinessContactStatus(session.accessToken, contact.id, false);
+            }
+            continue;
+          }
+          await updateTenantBusinessContact(
+            session.accessToken,
+            contact.id,
+            {
+              organization_id: target.client.organization_id,
+              full_name: contact.full_name,
+              email: contact.email,
+              phone: contact.phone,
+              role_title: contact.role_title,
+              is_primary: contact.is_primary,
+              is_active: contact.is_active,
+              sort_order: contact.sort_order,
+            }
+          );
+          targetContactKeys.add(identityKey);
+        }
         const relatedSites = sites.filter((site) => site.client_id === source.client.id);
         for (const site of relatedSites) {
           await updateTenantBusinessSite(
@@ -902,8 +1006,8 @@ export function BusinessCoreDuplicatesPage() {
       }
       setFeedback(
         language === "es"
-          ? `Consolidación aplicada sobre ${sources.length} ficha(s) duplicada(s).`
-          : `Consolidation applied to ${sources.length} duplicate record(s).`
+          ? `Consolidación aplicada sobre ${sources.length} ficha(s) duplicada(s), incluyendo contactos reutilizables hacia la ficha sugerida.`
+          : `Consolidation applied to ${sources.length} duplicate record(s), including reusable contacts moved to the suggested record.`
       );
       await loadData();
     } catch (rawError) {
@@ -1060,6 +1164,8 @@ export function BusinessCoreDuplicatesPage() {
         total + workOrders.filter((workOrder) => workOrder.client_id === source.client.id).length,
       0
     );
+    const { contactsToMove, contactsToDeactivate, sourceOrganizations } =
+      summarizeClientContactMerge(group, contactsByOrganizationId);
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -1073,6 +1179,15 @@ export function BusinessCoreDuplicatesPage() {
             <div className="business-core-duplicates-group__summary">
               <span>
                 {sourceMembers.length} {language === "es" ? "fichas origen" : "source records"}
+              </span>
+              <span>
+                {sourceOrganizations} {language === "es" ? "organizaciones origen" : "source organizations"}
+              </span>
+              <span>
+                {contactsToMove} {language === "es" ? "contactos a mover" : "contacts to move"}
+              </span>
+              <span>
+                {contactsToDeactivate} {language === "es" ? "contactos a desactivar" : "contacts to deactivate"}
               </span>
               <span>
                 {mergeSitesCount} {language === "es" ? "direcciones a mover" : "addresses to move"}
@@ -1142,6 +1257,7 @@ export function BusinessCoreDuplicatesPage() {
                           ? "inactivo"
                           : "inactive"}
                     </AppBadge>
+                    <span>{member.contactsCount} {language === "es" ? "contactos" : "contacts"}</span>
                     <span>{member.sitesCount} {language === "es" ? "direcciones" : "addresses"}</span>
                     <span>{member.installationsCount} {language === "es" ? "instalaciones" : "installations"}</span>
                     <span>{member.workOrdersCount} OT</span>

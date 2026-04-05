@@ -65,12 +65,14 @@ Sin abrir endpoints nuevos, la UI tenant ya soporta estos flujos sobre contratos
 - borrado seguro cuando la ficha no tiene dependencias visibles
 - desactivacion segura cuando la ficha ya tiene historial operativo
 - consolidacion operativa hacia la ficha sugerida reutilizando `PUT` y `PATCH status` existentes
+- resumen previo de consolidacion por grupo antes de ejecutar la accion
 
 Ruta frontend tenant visible:
 
 - `/tenant-portal/business-core/duplicates`
 - acceso UI: `Tenant portal -> Core de negocio -> Duplicados`
 - acceso rapido adicional: `Tenant portal -> Core de negocio -> Resumen -> Abrir duplicados`
+- la pantalla muestra ademas un resumen previo de consolidacion por grupo usando datos ya cargados de `sites`, `installations` y `work_orders`
 
 Dependencias que hoy revisa esa auditoria:
 
@@ -82,6 +84,12 @@ Limite actual del flujo:
 
 - la consolidacion actual mueve referencias operativas y luego desactiva origenes
 - aun no fusiona `organizations`, `contacts`, notas humanas o historiales textuales en una sola ficha final
+
+Reasignaciones actuales por tipo:
+
+- duplicado de `client` -> mueve `sites` y `work_orders`
+- duplicado de `site` -> mueve `installations` y `work_orders`
+- duplicado de `installation` -> mueve `work_orders`
 
 ## Segundo corte sugerido
 

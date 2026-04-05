@@ -1,8 +1,10 @@
 # Business Core Changelog
 
+- La documentación de `business-core` queda alineada con el nombre visible `Duplicados`, el acceso desde `Resumen`, el resumen previo de impacto por grupo y el alcance real de la consolidación operativa actual.
 - Se agrega la vista `Depuración` en `business-core` para auditar duplicados de `Clientes`, `Direcciones` e `Instalaciones`, cruzando dependencias visibles de `sites`, `installations` y `work_orders` antes de habilitar borrado seguro.
 - La misma vista ahora sugiere qué ficha conviene conservar por grupo y agrega desactivación directa para duplicados con historial que no conviene borrar.
 - La auditoría de duplicados ahora permite consolidar referencias operativas hacia la ficha sugerida: mueve `sites`, `installations` y `work_orders` según el tipo de duplicado y luego desactiva los registros origen.
+- Se mejora la descubribilidad del slice renombrando el acceso visible a `Duplicados`, agregando un acceso directo desde `Resumen` y mostrando un resumen previo del impacto de consolidación por grupo.
 - Se corrigio la lectura de `Empresas` para excluir por defecto las organizaciones ya usadas como clientes y evitar mezclar cartera comercial con contrapartes operativas.
 - Se agrego la ficha de cliente y se renombro la lectura visible de `sites` a `Direcciones`, dejando a Google Maps como salida operativa desde cada direccion.
 - La ficha del cliente ahora permite alta, edicion y eliminacion basica de contactos y direcciones sin salir de la misma vista.
