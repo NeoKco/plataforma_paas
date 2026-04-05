@@ -45,6 +45,10 @@ import { MaintenanceFieldReportModal } from "../components/common/MaintenanceFie
 import { MaintenanceWorkOrderDetailModal } from "../components/common/MaintenanceWorkOrderDetailModal";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
 import {
+  getTenantMaintenanceWorkOrderCosting,
+  type TenantMaintenanceCostingDetail,
+} from "../services/costingService";
+import {
   getTenantMaintenanceHistory,
   type TenantMaintenanceHistoryWorkOrder,
 } from "../services/historyService";
@@ -160,6 +164,8 @@ export function MaintenanceHistoryPage() {
     useState<TenantMaintenanceHistoryWorkOrder | null>(null);
   const [fieldReportWorkOrder, setFieldReportWorkOrder] =
     useState<TenantMaintenanceHistoryWorkOrder | null>(null);
+  const [editingCostingDetail, setEditingCostingDetail] =
+    useState<TenantMaintenanceCostingDetail | null>(null);
   const [historyForm, setHistoryForm] = useState({
     description: "",
     closure_notes: "",
@@ -282,10 +288,11 @@ export function MaintenanceHistoryPage() {
     void loadData();
   }, [session?.accessToken]);
 
-  function startEdit(item: TenantMaintenanceHistoryWorkOrder) {
+  async function startEdit(item: TenantMaintenanceHistoryWorkOrder) {
     setEditingRow(item);
     setFeedback(null);
     setError(null);
+    setEditingCostingDetail(null);
     setHistoryForm({
       description: stripLegacyVisibleText(item.description) || "",
       closure_notes: stripLegacyVisibleText(item.closure_notes) || "",
@@ -295,6 +302,15 @@ export function MaintenanceHistoryPage() {
         : "",
       closure_adjustment_note: "",
     });
+    if (!session?.accessToken) {
+      return;
+    }
+    try {
+      const costingResponse = await getTenantMaintenanceWorkOrderCosting(session.accessToken, item.id);
+      setEditingCostingDetail(costingResponse.data);
+    } catch {
+      setEditingCostingDetail(null);
+    }
   }
 
   function openCostingModal(item: TenantMaintenanceHistoryWorkOrder) {
@@ -924,6 +940,17 @@ export function MaintenanceHistoryPage() {
                       }
                     />
                   </div>
+                  {editingCostingDetail?.actual?.finance_synced_at ||
+                  editingCostingDetail?.actual?.income_transaction_id ||
+                  editingCostingDetail?.actual?.expense_transaction_id ? (
+                    <div className="col-12">
+                      <div className="alert alert-warning mb-0">
+                        {language === "es"
+                          ? "Esta OT ya tiene sincronización previa con Finanzas. Si corriges la fecha efectiva de cierre, después conviene reintentar/ajustar la sync financiera para alinear la fecha contable con el nuevo cierre real."
+                          : "This work order already has a previous Finance sync. If you correct the effective closure date, it is recommended to retry/adjust the financial sync afterwards so the transaction date matches the new real closure timestamp."}
+                      </div>
+                    </div>
+                  ) : null}
                   <div className="col-12 col-md-6">
                     <label className="form-label">{language === "es" ? "Notas de cierre" : "Closure notes"}</label>
                     <textarea
