@@ -333,7 +333,7 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
             changed_by_user_id=21,
         )
 
-        self.assertEqual(item.scheduled_for, "2026-04-05T12:30:00+00:00")
+        self.assertEqual(item.scheduled_for.isoformat(), "2026-04-05T12:30:00+00:00")
         status_log_repository.create.assert_called_once()
         self.assertEqual(status_log_repository.create.call_args.kwargs["work_order_id"], 12)
         self.assertEqual(status_log_repository.create.call_args.kwargs["from_status"], "scheduled")
