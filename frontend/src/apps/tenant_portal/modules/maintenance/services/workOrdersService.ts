@@ -48,6 +48,7 @@ export type TenantMaintenanceWorkOrderWriteRequest = {
   scheduled_for: string | null;
   cancellation_reason: string | null;
   closure_notes: string | null;
+  reschedule_note?: string | null;
   assigned_tenant_user_id: number | null;
   maintenance_status?: string;
 };
