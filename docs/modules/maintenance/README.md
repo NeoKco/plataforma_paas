@@ -126,6 +126,9 @@ Estado del corte hoy:
   - ordena la secuencia de terreno por ventana programada
   - alerta cuando una visita se solapa con la anterior
   - permite crear una visita de seguimiento reutilizando duración y responsables de la visita base
+- al editar una visita programada, la modal ahora también puede `reencadenar` las siguientes visitas programadas:
+  - preserva duración y separaciones entre ventanas posteriores
+  - muestra una previsualización corta de las visitas que se moverán en cadena
 - `Mantenciones` y `Agenda` ya pueden, al reprogramar una OT, alinear también la primera visita abierta con el nuevo horario y responsables para no dejar desfasada la ventana principal de terreno
 - esa reprogramación ahora también muestra una lectura más fina de ventanas de terreno:
   - previsualiza la ventana actual y la propuesta para la primera visita abierta que se sincronizará

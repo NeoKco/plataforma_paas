@@ -171,6 +171,7 @@ Avance actual:
   - ordena la secuencia de visitas por ventana
   - marca solapes contra la visita anterior
   - permite crear una visita de seguimiento reutilizando duración y responsables base
+- al editar una visita programada, `Visitas` ya puede reencadenar automáticamente las siguientes visitas programadas preservando duración y separaciones
 
 Pendiente fino de este frente:
 
@@ -355,7 +356,7 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- profundizar `Visitas` con edición masiva o coordinación encadenada sobre varias ventanas abiertas
+- profundizar `Visitas` con edición masiva más explícita o coordinación encadenada sobre varias ventanas abiertas y responsables
 
 ## Backlog pendiente visible
 

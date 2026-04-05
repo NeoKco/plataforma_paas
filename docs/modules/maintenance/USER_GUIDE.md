@@ -135,6 +135,7 @@ Lectura funcional de cada vista:
   - cada fila ya permite abrir `Visitas`
   - `Visitas` ahora muestra una lectura rápida de abiertas/en curso/completadas, alertas por visitas sin responsable y atajos para copiar la ventana/responsables de la OT o marcar salida/cierre
   - además ordena la secuencia de terreno y deja crear `seguimiento` desde una visita previa para no reconstruir ventana ni responsables desde cero
+  - si editas una visita programada, también puedes reencadenar automáticamente las siguientes visitas programadas para mover toda la secuencia sin recalcular una por una
   - cada fila ya permite abrir `Costos`
   - cada fila ya permite abrir `Checklist`
   - cada fila ya permite abrir `Reprogramar` para cambiar slot o responsables sin perder trazabilidad

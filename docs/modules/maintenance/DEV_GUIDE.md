@@ -290,6 +290,10 @@ Con modulos tenant:
 - el frontend ya agrega además una lectura fina en reprogramación:
   - previsualiza la ventana actual/propuesta de la primera visita abierta sincronizable
   - enumera las demás visitas abiertas que seguirán requiriendo ajuste desde `Visitas`
+- `Visitas` ya agrega una secuencia operativa propia:
+  - ordena ventanas por tiempo programado
+  - detecta solapes contra la visita anterior
+  - puede reencadenar las siguientes visitas `scheduled` preservando duración y brecha relativa al editar una ventana base
 - `projects`: podra reutilizar el mismo sitio, cliente y responsable
 - `iot`: deberia colgarse del mismo sitio o activo instalado
 

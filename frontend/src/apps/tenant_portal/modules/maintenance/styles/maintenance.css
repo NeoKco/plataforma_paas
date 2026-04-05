@@ -407,6 +407,43 @@
   gap: 0.5rem;
 }
 
+.maintenance-visit-chain-panel {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px dashed #bdd1ff;
+  border-radius: 0.9rem;
+  background: rgba(237, 243, 255, 0.6);
+}
+
+.maintenance-visit-chain-panel__title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #1848a0;
+}
+
+.maintenance-visit-chain-panel__preview {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.maintenance-visit-chain-panel__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(46, 107, 255, 0.14);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.maintenance-visit-chain-panel__item strong {
+  color: #1848a0;
+}
+
 .maintenance-reschedule-visit-list {
   display: grid;
   gap: 0.45rem;

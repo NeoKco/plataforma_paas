@@ -90,6 +90,17 @@ type VisitSequenceItem = {
   overlapsPrevious: boolean;
 };
 
+type VisitChainUpdate = {
+  visit: TenantMaintenanceVisit;
+  scheduled_start_at: string;
+  scheduled_end_at: string;
+};
+
+type VisitChainPlan = {
+  updates: VisitChainUpdate[];
+  reason: "missing_window" | "missing_duration" | null;
+};
+
 function normalizeNullable(value: string): string | null {
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
@@ -219,6 +230,69 @@ function buildVisitSequence(visits: TenantMaintenanceVisit[]): VisitSequenceItem
   });
 }
 
+function buildVisitChainPlan(
+  visits: TenantMaintenanceVisit[],
+  pivotVisitId: number | null,
+  nextPivotStart: string | null,
+  nextPivotEnd: string | null
+): VisitChainPlan {
+  if (!pivotVisitId || !nextPivotStart || !nextPivotEnd) {
+    return { updates: [], reason: "missing_window" };
+  }
+
+  const scheduledVisits = [...visits]
+    .filter((visit) => visit.visit_status === "scheduled")
+    .sort((left, right) => {
+      const leftTimestamp =
+        toTimestamp(left.scheduled_start_at) ?? toTimestamp(left.created_at) ?? Number.POSITIVE_INFINITY;
+      const rightTimestamp =
+        toTimestamp(right.scheduled_start_at) ?? toTimestamp(right.created_at) ?? Number.POSITIVE_INFINITY;
+      return leftTimestamp - rightTimestamp;
+    });
+
+  const pivotIndex = scheduledVisits.findIndex((visit) => visit.id === pivotVisitId);
+  if (pivotIndex < 0) {
+    return { updates: [], reason: null };
+  }
+
+  let previousOriginalEndTimestamp: number | null = toTimestamp(
+    scheduledVisits[pivotIndex].scheduled_end_at
+  );
+  let previousShiftedEndTimestamp: number | null = toTimestamp(nextPivotEnd);
+  if (previousOriginalEndTimestamp === null || previousShiftedEndTimestamp === null) {
+    return { updates: [], reason: "missing_duration" };
+  }
+
+  const updates: VisitChainUpdate[] = [];
+  for (const visit of scheduledVisits.slice(pivotIndex + 1)) {
+    const startTimestamp = toTimestamp(visit.scheduled_start_at);
+    const endTimestamp = toTimestamp(visit.scheduled_end_at);
+    if (
+      startTimestamp === null ||
+      endTimestamp === null ||
+      endTimestamp < startTimestamp ||
+      previousOriginalEndTimestamp === null ||
+      previousShiftedEndTimestamp === null
+    ) {
+      return { updates: [], reason: "missing_duration" };
+    }
+
+    const gap = Math.max(0, startTimestamp - previousOriginalEndTimestamp);
+    const duration = endTimestamp - startTimestamp;
+    const shiftedStart: number = previousShiftedEndTimestamp + gap;
+    const shiftedEnd: number = shiftedStart + duration;
+    updates.push({
+      visit,
+      scheduled_start_at: toLocalMinuteValue(new Date(shiftedStart)),
+      scheduled_end_at: toLocalMinuteValue(new Date(shiftedEnd)),
+    });
+    previousOriginalEndTimestamp = endTimestamp;
+    previousShiftedEndTimestamp = shiftedEnd;
+  }
+
+  return { updates, reason: null };
+}
+
 function isMembershipActive(member: WorkGroupMembership) {
   if (!member.is_active) {
     return false;
@@ -304,6 +378,7 @@ export function MaintenanceVisitsModal({
   const [visits, setVisits] = useState<TenantMaintenanceVisit[]>([]);
   const [editingVisitId, setEditingVisitId] = useState<number | null>(null);
   const [form, setForm] = useState<VisitFormState | null>(null);
+  const [alignFollowingScheduledVisits, setAlignFollowingScheduledVisits] = useState(false);
 
   const workGroupById = useMemo(
     () => new Map(workGroups.map((group) => [group.id, group.name])),
@@ -369,6 +444,16 @@ export function MaintenanceVisitsModal({
     () => visitSequence.filter((item) => item.overlapsPrevious).length,
     [visitSequence]
   );
+  const visitChainPlan = useMemo(
+    () =>
+      buildVisitChainPlan(
+        visits,
+        editingVisitId,
+        form?.scheduled_start_at || null,
+        form?.scheduled_end_at || null
+      ),
+    [editingVisitId, form?.scheduled_end_at, form?.scheduled_start_at, visits]
+  );
 
   function getTechnicianOptionLabel(userId: number): string {
     const baseLabel = technicianById.get(userId) || `#${userId}`;
@@ -412,6 +497,7 @@ export function MaintenanceVisitsModal({
       return;
     }
     setEditingVisitId(null);
+    setAlignFollowingScheduledVisits(false);
     setForm(buildFormState(workOrder));
     setError(null);
   }
@@ -421,6 +507,7 @@ export function MaintenanceVisitsModal({
       return;
     }
     setEditingVisitId(visit.id);
+    setAlignFollowingScheduledVisits(false);
     setForm(buildFormState(workOrder, visit));
     setError(null);
   }
@@ -436,6 +523,7 @@ export function MaintenanceVisitsModal({
 
   function resetForm() {
     setEditingVisitId(null);
+    setAlignFollowingScheduledVisits(false);
     setForm(null);
   }
 
@@ -524,10 +612,34 @@ export function MaintenanceVisitsModal({
       notes: normalizeNullable(form.notes),
     };
     try {
+      let chainedUpdatesApplied = 0;
       if (editingVisitId) {
         await updateTenantMaintenanceVisit(accessToken, editingVisitId, payload);
+        if (alignFollowingScheduledVisits && visitChainPlan.updates.length > 0) {
+          for (const update of visitChainPlan.updates) {
+            await updateTenantMaintenanceVisit(accessToken, update.visit.id, {
+              work_order_id: update.visit.work_order_id,
+              visit_status: update.visit.visit_status,
+              scheduled_start_at: update.scheduled_start_at,
+              scheduled_end_at: update.scheduled_end_at,
+              actual_start_at: update.visit.actual_start_at,
+              actual_end_at: update.visit.actual_end_at,
+              assigned_work_group_id: update.visit.assigned_work_group_id,
+              assigned_tenant_user_id: update.visit.assigned_tenant_user_id,
+              assigned_group_label: update.visit.assigned_group_label,
+              notes: update.visit.notes,
+            });
+          }
+          chainedUpdatesApplied = visitChainPlan.updates.length;
+        }
         onFeedback?.(
-          language === "es" ? "Visita actualizada correctamente." : "Visit updated successfully."
+          chainedUpdatesApplied > 0
+            ? language === "es"
+              ? `Visita actualizada correctamente. También se reencadenaron ${chainedUpdatesApplied} visita(s) programada(s).`
+              : `Visit updated successfully. ${chainedUpdatesApplied} scheduled visit(s) were also realigned.`
+            : language === "es"
+              ? "Visita actualizada correctamente."
+              : "Visit updated successfully."
         );
       } else {
         await createTenantMaintenanceVisit(accessToken, payload);
@@ -809,6 +921,68 @@ export function MaintenanceVisitsModal({
                     </button>
                   </div>
                 </div>
+                {editingVisitId ? (
+                  <div className="maintenance-visit-chain-panel mb-3">
+                    <div className="maintenance-visit-chain-panel__title">
+                      {language === "es" ? "Alinear siguientes visitas" : "Align following visits"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {visitChainPlan.updates.length > 0
+                        ? language === "es"
+                          ? `Si cambias esta ventana, puedes reencadenar ${visitChainPlan.updates.length} visita(s) programada(s) posterior(es) preservando sus duraciones y separaciones.`
+                          : `If you change this window, you can realign ${visitChainPlan.updates.length} following scheduled visit(s) while preserving their durations and gaps.`
+                        : visitChainPlan.reason === "missing_window"
+                          ? language === "es"
+                            ? "Define inicio y fin programados para habilitar el reencadenamiento de visitas posteriores."
+                            : "Set scheduled start and end to enable chaining of following visits."
+                          : visitChainPlan.reason === "missing_duration"
+                            ? language === "es"
+                              ? "Las visitas programadas siguientes deben tener ventanas completas para recalcular la secuencia automáticamente."
+                              : "Following scheduled visits need complete windows to recalculate the sequence automatically."
+                            : language === "es"
+                              ? "No hay visitas programadas posteriores para reencadenar desde esta ventana."
+                              : "There are no following scheduled visits to realign from this window."}
+                    </div>
+                    {visitChainPlan.updates.length > 0 ? (
+                      <>
+                        <div className="maintenance-visit-chain-panel__preview">
+                          {visitChainPlan.updates.slice(0, 3).map((update) => (
+                            <div key={update.visit.id} className="maintenance-visit-chain-panel__item">
+                              <strong>#{update.visit.id}</strong>
+                              <span>
+                                {formatDateTime(update.scheduled_start_at, language, effectiveTimeZone)}
+                                {update.scheduled_end_at
+                                  ? ` → ${formatDateTime(update.scheduled_end_at, language, effectiveTimeZone)}`
+                                  : ""}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        {visitChainPlan.updates.length > 3 ? (
+                          <div className="maintenance-history-entry__meta">
+                            {language === "es"
+                              ? `+${visitChainPlan.updates.length - 3} visita(s) programada(s) adicional(es) se moverán en cadena.`
+                              : `+${visitChainPlan.updates.length - 3} additional scheduled visit(s) will be shifted in sequence.`}
+                          </div>
+                        ) : null}
+                        <div className="form-check mt-1">
+                          <input
+                            checked={alignFollowingScheduledVisits}
+                            className="form-check-input"
+                            id="maintenance-align-following-visits"
+                            onChange={(event) => setAlignFollowingScheduledVisits(event.target.checked)}
+                            type="checkbox"
+                          />
+                          <label className="form-check-label" htmlFor="maintenance-align-following-visits">
+                            {language === "es"
+                              ? "Reencadenar automáticamente las siguientes visitas programadas al guardar esta edición."
+                              : "Automatically realign following scheduled visits when saving this edit."}
+                          </label>
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+                ) : null}
                 <div className="row g-3">
                   <div className="col-12 col-md-6">
                     <label className="form-label">{language === "es" ? "Estado" : "Status"}</label>

@@ -68,6 +68,9 @@
   - ordena la secuencia de terreno por visita
   - alerta solapes con la ventana anterior
   - permite crear una visita de seguimiento reutilizando duración y responsables de la visita base
+- `Visitas` ahora también puede reencadenar visitas programadas posteriores al editar una ventana:
+  - preserva duración y separación relativa de las siguientes visitas programadas
+  - previsualiza una lista breve de las visitas que se moverán en cadena antes de guardar
 - se deja explícitamente pendiente el slice de trazabilidad de `Plantilla de costeo de mantención` aplicada al cierre económico final de cada OT
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
