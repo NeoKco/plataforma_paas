@@ -73,9 +73,27 @@ type VisitFormState = {
   notes: string;
 };
 
+type VisitCoordinationSummary = {
+  total: number;
+  openCount: number;
+  inProgressCount: number;
+  completedCount: number;
+  unassignedOpenCount: number;
+  pendingWindowCount: number;
+  nextOpenVisit: TenantMaintenanceVisit | null;
+};
+
 function normalizeNullable(value: string): string | null {
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
+}
+
+function toTimestamp(value: string | null | undefined): number | null {
+  if (!value) {
+    return null;
+  }
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? null : timestamp;
 }
 
 function toLocalInput(value: string | null | undefined): string {
@@ -83,6 +101,44 @@ function toLocalInput(value: string | null | undefined): string {
     return "";
   }
   return value.replace(" ", "T").slice(0, 16);
+}
+
+function getCurrentLocalMinuteValue() {
+  const value = new Date();
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  const hours = String(value.getHours()).padStart(2, "0");
+  const minutes = String(value.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function toLocalMinuteValue(value: Date) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  const hours = String(value.getHours()).padStart(2, "0");
+  const minutes = String(value.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function shiftEndKeepingDuration(
+  currentStart: string,
+  currentEnd: string,
+  nextStart: string
+) {
+  const currentStartTimestamp = toTimestamp(currentStart);
+  const currentEndTimestamp = toTimestamp(currentEnd);
+  const nextStartTimestamp = toTimestamp(nextStart);
+  if (
+    currentStartTimestamp === null ||
+    currentEndTimestamp === null ||
+    nextStartTimestamp === null ||
+    currentEndTimestamp < currentStartTimestamp
+  ) {
+    return "";
+  }
+  return toLocalMinuteValue(new Date(nextStartTimestamp + (currentEndTimestamp - currentStartTimestamp)));
 }
 
 function formatDateTime(value: string | null, language: "es" | "en", timeZone?: string | null) {
@@ -202,6 +258,29 @@ export function MaintenanceVisitsModal({
     technicians,
     workGroupMembers,
   ]);
+  const coordinationSummary = useMemo<VisitCoordinationSummary>(() => {
+    const openVisits = visits.filter(
+      (visit) => visit.visit_status === "scheduled" || visit.visit_status === "in_progress"
+    );
+    const orderedOpenVisits = [...openVisits].sort((left, right) => {
+      const leftTimestamp =
+        toTimestamp(left.scheduled_start_at) ?? toTimestamp(left.created_at) ?? Number.POSITIVE_INFINITY;
+      const rightTimestamp =
+        toTimestamp(right.scheduled_start_at) ?? toTimestamp(right.created_at) ?? Number.POSITIVE_INFINITY;
+      return leftTimestamp - rightTimestamp;
+    });
+    return {
+      total: visits.length,
+      openCount: openVisits.length,
+      inProgressCount: visits.filter((visit) => visit.visit_status === "in_progress").length,
+      completedCount: visits.filter((visit) => visit.visit_status === "completed").length,
+      unassignedOpenCount: openVisits.filter(
+        (visit) => !visit.assigned_work_group_id || !visit.assigned_tenant_user_id
+      ).length,
+      pendingWindowCount: openVisits.filter((visit) => !visit.scheduled_start_at).length,
+      nextOpenVisit: orderedOpenVisits[0] ?? null,
+    };
+  }, [visits]);
 
   function getTechnicianOptionLabel(userId: number): string {
     const baseLabel = technicianById.get(userId) || `#${userId}`;
@@ -261,6 +340,68 @@ export function MaintenanceVisitsModal({
   function resetForm() {
     setEditingVisitId(null);
     setForm(null);
+  }
+
+  function applyWorkOrderWindowPreset() {
+    if (!workOrder?.scheduled_for) {
+      return;
+    }
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+      return {
+        ...current,
+        scheduled_start_at: toLocalInput(workOrder.scheduled_for),
+        scheduled_end_at:
+          current.scheduled_start_at && current.scheduled_end_at
+            ? shiftEndKeepingDuration(
+                current.scheduled_start_at,
+                current.scheduled_end_at,
+                toLocalInput(workOrder.scheduled_for)
+              )
+            : current.scheduled_end_at,
+      };
+    });
+  }
+
+  function applyWorkOrderAssigneePreset() {
+    setForm((current) =>
+      current
+        ? {
+            ...current,
+            assigned_work_group_id: String(workOrder?.assigned_work_group_id ?? ""),
+            assigned_tenant_user_id: String(workOrder?.assigned_tenant_user_id ?? ""),
+          }
+        : current
+    );
+  }
+
+  function markVisitInProgressNow() {
+    const now = getCurrentLocalMinuteValue();
+    setForm((current) =>
+      current
+        ? {
+            ...current,
+            visit_status: "in_progress",
+            actual_start_at: current.actual_start_at || now,
+          }
+        : current
+    );
+  }
+
+  function markVisitCompletedNow() {
+    const now = getCurrentLocalMinuteValue();
+    setForm((current) =>
+      current
+        ? {
+            ...current,
+            visit_status: "completed",
+            actual_start_at: current.actual_start_at || now,
+            actual_end_at: now,
+          }
+        : current
+    );
   }
 
   async function handleSubmit() {
@@ -378,20 +519,111 @@ export function MaintenanceVisitsModal({
             />
           ) : null}
 
+          <div className="maintenance-visit-summary mb-3">
+            <div className="maintenance-visit-summary__header">
+              <div>
+                <div className="maintenance-history-entry__title">
+                  {language === "es" ? "Coordinación operativa" : "Operational coordination"}
+                </div>
+                <div className="maintenance-history-entry__meta">
+                  {language === "es"
+                    ? "Lectura rápida de visitas abiertas, responsables pendientes y próxima ventana de terreno."
+                    : "Quick view of open visits, pending assignees, and the next field window."}
+                </div>
+              </div>
+            </div>
+            <div className="maintenance-visit-summary__grid">
+              <div className="maintenance-visit-summary__metric">
+                <strong>{coordinationSummary.openCount}</strong>
+                <span>{language === "es" ? "abiertas" : "open"}</span>
+              </div>
+              <div className="maintenance-visit-summary__metric">
+                <strong>{coordinationSummary.inProgressCount}</strong>
+                <span>{language === "es" ? "en curso" : "in progress"}</span>
+              </div>
+              <div className="maintenance-visit-summary__metric">
+                <strong>{coordinationSummary.completedCount}</strong>
+                <span>{language === "es" ? "completadas" : "completed"}</span>
+              </div>
+              <div className="maintenance-visit-summary__metric">
+                <strong>{coordinationSummary.unassignedOpenCount}</strong>
+                <span>{language === "es" ? "sin responsable" : "unassigned"}</span>
+              </div>
+            </div>
+            <div className="maintenance-visit-summary__details">
+              <div className="maintenance-history-entry__meta">
+                {language === "es" ? "Próxima visita abierta" : "Next open visit"}: {coordinationSummary.nextOpenVisit
+                  ? formatDateTime(
+                      coordinationSummary.nextOpenVisit.scheduled_start_at,
+                      language,
+                      effectiveTimeZone
+                    )
+                  : language === "es"
+                    ? "sin visitas abiertas"
+                    : "no open visits"}
+              </div>
+              {coordinationSummary.unassignedOpenCount > 0 ? (
+                <div className="maintenance-history-entry__meta text-warning">
+                  {language === "es"
+                    ? `${coordinationSummary.unassignedOpenCount} visita(s) abierta(s) siguen sin grupo o técnico asignado.`
+                    : `${coordinationSummary.unassignedOpenCount} open visit(s) still have no group or technician assigned.`}
+                </div>
+              ) : null}
+              {coordinationSummary.pendingWindowCount > 0 ? (
+                <div className="maintenance-history-entry__meta text-warning">
+                  {language === "es"
+                    ? `${coordinationSummary.pendingWindowCount} visita(s) abierta(s) siguen sin ventana programada.`
+                    : `${coordinationSummary.pendingWindowCount} open visit(s) still have no scheduled window.`}
+                </div>
+              ) : null}
+            </div>
+          </div>
+
           {form ? (
             <div className="panel-card border-0 bg-light-subtle mb-3">
               <div className="panel-card__header pb-2">
-                <h3 className="panel-card__title mb-0">
-                  {editingVisitId
-                    ? language === "es"
-                      ? "Editar visita"
-                      : "Edit visit"
-                    : language === "es"
-                      ? "Nueva visita"
-                      : "New visit"}
-                </h3>
+                <div>
+                  <h3 className="panel-card__title mb-1">
+                    {editingVisitId
+                      ? language === "es"
+                        ? "Editar visita"
+                        : "Edit visit"
+                      : language === "es"
+                        ? "Nueva visita"
+                        : "New visit"}
+                  </h3>
+                  <p className="panel-card__subtitle mb-0">
+                    {language === "es"
+                      ? "Usa atajos para copiar ventana/responsables de la OT o registrar rápidamente salida y cierre en terreno."
+                      : "Use shortcuts to copy the work order window/assignees or quickly register field start and closure."}
+                  </p>
+                </div>
               </div>
               <div className="panel-card__body pt-0">
+                <div className="maintenance-visit-quick-actions mb-3">
+                  <div className="maintenance-visit-quick-actions__title">
+                    {language === "es" ? "Atajos de coordinación" : "Coordination shortcuts"}
+                  </div>
+                  <div className="maintenance-visit-quick-actions__buttons">
+                    <button
+                      className="btn btn-sm btn-outline-primary"
+                      type="button"
+                      onClick={applyWorkOrderWindowPreset}
+                      disabled={!workOrder?.scheduled_for}
+                    >
+                      {language === "es" ? "Usar ventana OT" : "Use work order window"}
+                    </button>
+                    <button className="btn btn-sm btn-outline-primary" type="button" onClick={applyWorkOrderAssigneePreset}>
+                      {language === "es" ? "Copiar responsables OT" : "Copy work order assignees"}
+                    </button>
+                    <button className="btn btn-sm btn-outline-primary" type="button" onClick={markVisitInProgressNow}>
+                      {language === "es" ? "Marcar salida ahora" : "Mark departure now"}
+                    </button>
+                    <button className="btn btn-sm btn-outline-primary" type="button" onClick={markVisitCompletedNow}>
+                      {language === "es" ? "Cerrar ahora" : "Close now"}
+                    </button>
+                  </div>
+                </div>
                 <div className="row g-3">
                   <div className="col-12 col-md-6">
                     <label className="form-label">{language === "es" ? "Estado" : "Status"}</label>

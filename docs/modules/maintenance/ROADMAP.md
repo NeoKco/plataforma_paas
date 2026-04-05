@@ -164,6 +164,9 @@ Avance actual:
 - conflictos visibles, bloqueo backend `409`, filtros de agenda y reprogramación auditada ya quedaron operativos en el mismo frente de endurecimiento
 - la reprogramación desde `Mantenciones` y `Agenda` ya puede arrastrar la primera visita abierta para mantener alineada la ventana principal de terreno
 - ese flujo ahora también previsualiza la ventana actual/propuesta de la primera visita sincronizable y enumera las demás visitas abiertas que quedan para coordinación fina
+- `Visitas` ahora agrega un primer bloque explícito de coordinación operativa:
+  - resume abiertas/en curso/completadas y responsables pendientes
+  - expone atajos para copiar ventana/responsables de la OT y marcar salida/cierre rápido en terreno
 
 Pendiente fino de este frente:
 
@@ -348,7 +351,7 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- profundizar la coordinación de terreno sobre `Visitas`, después de haber dejado la reprogramación con previsualización fina de ventanas abiertas
+- profundizar `Visitas` con edición multi-ventana y coordinación más rica sobre secuencias de terreno
 
 ## Backlog pendiente visible
 

@@ -284,6 +284,68 @@
   font-size: 0.875rem;
 }
 
+.maintenance-visit-summary {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #dbe3f0;
+  border-radius: 1rem;
+  background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+}
+
+.maintenance-visit-summary__grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+}
+
+.maintenance-visit-summary__metric {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(46, 107, 255, 0.16);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.maintenance-visit-summary__metric strong {
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.maintenance-visit-summary__metric span {
+  color: var(--app-text-muted, #6b7a90);
+  font-size: 0.78rem;
+}
+
+.maintenance-visit-summary__details {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.maintenance-visit-quick-actions {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px dashed #bdd1ff;
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.maintenance-visit-quick-actions__title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #1848a0;
+}
+
+.maintenance-visit-quick-actions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .maintenance-reschedule-visit-list {
   display: grid;
   gap: 0.45rem;
@@ -473,6 +535,10 @@
 
   .maintenance-mobile-quick-actions__buttons .btn {
     flex: 1 1 10rem;
+  }
+
+  .maintenance-visit-quick-actions__buttons .btn {
+    flex: 1 1 12rem;
   }
 
   .maintenance-form__actions--sticky-mobile {

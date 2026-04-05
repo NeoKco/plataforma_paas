@@ -60,6 +60,10 @@
 - `Reprogramar` en `Mantenciones` y `Agenda` ahora agrega lectura fina de ventanas:
   - previsualiza la ventana actual y la propuesta para la primera visita abierta que puede sincronizarse
   - lista las demás visitas abiertas que quedan para coordinación manual en `Visitas`
+- `Visitas` ahora agrega un bloque de coordinación operativa:
+  - resume visitas abiertas, en curso, completadas y abiertas sin responsable
+  - muestra la próxima ventana abierta para lectura rápida de terreno
+  - incorpora atajos para copiar ventana/responsables de la OT y marcar salida o cierre rápido
 - se deja explícitamente pendiente el slice de trazabilidad de `Plantilla de costeo de mantención` aplicada al cierre económico final de cada OT
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista

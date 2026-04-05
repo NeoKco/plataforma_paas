@@ -118,6 +118,10 @@ Estado del corte hoy:
 - `Mantenciones` y `Agenda` ya permiten `Reprogramar` con una nota opcional para dejar trazabilidad del cambio de slot y responsables en historial técnico
 - `Historial` ya permite abrir `Editar cierre` también desde la nueva `Ficha de mantención`, sin exponer reprogramación ni edición operativa de una OT cerrada
 - `Mantenciones` ya permite abrir `Visitas` desde la fila o desde la `Ficha de mantención`, para bajar a una coordinación más fina por ventana de terreno
+- la modal `Visitas` ahora agrega un resumen de coordinación operativa:
+  - cuenta visitas abiertas, en curso, completadas y abiertas sin responsable
+  - muestra la próxima ventana abierta visible para coordinación rápida
+  - incorpora atajos para copiar ventana/responsables de la OT y registrar inicio/cierre de salida en terreno
 - `Mantenciones` y `Agenda` ya pueden, al reprogramar una OT, alinear también la primera visita abierta con el nuevo horario y responsables para no dejar desfasada la ventana principal de terreno
 - esa reprogramación ahora también muestra una lectura más fina de ventanas de terreno:
   - previsualiza la ventana actual y la propuesta para la primera visita abierta que se sincronizará
