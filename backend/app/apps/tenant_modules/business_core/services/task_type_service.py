@@ -1,6 +1,10 @@
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.business_core.models import BusinessTaskType
+from app.apps.tenant_modules.business_core.models import (
+    BusinessFunctionProfile,
+    BusinessTaskType,
+    BusinessTaskTypeFunctionProfile,
+)
 from app.apps.tenant_modules.business_core.repositories import (
     BusinessTaskTypeRepository,
 )
@@ -39,8 +43,16 @@ class BusinessTaskTypeService:
     ) -> BusinessTaskType:
         normalized = self._normalize_payload(payload)
         self._validate_payload(tenant_db, normalized)
-        item = BusinessTaskType(**normalized)
-        return self.task_type_repository.save(tenant_db, item)
+        item = BusinessTaskType(
+            **{key: value for key, value in normalized.items() if key != "compatible_function_profile_ids"}
+        )
+        saved = self.task_type_repository.save(tenant_db, item)
+        self._replace_compatible_function_profiles(
+            tenant_db,
+            task_type_id=saved.id,
+            function_profile_ids=normalized["compatible_function_profile_ids"],
+        )
+        return self.get_task_type(tenant_db, saved.id)
 
     def get_task_type(
         self,
@@ -59,8 +71,16 @@ class BusinessTaskTypeService:
         normalized = self._normalize_payload(payload)
         self._validate_payload(tenant_db, normalized, current_item=item)
         for field, value in normalized.items():
+            if field == "compatible_function_profile_ids":
+                continue
             setattr(item, field, value)
-        return self.task_type_repository.save(tenant_db, item)
+        saved = self.task_type_repository.save(tenant_db, item)
+        self._replace_compatible_function_profiles(
+            tenant_db,
+            task_type_id=saved.id,
+            function_profile_ids=normalized["compatible_function_profile_ids"],
+        )
+        return self.get_task_type(tenant_db, saved.id)
 
     def set_task_type_active(
         self,
@@ -106,6 +126,7 @@ class BusinessTaskTypeService:
             "icon": payload.icon.strip() if payload.icon and payload.icon.strip() else None,
             "is_active": payload.is_active,
             "sort_order": payload.sort_order,
+            "compatible_function_profile_ids": list(dict.fromkeys(payload.compatible_function_profile_ids)),
         }
 
     def _validate_payload(
@@ -135,3 +156,60 @@ class BusinessTaskTypeService:
             current_item is None or existing_by_name.id != current_item.id
         ):
             raise ValueError("Ya existe un tipo de tarea con ese nombre")
+
+        if payload["compatible_function_profile_ids"]:
+            existing_profiles = (
+                tenant_db.query(BusinessFunctionProfile.id)
+                .filter(
+                    BusinessFunctionProfile.id.in_(payload["compatible_function_profile_ids"])
+                )
+                .all()
+            )
+            existing_ids = {
+                item[0] if isinstance(item, tuple) else getattr(item, "id", item)
+                for item in existing_profiles
+            }
+            missing_ids = [
+                item for item in payload["compatible_function_profile_ids"] if item not in existing_ids
+            ]
+            if missing_ids:
+                raise ValueError(
+                    "Uno o más perfiles funcionales compatibles ya no existen en el catálogo"
+                )
+
+    def get_task_type_compatible_profiles(
+        self,
+        tenant_db: Session,
+        task_type_id: int,
+    ) -> list[BusinessFunctionProfile]:
+        return (
+            tenant_db.query(BusinessFunctionProfile)
+            .join(
+                BusinessTaskTypeFunctionProfile,
+                BusinessTaskTypeFunctionProfile.function_profile_id == BusinessFunctionProfile.id,
+            )
+            .filter(BusinessTaskTypeFunctionProfile.task_type_id == task_type_id)
+            .order_by(BusinessFunctionProfile.sort_order.asc(), BusinessFunctionProfile.name.asc())
+            .all()
+        )
+
+    def _replace_compatible_function_profiles(
+        self,
+        tenant_db: Session,
+        *,
+        task_type_id: int,
+        function_profile_ids: list[int],
+    ) -> None:
+        (
+            tenant_db.query(BusinessTaskTypeFunctionProfile)
+            .filter(BusinessTaskTypeFunctionProfile.task_type_id == task_type_id)
+            .delete(synchronize_session=False)
+        )
+        for function_profile_id in function_profile_ids:
+            tenant_db.add(
+                BusinessTaskTypeFunctionProfile(
+                    task_type_id=task_type_id,
+                    function_profile_id=function_profile_id,
+                )
+            )
+        tenant_db.commit()

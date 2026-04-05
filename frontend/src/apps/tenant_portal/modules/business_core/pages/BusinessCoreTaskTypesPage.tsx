@@ -20,7 +20,6 @@ import {
 } from "../services/functionProfilesService";
 import { buildInternalTaxonomyCode, stripLegacyVisibleText } from "../utils/taxonomyUi";
 import {
-  buildTaskTypeDescriptionWithAllowedProfiles,
   getTaskTypeAllowedProfileNames,
   stripTaskTypeAllowedProfilesMetadata,
 } from "../../maintenance/services/assignmentCapability";
@@ -34,6 +33,7 @@ function buildDefaultForm(): TenantBusinessTaskTypeWriteRequest {
     icon: "calendar",
     is_active: true,
     sort_order: 100,
+    compatible_function_profile_ids: [],
   };
 }
 
@@ -97,6 +97,7 @@ export function BusinessCoreTaskTypesPage() {
       icon: item.icon,
       is_active: item.is_active,
       sort_order: item.sort_order,
+      compatible_function_profile_ids: item.compatible_function_profile_ids,
     });
     setCompatibleProfileNames(getTaskTypeAllowedProfileNames(item));
   }
@@ -110,14 +111,12 @@ export function BusinessCoreTaskTypesPage() {
           ? (form.code?.trim() ?? "") || buildInternalTaxonomyCode("task", form.name, editingId)
           : buildInternalTaxonomyCode("task", form.name),
       name: form.name.trim(),
-      description: stripLegacyVisibleText(
-        buildTaskTypeDescriptionWithAllowedProfiles(
-          normalizeNullable(form.description),
-          compatibleProfileNames
-        )
-      ),
+      description: stripLegacyVisibleText(normalizeNullable(form.description)),
       color: normalizeNullable(form.color),
       icon: normalizeNullable(form.icon),
+      compatible_function_profile_ids: functionProfiles
+        .filter((profile) => compatibleProfileNames.includes(profile.name))
+        .map((profile) => profile.id),
     };
     setIsSubmitting(true);
     setError(null);

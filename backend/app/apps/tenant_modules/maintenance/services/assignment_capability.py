@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.apps.tenant_modules.business_core.models import (
     BusinessFunctionProfile,
     BusinessTaskType,
+    BusinessTaskTypeFunctionProfile,
     BusinessWorkGroupMember,
 )
 
@@ -43,9 +44,21 @@ def get_task_type_assignment_rule(
     )
     if task_type is None:
         return None
-    allowed_profile_names = parse_task_type_allowed_profile_names(
-        getattr(task_type, "description", None)
+    compatible_profiles = (
+        tenant_db.query(BusinessFunctionProfile)
+        .join(
+            BusinessTaskTypeFunctionProfile,
+            BusinessTaskTypeFunctionProfile.function_profile_id == BusinessFunctionProfile.id,
+        )
+        .filter(BusinessTaskTypeFunctionProfile.task_type_id == task_type_id)
+        .order_by(BusinessFunctionProfile.sort_order.asc(), BusinessFunctionProfile.name.asc())
+        .all()
     )
+    allowed_profile_names = [item.name for item in compatible_profiles]
+    if not allowed_profile_names:
+        allowed_profile_names = parse_task_type_allowed_profile_names(
+            getattr(task_type, "description", None)
+        )
     return {
         "task_type": task_type,
         "allowed_profile_names": allowed_profile_names,

@@ -45,15 +45,14 @@ export function buildTaskTypeDescriptionWithAllowedProfiles(
   description: string | null | undefined,
   allowedProfileNames: string[]
 ): string | null {
-  const body = stripTaskTypeAllowedProfilesMetadata(description);
-  const metadata = allowedProfileNames.length > 0
-    ? `profiles: ${allowedProfileNames.join(", ")}`
-    : null;
-  const parts = [body, metadata].filter((item): item is string => Boolean(item && item.trim()));
-  return parts.length > 0 ? parts.join("\n") : null;
+  void allowedProfileNames;
+  return stripTaskTypeAllowedProfilesMetadata(description);
 }
 
 export function getTaskTypeAllowedProfileNames(taskType: TenantBusinessTaskType | null | undefined): string[] {
+  if (taskType?.compatible_function_profile_names?.length) {
+    return taskType.compatible_function_profile_names;
+  }
   return parseTaskTypeAllowedProfileNames(taskType?.description);
 }
 

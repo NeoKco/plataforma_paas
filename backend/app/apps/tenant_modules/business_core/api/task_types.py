@@ -21,7 +21,8 @@ router = APIRouter(prefix="/tenant/business-core/task-types", tags=["Tenant Busi
 task_type_service = BusinessTaskTypeService()
 
 
-def _build_task_type_item(item) -> BusinessTaskTypeItemResponse:
+def _build_task_type_item(tenant_db: Session, item) -> BusinessTaskTypeItemResponse:
+    compatible_profiles = task_type_service.get_task_type_compatible_profiles(tenant_db, item.id)
     return BusinessTaskTypeItemResponse(
         id=item.id,
         code=item.code,
@@ -31,6 +32,8 @@ def _build_task_type_item(item) -> BusinessTaskTypeItemResponse:
         icon=item.icon,
         is_active=item.is_active,
         sort_order=item.sort_order,
+        compatible_function_profile_ids=[profile.id for profile in compatible_profiles],
+        compatible_function_profile_names=[profile.name for profile in compatible_profiles],
         created_at=item.created_at,
         updated_at=item.updated_at,
     )
@@ -51,7 +54,7 @@ def list_business_task_types(
         message="Tipos de tarea recuperados correctamente",
         requested_by=build_business_core_requested_by(current_user),
         total=len(items),
-        data=[_build_task_type_item(item) for item in items],
+        data=[_build_task_type_item(tenant_db, item) for item in items],
     )
 
 
@@ -70,7 +73,7 @@ def create_business_task_type(
         success=True,
         message="Tipo de tarea creado correctamente",
         requested_by=build_business_core_requested_by(current_user),
-        data=_build_task_type_item(item),
+        data=_build_task_type_item(tenant_db, item),
     )
 
 
@@ -89,7 +92,7 @@ def get_business_task_type(
         success=True,
         message="Tipo de tarea recuperado correctamente",
         requested_by=build_business_core_requested_by(current_user),
-        data=_build_task_type_item(item),
+        data=_build_task_type_item(tenant_db, item),
     )
 
 
@@ -113,7 +116,7 @@ def update_business_task_type(
         success=True,
         message="Tipo de tarea actualizado correctamente",
         requested_by=build_business_core_requested_by(current_user),
-        data=_build_task_type_item(item),
+        data=_build_task_type_item(tenant_db, item),
     )
 
 
@@ -137,7 +140,7 @@ def update_business_task_type_status(
         success=True,
         message="Estado del tipo de tarea actualizado correctamente",
         requested_by=build_business_core_requested_by(current_user),
-        data=_build_task_type_item(item),
+        data=_build_task_type_item(tenant_db, item),
     )
 
 
@@ -156,5 +159,5 @@ def delete_business_task_type(
         success=True,
         message="Tipo de tarea eliminado correctamente",
         requested_by=build_business_core_requested_by(current_user),
-        data=_build_task_type_item(item),
+        data=_build_task_type_item(tenant_db, item),
     )

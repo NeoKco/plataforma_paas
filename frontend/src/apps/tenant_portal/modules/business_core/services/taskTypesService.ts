@@ -9,6 +9,8 @@ export type TenantBusinessTaskType = {
   icon: string | null;
   is_active: boolean;
   sort_order: number;
+  compatible_function_profile_ids: number[];
+  compatible_function_profile_names: string[];
   created_at: string;
   updated_at: string;
 };
@@ -34,6 +36,7 @@ export type TenantBusinessTaskTypeWriteRequest = {
   icon: string | null;
   is_active: boolean;
   sort_order: number;
+  compatible_function_profile_ids: number[];
 };
 
 export function getTenantBusinessTaskTypes(
