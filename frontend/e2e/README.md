@@ -92,6 +92,12 @@ Minimo esperado:
 - correr `npx playwright test <spec> --list` para validar compilación y wiring
 - actualizar este README y el runbook si cambian baseline, credenciales, seeds, scripts o alcance
 
+Regla práctica adicional para esta iteración:
+
+- si la UI abrió un modal o `detail dialog`, el spec debe abrirlo explícitamente y acotar sus selectores a ese contenedor activo
+- evitar asumir que `page.locator("form").first()` o un `getByLabel(...)` global siguen apuntando al flujo correcto cuando la pantalla pasó a un patrón `modal-first`
+- cuando una alta deja abierto un `detail modal` operativo, el spec debe decidir explícitamente si continúa dentro de ese modal o si lo cierra antes de volver a interactuar con la grilla
+
 Si el flujo visible nuevo aun no tiene smoke, debe quedar anotado explícitamente en el `ROADMAP.md` o `CHANGELOG.md` del módulo.
 
 Comandos útiles:
@@ -197,6 +203,7 @@ Notas:
 - estado validado al cierre actual:
 	- `npm run e2e:platform` → `12 passed`, `3 skipped`
 	- `npm run e2e:tenant` → `22 passed`
+	- revalidado localmente otra vez el `2026-04-04` sobre `empresa-bootstrap` después de alinear los smokes tenant con la UI actual basada en modales para `Usuarios`, `Finance`, `Business Core` y `Maintenance`
 	- los `3 skipped` corresponden a escenarios DLQ broker-only cuando el entorno no usa `PROVISIONING_DISPATCH_BACKEND=broker`
 	- los `3` escenarios DLQ broker-only también quedaron verificados aparte sobre un stack local paralelo en modo `broker` apuntando a Redis, con `3 passed`
 	- fuera de esos casos dependientes de entorno, el frente E2E browser principal queda prácticamente cerrado

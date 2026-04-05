@@ -100,6 +100,12 @@ Cuando un cambio visible toca un flujo ya cubierto por browser:
 - si cambia el flujo real, correr el subset afectado o la baseline correspondiente
 - actualizar este runbook y [frontend/e2e/README.md](/home/felipe/platform_paas/frontend/e2e/README.md) si cambia tenant baseline, credenciales, scripts o alcance
 
+Regla operativa añadida tras la estabilización tenant de `2026-04-04`:
+
+- en `tenant_portal` ya no conviene depender de selectores globales del tipo `form().first()` cuando el flujo real abre un modal
+- si el flujo abre `Nueva cuenta`, `Nuevo usuario`, `Nueva mantención`, `Nueva programación`, `Detalle operacional` o cualquier diálogo similar, el spec debe localizar primero el modal visible y trabajar dentro de él
+- si una acción deja abierto un modal de detalle, el spec debe cerrarlo explícitamente antes de volver a interactuar con botones de fila como `Conciliar`, `Anular`, `Activar` o equivalentes
+
 Si el flujo visible no tiene cobertura browser todavia, dejar explicitado en el roadmap o en el `CHANGELOG` del modulo por que sigue sin smoke.
 
 ## Regla de handoff para otra IA
@@ -218,6 +224,12 @@ Resultado validado en local a la fecha:
 - `Provisioning` validado al menos para visibilidad de jobs nuevos disparados desde `Tenants`
 - `Provisioning` validado también para ejecutar manualmente un job `pending` desde la consola
 - `Provisioning` validado también para reencolar un job `failed` desde la consola
+
+Resultado tenant revalidado al cierre de esta iteración:
+
+- backend local en `127.0.0.1:8000/health` → `200`
+- `npm run e2e:tenant` → `22 passed`
+- la baseline `empresa-bootstrap` quedó restabilizada sin cambios funcionales del producto; los ajustes fueron de alineación E2E con la UI actual basada en modales y detalles operativos
 - `Provisioning` validado también para disparar `schema auto-sync` desde la toolbar
 - `Provisioning` ya tiene además un smoke broker-only para reencolar una fila DLQ individual desde la tabla de resultados
 - `Provisioning` ya tiene además un smoke broker-only para reencolar filas DLQ filtradas en lote
