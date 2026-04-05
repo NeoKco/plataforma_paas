@@ -23,6 +23,7 @@ from app.apps.tenant_modules.maintenance.services.schedule_service import (
     MaintenanceScheduleService,
 )
 from app.apps.tenant_modules.maintenance.services.work_order_service import (
+    MaintenanceWorkOrderConflictError,
     MaintenanceWorkOrderService,
 )
 from app.apps.tenant_modules.maintenance.services.visit_service import (
@@ -37,6 +38,7 @@ __all__ = [
     "MaintenanceFieldReportService",
     "MaintenanceInstallationService",
     "MaintenanceScheduleService",
+    "MaintenanceWorkOrderConflictError",
     "MaintenanceWorkOrderService",
     "MaintenanceHistoryService",
     "MaintenanceVisitService",

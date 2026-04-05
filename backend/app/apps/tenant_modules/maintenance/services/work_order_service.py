@@ -29,7 +29,12 @@ from app.apps.tenant_modules.maintenance.schemas import (
 )
 
 FINAL_WORK_ORDER_STATUSES = {"completed", "cancelled"}
+ACTIVE_WORK_ORDER_STATUSES = {"scheduled", "in_progress"}
 LEGACY_REFERENCE_PREFIXES = ("legacy-", "legacy_")
+
+
+class MaintenanceWorkOrderConflictError(ValueError):
+    pass
 
 
 class MaintenanceWorkOrderService:
@@ -128,6 +133,12 @@ class MaintenanceWorkOrderService:
         previous_status = item.maintenance_status
         if previous_status == next_status:
             raise ValueError("La mantencion ya se encuentra en ese estado")
+
+        self._validate_status_transition_conflicts(
+            tenant_db,
+            item,
+            next_status,
+        )
 
         item.maintenance_status = next_status
         if next_status == "completed":
@@ -322,6 +333,117 @@ class MaintenanceWorkOrderService:
             )
             if existing and (current_item is None or existing.id != current_item.id):
                 raise ValueError("Ya existe una mantencion con esa referencia externa")
+
+        effective_status = payload.get("maintenance_status") or getattr(
+            current_item,
+            "maintenance_status",
+            None,
+        )
+        self._validate_scheduling_conflicts(
+            tenant_db,
+            payload,
+            maintenance_status=effective_status,
+            current_item=current_item,
+        )
+
+    def _validate_status_transition_conflicts(
+        self,
+        tenant_db: Session,
+        current_item: MaintenanceWorkOrder,
+        next_status: str,
+    ) -> None:
+        payload = {
+            "scheduled_for": current_item.scheduled_for,
+            "installation_id": current_item.installation_id,
+            "assigned_work_group_id": current_item.assigned_work_group_id,
+            "assigned_tenant_user_id": current_item.assigned_tenant_user_id,
+        }
+        self._validate_scheduling_conflicts(
+            tenant_db,
+            payload,
+            maintenance_status=next_status,
+            current_item=current_item,
+        )
+
+    def _validate_scheduling_conflicts(
+        self,
+        tenant_db: Session,
+        payload: dict,
+        *,
+        maintenance_status: str | None,
+        current_item: MaintenanceWorkOrder | None = None,
+    ) -> None:
+        if maintenance_status not in ACTIVE_WORK_ORDER_STATUSES:
+            return
+        scheduled_for = payload.get("scheduled_for")
+        if scheduled_for is None:
+            return
+
+        conflicts = self.work_order_repository.list_active_conflicts(
+            tenant_db,
+            scheduled_for=scheduled_for,
+            installation_id=payload.get("installation_id"),
+            assigned_work_group_id=payload.get("assigned_work_group_id"),
+            assigned_tenant_user_id=payload.get("assigned_tenant_user_id"),
+            exclude_work_order_id=getattr(current_item, "id", None),
+        )
+        if not conflicts:
+            return
+
+        reason_keys = self._collect_conflict_reason_keys(payload, conflicts)
+        raise MaintenanceWorkOrderConflictError(
+            self._build_conflict_message(len(conflicts), reason_keys)
+        )
+
+    def _collect_conflict_reason_keys(
+        self,
+        payload: dict,
+        conflicts: list[MaintenanceWorkOrder],
+    ) -> list[str]:
+        reasons: list[str] = []
+        installation_id = payload.get("installation_id")
+        assigned_work_group_id = payload.get("assigned_work_group_id")
+        assigned_tenant_user_id = payload.get("assigned_tenant_user_id")
+
+        for conflict in conflicts:
+            if installation_id is not None and conflict.installation_id == installation_id:
+                reasons.append("installation")
+            if (
+                assigned_work_group_id is not None
+                and conflict.assigned_work_group_id == assigned_work_group_id
+            ):
+                reasons.append("group")
+            if (
+                assigned_tenant_user_id is not None
+                and conflict.assigned_tenant_user_id == assigned_tenant_user_id
+            ):
+                reasons.append("technician")
+
+        ordered_keys = ["installation", "group", "technician"]
+        return [key for key in ordered_keys if key in reasons]
+
+    def _build_conflict_message(self, conflict_count: int, reason_keys: list[str]) -> str:
+        labels = {
+            "installation": "instalación",
+            "group": "grupo responsable",
+            "technician": "técnico responsable",
+        }
+        normalized_reasons = [labels[key] for key in reason_keys if key in labels]
+        if not normalized_reasons:
+            normalized_reasons = ["agenda técnica"]
+
+        if len(normalized_reasons) == 1:
+            reason_text = normalized_reasons[0]
+        elif len(normalized_reasons) == 2:
+            reason_text = f"{normalized_reasons[0]} y {normalized_reasons[1]}"
+        else:
+            reason_text = ", ".join(normalized_reasons[:-1]) + f" y {normalized_reasons[-1]}"
+
+        return (
+            "El horario seleccionado ya cruza con "
+            f"{conflict_count} mantención(es) abierta(s) por {reason_text}. "
+            "Ajusta la fecha/hora o reasigna los recursos antes de guardar."
+        )
 
     def _add_frequency(self, value: datetime, frequency_value: int, frequency_unit: str) -> datetime:
         if frequency_unit == "days":

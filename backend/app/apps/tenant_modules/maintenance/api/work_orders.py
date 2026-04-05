@@ -14,7 +14,10 @@ from app.apps.tenant_modules.maintenance.schemas import (
     MaintenanceWorkOrdersResponse,
     MaintenanceWorkOrderUpdateRequest,
 )
-from app.apps.tenant_modules.maintenance.services import MaintenanceWorkOrderService
+from app.apps.tenant_modules.maintenance.services import (
+    MaintenanceWorkOrderConflictError,
+    MaintenanceWorkOrderService,
+)
 from app.common.db.session_manager import get_tenant_db
 
 router = APIRouter(prefix="/tenant/maintenance/work-orders", tags=["Tenant Maintenance"])
@@ -81,6 +84,8 @@ def create_maintenance_work_order(
             payload,
             created_by_user_id=current_user["user_id"],
         )
+    except MaintenanceWorkOrderConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return MaintenanceWorkOrderMutationResponse(
@@ -122,6 +127,8 @@ def update_maintenance_work_order(
             work_order_id,
             payload,
         )
+    except MaintenanceWorkOrderConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return MaintenanceWorkOrderMutationResponse(
@@ -146,6 +153,8 @@ def update_maintenance_work_order_status(
             payload,
             changed_by_user_id=current_user["user_id"],
         )
+    except MaintenanceWorkOrderConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return MaintenanceWorkOrderMutationResponse(
