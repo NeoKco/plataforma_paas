@@ -22,6 +22,12 @@ from app.apps.tenant_modules.maintenance.models.schedule_cost_line import (
 )
 from app.apps.tenant_modules.maintenance.models.status_log import MaintenanceStatusLog
 from app.apps.tenant_modules.maintenance.models.visit import MaintenanceVisit
+from app.apps.tenant_modules.maintenance.models.work_order_checklist_item import (
+    MaintenanceWorkOrderChecklistItem,
+)
+from app.apps.tenant_modules.maintenance.models.work_order_evidence import (
+    MaintenanceWorkOrderEvidence,
+)
 from app.apps.tenant_modules.maintenance.models.work_order import MaintenanceWorkOrder
 
 __all__ = [
@@ -38,4 +44,6 @@ __all__ = [
     "MaintenanceWorkOrder",
     "MaintenanceVisit",
     "MaintenanceStatusLog",
+    "MaintenanceWorkOrderChecklistItem",
+    "MaintenanceWorkOrderEvidence",
 ]
