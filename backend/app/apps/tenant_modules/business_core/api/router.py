@@ -5,6 +5,10 @@ from app.apps.tenant_modules.business_core.api.contacts import router as contact
 from app.apps.tenant_modules.business_core.api.function_profiles import (
     router as function_profiles_router,
 )
+from app.apps.tenant_modules.business_core.api.asset_types import (
+    router as asset_types_router,
+)
+from app.apps.tenant_modules.business_core.api.assets import router as assets_router
 from app.apps.tenant_modules.business_core.api.organizations import (
     router as organizations_router,
 )
@@ -31,6 +35,8 @@ router.include_router(clients_router)
 router.include_router(contacts_router)
 router.include_router(sites_router)
 router.include_router(function_profiles_router)
+router.include_router(asset_types_router)
+router.include_router(assets_router)
 router.include_router(work_groups_router)
 router.include_router(work_group_members_router)
 router.include_router(task_types_router)

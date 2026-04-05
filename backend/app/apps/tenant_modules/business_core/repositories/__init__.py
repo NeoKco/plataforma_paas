@@ -7,6 +7,12 @@ from app.apps.tenant_modules.business_core.repositories.contact_repository impor
 from app.apps.tenant_modules.business_core.repositories.function_profile_repository import (
     BusinessFunctionProfileRepository,
 )
+from app.apps.tenant_modules.business_core.repositories.asset_type_repository import (
+    BusinessAssetTypeRepository,
+)
+from app.apps.tenant_modules.business_core.repositories.asset_repository import (
+    BusinessAssetRepository,
+)
 from app.apps.tenant_modules.business_core.repositories.organization_repository import (
     BusinessOrganizationRepository,
 )
@@ -35,6 +41,8 @@ __all__ = [
     "BusinessContactRepository",
     "BusinessSiteRepository",
     "BusinessFunctionProfileRepository",
+    "BusinessAssetTypeRepository",
+    "BusinessAssetRepository",
     "BusinessWorkGroupRepository",
     "BusinessWorkGroupMemberRepository",
     "BusinessTaskTypeRepository",

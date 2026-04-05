@@ -7,6 +7,12 @@ from app.apps.tenant_modules.business_core.services.contact_service import (
 from app.apps.tenant_modules.business_core.services.function_profile_service import (
     BusinessFunctionProfileService,
 )
+from app.apps.tenant_modules.business_core.services.asset_type_service import (
+    BusinessAssetTypeService,
+)
+from app.apps.tenant_modules.business_core.services.asset_service import (
+    BusinessAssetService,
+)
 from app.apps.tenant_modules.business_core.services.organization_service import (
     BusinessOrganizationService,
 )
@@ -35,6 +41,8 @@ __all__ = [
     "BusinessContactService",
     "BusinessSiteService",
     "BusinessFunctionProfileService",
+    "BusinessAssetTypeService",
+    "BusinessAssetService",
     "BusinessWorkGroupService",
     "BusinessWorkGroupMemberService",
     "BusinessTaskTypeService",

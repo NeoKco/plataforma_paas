@@ -19,6 +19,20 @@ from app.apps.tenant_modules.business_core.schemas.function_profile import (
     BusinessFunctionProfilesResponse,
     BusinessFunctionProfileUpdateRequest,
 )
+from app.apps.tenant_modules.business_core.schemas.asset_type import (
+    BusinessAssetTypeCreateRequest,
+    BusinessAssetTypeItemResponse,
+    BusinessAssetTypeMutationResponse,
+    BusinessAssetTypesResponse,
+    BusinessAssetTypeUpdateRequest,
+)
+from app.apps.tenant_modules.business_core.schemas.asset import (
+    BusinessAssetCreateRequest,
+    BusinessAssetItemResponse,
+    BusinessAssetMutationResponse,
+    BusinessAssetsResponse,
+    BusinessAssetUpdateRequest,
+)
 from app.apps.tenant_modules.business_core.schemas.common import (
     BusinessCoreStatusUpdateRequest,
 )
@@ -103,6 +117,16 @@ __all__ = [
     "BusinessFunctionProfileItemResponse",
     "BusinessFunctionProfileMutationResponse",
     "BusinessFunctionProfilesResponse",
+    "BusinessAssetTypeCreateRequest",
+    "BusinessAssetTypeUpdateRequest",
+    "BusinessAssetTypeItemResponse",
+    "BusinessAssetTypeMutationResponse",
+    "BusinessAssetTypesResponse",
+    "BusinessAssetCreateRequest",
+    "BusinessAssetUpdateRequest",
+    "BusinessAssetItemResponse",
+    "BusinessAssetMutationResponse",
+    "BusinessAssetsResponse",
     "BusinessWorkGroupCreateRequest",
     "BusinessWorkGroupUpdateRequest",
     "BusinessWorkGroupItemResponse",

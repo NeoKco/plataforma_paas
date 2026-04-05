@@ -3,6 +3,8 @@ from app.apps.tenant_modules.business_core.models.contact import BusinessContact
 from app.apps.tenant_modules.business_core.models.function_profile import (
     BusinessFunctionProfile,
 )
+from app.apps.tenant_modules.business_core.models.asset_type import BusinessAssetType
+from app.apps.tenant_modules.business_core.models.asset import BusinessAsset
 from app.apps.tenant_modules.business_core.models.organization import BusinessOrganization
 from app.apps.tenant_modules.business_core.models.site import BusinessSite
 from app.apps.tenant_modules.business_core.models.site_responsible import BusinessSiteResponsible
@@ -24,6 +26,8 @@ __all__ = [
     "BusinessContact",
     "BusinessSite",
     "BusinessFunctionProfile",
+    "BusinessAssetType",
+    "BusinessAsset",
     "BusinessWorkGroup",
     "BusinessWorkGroupMember",
     "BusinessTaskType",
