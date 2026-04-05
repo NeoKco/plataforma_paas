@@ -566,6 +566,9 @@ export function MaintenanceHistoryPage() {
                     {language === "es" ? "Perfil funcional" : "Function profile"}: {getTechnicianFunctionProfileLabel(item)}
                   </div>
                   <div className="maintenance-cell__meta">
+                    {language === "es" ? "Responsable" : "Responsible"}: {getAssignedWorkGroupLabel(item)} · {getAssignedTenantUserLabel(item)}
+                  </div>
+                  <div className="maintenance-cell__meta">
                     {language === "es" ? "Cierre" : "Closed"}:{" "}
                     {formatDateTime(
                       item.completed_at || item.cancelled_at,
@@ -672,6 +675,64 @@ export function MaintenanceHistoryPage() {
         }
       />
       <MaintenanceModuleNav />
+
+      <PanelCard
+        title={language === "es" ? "Filtros por responsable" : "Responsible filters"}
+        subtitle={
+          language === "es"
+            ? `Mostrando ${filteredRows.length} de ${rows.length} órdenes cerradas o anuladas.`
+            : `Showing ${filteredRows.length} of ${rows.length} closed or cancelled work orders.`
+        }
+      >
+        <div className="row g-3 align-items-end">
+          <div className="col-12 col-md-5">
+            <label className="form-label">
+              {language === "es" ? "Grupo de trabajo" : "Work group"}
+            </label>
+            <select
+              className="form-select"
+              value={selectedWorkGroupId}
+              onChange={(event) => setSelectedWorkGroupId(event.target.value)}
+            >
+              <option value="">{language === "es" ? "Todos los grupos" : "All groups"}</option>
+              {workGroupFilterOptions.map((group) => (
+                <option key={group.id} value={String(group.id)}>
+                  {stripLegacyVisibleText(group.name) || `#${group.id}`}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-12 col-md-5">
+            <label className="form-label">
+              {language === "es" ? "Responsable" : "Responsible"}
+            </label>
+            <select
+              className="form-select"
+              value={selectedTenantUserId}
+              onChange={(event) => setSelectedTenantUserId(event.target.value)}
+            >
+              <option value="">{language === "es" ? "Todos los usuarios" : "All users"}</option>
+              {tenantUserFilterOptions.map((user) => (
+                <option key={user.id} value={String(user.id)}>
+                  {stripLegacyVisibleText(user.full_name) || stripLegacyVisibleText(user.email) || `#${user.id}`}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-12 col-md-2 d-grid">
+            <button
+              className="btn btn-outline-secondary"
+              type="button"
+              onClick={() => {
+                setSelectedWorkGroupId("");
+                setSelectedTenantUserId("");
+              }}
+            >
+              {language === "es" ? "Limpiar" : "Clear"}
+            </button>
+          </div>
+        </div>
+      </PanelCard>
 
       {error ? (
         <ErrorState

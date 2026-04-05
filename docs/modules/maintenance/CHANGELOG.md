@@ -2,6 +2,9 @@
 
 ## 2026-04-05
 
+- `Historial técnico` ahora agrega filtros por `Grupo responsable` y `Técnico responsable`:
+  - el usuario puede acotar la lectura cerrada/anulada sin salir del historial
+  - la ficha y la tabla muestran el responsable como grupo + usuario para lectura rápida de coordinación
 - `Mantenciones` y `Historial` ahora comparten una nueva acción `Ver ficha` por orden de trabajo:
   - abre una `Ficha de mantención` reutilizable con contexto operativo, fechas clave, detalle técnico, cierre técnico, `status_logs` y `visits`
   - la lectura detallada carga trazabilidad y visitas bajo demanda, sin romper el patrón de lectura primero del módulo

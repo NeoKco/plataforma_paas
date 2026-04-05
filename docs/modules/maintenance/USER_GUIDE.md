@@ -42,6 +42,8 @@ El primer corte del modulo ya permite:
 - leer la bandeja por cliente, direccion e instalacion
 - ordenar operativamente por fecha y hora de trabajo mas reciente
 - abrir `Ver ficha` desde `Mantenciones` o `Historial` para revisar una orden completa sin salir de la lectura principal
+- en `Historial`, filtrar por `Grupo responsable` y `Técnico responsable` para revisar cierres por equipo o persona sin perder la lectura de cliente y sitio
+- en la tabla y en la ficha histórica se ve el responsable como grupo + usuario para coordinar rápido la trazabilidad del cierre
 - abrir `Visitas` desde `Mantenciones` para coordinar ventanas programadas, ejecución real y responsables por salida a terreno
 - ver `Tipo de tarea` y `Perfil funcional` dentro de `Mantenciones`, `Historial` y `Ver ficha` cuando la OT quedó vinculada a programación preventiva y a una asignación formal del grupo
 - al elegir `Grupo responsable`, la lista de `Técnico responsable` se acota a miembros activos y vigentes de ese grupo
