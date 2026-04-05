@@ -725,8 +725,22 @@ export function MaintenanceHistoryPage() {
         language={language}
         mode="history"
         onClose={closeDetailModal}
-        onOpenChecklist={detailWorkOrder ? () => openFieldReportModal(detailWorkOrder) : undefined}
-        onOpenCosting={detailWorkOrder ? () => openCostingModal(detailWorkOrder) : undefined}
+        onOpenChecklist={
+          detailWorkOrder
+            ? () => {
+                closeDetailModal();
+                openFieldReportModal(detailWorkOrder);
+              }
+            : undefined
+        }
+        onOpenCosting={
+          detailWorkOrder
+            ? () => {
+                closeDetailModal();
+                openCostingModal(detailWorkOrder);
+              }
+            : undefined
+        }
         onEditClosure={
           detailWorkOrder
             ? () => {

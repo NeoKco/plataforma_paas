@@ -1176,8 +1176,22 @@ export function MaintenanceWorkOrdersPage() {
         language={language}
         mode="open"
         onClose={closeDetailModal}
-        onOpenChecklist={detailWorkOrder ? () => openFieldReportModal(detailWorkOrder) : undefined}
-        onOpenCosting={detailWorkOrder ? () => openCostingModal(detailWorkOrder) : undefined}
+        onOpenChecklist={
+          detailWorkOrder
+            ? () => {
+                closeDetailModal();
+                openFieldReportModal(detailWorkOrder);
+              }
+            : undefined
+        }
+        onOpenCosting={
+          detailWorkOrder
+            ? () => {
+                closeDetailModal();
+                openCostingModal(detailWorkOrder);
+              }
+            : undefined
+        }
         workOrder={detailWorkOrder}
       />
       <MaintenanceFieldReportModal
