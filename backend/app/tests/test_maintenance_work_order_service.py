@@ -19,6 +19,7 @@ from app.apps.tenant_modules.maintenance.schemas import (  # noqa: E402
     MaintenanceWorkOrderUpdateRequest,
 )
 from app.apps.tenant_modules.maintenance.services.work_order_service import (  # noqa: E402
+    MaintenanceWorkOrderConflictError,
     MaintenanceWorkOrderService,
 )
 
@@ -313,6 +314,90 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
             23,
             actor_user_id=7,
         )
+
+    def test_create_work_order_rejects_conflicting_active_slot(self) -> None:
+        work_order_repository = Mock()
+        work_order_repository.get_by_external_reference.return_value = None
+        work_order_repository.list_active_conflicts.return_value = [
+            SimpleNamespace(
+                id=77,
+                installation_id=9,
+                assigned_work_group_id=4,
+                assigned_tenant_user_id=3,
+            )
+        ]
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+        )
+        tenant_db = Mock()
+        tenant_db.query.side_effect = [
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=11))))),
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=31, client_id=11))))),
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=9, site_id=31))))),
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=4))))),
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=3))))),
+        ]
+
+        with self.assertRaisesRegex(
+            MaintenanceWorkOrderConflictError,
+            "El horario seleccionado ya cruza con 1 mantención",
+        ):
+            service.create_work_order(
+                tenant_db,
+                MaintenanceWorkOrderCreateRequest(
+                    client_id=11,
+                    site_id=31,
+                    installation_id=9,
+                    assigned_work_group_id=4,
+                    assigned_tenant_user_id=3,
+                    title="Mantencion mensual",
+                    scheduled_for="2026-04-05T10:00:00+00:00",
+                ),
+            )
+
+    def test_activate_work_order_status_rejects_conflicting_slot(self) -> None:
+        existing_item = SimpleNamespace(
+            id=23,
+            maintenance_status="cancelled",
+            completed_at=None,
+            cancelled_at=None,
+            due_item_id=None,
+            schedule_id=None,
+            scheduled_for="2026-04-05T10:00:00+00:00",
+            installation_id=9,
+            assigned_work_group_id=4,
+            assigned_tenant_user_id=3,
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        work_order_repository.list_active_conflicts.return_value = [
+            SimpleNamespace(
+                id=81,
+                installation_id=9,
+                assigned_work_group_id=4,
+                assigned_tenant_user_id=3,
+            )
+        ]
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+            status_log_repository=Mock(),
+            visit_repository=Mock(),
+            costing_service=Mock(),
+        )
+
+        with self.assertRaisesRegex(
+            MaintenanceWorkOrderConflictError,
+            "grupo responsable",
+        ):
+            service.update_work_order_status(
+                Mock(),
+                23,
+                MaintenanceStatusUpdateRequest(
+                    maintenance_status="scheduled",
+                    note="Reabrir",
+                ),
+                changed_by_user_id=7,
+            )
 
 
 if __name__ == "__main__":

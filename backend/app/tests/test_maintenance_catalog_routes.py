@@ -40,6 +40,9 @@ from app.apps.tenant_modules.maintenance.api.work_orders import (
     list_maintenance_work_orders,
     update_maintenance_work_order_status,
 )
+from app.apps.tenant_modules.maintenance.services.work_order_service import (  # noqa: E402
+    MaintenanceWorkOrderConflictError,
+)
 from app.apps.tenant_modules.maintenance.schemas import (
     MaintenanceEquipmentTypeCreateRequest,
     MaintenanceInstallationCreateRequest,
@@ -320,6 +323,26 @@ class MaintenanceCatalogRoutesTestCase(unittest.TestCase):
                     tenant_db=object(),
                 )
         self.assertEqual(exc.exception.status_code, 400)
+
+    def test_create_maintenance_work_order_translates_conflict_error_to_409(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.maintenance.api.work_orders.work_order_service.create_work_order",
+            side_effect=MaintenanceWorkOrderConflictError(
+                "El horario seleccionado ya cruza con 1 mantención abierta."
+            ),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                create_maintenance_work_order(
+                    payload=MaintenanceWorkOrderCreateRequest(
+                        client_id=11,
+                        site_id=31,
+                        installation_id=9,
+                        title="Mantención mensual",
+                    ),
+                    current_user=self._current_user(),
+                    tenant_db=object(),
+                )
+        self.assertEqual(exc.exception.status_code, 409)
 
     def test_update_maintenance_work_order_status_returns_mutated_item(self) -> None:
         item = SimpleNamespace(
