@@ -4,6 +4,7 @@ import {
   seedProvisioningDeadLetterJob,
 } from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
+import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can filter DLQ rows by error text and review requeue options", async ({
   page,
@@ -24,7 +25,7 @@ test("platform admin can filter DLQ rows by error text and review requeue option
   await page.goto("/tenants");
   await expect(page).toHaveURL(/\/tenants$/);
 
-  const createForm = page.locator("form.tenant-create-form").first();
+  const createForm = await openCreateTenantForm(page);
   await createForm
     .getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i)
     .fill(tenantName);

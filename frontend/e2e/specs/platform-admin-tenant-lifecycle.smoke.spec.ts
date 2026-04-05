@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { loginPlatform } from "../support/auth";
+import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can create archive and restore a tenant", async ({ page }) => {
   const uniqueSuffix = Date.now();
@@ -13,7 +14,7 @@ test("platform admin can create archive and restore a tenant", async ({ page }) 
     page.getByRole("heading", { name: /Tenants|Tenants/ })
   ).toBeVisible();
 
-  const createForm = page.locator("form.tenant-create-form").first();
+  const createForm = await openCreateTenantForm(page);
   await createForm.getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i).fill(tenantName);
   await createForm.getByPlaceholder("empresa-centro").fill(tenantSlug);
   await createForm

@@ -4,6 +4,7 @@ import {
   seedProvisioningDeadLetterJob,
 } from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
+import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can requeue an individual DLQ row from provisioning", async ({
   page,
@@ -23,7 +24,7 @@ test("platform admin can requeue an individual DLQ row from provisioning", async
   await page.goto("/tenants");
   await expect(page).toHaveURL(/\/tenants$/);
 
-  const createForm = page.locator("form.tenant-create-form").first();
+  const createForm = await openCreateTenantForm(page);
   await createForm
     .getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i)
     .fill(tenantName);

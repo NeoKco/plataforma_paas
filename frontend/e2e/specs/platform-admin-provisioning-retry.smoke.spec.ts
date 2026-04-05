@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { seedFailedProvisioningJob } from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
+import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can requeue a failed provisioning job from provisioning", async ({
   page,
@@ -13,7 +14,7 @@ test("platform admin can requeue a failed provisioning job from provisioning", a
   await page.goto("/tenants");
   await expect(page).toHaveURL(/\/tenants$/);
 
-  const createForm = page.locator("form.tenant-create-form").first();
+  const createForm = await openCreateTenantForm(page);
   await createForm
     .getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i)
     .fill(tenantName);

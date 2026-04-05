@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { loginPlatform } from "../support/auth";
+import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin sees tenant portal access blocked when tenant is not eligible", async ({
   page,
@@ -15,7 +16,7 @@ test("platform admin sees tenant portal access blocked when tenant is not eligib
     page.getByRole("heading", { name: "Tenants", exact: true })
   ).toBeVisible();
 
-  const createForm = page.locator("form.tenant-create-form").first();
+  const createForm = await openCreateTenantForm(page);
   await createForm
     .getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i)
     .fill(tenantName);

@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { loginPlatform, loginPlatformAs, logoutPlatform } from "../support/auth";
+import { openCreatePlatformUserForm } from "../support/platform-admin";
 
 test("platform admin enforces visible role access for admin and support users", async ({
   page,
@@ -49,7 +50,7 @@ test("platform admin enforces visible role access for admin and support users", 
   await page.goto("/users");
   await expect(page).toHaveURL(/\/users$/);
 
-  const adminCreateForm = getCreatePlatformUserForm(page);
+  const adminCreateForm = await openCreatePlatformUserForm(page);
   const adminRoleOptions = await readSelectOptionValues(
     adminCreateForm.locator("select.form-select").first()
   );
@@ -103,7 +104,10 @@ test("platform admin enforces visible role access for admin and support users", 
 });
 
 function getCreatePlatformUserForm(page: Page): Locator {
-  return page.locator("form").first();
+  return page
+    .getByRole("dialog", { name: /Crear usuario de plataforma|Create platform user/i })
+    .locator("form")
+    .first();
 }
 
 async function createPlatformUser(
@@ -114,6 +118,9 @@ async function createPlatformUser(
   password: string,
   form: Locator = getCreatePlatformUserForm(page)
 ) {
+  if ((await form.count()) === 0) {
+    form = await openCreatePlatformUserForm(page);
+  }
   await form.getByPlaceholder(/Nombre completo|Full name/i).fill(fullName);
   await form.getByPlaceholder(/Correo de acceso|Access email/i).fill(email);
   await form.locator("select.form-select").first().selectOption(role);

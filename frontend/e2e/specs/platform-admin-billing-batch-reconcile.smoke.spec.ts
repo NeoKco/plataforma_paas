@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { seedTenantBillingSyncEvent } from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
+import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can batch reconcile filtered tenant billing events", async ({ page }) => {
   const uniqueSuffix = Date.now();
@@ -15,7 +16,7 @@ test("platform admin can batch reconcile filtered tenant billing events", async 
     page.locator("h1.page-title").filter({ hasText: /^Tenants$/i })
   ).toBeVisible();
 
-  const createForm = page.locator("form.tenant-create-form").first();
+  const createForm = await openCreateTenantForm(page);
   await createForm.getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i).fill(tenantName);
   await createForm.getByPlaceholder("empresa-centro").fill(tenantSlug);
   await createForm.getByRole("button", { name: /Crear tenant|Create tenant/i }).click();

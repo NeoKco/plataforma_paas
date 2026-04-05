@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { loginPlatform } from "../support/auth";
+import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can run a pending provisioning job from provisioning", async ({
   page,
@@ -12,7 +13,7 @@ test("platform admin can run a pending provisioning job from provisioning", asyn
   await page.goto("/tenants");
   await expect(page).toHaveURL(/\/tenants$/);
 
-  const createForm = page.locator("form.tenant-create-form").first();
+  const createForm = await openCreateTenantForm(page);
   await createForm
     .getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i)
     .fill(tenantName);
