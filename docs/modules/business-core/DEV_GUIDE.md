@@ -157,7 +157,7 @@ Observacion:
 - cuando no sea posible limpiar un marcador legacy en DB porque hoy participa en deduplicacion o reimportacion, al menos debe ocultarse en la lectura/edicion del frontend hasta migrar esa trazabilidad a un canal interno.
 - la eliminacion de `clients` no debe entenderse como limpieza en cascada de negocio; si el cliente ya tiene mantenciones registradas, el backend debe bloquear el borrado y exigir desactivacion.
 - en la alta de `clients`, la proteccion anti-duplicado debe vivir antes del primer `POST`, porque el flujo actual crea `organization`, `client`, `contacts` y `site` en varias llamadas. La UX debe interceptar coincidencias fuertes y redirigir a la ficha existente para agregar contactos en vez de abrir otra cartera paralela.
-- cuando esa proteccion preventiva no alcanzo y la base ya quedo contaminada, el dominio debe ofrecer una auditoria operativa de duplicados: el primer corte puede resolverlo en frontend agrupando `clients`, `sites` e `installations` por claves normalizadas exactas y calculando dependencias con `work_orders` antes de habilitar `DELETE`.
+- cuando esa proteccion preventiva no alcanzo y la base ya quedo contaminada, el dominio debe ofrecer una auditoria operativa de duplicados: el primer corte puede resolverlo en frontend agrupando `clients`, `sites` e `installations` por claves normalizadas exactas, calculando dependencias con `work_orders`, sugiriendo una ficha a conservar y habilitando `DELETE` o desactivacion segura segun el nivel de historial.
 
 ### 5. Contact-Site Links
 

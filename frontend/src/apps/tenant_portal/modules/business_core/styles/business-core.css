@@ -484,6 +484,24 @@
   font-size: 0.85rem;
 }
 
+.business-core-duplicates-recommendation {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+}
+
+.business-core-duplicates-recommendation span,
+.business-core-duplicates-note {
+  color: var(--app-text-muted, #53637a);
+  font-size: 0.88rem;
+}
+
+.business-core-duplicates-note {
+  margin-top: 0.95rem;
+}
+
 @media (max-width: 1199px) {
   .business-core-form-modal {
     width: min(1120px, 96vw);

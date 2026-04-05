@@ -17,6 +17,7 @@ import {
   deleteTenantBusinessClient,
   getTenantBusinessClients,
   type TenantBusinessClient,
+  updateTenantBusinessClientStatus,
 } from "../services/clientsService";
 import {
   getTenantBusinessOrganizations,
@@ -26,6 +27,7 @@ import {
   deleteTenantBusinessSite,
   getTenantBusinessSites,
   type TenantBusinessSite,
+  updateTenantBusinessSiteStatus,
 } from "../services/sitesService";
 import {
   getVisibleAddressLabel,
@@ -34,6 +36,7 @@ import {
   deleteTenantMaintenanceInstallation,
   getTenantMaintenanceInstallations,
   type TenantMaintenanceInstallation,
+  updateTenantMaintenanceInstallationStatus,
 } from "../../maintenance/services/installationsService";
 import {
   getTenantMaintenanceEquipmentTypes,
@@ -139,6 +142,89 @@ function sortByMemberCount<T>(groups: DuplicateGroup<T>[]) {
   return [...groups].sort(
     (left, right) => right.members.length - left.members.length || left.id.localeCompare(right.id)
   );
+}
+
+function compareIsoDateAsc(left: string, right: string) {
+  return new Date(left).getTime() - new Date(right).getTime();
+}
+
+function getClientKeepScore(row: ClientAuditRow) {
+  return (
+    row.workOrdersCount * 1000 +
+    row.installationsCount * 100 +
+    row.sitesCount * 10 +
+    (row.client.is_active ? 5 : 0) +
+    (row.organization?.tax_id ? 2 : 0) +
+    (row.primarySite ? 1 : 0)
+  );
+}
+
+function getSiteKeepScore(row: SiteAuditRow) {
+  return (
+    row.workOrdersCount * 1000 +
+    row.installationsCount * 100 +
+    (row.site.is_active ? 5 : 0) +
+    (row.site.address_line ? 2 : 0) +
+    (row.site.reference_notes ? 1 : 0)
+  );
+}
+
+function getInstallationKeepScore(row: InstallationAuditRow) {
+  return (
+    row.workOrdersCount * 1000 +
+    (row.installation.is_active ? 5 : 0) +
+    (row.installation.serial_number ? 3 : 0) +
+    (row.installation.manufacturer ? 1 : 0) +
+    (row.installation.model ? 1 : 0)
+  );
+}
+
+function getPreferredClientId(group: DuplicateGroup<ClientAuditRow>) {
+  return [...group.members]
+    .sort((left, right) => {
+      const scoreDiff = getClientKeepScore(right) - getClientKeepScore(left);
+      if (scoreDiff !== 0) {
+        return scoreDiff;
+      }
+      const dateDiff = compareIsoDateAsc(left.client.created_at, right.client.created_at);
+      if (dateDiff !== 0) {
+        return dateDiff;
+      }
+      return left.client.id - right.client.id;
+    })[0]?.client.id;
+}
+
+function getPreferredSiteId(group: DuplicateGroup<SiteAuditRow>) {
+  return [...group.members]
+    .sort((left, right) => {
+      const scoreDiff = getSiteKeepScore(right) - getSiteKeepScore(left);
+      if (scoreDiff !== 0) {
+        return scoreDiff;
+      }
+      const dateDiff = compareIsoDateAsc(left.site.created_at, right.site.created_at);
+      if (dateDiff !== 0) {
+        return dateDiff;
+      }
+      return left.site.id - right.site.id;
+    })[0]?.site.id;
+}
+
+function getPreferredInstallationId(group: DuplicateGroup<InstallationAuditRow>) {
+  return [...group.members]
+    .sort((left, right) => {
+      const scoreDiff = getInstallationKeepScore(right) - getInstallationKeepScore(left);
+      if (scoreDiff !== 0) {
+        return scoreDiff;
+      }
+      const dateDiff = compareIsoDateAsc(
+        left.installation.created_at,
+        right.installation.created_at
+      );
+      if (dateDiff !== 0) {
+        return dateDiff;
+      }
+      return left.installation.id - right.installation.id;
+    })[0]?.installation.id;
 }
 
 function buildClientDuplicateGroups(rows: ClientAuditRow[]): DuplicateGroup<ClientAuditRow>[] {
@@ -606,7 +692,96 @@ export function BusinessCoreDuplicatesPage() {
     }
   }
 
+  async function handleDeactivateClient(row: ClientAuditRow) {
+    if (!session?.accessToken || !row.client.is_active) {
+      return;
+    }
+    const label = getClientName(row.organization, language);
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Desactivar "${label}" para dejarlo fuera de operación sin perder historial.`
+        : `Deactivate "${label}" to remove it from active operation without losing history.`
+    );
+    if (!confirmed) {
+      return;
+    }
+    setIsMutating(true);
+    setError(null);
+    try {
+      const response = await updateTenantBusinessClientStatus(
+        session.accessToken,
+        row.client.id,
+        false
+      );
+      setFeedback(response.message);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
+  async function handleDeactivateSite(row: SiteAuditRow) {
+    if (!session?.accessToken || !row.site.is_active) {
+      return;
+    }
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Desactivar la dirección "${getVisibleAddressLabel(row.site)}" para conservar trazabilidad sin usarla en operación diaria.`
+        : `Deactivate address "${getVisibleAddressLabel(row.site)}" to preserve traceability without using it in daily operation.`
+    );
+    if (!confirmed) {
+      return;
+    }
+    setIsMutating(true);
+    setError(null);
+    try {
+      const response = await updateTenantBusinessSiteStatus(
+        session.accessToken,
+        row.site.id,
+        false
+      );
+      setFeedback(response.message);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
+  async function handleDeactivateInstallation(row: InstallationAuditRow) {
+    if (!session?.accessToken || !row.installation.is_active) {
+      return;
+    }
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Desactivar la instalación "${row.installation.name}" para dejarla fuera de operación sin perder historial.`
+        : `Deactivate installation "${row.installation.name}" to remove it from operation without losing history.`
+    );
+    if (!confirmed) {
+      return;
+    }
+    setIsMutating(true);
+    setError(null);
+    try {
+      const response = await updateTenantMaintenanceInstallationStatus(
+        session.accessToken,
+        row.installation.id,
+        false
+      );
+      setFeedback(response.message);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
   function renderClientGroup(group: DuplicateGroup<ClientAuditRow>) {
+    const preferredClientId = getPreferredClientId(group);
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -624,6 +799,7 @@ export function BusinessCoreDuplicatesPage() {
         </div>
         <div className="business-core-duplicates-list">
           {group.members.map((member) => {
+            const isPreferred = member.client.id === preferredClientId;
             const canDelete =
               member.sitesCount === 0 &&
               member.installationsCount === 0 &&
@@ -645,6 +821,18 @@ export function BusinessCoreDuplicatesPage() {
                         ? "sin dirección principal"
                         : "no primary address"}
                   </div>
+                  {isPreferred ? (
+                    <div className="business-core-duplicates-recommendation">
+                      <AppBadge tone="info">
+                        {language === "es" ? "Sugerida para conservar" : "Suggested to keep"}
+                      </AppBadge>
+                      <span>
+                        {language === "es"
+                          ? "Concentra más trazabilidad o mejor completitud visible."
+                          : "It concentrates more traceability or better visible completeness."}
+                      </span>
+                    </div>
+                  ) : null}
                   <div className="business-core-duplicates-impact">
                     <AppBadge tone={member.client.is_active ? "success" : "neutral"}>
                       {member.client.is_active
@@ -676,6 +864,14 @@ export function BusinessCoreDuplicatesPage() {
                   >
                     {language === "es" ? "Eliminar" : "Delete"}
                   </button>
+                  <button
+                    className="btn btn-sm btn-outline-warning"
+                    type="button"
+                    disabled={isPreferred || !member.client.is_active || isMutating}
+                    onClick={() => void handleDeactivateClient(member)}
+                  >
+                    {language === "es" ? "Desactivar" : "Deactivate"}
+                  </button>
                   {!canDelete ? (
                     <div className="business-core-cell__meta text-warning">
                       {language === "es"
@@ -693,6 +889,7 @@ export function BusinessCoreDuplicatesPage() {
   }
 
   function renderSiteGroup(group: DuplicateGroup<SiteAuditRow>) {
+    const preferredSiteId = getPreferredSiteId(group);
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -710,6 +907,7 @@ export function BusinessCoreDuplicatesPage() {
         </div>
         <div className="business-core-duplicates-list">
           {group.members.map((member) => {
+            const isPreferred = member.site.id === preferredSiteId;
             const canDelete =
               member.installationsCount === 0 && member.workOrdersCount === 0;
             return (
@@ -724,6 +922,18 @@ export function BusinessCoreDuplicatesPage() {
                       .filter(Boolean)
                       .join(", ") || "—"}
                   </div>
+                  {isPreferred ? (
+                    <div className="business-core-duplicates-recommendation">
+                      <AppBadge tone="info">
+                        {language === "es" ? "Sugerida para conservar" : "Suggested to keep"}
+                      </AppBadge>
+                      <span>
+                        {language === "es"
+                          ? "Es la dirección con mayor uso operativo o mejor completitud visible."
+                          : "It is the address with more operational use or better visible completeness."}
+                      </span>
+                    </div>
+                  ) : null}
                   <div className="business-core-duplicates-impact">
                     <AppBadge tone={member.site.is_active ? "success" : "neutral"}>
                       {member.site.is_active
@@ -754,6 +964,14 @@ export function BusinessCoreDuplicatesPage() {
                   >
                     {language === "es" ? "Eliminar" : "Delete"}
                   </button>
+                  <button
+                    className="btn btn-sm btn-outline-warning"
+                    type="button"
+                    disabled={isPreferred || !member.site.is_active || isMutating}
+                    onClick={() => void handleDeactivateSite(member)}
+                  >
+                    {language === "es" ? "Desactivar" : "Deactivate"}
+                  </button>
                   {!canDelete ? (
                     <div className="business-core-cell__meta text-warning">
                       {language === "es"
@@ -771,6 +989,7 @@ export function BusinessCoreDuplicatesPage() {
   }
 
   function renderInstallationGroup(group: DuplicateGroup<InstallationAuditRow>) {
+    const preferredInstallationId = getPreferredInstallationId(group);
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -788,6 +1007,7 @@ export function BusinessCoreDuplicatesPage() {
         </div>
         <div className="business-core-duplicates-list">
           {group.members.map((member) => {
+            const isPreferred = member.installation.id === preferredInstallationId;
             const canDelete = member.workOrdersCount === 0;
             return (
               <div key={member.installation.id} className="business-core-duplicates-item">
@@ -806,6 +1026,18 @@ export function BusinessCoreDuplicatesPage() {
                         ? "sin sitio"
                         : "no site"}
                   </div>
+                  {isPreferred ? (
+                    <div className="business-core-duplicates-recommendation">
+                      <AppBadge tone="info">
+                        {language === "es" ? "Sugerida para conservar" : "Suggested to keep"}
+                      </AppBadge>
+                      <span>
+                        {language === "es"
+                          ? "Es la instalación con mayor historial o mejor identidad técnica visible."
+                          : "It is the installation with more history or better visible technical identity."}
+                      </span>
+                    </div>
+                  ) : null}
                   <div className="business-core-duplicates-impact">
                     <AppBadge tone={member.installation.is_active ? "success" : "neutral"}>
                       {member.installation.is_active
@@ -834,6 +1066,14 @@ export function BusinessCoreDuplicatesPage() {
                     onClick={() => void handleDeleteInstallation(member)}
                   >
                     {language === "es" ? "Eliminar" : "Delete"}
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-warning"
+                    type="button"
+                    disabled={isPreferred || !member.installation.is_active || isMutating}
+                    onClick={() => void handleDeactivateInstallation(member)}
+                  >
+                    {language === "es" ? "Desactivar" : "Deactivate"}
                   </button>
                   {!canDelete ? (
                     <div className="business-core-cell__meta text-warning">
@@ -896,8 +1136,8 @@ export function BusinessCoreDuplicatesPage() {
         title={language === "es" ? "Auditoría de duplicados" : "Duplicate audit"}
         subtitle={
           language === "es"
-            ? "Filtro rápido para revisar grupos duplicados y dejar a mano solo las fichas que pueden borrarse sin dependencias conocidas."
-            : "Quick filter to review duplicate groups and keep visible only the records that can be deleted without known dependencies."
+            ? "Filtro rápido para revisar grupos duplicados, sugerir qué ficha conviene conservar y dejar a mano las que pueden borrarse o desactivarse sin perder trazabilidad."
+            : "Quick filter to review duplicate groups, suggest which record should stay, and keep visible the ones that can be deleted or deactivated without losing traceability."
         }
       >
         <div className="business-core-duplicates-toolbar">
@@ -944,6 +1184,11 @@ export function BusinessCoreDuplicatesPage() {
             <strong>{safeDeleteCandidates}</strong>
             <span>{language === "es" ? "candidatas a borrar" : "delete candidates"}</span>
           </div>
+        </div>
+        <div className="business-core-duplicates-note">
+          {language === "es"
+            ? "La interfaz marca una ficha sugerida para conservar por grupo. Si la duplicada ya tiene historial, conviene desactivarla; si está vacía, puedes borrarla." 
+            : "The interface marks one suggested record to keep per group. If the duplicate already has history, it is better to deactivate it; if it is empty, you can delete it."}
         </div>
       </PanelCard>
 

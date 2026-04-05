@@ -118,7 +118,7 @@ Pendiente documentado:
 - `site_responsibles`: pendiente
 - `assets` y `asset_types`: pendiente
 - importadores legacy desde `ieris_app`: primer corte listo, falta aplicacion y endurecimiento
-- auditoria operativa de duplicados: primer corte UI listo para `clients`, `sites` e `installations`; falta merge/asimilacion guiada
+- auditoria operativa de duplicados: UI ya lista para `clients`, `sites` e `installations`, con sugerencia de ficha a conservar y desactivacion segura; falta merge/asimilacion guiada
 - integración con `projects`: pendiente
 - integración con `iot`: pendiente
 ## Estado actual

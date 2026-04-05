@@ -57,9 +57,12 @@ test("tenant portal shows imported business core and maintenance data from ieris
     /Depuración de duplicados|Duplicate cleanup/i
   );
   await expect(page.getByText(/Auditoría de duplicados|Duplicate audit/i)).toBeVisible();
-  await expect(page.getByText(/Clientes duplicados|Duplicate clients/i)).toBeVisible();
-  await expect(page.getByText(/Direcciones duplicadas|Duplicate addresses/i)).toBeVisible();
-  await expect(page.getByText(/Instalaciones duplicadas|Duplicate installations/i)).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: /Clientes duplicados|Duplicate clients/i })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: /Direcciones duplicadas|Duplicate addresses/i })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: /Instalaciones duplicadas|Duplicate installations/i })).toBeVisible();
+  await expect(
+    page.getByText(/sugerida para conservar por grupo|suggested record to keep per group/i)
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: /Recargar|Reload/i })).toBeVisible();
 
   await openTenantImportedPage(
