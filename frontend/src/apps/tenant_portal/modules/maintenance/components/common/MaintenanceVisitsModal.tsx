@@ -36,6 +36,8 @@ type TechnicianOption = {
 type WorkGroupMembership = {
   group_id: number;
   tenant_user_id: number;
+  function_profile_id?: number | null;
+  function_profile_name?: string | null;
   is_active: boolean;
   starts_at: string | null;
   ends_at: string | null;
@@ -51,6 +53,8 @@ type Props = {
   language: "es" | "en";
   onClose: () => void;
   onFeedback?: (message: string) => void;
+  requiresFunctionalProfile?: boolean;
+  taskTypeLabel?: string | null;
   workGroups: WorkGroupOption[];
   workGroupMembers: WorkGroupMembership[];
   workOrder: MaintenanceVisitsModalWorkOrder | null;
@@ -146,6 +150,8 @@ export function MaintenanceVisitsModal({
   language,
   onClose,
   onFeedback,
+  requiresFunctionalProfile = false,
+  taskTypeLabel = null,
   workGroups,
   workGroupMembers,
   workOrder,
@@ -174,10 +180,23 @@ export function MaintenanceVisitsModal({
     const allowedIds = new Set(
       workGroupMembers
         .filter((member) => member.group_id === selectedGroupId && isMembershipActive(member))
+        .filter((member) => !requiresFunctionalProfile || member.function_profile_id !== null)
         .map((member) => member.tenant_user_id)
     );
     return technicians.filter((item) => allowedIds.has(item.id));
-  }, [form?.assigned_work_group_id, technicians, workGroupMembers]);
+  }, [form?.assigned_work_group_id, requiresFunctionalProfile, technicians, workGroupMembers]);
+
+  function getTechnicianOptionLabel(userId: number): string {
+    const baseLabel = technicianById.get(userId) || `#${userId}`;
+    if (!form?.assigned_work_group_id) {
+      return baseLabel;
+    }
+    const profileLabel = workGroupMembers.find(
+      (member) =>
+        member.group_id === Number(form.assigned_work_group_id) && member.tenant_user_id === userId
+    )?.function_profile_name;
+    return profileLabel ? `${baseLabel} · ${profileLabel}` : baseLabel;
+  }
 
   async function loadVisits() {
     if (!accessToken || !workOrder) {
@@ -467,15 +486,26 @@ export function MaintenanceVisitsModal({
                       <option value="">{language === "es" ? "Sin técnico" : "No technician"}</option>
                       {selectableTechnicians.map((item) => (
                         <option key={item.id} value={item.id}>
-                          {item.full_name}
+                          {getTechnicianOptionLabel(item.id)}
                         </option>
                       ))}
                     </select>
+                    {requiresFunctionalProfile && taskTypeLabel ? (
+                      <div className="form-text text-muted">
+                        {language === "es"
+                          ? `Esta mantención usa el tipo de tarea ${taskTypeLabel}; la visita solo permite técnicos con perfil funcional declarado en el grupo.`
+                          : `This work order uses task type ${taskTypeLabel}; the visit only allows technicians with a declared functional profile in the group.`}
+                      </div>
+                    ) : null}
                     {form.assigned_work_group_id && selectableTechnicians.length === 0 ? (
                       <div className="form-text text-warning">
-                        {language === "es"
-                          ? "Este grupo no tiene técnicos con membresía activa para esta visita."
-                          : "This group has no technicians with an active membership for this visit."}
+                        {requiresFunctionalProfile
+                          ? language === "es"
+                            ? "Este grupo no tiene técnicos con membresía activa y perfil funcional declarado para este tipo de tarea."
+                            : "This group has no technicians with an active membership and declared functional profile for this task type."
+                          : language === "es"
+                            ? "Este grupo no tiene técnicos con membresía activa para esta visita."
+                            : "This group has no technicians with an active membership for this visit."}
                       </div>
                     ) : null}
                   </div>

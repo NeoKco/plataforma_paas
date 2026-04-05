@@ -27,6 +27,10 @@ import {
   type TenantBusinessWorkGroup,
 } from "../../business_core/services/workGroupsService";
 import {
+  getTenantBusinessTaskTypes,
+  type TenantBusinessTaskType,
+} from "../../business_core/services/taskTypesService";
+import {
   getTenantBusinessSites,
   type TenantBusinessSite,
 } from "../../business_core/services/sitesService";
@@ -45,6 +49,10 @@ import {
   getTenantMaintenanceInstallations,
   type TenantMaintenanceInstallation,
 } from "../services/installationsService";
+import {
+  getTenantMaintenanceSchedules,
+  type TenantMaintenanceSchedule,
+} from "../services/schedulesService";
 
 const ACTIVE_WORK_ORDER_STATUSES = new Set(["scheduled", "in_progress"]);
 const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
@@ -212,6 +220,8 @@ export function MaintenanceCalendarPage() {
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
   const [workGroups, setWorkGroups] = useState<TenantBusinessWorkGroup[]>([]);
   const [workGroupMembers, setWorkGroupMembers] = useState<TenantBusinessWorkGroupMember[]>([]);
+  const [taskTypes, setTaskTypes] = useState<TenantBusinessTaskType[]>([]);
+  const [schedules, setSchedules] = useState<TenantMaintenanceSchedule[]>([]);
   const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
   const [currentMonth, setCurrentMonth] = useState(() => toMonthStart(new Date()));
   const [selectedDateKey, setSelectedDateKey] = useState(() => toDateKey(new Date()));
@@ -235,6 +245,24 @@ export function MaintenanceCalendarPage() {
     [organizations]
   );
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
+  const scheduleById = useMemo(
+    () => new Map(schedules.map((schedule) => [schedule.id, schedule])),
+    [schedules]
+  );
+  const taskTypeById = useMemo(
+    () => new Map(taskTypes.map((taskType) => [taskType.id, taskType])),
+    [taskTypes]
+  );
+  const workGroupMemberByKey = useMemo(
+    () =>
+      new Map(
+        workGroupMembers.map((member) => [
+          `${member.group_id}:${member.tenant_user_id}`,
+          member,
+        ])
+      ),
+    [workGroupMembers]
+  );
   const workGroupById = useMemo(
     () => new Map(workGroups.map((group) => [group.id, group])),
     [workGroups]
@@ -269,20 +297,44 @@ export function MaintenanceCalendarPage() {
     () => tenantUsers.filter((user) => user.is_active),
     [tenantUsers]
   );
+  const editingWorkOrder = useMemo(
+    () => workOrders.find((item) => item.id === editingId) ?? null,
+    [editingId, workOrders]
+  );
+  const assignmentTaskTypeId = useMemo(
+    () =>
+      editingWorkOrder?.schedule_id
+        ? scheduleById.get(editingWorkOrder.schedule_id)?.task_type_id ?? null
+        : null,
+    [editingWorkOrder, scheduleById]
+  );
+  const assignmentTaskTypeLabel = useMemo(() => {
+    if (!assignmentTaskTypeId) {
+      return null;
+    }
+    return taskTypeById.get(assignmentTaskTypeId)?.name || `#${assignmentTaskTypeId}`;
+  }, [assignmentTaskTypeId, taskTypeById]);
+  const requiresFunctionalProfileForAssignment = Boolean(assignmentTaskTypeId);
   const selectableTenantUsers = useMemo(() => {
     if (!form.assigned_work_group_id) {
       return activeTenantUsers;
     }
+    const memberships = workGroupMembers.filter(
+      (member) =>
+        member.group_id === form.assigned_work_group_id && isMembershipActive(member)
+    );
     const allowedIds = new Set(
-      workGroupMembers
-        .filter(
-          (member) =>
-            member.group_id === form.assigned_work_group_id && isMembershipActive(member)
-        )
+      memberships
+        .filter((member) => !requiresFunctionalProfileForAssignment || member.function_profile_id !== null)
         .map((member) => member.tenant_user_id)
     );
     return activeTenantUsers.filter((user) => allowedIds.has(user.id));
-  }, [activeTenantUsers, form.assigned_work_group_id, workGroupMembers]);
+  }, [
+    activeTenantUsers,
+    form.assigned_work_group_id,
+    requiresFunctionalProfileForAssignment,
+    workGroupMembers,
+  ]);
 
   const activeRows = useMemo(
     () =>
@@ -416,6 +468,8 @@ export function MaintenanceCalendarPage() {
         sitesResponse,
         installationsResponse,
         workGroupsResponse,
+        taskTypesResponse,
+        schedulesResponse,
         tenantUsersResponse,
       ] = await Promise.all([
         getTenantMaintenanceWorkOrders(session.accessToken),
@@ -424,6 +478,8 @@ export function MaintenanceCalendarPage() {
         getTenantBusinessSites(session.accessToken, { includeInactive: false }),
         getTenantMaintenanceInstallations(session.accessToken, { includeInactive: false }),
         getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false }),
+        getTenantBusinessTaskTypes(session.accessToken, { includeInactive: false }),
+        getTenantMaintenanceSchedules(session.accessToken, { includeInactive: true }),
         getTenantUsers(session.accessToken),
       ]);
       const workGroupMembersResponses = await Promise.all(
@@ -438,6 +494,8 @@ export function MaintenanceCalendarPage() {
       setInstallations(installationsResponse.data);
       setWorkGroups(workGroupsResponse.data);
       setWorkGroupMembers(workGroupMembersResponses.flatMap((response) => response.data));
+      setTaskTypes(taskTypesResponse.data);
+      setSchedules(schedulesResponse.data);
       setTenantUsers(tenantUsersResponse.data);
       setForm((current) => ({
         ...current,
@@ -503,6 +561,15 @@ export function MaintenanceCalendarPage() {
     const primarySite = sites.find((site) => site.client_id === client.id);
     const clientName = getClientDisplayName(client.id);
     return primarySite ? `${clientName} · ${getSiteDisplayName(primarySite.id)}` : clientName;
+  }
+
+  function getAssignableTechnicianLabel(userId: number): string {
+    const fullName = tenantUserById.get(userId)?.full_name || `#${userId}`;
+    if (!form.assigned_work_group_id) {
+      return fullName;
+    }
+    const profileLabel = workGroupMemberByKey.get(`${form.assigned_work_group_id}:${userId}`)?.function_profile_name;
+    return profileLabel ? `${fullName} · ${profileLabel}` : fullName;
   }
 
   function startCreateForDate(date: Date) {
@@ -1119,15 +1186,26 @@ export function MaintenanceCalendarPage() {
                       </option>
                       {selectableTenantUsers.map((user) => (
                         <option key={user.id} value={user.id}>
-                          {user.full_name}
+                          {getAssignableTechnicianLabel(user.id)}
                         </option>
                       ))}
                     </select>
+                    {requiresFunctionalProfileForAssignment && assignmentTaskTypeLabel ? (
+                      <div className="form-text text-muted">
+                        {language === "es"
+                          ? `Esta mantención viene desde el tipo de tarea ${assignmentTaskTypeLabel}; solo se muestran técnicos con perfil funcional declarado en el grupo.`
+                          : `This work order comes from task type ${assignmentTaskTypeLabel}; only technicians with a declared functional profile in the group are shown.`}
+                      </div>
+                    ) : null}
                     {form.assigned_work_group_id && selectableTenantUsers.length === 0 ? (
                       <div className="form-text text-warning">
-                        {language === "es"
-                          ? "Este grupo no tiene técnicos con membresía activa para asignar desde agenda."
-                          : "This group has no technicians with an active membership available from the calendar."}
+                        {requiresFunctionalProfileForAssignment
+                          ? language === "es"
+                            ? "Este grupo no tiene técnicos con membresía activa y perfil funcional declarado para este tipo de tarea."
+                            : "This group has no technicians with an active membership and declared functional profile for this task type."
+                          : language === "es"
+                            ? "Este grupo no tiene técnicos con membresía activa para asignar desde agenda."
+                            : "This group has no technicians with an active membership available from the calendar."}
                       </div>
                     ) : null}
                   </div>

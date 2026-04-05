@@ -287,20 +287,44 @@ export function MaintenanceWorkOrdersPage() {
     () => tenantUsers.filter((user) => user.is_active),
     [tenantUsers]
   );
+  const editingWorkOrder = useMemo(
+    () => rows.find((item) => item.id === editingId) ?? null,
+    [editingId, rows]
+  );
+  const assignmentTaskTypeId = useMemo(
+    () =>
+      editingWorkOrder?.schedule_id
+        ? scheduleById.get(editingWorkOrder.schedule_id)?.task_type_id ?? null
+        : null,
+    [editingWorkOrder, scheduleById]
+  );
+  const assignmentTaskTypeLabel = useMemo(() => {
+    if (!assignmentTaskTypeId) {
+      return null;
+    }
+    return taskTypeById.get(assignmentTaskTypeId)?.name || `#${assignmentTaskTypeId}`;
+  }, [assignmentTaskTypeId, taskTypeById]);
+  const requiresFunctionalProfileForAssignment = Boolean(assignmentTaskTypeId);
   const selectableTenantUsers = useMemo(() => {
     if (!form.assigned_work_group_id) {
       return activeTenantUsers;
     }
+    const memberships = workGroupMembers.filter(
+      (member) =>
+        member.group_id === form.assigned_work_group_id && isMembershipActive(member)
+    );
     const allowedIds = new Set(
-      workGroupMembers
-        .filter(
-          (member) =>
-            member.group_id === form.assigned_work_group_id && isMembershipActive(member)
-        )
+      memberships
+        .filter((member) => !requiresFunctionalProfileForAssignment || member.function_profile_id !== null)
         .map((member) => member.tenant_user_id)
     );
     return activeTenantUsers.filter((user) => allowedIds.has(user.id));
-  }, [activeTenantUsers, form.assigned_work_group_id, workGroupMembers]);
+  }, [
+    activeTenantUsers,
+    form.assigned_work_group_id,
+    requiresFunctionalProfileForAssignment,
+    workGroupMembers,
+  ]);
 
   const sortedRows = useMemo(
     () =>
@@ -562,6 +586,15 @@ export function MaintenanceWorkOrdersPage() {
       workGroupMemberByKey.get(`${item.assigned_work_group_id}:${item.assigned_tenant_user_id}`)
         ?.function_profile_name || (language === "es" ? "Sin perfil" : "No profile")
     );
+  }
+
+  function getAssignableTechnicianLabel(userId: number): string {
+    const fullName = tenantUserById.get(userId)?.full_name || `#${userId}`;
+    if (!form.assigned_work_group_id) {
+      return fullName;
+    }
+    const profileLabel = workGroupMemberByKey.get(`${form.assigned_work_group_id}:${userId}`)?.function_profile_name;
+    return profileLabel ? `${fullName} · ${profileLabel}` : fullName;
   }
 
   function getClientOptionLabel(client: TenantBusinessClient): string {
@@ -1064,15 +1097,26 @@ export function MaintenanceWorkOrdersPage() {
                       </option>
                       {selectableTenantUsers.map((user) => (
                         <option key={user.id} value={user.id}>
-                          {user.full_name}
+                          {getAssignableTechnicianLabel(user.id)}
                         </option>
                       ))}
                     </select>
+                    {requiresFunctionalProfileForAssignment && assignmentTaskTypeLabel ? (
+                      <div className="form-text text-muted">
+                        {language === "es"
+                          ? `Esta mantención viene desde el tipo de tarea ${assignmentTaskTypeLabel}; solo se muestran técnicos con perfil funcional declarado en el grupo.`
+                          : `This work order comes from task type ${assignmentTaskTypeLabel}; only technicians with a declared functional profile in the group are shown.`}
+                      </div>
+                    ) : null}
                     {form.assigned_work_group_id && selectableTenantUsers.length === 0 ? (
                       <div className="form-text text-warning">
-                        {language === "es"
-                          ? "Este grupo no tiene técnicos con membresía activa para asignar."
-                          : "This group has no technicians with an active membership available for assignment."}
+                        {requiresFunctionalProfileForAssignment
+                          ? language === "es"
+                            ? "Este grupo no tiene técnicos con membresía activa y perfil funcional declarado para este tipo de tarea."
+                            : "This group has no technicians with an active membership and declared functional profile for this task type."
+                          : language === "es"
+                            ? "Este grupo no tiene técnicos con membresía activa para asignar."
+                            : "This group has no technicians with an active membership available for assignment."}
                       </div>
                     ) : null}
                   </div>
@@ -1331,6 +1375,10 @@ export function MaintenanceWorkOrdersPage() {
         language={language}
         onClose={closeVisitsModal}
         onFeedback={setFeedback}
+        requiresFunctionalProfile={Boolean(
+          visitsWorkOrder?.schedule_id && scheduleById.get(visitsWorkOrder.schedule_id)?.task_type_id
+        )}
+        taskTypeLabel={visitsWorkOrder ? getTaskTypeLabel(visitsWorkOrder) : null}
         technicians={activeTenantUsers.map((item) => ({ id: item.id, full_name: item.full_name }))}
         workGroups={activeWorkGroups.map((item) => ({ id: item.id, name: item.name }))}
         workGroupMembers={workGroupMembers}

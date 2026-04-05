@@ -118,10 +118,11 @@ Estado del corte hoy:
 - `Mantenciones`, `Historial` y la `Ficha de mantención` ya muestran `Tipo de tarea` y `Perfil funcional` cuando la OT viene enlazada a una programación preventiva y el técnico pertenece formalmente al grupo responsable
 - `Mantenciones` y `Visitas` ya restringen la asignación para que un técnico solo pueda guardarse si tiene membresía activa y vigente en el `grupo responsable` seleccionado
 - `Agenda técnica` ya replica ese mismo filtro visual para que la asignación desde calendario no ofrezca técnicos fuera del grupo responsable
+- cuando la OT viene de una programación preventiva con `Tipo de tarea`, `Pendientes`, `Mantenciones`, `Agenda` y `Visitas` solo permiten técnicos cuyo miembro de grupo tenga `Perfil funcional` declarado; el backend también lo exige al guardar
 
 Pendientes visibles inmediatos:
 
-- reglas operativas más profundas basadas en compatibilidad fina entre `function_profiles`, `task_types` y capacidad del equipo
+- compatibilidad explícita más fina entre `function_profiles`, `task_types` y capacidad del equipo, más allá de exigir perfil funcional declarado en OT preventivas
 - timeline más rica por cliente e instalación
 - agenda visual con responsables y ventanas de visita más ricas
 - programaciones automáticas de mantención y bandeja de vencimientos por gestionar

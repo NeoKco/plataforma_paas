@@ -46,6 +46,7 @@ El primer corte del modulo ya permite:
 - ver `Tipo de tarea` y `Perfil funcional` dentro de `Mantenciones`, `Historial` y `Ver ficha` cuando la OT quedó vinculada a programación preventiva y a una asignación formal del grupo
 - al elegir `Grupo responsable`, la lista de `Técnico responsable` se acota a miembros activos y vigentes de ese grupo
 - esa misma restricción visual también aplica cuando creas o reprogramas desde `Agenda`
+- si la mantención viene desde una programación preventiva con `Tipo de tarea`, solo podrás elegir técnicos cuyo miembro del grupo tenga `Perfil funcional` declarado; la misma regla aplica al agendar desde `Pendientes` y al coordinar `Visitas`
 - crear una orden nueva
 - editar una orden aun no cerrada
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad

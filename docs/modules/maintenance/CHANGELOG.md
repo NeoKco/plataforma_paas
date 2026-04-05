@@ -22,6 +22,10 @@
 - `Agenda técnica` ahora replica ese mismo filtro visual de asignación:
   - al elegir `Grupo responsable`, la lista de `Técnico responsable` se restringe a miembros activos y vigentes del grupo
   - al cambiar de grupo, la selección de técnico se limpia para evitar combinaciones inválidas
+- se agrega un primer endurecimiento fino entre `Tipo de tarea` y `Perfil funcional`:
+  - si la OT viene desde una programación preventiva con `task_type_id`, el backend exige que el técnico asignado tenga `function_profile_id` declarado en la membresía del grupo
+  - `Pendientes`, `Mantenciones`, `Agenda` y `Visitas` solo muestran técnicos elegibles para ese mínimo de capacidad
+  - los selectores ahora etiquetan al técnico con su `Perfil funcional` cuando existe
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso

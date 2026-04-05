@@ -156,7 +156,12 @@ Avance actual:
 - `Mantenciones`, `Historial` y la ficha ya leen `Tipo de tarea` desde `maintenance_schedules.task_type_id` y `Perfil funcional` desde membresías reales de `business_work_groups`
 - `Mantenciones` y `Visitas` ya validan que técnico y grupo correspondan a una membresía activa y vigente antes de guardar
 - `Agenda técnica` ya replica el filtro visual de técnicos por membresía activa dentro del grupo responsable
+- `Pendientes`, `Mantenciones`, `Agenda` y `Visitas` ya exigen además `Perfil funcional` declarado cuando la OT preventiva trae `Tipo de tarea`
 - conflictos visibles, bloqueo backend `409`, filtros de agenda y reprogramación auditada ya quedaron operativos en el mismo frente de endurecimiento
+
+Pendiente fino de este frente:
+
+- definir un mapa explícito de compatibilidad entre `task_types`, `function_profiles` y capacidad real del equipo, más allá del requisito mínimo de `Perfil funcional` declarado
 
 ## Fase 5. Evidencias y checklist
 
