@@ -304,8 +304,8 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- enriquecer la reprogramación operativa sin perder trazabilidad histórica
 - profundizar la lectura por ficha/orden de trabajo sin romper el patrón de lectura primero
+- enriquecer la reprogramación operativa con visitas y ventanas más finas por terreno
 
 ## Backlog pendiente visible
 
@@ -320,6 +320,7 @@ Pendiente inmediato de esta fase:
 - conflictos visibles en agenda y bandeja abierta: listos en frontend
 - bloqueo backend de cruces por instalación/grupo/técnico: listo en primer corte
 - filtros operativos por grupo y técnico en agenda mensual: listos
+- reprogramación auditada sin perder historial: lista en primer corte
 - modelo canónico de asignacion grupo/usuario: documentado e implementado en primer corte
 - modelo canónico de programacion preventiva y costeo: documentado
 - costeo estimado default por programación: listo en primer corte

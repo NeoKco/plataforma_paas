@@ -118,6 +118,7 @@ Lectura funcional de cada vista:
 - `Mantenciones`: solo trabajo abierto (`scheduled` / `in_progress`)
   - cada fila ya permite abrir `Costos`
   - cada fila ya permite abrir `Checklist`
+  - cada fila ya permite abrir `Reprogramar` para cambiar slot o responsables sin perder trazabilidad
   - el costeo se maneja en modal, igual que la captura principal del módulo
   - `Costos` ya permite resumen manual o detalle por líneas
 - `Instalaciones`: parque instalado por cliente y direccion
@@ -129,6 +130,7 @@ Lectura funcional de cada vista:
   - ahora marca conflictos visibles cuando dos mantenciones abiertas comparten horario y recurso técnico/instalación
   - si aun así intentas guardar un cruce real, el backend lo rechaza para evitar doble asignación en el mismo slot
   - también permite filtrar la agenda mensual por grupo responsable o técnico responsable
+  - al abrir una mantención desde la agenda, puedes usar `Reprogramar` y dejar un motivo visible en historial técnico
 
 Regla UX operativa:
 

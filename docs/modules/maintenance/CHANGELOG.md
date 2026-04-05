@@ -12,6 +12,10 @@
 - los formularios de alta/edición de `Agenda` y `Mantenciones` advierten el cruce antes de guardar
 - el backend ahora también bloquea esos cruces con respuesta `409`, para no depender solo de la advertencia visual del frontend
 - `Agenda técnica` agrega filtros operativos por `grupo responsable` y `técnico responsable`, sin perder la lectura mensual del calendario
+- `Mantenciones abiertas` y `Agenda técnica` agregan `Reprogramar` como flujo explícito:
+  - permite ajustar fecha/hora, instalación y responsables sin borrar historial
+  - guarda `Motivo de reprogramación` opcional
+  - deja traza visible en `Historial técnico` reutilizando `status_logs`
 - se implementa el primer corte real de `Checklist y evidencias` por OT:
   - nueva migración tenant `0028_maintenance_field_reports`
   - tablas `maintenance_work_order_checklist_items` y `maintenance_work_order_evidences`
@@ -25,7 +29,7 @@
   - `Mantenciones` agrega la acción `Checklist`
   - `Historial` agrega la acción `Ver checklist` en modo solo lectura
 - se validan los cambios con:
-  - `python -m unittest app.tests.test_maintenance_field_report_service app.tests.test_maintenance_cost_template_service app.tests.test_maintenance_schedule_service app.tests.test_migration_flow`
+  - `python -m unittest app.tests.test_maintenance_field_report_service app.tests.test_maintenance_work_order_service app.tests.test_maintenance_cost_template_service app.tests.test_maintenance_schedule_service app.tests.test_migration_flow`
   - `npm run build`
   - `npm run e2e -- e2e/specs/tenant-portal-business-core-maintenance-import.smoke.spec.ts`
 - tenants activos sincronizados hasta `0028_maintenance_field_reports`:

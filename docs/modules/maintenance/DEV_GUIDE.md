@@ -180,7 +180,7 @@ Fuente frontend principal:
 - cierre UX por ficha/orden de trabajo
 - smoke E2E especifico del modulo con sus flujos principales
 - mejoras móviles de captura en terreno
-- reprogramación operativa más rica y con mejor trazabilidad
+- reprogramación operativa con visitas/ventanas más finas y con mejor trazabilidad
 
 ## Modelo objetivo recomendado en PaaS
 
@@ -266,6 +266,8 @@ Con modulos tenant:
 - `Agenda técnica` y `Mantenciones abiertas` ya calculan conflictos visibles en frontend cuando dos OT abiertas comparten slot horario e instalación/grupo/técnico
 - `work_orders` ahora también bloquea en backend esos cruces de slot con respuesta `409`, para cubrir concurrencia operativa básica fuera del navegador actual
 - `Agenda técnica` ya permite además filtrar la lectura mensual por grupo responsable y técnico responsable
+- `work_orders` ahora acepta `reschedule_note` en actualización para auditar reprogramaciones sin cambiar de tabla ni perder lifecycle
+- esa reprogramación se registra reutilizando `maintenance_status_logs` con `from_status == to_status`, y `Historial` la presenta como evento de `Reprogramación`
 - `projects`: podra reutilizar el mismo sitio, cliente y responsable
 - `iot`: deberia colgarse del mismo sitio o activo instalado
 

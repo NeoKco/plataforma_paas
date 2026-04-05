@@ -109,18 +109,19 @@ Estado del corte hoy:
 - `Mantenciones` ya permite abrir `Checklist` por OT para registrar observación de cierre, checklist técnico y evidencias de terreno
 - `Historial` ya permite abrir `Ver checklist` en modo solo lectura para revisar ese cierre técnico sin reabrir la orden
 - el backend ya endurece la agenda y rechaza cruces de slot activo por instalación, grupo o técnico, incluso si el intento no viene desde la misma pantalla web
+- `Mantenciones` y `Agenda` ya permiten `Reprogramar` con una nota opcional para dejar trazabilidad del cambio de slot y responsables en historial técnico
 
 Pendientes visibles inmediatos:
 
 - uso mas profundo de `function_profiles` y `task_types`
 - timeline más rica por cliente e instalación
-- agenda visual con conflictos, responsables y reprogramación más rica
+- agenda visual con conflictos, responsables y ventanas de visita más ricas
 - programaciones automáticas de mantención y bandeja de vencimientos por gestionar
 - costeo y cobro de mantenciones con puente formal hacia `finance`
 - automatización opcional tenant-side del puente `maintenance -> finance`
 - importadores desde `ieris_app`
 - edición de cierre directamente desde historial/ficha de trabajo
-- reprogramación operativa más rica sin perder trazabilidad
+- reprogramación operativa más rica con visitas/ventanas de terreno
 
 ## Checklist contra el estandar de modulos
 
