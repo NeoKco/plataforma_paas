@@ -97,6 +97,7 @@ Regla práctica adicional para esta iteración:
 - si la UI abrió un modal o `detail dialog`, el spec debe abrirlo explícitamente y acotar sus selectores a ese contenedor activo
 - evitar asumir que `page.locator("form").first()` o un `getByLabel(...)` global siguen apuntando al flujo correcto cuando la pantalla pasó a un patrón `modal-first`
 - cuando una alta deja abierto un `detail modal` operativo, el spec debe decidir explícitamente si continúa dentro de ese modal o si lo cierra antes de volver a interactuar con la grilla
+- esto aplica ya tanto a `tenant_portal` como a `platform_admin`, especialmente en flujos de `Nuevo tenant` y `Nuevo usuario`
 
 Si el flujo visible nuevo aun no tiene smoke, debe quedar anotado explícitamente en el `ROADMAP.md` o `CHANGELOG.md` del módulo.
 
@@ -203,7 +204,9 @@ Notas:
 - estado validado al cierre actual:
 	- `npm run e2e:platform` → `12 passed`, `3 skipped`
 	- `npm run e2e:tenant` → `22 passed`
+	- `npm run e2e` → `34 passed`, `3 skipped`
 	- revalidado localmente otra vez el `2026-04-04` sobre `empresa-bootstrap` después de alinear los smokes tenant con la UI actual basada en modales para `Usuarios`, `Finance`, `Business Core` y `Maintenance`
+	- revalidado también el bloque `platform_admin` el `2026-04-04` después de alinear los smokes con los modales actuales de `Nuevo tenant` y `Nuevo usuario`
 	- los `3 skipped` corresponden a escenarios DLQ broker-only cuando el entorno no usa `PROVISIONING_DISPATCH_BACKEND=broker`
 	- los `3` escenarios DLQ broker-only también quedaron verificados aparte sobre un stack local paralelo en modo `broker` apuntando a Redis, con `3 passed`
 	- fuera de esos casos dependientes de entorno, el frente E2E browser principal queda prácticamente cerrado
