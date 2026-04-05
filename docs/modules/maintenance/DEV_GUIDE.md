@@ -177,12 +177,10 @@ Fuente frontend principal:
 - documentacion canonica del dominio
 
 `maintenance` sigue debiendo:
-- evidencias y checklist
 - cierre UX por ficha/orden de trabajo
 - smoke E2E especifico del modulo con sus flujos principales
-- validaciones mas profundas de duplicados y conflictos de programacion en backend concurrente
 - mejoras móviles de captura en terreno
-- evidencias y checklist tecnico
+- filtros operativos por grupo y técnico dentro de la agenda mensual
 
 ## Modelo objetivo recomendado en PaaS
 
@@ -266,6 +264,7 @@ Con modulos tenant:
 - `finance`: el costeo técnico ya puede sincronizar manualmente ingreso/egreso usando `finance_transactions.source_type/source_id`
 - `Resumen técnico` ya expone además la política tenant para auto-sync `maintenance -> finance`, consumiendo `/tenant/info` y persistiendo vía `/tenant/info/maintenance-finance-sync`
 - `Agenda técnica` y `Mantenciones abiertas` ya calculan conflictos visibles en frontend cuando dos OT abiertas comparten slot horario e instalación/grupo/técnico
+- `work_orders` ahora también bloquea en backend esos cruces de slot con respuesta `409`, para cubrir concurrencia operativa básica fuera del navegador actual
 - `projects`: podra reutilizar el mismo sitio, cliente y responsable
 - `iot`: deberia colgarse del mismo sitio o activo instalado
 

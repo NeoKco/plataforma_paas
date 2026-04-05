@@ -108,6 +108,7 @@ Estado del corte hoy:
   - cuentas/categorías/moneda por defecto
 - `Mantenciones` ya permite abrir `Checklist` por OT para registrar observación de cierre, checklist técnico y evidencias de terreno
 - `Historial` ya permite abrir `Ver checklist` en modo solo lectura para revisar ese cierre técnico sin reabrir la orden
+- el backend ya endurece la agenda y rechaza cruces de slot activo por instalación, grupo o técnico, incluso si el intento no viene desde la misma pantalla web
 
 Pendientes visibles inmediatos:
 

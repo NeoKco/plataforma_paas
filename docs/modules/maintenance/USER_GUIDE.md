@@ -127,6 +127,7 @@ Lectura funcional de cada vista:
   - `Ver checklist` también es solo lectura y deja visible la trazabilidad técnica del cierre
 - `Agenda`: calendario visual del trabajo abierto
   - ahora marca conflictos visibles cuando dos mantenciones abiertas comparten horario y recurso técnico/instalación
+  - si aun así intentas guardar un cruce real, el backend lo rechaza para evitar doble asignación en el mismo slot
 
 Regla UX operativa:
 

@@ -304,8 +304,8 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- endurecer validaciones concurrentes de conflicto de agenda en backend
 - agregar filtros operativos por grupo y técnico en la agenda mensual
+- enriquecer la reprogramación operativa sin perder trazabilidad histórica
 
 ## Backlog pendiente visible
 
@@ -318,6 +318,7 @@ Pendiente inmediato de esta fase:
 - integración con agenda visual: en progreso
 - agenda visual mensual base: lista
 - conflictos visibles en agenda y bandeja abierta: listos en frontend
+- bloqueo backend de cruces por instalación/grupo/técnico: listo en primer corte
 - modelo canónico de asignacion grupo/usuario: documentado e implementado en primer corte
 - modelo canónico de programacion preventiva y costeo: documentado
 - costeo estimado default por programación: listo en primer corte

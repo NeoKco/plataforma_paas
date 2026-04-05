@@ -10,6 +10,7 @@
   - `maintenance_schedules.cost_template_id` enlaza la programación con la plantilla aplicada
 - `Agenda técnica` y `Mantenciones abiertas` ahora muestran conflictos visibles cuando dos OT abiertas comparten el mismo horario y además cruzan por instalación, grupo responsable o técnico responsable
 - los formularios de alta/edición de `Agenda` y `Mantenciones` advierten el cruce antes de guardar
+- el backend ahora también bloquea esos cruces con respuesta `409`, para no depender solo de la advertencia visual del frontend
 - se implementa el primer corte real de `Checklist y evidencias` por OT:
   - nueva migración tenant `0028_maintenance_field_reports`
   - tablas `maintenance_work_order_checklist_items` y `maintenance_work_order_evidences`

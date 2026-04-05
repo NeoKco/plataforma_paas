@@ -353,10 +353,10 @@ class MaintenanceWorkOrderService:
         next_status: str,
     ) -> None:
         payload = {
-            "scheduled_for": current_item.scheduled_for,
-            "installation_id": current_item.installation_id,
-            "assigned_work_group_id": current_item.assigned_work_group_id,
-            "assigned_tenant_user_id": current_item.assigned_tenant_user_id,
+            "scheduled_for": getattr(current_item, "scheduled_for", None),
+            "installation_id": getattr(current_item, "installation_id", None),
+            "assigned_work_group_id": getattr(current_item, "assigned_work_group_id", None),
+            "assigned_tenant_user_id": getattr(current_item, "assigned_tenant_user_id", None),
         }
         self._validate_scheduling_conflicts(
             tenant_db,
