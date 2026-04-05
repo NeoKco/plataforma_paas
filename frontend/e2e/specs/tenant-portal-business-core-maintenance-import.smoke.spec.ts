@@ -204,8 +204,8 @@ test("tenant portal shows imported business core and maintenance data from ieris
         /Resumen tiene sincronización automática al cerrar activa|Resumen está en modo manual|Overview has auto-sync on close enabled|Overview is in manual mode/i
       )
     ).toBeVisible();
-    await expect(costingDialog.getByRole("button", { name: /Cerrar|Close/i })).toBeVisible();
-    await costingDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
+    await expect(costingDialog.getByRole("button", { name: /^Cerrar$|^Close$/i })).toBeVisible();
+    await costingDialog.getByRole("button", { name: /^Cerrar$|^Close$/i }).click();
     await page.getByRole("button", { name: /Checklist/i }).first().click();
     const fieldReportDialog = page.getByRole("dialog", {
       name: /Checklist y evidencias de mantención|Maintenance checklist and evidence/i,
