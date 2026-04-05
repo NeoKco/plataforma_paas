@@ -176,6 +176,24 @@ function getStatusLabel(status: string, language: "es" | "en"): string {
   }
 }
 
+function isMembershipActive(member: {
+  is_active: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+}) {
+  if (!member.is_active) {
+    return false;
+  }
+  const now = new Date();
+  if (member.starts_at && new Date(member.starts_at) > now) {
+    return false;
+  }
+  if (member.ends_at && new Date(member.ends_at) < now) {
+    return false;
+  }
+  return true;
+}
+
 export function MaintenanceWorkOrdersPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
@@ -269,6 +287,20 @@ export function MaintenanceWorkOrdersPage() {
     () => tenantUsers.filter((user) => user.is_active),
     [tenantUsers]
   );
+  const selectableTenantUsers = useMemo(() => {
+    if (!form.assigned_work_group_id) {
+      return activeTenantUsers;
+    }
+    const allowedIds = new Set(
+      workGroupMembers
+        .filter(
+          (member) =>
+            member.group_id === form.assigned_work_group_id && isMembershipActive(member)
+        )
+        .map((member) => member.tenant_user_id)
+    );
+    return activeTenantUsers.filter((user) => allowedIds.has(user.id));
+  }, [activeTenantUsers, form.assigned_work_group_id, workGroupMembers]);
 
   const sortedRows = useMemo(
     () =>
@@ -999,6 +1031,7 @@ export function MaintenanceWorkOrdersPage() {
                         setForm((current) => ({
                           ...current,
                           assigned_work_group_id: event.target.value ? Number(event.target.value) : null,
+                          assigned_tenant_user_id: null,
                         }))
                       }
                     >
@@ -1029,12 +1062,19 @@ export function MaintenanceWorkOrdersPage() {
                       <option value="">
                         {language === "es" ? "Sin técnico asignado" : "No technician assigned"}
                       </option>
-                      {activeTenantUsers.map((user) => (
+                      {selectableTenantUsers.map((user) => (
                         <option key={user.id} value={user.id}>
                           {user.full_name}
                         </option>
                       ))}
                     </select>
+                    {form.assigned_work_group_id && selectableTenantUsers.length === 0 ? (
+                      <div className="form-text text-warning">
+                        {language === "es"
+                          ? "Este grupo no tiene técnicos con membresía activa para asignar."
+                          : "This group has no technicians with an active membership available for assignment."}
+                      </div>
+                    ) : null}
                   </div>
                   {!editingId ? (
                     <div className="col-12 col-md-6">
