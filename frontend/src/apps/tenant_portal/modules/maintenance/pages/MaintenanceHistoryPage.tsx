@@ -580,6 +580,7 @@ export function MaintenanceHistoryPage() {
                   >
                     {language === "es" ? "Ver checklist" : "View checklist"}
                   </button>
+                  <button
                     className="btn btn-sm btn-outline-warning"
                     type="button"
                     onClick={() => void handleReopen(item)}
