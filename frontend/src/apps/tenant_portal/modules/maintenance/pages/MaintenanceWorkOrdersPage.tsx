@@ -16,6 +16,7 @@ import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
 import type { ApiError, TenantUsersItem } from "../../../../../types";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceCostingModal } from "../components/common/MaintenanceCostingModal";
+import { MaintenanceFieldReportModal } from "../components/common/MaintenanceFieldReportModal";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
 import {
   createTenantMaintenanceWorkOrder,
@@ -182,6 +183,8 @@ export function MaintenanceWorkOrdersPage() {
   const [requestedCreateHandled, setRequestedCreateHandled] = useState(false);
   const [form, setForm] = useState<TenantMaintenanceWorkOrderWriteRequest>(buildDefaultForm());
   const [costingWorkOrder, setCostingWorkOrder] = useState<TenantMaintenanceWorkOrder | null>(null);
+  const [fieldReportWorkOrder, setFieldReportWorkOrder] =
+    useState<TenantMaintenanceWorkOrder | null>(null);
 
   const requestedClientId = Number(searchParams.get("clientId") || 0);
   const requestedSiteId = Number(searchParams.get("siteId") || 0);
@@ -501,6 +504,16 @@ export function MaintenanceWorkOrdersPage() {
     setError(null);
     setFeedback(null);
     setCostingWorkOrder(item);
+  }
+
+  function openFieldReportModal(item: TenantMaintenanceWorkOrder) {
+    setError(null);
+    setFeedback(null);
+    setFieldReportWorkOrder(item);
+  }
+
+  function closeFieldReportModal() {
+    setFieldReportWorkOrder(null);
   }
 
   async function handleSubmit() {
@@ -1066,6 +1079,26 @@ export function MaintenanceWorkOrdersPage() {
         onClose={closeCostingModal}
         onFeedback={setFeedback}
         workOrder={costingWorkOrder}
+      />
+      <MaintenanceFieldReportModal
+        accessToken={session?.accessToken}
+        clientLabel={fieldReportWorkOrder ? getClientDisplayName(fieldReportWorkOrder.client_id) : "—"}
+        siteLabel={fieldReportWorkOrder ? getSiteDisplayName(fieldReportWorkOrder.site_id) : "—"}
+        installationLabel={
+          fieldReportWorkOrder?.installation_id
+            ? installationById.get(fieldReportWorkOrder.installation_id)?.name ||
+              `#${fieldReportWorkOrder.installation_id}`
+            : language === "es"
+              ? "Instalación pendiente"
+              : "Installation pending"
+        }
+        effectiveTimeZone={effectiveTimeZone}
+        isOpen={Boolean(fieldReportWorkOrder)}
+        language={language}
+        mode="edit"
+        onClose={closeFieldReportModal}
+        onFeedback={setFeedback}
+        workOrder={fieldReportWorkOrder}
       />
 
       <DataTableCard
