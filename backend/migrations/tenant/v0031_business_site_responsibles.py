@@ -5,6 +5,18 @@ DESCRIPTION = "Create business site responsibles table"
 
 metadata = MetaData()
 
+business_sites = Table(
+    "business_sites",
+    metadata,
+    Column("id", Integer, primary_key=True),
+)
+
+users = Table(
+    "users",
+    metadata,
+    Column("id", Integer, primary_key=True),
+)
+
 business_site_responsibles = Table(
     "business_site_responsibles",
     metadata,

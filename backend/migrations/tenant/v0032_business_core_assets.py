@@ -5,6 +5,12 @@ DESCRIPTION = "Create business core assets and asset types"
 
 metadata = MetaData()
 
+business_sites = Table(
+    "business_sites",
+    metadata,
+    Column("id", Integer, primary_key=True),
+)
+
 business_asset_types = Table(
     "business_asset_types",
     metadata,
