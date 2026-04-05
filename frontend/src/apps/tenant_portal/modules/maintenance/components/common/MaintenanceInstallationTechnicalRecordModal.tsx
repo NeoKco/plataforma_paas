@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { PanelCard } from "../../../../../../components/common/PanelCard";
 import { ErrorState } from "../../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../../components/feedback/LoadingBlock";
-import { AppBadge } from "../../../../../design-system/AppBadge";
+import { AppBadge } from "../../../../../../design-system/AppBadge";
 import { getApiErrorDisplayMessage } from "../../../../../../services/api";
 import { formatDateTimeInTimeZone } from "../../../../../../utils/dateTimeLocal";
 import { stripLegacyVisibleText } from "../../../../../../utils/legacyVisibleText";
