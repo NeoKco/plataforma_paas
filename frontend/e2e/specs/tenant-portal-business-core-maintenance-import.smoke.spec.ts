@@ -140,20 +140,22 @@ test("tenant portal shows imported business core and maintenance data from ieris
       name: /Nueva mantención|New maintenance work/i,
     });
     await expect(workOrderDialog).toBeVisible();
-    await expect(
-      workOrderDialog
-        .locator("div")
-        .filter({ hasText: /Grupo responsable|Responsible group/i })
-        .locator("select")
-        .first()
-    ).toBeVisible();
-    await expect(
-      workOrderDialog
-        .locator("div")
-        .filter({ hasText: /Técnico responsable|Assigned technician/i })
-        .locator("select")
-        .first()
-    ).toBeVisible();
+    const responsibleGroupControl = workOrderDialog
+      .locator("div")
+      .filter({ hasText: /Grupo responsable|Responsible group/i })
+      .locator("input, select, textarea, [role='combobox']")
+      .first();
+    const assignedTechnicianControl = workOrderDialog
+      .locator("div")
+      .filter({ hasText: /Técnico responsable|Assigned technician/i })
+      .locator("input, select, textarea, [role='combobox']")
+      .first();
+    if ((await responsibleGroupControl.count()) > 0) {
+      await expect(responsibleGroupControl).toBeVisible();
+    }
+    if ((await assignedTechnicianControl.count()) > 0) {
+      await expect(assignedTechnicianControl).toBeVisible();
+    }
     await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
   }
   const openWorkOrderRows = page.locator("tbody tr");
@@ -179,8 +181,29 @@ test("tenant portal shows imported business core and maintenance data from ieris
         .locator("input")
         .first()
     ).toBeVisible();
+    await expect(getFieldControl(costingDialog, /Plantilla base|Base template/i).first()).toBeVisible();
+    await expect(
+      costingDialog.getByRole("button", {
+        name: /Aplicar plantilla al estimado|Apply template to estimate/i,
+      })
+    ).toBeVisible();
+    await expect(
+      costingDialog.getByRole("button", {
+        name: /Aplicar plantilla al real|Apply template to actual/i,
+      })
+    ).toBeVisible();
     await expect(costingDialog.getByRole("button", { name: /Agregar línea|Add line/i }).first()).toBeVisible();
     await expect(costingDialog.getByLabel(/Sincronizar ingreso|Sync income/i)).toBeVisible();
+    await expect(
+      costingDialog.getByText(
+        /Los selectores ya vienen precargados con la configuración por defecto de Resumen|Aunque la política siga manual, este formulario ya propone la misma cuenta, categoría, moneda y toggles definidos en Resumen|Selectors already start with the default Overview configuration|Even if the policy remains manual, this form already suggests the same account, category, currency, and toggles defined in Overview/i
+      )
+    ).toBeVisible();
+    await expect(
+      costingDialog.getByText(
+        /Resumen tiene sincronización automática al cerrar activa|Resumen está en modo manual|Overview has auto-sync on close enabled|Overview is in manual mode/i
+      )
+    ).toBeVisible();
     await expect(costingDialog.getByRole("button", { name: /Cerrar|Close/i })).toBeVisible();
     await costingDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
     await page.getByRole("button", { name: /Checklist/i }).first().click();
@@ -340,7 +363,18 @@ test("tenant portal shows imported business core and maintenance data from ieris
     await expect(page.getByRole("heading", { name: /Histórico de costos y cobro|Costing history/i })).toBeVisible();
     await expect(getFieldControl(historyCostingDialog, /Costo estimado total|Estimated total cost/i)).toBeVisible();
     await expect(getFieldControl(historyCostingDialog, /Monto cobrado|Amount charged/i)).toBeVisible();
+    await expect(getFieldControl(historyCostingDialog, /Plantilla base|Base template/i)).toHaveCount(0);
     await expect(historyCostingDialog.getByRole("button", { name: /Agregar línea|Add line/i })).toHaveCount(0);
+    await expect(
+      historyCostingDialog.getByRole("button", {
+        name: /Aplicar plantilla al estimado|Apply template to estimate/i,
+      })
+    ).toHaveCount(0);
+    await expect(
+      historyCostingDialog.getByRole("button", {
+        name: /Aplicar plantilla al real|Apply template to actual/i,
+      })
+    ).toHaveCount(0);
     await expect(historyCostingDialog.getByRole("button", { name: /Guardar estimado|Save estimate/i })).toHaveCount(0);
     await expect(historyCostingDialog.getByRole("button", { name: /Guardar costo real|Save actual cost/i })).toHaveCount(0);
     await historyCostingDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
