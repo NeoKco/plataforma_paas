@@ -1,6 +1,7 @@
 # Business Core Changelog
 
 - La vista `Duplicados` ahora audita tambien `Organizaciones`: detecta equivalentes por RUT o por nombre + canal central, puede mover `Contactos`, asimilar múltiples `Clientes` en conflicto hacia una ficha sugerida, integrar campos documentales visibles, reasignar la ficha final y desactiva las organizaciones origen.
+- La misma consolidación de `Organizaciones` ahora agrega un bloque `Ajuste manual previo` para escoger por campo qué ficha aporta nombre, razón social, RUT, teléfono, email y notas antes de ejecutar la fusión.
 - La consolidación de `Contactos` ahora integra email, teléfono o rol faltantes antes de desactivar fichas equivalentes dentro de la misma organización.
 - La vista `Duplicados` ahora audita tambien `Contactos`: detecta equivalentes dentro de la misma organización, sugiere una ficha para conservar y permite consolidar desactivando duplicados origen.
 - La consolidación de `Clientes` ahora reaprovecha también `Contactos`: mueve los reutilizables hacia la organización destino y desactiva duplicados evidentes, dejando las organizaciones origen para revisión manual.

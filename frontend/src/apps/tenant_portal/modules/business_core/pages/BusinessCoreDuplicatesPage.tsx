@@ -76,6 +76,16 @@ type OrganizationAuditRow = {
   workOrdersCount: number;
 };
 
+type OrganizationMergeFieldKey =
+  | "name"
+  | "legal_name"
+  | "tax_id"
+  | "phone"
+  | "email"
+  | "notes";
+
+type OrganizationMergeSelectionMap = Partial<Record<OrganizationMergeFieldKey, string>>;
+
 type ClientAuditRow = {
   client: TenantBusinessClient;
   organization: TenantBusinessOrganization | null;
@@ -119,6 +129,15 @@ type DuplicateGroup<T> = {
   searchText: string;
   members: T[];
 };
+
+const ORGANIZATION_MERGE_FIELDS: OrganizationMergeFieldKey[] = [
+  "name",
+  "legal_name",
+  "tax_id",
+  "phone",
+  "email",
+  "notes",
+];
 
 function normalizeHumanKey(value: string | null | undefined): string {
   return (value ?? "")
@@ -434,11 +453,68 @@ function buildMergedOrganizationDocumentPayload(
   });
 }
 
+function getOrganizationFieldValue(
+  organization: TenantBusinessOrganization,
+  field: OrganizationMergeFieldKey
+) {
+  switch (field) {
+    case "name":
+      return organization.name;
+    case "legal_name":
+      return organization.legal_name;
+    case "tax_id":
+      return organization.tax_id;
+    case "phone":
+      return organization.phone;
+    case "email":
+      return organization.email;
+    case "notes":
+      return organization.notes;
+    default:
+      return null;
+  }
+}
+
+function resolveOrganizationMergePayload(
+  target: TenantBusinessOrganization,
+  sources: TenantBusinessOrganization[],
+  selections: OrganizationMergeSelectionMap = {}
+) {
+  const autoPayload = buildMergedOrganizationDocumentPayload(target, sources);
+  const organizations = [target, ...sources];
+  const resolved = { ...autoPayload };
+
+  ORGANIZATION_MERGE_FIELDS.forEach((field) => {
+    const selection = selections[field];
+    if (!selection || selection === "auto") {
+      return;
+    }
+    const organizationId = Number(selection.replace("organization:", ""));
+    if (!Number.isFinite(organizationId)) {
+      return;
+    }
+    const selectedOrganization = organizations.find((organization) => organization.id === organizationId);
+    if (!selectedOrganization) {
+      return;
+    }
+    const selectedValue = getOrganizationFieldValue(selectedOrganization, field);
+    const normalizedValue = field === "name" ? getMeaningfulText(selectedValue) : getMeaningfulText(selectedValue);
+    if (field === "name") {
+      resolved.name = normalizedValue ?? autoPayload.name;
+      return;
+    }
+    resolved[field] = normalizedValue;
+  });
+
+  return resolved;
+}
+
 function countOrganizationDocumentFieldsToMerge(
   target: TenantBusinessOrganization,
-  sources: TenantBusinessOrganization[]
+  sources: TenantBusinessOrganization[],
+  selections: OrganizationMergeSelectionMap = {}
 ) {
-  const merged = buildMergedOrganizationDocumentPayload(target, sources);
+  const merged = resolveOrganizationMergePayload(target, sources, selections);
   let count = 0;
   if ((merged.legal_name ?? null) !== (target.legal_name ?? null)) {
     count += 1;
@@ -610,7 +686,8 @@ function summarizeClientContactMerge(
   function summarizeOrganizationMerge(
     group: DuplicateGroup<OrganizationAuditRow>,
     contactsByOrganizationId: Map<number, TenantBusinessContact[]>,
-    clientRowById: Map<number, ClientAuditRow>
+    clientRowById: Map<number, ClientAuditRow>,
+    selections: OrganizationMergeSelectionMap = {}
   ) {
     const targetId = getPreferredOrganizationId(group);
     const target = group.members.find((member) => member.organization.id === targetId);
@@ -684,7 +761,8 @@ function summarizeClientContactMerge(
         target.organization,
         group.members
           .filter((member) => member.organization.id !== targetId)
-          .map((member) => member.organization)
+          .map((member) => member.organization),
+        selections
       ),
     };
   }
@@ -1045,6 +1123,9 @@ export function BusinessCoreDuplicatesPage() {
   const [isMutating, setIsMutating] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [organizationMergeSelections, setOrganizationMergeSelections] = useState<
+    Record<string, OrganizationMergeSelectionMap>
+  >({});
 
   const organizationById = useMemo(
     () => new Map(organizations.map((item) => [item.id, item])),
@@ -1719,11 +1800,13 @@ export function BusinessCoreDuplicatesPage() {
     if (!target || sources.length === 0) {
       return;
     }
+    const selections = organizationMergeSelections[group.id] ?? {};
 
     const summary = summarizeOrganizationMerge(
       group,
       contactsByOrganizationId,
-      clientRowById
+      clientRowById,
+      selections
     );
     const clientRowsInGroup = group.members.flatMap((member) => {
       if (!member.client) {
@@ -1752,10 +1835,11 @@ export function BusinessCoreDuplicatesPage() {
       await updateTenantBusinessOrganization(
         session.accessToken,
         target.organization.id,
-          buildMergedOrganizationDocumentPayload(
-            target.organization,
-            sources.map((source) => source.organization)
-          )
+        resolveOrganizationMergePayload(
+          target.organization,
+          sources.map((source) => source.organization),
+          selections
+        )
       );
 
       if (preferredClientRow) {
@@ -2048,6 +2132,129 @@ export function BusinessCoreDuplicatesPage() {
     }
   }
 
+  function getOrganizationMergeFieldLabel(field: OrganizationMergeFieldKey) {
+    if (language === "es") {
+      switch (field) {
+        case "name":
+          return "Nombre visible";
+        case "legal_name":
+          return "Razón social";
+        case "tax_id":
+          return "RUT / Tax ID";
+        case "phone":
+          return "Teléfono";
+        case "email":
+          return "Email";
+        case "notes":
+          return "Notas";
+        default:
+          return field;
+      }
+    }
+    switch (field) {
+      case "name":
+        return "Visible name";
+      case "legal_name":
+        return "Legal name";
+      case "tax_id":
+        return "Tax ID";
+      case "phone":
+        return "Phone";
+      case "email":
+        return "Email";
+      case "notes":
+        return "Notes";
+      default:
+        return field;
+    }
+  }
+
+  function updateOrganizationMergeSelection(
+    groupId: string,
+    field: OrganizationMergeFieldKey,
+    value: string
+  ) {
+    setOrganizationMergeSelections((current) => ({
+      ...current,
+      [groupId]: {
+        ...(current[groupId] ?? {}),
+        [field]: value,
+      },
+    }));
+  }
+
+  function renderOrganizationMergeAssistant(group: DuplicateGroup<OrganizationAuditRow>) {
+    const preferredOrganizationId = getPreferredOrganizationId(group);
+    const target =
+      group.members.find((member) => member.organization.id === preferredOrganizationId)?.organization ??
+      group.members[0]?.organization ??
+      null;
+    if (!target) {
+      return null;
+    }
+    const sources = group.members
+      .filter((member) => member.organization.id !== preferredOrganizationId)
+      .map((member) => member.organization);
+    const selections = organizationMergeSelections[group.id] ?? {};
+    const preview = resolveOrganizationMergePayload(target, sources, selections);
+
+    return (
+      <div className="business-core-duplicates-merge-assistant">
+        <div className="business-core-duplicates-merge-assistant__header">
+          <strong>{language === "es" ? "Ajuste manual previo" : "Manual pre-merge adjustment"}</strong>
+          <span>
+            {language === "es"
+              ? "Si quieres, elige explícitamente qué ficha aporta cada dato visible antes de consolidar."
+              : "If needed, explicitly choose which record provides each visible field before consolidating."}
+          </span>
+        </div>
+        <div className="business-core-duplicates-merge-assistant__grid">
+          {ORGANIZATION_MERGE_FIELDS.map((field) => (
+            <label key={`${group.id}-${field}`} className="business-core-duplicates-merge-assistant__field">
+              <span>{getOrganizationMergeFieldLabel(field)}</span>
+              <select
+                className="form-select form-select-sm"
+                value={selections[field] ?? "auto"}
+                onChange={(event) =>
+                  updateOrganizationMergeSelection(group.id, field, event.target.value)
+                }
+              >
+                <option value="auto">
+                  {language === "es" ? "Automático sugerido" : "Suggested automatic"}
+                </option>
+                {[target, ...sources].map((organization) => {
+                  const fieldValue = getMeaningfulText(getOrganizationFieldValue(organization, field));
+                  return (
+                    <option key={`${field}-${organization.id}`} value={`organization:${organization.id}`}>
+                      {`${getClientName(organization, language)} · ${fieldValue ?? (language === "es" ? "sin dato" : "no value")}`}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          ))}
+        </div>
+        <div className="business-core-duplicates-merge-assistant__preview">
+          <div className="business-core-cell__meta">
+            {language === "es"
+              ? "Vista previa del documento objetivo"
+              : "Target document preview"}
+          </div>
+          <div className="business-core-duplicates-group__summary">
+            <span>{preview.name}</span>
+            {preview.legal_name ? <span>{preview.legal_name}</span> : null}
+            {preview.tax_id ? <span>{preview.tax_id}</span> : null}
+            {preview.phone ? <span>{preview.phone}</span> : null}
+            {preview.email ? <span>{preview.email}</span> : null}
+            {preview.notes ? (
+              <span>{language === "es" ? "notas integradas" : "merged notes"}</span>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   function renderOrganizationGroup(group: DuplicateGroup<OrganizationAuditRow>) {
     const preferredOrganizationId = getPreferredOrganizationId(group);
     const sourceMembers = group.members.filter(
@@ -2056,7 +2263,8 @@ export function BusinessCoreDuplicatesPage() {
     const summary = summarizeOrganizationMerge(
       group,
       contactsByOrganizationId,
-      clientRowById
+      clientRowById,
+      organizationMergeSelections[group.id] ?? {}
     );
     return (
       <div key={group.id} className="business-core-duplicates-group">
@@ -2121,6 +2329,7 @@ export function BusinessCoreDuplicatesPage() {
               : "This group has more than one linked client. Guided consolidation will resolve that layer first and then merge the suggested base organization."}
           </div>
         ) : null}
+        {renderOrganizationMergeAssistant(group)}
         <div className="business-core-duplicates-list">
           {group.members.map((member) => {
             const isPreferred = member.organization.id === preferredOrganizationId;

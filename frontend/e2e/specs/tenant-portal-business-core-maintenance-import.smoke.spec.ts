@@ -80,6 +80,9 @@ test("tenant portal shows imported business core and maintenance data from ieris
     ).first()
   ).toBeVisible();
   await expect(
+    page.getByText(/Ajuste manual previo|Manual pre-merge adjustment|No se encontraron organizaciones duplicadas|No duplicate organizations were found/i).first()
+  ).toBeVisible();
+  await expect(
     page.getByText(/sugerida para conservar por grupo|suggested record to keep per group/i)
   ).toBeVisible();
   await expect(page.getByText(/fichas origen|source records|OT a mover|work orders to move/i).first()).toBeVisible();

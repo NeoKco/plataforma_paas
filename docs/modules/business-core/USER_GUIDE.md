@@ -112,6 +112,7 @@ Como decidir rapido:
 - si una ficha esta vacia o sin uso, `Eliminar`
 - si tiene historial pero no debe seguir operando, `Desactivar`
 - si quieres concentrar la operacion en una sola ficha, `Consolidar en sugerida`
+- si en `Organizaciones` quieres decidir manualmente el dato final por campo, usa `Ajuste manual previo`
 
 Que consolida hoy:
 
@@ -125,6 +126,7 @@ Que no consolida todavia:
 
 - `organizations` en su version profunda documental asistida por decision humana
 - cuando hay varios `Clientes` en conflicto, la pantalla ahora intenta consolidarlos guiadamente antes de cerrar la fusión de la organización base; aun así, el criterio documental final sigue siendo operacional y no reemplaza revisión humana
+- el ajuste manual actual permite elegir por campo visible qué organización aporta cada dato, pero no versiona decisiones ni agrega una justificación formal por campo
 - merge profundo de `contacts` mas alla de consolidar equivalentes dentro de la misma organización o mover/desactivar duplicados evidentes al fusionar `Clientes`
 - notas historicas libres
 - fusion documental profunda entre fichas
