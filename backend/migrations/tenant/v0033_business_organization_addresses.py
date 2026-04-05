@@ -1,4 +1,4 @@
-from sqlalchemy import inspect, text
+from sqlalchemy import MetaData, inspect, text
 
 MIGRATION_ID = "0033_business_organization_addresses"
 DESCRIPTION = "Add organization address fields"
