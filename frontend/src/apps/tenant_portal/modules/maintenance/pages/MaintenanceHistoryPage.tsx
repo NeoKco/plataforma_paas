@@ -747,6 +747,13 @@ export function MaintenanceHistoryPage() {
             ? "Grupo responsable = el equipo asignado a la mantención. Líder o técnico responsable = la persona concreta dentro de ese equipo. Si filtras por uno de ellos y no ves resultados, significa que esas órdenes no quedaron cerradas con esa asignación exacta."
             : "Work group = the team assigned to the maintenance. Leader or responsible technician = the specific person inside that team. If you filter by one of them and see no results, those orders were not closed with that exact assignment."}
         </div>
+        {canReopenFromHistory ? (
+          <div className="alert alert-warning mb-3">
+            {language === "es"
+              ? "La acción Reabrir devuelve la OT a la bandeja activa solo a nivel operativo. No anula movimientos ya sincronizados en Finanzas. Si el cierre erróneo también afectó finance, usa el runbook y el script de reversa manual."
+              : "The Reopen action returns the work order to the active tray only at the operational level. It does not void movements already synced to Finance. If the mistaken closure also affected finance, use the runbook and the manual rollback script."}
+          </div>
+        ) : null}
         <div className="row g-3 align-items-end">
           <div className="col-12 col-md-5">
             <label className="form-label">

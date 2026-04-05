@@ -17,6 +17,8 @@ Ahora `Historial` ya muestra una acción `Reabrir`.
 
 Ese atajo solo está visible para perfiles administrativos del tenant (`admin` y `manager`).
 
+Además, la propia vista `Historial` ahora muestra un aviso visible recordando que `Reabrir` no anula movimientos ya enviados a `finance`.
+
 Usar ese atajo cuando:
 
 - solo necesitas devolver la OT a la bandeja activa;
