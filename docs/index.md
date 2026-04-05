@@ -66,6 +66,7 @@ La documentacion ya cubre arquitectura, modulos, runbooks, deploy, API y baselin
 - [Prueba guiada de provisioning](./runbooks/provisioning-guided-test.md)
 - [Prueba guiada de billing](./runbooks/billing-guided-test.md)
 - [Prueba guiada de tenant portal](./runbooks/tenant-portal-guided-test.md)
+- [Recuperación de estado en mantenciones cerradas por error](./runbooks/maintenance-status-recovery.md)
 - [Higiene del repositorio para GitHub](./runbooks/github-repository-hygiene.md)
 - [Migraciones backend](./runbooks/backend-migrations.md)
 - [Hardening de seguridad](./runbooks/security-hardening.md)

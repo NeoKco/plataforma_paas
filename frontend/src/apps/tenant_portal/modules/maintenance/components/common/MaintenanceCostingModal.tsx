@@ -679,6 +679,14 @@ export function MaintenanceCostingModal({
     if (!accessToken || !canCompleteFromModal) {
       return;
     }
+    const confirmed = window.confirm(
+      language === "es"
+        ? `Vas a cerrar definitivamente la mantención "${currentWorkOrder.title}". Se guardará el costo real y la OT saldrá de la bandeja activa hacia Historial. Si fue un error, la reapertura debe hacerse con reversa manual de estado. ¿Deseas continuar?`
+        : `You are about to definitively close maintenance "${currentWorkOrder.title}". The actual cost will be saved and the work order will move from the active tray to History. If this was a mistake, reopening requires a manual status rollback. Do you want to continue?`
+    );
+    if (!confirmed) {
+      return;
+    }
     setIsCompleting(true);
     setError(null);
     try {

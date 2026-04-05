@@ -121,6 +121,7 @@ Estado del corte hoy:
 - el backend ya endurece la agenda y rechaza cruces de slot activo por instalación, grupo o técnico, incluso si el intento no viene desde la misma pantalla web
 - `Mantenciones` y `Agenda` ya permiten `Reprogramar` con una nota opcional para dejar trazabilidad del cambio de slot y responsables en historial técnico
 - `Historial` ya permite abrir `Editar cierre` también desde la nueva `Ficha de mantención`, sin exponer reprogramación ni edición operativa de una OT cerrada
+- ya existe un runbook operativo para revertir cierres erróneos y devolver una OT desde `Historial` a un estado activo mediante [docs/runbooks/maintenance-status-recovery.md](/home/felipe/platform_paas/docs/runbooks/maintenance-status-recovery.md)
 - `Mantenciones` ya permite abrir `Visitas` desde la fila o desde la `Ficha de mantención`, para bajar a una coordinación más fina por ventana de terreno
 - la modal `Visitas` ahora agrega un resumen de coordinación operativa:
   - cuenta visitas abiertas, en curso, completadas y abiertas sin responsable
@@ -218,6 +219,8 @@ Nota importante:
   Mapa fuente -> destino desde `ieris_app` hacia `maintenance` y su dependencia con `business-core`.
 - [ASSIGNMENT_MODEL.md](/home/felipe/platform_paas/docs/modules/maintenance/ASSIGNMENT_MODEL.md)
   Modelo canónico para asignar mantenciones a grupos y usuarios sin mezclar permisos del sistema con roles funcionales.
+- [../../runbooks/maintenance-status-recovery.md](/home/felipe/platform_paas/docs/runbooks/maintenance-status-recovery.md)
+  Procedimiento operativo para revertir cierres o cancelaciones erróneas y reabrir una OT.
 - [PREVENTIVE_SCHEDULING_AND_COSTING_MODEL.md](/home/felipe/platform_paas/docs/modules/maintenance/PREVENTIVE_SCHEDULING_AND_COSTING_MODEL.md)
   Modelo canónico para programaciones automáticas, bandeja de vencimientos, costeo operativo y puente hacia `finance`.
 - [imports/README.md](/home/felipe/platform_paas/docs/modules/maintenance/imports/README.md)
