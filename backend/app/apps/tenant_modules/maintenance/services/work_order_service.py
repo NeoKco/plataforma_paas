@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta, timezone
+import zlib
 
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from app.apps.tenant_modules.business_core.models import (
     BusinessClient,
@@ -35,6 +37,11 @@ from app.apps.tenant_modules.maintenance.schemas import (
 FINAL_WORK_ORDER_STATUSES = {"completed", "cancelled"}
 ACTIVE_WORK_ORDER_STATUSES = {"scheduled", "in_progress"}
 LEGACY_REFERENCE_PREFIXES = ("legacy-", "legacy_")
+CONFLICT_LOCK_NAMESPACES = {
+    "installation": 4101,
+    "group": 4102,
+    "technician": 4103,
+}
 
 
 class MaintenanceWorkOrderConflictError(ValueError):
@@ -487,6 +494,8 @@ class MaintenanceWorkOrderService:
         if scheduled_for is None:
             return
 
+        self._acquire_scheduling_conflict_locks(tenant_db, payload)
+
         conflicts = self.work_order_repository.list_active_conflicts(
             tenant_db,
             scheduled_for=scheduled_for,
@@ -502,6 +511,60 @@ class MaintenanceWorkOrderService:
         raise MaintenanceWorkOrderConflictError(
             self._build_conflict_message(len(conflicts), reason_keys)
         )
+
+    def _acquire_scheduling_conflict_locks(self, tenant_db: Session, payload: dict) -> None:
+        dialect_name = getattr(
+            getattr(getattr(getattr(tenant_db, "bind", None), "dialect", None), "name", None),
+            "lower",
+            None,
+        )
+        if dialect_name is None or dialect_name() != "postgresql":
+            return
+        if not hasattr(tenant_db, "execute"):
+            return
+
+        scheduled_for = self._coerce_datetime(payload.get("scheduled_for"))
+        if scheduled_for is None:
+            return
+
+        minute_bucket = int(
+            scheduled_for.astimezone(timezone.utc).replace(second=0, microsecond=0).timestamp() // 60
+        )
+        lock_targets: list[tuple[str, int]] = []
+        if payload.get("installation_id") is not None:
+            lock_targets.append(("installation", int(payload["installation_id"])))
+        if payload.get("assigned_work_group_id") is not None:
+            lock_targets.append(("group", int(payload["assigned_work_group_id"])))
+        if payload.get("assigned_tenant_user_id") is not None:
+            lock_targets.append(("technician", int(payload["assigned_tenant_user_id"])))
+
+        for resource_type, resource_id in lock_targets:
+            namespace = CONFLICT_LOCK_NAMESPACES[resource_type]
+            resource_key = self._build_conflict_lock_key(resource_type, resource_id, minute_bucket)
+            tenant_db.execute(
+                text("SELECT pg_advisory_xact_lock(:namespace, :resource_key)"),
+                {"namespace": namespace, "resource_key": resource_key},
+            )
+
+    def _build_conflict_lock_key(
+        self,
+        resource_type: str,
+        resource_id: int,
+        minute_bucket: int,
+    ) -> int:
+        raw_value = zlib.crc32(f"{resource_type}:{resource_id}:{minute_bucket}".encode("utf-8"))
+        return raw_value if raw_value <= 2_147_483_647 else raw_value - 4_294_967_296
+
+    def _coerce_datetime(self, value) -> datetime | None:
+        if value is None:
+            return None
+        if isinstance(value, datetime):
+            return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
+        if isinstance(value, str):
+            normalized = value.replace("Z", "+00:00")
+            parsed = datetime.fromisoformat(normalized)
+            return parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=timezone.utc)
+        return None
 
     def _collect_conflict_reason_keys(
         self,

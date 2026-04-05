@@ -652,6 +652,83 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
                 ),
             )
 
+    def test_create_work_order_acquires_postgres_advisory_locks_before_conflict_check(self) -> None:
+        work_order_repository = Mock()
+        work_order_repository.get_by_external_reference.return_value = None
+        work_order_repository.list_active_conflicts.return_value = []
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+        )
+        tenant_db = Mock()
+        tenant_db.bind = SimpleNamespace(dialect=SimpleNamespace(name="postgresql"))
+        tenant_db.query.side_effect = [
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=11))))),
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=31, client_id=11))))),
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=9, site_id=31))))),
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=4))))),
+            Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=3))))),
+            Mock(filter=Mock(return_value=Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=20, is_active=True, starts_at=None, ends_at=None))))))),
+        ]
+        tenant_db.add.return_value = None
+        tenant_db.flush.return_value = None
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.return_value = None
+
+        service.create_work_order(
+            tenant_db,
+            MaintenanceWorkOrderCreateRequest(
+                client_id=11,
+                site_id=31,
+                installation_id=9,
+                assigned_work_group_id=4,
+                assigned_tenant_user_id=3,
+                title="Mantencion mensual",
+                scheduled_for="2026-04-05T10:00:00+00:00",
+            ),
+        )
+
+        self.assertEqual(tenant_db.execute.call_count, 3)
+
+    def test_activate_work_order_status_acquires_postgres_advisory_locks(self) -> None:
+        existing_item = SimpleNamespace(
+            id=23,
+            maintenance_status="cancelled",
+            completed_at=None,
+            cancelled_at=None,
+            due_item_id=None,
+            schedule_id=None,
+            scheduled_for="2026-04-05T10:00:00+00:00",
+            installation_id=9,
+            assigned_work_group_id=4,
+            assigned_tenant_user_id=3,
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        work_order_repository.list_active_conflicts.return_value = []
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+            status_log_repository=Mock(),
+            visit_repository=Mock(),
+            costing_service=Mock(),
+        )
+        tenant_db = Mock()
+        tenant_db.bind = SimpleNamespace(dialect=SimpleNamespace(name="postgresql"))
+        tenant_db.add.return_value = None
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.return_value = None
+
+        service.update_work_order_status(
+            tenant_db,
+            23,
+            MaintenanceStatusUpdateRequest(
+                maintenance_status="scheduled",
+                note="Reabrir",
+            ),
+            changed_by_user_id=7,
+        )
+
+        self.assertEqual(tenant_db.execute.call_count, 3)
+
     def test_activate_work_order_status_rejects_conflicting_slot(self) -> None:
         existing_item = SimpleNamespace(
             id=23,

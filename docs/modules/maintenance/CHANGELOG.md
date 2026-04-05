@@ -52,6 +52,7 @@
 - `Agenda técnica` y `Mantenciones abiertas` ahora muestran conflictos visibles cuando dos OT abiertas comparten el mismo horario y además cruzan por instalación, grupo responsable o técnico responsable
 - los formularios de alta/edición de `Agenda` y `Mantenciones` advierten el cruce antes de guardar
 - el backend ahora también bloquea esos cruces con respuesta `409`, para no depender solo de la advertencia visual del frontend
+- el backend ahora endurece además la validación concurrente de esos cruces usando locks transaccionales por instalación/grupo/técnico y minuto de agenda, para reducir carreras entre operaciones simultáneas
 - `Agenda técnica` agrega filtros operativos por `grupo responsable` y `técnico responsable`, sin perder la lectura mensual del calendario
 - `Mantenciones abiertas` y `Agenda técnica` agregan `Reprogramar` como flujo explícito:
   - permite ajustar fecha/hora, instalación y responsables sin borrar historial
@@ -100,6 +101,7 @@
   - aplicar una plantilla existente sobre `Costeo estimado`
   - aplicar una plantilla existente sobre `Costo real`
   - mantener `Monto cobrado` como dato manual, separado de la plantilla reusable
+- queda pendiente una mejora posterior para refinar mejor la UX de plantillas dentro de `Costos`, según el flujo operativo final que se defina
 - `Historial` cambia a acción `Ver costos` en modo solo lectura, para congelar la lectura económica de OT ya cerradas sin seguir mutándolas desde la UX normal
 - se implementa el segundo corte de costeo detallado:
   - migración tenant `0023_maintenance_cost_lines`

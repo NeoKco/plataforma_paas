@@ -292,10 +292,11 @@ Avance actual:
 - al completar una OT, el backend ya intenta el auto-sync cuando la política tenant está activa y configurada
 - el auto-sync no bloquea el cierre operativo si la configuración financiera está incompleta
 - `Historial` ya reutiliza la misma base de lectura de `Costos y cobro`, pero congelada en modo solo lectura
+- el backend ya endurece además la validación concurrente de conflictos de agenda con locks transaccionales por recurso y minuto, para reducir carreras entre operaciones simultáneas
 
 Pendiente inmediato de esta fase:
 
-- endurecer validaciones concurrentes de conflicto de agenda en backend
+- refinar más adelante la UX de `Plantillas de costeo` dentro del modal `Costos`, sin mover todavía ese frente por sobre el roadmap principal
 
 ## Mejoras de producto recomendadas
 
