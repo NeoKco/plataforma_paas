@@ -111,6 +111,7 @@ Si algo falla, el flujo actual distingue entre dos escenarios:
 
 - si al job aun le quedan intentos, pasa a `retry_pending` y agenda un nuevo intento con backoff
 - si supera `max_attempts`, pasa a `failed` y el tenant queda en `error`
+- si la falla es exactamente `Tenant database configuration is incomplete` durante `sync_tenant_schema`, el job ya no reintenta: pasa directo a `failed` porque el problema es de provisioning incompleto y no transitorio
 
 Adicionalmente, en el estado actual:
 

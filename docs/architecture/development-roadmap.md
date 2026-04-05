@@ -302,6 +302,7 @@ Resultado actual:
 - `tenant_portal` ya permite a `tenant admin` encolar y monitorear la sincronizacion de estructura desde el propio tenant, usando `provisioning_jobs` en vez de ejecucion inline
 - el provisioning inicial ya deja encolado un follow-up `sync_tenant_schema` al cerrar `create_tenant_database`
 - `platform` ya expone una operacion masiva para encolar `sync_tenant_schema` sobre tenants activos y existe un script operativo para usarla despues de deploy
+- si `sync_tenant_schema` falla por `Tenant database configuration is incomplete`, el job queda en `failed` terminal para no reintentar sobre una DB sin provisioning completo
 - `CLP` ya forma parte de las monedas semilla del modulo
 - el modulo ya esta registrado en la app
 - existe migracion tenant versionada para `finance_entries`
