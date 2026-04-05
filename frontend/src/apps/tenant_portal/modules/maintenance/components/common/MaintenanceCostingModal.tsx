@@ -37,6 +37,7 @@ import {
   type TenantMaintenanceCostTemplate,
 } from "../../services/costTemplatesService";
 import { updateTenantMaintenanceWorkOrderStatus } from "../../services/workOrdersService";
+import { useTenantAuth } from "../../../../../../store/tenant-auth-context";
 
 type MaintenanceCostEstimateFormState = {
   labor_cost: string;
@@ -269,6 +270,93 @@ function buildCostLineFormsFromTemplate(template: TenantMaintenanceCostTemplate)
   }));
 }
 
+function buildEstimateFormFromTemplate(
+  template: TenantMaintenanceCostTemplate
+): MaintenanceCostEstimateFormState {
+  return {
+    labor_cost: "0",
+    travel_cost: "0",
+    materials_cost: "0",
+    external_services_cost: "0",
+    overhead_cost: "0",
+    target_margin_percent: String(template.estimate_target_margin_percent ?? 0),
+    notes: template.estimate_notes ?? "",
+  };
+}
+
+function getSuggestedPriceFromTemplate(template: TenantMaintenanceCostTemplate): number {
+  const templateCost = template.lines.reduce((current, line) => current + (line.total_cost ?? 0), 0);
+  const margin = Number(template.estimate_target_margin_percent ?? 0);
+  if (templateCost <= 0) {
+    return 0;
+  }
+  if (margin > 0 && margin < 100) {
+    return Number((templateCost / (1 - margin / 100)).toFixed(2));
+  }
+  return Number(templateCost.toFixed(2));
+}
+
+function buildActualFormFromTemplate(
+  template: TenantMaintenanceCostTemplate
+): MaintenanceCostActualFormState {
+  return {
+    labor_cost: "0",
+    travel_cost: "0",
+    materials_cost: "0",
+    external_services_cost: "0",
+    overhead_cost: "0",
+    actual_price_charged: String(getSuggestedPriceFromTemplate(template)),
+    notes: template.estimate_notes ?? "",
+  };
+}
+
+function findActiveAccountId(accounts: TenantFinanceAccount[], candidateId: number | null | undefined): string {
+  if (candidateId == null) {
+    return "";
+  }
+  return accounts.some((account) => account.is_active && account.id === candidateId)
+    ? String(candidateId)
+    : "";
+}
+
+function findActiveCategoryId(
+  categories: TenantFinanceCategory[],
+  categoryType: "income" | "expense",
+  candidateId: number | null | undefined
+): string {
+  if (
+    candidateId != null &&
+    categories.some(
+      (category) =>
+        category.is_active && category.category_type === categoryType && category.id === candidateId
+    )
+  ) {
+    return String(candidateId);
+  }
+  const fallback = categories.find(
+    (category) => category.is_active && category.category_type === categoryType
+  );
+  return String(fallback?.id ?? "");
+}
+
+function findActiveCurrencyId(
+  currencies: TenantFinanceCurrency[],
+  candidateId: number | null | undefined
+): string {
+  if (
+    candidateId != null &&
+    currencies.some((currency) => currency.is_active && currency.id === candidateId)
+  ) {
+    return String(candidateId);
+  }
+  const fallback =
+    currencies.find((currency) => currency.is_active && currency.is_base) ??
+    currencies.find((currency) => currency.is_active) ??
+    currencies.find((currency) => currency.is_base) ??
+    currencies[0];
+  return String(fallback?.id ?? "");
+}
+
 function hasMeaningfulActualData(
   actual: TenantMaintenanceCostActual | null,
   actualLines: TenantMaintenanceCostLine[]
@@ -328,6 +416,7 @@ export function MaintenanceCostingModal({
   taskTypeLabel = null,
   workOrder,
 }: MaintenanceCostingModalProps) {
+  const { tenantInfo } = useTenantAuth();
   const isReadOnly = mode === "readonly";
   const [isLoading, setIsLoading] = useState(false);
   const [isEstimateSubmitting, setIsEstimateSubmitting] = useState(false);
@@ -339,7 +428,10 @@ export function MaintenanceCostingModal({
   const [financeAccounts, setFinanceAccounts] = useState<TenantFinanceAccount[]>([]);
   const [financeCategories, setFinanceCategories] = useState<TenantFinanceCategory[]>([]);
   const [financeCurrencies, setFinanceCurrencies] = useState<TenantFinanceCurrency[]>([]);
+  const [costTemplates, setCostTemplates] = useState<TenantMaintenanceCostTemplate[]>([]);
   const [costBaseMessage, setCostBaseMessage] = useState<string | null>(null);
+  const [estimateTemplateId, setEstimateTemplateId] = useState("");
+  const [actualTemplateId, setActualTemplateId] = useState("");
   const [estimateForm, setEstimateForm] = useState<MaintenanceCostEstimateFormState>(
     buildDefaultCostEstimateForm()
   );
@@ -383,6 +475,21 @@ export function MaintenanceCostingModal({
       ),
     [financeCategories]
   );
+  const activeCostTemplates = useMemo(
+    () => costTemplates.filter((template) => template.is_active),
+    [costTemplates]
+  );
+  const preferredCostTemplates = useMemo(() => {
+    const sameTaskType = taskTypeId
+      ? activeCostTemplates.filter((template) => template.task_type_id === taskTypeId)
+      : [];
+    const general = activeCostTemplates.filter((template) => template.task_type_id == null);
+    const otherTaskTypes = activeCostTemplates.filter(
+      (template) =>
+        template.task_type_id != null && (!taskTypeId || template.task_type_id !== taskTypeId)
+    );
+    return [...sameTaskType, ...general, ...otherTaskTypes];
+  }, [activeCostTemplates, taskTypeId]);
   const estimateLineTotals = useMemo(() => sumCostLines(estimateLines), [estimateLines]);
   const actualLineTotals = useMemo(() => sumCostLines(actualLines), [actualLines]);
   const estimateUsesLines = estimateLines.length > 0;
@@ -421,11 +528,102 @@ export function MaintenanceCostingModal({
     !financeSyncForm.currency_id ||
     (financeSyncForm.sync_income && !financeSyncForm.income_account_id) ||
     (financeSyncForm.sync_expense && !financeSyncForm.expense_account_id);
+  const selectedEstimateTemplate = useMemo(
+    () =>
+      activeCostTemplates.find((template) => String(template.id) === estimateTemplateId) ?? null,
+    [activeCostTemplates, estimateTemplateId]
+  );
+  const selectedActualTemplate = useMemo(
+    () => activeCostTemplates.find((template) => String(template.id) === actualTemplateId) ?? null,
+    [activeCostTemplates, actualTemplateId]
+  );
+  const financeSyncMode = tenantInfo?.maintenance_finance_sync_mode ?? "manual";
+  const autoSyncOnClose = financeSyncMode === "auto_on_close";
+  const autoSyncIncomeEnabled = tenantInfo?.maintenance_finance_auto_sync_income ?? true;
+  const autoSyncExpenseEnabled = tenantInfo?.maintenance_finance_auto_sync_expense ?? true;
+  const activeFinanceAccountIds = useMemo(
+    () => new Set(activeFinanceAccounts.map((account) => account.id)),
+    [activeFinanceAccounts]
+  );
+  const activeCurrencyIds = useMemo(
+    () => new Set(activeCurrencies.map((currency) => currency.id)),
+    [activeCurrencies]
+  );
+  const closeAutoSyncIssues = useMemo(() => {
+    if (!autoSyncOnClose) {
+      return [] as string[];
+    }
+
+    const issues: string[] = [];
+    const policyCurrencyId = tenantInfo?.maintenance_finance_currency_id ?? null;
+    const policyIncomeAccountId = tenantInfo?.maintenance_finance_income_account_id ?? null;
+    const policyExpenseAccountId = tenantInfo?.maintenance_finance_expense_account_id ?? null;
+    const requiresIncomeSync = autoSyncIncomeEnabled && normalizeNumericInput(actualForm.actual_price_charged) > 0;
+    const requiresExpenseSync = autoSyncExpenseEnabled && actualTotalPreview > 0;
+
+    if ((requiresIncomeSync || requiresExpenseSync) && !policyCurrencyId) {
+      issues.push(
+        language === "es"
+          ? "falta la moneda por defecto en Resumen"
+          : "the default currency in Overview is missing"
+      );
+    }
+    if (policyCurrencyId && !activeCurrencyIds.has(policyCurrencyId)) {
+      issues.push(
+        language === "es"
+          ? "la moneda por defecto de Resumen no está activa en Finanzas"
+          : "the default currency from Overview is not active in Finance"
+      );
+    }
+    if (requiresIncomeSync && !policyIncomeAccountId) {
+      issues.push(
+        language === "es"
+          ? "falta la cuenta de ingreso por defecto en Resumen"
+          : "the default income account in Overview is missing"
+      );
+    }
+    if (policyIncomeAccountId && !activeFinanceAccountIds.has(policyIncomeAccountId)) {
+      issues.push(
+        language === "es"
+          ? "la cuenta de ingreso por defecto no está activa en Finanzas"
+          : "the default income account is not active in Finance"
+      );
+    }
+    if (requiresExpenseSync && !policyExpenseAccountId) {
+      issues.push(
+        language === "es"
+          ? "falta la cuenta de egreso por defecto en Resumen"
+          : "the default expense account in Overview is missing"
+      );
+    }
+    if (policyExpenseAccountId && !activeFinanceAccountIds.has(policyExpenseAccountId)) {
+      issues.push(
+        language === "es"
+          ? "la cuenta de egreso por defecto no está activa en Finanzas"
+          : "the default expense account is not active in Finance"
+      );
+    }
+
+    return issues;
+  }, [
+    activeCurrencyIds,
+    activeFinanceAccountIds,
+    actualForm.actual_price_charged,
+    actualTotalPreview,
+    autoSyncExpenseEnabled,
+    autoSyncIncomeEnabled,
+    autoSyncOnClose,
+    language,
+    tenantInfo?.maintenance_finance_currency_id,
+    tenantInfo?.maintenance_finance_expense_account_id,
+    tenantInfo?.maintenance_finance_income_account_id,
+  ]);
   const canCompleteFromModal =
     !isReadOnly &&
     allowComplete &&
     workOrder?.maintenance_status !== "completed" &&
     workOrder?.maintenance_status !== "cancelled";
+  const closeBlockedByFinancePolicy = canCompleteFromModal && autoSyncOnClose && closeAutoSyncIssues.length > 0;
 
   useEffect(() => {
     if (!isOpen || !accessToken || !workOrder) {
@@ -465,9 +663,20 @@ export function MaintenanceCostingModal({
           ? templates.filter((template) => template.is_active && template.task_type_id === taskTypeId)
           : [];
         const matchingTemplates = specificTemplates.length > 0 ? specificTemplates : generalTemplates;
+        const otherTemplates = templates.filter(
+          (template) =>
+            template.is_active &&
+            template.task_type_id != null &&
+            (!taskTypeId || template.task_type_id !== taskTypeId)
+        );
+        const selectableTemplates = [
+          ...matchingTemplates,
+          ...generalTemplates.filter(
+            (template) => !matchingTemplates.some((candidate) => candidate.id === template.id)
+          ),
+          ...otherTemplates,
+        ];
         const autoTemplate = matchingTemplates.length === 1 ? matchingTemplates[0] : null;
-        const incomeCategory = categories.find((category) => category.category_type === "income");
-        const expenseCategory = categories.find((category) => category.category_type === "expense");
         const defaultCurrency = currencies.find((currency) => currency.is_base) || currencies[0];
         const transactionAtSource =
           detail.actual?.finance_synced_at ??
@@ -481,12 +690,12 @@ export function MaintenanceCostingModal({
         setFinanceCategories(categories);
         setFinanceCurrencies(currencies);
         setCostingDetail(detail);
+        setCostTemplates(templates);
 
         if (autoTemplate && !hasEstimateData) {
           setEstimateLines(buildCostLineFormsFromTemplate(autoTemplate));
           setEstimateForm({
-            ...buildDefaultCostEstimateForm(detail.estimate),
-            target_margin_percent: String(autoTemplate.estimate_target_margin_percent ?? 0),
+            ...buildEstimateFormFromTemplate(autoTemplate),
             notes: autoTemplate.estimate_notes ?? detail.estimate?.notes ?? "",
           });
         } else {
@@ -495,21 +704,9 @@ export function MaintenanceCostingModal({
         }
 
         if (autoTemplate && !hasActualData) {
-          const templateCost = autoTemplate.lines.reduce(
-            (current, line) => current + (line.total_cost ?? 0),
-            0
-          );
-          const margin = Number(autoTemplate.estimate_target_margin_percent ?? 0);
-          const suggestedCharged =
-            templateCost > 0
-              ? margin > 0 && margin < 100
-                ? Number((templateCost / (1 - margin / 100)).toFixed(2))
-                : Number(templateCost.toFixed(2))
-              : 0;
           setActualLines(buildCostLineFormsFromTemplate(autoTemplate));
           setActualForm({
-            ...buildDefaultCostActualForm(detail.actual),
-            actual_price_charged: String(suggestedCharged),
+            ...buildActualFormFromTemplate(autoTemplate),
             notes: autoTemplate.estimate_notes ?? detail.actual?.notes ?? "",
           });
         } else {
@@ -517,31 +714,54 @@ export function MaintenanceCostingModal({
           setActualLines(buildDefaultCostLines(detail.actual_lines));
         }
 
+        const preferredTemplateId = String(
+          autoTemplate?.id ?? selectableTemplates[0]?.id ?? templates[0]?.id ?? ""
+        );
+        setEstimateTemplateId(preferredTemplateId);
+        setActualTemplateId(preferredTemplateId);
+
         setCostBaseMessage(
           matchingTemplates.length > 1
             ? language === "es"
-              ? `Hay más de un costo base activo para ${taskTypeLabel || "este tipo de tarea"}. Define uno solo en Costos de mantenciones para precargar el costeo.`
-              : `There is more than one active base cost for ${taskTypeLabel || "this task type"}. Keep only one in Maintenance costs to preload costing.`
+              ? `Hay varias plantillas activas para ${taskTypeLabel || "esta mantención"}. Selecciona la que quieras aplicar en estimado o costo real.`
+              : `There are multiple active templates for ${taskTypeLabel || "this maintenance"}. Choose the one you want to apply to estimate or actual cost.`
             : autoTemplate && (!hasEstimateData || !hasActualData)
               ? language === "es"
-                ? `Se cargó automáticamente el costo base ${autoTemplate.name} desde Costos de mantenciones.`
-                : `Base cost ${autoTemplate.name} was loaded automatically from Maintenance costs.`
-              : !autoTemplate
+                ? `Se cargó automáticamente la plantilla ${autoTemplate.name} desde Plantillas de mantención.`
+                : `Template ${autoTemplate.name} was loaded automatically from Maintenance templates.`
+              : templates.length > 0
                 ? language === "es"
-                  ? "No hay un costo base único para esta mantención. Si lo necesitas, defínelo en Costos de mantenciones."
-                  : "There is no unique base cost for this maintenance. If needed, define it in Maintenance costs."
+                  ? "Puedes reutilizar cualquier plantilla activa creada previamente desde Plantillas de mantención."
+                  : "You can reuse any previously created active template from Maintenance templates."
                 : null
         );
 
         setCompletionNote(currentWorkOrder.closure_notes ?? "");
         setFinanceSyncForm({
-          sync_income: true,
-          sync_expense: true,
-          income_account_id: "",
-          expense_account_id: "",
-          income_category_id: String(incomeCategory?.id ?? ""),
-          expense_category_id: String(expenseCategory?.id ?? ""),
-          currency_id: String(defaultCurrency?.id ?? ""),
+          sync_income: tenantInfo?.maintenance_finance_auto_sync_income ?? true,
+          sync_expense: tenantInfo?.maintenance_finance_auto_sync_expense ?? true,
+          income_account_id: findActiveAccountId(
+            accounts,
+            tenantInfo?.maintenance_finance_income_account_id
+          ),
+          expense_account_id: findActiveAccountId(
+            accounts,
+            tenantInfo?.maintenance_finance_expense_account_id
+          ),
+          income_category_id: findActiveCategoryId(
+            categories,
+            "income",
+            tenantInfo?.maintenance_finance_income_category_id
+          ),
+          expense_category_id: findActiveCategoryId(
+            categories,
+            "expense",
+            tenantInfo?.maintenance_finance_expense_category_id
+          ),
+          currency_id: findActiveCurrencyId(
+            currencies,
+            tenantInfo?.maintenance_finance_currency_id ?? defaultCurrency?.id ?? null
+          ),
           transaction_at: toDateTimeLocalInputValue(transactionAtSource, effectiveTimeZone),
           notes: detail.actual?.notes ?? detail.estimate?.notes ?? "",
         });
@@ -561,13 +781,56 @@ export function MaintenanceCostingModal({
     return () => {
       cancelled = true;
     };
-  }, [accessToken, effectiveTimeZone, isOpen, language, taskTypeId, taskTypeLabel, workOrder]);
+  }, [
+    accessToken,
+    effectiveTimeZone,
+    isOpen,
+    language,
+    taskTypeId,
+    taskTypeLabel,
+    tenantInfo?.maintenance_finance_auto_sync_expense,
+    tenantInfo?.maintenance_finance_auto_sync_income,
+    tenantInfo?.maintenance_finance_currency_id,
+    tenantInfo?.maintenance_finance_expense_account_id,
+    tenantInfo?.maintenance_finance_expense_category_id,
+    tenantInfo?.maintenance_finance_income_account_id,
+    tenantInfo?.maintenance_finance_income_category_id,
+    workOrder,
+  ]);
 
   if (!isOpen || !workOrder) {
     return null;
   }
 
   const currentWorkOrder = workOrder;
+
+  function applyEstimateTemplate(template: TenantMaintenanceCostTemplate) {
+    if (isReadOnly) {
+      return;
+    }
+    setEstimateTemplateId(String(template.id));
+    setEstimateLines(buildCostLineFormsFromTemplate(template));
+    setEstimateForm(buildEstimateFormFromTemplate(template));
+    setCostBaseMessage(
+      language === "es"
+        ? `Plantilla ${template.name} aplicada al costeo estimado. Puedes ajustar líneas, margen y notas antes de guardar.`
+        : `Template ${template.name} applied to the estimated costing. You can edit lines, margin, and notes before saving.`
+    );
+  }
+
+  function applyActualTemplate(template: TenantMaintenanceCostTemplate) {
+    if (isReadOnly) {
+      return;
+    }
+    setActualTemplateId(String(template.id));
+    setActualLines(buildCostLineFormsFromTemplate(template));
+    setActualForm(buildActualFormFromTemplate(template));
+    setCostBaseMessage(
+      language === "es"
+        ? `Plantilla ${template.name} aplicada al costo real y cobro. Puedes modificar traslado, materiales, cobro y cualquier línea antes de cerrar.`
+        : `Template ${template.name} applied to actual cost and billing. You can edit travel, materials, charged amount, and any line before closing.`
+    );
+  }
 
   function addEstimateLine() {
     if (isReadOnly) {
@@ -676,7 +939,7 @@ export function MaintenanceCostingModal({
   }
 
   async function handleCompleteWithActualCost() {
-    if (!accessToken || !canCompleteFromModal) {
+    if (!accessToken || !canCompleteFromModal || closeBlockedByFinancePolicy) {
       return;
     }
     const confirmed = window.confirm(
@@ -773,6 +1036,16 @@ export function MaintenanceCostingModal({
     { value: "service", label: language === "es" ? "Servicio externo" : "External service" },
     { value: "overhead", label: language === "es" ? "Indirecto" : "Overhead" },
   ];
+
+  function buildTemplateLabel(template: TenantMaintenanceCostTemplate) {
+    if (template.task_type_id === taskTypeId && taskTypeLabel) {
+      return `${template.name} · ${taskTypeLabel}`;
+    }
+    if (template.task_type_id == null) {
+      return language === "es" ? `${template.name} · General` : `${template.name} · General`;
+    }
+    return language === "es" ? `${template.name} · Otra tarea` : `${template.name} · Other task`;
+  }
 
   function renderLineEditor(
     lines: MaintenanceCostLineFormState[],
@@ -970,10 +1243,39 @@ export function MaintenanceCostingModal({
                   </div>
                   <div className="maintenance-history-entry__meta">
                     {language === "es"
-                      ? "Usa el costo base definido en Costos de mantenciones para proyectar costo interno y precio sugerido antes de ejecutar."
-                      : "Use the base cost defined in Maintenance costs to project internal cost and suggested price before execution."}
+                      ? "Puedes elegir cualquier plantilla activa creada previamente y luego ajustar margen, notas o líneas antes de guardar el estimado."
+                      : "You can choose any previously created active template and then adjust margin, notes, or lines before saving the estimate."}
                   </div>
                   <div className="row g-3 mt-1">
+                    {!isReadOnly ? (
+                      <>
+                        <div className="col-12 col-md-8">
+                          <label className="form-label">{language === "es" ? "Plantilla base" : "Base template"}</label>
+                          <select
+                            className="form-select"
+                            value={estimateTemplateId}
+                            onChange={(event) => setEstimateTemplateId(event.target.value)}
+                          >
+                            <option value="">{language === "es" ? "Selecciona una plantilla" : "Select a template"}</option>
+                            {preferredCostTemplates.map((template) => (
+                              <option key={template.id} value={String(template.id)}>
+                                {buildTemplateLabel(template)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-12 col-md-4 d-flex align-items-end">
+                          <button
+                            className="btn btn-outline-secondary w-100"
+                            type="button"
+                            onClick={() => selectedEstimateTemplate && applyEstimateTemplate(selectedEstimateTemplate)}
+                            disabled={!selectedEstimateTemplate}
+                          >
+                            {language === "es" ? "Aplicar plantilla al estimado" : "Apply template to estimate"}
+                          </button>
+                        </div>
+                      </>
+                    ) : null}
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Mano de obra" : "Labor"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.labor_cost.toFixed(2) : estimateForm.labor_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, labor_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Traslado" : "Travel"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.travel_cost.toFixed(2) : estimateForm.travel_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, travel_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Materiales" : "Materials"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.materials_cost.toFixed(2) : estimateForm.materials_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, materials_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
@@ -1010,10 +1312,39 @@ export function MaintenanceCostingModal({
                   </div>
                   <div className="maintenance-history-entry__meta">
                     {language === "es"
-                      ? "El cierre parte desde el mismo costo base, pero aquí puedes ajustar valores reales, observaciones y monto cobrado."
-                      : "Closure starts from the same base cost, but here you can adjust real values, notes, and charged amount."}
+                      ? "Aquí también puedes aplicar cualquier plantilla activa y después modificar traslado, materiales, líneas o monto cobrado según el cierre real."
+                      : "Here you can also apply any active template and then adjust travel, materials, lines, or charged amount for the real close."}
                   </div>
                   <div className="row g-3 mt-1">
+                    {!isReadOnly ? (
+                      <>
+                        <div className="col-12 col-md-8">
+                          <label className="form-label">{language === "es" ? "Plantilla base" : "Base template"}</label>
+                          <select
+                            className="form-select"
+                            value={actualTemplateId}
+                            onChange={(event) => setActualTemplateId(event.target.value)}
+                          >
+                            <option value="">{language === "es" ? "Selecciona una plantilla" : "Select a template"}</option>
+                            {preferredCostTemplates.map((template) => (
+                              <option key={template.id} value={String(template.id)}>
+                                {buildTemplateLabel(template)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-12 col-md-4 d-flex align-items-end">
+                          <button
+                            className="btn btn-outline-secondary w-100"
+                            type="button"
+                            onClick={() => selectedActualTemplate && applyActualTemplate(selectedActualTemplate)}
+                            disabled={!selectedActualTemplate}
+                          >
+                            {language === "es" ? "Aplicar plantilla al real" : "Apply template to actual"}
+                          </button>
+                        </div>
+                      </>
+                    ) : null}
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Mano de obra real" : "Actual labor"}</label><input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.labor_cost.toFixed(2) : actualForm.labor_cost} onChange={(event) => setActualForm((current) => ({ ...current, labor_cost: event.target.value }))} disabled={actualUsesLines || isReadOnly} /></div>
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Traslado real" : "Actual travel"}</label><input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.travel_cost.toFixed(2) : actualForm.travel_cost} onChange={(event) => setActualForm((current) => ({ ...current, travel_cost: event.target.value }))} disabled={actualUsesLines || isReadOnly} /></div>
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Materiales reales" : "Actual materials"}</label><input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.materials_cost.toFixed(2) : actualForm.materials_cost} onChange={(event) => setActualForm((current) => ({ ...current, materials_cost: event.target.value }))} disabled={actualUsesLines || isReadOnly} /></div>
@@ -1031,6 +1362,26 @@ export function MaintenanceCostingModal({
                         <div className="maintenance-history-entry__meta mt-2">
                           {language === "es" ? "Al cerrar desde aquí se guarda primero el costo real y luego se cambia el estado a completada." : "Closing from here saves actual cost first and then changes the status to completed."}
                         </div>
+                        <div className={`alert ${autoSyncOnClose ? (closeAutoSyncIssues.length ? "alert-warning" : "alert-info") : "alert-secondary"} mt-3 mb-0`}>
+                          {autoSyncOnClose
+                            ? closeAutoSyncIssues.length > 0
+                              ? language === "es"
+                                ? "El tenant está en sincronización automática al cerrar, pero faltan defaults activos en Resumen para garantizar el puente con Finanzas:"
+                                : "The tenant is set to auto-sync on close, but active defaults are missing in Overview to guarantee the Finance bridge:"
+                              : language === "es"
+                                ? "Resumen tiene sincronización automática al cerrar activa. Al guardar y cerrar, el backend sincronizará de inmediato con Finanzas usando esos defaults."
+                                : "Overview has auto-sync on close enabled. When you save and close, the backend will sync immediately with Finance using those defaults."
+                            : language === "es"
+                              ? "Resumen está en modo manual. Este formulario ya parte con los defaults del tenant, pero la sincronización a Finanzas sigue siendo manual hasta que cierres por flujo manual o cambies la política en Resumen."
+                              : "Overview is in manual mode. This form already starts with the tenant defaults, but Finance sync remains manual unless you sync here or change the Overview policy."}
+                          {closeAutoSyncIssues.length > 0 ? (
+                            <ul className="mb-0 mt-2 ps-3">
+                              {closeAutoSyncIssues.map((issue) => (
+                                <li key={issue}>{issue}</li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </div>
                       </div>
                     ) : null}
                     <div className="col-12">{renderLineEditor(actualLines, addActualLine, updateActualLine, removeActualLine, isReadOnly)}</div>
@@ -1041,7 +1392,7 @@ export function MaintenanceCostingModal({
                         {isActualSubmitting ? (language === "es" ? "Guardando..." : "Saving...") : language === "es" ? "Guardar costo real" : "Save actual cost"}
                       </button>
                       {canCompleteFromModal ? (
-                        <button className="btn btn-success" type="button" onClick={() => void handleCompleteWithActualCost()} disabled={isActualSubmitting || isCompleting}>
+                        <button className="btn btn-success" type="button" onClick={() => void handleCompleteWithActualCost()} disabled={isActualSubmitting || isCompleting || closeBlockedByFinancePolicy}>
                           {isCompleting ? (language === "es" ? "Cerrando..." : "Closing...") : language === "es" ? "Guardar y cerrar mantención" : "Save and close maintenance"}
                         </button>
                       ) : null}
@@ -1064,10 +1415,21 @@ export function MaintenanceCostingModal({
                     {isReadOnly ? (language === "es" ? "Histórico de sincronización con finanzas" : "Finance sync history") : language === "es" ? "Sincronizar a finanzas" : "Sync to finance"}
                   </div>
                   <div className="maintenance-history-entry__meta">
-                    {isReadOnly ? (language === "es" ? "Consulta los vínculos financieros ya registrados para esta mantención cerrada." : "Review the financial links already registered for this closed maintenance.") : language === "es" ? "Crea o actualiza el ingreso y egreso ligados a esta mantención usando source_type/source_id." : "Create or update the linked income and expense using source_type/source_id."}
+                    {isReadOnly ? (language === "es" ? "Consulta los vínculos financieros ya registrados para esta mantención cerrada." : "Review the financial links already registered for this closed maintenance.") : language === "es" ? "Crea o actualiza el ingreso y egreso ligados a esta mantención usando source_type/source_id. Los defaults iniciales se cargan desde Resumen." : "Create or update the linked income and expense using source_type/source_id. Initial defaults are loaded from Overview."}
                   </div>
                   {!isReadOnly && (!activeFinanceAccounts.length || !activeCurrencies.length) ? (
                     <div className="alert alert-warning mt-3 mb-0">{language === "es" ? "Primero debes tener cuentas y monedas activas en Finanzas para sincronizar." : "You need active accounts and currencies in Finance before syncing."}</div>
+                  ) : null}
+                  {!isReadOnly ? (
+                    <div className={`alert ${autoSyncOnClose ? "alert-info" : "alert-secondary"} mt-3 mb-0`}>
+                      {autoSyncOnClose
+                        ? language === "es"
+                          ? "Los selectores ya vienen precargados con la configuración por defecto de Resumen. Si cierras la OT desde este modal, el auto-sync intentará usar esa misma configuración inmediatamente."
+                          : "Selectors already start with the default Overview configuration. If you close the work order from this modal, auto-sync will try to use that same configuration immediately."
+                        : language === "es"
+                          ? "Aunque la política siga manual, este formulario ya propone la misma cuenta, categoría, moneda y toggles definidos en Resumen para no volver a configurarlos en cada OT."
+                          : "Even if the policy remains manual, this form already suggests the same account, category, currency, and toggles defined in Overview so they do not need to be reconfigured on every work order."}
+                    </div>
                   ) : null}
                   <div className="row g-3 mt-1">
                     {isReadOnly ? (

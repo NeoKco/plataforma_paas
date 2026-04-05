@@ -102,7 +102,7 @@ Estado del corte hoy:
 - `Pendientes` ya agrega una lectura agrupada por organización para coordinar carga sin perder la operación por cliente/dirección
 - `Pendientes` ya muestra instalaciones activas sin plan preventivo y permite abrir `Crear plan` con cliente/dirección/instalación precargados
 - `Mantenciones` ya permite abrir `Costos` por OT para guardar estimado, costo real, monto cobrado y sincronizar manualmente a `finance`
-- el mismo modal `Costos` ahora también permite crear `Plantillas de costeo de mantención` desde el estimado o desde el costo real actual, y volver a aplicarlas sobre otras OT del módulo
+- el mismo modal `Costos` ahora permite elegir y reaplicar cualquier `Plantilla de costeo de mantención` activa sobre el estimado o el costo real, manteniendo editable el cobro y las líneas del cierre real
 - queda pendiente un slice posterior para que el cierre económico deje trazado de forma explícita qué plantilla quedó aplicada al costo real final de la OT
 - `Historial` ya permite abrir el mismo modal `Costos` sobre órdenes cerradas, sin volver editable la programación operativa
 - `Costos y cobro` ya permite detalle granular por líneas:
@@ -116,6 +116,7 @@ Estado del corte hoy:
   - modo `manual`
   - modo `auto_on_close`
   - cuentas/categorías/moneda por defecto
+- el modal `Costos` ahora reutiliza esos defaults de `Resumen` para precargar la sincronización financiera y advertir cuando el `auto_on_close` no podría completar el puente esperado al cerrar
 - `Mantenciones` ya permite abrir `Checklist` por OT para registrar observación de cierre, checklist técnico y evidencias de terreno
 - `Historial` ya permite abrir `Ver checklist` en modo solo lectura para revisar ese cierre técnico sin reabrir la orden
 - el backend ya endurece la agenda y rechaza cruces de slot activo por instalación, grupo o técnico, incluso si el intento no viene desde la misma pantalla web

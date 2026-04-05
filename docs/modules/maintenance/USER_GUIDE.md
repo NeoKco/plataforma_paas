@@ -59,9 +59,9 @@ El primer corte del modulo ya permite:
 - editar una orden aun no cerrada
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
 - abrir `Costos` desde una mantención abierta para registrar costo estimado, costo real, cobro y sincronización manual a Finanzas
-- dentro de `Costos` puedes crear una `Plantilla de costeo de mantención` desde el estimado o desde el costo real actual
+- dentro de `Costos` puedes reutilizar cualquier `Plantilla de costeo de mantención` activa ya creada previamente
 - ahora también existe la vista `Plantillas` dentro de `Mantenciones` para administrar esas plantillas sin depender de `Pendientes` o de una OT puntual
-- esa plantilla luego puede aplicarse tanto al `Costeo estimado` como al `Costo real`
+- esa plantilla luego puede elegirse y aplicarse tanto al `Costeo estimado` como al `Costo real`
 - el `Monto cobrado` no se pisa con la plantilla; queda manual para respetar el cierre comercial real
 - por ahora el módulo no deja una marca explícita de "plantilla aplicada al cierre" dentro del histórico económico final; ese refinamiento queda pendiente
 - abrir `Ver costos` desde `Historial` para revisar en modo solo lectura el cierre económico ya congelado de una orden cerrada
@@ -147,6 +147,8 @@ Lectura funcional de cada vista:
   - cada fila ya permite abrir `Reprogramar` para cambiar slot o responsables sin perder trazabilidad
   - el costeo se maneja en modal, igual que la captura principal del módulo
   - `Costos` ya permite resumen manual o detalle por líneas
+  - `Costeo estimado` ahora puede cargar cualquier plantilla activa del módulo y luego editar margen, notas o líneas antes de guardar
+  - `Costo real y cobro` también puede cargar cualquier plantilla activa y luego ajustar traslado, materiales, cobro o cualquier línea antes del cierre real
 - `Instalaciones`: parque instalado por cliente y direccion
 - `Instalaciones`:
   - cada fila ya permite abrir `Expediente`
@@ -194,15 +196,16 @@ Regla UX operativa:
   - primero se registra costo real
   - luego se eligen cuenta, categoría y moneda
   - recién entonces se genera o actualiza el ingreso/egreso financiero
+- el formulario `Sincronizar a finanzas` ya parte precargado con la configuración por defecto definida en `Resumen`
 - si el tenant activa `Automática al cerrar` en `Resumen`:
-  - la OT completada intenta generar ingreso/egreso usando las cuentas, categorías y moneda por defecto del tenant
-  - si falta alguna cuenta o no hay monto real para sincronizar, la OT igual se cierra y luego puede resolverse con sync manual
+  - la OT completada intenta generar ingreso/egreso usando las cuentas, categorías, moneda y toggles por defecto del tenant
+  - el modal `Costos` avisa si falta alguna configuración activa en `Resumen` para que el cierre no salga sin el puente esperado a `Finanzas`
 - si la OT nace desde una programación preventiva con costeo default:
   - `Costeo estimado` ya se abre precargado con sus líneas base
   - el operador puede ajustar ese estimado antes de ejecutar la mantención real
 - si el equipo técnico repite siempre la misma estructura de estimate:
   - puede guardarla como `Plantilla de costeo de mantención`
-  - luego puede aplicarla en nuevas programaciones sin reconstruir material, servicio, mano de obra o margen desde cero
+  - luego puede aplicarla en nuevas programaciones o en el modal `Costos` de cualquier OT sin reconstruir material, servicio, mano de obra o margen desde cero
   - también puede archivarla cuando deje de usarse, sin perder la referencia de programaciones ya vinculadas
 - si la OT necesita trazabilidad de terreno:
   - `Checklist` permite marcar el cumplimiento técnico base
