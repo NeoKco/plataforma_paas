@@ -36,6 +36,9 @@ class MaintenanceHistoryWorkOrderItemResponse(BaseModel):
     client_id: int
     site_id: int
     installation_id: int | None = None
+    schedule_id: int | None = None
+    due_item_id: int | None = None
+    billing_mode: str | None = None
     external_reference: str | None = None
     title: str
     description: str | None = None

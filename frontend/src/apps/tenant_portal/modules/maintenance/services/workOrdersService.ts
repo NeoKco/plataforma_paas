@@ -5,6 +5,9 @@ export type TenantMaintenanceWorkOrder = {
   client_id: number;
   site_id: number;
   installation_id: number | null;
+  schedule_id: number | null;
+  due_item_id: number | null;
+  billing_mode: string | null;
   assigned_work_group_id: number | null;
   external_reference: string | null;
   title: string;

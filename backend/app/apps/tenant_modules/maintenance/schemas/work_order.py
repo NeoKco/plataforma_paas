@@ -30,6 +30,9 @@ class MaintenanceWorkOrderUpdateRequest(MaintenanceWorkOrderBase):
 
 class MaintenanceWorkOrderItemResponse(MaintenanceWorkOrderBase):
     id: int
+    schedule_id: int | None = None
+    due_item_id: int | None = None
+    billing_mode: str | None = None
     maintenance_status: str
     requested_at: datetime
     completed_at: datetime | None = None

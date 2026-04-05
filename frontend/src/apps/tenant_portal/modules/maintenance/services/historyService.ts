@@ -31,6 +31,9 @@ export type TenantMaintenanceHistoryWorkOrder = {
   client_id: number;
   site_id: number;
   installation_id: number | null;
+  schedule_id: number | null;
+  due_item_id: number | null;
+  billing_mode: string | null;
   external_reference: string | null;
   title: string;
   description: string | null;

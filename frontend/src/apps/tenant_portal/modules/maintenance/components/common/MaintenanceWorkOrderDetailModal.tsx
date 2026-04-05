@@ -37,6 +37,8 @@ type Props = {
   clientLabel: string;
   siteLabel: string;
   installationLabel: string;
+  taskTypeLabel?: string;
+  technicianProfileLabel?: string;
   workGroupLabel: string;
   technicianLabel: string;
   effectiveTimeZone?: string | null;
@@ -105,6 +107,8 @@ export function MaintenanceWorkOrderDetailModal({
   clientLabel,
   siteLabel,
   installationLabel,
+  taskTypeLabel,
+  technicianProfileLabel,
   workGroupLabel,
   technicianLabel,
   effectiveTimeZone,
@@ -236,6 +240,12 @@ export function MaintenanceWorkOrderDetailModal({
                     </div>
                     <div className="maintenance-history-entry__meta">
                       {language === "es" ? "Técnico" : "Technician"}: {technicianLabel}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {language === "es" ? "Tipo de tarea" : "Task type"}: {taskTypeLabel || (language === "es" ? "Sin tipo" : "No task type")}
+                    </div>
+                    <div className="maintenance-history-entry__meta mt-2">
+                      {language === "es" ? "Perfil funcional" : "Function profile"}: {technicianProfileLabel || (language === "es" ? "Sin perfil" : "No profile")}
                     </div>
                     <div className="maintenance-history-entry__meta mt-2">
                       {language === "es" ? "Prioridad" : "Priority"}: {workOrder.priority}
