@@ -58,6 +58,20 @@ export type TenantMaintenanceHistoryResponse = {
   data: TenantMaintenanceHistoryWorkOrder[];
 };
 
+export type TenantMaintenanceStatusLogsResponse = {
+  success: boolean;
+  message: string;
+  total: number;
+  data: TenantMaintenanceStatusLog[];
+};
+
+export type TenantMaintenanceVisitsResponse = {
+  success: boolean;
+  message: string;
+  total: number;
+  data: TenantMaintenanceVisit[];
+};
+
 export function getTenantMaintenanceHistory(
   accessToken: string,
   options: { clientId?: number; siteId?: number } = {}
@@ -71,6 +85,20 @@ export function getTenantMaintenanceHistory(
   }
   return apiRequest<TenantMaintenanceHistoryResponse>(
     `/tenant/maintenance/history${params.toString() ? `?${params.toString()}` : ""}`,
+    { token: accessToken }
+  );
+}
+
+export function getTenantMaintenanceStatusLogs(accessToken: string, workOrderId: number) {
+  return apiRequest<TenantMaintenanceStatusLogsResponse>(
+    `/tenant/maintenance/work-orders/${workOrderId}/status-logs`,
+    { token: accessToken }
+  );
+}
+
+export function getTenantMaintenanceVisits(accessToken: string, workOrderId: number) {
+  return apiRequest<TenantMaintenanceVisitsResponse>(
+    `/tenant/maintenance/work-orders/${workOrderId}/visits`,
     { token: accessToken }
   );
 }

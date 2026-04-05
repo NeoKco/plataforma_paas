@@ -7,10 +7,11 @@ import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
+import { getTenantUsers } from "../../../../../services/tenant-api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
-import type { ApiError } from "../../../../../types";
+import type { ApiError, TenantUsersItem } from "../../../../../types";
 import {
   getTenantBusinessClients,
   type TenantBusinessClient,
@@ -20,6 +21,10 @@ import {
   type TenantBusinessOrganization,
 } from "../../business_core/services/organizationsService";
 import {
+  getTenantBusinessWorkGroups,
+  type TenantBusinessWorkGroup,
+} from "../../business_core/services/workGroupsService";
+import {
   getTenantBusinessSites,
   type TenantBusinessSite,
 } from "../../business_core/services/sitesService";
@@ -27,6 +32,7 @@ import { getVisibleAddressLabel } from "../../business_core/utils/addressPresent
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceCostingModal } from "../components/common/MaintenanceCostingModal";
 import { MaintenanceFieldReportModal } from "../components/common/MaintenanceFieldReportModal";
+import { MaintenanceWorkOrderDetailModal } from "../components/common/MaintenanceWorkOrderDetailModal";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
 import {
   getTenantMaintenanceHistory,
@@ -103,12 +109,16 @@ export function MaintenanceHistoryPage() {
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
+  const [workGroups, setWorkGroups] = useState<TenantBusinessWorkGroup[]>([]);
+  const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [editingRow, setEditingRow] = useState<TenantMaintenanceHistoryWorkOrder | null>(null);
   const [costingWorkOrder, setCostingWorkOrder] =
+    useState<TenantMaintenanceHistoryWorkOrder | null>(null);
+  const [detailWorkOrder, setDetailWorkOrder] =
     useState<TenantMaintenanceHistoryWorkOrder | null>(null);
   const [fieldReportWorkOrder, setFieldReportWorkOrder] =
     useState<TenantMaintenanceHistoryWorkOrder | null>(null);
@@ -131,6 +141,14 @@ export function MaintenanceHistoryPage() {
     () => new Map(installations.map((item) => [item.id, item])),
     [installations]
   );
+  const workGroupById = useMemo(
+    () => new Map(workGroups.map((group) => [group.id, group])),
+    [workGroups]
+  );
+  const tenantUserById = useMemo(
+    () => new Map(tenantUsers.map((user) => [user.id, user])),
+    [tenantUsers]
+  );
   const completedRows = useMemo(
     () => rows.filter((item) => item.maintenance_status === "completed"),
     [rows]
@@ -147,19 +165,23 @@ export function MaintenanceHistoryPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [historyResponse, clientsResponse, organizationsResponse, sitesResponse, installationsResponse] =
+      const [historyResponse, clientsResponse, organizationsResponse, sitesResponse, installationsResponse, workGroupsResponse, tenantUsersResponse] =
         await Promise.all([
           getTenantMaintenanceHistory(session.accessToken),
           getTenantBusinessClients(session.accessToken, { includeInactive: true }),
           getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
           getTenantBusinessSites(session.accessToken, { includeInactive: true }),
           getTenantMaintenanceInstallations(session.accessToken, { includeInactive: true }),
+          getTenantBusinessWorkGroups(session.accessToken, { includeInactive: true }),
+          getTenantUsers(session.accessToken),
         ]);
       setRows(historyResponse.data);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
       setInstallations(installationsResponse.data);
+      setWorkGroups(workGroupsResponse.data);
+      setTenantUsers(tenantUsersResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -188,6 +210,12 @@ export function MaintenanceHistoryPage() {
     setCostingWorkOrder(item);
   }
 
+  function openDetailModal(item: TenantMaintenanceHistoryWorkOrder) {
+    setFeedback(null);
+    setError(null);
+    setDetailWorkOrder(item);
+  }
+
   function openFieldReportModal(item: TenantMaintenanceHistoryWorkOrder) {
     setFeedback(null);
     setError(null);
@@ -200,6 +228,10 @@ export function MaintenanceHistoryPage() {
 
   function closeFieldReportModal() {
     setFieldReportWorkOrder(null);
+  }
+
+  function closeDetailModal() {
+    setDetailWorkOrder(null);
   }
 
   async function handleHistorySubmit() {
@@ -347,6 +379,13 @@ export function MaintenanceHistoryPage() {
                   <AppBadge tone={getStatusTone(item.maintenance_status)}>
                     {getStatusLabel(item.maintenance_status, language)}
                   </AppBadge>
+                  <button
+                    className="btn btn-sm btn-outline-primary"
+                    type="button"
+                    onClick={() => openDetailModal(item)}
+                  >
+                    {language === "es" ? "Ver ficha" : "Open detail"}
+                  </button>
                   <button
                     className="btn btn-sm btn-outline-primary"
                     type="button"
@@ -654,6 +693,49 @@ export function MaintenanceHistoryPage() {
         onClose={closeCostingModal}
         onFeedback={setFeedback}
         workOrder={costingWorkOrder}
+      />
+
+      <MaintenanceWorkOrderDetailModal
+        accessToken={session?.accessToken}
+        clientLabel={detailWorkOrder ? getClientDisplayName(detailWorkOrder.client_id) : "—"}
+        siteLabel={detailWorkOrder ? getSiteDisplayName(detailWorkOrder.site_id) : "—"}
+        installationLabel={
+          detailWorkOrder?.installation_id
+            ? installationById.get(detailWorkOrder.installation_id)?.name || `#${detailWorkOrder.installation_id}`
+            : language === "es"
+              ? "Instalación pendiente"
+              : "Installation pending"
+        }
+        workGroupLabel={
+          detailWorkOrder?.assigned_work_group_id
+            ? workGroupById.get(detailWorkOrder.assigned_work_group_id)?.name || `#${detailWorkOrder.assigned_work_group_id}`
+            : language === "es"
+              ? "Sin grupo"
+              : "No group"
+        }
+        technicianLabel={
+          detailWorkOrder?.assigned_tenant_user_id
+            ? tenantUserById.get(detailWorkOrder.assigned_tenant_user_id)?.full_name || `#${detailWorkOrder.assigned_tenant_user_id}`
+            : language === "es"
+              ? "Sin técnico"
+              : "No technician"
+        }
+        effectiveTimeZone={effectiveTimeZone}
+        isOpen={Boolean(detailWorkOrder)}
+        language={language}
+        mode="history"
+        onClose={closeDetailModal}
+        onOpenChecklist={detailWorkOrder ? () => openFieldReportModal(detailWorkOrder) : undefined}
+        onOpenCosting={detailWorkOrder ? () => openCostingModal(detailWorkOrder) : undefined}
+        onEditClosure={
+          detailWorkOrder
+            ? () => {
+                closeDetailModal();
+                startEdit(detailWorkOrder);
+              }
+            : undefined
+        }
+        workOrder={detailWorkOrder}
       />
 
       <MaintenanceFieldReportModal

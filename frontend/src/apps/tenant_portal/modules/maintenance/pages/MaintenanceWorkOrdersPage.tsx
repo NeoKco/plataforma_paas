@@ -17,6 +17,7 @@ import type { ApiError, TenantUsersItem } from "../../../../../types";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceCostingModal } from "../components/common/MaintenanceCostingModal";
 import { MaintenanceFieldReportModal } from "../components/common/MaintenanceFieldReportModal";
+import { MaintenanceWorkOrderDetailModal } from "../components/common/MaintenanceWorkOrderDetailModal";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
 import {
   createTenantMaintenanceWorkOrder,
@@ -185,6 +186,7 @@ export function MaintenanceWorkOrdersPage() {
   const [form, setForm] = useState<TenantMaintenanceWorkOrderWriteRequest>(buildDefaultForm());
   const [isRescheduleMode, setIsRescheduleMode] = useState(false);
   const [costingWorkOrder, setCostingWorkOrder] = useState<TenantMaintenanceWorkOrder | null>(null);
+  const [detailWorkOrder, setDetailWorkOrder] = useState<TenantMaintenanceWorkOrder | null>(null);
   const [fieldReportWorkOrder, setFieldReportWorkOrder] =
     useState<TenantMaintenanceWorkOrder | null>(null);
 
@@ -514,6 +516,16 @@ export function MaintenanceWorkOrdersPage() {
     setError(null);
     setFeedback(null);
     setCostingWorkOrder(item);
+  }
+
+  function openDetailModal(item: TenantMaintenanceWorkOrder) {
+    setError(null);
+    setFeedback(null);
+    setDetailWorkOrder(item);
+  }
+
+  function closeDetailModal() {
+    setDetailWorkOrder(null);
   }
 
   function openFieldReportModal(item: TenantMaintenanceWorkOrder) {
@@ -1134,6 +1146,40 @@ export function MaintenanceWorkOrdersPage() {
         onFeedback={setFeedback}
         workOrder={costingWorkOrder}
       />
+      <MaintenanceWorkOrderDetailModal
+        accessToken={session?.accessToken}
+        clientLabel={detailWorkOrder ? getClientDisplayName(detailWorkOrder.client_id) : "—"}
+        siteLabel={detailWorkOrder ? getSiteDisplayName(detailWorkOrder.site_id) : "—"}
+        installationLabel={
+          detailWorkOrder?.installation_id
+            ? installationById.get(detailWorkOrder.installation_id)?.name || `#${detailWorkOrder.installation_id}`
+            : language === "es"
+              ? "Instalación pendiente"
+              : "Installation pending"
+        }
+        workGroupLabel={
+          detailWorkOrder?.assigned_work_group_id
+            ? workGroupById.get(detailWorkOrder.assigned_work_group_id)?.name || `#${detailWorkOrder.assigned_work_group_id}`
+            : language === "es"
+              ? "Sin grupo"
+              : "No group"
+        }
+        technicianLabel={
+          detailWorkOrder?.assigned_tenant_user_id
+            ? tenantUserById.get(detailWorkOrder.assigned_tenant_user_id)?.full_name || `#${detailWorkOrder.assigned_tenant_user_id}`
+            : language === "es"
+              ? "Sin técnico"
+              : "No technician"
+        }
+        effectiveTimeZone={effectiveTimeZone}
+        isOpen={Boolean(detailWorkOrder)}
+        language={language}
+        mode="open"
+        onClose={closeDetailModal}
+        onOpenChecklist={detailWorkOrder ? () => openFieldReportModal(detailWorkOrder) : undefined}
+        onOpenCosting={detailWorkOrder ? () => openCostingModal(detailWorkOrder) : undefined}
+        workOrder={detailWorkOrder}
+      />
       <MaintenanceFieldReportModal
         accessToken={session?.accessToken}
         clientLabel={fieldReportWorkOrder ? getClientDisplayName(fieldReportWorkOrder.client_id) : "—"}
@@ -1257,6 +1303,13 @@ export function MaintenanceWorkOrdersPage() {
             header: language === "es" ? "Acciones" : "Actions",
             render: (item) => (
               <AppToolbar compact>
+                <button
+                  className="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  onClick={() => openDetailModal(item)}
+                >
+                  {language === "es" ? "Ver ficha" : "Open detail"}
+                </button>
                 <button
                   className="btn btn-sm btn-outline-primary"
                   type="button"
