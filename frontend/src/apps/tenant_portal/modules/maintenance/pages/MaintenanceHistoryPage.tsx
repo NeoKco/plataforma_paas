@@ -124,6 +124,8 @@ export function MaintenanceHistoryPage() {
   const [taskTypes, setTaskTypes] = useState<TenantBusinessTaskType[]>([]);
   const [schedules, setSchedules] = useState<TenantMaintenanceSchedule[]>([]);
   const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
+  const [selectedWorkGroupId, setSelectedWorkGroupId] = useState<string>("");
+  const [selectedTenantUserId, setSelectedTenantUserId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -174,13 +176,40 @@ export function MaintenanceHistoryPage() {
       ),
     [workGroupMembers]
   );
+  const filteredRows = useMemo(
+    () =>
+      rows.filter((item) => {
+        if (selectedWorkGroupId && item.assigned_work_group_id !== Number(selectedWorkGroupId)) {
+          return false;
+        }
+        if (selectedTenantUserId && item.assigned_tenant_user_id !== Number(selectedTenantUserId)) {
+          return false;
+        }
+        return true;
+      }),
+    [rows, selectedTenantUserId, selectedWorkGroupId]
+  );
   const completedRows = useMemo(
-    () => rows.filter((item) => item.maintenance_status === "completed"),
-    [rows]
+    () => filteredRows.filter((item) => item.maintenance_status === "completed"),
+    [filteredRows]
   );
   const cancelledRows = useMemo(
-    () => rows.filter((item) => item.maintenance_status === "cancelled"),
-    [rows]
+    () => filteredRows.filter((item) => item.maintenance_status === "cancelled"),
+    [filteredRows]
+  );
+  const workGroupFilterOptions = useMemo(
+    () =>
+      workGroups.filter((group) =>
+        rows.some((item) => item.assigned_work_group_id === group.id)
+      ),
+    [rows, workGroups]
+  );
+  const tenantUserFilterOptions = useMemo(
+    () =>
+      tenantUsers.filter((user) =>
+        rows.some((item) => item.assigned_tenant_user_id === user.id)
+      ),
+    [rows, tenantUsers]
   );
 
   async function loadData() {
@@ -352,6 +381,34 @@ export function MaintenanceHistoryPage() {
     );
   }
 
+  function getAssignedWorkGroupLabel(
+    item: Pick<TenantMaintenanceHistoryWorkOrder, "assigned_work_group_id">
+  ): string {
+    if (!item.assigned_work_group_id) {
+      return language === "es" ? "Sin grupo" : "No group";
+    }
+    return workGroupById.get(item.assigned_work_group_id)?.name || `#${item.assigned_work_group_id}`;
+  }
+
+  function getAssignedTenantUserLabel(
+    item: Pick<TenantMaintenanceHistoryWorkOrder, "assigned_work_group_id" | "assigned_tenant_user_id">
+  ): string {
+    if (!item.assigned_tenant_user_id) {
+      return language === "es" ? "Sin responsable" : "No responsible";
+    }
+    const user = tenantUserById.get(item.assigned_tenant_user_id);
+    const member =
+      item.assigned_work_group_id && item.assigned_tenant_user_id
+        ? workGroupMemberByKey.get(`${item.assigned_work_group_id}:${item.assigned_tenant_user_id}`)
+        : null;
+    return (
+      stripLegacyVisibleText(user?.full_name) ||
+      stripLegacyVisibleText(user?.email) ||
+      member?.function_profile_name ||
+      `#${item.assigned_tenant_user_id}`
+    );
+  }
+
   const historyColumns = [
     {
       key: "order",
@@ -381,6 +438,16 @@ export function MaintenanceHistoryPage() {
         <div>
           <div>{getTaskTypeLabel(item)}</div>
           <div className="maintenance-cell__meta">{getTechnicianFunctionProfileLabel(item)}</div>
+        </div>
+      ),
+    },
+    {
+      key: "responsible",
+      header: language === "es" ? "Responsable" : "Responsible",
+      render: (item: TenantMaintenanceHistoryWorkOrder) => (
+        <div>
+          <div>{getAssignedWorkGroupLabel(item)}</div>
+          <div className="maintenance-cell__meta">{getAssignedTenantUserLabel(item)}</div>
         </div>
       ),
     },
