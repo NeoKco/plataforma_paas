@@ -50,7 +50,7 @@ Estado actual:
 - `business_work_group_members` ya existe como tabla y CRUD real para modelar membresias entre usuarios tenant y grupos de trabajo
 - la vista de `work_groups` ya expone conteo de miembros y acceso directo a la gestion de `Miembros`
 - `maintenance` ya consume `work_groups` reales para asignar grupo responsable en ordenes y visitas, en vez de depender solo de etiquetas legacy o texto libre
-- la nueva vista `Depuración` ya detecta grupos duplicados de `Clientes`, `Contactos`, `Direcciones` e `Instalaciones`, sugiere qué ficha conviene conservar y permite consolidar referencias operativas o desactivar duplicados hacia esa ficha antes de borrar para apoyar la limpieza operativa de la BD
+- la nueva vista `Depuración` ya detecta grupos duplicados de `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones`, sugiere qué ficha conviene conservar y permite consolidar referencias operativas o desactivar duplicados hacia esa ficha antes de borrar para apoyar la limpieza operativa de la BD
 
 ## Slice operativo actual: Duplicados
 
@@ -58,6 +58,7 @@ Este slice ya quedo operativo dentro de `Core de negocio`.
 
 Resuelve hoy:
 
+- auditar duplicados de `Organizaciones`
 - auditar duplicados de `Clientes`
 - auditar duplicados de `Contactos`
 - auditar duplicados de `Direcciones`
@@ -70,6 +71,7 @@ Resuelve hoy:
 
 Alcance real de la consolidacion actual:
 
+- `Organizaciones`: mueve `Contactos`, puede reasignar un único `Cliente` cuando no hay conflicto y desactiva las organizaciones origen
 - `Clientes`: mueve `Contactos`, `Direcciones` y `OT`
 - `Contactos`: deja una sola ficha sugerida activa y desactiva duplicados equivalentes dentro de la misma organización
 - `Direcciones`: mueve `Instalaciones` y `OT`
@@ -77,8 +79,8 @@ Alcance real de la consolidacion actual:
 
 Limites conocidos del corte actual:
 
-- no fusiona `organizations`; las organizaciones origen quedan para revision manual
-- no hace merge profundo de `contacts`; por ahora consolida equivalentes dentro de la misma organización y sigue moviendo reutilizables al fusionar `clients`
+- el merge de `organizations` solo es automático cuando el grupo no mantiene más de un `Cliente`; si existe conflicto entre varios clientes, primero debe consolidarse esa capa
+- no hace merge profundo de `contacts`; por ahora consolida equivalentes dentro de la misma organización y sigue moviendo reutilizables al fusionar `clients` u `organizations`
 - no mezcla notas humanas ni historiales textuales
 - no construye aun un merge profundo auditable de identidad completa
 

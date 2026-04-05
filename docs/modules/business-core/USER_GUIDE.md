@@ -62,7 +62,7 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - un cliente con historial de mantenciones no deberia eliminarse; desde ese punto en adelante solo corresponde desactivarlo para no romper trazabilidad ni reportes.
 - si aparece la pareja, un familiar o un tercero ligado al mismo domicilio o contexto operativo, no deberia crearse como cliente nuevo por defecto; primero debe revisarse si corresponde agregarlo como contacto del cliente existente.
 - la captura de `Nuevo cliente` deberia advertir coincidencias fuertes por RUT, nombre, telefono, email o direccion y desviar al usuario hacia la ficha existente antes de duplicar la cartera.
-- cuando ya existen duplicados en la base, la pantalla `Depuración` debe agrupar `Clientes`, `Contactos`, `Direcciones` e `Instalaciones` por coincidencias exactas normalizadas, sugerir qué ficha conservar y mostrar dependencias visibles para ayudar a decidir qué ficha borrar, desactivar o consolidar sin romper historial.
+- cuando ya existen duplicados en la base, la pantalla `Depuración` debe agrupar `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones` por coincidencias exactas normalizadas, sugerir qué ficha conservar y mostrar dependencias visibles para ayudar a decidir qué ficha borrar, desactivar o consolidar sin romper historial.
 
 Eso genera:
 
@@ -91,6 +91,7 @@ Que veras dentro del slice:
 
 - un bloque `Auditoría de duplicados`
 - filtros por texto y por tipo de entidad
+- grupos de `Organizaciones duplicadas`
 - grupos de `Clientes duplicados`
 - grupos de `Contactos duplicados`
 - grupos de `Direcciones duplicadas`
@@ -114,6 +115,7 @@ Como decidir rapido:
 
 Que consolida hoy:
 
+- `Organizaciones`: mueve `Contactos`, puede reasignar un único `Cliente` sin conflicto y deja inactivas las organizaciones origen
 - `Clientes`: mueve `Contactos`, `Direcciones` y `OT`
 - `Contactos`: desactiva duplicados equivalentes y conserva una sola ficha sugerida dentro de la misma organización
 - `Direcciones`: mueve `Instalaciones` y `OT`
@@ -122,6 +124,7 @@ Que consolida hoy:
 Que no consolida todavia:
 
 - `organizations`
+- si el grupo de organizaciones muestra `clientes en conflicto`, primero debes consolidar la capa `Clientes` y luego volver a esta pantalla
 - merge profundo de `contacts` mas alla de consolidar equivalentes dentro de la misma organización o mover/desactivar duplicados evidentes al fusionar `Clientes`
 - notas historicas libres
 - fusion documental profunda entre fichas

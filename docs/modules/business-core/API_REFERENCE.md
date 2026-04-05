@@ -60,7 +60,7 @@ Estado actual:
 
 Sin abrir endpoints nuevos, la UI tenant ya soporta estos flujos sobre contratos existentes:
 
-- auditoria de duplicados de `clients`, `contacts`, `sites` e `installations`
+- auditoria de duplicados de `organizations`, `clients`, `contacts`, `sites` e `installations`
 - sugerencia de ficha a conservar por grupo duplicado
 - borrado seguro cuando la ficha no tiene dependencias visibles
 - desactivacion segura cuando la ficha ya tiene historial operativo
@@ -72,7 +72,7 @@ Ruta frontend tenant visible:
 - `/tenant-portal/business-core/duplicates`
 - acceso UI: `Tenant portal -> Core de negocio -> Duplicados`
 - acceso rapido adicional: `Tenant portal -> Core de negocio -> Resumen -> Abrir duplicados`
-- la pantalla muestra ademas un resumen previo de consolidacion por grupo usando datos ya cargados de `contacts`, `sites`, `installations` y `work_orders`
+- la pantalla muestra ademas un resumen previo de consolidacion por grupo usando datos ya cargados de `clients`, `contacts`, `sites`, `installations` y `work_orders`
 
 Dependencias que hoy revisa esa auditoria:
 
@@ -87,6 +87,7 @@ Limite actual del flujo:
 
 Reasignaciones actuales por tipo:
 
+- duplicado de `organization` -> mueve `contacts`, puede reasignar un unico `client` sin conflicto y luego desactiva origenes
 - duplicado de `client` -> mueve `contacts`, `sites` y `work_orders`
 - duplicado de `contact` -> conserva la mejor ficha visible y desactiva equivalentes dentro de la misma `organization`
 - duplicado de `site` -> mueve `installations` y `work_orders`
