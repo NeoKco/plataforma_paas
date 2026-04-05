@@ -10,6 +10,7 @@ class MaintenanceScheduleBase(BaseModel):
     site_id: int | None = None
     installation_id: int | None = None
     task_type_id: int | None = None
+    cost_template_id: int | None = None
     name: str
     description: str | None = None
     frequency_value: int

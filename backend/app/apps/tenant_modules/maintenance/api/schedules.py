@@ -35,6 +35,7 @@ def _build_item(item) -> MaintenanceScheduleItemResponse:
         site_id=item.site_id,
         installation_id=item.installation_id,
         task_type_id=item.task_type_id,
+        cost_template_id=getattr(item, "cost_template_id", None),
         name=item.name,
         description=item.description,
         frequency_value=item.frequency_value,

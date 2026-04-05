@@ -32,6 +32,7 @@ from migrations.tenant import v0023_maintenance_cost_lines
 from migrations.tenant import v0024_maintenance_finance_sync_policy
 from migrations.tenant import v0025_maintenance_schedule_estimate_defaults
 from migrations.tenant import v0026_maintenance_cost_templates
+from migrations.tenant import v0027_maintenance_schedule_template_links
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -173,6 +174,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0024_maintenance_finance_sync_policy",
                 "0025_maintenance_schedule_estimate_defaults",
                 "0026_maintenance_cost_templates",
+                "0027_maintenance_schedule_template_links",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -337,6 +339,7 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("billing_mode", maintenance_schedule_columns)
         self.assertIn("estimate_target_margin_percent", maintenance_schedule_columns)
         self.assertIn("estimate_notes", maintenance_schedule_columns)
+        self.assertIn("cost_template_id", maintenance_schedule_columns)
         self.assertIn("due_status", maintenance_due_item_columns)
         self.assertIn("work_order_id", maintenance_due_item_columns)
         self.assertIn("line_type", maintenance_schedule_cost_line_columns)
@@ -422,6 +425,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0024_maintenance_finance_sync_policy",
                 "0025_maintenance_schedule_estimate_defaults",
                 "0026_maintenance_cost_templates",
+                "0027_maintenance_schedule_template_links",
             ],
         )
 

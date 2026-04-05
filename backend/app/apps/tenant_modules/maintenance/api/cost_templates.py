@@ -31,6 +31,7 @@ def _build_item(item) -> MaintenanceCostTemplateItemResponse:
         estimate_target_margin_percent=item.estimate_target_margin_percent,
         estimate_notes=item.estimate_notes,
         is_active=item.is_active,
+        usage_count=getattr(item, "usage_count", 0),
         lines=[
             MaintenanceCostTemplateLineItemResponse(
                 id=line.id,

@@ -8,6 +8,7 @@ from app.apps.tenant_modules.business_core.models import (
     BusinessTaskType,
 )
 from app.apps.tenant_modules.maintenance.models import (
+    MaintenanceCostTemplate,
     MaintenanceInstallation,
     MaintenanceSchedule,
     MaintenanceScheduleCostLine,
@@ -227,6 +228,7 @@ class MaintenanceScheduleService:
             "site_id": payload.site_id,
             "installation_id": payload.installation_id,
             "task_type_id": payload.task_type_id,
+            "cost_template_id": payload.cost_template_id,
             "name": payload.name.strip(),
             "description": payload.description.strip() if payload.description and payload.description.strip() else None,
             "frequency_value": payload.frequency_value,
@@ -307,6 +309,23 @@ class MaintenanceScheduleService:
             )
             if task_type_exists is None:
                 raise ValueError("El tipo de mantencion seleccionado no existe")
+
+        if payload["cost_template_id"] is not None:
+            cost_template = (
+                tenant_db.query(MaintenanceCostTemplate)
+                .filter(MaintenanceCostTemplate.id == payload["cost_template_id"])
+                .first()
+            )
+            if cost_template is None:
+                raise ValueError("La plantilla de costeo seleccionada no existe")
+            if (
+                payload["task_type_id"] is not None
+                and cost_template.task_type_id is not None
+                and cost_template.task_type_id != payload["task_type_id"]
+            ):
+                raise ValueError(
+                    "La plantilla de costeo no coincide con el tipo de mantención seleccionado"
+                )
 
     def _sync_estimate_lines(
         self,

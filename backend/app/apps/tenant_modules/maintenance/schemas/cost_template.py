@@ -53,6 +53,7 @@ class MaintenanceCostTemplateStatusRequest(BaseModel):
 
 class MaintenanceCostTemplateItemResponse(MaintenanceCostTemplateBase):
     id: int
+    usage_count: int = 0
     lines: list[MaintenanceCostTemplateLineItemResponse] = Field(default_factory=list)
     created_by_user_id: int | None = None
     updated_by_user_id: int | None = None

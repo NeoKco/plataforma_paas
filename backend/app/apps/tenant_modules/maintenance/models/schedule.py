@@ -32,6 +32,12 @@ class MaintenanceSchedule(TenantBase):
         nullable=True,
         index=True,
     )
+    cost_template_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("maintenance_cost_templates.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     name: Mapped[str] = mapped_column(String(180), nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     frequency_value: Mapped[int] = mapped_column(Integer, nullable=False)

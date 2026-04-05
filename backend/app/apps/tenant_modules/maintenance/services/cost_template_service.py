@@ -1,9 +1,11 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.business_core.models import BusinessTaskType
 from app.apps.tenant_modules.maintenance.models import (
     MaintenanceCostTemplate,
     MaintenanceCostTemplateLine,
+    MaintenanceSchedule,
 )
 from app.apps.tenant_modules.maintenance.schemas import (
     MaintenanceCostTemplateCreateRequest,
@@ -36,7 +38,8 @@ class MaintenanceCostTemplateService:
             )
             .all()
         )
-        return [self._attach_lines(tenant_db, item) for item in items]
+        items = [self._attach_lines(tenant_db, item) for item in items]
+        return self._attach_usage_counts(tenant_db, items)
 
     def get_template(self, tenant_db: Session, template_id: int) -> MaintenanceCostTemplate:
         item = (
@@ -46,7 +49,8 @@ class MaintenanceCostTemplateService:
         )
         if item is None:
             raise ValueError("La plantilla de costeo solicitada no existe")
-        return self._attach_lines(tenant_db, item)
+        item = self._attach_lines(tenant_db, item)
+        return self._attach_usage_counts(tenant_db, [item])[0]
 
     def create_template(
         self,
@@ -69,6 +73,7 @@ class MaintenanceCostTemplateService:
         tenant_db.commit()
         tenant_db.refresh(item)
         item.lines = lines
+        item.usage_count = 0
         return item
 
     def update_template(
@@ -95,7 +100,7 @@ class MaintenanceCostTemplateService:
         tenant_db.commit()
         tenant_db.refresh(item)
         item.lines = lines
-        return item
+        return self._attach_usage_counts(tenant_db, [item])[0]
 
     def set_template_active(
         self,
@@ -110,7 +115,8 @@ class MaintenanceCostTemplateService:
         item.updated_by_user_id = actor_user_id
         tenant_db.commit()
         tenant_db.refresh(item)
-        return self._attach_lines(tenant_db, item)
+        item = self._attach_lines(tenant_db, item)
+        return self._attach_usage_counts(tenant_db, [item])[0]
 
     def _normalize_payload(
         self,
@@ -211,3 +217,27 @@ class MaintenanceCostTemplateService:
             .all()
         )
         return item
+
+    def _attach_usage_counts(
+        self,
+        tenant_db: Session,
+        items: list[MaintenanceCostTemplate],
+    ) -> list[MaintenanceCostTemplate]:
+        if not items:
+            return items
+        template_ids = [item.id for item in items if getattr(item, "id", None) is not None]
+        usage_counts = {
+            template_id: usage_count
+            for template_id, usage_count in (
+                tenant_db.query(
+                    MaintenanceSchedule.cost_template_id,
+                    func.count(MaintenanceSchedule.id),
+                )
+                .filter(MaintenanceSchedule.cost_template_id.in_(template_ids))
+                .group_by(MaintenanceSchedule.cost_template_id)
+                .all()
+            )
+        }
+        for item in items:
+            item.usage_count = int(usage_counts.get(item.id, 0))
+        return items
