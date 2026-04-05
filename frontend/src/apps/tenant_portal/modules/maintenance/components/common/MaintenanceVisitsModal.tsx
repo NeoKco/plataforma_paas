@@ -53,6 +53,7 @@ type Props = {
   language: "es" | "en";
   onClose: () => void;
   onFeedback?: (message: string) => void;
+  allowedFunctionProfileNames?: string[];
   requiresFunctionalProfile?: boolean;
   taskTypeLabel?: string | null;
   workGroups: WorkGroupOption[];
@@ -150,6 +151,7 @@ export function MaintenanceVisitsModal({
   language,
   onClose,
   onFeedback,
+  allowedFunctionProfileNames = [],
   requiresFunctionalProfile = false,
   taskTypeLabel = null,
   workGroups,
@@ -180,11 +182,26 @@ export function MaintenanceVisitsModal({
     const allowedIds = new Set(
       workGroupMembers
         .filter((member) => member.group_id === selectedGroupId && isMembershipActive(member))
-        .filter((member) => !requiresFunctionalProfile || member.function_profile_id !== null)
+        .filter(
+          (member) =>
+            !requiresFunctionalProfile ||
+            (member.function_profile_name
+              ? allowedFunctionProfileNames.length === 0 ||
+                allowedFunctionProfileNames.some(
+                  (item) => item.trim().toLowerCase() === member.function_profile_name?.trim().toLowerCase()
+                )
+              : false)
+        )
         .map((member) => member.tenant_user_id)
     );
     return technicians.filter((item) => allowedIds.has(item.id));
-  }, [form?.assigned_work_group_id, requiresFunctionalProfile, technicians, workGroupMembers]);
+  }, [
+    allowedFunctionProfileNames,
+    form?.assigned_work_group_id,
+    requiresFunctionalProfile,
+    technicians,
+    workGroupMembers,
+  ]);
 
   function getTechnicianOptionLabel(userId: number): string {
     const baseLabel = technicianById.get(userId) || `#${userId}`;
@@ -492,14 +509,22 @@ export function MaintenanceVisitsModal({
                     </select>
                     {requiresFunctionalProfile && taskTypeLabel ? (
                       <div className="form-text text-muted">
-                        {language === "es"
-                          ? `Esta mantención usa el tipo de tarea ${taskTypeLabel}; la visita solo permite técnicos con perfil funcional declarado en el grupo.`
-                          : `This work order uses task type ${taskTypeLabel}; the visit only allows technicians with a declared functional profile in the group.`}
+                        {allowedFunctionProfileNames.length > 0
+                          ? language === "es"
+                            ? `Esta mantención usa el tipo de tarea ${taskTypeLabel}; la visita solo permite perfiles compatibles: ${allowedFunctionProfileNames.join(", ")}.`
+                            : `This work order uses task type ${taskTypeLabel}; the visit only allows compatible profiles: ${allowedFunctionProfileNames.join(", ")}.`
+                          : language === "es"
+                            ? `Esta mantención usa el tipo de tarea ${taskTypeLabel}; la visita solo permite técnicos con perfil funcional declarado en el grupo.`
+                            : `This work order uses task type ${taskTypeLabel}; the visit only allows technicians with a declared functional profile in the group.`}
                       </div>
                     ) : null}
                     {form.assigned_work_group_id && selectableTechnicians.length === 0 ? (
                       <div className="form-text text-warning">
-                        {requiresFunctionalProfile
+                        {allowedFunctionProfileNames.length > 0
+                          ? language === "es"
+                            ? `Este grupo no tiene técnicos activos compatibles con: ${allowedFunctionProfileNames.join(", ")}.`
+                            : `This group has no active technicians compatible with: ${allowedFunctionProfileNames.join(", ")}.`
+                          : requiresFunctionalProfile
                           ? language === "es"
                             ? "Este grupo no tiene técnicos con membresía activa y perfil funcional declarado para este tipo de tarea."
                             : "This group has no technicians with an active membership and declared functional profile for this task type."

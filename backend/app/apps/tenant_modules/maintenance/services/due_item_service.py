@@ -22,6 +22,9 @@ from app.apps.tenant_modules.maintenance.schemas import (
 from app.apps.tenant_modules.maintenance.services.work_order_service import (
     MaintenanceWorkOrderService,
 )
+from app.apps.tenant_modules.maintenance.services.assignment_capability import (
+    validate_membership_task_type_capability,
+)
 from app.apps.tenant_modules.maintenance.services.costing_service import (
     MaintenanceCostingService,
 )
@@ -204,8 +207,6 @@ class MaintenanceDueItemService:
         assigned_work_group_id: int | None,
         assigned_tenant_user_id: int | None,
     ) -> None:
-        if schedule.task_type_id is None:
-            return
         if assigned_work_group_id is None or assigned_tenant_user_id is None:
             return
 
@@ -217,10 +218,11 @@ class MaintenanceDueItemService:
         )
         if membership is None:
             return
-        if getattr(membership, "function_profile_id", None) is None:
-            raise ValueError(
-                "La mantencion preventiva tiene un tipo de tarea y el tecnico responsable debe tener un perfil funcional declarado en el grupo responsable"
-            )
+        validate_membership_task_type_capability(
+            tenant_db,
+            task_type_id=getattr(schedule, "task_type_id", None),
+            membership=membership,
+        )
 
     def generate_due_items(
         self,

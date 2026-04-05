@@ -152,8 +152,8 @@ export function BusinessCoreTaskTypesPage() {
       titleEn="Task types"
       descriptionEs="Taxonomía compartida para mantenciones, proyectos y futura automatización operativa."
       descriptionEn="Shared taxonomy for maintenance, projects, and future operational automation."
-      helpEs="Define tipos reutilizables antes de abrir flujos operativos. Evita que cada módulo cree sus propias categorías técnicas incompatibles."
-      helpEn="Define reusable types before opening operational flows. Avoid each module creating incompatible technical categories."
+      helpEs="Define tipos reutilizables antes de abrir flujos operativos. Si necesitas compatibilidad fina con perfiles funcionales en mantenciones, agrega una línea en descripción como: profiles: Tecnico, Lider tecnico."
+      helpEn="Define reusable types before opening operational flows. If you need finer compatibility with functional profiles in maintenance, add a description line like: profiles: Technician, Technical lead."
       loadingLabelEs="Cargando tipos de tarea..."
       loadingLabelEn="Loading task types..."
       isLoading={isLoading}

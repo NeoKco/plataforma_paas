@@ -26,6 +26,10 @@
   - si la OT viene desde una programación preventiva con `task_type_id`, el backend exige que el técnico asignado tenga `function_profile_id` declarado en la membresía del grupo
   - `Pendientes`, `Mantenciones`, `Agenda` y `Visitas` solo muestran técnicos elegibles para ese mínimo de capacidad
   - los selectores ahora etiquetan al técnico con su `Perfil funcional` cuando existe
+- se agrega un segundo corte liviano de compatibilidad explícita sin nueva migración:
+  - si la descripción del `Tipo de tarea` contiene una línea `profiles: Tecnico, Lider tecnico`, ese listado pasa a definir los perfiles funcionales compatibles para OT preventivas
+  - backend y frontend reutilizan la misma convención en `Pendientes`, `Mantenciones`, `Agenda` y `Visitas`
+  - cuando no existe esa línea, se mantiene la regla mínima anterior: exigir solo `Perfil funcional` declarado
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso

@@ -8,6 +8,8 @@ os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
 
 from app.apps.tenant_modules.business_core.models import (  # noqa: E402
+    BusinessFunctionProfile,
+    BusinessTaskType,
     BusinessWorkGroup,
     BusinessWorkGroupMember,
 )
@@ -212,6 +214,11 @@ class MaintenanceDueItemServiceTestCase(unittest.TestCase):
                     id=20,
                     function_profile_id=None,
                 ),
+                BusinessTaskType: SimpleNamespace(
+                    id=7,
+                    name="Mantencion preventiva",
+                    description=None,
+                ),
             }
         )
 
@@ -236,6 +243,78 @@ class MaintenanceDueItemServiceTestCase(unittest.TestCase):
             )
 
         work_order_service.create_work_order.assert_not_called()
+
+    def test_schedule_due_item_rejects_incompatible_function_profile_mapping(self) -> None:
+        due_item = SimpleNamespace(
+            id=31,
+            schedule_id=14,
+            client_id=8,
+            site_id=22,
+            installation_id=4,
+            due_at=datetime(2026, 4, 10, 15, 0, tzinfo=timezone.utc),
+            visible_from=datetime(2026, 4, 1, 15, 0, tzinfo=timezone.utc),
+            due_status="due",
+            assigned_work_group_id=None,
+            assigned_tenant_user_id=None,
+            work_order_id=None,
+        )
+        schedule = SimpleNamespace(
+            id=14,
+            client_id=8,
+            site_id=22,
+            installation_id=4,
+            name="Mantención SST",
+            description="profiles: Supervisor, Lider tecnico",
+            default_priority="normal",
+            billing_mode="per_work_order",
+            task_type_id=7,
+        )
+
+        service = MaintenanceDueItemService(
+            due_item_repository=Mock(get_by_id=Mock(return_value=due_item)),
+            schedule_repository=Mock(get_by_id=Mock(return_value=schedule)),
+            work_order_service=Mock(),
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessWorkGroup.id: SimpleNamespace(id=5),
+                User.id: SimpleNamespace(id=3),
+                BusinessWorkGroupMember: SimpleNamespace(
+                    id=20,
+                    function_profile_id=12,
+                ),
+                BusinessTaskType: SimpleNamespace(
+                    id=7,
+                    name="Inspección SST",
+                    description="profiles: Supervisor, Lider tecnico",
+                ),
+                BusinessFunctionProfile: SimpleNamespace(
+                    id=12,
+                    name="Tecnico",
+                    code="tecnico",
+                ),
+            }
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "solo permite perfiles funcionales compatibles",
+        ):
+            service.schedule_due_item(
+                tenant_db,
+                31,
+                SimpleNamespace(
+                    scheduled_for=datetime(2026, 4, 10, 16, 0, tzinfo=timezone.utc),
+                    site_id=22,
+                    installation_id=4,
+                    title="Mantención SST abril",
+                    description="Visita ya coordinada",
+                    priority="high",
+                    assigned_work_group_id=5,
+                    assigned_tenant_user_id=3,
+                ),
+                created_by_user_id=2,
+            )
 
 
 if __name__ == "__main__":

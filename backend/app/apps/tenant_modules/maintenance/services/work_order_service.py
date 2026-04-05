@@ -15,6 +15,9 @@ from app.apps.tenant_modules.maintenance.models import (
     MaintenanceSchedule,
     MaintenanceWorkOrder,
 )
+from app.apps.tenant_modules.maintenance.services.assignment_capability import (
+    validate_membership_task_type_capability,
+)
 from app.apps.tenant_modules.maintenance.services.costing_service import (
     MaintenanceCostingService,
 )
@@ -434,7 +437,7 @@ class MaintenanceWorkOrderService:
             .filter(MaintenanceSchedule.id == schedule_id)
             .first()
         )
-        if schedule is None or getattr(schedule, "task_type_id", None) is None:
+        if schedule is None:
             return
 
         effective_membership = membership or (
@@ -445,10 +448,11 @@ class MaintenanceWorkOrderService:
         )
         if effective_membership is None:
             return
-        if getattr(effective_membership, "function_profile_id", None) is None:
-            raise ValueError(
-                "La mantencion preventiva tiene un tipo de tarea y el tecnico responsable debe tener un perfil funcional declarado en el grupo responsable"
-            )
+        validate_membership_task_type_capability(
+            tenant_db,
+            task_type_id=getattr(schedule, "task_type_id", None),
+            membership=effective_membership,
+        )
 
     def _validate_status_transition_conflicts(
         self,

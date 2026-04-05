@@ -69,6 +69,10 @@ import {
   type TenantBusinessWorkGroupMember,
   type TenantBusinessWorkGroup,
 } from "../../business_core/services/workGroupsService";
+import {
+  getTaskTypeAllowedProfileNames,
+  isTaskTypeMembershipCompatible,
+} from "../services/assignmentCapability";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 
@@ -326,6 +330,14 @@ export function MaintenanceDueItemsPage() {
     }
     return taskTypeById.get(selectedDueItem.task_type_id)?.name || `#${selectedDueItem.task_type_id}`;
   }, [selectedDueItem?.task_type_id, taskTypeById]);
+  const dueScheduleTaskType = useMemo(
+    () => (selectedDueItem?.task_type_id ? taskTypeById.get(selectedDueItem.task_type_id) ?? null : null),
+    [selectedDueItem?.task_type_id, taskTypeById]
+  );
+  const dueScheduleAllowedProfileNames = useMemo(
+    () => getTaskTypeAllowedProfileNames(dueScheduleTaskType),
+    [dueScheduleTaskType]
+  );
   const selectableDueScheduleTechnicians = useMemo(() => {
     if (!dueScheduleForm.assigned_work_group_id) {
       return activeTenantUsers;
@@ -336,13 +348,19 @@ export function MaintenanceDueItemsPage() {
     );
     const allowedIds = new Set(
       memberships
-        .filter((member) => !dueScheduleRequiresFunctionalProfile || member.function_profile_id !== null)
+        .filter(
+          (member) =>
+            !dueScheduleRequiresFunctionalProfile ||
+            isTaskTypeMembershipCompatible(dueScheduleTaskType, member.function_profile_name)
+        )
         .map((member) => member.tenant_user_id)
     );
     return activeTenantUsers.filter((user) => allowedIds.has(user.id));
   }, [
     activeTenantUsers,
     dueScheduleForm.assigned_work_group_id,
+    dueScheduleTaskType,
+    dueScheduleAllowedProfileNames,
     dueScheduleRequiresFunctionalProfile,
     workGroupMembers,
   ]);
@@ -2529,14 +2547,22 @@ export function MaintenanceDueItemsPage() {
                     </select>
                     {dueScheduleRequiresFunctionalProfile && dueScheduleTaskTypeLabel ? (
                       <div className="form-text text-muted">
-                        {language === "es"
-                          ? `Esta programación usa el tipo de tarea ${dueScheduleTaskTypeLabel}; solo se muestran técnicos con perfil funcional declarado en el grupo.`
-                          : `This schedule uses task type ${dueScheduleTaskTypeLabel}; only technicians with a declared functional profile in the group are shown.`}
+                        {dueScheduleAllowedProfileNames.length > 0
+                          ? language === "es"
+                            ? `Esta programación usa el tipo de tarea ${dueScheduleTaskTypeLabel}; solo se muestran perfiles compatibles: ${dueScheduleAllowedProfileNames.join(", ")}.`
+                            : `This schedule uses task type ${dueScheduleTaskTypeLabel}; only compatible profiles are shown: ${dueScheduleAllowedProfileNames.join(", ")}.`
+                          : language === "es"
+                            ? `Esta programación usa el tipo de tarea ${dueScheduleTaskTypeLabel}; solo se muestran técnicos con perfil funcional declarado en el grupo.`
+                            : `This schedule uses task type ${dueScheduleTaskTypeLabel}; only technicians with a declared functional profile in the group are shown.`}
                       </div>
                     ) : null}
                     {dueScheduleForm.assigned_work_group_id && selectableDueScheduleTechnicians.length === 0 ? (
                       <div className="form-text text-warning">
-                        {dueScheduleRequiresFunctionalProfile
+                        {dueScheduleAllowedProfileNames.length > 0
+                          ? language === "es"
+                            ? `Este grupo no tiene técnicos activos compatibles con: ${dueScheduleAllowedProfileNames.join(", ")}.`
+                            : `This group has no active technicians compatible with: ${dueScheduleAllowedProfileNames.join(", ")}.`
+                          : dueScheduleRequiresFunctionalProfile
                           ? language === "es"
                             ? "Este grupo no tiene técnicos con membresía activa y perfil funcional declarado para este tipo de tarea."
                             : "This group has no technicians with an active membership and declared functional profile for this task type."

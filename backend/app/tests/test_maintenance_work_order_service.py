@@ -8,7 +8,9 @@ os.environ["APP_ENV"] = "test"
 
 from app.apps.tenant_modules.business_core.models import (  # noqa: E402
     BusinessClient,
+    BusinessFunctionProfile,
     BusinessSite,
+    BusinessTaskType,
     BusinessWorkGroup,
     BusinessWorkGroupMember,
 )
@@ -464,12 +466,91 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
                     function_profile_id=None,
                 ),
                 MaintenanceSchedule: SimpleNamespace(id=14, task_type_id=7),
+                BusinessTaskType: SimpleNamespace(
+                    id=7,
+                    name="Mantencion preventiva",
+                    description=None,
+                ),
             }
         )
 
         with self.assertRaisesRegex(
             ValueError,
             "perfil funcional declarado",
+        ):
+            service.update_work_order(
+                tenant_db,
+                12,
+                MaintenanceWorkOrderUpdateRequest(
+                    client_id=11,
+                    site_id=31,
+                    installation_id=9,
+                    assigned_work_group_id=4,
+                    assigned_tenant_user_id=3,
+                    external_reference=None,
+                    title="Mantencion mensual",
+                    description=None,
+                    priority="normal",
+                    scheduled_for="2026-04-05T10:00:00+00:00",
+                ),
+            )
+
+    def test_update_schedule_linked_work_order_rejects_incompatible_function_profile(self) -> None:
+        existing_item = SimpleNamespace(
+            id=12,
+            client_id=11,
+            site_id=31,
+            installation_id=9,
+            schedule_id=14,
+            external_reference=None,
+            title="Mantencion mensual",
+            description=None,
+            priority="normal",
+            scheduled_for="2026-04-05T10:00:00+00:00",
+            cancellation_reason=None,
+            closure_notes=None,
+            assigned_work_group_id=4,
+            assigned_tenant_user_id=3,
+            maintenance_status="scheduled",
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        work_order_repository.list_active_conflicts.return_value = []
+
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessClient.id: SimpleNamespace(id=11),
+                BusinessSite: SimpleNamespace(id=31, client_id=11),
+                MaintenanceInstallation: SimpleNamespace(id=9, site_id=31),
+                BusinessWorkGroup.id: SimpleNamespace(id=4),
+                User.id: SimpleNamespace(id=3),
+                BusinessWorkGroupMember: SimpleNamespace(
+                    id=20,
+                    is_active=True,
+                    starts_at=None,
+                    ends_at=None,
+                    function_profile_id=15,
+                ),
+                MaintenanceSchedule: SimpleNamespace(id=14, task_type_id=7),
+                BusinessTaskType: SimpleNamespace(
+                    id=7,
+                    name="Inspección SST",
+                    description="profiles: Supervisor, Lider tecnico",
+                ),
+                BusinessFunctionProfile: SimpleNamespace(
+                    id=15,
+                    name="Tecnico",
+                    code="tecnico",
+                ),
+            }
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "solo permite perfiles funcionales compatibles",
         ):
             service.update_work_order(
                 tenant_db,

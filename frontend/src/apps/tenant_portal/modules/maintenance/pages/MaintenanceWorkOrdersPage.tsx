@@ -55,6 +55,10 @@ import {
   getTenantBusinessTaskTypes,
   type TenantBusinessTaskType,
 } from "../../business_core/services/taskTypesService";
+import {
+  getTaskTypeAllowedProfileNames,
+  isTaskTypeMembershipCompatible,
+} from "../services/assignmentCapability";
 import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 import {
@@ -304,6 +308,14 @@ export function MaintenanceWorkOrdersPage() {
     }
     return taskTypeById.get(assignmentTaskTypeId)?.name || `#${assignmentTaskTypeId}`;
   }, [assignmentTaskTypeId, taskTypeById]);
+  const assignmentTaskType = useMemo(
+    () => (assignmentTaskTypeId ? taskTypeById.get(assignmentTaskTypeId) ?? null : null),
+    [assignmentTaskTypeId, taskTypeById]
+  );
+  const assignmentAllowedProfileNames = useMemo(
+    () => getTaskTypeAllowedProfileNames(assignmentTaskType),
+    [assignmentTaskType]
+  );
   const requiresFunctionalProfileForAssignment = Boolean(assignmentTaskTypeId);
   const selectableTenantUsers = useMemo(() => {
     if (!form.assigned_work_group_id) {
@@ -315,12 +327,18 @@ export function MaintenanceWorkOrdersPage() {
     );
     const allowedIds = new Set(
       memberships
-        .filter((member) => !requiresFunctionalProfileForAssignment || member.function_profile_id !== null)
+        .filter(
+          (member) =>
+            !requiresFunctionalProfileForAssignment ||
+            isTaskTypeMembershipCompatible(assignmentTaskType, member.function_profile_name)
+        )
         .map((member) => member.tenant_user_id)
     );
     return activeTenantUsers.filter((user) => allowedIds.has(user.id));
   }, [
     activeTenantUsers,
+    assignmentAllowedProfileNames,
+    assignmentTaskType,
     form.assigned_work_group_id,
     requiresFunctionalProfileForAssignment,
     workGroupMembers,
@@ -1103,14 +1121,22 @@ export function MaintenanceWorkOrdersPage() {
                     </select>
                     {requiresFunctionalProfileForAssignment && assignmentTaskTypeLabel ? (
                       <div className="form-text text-muted">
-                        {language === "es"
-                          ? `Esta mantención viene desde el tipo de tarea ${assignmentTaskTypeLabel}; solo se muestran técnicos con perfil funcional declarado en el grupo.`
-                          : `This work order comes from task type ${assignmentTaskTypeLabel}; only technicians with a declared functional profile in the group are shown.`}
+                        {assignmentAllowedProfileNames.length > 0
+                          ? language === "es"
+                            ? `Esta mantención viene desde el tipo de tarea ${assignmentTaskTypeLabel}; solo se muestran perfiles compatibles: ${assignmentAllowedProfileNames.join(", ")}.`
+                            : `This work order comes from task type ${assignmentTaskTypeLabel}; only compatible profiles are shown: ${assignmentAllowedProfileNames.join(", ")}.`
+                          : language === "es"
+                            ? `Esta mantención viene desde el tipo de tarea ${assignmentTaskTypeLabel}; solo se muestran técnicos con perfil funcional declarado en el grupo.`
+                            : `This work order comes from task type ${assignmentTaskTypeLabel}; only technicians with a declared functional profile in the group are shown.`}
                       </div>
                     ) : null}
                     {form.assigned_work_group_id && selectableTenantUsers.length === 0 ? (
                       <div className="form-text text-warning">
-                        {requiresFunctionalProfileForAssignment
+                        {assignmentAllowedProfileNames.length > 0
+                          ? language === "es"
+                            ? `Este grupo no tiene técnicos activos compatibles con: ${assignmentAllowedProfileNames.join(", ")}.`
+                            : `This group has no active technicians compatible with: ${assignmentAllowedProfileNames.join(", ")}.`
+                          : requiresFunctionalProfileForAssignment
                           ? language === "es"
                             ? "Este grupo no tiene técnicos con membresía activa y perfil funcional declarado para este tipo de tarea."
                             : "This group has no technicians with an active membership and declared functional profile for this task type."
@@ -1375,6 +1401,11 @@ export function MaintenanceWorkOrdersPage() {
         language={language}
         onClose={closeVisitsModal}
         onFeedback={setFeedback}
+        allowedFunctionProfileNames={
+          visitsWorkOrder?.schedule_id
+            ? getTaskTypeAllowedProfileNames(taskTypeById.get(scheduleById.get(visitsWorkOrder.schedule_id)?.task_type_id ?? -1) ?? null)
+            : []
+        }
         requiresFunctionalProfile={Boolean(
           visitsWorkOrder?.schedule_id && scheduleById.get(visitsWorkOrder.schedule_id)?.task_type_id
         )}
