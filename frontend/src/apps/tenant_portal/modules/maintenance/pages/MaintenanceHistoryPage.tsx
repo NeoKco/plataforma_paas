@@ -45,6 +45,7 @@ import {
   type TenantMaintenanceHistoryWorkOrder,
 } from "../services/historyService";
 import {
+  updateTenantMaintenanceWorkOrderStatus,
   updateTenantMaintenanceWorkOrder,
   type TenantMaintenanceWorkOrderWriteRequest,
 } from "../services/workOrdersService";
@@ -109,6 +110,15 @@ function getStatusTone(status: string): "success" | "danger" | "warning" | "info
     return "warning";
   }
   return "neutral";
+}
+
+function inferReopenStatus(item: TenantMaintenanceHistoryWorkOrder): "scheduled" | "in_progress" {
+  const candidate = item.status_logs.find(
+    (log) =>
+      log.to_status === item.maintenance_status &&
+      (log.from_status === "scheduled" || log.from_status === "in_progress")
+  );
+  return candidate?.from_status === "in_progress" ? "in_progress" : "scheduled";
 }
 
 export function MaintenanceHistoryPage() {
@@ -335,6 +345,44 @@ export function MaintenanceHistoryPage() {
     }
   }
 
+  async function handleReopen(item: TenantMaintenanceHistoryWorkOrder) {
+    if (!session?.accessToken) {
+      return;
+    }
+    const targetStatus = inferReopenStatus(item);
+    const confirmed = window.confirm(
+      language === "es"
+        ? `La mantención "${item.title}" volverá desde Historial a ${getStatusLabel(targetStatus, language)} y reaparecerá en la bandeja activa. Este atajo solo revierte el estado operativo. Si el cierre también generó movimientos en Finanzas, usa el runbook y el script de reversa. ¿Deseas continuar?`
+        : `Maintenance "${item.title}" will move from History back to ${getStatusLabel(targetStatus, language)} and reappear in the active tray. This shortcut only reverts the operational status. If closure also created Finance movements, use the runbook and rollback script. Do you want to continue?`
+    );
+    if (!confirmed) {
+      return;
+    }
+    const note = window.prompt(
+      language === "es"
+        ? `Nota para reapertura a ${getStatusLabel(targetStatus, language)}`
+        : `Reason for reopening to ${getStatusLabel(targetStatus, language)}`,
+      language === "es" ? "Reapertura por corrección operativa" : "Reopened for operational correction"
+    );
+    try {
+      const response = await updateTenantMaintenanceWorkOrderStatus(
+        session.accessToken,
+        item.id,
+        targetStatus,
+        note
+      );
+      setFeedback(
+        language === "es"
+          ? `${response.message}. La OT volvió a ${getStatusLabel(targetStatus, language)}.`
+          : `${response.message}. The work order returned to ${getStatusLabel(targetStatus, language)}.`
+      );
+      setDetailWorkOrder(null);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    }
+  }
+
   function getClientDisplayName(clientId: number): string {
     const client = clientById.get(clientId);
     const organization = organizationById.get(client?.organization_id ?? -1);
@@ -531,6 +579,12 @@ export function MaintenanceHistoryPage() {
                     onClick={() => openFieldReportModal(item)}
                   >
                     {language === "es" ? "Ver checklist" : "View checklist"}
+                  </button>
+                    className="btn btn-sm btn-outline-warning"
+                    type="button"
+                    onClick={() => void handleReopen(item)}
+                  >
+                    {language === "es" ? "Reabrir" : "Reopen"}
                   </button>
                   <button
                     className="btn btn-sm btn-outline-primary"
@@ -954,6 +1008,14 @@ export function MaintenanceHistoryPage() {
             ? () => {
                 closeDetailModal();
                 startEdit(detailWorkOrder);
+              }
+            : undefined
+        }
+        onReopen={
+          detailWorkOrder
+            ? () => {
+                closeDetailModal();
+                void handleReopen(detailWorkOrder);
               }
             : undefined
         }

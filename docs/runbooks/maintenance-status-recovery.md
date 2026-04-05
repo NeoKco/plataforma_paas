@@ -11,6 +11,23 @@ Usar este flujo cuando pasó alguno de estos casos:
 - la OT ya no aparece en `Mantenciones` porque quedó en `Historial`;
 - se necesita devolver la OT a `scheduled` o `in_progress` para continuar operación.
 
+## Atajo disponible en la UI
+
+Ahora `Historial` ya muestra una acción `Reabrir`.
+
+Usar ese atajo cuando:
+
+- solo necesitas devolver la OT a la bandeja activa;
+- basta con revertir el estado operativo;
+- no hace falta anular movimientos de `finance`.
+
+Usar el script de este runbook cuando:
+
+- necesitas una reversa más controlada;
+- quieres decidir explícitamente el estado destino;
+- debes anular también transacciones sincronizadas en `finance`;
+- necesitas limpiar notas de cierre, motivo de cancelación o resolución del `due_item`.
+
 ## Qué hace el script
 
 El script operativo vive en [backend/app/scripts/revert_maintenance_work_order_status.py](../../backend/app/scripts/revert_maintenance_work_order_status.py).
