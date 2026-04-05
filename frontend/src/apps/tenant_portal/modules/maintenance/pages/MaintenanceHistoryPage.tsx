@@ -684,6 +684,11 @@ export function MaintenanceHistoryPage() {
             : `Showing ${filteredRows.length} of ${rows.length} closed or cancelled work orders.`
         }
       >
+        <div className="alert alert-info mb-3">
+          {language === "es"
+            ? "Grupo responsable = el equipo asignado a la mantención. Técnico responsable = la persona concreta dentro de ese equipo. Si filtras por uno de ellos y no ves resultados, significa que esas órdenes no quedaron cerradas con esa asignación exacta."
+            : "Work group = the team assigned to the maintenance. Responsible technician = the specific person inside that team. If you filter by one of them and see no results, those orders were not closed with that exact assignment."}
+        </div>
         <div className="row g-3 align-items-end">
           <div className="col-12 col-md-5">
             <label className="form-label">
