@@ -198,6 +198,9 @@ Regla UX operativa:
   - cada ítem puede dejar una nota corta
   - la observación de cierre queda estandarizada en el mismo modal
   - también se pueden adjuntar PDFs o imágenes como evidencia del trabajo ejecutado
+  - en móvil, la modal ahora agrega `Acciones rápidas en terreno` para saltar directo a cierre, checklist o evidencias
+  - también resume avance del checklist y cantidad de adjuntos ya registrados
+  - al adjuntar evidencia desde un dispositivo compatible, el selector puede ofrecer cámara o galería
 - si necesitas revisar rápidamente el contexto técnico de un activo sin abrir todavía un expediente documental completo:
   - entra a `Instalaciones`
   - abre `Expediente`
@@ -213,7 +216,7 @@ La version PaaS ya mejora a la actual en estos puntos y todavia tiene mejoras pe
 - la bandeja diaria debe mostrar solo trabajo pendiente
 - hoy ya existe una lectura clara de `programada`, `en curso`, `completada` y `anulada`
 - sigue pendiente una linea de tiempo tecnica por cliente
-- el flujo base de evidencias y cierre en terreno ya existe; sigue pendiente enriquecerlo para escenarios móviles más avanzados
+- el flujo base de evidencias y cierre en terreno ya tiene un primer corte móvil; siguen pendientes escenarios más avanzados de captura y operación offline
 
 ## Roles recomendados
 

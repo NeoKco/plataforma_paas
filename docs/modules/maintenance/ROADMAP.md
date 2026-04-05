@@ -214,6 +214,10 @@ Avance actual:
   - trazabilidad de visitas ejecutadas
   - cobertura de flujo preventivo
   - instalaciones activas sin servicio reciente ni OT abierta
+- `Checklist y evidencias` ya agrega un primer slice móvil de captura en terreno:
+  - atajos rápidos para saltar entre cierre, checklist y evidencias dentro de la modal
+  - resumen compacto de avance checklist y cantidad de adjuntos
+  - carga de evidencia preparada para abrir cámara/galería desde dispositivos móviles compatibles
 - el módulo todavía no abre un expediente técnico documental completo ni reportes especializados; ese frente sigue desacoplado para no mezclar demasiado pronto operación y archivo técnico
 
 ## Fase 6.5. Programacion preventiva y costeo

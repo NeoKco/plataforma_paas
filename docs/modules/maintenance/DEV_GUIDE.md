@@ -183,7 +183,7 @@ Fuente frontend principal:
 
 `maintenance` sigue debiendo:
 - smoke E2E especifico del modulo con sus flujos principales
-- mejoras móviles de captura en terreno
+- mejoras móviles de captura en terreno mas profundas, despues del primer corte ya operativo en `Checklist y evidencias`
 - snapshots y timeline más ricos dentro de la ficha/orden de trabajo
 - reprogramación operativa con visitas/ventanas más finas y con mejor trazabilidad
 
@@ -233,6 +233,10 @@ Regla vigente para cierre tecnico y evidencias:
 - el backend concentra ese slice en `/tenant/maintenance/work-orders/{id}/field-report`
 - los adjuntos se almacenan en filesystem dedicado del módulo, configurado por `MAINTENANCE_EVIDENCE_DIR`
 - `Mantenciones` abre este contrato en modo editable y `Historial` en modo solo lectura
+- el frontend ya agrega un primer corte móvil en la modal:
+  - atajos rápidos para saltar a `cierre`, `checklist` y `evidencias`
+  - resumen compacto de avance y adjuntos para evitar scroll excesivo en terreno
+  - input de evidencia preparado para invocar cámara/galería cuando el dispositivo lo soporte
 
 Modelo canónico de asignacion:
 

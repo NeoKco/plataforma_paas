@@ -140,6 +140,7 @@ test("tenant portal shows imported business core and maintenance data from ieris
     });
     await expect(fieldReportDialog).toBeVisible();
     await expect(page.getByRole("heading", { name: /Checklist y evidencias|Checklist and evidence/i })).toBeVisible();
+    await expect(fieldReportDialog.getByText(/Acciones rápidas en terreno|Field quick actions/i)).toBeVisible();
     await expect(page.getByText(/Avance checklist|Checklist progress/i)).toBeVisible();
     await expect(fieldReportDialog.getByRole("heading", { name: /Checklist técnico|Technical checklist/i })).toBeVisible();
     await expect(fieldReportDialog.getByRole("heading", { name: /^Evidencias$|^Evidence$/i })).toBeVisible();

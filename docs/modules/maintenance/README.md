@@ -127,6 +127,10 @@ Estado del corte hoy:
 - esa misma matriz ya muestra cobertura operativa real usando membresías activas/vigentes de grupos, para detectar tipos sin técnicos compatibles y perfiles funcionales huérfanos
 - `Instalaciones` ya puede abrir `Expediente` como puente liviano con expediente técnico: resume snapshot del activo, próximas/últimas mantenciones y reutiliza el checklist/evidencias del último cierre como base documental sin abrir aún un módulo separado
 - `Reportes` ya abre un primer corte de reportes técnicos operativos: cierres del período, cobertura de observación útil, trazabilidad de visitas, cobertura preventiva y activos sin servicio reciente
+- `Checklist` ya incorpora un primer corte móvil para terreno:
+  - atajos rápidos dentro de la modal para saltar a cierre, checklist y evidencias
+  - resumen visible de avance checklist y cantidad de adjuntos
+  - selector de archivo preparado para ofrecer cámara/galería en dispositivos compatibles
 
 Pendientes visibles inmediatos:
 

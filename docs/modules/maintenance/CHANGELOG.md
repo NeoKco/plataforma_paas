@@ -53,6 +53,10 @@
   - cobertura de observación de cierre, visitas ejecutadas y flujo preventivo
   - resumen por tipo de equipo
   - listado de instalaciones activas sin servicio reciente ni OT abierta
+- `Checklist y evidencias` ahora agrega un primer corte móvil para captura en terreno:
+  - muestra `Acciones rápidas en terreno` para saltar a cierre, checklist o evidencias dentro de la modal
+  - resume avance del checklist y cantidad de adjuntos ya cargados
+  - prepara el selector de evidencia para ofrecer cámara/galería en dispositivos compatibles
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso
