@@ -99,6 +99,7 @@ Estado del corte hoy:
 - `Pendientes` ya muestra instalaciones activas sin plan preventivo y permite abrir `Crear plan` con cliente/dirección/instalación precargados
 - `Mantenciones` ya permite abrir `Costos` por OT para guardar estimado, costo real, monto cobrado y sincronizar manualmente a `finance`
 - el mismo modal `Costos` ahora también permite crear `Plantillas de costeo de mantención` desde el estimado o desde el costo real actual, y volver a aplicarlas sobre otras OT del módulo
+- queda pendiente un slice posterior para que el cierre económico deje trazado de forma explícita qué plantilla quedó aplicada al costo real final de la OT
 - `Historial` ya permite abrir el mismo modal `Costos` sobre órdenes cerradas, sin volver editable la programación operativa
 - `Costos y cobro` ya permite detalle granular por líneas:
   - mano de obra
@@ -118,6 +119,9 @@ Estado del corte hoy:
 - `Historial` ya permite abrir `Editar cierre` también desde la nueva `Ficha de mantención`, sin exponer reprogramación ni edición operativa de una OT cerrada
 - `Mantenciones` ya permite abrir `Visitas` desde la fila o desde la `Ficha de mantención`, para bajar a una coordinación más fina por ventana de terreno
 - `Mantenciones` y `Agenda` ya pueden, al reprogramar una OT, alinear también la primera visita abierta con el nuevo horario y responsables para no dejar desfasada la ventana principal de terreno
+- esa reprogramación ahora también muestra una lectura más fina de ventanas de terreno:
+  - previsualiza la ventana actual y la propuesta para la primera visita abierta que se sincronizará
+  - lista las demás visitas abiertas que quedan para coordinación fina en `Visitas`
 - `Mantenciones`, `Historial` y la `Ficha de mantención` ya muestran `Tipo de tarea` y `Perfil funcional` cuando la OT viene enlazada a una programación preventiva y el técnico pertenece formalmente al grupo responsable
 - `Mantenciones` y `Visitas` ya restringen la asignación para que un técnico solo pueda guardarse si tiene membresía activa y vigente en el `grupo responsable` seleccionado
 - `Agenda técnica` ya replica ese mismo filtro visual para que la asignación desde calendario no ofrezca técnicos fuera del grupo responsable
@@ -140,7 +144,8 @@ Pendientes visibles inmediatos:
 - costeo y cobro de mantenciones con puente formal hacia `finance`
 - automatización opcional tenant-side del puente `maintenance -> finance`
 - importadores desde `ieris_app`
-- reprogramación operativa más rica con visitas/ventanas de terreno y reglas más finas de coordinación
+- reprogramación operativa aún más rica con edición multi-visita y reglas más finas de coordinación
+- trazabilidad explícita de plantilla de costeo aplicada al cierre real de cada OT
 
 ## Checklist contra el estandar de modulos
 

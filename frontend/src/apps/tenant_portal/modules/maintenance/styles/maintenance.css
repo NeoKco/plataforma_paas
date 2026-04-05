@@ -284,6 +284,26 @@
   font-size: 0.875rem;
 }
 
+.maintenance-reschedule-visit-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.maintenance-reschedule-visit-list__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--app-border, #dbe3f0);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.maintenance-reschedule-visit-list__item strong {
+  color: #1848a0;
+}
+
 .maintenance-cost-lines {
   display: grid;
   gap: 0.85rem;

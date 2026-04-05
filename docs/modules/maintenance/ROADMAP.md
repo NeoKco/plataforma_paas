@@ -163,6 +163,7 @@ Avance actual:
 - `Business Core -> Taxonomías` ya cruza además membresías activas/vigentes de grupos para mostrar cobertura operativa real y alertar sobre tipos/perfiles huérfanos
 - conflictos visibles, bloqueo backend `409`, filtros de agenda y reprogramación auditada ya quedaron operativos en el mismo frente de endurecimiento
 - la reprogramación desde `Mantenciones` y `Agenda` ya puede arrastrar la primera visita abierta para mantener alineada la ventana principal de terreno
+- ese flujo ahora también previsualiza la ventana actual/propuesta de la primera visita sincronizable y enumera las demás visitas abiertas que quedan para coordinación fina
 
 Pendiente fino de este frente:
 
@@ -316,6 +317,7 @@ Avance actual:
 Pendiente inmediato de esta fase:
 
 - refinar más adelante la UX de `Plantillas de costeo` dentro del modal `Costos`, sin mover todavía ese frente por sobre el roadmap principal
+- dejar para un slice posterior la trazabilidad explícita de qué `Plantilla de costeo de mantención` quedó aplicada al cierre económico real de cada OT
 
 ## Mejoras de producto recomendadas
 
@@ -346,7 +348,7 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- enriquecer la reprogramación operativa con visitas y ventanas más finas por terreno
+- profundizar la coordinación de terreno sobre `Visitas`, después de haber dejado la reprogramación con previsualización fina de ventanas abiertas
 
 ## Backlog pendiente visible
 

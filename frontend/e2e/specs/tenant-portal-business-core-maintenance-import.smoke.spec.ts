@@ -180,6 +180,7 @@ test("tenant portal shows imported business core and maintenance data from ieris
     await expect(rescheduleDialog).toBeVisible();
     await expect(page.getByText(/Reprogramación auditada|Targeted edit/i)).toBeVisible();
     await expect(rescheduleDialog.getByLabel(/Motivo de reprogramación|Reschedule reason/i)).toBeVisible();
+    await expect(rescheduleDialog.getByText(/Ventana a sincronizar|Window to sync/i)).toBeVisible();
     await rescheduleDialog.getByRole("button", { name: /Cancelar|Cancel/i }).click();
   }
 

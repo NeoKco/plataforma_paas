@@ -27,6 +27,42 @@ function formatDateRange(
   return end ? `${startLabel} → ${formatDateTimeInTimeZone(end, language, timeZone)}` : startLabel;
 }
 
+function toTimestamp(value: string | null | undefined): number | null {
+  if (!value) {
+    return null;
+  }
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function buildProjectedDateRange(
+  start: string | null,
+  end: string | null,
+  nextStart: string | null,
+  language: "es" | "en",
+  timeZone?: string | null
+) {
+  if (!nextStart) {
+    return language === "es" ? "define primero la nueva OT" : "set the new work order first";
+  }
+  if (!start || !end) {
+    return formatDateRange(nextStart, null, language, timeZone);
+  }
+  const startTimestamp = toTimestamp(start);
+  const endTimestamp = toTimestamp(end);
+  const nextStartTimestamp = toTimestamp(nextStart);
+  if (
+    startTimestamp === null ||
+    endTimestamp === null ||
+    nextStartTimestamp === null ||
+    endTimestamp < startTimestamp
+  ) {
+    return formatDateRange(nextStart, null, language, timeZone);
+  }
+  const shiftedEnd = new Date(nextStartTimestamp + (endTimestamp - startTimestamp)).toISOString();
+  return formatDateRange(nextStart, shiftedEnd, language, timeZone);
+}
+
 export function MaintenanceRescheduleVisitSyncPanel({
   effectiveTimeZone,
   isLoading,
@@ -78,6 +114,30 @@ export function MaintenanceRescheduleVisitSyncPanel({
                   : "No open visits"}
             </div>
             {summary.syncCandidate ? (
+              <div className="maintenance-history-entry">
+                <div className="maintenance-history-entry__title">
+                  {language === "es" ? "Ventana a sincronizar" : "Window to sync"}
+                </div>
+                <div className="maintenance-history-entry__meta">
+                  {language === "es" ? "Actual" : "Current"}: {formatDateRange(
+                    summary.syncCandidate.scheduled_start_at,
+                    summary.syncCandidate.scheduled_end_at,
+                    language,
+                    effectiveTimeZone
+                  )}
+                </div>
+                <div className="maintenance-history-entry__meta">
+                  {language === "es" ? "Propuesta al reprogramar" : "Proposed after reschedule"}: {buildProjectedDateRange(
+                    summary.syncCandidate.scheduled_start_at,
+                    summary.syncCandidate.scheduled_end_at,
+                    scheduledFor,
+                    language,
+                    effectiveTimeZone
+                  )}
+                </div>
+              </div>
+            ) : null}
+            {summary.syncCandidate ? (
               <div className="form-check mt-1">
                 <input
                   checked={syncEnabled}
@@ -94,11 +154,38 @@ export function MaintenanceRescheduleVisitSyncPanel({
                 </label>
               </div>
             ) : null}
-            {summary.openCount > 1 ? (
-              <div className="maintenance-history-entry__meta text-warning">
-                {language === "es"
-                  ? "La sincronización automática solo ajusta la primera visita abierta; las demás quedan para coordinación fina en Visitas."
-                  : "Automatic sync only adjusts the first open visit; the rest remain for fine coordination in Visits."}
+            {summary.remainingOpenVisits.length > 0 ? (
+              <div className="maintenance-history-entry">
+                <div className="maintenance-history-entry__title">
+                  {language === "es" ? "Visitas abiertas por coordinar" : "Open visits pending coordination"}
+                </div>
+                <div className="maintenance-history-entry__meta text-warning mb-2">
+                  {language === "es"
+                    ? "La sincronización automática solo ajusta la primera visita abierta; estas ventanas quedan para coordinación fina en Visitas."
+                    : "Automatic sync only adjusts the first open visit; these windows remain for fine coordination in Visits."}
+                </div>
+                <div className="maintenance-reschedule-visit-list">
+                  {summary.remainingOpenVisits.slice(0, 3).map((visit) => (
+                    <div key={visit.id} className="maintenance-reschedule-visit-list__item">
+                      <strong>#{visit.id}</strong>
+                      <span>
+                        {formatDateRange(
+                          visit.scheduled_start_at,
+                          visit.scheduled_end_at,
+                          language,
+                          effectiveTimeZone
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {summary.remainingOpenVisits.length > 3 ? (
+                  <div className="maintenance-history-entry__meta mt-2">
+                    {language === "es"
+                      ? `+${summary.remainingOpenVisits.length - 3} visita(s) abierta(s) adicionales por revisar en Visitas.`
+                      : `+${summary.remainingOpenVisits.length - 3} additional open visit(s) to review in Visits.`}
+                  </div>
+                ) : null}
               </div>
             ) : null}
             {!scheduledFor ? (

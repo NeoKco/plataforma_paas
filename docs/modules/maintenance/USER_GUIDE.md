@@ -57,6 +57,7 @@ El primer corte del modulo ya permite:
 - dentro de `Costos` puedes crear una `Plantilla de costeo de mantención` desde el estimado o desde el costo real actual
 - esa plantilla luego puede aplicarse tanto al `Costeo estimado` como al `Costo real`
 - el `Monto cobrado` no se pisa con la plantilla; queda manual para respetar el cierre comercial real
+- por ahora el módulo no deja una marca explícita de "plantilla aplicada al cierre" dentro del histórico económico final; ese refinamiento queda pendiente
 - abrir `Ver costos` desde `Historial` para revisar en modo solo lectura el cierre económico ya congelado de una orden cerrada
 - abrir `Checklist` desde una mantención abierta para registrar checklist técnico, observación de cierre y evidencias del trabajo ejecutado
 - abrir `Ver checklist` desde `Historial` para consultar ese cierre técnico en modo solo lectura
@@ -152,6 +153,7 @@ Lectura funcional de cada vista:
   - también permite filtrar la agenda mensual por grupo responsable o técnico responsable
   - al abrir una mantención desde la agenda, puedes usar `Reprogramar` y dejar un motivo visible en historial técnico
   - en esa reprogramación puedes mover también la primera visita abierta para dejar alineada la ventana principal de terreno
+  - la modal ahora además muestra qué ventana se sincronizará y cuáles visitas abiertas quedarán pendientes para coordinación fina en `Visitas`
 - `Reportes`: lectura analítica operativa del módulo
   - permite filtrar por mes y tipo de equipo
   - resume cierres completados/anulados del período

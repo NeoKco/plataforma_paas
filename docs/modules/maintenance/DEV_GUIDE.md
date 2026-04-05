@@ -160,6 +160,7 @@ Fuente frontend principal:
   - se crean y aplican desde `Nueva programación`
   - ahora también se editan, archivan/reactivan y exponen `usage_count`
   - `maintenance_schedules.cost_template_id` deja trazado qué plantilla originó la programación preventiva
+  - todavía no existe una referencia explícita equivalente sobre el cierre económico real de la OT; ese slice queda pendiente para no mezclar ahora UX de cierre con el roadmap inmediato
   - no deben modelarse ni nombrarse como catálogo transversal, porque su alcance funcional es exclusivo de Mantenciones
 - la sincronización `maintenance -> finance` ya soporta dos políticas tenant:
   - `manual`
@@ -286,6 +287,9 @@ Con modulos tenant:
 - `Agenda técnica` ya permite además filtrar la lectura mensual por grupo responsable y técnico responsable
 - `work_orders` ahora acepta `reschedule_note` en actualización para auditar reprogramaciones sin cambiar de tabla ni perder lifecycle
 - esa reprogramación se registra reutilizando `maintenance_status_logs` con `from_status == to_status`, y `Historial` la presenta como evento de `Reprogramación`
+- el frontend ya agrega además una lectura fina en reprogramación:
+  - previsualiza la ventana actual/propuesta de la primera visita abierta sincronizable
+  - enumera las demás visitas abiertas que seguirán requiriendo ajuste desde `Visitas`
 - `projects`: podra reutilizar el mismo sitio, cliente y responsable
 - `iot`: deberia colgarse del mismo sitio o activo instalado
 

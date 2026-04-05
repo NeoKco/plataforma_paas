@@ -9,6 +9,7 @@ export type RescheduleVisitSummary = {
   completedCount: number;
   nextVisit: TenantMaintenanceVisit | null;
   syncCandidate: TenantMaintenanceVisit | null;
+  remainingOpenVisits: TenantMaintenanceVisit[];
 };
 
 function toTimestamp(value: string | null | undefined): number | null {
@@ -69,6 +70,7 @@ export function getRescheduleVisitSummary(
     completedCount: completedVisits.length,
     nextVisit: orderedOpenVisits[0] ?? null,
     syncCandidate: orderedOpenVisits[0] ?? null,
+    remainingOpenVisits: orderedOpenVisits.slice(1),
   };
 }
 

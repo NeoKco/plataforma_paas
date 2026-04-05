@@ -57,6 +57,10 @@
   - muestra `Acciones rápidas en terreno` para saltar a cierre, checklist o evidencias dentro de la modal
   - resume avance del checklist y cantidad de adjuntos ya cargados
   - prepara el selector de evidencia para ofrecer cámara/galería en dispositivos compatibles
+- `Reprogramar` en `Mantenciones` y `Agenda` ahora agrega lectura fina de ventanas:
+  - previsualiza la ventana actual y la propuesta para la primera visita abierta que puede sincronizarse
+  - lista las demás visitas abiertas que quedan para coordinación manual en `Visitas`
+- se deja explícitamente pendiente el slice de trazabilidad de `Plantilla de costeo de mantención` aplicada al cierre económico final de cada OT
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso
