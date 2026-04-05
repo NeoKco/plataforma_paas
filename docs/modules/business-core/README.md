@@ -33,6 +33,8 @@ Estado actual:
 - migracion tenant de taxonomias compartidas creada
 - backend CRUD implementado para `function_profiles`, `work_groups` y `task_types`
 - frontend tenant operativo para las taxonomias de ola 1B
+- backend CRUD implementado para `assets` y `asset_types`
+- frontend tenant operativo para `assets`, `asset_types` y `site_responsibles`
 - la vista `Resumen` ya consume datos reales y muestra solo las 2 ultimas `Empresas` creadas y los 5 ultimos `Clientes`, con datos operativos legibles del cliente en vez de una portada ciega
 - la vista principal de `clients` ya se rehizo inspirada en `ieris_app`: busqueda por nombre/contacto/direccion, alta unica desde la esquina superior derecha y ficha consolidada del cliente
 - la vista de `organizations` ya muestra y edita el contacto principal junto con la contraparte operativa, para no obligar a entrar al catalogo global de contactos solo para leer nombre, telefono o mail
@@ -91,8 +93,6 @@ Limites conocidos del corte actual:
 
 Pendientes visibles inmediatos:
 
-- responsables por sitio
-- assets o equipos instalados como dominio compartido
 - importadores desde `ieris_app`
 - integracion mas profunda con `maintenance` para filtros por grupo, snapshot historico enriquecido y agenda por responsable
 - direccion propia de `organizations` como entidad/modelo de primer nivel o bloque dedicado, sin improvisarla como texto plano en el modal
@@ -131,17 +131,19 @@ Primer corte tecnico sugerido:
 - `function_profiles`
 - `work_groups`
 - `task_types`
+- `asset_types`
+- `assets`
+- `site_responsibles`
 - relaciones minimas entre cliente, sitio y contacto
 
 Alcance recomendado inmediatamente despues:
 
-- activos o equipos instalados
 - responsables internos y externos por sitio
 - clasificaciones tecnicas compartidas
 
 Pendiente posterior importante:
 
-- no abrir `iot` sobre tablas propias antes de resolver `assets`
+- no abrir `iot` sobre tablas propias antes de validar `assets` y su adopcion operativa
 
 ## Modulos que dependen de este dominio
 
@@ -159,10 +161,12 @@ Lectura base recomendada:
 - un `client` representa el rol de cliente dentro del tenant
 - un `contact` pertenece a una `organization` y puede quedar asociado a uno o mas `sites`
 - un `site` cuelga de un `client`
+- un `asset` cuelga de un `site` y de un `asset_type`
 - un `work_group` representa un equipo interno reusable por modulos operativos
 - un `work_group_member` representa la membresia real usuario-grupo con perfil funcional, vigencia y flags operativos
 - un `function_profile` representa perfiles funcionales configurables
 - un `task_type` representa taxonomias de trabajo reutilizables
+- un `site_responsible` asigna usuarios tenant a sitios con tipo, principalidad y vigencia
 
 ## Mapa de documentos
 

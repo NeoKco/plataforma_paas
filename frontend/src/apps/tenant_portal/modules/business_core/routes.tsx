@@ -66,6 +66,20 @@ export const businessCoreTenantPortalRoutes: RouteObject[] = [
     },
   },
   {
+    path: "asset-types",
+    lazy: async () => {
+      const module = await import("./pages/BusinessCoreAssetTypesPage");
+      return { Component: module.BusinessCoreAssetTypesPage };
+    },
+  },
+  {
+    path: "assets",
+    lazy: async () => {
+      const module = await import("./pages/BusinessCoreAssetsPage");
+      return { Component: module.BusinessCoreAssetsPage };
+    },
+  },
+  {
     path: "work-groups",
     lazy: async () => {
       const module = await import("./pages/BusinessCoreWorkGroupsPage");

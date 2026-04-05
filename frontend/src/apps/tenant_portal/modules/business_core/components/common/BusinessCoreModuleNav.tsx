@@ -30,6 +30,14 @@ export function BusinessCoreModuleNav() {
       label: language === "es" ? "Perfiles" : "Profiles",
     },
     {
+      to: "/tenant-portal/business-core/asset-types",
+      label: language === "es" ? "Tipos de activo" : "Asset types",
+    },
+    {
+      to: "/tenant-portal/business-core/assets",
+      label: language === "es" ? "Activos" : "Assets",
+    },
+    {
       to: "/tenant-portal/business-core/work-groups",
       label: language === "es" ? "Grupos" : "Groups",
     },
