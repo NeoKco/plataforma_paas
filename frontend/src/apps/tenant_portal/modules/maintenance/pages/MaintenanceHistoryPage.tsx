@@ -677,7 +677,7 @@ export function MaintenanceHistoryPage() {
       <MaintenanceModuleNav />
 
       <PanelCard
-        title={language === "es" ? "Filtros por responsable" : "Responsible filters"}
+        title={language === "es" ? "Filtros por grupo/líder" : "Group/leader filters"}
         subtitle={
           language === "es"
             ? `Mostrando ${filteredRows.length} de ${rows.length} órdenes cerradas o anuladas.`
@@ -686,8 +686,8 @@ export function MaintenanceHistoryPage() {
       >
         <div className="alert alert-info mb-3">
           {language === "es"
-            ? "Grupo responsable = el equipo asignado a la mantención. Técnico responsable = la persona concreta dentro de ese equipo. Si filtras por uno de ellos y no ves resultados, significa que esas órdenes no quedaron cerradas con esa asignación exacta."
-            : "Work group = the team assigned to the maintenance. Responsible technician = the specific person inside that team. If you filter by one of them and see no results, those orders were not closed with that exact assignment."}
+            ? "Grupo responsable = el equipo asignado a la mantención. Líder o técnico responsable = la persona concreta dentro de ese equipo. Si filtras por uno de ellos y no ves resultados, significa que esas órdenes no quedaron cerradas con esa asignación exacta."
+            : "Work group = the team assigned to the maintenance. Leader or responsible technician = the specific person inside that team. If you filter by one of them and see no results, those orders were not closed with that exact assignment."}
         </div>
         <div className="row g-3 align-items-end">
           <div className="col-12 col-md-5">

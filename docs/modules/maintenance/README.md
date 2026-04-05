@@ -20,6 +20,7 @@ Estado actual:
 - `history` ya muestra órdenes cerradas con `status_logs` y `visits`
 - `history` ahora también permite filtrar por `grupo responsable` y `técnico responsable`, y muestra el responsable como lectura rápida de grupo + usuario en la ficha y la tabla
 - `grupo responsable` significa el equipo asignado a la OT; `técnico responsable` significa la persona concreta dentro de ese equipo, no un permiso del sistema
+- en este módulo, cuando se diga `responsables`, se entiende `grupo responsable` + líder/técnico asignado; no hay responsable separado por sitio o dirección
 - `Mantenciones` y `Historial` ya comparten `Ver ficha` para abrir una lectura consolidada de cada OT
 - la `Ficha de mantención` ya muestra contexto operativo, snapshots de cliente/instalación/responsables, fechas, trazabilidad, visitas, cierre técnico y accesos contextuales a `Costos`, `Checklist` o `Editar cierre`
 - `Mantenciones` ya permite gestionar `Visitas` por OT para modelar ventanas programadas, ejecución real y responsables de terreno

@@ -47,6 +47,7 @@ El primer corte del modulo ya permite:
 - en este módulo, `Grupo responsable` no es un permiso ni un rol del sistema: es el equipo técnico asignado a la OT, y `Técnico responsable` es la persona concreta que quedó dentro de ese equipo
 - si un cierre no aparece al filtrar por un responsable, normalmente significa que la OT se cerró con otra asignación, o que quedó sin responsable guardado en esa ventana
 - abrir `Visitas` desde `Mantenciones` para coordinar ventanas programadas, ejecución real y responsables por salida a terreno
+- cuando la documentación o la UI diga `responsables`, entenderlo como `grupo responsable` + `líder` o técnico asignado; no existe un responsable separado por sitio o dirección
 - ver `Tipo de tarea` y `Perfil funcional` dentro de `Mantenciones`, `Historial` y `Ver ficha` cuando la OT quedó vinculada a programación preventiva y a una asignación formal del grupo
 - al elegir `Grupo responsable`, la lista de `Técnico responsable` se acota a miembros activos y vigentes de ese grupo
 - esa misma restricción visual también aplica cuando creas o reprogramas desde `Agenda`
