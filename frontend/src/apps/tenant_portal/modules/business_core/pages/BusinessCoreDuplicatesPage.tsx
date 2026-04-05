@@ -85,6 +85,11 @@ type OrganizationMergeFieldKey =
   | "tax_id"
   | "phone"
   | "email"
+  | "address_line"
+  | "commune"
+  | "city"
+  | "region"
+  | "country_code"
   | "notes";
 
 type OrganizationMergeSelectionMap = Partial<Record<OrganizationMergeFieldKey, string>>;
@@ -148,6 +153,11 @@ const ORGANIZATION_MERGE_FIELDS: OrganizationMergeFieldKey[] = [
   "tax_id",
   "phone",
   "email",
+  "address_line",
+  "commune",
+  "city",
+  "region",
+  "country_code",
   "notes",
 ];
 
@@ -430,6 +440,11 @@ function buildOrganizationWritePayload(
     organization_kind: overrides.organization_kind ?? organization.organization_kind,
     phone: overrides.phone ?? organization.phone,
     email: overrides.email ?? organization.email,
+    address_line: overrides.address_line ?? organization.address_line,
+    commune: overrides.commune ?? organization.commune,
+    city: overrides.city ?? organization.city,
+    region: overrides.region ?? organization.region,
+    country_code: overrides.country_code ?? organization.country_code,
     notes: overrides.notes ?? organization.notes,
     is_active: overrides.is_active ?? organization.is_active,
     sort_order: overrides.sort_order ?? organization.sort_order,
@@ -460,6 +475,11 @@ function buildMergedOrganizationDocumentPayload(
     tax_id: pickPreferredText([target.tax_id, ...sources.map((source) => source.tax_id)]),
     phone: pickPreferredText([target.phone, ...sources.map((source) => source.phone)]),
     email: pickPreferredText([target.email, ...sources.map((source) => source.email)]),
+    address_line: pickPreferredText([target.address_line, ...sources.map((source) => source.address_line)]),
+    commune: pickPreferredText([target.commune, ...sources.map((source) => source.commune)]),
+    city: pickPreferredText([target.city, ...sources.map((source) => source.city)]),
+    region: pickPreferredText([target.region, ...sources.map((source) => source.region)]),
+    country_code: pickPreferredText([target.country_code, ...sources.map((source) => source.country_code)]),
     notes: mergeDistinctTextBlock([target.notes, ...sources.map((source) => source.notes)]),
     is_active: true,
   });
@@ -480,6 +500,16 @@ function getOrganizationFieldValue(
       return organization.phone;
     case "email":
       return organization.email;
+    case "address_line":
+      return organization.address_line;
+    case "commune":
+      return organization.commune;
+    case "city":
+      return organization.city;
+    case "region":
+      return organization.region;
+    case "country_code":
+      return organization.country_code;
     case "notes":
       return organization.notes;
     default:
