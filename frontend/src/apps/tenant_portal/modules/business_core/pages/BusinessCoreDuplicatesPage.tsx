@@ -159,6 +159,42 @@ function normalizePhoneKey(value: string | null | undefined): string {
     .trim();
 }
 
+function getMeaningfulText(value: string | null | undefined): string | null {
+  const sanitized = stripLegacyVisibleText(value ?? null)?.trim() ?? "";
+  return sanitized ? sanitized : null;
+}
+
+function pickPreferredText(values: Array<string | null | undefined>): string | null {
+  const candidates = values
+    .map(getMeaningfulText)
+    .filter((value): value is string => Boolean(value));
+  if (candidates.length === 0) {
+    return null;
+  }
+  return [...candidates].sort((left, right) => right.length - left.length || left.localeCompare(right))[0];
+}
+
+function mergeDistinctTextBlock(values: Array<string | null | undefined>): string | null {
+  const deduped: string[] = [];
+  const seen = new Set<string>();
+  values.forEach((value) => {
+    const normalized = getMeaningfulText(value);
+    if (!normalized) {
+      return;
+    }
+    const identity = normalizeHumanKey(normalized);
+    if (seen.has(identity)) {
+      return;
+    }
+    seen.add(identity);
+    deduped.push(normalized);
+  });
+  if (deduped.length === 0) {
+    return null;
+  }
+  return deduped.join("\n\n---\n\n");
+}
+
 function buildContactIdentityKey(contact: TenantBusinessContact): string {
   return [
     normalizeHumanKey(contact.full_name),
@@ -383,6 +419,82 @@ function buildClientWritePayload(
   };
 }
 
+function buildMergedOrganizationDocumentPayload(
+  target: TenantBusinessOrganization,
+  sources: TenantBusinessOrganization[]
+) {
+  return buildOrganizationWritePayload(target, {
+    name: pickPreferredText([target.name, ...sources.map((source) => source.name)]) ?? target.name,
+    legal_name: pickPreferredText([target.legal_name, ...sources.map((source) => source.legal_name)]),
+    tax_id: pickPreferredText([target.tax_id, ...sources.map((source) => source.tax_id)]),
+    phone: pickPreferredText([target.phone, ...sources.map((source) => source.phone)]),
+    email: pickPreferredText([target.email, ...sources.map((source) => source.email)]),
+    notes: mergeDistinctTextBlock([target.notes, ...sources.map((source) => source.notes)]),
+    is_active: true,
+  });
+}
+
+function countOrganizationDocumentFieldsToMerge(
+  target: TenantBusinessOrganization,
+  sources: TenantBusinessOrganization[]
+) {
+  const merged = buildMergedOrganizationDocumentPayload(target, sources);
+  let count = 0;
+  if ((merged.legal_name ?? null) !== (target.legal_name ?? null)) {
+    count += 1;
+  }
+  if ((merged.tax_id ?? null) !== (target.tax_id ?? null)) {
+    count += 1;
+  }
+  if ((merged.phone ?? null) !== (target.phone ?? null)) {
+    count += 1;
+  }
+  if ((merged.email ?? null) !== (target.email ?? null)) {
+    count += 1;
+  }
+  if ((merged.notes ?? null) !== (target.notes ?? null)) {
+    count += 1;
+  }
+  return count;
+}
+
+function buildMergedContactDocumentPayload(
+  target: TenantBusinessContact,
+  sources: TenantBusinessContact[]
+) {
+  return buildContactWritePayload(target, {
+    full_name:
+      pickPreferredText([target.full_name, ...sources.map((source) => source.full_name)]) ??
+      target.full_name,
+    email: pickPreferredText([target.email, ...sources.map((source) => source.email)]),
+    phone: pickPreferredText([target.phone, ...sources.map((source) => source.phone)]),
+    role_title: pickPreferredText([target.role_title, ...sources.map((source) => source.role_title)]),
+    is_primary: target.is_primary || sources.some((source) => source.is_primary),
+    is_active: target.is_active || sources.some((source) => source.is_active),
+  });
+}
+
+function countContactDocumentFieldsToMerge(
+  target: TenantBusinessContact,
+  sources: TenantBusinessContact[]
+) {
+  const merged = buildMergedContactDocumentPayload(target, sources);
+  let count = 0;
+  if ((merged.email ?? null) !== (target.email ?? null)) {
+    count += 1;
+  }
+  if ((merged.phone ?? null) !== (target.phone ?? null)) {
+    count += 1;
+  }
+  if ((merged.role_title ?? null) !== (target.role_title ?? null)) {
+    count += 1;
+  }
+  if (merged.is_primary !== target.is_primary) {
+    count += 1;
+  }
+  return count;
+}
+
 function buildContactWritePayload(
   contact: TenantBusinessContact,
   overrides: Partial<TenantBusinessContact> = {}
@@ -512,6 +624,7 @@ function summarizeClientContactMerge(
         clientReassignments: 0,
         sitesToMove: 0,
         workOrdersToMove: 0,
+        documentFieldsToMerge: 0,
       };
     }
 
@@ -567,6 +680,27 @@ function summarizeClientContactMerge(
       clientReassignments,
       sitesToMove,
       workOrdersToMove,
+      documentFieldsToMerge: countOrganizationDocumentFieldsToMerge(
+        target.organization,
+        group.members
+          .filter((member) => member.organization.id !== targetId)
+          .map((member) => member.organization)
+      ),
+    };
+  }
+
+  function summarizeContactDocumentMerge(group: DuplicateGroup<ContactAuditRow>) {
+    const targetId = getPreferredContactId(group);
+    const target = group.members.find((member) => member.contact.id === targetId);
+    if (!target) {
+      return { documentFieldsToMerge: 0, primarySourcesCount: 0 };
+    }
+    const sources = group.members
+      .filter((member) => member.contact.id !== targetId)
+      .map((member) => member.contact);
+    return {
+      documentFieldsToMerge: countContactDocumentFieldsToMerge(target.contact, sources),
+      primarySourcesCount: sources.filter((source) => source.is_primary).length,
     };
   }
 
@@ -1488,6 +1622,12 @@ export function BusinessCoreDuplicatesPage() {
     setIsMutating(true);
     setError(null);
     try {
+      const targetContactByIdentity = new Map(
+        (contactsByOrganizationId.get(target.client.organization_id) ?? []).map((contact) => [
+          buildContactIdentityKey(contact),
+          contact,
+        ])
+      );
       const targetContactKeys = new Set(
         (contactsByOrganizationId.get(target.client.organization_id) ?? []).map(buildContactIdentityKey)
       );
@@ -1496,6 +1636,23 @@ export function BusinessCoreDuplicatesPage() {
         for (const contact of relatedContacts) {
           const identityKey = buildContactIdentityKey(contact);
           if (targetContactKeys.has(identityKey)) {
+            const existingTargetContact = targetContactByIdentity.get(identityKey);
+            if (existingTargetContact) {
+              const mergedPayload = buildMergedContactDocumentPayload(existingTargetContact, [contact]);
+              if (
+                countContactDocumentFieldsToMerge(existingTargetContact, [contact]) > 0
+              ) {
+                await updateTenantBusinessContact(
+                  session.accessToken,
+                  existingTargetContact.id,
+                  mergedPayload
+                );
+                targetContactByIdentity.set(identityKey, {
+                  ...existingTargetContact,
+                  ...mergedPayload,
+                });
+              }
+            }
             if (contact.is_active) {
               await updateTenantBusinessContactStatus(session.accessToken, contact.id, false);
             }
@@ -1595,29 +1752,10 @@ export function BusinessCoreDuplicatesPage() {
       await updateTenantBusinessOrganization(
         session.accessToken,
         target.organization.id,
-        buildOrganizationWritePayload(target.organization, {
-          legal_name:
-            target.organization.legal_name ??
-            sources.find((source) => source.organization.legal_name)?.organization.legal_name ??
-            null,
-          tax_id:
-            target.organization.tax_id ??
-            sources.find((source) => source.organization.tax_id)?.organization.tax_id ??
-            null,
-          phone:
-            target.organization.phone ??
-            sources.find((source) => source.organization.phone)?.organization.phone ??
-            null,
-          email:
-            target.organization.email ??
-            sources.find((source) => source.organization.email)?.organization.email ??
-            null,
-          notes:
-            target.organization.notes ??
-            sources.find((source) => source.organization.notes)?.organization.notes ??
-            null,
-          is_active: true,
-        })
+          buildMergedOrganizationDocumentPayload(
+            target.organization,
+            sources.map((source) => source.organization)
+          )
       );
 
       if (preferredClientRow) {
@@ -1662,6 +1800,12 @@ export function BusinessCoreDuplicatesPage() {
         );
       }
 
+      const targetContactByIdentity = new Map(
+        (contactsByOrganizationId.get(target.organization.id) ?? []).map((contact) => [
+          buildContactIdentityKey(contact),
+          contact,
+        ])
+      );
       const targetContactKeys = new Set(
         (contactsByOrganizationId.get(target.organization.id) ?? []).map(buildContactIdentityKey)
       );
@@ -1670,6 +1814,21 @@ export function BusinessCoreDuplicatesPage() {
         for (const contact of relatedContacts) {
           const identityKey = buildContactIdentityKey(contact);
           if (targetContactKeys.has(identityKey)) {
+            const existingTargetContact = targetContactByIdentity.get(identityKey);
+            if (existingTargetContact) {
+              const mergedPayload = buildMergedContactDocumentPayload(existingTargetContact, [contact]);
+              if (countContactDocumentFieldsToMerge(existingTargetContact, [contact]) > 0) {
+                await updateTenantBusinessContact(
+                  session.accessToken,
+                  existingTargetContact.id,
+                  mergedPayload
+                );
+                targetContactByIdentity.set(identityKey, {
+                  ...existingTargetContact,
+                  ...mergedPayload,
+                });
+              }
+            }
             if (contact.is_active) {
               await updateTenantBusinessContactStatus(session.accessToken, contact.id, false);
             }
@@ -1786,11 +1945,11 @@ export function BusinessCoreDuplicatesPage() {
     if (!target || sources.length === 0) {
       return;
     }
-    const primarySources = sources.filter((member) => member.contact.is_primary).length;
+    const { documentFieldsToMerge, primarySourcesCount } = summarizeContactDocumentMerge(group);
     const confirmed = window.confirm(
       language === "es"
-        ? `Consolidar ${sources.length} contacto(s) duplicado(s) en "${target.contact.full_name}". Los contactos origen se desactivarán y ${primarySources > 0 && !target.contact.is_primary ? "la ficha sugerida quedará como principal" : "se conservará la mejor ficha visible"}.`
-        : `Consolidate ${sources.length} duplicate contact(s) into "${target.contact.full_name}". Source contacts will be deactivated and ${primarySources > 0 && !target.contact.is_primary ? "the suggested record will become primary" : "the best visible record will be kept"}.`
+        ? `Consolidar ${sources.length} contacto(s) duplicado(s) en "${target.contact.full_name}". Se integrarán ${documentFieldsToMerge} dato(s) documental(es) faltante(s), los contactos origen se desactivarán y ${primarySourcesCount > 0 && !target.contact.is_primary ? "la ficha sugerida quedará como principal" : "se conservará la mejor ficha visible"}.`
+        : `Consolidate ${sources.length} duplicate contact(s) into "${target.contact.full_name}". ${documentFieldsToMerge} missing documentary field(s) will be integrated, source contacts will be deactivated, and ${primarySourcesCount > 0 && !target.contact.is_primary ? "the suggested record will become primary" : "the best visible record will be kept"}.`
     );
     if (!confirmed) {
       return;
@@ -1798,11 +1957,14 @@ export function BusinessCoreDuplicatesPage() {
     setIsMutating(true);
     setError(null);
     try {
-      if (primarySources > 0 && !target.contact.is_primary) {
+      if (documentFieldsToMerge > 0 || (primarySourcesCount > 0 && !target.contact.is_primary)) {
         await updateTenantBusinessContact(
           session.accessToken,
           target.contact.id,
-          buildContactWritePayload(target.contact, { is_primary: true })
+          buildMergedContactDocumentPayload(
+            target.contact,
+            sources.map((member) => member.contact)
+          )
         );
       }
       for (const source of sources) {
@@ -1909,6 +2071,9 @@ export function BusinessCoreDuplicatesPage() {
             <div className="business-core-duplicates-group__summary">
               <span>
                 {sourceMembers.length} {language === "es" ? "organizaciones origen" : "source organizations"}
+              </span>
+              <span>
+                {summary.documentFieldsToMerge} {language === "es" ? "campos documentales a integrar" : "documentary fields to merge"}
               </span>
               <span>
                 {summary.contactsToMove} {language === "es" ? "contactos a mover" : "contacts to move"}
@@ -2206,7 +2371,7 @@ export function BusinessCoreDuplicatesPage() {
   function renderContactGroup(group: DuplicateGroup<ContactAuditRow>) {
     const preferredContactId = getPreferredContactId(group);
     const sourceMembers = group.members.filter((member) => member.contact.id !== preferredContactId);
-    const primarySourcesCount = sourceMembers.filter((member) => member.contact.is_primary).length;
+    const { documentFieldsToMerge, primarySourcesCount } = summarizeContactDocumentMerge(group);
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -2220,6 +2385,9 @@ export function BusinessCoreDuplicatesPage() {
             <div className="business-core-duplicates-group__summary">
               <span>
                 {sourceMembers.length} {language === "es" ? "contactos origen" : "source contacts"}
+              </span>
+              <span>
+                {documentFieldsToMerge} {language === "es" ? "campos a integrar" : "fields to merge"}
               </span>
               <span>
                 {primarySourcesCount} {language === "es" ? "primarios a revisar" : "primary records to review"}

@@ -115,15 +115,15 @@ Como decidir rapido:
 
 Que consolida hoy:
 
-- `Organizaciones`: mueve `Contactos`, puede consolidar varios `Clientes` en una ficha sugerida, reasignar la ficha final y deja inactivas las organizaciones origen
+- `Organizaciones`: mueve `Contactos`, puede consolidar varios `Clientes` en una ficha sugerida, reasignar la ficha final, integrar datos visibles faltantes y deja inactivas las organizaciones origen
 - `Clientes`: mueve `Contactos`, `Direcciones` y `OT`
-- `Contactos`: desactiva duplicados equivalentes y conserva una sola ficha sugerida dentro de la misma organización
+- `Contactos`: integra email, teléfono o rol faltante, desactiva duplicados equivalentes y conserva una sola ficha sugerida dentro de la misma organización
 - `Direcciones`: mueve `Instalaciones` y `OT`
 - `Instalaciones`: mueve `OT`
 
 Que no consolida todavia:
 
-- `organizations` en su version profunda documental
+- `organizations` en su version profunda documental asistida por decision humana
 - cuando hay varios `Clientes` en conflicto, la pantalla ahora intenta consolidarlos guiadamente antes de cerrar la fusión de la organización base; aun así, el criterio documental final sigue siendo operacional y no reemplaza revisión humana
 - merge profundo de `contacts` mas alla de consolidar equivalentes dentro de la misma organización o mover/desactivar duplicados evidentes al fusionar `Clientes`
 - notas historicas libres

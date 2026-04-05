@@ -71,16 +71,16 @@ Resuelve hoy:
 
 Alcance real de la consolidacion actual:
 
-- `Organizaciones`: mueve `Contactos`, puede consolidar múltiples `Clientes` en una ficha sugerida, reasignar la ficha final a la organización objetivo y desactiva las organizaciones origen
+- `Organizaciones`: mueve `Contactos`, puede consolidar múltiples `Clientes` en una ficha sugerida, reasignar la ficha final a la organización objetivo, integrar campos documentales visibles y desactiva las organizaciones origen
 - `Clientes`: mueve `Contactos`, `Direcciones` y `OT`
-- `Contactos`: deja una sola ficha sugerida activa y desactiva duplicados equivalentes dentro de la misma organización
+- `Contactos`: deja una sola ficha sugerida activa, integra email/teléfono/rol faltantes y desactiva duplicados equivalentes dentro de la misma organización
 - `Direcciones`: mueve `Instalaciones` y `OT`
 - `Instalaciones`: mueve `OT`
 
 Limites conocidos del corte actual:
 
-- el merge de `organizations` ya resuelve también conflictos de múltiples `Clientes` dentro del mismo grupo, pero todavía no fusiona notas, criterio documental fino ni decisiones manuales más complejas de identidad
-- no hace merge profundo de `contacts`; por ahora consolida equivalentes dentro de la misma organización y sigue moviendo reutilizables al fusionar `clients` u `organizations`
+- el merge de `organizations` ya resuelve también conflictos de múltiples `Clientes` dentro del mismo grupo e integra campos documentales visibles, pero todavía no cubre decisiones manuales más complejas de identidad
+- no hace merge profundo total de `contacts`; por ahora integra email, teléfono y rol faltantes, y sigue moviendo o desactivando reutilizables al fusionar `clients` u `organizations`
 - no mezcla notas humanas ni historiales textuales
 - no construye aun un merge profundo auditable de identidad completa
 
