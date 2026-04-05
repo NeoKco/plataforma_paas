@@ -19,6 +19,25 @@ async function ensureFinanceSettingsPage(page: Page) {
       name: /Configuración financiera|Financial settings/i,
     })
   ).toBeVisible();
+
+  await ensureFinanceSettingsLoaded(page);
+}
+
+async function ensureFinanceSettingsLoaded(page: Page) {
+  const loadError = page.getByRole("heading", {
+    name: /No se pudo cargar la configuración financiera|Could not load financial settings/i,
+  });
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if ((await loadError.count()) === 0) {
+      return;
+    }
+
+    await page.getByRole("button", { name: /Recargar|Reload/i }).click();
+    await page.waitForLoadState("networkidle");
+  }
+
+  await expect(loadError).toHaveCount(0);
 }
 
 function getSuccessAlert(page: Page) {
@@ -93,8 +112,10 @@ test("tenant portal finance settings manages currencies, exchange rates and para
   await currencyRow.getByRole("button", { name: /Activar|Activate/i }).click();
   await expect(getSuccessAlert(page)).toContainText(/moneda|currency/i);
   await expect(currencyRow).toContainText(/activa|active/i);
+  await ensureFinanceSettingsLoaded(page);
 
   await page.getByRole("button", { name: /Tipos de cambio|Exchange rates/i }).click();
+  await ensureFinanceSettingsLoaded(page);
   const exchangeRateForm = await openFinanceSettingsForm(page, /Tipos de cambio|Exchange rates/i);
   const selectOptions = await exchangeRateForm.locator("select.form-select").first().locator("option").evaluateAll(
     (options) =>
