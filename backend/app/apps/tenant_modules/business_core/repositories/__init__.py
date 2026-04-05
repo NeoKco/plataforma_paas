@@ -19,9 +19,6 @@ from app.apps.tenant_modules.business_core.repositories.organization_repository 
 from app.apps.tenant_modules.business_core.repositories.site_repository import (
     BusinessSiteRepository,
 )
-from app.apps.tenant_modules.business_core.repositories.site_responsible_repository import (
-    BusinessSiteResponsibleRepository,
-)
 from app.apps.tenant_modules.business_core.repositories.task_type_repository import (
     BusinessTaskTypeRepository,
 )
@@ -47,5 +44,4 @@ __all__ = [
     "BusinessWorkGroupMemberRepository",
     "BusinessTaskTypeRepository",
     "BusinessCoreMergeAuditRepository",
-    "BusinessSiteResponsibleRepository",
 ]
