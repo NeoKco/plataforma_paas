@@ -665,6 +665,7 @@ export function MaintenanceCalendarPage() {
             </label>
             <select
               className="form-select form-select-sm"
+              aria-label={language === "es" ? "Filtrar por grupo" : "Filter by group"}
               value={calendarAssignedWorkGroupFilter ?? ""}
               onChange={(event) =>
                 setCalendarAssignedWorkGroupFilter(
@@ -686,6 +687,7 @@ export function MaintenanceCalendarPage() {
             </label>
             <select
               className="form-select form-select-sm"
+              aria-label={language === "es" ? "Filtrar por técnico" : "Filter by technician"}
               value={calendarAssignedTechnicianFilter ?? ""}
               onChange={(event) =>
                 setCalendarAssignedTechnicianFilter(
