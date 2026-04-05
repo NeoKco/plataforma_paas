@@ -21,7 +21,9 @@ import {
   type TenantBusinessOrganization,
 } from "../../business_core/services/organizationsService";
 import {
+  getTenantBusinessWorkGroupMembers,
   getTenantBusinessWorkGroups,
+  type TenantBusinessWorkGroupMember,
   type TenantBusinessWorkGroup,
 } from "../../business_core/services/workGroupsService";
 import {
@@ -182,6 +184,24 @@ function getWeekdayLabel(day: (typeof WEEKDAY_KEYS)[number], language: "es" | "e
   return labels[language][day];
 }
 
+function isMembershipActive(member: {
+  is_active: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+}) {
+  if (!member.is_active) {
+    return false;
+  }
+  const now = new Date();
+  if (member.starts_at && new Date(member.starts_at) > now) {
+    return false;
+  }
+  if (member.ends_at && new Date(member.ends_at) < now) {
+    return false;
+  }
+  return true;
+}
+
 export function MaintenanceCalendarPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
@@ -191,6 +211,7 @@ export function MaintenanceCalendarPage() {
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
   const [workGroups, setWorkGroups] = useState<TenantBusinessWorkGroup[]>([]);
+  const [workGroupMembers, setWorkGroupMembers] = useState<TenantBusinessWorkGroupMember[]>([]);
   const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
   const [currentMonth, setCurrentMonth] = useState(() => toMonthStart(new Date()));
   const [selectedDateKey, setSelectedDateKey] = useState(() => toDateKey(new Date()));
@@ -248,6 +269,20 @@ export function MaintenanceCalendarPage() {
     () => tenantUsers.filter((user) => user.is_active),
     [tenantUsers]
   );
+  const selectableTenantUsers = useMemo(() => {
+    if (!form.assigned_work_group_id) {
+      return activeTenantUsers;
+    }
+    const allowedIds = new Set(
+      workGroupMembers
+        .filter(
+          (member) =>
+            member.group_id === form.assigned_work_group_id && isMembershipActive(member)
+        )
+        .map((member) => member.tenant_user_id)
+    );
+    return activeTenantUsers.filter((user) => allowedIds.has(user.id));
+  }, [activeTenantUsers, form.assigned_work_group_id, workGroupMembers]);
 
   const activeRows = useMemo(
     () =>
@@ -391,12 +426,18 @@ export function MaintenanceCalendarPage() {
         getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false }),
         getTenantUsers(session.accessToken),
       ]);
+      const workGroupMembersResponses = await Promise.all(
+        workGroupsResponse.data.map((group) =>
+          getTenantBusinessWorkGroupMembers(session.accessToken as string, group.id)
+        )
+      );
       setWorkOrders(workOrdersResponse.data);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
       setInstallations(installationsResponse.data);
       setWorkGroups(workGroupsResponse.data);
+      setWorkGroupMembers(workGroupMembersResponses.flatMap((response) => response.data));
       setTenantUsers(tenantUsersResponse.data);
       setForm((current) => ({
         ...current,
