@@ -7,7 +7,10 @@ from unittest.mock import Mock
 os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
 
-from app.apps.tenant_modules.business_core.models import BusinessWorkGroup  # noqa: E402
+from app.apps.tenant_modules.business_core.models import (  # noqa: E402
+    BusinessWorkGroup,
+    BusinessWorkGroupMember,
+)
 from app.apps.tenant_modules.core.models.user import User  # noqa: E402
 from app.apps.tenant_modules.maintenance.services.due_item_service import (  # noqa: E402
     MaintenanceDueItemService,
@@ -94,6 +97,7 @@ class MaintenanceDueItemServiceTestCase(unittest.TestCase):
             description="Control preventivo",
             default_priority="normal",
             billing_mode="per_work_order",
+            task_type_id=7,
         )
         created_work_order = SimpleNamespace(
             id=91,
@@ -162,6 +166,76 @@ class MaintenanceDueItemServiceTestCase(unittest.TestCase):
         )
         work_order_repository.save.assert_called_once()
         due_item_repository.save.assert_called_once()
+
+    def test_schedule_due_item_rejects_task_typed_assignment_without_function_profile(self) -> None:
+        due_item = SimpleNamespace(
+            id=31,
+            schedule_id=14,
+            client_id=8,
+            site_id=22,
+            installation_id=4,
+            due_at=datetime(2026, 4, 10, 15, 0, tzinfo=timezone.utc),
+            visible_from=datetime(2026, 4, 1, 15, 0, tzinfo=timezone.utc),
+            due_status="due",
+            assigned_work_group_id=None,
+            assigned_tenant_user_id=None,
+            work_order_id=None,
+        )
+        schedule = SimpleNamespace(
+            id=14,
+            client_id=8,
+            site_id=22,
+            installation_id=4,
+            name="Mantención semestral SST",
+            description="Control preventivo",
+            default_priority="normal",
+            billing_mode="per_work_order",
+            task_type_id=7,
+        )
+
+        due_item_repository = Mock()
+        due_item_repository.get_by_id.return_value = due_item
+        schedule_repository = Mock()
+        schedule_repository.get_by_id.return_value = schedule
+        work_order_service = Mock()
+
+        service = MaintenanceDueItemService(
+            due_item_repository=due_item_repository,
+            schedule_repository=schedule_repository,
+            work_order_service=work_order_service,
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessWorkGroup.id: SimpleNamespace(id=5),
+                User.id: SimpleNamespace(id=3),
+                BusinessWorkGroupMember: SimpleNamespace(
+                    id=20,
+                    function_profile_id=None,
+                ),
+            }
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "perfil funcional declarado",
+        ):
+            service.schedule_due_item(
+                tenant_db,
+                31,
+                SimpleNamespace(
+                    scheduled_for=datetime(2026, 4, 10, 16, 0, tzinfo=timezone.utc),
+                    site_id=22,
+                    installation_id=4,
+                    title="Mantención SST abril",
+                    description="Visita ya coordinada",
+                    priority="high",
+                    assigned_work_group_id=5,
+                    assigned_tenant_user_id=3,
+                ),
+                created_by_user_id=2,
+            )
+
+        work_order_service.create_work_order.assert_not_called()
 
 
 if __name__ == "__main__":

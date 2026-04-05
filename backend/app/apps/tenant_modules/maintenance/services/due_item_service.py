@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.business_core.models import BusinessWorkGroup
+from app.apps.tenant_modules.business_core.models import BusinessWorkGroup, BusinessWorkGroupMember
 from app.apps.tenant_modules.core.models.user import User
 from app.apps.tenant_modules.maintenance.models import (
     MaintenanceDueItem,
@@ -146,6 +146,15 @@ class MaintenanceDueItemService:
             if tenant_user_exists is None:
                 raise ValueError("El tecnico responsable seleccionado no existe")
 
+        effective_assigned_work_group_id = payload.assigned_work_group_id or item.assigned_work_group_id
+        effective_assigned_tenant_user_id = payload.assigned_tenant_user_id or item.assigned_tenant_user_id
+        self._validate_task_type_assignment_capability(
+            tenant_db,
+            schedule,
+            assigned_work_group_id=effective_assigned_work_group_id,
+            assigned_tenant_user_id=effective_assigned_tenant_user_id,
+        )
+
         work_order = self.work_order_service.create_work_order(
             tenant_db,
             MaintenanceWorkOrderCreateRequest(
@@ -186,6 +195,32 @@ class MaintenanceDueItemService:
         item.due_status = "scheduled"
         saved_due_item = self.due_item_repository.save(tenant_db, item)
         return saved_due_item, work_order
+
+    def _validate_task_type_assignment_capability(
+        self,
+        tenant_db: Session,
+        schedule: MaintenanceSchedule,
+        *,
+        assigned_work_group_id: int | None,
+        assigned_tenant_user_id: int | None,
+    ) -> None:
+        if schedule.task_type_id is None:
+            return
+        if assigned_work_group_id is None or assigned_tenant_user_id is None:
+            return
+
+        membership = (
+            tenant_db.query(BusinessWorkGroupMember)
+            .filter(BusinessWorkGroupMember.group_id == assigned_work_group_id)
+            .filter(BusinessWorkGroupMember.tenant_user_id == assigned_tenant_user_id)
+            .first()
+        )
+        if membership is None:
+            return
+        if getattr(membership, "function_profile_id", None) is None:
+            raise ValueError(
+                "La mantencion preventiva tiene un tipo de tarea y el tecnico responsable debe tener un perfil funcional declarado en el grupo responsable"
+            )
 
     def generate_due_items(
         self,

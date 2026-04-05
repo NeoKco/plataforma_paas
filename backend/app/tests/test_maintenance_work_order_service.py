@@ -13,7 +13,10 @@ from app.apps.tenant_modules.business_core.models import (  # noqa: E402
     BusinessWorkGroupMember,
 )
 from app.apps.tenant_modules.core.models.user import User  # noqa: E402
-from app.apps.tenant_modules.maintenance.models import MaintenanceInstallation  # noqa: E402
+from app.apps.tenant_modules.maintenance.models import (  # noqa: E402
+    MaintenanceInstallation,
+    MaintenanceSchedule,
+)
 from app.apps.tenant_modules.maintenance.schemas import (  # noqa: E402
     MaintenanceStatusUpdateRequest,
     MaintenanceWorkOrderCreateRequest,
@@ -420,6 +423,70 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
         self.assertEqual(status_log_repository.create.call_args.kwargs["changed_by_user_id"], 21)
         self.assertIn("Reprogramación:", status_log_repository.create.call_args.kwargs["note"])
         self.assertIn("Motivo: Cliente pidió cambio", status_log_repository.create.call_args.kwargs["note"])
+
+    def test_update_schedule_linked_work_order_rejects_assignment_without_function_profile(self) -> None:
+        existing_item = SimpleNamespace(
+            id=12,
+            client_id=11,
+            site_id=31,
+            installation_id=9,
+            schedule_id=14,
+            external_reference=None,
+            title="Mantencion mensual",
+            description=None,
+            priority="normal",
+            scheduled_for="2026-04-05T10:00:00+00:00",
+            cancellation_reason=None,
+            closure_notes=None,
+            assigned_work_group_id=4,
+            assigned_tenant_user_id=3,
+            maintenance_status="scheduled",
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        work_order_repository.list_active_conflicts.return_value = []
+
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessClient.id: SimpleNamespace(id=11),
+                BusinessSite: SimpleNamespace(id=31, client_id=11),
+                MaintenanceInstallation: SimpleNamespace(id=9, site_id=31),
+                BusinessWorkGroup.id: SimpleNamespace(id=4),
+                User.id: SimpleNamespace(id=3),
+                BusinessWorkGroupMember: SimpleNamespace(
+                    id=20,
+                    is_active=True,
+                    starts_at=None,
+                    ends_at=None,
+                    function_profile_id=None,
+                ),
+                MaintenanceSchedule: SimpleNamespace(id=14, task_type_id=7),
+            }
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "perfil funcional declarado",
+        ):
+            service.update_work_order(
+                tenant_db,
+                12,
+                MaintenanceWorkOrderUpdateRequest(
+                    client_id=11,
+                    site_id=31,
+                    installation_id=9,
+                    assigned_work_group_id=4,
+                    assigned_tenant_user_id=3,
+                    external_reference=None,
+                    title="Mantencion mensual",
+                    description=None,
+                    priority="normal",
+                    scheduled_for="2026-04-05T10:00:00+00:00",
+                ),
+            )
 
     def test_complete_work_order_triggers_auto_sync_policy_check(self) -> None:
         existing_item = SimpleNamespace(

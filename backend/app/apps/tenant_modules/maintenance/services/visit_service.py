@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from app.apps.tenant_modules.business_core.models import BusinessWorkGroup, BusinessWorkGroupMember
 from app.apps.tenant_modules.core.models.user import User
-from app.apps.tenant_modules.maintenance.models import MaintenanceWorkOrder, MaintenanceVisit
+from app.apps.tenant_modules.maintenance.models import MaintenanceSchedule, MaintenanceWorkOrder, MaintenanceVisit
 from app.apps.tenant_modules.maintenance.repositories import MaintenanceVisitRepository
 
 from app.apps.tenant_modules.maintenance.schemas import (
@@ -170,13 +170,22 @@ class MaintenanceVisitService:
             if tenant_user_exists is None:
                 raise ValueError("El tecnico responsable seleccionado no existe")
 
-        self._validate_assignment_membership(tenant_db, payload)
+        membership = self._validate_assignment_membership(tenant_db, payload)
+        self._validate_task_type_assignment_capability(
+            tenant_db,
+            work_order,
+            membership=membership,
+        )
 
-    def _validate_assignment_membership(self, tenant_db: Session, payload: dict) -> None:
+    def _validate_assignment_membership(
+        self,
+        tenant_db: Session,
+        payload: dict,
+    ) -> BusinessWorkGroupMember | None:
         assigned_work_group_id = payload.get("assigned_work_group_id")
         assigned_tenant_user_id = payload.get("assigned_tenant_user_id")
         if assigned_work_group_id is None or assigned_tenant_user_id is None:
-            return
+            return None
 
         membership = (
             tenant_db.query(BusinessWorkGroupMember)
@@ -203,4 +212,27 @@ class MaintenanceVisitService:
         if ends_at and ends_at < now:
             raise ValueError(
                 "El tecnico responsable seleccionado ya no tiene una membresía vigente en el grupo responsable"
+            )
+        return membership
+
+    def _validate_task_type_assignment_capability(
+        self,
+        tenant_db: Session,
+        work_order: MaintenanceWorkOrder,
+        *,
+        membership: BusinessWorkGroupMember | None = None,
+    ) -> None:
+        if work_order.schedule_id is None or membership is None:
+            return
+
+        schedule = (
+            tenant_db.query(MaintenanceSchedule)
+            .filter(MaintenanceSchedule.id == work_order.schedule_id)
+            .first()
+        )
+        if schedule is None or getattr(schedule, "task_type_id", None) is None:
+            return
+        if getattr(membership, "function_profile_id", None) is None:
+            raise ValueError(
+                "La mantencion preventiva tiene un tipo de tarea y el tecnico responsable debe tener un perfil funcional declarado en el grupo responsable"
             )
