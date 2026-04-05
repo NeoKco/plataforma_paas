@@ -15,7 +15,7 @@
   - costo real
   - monto cobrado
   - sincronización manual a `Finanzas`
-- `Historial` reutiliza el mismo modal `Costos y cobro`, evitando mantener dos UX o dos implementaciones distintas del cierre económico
+- `Historial` cambia a acción `Ver costos` en modo solo lectura, para congelar la lectura económica de OT ya cerradas sin seguir mutándolas desde la UX normal
 - se implementa el segundo corte de costeo detallado:
   - migración tenant `0023_maintenance_cost_lines`
   - tabla `maintenance_cost_lines`
@@ -34,6 +34,13 @@
   - al completar una OT, el backend intenta el auto-sync si la política tenant está activa
   - el auto-sync no bloquea el cierre cuando la configuración financiera aún está incompleta
 - el smoke E2E de `maintenance` valida además la presencia de `Sincronización automática a finanzas` en `Resumen técnico`
+- se implementa el seed preventivo de costeo estimado por programación:
+  - migración tenant `0025_maintenance_schedule_estimate_defaults`
+  - tabla `maintenance_schedule_cost_lines`
+  - `maintenance_schedules` ahora guarda `estimate_target_margin_percent` y `estimate_notes`
+  - `Nueva programación` permite definir varias líneas default de materiales, servicios, mano de obra, traslado e indirectos
+  - al agendar una OT desde `Pendientes`, el backend copia esas líneas al costeo estimado inicial del work order
+- el smoke E2E de `maintenance` ahora valida también `Costeo estimado por defecto` en `Nueva programación` y el histórico de costos en solo lectura
 - `Nueva programación` en `Pendientes` se alinea visual y estructuralmente con `Nueva mantención`:
   - mismo patrón modal
   - misma carcasa `panel-card` y misma jerarquía visual de encabezado/subtítulo

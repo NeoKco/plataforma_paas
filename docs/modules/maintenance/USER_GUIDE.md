@@ -45,8 +45,10 @@ El primer corte del modulo ya permite:
 - editar una orden aun no cerrada
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
 - abrir `Costos` desde una mantención abierta para registrar costo estimado, costo real, cobro y sincronización manual a Finanzas
-- abrir el mismo modal `Costos` desde `Historial` para revisar o completar el cierre económico de una orden ya cerrada
+- abrir `Ver costos` desde `Historial` para revisar en modo solo lectura el cierre económico ya congelado de una orden cerrada
 - registrar detalle por líneas dentro de `Costos y cobro`, para que el resumen se derive automáticamente cuando quieras bajar a mano de obra, traslado, materiales, servicios externos o indirectos
+- definir en `Nueva programación` un costeo estimado por defecto con varias líneas de materiales, servicios, mano de obra, traslado e indirectos
+- hacer que una OT agendada desde `Pendientes` nazca ya con ese costeo estimado precargado
 - definir en `Resumen` si el tenant deja el puente con `Finanzas` en modo manual o lo automatiza al cerrar
 - sacar automaticamente de la bandeja activa una orden al completarla o anularla
 - mantener catalogo de tipos de equipo
@@ -99,6 +101,7 @@ Lectura funcional de cada vista:
   - también muestra la política tenant `Sincronización automática a finanzas`
 - `Pendientes`: bandeja automática de mantenciones por gestionar, visible cuando el cliente ya entró en ventana de vencimiento
   - `Nueva programación` sigue el mismo patrón visual, jerarquía de lectura y modal de `Nueva mantención`
+  - `Nueva programación` ya permite precargar `Costeo estimado por defecto` para que la OT programada no parta vacía
   - `Próxima mantención` se sugiere automáticamente si existe una mantención cerrada este año en historial
   - la sugerencia toma primero la misma instalación y, si no hay cierre útil, cae a la misma dirección
   - cuando existe cierre este año, se propone el mismo día y mes para el próximo año
@@ -112,7 +115,8 @@ Lectura funcional de cada vista:
   - `Costos` ya permite resumen manual o detalle por líneas
 - `Instalaciones`: parque instalado por cliente y direccion
 - `Historial`: trabajo ya realizado o anulado
-  - cada tarjeta ya permite abrir `Costos` y `Editar cierre`
+  - cada tarjeta ya permite abrir `Ver costos` y `Editar cierre`
+  - `Ver costos` es solo lectura; el histórico no se edita desde el flujo normal
 - `Agenda`: calendario visual del trabajo abierto
 
 Regla UX operativa:
@@ -125,6 +129,7 @@ Regla UX operativa:
 - el usuario no debe ver referencias `legacy_*` como datos operativos
 - una mantencion cerrada no debe seguir apareciendo editable en la bandeja activa
 - en historial solo deberian poder corregirse descripcion o cierre, no reprogramar fecha/hora
+- el cierre económico histórico debe consultarse en solo lectura; cualquier ajuste excepcional futuro debe quedar como acción separada y auditada
 - la sincronización a `Finanzas` es manual y controlada:
   - primero se registra costo real
   - luego se eligen cuenta, categoría y moneda
@@ -132,6 +137,9 @@ Regla UX operativa:
 - si el tenant activa `Automática al cerrar` en `Resumen`:
   - la OT completada intenta generar ingreso/egreso usando las cuentas, categorías y moneda por defecto del tenant
   - si falta alguna cuenta o no hay monto real para sincronizar, la OT igual se cierra y luego puede resolverse con sync manual
+- si la OT nace desde una programación preventiva con costeo default:
+  - `Costeo estimado` ya se abre precargado con sus líneas base
+  - el operador puede ajustar ese estimado antes de ejecutar la mantención real
 
 ## Mejora funcional recomendada
 

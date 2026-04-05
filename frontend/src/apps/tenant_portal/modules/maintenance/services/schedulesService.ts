@@ -1,5 +1,30 @@
 import { apiRequest } from "../../../../../services/api";
 
+export type TenantMaintenanceScheduleEstimateLine = {
+  id: number;
+  schedule_id: number;
+  line_type: string;
+  description: string | null;
+  quantity: number;
+  unit_cost: number;
+  total_cost: number;
+  sort_order: number;
+  notes: string | null;
+  created_by_user_id: number | null;
+  updated_by_user_id: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TenantMaintenanceScheduleEstimateLineWriteItem = {
+  id?: number | null;
+  line_type: string;
+  description: string | null;
+  quantity: number;
+  unit_cost: number;
+  notes: string | null;
+};
+
 export type TenantMaintenanceSchedule = {
   id: number;
   client_id: number;
@@ -18,9 +43,12 @@ export type TenantMaintenanceSchedule = {
   default_priority: string;
   estimated_duration_minutes: number | null;
   billing_mode: string;
+  estimate_target_margin_percent: number;
+  estimate_notes: string | null;
   is_active: boolean;
   auto_create_due_items: boolean;
   notes: string | null;
+  estimate_lines: TenantMaintenanceScheduleEstimateLine[];
   created_by_user_id: number | null;
   created_at: string;
   updated_at: string;
@@ -75,9 +103,12 @@ export type TenantMaintenanceScheduleWriteRequest = {
   default_priority: string;
   estimated_duration_minutes: number | null;
   billing_mode: string;
+  estimate_target_margin_percent: number;
+  estimate_notes: string | null;
   is_active: boolean;
   auto_create_due_items: boolean;
   notes: string | null;
+  estimate_lines: TenantMaintenanceScheduleEstimateLineWriteItem[];
 };
 
 export function getTenantMaintenanceSchedules(

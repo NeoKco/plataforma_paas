@@ -142,10 +142,14 @@ Fuente frontend principal:
 - la agrupación por organización en `Pendientes` es una lectura complementaria; nunca debe reemplazar la unidad operativa real de cliente/dirección/instalación
 - el reporte `instalaciones activas sin plan preventivo` debe cruzar instalaciones activas contra schedules activos y permitir abrir `Nueva programación` ya precargada
 - el primer corte de costeo/cobro ya vive en `work_orders` como acción modal `Costos`, no como pantalla separada ni como formulario incrustado
-- el mismo modal `Costos` ya debe poder abrirse también desde `Historial`, reutilizando el mismo contrato y sin duplicar la lógica de formularios
+- el mismo dominio de `Costos` ya puede abrirse también desde `Historial`, pero en modo solo lectura para congelar el cierre económico y no mutar una OT pasada desde la UX normal
 - el segundo corte de costeo ya agrega `maintenance_cost_lines`:
   - por ahora sirve para detallar costo técnico granular por etapa `estimate` y `actual`
   - si existen líneas, el resumen por rubro se deriva automáticamente desde ellas
+- `Nueva programación` ya puede llevar líneas de `Costeo estimado por defecto`:
+  - se guardan sobre `maintenance_schedule_cost_lines`
+  - aceptan múltiples materiales y servicios, además de mano de obra, traslado e indirectos
+  - al agendar una OT desde `Pendientes`, esas líneas se copian al `estimate` inicial del work order
 - la sincronización `maintenance -> finance` ya soporta dos políticas tenant:
   - `manual`
   - `auto_on_close`

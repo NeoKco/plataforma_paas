@@ -21,12 +21,16 @@ class MaintenanceScheduleServiceTestCase(unittest.TestCase):
         empty_lines_query.filter.return_value = empty_lines_query
         empty_lines_query.order_by.return_value = empty_lines_query
         empty_lines_query.all.return_value = []
+        saved_lines_query = Mock()
+        saved_lines_query.filter.return_value = saved_lines_query
+        saved_lines_query.order_by.return_value = saved_lines_query
+        saved_lines_query.all.return_value = [SimpleNamespace(id=1), SimpleNamespace(id=2)]
         tenant_db.query.side_effect = [
             Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=17))))),
             Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=31, client_id=17))))),
             Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=9, site_id=31))))),
             empty_lines_query,
-            empty_lines_query,
+            saved_lines_query,
         ]
         tenant_db.add.return_value = None
         tenant_db.flush.return_value = None

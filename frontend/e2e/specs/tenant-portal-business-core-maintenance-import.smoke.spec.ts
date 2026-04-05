@@ -142,12 +142,15 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await expect(getFieldControl(planDialog, /Cliente|Client/i)).toBeVisible();
   await expect(getFieldControl(planDialog, /Próxima mantención|Next due/i)).toBeVisible();
   await expect(getFieldControl(planDialog, /Frecuencia|Frequency/i)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Costeo estimado por defecto|Default estimated costing/i })).toBeVisible();
+  await expect(getFieldControl(planDialog, /Margen objetivo|Target margin/i)).toBeVisible();
   await expect(
     page.getByText(
       /Si existe una mantención cerrada este año en historial|Sugerida desde historial cerrado|No se encontró una mantención cerrada este año|Buscando historial técnico para sugerir la próxima mantención|Se propone frecuencia anual|If a closed maintenance exists this year in history|Suggested from closed history|No closed maintenance was found for this year|Checking technical history to suggest the next maintenance date|Annual frequency is suggested/i
     )
   ).toBeVisible();
   await expect(getFieldControl(planDialog, /Duración estimada|Estimated duration/i)).toBeVisible();
+  await expect(planDialog.getByRole("button", { name: /Agregar línea|Add line/i })).toBeVisible();
   await planDialog.getByRole("button", { name: /Cancelar|Cancel/i }).click();
   await expect(
     page.getByRole("heading", { name: /Agrupación por organización|Organization grouping/i })
@@ -182,14 +185,16 @@ test("tenant portal shows imported business core and maintenance data from ieris
     /Historial t[eé]cnico|Technical history/i
   );
   await expect(getCatalogRow(page, /Mantenci[oó]n sst/i)).toBeVisible();
-  await page.getByRole("button", { name: /Costos|Costing/i }).first().click();
+  await page.getByRole("button", { name: /Ver costos|View costing/i }).first().click();
   const historyCostingDialog = page.getByRole("dialog", {
     name: /Costos y cobro de mantención|Maintenance costing and billing/i,
   });
-  await expect(page.getByRole("heading", { name: /Costos y cobro|Costing and billing/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Histórico de costos y cobro|Costing history/i })).toBeVisible();
   await expect(getFieldControl(historyCostingDialog, /Costo estimado total|Estimated total cost/i)).toBeVisible();
   await expect(getFieldControl(historyCostingDialog, /Monto cobrado|Amount charged/i)).toBeVisible();
-  await expect(historyCostingDialog.getByRole("button", { name: /Agregar línea|Add line/i }).first()).toBeVisible();
+  await expect(historyCostingDialog.getByRole("button", { name: /Agregar línea|Add line/i })).toHaveCount(0);
+  await expect(historyCostingDialog.getByRole("button", { name: /Guardar estimado|Save estimate/i })).toHaveCount(0);
+  await expect(historyCostingDialog.getByRole("button", { name: /Guardar costo real|Save actual cost/i })).toHaveCount(0);
   await historyCostingDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
 
   await openTenantImportedPage(

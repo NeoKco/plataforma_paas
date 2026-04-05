@@ -100,6 +100,7 @@ type MaintenanceCostingModalProps = {
   effectiveTimeZone?: string | null;
   isOpen: boolean;
   language: "es" | "en";
+  mode?: "edit" | "readonly";
   onClose: () => void;
   onFeedback?: (message: string) => void;
   workOrder: MaintenanceCostingModalWorkOrder | null;
@@ -241,10 +242,12 @@ export function MaintenanceCostingModal({
   effectiveTimeZone,
   isOpen,
   language,
+  mode = "edit",
   onClose,
   onFeedback,
   workOrder,
 }: MaintenanceCostingModalProps) {
+  const isReadOnly = mode === "readonly";
   const [isLoading, setIsLoading] = useState(false);
   const [isEstimateSubmitting, setIsEstimateSubmitting] = useState(false);
   const [isActualSubmitting, setIsActualSubmitting] = useState(false);
@@ -419,14 +422,23 @@ export function MaintenanceCostingModal({
   const currentWorkOrder = workOrder;
 
   function addEstimateLine() {
+    if (isReadOnly) {
+      return;
+    }
     setEstimateLines((current) => [...current, buildBlankCostLine()]);
   }
 
   function addActualLine() {
+    if (isReadOnly) {
+      return;
+    }
     setActualLines((current) => [...current, buildBlankCostLine()]);
   }
 
   function updateEstimateLine(index: number, key: MaintenanceEditableCostLineKey, value: string) {
+    if (isReadOnly) {
+      return;
+    }
     setEstimateLines((current) =>
       current.map((line, currentIndex) =>
         currentIndex === index ? { ...line, [key]: value } : line
@@ -435,6 +447,9 @@ export function MaintenanceCostingModal({
   }
 
   function updateActualLine(index: number, key: MaintenanceEditableCostLineKey, value: string) {
+    if (isReadOnly) {
+      return;
+    }
     setActualLines((current) =>
       current.map((line, currentIndex) =>
         currentIndex === index ? { ...line, [key]: value } : line
@@ -443,10 +458,16 @@ export function MaintenanceCostingModal({
   }
 
   function removeEstimateLine(index: number) {
+    if (isReadOnly) {
+      return;
+    }
     setEstimateLines((current) => current.filter((_, currentIndex) => currentIndex !== index));
   }
 
   function removeActualLine(index: number) {
+    if (isReadOnly) {
+      return;
+    }
     setActualLines((current) => current.filter((_, currentIndex) => currentIndex !== index));
   }
 
@@ -462,7 +483,8 @@ export function MaintenanceCostingModal({
     lines: MaintenanceCostLineFormState[],
     onAdd: () => void,
     onUpdate: (index: number, key: MaintenanceEditableCostLineKey, value: string) => void,
-    onRemove: (index: number) => void
+    onRemove: (index: number) => void,
+    readOnly = false
   ) {
     return (
       <div className="maintenance-cost-lines">
@@ -477,9 +499,11 @@ export function MaintenanceCostingModal({
                 : "If you add lines, the cost summary is automatically derived from them."}
             </div>
           </div>
-          <button className="btn btn-sm btn-outline-primary" type="button" onClick={onAdd}>
-            {language === "es" ? "Agregar línea" : "Add line"}
-          </button>
+          {!readOnly ? (
+            <button className="btn btn-sm btn-outline-primary" type="button" onClick={onAdd}>
+              {language === "es" ? "Agregar línea" : "Add line"}
+            </button>
+          ) : null}
         </div>
         {lines.length === 0 ? (
           <div className="maintenance-history-entry__meta">
@@ -500,6 +524,7 @@ export function MaintenanceCostingModal({
                       <select
                         className="form-select"
                         value={line.line_type}
+                        disabled={readOnly}
                         onChange={(event) => onUpdate(index, "line_type", event.target.value)}
                       >
                         {costLineTypeOptions.map((option) => (
@@ -514,6 +539,7 @@ export function MaintenanceCostingModal({
                       <input
                         className="form-control"
                         value={line.description}
+                        readOnly={readOnly}
                         onChange={(event) => onUpdate(index, "description", event.target.value)}
                       />
                     </div>
@@ -525,6 +551,7 @@ export function MaintenanceCostingModal({
                         min="0"
                         step="0.01"
                         value={line.quantity}
+                        readOnly={readOnly}
                         onChange={(event) => onUpdate(index, "quantity", event.target.value)}
                       />
                     </div>
@@ -536,6 +563,7 @@ export function MaintenanceCostingModal({
                         min="0"
                         step="0.01"
                         value={line.unit_cost}
+                        readOnly={readOnly}
                         onChange={(event) => onUpdate(index, "unit_cost", event.target.value)}
                       />
                     </div>
@@ -544,6 +572,7 @@ export function MaintenanceCostingModal({
                       <input
                         className="form-control"
                         value={line.notes}
+                        readOnly={readOnly}
                         onChange={(event) => onUpdate(index, "notes", event.target.value)}
                       />
                     </div>
@@ -551,11 +580,13 @@ export function MaintenanceCostingModal({
                       <label className="form-label">{language === "es" ? "Total" : "Total"}</label>
                       <input className="form-control" value={lineTotal.toFixed(2)} readOnly />
                     </div>
-                    <div className="col-4 col-md-2 maintenance-cost-lines__remove">
-                      <button className="btn btn-outline-danger" type="button" onClick={() => onRemove(index)}>
-                        {language === "es" ? "Quitar" : "Remove"}
-                      </button>
-                    </div>
+                    {!readOnly ? (
+                      <div className="col-4 col-md-2 maintenance-cost-lines__remove">
+                        <button className="btn btn-outline-danger" type="button" onClick={() => onRemove(index)}>
+                          {language === "es" ? "Quitar" : "Remove"}
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               );
@@ -688,11 +719,23 @@ export function MaintenanceCostingModal({
           {language === "es" ? "Costeo y finanzas" : "Costing and finance"}
         </div>
         <PanelCard
-          title={language === "es" ? "Costos y cobro" : "Costing and billing"}
+          title={
+            isReadOnly
+              ? language === "es"
+                ? "Histórico de costos y cobro"
+                : "Costing history"
+              : language === "es"
+                ? "Costos y cobro"
+                : "Costing and billing"
+          }
           subtitle={
-            language === "es"
-              ? "Calcula costo estimado, registra costo real y sincroniza manualmente los movimientos a Finanzas."
-              : "Calculate estimated cost, register actual cost, and manually sync transactions into Finance."
+            isReadOnly
+              ? language === "es"
+                ? "Consulta el cierre económico ya registrado para esta mantención sin modificar el histórico."
+                : "Review the registered financial close for this maintenance without changing history."
+              : language === "es"
+                ? "Calcula costo estimado, registra costo real y sincroniza manualmente los movimientos a Finanzas."
+                : "Calculate estimated cost, register actual cost, and manually sync transactions into Finance."
           }
         >
           {error ? (
@@ -728,7 +771,9 @@ export function MaintenanceCostingModal({
                 className="maintenance-form"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  void handleEstimateSubmit();
+                  if (!isReadOnly) {
+                    void handleEstimateSubmit();
+                  }
                 }}
               >
                 <div className="maintenance-history-entry">
@@ -743,27 +788,27 @@ export function MaintenanceCostingModal({
                   <div className="row g-3 mt-1">
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Mano de obra" : "Labor"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.labor_cost.toFixed(2) : estimateForm.labor_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, labor_cost: event.target.value }))} disabled={estimateUsesLines} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.labor_cost.toFixed(2) : estimateForm.labor_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, labor_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Traslado" : "Travel"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.travel_cost.toFixed(2) : estimateForm.travel_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, travel_cost: event.target.value }))} disabled={estimateUsesLines} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.travel_cost.toFixed(2) : estimateForm.travel_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, travel_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Materiales" : "Materials"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.materials_cost.toFixed(2) : estimateForm.materials_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, materials_cost: event.target.value }))} disabled={estimateUsesLines} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.materials_cost.toFixed(2) : estimateForm.materials_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, materials_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Servicios externos" : "External services"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.external_services_cost.toFixed(2) : estimateForm.external_services_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, external_services_cost: event.target.value }))} disabled={estimateUsesLines} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.external_services_cost.toFixed(2) : estimateForm.external_services_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, external_services_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Indirectos" : "Overhead"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.overhead_cost.toFixed(2) : estimateForm.overhead_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, overhead_cost: event.target.value }))} disabled={estimateUsesLines} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.overhead_cost.toFixed(2) : estimateForm.overhead_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, overhead_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Margen objetivo (%)" : "Target margin (%)"}</label>
-                      <input className="form-control" type="number" min="0" max="99.99" step="0.01" value={estimateForm.target_margin_percent} onChange={(event) => setEstimateForm((current) => ({ ...current, target_margin_percent: event.target.value }))} />
+                      <input className="form-control" type="number" min="0" max="99.99" step="0.01" value={estimateForm.target_margin_percent} onChange={(event) => setEstimateForm((current) => ({ ...current, target_margin_percent: event.target.value }))} disabled={isReadOnly} />
                     </div>
                     <div className="col-12 col-md-6">
                       <label className="form-label">{language === "es" ? "Costo estimado total" : "Estimated total cost"}</label>
@@ -775,28 +820,31 @@ export function MaintenanceCostingModal({
                     </div>
                     <div className="col-12">
                       <label className="form-label">{language === "es" ? "Notas de estimación" : "Estimate notes"}</label>
-                      <textarea className="form-control" rows={3} value={estimateForm.notes} onChange={(event) => setEstimateForm((current) => ({ ...current, notes: event.target.value }))} />
+                      <textarea className="form-control" rows={3} value={estimateForm.notes} onChange={(event) => setEstimateForm((current) => ({ ...current, notes: event.target.value }))} readOnly={isReadOnly} />
                     </div>
                     <div className="col-12">
                       {renderLineEditor(
                         estimateLines,
                         addEstimateLine,
                         updateEstimateLine,
-                        removeEstimateLine
+                        removeEstimateLine,
+                        isReadOnly
                       )}
                     </div>
                   </div>
-                  <div className="maintenance-form__actions">
-                    <button className="btn btn-outline-primary" type="submit" disabled={isEstimateSubmitting}>
-                      {isEstimateSubmitting
-                        ? language === "es"
-                          ? "Guardando..."
-                          : "Saving..."
-                        : language === "es"
-                          ? "Guardar estimado"
-                          : "Save estimate"}
-                    </button>
-                  </div>
+                  {!isReadOnly ? (
+                    <div className="maintenance-form__actions">
+                      <button className="btn btn-outline-primary" type="submit" disabled={isEstimateSubmitting}>
+                        {isEstimateSubmitting
+                          ? language === "es"
+                            ? "Guardando..."
+                            : "Saving..."
+                          : language === "es"
+                            ? "Guardar estimado"
+                            : "Save estimate"}
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               </form>
 
@@ -804,7 +852,9 @@ export function MaintenanceCostingModal({
                 className="maintenance-form"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  void handleActualSubmit();
+                  if (!isReadOnly) {
+                    void handleActualSubmit();
+                  }
                 }}
               >
                 <div className="maintenance-history-entry">
@@ -819,27 +869,27 @@ export function MaintenanceCostingModal({
                   <div className="row g-3 mt-1">
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Mano de obra real" : "Actual labor"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.labor_cost.toFixed(2) : actualForm.labor_cost} onChange={(event) => setActualForm((current) => ({ ...current, labor_cost: event.target.value }))} disabled={actualUsesLines} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.labor_cost.toFixed(2) : actualForm.labor_cost} onChange={(event) => setActualForm((current) => ({ ...current, labor_cost: event.target.value }))} disabled={actualUsesLines || isReadOnly} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Traslado real" : "Actual travel"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.travel_cost.toFixed(2) : actualForm.travel_cost} onChange={(event) => setActualForm((current) => ({ ...current, travel_cost: event.target.value }))} disabled={actualUsesLines} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.travel_cost.toFixed(2) : actualForm.travel_cost} onChange={(event) => setActualForm((current) => ({ ...current, travel_cost: event.target.value }))} disabled={actualUsesLines || isReadOnly} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Materiales reales" : "Actual materials"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.materials_cost.toFixed(2) : actualForm.materials_cost} onChange={(event) => setActualForm((current) => ({ ...current, materials_cost: event.target.value }))} disabled={actualUsesLines} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.materials_cost.toFixed(2) : actualForm.materials_cost} onChange={(event) => setActualForm((current) => ({ ...current, materials_cost: event.target.value }))} disabled={actualUsesLines || isReadOnly} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Servicios externos reales" : "Actual external services"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.external_services_cost.toFixed(2) : actualForm.external_services_cost} onChange={(event) => setActualForm((current) => ({ ...current, external_services_cost: event.target.value }))} disabled={actualUsesLines} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.external_services_cost.toFixed(2) : actualForm.external_services_cost} onChange={(event) => setActualForm((current) => ({ ...current, external_services_cost: event.target.value }))} disabled={actualUsesLines || isReadOnly} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Indirectos reales" : "Actual overhead"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.overhead_cost.toFixed(2) : actualForm.overhead_cost} onChange={(event) => setActualForm((current) => ({ ...current, overhead_cost: event.target.value }))} disabled={actualUsesLines} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.overhead_cost.toFixed(2) : actualForm.overhead_cost} onChange={(event) => setActualForm((current) => ({ ...current, overhead_cost: event.target.value }))} disabled={actualUsesLines || isReadOnly} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Monto cobrado" : "Amount charged"}</label>
-                      <input className="form-control" type="number" min="0" step="0.01" value={actualForm.actual_price_charged} onChange={(event) => setActualForm((current) => ({ ...current, actual_price_charged: event.target.value }))} />
+                      <input className="form-control" type="number" min="0" step="0.01" value={actualForm.actual_price_charged} onChange={(event) => setActualForm((current) => ({ ...current, actual_price_charged: event.target.value }))} disabled={isReadOnly} />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label">{language === "es" ? "Costo real total" : "Actual total cost"}</label>
@@ -855,28 +905,31 @@ export function MaintenanceCostingModal({
                     </div>
                     <div className="col-12">
                       <label className="form-label">{language === "es" ? "Notas de cierre económico" : "Financial close notes"}</label>
-                      <textarea className="form-control" rows={3} value={actualForm.notes} onChange={(event) => setActualForm((current) => ({ ...current, notes: event.target.value }))} />
+                      <textarea className="form-control" rows={3} value={actualForm.notes} onChange={(event) => setActualForm((current) => ({ ...current, notes: event.target.value }))} readOnly={isReadOnly} />
                     </div>
                     <div className="col-12">
                       {renderLineEditor(
                         actualLines,
                         addActualLine,
                         updateActualLine,
-                        removeActualLine
+                        removeActualLine,
+                        isReadOnly
                       )}
                     </div>
                   </div>
-                  <div className="maintenance-form__actions">
-                    <button className="btn btn-outline-primary" type="submit" disabled={isActualSubmitting}>
-                      {isActualSubmitting
-                        ? language === "es"
-                          ? "Guardando..."
-                          : "Saving..."
-                        : language === "es"
-                          ? "Guardar costo real"
-                          : "Save actual cost"}
-                    </button>
-                  </div>
+                  {!isReadOnly ? (
+                    <div className="maintenance-form__actions">
+                      <button className="btn btn-outline-primary" type="submit" disabled={isActualSubmitting}>
+                        {isActualSubmitting
+                          ? language === "es"
+                            ? "Guardando..."
+                            : "Saving..."
+                          : language === "es"
+                            ? "Guardar costo real"
+                            : "Save actual cost"}
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               </form>
 
@@ -884,19 +937,31 @@ export function MaintenanceCostingModal({
                 className="maintenance-form"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  void handleFinanceSyncSubmit();
+                  if (!isReadOnly) {
+                    void handleFinanceSyncSubmit();
+                  }
                 }}
               >
                 <div className="maintenance-history-entry">
                   <div className="maintenance-history-entry__title">
-                    {language === "es" ? "Sincronizar a finanzas" : "Sync to finance"}
+                    {isReadOnly
+                      ? language === "es"
+                        ? "Histórico de sincronización con finanzas"
+                        : "Finance sync history"
+                      : language === "es"
+                        ? "Sincronizar a finanzas"
+                        : "Sync to finance"}
                   </div>
                   <div className="maintenance-history-entry__meta">
-                    {language === "es"
-                      ? "Crea o actualiza el ingreso y egreso ligados a esta mantención usando source_type/source_id."
-                      : "Create or update the linked income and expense using source_type/source_id."}
+                    {isReadOnly
+                      ? language === "es"
+                        ? "Consulta los vínculos financieros ya registrados para esta mantención cerrada."
+                        : "Review the financial links already registered for this closed maintenance."
+                      : language === "es"
+                        ? "Crea o actualiza el ingreso y egreso ligados a esta mantención usando source_type/source_id."
+                        : "Create or update the linked income and expense using source_type/source_id."}
                   </div>
-                  {!activeFinanceAccounts.length || !activeCurrencies.length ? (
+                  {!isReadOnly && (!activeFinanceAccounts.length || !activeCurrencies.length) ? (
                     <div className="alert alert-warning mt-3 mb-0">
                       {language === "es"
                         ? "Primero debes tener cuentas y monedas activas en Finanzas para sincronizar."
@@ -904,6 +969,35 @@ export function MaintenanceCostingModal({
                     </div>
                   ) : null}
                   <div className="row g-3 mt-1">
+                    {isReadOnly ? (
+                      <>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Ingreso vinculado" : "Linked income"}</label>
+                          <input className="form-control" value={String(costingDetail?.actual?.income_transaction_id ?? "—")} readOnly />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Egreso vinculado" : "Linked expense"}</label>
+                          <input className="form-control" value={String(costingDetail?.actual?.expense_transaction_id ?? "—")} readOnly />
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <label className="form-label">{language === "es" ? "Última sync" : "Last sync"}</label>
+                          <input
+                            className="form-control"
+                            value={
+                              costingDetail?.actual?.finance_synced_at
+                                ? formatDateTimeInTimeZone(costingDetail.actual.finance_synced_at, language, effectiveTimeZone)
+                                : "—"
+                            }
+                            readOnly
+                          />
+                        </div>
+                        <div className="col-12">
+                          <label className="form-label">{language === "es" ? "Notas de finanzas" : "Finance notes"}</label>
+                          <textarea className="form-control" rows={2} value={financeSyncForm.notes} readOnly />
+                        </div>
+                      </>
+                    ) : (
+                      <>
                     <div className="col-12 col-md-6">
                       <label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label>
                       <select className="form-select" value={financeSyncForm.currency_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, currency_id: event.target.value }))}>
@@ -991,20 +1085,24 @@ export function MaintenanceCostingModal({
                         {costingDetail?.actual?.expense_transaction_id ?? "—"}
                       </div>
                     </div>
+                      </>
+                    )}
                   </div>
                   <div className="maintenance-form__actions">
                     <button className="btn btn-outline-secondary" type="button" onClick={onClose}>
                       {language === "es" ? "Cerrar" : "Close"}
                     </button>
-                    <button className="btn btn-primary" type="submit" disabled={isFinanceSyncSubmitting || financeSyncBlocked}>
-                      {isFinanceSyncSubmitting
-                        ? language === "es"
-                          ? "Sincronizando..."
-                          : "Syncing..."
-                        : language === "es"
-                          ? "Sincronizar con finanzas"
-                          : "Sync with Finance"}
-                    </button>
+                    {!isReadOnly ? (
+                      <button className="btn btn-primary" type="submit" disabled={isFinanceSyncSubmitting || financeSyncBlocked}>
+                        {isFinanceSyncSubmitting
+                          ? language === "es"
+                            ? "Sincronizando..."
+                            : "Syncing..."
+                          : language === "es"
+                            ? "Sincronizar con finanzas"
+                            : "Sync with Finance"}
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               </form>

@@ -243,17 +243,24 @@ Avance actual:
   - registrar monto cobrado
   - detallar costo por líneas y derivar resumen automático desde ellas
   - sincronizar manualmente ingreso/egreso hacia `finance`
+- se agrega migración tenant `0025_maintenance_schedule_estimate_defaults`
+- tablas y columnas ya versionadas para el seed preventivo del costeo:
+  - `maintenance_schedule_cost_lines`
+  - `maintenance_schedules.estimate_target_margin_percent`
+  - `maintenance_schedules.estimate_notes`
+- `Nueva programación` ya permite definir costeo estimado por defecto con múltiples líneas de material, servicio, mano de obra, traslado e indirectos
+- cuando una OT se agenda desde `Pendientes`, el backend ya copia automáticamente esas líneas al `Costeo estimado` inicial de la orden
 - `Resumen técnico` ya permite editar la política tenant para:
   - mantener sync manual
   - activar `auto_on_close`
   - fijar defaults de cuentas/categorías/moneda
 - al completar una OT, el backend ya intenta el auto-sync cuando la política tenant está activa y configurada
 - el auto-sync no bloquea el cierre operativo si la configuración financiera está incompleta
-- `Historial` ya reutiliza el mismo modal `Costos y cobro` para no duplicar UX ni lógica de costeo
+- `Historial` ya reutiliza la misma base de lectura de `Costos y cobro`, pero congelada en modo solo lectura
 
 Pendiente inmediato de esta fase:
 
-- cerrar la sincronización automática opcional por política tenant
+- decidir si el siguiente corte agrega catálogo reusable tenant de insumos/servicios o si por ahora basta con las líneas default por programación
 
 ## Mejoras de producto recomendadas
 
@@ -284,9 +291,9 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- aplicar migraciones tenant faltantes de `0022` en tenants activos
-- decidir el segundo corte del roadmap:
-  - sync automática opcional
+- aplicar migraciones tenant faltantes de `0025` en tenants activos
+- decidir el siguiente corte del roadmap:
+  - catálogo reusable de materiales/servicios
 
 ## Backlog pendiente visible
 
@@ -300,6 +307,7 @@ Pendiente inmediato de esta fase:
 - agenda visual mensual base: lista
 - modelo canónico de asignacion grupo/usuario: documentado e implementado en primer corte
 - modelo canónico de programacion preventiva y costeo: documentado
+- costeo estimado default por programación: listo en primer corte
 - evidencias y checklist: pendiente
 - importadores legacy: primer corte listo, falta validacion aplicada y endurecimiento
 

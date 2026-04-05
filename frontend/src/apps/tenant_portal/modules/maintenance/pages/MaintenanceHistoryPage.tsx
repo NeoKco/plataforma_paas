@@ -328,7 +328,7 @@ export function MaintenanceHistoryPage() {
                     type="button"
                     onClick={() => openCostingModal(item)}
                   >
-                    {language === "es" ? "Costos" : "Costing"}
+                    {language === "es" ? "Ver costos" : "View costing"}
                   </button>
                   <button
                     className="btn btn-sm btn-outline-primary"
@@ -621,6 +621,7 @@ export function MaintenanceHistoryPage() {
         effectiveTimeZone={effectiveTimeZone}
         isOpen={Boolean(costingWorkOrder)}
         language={language}
+        mode="readonly"
         onClose={closeCostingModal}
         onFeedback={setFeedback}
         workOrder={costingWorkOrder}

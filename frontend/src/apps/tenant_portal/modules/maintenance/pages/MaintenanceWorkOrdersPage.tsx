@@ -946,6 +946,7 @@ export function MaintenanceWorkOrdersPage() {
         effectiveTimeZone={effectiveTimeZone}
         isOpen={Boolean(costingWorkOrder)}
         language={language}
+        mode="edit"
         onClose={closeCostingModal}
         onFeedback={setFeedback}
         workOrder={costingWorkOrder}

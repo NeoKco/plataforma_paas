@@ -24,6 +24,7 @@ import {
   createTenantMaintenanceSchedule,
   getTenantMaintenanceScheduleSuggestion,
   getTenantMaintenanceSchedules,
+  type TenantMaintenanceScheduleEstimateLineWriteItem,
   type TenantMaintenanceSchedule,
   type TenantMaintenanceScheduleSuggestion,
   type TenantMaintenanceScheduleWriteRequest,
@@ -80,10 +81,32 @@ function buildDefaultScheduleForm(): TenantMaintenanceScheduleWriteRequest {
     default_priority: "normal",
     estimated_duration_minutes: 60,
     billing_mode: "per_work_order",
+    estimate_target_margin_percent: 0,
+    estimate_notes: null,
     is_active: true,
     auto_create_due_items: true,
     notes: null,
+    estimate_lines: [],
   };
+}
+
+type ScheduleEstimateLineKey = "line_type" | "description" | "quantity" | "unit_cost" | "notes";
+
+function buildBlankScheduleEstimateLine(): TenantMaintenanceScheduleEstimateLineWriteItem {
+  return {
+    line_type: "material",
+    description: null,
+    quantity: 1,
+    unit_cost: 0,
+    notes: null,
+  };
+}
+
+function sumScheduleEstimateLines(lines: TenantMaintenanceScheduleEstimateLineWriteItem[]): number {
+  return lines.reduce(
+    (total, line) => total + Number(line.quantity || 0) * Number(line.unit_cost || 0),
+    0,
+  );
 }
 
 type DueScheduleForm = {
@@ -247,6 +270,10 @@ export function MaintenanceDueItemsPage() {
     !scheduleForm.name.trim() ||
     !scheduleForm.next_due_at ||
     missingSiteForScheduleClient;
+  const scheduleEstimateTotalPreview = useMemo(
+    () => sumScheduleEstimateLines(scheduleForm.estimate_lines),
+    [scheduleForm.estimate_lines]
+  );
 
   useEffect(() => {
     if (!isPlanModalOpen || !accessToken || Number(scheduleForm.client_id) <= 0) {
@@ -660,6 +687,39 @@ export function MaintenanceDueItemsPage() {
       : "Set the real plan frequency if it differs from the suggestion.";
   }
 
+  function addScheduleEstimateLine() {
+    setScheduleForm((current) => ({
+      ...current,
+      estimate_lines: [...current.estimate_lines, buildBlankScheduleEstimateLine()],
+    }));
+  }
+
+  function updateScheduleEstimateLine(
+    index: number,
+    key: ScheduleEstimateLineKey,
+    value: string
+  ) {
+    setScheduleForm((current) => ({
+      ...current,
+      estimate_lines: current.estimate_lines.map((line, currentIndex) => {
+        if (currentIndex !== index) {
+          return line;
+        }
+        if (key === "quantity" || key === "unit_cost") {
+          return { ...line, [key]: Number(value) };
+        }
+        return { ...line, [key]: value || null };
+      }),
+    }));
+  }
+
+  function removeScheduleEstimateLine(index: number) {
+    setScheduleForm((current) => ({
+      ...current,
+      estimate_lines: current.estimate_lines.filter((_, currentIndex) => currentIndex !== index),
+    }));
+  }
+
   function openContactDueItem(item: TenantMaintenanceDueItem) {
     setSelectedDueItem(item);
     setDueContactForm({
@@ -715,7 +775,13 @@ export function MaintenanceDueItemsPage() {
         ...scheduleForm,
         next_due_at: fromDateTimeLocalInputValue(scheduleForm.next_due_at, effectiveTimeZone),
         description: scheduleForm.description?.trim() || null,
+        estimate_notes: scheduleForm.estimate_notes?.trim() || null,
         notes: scheduleForm.notes?.trim() || null,
+        estimate_lines: scheduleForm.estimate_lines.map((line) => ({
+          ...line,
+          description: line.description?.trim() || null,
+          notes: line.notes?.trim() || null,
+        })),
       });
       setFeedback(language === "es" ? "Programación creada." : "Schedule created.");
       setIsPlanModalOpen(false);
@@ -1401,6 +1467,144 @@ export function MaintenanceDueItemsPage() {
                         }))
                       }
                     />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Margen objetivo (%)" : "Target margin (%)"}</label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      min={0}
+                      max={99.99}
+                      step={0.01}
+                      value={scheduleForm.estimate_target_margin_percent}
+                      onChange={(event) =>
+                        setScheduleForm((current) => ({
+                          ...current,
+                          estimate_target_margin_percent: Number(event.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="col-12">
+                    <div className="panel-card border-0 bg-light-subtle">
+                      <div className="panel-card__header pb-2">
+                        <div>
+                          <h3 className="panel-card__title mb-1">
+                            {language === "es" ? "Costeo estimado por defecto" : "Default estimated costing"}
+                          </h3>
+                          <p className="panel-card__subtitle mb-0">
+                            {language === "es"
+                              ? "Estas líneas se copiarán automáticamente al costeo estimado cuando una mantención se agende desde este plan preventivo. Puedes cargar varios materiales y servicios por defecto."
+                              : "These lines will be copied automatically into the estimated costing when a maintenance job is scheduled from this preventive plan. You can preload multiple default materials and services."}
+                          </p>
+                        </div>
+                        <button className="btn btn-sm btn-outline-primary" type="button" onClick={addScheduleEstimateLine}>
+                          {language === "es" ? "Agregar línea" : "Add line"}
+                        </button>
+                      </div>
+                      <div className="panel-card__body pt-0">
+                        {scheduleForm.estimate_lines.length === 0 ? (
+                          <div className="maintenance-history-entry__meta">
+                            {language === "es"
+                              ? "Sin líneas por defecto todavía. Si las agregas ahora, la OT programada ya abrirá con costeo estimado precargado."
+                              : "No default lines yet. If you add them now, the scheduled work order will open with an estimated costing already preloaded."}
+                          </div>
+                        ) : (
+                          <div className="d-grid gap-3">
+                            {scheduleForm.estimate_lines.map((line, index) => {
+                              const lineTotal = Number(line.quantity || 0) * Number(line.unit_cost || 0);
+                              return (
+                                <div className="maintenance-cost-lines__item" key={`schedule-estimate-${index}`}>
+                                  <div className="row g-3">
+                                    <div className="col-12 col-md-3">
+                                      <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
+                                      <select
+                                        className="form-select"
+                                        value={line.line_type}
+                                        onChange={(event) => updateScheduleEstimateLine(index, "line_type", event.target.value)}
+                                      >
+                                        <option value="labor">{language === "es" ? "Mano de obra" : "Labor"}</option>
+                                        <option value="travel">{language === "es" ? "Traslado" : "Travel"}</option>
+                                        <option value="material">{language === "es" ? "Material" : "Material"}</option>
+                                        <option value="service">{language === "es" ? "Servicio externo" : "External service"}</option>
+                                        <option value="overhead">{language === "es" ? "Indirecto" : "Overhead"}</option>
+                                      </select>
+                                    </div>
+                                    <div className="col-12 col-md-5">
+                                      <label className="form-label">{language === "es" ? "Descripción" : "Description"}</label>
+                                      <input
+                                        className="form-control"
+                                        value={line.description ?? ""}
+                                        onChange={(event) => updateScheduleEstimateLine(index, "description", event.target.value)}
+                                      />
+                                    </div>
+                                    <div className="col-6 col-md-2">
+                                      <label className="form-label">{language === "es" ? "Cantidad" : "Quantity"}</label>
+                                      <input
+                                        className="form-control"
+                                        type="number"
+                                        min={0}
+                                        step={0.01}
+                                        value={line.quantity}
+                                        onChange={(event) => updateScheduleEstimateLine(index, "quantity", event.target.value)}
+                                      />
+                                    </div>
+                                    <div className="col-6 col-md-2">
+                                      <label className="form-label">{language === "es" ? "Costo unitario" : "Unit cost"}</label>
+                                      <input
+                                        className="form-control"
+                                        type="number"
+                                        min={0}
+                                        step={0.01}
+                                        value={line.unit_cost}
+                                        onChange={(event) => updateScheduleEstimateLine(index, "unit_cost", event.target.value)}
+                                      />
+                                    </div>
+                                    <div className="col-12 col-md-8">
+                                      <label className="form-label">{language === "es" ? "Notas" : "Notes"}</label>
+                                      <input
+                                        className="form-control"
+                                        value={line.notes ?? ""}
+                                        onChange={(event) => updateScheduleEstimateLine(index, "notes", event.target.value)}
+                                      />
+                                    </div>
+                                    <div className="col-8 col-md-2">
+                                      <label className="form-label">{language === "es" ? "Total" : "Total"}</label>
+                                      <input className="form-control" value={lineTotal.toFixed(2)} readOnly />
+                                    </div>
+                                    <div className="col-4 col-md-2 maintenance-cost-lines__remove">
+                                      <button className="btn btn-outline-danger" type="button" onClick={() => removeScheduleEstimateLine(index)}>
+                                        {language === "es" ? "Quitar" : "Remove"}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                        <div className="row g-3 mt-1">
+                          <div className="col-12 col-md-6">
+                            <label className="form-label">{language === "es" ? "Costo estimado total por defecto" : "Default estimated total cost"}</label>
+                            <input className="form-control" value={scheduleEstimateTotalPreview.toFixed(2)} readOnly />
+                          </div>
+                          <div className="col-12 col-md-6">
+                            <label className="form-label">{language === "es" ? "Notas del costeo" : "Costing notes"}</label>
+                            <textarea
+                              className="form-control"
+                              rows={2}
+                              value={scheduleForm.estimate_notes ?? ""}
+                              onChange={(event) =>
+                                setScheduleForm((current) => ({
+                                  ...current,
+                                  estimate_notes: event.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div className="col-12">
                     <label className="form-label">{language === "es" ? "Notas operativas" : "Operational notes"}</label>
