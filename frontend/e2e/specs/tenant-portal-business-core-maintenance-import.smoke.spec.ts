@@ -247,7 +247,7 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await expect(installationRecordDialog).toBeVisible();
   await expect(installationRecordDialog.getByText(/Puente con expediente técnico|Technical record bridge/i)).toBeVisible();
   await expect(installationRecordDialog.getByText(/Snapshot de instalación|Installation snapshot/i)).toBeVisible();
-  await expect(installationRecordDialog.getByText(/Cierre técnico reciente|Latest technical closure/i)).toBeVisible();
+  await expect(installationRecordDialog.getByRole("heading", { name: /Cierre técnico reciente|Latest technical closure/i })).toBeVisible();
   await installationRecordDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
 
   await openTenantImportedPage(
@@ -255,10 +255,10 @@ test("tenant portal shows imported business core and maintenance data from ieris
     "/tenant-portal/maintenance/reports",
     /Reportes técnicos|Technical reports/i
   );
-  await expect(page.getByText(/Cierres del período|Period closures/i)).toBeVisible();
-  await expect(page.getByText(/Cobertura de cierre|Closure coverage/i)).toBeVisible();
-  await expect(page.getByText(/Cobertura por tipo de equipo|Coverage by equipment type/i)).toBeVisible();
-  await expect(page.getByText(/Instalaciones sin servicio reciente|Installations without recent service/i)).toBeVisible();
+  await expect(page.getByText(/^(Cierres del período|Period closures)$/i)).toBeVisible();
+  await expect(page.getByText(/^(Cobertura de cierre|Closure coverage)$/i)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Cobertura por tipo de equipo|Coverage by equipment type/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Instalaciones sin servicio reciente|Installations without recent service/i })).toBeVisible();
 
   await openTenantImportedPage(
     page,
