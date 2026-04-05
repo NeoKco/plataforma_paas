@@ -4,6 +4,7 @@ Estado actual:
 
 - `Wave 2 operativa para taxonomias compartidas`
 - `Slice operativo de Duplicados ya visible en UI tenant`
+- `Slice de assets, asset_types y site_responsibles implementado`
 
 Prioridad:
 
@@ -94,7 +95,7 @@ Estado actual del slice `Duplicados`:
 
 Estado:
 
-- `Pendiente`
+- `En progreso`
 
 Alcance:
 
@@ -112,6 +113,8 @@ Pendiente documentado:
 Completado recientemente:
 
 - `business_site_responsibles`: tabla, API y vista administrativa para asignar responsables de sitio a usuarios tenant reales
+- `business_asset_types`: tabla, API, vista administrativa y migracion tenant
+- `business_assets`: tabla, API, vista administrativa y migracion tenant
 
 ## Riesgos a evitar
 
@@ -122,7 +125,7 @@ Completado recientemente:
 ## Siguiente paso recomendado
 
 - cerrar la siguiente ola de integracion con `maintenance` sobre responsables reales
-- abrir `site_responsibles`
+- profundizar la adopcion de `assets` por `maintenance` e `iot`
 - endurecer el importador inicial desde `ieris_app`
 - profundizar la depuracion de duplicados para soportar consolidacion profunda de entidades y no solo reasignacion operativa + desactivacion segura
 
@@ -130,7 +133,7 @@ Completado recientemente:
 
 - `work_group_members`: backend/frontend base listo
 - `site_responsibles`: completado
-- `assets` y `asset_types`: pendiente
+- `assets` y `asset_types`: completado
 - importadores legacy desde `ieris_app`: primer corte listo, falta aplicacion y endurecimiento
 - auditoria operativa de duplicados: UI ya lista para `organizations`, `clients`, `contacts`, `sites` e `installations`, con sugerencia de ficha a conservar, consolidacion operativa y desactivacion segura; falta merge/asimilacion profunda guiada
 - merge profundo de `organizations` y consolidacion documental de `contacts`: ya resuelve asimilacion guiada de múltiples clientes en conflicto, integra campos visibles base, permite selección manual por campo, expone diff final previo y registra una auditoria persistente del merge; falta criterio documental profundo y fusión manual asistida de identidad completa para el resto de las entidades

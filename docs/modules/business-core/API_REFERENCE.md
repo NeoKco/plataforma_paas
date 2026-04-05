@@ -10,6 +10,9 @@ Estado actual:
   - `function_profiles`
   - `work_groups`
   - `task_types`
+  - `site_responsibles`
+  - `asset_types`
+  - `assets`
 
 ## Endpoints implementados
 
@@ -59,6 +62,16 @@ Estado actual:
 - `PUT /tenant/business-core/task-types/{task_type_id}`
 - `PATCH /tenant/business-core/task-types/{task_type_id}/status`
 - `DELETE /tenant/business-core/task-types/{task_type_id}`
+- `GET /tenant/business-core/asset-types`
+- `POST /tenant/business-core/asset-types`
+- `PUT /tenant/business-core/asset-types/{asset_type_id}`
+- `PATCH /tenant/business-core/asset-types/{asset_type_id}/status`
+- `DELETE /tenant/business-core/asset-types/{asset_type_id}`
+- `GET /tenant/business-core/assets`
+- `POST /tenant/business-core/assets`
+- `PUT /tenant/business-core/assets/{asset_id}`
+- `PATCH /tenant/business-core/assets/{asset_id}/status`
+- `DELETE /tenant/business-core/assets/{asset_id}`
 
 ## Flujos operativos frontend ya soportados
 
@@ -111,7 +124,10 @@ Reasignaciones actuales por tipo:
 
 - `GET /tenant/business-core/assets`
 - `POST /tenant/business-core/assets`
-- `PATCH /tenant/business-core/assets/{asset_id}`
+- `PUT /tenant/business-core/assets/{asset_id}`
+- `PATCH /tenant/business-core/assets/{asset_id}/status`
+- `GET /tenant/business-core/asset-types`
+- `POST /tenant/business-core/asset-types`
 
 Regla de diseño:
 
@@ -154,6 +170,33 @@ Notas de contrato:
 
 - `site_code` sigue existiendo en el modelo por razones tecnicas, pero la UI normal del tenant no deberia exponerlo como editable.
 - `reference_notes` debe reservarse para notas humanas visibles al usuario, no para ids o trazas legacy.
+
+### Asset type summary
+
+Campos minimos de lectura:
+
+- `id`
+- `code`
+- `name`
+- `description`
+- `is_active`
+- `sort_order`
+
+### Asset summary
+
+Campos minimos de lectura:
+
+- `id`
+- `site_id`
+- `site_name`
+- `site_label`
+- `asset_type_id`
+- `asset_type_name`
+- `name`
+- `asset_code`
+- `serial_number`
+- `asset_status`
+- `is_active`
 
 ### Work group summary
 

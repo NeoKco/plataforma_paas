@@ -1,5 +1,7 @@
 # Business Core Changelog
 
+- Se agrega `Tipos de activo` y `Activos`: tablas tenant, APIs CRUD, migracion y vistas administrativas para clasificar e inventariar equipos instalados por sitio.
+- La navegación y las rutas de `business-core` ahora exponen `Activos` y `Tipos de activo` como slice visible dentro del módulo.
 - Se agrega `Responsables de sitio`: tabla tenant, API CRUD y vista administrativa para vincular sitios con usuarios reales, tipo de responsabilidad, principalidad y vigencia.
 - La consolidación de `Organizaciones` ahora persiste un ledger de auditoría con el resumen del merge, los ids origen, la selección final por campo y el diff `current -> final` antes de desactivar las organizaciones origen.
 - La vista `Duplicados` ahora audita tambien `Organizaciones`: detecta equivalentes por RUT o por nombre + canal central, puede mover `Contactos`, asimilar múltiples `Clientes` en conflicto hacia una ficha sugerida, integrar campos documentales visibles, reasignar la ficha final y desactiva las organizaciones origen.
@@ -68,7 +70,7 @@
 - Se versiona `0017_business_core_taxonomy` con `function_profiles`, `work_groups` y `task_types`.
 - Se implementa la ola 1B backend/frontend para taxonomias compartidas.
 - Se deja explicito que membresias de grupos quedan para una ola posterior.
-- Se deja el backlog pendiente visible en la documentacion para no perder `assets`, `site_responsibles`, `work_group_members` e integraciones con modulos.
+- Se deja el backlog pendiente visible en la documentacion para no perder `work_group_members` e integraciones con modulos.
 - se agrega el importador inicial [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py) para poblar `business-core` desde la BD legacy de `ieris_app`
 - se deja explicito que `user_groups` sigue pendiente hasta abrir `business_work_group_members`
 - se valida el `dry-run` del importador contra `kanban_db` y el tenant `empresa-bootstrap`

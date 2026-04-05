@@ -14,6 +14,8 @@ Sirve para centralizar:
 - en que sitios opera cada cliente
 - que grupos o equipos internos trabajan
 - que tipos de tarea existen
+- que tipos de activo existen
+- que activos instalados hay por sitio
 
 ## Que problema evita
 
@@ -64,6 +66,7 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - la captura de `Nuevo cliente` deberia advertir coincidencias fuertes por RUT, nombre, telefono, email o direccion y desviar al usuario hacia la ficha existente antes de duplicar la cartera.
 - cuando ya existen duplicados en la base, la pantalla `Depuración` debe agrupar `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones` por coincidencias exactas normalizadas, sugerir qué ficha conservar y mostrar dependencias visibles para ayudar a decidir qué ficha borrar, desactivar o consolidar sin romper historial.
 - la vista `Responsables` permite asignar usuarios tenant reales a cada sitio con tipo de responsabilidad, principalidad y vigencia.
+- la vista `Activos` permite mantener el inventario instalado por sitio y `Tipos de activo` define la taxonomia reusable para ese inventario.
 
 Eso genera:
 

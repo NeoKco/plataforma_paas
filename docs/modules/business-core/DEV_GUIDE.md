@@ -41,6 +41,12 @@ Segundo bloque recomendado:
 - `business_asset_types`
 - `business_site_responsibles`
 
+Estado de este segundo bloque:
+
+- `business_site_responsibles`: implementado
+- `business_asset_types`: implementado
+- `business_assets`: implementado
+
 ## Modelo inicial sugerido
 
 ### 1. Organizations
@@ -395,8 +401,6 @@ Pendiente aun en business-core:
 
 - `business_work_group_members`
 - `business_site_contacts`
-- `business_site_responsibles`
-- `assets`
 - mapeo de usuarios legacy hacia usuarios tenant reales
 - `business_work_group_members` se posterga para una ola posterior, evitando sobrediseño antes de conectar `maintenance`
 
@@ -408,9 +412,13 @@ Fase 2:
 
 Fase 3:
 
-- `assets`
 - responsables de sitio
 - adopcion por `maintenance`
+
+Fase 4:
+
+- `assets` y `asset_types`
+- adopcion de `assets` por `maintenance` e `iot`
 
 ## Contratos esperados
 
@@ -481,14 +489,17 @@ Si `projects` e `iot` estan en el horizonte, conviene considerar desde ya:
 
 - `site` como entidad de primer nivel
 - `asset` o `installed_equipment` como entidad reutilizable
+- `asset_type` como taxonomia compartida de equipos instalados
 - `organization` con roles de relacion, no solo etiqueta de cliente/proveedor
 - perfiles funcionales configurables, no hardcodeados por modulo
 ## Estado de implementacion
 - El primer slice backend ya existe en el PaaS para `organizations`, `clients`, `contacts` y `sites`.
 - El primer slice frontend tenant ya existe en el PaaS para `organizations`, `clients`, `contacts` y `sites`.
+- El slice backend y frontend de `assets`, `asset_types` y `site_responsibles` ya existe en el PaaS.
 - Las rutas activas del primer corte son:
   - `GET/POST/GET by id/PUT/PATCH status/DELETE /tenant/business-core/organizations`
   - `GET/POST/GET by id/PUT/PATCH status/DELETE /tenant/business-core/clients`
   - `GET/POST/GET by id/PUT/PATCH status/DELETE /tenant/business-core/contacts`
   - `GET/POST/GET by id/PUT/PATCH status/DELETE /tenant/business-core/sites`
 - El siguiente corte ya no es catalogo base, sino taxonomias compartidas: `function_profiles`, `work_groups` y `task_types`.
+- El siguiente paso de negocio es adopción de `assets` por `maintenance` e integración de lectura por `iot`.
