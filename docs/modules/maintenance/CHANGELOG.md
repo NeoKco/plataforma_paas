@@ -44,6 +44,10 @@
   - cuenta miembros activos/vigentes por perfil funcional
   - resume técnicos/grupos compatibles por tipo de tarea
   - alerta perfiles huérfanos y tipos de tarea sin cobertura real
+- `Instalaciones` ahora agrega una acción `Expediente` como puente inicial con expediente técnico:
+  - resume snapshot del activo, próximas mantenciones y últimas OT de la instalación
+  - reutiliza el `Checklist y evidencias` de la última OT cerrada como base documental del activo
+  - permite avanzar el roadmap de extensión técnica sin abrir todavía un módulo documental separado
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso

@@ -193,13 +193,22 @@ Salida ya cubierta:
 
 Estado:
 
-- `Pendiente`
+- `En progreso inicial`
 
 Alcance:
 
 - puente con expediente tecnico
 - reportes tecnicos
 - mejoras moviles para terreno
+
+Avance actual:
+
+- `Instalaciones` ya expone un primer `Expediente` liviano por activo:
+  - resume snapshot técnico del equipo instalado
+  - lista mantenciones abiertas/cerradas asociadas a esa instalación
+  - muestra próxima atención y último cierre
+  - reutiliza el `field report` de la última OT cerrada como base documental del activo
+- el módulo todavía no abre un expediente técnico documental completo ni reportes especializados; ese frente sigue desacoplado para no mezclar demasiado pronto operación y archivo técnico
 
 ## Fase 6.5. Programacion preventiva y costeo
 

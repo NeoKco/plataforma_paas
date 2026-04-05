@@ -50,10 +50,18 @@ function formatDateTime(value: string | null, language: "es" | "en", timeZone?: 
 }
 
 function getStatusTone(status: string): "success" | "warning" | "danger" | "info" | "neutral" {
-  if (status === "completed") return "success";
-  if (status === "cancelled") return "danger";
-  if (status === "in_progress") return "info";
-  if (status === "scheduled") return "warning";
+  if (status === "completed") {
+    return "success";
+  }
+  if (status === "cancelled") {
+    return "danger";
+  }
+  if (status === "in_progress") {
+    return "info";
+  }
+  if (status === "scheduled") {
+    return "warning";
+  }
   return "neutral";
 }
 
@@ -94,7 +102,8 @@ export function MaintenanceInstallationTechnicalRecordModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
-  const [latestFieldReport, setLatestFieldReport] = useState<TenantMaintenanceFieldReport | null>(null);
+  const [latestFieldReport, setLatestFieldReport] =
+    useState<TenantMaintenanceFieldReport | null>(null);
 
   useEffect(() => {
     async function loadRecord() {
@@ -111,7 +120,10 @@ export function MaintenanceInstallationTechnicalRecordModal({
         setWorkOrders(orders);
 
         const latestClosedOrder = [...orders]
-          .filter((item) => item.maintenance_status === "completed" || item.maintenance_status === "cancelled")
+          .filter(
+            (item) =>
+              item.maintenance_status === "completed" || item.maintenance_status === "cancelled"
+          )
           .sort(
             (left, right) =>
               toTimestamp(right.completed_at || right.cancelled_at || right.updated_at) -
@@ -138,7 +150,10 @@ export function MaintenanceInstallationTechnicalRecordModal({
   }, [accessToken, installation, isOpen]);
 
   const activeOrders = useMemo(
-    () => workOrders.filter((item) => item.maintenance_status === "scheduled" || item.maintenance_status === "in_progress"),
+    () =>
+      workOrders.filter(
+        (item) => item.maintenance_status === "scheduled" || item.maintenance_status === "in_progress"
+      ),
     [workOrders]
   );
 
@@ -156,14 +171,17 @@ export function MaintenanceInstallationTechnicalRecordModal({
     () =>
       [...activeOrders]
         .filter((item) => item.scheduled_for)
-        .sort((left, right) => toTimestamp(left.scheduled_for) - toTimestamp(right.scheduled_for))[0] || null,
+        .sort((left, right) => toTimestamp(left.scheduled_for) - toTimestamp(right.scheduled_for))[0] ||
+      null,
     [activeOrders]
   );
 
   const latestClosedOrder = useMemo(
     () =>
       [...workOrders]
-        .filter((item) => item.maintenance_status === "completed" || item.maintenance_status === "cancelled")
+        .filter(
+          (item) => item.maintenance_status === "completed" || item.maintenance_status === "cancelled"
+        )
         .sort(
           (left, right) =>
             toTimestamp(right.completed_at || right.cancelled_at || right.updated_at) -
@@ -189,7 +207,9 @@ export function MaintenanceInstallationTechnicalRecordModal({
         className="maintenance-form-modal maintenance-form-modal--wide"
         role="dialog"
         aria-modal="true"
-        aria-label={language === "es" ? "Expediente técnico de instalación" : "Installation technical record"}
+        aria-label={
+          language === "es" ? "Expediente técnico de instalación" : "Installation technical record"
+        }
         onClick={(event) => event.stopPropagation()}
       >
         <div className="maintenance-form-modal__eyebrow">
@@ -210,9 +230,222 @@ export function MaintenanceInstallationTechnicalRecordModal({
 
           {error ? (
             <ErrorState
-              title={language === "es" ? "No se pudo cargar el expediente" : "The technical record could not be loaded"}
+              title={
+                language === "es"
+                  ? "No se pudo cargar el expediente"
+                  : "The technical record could not be loaded"
+              }
               detail={getApiErrorDisplayMessage(error)}
               requestId={error.payload?.request_id}
             />
           ) : isLoading ? (
-            <LoadingBlock label={language === "es" ? "Cargando expediente...
+            <LoadingBlock label={language === "es" ? "Cargando expediente..." : "Loading record..."} />
+          ) : (
+            <div className="d-grid gap-3">
+              <div className="row g-3">
+                <div className="col-6 col-lg-3">
+                  <div className="maintenance-history-entry">
+                    <div className="maintenance-history-entry__title">
+                      {language === "es" ? "Mantenciones" : "Work orders"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">{workOrders.length}</div>
+                  </div>
+                </div>
+                <div className="col-6 col-lg-3">
+                  <div className="maintenance-history-entry">
+                    <div className="maintenance-history-entry__title">
+                      {language === "es" ? "Abiertas" : "Open"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">{activeOrders.length}</div>
+                  </div>
+                </div>
+                <div className="col-6 col-lg-3">
+                  <div className="maintenance-history-entry">
+                    <div className="maintenance-history-entry__title">
+                      {language === "es" ? "Completadas" : "Completed"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">{completedOrders.length}</div>
+                  </div>
+                </div>
+                <div className="col-6 col-lg-3">
+                  <div className="maintenance-history-entry">
+                    <div className="maintenance-history-entry__title">
+                      {language === "es" ? "Anuladas" : "Cancelled"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">{cancelledOrders.length}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="row g-3">
+                <div className="col-12 col-lg-6">
+                  <div className="panel-card border-0 bg-light-subtle h-100">
+                    <div className="panel-card__header pb-2">
+                      <div>
+                        <h3 className="panel-card__title mb-1">
+                          {language === "es" ? "Snapshot de instalación" : "Installation snapshot"}
+                        </h3>
+                        <p className="panel-card__subtitle mb-0">
+                          {language === "es"
+                            ? "Base técnica mínima antes de abrir un expediente documental completo."
+                            : "Minimum technical base before opening a full document dossier."}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="panel-card__body pt-0 d-grid gap-2">
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Serie" : "Serial"}: {installation.serial_number || "—"}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Fabricante / modelo" : "Manufacturer / model"}: {installation.manufacturer || "—"} / {installation.model || "—"}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Instalada" : "Installed"}: {formatDateTime(installation.installed_at, language, effectiveTimeZone)}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Último servicio" : "Last service"}: {formatDateTime(installation.last_service_at, language, effectiveTimeZone)}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Garantía" : "Warranty"}: {formatDateTime(installation.warranty_until, language, effectiveTimeZone)}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Estado técnico" : "Technical status"}: {installation.installation_status}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Ubicación" : "Location"}: {stripLegacyVisibleText(installation.location_note) || "—"}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Notas técnicas" : "Technical notes"}: {stripLegacyVisibleText(installation.technical_notes) || "—"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-12 col-lg-6">
+                  <div className="panel-card border-0 bg-light-subtle h-100">
+                    <div className="panel-card__header pb-2">
+                      <div>
+                        <h3 className="panel-card__title mb-1">
+                          {language === "es" ? "Cierre técnico reciente" : "Latest technical closure"}
+                        </h3>
+                        <p className="panel-card__subtitle mb-0">
+                          {language === "es"
+                            ? "Reutiliza checklist y evidencias de la última OT cerrada como puente con expediente."
+                            : "Reuses the latest closed work order checklist and evidence as a bridge with the technical record."}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="panel-card__body pt-0 d-grid gap-2">
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Último cierre" : "Latest closure"}: {formatDateTime(latestClosedOrder?.completed_at || latestClosedOrder?.cancelled_at || null, language, effectiveTimeZone)}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "OT base" : "Base work order"}: {latestClosedOrder?.title || "—"}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Checklist" : "Checklist"}: {latestFieldReport ? `${checklistCompletedCount}/${latestFieldReport.checklist_items.length}` : "—"}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Evidencias" : "Evidence"}: {latestFieldReport?.evidences.length ?? 0}
+                      </div>
+                      <div className="maintenance-history-entry__meta">
+                        {language === "es" ? "Observación de cierre" : "Closure note"}: {stripLegacyVisibleText(latestFieldReport?.closure_notes) || stripLegacyVisibleText(latestClosedOrder?.closure_notes) || "—"}
+                      </div>
+                      {!latestClosedOrder ? (
+                        <div className="maintenance-history-entry__meta">
+                          {language === "es"
+                            ? "Aún no existe una mantención cerrada para usar como expediente base."
+                            : "There is no closed maintenance order yet to use as a base record."}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="row g-3">
+                <div className="col-12 col-lg-5">
+                  <div className="panel-card border-0 bg-light-subtle h-100">
+                    <div className="panel-card__header pb-2">
+                      <div>
+                        <h3 className="panel-card__title mb-1">
+                          {language === "es" ? "Próxima atención" : "Next attention"}
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="panel-card__body pt-0 d-grid gap-2">
+                      {nextScheduledOrder ? (
+                        <>
+                          <div className="maintenance-history-entry__title">{nextScheduledOrder.title}</div>
+                          <div className="maintenance-history-entry__meta">
+                            {formatDateTime(nextScheduledOrder.scheduled_for, language, effectiveTimeZone)}
+                          </div>
+                          <div>
+                            <AppBadge tone={getStatusTone(nextScheduledOrder.maintenance_status)}>
+                              {getStatusLabel(nextScheduledOrder.maintenance_status, language)}
+                            </AppBadge>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="maintenance-history-entry__meta">
+                          {language === "es" ? "Sin visita u OT abierta programada." : "No open scheduled visit or work order."}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="col-12 col-lg-7">
+                  <div className="panel-card border-0 bg-light-subtle h-100">
+                    <div className="panel-card__header pb-2">
+                      <div>
+                        <h3 className="panel-card__title mb-1">
+                          {language === "es" ? "Últimas mantenciones" : "Recent work orders"}
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="panel-card__body pt-0 d-grid gap-2">
+                      {recentOrders.length ? (
+                        recentOrders.map((item) => (
+                          <div key={item.id} className="maintenance-history-entry">
+                            <div className="d-flex flex-wrap justify-content-between gap-2 align-items-start">
+                              <div>
+                                <div className="maintenance-history-entry__title">{item.title}</div>
+                                <div className="maintenance-history-entry__meta">
+                                  {formatDateTime(
+                                    item.scheduled_for || item.completed_at || item.cancelled_at || item.requested_at,
+                                    language,
+                                    effectiveTimeZone
+                                  )}
+                                </div>
+                                <div className="maintenance-history-entry__meta">
+                                  {stripLegacyVisibleText(item.description) || "—"}
+                                </div>
+                              </div>
+                              <AppBadge tone={getStatusTone(item.maintenance_status)}>
+                                {getStatusLabel(item.maintenance_status, language)}
+                              </AppBadge>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="maintenance-history-entry__meta">
+                          {language === "es" ? "Aún no hay mantenciones registradas para esta instalación." : "There are no work orders recorded for this installation yet."}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="maintenance-form__actions mt-4">
+            <button className="btn btn-outline-secondary" type="button" onClick={onClose}>
+              {language === "es" ? "Cerrar" : "Close"}
+            </button>
+          </div>
+        </PanelCard>
+      </div>
+    </div>
+  );
+}

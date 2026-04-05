@@ -125,6 +125,7 @@ Estado del corte hoy:
 - `Business Core -> Tipos de tarea` ya permite marcar `Perfiles compatibles`; ahora esa compatibilidad se persiste en una estructura dedicada `task_type -> function_profile`, manteniendo fallback de lectura para metadata legacy `profiles:` mientras exista historial previo
 - `Business Core -> Taxonomías` ya expone una matriz visual `Tipo de tarea x Perfil funcional` para auditar compatibilidad fina sin abrir cada catálogo por separado
 - esa misma matriz ya muestra cobertura operativa real usando membresías activas/vigentes de grupos, para detectar tipos sin técnicos compatibles y perfiles funcionales huérfanos
+- `Instalaciones` ya puede abrir `Expediente` como puente liviano con expediente técnico: resume snapshot del activo, próximas/últimas mantenciones y reutiliza el checklist/evidencias del último cierre como base documental sin abrir aún un módulo separado
 
 Pendientes visibles inmediatos:
 

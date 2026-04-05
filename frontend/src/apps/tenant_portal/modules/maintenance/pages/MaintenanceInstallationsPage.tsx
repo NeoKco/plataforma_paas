@@ -6,6 +6,7 @@ import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { MaintenanceCatalogPage } from "../components/common/MaintenanceCatalogPage";
+import { MaintenanceInstallationTechnicalRecordModal } from "../components/common/MaintenanceInstallationTechnicalRecordModal";
 import {
   createTenantMaintenanceInstallation,
   deleteTenantMaintenanceInstallation,
@@ -64,7 +65,7 @@ function normalizeNullable(value: string | null | undefined): string | null {
 }
 
 export function MaintenanceInstallationsPage() {
-  const { session } = useTenantAuth();
+  const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<TenantMaintenanceInstallation[]>([]);
@@ -78,6 +79,8 @@ export function MaintenanceInstallationsPage() {
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [form, setForm] = useState<MaintenanceInstallationForm>(buildDefaultForm());
+  const [technicalRecordInstallation, setTechnicalRecordInstallation] =
+    useState<TenantMaintenanceInstallation | null>(null);
   const [openCreateSignal, setOpenCreateSignal] = useState<string | null>(null);
   const [requestedCreateHandled, setRequestedCreateHandled] = useState(false);
   const requestedClientId = Number(searchParams.get("clientId") || 0);
@@ -358,7 +361,16 @@ export function MaintenanceInstallationsPage() {
     }
   }
 
+  function openTechnicalRecord(item: TenantMaintenanceInstallation) {
+    setTechnicalRecordInstallation(item);
+  }
+
+  function closeTechnicalRecord() {
+    setTechnicalRecordInstallation(null);
+  }
+
   return (
+    <>
       <MaintenanceCatalogPage
       titleEs="Instalaciones"
       titleEn="Installations"
@@ -550,6 +562,13 @@ export function MaintenanceInstallationsPage() {
           render: (item, currentLanguage) => (
             <AppToolbar compact>
               <button
+                className="btn btn-sm btn-outline-info"
+                type="button"
+                onClick={() => openTechnicalRecord(item)}
+              >
+                {currentLanguage === "es" ? "Expediente" : "Record"}
+              </button>
+              <button
                 className="btn btn-sm btn-outline-primary"
                 type="button"
                 onClick={() => startEdit(item)}
@@ -580,6 +599,32 @@ export function MaintenanceInstallationsPage() {
           ),
         },
       ]}
-    />
+      />
+
+      <MaintenanceInstallationTechnicalRecordModal
+        accessToken={session?.accessToken}
+        installation={technicalRecordInstallation}
+        clientLabel={
+          technicalRecordInstallation
+            ? getClientDisplayName(siteById.get(technicalRecordInstallation.site_id)?.client_id || 0)
+            : "—"
+        }
+        siteLabel={
+          technicalRecordInstallation
+            ? getSiteDisplayName(siteById.get(technicalRecordInstallation.site_id))
+            : "—"
+        }
+        equipmentTypeLabel={
+          technicalRecordInstallation
+            ? equipmentTypeById.get(technicalRecordInstallation.equipment_type_id)?.name ||
+              `#${technicalRecordInstallation.equipment_type_id}`
+            : "—"
+        }
+        effectiveTimeZone={effectiveTimeZone}
+        isOpen={Boolean(technicalRecordInstallation)}
+        language={language}
+        onClose={closeTechnicalRecord}
+      />
+    </>
   );
 }
