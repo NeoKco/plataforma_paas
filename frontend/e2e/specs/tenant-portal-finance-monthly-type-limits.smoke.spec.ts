@@ -4,6 +4,7 @@ import {
   getTenantFinanceUsageSnapshot,
   setTenantModuleLimit,
 } from "../support/backend-control";
+import { buildE2EText } from "../support/e2e-data";
 import { e2eEnv } from "../support/env";
 import {
   createBasicExpenseTransaction,
@@ -39,14 +40,11 @@ async function expectBlockedTypeTransaction(
     transactionType: "income" | "expense";
     blockedDescription: string;
     moduleKey: "finance.entries.monthly.income" | "finance.entries.monthly.expense";
+    accountName: string;
   }
 ) {
   let form = getFinanceTransactionForm(page);
-  form = await ensureFinanceTransactionFormReady(
-    page,
-    form,
-    `e2e-finance-monthly-type-account-${Date.now()}`
-  );
+  form = await ensureFinanceTransactionFormReady(page, form, options.accountName);
   await form.getByRole("combobox").first().selectOption(options.transactionType);
   await form.locator('input[type="number"]').first().fill("12345");
   await form
@@ -84,8 +82,15 @@ async function expectBlockedTypeTransaction(
 test("tenant portal finance blocks income creation when monthly income quota is exhausted", async ({
   page,
 }) => {
-  const seedDescription = `e2e-finance-income-seed-${Date.now()}`;
-  const blockedDescription = `e2e-finance-income-blocked-${Date.now()}`;
+  const seedDescription = buildE2EText("finance-monthly-income-seed", "e2e-finance-income-seed");
+  const blockedDescription = buildE2EText(
+    "finance-monthly-income-blocked",
+    "e2e-finance-income-blocked"
+  );
+  const accountName = buildE2EText(
+    "finance-monthly-income-account",
+    "e2e-finance-monthly-type-account"
+  );
 
   setTenantModuleLimit({
     tenantSlug: e2eEnv.tenant.slug,
@@ -116,6 +121,7 @@ test("tenant portal finance blocks income creation when monthly income quota is 
       transactionType: "income",
       blockedDescription,
       moduleKey: "finance.entries.monthly.income",
+      accountName,
     });
   } finally {
     const clearedLimit = setTenantModuleLimit({
@@ -130,8 +136,15 @@ test("tenant portal finance blocks income creation when monthly income quota is 
 test("tenant portal finance blocks expense creation when monthly expense quota is exhausted", async ({
   page,
 }) => {
-  const seedDescription = `e2e-finance-expense-seed-${Date.now()}`;
-  const blockedDescription = `e2e-finance-expense-blocked-${Date.now()}`;
+  const seedDescription = buildE2EText("finance-monthly-expense-seed", "e2e-finance-expense-seed");
+  const blockedDescription = buildE2EText(
+    "finance-monthly-expense-blocked",
+    "e2e-finance-expense-blocked"
+  );
+  const accountName = buildE2EText(
+    "finance-monthly-expense-account",
+    "e2e-finance-monthly-type-account"
+  );
 
   setTenantModuleLimit({
     tenantSlug: e2eEnv.tenant.slug,
@@ -162,6 +175,7 @@ test("tenant portal finance blocks expense creation when monthly expense quota i
       transactionType: "expense",
       blockedDescription,
       moduleKey: "finance.entries.monthly.expense",
+      accountName,
     });
   } finally {
     const clearedLimit = setTenantModuleLimit({

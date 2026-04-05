@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "../support/test";
 import { loginTenant } from "../support/auth";
+import { buildE2EText } from "../support/e2e-data";
 
 function buildMonthValue(offsetMonths = 0) {
   const date = new Date();
@@ -132,7 +133,7 @@ test("tenant portal finance budgets applies a template and guided adjustment on 
 }) => {
   const sourceMonth = buildMonthValue(12);
   const targetMonth = buildMonthValue(13);
-  const categoryName = `e2e-budget-advanced-${Date.now()}`;
+  const categoryName = buildE2EText("budget-advanced-category", "e2e-budget-advanced");
 
   try {
     await createBudgetCategory(page, categoryName);

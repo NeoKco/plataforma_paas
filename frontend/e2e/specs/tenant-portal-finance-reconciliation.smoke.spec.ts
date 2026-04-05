@@ -1,5 +1,6 @@
 import { expect, test } from "../support/test";
 import { loginTenant } from "../support/auth";
+import { buildE2EText } from "../support/e2e-data";
 import {
   createBasicExpenseTransaction,
   getReconciliationSuccessFeedback,
@@ -8,7 +9,7 @@ import {
 } from "../support/finance";
 
 test("tenant portal finance can reconcile a created transaction", async ({ page }) => {
-  const uniqueDescription = `e2e-reconcile-${Date.now()}`;
+  const uniqueDescription = buildE2EText("finance-reconcile", "e2e-reconcile");
 
   await loginTenant(page);
   await openFinanceTransactionsPage(page);

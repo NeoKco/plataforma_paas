@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "../support/test";
 import { loginTenant } from "../support/auth";
+import { buildE2EText } from "../support/e2e-data";
 
 function buildMonthValue(offsetMonths = 0) {
   const date = new Date();
@@ -126,8 +127,8 @@ test("tenant portal finance budgets creates a budget and clones it into another 
   const sourceMonth = buildMonthValue(10);
   const targetMonth = buildMonthValue(11);
   const budgetAmount = "54321";
-  const budgetNote = `Presupuesto E2E ${Date.now()}`;
-  const categoryName = `e2e-budget-category-${Date.now()}`;
+  const budgetNote = buildE2EText("budget-note", "Presupuesto E2E");
+  const categoryName = buildE2EText("budget-category", "e2e-budget-category");
 
   try {
     await createBudgetCategory(page, categoryName);

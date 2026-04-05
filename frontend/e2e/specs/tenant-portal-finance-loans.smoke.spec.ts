@@ -1,14 +1,9 @@
 import { expect, test, type Page } from "../support/test";
 import { loginTenant } from "../support/auth";
+import { buildE2EText, buildFutureIso } from "../support/e2e-data";
 
-function buildTodayDateValue() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function buildFutureDateValue(days: number) {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
+function buildDateValue(daysFromNow = 0) {
+  return buildFutureIso(daysFromNow).slice(0, 10);
 }
 
 async function ensureFinanceLoansPage(page: Page) {
@@ -67,7 +62,7 @@ async function openLoanSchedule(page: Page, loanName: string) {
 test("tenant portal finance loans creates a loan and records a simple installment payment", async ({
   page,
 }) => {
-  const loanName = `e2e-loan-${Date.now()}`;
+  const loanName = buildE2EText("finance-loan", "e2e-loan");
 
   await ensureFinanceLoansPage(page);
 
@@ -93,8 +88,8 @@ test("tenant portal finance loans creates a loan and records a simple installmen
   await createForm.locator('input[type="number"]').nth(1).fill("900");
   await createForm.locator('input[type="number"]').nth(2).fill("12");
   await createForm.locator('input[type="number"]').nth(3).fill("3");
-  await createForm.locator('input[type="date"]').nth(0).fill(buildTodayDateValue());
-  await createForm.locator('input[type="date"]').nth(1).fill(buildFutureDateValue(90));
+  await createForm.locator('input[type="date"]').nth(0).fill(buildDateValue());
+  await createForm.locator('input[type="date"]').nth(1).fill(buildDateValue(90));
   await createForm.locator("textarea.form-control").fill("Préstamo creado por smoke E2E");
 
   await createForm

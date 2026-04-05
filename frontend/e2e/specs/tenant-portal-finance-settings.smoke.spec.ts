@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "../support/test";
 import { loginTenant } from "../support/auth";
+import { buildE2EText } from "../support/e2e-data";
 
 async function ensureFinanceSettingsPage(page: Page) {
   await page.goto("/tenant-portal/finance/settings");
@@ -47,13 +48,14 @@ function getTableRow(page: Page, text: string) {
 test("tenant portal finance settings manages currencies, exchange rates and parameters", async ({
   page,
 }) => {
-  const suffix = `${Date.now()}`.slice(-6);
-  const currencyCode = `XZ${suffix}`;
-  const currencyName = `e2e-finance-currency-${suffix}`;
-  const settingKey = `e2e.setting.${suffix}`;
-  const settingValue = `valor inicial ${suffix}`;
-  const updatedSettingValue = `valor editado ${suffix}`;
-  const exchangeRateValue = `7.${suffix}`;
+  const currencySeed = buildE2EText("finance-settings-currency", "id");
+  const currencyDigits = currencySeed.replace(/\D/g, "").slice(-6).padStart(6, "7");
+  const currencyCode = `XZ${currencyDigits.slice(-4)}`;
+  const currencyName = buildE2EText("finance-settings-currency-name", "e2e-finance-currency");
+  const settingKey = buildE2EText("finance-settings-key", "e2e.setting").replace(/-/g, ".");
+  const settingValue = buildE2EText("finance-settings-value", "valor inicial");
+  const updatedSettingValue = buildE2EText("finance-settings-updated", "valor editado");
+  const exchangeRateValue = `7.${currencyDigits}`;
 
   await ensureFinanceSettingsPage(page);
 
@@ -75,7 +77,7 @@ test("tenant portal finance settings manages currencies, exchange rates and para
     .filter({ hasText: /Símbolo|Symbol/i })
     .first()
     .locator("input.form-control")
-    .fill(`¤${suffix.slice(-2)}`);
+    .fill(`¤${currencyDigits.slice(-2)}`);
   await currencyForm.getByRole("button", { name: /Crear moneda|Create currency/i }).click();
 
   await expect(getSuccessAlert(page)).toContainText(/moneda|currency/i);
@@ -101,8 +103,9 @@ test("tenant portal finance settings manages currencies, exchange rates and para
         text: option.textContent?.trim() || "",
       }))
   );
-  const sourceOption = selectOptions.find((option) => option.text === currencyCode);
-  const targetOption = selectOptions.find((option) => option.text !== currencyCode);
+  const usableOptions = selectOptions.filter((option) => option.value.trim() !== "");
+  const sourceOption = usableOptions.find((option) => option.text.includes(currencyCode));
+  const targetOption = usableOptions.find((option) => !option.text.includes(currencyCode));
 
   if (!sourceOption || !targetOption) {
     throw new Error("No se encontraron opciones válidas para crear tipo de cambio E2E.");
@@ -121,7 +124,7 @@ test("tenant portal finance settings manages currencies, exchange rates and para
     .filter({ hasText: /Fuente|Source/i })
     .first()
     .locator("input.form-control")
-    .fill(`manual-e2e-${suffix}`);
+    .fill(buildE2EText("finance-settings-source", "manual-e2e"));
   await exchangeRateForm
     .getByRole("button", { name: /Crear tipo de cambio|Create exchange rate/i })
     .click();

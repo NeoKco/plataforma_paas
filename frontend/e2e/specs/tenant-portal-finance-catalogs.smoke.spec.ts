@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "../support/test";
 import { loginTenant } from "../support/auth";
+import { buildE2EText } from "../support/e2e-data";
 
 async function ensureFinanceCatalogPage(
   page: Page,
@@ -41,8 +42,8 @@ async function openFinanceCatalogForm(
 test("tenant portal finance manages accounts catalog with create, deactivate and delete", async ({
   page,
 }) => {
-  const accountName = `e2e-finance-account-${Date.now()}`;
-  const accountCode = `E2E-ACC-${Date.now()}`;
+  const accountName = buildE2EText("finance-account-catalog", "e2e-finance-account");
+  const accountCode = buildE2EText("finance-account-code", "E2E-ACC").toUpperCase();
 
   await ensureFinanceCatalogPage(page, "/tenant-portal/finance/accounts", /Cuentas|Accounts/);
 
@@ -86,7 +87,7 @@ test("tenant portal finance manages accounts catalog with create, deactivate and
 test("tenant portal finance manages categories catalog with create, deactivate and delete", async ({
   page,
 }) => {
-  const categoryName = `e2e-finance-category-${Date.now()}`;
+  const categoryName = buildE2EText("finance-category-catalog", "e2e-finance-category");
 
   await ensureFinanceCatalogPage(
     page,

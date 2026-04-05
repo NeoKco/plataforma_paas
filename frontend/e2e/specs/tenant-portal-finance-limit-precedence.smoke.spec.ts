@@ -4,6 +4,7 @@ import {
   getTenantFinanceUsageSnapshot,
   setTenantModuleLimit,
 } from "../support/backend-control";
+import { buildE2EText } from "../support/e2e-data";
 import { e2eEnv } from "../support/env";
 import {
   createBasicExpenseTransaction,
@@ -51,8 +52,15 @@ async function ensureTenantPortalSession(page: Page) {
 test("tenant portal finance prioritizes total limit when total and monthly quotas are both exhausted", async ({
   page,
 }) => {
-  const seedDescription = `e2e-finance-precedence-seed-${Date.now()}`;
-  const blockedDescription = `e2e-finance-precedence-blocked-${Date.now()}`;
+  const seedDescription = buildE2EText("finance-precedence-seed", "e2e-finance-precedence-seed");
+  const blockedDescription = buildE2EText(
+    "finance-precedence-blocked",
+    "e2e-finance-precedence-blocked"
+  );
+  const accountName = buildE2EText(
+    "finance-precedence-account",
+    "e2e-finance-precedence-account"
+  );
 
   setTenantModuleLimit({
     tenantSlug: e2eEnv.tenant.slug,
@@ -99,11 +107,7 @@ test("tenant portal finance prioritizes total limit when total and monthly quota
     );
 
     let form = getFinanceTransactionForm(page);
-    form = await ensureFinanceTransactionFormReady(
-      page,
-      form,
-      `e2e-finance-precedence-account-${Date.now()}`
-    );
+    form = await ensureFinanceTransactionFormReady(page, form, accountName);
     await form.locator('input[type="number"]').first().fill("12345");
     await form
       .getByPlaceholder(/Pago proveedor de mantención|Maintenance supplier payment/i)

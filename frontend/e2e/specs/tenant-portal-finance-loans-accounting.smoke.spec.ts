@@ -1,15 +1,10 @@
 import { readFile } from "fs/promises";
 import { expect, test, type Page } from "../support/test";
 import { loginTenant } from "../support/auth";
+import { buildE2EText, buildFutureIso } from "../support/e2e-data";
 
-function buildTodayDateValue() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function buildFutureDateValue(days: number) {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
+function buildDateValue(daysFromNow = 0) {
+  return buildFutureIso(daysFromNow).slice(0, 10);
 }
 
 async function ensureFinanceLoansPage(page: Page) {
@@ -98,8 +93,8 @@ async function createLoan(page: Page, loanName: string) {
   await createForm.locator('input[type="number"]').nth(1).fill("900");
   await createForm.locator('input[type="number"]').nth(2).fill("12");
   await createForm.locator('input[type="number"]').nth(3).fill("3");
-  await createForm.locator('input[type="date"]').nth(0).fill(buildTodayDateValue());
-  await createForm.locator('input[type="date"]').nth(1).fill(buildFutureDateValue(90));
+  await createForm.locator('input[type="date"]').nth(0).fill(buildDateValue());
+  await createForm.locator('input[type="date"]').nth(1).fill(buildDateValue(90));
   await createForm.locator("textarea.form-control").fill("Préstamo contable creado por smoke E2E");
 
   await createForm.getByRole("button", { name: /Registrar préstamo|Create loan/i }).click();
@@ -111,9 +106,9 @@ async function createLoan(page: Page, loanName: string) {
 test("tenant portal finance loans exports derived accounting after payment and reversal", async ({
   page,
 }) => {
-  const loanName = `e2e-loan-accounting-${Date.now()}`;
-  const paymentNote = `Payment note ${Date.now()}`;
-  const reversalNote = `Reversal note ${Date.now()}`;
+  const loanName = buildE2EText("finance-loan-accounting", "e2e-loan-accounting");
+  const paymentNote = buildE2EText("finance-loan-payment-note", "Payment note");
+  const reversalNote = buildE2EText("finance-loan-reversal-note", "Reversal note");
 
   await createLoan(page, loanName);
   await openLoanSchedule(page, loanName);
