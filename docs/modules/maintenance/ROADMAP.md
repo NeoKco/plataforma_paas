@@ -159,6 +159,7 @@ Avance actual:
 - `Pendientes`, `Mantenciones`, `Agenda` y `Visitas` ya exigen además `Perfil funcional` declarado cuando la OT preventiva trae `Tipo de tarea`
 - el módulo ya soporta un mapa explícito liviano `task_type -> function_profiles` usando la línea `profiles:` dentro de la descripción del `Tipo de tarea`, sin exigir migración nueva
 - `Business Core -> Tipos de tarea` ya expone UI para editar esa compatibilidad fina sin obligar al usuario a escribir metadata manual
+- `Business Core -> Taxonomías` ya muestra una matriz transversal para revisar la cobertura de compatibilidad entre tipos y perfiles
 - conflictos visibles, bloqueo backend `409`, filtros de agenda y reprogramación auditada ya quedaron operativos en el mismo frente de endurecimiento
 
 Pendiente fino de este frente:

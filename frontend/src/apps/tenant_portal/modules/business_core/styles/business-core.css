@@ -198,6 +198,76 @@
   width: min(980px, 94vw);
 }
 
+.business-core-taxonomy-metrics {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 992px) {
+  .business-core-taxonomy-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.business-core-taxonomy-metric {
+  color: var(--app-primary, #0d6efd);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.business-core-taxonomy-table {
+  min-width: 920px;
+}
+
+.business-core-taxonomy-table th,
+.business-core-taxonomy-table td {
+  vertical-align: top;
+}
+
+.business-core-taxonomy-table__sticky {
+  background: #fff;
+  left: 0;
+  position: sticky;
+  z-index: 1;
+}
+
+.business-core-taxonomy-table thead .business-core-taxonomy-table__sticky {
+  z-index: 2;
+}
+
+.business-core-taxonomy-table__task-column,
+.business-core-taxonomy-table__task-cell {
+  min-width: 280px;
+}
+
+.business-core-taxonomy-table__profile-column {
+  min-width: 120px;
+}
+
+.business-core-taxonomy-table__profile-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.business-core-taxonomy-table__profile-code {
+  color: var(--app-text-muted, #6b7a90);
+  font-size: 0.75rem;
+}
+
+.business-core-taxonomy-table__cell-indicator {
+  color: var(--app-text-muted, #94a3b8);
+  display: inline-flex;
+  font-size: 1.15rem;
+  font-weight: 700;
+  justify-content: center;
+  min-width: 1.5rem;
+}
+
+.business-core-taxonomy-table__cell-indicator.is-compatible {
+  color: #0d6efd;
+}
+
 .business-core-client-modal {
   width: min(1380px, 96vw);
 }

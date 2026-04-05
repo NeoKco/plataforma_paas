@@ -34,6 +34,10 @@
   - el usuario ya no necesita editar la metadata `profiles:` a mano
   - la tabla muestra badges con perfiles compatibles por tipo de tarea
   - el almacenamiento sigue siendo liviano para no abrir todavía una migración nueva
+- `Business Core -> Taxonomías` ahora agrega una matriz visual:
+  - cruza `Tipos de tarea` con `Perfiles funcionales`
+  - permite buscar y filtrar solo mapeos explícitos
+  - facilita revisar gaps de compatibilidad antes de asignar reglas más duras o abrir migración dedicada
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso
