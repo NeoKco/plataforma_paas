@@ -60,6 +60,7 @@ El primer corte del modulo ya permite:
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
 - abrir `Costos` desde una mantención abierta para registrar costo estimado, costo real, cobro y sincronización manual a Finanzas
 - dentro de `Costos` puedes crear una `Plantilla de costeo de mantención` desde el estimado o desde el costo real actual
+- ahora también existe la vista `Plantillas` dentro de `Mantenciones` para administrar esas plantillas sin depender de `Pendientes` o de una OT puntual
 - esa plantilla luego puede aplicarse tanto al `Costeo estimado` como al `Costo real`
 - el `Monto cobrado` no se pisa con la plantilla; queda manual para respetar el cierre comercial real
 - por ahora el módulo no deja una marca explícita de "plantilla aplicada al cierre" dentro del histórico económico final; ese refinamiento queda pendiente

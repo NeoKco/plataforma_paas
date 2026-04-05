@@ -46,6 +46,7 @@ Estado actual:
   - `maintenance_cost_lines`
   - modal de costeo sobre `Mantenciones`
   - el mismo modal reutilizado también desde `Historial`
+  - nuevo slice visible `Plantillas` para crear, editar y archivar plantillas de costeo desde una vista propia del módulo
   - sincronización manual controlada hacia `finance`
   - política tenant visible para decidir si ese puente sigue manual o pasa a `auto_on_close`
 - ya existe el primer corte de `Checklist y evidencias` por OT con:

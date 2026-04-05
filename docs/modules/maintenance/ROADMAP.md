@@ -153,6 +153,7 @@ Avance actual:
 - la trazabilidad detallada se carga bajo demanda, manteniendo el patrón de lectura primero en las bandejas principales
 - `Historial` ya puede abrir `Editar cierre` desde esa ficha sin volver editable la programación histórica
 - `Mantenciones` ya puede gestionar `Visitas` por OT con ventanas programadas, ejecución real y responsables desde una modal operativa
+- `Mantenciones` ya expone `Plantillas` como slice visible para crear, editar y archivar plantillas de costeo sin depender de `Pendientes` o de una OT puntual
 - `Mantenciones`, `Historial` y la ficha ya leen `Tipo de tarea` desde `maintenance_schedules.task_type_id` y `Perfil funcional` desde membresías reales de `business_work_groups`
 - `Mantenciones` y `Visitas` ya validan que técnico y grupo correspondan a una membresía activa y vigente antes de guardar
 - `Agenda técnica` ya replica el filtro visual de técnicos por membresía activa dentro del grupo responsable

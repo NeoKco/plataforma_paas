@@ -2,6 +2,9 @@
 
 ## 2026-04-05
 
+- `Mantenciones` ahora expone un slice visible `Plantillas` para administrar plantillas de costeo desde una vista propia:
+  - permite crear, editar y archivar estructuras reutilizables sin entrar a una OT o a `Pendientes`
+  - mantiene el alcance como catálogo interno del módulo, sin convertirlo en taxonomía compartida
 - `Historial técnico` ahora agrega filtros por `Grupo responsable` y `Técnico responsable`:
   - el usuario puede acotar la lectura cerrada/anulada sin salir del historial
   - la ficha y la tabla muestran el responsable como grupo + usuario para lectura rápida de coordinación
