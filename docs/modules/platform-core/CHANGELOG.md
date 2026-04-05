@@ -65,6 +65,8 @@ Resumen curado del bloque central.
 - `Tenant Portal > Usuarios` suma acciones de `Editar` y `Eliminar` en la tabla; el borrado queda endurecido para bloquear autoeliminación y la eliminación del último admin activo del tenant
 - `Tenant Portal > Usuarios` pasa a administrar también la zona horaria: el tenant define una zona por defecto y cada usuario puede heredarla o sobrescribirla
 - `/tenant/info` expone `timezone`, `user_timezone` y `effective_timezone`, y las vistas del portal pasan a reutilizar esa zona efectiva para leer/capturar fechas operativas
+- `sync_tenant_schema` deja de reintentarse cuando la configuracion DB del tenant esta incompleta; ese caso ahora termina en fallo terminal para evitar loops sobre tenants no provisionados
+- `seed_frontend_demo_baseline.py` neutraliza jobs tecnicos vivos cuando resetea `empresa-demo` a `pending` sin DB, para no dejar `retry_pending` inconsistentes en `platform_control`
 
 ## Documentación
 

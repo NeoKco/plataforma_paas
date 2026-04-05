@@ -4330,6 +4330,31 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.tenant_slug, "empresa-bootstrap")
         self.assertEqual(response.current_version, "0002_finance_entries")
 
+    def test_sync_tenant_schema_returns_400_when_db_config_is_incomplete(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Provisioning Demo",
+            tenant_slug="empresa-provisioning-demo",
+            status="active",
+        )
+        tenant.id = 4
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.sync_tenant_schema",
+            side_effect=ValueError("Tenant database configuration is incomplete"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                sync_tenant_schema(
+                    tenant_id=4,
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertEqual(
+            exc.exception.detail,
+            "Tenant database configuration is incomplete",
+        )
+
     def test_bulk_sync_tenant_schemas_returns_summary(self) -> None:
         with patch(
             "app.apps.platform_control.api.tenant_routes.tenant_service.request_bulk_tenant_schema_sync",
