@@ -333,11 +333,13 @@ export function BusinessCoreClientsPage() {
       secondaryContactRole: secondaryContact?.role_title ?? "",
       secondaryContactPhone: secondaryContact?.phone ?? "",
       secondaryContactEmail: secondaryContact?.email ?? "",
+      addressLine: primaryAddress?.address_line ?? "",
       addressStreet: parsedAddress.street,
       addressNumber: parsedAddress.streetNumber,
       commune: primaryAddress?.commune ?? "",
       city: primaryAddress?.city ?? "",
       region: primaryAddress?.region ?? "",
+      countryCode: primaryAddress?.country_code ?? "CL",
       referenceNotes: primaryAddress?.reference_notes ?? "",
     });
   }
