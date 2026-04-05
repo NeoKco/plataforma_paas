@@ -11,6 +11,7 @@
 - `Agenda técnica` y `Mantenciones abiertas` ahora muestran conflictos visibles cuando dos OT abiertas comparten el mismo horario y además cruzan por instalación, grupo responsable o técnico responsable
 - los formularios de alta/edición de `Agenda` y `Mantenciones` advierten el cruce antes de guardar
 - el backend ahora también bloquea esos cruces con respuesta `409`, para no depender solo de la advertencia visual del frontend
+- `Agenda técnica` agrega filtros operativos por `grupo responsable` y `técnico responsable`, sin perder la lectura mensual del calendario
 - se implementa el primer corte real de `Checklist y evidencias` por OT:
   - nueva migración tenant `0028_maintenance_field_reports`
   - tablas `maintenance_work_order_checklist_items` y `maintenance_work_order_evidences`

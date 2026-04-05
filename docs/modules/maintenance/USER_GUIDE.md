@@ -128,6 +128,7 @@ Lectura funcional de cada vista:
 - `Agenda`: calendario visual del trabajo abierto
   - ahora marca conflictos visibles cuando dos mantenciones abiertas comparten horario y recurso técnico/instalación
   - si aun así intentas guardar un cruce real, el backend lo rechaza para evitar doble asignación en el mismo slot
+  - también permite filtrar la agenda mensual por grupo responsable o técnico responsable
 
 Regla UX operativa:
 

@@ -120,7 +120,7 @@ Pendientes visibles inmediatos:
 - automatización opcional tenant-side del puente `maintenance -> finance`
 - importadores desde `ieris_app`
 - edición de cierre directamente desde historial/ficha de trabajo
-- filtros operativos por técnico o grupo en agenda
+- reprogramación operativa más rica sin perder trazabilidad
 
 ## Checklist contra el estandar de modulos
 

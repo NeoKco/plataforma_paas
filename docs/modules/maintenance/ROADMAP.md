@@ -304,8 +304,8 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- agregar filtros operativos por grupo y técnico en la agenda mensual
 - enriquecer la reprogramación operativa sin perder trazabilidad histórica
+- profundizar la lectura por ficha/orden de trabajo sin romper el patrón de lectura primero
 
 ## Backlog pendiente visible
 
@@ -319,6 +319,7 @@ Pendiente inmediato de esta fase:
 - agenda visual mensual base: lista
 - conflictos visibles en agenda y bandeja abierta: listos en frontend
 - bloqueo backend de cruces por instalación/grupo/técnico: listo en primer corte
+- filtros operativos por grupo y técnico en agenda mensual: listos
 - modelo canónico de asignacion grupo/usuario: documentado e implementado en primer corte
 - modelo canónico de programacion preventiva y costeo: documentado
 - costeo estimado default por programación: listo en primer corte
