@@ -50,6 +50,7 @@ type BusinessCoreCatalogPageProps<TRow, TForm> = {
   onCancel?: () => void;
   onReload: () => Promise<void>;
   onNew: () => void;
+  renderEditorExtra?: (context: { language: string; editingId: number | null; form: TForm }) => React.ReactNode;
   columns: Array<{
     key: string;
     headerEs: string;
@@ -87,6 +88,7 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
   onCancel,
   onReload,
   onNew,
+  renderEditorExtra,
   columns,
 }: BusinessCoreCatalogPageProps<TRow, TForm>) {
   const { language } = useLanguage();
@@ -328,6 +330,11 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
                       </div>
                     );
                   })}
+                  {renderEditorExtra ? (
+                    <div className="col-12">
+                      {renderEditorExtra({ language, editingId, form })}
+                    </div>
+                  ) : null}
                 </div>
                 <div className="business-core-form__actions">
                   <button className="btn btn-outline-secondary" type="button" onClick={handleCloseEditor}>

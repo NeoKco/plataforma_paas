@@ -30,6 +30,10 @@
   - si la descripción del `Tipo de tarea` contiene una línea `profiles: Tecnico, Lider tecnico`, ese listado pasa a definir los perfiles funcionales compatibles para OT preventivas
   - backend y frontend reutilizan la misma convención en `Pendientes`, `Mantenciones`, `Agenda` y `Visitas`
   - cuando no existe esa línea, se mantiene la regla mínima anterior: exigir solo `Perfil funcional` declarado
+- `Business Core -> Tipos de tarea` ahora expone una UI explícita de `Perfiles compatibles`:
+  - el usuario ya no necesita editar la metadata `profiles:` a mano
+  - la tabla muestra badges con perfiles compatibles por tipo de tarea
+  - el almacenamiento sigue siendo liviano para no abrir todavía una migración nueva
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso

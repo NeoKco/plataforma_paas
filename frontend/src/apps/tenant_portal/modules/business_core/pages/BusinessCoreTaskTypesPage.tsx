@@ -14,7 +14,16 @@ import {
   type TenantBusinessTaskType,
   type TenantBusinessTaskTypeWriteRequest,
 } from "../services/taskTypesService";
+import {
+  getTenantBusinessFunctionProfiles,
+  type TenantBusinessFunctionProfile,
+} from "../services/functionProfilesService";
 import { buildInternalTaxonomyCode, stripLegacyVisibleText } from "../utils/taxonomyUi";
+import {
+  buildTaskTypeDescriptionWithAllowedProfiles,
+  getTaskTypeAllowedProfileNames,
+  stripTaskTypeAllowedProfilesMetadata,
+} from "../../maintenance/services/assignmentCapability";
 
 function buildDefaultForm(): TenantBusinessTaskTypeWriteRequest {
   return {
@@ -43,14 +52,20 @@ export function BusinessCoreTaskTypesPage() {
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [form, setForm] = useState<TenantBusinessTaskTypeWriteRequest>(buildDefaultForm());
+  const [functionProfiles, setFunctionProfiles] = useState<TenantBusinessFunctionProfile[]>([]);
+  const [compatibleProfileNames, setCompatibleProfileNames] = useState<string[]>([]);
 
   async function loadItems() {
     if (!session?.accessToken) return;
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getTenantBusinessTaskTypes(session.accessToken);
-      setItems(response.data);
+      const [taskTypesResponse, functionProfilesResponse] = await Promise.all([
+        getTenantBusinessTaskTypes(session.accessToken),
+        getTenantBusinessFunctionProfiles(session.accessToken, { includeInactive: false }),
+      ]);
+      setItems(taskTypesResponse.data);
+      setFunctionProfiles(functionProfilesResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -67,6 +82,7 @@ export function BusinessCoreTaskTypesPage() {
     setFeedback(null);
     setError(null);
     setForm(buildDefaultForm());
+    setCompatibleProfileNames([]);
   }
 
   function startEdit(item: TenantBusinessTaskType) {
@@ -76,12 +92,13 @@ export function BusinessCoreTaskTypesPage() {
     setForm({
       code: item.code,
       name: item.name,
-      description: stripLegacyVisibleText(item.description),
+      description: stripLegacyVisibleText(stripTaskTypeAllowedProfilesMetadata(item.description)),
       color: item.color,
       icon: item.icon,
       is_active: item.is_active,
       sort_order: item.sort_order,
     });
+    setCompatibleProfileNames(getTaskTypeAllowedProfileNames(item));
   }
 
   async function handleSubmit() {
@@ -93,7 +110,12 @@ export function BusinessCoreTaskTypesPage() {
           ? (form.code?.trim() ?? "") || buildInternalTaxonomyCode("task", form.name, editingId)
           : buildInternalTaxonomyCode("task", form.name),
       name: form.name.trim(),
-      description: stripLegacyVisibleText(normalizeNullable(form.description)),
+      description: stripLegacyVisibleText(
+        buildTaskTypeDescriptionWithAllowedProfiles(
+          normalizeNullable(form.description),
+          compatibleProfileNames
+        )
+      ),
       color: normalizeNullable(form.color),
       icon: normalizeNullable(form.icon),
     };
@@ -152,8 +174,8 @@ export function BusinessCoreTaskTypesPage() {
       titleEn="Task types"
       descriptionEs="Taxonomía compartida para mantenciones, proyectos y futura automatización operativa."
       descriptionEn="Shared taxonomy for maintenance, projects, and future operational automation."
-      helpEs="Define tipos reutilizables antes de abrir flujos operativos. Si necesitas compatibilidad fina con perfiles funcionales en mantenciones, agrega una línea en descripción como: profiles: Tecnico, Lider tecnico."
-      helpEn="Define reusable types before opening operational flows. If you need finer compatibility with functional profiles in maintenance, add a description line like: profiles: Technician, Technical lead."
+      helpEs="Define tipos reutilizables antes de abrir flujos operativos. También puedes marcar perfiles funcionales compatibles para que Mantenciones, Agenda, Pendientes y Visitas filtren responsables elegibles sin tocar migraciones."
+      helpEn="Define reusable types before opening operational flows. You can also mark compatible functional profiles so Maintenance, Calendar, Due items, and Visits filter eligible assignees without requiring migrations."
       loadingLabelEs="Cargando tipos de tarea..."
       loadingLabelEn="Loading task types..."
       isLoading={isLoading}
@@ -168,6 +190,57 @@ export function BusinessCoreTaskTypesPage() {
       onCancel={startCreate}
       onReload={loadItems}
       onNew={startCreate}
+      renderEditorExtra={() => (
+        <div className="d-grid gap-2">
+          <div>
+            <label className="form-label mb-1">
+              {language === "es" ? "Perfiles compatibles" : "Compatible profiles"}
+            </label>
+            <div className="form-text mt-0">
+              {language === "es"
+                ? "Si seleccionas perfiles, las OT preventivas de este tipo solo podrán asignarse a esos perfiles funcionales dentro del grupo responsable."
+                : "If you select profiles, preventive work orders of this type will only be assignable to those functional profiles inside the responsible group."}
+            </div>
+          </div>
+          <div className="row g-2">
+            {functionProfiles.length === 0 ? (
+              <div className="col-12">
+                <div className="alert alert-secondary mb-0">
+                  {language === "es"
+                    ? "No hay perfiles funcionales activos. Crea perfiles primero si quieres usar compatibilidad fina."
+                    : "There are no active functional profiles. Create profiles first if you want finer compatibility."}
+                </div>
+              </div>
+            ) : (
+              functionProfiles.map((profile) => {
+                const checked = compatibleProfileNames.includes(profile.name);
+                return (
+                  <div className="col-12 col-md-6" key={profile.id}>
+                    <label className="form-check border rounded px-3 py-2 h-100">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(event) =>
+                          setCompatibleProfileNames((current) =>
+                            event.target.checked
+                              ? [...current, profile.name]
+                              : current.filter((item) => item !== profile.name)
+                          )
+                        }
+                      />
+                      <span className="form-check-label ms-2 d-inline-flex flex-column gap-1">
+                        <span>{profile.name}</span>
+                        <small className="text-muted">{stripLegacyVisibleText(profile.description) || profile.code}</small>
+                      </span>
+                    </label>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
       fields={[
         { key: "name", labelEs: "Nombre", labelEn: "Name", placeholderEs: "Ej: Mantención preventiva", placeholderEn: "Ex: Preventive maintenance" },
         { key: "color", labelEs: "Color", labelEn: "Color", placeholderEs: "#2563eb", placeholderEn: "#2563eb" },
@@ -184,7 +257,20 @@ export function BusinessCoreTaskTypesPage() {
             <div>
               <div className="business-core-cell__title">{item.name}</div>
               <div className="business-core-cell__meta">
-                {stripLegacyVisibleText(item.description) || "—"}
+                {stripLegacyVisibleText(stripTaskTypeAllowedProfilesMetadata(item.description)) || "—"}
+              </div>
+              <div className="d-flex flex-wrap gap-1 mt-2">
+                {getTaskTypeAllowedProfileNames(item).length > 0 ? (
+                  getTaskTypeAllowedProfileNames(item).map((profileName) => (
+                    <AppBadge key={profileName} tone="info">
+                      {profileName}
+                    </AppBadge>
+                  ))
+                ) : (
+                  <AppBadge tone="neutral">
+                    {language === "es" ? "Cualquier perfil declarado" : "Any declared profile"}
+                  </AppBadge>
+                )}
               </div>
             </div>
           ),

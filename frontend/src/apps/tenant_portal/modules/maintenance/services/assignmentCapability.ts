@@ -27,6 +27,32 @@ export function parseTaskTypeAllowedProfileNames(description: string | null | un
     .filter(Boolean);
 }
 
+export function stripTaskTypeAllowedProfilesMetadata(
+  description: string | null | undefined
+): string | null {
+  if (!description) {
+    return null;
+  }
+  const sanitized = description
+    .split("\n")
+    .filter((line) => !/^\s*(?:profiles|compat_profiles)\s*:/i.test(line))
+    .join("\n")
+    .trim();
+  return sanitized || null;
+}
+
+export function buildTaskTypeDescriptionWithAllowedProfiles(
+  description: string | null | undefined,
+  allowedProfileNames: string[]
+): string | null {
+  const body = stripTaskTypeAllowedProfilesMetadata(description);
+  const metadata = allowedProfileNames.length > 0
+    ? `profiles: ${allowedProfileNames.join(", ")}`
+    : null;
+  const parts = [body, metadata].filter((item): item is string => Boolean(item && item.trim()));
+  return parts.length > 0 ? parts.join("\n") : null;
+}
+
 export function getTaskTypeAllowedProfileNames(taskType: TenantBusinessTaskType | null | undefined): string[] {
   return parseTaskTypeAllowedProfileNames(taskType?.description);
 }
