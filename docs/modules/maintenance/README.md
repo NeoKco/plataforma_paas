@@ -117,6 +117,7 @@ Estado del corte hoy:
 - `Mantenciones` ya permite abrir `Visitas` desde la fila o desde la `Ficha de mantención`, para bajar a una coordinación más fina por ventana de terreno
 - `Mantenciones`, `Historial` y la `Ficha de mantención` ya muestran `Tipo de tarea` y `Perfil funcional` cuando la OT viene enlazada a una programación preventiva y el técnico pertenece formalmente al grupo responsable
 - `Mantenciones` y `Visitas` ya restringen la asignación para que un técnico solo pueda guardarse si tiene membresía activa y vigente en el `grupo responsable` seleccionado
+- `Agenda técnica` ya replica ese mismo filtro visual para que la asignación desde calendario no ofrezca técnicos fuera del grupo responsable
 
 Pendientes visibles inmediatos:
 

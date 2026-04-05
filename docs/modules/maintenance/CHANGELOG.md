@@ -19,6 +19,9 @@
   - si se asigna un técnico y un grupo al mismo tiempo, ambos deben corresponder a una membresía activa real en `business_work_group_members`
   - también se validan vigencia de inicio/fin de la membresía antes de guardar
   - el frontend reduce la lista de técnicos disponibles cuando ya se eligió un grupo responsable
+- `Agenda técnica` ahora replica ese mismo filtro visual de asignación:
+  - al elegir `Grupo responsable`, la lista de `Técnico responsable` se restringe a miembros activos y vigentes del grupo
+  - al cambiar de grupo, la selección de técnico se limpia para evitar combinaciones inválidas
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso

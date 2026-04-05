@@ -1086,6 +1086,7 @@ export function MaintenanceCalendarPage() {
                         setForm((current) => ({
                           ...current,
                           assigned_work_group_id: event.target.value ? Number(event.target.value) : null,
+                          assigned_tenant_user_id: null,
                         }))
                       }
                     >
@@ -1116,12 +1117,19 @@ export function MaintenanceCalendarPage() {
                       <option value="">
                         {language === "es" ? "Sin técnico asignado" : "No technician assigned"}
                       </option>
-                      {activeTenantUsers.map((user) => (
+                      {selectableTenantUsers.map((user) => (
                         <option key={user.id} value={user.id}>
                           {user.full_name}
                         </option>
                       ))}
                     </select>
+                    {form.assigned_work_group_id && selectableTenantUsers.length === 0 ? (
+                      <div className="form-text text-warning">
+                        {language === "es"
+                          ? "Este grupo no tiene técnicos con membresía activa para asignar desde agenda."
+                          : "This group has no technicians with an active membership available from the calendar."}
+                      </div>
+                    ) : null}
                   </div>
                   {!editingId ? (
                     <div className="col-12 col-md-6">
