@@ -33,6 +33,14 @@ type TechnicianOption = {
   full_name: string;
 };
 
+type WorkGroupMembership = {
+  group_id: number;
+  tenant_user_id: number;
+  is_active: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+};
+
 type Props = {
   accessToken?: string | null;
   clientLabel: string;
@@ -44,6 +52,7 @@ type Props = {
   onClose: () => void;
   onFeedback?: (message: string) => void;
   workGroups: WorkGroupOption[];
+  workGroupMembers: WorkGroupMembership[];
   workOrder: MaintenanceVisitsModalWorkOrder | null;
   technicians: TechnicianOption[];
 };
@@ -93,6 +102,20 @@ function getVisitStatusLabel(status: string, language: "es" | "en") {
   }
 }
 
+function isMembershipActive(member: WorkGroupMembership) {
+  if (!member.is_active) {
+    return false;
+  }
+  const now = new Date();
+  if (member.starts_at && new Date(member.starts_at) > now) {
+    return false;
+  }
+  if (member.ends_at && new Date(member.ends_at) < now) {
+    return false;
+  }
+  return true;
+}
+
 function buildFormState(
   workOrder: MaintenanceVisitsModalWorkOrder,
   visit?: TenantMaintenanceVisit | null
@@ -124,6 +147,7 @@ export function MaintenanceVisitsModal({
   onClose,
   onFeedback,
   workGroups,
+  workGroupMembers,
   workOrder,
   technicians,
 }: Props) {
@@ -142,6 +166,18 @@ export function MaintenanceVisitsModal({
     () => new Map(technicians.map((item) => [item.id, item.full_name])),
     [technicians]
   );
+  const selectableTechnicians = useMemo(() => {
+    if (!form?.assigned_work_group_id) {
+      return technicians;
+    }
+    const selectedGroupId = Number(form.assigned_work_group_id);
+    const allowedIds = new Set(
+      workGroupMembers
+        .filter((member) => member.group_id === selectedGroupId && isMembershipActive(member))
+        .map((member) => member.tenant_user_id)
+    );
+    return technicians.filter((item) => allowedIds.has(item.id));
+  }, [form?.assigned_work_group_id, technicians, workGroupMembers]);
 
   async function loadVisits() {
     if (!accessToken || !workOrder) {
@@ -356,6 +392,7 @@ export function MaintenanceVisitsModal({
                             ? {
                                 ...current,
                                 assigned_work_group_id: event.target.value,
+                                assigned_tenant_user_id: "",
                               }
                             : current
                         )
@@ -428,12 +465,19 @@ export function MaintenanceVisitsModal({
                       }
                     >
                       <option value="">{language === "es" ? "Sin técnico" : "No technician"}</option>
-                      {technicians.map((item) => (
+                      {selectableTechnicians.map((item) => (
                         <option key={item.id} value={item.id}>
                           {item.full_name}
                         </option>
                       ))}
                     </select>
+                    {form.assigned_work_group_id && selectableTechnicians.length === 0 ? (
+                      <div className="form-text text-warning">
+                        {language === "es"
+                          ? "Este grupo no tiene técnicos con membresía activa para esta visita."
+                          : "This group has no technicians with an active membership for this visit."}
+                      </div>
+                    ) : null}
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">

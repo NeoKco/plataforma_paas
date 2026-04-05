@@ -1333,6 +1333,7 @@ export function MaintenanceWorkOrdersPage() {
         onFeedback={setFeedback}
         technicians={activeTenantUsers.map((item) => ({ id: item.id, full_name: item.full_name }))}
         workGroups={activeWorkGroups.map((item) => ({ id: item.id, name: item.name }))}
+        workGroupMembers={workGroupMembers}
         workOrder={visitsWorkOrder}
       />
       <MaintenanceFieldReportModal

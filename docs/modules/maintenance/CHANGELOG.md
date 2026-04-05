@@ -15,6 +15,10 @@
   - muestran `Tipo de tarea` derivado desde la programación preventiva enlazada
   - muestran `Perfil funcional` del técnico cuando existe membresía activa en el grupo responsable
   - esta lectura enriquece la coordinación operativa sin duplicar catálogos dentro de `maintenance`
+- el backend ahora endurece asignaciones operativas en `Mantenciones` y `Visitas`:
+  - si se asigna un técnico y un grupo al mismo tiempo, ambos deben corresponder a una membresía activa real en `business_work_group_members`
+  - también se validan vigencia de inicio/fin de la membresía antes de guardar
+  - el frontend reduce la lista de técnicos disponibles cuando ya se eligió un grupo responsable
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso

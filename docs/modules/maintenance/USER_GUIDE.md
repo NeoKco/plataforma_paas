@@ -44,6 +44,7 @@ El primer corte del modulo ya permite:
 - abrir `Ver ficha` desde `Mantenciones` o `Historial` para revisar una orden completa sin salir de la lectura principal
 - abrir `Visitas` desde `Mantenciones` para coordinar ventanas programadas, ejecución real y responsables por salida a terreno
 - ver `Tipo de tarea` y `Perfil funcional` dentro de `Mantenciones`, `Historial` y `Ver ficha` cuando la OT quedó vinculada a programación preventiva y a una asignación formal del grupo
+- al elegir `Grupo responsable`, la lista de `Técnico responsable` se acota a miembros activos y vigentes de ese grupo
 - crear una orden nueva
 - editar una orden aun no cerrada
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad

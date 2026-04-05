@@ -382,6 +382,12 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
                 MaintenanceInstallation: SimpleNamespace(id=9, site_id=31),
                 BusinessWorkGroup.id: SimpleNamespace(id=4),
                 User.id: SimpleNamespace(id=8),
+                BusinessWorkGroupMember: SimpleNamespace(
+                    id=20,
+                    is_active=True,
+                    starts_at=None,
+                    ends_at=None,
+                ),
             }
         )
         tenant_db.commit = Mock()
@@ -478,6 +484,7 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
             Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=9, site_id=31))))),
             Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=4))))),
             Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=3))))),
+            Mock(filter=Mock(return_value=Mock(filter=Mock(return_value=Mock(first=Mock(return_value=SimpleNamespace(id=20, is_active=True, starts_at=None, ends_at=None))))))),
         ]
 
         with self.assertRaisesRegex(
