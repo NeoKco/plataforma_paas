@@ -128,10 +128,11 @@ Que no consolida todavia:
 - `organizations` en su version profunda documental asistida por decision humana
 - cuando hay varios `Clientes` en conflicto, la pantalla ahora intenta consolidarlos guiadamente antes de cerrar la fusión de la organización base; aun así, el criterio documental final sigue siendo operacional y no reemplaza revisión humana
 - el ajuste manual actual permite elegir por campo visible qué organización aporta cada dato, pero no versiona decisiones ni agrega una justificación formal por campo
-- el diff actual muestra cambio actual vs final por campo, pero no reemplaza una auditoría histórica completa
+- el diff actual muestra cambio actual vs final por campo, y además cada merge de `organizations` deja un registro persistente de auditoría con ids origen, resumen y procedencia final de los campos visibles
 - merge profundo de `contacts` mas alla de consolidar equivalentes dentro de la misma organización o mover/desactivar duplicados evidentes al fusionar `Clientes`
 - notas historicas libres
 - fusion documental profunda entre fichas
+- auditoría histórica completa de todos los merges de identidad; por ahora la persistencia formal ya cubre `organizations`, pero el resto de las entidades sigue en modo operativo
 
 Nota operativa:
 

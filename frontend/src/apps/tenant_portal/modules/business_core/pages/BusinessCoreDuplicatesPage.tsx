@@ -1891,6 +1891,8 @@ export function BusinessCoreDuplicatesPage() {
       clientRowById,
       selections
     );
+    const sourceOrganizations = sources.map((source) => source.organization);
+    const diffRows = buildOrganizationMergeDiffRows(target.organization, sourceOrganizations, selections);
     const clientRowsInGroup = group.members.flatMap((member) => {
       if (!member.client) {
         return [];
@@ -2022,7 +2024,7 @@ export function BusinessCoreDuplicatesPage() {
           session.accessToken,
           buildOrganizationMergeAuditPayload(
             target.organization,
-            sources.map((source) => source.organization),
+            sourceOrganizations,
             summary,
             selections,
             diffRows,

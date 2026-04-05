@@ -66,6 +66,7 @@ Sin abrir endpoints nuevos, la UI tenant ya soporta estos flujos sobre contratos
 - desactivacion segura cuando la ficha ya tiene historial operativo
 - consolidacion operativa hacia la ficha sugerida reutilizando `PUT` y `PATCH status` existentes
 - resumen previo de consolidacion por grupo antes de ejecutar la accion
+- registro persistente de auditoria para merges de `organizations` con diff final y procedencia por campo
 
 Ruta frontend tenant visible:
 
@@ -73,6 +74,12 @@ Ruta frontend tenant visible:
 - acceso UI: `Tenant portal -> Core de negocio -> Duplicados`
 - acceso rapido adicional: `Tenant portal -> Core de negocio -> Resumen -> Abrir duplicados`
 - la pantalla muestra ademas un resumen previo de consolidacion por grupo usando datos ya cargados de `clients`, `contacts`, `sites`, `installations` y `work_orders`
+- el merge de `organizations` escribe ademas un ledger persistente en `/tenant/business-core/merge-audits`
+
+Ledger de merges disponible:
+
+- `POST /tenant/business-core/merge-audits`
+- `GET /tenant/business-core/merge-audits`
 
 Dependencias que hoy revisa esa auditoria:
 
@@ -83,7 +90,7 @@ Dependencias que hoy revisa esa auditoria:
 Limite actual del flujo:
 
 - la consolidacion actual mueve referencias operativas y luego desactiva origenes
-- aun no fusiona `organizations`, `contacts`, notas humanas o historiales textuales en una sola ficha final
+- aun no fusiona `contacts`, notas humanas o historiales textuales en una sola ficha final, aunque el merge de `organizations` ya queda trazado en el ledger persistente
 
 Reasignaciones actuales por tipo:
 
@@ -94,6 +101,7 @@ Reasignaciones actuales por tipo:
 - duplicado de `contact` -> conserva la mejor ficha visible, integra email/telefono/rol faltantes y desactiva equivalentes dentro de la misma `organization`
 - duplicado de `site` -> mueve `installations` y `work_orders`
 - duplicado de `installation` -> mueve `work_orders`
+- cada merge de `organization` persiste un payload con `source_ids`, `summary`, `selections` y `diff_rows`
 
 ## Segundo corte sugerido
 

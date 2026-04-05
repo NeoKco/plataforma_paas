@@ -12,6 +12,7 @@ Donde encontrar la pantalla de duplicados:
 - ruta directa frontend: `/tenant-portal/business-core/duplicates`
 - tambien queda un acceso directo visible desde `Core de negocio -> Resumen`
 - cada grupo duplicado ahora muestra un resumen previo de consolidacion con cuantas fichas origen, direcciones, instalaciones u OT se moverian antes de ejecutar la accion
+- las consolidaciones de `organizations` ahora dejan un registro persistente de auditoria con la decision final, los ids origen y el diff por campo antes de desactivar las fichas origen
 
 Nombre visible actual del slice:
 
@@ -79,12 +80,12 @@ Alcance real de la consolidacion actual:
 
 Limites conocidos del corte actual:
 
-- el merge de `organizations` ya resuelve también conflictos de múltiples `Clientes` dentro del mismo grupo e integra campos documentales visibles, pero todavía no cubre decisiones manuales más complejas de identidad
+- el merge de `organizations` ya resuelve también conflictos de múltiples `Clientes` dentro del mismo grupo e integra campos documentales visibles, y ahora además deja una auditoria persistente con la procedencia final de cada campo visible
 - antes de consolidar `organizations`, la UI ahora ofrece un bloque `Ajuste manual previo` para elegir por campo qué ficha aporta `name`, `legal_name`, `tax_id`, `phone`, `email` y `notes`
 - ese bloque ahora muestra ademas un `Diff final por campo` para auditar exactamente qué valor actual cambia y cuál quedará como resultado final
 - no hace merge profundo total de `contacts`; por ahora integra email, teléfono y rol faltantes, y sigue moviendo o desactivando reutilizables al fusionar `clients` u `organizations`
 - no mezcla notas humanas ni historiales textuales
-- no construye aun un merge profundo auditable de identidad completa
+- no construye aun un merge profundo auditable de identidad completa para todas las entidades; el ledger persistente actual cubre la consolidacion de `organizations` y el diff final por campo
 
 Pendientes visibles inmediatos:
 
@@ -93,7 +94,7 @@ Pendientes visibles inmediatos:
 - importadores desde `ieris_app`
 - integracion mas profunda con `maintenance` para filtros por grupo, snapshot historico enriquecido y agenda por responsable
 - direccion propia de `organizations` como entidad/modelo de primer nivel o bloque dedicado, sin improvisarla como texto plano en el modal
-- futura depuracion avanzada de duplicados con merge/asimilacion profunda de fichas; el corte actual ya consolida referencias operativas visibles, pero todavia no fusiona contactos, organizaciones ni notas historicas en una sola entidad final
+- futura depuracion avanzada de duplicados con merge/asimilacion profunda de fichas; el corte actual ya consolida referencias operativas visibles, persiste auditoria de `organizations` y todavia no fusiona contactos, organizaciones ni notas historicas en una sola entidad final
 
 Estado del importador legacy:
 

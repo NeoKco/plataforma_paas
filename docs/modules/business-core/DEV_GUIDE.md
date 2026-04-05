@@ -185,6 +185,7 @@ Resumen previo por grupo:
 - para `organizations`, el corte ya puede asimilar guiadamente varios `clients` del mismo grupo: elige una ficha sugerida, mueve `sites` y `work_orders`, reasigna la ficha final a la organización objetivo, integra campos documentales visibles y luego consolida `contacts`
 - adicionalmente, `organizations` ya expone una capa frontend de decisión manual por campo antes del `PUT` final reutilizando contratos existentes
 - esa misma capa ahora calcula y renderiza un diff explícito `current -> final` por campo antes de ejecutar la consolidación
+- tras consolidar `organizations`, el frontend registra además una auditoría persistente del merge con el diff final, los ids origen y el resumen operativo en `business_core_merge_audits`
 - para `contacts`, el resumen previo indica cuantas fichas origen se desactivaran, cuantos primarios conviene revisar y cuantos campos visibles se integraran antes de consolidar
 - ese resumen vive en frontend usando los datasets cargados del modulo y evita disparar un backend nuevo en este corte
 
@@ -318,7 +319,8 @@ Reglas de consolidacion operativa vigentes:
 - si el duplicado ya tiene historial, debe priorizarse `desactivacion` sobre borrado
 - la consolidacion actual debe mover primero referencias operativas y solo despues desactivar el origen
 - la ficha `sugerida para conservar` debe priorizar mayor trazabilidad, mayor completitud visible y antiguedad
-- no debe intentarse aun merge profundo de `organizations` o `contacts` sin un flujo dedicado y auditable
+- no debe intentarse aun merge profundo de `contacts` sin un flujo dedicado y auditable
+- `organizations` ya cuentan con un flujo de merge auditable con ledger persistente de decisión; el siguiente paso de profundidad debe ampliar esa idea al resto de las entidades
 
 Secuencia de consolidacion actual:
 
