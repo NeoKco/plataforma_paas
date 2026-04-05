@@ -17,6 +17,15 @@ async function ensureTenantUsersPage(page: Page) {
   await expect(page.getByRole("heading", { name: /^(Usuarios|Users)$/i })).toBeVisible();
 }
 
+async function openTenantUserCreateForm(page: Page) {
+  await page.getByRole("button", { name: /Nuevo usuario|New user/i }).click();
+  const createDialog = page.getByRole("dialog", {
+    name: /Crear usuario del tenant|Create tenant user/i,
+  });
+  await expect(createDialog).toBeVisible();
+  return createDialog.locator("form").first();
+}
+
 function getUserRow(page: Page, email: string) {
   return page.locator("tbody tr").filter({ hasText: email }).first();
 }
@@ -46,8 +55,6 @@ test("tenant portal blocks extra admin creation and admin reactivation when admi
 
     await ensureTenantUsersPage(page);
 
-    const createUserForm = page.locator("form").first();
-
     await expect
       .poll(async () => await getUserRow(page, inactiveAdminEmail).count())
       .toBeGreaterThan(0);
@@ -66,6 +73,8 @@ test("tenant portal blocks extra admin creation and admin reactivation when admi
 
     await page.reload();
     await page.waitForLoadState("networkidle");
+
+    const createUserForm = await openTenantUserCreateForm(page);
 
     await createUserForm
       .getByPlaceholder(/Ej: María Pérez|Example: Maria Perez/i)

@@ -19,6 +19,13 @@ function getCatalogRow(page: Page, text: string | RegExp) {
   return page.locator("tbody tr").filter({ hasText: text }).first();
 }
 
+async function openBusinessCoreWorkGroupMembers(page: Page) {
+  await page.getByRole("button", { name: /Miembros|Members/i }).first().click();
+  await expect(
+    page.getByRole("heading", { name: /Miembros del grupo|Group members/i })
+  ).toBeVisible();
+}
+
 test("tenant portal shows imported business core and maintenance data from ieris_app", async ({
   page,
 }) => {
@@ -44,10 +51,7 @@ test("tenant portal shows imported business core and maintenance data from ieris
     /Grupos de trabajo|Work groups/i
   );
   await expect(getCatalogRow(page, /lider|mantenciones|sst/i)).toBeVisible();
-  await page.getByRole("link", { name: /Miembros|Members/i }).first().click();
-  await expect(
-    page.getByRole("heading", { name: /Miembros del grupo|Group members/i })
-  ).toBeVisible();
+  await openBusinessCoreWorkGroupMembers(page);
 
   await openTenantImportedPage(
     page,

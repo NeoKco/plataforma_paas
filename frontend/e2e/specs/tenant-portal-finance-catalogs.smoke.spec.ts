@@ -27,6 +27,17 @@ function getCatalogRow(page: Page, name: string) {
   return page.locator("tbody tr").filter({ hasText: name }).first();
 }
 
+async function openFinanceCatalogForm(
+  page: Page,
+  triggerName: RegExp,
+  dialogName: RegExp
+) {
+  await page.getByRole("button", { name: triggerName }).click();
+  const dialog = page.getByRole("dialog", { name: dialogName });
+  await expect(dialog).toBeVisible();
+  return dialog.locator("form").first();
+}
+
 test("tenant portal finance manages accounts catalog with create, deactivate and delete", async ({
   page,
 }) => {
@@ -36,26 +47,27 @@ test("tenant portal finance manages accounts catalog with create, deactivate and
   await ensureFinanceCatalogPage(page, "/tenant-portal/finance/accounts", /Cuentas|Accounts/);
 
   const form = page
-    .locator("form")
-    .filter({
-      has: page.getByRole("button", { name: /Crear cuenta|Create account/i }),
-    })
-    .first();
+    ;
+  const accountForm = await openFinanceCatalogForm(
+    page,
+    /Nueva cuenta|New account/i,
+    /Nueva cuenta|New account/i
+  );
 
-  await form
+  await accountForm
     .locator(".app-form-field")
     .filter({ hasText: /Nombre|Name/i })
     .first()
     .locator("input.form-control")
     .fill(accountName);
-  await form
+  await accountForm
     .locator(".app-form-field")
     .filter({ hasText: /Código|Code/i })
     .first()
     .locator("input.form-control")
     .fill(accountCode);
 
-  await form.getByRole("button", { name: /Crear cuenta|Create account/i }).click();
+  await accountForm.getByRole("button", { name: /Crear cuenta|Create account/i }).click();
 
   const accountRow = getCatalogRow(page, accountName);
   await expect(accountRow).toBeVisible();
@@ -83,32 +95,33 @@ test("tenant portal finance manages categories catalog with create, deactivate a
   );
 
   const form = page
-    .locator("form")
-    .filter({
-      has: page.getByRole("button", { name: /Crear categoría|Create category/i }),
-    })
-    .first();
+    ;
+  const categoryForm = await openFinanceCatalogForm(
+    page,
+    /Nueva categoría|New category/i,
+    /Nueva categoría|New category/i
+  );
 
-  await form
+  await categoryForm
     .locator(".app-form-field")
     .filter({ hasText: /Nombre|Name/i })
     .first()
     .locator("input.form-control")
     .fill(categoryName);
-  await form
+  await categoryForm
     .locator(".app-form-field")
     .filter({ hasText: /Color|Color/i })
     .first()
     .locator("input.form-control")
     .fill("#7c3aed");
-  await form
+  await categoryForm
     .locator(".app-form-field")
     .filter({ hasText: /Nota|Note/i })
     .first()
     .locator("textarea.form-control")
     .fill("Categoría creada por smoke E2E");
 
-  await form.getByRole("button", { name: /Crear categoría|Create category/i }).click();
+  await categoryForm.getByRole("button", { name: /Crear categoría|Create category/i }).click();
 
   const categoryRow = getCatalogRow(page, categoryName);
   await expect(categoryRow).toBeVisible();

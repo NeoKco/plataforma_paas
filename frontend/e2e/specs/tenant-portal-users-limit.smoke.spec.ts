@@ -3,6 +3,15 @@ import { loginTenant } from "../support/auth";
 import { setTenantModuleLimit } from "../support/backend-control";
 import { e2eEnv } from "../support/env";
 
+async function openTenantUserCreateForm(page: Page) {
+  await page.getByRole("button", { name: /Nuevo usuario|New user/i }).click();
+  const createDialog = page.getByRole("dialog", {
+    name: /Crear usuario del tenant|Create tenant user/i,
+  });
+  await expect(createDialog).toBeVisible();
+  return createDialog.locator("form").first();
+}
+
 test("tenant portal shows active-user limit enforcement after tenant override", async ({
   page,
 }) => {
@@ -31,7 +40,7 @@ test("tenant portal shows active-user limit enforcement after tenant override", 
       page.getByRole("heading", { name: /^(Usuarios|Users)$/i })
     ).toBeVisible();
 
-    const createUserForm = page.locator("form").first();
+    const createUserForm = await openTenantUserCreateForm(page);
     await createUserForm
       .getByPlaceholder(/Ej: María Pérez|Example: Maria Perez/i)
       .fill("Operador E2E");

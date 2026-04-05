@@ -30,8 +30,14 @@ function expectSettingsSuccess(page: Page) {
   );
 }
 
-function getCurrentForm(page: Page) {
-  return page.locator("form").first();
+async function openFinanceSettingsForm(page: Page, tabName: RegExp) {
+  await page.getByRole("button", { name: tabName }).click();
+  await page.getByRole("button", { name: /Nuevo registro|New record/i }).click();
+  const dialog = page.getByRole("dialog", {
+    name: /Alta o edición financiera|Finance create or edit/i,
+  });
+  await expect(dialog).toBeVisible();
+  return dialog.locator("form").first();
 }
 
 function getTableRow(page: Page, text: string) {
@@ -51,7 +57,7 @@ test("tenant portal finance settings manages currencies, exchange rates and para
 
   await ensureFinanceSettingsPage(page);
 
-  const currencyForm = getCurrentForm(page);
+  const currencyForm = await openFinanceSettingsForm(page, /Monedas|Currencies/i);
   await currencyForm
     .locator(".app-form-field")
     .filter({ hasText: /Código|Code/i })
@@ -87,7 +93,7 @@ test("tenant portal finance settings manages currencies, exchange rates and para
   await expect(currencyRow).toContainText(/activa|active/i);
 
   await page.getByRole("button", { name: /Tipos de cambio|Exchange rates/i }).click();
-  const exchangeRateForm = getCurrentForm(page);
+  const exchangeRateForm = await openFinanceSettingsForm(page, /Tipos de cambio|Exchange rates/i);
   const selectOptions = await exchangeRateForm.locator("select.form-select").first().locator("option").evaluateAll(
     (options) =>
       options.map((option) => ({
@@ -140,8 +146,7 @@ test("tenant portal finance settings manages currencies, exchange rates and para
   await expect(getSuccessAlert(page)).toContainText(/moneda|currency/i);
   await expect(getTableRow(page, currencyCode)).toHaveCount(0);
 
-  await page.getByRole("button", { name: /Parámetros|Parameters/i }).click();
-  const settingForm = getCurrentForm(page);
+  const settingForm = await openFinanceSettingsForm(page, /Parámetros|Parameters/i);
   await settingForm
     .locator(".app-form-field")
     .filter({ hasText: /Clave|Key/i })
@@ -164,7 +169,10 @@ test("tenant portal finance settings manages currencies, exchange rates and para
   await expect(settingRow).toContainText(/activo|active/i);
 
   await settingRow.getByRole("button", { name: /Editar|Edit/i }).click();
-  const settingEditForm = getCurrentForm(page);
+  const settingEditForm = page.getByRole("dialog", {
+    name: /Alta o edición financiera|Finance create or edit/i,
+  }).locator("form").first();
+  await expect(settingEditForm).toBeVisible();
   await settingEditForm
     .locator(".app-form-field")
     .filter({ hasText: /Valor|Value/i })

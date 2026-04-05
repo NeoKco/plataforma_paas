@@ -49,15 +49,26 @@ function getCategoryRow(page: Page, categoryName: string) {
   return page.locator("tbody tr").filter({ hasText: categoryName }).first();
 }
 
+async function openBudgetCategoryCreateForm(page: Page) {
+  await page.getByRole("button", { name: /Nueva categoría|New category/i }).click();
+  const dialog = page.getByRole("dialog", { name: /Nueva categoría|New category/i });
+  await expect(dialog).toBeVisible();
+  return dialog.locator("form").first();
+}
+
+async function openBudgetCreateForm(page: Page) {
+  await page.getByRole("button", { name: /Nuevo presupuesto|New budget/i }).click();
+  const dialog = page.getByRole("dialog", {
+    name: /Registrar presupuesto|Create budget/i,
+  });
+  await expect(dialog).toBeVisible();
+  return dialog.locator("form").first();
+}
+
 async function createBudgetCategory(page: Page, categoryName: string) {
   await ensureFinanceCategoriesPage(page);
 
-  const form = page
-    .locator("form")
-    .filter({
-      has: page.getByRole("button", { name: /Crear categoría|Create category/i }),
-    })
-    .first();
+  const form = await openBudgetCategoryCreateForm(page);
 
   await form
     .locator(".app-form-field")
@@ -122,7 +133,7 @@ test("tenant portal finance budgets creates a budget and clones it into another 
     await createBudgetCategory(page, categoryName);
     await ensureFinanceBudgetsPage(page);
 
-    const createForm = page.locator("form").first();
+    const createForm = await openBudgetCreateForm(page);
     const categorySelect = createForm.locator("select.form-select").first();
     const categoryValue = await categorySelect.locator("option").evaluateAll((options, target) => {
       const matched = options.find((option) => option.textContent?.includes(target));

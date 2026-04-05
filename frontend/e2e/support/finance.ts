@@ -12,13 +12,18 @@ export async function openFinanceTransactionsPage(page: Page) {
 
 export function getFinanceTransactionForm(page: Page) {
   return page
-    .locator("form")
-    .filter({
-      has: page.getByRole("button", {
-        name: /Registrar transacción|Create transaction/,
-      }),
+    .getByRole("dialog", {
+      name: /Registrar transacción|Register transaction|Create transaction/i,
     })
+    .locator("form")
     .first();
+}
+
+export async function openFinanceTransactionCreateForm(page: Page) {
+  await page.getByRole("button", { name: /Registrar transacción|Register transaction/i }).click();
+  const form = getFinanceTransactionForm(page);
+  await expect(form).toBeVisible();
+  return form;
 }
 
 export async function ensureFinanceAccount(page: Page, accountName: string) {
@@ -148,6 +153,7 @@ export async function createBasicTransaction(
 ) {
   const form = getFinanceTransactionForm(page);
   const uniqueAccountName = `e2e-caja-${Date.now()}`;
+  await openFinanceTransactionCreateForm(page);
   await ensureFinanceTransactionFormReady(page, form, uniqueAccountName);
 
   await form.getByRole("combobox").first().selectOption(options.transactionType);

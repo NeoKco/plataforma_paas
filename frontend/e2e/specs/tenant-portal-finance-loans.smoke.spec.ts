@@ -40,6 +40,13 @@ function getSchedulePanel(page: Page) {
     .first();
 }
 
+async function openLoanCreateForm(page: Page) {
+  await page.getByRole("button", { name: /Nuevo préstamo|New loan/i }).click();
+  const dialog = page.getByRole("dialog", { name: /Registrar préstamo|Create loan/i });
+  await expect(dialog).toBeVisible();
+  return dialog.locator("form").first();
+}
+
 async function openLoanSchedule(page: Page, loanName: string) {
   const loanRow = getLoanRow(page, loanName);
   await expect(loanRow).toBeVisible();
@@ -64,7 +71,7 @@ test("tenant portal finance loans creates a loan and records a simple installmen
 
   await ensureFinanceLoansPage(page);
 
-  const createForm = page.locator("form").first();
+  const createForm = await openLoanCreateForm(page);
   const accountSelect = createForm.locator("select.form-select").nth(2);
   const accountOptions = await accountSelect.locator("option").evaluateAll((options) =>
     options
