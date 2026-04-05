@@ -117,6 +117,7 @@ Fuente frontend principal:
 - los CRUD de `maintenance` deben priorizar lectura primero
 - los formularios de alta o edición no deberían quedar desplegados por defecto
 - `equipment_types`, `installations`, `visits` y `work_orders` ya abren captura en modal bajo demanda
+- `installations` ahora también abre `Expediente` como modal de lectura secundaria del activo, siguiendo el mismo patrón de lectura primero sin abrir aún un módulo documental separado
 - cualquier nueva pantalla CRUD del modulo debe seguir el mismo patron y no volver a formularios fijos incrustados salvo que exista una razon operativa fuerte
 - en `work_orders`, cliente y direccion deben leerse con nombre humano desde `business-core`, nunca por `client_code` o marcas `legacy_*`
 - `external_reference` queda como dato interno para migracion e integraciones; no debe exponerse como campo editable en la UX normal
@@ -217,6 +218,15 @@ Entidades de segundo corte:
 - `maintenance_visit_reports`
 - ya no hace falta `maintenance_assignment_targets` como tabla separada en el primer corte, porque la asignacion real vive en FKs directas sobre `work_orders` y `visits`
 
+Regla vigente para puente con expediente tecnico:
+
+- el primer corte no crea nuevas tablas tenant
+- `Instalaciones -> Expediente` reutiliza:
+  - `maintenance_installations` como snapshot del activo
+  - `maintenance_work_orders` filtradas por `installation_id`
+  - `field_report` de la última OT cerrada como base documental liviana
+- esto permite avanzar la extensión técnica sin acoplar todavía un expediente documental completo ni abrir storage paralelo por activo
+
 Regla vigente para cierre tecnico y evidencias:
 
 - el corte actual usa un `field report` ligado directo a `work_orders`
@@ -296,6 +306,7 @@ Frontend actual:
   - `equipment-types`
   - `history`
   - `calendar` como agenda visual mensual de mantenciones abiertas
+  - `reports` como primer corte de reportes técnicos operativos
 
 Documentacion:
 
@@ -376,8 +387,10 @@ Frontend:
 - smoke de crear orden
 - smoke de cambio de estado
 - smoke de crear instalacion
+- smoke de abrir `Expediente` desde `Instalaciones`
 - smoke de lectura de historial
 - smoke de crear visita
+- smoke de `Reportes` técnicos con lectura mensual base
 
 ## Importacion legacy
 
@@ -409,6 +422,7 @@ Limitaciones actuales:
 - profundizar el flujo `reprogramar` con ventanas de visita y coordinación de terreno
 - usar adjuntos/evidencias del modulo, no filesystem ad hoc
 - preparar el modulo para crecer luego hacia expediente tecnico sin acoplarlo desde el inicio
+- mantener `Reportes` como lectura agregada sobre datos reales del módulo y no como exportador aislado sin contexto operativo
 - exponer `status_logs` y `visits` en el frontend antes de sumar agenda completa
 - agregar agenda visual con visitas más finas sin romper el slice ya operativo
 

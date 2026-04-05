@@ -2965,3 +2965,9 @@
 └── tools
 
 494 directories, 2471 files
+
+Actualizaciones recientes relevantes:
+
+- frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceInstallationTechnicalRecordModal.tsx
+- frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx
+- frontend/e2e/specs/tenant-portal-business-core-maintenance-import.smoke.spec.ts

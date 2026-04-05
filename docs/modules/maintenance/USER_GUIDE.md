@@ -78,6 +78,8 @@ El primer corte del modulo ya permite:
 - abrir `Mantenciones` desde la ficha del cliente con cliente y dirección ya preseleccionados
 - abrir altas y ediciones desde modal bajo demanda, dejando catálogo y lectura como primer plano
 - ver en `Resumen` las ultimas 5 mantenciones realizadas con datos de cliente, direccion y fecha
+- abrir `Expediente` desde `Instalaciones` para revisar un puente técnico liviano del activo con snapshot, próxima atención y último cierre reutilizando checklist/evidencias
+- abrir `Reportes` para revisar cierres del período, cobertura técnica, trazabilidad de visitas y activos sin servicio reciente
 
 ## Lo que no entra en el primer corte
 
@@ -136,6 +138,9 @@ Lectura funcional de cada vista:
   - el costeo se maneja en modal, igual que la captura principal del módulo
   - `Costos` ya permite resumen manual o detalle por líneas
 - `Instalaciones`: parque instalado por cliente y direccion
+- `Instalaciones`:
+  - cada fila ya permite abrir `Expediente`
+  - ese expediente no reemplaza al futuro módulo documental; sirve como lectura técnica rápida del activo usando su historial real de mantenciones
 - `Historial`: trabajo ya realizado o anulado
   - cada tarjeta ya permite abrir `Ver ficha`, `Ver costos`, `Ver checklist` y `Editar cierre`
   - `Ver costos` es solo lectura; el histórico no se edita desde el flujo normal
@@ -147,6 +152,11 @@ Lectura funcional de cada vista:
   - también permite filtrar la agenda mensual por grupo responsable o técnico responsable
   - al abrir una mantención desde la agenda, puedes usar `Reprogramar` y dejar un motivo visible en historial técnico
   - en esa reprogramación puedes mover también la primera visita abierta para dejar alineada la ventana principal de terreno
+- `Reportes`: lectura analítica operativa del módulo
+  - permite filtrar por mes y tipo de equipo
+  - resume cierres completados/anulados del período
+  - muestra cobertura de observación útil de cierre, trazabilidad de visitas y cobertura preventiva
+  - detecta instalaciones activas sin servicio reciente ni OT abierta
 
 Lectura de la ficha de mantención:
 
@@ -188,6 +198,10 @@ Regla UX operativa:
   - cada ítem puede dejar una nota corta
   - la observación de cierre queda estandarizada en el mismo modal
   - también se pueden adjuntar PDFs o imágenes como evidencia del trabajo ejecutado
+- si necesitas revisar rápidamente el contexto técnico de un activo sin abrir todavía un expediente documental completo:
+  - entra a `Instalaciones`
+  - abre `Expediente`
+  - revisa snapshot del activo, próximas/últimas mantenciones y el último cierre técnico reutilizado desde la OT más reciente
 
 ## Mejora funcional recomendada
 
