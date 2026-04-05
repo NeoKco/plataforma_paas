@@ -1,3 +1,6 @@
+from app.apps.tenant_modules.maintenance.services.cost_template_service import (
+    MaintenanceCostTemplateService,
+)
 from app.apps.tenant_modules.maintenance.services.costing_service import (
     MaintenanceCostingService,
 )
@@ -24,6 +27,7 @@ from app.apps.tenant_modules.maintenance.services.visit_service import (
 )
 
 __all__ = [
+    "MaintenanceCostTemplateService",
     "MaintenanceCostingService",
     "MaintenanceDueItemService",
     "MaintenanceEquipmentTypeService",

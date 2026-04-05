@@ -3,6 +3,12 @@ from app.apps.tenant_modules.maintenance.models.cost_estimate import (
     MaintenanceCostEstimate,
 )
 from app.apps.tenant_modules.maintenance.models.cost_line import MaintenanceCostLine
+from app.apps.tenant_modules.maintenance.models.cost_template import (
+    MaintenanceCostTemplate,
+)
+from app.apps.tenant_modules.maintenance.models.cost_template_line import (
+    MaintenanceCostTemplateLine,
+)
 from app.apps.tenant_modules.maintenance.models.due_item import MaintenanceDueItem
 from app.apps.tenant_modules.maintenance.models.equipment_type import (
     MaintenanceEquipmentType,
@@ -22,6 +28,8 @@ __all__ = [
     "MaintenanceCostActual",
     "MaintenanceCostEstimate",
     "MaintenanceCostLine",
+    "MaintenanceCostTemplate",
+    "MaintenanceCostTemplateLine",
     "MaintenanceDueItem",
     "MaintenanceEquipmentType",
     "MaintenanceInstallation",

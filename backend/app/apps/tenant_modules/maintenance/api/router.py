@@ -1,5 +1,8 @@
 from fastapi import APIRouter
 
+from app.apps.tenant_modules.maintenance.api.cost_templates import (
+    router as cost_templates_router,
+)
 from app.apps.tenant_modules.maintenance.api.costing import router as costing_router
 from app.apps.tenant_modules.maintenance.api.due_items import router as due_items_router
 from app.apps.tenant_modules.maintenance.api.equipment_types import (
@@ -18,6 +21,7 @@ from app.apps.tenant_modules.maintenance.api.work_orders import (
 
 router = APIRouter()
 router.include_router(overview_router)
+router.include_router(cost_templates_router)
 router.include_router(schedules_router)
 router.include_router(due_items_router)
 router.include_router(costing_router)
