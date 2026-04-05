@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { buildE2EText } from "./e2e-data";
 
 export async function openFinanceTransactionsPage(page: Page) {
   await page.goto("/tenant-portal/finance");
@@ -65,7 +66,7 @@ export async function ensureFinanceAccount(page: Page, accountName: string) {
     .filter({ hasText: /Código|Code/i })
     .first()
     .locator("input.form-control");
-  await codeField.fill(`E2E-${Date.now()}`);
+  await codeField.fill(buildE2EText("finance-account-code", "E2E").toUpperCase());
 
   await accountForm.getByRole("button", { name: /Crear cuenta|Create account/ }).click();
   await expect(
@@ -158,7 +159,7 @@ export async function createBasicTransaction(
     amount?: string;
   }
 ) {
-  const uniqueAccountName = `e2e-caja-${Date.now()}`;
+  const uniqueAccountName = buildE2EText("finance-account", "e2e-caja");
   let form = await openFinanceTransactionCreateForm(page);
   form = await ensureFinanceTransactionFormReady(page, form, uniqueAccountName);
 

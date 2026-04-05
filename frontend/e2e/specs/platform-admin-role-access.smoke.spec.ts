@@ -1,21 +1,13 @@
 import { expect, test, type Locator, type Page } from "../support/test";
 import { loginPlatform, loginPlatformAs, logoutPlatform } from "../support/auth";
+import { buildE2EPlatformUserIdentity } from "../support/e2e-data";
 import { openCreatePlatformUserForm } from "../support/platform-admin";
 
 test("platform admin enforces visible role access for admin and support users", async ({
   page,
 }) => {
-  const uniqueSuffix = Date.now();
-  const adminUser = {
-    fullName: `E2E Platform Admin ${uniqueSuffix}`,
-    email: `e2e-platform-admin-${uniqueSuffix}@platform.local`,
-    password: `AdminRole${uniqueSuffix}!`,
-  };
-  const supportUser = {
-    fullName: `E2E Platform Support ${uniqueSuffix}`,
-    email: `e2e-platform-support-${uniqueSuffix}@platform.local`,
-    password: `SupportRole${uniqueSuffix}!`,
-  };
+  const adminUser = buildE2EPlatformUserIdentity("admin");
+  const supportUser = buildE2EPlatformUserIdentity("support");
 
   await loginPlatform(page);
   await page.goto("/users");

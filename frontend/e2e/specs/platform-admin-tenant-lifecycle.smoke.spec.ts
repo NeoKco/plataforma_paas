@@ -1,11 +1,10 @@
 import { expect, test } from "../support/test";
 import { loginPlatform } from "../support/auth";
+import { buildE2ETenantIdentity } from "../support/e2e-data";
 import { openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can create archive and restore a tenant", async ({ page }) => {
-  const uniqueSuffix = Date.now();
-  const tenantName = `E2E Tenant ${uniqueSuffix}`;
-  const tenantSlug = `e2e-tenant-${uniqueSuffix}`;
+  const tenant = buildE2ETenantIdentity("tenant");
 
   await loginPlatform(page);
   await page.goto("/tenants");
@@ -15,8 +14,8 @@ test("platform admin can create archive and restore a tenant", async ({ page }) 
   ).toBeVisible();
 
   const createForm = await openCreateTenantForm(page);
-  await createForm.getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i).fill(tenantName);
-  await createForm.getByPlaceholder("empresa-centro").fill(tenantSlug);
+  await createForm.getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i).fill(tenant.name);
+  await createForm.getByPlaceholder("empresa-centro").fill(tenant.slug);
   await createForm
     .getByRole("button", { name: /Crear tenant|Create tenant/ })
     .click();
@@ -29,9 +28,9 @@ test("platform admin can create archive and restore a tenant", async ({ page }) 
   ).toContainText(/creado|created/i);
 
   await expect(
-    page.getByRole("heading", { name: tenantName, exact: true })
+    page.getByRole("heading", { name: tenant.name, exact: true })
   ).toBeVisible();
-  await expect(page.getByText(tenantSlug, { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(tenant.slug, { exact: true }).first()).toBeVisible();
   await expect(
     page.getByRole("heading", { name: /Provisioning/i })
   ).toBeVisible();
