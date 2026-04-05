@@ -205,7 +205,18 @@
 
 @media (min-width: 992px) {
   .business-core-taxonomy-metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.business-core-taxonomy-alerts {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 992px) {
+  .business-core-taxonomy-alerts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -251,6 +262,13 @@
 }
 
 .business-core-taxonomy-table__profile-code {
+  color: var(--app-text-muted, #6b7a90);
+  font-size: 0.75rem;
+}
+
+.business-core-taxonomy-table__profile-coverage,
+.business-core-taxonomy-table__task-coverage,
+.business-core-taxonomy-table__cell-meta {
   color: var(--app-text-muted, #6b7a90);
   font-size: 0.75rem;
 }

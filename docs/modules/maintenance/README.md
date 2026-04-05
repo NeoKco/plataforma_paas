@@ -121,6 +121,7 @@ Estado del corte hoy:
 - cuando la OT viene de una programación preventiva con `Tipo de tarea`, `Pendientes`, `Mantenciones`, `Agenda` y `Visitas` solo permiten técnicos cuyo miembro de grupo tenga `Perfil funcional` declarado; el backend también lo exige al guardar
 - `Business Core -> Tipos de tarea` ya permite marcar `Perfiles compatibles`; internamente se conserva como metadata liviana `profiles:` dentro de la descripción para no requerir migración nueva
 - `Business Core -> Taxonomías` ya expone una matriz visual `Tipo de tarea x Perfil funcional` para auditar compatibilidad fina sin abrir cada catálogo por separado
+- esa misma matriz ya muestra cobertura operativa real usando membresías activas/vigentes de grupos, para detectar tipos sin técnicos compatibles y perfiles funcionales huérfanos
 
 Pendientes visibles inmediatos:
 

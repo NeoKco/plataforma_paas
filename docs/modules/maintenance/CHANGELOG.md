@@ -38,6 +38,10 @@
   - cruza `Tipos de tarea` con `Perfiles funcionales`
   - permite buscar y filtrar solo mapeos explícitos
   - facilita revisar gaps de compatibilidad antes de asignar reglas más duras o abrir migración dedicada
+- la matriz ahora también muestra cobertura operativa real:
+  - cuenta miembros activos/vigentes por perfil funcional
+  - resume técnicos/grupos compatibles por tipo de tarea
+  - alerta perfiles huérfanos y tipos de tarea sin cobertura real
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso

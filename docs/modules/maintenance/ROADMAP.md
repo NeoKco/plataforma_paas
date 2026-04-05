@@ -160,6 +160,7 @@ Avance actual:
 - el módulo ya soporta un mapa explícito liviano `task_type -> function_profiles` usando la línea `profiles:` dentro de la descripción del `Tipo de tarea`, sin exigir migración nueva
 - `Business Core -> Tipos de tarea` ya expone UI para editar esa compatibilidad fina sin obligar al usuario a escribir metadata manual
 - `Business Core -> Taxonomías` ya muestra una matriz transversal para revisar la cobertura de compatibilidad entre tipos y perfiles
+- `Business Core -> Taxonomías` ya cruza además membresías activas/vigentes de grupos para mostrar cobertura operativa real y alertar sobre tipos/perfiles huérfanos
 - conflictos visibles, bloqueo backend `409`, filtros de agenda y reprogramación auditada ya quedaron operativos en el mismo frente de endurecimiento
 
 Pendiente fino de este frente:

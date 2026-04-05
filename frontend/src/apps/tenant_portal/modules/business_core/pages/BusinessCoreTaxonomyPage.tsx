@@ -20,16 +20,42 @@ import {
   type TenantBusinessTaskType,
 } from "../services/taskTypesService";
 import {
+  getTenantBusinessWorkGroupMembers,
+  getTenantBusinessWorkGroups,
+  type TenantBusinessWorkGroup,
+  type TenantBusinessWorkGroupMember,
+} from "../services/workGroupsService";
+import {
   getTaskTypeAllowedProfileNames,
   stripTaskTypeAllowedProfilesMetadata,
 } from "../../maintenance/services/assignmentCapability";
 import { stripLegacyVisibleText } from "../utils/taxonomyUi";
+
+function isMembershipOperationallyActive(member: {
+  is_active: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+}) {
+  if (!member.is_active) {
+    return false;
+  }
+  const now = new Date();
+  if (member.starts_at && new Date(member.starts_at) > now) {
+    return false;
+  }
+  if (member.ends_at && new Date(member.ends_at) < now) {
+    return false;
+  }
+  return true;
+}
 
 export function BusinessCoreTaxonomyPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
   const [taskTypes, setTaskTypes] = useState<TenantBusinessTaskType[]>([]);
   const [functionProfiles, setFunctionProfiles] = useState<TenantBusinessFunctionProfile[]>([]);
+  const [workGroups, setWorkGroups] = useState<TenantBusinessWorkGroup[]>([]);
+  const [workGroupMembers, setWorkGroupMembers] = useState<TenantBusinessWorkGroupMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
   const [search, setSearch] = useState("");
@@ -43,12 +69,20 @@ export function BusinessCoreTaxonomyPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const [taskTypesResponse, functionProfilesResponse] = await Promise.all([
+        const [taskTypesResponse, functionProfilesResponse, workGroupsResponse] = await Promise.all([
           getTenantBusinessTaskTypes(session.accessToken, { includeInactive: false }),
           getTenantBusinessFunctionProfiles(session.accessToken, { includeInactive: false }),
+          getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false }),
         ]);
+        const workGroupMembersResponses = await Promise.all(
+          workGroupsResponse.data.map((group) =>
+            getTenantBusinessWorkGroupMembers(session.accessToken, group.id)
+          )
+        );
         setTaskTypes(taskTypesResponse.data);
         setFunctionProfiles(functionProfilesResponse.data);
+        setWorkGroups(workGroupsResponse.data);
+        setWorkGroupMembers(workGroupMembersResponses.flatMap((response) => response.data));
       } catch (rawError) {
         setError(rawError as ApiError);
       } finally {
@@ -66,6 +100,54 @@ export function BusinessCoreTaxonomyPage() {
         allowedProfileNames: getTaskTypeAllowedProfileNames(taskType),
       })),
     [taskTypes]
+  );
+  const activeOperationalMembers = useMemo(
+    () => workGroupMembers.filter((member) => isMembershipOperationallyActive(member)),
+    [workGroupMembers]
+  );
+  const activeCoverageCountByProfileName = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const member of activeOperationalMembers) {
+      const profileName = member.function_profile_name?.trim();
+      if (!profileName) {
+        continue;
+      }
+      map.set(profileName, (map.get(profileName) ?? 0) + 1);
+    }
+    return map;
+  }, [activeOperationalMembers]);
+  const taskTypeCoverageById = useMemo(() => {
+    const map = new Map<number, { compatibleMembers: number; compatibleGroups: number }>();
+    for (const row of matrixRows) {
+      const compatibleMembers = activeOperationalMembers.filter((member) => {
+        if (!member.function_profile_name) {
+          return false;
+        }
+        return (
+          row.allowedProfileNames.length === 0 ||
+          row.allowedProfileNames.includes(member.function_profile_name)
+        );
+      });
+      map.set(row.taskType.id, {
+        compatibleMembers: compatibleMembers.length,
+        compatibleGroups: new Set(compatibleMembers.map((member) => member.group_id)).size,
+      });
+    }
+    return map;
+  }, [activeOperationalMembers, matrixRows]);
+  const orphanTaskTypes = useMemo(
+    () =>
+      matrixRows.filter(
+        (row) => (taskTypeCoverageById.get(row.taskType.id)?.compatibleMembers ?? 0) === 0
+      ),
+    [matrixRows, taskTypeCoverageById]
+  );
+  const orphanFunctionProfiles = useMemo(
+    () =>
+      functionProfiles.filter(
+        (profile) => (activeCoverageCountByProfileName.get(profile.name) ?? 0) === 0
+      ),
+    [activeCoverageCountByProfileName, functionProfiles]
   );
 
   const normalizedSearch = search.trim().toLowerCase();
@@ -171,6 +253,67 @@ export function BusinessCoreTaxonomyPage() {
         >
           <div className="business-core-taxonomy-metric">{explicitMappingsCount}</div>
         </PanelCard>
+        <PanelCard
+          title={language === "es" ? "Cobertura operativa" : "Operational coverage"}
+          subtitle={
+            language === "es"
+              ? "Miembros activos y vigentes en grupos responsables"
+              : "Active and current members in responsible groups"
+          }
+        >
+          <div className="business-core-taxonomy-metric">{activeOperationalMembers.length}</div>
+        </PanelCard>
+      </div>
+
+      <div className="business-core-taxonomy-alerts">
+        <PanelCard
+          title={language === "es" ? "Tipos sin cobertura real" : "Task types without real coverage"}
+          subtitle={
+            language === "es"
+              ? "No tienen miembros activos compatibles en ningún grupo"
+              : "They have no compatible active members in any group"
+          }
+        >
+          {orphanTaskTypes.length === 0 ? (
+            <div className="alert alert-success mb-0">
+              {language === "es"
+                ? "Todos los tipos de tarea tienen alguna cobertura operativa real."
+                : "All task types have some real operational coverage."}
+            </div>
+          ) : (
+            <div className="d-flex flex-wrap gap-2">
+              {orphanTaskTypes.map(({ taskType }) => (
+                <AppBadge key={taskType.id} tone="warning">
+                  {taskType.name}
+                </AppBadge>
+              ))}
+            </div>
+          )}
+        </PanelCard>
+        <PanelCard
+          title={language === "es" ? "Perfiles huérfanos" : "Orphan profiles"}
+          subtitle={
+            language === "es"
+              ? "Perfiles sin ninguna membresía activa y vigente en grupos"
+              : "Profiles without any active and current group membership"
+          }
+        >
+          {orphanFunctionProfiles.length === 0 ? (
+            <div className="alert alert-success mb-0">
+              {language === "es"
+                ? "Todos los perfiles tienen presencia operativa en grupos."
+                : "All profiles have operational presence in groups."}
+            </div>
+          ) : (
+            <div className="d-flex flex-wrap gap-2">
+              {orphanFunctionProfiles.map((profile) => (
+                <AppBadge key={profile.id} tone="warning">
+                  {profile.name}
+                </AppBadge>
+              ))}
+            </div>
+          )}
+        </PanelCard>
       </div>
 
       <PanelCard
@@ -233,6 +376,9 @@ export function BusinessCoreTaxonomyPage() {
                     >
                       <div className="business-core-taxonomy-table__profile-title">{profile.name}</div>
                       <div className="business-core-taxonomy-table__profile-code">{profile.code}</div>
+                      <div className="business-core-taxonomy-table__profile-coverage">
+                        {language === "es" ? "Cobertura" : "Coverage"}: {activeCoverageCountByProfileName.get(profile.name) ?? 0}
+                      </div>
                     </th>
                   ))}
                 </tr>
@@ -261,6 +407,11 @@ export function BusinessCoreTaxonomyPage() {
                             stripTaskTypeAllowedProfilesMetadata(taskType.description)
                           ) || "—"}
                         </div>
+                        <div className="business-core-taxonomy-table__task-coverage mt-1">
+                          {language === "es" ? "Miembros compatibles" : "Compatible members"}: {taskTypeCoverageById.get(taskType.id)?.compatibleMembers ?? 0}
+                          {" · "}
+                          {language === "es" ? "Grupos" : "Groups"}: {taskTypeCoverageById.get(taskType.id)?.compatibleGroups ?? 0}
+                        </div>
                         <div className="d-flex flex-wrap gap-1 mt-2">
                           {hasExplicitProfiles ? (
                             allowedProfileNames.map((profileName) => (
@@ -280,6 +431,9 @@ export function BusinessCoreTaxonomyPage() {
                       {functionProfiles.map((profile) => {
                         const isCompatible =
                           !hasExplicitProfiles || allowedProfileNames.includes(profile.name);
+                        const coverageCount = activeOperationalMembers.filter(
+                          (member) => member.function_profile_name === profile.name
+                        ).length;
                         return (
                           <td key={`${taskType.id}:${profile.id}`} className="text-center">
                             <span
@@ -298,6 +452,9 @@ export function BusinessCoreTaxonomyPage() {
                             >
                               {isCompatible ? "●" : "–"}
                             </span>
+                            {isCompatible ? (
+                              <div className="business-core-taxonomy-table__cell-meta">{coverageCount}</div>
+                            ) : null}
                           </td>
                         );
                       })}

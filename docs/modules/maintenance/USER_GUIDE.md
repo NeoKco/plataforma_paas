@@ -49,6 +49,7 @@ El primer corte del modulo ya permite:
 - si la mantención viene desde una programación preventiva con `Tipo de tarea`, solo podrás elegir técnicos cuyo miembro del grupo tenga `Perfil funcional` declarado; la misma regla aplica al agendar desde `Pendientes` y al coordinar `Visitas`
 - si además en `Business Core -> Tipos de tarea` marcas `Perfiles compatibles`, la asignación se reduce solo a esos perfiles compatibles
 - en `Business Core -> Taxonomías` puedes revisar la matriz completa de compatibilidad entre `Tipos de tarea` y `Perfiles funcionales` para auditar rápidamente qué combinaciones quedaron abiertas o restringidas
+- la matriz también informa cobertura real por membresías activas del grupo, ayudando a detectar `Tipos de tarea` sin cobertura y `Perfiles funcionales` sin presencia operativa
 - crear una orden nueva
 - editar una orden aun no cerrada
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
