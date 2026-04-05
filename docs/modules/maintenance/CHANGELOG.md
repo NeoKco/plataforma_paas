@@ -4,8 +4,9 @@
 
 - el modal `Costos y cobro` ahora se alinea con el flujo operativo esperado del equipo:
   - `Costeo estimado` puede elegir y aplicar cualquier `Plantilla de costeo de mantención` activa previamente creada
-  - `Costo real y cobro` también puede aplicar cualquier plantilla activa y luego editar traslado, materiales, líneas y monto cobrado antes del cierre
+  - `Costo real y cobro` ahora copia valores de la plantilla al resumen editable, para ajustar traslado, materiales o monto cobrado sin quedar bloqueado por la plantilla
   - la sección `Sincronizar a finanzas` parte precargada desde la configuración default visible en `Resumen técnico`
+  - la fecha contable pasa a usar el timestamp real de cierre de la OT, y el botón manual queda explícitamente como reintento/ajuste cuando aplica
   - cuando el tenant está en `auto_on_close`, el modal advierte configuraciones faltantes para que el cierre no prometa una sync automática incompleta
 - `Mantenciones` ahora expone un slice visible `Plantillas` para administrar plantillas de costeo desde una vista propia:
   - permite crear, editar y archivar estructuras reutilizables sin entrar a una OT o a `Pendientes`

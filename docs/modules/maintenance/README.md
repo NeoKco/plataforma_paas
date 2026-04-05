@@ -102,7 +102,7 @@ Estado del corte hoy:
 - `Pendientes` ya agrega una lectura agrupada por organización para coordinar carga sin perder la operación por cliente/dirección
 - `Pendientes` ya muestra instalaciones activas sin plan preventivo y permite abrir `Crear plan` con cliente/dirección/instalación precargados
 - `Mantenciones` ya permite abrir `Costos` por OT para guardar estimado, costo real, monto cobrado y sincronizar manualmente a `finance`
-- el mismo modal `Costos` ahora permite elegir y reaplicar cualquier `Plantilla de costeo de mantención` activa sobre el estimado o el costo real, manteniendo editable el cobro y las líneas del cierre real
+- el mismo modal `Costos` ahora permite elegir y reaplicar cualquier `Plantilla de costeo de mantención` activa sobre el estimado o el costo real; en `Costo real y cobro` la plantilla copia valores al resumen editable, sin dejar bloqueado el ajuste posterior del cierre
 - queda pendiente un slice posterior para que el cierre económico deje trazado de forma explícita qué plantilla quedó aplicada al costo real final de la OT
 - `Historial` ya permite abrir el mismo modal `Costos` sobre órdenes cerradas, sin volver editable la programación operativa
 - `Costos y cobro` ya permite detalle granular por líneas:
@@ -117,6 +117,8 @@ Estado del corte hoy:
   - modo `auto_on_close`
   - cuentas/categorías/moneda por defecto
 - el modal `Costos` ahora reutiliza esos defaults de `Resumen` para precargar la sincronización financiera y advertir cuando el `auto_on_close` no podría completar el puente esperado al cerrar
+- la fecha contable de esa sincronización ya se resuelve con el timestamp real de cierre de la OT; si se usa el botón manual antes del cierre, se toma el momento real de esa sync como fallback
+- cuando el tenant está en `auto_on_close`, el botón de sync queda como camino de respaldo para reintento o ajuste manual, no como flujo principal de cierre
 - `Mantenciones` ya permite abrir `Checklist` por OT para registrar observación de cierre, checklist técnico y evidencias de terreno
 - `Historial` ya permite abrir `Ver checklist` en modo solo lectura para revisar ese cierre técnico sin reabrir la orden
 - el backend ya endurece la agenda y rechaza cruces de slot activo por instalación, grupo o técnico, incluso si el intento no viene desde la misma pantalla web

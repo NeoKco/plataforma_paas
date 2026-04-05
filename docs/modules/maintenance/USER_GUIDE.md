@@ -148,7 +148,7 @@ Lectura funcional de cada vista:
   - el costeo se maneja en modal, igual que la captura principal del módulo
   - `Costos` ya permite resumen manual o detalle por líneas
   - `Costeo estimado` ahora puede cargar cualquier plantilla activa del módulo y luego editar margen, notas o líneas antes de guardar
-  - `Costo real y cobro` también puede cargar cualquier plantilla activa y luego ajustar traslado, materiales, cobro o cualquier línea antes del cierre real
+  - `Costo real y cobro` ahora copia los valores de la plantilla al resumen real, sin dejarlo amarrado a la plantilla; después puedes ajustar traslado, materiales, cobro o agregar líneas manuales si quieres más detalle
 - `Instalaciones`: parque instalado por cliente y direccion
 - `Instalaciones`:
   - cada fila ya permite abrir `Expediente`
@@ -197,9 +197,11 @@ Regla UX operativa:
   - luego se eligen cuenta, categoría y moneda
   - recién entonces se genera o actualiza el ingreso/egreso financiero
 - el formulario `Sincronizar a finanzas` ya parte precargado con la configuración por defecto definida en `Resumen`
+- la `Fecha contable` ya no se edita manualmente desde la modal; el backend usa siempre la hora real de cierre de la OT y, si aún no está cerrada, el momento real en que se ejecuta la sync manual
 - si el tenant activa `Automática al cerrar` en `Resumen`:
   - la OT completada intenta generar ingreso/egreso usando las cuentas, categorías, moneda y toggles por defecto del tenant
   - el modal `Costos` avisa si falta alguna configuración activa en `Resumen` para que el cierre no salga sin el puente esperado a `Finanzas`
+  - en ese modo, el botón de sync queda como respaldo para reintentar o corregir la sincronización si cambió la configuración o si el primer intento no pudo completarse
 - si la OT nace desde una programación preventiva con costeo default:
   - `Costeo estimado` ya se abre precargado con sus líneas base
   - el operador puede ajustar ese estimado antes de ejecutar la mantención real
