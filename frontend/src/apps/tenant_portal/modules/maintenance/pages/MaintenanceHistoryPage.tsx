@@ -26,6 +26,7 @@ import {
 import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceCostingModal } from "../components/common/MaintenanceCostingModal";
+import { MaintenanceFieldReportModal } from "../components/common/MaintenanceFieldReportModal";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
 import {
   getTenantMaintenanceHistory,
@@ -97,6 +98,8 @@ export function MaintenanceHistoryPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [editingRow, setEditingRow] = useState<TenantMaintenanceHistoryWorkOrder | null>(null);
   const [costingWorkOrder, setCostingWorkOrder] =
+    useState<TenantMaintenanceHistoryWorkOrder | null>(null);
+  const [fieldReportWorkOrder, setFieldReportWorkOrder] =
     useState<TenantMaintenanceHistoryWorkOrder | null>(null);
   const [historyForm, setHistoryForm] = useState({
     description: "",
@@ -174,8 +177,18 @@ export function MaintenanceHistoryPage() {
     setCostingWorkOrder(item);
   }
 
+  function openFieldReportModal(item: TenantMaintenanceHistoryWorkOrder) {
+    setFeedback(null);
+    setError(null);
+    setFieldReportWorkOrder(item);
+  }
+
   function closeCostingModal() {
     setCostingWorkOrder(null);
+  }
+
+  function closeFieldReportModal() {
+    setFieldReportWorkOrder(null);
   }
 
   async function handleHistorySubmit() {
@@ -329,6 +342,13 @@ export function MaintenanceHistoryPage() {
                     onClick={() => openCostingModal(item)}
                   >
                     {language === "es" ? "Ver costos" : "View costing"}
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-primary"
+                    type="button"
+                    onClick={() => openFieldReportModal(item)}
+                  >
+                    {language === "es" ? "Ver checklist" : "View checklist"}
                   </button>
                   <button
                     className="btn btn-sm btn-outline-primary"
@@ -625,6 +645,27 @@ export function MaintenanceHistoryPage() {
         onClose={closeCostingModal}
         onFeedback={setFeedback}
         workOrder={costingWorkOrder}
+      />
+
+      <MaintenanceFieldReportModal
+        accessToken={session?.accessToken}
+        clientLabel={fieldReportWorkOrder ? getClientDisplayName(fieldReportWorkOrder.client_id) : "—"}
+        siteLabel={fieldReportWorkOrder ? getSiteDisplayName(fieldReportWorkOrder.site_id) : "—"}
+        installationLabel={
+          fieldReportWorkOrder?.installation_id
+            ? installationById.get(fieldReportWorkOrder.installation_id)?.name ||
+              `#${fieldReportWorkOrder.installation_id}`
+            : language === "es"
+              ? "Instalación pendiente"
+              : "Installation pending"
+        }
+        effectiveTimeZone={effectiveTimeZone}
+        isOpen={Boolean(fieldReportWorkOrder)}
+        language={language}
+        mode="readonly"
+        onClose={closeFieldReportModal}
+        onFeedback={setFeedback}
+        workOrder={fieldReportWorkOrder}
       />
     </div>
   );

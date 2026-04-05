@@ -94,7 +94,7 @@ export function MaintenanceFieldReportModal({
       setIsLoading(true);
       setError(null);
       try {
-        const response = await getTenantMaintenanceFieldReport(accessToken, workOrder.id);
+        const response = await getTenantMaintenanceFieldReport(accessToken as string, workOrder!.id);
         if (cancelled) {
           return;
         }

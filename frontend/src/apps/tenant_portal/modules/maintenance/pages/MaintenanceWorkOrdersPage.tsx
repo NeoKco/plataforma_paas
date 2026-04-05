@@ -1217,6 +1217,13 @@ export function MaintenanceWorkOrdersPage() {
                 >
                   {language === "es" ? "Costos" : "Costing"}
                 </button>
+                <button
+                  className="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  onClick={() => openFieldReportModal(item)}
+                >
+                  {language === "es" ? "Checklist" : "Checklist"}
+                </button>
                 {item.maintenance_status === "scheduled" ? (
                   <button
                     className="btn btn-sm btn-outline-info"
