@@ -129,7 +129,7 @@ Pendiente documentado:
 - `assets` y `asset_types`: pendiente
 - importadores legacy desde `ieris_app`: primer corte listo, falta aplicacion y endurecimiento
 - auditoria operativa de duplicados: UI ya lista para `organizations`, `clients`, `contacts`, `sites` e `installations`, con sugerencia de ficha a conservar, consolidacion operativa y desactivacion segura; falta merge/asimilacion profunda guiada
-- merge profundo de `organizations` y consolidacion documental de `contacts`: primer corte operativo listo, falta asimilacion guiada completa de múltiples clientes en conflicto
+- merge profundo de `organizations` y consolidacion documental de `contacts`: ya resuelve asimilacion guiada de múltiples clientes en conflicto; falta criterio documental profundo y fusión manual asistida de identidad completa
 - integración con `projects`: pendiente
 - integración con `iot`: pendiente
 ## Estado actual

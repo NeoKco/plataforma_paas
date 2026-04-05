@@ -87,7 +87,7 @@ Limite actual del flujo:
 
 Reasignaciones actuales por tipo:
 
-- duplicado de `organization` -> mueve `contacts`, puede reasignar un unico `client` sin conflicto y luego desactiva origenes
+- duplicado de `organization` -> mueve `contacts`, puede consolidar multiples `clients` en una ficha sugerida, reasignar la ficha final y luego desactiva origenes
 - duplicado de `client` -> mueve `contacts`, `sites` y `work_orders`
 - duplicado de `contact` -> conserva la mejor ficha visible y desactiva equivalentes dentro de la misma `organization`
 - duplicado de `site` -> mueve `installations` y `work_orders`

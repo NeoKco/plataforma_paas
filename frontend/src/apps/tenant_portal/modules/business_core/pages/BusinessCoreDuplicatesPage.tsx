@@ -290,6 +290,20 @@ function getPreferredClientId(group: DuplicateGroup<ClientAuditRow>) {
     })[0]?.client.id;
 }
 
+function getPreferredClientRow(rows: ClientAuditRow[]) {
+  return [...rows].sort((left, right) => {
+    const scoreDiff = getClientKeepScore(right) - getClientKeepScore(left);
+    if (scoreDiff !== 0) {
+      return scoreDiff;
+    }
+    const dateDiff = compareIsoDateAsc(left.client.created_at, right.client.created_at);
+    if (dateDiff !== 0) {
+      return dateDiff;
+    }
+    return left.client.id - right.client.id;
+  })[0] ?? null;
+}
+
 function getPreferredSiteId(group: DuplicateGroup<SiteAuditRow>) {
   return [...group.members]
     .sort((left, right) => {
@@ -483,7 +497,8 @@ function summarizeClientContactMerge(
 
   function summarizeOrganizationMerge(
     group: DuplicateGroup<OrganizationAuditRow>,
-    contactsByOrganizationId: Map<number, TenantBusinessContact[]>
+    contactsByOrganizationId: Map<number, TenantBusinessContact[]>,
+    clientRowById: Map<number, ClientAuditRow>
   ) {
     const targetId = getPreferredOrganizationId(group);
     const target = group.members.find((member) => member.organization.id === targetId);
@@ -493,9 +508,10 @@ function summarizeClientContactMerge(
         contactsToDeactivate: 0,
         sourceOrganizations: 0,
         totalClientRecords: 0,
-        canAutoMerge: false,
+        clientsToConsolidate: 0,
         clientReassignments: 0,
-        blockingClientRecords: 0,
+        sitesToMove: 0,
+        workOrdersToMove: 0,
       };
     }
 
@@ -521,19 +537,36 @@ function summarizeClientContactMerge(
         });
       });
 
-    const totalClientRecords = group.members.filter((member) => member.client).length;
-    const canAutoMerge = totalClientRecords <= 1;
-    const clientReassignments = !target.client && totalClientRecords === 1 ? 1 : 0;
-    const blockingClientRecords = canAutoMerge ? 0 : totalClientRecords - 1;
+    const clientRows = group.members.flatMap((member) => {
+      if (!member.client) {
+        return [];
+      }
+      const row = clientRowById.get(member.client.id);
+      return row ? [row] : [];
+    });
+    const preferredClientRow = getPreferredClientRow(clientRows);
+    const sourceClientRows = preferredClientRow
+      ? clientRows.filter((row) => row.client.id !== preferredClientRow.client.id)
+      : [];
+    const totalClientRecords = clientRows.length;
+    const clientsToConsolidate = sourceClientRows.length;
+    const clientReassignments =
+      preferredClientRow && preferredClientRow.client.organization_id !== target.organization.id ? 1 : 0;
+    const sitesToMove = sourceClientRows.reduce((total, row) => total + row.sitesCount, 0);
+    const workOrdersToMove = sourceClientRows.reduce(
+      (total, row) => total + row.workOrdersCount,
+      0
+    );
 
     return {
       contactsToMove,
       contactsToDeactivate,
       sourceOrganizations,
       totalClientRecords,
-      canAutoMerge,
+      clientsToConsolidate,
       clientReassignments,
-      blockingClientRecords,
+      sitesToMove,
+      workOrdersToMove,
     };
   }
 
@@ -1012,6 +1045,10 @@ export function BusinessCoreDuplicatesPage() {
       };
     });
   }, [clients, contactsByOrganizationId, installationsBySiteId, organizationById, sitesByClientId, workOrdersByClientId]);
+  const clientRowById = useMemo(
+    () => new Map(clientRows.map((row) => [row.client.id, row])),
+    [clientRows]
+  );
 
   const organizationRows = useMemo<OrganizationAuditRow[]>(() => {
     return organizations.map((organization) => {
@@ -1526,20 +1563,27 @@ export function BusinessCoreDuplicatesPage() {
       return;
     }
 
-    const summary = summarizeOrganizationMerge(group, contactsByOrganizationId);
-    if (!summary.canAutoMerge) {
-      setFeedback(
-        language === "es"
-          ? "Este grupo de organizaciones aún tiene más de un cliente asociado. Primero consolida o depura los clientes antes de fusionar la organización base."
-          : "This organization group still has more than one linked client. Consolidate or clean the clients first before merging the base organization."
-      );
-      return;
-    }
+    const summary = summarizeOrganizationMerge(
+      group,
+      contactsByOrganizationId,
+      clientRowById
+    );
+    const clientRowsInGroup = group.members.flatMap((member) => {
+      if (!member.client) {
+        return [];
+      }
+      const row = clientRowById.get(member.client.id);
+      return row ? [row] : [];
+    });
+    const preferredClientRow = getPreferredClientRow(clientRowsInGroup);
+    const sourceClientRows = preferredClientRow
+      ? clientRowsInGroup.filter((row) => row.client.id !== preferredClientRow.client.id)
+      : [];
 
     const confirmed = window.confirm(
       language === "es"
-        ? `Consolidar ${sources.length} organización(es) duplicada(s) en "${getClientName(target.organization, language)}". Se moverán ${summary.contactsToMove} contacto(s), ${summary.contactsToDeactivate} contacto(s) duplicado(s) se desactivarán y ${summary.clientReassignments} cliente(s) se reasignarán a la organización sugerida antes de desactivar los orígenes.`
-        : `Consolidate ${sources.length} duplicate organization(s) into "${getClientName(target.organization, language)}". ${summary.contactsToMove} contact(s) will be moved, ${summary.contactsToDeactivate} duplicate contact(s) will be deactivated, and ${summary.clientReassignments} client(s) will be reassigned to the suggested organization before deactivating the sources.`
+        ? `Consolidar ${sources.length} organización(es) duplicada(s) en "${getClientName(target.organization, language)}". Se consolidarán ${summary.clientsToConsolidate} cliente(s), se moverán ${summary.sitesToMove} direcciones, ${summary.workOrdersToMove} OT y ${summary.contactsToMove} contacto(s); ${summary.contactsToDeactivate} contacto(s) duplicado(s) se desactivarán y ${summary.clientReassignments} cliente(s) final(es) se reasignarán a la organización sugerida antes de desactivar los orígenes.`
+        : `Consolidate ${sources.length} duplicate organization(s) into "${getClientName(target.organization, language)}". ${summary.clientsToConsolidate} client(s) will be consolidated, ${summary.sitesToMove} addresses, ${summary.workOrdersToMove} work orders, and ${summary.contactsToMove} contact(s) will be moved; ${summary.contactsToDeactivate} duplicate contact(s) will be deactivated and ${summary.clientReassignments} final client(s) will be reassigned to the suggested organization before deactivating the sources.`
     );
     if (!confirmed) {
       return;
@@ -1576,12 +1620,45 @@ export function BusinessCoreDuplicatesPage() {
         })
       );
 
-      const loneSourceClient = sources.find((source) => source.client)?.client ?? null;
-      if (!target.client && loneSourceClient) {
+      if (preferredClientRow) {
+        for (const sourceClientRow of sourceClientRows) {
+          const relatedSites = sites.filter(
+            (site) => site.client_id === sourceClientRow.client.id
+          );
+          for (const site of relatedSites) {
+            await updateTenantBusinessSite(
+              session.accessToken,
+              site.id,
+              buildSiteWritePayload(site, { client_id: preferredClientRow.client.id })
+            );
+          }
+          const relatedWorkOrders = workOrders.filter(
+            (workOrder) => workOrder.client_id === sourceClientRow.client.id
+          );
+          for (const workOrder of relatedWorkOrders) {
+            await updateTenantMaintenanceWorkOrder(
+              session.accessToken,
+              workOrder.id,
+              buildWorkOrderWritePayload(workOrder, { client_id: preferredClientRow.client.id })
+            );
+          }
+          if (sourceClientRow.client.is_active) {
+            await updateTenantBusinessClientStatus(
+              session.accessToken,
+              sourceClientRow.client.id,
+              false
+            );
+          }
+        }
+      }
+
+      if (preferredClientRow && preferredClientRow.client.organization_id !== target.organization.id) {
         await updateTenantBusinessClient(
           session.accessToken,
-          loneSourceClient.id,
-          buildClientWritePayload(loneSourceClient, { organization_id: target.organization.id })
+          preferredClientRow.client.id,
+          buildClientWritePayload(preferredClientRow.client, {
+            organization_id: target.organization.id,
+          })
         );
       }
 
@@ -1616,8 +1693,8 @@ export function BusinessCoreDuplicatesPage() {
 
       setFeedback(
         language === "es"
-          ? `Consolidación aplicada sobre ${sources.length} organización(es) duplicada(s).`
-          : `Consolidation applied to ${sources.length} duplicate organization(s).`
+          ? `Consolidación aplicada sobre ${sources.length} organización(es) duplicada(s), incluyendo la asimilación guiada de clientes en conflicto cuando correspondía.`
+          : `Consolidation applied to ${sources.length} duplicate organization(s), including guided client assimilation when required.`
       );
       await loadData();
     } catch (rawError) {
@@ -1814,7 +1891,11 @@ export function BusinessCoreDuplicatesPage() {
     const sourceMembers = group.members.filter(
       (member) => member.organization.id !== preferredOrganizationId
     );
-    const summary = summarizeOrganizationMerge(group, contactsByOrganizationId);
+    const summary = summarizeOrganizationMerge(
+      group,
+      contactsByOrganizationId,
+      clientRowById
+    );
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -1838,9 +1919,18 @@ export function BusinessCoreDuplicatesPage() {
               <span>
                 {summary.clientReassignments} {language === "es" ? "clientes a reasignar" : "clients to reassign"}
               </span>
-              {!summary.canAutoMerge ? (
+              <span>
+                {summary.clientsToConsolidate} {language === "es" ? "clientes a consolidar" : "clients to consolidate"}
+              </span>
+              <span>
+                {summary.sitesToMove} {language === "es" ? "direcciones a mover" : "addresses to move"}
+              </span>
+              <span>
+                {summary.workOrdersToMove} {language === "es" ? "OT a mover" : "work orders to move"}
+              </span>
+              {summary.clientsToConsolidate > 0 ? (
                 <span>
-                  {summary.blockingClientRecords} {language === "es" ? "clientes en conflicto" : "conflicting clients"}
+                  {summary.clientsToConsolidate} {language === "es" ? "clientes en conflicto" : "conflicting clients"}
                 </span>
               ) : null}
             </div>
@@ -1852,18 +1942,18 @@ export function BusinessCoreDuplicatesPage() {
             <button
               className="btn btn-sm btn-outline-primary"
               type="button"
-              disabled={isMutating || group.members.length < 2 || !summary.canAutoMerge}
+              disabled={isMutating || group.members.length < 2}
               onClick={() => void handleMergeOrganizationGroup(group)}
             >
               {language === "es" ? "Consolidar en sugerida" : "Consolidate into suggested"}
             </button>
           </div>
         </div>
-        {!summary.canAutoMerge ? (
+        {summary.clientsToConsolidate > 0 ? (
           <div className="business-core-cell__meta text-warning mb-3">
             {language === "es"
-              ? "Este grupo aún tiene más de un cliente asociado. Primero consolida clientes duplicados y luego vuelve a fusionar la organización base."
-              : "This group still has more than one linked client. Consolidate duplicate clients first and then merge the base organization."}
+              ? "Este grupo tiene más de un cliente asociado. La consolidación guiada resolverá primero esa capa y luego fusionará la organización base sugerida."
+              : "This group has more than one linked client. Guided consolidation will resolve that layer first and then merge the suggested base organization."}
           </div>
         ) : null}
         <div className="business-core-duplicates-list">
