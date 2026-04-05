@@ -152,6 +152,7 @@ Avance actual:
 - la `Ficha de mantención` ya reúne contexto operativo, fechas clave, cierre técnico, `status_logs` y `visits`
 - la trazabilidad detallada se carga bajo demanda, manteniendo el patrón de lectura primero en las bandejas principales
 - `Historial` ya puede abrir `Editar cierre` desde esa ficha sin volver editable la programación histórica
+- `Mantenciones` ya puede gestionar `Visitas` por OT con ventanas programadas, ejecución real y responsables desde una modal operativa
 - conflictos visibles, bloqueo backend `409`, filtros de agenda y reprogramación auditada ya quedaron operativos en el mismo frente de endurecimiento
 
 ## Fase 5. Evidencias y checklist
@@ -329,6 +330,7 @@ Pendiente inmediato de esta fase:
 - filtros operativos por grupo y técnico en agenda mensual: listos
 - reprogramación auditada sin perder historial: lista en primer corte
 - lectura por ficha/orden de trabajo: lista en primer corte
+- gestión base de visitas por OT y ventana operativa: lista en primer corte
 - modelo canónico de asignacion grupo/usuario: documentado e implementado en primer corte
 - modelo canónico de programacion preventiva y costeo: documentado
 - costeo estimado default por programación: listo en primer corte

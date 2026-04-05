@@ -42,6 +42,7 @@ El primer corte del modulo ya permite:
 - leer la bandeja por cliente, direccion e instalacion
 - ordenar operativamente por fecha y hora de trabajo mas reciente
 - abrir `Ver ficha` desde `Mantenciones` o `Historial` para revisar una orden completa sin salir de la lectura principal
+- abrir `Visitas` desde `Mantenciones` para coordinar ventanas programadas, ejecución real y responsables por salida a terreno
 - crear una orden nueva
 - editar una orden aun no cerrada
 - cambiar estado a `en curso`, `completada` o `anulada` sin perder trazabilidad
@@ -118,6 +119,7 @@ Lectura funcional de cada vista:
   - también aparece un reporte de instalaciones activas sin plan preventivo para abrir `Crear plan` con el contexto ya cargado
 - `Mantenciones`: solo trabajo abierto (`scheduled` / `in_progress`)
   - cada fila ya permite abrir `Ver ficha`
+  - cada fila ya permite abrir `Visitas`
   - cada fila ya permite abrir `Costos`
   - cada fila ya permite abrir `Checklist`
   - cada fila ya permite abrir `Reprogramar` para cambiar slot o responsables sin perder trazabilidad
@@ -141,6 +143,7 @@ Lectura de la ficha de mantención:
 - expone fechas clave de creación, programación, cierre y última actualización
 - carga `Cambios y eventos` y `Visitas asociadas` bajo demanda para no recargar la bandeja principal
 - si la OT sigue abierta, desde la ficha puedes saltar a `Costos` o `Checklist`
+- si la OT sigue abierta, desde la ficha también puedes abrir `Visitas` para coordinar o corregir ventanas de terreno
 - si la OT ya está en `Historial`, desde la ficha puedes abrir `Editar cierre`
 
 Regla UX operativa:

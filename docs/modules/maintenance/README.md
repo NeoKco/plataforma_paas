@@ -20,6 +20,7 @@ Estado actual:
 - `history` ya muestra órdenes cerradas con `status_logs` y `visits`
 - `Mantenciones` y `Historial` ya comparten `Ver ficha` para abrir una lectura consolidada de cada OT
 - la `Ficha de mantención` ya muestra contexto operativo, fechas, trazabilidad, visitas, cierre técnico y accesos contextuales a `Costos`, `Checklist` o `Editar cierre`
+- `Mantenciones` ya permite gestionar `Visitas` por OT para modelar ventanas programadas, ejecución real y responsables de terreno
 - `agenda técnica` ya muestra una agenda visual mensual de mantenciones abiertas
 - ya permite crear mantenciones desde la propia agenda visual
 - ya acepta navegación contextual desde la ficha del cliente en `business-core`
@@ -113,6 +114,7 @@ Estado del corte hoy:
 - el backend ya endurece la agenda y rechaza cruces de slot activo por instalación, grupo o técnico, incluso si el intento no viene desde la misma pantalla web
 - `Mantenciones` y `Agenda` ya permiten `Reprogramar` con una nota opcional para dejar trazabilidad del cambio de slot y responsables en historial técnico
 - `Historial` ya permite abrir `Editar cierre` también desde la nueva `Ficha de mantención`, sin exponer reprogramación ni edición operativa de una OT cerrada
+- `Mantenciones` ya permite abrir `Visitas` desde la fila o desde la `Ficha de mantención`, para bajar a una coordinación más fina por ventana de terreno
 
 Pendientes visibles inmediatos:
 
@@ -124,7 +126,7 @@ Pendientes visibles inmediatos:
 - automatización opcional tenant-side del puente `maintenance -> finance`
 - importadores desde `ieris_app`
 - profundizar la `Ficha de mantención` con snapshots y lecturas más ricas por cliente/instalación
-- reprogramación operativa más rica con visitas/ventanas de terreno
+- reprogramación operativa más rica con visitas/ventanas de terreno y reglas más finas de coordinación
 
 ## Checklist contra el estandar de modulos
 

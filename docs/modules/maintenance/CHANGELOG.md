@@ -7,6 +7,10 @@
   - la lectura detallada carga trazabilidad y visitas bajo demanda, sin romper el patrón de lectura primero del módulo
   - desde la ficha histórica ya se puede abrir `Editar cierre` para corregir observación técnica o motivo de anulación desde el mismo contexto
   - desde la ficha abierta también se puede saltar a `Costos` y `Checklist` sin duplicar vistas paralelas
+- `Mantenciones abiertas` agrega `Visitas` como gestión operativa real por OT:
+  - permite abrir una modal específica para registrar ventanas programadas, ejecución real, responsables y notas de terreno
+  - la misma acción queda disponible desde la `Ficha de mantención`
+  - reutiliza el slice ya existente de `maintenance_visits`, sin nueva migración tenant
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso

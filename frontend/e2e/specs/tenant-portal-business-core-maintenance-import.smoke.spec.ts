@@ -151,7 +151,21 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await expect(workOrderDetailDialog.getByText(/Instalación|Installation/i).first()).toBeVisible();
   await expect(workOrderDetailDialog.getByText(/Cambios y eventos|Changes and events/i).first()).toBeVisible();
   await expect(workOrderDetailDialog.getByText(/Visitas asociadas|Linked visits/i).first()).toBeVisible();
+  await expect(workOrderDetailDialog.getByRole("button", { name: /Visitas|Visits/i })).toBeVisible();
   await workOrderDetailDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
+  await page.getByRole("button", { name: /Visitas|Visits/i }).first().click();
+  const visitsDialog = page.getByRole("dialog", {
+    name: /Visitas de mantención|Maintenance visits/i,
+  });
+  await expect(visitsDialog).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Visitas de mantención|Maintenance visits/i })).toBeVisible();
+  await expect(visitsDialog.getByRole("button", { name: /Nueva visita|New visit/i })).toBeVisible();
+  await visitsDialog.getByRole("button", { name: /Nueva visita|New visit/i }).click();
+  await expect(getFieldControl(visitsDialog, /Inicio programado|Scheduled start/i)).toBeVisible();
+  await expect(getFieldControl(visitsDialog, /Fin programado|Scheduled end/i)).toBeVisible();
+  await expect(getFieldControl(visitsDialog, /Técnico responsable|Assigned technician/i)).toBeVisible();
+  await visitsDialog.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+  await visitsDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
   await page.getByRole("button", { name: /Reprogramar|Reschedule/i }).first().click();
   const rescheduleDialog = page.getByRole("dialog", {
     name: /Reprogramar mantención|Edit maintenance work/i,
