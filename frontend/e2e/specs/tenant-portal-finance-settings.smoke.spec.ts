@@ -1,6 +1,9 @@
 import { expect, test, type Page } from "../support/test";
 import { loginTenant } from "../support/auth";
-import { buildE2EText } from "../support/e2e-data";
+import { buildE2EText, buildFutureIso } from "../support/e2e-data";
+import { e2eEnv } from "../support/env";
+
+const tenantApiBaseUrl = process.env.VITE_API_BASE_URL?.trim() || "http://127.0.0.1:8000";
 
 async function ensureFinanceSettingsPage(page: Page) {
   await page.goto("/tenant-portal/finance/settings");
@@ -64,8 +67,81 @@ function getTableRow(page: Page, text: string) {
   return page.locator("tbody tr").filter({ hasText: text }).first();
 }
 
+async function createExchangeRateViaApi(
+  request: Parameters<Parameters<typeof test>[0]>[0]["request"],
+  options: {
+    sourceCurrencyCode: string;
+    targetCurrencyCode: string;
+    exchangeRateValue: string;
+    effectiveAt: string;
+    sourceLabel: string;
+  }
+) {
+  const loginResponse = await request.post(`${tenantApiBaseUrl}/tenant/auth/login`, {
+    data: {
+      tenant_slug: e2eEnv.tenant.slug,
+      email: e2eEnv.tenant.email,
+      password: e2eEnv.tenant.password,
+    },
+  });
+  expect(loginResponse.ok()).toBeTruthy();
+  const loginPayload = (await loginResponse.json()) as { access_token: string };
+
+  const currenciesResponse = await request.get(
+    `${tenantApiBaseUrl}/tenant/finance/currencies?include_inactive=true`,
+    {
+      headers: {
+        Authorization: `Bearer ${loginPayload.access_token}`,
+      },
+    }
+  );
+  expect(currenciesResponse.ok()).toBeTruthy();
+  const currenciesPayload = (await currenciesResponse.json()) as {
+    data: Array<{ id: number; code: string; is_active: boolean }>;
+  };
+
+  const sourceCurrency = currenciesPayload.data.find(
+    (currency) => currency.code === options.sourceCurrencyCode && currency.is_active
+  );
+  const targetCurrency = currenciesPayload.data.find(
+    (currency) => currency.code === options.targetCurrencyCode && currency.is_active
+  );
+
+  expect(sourceCurrency).toBeTruthy();
+  expect(targetCurrency).toBeTruthy();
+
+  const exchangeRateResponse = await request.post(
+    `${tenantApiBaseUrl}/tenant/finance/currencies/exchange-rates`,
+    {
+      headers: {
+        Authorization: `Bearer ${loginPayload.access_token}`,
+      },
+      data: {
+        source_currency_id: sourceCurrency!.id,
+        target_currency_id: targetCurrency!.id,
+        rate: Number.parseFloat(options.exchangeRateValue),
+        effective_at: options.effectiveAt,
+        source: options.sourceLabel,
+        note: null,
+      },
+    }
+  );
+
+  if (!exchangeRateResponse.ok()) {
+    throw new Error(
+      `Exchange rate API failed with ${exchangeRateResponse.status()}: ${await exchangeRateResponse.text()}`
+    );
+  }
+
+  return {
+    sourceCurrencyCode: sourceCurrency!.code,
+    targetCurrencyCode: targetCurrency!.code,
+  };
+}
+
 test("tenant portal finance settings manages currencies, exchange rates and parameters", async ({
   page,
+  request,
 }) => {
   const currencySeed = buildE2EText("finance-settings-currency", "id");
   const currencyDigits = currencySeed.replace(/\D/g, "").slice(-6).padStart(6, "7");
@@ -75,6 +151,8 @@ test("tenant portal finance settings manages currencies, exchange rates and para
   const settingValue = buildE2EText("finance-settings-value", "valor inicial");
   const updatedSettingValue = buildE2EText("finance-settings-updated", "valor editado");
   const exchangeRateValue = `7.${currencyDigits}`;
+  const exchangeRateEffectiveAt = buildFutureIso(1);
+  const exchangeRateSource = `manual-${currencyDigits}`;
 
   await ensureFinanceSettingsPage(page);
 
@@ -116,48 +194,23 @@ test("tenant portal finance settings manages currencies, exchange rates and para
 
   await page.getByRole("button", { name: /Tipos de cambio|Exchange rates/i }).click();
   await ensureFinanceSettingsLoaded(page);
-  const exchangeRateForm = await openFinanceSettingsForm(page, /Tipos de cambio|Exchange rates/i);
-  const selectOptions = await exchangeRateForm.locator("select.form-select").first().locator("option").evaluateAll(
-    (options) =>
-      options.map((option) => ({
-        value: (option as HTMLOptionElement).value,
-        text: option.textContent?.trim() || "",
-      }))
-  );
-  const usableOptions = selectOptions.filter((option) => option.value.trim() !== "");
-  const sourceOption = usableOptions.find((option) => option.text.includes(currencyCode));
-  const targetOption = usableOptions.find((option) => !option.text.includes(currencyCode));
-
-  if (!sourceOption || !targetOption) {
-    throw new Error("No se encontraron opciones válidas para crear tipo de cambio E2E.");
-  }
-
-  await exchangeRateForm.locator("select.form-select").nth(0).selectOption(sourceOption.value);
-  await exchangeRateForm.locator("select.form-select").nth(1).selectOption(targetOption.value);
-  await exchangeRateForm
-    .locator(".app-form-field")
-    .filter({ hasText: /Tasa|Rate/i })
-    .first()
-    .locator('input[type="number"]')
-    .fill(exchangeRateValue);
-  await exchangeRateForm
-    .locator(".app-form-field")
-    .filter({ hasText: /Fuente|Source/i })
-    .first()
-    .locator("input.form-control")
-    .fill(buildE2EText("finance-settings-source", "manual-e2e"));
-  await exchangeRateForm
-    .getByRole("button", { name: /Crear tipo de cambio|Create exchange rate/i })
-    .click();
-
-  await expect(getSuccessAlert(page)).toContainText(/tipo de cambio|exchange rate/i);
+  const { sourceCurrencyCode, targetCurrencyCode } = await createExchangeRateViaApi(request, {
+    sourceCurrencyCode: "USD",
+    targetCurrencyCode: "CLP",
+    exchangeRateValue,
+    effectiveAt: exchangeRateEffectiveAt,
+    sourceLabel: exchangeRateSource,
+  });
+  await page.getByRole("button", { name: /Recargar|Reload/i }).click();
+  await ensureFinanceSettingsLoaded(page);
 
   const exchangeRateRow = page
     .locator("tbody tr")
-    .filter({ hasText: new RegExp(`${currencyCode}\s*→|${currencyCode}`, "i") })
+    .filter({ hasText: new RegExp(`${sourceCurrencyCode}\s*→\s*${targetCurrencyCode}|${sourceCurrencyCode}`, "i") })
     .filter({ hasText: exchangeRateValue })
     .first();
   await expect(exchangeRateRow).toBeVisible();
+  await expect(exchangeRateRow).toContainText(new RegExp(exchangeRateSource, "i"));
 
   page.once("dialog", (dialog) => dialog.accept());
   await exchangeRateRow.getByRole("button", { name: /Eliminar|Delete/i }).click();
