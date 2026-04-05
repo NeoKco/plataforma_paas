@@ -149,7 +149,7 @@ Alcance:
 Avance actual:
 
 - `Mantenciones` y `Historial` ya exponen `Ver ficha` como lectura secundaria compartida por OT
-- la `Ficha de mantención` ya reúne contexto operativo, fechas clave, cierre técnico, `status_logs` y `visits`
+- la `Ficha de mantención` ya reúne contexto operativo, snapshots más ricos por cliente/instalación/responsables, fechas clave, cierre técnico, `status_logs` y `visits`
 - la trazabilidad detallada se carga bajo demanda, manteniendo el patrón de lectura primero en las bandejas principales
 - `Historial` ya puede abrir `Editar cierre` desde esa ficha sin volver editable la programación histórica
 - `Mantenciones` ya puede gestionar `Visitas` por OT con ventanas programadas, ejecución real y responsables desde una modal operativa
@@ -325,7 +325,6 @@ Pendiente inmediato de esta fase:
 ## Siguiente paso recomendado
 
 - enriquecer la reprogramación operativa con visitas y ventanas más finas por terreno
-- profundizar la `Ficha de mantención` con snapshots más ricos por cliente, instalación y responsables
 
 ## Backlog pendiente visible
 

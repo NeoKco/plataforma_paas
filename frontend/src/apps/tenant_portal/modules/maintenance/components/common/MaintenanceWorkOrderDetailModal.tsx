@@ -102,6 +102,39 @@ function getStatusLogTitle(
   return `${log.from_status || (language === "es" ? "inicio" : "start")} -> ${log.to_status}`;
 }
 
+function isRescheduleLog(log: {
+  from_status: string | null;
+  to_status: string;
+  note: string | null;
+}) {
+  const note = (log.note || "").trim().toLowerCase();
+  return Boolean(log.from_status && log.from_status === log.to_status && note.startsWith("reprogramación"));
+}
+
+function toTimestamp(value: string | null | undefined): number | null {
+  if (!value) {
+    return null;
+  }
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function formatDateRange(
+  start: string | null,
+  end: string | null,
+  language: "es" | "en",
+  timeZone?: string | null
+) {
+  if (!start && !end) {
+    return language === "es" ? "sin ventana" : "no window";
+  }
+  if (!start) {
+    return formatDateTime(end, language, timeZone);
+  }
+  const startLabel = formatDateTime(start, language, timeZone);
+  return end ? `${startLabel} → ${formatDateTime(end, language, timeZone)}` : startLabel;
+}
+
 export function MaintenanceWorkOrderDetailModal({
   accessToken,
   clientLabel,
@@ -176,6 +209,65 @@ export function MaintenanceWorkOrderDetailModal({
 
   const visitSummary = useMemo(() => visits.length, [visits]);
   const logSummary = useMemo(() => statusLogs.length, [statusLogs]);
+  const openVisits = useMemo(
+    () => visits.filter((visit) => visit.visit_status === "scheduled" || visit.visit_status === "in_progress"),
+    [visits]
+  );
+  const completedVisits = useMemo(
+    () => visits.filter((visit) => visit.visit_status === "completed"),
+    [visits]
+  );
+  const nextVisit = useMemo(() => {
+    const ordered = [...openVisits]
+      .filter((visit) => visit.scheduled_start_at)
+      .sort((left, right) => {
+        const leftTime = toTimestamp(left.scheduled_start_at) ?? Number.POSITIVE_INFINITY;
+        const rightTime = toTimestamp(right.scheduled_start_at) ?? Number.POSITIVE_INFINITY;
+        return leftTime - rightTime;
+      });
+    return ordered[0] ?? null;
+  }, [openVisits]);
+  const latestFieldExecution = useMemo(() => {
+    const ordered = [...visits]
+      .filter((visit) => visit.actual_end_at || visit.actual_start_at)
+      .sort((left, right) => {
+        const leftTime =
+          toTimestamp(left.actual_end_at) ??
+          toTimestamp(left.actual_start_at) ??
+          Number.NEGATIVE_INFINITY;
+        const rightTime =
+          toTimestamp(right.actual_end_at) ??
+          toTimestamp(right.actual_start_at) ??
+          Number.NEGATIVE_INFINITY;
+        return rightTime - leftTime;
+      });
+    return ordered[0] ?? null;
+  }, [visits]);
+  const rescheduleCount = useMemo(
+    () => statusLogs.filter((log) => isRescheduleLog(log)).length,
+    [statusLogs]
+  );
+  const visitGroupLabels = useMemo(() => {
+    const items = visits
+      .map((visit) => {
+        const label = stripLegacyVisibleText(visit.assigned_group_label);
+        if (label) {
+          return label;
+        }
+        return visit.assigned_work_group_id ? `#${visit.assigned_work_group_id}` : null;
+      })
+      .filter((value): value is string => Boolean(value));
+    return Array.from(new Set(items));
+  }, [visits]);
+  const visitGroupSummary = useMemo(() => {
+    if (visitGroupLabels.length === 0) {
+      return language === "es" ? "Sin grupos de visita" : "No visit groups";
+    }
+    if (visitGroupLabels.length <= 2) {
+      return visitGroupLabels.join(", ");
+    }
+    return `${visitGroupLabels.slice(0, 2).join(", ")} +${visitGroupLabels.length - 2}`;
+  }, [language, visitGroupLabels]);
 
   return isOpen && workOrder ? (
     <div className="maintenance-form-backdrop" role="presentation" onClick={onClose}>
@@ -230,10 +322,23 @@ export function MaintenanceWorkOrderDetailModal({
                 <div className="col-12 col-lg-4">
                   <div className="maintenance-history-entry h-100">
                     <div className="maintenance-history-entry__title">
-                      {language === "es" ? "Contexto operativo" : "Operational context"}
+                      {language === "es" ? "Cliente e instalación" : "Client and installation"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {language === "es" ? "Cliente" : "Client"}: {clientLabel}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {language === "es" ? "Dirección" : "Address"}: {siteLabel}
                     </div>
                     <div className="maintenance-history-entry__meta">
                       {language === "es" ? "Instalación" : "Installation"}: {installationLabel}
+                    </div>
+                  </div>
+                </div>
+                <div className="col-12 col-lg-4">
+                  <div className="maintenance-history-entry h-100">
+                    <div className="maintenance-history-entry__title">
+                      {language === "es" ? "Asignación actual" : "Current assignment"}
                     </div>
                     <div className="maintenance-history-entry__meta">
                       {language === "es" ? "Grupo" : "Group"}: {workGroupLabel}
@@ -268,16 +373,59 @@ export function MaintenanceWorkOrderDetailModal({
                     </div>
                   </div>
                 </div>
-                <div className="col-12 col-lg-4">
+                <div className="col-12 col-lg-6">
                   <div className="maintenance-history-entry h-100">
                     <div className="maintenance-history-entry__title">
-                      {language === "es" ? "Trazabilidad" : "Traceability"}
+                      {language === "es" ? "Terreno y visitas" : "Field windows and visits"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {language === "es" ? "Próxima ventana" : "Next window"}: {nextVisit
+                        ? formatDateRange(
+                            nextVisit.scheduled_start_at,
+                            nextVisit.scheduled_end_at,
+                            language,
+                            effectiveTimeZone
+                          )
+                        : language === "es"
+                          ? "Sin visitas abiertas"
+                          : "No open visits"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {language === "es" ? "Última ejecución" : "Latest execution"}: {latestFieldExecution
+                        ? formatDateRange(
+                            latestFieldExecution.actual_start_at || latestFieldExecution.scheduled_start_at,
+                            latestFieldExecution.actual_end_at,
+                            language,
+                            effectiveTimeZone
+                          )
+                        : language === "es"
+                          ? "Sin ejecución registrada"
+                          : "No execution recorded"}
+                    </div>
+                    <div className="maintenance-history-entry__meta mt-2">
+                      {openVisits.length} {language === "es" ? "visita(s) abierta(s)" : "open visit(s)"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {completedVisits.length} {language === "es" ? "visita(s) completada(s)" : "completed visit(s)"}
+                    </div>
+                  </div>
+                </div>
+                <div className="col-12 col-lg-6">
+                  <div className="maintenance-history-entry h-100">
+                    <div className="maintenance-history-entry__title">
+                      {language === "es" ? "Responsables y trazabilidad" : "Assignees and traceability"}
                     </div>
                     <div className="maintenance-history-entry__meta">
                       {logSummary} {language === "es" ? "evento(s)" : "event(s)"}
                     </div>
                     <div className="maintenance-history-entry__meta">
                       {visitSummary} {language === "es" ? "visita(s)" : "visit(s)"}
+                    </div>
+                    <div className="maintenance-history-entry__meta mt-2">
+                      {rescheduleCount} {language === "es" ? "reprogramación(es) auditada(s)" : "audited reschedule(s)"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {language === "es" ? "Grupos en terreno" : "Field groups"}: {visitGroupSummary}
                     </div>
                     {stripLegacyVisibleText(workOrder.cancellation_reason) ? (
                       <div className="maintenance-history-entry__meta mt-2">

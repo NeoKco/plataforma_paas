@@ -19,7 +19,7 @@ Estado actual:
 - el frontend tenant ya opera sobre esas APIs en sus tres vistas principales
 - `history` ya muestra órdenes cerradas con `status_logs` y `visits`
 - `Mantenciones` y `Historial` ya comparten `Ver ficha` para abrir una lectura consolidada de cada OT
-- la `Ficha de mantención` ya muestra contexto operativo, fechas, trazabilidad, visitas, cierre técnico y accesos contextuales a `Costos`, `Checklist` o `Editar cierre`
+- la `Ficha de mantención` ya muestra contexto operativo, snapshots de cliente/instalación/responsables, fechas, trazabilidad, visitas, cierre técnico y accesos contextuales a `Costos`, `Checklist` o `Editar cierre`
 - `Mantenciones` ya permite gestionar `Visitas` por OT para modelar ventanas programadas, ejecución real y responsables de terreno
 - `agenda técnica` ya muestra una agenda visual mensual de mantenciones abiertas
 - ya permite crear mantenciones desde la propia agenda visual
@@ -132,7 +132,6 @@ Pendientes visibles inmediatos:
 - costeo y cobro de mantenciones con puente formal hacia `finance`
 - automatización opcional tenant-side del puente `maintenance -> finance`
 - importadores desde `ieris_app`
-- profundizar la `Ficha de mantención` con snapshots y lecturas más ricas por cliente/instalación
 - reprogramación operativa más rica con visitas/ventanas de terreno y reglas más finas de coordinación
 
 ## Checklist contra el estandar de modulos

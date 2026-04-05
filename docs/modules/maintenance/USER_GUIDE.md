@@ -147,6 +147,7 @@ Lectura funcional de cada vista:
 Lectura de la ficha de mantención:
 
 - resume cliente, dirección, instalación, responsables, prioridad y estado actual
+- agrega snapshots de próxima ventana en terreno, última ejecución y grupos que ya tocaron la OT
 - expone fechas clave de creación, programación, cierre y última actualización
 - carga `Cambios y eventos` y `Visitas asociadas` bajo demanda para no recargar la bandeja principal
 - si la OT sigue abierta, desde la ficha puedes saltar a `Costos` o `Checklist`
