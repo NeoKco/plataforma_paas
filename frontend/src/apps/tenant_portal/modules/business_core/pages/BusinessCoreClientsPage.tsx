@@ -73,11 +73,13 @@ type ClientModalForm = {
   secondaryContactRole: string;
   secondaryContactPhone: string;
   secondaryContactEmail: string;
+  addressLine: string;
   addressStreet: string;
   addressNumber: string;
   commune: string;
   city: string;
   region: string;
+  countryCode: string;
   referenceNotes: string;
 };
 
@@ -110,11 +112,13 @@ function buildDefaultModalForm(): ClientModalForm {
     secondaryContactRole: "",
     secondaryContactPhone: "",
     secondaryContactEmail: "",
+    addressLine: "",
     addressStreet: "",
     addressNumber: "",
     commune: "",
     city: "",
     region: "",
+    countryCode: "CL",
     referenceNotes: "",
   };
 }
