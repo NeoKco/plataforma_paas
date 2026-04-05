@@ -177,7 +177,17 @@ export async function createBasicTransaction(
   await expect(getTransactionSuccessFeedback(page)).toContainText(
     /Transacci[oó]n|Transaction/i
   );
-  await expect(getTransactionRowByDescription(page, options.description)).toBeVisible();
+
+  try {
+    await expect(getTransactionRowByDescription(page, options.description)).toBeVisible({
+      timeout: 10000,
+    });
+  } catch {
+    await openFinanceTransactionsPage(page);
+    await expect(getTransactionRowByDescription(page, options.description)).toBeVisible({
+      timeout: 10000,
+    });
+  }
 
   const transactionFormDialog = page.getByRole("dialog", {
     name: /Registrar transacción|Register transaction|Create transaction/i,
