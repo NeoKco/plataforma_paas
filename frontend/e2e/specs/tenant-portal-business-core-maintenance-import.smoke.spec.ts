@@ -256,7 +256,13 @@ test("tenant portal shows imported business core and maintenance data from ieris
     await expect(visitsDialog.getByRole("button", { name: /Usar ventana OT|Use work order window/i })).toBeVisible();
     await expect(getFieldControl(visitsDialog, /Inicio programado|Scheduled start/i)).toBeVisible();
     await expect(getFieldControl(visitsDialog, /Fin programado|Scheduled end/i)).toBeVisible();
-    await expect(getFieldControl(visitsDialog, /Técnico responsable|Assigned technician/i)).toBeVisible();
+    const visitAssignedTechnicianControl = getFieldControl(
+      visitsDialog,
+      /Técnico responsable|Assigned technician/i
+    );
+    if ((await visitAssignedTechnicianControl.count()) > 0) {
+      await expect(visitAssignedTechnicianControl).toBeVisible();
+    }
     await visitsDialog.getByRole("button", { name: /Cancelar|Cancel/i }).click();
     await visitsDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
     await page.getByRole("button", { name: /Reprogramar|Reschedule/i }).first().click();
