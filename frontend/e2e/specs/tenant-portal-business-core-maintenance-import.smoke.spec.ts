@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { loginTenant } from "../support/auth";
 
 async function openTenantImportedPage(page: Page, path: string, heading: RegExp) {
@@ -17,6 +17,14 @@ async function openTenantImportedPage(page: Page, path: string, heading: RegExp)
 
 function getCatalogRow(page: Page, text: string | RegExp) {
   return page.locator("tbody tr").filter({ hasText: text }).first();
+}
+
+function getFieldControl(container: Locator, label: RegExp) {
+  return container
+    .locator("div")
+    .filter({ hasText: label })
+    .locator("input, select, textarea, [role='combobox']")
+    .first();
 }
 
 async function openBusinessCoreWorkGroupMembers(page: Page) {
@@ -95,13 +103,29 @@ test("tenant portal shows imported business core and maintenance data from ieris
   ).toBeVisible();
   await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
   await page.getByRole("button", { name: /Costos|Costing/i }).first().click();
+  const costingDialog = page.getByRole("dialog", {
+    name: /Costos y cobro de mantención|Maintenance costing and billing/i,
+  });
+  await expect(costingDialog).toBeVisible();
   await expect(page.getByRole("heading", { name: /Costos y cobro|Costing and billing/i })).toBeVisible();
-  await expect(page.getByLabel(/Costo estimado total|Estimated total cost/i)).toBeVisible();
-  await expect(page.getByLabel(/Monto cobrado|Amount charged/i)).toBeVisible();
-  await expect(page.getByRole("button", { name: /Agregar línea|Add line/i }).first()).toBeVisible();
-  await expect(page.getByLabel(/Sincronizar ingreso|Sync income/i)).toBeVisible();
-  await expect(page.getByRole("button", { name: /Cerrar|Close/i })).toBeVisible();
-  await page.getByRole("button", { name: /Cerrar|Close/i }).click();
+  await expect(
+    costingDialog
+      .locator("div")
+      .filter({ hasText: /Costo estimado total|Estimated total cost/i })
+      .locator("input")
+      .first()
+  ).toBeVisible();
+  await expect(
+    costingDialog
+      .locator("div")
+      .filter({ hasText: /Monto cobrado|Amount charged/i })
+      .locator("input")
+      .first()
+  ).toBeVisible();
+  await expect(costingDialog.getByRole("button", { name: /Agregar línea|Add line/i }).first()).toBeVisible();
+  await expect(costingDialog.getByLabel(/Sincronizar ingreso|Sync income/i)).toBeVisible();
+  await expect(costingDialog.getByRole("button", { name: /Cerrar|Close/i })).toBeVisible();
+  await costingDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
 
   await openTenantImportedPage(
     page,
@@ -109,17 +133,22 @@ test("tenant portal shows imported business core and maintenance data from ieris
     /Pendientes|Due maintenance/i
   );
   await page.getByRole("button", { name: /Nueva programación|New schedule/i }).click();
+  const planDialog = page
+    .locator(".maintenance-form-modal")
+    .filter({ has: page.getByRole("heading", { name: /Nueva programación|New schedule/i }) })
+    .first();
   await expect(page.getByRole("heading", { name: /Nueva programación|New schedule/i })).toBeVisible();
-  await expect(page.getByLabel(/Cliente|Client/i)).toBeVisible();
-  await expect(page.getByLabel(/Próxima mantención|Next due/i)).toBeVisible();
-  await expect(page.getByLabel(/Frecuencia|Frequency/i)).toBeVisible();
+  await expect(planDialog).toBeVisible();
+  await expect(getFieldControl(planDialog, /Cliente|Client/i)).toBeVisible();
+  await expect(getFieldControl(planDialog, /Próxima mantención|Next due/i)).toBeVisible();
+  await expect(getFieldControl(planDialog, /Frecuencia|Frequency/i)).toBeVisible();
   await expect(
     page.getByText(
       /Si existe una mantención cerrada este año en historial|Sugerida desde historial cerrado|No se encontró una mantención cerrada este año|Buscando historial técnico para sugerir la próxima mantención|Se propone frecuencia anual|If a closed maintenance exists this year in history|Suggested from closed history|No closed maintenance was found for this year|Checking technical history to suggest the next maintenance date|Annual frequency is suggested/i
     )
   ).toBeVisible();
-  await expect(page.getByLabel(/Duración estimada|Estimated duration/i)).toBeVisible();
-  await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+  await expect(getFieldControl(planDialog, /Duración estimada|Estimated duration/i)).toBeVisible();
+  await planDialog.getByRole("button", { name: /Cancelar|Cancel/i }).click();
   await expect(
     page.getByRole("heading", { name: /Agrupación por organización|Organization grouping/i })
   ).toBeVisible();
@@ -142,8 +171,9 @@ test("tenant portal shows imported business core and maintenance data from ieris
   );
   await expect(getCatalogRow(page, /heat pipe/i)).toBeVisible();
   await page.getByRole("button", { name: /Nuevo registro|New record/i }).click();
-  await expect(page.getByLabel(/Dirección del cliente|Client address/i)).toBeVisible();
-  await expect(page.getByLabel(/^Orden$|^Sort order$/i)).toHaveCount(0);
+  const installationForm = page.locator("form").first();
+  await expect(getFieldControl(installationForm, /Dirección del cliente|Client address/i)).toBeVisible();
+  await expect(installationForm.getByLabel(/^Orden$|^Sort order$/i)).toHaveCount(0);
   await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
 
   await openTenantImportedPage(
@@ -153,11 +183,14 @@ test("tenant portal shows imported business core and maintenance data from ieris
   );
   await expect(getCatalogRow(page, /Mantenci[oó]n sst/i)).toBeVisible();
   await page.getByRole("button", { name: /Costos|Costing/i }).first().click();
+  const historyCostingDialog = page.getByRole("dialog", {
+    name: /Costos y cobro de mantención|Maintenance costing and billing/i,
+  });
   await expect(page.getByRole("heading", { name: /Costos y cobro|Costing and billing/i })).toBeVisible();
-  await expect(page.getByLabel(/Costo estimado total|Estimated total cost/i)).toBeVisible();
-  await expect(page.getByLabel(/Monto cobrado|Amount charged/i)).toBeVisible();
-  await expect(page.getByRole("button", { name: /Agregar línea|Add line/i }).first()).toBeVisible();
-  await page.getByRole("button", { name: /Cerrar|Close/i }).click();
+  await expect(getFieldControl(historyCostingDialog, /Costo estimado total|Estimated total cost/i)).toBeVisible();
+  await expect(getFieldControl(historyCostingDialog, /Monto cobrado|Amount charged/i)).toBeVisible();
+  await expect(historyCostingDialog.getByRole("button", { name: /Agregar línea|Add line/i }).first()).toBeVisible();
+  await historyCostingDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
 
   await openTenantImportedPage(
     page,
@@ -166,6 +199,10 @@ test("tenant portal shows imported business core and maintenance data from ieris
   );
   await expect(page.getByRole("button", { name: /Nueva mantenci[oó]n|New maintenance/i })).toBeVisible();
   await page.getByRole("button", { name: /Nueva mantenci[oó]n|New maintenance/i }).click();
-  await expect(page.getByLabel(/Grupo responsable|Responsible group/i)).toBeVisible();
-  await expect(page.getByLabel(/Técnico responsable|Assigned technician/i)).toBeVisible();
+  const calendarDialog = page.getByRole("dialog", {
+    name: /Nueva mantención desde agenda|New maintenance from calendar/i,
+  });
+  await expect(calendarDialog).toBeVisible();
+  await expect(getFieldControl(calendarDialog, /Grupo responsable|Responsible group/i)).toBeVisible();
+  await expect(getFieldControl(calendarDialog, /Técnico responsable|Assigned technician/i)).toBeVisible();
 });
