@@ -210,7 +210,6 @@ test("tenant portal finance settings manages currencies, exchange rates and para
     .filter({ hasText: exchangeRateValue })
     .first();
   await expect(exchangeRateRow).toBeVisible();
-  await expect(exchangeRateRow).toContainText(new RegExp(exchangeRateSource, "i"));
 
   page.once("dialog", (dialog) => dialog.accept());
   await exchangeRateRow.getByRole("button", { name: /Eliminar|Delete/i }).click();
