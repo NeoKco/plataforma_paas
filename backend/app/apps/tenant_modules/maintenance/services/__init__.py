@@ -10,6 +10,9 @@ from app.apps.tenant_modules.maintenance.services.due_item_service import (
 from app.apps.tenant_modules.maintenance.services.equipment_type_service import (
     MaintenanceEquipmentTypeService,
 )
+from app.apps.tenant_modules.maintenance.services.field_report_service import (
+    MaintenanceFieldReportService,
+)
 from app.apps.tenant_modules.maintenance.services.history_service import (
     MaintenanceHistoryService,
 )
@@ -31,6 +34,7 @@ __all__ = [
     "MaintenanceCostingService",
     "MaintenanceDueItemService",
     "MaintenanceEquipmentTypeService",
+    "MaintenanceFieldReportService",
     "MaintenanceInstallationService",
     "MaintenanceScheduleService",
     "MaintenanceWorkOrderService",

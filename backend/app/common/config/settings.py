@@ -139,6 +139,16 @@ class Settings(BaseSettings):
         / "storage"
         / "attachments"
     )
+    MAINTENANCE_EVIDENCE_DIR: str = str(
+        BASE_DIR
+        / "backend"
+        / "app"
+        / "apps"
+        / "tenant_modules"
+        / "maintenance"
+        / "storage"
+        / "evidence"
+    )
 
     @field_validator("DEBUG", mode="before")
     @classmethod

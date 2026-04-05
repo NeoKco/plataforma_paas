@@ -33,6 +33,7 @@ from migrations.tenant import v0024_maintenance_finance_sync_policy
 from migrations.tenant import v0025_maintenance_schedule_estimate_defaults
 from migrations.tenant import v0026_maintenance_cost_templates
 from migrations.tenant import v0027_maintenance_schedule_template_links
+from migrations.tenant import v0028_maintenance_field_reports
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -175,6 +176,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0025_maintenance_schedule_estimate_defaults",
                 "0026_maintenance_cost_templates",
                 "0027_maintenance_schedule_template_links",
+                "0028_maintenance_field_reports",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -217,6 +219,8 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("maintenance_schedule_cost_lines", tables)
         self.assertIn("maintenance_cost_templates", tables)
         self.assertIn("maintenance_cost_template_lines", tables)
+        self.assertIn("maintenance_work_order_checklist_items", tables)
+        self.assertIn("maintenance_work_order_evidences", tables)
         self.assertIn("maintenance_visits", tables)
         self.assertIn("maintenance_status_logs", tables)
         self.assertIn("tenant_schema_migrations", tables)
@@ -292,6 +296,14 @@ class MigrationFlowTestCase(unittest.TestCase):
         maintenance_cost_template_line_columns = {
             column["name"] for column in inspect(engine).get_columns("maintenance_cost_template_lines")
         }
+        maintenance_work_order_checklist_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("maintenance_work_order_checklist_items")
+        }
+        maintenance_work_order_evidence_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("maintenance_work_order_evidences")
+        }
         maintenance_cost_estimate_columns = {
             column["name"] for column in inspect(engine).get_columns("maintenance_cost_estimates")
         }
@@ -340,6 +352,10 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("estimate_target_margin_percent", maintenance_schedule_columns)
         self.assertIn("estimate_notes", maintenance_schedule_columns)
         self.assertIn("cost_template_id", maintenance_schedule_columns)
+        self.assertIn("item_key", maintenance_work_order_checklist_columns)
+        self.assertIn("is_completed", maintenance_work_order_checklist_columns)
+        self.assertIn("storage_key", maintenance_work_order_evidence_columns)
+        self.assertIn("file_size", maintenance_work_order_evidence_columns)
         self.assertIn("due_status", maintenance_due_item_columns)
         self.assertIn("work_order_id", maintenance_due_item_columns)
         self.assertIn("line_type", maintenance_schedule_cost_line_columns)
@@ -426,6 +442,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0025_maintenance_schedule_estimate_defaults",
                 "0026_maintenance_cost_templates",
                 "0027_maintenance_schedule_template_links",
+                "0028_maintenance_field_reports",
             ],
         )
 
