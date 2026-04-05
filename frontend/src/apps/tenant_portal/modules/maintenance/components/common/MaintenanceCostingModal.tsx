@@ -33,7 +33,6 @@ import {
   type TenantMaintenanceCostingDetail,
 } from "../../services/costingService";
 import {
-  createTenantMaintenanceCostTemplate,
   getTenantMaintenanceCostTemplates,
   type TenantMaintenanceCostTemplate,
 } from "../../services/costTemplatesService";
@@ -86,13 +85,6 @@ type MaintenanceEditableCostLineKey =
   | "quantity"
   | "unit_cost"
   | "notes";
-
-type CostTemplateDraftForm = {
-  name: string;
-  description: string;
-};
-
-type CostTemplateSource = "estimate" | "actual";
 
 export type MaintenanceCostingModalWorkOrder = {
   id: number;
@@ -229,13 +221,6 @@ function buildBlankCostLine(): MaintenanceCostLineFormState {
   };
 }
 
-function buildDefaultCostTemplateDraft(): CostTemplateDraftForm {
-  return {
-    name: "",
-    description: "",
-  };
-}
-
 function sortCostTemplates(items: TenantMaintenanceCostTemplate[]): TenantMaintenanceCostTemplate[] {
   return [...items].sort((left, right) => {
     if (left.is_active !== right.is_active) {
@@ -326,41 +311,6 @@ function buildCostLineFormsFromTemplate(template: TenantMaintenanceCostTemplate)
   }));
 }
 
-function buildTemplateLinesFromSummary(
-  values: {
-    labor_cost: string;
-    travel_cost: string;
-    materials_cost: string;
-    external_services_cost: string;
-    overhead_cost: string;
-  },
-  language: "es" | "en"
-): TenantMaintenanceCostLineWriteItem[] {
-  const labels = {
-    labor: language === "es" ? "Mano de obra" : "Labor",
-    travel: language === "es" ? "Traslado" : "Travel",
-    material: language === "es" ? "Materiales" : "Materials",
-    service: language === "es" ? "Servicios externos" : "External services",
-    overhead: language === "es" ? "Indirectos" : "Overhead",
-  };
-  const items: Array<[TenantMaintenanceCostLineWriteItem["line_type"], number, string]> = [
-    ["labor", normalizeNumericInput(values.labor_cost), labels.labor],
-    ["travel", normalizeNumericInput(values.travel_cost), labels.travel],
-    ["material", normalizeNumericInput(values.materials_cost), labels.material],
-    ["service", normalizeNumericInput(values.external_services_cost), labels.service],
-    ["overhead", normalizeNumericInput(values.overhead_cost), labels.overhead],
-  ];
-  return items
-    .filter(([, amount]) => amount > 0)
-    .map(([line_type, unit_cost, description]) => ({
-      id: null,
-      line_type,
-      description,
-      quantity: 1,
-      unit_cost,
-      notes: null,
-    }));
-}
 
 export function MaintenanceCostingModal({
   accessToken,
@@ -390,15 +340,6 @@ export function MaintenanceCostingModal({
   const [financeAccounts, setFinanceAccounts] = useState<TenantFinanceAccount[]>([]);
   const [financeCategories, setFinanceCategories] = useState<TenantFinanceCategory[]>([]);
   const [financeCurrencies, setFinanceCurrencies] = useState<TenantFinanceCurrency[]>([]);
-  const [costTemplates, setCostTemplates] = useState<TenantMaintenanceCostTemplate[]>([]);
-  const [selectedEstimateCostTemplateId, setSelectedEstimateCostTemplateId] = useState<number | null>(null);
-  const [selectedActualCostTemplateId, setSelectedActualCostTemplateId] = useState<number | null>(null);
-  const [costTemplateDraft, setCostTemplateDraft] = useState<CostTemplateDraftForm>(
-    buildDefaultCostTemplateDraft()
-  );
-  const [costTemplateDraftSource, setCostTemplateDraftSource] = useState<CostTemplateSource>("estimate");
-  const [isCostTemplateDraftOpen, setIsCostTemplateDraftOpen] = useState(false);
-  const [isTemplateSaving, setIsTemplateSaving] = useState(false);
   const [costTemplateFeedback, setCostTemplateFeedback] = useState<string | null>(null);
   const [estimateForm, setEstimateForm] = useState<MaintenanceCostEstimateFormState>(
     buildDefaultCostEstimateForm()
@@ -442,29 +383,6 @@ export function MaintenanceCostingModal({
   const activeCurrencies = useMemo(
     () => financeCurrencies.filter((currency) => currency.is_active),
     [financeCurrencies]
-  );
-  const activeCostTemplates = useMemo(
-    () => costTemplates.filter((template) => template.is_active),
-    [costTemplates]
-  );
-  const selectedEstimateCostTemplate = useMemo(
-    () => activeCostTemplates.find((template) => template.id === selectedEstimateCostTemplateId) ?? null,
-    [activeCostTemplates, selectedEstimateCostTemplateId]
-  );
-  const selectedActualCostTemplate = useMemo(
-    () => activeCostTemplates.find((template) => template.id === selectedActualCostTemplateId) ?? null,
-    [activeCostTemplates, selectedActualCostTemplateId]
-  );
-  const matchingTaskTypeTemplates = useMemo(
-    () =>
-      taskTypeId
-        ? activeCostTemplates.filter((template) => template.task_type_id === taskTypeId)
-        : activeCostTemplates,
-    [activeCostTemplates, taskTypeId]
-  );
-  const suggestedTaskTypeTemplate = useMemo(
-    () => matchingTaskTypeTemplates[0] ?? null,
-    [matchingTaskTypeTemplates]
   );
   const estimateLineTotals = useMemo(() => sumCostLines(estimateLines), [estimateLines]);
   const actualLineTotals = useMemo(() => sumCostLines(actualLines), [actualLines]);
@@ -550,9 +468,13 @@ export function MaintenanceCostingModal({
         const categories = categoriesResponse.data;
         const currencies = currenciesResponse.data;
         const templates = sortCostTemplates(costTemplatesResponse.data);
-        const matchingTemplates = taskTypeId
+        const generalTemplates = templates.filter(
+          (template) => template.is_active && template.task_type_id == null
+        );
+        const specificTemplates = taskTypeId
           ? templates.filter((template) => template.is_active && template.task_type_id === taskTypeId)
           : [];
+        const matchingTemplates = specificTemplates.length > 0 ? specificTemplates : generalTemplates;
         const autoTemplate = matchingTemplates.length === 1 ? matchingTemplates[0] : null;
         const incomeCategory = categories.find((category) => category.category_type === "income");
         const expenseCategory = categories.find((category) => category.category_type === "expense");
@@ -566,23 +488,20 @@ export function MaintenanceCostingModal({
         setFinanceAccounts(accounts);
         setFinanceCategories(categories);
         setFinanceCurrencies(currencies);
-        setCostTemplates(templates);
         setCostingDetail(detail);
         const hasEstimateData = hasMeaningfulEstimateData(detail.estimate, detail.estimate_lines);
         const hasActualData = hasMeaningfulActualData(detail.actual, detail.actual_lines);
 
         if (autoTemplate && !hasEstimateData) {
-          setSelectedEstimateCostTemplateId(autoTemplate.id);
           setEstimateLines(buildCostLineFormsFromTemplate(autoTemplate));
-          setEstimateForm((current) => ({
+          setEstimateForm(() => ({
             ...buildDefaultCostEstimateForm(detail.estimate),
             target_margin_percent: String(autoTemplate.estimate_target_margin_percent ?? 0),
-            notes: autoTemplate.estimate_notes ?? current.notes,
+            notes: autoTemplate.estimate_notes ?? detail.estimate?.notes ?? "",
           }));
         } else {
           setEstimateForm(buildDefaultCostEstimateForm(detail.estimate));
           setEstimateLines(buildDefaultCostLines(detail.estimate_lines));
-          setSelectedEstimateCostTemplateId(null);
         }
 
         if (autoTemplate && !hasActualData) {
@@ -597,7 +516,6 @@ export function MaintenanceCostingModal({
                 ? Number((templateCost / (1 - margin / 100)).toFixed(2))
                 : Number(templateCost.toFixed(2))
               : 0;
-          setSelectedActualCostTemplateId(autoTemplate.id);
           setActualLines(buildCostLineFormsFromTemplate(autoTemplate));
           setActualForm({
             ...buildDefaultCostActualForm(detail.actual),
@@ -607,15 +525,22 @@ export function MaintenanceCostingModal({
         } else {
           setActualForm(buildDefaultCostActualForm(detail.actual));
           setActualLines(buildDefaultCostLines(detail.actual_lines));
-          setSelectedActualCostTemplateId(null);
         }
 
         setCostTemplateFeedback(
-          autoTemplate && (!hasEstimateData || !hasActualData)
+          matchingTemplates.length > 1
             ? language === "es"
-              ? `Se precargó automáticamente la plantilla ${autoTemplate.name} para ${taskTypeLabel || "este tipo de tarea"}.`
-              : `Template ${autoTemplate.name} was automatically preloaded for ${taskTypeLabel || "this task type"}.`
-            : null
+              ? `Hay más de un costo base activo para ${taskTypeLabel || "este tipo de tarea"}. Define uno solo en Costos de mantenciones para precargar el costeo.`
+              : `There is more than one active base cost for ${taskTypeLabel || "this task type"}. Keep only one in Maintenance costs to preload costing.`
+            : autoTemplate && (!hasEstimateData || !hasActualData)
+              ? language === "es"
+                ? `Se cargó automáticamente el costo base ${autoTemplate.name} desde Costos de mantenciones.`
+                : `Base cost ${autoTemplate.name} was loaded automatically from Maintenance costs.`
+              : !autoTemplate
+                ? language === "es"
+                  ? "No hay un costo base único para esta mantención. Si lo necesitas, defínelo en el slice Costos de mantenciones."
+                  : "There is no unique base cost for this maintenance. If needed, define it in the Maintenance costs slice."
+                : null
         );
         setCompletionNote(currentWorkOrder.closure_notes ?? "");
         setFinanceSyncForm({
@@ -702,133 +627,6 @@ export function MaintenanceCostingModal({
     setActualLines((current) => current.filter((_, currentIndex) => currentIndex !== index));
   }
 
-  function applyTemplateToEstimate(template: TenantMaintenanceCostTemplate) {
-    setSelectedEstimateCostTemplateId(template.id);
-    setEstimateLines(buildCostLineFormsFromTemplate(template));
-    setEstimateForm((current) => ({
-      ...current,
-      target_margin_percent: String(template.estimate_target_margin_percent ?? 0),
-      notes: template.estimate_notes ?? current.notes,
-    }));
-    setCostTemplateFeedback(
-      language === "es"
-        ? `Plantilla aplicada al estimado: ${template.name}`
-        : `Template applied to estimate: ${template.name}`
-    );
-  }
-
-  function applyTemplateToActual(template: TenantMaintenanceCostTemplate) {
-    setSelectedActualCostTemplateId(template.id);
-    setActualLines(buildCostLineFormsFromTemplate(template));
-    const templateCost = template.lines.reduce((current, line) => current + (line.total_cost ?? 0), 0);
-    const margin = Number(template.estimate_target_margin_percent ?? 0);
-    const suggestedCharged =
-      templateCost > 0
-        ? margin > 0 && margin < 100
-          ? Number((templateCost / (1 - margin / 100)).toFixed(2))
-          : Number(templateCost.toFixed(2))
-        : 0;
-    setActualForm((current) => ({
-      ...current,
-      actual_price_charged:
-        normalizeNumericInput(current.actual_price_charged) > 0
-          ? current.actual_price_charged
-          : String(suggestedCharged),
-      notes: template.estimate_notes ?? current.notes,
-    }));
-    setCostTemplateFeedback(
-      language === "es"
-        ? `Plantilla aplicada al costo real: ${template.name}`
-        : `Template applied to actual cost: ${template.name}`
-    );
-  }
-
-  function openSaveCostTemplateDraft(source: CostTemplateSource) {
-    setCostTemplateDraftSource(source);
-    setCostTemplateFeedback(null);
-    setCostTemplateDraft({
-      name:
-        currentWorkOrder.title.trim() ||
-        (language === "es" ? "Plantilla de costeo" : "Costing template"),
-      description:
-        source === "estimate"
-          ? estimateForm.notes.trim()
-          : actualForm.notes.trim(),
-    });
-    setIsCostTemplateDraftOpen(true);
-  }
-
-  function closeCostTemplateDraft() {
-    setIsCostTemplateDraftOpen(false);
-    setCostTemplateDraft(buildDefaultCostTemplateDraft());
-    setCostTemplateDraftSource("estimate");
-  }
-
-  async function handleSaveCostTemplate() {
-    if (!accessToken) {
-      return;
-    }
-    if (!costTemplateDraft.name.trim()) {
-      setCostTemplateFeedback(
-        language === "es"
-          ? "Debes indicar un nombre para guardar la plantilla."
-          : "Provide a name before saving the template."
-      );
-      return;
-    }
-    const lines =
-      costTemplateDraftSource === "estimate"
-        ? estimateLines.length > 0
-          ? normalizeLineWritePayload(estimateLines)
-          : buildTemplateLinesFromSummary(estimateForm, language)
-        : actualLines.length > 0
-          ? normalizeLineWritePayload(actualLines)
-          : buildTemplateLinesFromSummary(actualForm, language);
-    if (lines.length === 0) {
-      setCostTemplateFeedback(
-        language === "es"
-          ? "La plantilla necesita al menos una línea o un resumen con costos mayores a cero."
-          : "The template needs at least one line or a summary with costs greater than zero."
-      );
-      return;
-    }
-    setIsTemplateSaving(true);
-    setCostTemplateFeedback(null);
-    try {
-      const response = await createTenantMaintenanceCostTemplate(accessToken, {
-        name: costTemplateDraft.name.trim(),
-        description: costTemplateDraft.description.trim() || null,
-        task_type_id: null,
-        estimate_target_margin_percent:
-          costTemplateDraftSource === "estimate"
-            ? normalizeNumericInput(estimateForm.target_margin_percent)
-            : 0,
-        estimate_notes:
-          costTemplateDraftSource === "estimate"
-            ? normalizeNullable(estimateForm.notes)
-            : normalizeNullable(actualForm.notes),
-        is_active: true,
-        lines,
-      });
-      setCostTemplates((current) => sortCostTemplates([...current, response.data]));
-      if (costTemplateDraftSource === "estimate") {
-        setSelectedEstimateCostTemplateId(response.data.id);
-      } else {
-        setSelectedActualCostTemplateId(response.data.id);
-      }
-      closeCostTemplateDraft();
-      setCostTemplateFeedback(
-        language === "es"
-          ? `Plantilla guardada: ${response.data.name}`
-          : `Template saved: ${response.data.name}`
-      );
-    } catch (rawError) {
-      setError(rawError as ApiError);
-    } finally {
-      setIsTemplateSaving(false);
-    }
-  }
-
   const costLineTypeOptions = [
     { value: "labor", label: language === "es" ? "Mano de obra" : "Labor" },
     { value: "travel", label: language === "es" ? "Traslado" : "Travel" },
@@ -875,506 +673,79 @@ export function MaintenanceCostingModal({
               const lineTotal =
                 normalizeNumericInput(line.quantity) * normalizeNumericInput(line.unit_cost);
               return (
-                <div className="maintenance-cost-lines__item" key={line.id ?? `new-${index}`}>
-                  <div className="row g-3">
-                    <div className="col-12 col-md-3">
-                      <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
-                      <select
-                        className="form-select"
-                        value={line.line_type}
-                        disabled={readOnly}
-                        onChange={(event) => onUpdate(index, "line_type", event.target.value)}
-                      >
-                        {costLineTypeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="col-12 col-md-5">
-                      <label className="form-label">{language === "es" ? "Descripción" : "Description"}</label>
-                      <input
-                        className="form-control"
-                        value={line.description}
-                        readOnly={readOnly}
-                        onChange={(event) => onUpdate(index, "description", event.target.value)}
-                      />
-                    </div>
-                    <div className="col-6 col-md-2">
-                      <label className="form-label">{language === "es" ? "Cantidad" : "Quantity"}</label>
-                      <input
-                        className="form-control"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={line.quantity}
-                        readOnly={readOnly}
-                        onChange={(event) => onUpdate(index, "quantity", event.target.value)}
-                      />
-                    </div>
-                    <div className="col-6 col-md-2">
-                      <label className="form-label">{language === "es" ? "Costo unitario" : "Unit cost"}</label>
-                      <input
-                        className="form-control"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={line.unit_cost}
-                        readOnly={readOnly}
-                        onChange={(event) => onUpdate(index, "unit_cost", event.target.value)}
-                      />
-                    </div>
-                    <div className="col-12 col-md-8">
-                      <label className="form-label">{language === "es" ? "Notas" : "Notes"}</label>
-                      <input
-                        className="form-control"
-                        value={line.notes}
-                        readOnly={readOnly}
-                        onChange={(event) => onUpdate(index, "notes", event.target.value)}
-                      />
-                    </div>
-                    <div className="col-8 col-md-2">
-                      <label className="form-label">{language === "es" ? "Total" : "Total"}</label>
-                      <input className="form-control" value={lineTotal.toFixed(2)} readOnly />
-                    </div>
-                    {!readOnly ? (
-                      <div className="col-4 col-md-2 maintenance-cost-lines__remove">
-                        <button className="btn btn-outline-danger" type="button" onClick={() => onRemove(index)}>
-                          {language === "es" ? "Quitar" : "Remove"}
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  async function handleEstimateSubmit() {
-    if (!accessToken) {
-      return;
-    }
-    setIsEstimateSubmitting(true);
-    setError(null);
-    try {
-      const response = await updateTenantMaintenanceWorkOrderCostEstimate(
-        accessToken,
-        currentWorkOrder.id,
-        {
-          labor_cost: normalizeNumericInput(estimateForm.labor_cost),
-          travel_cost: normalizeNumericInput(estimateForm.travel_cost),
-          materials_cost: normalizeNumericInput(estimateForm.materials_cost),
-          external_services_cost: normalizeNumericInput(estimateForm.external_services_cost),
-          overhead_cost: normalizeNumericInput(estimateForm.overhead_cost),
-          target_margin_percent: normalizeNumericInput(estimateForm.target_margin_percent),
-          notes: normalizeNullable(estimateForm.notes),
-          lines: normalizeLineWritePayload(estimateLines),
-        }
-      );
-      setCostingDetail(response.data);
-      setEstimateForm(buildDefaultCostEstimateForm(response.data.estimate));
-      setEstimateLines(buildDefaultCostLines(response.data.estimate_lines));
-      onFeedback?.(response.message);
-    } catch (rawError) {
-      setError(rawError as ApiError);
-    } finally {
-      setIsEstimateSubmitting(false);
-    }
-  }
-
-  async function handleActualSubmit() {
-    if (!accessToken) {
-      return;
-    }
-    setIsActualSubmitting(true);
-    setError(null);
-    try {
-      const response = await updateTenantMaintenanceWorkOrderCostActual(
-        accessToken,
-        currentWorkOrder.id,
-        {
-          labor_cost: normalizeNumericInput(actualForm.labor_cost),
-          travel_cost: normalizeNumericInput(actualForm.travel_cost),
-          materials_cost: normalizeNumericInput(actualForm.materials_cost),
-          external_services_cost: normalizeNumericInput(actualForm.external_services_cost),
-          overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
-          actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
-          notes: normalizeNullable(actualForm.notes),
-          lines: normalizeLineWritePayload(actualLines),
-        }
-      );
-      setCostingDetail(response.data);
-      setActualForm(buildDefaultCostActualForm(response.data.actual));
-      setActualLines(buildDefaultCostLines(response.data.actual_lines));
-      onFeedback?.(response.message);
-    } catch (rawError) {
-      setError(rawError as ApiError);
-    } finally {
-      setIsActualSubmitting(false);
-    }
-  }
-
-  async function handleCompleteWithActualCost() {
-    if (!accessToken || !canCompleteFromModal) {
-      return;
-    }
-    setIsCompleting(true);
-    setError(null);
-    try {
-      const costingResponse = await updateTenantMaintenanceWorkOrderCostActual(
-        accessToken,
-        currentWorkOrder.id,
-        {
-          labor_cost: normalizeNumericInput(actualForm.labor_cost),
-          travel_cost: normalizeNumericInput(actualForm.travel_cost),
-          materials_cost: normalizeNumericInput(actualForm.materials_cost),
-          external_services_cost: normalizeNumericInput(actualForm.external_services_cost),
-          overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
-          actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
-          notes: normalizeNullable(actualForm.notes),
-          lines: normalizeLineWritePayload(actualLines),
-        }
-      );
-      setCostingDetail(costingResponse.data);
-      setActualForm(buildDefaultCostActualForm(costingResponse.data.actual));
-      setActualLines(buildDefaultCostLines(costingResponse.data.actual_lines));
-
-      const statusResponse = await updateTenantMaintenanceWorkOrderStatus(
-        accessToken,
-        currentWorkOrder.id,
-        "completed",
-        normalizeNullable(completionNote)
-      );
-
-      const combinedMessage =
-        language === "es"
-          ? "Costo real guardado y mantención cerrada correctamente"
-          : "Actual cost saved and maintenance closed successfully";
-      onFeedback?.(combinedMessage);
-      await onCompleted?.(statusResponse.data.id);
-      onClose();
-    } catch (rawError) {
-      setError(rawError as ApiError);
-    } finally {
-      setIsCompleting(false);
-    }
-  }
-
-  async function handleFinanceSyncSubmit() {
-    if (!accessToken || !financeSyncForm.currency_id) {
-      return;
-    }
-    setIsFinanceSyncSubmitting(true);
-    setError(null);
-    try {
-      const response = await syncTenantMaintenanceWorkOrderToFinance(
-        accessToken,
-        currentWorkOrder.id,
-        {
-          sync_income: financeSyncForm.sync_income,
-          sync_expense: financeSyncForm.sync_expense,
-          income_account_id: financeSyncForm.income_account_id
-            ? Number(financeSyncForm.income_account_id)
-            : null,
-          expense_account_id: financeSyncForm.expense_account_id
-            ? Number(financeSyncForm.expense_account_id)
-            : null,
-          income_category_id: financeSyncForm.income_category_id
-            ? Number(financeSyncForm.income_category_id)
-            : null,
-          expense_category_id: financeSyncForm.expense_category_id
-            ? Number(financeSyncForm.expense_category_id)
-            : null,
-          currency_id: Number(financeSyncForm.currency_id),
-          transaction_at: financeSyncForm.transaction_at
-            ? fromDateTimeLocalInputValue(financeSyncForm.transaction_at, effectiveTimeZone)
-            : null,
-          notes: normalizeNullable(financeSyncForm.notes),
-        }
-      );
-      setCostingDetail(response.data);
-      setFinanceSyncForm((current) => ({
-        ...current,
-        notes: response.data.actual?.notes ?? current.notes,
-      }));
-      onFeedback?.(response.message);
-    } catch (rawError) {
-      setError(rawError as ApiError);
-    } finally {
-      setIsFinanceSyncSubmitting(false);
-    }
-  }
-
-  return (
-    <div className="maintenance-form-backdrop" role="presentation" onClick={onClose}>
-      <div
-        className="maintenance-form-modal maintenance-form-modal--wide"
-        role="dialog"
-        aria-modal="true"
-        aria-label={language === "es" ? "Costos y cobro de mantención" : "Maintenance costing and billing"}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="maintenance-form-modal__eyebrow">
-          {language === "es" ? "Costeo y finanzas" : "Costing and finance"}
-        </div>
-        <PanelCard
-          title={
-            isReadOnly
-              ? language === "es"
-                ? "Histórico de costos y cobro"
-                : "Costing history"
-              : language === "es"
-                ? "Costos y cobro"
-                : "Costing and billing"
-          }
-          subtitle={
-            isReadOnly
-              ? language === "es"
-                ? "Consulta el cierre económico ya registrado para esta mantención sin modificar el histórico."
-                : "Review the registered financial close for this maintenance without changing history."
-              : language === "es"
-                ? "Calcula costo estimado, registra costo real y sincroniza manualmente los movimientos a Finanzas."
-                : "Calculate estimated cost, register actual cost, and manually sync transactions into Finance."
-          }
-        >
-          {error ? (
-            <ErrorState
-              title={language === "es" ? "No se pudo operar el costeo" : "Costing action failed"}
-              detail={getApiErrorDisplayMessage(error)}
-              requestId={error.payload?.request_id}
-            />
-          ) : null}
-          {isLoading ? (
-            <LoadingBlock label={language === "es" ? "Cargando costeo..." : "Loading costing..."} />
-          ) : (
-            <div className="d-grid gap-3">
-              <div className="maintenance-history-entry">
-                <div className="maintenance-history-entry__title">{currentWorkOrder.title}</div>
-                <div className="maintenance-history-entry__meta">{clientLabel} · {siteLabel}</div>
-                <div className="maintenance-history-entry__meta">
-                  {language === "es" ? "Instalación" : "Installation"}: {installationLabel}
-                </div>
-                <div className="maintenance-history-entry__meta">
-                  {language === "es" ? "Ventana operativa" : "Operational window"}:{" "}
-                  {formatDateTimeInTimeZone(
-                    currentWorkOrder.completed_at ||
-                      currentWorkOrder.scheduled_for ||
-                      currentWorkOrder.requested_at,
-                    language,
-                    effectiveTimeZone
-                  )}
-                </div>
-              </div>
-
-              {!isReadOnly ? (
-                <div className="maintenance-history-entry">
-                  <div className="d-flex flex-wrap justify-content-between gap-2 align-items-start">
-                    <div>
-                      <div className="maintenance-history-entry__title">
-                        {language === "es" ? "Plantillas de costeo" : "Costing templates"}
-                      </div>
-                      <div className="maintenance-history-entry__meta">
-                        {language === "es"
-                          ? "Puedes guardar una estructura reusable desde el estimado o el costo real. La plantilla rellena costos y líneas; el monto cobrado queda manual por tratarse de un dato comercial real."
-                          : "You can save a reusable structure from estimate or actual cost. The template fills costs and lines; the charged amount stays manual because it is a real commercial value."}
-                      </div>
-                    </div>
-                    <div className="d-flex flex-wrap gap-2">
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        type="button"
-                        onClick={() => openSaveCostTemplateDraft("estimate")}
-                      >
-                        {language === "es" ? "Crear desde estimado" : "Create from estimate"}
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        type="button"
-                        onClick={() => openSaveCostTemplateDraft("actual")}
-                      >
-                        {language === "es" ? "Crear desde costo real" : "Create from actual cost"}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="row g-3 mt-1">
-                    {!isReadOnly && suggestedTaskTypeTemplate ? (
-                      <div className="col-12">
-                        <div className="alert alert-info mb-0">
-                          {language === "es"
-                            ? `Sugerencia para ${taskTypeLabel || "este tipo de tarea"}: ${suggestedTaskTypeTemplate.name}. Puedes aplicarla al estimado o al costo real para cerrar más rápido.`
-                            : `Suggested for ${taskTypeLabel || "this task type"}: ${suggestedTaskTypeTemplate.name}. You can apply it to estimate or actual cost for a faster close.`}
-                        </div>
-                      </div>
-                    ) : null}
-                    <div className="col-12 col-lg-6">
-                      <label className="form-label">
-                        {language === "es" ? "Aplicar al costeo estimado" : "Apply to estimate"}
-                      </label>
-                      <div className="d-flex gap-2">
+                {!isReadOnly && costTemplateFeedback ? (
+                  <div className="maintenance-cost-lines__item" key={line.id ?? `new-${index}`}>
+                    <div className="row g-3">
+                      <div className="col-12 col-md-3">
+                        <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
                         <select
                           className="form-select"
-                          value={selectedEstimateCostTemplateId ?? ""}
-                          onChange={(event) =>
-                            setSelectedEstimateCostTemplateId(
-                              event.target.value ? Number(event.target.value) : null
-                            )
-                          }
+                          value={line.line_type}
+                          disabled={readOnly}
+                          onChange={(event) => onUpdate(index, "line_type", event.target.value)}
                         >
-                          <option value="">
-                            {language === "es"
-                              ? "Selecciona una plantilla"
-                              : "Select a template"}
-                          </option>
-                          {activeCostTemplates.map((template) => (
-                            <option key={template.id} value={template.id}>
-                              {template.name}
+                          {costLineTypeOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
                             </option>
                           ))}
                         </select>
-                        <button
-                          className="btn btn-outline-secondary"
-                          type="button"
-                          onClick={() =>
-                            selectedEstimateCostTemplate
-                              ? applyTemplateToEstimate(selectedEstimateCostTemplate)
-                              : undefined
-                          }
-                          disabled={!selectedEstimateCostTemplate}
-                        >
-                          {language === "es" ? "Aplicar" : "Apply"}
-                        </button>
                       </div>
-                    </div>
-                    <div className="col-12 col-lg-6">
-                      <label className="form-label">
-                        {language === "es" ? "Aplicar al costo real" : "Apply to actual cost"}
-                      </label>
-                      <div className="d-flex gap-2">
-                        <select
-                          className="form-select"
-                          value={selectedActualCostTemplateId ?? ""}
-                          onChange={(event) =>
-                            setSelectedActualCostTemplateId(
-                              event.target.value ? Number(event.target.value) : null
-                            )
-                          }
-                        >
-                          <option value="">
-                            {language === "es"
-                              ? "Selecciona una plantilla"
-                              : "Select a template"}
-                          </option>
-                          {activeCostTemplates.map((template) => (
-                            <option key={template.id} value={template.id}>
-                              {template.name}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          className="btn btn-outline-secondary"
-                          type="button"
-                          onClick={() =>
-                            selectedActualCostTemplate
-                              ? applyTemplateToActual(selectedActualCostTemplate)
-                              : undefined
-                          }
-                          disabled={!selectedActualCostTemplate}
-                        >
-                          {language === "es" ? "Aplicar" : "Apply"}
-                        </button>
+                      <div className="col-12 col-md-5">
+                        <label className="form-label">{language === "es" ? "Descripción" : "Description"}</label>
+                        <input
+                          className="form-control"
+                          value={line.description}
+                          readOnly={readOnly}
+                          onChange={(event) => onUpdate(index, "description", event.target.value)}
+                        />
                       </div>
+                      <div className="col-6 col-md-2">
+                        <label className="form-label">{language === "es" ? "Cantidad" : "Quantity"}</label>
+                        <input
+                          className="form-control"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={line.quantity}
+                          readOnly={readOnly}
+                          onChange={(event) => onUpdate(index, "quantity", event.target.value)}
+                        />
+                      </div>
+                      <div className="col-6 col-md-2">
+                        <label className="form-label">{language === "es" ? "Costo unitario" : "Unit cost"}</label>
+                        <input
+                          className="form-control"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={line.unit_cost}
+                          readOnly={readOnly}
+                          onChange={(event) => onUpdate(index, "unit_cost", event.target.value)}
+                        />
+                      </div>
+                      <div className="col-12 col-md-8">
+                        <label className="form-label">{language === "es" ? "Notas" : "Notes"}</label>
+                        <input
+                          className="form-control"
+                          value={line.notes}
+                          readOnly={readOnly}
+                          onChange={(event) => onUpdate(index, "notes", event.target.value)}
+                        />
+                      </div>
+                      <div className="col-8 col-md-2">
+                        <label className="form-label">{language === "es" ? "Total" : "Total"}</label>
+                        <input className="form-control" value={lineTotal.toFixed(2)} readOnly />
+                      </div>
+                      {!readOnly ? (
+                        <div className="col-4 col-md-2 maintenance-cost-lines__remove">
+                          <button className="btn btn-outline-danger" type="button" onClick={() => onRemove(index)}>
+                            {language === "es" ? "Quitar" : "Remove"}
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
-                  {activeCostTemplates.length === 0 ? (
-                    <div className="maintenance-history-entry__meta mt-3">
-                      {language === "es"
-                        ? "Todavía no hay plantillas activas. Guarda una desde este mismo modal para reutilizarla después."
-                        : "There are no active templates yet. Save one from this modal and reuse it later."}
-                    </div>
-                  ) : null}
-                  {isCostTemplateDraftOpen ? (
-                    <div className="maintenance-cost-lines__item mt-3">
-                      <div className="row g-3">
-                        <div className="col-12 col-md-6">
-                          <label className="form-label">
-                            {language === "es" ? "Nombre de plantilla" : "Template name"}
-                          </label>
-                          <input
-                            className="form-control"
-                            value={costTemplateDraft.name}
-                            onChange={(event) =>
-                              setCostTemplateDraft((current) => ({
-                                ...current,
-                                name: event.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                        <div className="col-12 col-md-6">
-                          <label className="form-label">
-                            {language === "es" ? "Descripción breve" : "Short description"}
-                          </label>
-                          <input
-                            className="form-control"
-                            value={costTemplateDraft.description}
-                            onChange={(event) =>
-                              setCostTemplateDraft((current) => ({
-                                ...current,
-                                description: event.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                        <div className="col-12">
-                          <div className="maintenance-history-entry__meta">
-                            {costTemplateDraftSource === "estimate"
-                              ? language === "es"
-                                ? "La plantilla se construirá desde el costeo estimado actual."
-                                : "The template will be built from the current estimate."
-                              : language === "es"
-                                ? "La plantilla se construirá desde el costo real actual."
-                                : "The template will be built from the current actual cost."}
-                          </div>
-                        </div>
-                        <div className="col-12">
-                          <div className="maintenance-form__actions justify-content-start pt-0">
-                            <button
-                              className="btn btn-outline-secondary"
-                              type="button"
-                              onClick={closeCostTemplateDraft}
-                            >
-                              {language === "es" ? "Cancelar" : "Cancel"}
-                            </button>
-                            <button
-                              className="btn btn-primary"
-                              type="button"
-                              onClick={() => void handleSaveCostTemplate()}
-                              disabled={isTemplateSaving}
-                            >
-                              {isTemplateSaving
-                                ? language === "es"
-                                  ? "Guardando..."
-                                  : "Saving..."
-                                : language === "es"
-                                  ? "Guardar plantilla"
-                                  : "Save template"}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
-                  {costTemplateFeedback ? (
-                    <div className="alert alert-info mt-3 mb-0">{costTemplateFeedback}</div>
-                  ) : null}
-                </div>
-              ) : null}
-
               <form
                 className="maintenance-form"
                 onSubmit={(event) => {
@@ -1382,6 +753,226 @@ export function MaintenanceCostingModal({
                   if (!isReadOnly) {
                     void handleEstimateSubmit();
                   }
+
+    async function handleEstimateSubmit() {
+      if (!accessToken) {
+        return;
+      }
+      setIsEstimateSubmitting(true);
+      setError(null);
+      try {
+        const response = await updateTenantMaintenanceWorkOrderCostEstimate(
+          accessToken,
+          currentWorkOrder.id,
+          {
+            labor_cost: normalizeNumericInput(estimateForm.labor_cost),
+            travel_cost: normalizeNumericInput(estimateForm.travel_cost),
+            materials_cost: normalizeNumericInput(estimateForm.materials_cost),
+            external_services_cost: normalizeNumericInput(estimateForm.external_services_cost),
+            overhead_cost: normalizeNumericInput(estimateForm.overhead_cost),
+            target_margin_percent: normalizeNumericInput(estimateForm.target_margin_percent),
+            notes: normalizeNullable(estimateForm.notes),
+            lines: normalizeLineWritePayload(estimateLines),
+          }
+        );
+        setCostingDetail(response.data);
+        setEstimateForm(buildDefaultCostEstimateForm(response.data.estimate));
+        setEstimateLines(buildDefaultCostLines(response.data.estimate_lines));
+        onFeedback?.(response.message);
+      } catch (rawError) {
+        setError(rawError as ApiError);
+      } finally {
+        setIsEstimateSubmitting(false);
+      }
+    }
+
+    async function handleActualSubmit() {
+      if (!accessToken) {
+        return;
+      }
+      setIsActualSubmitting(true);
+      setError(null);
+      try {
+        const response = await updateTenantMaintenanceWorkOrderCostActual(
+          accessToken,
+          currentWorkOrder.id,
+          {
+            labor_cost: normalizeNumericInput(actualForm.labor_cost),
+            travel_cost: normalizeNumericInput(actualForm.travel_cost),
+            materials_cost: normalizeNumericInput(actualForm.materials_cost),
+            external_services_cost: normalizeNumericInput(actualForm.external_services_cost),
+            overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
+            actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
+            notes: normalizeNullable(actualForm.notes),
+            lines: normalizeLineWritePayload(actualLines),
+          }
+        );
+        setCostingDetail(response.data);
+        setActualForm(buildDefaultCostActualForm(response.data.actual));
+        setActualLines(buildDefaultCostLines(response.data.actual_lines));
+        onFeedback?.(response.message);
+      } catch (rawError) {
+        setError(rawError as ApiError);
+      } finally {
+        setIsActualSubmitting(false);
+      }
+    }
+
+    async function handleCompleteWithActualCost() {
+      if (!accessToken || !canCompleteFromModal) {
+        return;
+      }
+      setIsCompleting(true);
+      setError(null);
+      try {
+        const costingResponse = await updateTenantMaintenanceWorkOrderCostActual(
+          accessToken,
+          currentWorkOrder.id,
+          {
+            labor_cost: normalizeNumericInput(actualForm.labor_cost),
+            travel_cost: normalizeNumericInput(actualForm.travel_cost),
+            materials_cost: normalizeNumericInput(actualForm.materials_cost),
+            external_services_cost: normalizeNumericInput(actualForm.external_services_cost),
+            overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
+            actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
+            notes: normalizeNullable(actualForm.notes),
+            lines: normalizeLineWritePayload(actualLines),
+          }
+        );
+        setCostingDetail(costingResponse.data);
+        setActualForm(buildDefaultCostActualForm(costingResponse.data.actual));
+        setActualLines(buildDefaultCostLines(costingResponse.data.actual_lines));
+
+        const statusResponse = await updateTenantMaintenanceWorkOrderStatus(
+          accessToken,
+          currentWorkOrder.id,
+          "completed",
+          normalizeNullable(completionNote)
+        );
+
+        onFeedback?.(
+          language === "es"
+            ? "Costo real guardado y mantención cerrada correctamente"
+            : "Actual cost saved and maintenance closed successfully"
+        );
+        await onCompleted?.(statusResponse.data.id);
+        onClose();
+      } catch (rawError) {
+        setError(rawError as ApiError);
+      } finally {
+        setIsCompleting(false);
+      }
+    }
+
+    async function handleFinanceSyncSubmit() {
+      if (!accessToken || !financeSyncForm.currency_id) {
+        return;
+      }
+      setIsFinanceSyncSubmitting(true);
+      setError(null);
+      try {
+        const response = await syncTenantMaintenanceWorkOrderToFinance(
+          accessToken,
+          currentWorkOrder.id,
+          {
+            sync_income: financeSyncForm.sync_income,
+            sync_expense: financeSyncForm.sync_expense,
+            income_account_id: financeSyncForm.income_account_id
+              ? Number(financeSyncForm.income_account_id)
+              : null,
+            expense_account_id: financeSyncForm.expense_account_id
+              ? Number(financeSyncForm.expense_account_id)
+              : null,
+            income_category_id: financeSyncForm.income_category_id
+              ? Number(financeSyncForm.income_category_id)
+              : null,
+            expense_category_id: financeSyncForm.expense_category_id
+              ? Number(financeSyncForm.expense_category_id)
+              : null,
+            currency_id: Number(financeSyncForm.currency_id),
+            transaction_at: financeSyncForm.transaction_at
+              ? fromDateTimeLocalInputValue(financeSyncForm.transaction_at, effectiveTimeZone)
+              : null,
+            notes: normalizeNullable(financeSyncForm.notes),
+          }
+        );
+        setCostingDetail(response.data);
+        setFinanceSyncForm((current) => ({
+          ...current,
+          notes: response.data.actual?.notes ?? current.notes,
+        }));
+        onFeedback?.(response.message);
+      } catch (rawError) {
+        setError(rawError as ApiError);
+      } finally {
+        setIsFinanceSyncSubmitting(false);
+      }
+    }
+
+    return (
+      <div className="maintenance-form-backdrop" role="presentation" onClick={onClose}>
+        <div
+          className="maintenance-form-modal maintenance-form-modal--wide"
+          role="dialog"
+          aria-modal="true"
+          aria-label={language === "es" ? "Costos y cobro de mantención" : "Maintenance costing and billing"}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="maintenance-form-modal__eyebrow">
+            {language === "es" ? "Costeo y finanzas" : "Costing and finance"}
+          </div>
+          <PanelCard
+            title={
+              isReadOnly
+                ? language === "es"
+                  ? "Histórico de costos y cobro"
+                  : "Costing history"
+                : language === "es"
+                  ? "Costos y cobro"
+                  : "Costing and billing"
+            }
+            subtitle={
+              isReadOnly
+                ? language === "es"
+                  ? "Consulta el cierre económico ya registrado para esta mantención sin modificar el histórico."
+                  : "Review the registered financial close for this maintenance without changing history."
+                : language === "es"
+                  ? "Calcula costo estimado, registra costo real y sincroniza manualmente los movimientos a Finanzas."
+                  : "Calculate estimated cost, register actual cost, and manually sync transactions into Finance."
+            }
+          >
+            {error ? (
+              <ErrorState
+                title={language === "es" ? "No se pudo operar el costeo" : "Costing action failed"}
+                detail={getApiErrorDisplayMessage(error)}
+                requestId={error.payload?.request_id}
+              />
+            ) : null}
+            {isLoading ? (
+              <LoadingBlock label={language === "es" ? "Cargando costeo..." : "Loading costing..."} />
+            ) : (
+              <div className="d-grid gap-3">
+                <div className="maintenance-history-entry">
+                  <div className="maintenance-history-entry__title">{currentWorkOrder.title}</div>
+                  <div className="maintenance-history-entry__meta">{clientLabel} · {siteLabel}</div>
+                  <div className="maintenance-history-entry__meta">
+                    {language === "es" ? "Instalación" : "Installation"}: {installationLabel}
+                  </div>
+                  <div className="maintenance-history-entry__meta">
+                    {language === "es" ? "Ventana operativa" : "Operational window"}: {" "}
+                    {formatDateTimeInTimeZone(
+                      currentWorkOrder.completed_at ||
+                        currentWorkOrder.scheduled_for ||
+                        currentWorkOrder.requested_at,
+                      language,
+                      effectiveTimeZone
+                    )}
+                  </div>
+                </div>
+
+                {!isReadOnly && costTemplateFeedback ? (
+                  <div className="alert alert-info mb-0">{costTemplateFeedback}</div>
+                ) : null}
                 }}
               >
                 <div className="maintenance-history-entry">

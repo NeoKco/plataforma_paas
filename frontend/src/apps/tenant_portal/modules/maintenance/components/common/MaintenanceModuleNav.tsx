@@ -32,7 +32,7 @@ export function MaintenanceModuleNav() {
     },
     {
       to: "/tenant-portal/maintenance/cost-templates",
-      label: language === "es" ? "Plantillas" : "Templates",
+      label: language === "es" ? "Costos de mantenciones" : "Maintenance costs",
       icon: "categories" as const,
     },
     {

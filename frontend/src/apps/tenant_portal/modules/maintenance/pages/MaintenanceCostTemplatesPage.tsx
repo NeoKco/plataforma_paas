@@ -361,11 +361,11 @@ export function MaintenanceCostTemplatesPage() {
       <PageHeader
         eyebrow={language === "es" ? "Mantenciones" : "Maintenance"}
         icon="maintenance"
-        title={language === "es" ? "Plantillas de costeo" : "Costing templates"}
+        title={language === "es" ? "Costos de mantenciones" : "Maintenance costs"}
         description={
           language === "es"
-            ? "Slice dedicado para crear, editar y archivar plantillas de costo reutilizables solo dentro de Mantenciones."
-            : "Dedicated slice to create, edit, and archive reusable costing templates only for Maintenance."
+            ? "Slice dedicado para definir, editar y archivar costos base reutilizables para las mantenciones."
+            : "Dedicated slice to define, edit, and archive reusable base costs for maintenance work."
         }
         actions={
           <AppToolbar compact>
@@ -373,15 +373,15 @@ export function MaintenanceCostTemplatesPage() {
               label={language === "es" ? "Ayuda" : "Help"}
               helpText={
                 language === "es"
-                  ? "Usa esta vista para definir estructuras base de mano de obra, traslado, materiales, servicios o indirectos. Luego podrás aplicarlas desde Pendientes o Costos sin reconstruir cada línea desde cero."
-                  : "Use this view to define base structures for labor, travel, materials, services, or overhead. You can later apply them from Due items or Costing without rebuilding every line from scratch."
+                  ? "Usa esta vista para definir el costo base por tipo de mantención: mano de obra, traslado, materiales, servicios o indirectos. Ese costo se reutiliza luego en el costeo estimado y en el cierre."
+                  : "Use this view to define the base cost by maintenance type: labor, travel, materials, services, or overhead. That cost is then reused in estimated costing and closure."
               }
             />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
             <button className="btn btn-primary" type="button" onClick={openCreate}>
-              {language === "es" ? "Nueva plantilla" : "New template"}
+              {language === "es" ? "Nuevo costo base" : "New base cost"}
             </button>
           </AppToolbar>
         }
@@ -397,15 +397,15 @@ export function MaintenanceCostTemplatesPage() {
         />
       ) : null}
       {isLoading ? (
-        <LoadingBlock label={language === "es" ? "Cargando plantillas..." : "Loading templates..."} />
+        <LoadingBlock label={language === "es" ? "Cargando costos..." : "Loading costs..."} />
       ) : null}
 
       <PanelCard
         title={language === "es" ? "Filtros" : "Filters"}
         subtitle={
           language === "es"
-            ? `Mostrando ${filteredRows.length} de ${rows.length} plantillas.`
-            : `Showing ${filteredRows.length} of ${rows.length} templates.`
+            ? `Mostrando ${filteredRows.length} de ${rows.length} costos base.`
+            : `Showing ${filteredRows.length} of ${rows.length} base costs.`
         }
       >
         <div className="row g-3 align-items-end">
@@ -440,11 +440,11 @@ export function MaintenanceCostTemplatesPage() {
       </PanelCard>
 
       <DataTableCard
-        title={language === "es" ? "Plantillas disponibles" : "Available templates"}
+        title={language === "es" ? "Costos base disponibles" : "Available base costs"}
         subtitle={
           language === "es"
-            ? "Catálogo exclusivo de Mantenciones para reusar estructuras de costo estimado y real."
-            : "Maintenance-only catalog to reuse estimated and actual costing structures."
+            ? "Catálogo exclusivo de Mantenciones para reutilizar costos base en el estimado y en el cierre real."
+            : "Maintenance-only catalog to reuse base costs in estimate and actual closure."
         }
         rows={filteredRows}
         columns={columns}
@@ -456,7 +456,7 @@ export function MaintenanceCostTemplatesPage() {
             className="maintenance-form-modal"
             role="dialog"
             aria-modal="true"
-            aria-label={language === "es" ? "Plantilla de costeo" : "Costing template"}
+            aria-label={language === "es" ? "Costo de mantención" : "Maintenance cost"}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="maintenance-form-modal__eyebrow">
@@ -469,11 +469,11 @@ export function MaintenanceCostTemplatesPage() {
                   : "On-demand creation"}
             </div>
             <PanelCard
-              title={editingId ? (language === "es" ? "Editar plantilla" : "Edit template") : (language === "es" ? "Nueva plantilla" : "New template")}
+              title={editingId ? (language === "es" ? "Editar costo base" : "Edit base cost") : (language === "es" ? "Nuevo costo base" : "New base cost")}
               subtitle={
                 language === "es"
-                  ? "Define una estructura base reutilizable sin mezclar este catálogo con otros módulos del tenant."
-                  : "Define a reusable base structure without turning this catalog into a shared tenant-wide module."
+                  ? "Define un costo base reutilizable sin mezclar este catálogo con otros módulos del tenant."
+                  : "Define a reusable base cost without turning this catalog into a shared tenant-wide module."
               }
             >
               <form className="maintenance-form" onSubmit={(event) => {
@@ -567,8 +567,8 @@ export function MaintenanceCostTemplatesPage() {
                         </div>
                         <div className="maintenance-cell__meta">
                           {language === "es"
-                            ? "Estas líneas se reutilizan al aplicar la plantilla en Pendientes o Costos."
-                            : "These lines are reused when the template is applied from Due items or Costing."}
+                            ? "Estas líneas se reutilizan automáticamente en el costeo estimado y en el cierre real de la mantención."
+                            : "These lines are automatically reused in estimated costing and in the actual maintenance closure."}
                         </div>
                       </div>
                       <button className="btn btn-sm btn-outline-primary" type="button" onClick={addLine}>
