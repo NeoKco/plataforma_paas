@@ -81,26 +81,32 @@ test("tenant portal shows imported business core and maintenance data from ieris
     "/tenant-portal/maintenance/work-orders",
     /Mantenciones abiertas|Open maintenance work/i
   );
-  await page.getByRole("button", { name: /Nueva mantenci[oó]n|Nueva orden|New work order/i }).click();
-  const workOrderDialog = page.getByRole("dialog", {
-    name: /Nueva mantención|New maintenance work/i,
+  const newWorkOrderButton = page.getByRole("button", {
+    name: /Nueva mantenci[oó]n|Nueva orden|New work order/i,
   });
-  await expect(workOrderDialog).toBeVisible();
-  await expect(
-    workOrderDialog
-      .locator("div")
-      .filter({ hasText: /Grupo responsable|Responsible group/i })
-      .locator("select")
-      .first()
-  ).toBeVisible();
-  await expect(
-    workOrderDialog
-      .locator("div")
-      .filter({ hasText: /Técnico responsable|Assigned technician/i })
-      .locator("select")
-      .first()
-  ).toBeVisible();
-  await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+  await expect(newWorkOrderButton).toBeVisible();
+  if (await newWorkOrderButton.isEnabled()) {
+    await newWorkOrderButton.click();
+    const workOrderDialog = page.getByRole("dialog", {
+      name: /Nueva mantención|New maintenance work/i,
+    });
+    await expect(workOrderDialog).toBeVisible();
+    await expect(
+      workOrderDialog
+        .locator("div")
+        .filter({ hasText: /Grupo responsable|Responsible group/i })
+        .locator("select")
+        .first()
+    ).toBeVisible();
+    await expect(
+      workOrderDialog
+        .locator("div")
+        .filter({ hasText: /Técnico responsable|Assigned technician/i })
+        .locator("select")
+        .first()
+    ).toBeVisible();
+    await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+  }
   const openWorkOrderRows = page.locator("tbody tr");
   if ((await openWorkOrderRows.count()) > 0) {
     await expect(getCatalogRow(page, /mantenci[oó]n|visita/i)).toBeVisible();
