@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "../support/test";
 import { loginTenant } from "../support/auth";
 import { setTenantModuleLimit } from "../support/backend-control";
+import { buildE2ETenantUserEmail } from "../support/e2e-data";
 import { e2eEnv } from "../support/env";
 
 async function openTenantUserCreateForm(page: Page) {
@@ -15,7 +16,7 @@ async function openTenantUserCreateForm(page: Page) {
 test("tenant portal shows active-user limit enforcement after tenant override", async ({
   page,
 }) => {
-  const blockedUserEmail = `operator-${Date.now()}@${e2eEnv.tenant.slug}.local`;
+  const blockedUserEmail = buildE2ETenantUserEmail("operator", e2eEnv.tenant.slug);
 
   const appliedLimit = setTenantModuleLimit({
     tenantSlug: e2eEnv.tenant.slug,

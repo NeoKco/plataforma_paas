@@ -109,6 +109,7 @@ Regla operativa adicional para artefactos de fallo:
 Regla operativa adicional para datos efímeros:
 
 - los slugs, nombres y emails efímeros de `platform_admin` ya deben salir del helper [frontend/e2e/support/e2e-data.ts](support/e2e-data.ts)
+- el mismo helper ya empezó a usarse también en `tenant_portal` para emails efímeros de usuarios, descripciones únicas de `finance` y fechas relativas de billing
 - evitar seguir creando variantes locales con `Date.now()` disperso cuando el dato se usa para `tenantSlug`, usuarios de plataforma o identificadores visibles del smoke
 - los helpers compartidos, como [frontend/e2e/support/finance.ts](support/finance.ts), también deben reutilizar ese generador cuando necesiten nombres o códigos únicos
 

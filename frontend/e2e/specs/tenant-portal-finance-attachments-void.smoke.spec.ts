@@ -1,6 +1,7 @@
 import path from "node:path";
 import { expect, test } from "../support/test";
 import { loginTenant } from "../support/auth";
+import { buildE2EText } from "../support/e2e-data";
 import {
   createBasicExpenseTransaction,
   getAttachmentSuccessFeedback,
@@ -12,7 +13,7 @@ import {
 test("tenant portal finance can upload an attachment to a created transaction", async ({
   page,
 }) => {
-  const uniqueDescription = `e2e-attach-${Date.now()}`;
+  const uniqueDescription = buildE2EText("finance-attachment", "e2e-attach");
   const fixturePath = path.resolve(
     "/home/felipe/platform_paas/docs/assets/app-visual-manual/12a-tenant-finance-overview-form.png"
   );
@@ -44,7 +45,7 @@ test("tenant portal finance can upload an attachment to a created transaction", 
 });
 
 test("tenant portal finance can void a created transaction", async ({ page }) => {
-  const uniqueDescription = `e2e-void-${Date.now()}`;
+  const uniqueDescription = buildE2EText("finance-void", "e2e-void");
 
   await loginTenant(page);
   await openFinanceTransactionsPage(page);

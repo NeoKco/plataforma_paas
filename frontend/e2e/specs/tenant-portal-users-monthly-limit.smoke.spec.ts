@@ -5,6 +5,7 @@ import {
   seedTenantUser,
   setTenantModuleLimit,
 } from "../support/backend-control";
+import { buildE2ETenantUserEmail } from "../support/e2e-data";
 import { e2eEnv } from "../support/env";
 
 async function ensureTenantUsersPage(page: Page) {
@@ -36,7 +37,7 @@ function getActionFeedback(page: Page, type: "success" | "error") {
 
 test("tenant portal blocks user creation when monthly user quota is exhausted", async ({ page }) => {
   const seedEmail = `monthly-seed@${e2eEnv.tenant.slug}.local`;
-  const blockedEmail = `monthly-blocked-${Date.now()}@${e2eEnv.tenant.slug}.local`;
+  const blockedEmail = buildE2ETenantUserEmail("monthly-blocked", e2eEnv.tenant.slug);
 
   const seededUser = seedTenantUser({
     tenantSlug: e2eEnv.tenant.slug,

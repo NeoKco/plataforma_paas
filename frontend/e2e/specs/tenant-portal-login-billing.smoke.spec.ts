@@ -1,13 +1,14 @@
 import { expect, test } from "../support/test";
 import { seedTenantBillingSyncEvent } from "../support/backend-control";
 import { loginTenant } from "../support/auth";
+import { buildE2EText, buildFutureIso } from "../support/e2e-data";
 import { e2eEnv } from "../support/env";
 
 test("tenant portal reflects billing grace and blocks login when overdue billing expires", async ({ page }) => {
-  const uniqueSuffix = Date.now();
   const tenantSlug = e2eEnv.tenant.slug;
-  const futurePeriodEndsAtIso = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
-  const futureGraceUntilIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const uniqueSuffix = buildE2EText("tenant-billing", "run");
+  const futurePeriodEndsAtIso = buildFutureIso(3);
+  const futureGraceUntilIso = buildFutureIso(7);
 
   try {
     const graceEvent = seedTenantBillingSyncEvent({

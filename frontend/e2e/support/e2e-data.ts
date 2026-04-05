@@ -46,11 +46,17 @@ export function buildE2EPlatformUserIdentity(role: "admin" | "support") {
   };
 }
 
-export function buildE2ETwitterUserEmail(prefix: string, tenantSlug: string) {
+export function buildE2ETenantUserEmail(prefix: string, tenantSlug: string) {
   const id = nextE2EId(prefix);
   return `${normalizeSegment(prefix)}-${id}@${tenantSlug}.local`;
 }
 
+export const buildE2ETwitterUserEmail = buildE2ETenantUserEmail;
+
 export function buildE2EText(scope: string, prefix = "e2e") {
   return `${prefix}-${nextE2EId(scope)}`;
+}
+
+export function buildFutureIso(daysFromNow: number) {
+  return new Date(Date.now() + daysFromNow * 24 * 60 * 60 * 1000).toISOString();
 }

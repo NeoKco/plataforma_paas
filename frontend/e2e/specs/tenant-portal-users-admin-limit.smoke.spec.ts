@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "../support/test";
 import { loginTenant } from "../support/auth";
 import { seedTenantUser, setTenantModuleLimit } from "../support/backend-control";
+import { buildE2ETenantUserEmail } from "../support/e2e-data";
 import { e2eEnv } from "../support/env";
 
 async function ensureTenantUsersPage(page: Page) {
@@ -37,8 +38,8 @@ function getActionFeedback(page: Page, type: "success" | "error") {
 test("tenant portal blocks extra admin creation and admin reactivation when admin quota is exhausted", async ({
   page,
 }) => {
-  const blockedAdminEmail = `admin-blocked-${Date.now()}@${e2eEnv.tenant.slug}.local`;
-  const inactiveAdminEmail = `admin-inactive-${Date.now()}@${e2eEnv.tenant.slug}.local`;
+  const blockedAdminEmail = buildE2ETenantUserEmail("admin-blocked", e2eEnv.tenant.slug);
+  const inactiveAdminEmail = buildE2ETenantUserEmail("admin-inactive", e2eEnv.tenant.slug);
 
   try {
     const seededUser = seedTenantUser({

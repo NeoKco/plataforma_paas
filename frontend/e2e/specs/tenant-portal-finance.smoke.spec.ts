@@ -1,5 +1,6 @@
 import { expect, test } from "../support/test";
 import { loginTenant } from "../support/auth";
+import { buildE2EText } from "../support/e2e-data";
 import {
   createBasicExpenseTransaction,
   getTransactionRowByDescription,
@@ -7,7 +8,7 @@ import {
 } from "../support/finance";
 
 test("tenant portal finance can create a basic transaction", async ({ page }) => {
-  const uniqueDescription = `e2e-mov-${Date.now()}`;
+  const uniqueDescription = buildE2EText("finance-movement", "e2e-mov");
 
   await loginTenant(page);
   await openFinanceTransactionsPage(page);
