@@ -67,12 +67,14 @@ class MaintenanceWorkOrderService:
         *,
         client_id: int | None = None,
         site_id: int | None = None,
+        installation_id: int | None = None,
         maintenance_status: str | None = None,
     ) -> list[MaintenanceWorkOrder]:
         return self.work_order_repository.list_filtered(
             tenant_db,
             client_id=client_id,
             site_id=site_id,
+            installation_id=installation_id,
             maintenance_status=maintenance_status.strip().lower() if maintenance_status else None,
         )
 

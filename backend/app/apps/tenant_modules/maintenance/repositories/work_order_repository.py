@@ -13,6 +13,7 @@ class MaintenanceWorkOrderRepository:
         *,
         client_id: int | None = None,
         site_id: int | None = None,
+        installation_id: int | None = None,
         maintenance_status: str | None = None,
     ) -> list[MaintenanceWorkOrder]:
         query = tenant_db.query(MaintenanceWorkOrder)
@@ -20,6 +21,8 @@ class MaintenanceWorkOrderRepository:
             query = query.filter(MaintenanceWorkOrder.client_id == client_id)
         if site_id is not None:
             query = query.filter(MaintenanceWorkOrder.site_id == site_id)
+        if installation_id is not None:
+            query = query.filter(MaintenanceWorkOrder.installation_id == installation_id)
         if maintenance_status:
             query = query.filter(MaintenanceWorkOrder.maintenance_status == maintenance_status)
         return query.order_by(

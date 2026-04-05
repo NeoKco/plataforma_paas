@@ -56,6 +56,7 @@ def _build_item(item) -> MaintenanceWorkOrderItemResponse:
 def list_maintenance_work_orders(
     client_id: int | None = None,
     site_id: int | None = None,
+    installation_id: int | None = None,
     maintenance_status: str | None = None,
     current_user=Depends(require_maintenance_read),
     tenant_db: Session = Depends(get_tenant_db),
@@ -64,6 +65,7 @@ def list_maintenance_work_orders(
         tenant_db,
         client_id=client_id,
         site_id=site_id,
+        installation_id=installation_id,
         maintenance_status=maintenance_status,
     )
     return MaintenanceWorkOrdersResponse(

@@ -58,7 +58,12 @@ export type TenantMaintenanceWorkOrderWriteRequest = {
 
 export function getTenantMaintenanceWorkOrders(
   accessToken: string,
-  options: { clientId?: number; siteId?: number; maintenanceStatus?: string } = {}
+  options: {
+    clientId?: number;
+    siteId?: number;
+    installationId?: number;
+    maintenanceStatus?: string;
+  } = {}
 ) {
   const params = new URLSearchParams();
   if (options.clientId !== undefined) {
@@ -66,6 +71,9 @@ export function getTenantMaintenanceWorkOrders(
   }
   if (options.siteId !== undefined) {
     params.set("site_id", String(options.siteId));
+  }
+  if (options.installationId !== undefined) {
+    params.set("installation_id", String(options.installationId));
   }
   if (options.maintenanceStatus) {
     params.set("maintenance_status", options.maintenanceStatus);

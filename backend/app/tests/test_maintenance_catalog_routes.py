@@ -303,7 +303,34 @@ class MaintenanceCatalogRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data[0].external_reference, "WO-001")
         self.assertEqual(
             list_mock.call_args.kwargs,
-            {"client_id": 11, "site_id": None, "maintenance_status": "scheduled"},
+            {
+                "client_id": 11,
+                "site_id": None,
+                "installation_id": None,
+                "maintenance_status": "scheduled",
+            },
+        )
+
+    def test_list_maintenance_work_orders_allows_installation_filter(self) -> None:
+        with patch(
+            "app.apps.tenant_modules.maintenance.api.work_orders.work_order_service.list_work_orders",
+            return_value=[],
+        ) as list_mock:
+            response = list_maintenance_work_orders(
+                installation_id=9,
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.total, 0)
+        self.assertEqual(
+            list_mock.call_args.kwargs,
+            {
+                "client_id": None,
+                "site_id": None,
+                "installation_id": 9,
+                "maintenance_status": None,
+            },
         )
 
     def test_create_maintenance_work_order_translates_validation_error_to_400(self) -> None:
