@@ -68,6 +68,17 @@ function getStatusLabel(status: string, language: "es" | "en"): string {
   }
 }
 
+function getStatusLogTitle(
+  log: { from_status: string | null; to_status: string; note: string | null },
+  language: "es" | "en"
+): string {
+  const note = (log.note || "").trim().toLowerCase();
+  if (log.from_status && log.from_status === log.to_status && note.startsWith("reprogramación")) {
+    return language === "es" ? "Reprogramación" : "Reschedule";
+  }
+  return `${log.from_status || (language === "es" ? "inicio" : "start")} -> ${log.to_status}`;
+}
+
 function getStatusTone(status: string): "success" | "danger" | "warning" | "info" | "neutral" {
   if (status === "completed") {
     return "success";
@@ -397,9 +408,7 @@ export function MaintenanceHistoryPage() {
                     {item.status_logs.map((log) => (
                       <div key={log.id} className="maintenance-history-entry">
                         <div className="maintenance-history-entry__title">
-                          {(log.from_status || (language === "es" ? "inicio" : "start")) +
-                            " -> " +
-                            log.to_status}
+                          {getStatusLogTitle(log, language)}
                         </div>
                         <div className="maintenance-history-entry__meta">
                           {formatDateTime(log.changed_at, language, effectiveTimeZone)}

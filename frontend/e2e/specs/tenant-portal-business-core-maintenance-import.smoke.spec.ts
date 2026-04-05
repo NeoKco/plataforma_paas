@@ -142,6 +142,14 @@ test("tenant portal shows imported business core and maintenance data from ieris
   ).toBeVisible();
   await expect(fieldReportDialog.getByRole("button", { name: /Guardar checklist|Save checklist/i })).toBeVisible();
   await fieldReportDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
+  await page.getByRole("button", { name: /Reprogramar|Reschedule/i }).first().click();
+  const rescheduleDialog = page.getByRole("dialog", {
+    name: /Reprogramar mantención|Edit maintenance work/i,
+  });
+  await expect(rescheduleDialog).toBeVisible();
+  await expect(page.getByText(/Reprogramación auditada|Targeted edit/i)).toBeVisible();
+  await expect(rescheduleDialog.getByLabel(/Motivo de reprogramación|Reschedule reason/i)).toBeVisible();
+  await rescheduleDialog.getByRole("button", { name: /Cancelar|Cancel/i }).click();
 
   await openTenantImportedPage(
     page,

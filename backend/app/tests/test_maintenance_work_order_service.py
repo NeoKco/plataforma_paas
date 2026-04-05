@@ -273,6 +273,75 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
         self.assertEqual(created.assigned_work_group_id, 4)
         self.assertEqual(created.assigned_tenant_user_id, 3)
 
+    def test_update_work_order_creates_reschedule_audit_log(self) -> None:
+        existing_item = SimpleNamespace(
+            id=12,
+            client_id=11,
+            site_id=31,
+            installation_id=9,
+            external_reference="WO-001",
+            title="Mantencion mensual",
+            description=None,
+            priority="normal",
+            scheduled_for="2026-04-05T10:00:00+00:00",
+            cancellation_reason=None,
+            closure_notes=None,
+            assigned_work_group_id=4,
+            assigned_tenant_user_id=3,
+            maintenance_status="scheduled",
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        work_order_repository.get_by_external_reference.return_value = existing_item
+        work_order_repository.list_active_conflicts.return_value = []
+        work_order_repository.save.side_effect = lambda _tenant_db, item: item
+        status_log_repository = Mock()
+        status_log_repository.create.return_value = None
+
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+            status_log_repository=status_log_repository,
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessClient.id: SimpleNamespace(id=11),
+                BusinessSite: SimpleNamespace(id=31, client_id=11),
+                MaintenanceInstallation: SimpleNamespace(id=9, site_id=31),
+                BusinessWorkGroup.id: SimpleNamespace(id=4),
+                User.id: SimpleNamespace(id=8),
+            }
+        )
+        tenant_db.commit = Mock()
+        tenant_db.refresh = Mock()
+
+        item = service.update_work_order(
+            tenant_db,
+            12,
+            MaintenanceWorkOrderUpdateRequest(
+                client_id=11,
+                site_id=31,
+                installation_id=9,
+                assigned_work_group_id=4,
+                assigned_tenant_user_id=8,
+                external_reference="WO-001",
+                title="Mantencion mensual",
+                description=None,
+                priority="normal",
+                scheduled_for="2026-04-05T12:30:00+00:00",
+                reschedule_note="Cliente pidió cambio por acceso restringido",
+            ),
+            changed_by_user_id=21,
+        )
+
+        self.assertEqual(item.scheduled_for, "2026-04-05T12:30:00+00:00")
+        status_log_repository.create.assert_called_once()
+        self.assertEqual(status_log_repository.create.call_args.kwargs["work_order_id"], 12)
+        self.assertEqual(status_log_repository.create.call_args.kwargs["from_status"], "scheduled")
+        self.assertEqual(status_log_repository.create.call_args.kwargs["to_status"], "scheduled")
+        self.assertEqual(status_log_repository.create.call_args.kwargs["changed_by_user_id"], 21)
+        self.assertIn("Reprogramación:", status_log_repository.create.call_args.kwargs["note"])
+        self.assertIn("Motivo: Cliente pidió cambio", status_log_repository.create.call_args.kwargs["note"])
+
     def test_complete_work_order_triggers_auto_sync_policy_check(self) -> None:
         existing_item = SimpleNamespace(
             id=23,

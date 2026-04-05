@@ -70,6 +70,7 @@ function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
     scheduled_for: null,
     cancellation_reason: null,
     closure_notes: null,
+    reschedule_note: null,
     assigned_tenant_user_id: null,
     maintenance_status: "scheduled",
   };
@@ -182,6 +183,7 @@ export function MaintenanceWorkOrdersPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [requestedCreateHandled, setRequestedCreateHandled] = useState(false);
   const [form, setForm] = useState<TenantMaintenanceWorkOrderWriteRequest>(buildDefaultForm());
+  const [isRescheduleMode, setIsRescheduleMode] = useState(false);
   const [costingWorkOrder, setCostingWorkOrder] = useState<TenantMaintenanceWorkOrder | null>(null);
   const [fieldReportWorkOrder, setFieldReportWorkOrder] =
     useState<TenantMaintenanceWorkOrder | null>(null);
@@ -429,6 +431,7 @@ export function MaintenanceWorkOrdersPage() {
     const siteId = requestedSiteId || candidateSites[0]?.id || 0;
     const candidateInstallations = installations.filter((installation) => installation.site_id === siteId);
     setEditingId(null);
+    setIsRescheduleMode(false);
     setFeedback(null);
     setError(null);
     setIsFormOpen(openForm);
@@ -475,6 +478,7 @@ export function MaintenanceWorkOrdersPage() {
   }
 
   function startEdit(item: TenantMaintenanceWorkOrder) {
+    setIsRescheduleMode(false);
     setEditingId(item.id);
     setFeedback(null);
     setError(null);
@@ -491,9 +495,15 @@ export function MaintenanceWorkOrdersPage() {
       scheduled_for: item.scheduled_for,
       cancellation_reason: null,
       closure_notes: stripLegacyVisibleText(item.closure_notes),
+      reschedule_note: null,
       assigned_tenant_user_id: item.assigned_tenant_user_id,
       maintenance_status: item.maintenance_status,
     });
+  }
+
+  function startReschedule(item: TenantMaintenanceWorkOrder) {
+    startEdit(item);
+    setIsRescheduleMode(true);
   }
 
   function closeCostingModal() {
@@ -534,6 +544,8 @@ export function MaintenanceWorkOrdersPage() {
       scheduled_for: normalizeNullable(form.scheduled_for),
       cancellation_reason: null,
       closure_notes: editingId ? stripLegacyVisibleText(normalizeNullable(form.closure_notes)) : null,
+      reschedule_note:
+        editingId && isRescheduleMode ? normalizeNullable(form.reschedule_note ?? null) : undefined,
       assigned_tenant_user_id: form.assigned_tenant_user_id ? Number(form.assigned_tenant_user_id) : null,
       ...(editingId ? {} : { maintenance_status: form.maintenance_status || "scheduled" }),
     };
@@ -543,6 +555,7 @@ export function MaintenanceWorkOrdersPage() {
         : await createTenantMaintenanceWorkOrder(session.accessToken, payload);
       setFeedback(response.message);
       startCreate(false);
+      setIsRescheduleMode(false);
       await loadData();
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -761,7 +774,9 @@ export function MaintenanceWorkOrdersPage() {
             aria-label={
               editingId
                 ? language === "es"
-                  ? "Editar mantención"
+                  ? isRescheduleMode
+                    ? "Reprogramar mantención"
+                    : "Editar mantención"
                   : "Edit maintenance work"
                 : language === "es"
                   ? "Nueva mantención"
@@ -772,7 +787,9 @@ export function MaintenanceWorkOrdersPage() {
             <div className="maintenance-form-modal__eyebrow">
               {editingId
                 ? language === "es"
-                  ? "Edición puntual"
+                  ? isRescheduleMode
+                    ? "Reprogramación auditada"
+                    : "Edición puntual"
                   : "Targeted edit"
                 : language === "es"
                   ? "Alta bajo demanda"
@@ -782,7 +799,9 @@ export function MaintenanceWorkOrdersPage() {
               title={
                 editingId
                   ? language === "es"
-                    ? "Editar mantención"
+                    ? isRescheduleMode
+                      ? "Reprogramar mantención"
+                      : "Editar mantención"
                     : "Edit maintenance work"
                   : language === "es"
                     ? "Nueva mantención"
@@ -790,10 +809,19 @@ export function MaintenanceWorkOrdersPage() {
               }
               subtitle={
                 language === "es"
-                  ? "Programa solo trabajo abierto. Al completarlo, saldrá de esta bandeja y quedará en historial."
+                  ? isRescheduleMode
+                    ? "Ajusta fecha, instalación o responsables sin perder trazabilidad. La reprogramación quedará auditada en el historial técnico."
+                    : "Programa solo trabajo abierto. Al completarlo, saldrá de esta bandeja y quedará en historial."
                   : "Schedule only open work. Once completed, it will leave this tray and remain in history."
               }
             >
+              {isRescheduleMode ? (
+                <div className="alert alert-info mb-3">
+                  {language === "es"
+                    ? "Usa este flujo para reprogramar sin perder historial. El backend dejará una traza visible con los cambios del slot y responsables."
+                    : "Use this flow to reschedule without losing history. The backend will keep a visible trace of slot and responsibility changes."}
+                </div>
+              ) : null}
               {formConflictPreview.length > 0 ? (
                 <div className="alert alert-warning mb-3">
                   {language === "es"
@@ -981,6 +1009,30 @@ export function MaintenanceWorkOrdersPage() {
                       }
                     />
                   </div>
+                  {editingId && isRescheduleMode ? (
+                    <div className="col-12">
+                      <label className="form-label">
+                        {language === "es" ? "Motivo de reprogramación" : "Reschedule reason"}
+                      </label>
+                      <textarea
+                        className="form-control"
+                        aria-label={language === "es" ? "Motivo de reprogramación" : "Reschedule reason"}
+                        rows={2}
+                        placeholder={
+                          language === "es"
+                            ? "Ej.: cliente pidió nuevo horario, técnico reasignado, acceso restringido"
+                            : "E.g. client requested a new slot, technician reassigned, restricted access"
+                        }
+                        value={form.reschedule_note ?? ""}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            reschedule_note: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  ) : null}
                   {missingSiteForSelectedClient ? (
                     <div className="col-12">
                       <div className="alert alert-warning mb-0">
@@ -1048,7 +1100,9 @@ export function MaintenanceWorkOrdersPage() {
                         : "Saving..."
                       : editingId
                         ? language === "es"
-                          ? "Guardar cambios"
+                          ? isRescheduleMode
+                            ? "Guardar reprogramación"
+                            : "Guardar cambios"
                           : "Save changes"
                         : language === "es"
                           ? "Crear orden"
@@ -1209,6 +1263,13 @@ export function MaintenanceWorkOrdersPage() {
                   onClick={() => startEdit(item)}
                 >
                   {language === "es" ? "Editar" : "Edit"}
+                </button>
+                <button
+                  className="btn btn-sm btn-outline-info"
+                  type="button"
+                  onClick={() => startReschedule(item)}
+                >
+                  {language === "es" ? "Reprogramar" : "Reschedule"}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-secondary"

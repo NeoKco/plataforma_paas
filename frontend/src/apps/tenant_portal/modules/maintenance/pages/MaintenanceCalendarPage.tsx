@@ -65,6 +65,7 @@ function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
     scheduled_for: null,
     cancellation_reason: null,
     closure_notes: null,
+    reschedule_note: null,
     assigned_tenant_user_id: null,
     maintenance_status: "scheduled",
   };
@@ -195,6 +196,7 @@ export function MaintenanceCalendarPage() {
   const [selectedDateKey, setSelectedDateKey] = useState(() => toDateKey(new Date()));
   const [calendarAssignedWorkGroupFilter, setCalendarAssignedWorkGroupFilter] = useState<number | null>(null);
   const [calendarAssignedTechnicianFilter, setCalendarAssignedTechnicianFilter] = useState<number | null>(null);
+  const [isRescheduleMode, setIsRescheduleMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -470,6 +472,7 @@ export function MaintenanceCalendarPage() {
     setSelectedDateKey(toDateKey(date));
     setCurrentMonth(toMonthStart(date));
     setEditingId(null);
+    setIsRescheduleMode(false);
     setFeedback(null);
     setError(null);
     setIsFormOpen(true);
@@ -488,6 +491,7 @@ export function MaintenanceCalendarPage() {
   }
 
   function startEdit(item: TenantMaintenanceWorkOrder) {
+    setIsRescheduleMode(false);
     setEditingId(item.id);
     setFeedback(null);
     setError(null);
@@ -505,9 +509,15 @@ export function MaintenanceCalendarPage() {
       scheduled_for: item.scheduled_for,
       cancellation_reason: null,
       closure_notes: stripLegacyVisibleText(item.closure_notes),
+      reschedule_note: null,
       assigned_tenant_user_id: item.assigned_tenant_user_id,
       maintenance_status: item.maintenance_status,
     });
+  }
+
+  function startReschedule(item: TenantMaintenanceWorkOrder) {
+    startEdit(item);
+    setIsRescheduleMode(true);
   }
 
   async function handleSubmit() {
@@ -528,6 +538,8 @@ export function MaintenanceCalendarPage() {
       scheduled_for: normalizeNullable(form.scheduled_for),
       cancellation_reason: null,
       closure_notes: editingId ? stripLegacyVisibleText(normalizeNullable(form.closure_notes)) : null,
+      reschedule_note:
+        editingId && isRescheduleMode ? normalizeNullable(form.reschedule_note ?? null) : undefined,
       assigned_tenant_user_id: form.assigned_tenant_user_id ? Number(form.assigned_tenant_user_id) : null,
       ...(editingId ? {} : { maintenance_status: form.maintenance_status || "scheduled" }),
     };
@@ -538,6 +550,7 @@ export function MaintenanceCalendarPage() {
       setFeedback(response.message);
       setIsFormOpen(false);
       setEditingId(null);
+      setIsRescheduleMode(false);
       setForm(buildDefaultForm());
       await loadData();
     } catch (rawError) {
@@ -760,7 +773,7 @@ export function MaintenanceCalendarPage() {
                       className={`maintenance-calendar__event is-${item.maintenance_status}`}
                       onClick={(event) => {
                         event.stopPropagation();
-                        startEdit(item);
+                          startReschedule(item);
                       }}
                     >
                       <strong>
@@ -859,6 +872,22 @@ export function MaintenanceCalendarPage() {
                 <div className="maintenance-history-entry__meta mt-2">
                   {formatDateTime(item.scheduled_for, language, effectiveTimeZone)}
                 </div>
+                <div className="d-flex gap-2 mt-2">
+                  <button
+                    className="btn btn-sm btn-outline-primary"
+                    type="button"
+                    onClick={() => startEdit(item)}
+                  >
+                    {language === "es" ? "Editar" : "Edit"}
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-info"
+                    type="button"
+                    onClick={() => startReschedule(item)}
+                  >
+                    {language === "es" ? "Reprogramar" : "Reschedule"}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -874,7 +903,9 @@ export function MaintenanceCalendarPage() {
             aria-label={
               editingId
                 ? language === "es"
-                  ? "Editar mantención desde agenda"
+                  ? isRescheduleMode
+                    ? "Reprogramar mantención desde agenda"
+                    : "Editar mantención desde agenda"
                   : "Edit maintenance from calendar"
                 : language === "es"
                   ? "Nueva mantención desde agenda"
@@ -885,7 +916,9 @@ export function MaintenanceCalendarPage() {
             <div className="maintenance-form-modal__eyebrow">
               {editingId
                 ? language === "es"
-                  ? "Edición desde agenda"
+                  ? isRescheduleMode
+                    ? "Reprogramación desde agenda"
+                    : "Edición desde agenda"
                   : "Calendar edit"
                 : language === "es"
                   ? "Alta desde agenda"
@@ -895,7 +928,9 @@ export function MaintenanceCalendarPage() {
               title={
                 editingId
                   ? language === "es"
-                    ? "Editar mantención"
+                    ? isRescheduleMode
+                      ? "Reprogramar mantención"
+                      : "Editar mantención"
                     : "Edit maintenance work"
                   : language === "es"
                     ? "Nueva mantención"
@@ -903,10 +938,19 @@ export function MaintenanceCalendarPage() {
               }
               subtitle={
                 language === "es"
-                  ? "La agenda programa mantenciones abiertas; al completarlas, desaparecerán de aquí."
+                  ? isRescheduleMode
+                    ? "Ajusta fecha, instalación o responsables desde la agenda sin perder trazabilidad histórica."
+                    : "La agenda programa mantenciones abiertas; al completarlas, desaparecerán de aquí."
                   : "The calendar schedules open maintenance work; once completed, it will disappear from here."
               }
             >
+              {isRescheduleMode ? (
+                <div className="alert alert-info mb-3">
+                  {language === "es"
+                    ? "La reprogramación dejará una traza visible en historial con el cambio de slot y responsables."
+                    : "Rescheduling will keep a visible trace in history with slot and responsibility changes."}
+                </div>
+              ) : null}
               {formConflictPreview.length > 0 ? (
                 <div className="alert alert-warning mb-3">
                   {language === "es"
@@ -1092,6 +1136,30 @@ export function MaintenanceCalendarPage() {
                       }
                     />
                   </div>
+                  {editingId && isRescheduleMode ? (
+                    <div className="col-12">
+                      <label className="form-label">
+                        {language === "es" ? "Motivo de reprogramación" : "Reschedule reason"}
+                      </label>
+                      <textarea
+                        className="form-control"
+                        aria-label={language === "es" ? "Motivo de reprogramación" : "Reschedule reason"}
+                        rows={2}
+                        placeholder={
+                          language === "es"
+                            ? "Ej.: acceso pospuesto, reasignación de técnico, ventana nueva del cliente"
+                            : "E.g. postponed access, technician reassigned, new customer window"
+                        }
+                        value={form.reschedule_note ?? ""}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            reschedule_note: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  ) : null}
                   {missingSiteForSelectedClient ? (
                     <div className="col-12">
                       <div className="alert alert-warning mb-0">
@@ -1159,7 +1227,9 @@ export function MaintenanceCalendarPage() {
                         : "Saving..."
                       : editingId
                         ? language === "es"
-                          ? "Guardar cambios"
+                          ? isRescheduleMode
+                            ? "Guardar reprogramación"
+                            : "Guardar cambios"
                           : "Save changes"
                         : language === "es"
                           ? "Crear mantención"
