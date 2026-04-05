@@ -1,10 +1,10 @@
 # Business Core Changelog
 
 - Se agrega direccion propia de `Organizations` en una primera ola: el modelo, la API y la vista administrativa ahora permiten capturar `address_line`, `commune`, `city`, `region` y `country_code` sin mezclar la direccion con `sites`.
-- `Maintenance` ahora abre accesos directos desde `Instalaciones` hacia `Activos` y `Responsables` del mismo sitio en `business-core`, y el expediente tecnico de instalacion muestra activos compartidos del sitio.
+- `Maintenance` ahora abre accesos directos desde `Instalaciones` hacia `Activos` en `business-core`, y el expediente tecnico de instalacion muestra activos compartidos del sitio.
 - Se agrega `Tipos de activo` y `Activos`: tablas tenant, APIs CRUD, migracion y vistas administrativas para clasificar e inventariar equipos instalados por sitio.
 - La navegación y las rutas de `business-core` ahora exponen `Activos` y `Tipos de activo` como slice visible dentro del módulo.
-- Se agrega `Responsables de sitio`: tabla tenant, API CRUD y vista administrativa para vincular sitios con usuarios reales, tipo de responsabilidad, principalidad y vigencia.
+- Se descarta `Responsables de sitio` como slice operativo: la responsabilidad real queda dada por el grupo asignado y su líder en cada mantención o instalación, sin un responsable separado por dirección o sitio.
 - La consolidación de `Organizaciones` ahora persiste un ledger de auditoría con el resumen del merge, los ids origen, la selección final por campo y el diff `current -> final` antes de desactivar las organizaciones origen.
 - La vista `Duplicados` ahora audita tambien `Organizaciones`: detecta equivalentes por RUT o por nombre + canal central, puede mover `Contactos`, asimilar múltiples `Clientes` en conflicto hacia una ficha sugerida, integrar campos documentales visibles, reasignar la ficha final y desactiva las organizaciones origen.
 - La misma consolidación de `Organizaciones` ahora agrega un bloque `Ajuste manual previo` para escoger por campo qué ficha aporta nombre, razón social, RUT, teléfono, email y notas antes de ejecutar la fusión.

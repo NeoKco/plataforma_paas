@@ -10,7 +10,6 @@ Estado actual:
   - `function_profiles`
   - `work_groups`
   - `task_types`
-  - `site_responsibles`
   - `asset_types`
   - `assets`
 
@@ -40,10 +39,6 @@ Estado actual:
 - `PUT /tenant/business-core/sites/{site_id}`
 - `PATCH /tenant/business-core/sites/{site_id}/status`
 - `DELETE /tenant/business-core/sites/{site_id}`
-- `GET /tenant/business-core/site-responsibles`
-- `POST /tenant/business-core/site-responsibles`
-- `PUT /tenant/business-core/site-responsibles/{responsible_id}`
-- `DELETE /tenant/business-core/site-responsibles/{responsible_id}`
 - `GET /tenant/business-core/function-profiles`
 - `POST /tenant/business-core/function-profiles`
 - `GET /tenant/business-core/function-profiles/{function_profile_id}`

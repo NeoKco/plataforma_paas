@@ -91,7 +91,7 @@ Estado actual del slice `Duplicados`:
 - consolidacion operativa con resumen previo del impacto
 - cobertura actual para `organizations`, `clients`, `contacts`, `sites` e `installations`
 
-## Fase 4. Assets y responsables
+## Fase 4. Assets y adopcion
 
 Estado:
 
@@ -102,6 +102,8 @@ Alcance:
 - `assets`
 - tipos de activo
 - adopcion por `iot`
+
+Pendiente documentado:
 
 - `business_assets`
 - `business_asset_types`
@@ -121,7 +123,6 @@ Completado recientemente:
 
 ## Siguiente paso recomendado
 
-- cerrar la siguiente ola de integracion con `maintenance` sobre responsables reales
 - profundizar la adopcion de `assets` por `maintenance` e `iot`
 - endurecer el importador inicial desde `ieris_app`
 - profundizar la depuracion de duplicados para soportar consolidacion profunda de entidades y no solo reasignacion operativa + desactivacion segura

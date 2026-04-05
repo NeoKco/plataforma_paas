@@ -39,7 +39,6 @@ Segundo bloque recomendado:
 
 - `business_assets`
 - `business_asset_types`
-- `business_site_responsibles`
 
 Direccion propia de organizaciones:
 
@@ -51,7 +50,6 @@ Direccion propia de organizaciones:
 
 Estado de este segundo bloque:
 
-- `business_site_responsibles`: implementado
 - `business_asset_types`: implementado
 - `business_assets`: implementado
 
@@ -306,9 +304,9 @@ Relaciones minimas del primer corte:
 
 Uso recomendado por modulos:
 
-- `maintenance` ya puede asignar `grupo` a la orden y `usuario` a la visita cuando ya exista responsable concreto
+- `maintenance` asigna el `grupo` responsable a la orden y usa su líder como referencia operativa; no depende de un responsable separado por sitio
 - `projects` puede reutilizar la misma membresia para cuadrillas o equipos
-- `iot` podria reutilizarla para responsables de terreno o soporte
+- `iot` podria reutilizarla para cuadrillas o soporte
 
 ## Reglas de modelado
 
@@ -420,7 +418,7 @@ Fase 2:
 
 Fase 3:
 
-- responsables de sitio
+- responsabilidad operativa por grupo y lider
 - adopcion por `maintenance`
 
 Fase 4:
@@ -450,7 +448,7 @@ Fase 4:
 
 - sitio
 - activo instalado
-- responsable
+- grupo responsable y lider
 - clasificacion del equipo
 
 ## Decision de arquitectura
@@ -504,7 +502,7 @@ Si `projects` e `iot` estan en el horizonte, conviene considerar desde ya:
 ## Estado de implementacion
 - El primer slice backend ya existe en el PaaS para `organizations`, `clients`, `contacts` y `sites`.
 - El primer slice frontend tenant ya existe en el PaaS para `organizations`, `clients`, `contacts` y `sites`.
-- El slice backend y frontend de `assets`, `asset_types` y `site_responsibles` ya existe en el PaaS.
+- El slice backend y frontend de `assets` y `asset_types` ya existe en el PaaS.
 - Las rutas activas del primer corte son:
   - `GET/POST/GET by id/PUT/PATCH status/DELETE /tenant/business-core/organizations`
   - `GET/POST/GET by id/PUT/PATCH status/DELETE /tenant/business-core/clients`

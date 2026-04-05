@@ -142,8 +142,12 @@ Primer corte tecnico sugerido:
 
 Alcance recomendado inmediatamente despues:
 
-- responsables internos y externos por sitio
 - clasificaciones tecnicas compartidas
+
+Regla de negocio vigente:
+
+- la responsabilidad operativa se resuelve con el grupo asignado y su líder
+- no existe un responsable separado por sitio o dirección en este flujo
 
 Pendiente posterior importante:
 
