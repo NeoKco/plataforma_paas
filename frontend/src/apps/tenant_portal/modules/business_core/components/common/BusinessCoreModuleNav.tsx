@@ -14,10 +14,6 @@ export function BusinessCoreModuleNav() {
       label: language === "es" ? "Empresas" : "Organizations",
     },
     {
-      to: "/tenant-portal/business-core/site-responsibles",
-      label: language === "es" ? "Responsables" : "Responsibles",
-    },
-    {
       to: "/tenant-portal/business-core/clients",
       label: language === "es" ? "Clientes" : "Clients",
     },

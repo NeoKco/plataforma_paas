@@ -7,7 +7,6 @@ from app.apps.tenant_modules.business_core.models.asset_type import BusinessAsse
 from app.apps.tenant_modules.business_core.models.asset import BusinessAsset
 from app.apps.tenant_modules.business_core.models.organization import BusinessOrganization
 from app.apps.tenant_modules.business_core.models.site import BusinessSite
-from app.apps.tenant_modules.business_core.models.site_responsible import BusinessSiteResponsible
 from app.apps.tenant_modules.business_core.models.task_type import BusinessTaskType
 from app.apps.tenant_modules.business_core.models.task_type_function_profile import (
     BusinessTaskTypeFunctionProfile,
@@ -33,5 +32,4 @@ __all__ = [
     "BusinessTaskType",
     "BusinessTaskTypeFunctionProfile",
     "BusinessCoreMergeAudit",
-    "BusinessSiteResponsible",
 ]

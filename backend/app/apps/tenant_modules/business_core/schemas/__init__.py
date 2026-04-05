@@ -50,13 +50,6 @@ from app.apps.tenant_modules.business_core.schemas.site import (
     BusinessSitesResponse,
     BusinessSiteUpdateRequest,
 )
-from app.apps.tenant_modules.business_core.schemas.site_responsible import (
-    BusinessSiteResponsibleCreateRequest,
-    BusinessSiteResponsibleItemResponse,
-    BusinessSiteResponsibleMutationResponse,
-    BusinessSiteResponsiblesResponse,
-    BusinessSiteResponsibleUpdateRequest,
-)
 from app.apps.tenant_modules.business_core.schemas.task_type import (
     BusinessTaskTypeCreateRequest,
     BusinessTaskTypeItemResponse,
@@ -107,11 +100,6 @@ __all__ = [
     "BusinessSiteItemResponse",
     "BusinessSiteMutationResponse",
     "BusinessSitesResponse",
-    "BusinessSiteResponsibleCreateRequest",
-    "BusinessSiteResponsibleUpdateRequest",
-    "BusinessSiteResponsibleItemResponse",
-    "BusinessSiteResponsibleMutationResponse",
-    "BusinessSiteResponsiblesResponse",
     "BusinessFunctionProfileCreateRequest",
     "BusinessFunctionProfileUpdateRequest",
     "BusinessFunctionProfileItemResponse",

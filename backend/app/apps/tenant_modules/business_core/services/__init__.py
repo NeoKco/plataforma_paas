@@ -19,9 +19,6 @@ from app.apps.tenant_modules.business_core.services.organization_service import 
 from app.apps.tenant_modules.business_core.services.site_service import (
     BusinessSiteService,
 )
-from app.apps.tenant_modules.business_core.services.site_responsible_service import (
-    BusinessSiteResponsibleService,
-)
 from app.apps.tenant_modules.business_core.services.task_type_service import (
     BusinessTaskTypeService,
 )
@@ -47,5 +44,4 @@ __all__ = [
     "BusinessWorkGroupMemberService",
     "BusinessTaskTypeService",
     "BusinessCoreMergeAuditService",
-    "BusinessSiteResponsibleService",
 ]
