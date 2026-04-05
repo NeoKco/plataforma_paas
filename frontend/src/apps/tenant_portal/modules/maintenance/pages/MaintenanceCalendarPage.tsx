@@ -38,6 +38,7 @@ import { getVisibleAddressLabel } from "../../business_core/utils/addressPresent
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
+import { MaintenanceRescheduleVisitSyncPanel } from "../components/common/MaintenanceRescheduleVisitSyncPanel";
 import {
   createTenantMaintenanceWorkOrder,
   getTenantMaintenanceWorkOrders,
@@ -57,6 +58,15 @@ import {
   getTaskTypeAllowedProfileNames,
   isTaskTypeMembershipCompatible,
 } from "../services/assignmentCapability";
+import {
+  getTenantMaintenanceVisits,
+  updateTenantMaintenanceVisit,
+  type TenantMaintenanceVisit,
+} from "../services/visitsService";
+import {
+  buildRescheduleVisitSyncPayload,
+  getRescheduleVisitSummary,
+} from "../services/rescheduleVisitSync";
 
 const ACTIVE_WORK_ORDER_STATUSES = new Set(["scheduled", "in_progress"]);
 const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
@@ -238,7 +248,14 @@ export function MaintenanceCalendarPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [rescheduleVisits, setRescheduleVisits] = useState<TenantMaintenanceVisit[]>([]);
+  const [isRescheduleVisitsLoading, setIsRescheduleVisitsLoading] = useState(false);
+  const [syncFirstOpenVisit, setSyncFirstOpenVisit] = useState(false);
   const [form, setForm] = useState<TenantMaintenanceWorkOrderWriteRequest>(buildDefaultForm());
+  const rescheduleVisitSummary = useMemo(
+    () => getRescheduleVisitSummary(rescheduleVisits),
+    [rescheduleVisits]
+  );
 
   const clientById = useMemo(
     () => new Map(clients.map((client) => [client.id, client])),
@@ -618,6 +635,9 @@ export function MaintenanceCalendarPage() {
 
   function startEdit(item: TenantMaintenanceWorkOrder) {
     setIsRescheduleMode(false);
+    setSyncFirstOpenVisit(false);
+    setRescheduleVisits([]);
+    setIsRescheduleVisitsLoading(false);
     setEditingId(item.id);
     setFeedback(null);
     setError(null);
@@ -644,6 +664,22 @@ export function MaintenanceCalendarPage() {
   function startReschedule(item: TenantMaintenanceWorkOrder) {
     startEdit(item);
     setIsRescheduleMode(true);
+    void loadRescheduleVisits(item.id);
+  }
+
+  async function loadRescheduleVisits(workOrderId: number) {
+    if (!session?.accessToken) {
+      return;
+    }
+    setIsRescheduleVisitsLoading(true);
+    try {
+      const response = await getTenantMaintenanceVisits(session.accessToken, { workOrderId });
+      setRescheduleVisits(response.data);
+    } catch {
+      setRescheduleVisits([]);
+    } finally {
+      setIsRescheduleVisitsLoading(false);
+    }
   }
 
   async function handleSubmit() {
@@ -673,10 +709,42 @@ export function MaintenanceCalendarPage() {
       const response = editingId
         ? await updateTenantMaintenanceWorkOrder(session.accessToken, editingId, payload)
         : await createTenantMaintenanceWorkOrder(session.accessToken, payload);
-      setFeedback(response.message);
+      let feedbackMessage = response.message;
+      if (
+        editingId &&
+        isRescheduleMode &&
+        syncFirstOpenVisit &&
+        rescheduleVisitSummary.syncCandidate &&
+        payload.scheduled_for
+      ) {
+        try {
+          await updateTenantMaintenanceVisit(
+            session.accessToken,
+            rescheduleVisitSummary.syncCandidate.id,
+            buildRescheduleVisitSyncPayload(rescheduleVisitSummary.syncCandidate, {
+              scheduledFor: payload.scheduled_for,
+              assignedWorkGroupId: payload.assigned_work_group_id,
+              assignedTenantUserId: payload.assigned_tenant_user_id,
+            })
+          );
+          feedbackMessage =
+            language === "es"
+              ? `${response.message} La primera visita abierta también quedó alineada con la nueva ventana.`
+              : `${response.message} The first open visit was also aligned with the new window.`;
+        } catch {
+          feedbackMessage =
+            language === "es"
+              ? `${response.message} La OT se reprogramó, pero la primera visita abierta quedó pendiente de ajuste manual.`
+              : `${response.message} The work order was rescheduled, but the first open visit still requires manual adjustment.`;
+        }
+      }
+      setFeedback(feedbackMessage);
       setIsFormOpen(false);
       setEditingId(null);
       setIsRescheduleMode(false);
+      setSyncFirstOpenVisit(false);
+      setRescheduleVisits([]);
+      setIsRescheduleVisitsLoading(false);
       setForm(buildDefaultForm());
       await loadData();
     } catch (rawError) {
@@ -1310,6 +1378,19 @@ export function MaintenanceCalendarPage() {
                             reschedule_note: event.target.value,
                           }))
                         }
+                      />
+                    </div>
+                  ) : null}
+                  {editingId && isRescheduleMode ? (
+                    <div className="col-12">
+                      <MaintenanceRescheduleVisitSyncPanel
+                        effectiveTimeZone={effectiveTimeZone}
+                        isLoading={isRescheduleVisitsLoading}
+                        language={language}
+                        onSyncEnabledChange={setSyncFirstOpenVisit}
+                        scheduledFor={form.scheduled_for}
+                        summary={rescheduleVisitSummary}
+                        syncEnabled={syncFirstOpenVisit}
                       />
                     </div>
                   ) : null}

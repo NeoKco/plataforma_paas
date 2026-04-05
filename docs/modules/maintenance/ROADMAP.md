@@ -162,6 +162,7 @@ Avance actual:
 - `Business Core -> Taxonomías` ya muestra una matriz transversal para revisar la cobertura de compatibilidad entre tipos y perfiles
 - `Business Core -> Taxonomías` ya cruza además membresías activas/vigentes de grupos para mostrar cobertura operativa real y alertar sobre tipos/perfiles huérfanos
 - conflictos visibles, bloqueo backend `409`, filtros de agenda y reprogramación auditada ya quedaron operativos en el mismo frente de endurecimiento
+- la reprogramación desde `Mantenciones` y `Agenda` ya puede arrastrar la primera visita abierta para mantener alineada la ventana principal de terreno
 
 Pendiente fino de este frente:
 

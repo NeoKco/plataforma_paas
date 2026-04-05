@@ -143,6 +143,7 @@ Lectura funcional de cada vista:
   - si aun así intentas guardar un cruce real, el backend lo rechaza para evitar doble asignación en el mismo slot
   - también permite filtrar la agenda mensual por grupo responsable o técnico responsable
   - al abrir una mantención desde la agenda, puedes usar `Reprogramar` y dejar un motivo visible en historial técnico
+  - en esa reprogramación puedes mover también la primera visita abierta para dejar alineada la ventana principal de terreno
 
 Lectura de la ficha de mantención:
 

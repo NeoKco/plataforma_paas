@@ -58,6 +58,7 @@
   - guarda `Motivo de reprogramación` opcional
   - deja traza visible en `Historial técnico` reutilizando `status_logs`
   - no requiere nueva migración tenant; se valida sobre el schema ya sincronizado en `0028_maintenance_field_reports`
+- ese flujo ahora también puede alinear automáticamente la primera `Visita` abierta con el nuevo horario y responsables de la OT, manteniendo el resto para coordinación fina en la modal `Visitas`
 - se implementa el primer corte real de `Checklist y evidencias` por OT:
   - nueva migración tenant `0028_maintenance_field_reports`
   - tablas `maintenance_work_order_checklist_items` y `maintenance_work_order_evidences`
