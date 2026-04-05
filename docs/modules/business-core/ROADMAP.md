@@ -109,6 +109,10 @@ Pendiente documentado:
 - `business_assets`
 - `business_asset_types`
 
+Completado recientemente:
+
+- `business_site_responsibles`: tabla, API y vista administrativa para asignar responsables de sitio a usuarios tenant reales
+
 ## Riesgos a evitar
 
 - meter clientes y empresas en `platform-core`
@@ -125,7 +129,7 @@ Pendiente documentado:
 ## Backlog pendiente visible
 
 - `work_group_members`: backend/frontend base listo
-- `site_responsibles`: pendiente
+- `site_responsibles`: completado
 - `assets` y `asset_types`: pendiente
 - importadores legacy desde `ieris_app`: primer corte listo, falta aplicacion y endurecimiento
 - auditoria operativa de duplicados: UI ya lista para `organizations`, `clients`, `contacts`, `sites` e `installations`, con sugerencia de ficha a conservar, consolidacion operativa y desactivacion segura; falta merge/asimilacion profunda guiada

@@ -51,6 +51,7 @@ Estado actual:
 - `business_work_group_members` ya existe como tabla y CRUD real para modelar membresias entre usuarios tenant y grupos de trabajo
 - la vista de `work_groups` ya expone conteo de miembros y acceso directo a la gestion de `Miembros`
 - `maintenance` ya consume `work_groups` reales para asignar grupo responsable en ordenes y visitas, en vez de depender solo de etiquetas legacy o texto libre
+- `business_site_responsibles` ya existe como tabla, API y vista administrativa para asignar responsables reales a cada sitio
 - la nueva vista `Depuración` ya detecta grupos duplicados de `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones`, sugiere qué ficha conviene conservar y permite consolidar referencias operativas o desactivar duplicados hacia esa ficha antes de borrar para apoyar la limpieza operativa de la BD
 
 ## Slice operativo actual: Duplicados
@@ -77,6 +78,7 @@ Alcance real de la consolidacion actual:
 - `Contactos`: deja una sola ficha sugerida activa, integra email/teléfono/rol faltantes y desactiva duplicados equivalentes dentro de la misma organización
 - `Direcciones`: mueve `Instalaciones` y `OT`
 - `Instalaciones`: mueve `OT`
+- `Responsables de sitio`: vincula cada sitio con usuarios tenant reales, su tipo de responsabilidad y vigencia operativa
 
 Limites conocidos del corte actual:
 

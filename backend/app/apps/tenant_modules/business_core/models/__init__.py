@@ -5,6 +5,7 @@ from app.apps.tenant_modules.business_core.models.function_profile import (
 )
 from app.apps.tenant_modules.business_core.models.organization import BusinessOrganization
 from app.apps.tenant_modules.business_core.models.site import BusinessSite
+from app.apps.tenant_modules.business_core.models.site_responsible import BusinessSiteResponsible
 from app.apps.tenant_modules.business_core.models.task_type import BusinessTaskType
 from app.apps.tenant_modules.business_core.models.task_type_function_profile import (
     BusinessTaskTypeFunctionProfile,
@@ -28,4 +29,5 @@ __all__ = [
     "BusinessTaskType",
     "BusinessTaskTypeFunctionProfile",
     "BusinessCoreMergeAudit",
+    "BusinessSiteResponsible",
 ]
