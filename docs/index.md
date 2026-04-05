@@ -52,6 +52,7 @@ La documentacion ya cubre arquitectura, modulos, runbooks, deploy, API y baselin
 - [Implementacion modulo finance](./runbooks/finance-module-implementation.md)
 - [Indice canonico de finance](./modules/finance/README.md)
 - [Indice canonico de business core](./modules/business-core/README.md)
+- [Guia de duplicados en business core](./modules/business-core/USER_GUIDE.md)
 - [Indice canonico de community core](./modules/community-core/README.md)
 - [Indice canonico de maintenance](./modules/maintenance/README.md)
 - [Indice canonico de platform core](./modules/platform-core/README.md)

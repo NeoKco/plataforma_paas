@@ -19,7 +19,7 @@ export function BusinessCoreModuleNav() {
     },
     {
       to: "/tenant-portal/business-core/duplicates",
-      label: language === "es" ? "Depuración" : "Cleanup",
+      label: language === "es" ? "Duplicados" : "Duplicates",
     },
     {
       to: "/tenant-portal/business-core/function-profiles",

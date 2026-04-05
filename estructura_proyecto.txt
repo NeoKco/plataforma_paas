@@ -2968,6 +2968,9 @@
 
 Actualizaciones recientes relevantes:
 
+- frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx
+- docs/modules/business-core/README.md
+- docs/modules/business-core/API_REFERENCE.md
 - frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceInstallationTechnicalRecordModal.tsx
 - frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx
 - frontend/e2e/specs/tenant-portal-business-core-maintenance-import.smoke.spec.ts

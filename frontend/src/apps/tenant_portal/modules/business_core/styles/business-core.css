@@ -445,6 +445,18 @@
   margin: 0.2rem 0 0;
 }
 
+.business-core-duplicates-group__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  margin-top: 0.45rem;
+}
+
+.business-core-duplicates-group__summary span {
+  color: var(--app-text-muted, #53637a);
+  font-size: 0.83rem;
+}
+
 .business-core-duplicates-list {
   display: grid;
   gap: 0.75rem;

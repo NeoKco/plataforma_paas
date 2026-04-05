@@ -6,6 +6,12 @@ Nombre funcional visible sugerido:
 
 - `Core de negocio`
 
+Donde encontrar la pantalla de duplicados:
+
+- entrar a `Tenant portal -> Core de negocio -> Duplicados`
+- ruta directa frontend: `/tenant-portal/business-core/duplicates`
+- tambien queda un acceso directo visible desde `Core de negocio -> Resumen`
+
 Objetivo:
 
 - concentrar las entidades y catalogos compartidos por modulos operativos tenant

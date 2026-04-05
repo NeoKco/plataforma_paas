@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
@@ -36,6 +37,7 @@ function formatDateTime(
 export function BusinessCoreOverviewPage() {
   const { language } = useLanguage();
   const { session, effectiveTimeZone } = useTenantAuth();
+  const navigate = useNavigate();
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -138,6 +140,29 @@ export function BusinessCoreOverviewPage() {
               ? "El primer corte técnico se centra en empresas, clientes, contactos y direcciones. Grupos, perfiles funcionales y tipos de tarea quedan como la taxonomía compartida del segundo bloque."
               : "The first technical wave focuses on organizations, clients, contacts, and addresses. Work groups, functional profiles, and task types remain as the shared taxonomy of the second block."}
           </p>
+        </PanelCard>
+        <PanelCard
+          title={language === "es" ? "Limpieza de duplicados" : "Duplicate cleanup"}
+          subtitle={
+            language === "es"
+              ? "Si no encuentras el slice, está dentro de Core de negocio y ahora aparece como `Duplicados` en la navegación superior."
+              : "If you cannot find the slice, it lives inside Business core and now appears as `Duplicates` in the top navigation."
+          }
+        >
+          <div className="business-core-card__actions">
+            <button
+              className="btn btn-outline-primary"
+              type="button"
+              onClick={() => navigate("/tenant-portal/business-core/duplicates")}
+            >
+              {language === "es" ? "Abrir duplicados" : "Open duplicates"}
+            </button>
+            <div className="business-core-cell__meta">
+              {language === "es"
+                ? "Ruta directa: /tenant-portal/business-core/duplicates"
+                : "Direct route: /tenant-portal/business-core/duplicates"}
+            </div>
+          </div>
         </PanelCard>
       </div>
 

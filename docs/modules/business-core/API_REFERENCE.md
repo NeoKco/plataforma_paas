@@ -56,6 +56,33 @@ Estado actual:
 - `PATCH /tenant/business-core/task-types/{task_type_id}/status`
 - `DELETE /tenant/business-core/task-types/{task_type_id}`
 
+## Flujos operativos frontend ya soportados
+
+Sin abrir endpoints nuevos, la UI tenant ya soporta estos flujos sobre contratos existentes:
+
+- auditoria de duplicados de `clients`, `sites` e `installations`
+- sugerencia de ficha a conservar por grupo duplicado
+- borrado seguro cuando la ficha no tiene dependencias visibles
+- desactivacion segura cuando la ficha ya tiene historial operativo
+- consolidacion operativa hacia la ficha sugerida reutilizando `PUT` y `PATCH status` existentes
+
+Ruta frontend tenant visible:
+
+- `/tenant-portal/business-core/duplicates`
+- acceso UI: `Tenant portal -> Core de negocio -> Duplicados`
+- acceso rapido adicional: `Tenant portal -> Core de negocio -> Resumen -> Abrir duplicados`
+
+Dependencias que hoy revisa esa auditoria:
+
+- `sites` por `client`
+- `installations` por `site`
+- `work_orders` por `client`, `site` e `installation`
+
+Limite actual del flujo:
+
+- la consolidacion actual mueve referencias operativas y luego desactiva origenes
+- aun no fusiona `organizations`, `contacts`, notas humanas o historiales textuales en una sola ficha final
+
 ## Segundo corte sugerido
 
 - `GET /tenant/business-core/assets`

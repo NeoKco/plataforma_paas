@@ -1050,6 +1050,16 @@ export function BusinessCoreDuplicatesPage() {
 
   function renderClientGroup(group: DuplicateGroup<ClientAuditRow>) {
     const preferredClientId = getPreferredClientId(group);
+    const sourceMembers = group.members.filter((member) => member.client.id !== preferredClientId);
+    const mergeSitesCount = sourceMembers.reduce(
+      (total, source) => total + sites.filter((site) => site.client_id === source.client.id).length,
+      0
+    );
+    const mergeWorkOrdersCount = sourceMembers.reduce(
+      (total, source) =>
+        total + workOrders.filter((workOrder) => workOrder.client_id === source.client.id).length,
+      0
+    );
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -1060,6 +1070,17 @@ export function BusinessCoreDuplicatesPage() {
             <p className="business-core-duplicates-group__subtitle">
               {language === "es" ? group.subtitleEs : group.subtitleEn}
             </p>
+            <div className="business-core-duplicates-group__summary">
+              <span>
+                {sourceMembers.length} {language === "es" ? "fichas origen" : "source records"}
+              </span>
+              <span>
+                {mergeSitesCount} {language === "es" ? "direcciones a mover" : "addresses to move"}
+              </span>
+              <span>
+                {mergeWorkOrdersCount} {language === "es" ? "OT a mover" : "work orders to move"}
+              </span>
+            </div>
           </div>
           <div className="business-core-duplicates-group__header-actions">
             <AppBadge tone="warning">
@@ -1168,6 +1189,17 @@ export function BusinessCoreDuplicatesPage() {
 
   function renderSiteGroup(group: DuplicateGroup<SiteAuditRow>) {
     const preferredSiteId = getPreferredSiteId(group);
+    const sourceMembers = group.members.filter((member) => member.site.id !== preferredSiteId);
+    const mergeInstallationsCount = sourceMembers.reduce(
+      (total, source) =>
+        total + installations.filter((item) => item.site_id === source.site.id).length,
+      0
+    );
+    const mergeWorkOrdersCount = sourceMembers.reduce(
+      (total, source) =>
+        total + workOrders.filter((workOrder) => workOrder.site_id === source.site.id).length,
+      0
+    );
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -1178,6 +1210,17 @@ export function BusinessCoreDuplicatesPage() {
             <p className="business-core-duplicates-group__subtitle">
               {language === "es" ? group.subtitleEs : group.subtitleEn}
             </p>
+            <div className="business-core-duplicates-group__summary">
+              <span>
+                {sourceMembers.length} {language === "es" ? "sitios origen" : "source sites"}
+              </span>
+              <span>
+                {mergeInstallationsCount} {language === "es" ? "instalaciones a mover" : "installations to move"}
+              </span>
+              <span>
+                {mergeWorkOrdersCount} {language === "es" ? "OT a mover" : "work orders to move"}
+              </span>
+            </div>
           </div>
           <div className="business-core-duplicates-group__header-actions">
             <AppBadge tone="warning">
@@ -1278,6 +1321,15 @@ export function BusinessCoreDuplicatesPage() {
 
   function renderInstallationGroup(group: DuplicateGroup<InstallationAuditRow>) {
     const preferredInstallationId = getPreferredInstallationId(group);
+    const sourceMembers = group.members.filter(
+      (member) => member.installation.id !== preferredInstallationId
+    );
+    const mergeWorkOrdersCount = sourceMembers.reduce(
+      (total, source) =>
+        total +
+        workOrders.filter((workOrder) => workOrder.installation_id === source.installation.id).length,
+      0
+    );
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -1288,6 +1340,14 @@ export function BusinessCoreDuplicatesPage() {
             <p className="business-core-duplicates-group__subtitle">
               {language === "es" ? group.subtitleEs : group.subtitleEn}
             </p>
+            <div className="business-core-duplicates-group__summary">
+              <span>
+                {sourceMembers.length} {language === "es" ? "instalaciones origen" : "source installations"}
+              </span>
+              <span>
+                {mergeWorkOrdersCount} {language === "es" ? "OT a mover" : "work orders to move"}
+              </span>
+            </div>
           </div>
           <div className="business-core-duplicates-group__header-actions">
             <AppBadge tone="warning">

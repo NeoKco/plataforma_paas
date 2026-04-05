@@ -71,6 +71,37 @@ Eso genera:
 - reportes cruzados pobres
 - integraciones fragiles entre modulos
 
+## Depuracion de duplicados
+
+La pantalla `Depuración` sirve para limpiar base existente cuando la prevencion de duplicados ya no alcanzo.
+
+Donde esta:
+
+- menu: `Tenant portal -> Core de negocio -> Duplicados`
+- ruta directa: `/tenant-portal/business-core/duplicates`
+- acceso rapido adicional: `Core de negocio -> Resumen -> Abrir duplicados`
+
+Flujo recomendado:
+
+1. abrir `Core de negocio -> Depuración`
+2. revisar la ficha marcada como `Sugerida para conservar`
+3. si la duplicada no tiene dependencias, usar `Eliminar`
+4. si la duplicada tiene historial que debe conservarse, usar `Desactivar`
+5. si quieres dejar una sola ficha operativa, usar `Consolidar en sugerida`
+
+Que consolida hoy:
+
+- `Clientes`: mueve `Direcciones` y `OT`
+- `Direcciones`: mueve `Instalaciones` y `OT`
+- `Instalaciones`: mueve `OT`
+
+Que no consolida todavia:
+
+- `organizations`
+- `contacts`
+- notas historicas libres
+- fusion documental profunda entre fichas
+
 ## Lectura simple por modulo
 
 `Maintenance` deberia leer desde aqui:

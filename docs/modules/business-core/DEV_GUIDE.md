@@ -283,6 +283,14 @@ Reglas anti-duplicados recomendadas:
 - `contacts`: no repetir `full_name`, `email` o `phone` dentro de la misma organizacion
 - `sites`: no repetir nombre ni combinacion de direccion dentro del mismo cliente
 
+Reglas de consolidacion operativa vigentes:
+
+- si el duplicado no tiene dependencias visibles, puede borrarse
+- si el duplicado ya tiene historial, debe priorizarse `desactivacion` sobre borrado
+- la consolidacion actual debe mover primero referencias operativas y solo despues desactivar el origen
+- la ficha `sugerida para conservar` debe priorizar mayor trazabilidad, mayor completitud visible y antiguedad
+- no debe intentarse aun merge profundo de `organizations` o `contacts` sin un flujo dedicado y auditable
+
 ## Permisos sugeridos
 
 Primer bloque de permisos:

@@ -155,6 +155,7 @@ Referencia:
 ## Documentacion recomendada
 
 - [Indice general de docs](./docs/index.md)
+- [Business core: donde encontrar Duplicados](./docs/modules/business-core/USER_GUIDE.md)
 - [Guia unica para entender la app](./docs/architecture/app-understanding-guide.md)
 - [Onboarding de developers](./docs/runbooks/developer-onboarding.md)
 - [Catalogo de variables backend](./docs/runbooks/backend-env-catalog.md)
