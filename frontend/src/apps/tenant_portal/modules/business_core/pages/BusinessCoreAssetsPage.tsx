@@ -244,7 +244,6 @@ export function BusinessCoreAssetsPage() {
             : "The internal code remains reserved for integration and technical lookup."}
         </div>
       )}
-      onFormChange={setForm}
       columns={[
         {
           key: "asset",
