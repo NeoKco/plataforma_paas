@@ -71,7 +71,7 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await openTenantImportedPage(
     page,
     "/tenant-portal/maintenance/work-orders",
-    /Ordenes de trabajo|Work orders|Órdenes de trabajo/i
+    /Mantenciones abiertas|Open maintenance work/i
   );
   await expect(getCatalogRow(page, /mantencion|visita/i)).toBeVisible();
   await page.getByRole("button", { name: /Nueva mantenci[oó]n|Nueva orden|New work order/i }).click();
