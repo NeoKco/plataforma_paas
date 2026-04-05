@@ -12,10 +12,10 @@ export function BusinessCoreModuleNav() {
     {
       to: "/tenant-portal/business-core/organizations",
       label: language === "es" ? "Empresas" : "Organizations",
+    },
     {
       to: "/tenant-portal/business-core/site-responsibles",
       label: language === "es" ? "Responsables" : "Responsibles",
-    },
     },
     {
       to: "/tenant-portal/business-core/clients",

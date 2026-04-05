@@ -266,7 +266,7 @@ export function BusinessCoreSiteResponsiblesPage() {
           headerEs: "Estado",
           headerEn: "Status",
           render: (item) => (
-            <AppBadge tone={item.is_active ? "success" : "muted"}>
+            <AppBadge tone={item.is_active ? "success" : "neutral"}>
               {item.is_active ? (language === "es" ? "Activo" : "Active") : (language === "es" ? "Inactivo" : "Inactive")}
             </AppBadge>
           ),
