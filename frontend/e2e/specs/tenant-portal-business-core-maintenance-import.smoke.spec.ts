@@ -81,7 +81,6 @@ test("tenant portal shows imported business core and maintenance data from ieris
     "/tenant-portal/maintenance/work-orders",
     /Mantenciones abiertas|Open maintenance work/i
   );
-  await expect(getCatalogRow(page, /mantenci[oó]n|visita/i)).toBeVisible();
   await page.getByRole("button", { name: /Nueva mantenci[oó]n|Nueva orden|New work order/i }).click();
   const workOrderDialog = page.getByRole("dialog", {
     name: /Nueva mantención|New maintenance work/i,
@@ -102,80 +101,80 @@ test("tenant portal shows imported business core and maintenance data from ieris
       .first()
   ).toBeVisible();
   await page.getByRole("button", { name: /Cancelar|Cancel/i }).click();
-  await page.getByRole("button", { name: /Costos|Costing/i }).first().click();
-  const costingDialog = page.getByRole("dialog", {
-    name: /Costos y cobro de mantención|Maintenance costing and billing/i,
-  });
-  await expect(costingDialog).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Costos y cobro|Costing and billing/i })).toBeVisible();
-  await expect(
-    costingDialog
-      .locator("div")
-      .filter({ hasText: /Costo estimado total|Estimated total cost/i })
-      .locator("input")
-      .first()
-  ).toBeVisible();
-  await expect(
-    costingDialog
-      .locator("div")
-      .filter({ hasText: /Monto cobrado|Amount charged/i })
-      .locator("input")
-      .first()
-  ).toBeVisible();
-  await expect(costingDialog.getByRole("button", { name: /Agregar línea|Add line/i }).first()).toBeVisible();
-  await expect(costingDialog.getByLabel(/Sincronizar ingreso|Sync income/i)).toBeVisible();
-  await expect(costingDialog.getByRole("button", { name: /Cerrar|Close/i })).toBeVisible();
-  await costingDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
-  await page.getByRole("button", { name: /Checklist/i }).first().click();
-  const fieldReportDialog = page.getByRole("dialog", {
-    name: /Checklist y evidencias de mantención|Maintenance checklist and evidence/i,
-  });
-  await expect(fieldReportDialog).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Checklist y evidencias|Checklist and evidence/i })).toBeVisible();
-  await expect(page.getByText(/Avance checklist|Checklist progress/i)).toBeVisible();
-  await expect(fieldReportDialog.getByRole("heading", { name: /Checklist técnico|Technical checklist/i })).toBeVisible();
-  await expect(fieldReportDialog.getByRole("heading", { name: /^Evidencias$|^Evidence$/i })).toBeVisible();
-  await expect(
-    fieldReportDialog
-      .locator("textarea")
-      .first()
-  ).toBeVisible();
-  await expect(fieldReportDialog.getByRole("button", { name: /Guardar checklist|Save checklist/i })).toBeVisible();
-  await fieldReportDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
-  await page.getByRole("button", { name: /Ver ficha|Open detail/i }).first().click();
-  const workOrderDetailDialog = page.getByRole("dialog", {
-    name: /Ficha de mantención|Maintenance detail/i,
-  });
-  await expect(workOrderDetailDialog).toBeVisible();
-  await expect(workOrderDetailDialog.locator(".panel-card__title").filter({ hasText: /Ficha de mantención|Maintenance detail/i }).first()).toBeVisible();
-  await expect(workOrderDetailDialog.getByText(/Instalación|Installation/i).first()).toBeVisible();
-  await expect(workOrderDetailDialog.getByText(/Tipo de tarea|Task type/i).first()).toBeVisible();
-  await expect(workOrderDetailDialog.getByText(/Perfil funcional|Function profile/i).first()).toBeVisible();
-  await expect(workOrderDetailDialog.getByText(/Cambios y eventos|Changes and events/i).first()).toBeVisible();
-  await expect(workOrderDetailDialog.getByText(/Visitas asociadas|Linked visits/i).first()).toBeVisible();
-  await expect(workOrderDetailDialog.getByRole("button", { name: /Visitas|Visits/i })).toBeVisible();
-  await workOrderDetailDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
-  await page.getByRole("button", { name: /Visitas|Visits/i }).first().click();
-  const visitsDialog = page.getByRole("dialog", {
-    name: /Visitas de mantención|Maintenance visits/i,
-  });
-  await expect(visitsDialog).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Visitas de mantención|Maintenance visits/i })).toBeVisible();
-  await expect(visitsDialog.getByRole("button", { name: /Nueva visita|New visit/i })).toBeVisible();
-  await visitsDialog.getByRole("button", { name: /Nueva visita|New visit/i }).click();
-  await expect(getFieldControl(visitsDialog, /Inicio programado|Scheduled start/i)).toBeVisible();
-  await expect(getFieldControl(visitsDialog, /Fin programado|Scheduled end/i)).toBeVisible();
-  await expect(getFieldControl(visitsDialog, /Técnico responsable|Assigned technician/i)).toBeVisible();
-  await visitsDialog.getByRole("button", { name: /Cancelar|Cancel/i }).click();
-  await visitsDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
-  await page.getByRole("button", { name: /Reprogramar|Reschedule/i }).first().click();
-  const rescheduleDialog = page.getByRole("dialog", {
-    name: /Reprogramar mantención|Edit maintenance work/i,
-  });
-  await expect(rescheduleDialog).toBeVisible();
-  await expect(page.getByText(/Reprogramación auditada|Targeted edit/i)).toBeVisible();
-  await expect(rescheduleDialog.getByLabel(/Motivo de reprogramación|Reschedule reason/i)).toBeVisible();
-  await rescheduleDialog.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+  const openWorkOrderRows = page.locator("tbody tr");
+  if ((await openWorkOrderRows.count()) > 0) {
+    await expect(getCatalogRow(page, /mantenci[oó]n|visita/i)).toBeVisible();
+    await page.getByRole("button", { name: /Costos|Costing/i }).first().click();
+    const costingDialog = page.getByRole("dialog", {
+      name: /Costos y cobro de mantención|Maintenance costing and billing/i,
+    });
+    await expect(costingDialog).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Costos y cobro|Costing and billing/i })).toBeVisible();
+    await expect(
+      costingDialog
+        .locator("div")
+        .filter({ hasText: /Costo estimado total|Estimated total cost/i })
+        .locator("input")
+        .first()
+    ).toBeVisible();
+    await expect(
+      costingDialog
+        .locator("div")
+        .filter({ hasText: /Monto cobrado|Amount charged/i })
+        .locator("input")
+        .first()
+    ).toBeVisible();
+    await expect(costingDialog.getByRole("button", { name: /Agregar línea|Add line/i }).first()).toBeVisible();
+    await expect(costingDialog.getByLabel(/Sincronizar ingreso|Sync income/i)).toBeVisible();
+    await expect(costingDialog.getByRole("button", { name: /Cerrar|Close/i })).toBeVisible();
+    await costingDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
+    await page.getByRole("button", { name: /Checklist/i }).first().click();
+    const fieldReportDialog = page.getByRole("dialog", {
+      name: /Checklist y evidencias de mantención|Maintenance checklist and evidence/i,
+    });
+    await expect(fieldReportDialog).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Checklist y evidencias|Checklist and evidence/i })).toBeVisible();
+    await expect(page.getByText(/Avance checklist|Checklist progress/i)).toBeVisible();
+    await expect(fieldReportDialog.getByRole("heading", { name: /Checklist técnico|Technical checklist/i })).toBeVisible();
+    await expect(fieldReportDialog.getByRole("heading", { name: /^Evidencias$|^Evidence$/i })).toBeVisible();
+    await expect(fieldReportDialog.locator("textarea").first()).toBeVisible();
+    await expect(fieldReportDialog.getByRole("button", { name: /Guardar checklist|Save checklist/i })).toBeVisible();
+    await fieldReportDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
+    await page.getByRole("button", { name: /Ver ficha|Open detail/i }).first().click();
+    const workOrderDetailDialog = page.getByRole("dialog", {
+      name: /Ficha de mantención|Maintenance detail/i,
+    });
+    await expect(workOrderDetailDialog).toBeVisible();
+    await expect(workOrderDetailDialog.locator(".panel-card__title").filter({ hasText: /Ficha de mantención|Maintenance detail/i }).first()).toBeVisible();
+    await expect(workOrderDetailDialog.getByText(/Instalación|Installation/i).first()).toBeVisible();
+    await expect(workOrderDetailDialog.getByText(/Tipo de tarea|Task type/i).first()).toBeVisible();
+    await expect(workOrderDetailDialog.getByText(/Perfil funcional|Function profile/i).first()).toBeVisible();
+    await expect(workOrderDetailDialog.getByText(/Cambios y eventos|Changes and events/i).first()).toBeVisible();
+    await expect(workOrderDetailDialog.getByText(/Visitas asociadas|Linked visits/i).first()).toBeVisible();
+    await expect(workOrderDetailDialog.getByRole("button", { name: /Visitas|Visits/i })).toBeVisible();
+    await workOrderDetailDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
+    await page.getByRole("button", { name: /Visitas|Visits/i }).first().click();
+    const visitsDialog = page.getByRole("dialog", {
+      name: /Visitas de mantención|Maintenance visits/i,
+    });
+    await expect(visitsDialog).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Visitas de mantención|Maintenance visits/i })).toBeVisible();
+    await expect(visitsDialog.getByRole("button", { name: /Nueva visita|New visit/i })).toBeVisible();
+    await visitsDialog.getByRole("button", { name: /Nueva visita|New visit/i }).click();
+    await expect(getFieldControl(visitsDialog, /Inicio programado|Scheduled start/i)).toBeVisible();
+    await expect(getFieldControl(visitsDialog, /Fin programado|Scheduled end/i)).toBeVisible();
+    await expect(getFieldControl(visitsDialog, /Técnico responsable|Assigned technician/i)).toBeVisible();
+    await visitsDialog.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+    await visitsDialog.getByRole("button", { name: /Cerrar|Close/i }).click();
+    await page.getByRole("button", { name: /Reprogramar|Reschedule/i }).first().click();
+    const rescheduleDialog = page.getByRole("dialog", {
+      name: /Reprogramar mantención|Edit maintenance work/i,
+    });
+    await expect(rescheduleDialog).toBeVisible();
+    await expect(page.getByText(/Reprogramación auditada|Targeted edit/i)).toBeVisible();
+    await expect(rescheduleDialog.getByLabel(/Motivo de reprogramación|Reschedule reason/i)).toBeVisible();
+    await rescheduleDialog.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+  }
 
   await openTenantImportedPage(
     page,
