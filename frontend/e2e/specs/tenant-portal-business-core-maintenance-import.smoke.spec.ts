@@ -77,7 +77,11 @@ test("tenant portal shows imported business core and maintenance data from ieris
   await expect(
     page.getByText(/contactos a mover|contacts to move|contactos a desactivar|contacts to deactivate/i).first()
   ).toBeVisible();
-  await expect(page.getByText(/primarios a revisar|primary records to review/i).first()).toBeVisible();
+  await expect(
+    page.getByText(
+      /primarios a revisar|primary records to review|No se encontraron contactos duplicados|No duplicate contacts were found/i
+    ).first()
+  ).toBeVisible();
   await expect(page.getByText(/consolidarla hacia la sugerida|consolidate it into the suggested one/i)).toBeVisible();
   await expect(page.getByRole("button", { name: /Recargar|Reload/i })).toBeVisible();
 
