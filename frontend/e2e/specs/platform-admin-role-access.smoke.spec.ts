@@ -82,7 +82,7 @@ test("platform admin enforces visible role access for admin and support users", 
   await expect(page.getByRole("link", { name: /Configuración|Settings/i })).toHaveCount(0);
   await expect(
     page.getByText(
-      /Tu rol actual es de solo lectura para este bloque|Your current role is read-only for this block/i
+      /Tu rol actual no puede editar la identidad o el rol de este usuario|Your current role cannot edit this user's identity or role/i
     )
   ).toBeVisible();
   await expect(page.getByRole("button", { name: /Crear usuario|Create user/i })).toHaveCount(0);
