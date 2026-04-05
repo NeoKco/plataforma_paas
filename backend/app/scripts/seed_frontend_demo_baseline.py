@@ -8,6 +8,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from app.apps.platform_control.models.tenant import Tenant
+from app.apps.platform_control.models.provisioning_job import ProvisioningJob
 from app.apps.platform_control.repositories.tenant_repository import TenantRepository
 from app.apps.platform_control.services.provisioning_job_service import (
     ProvisioningJobService,
@@ -73,6 +74,20 @@ def _upsert_tenant(
 
 
 def _mark_pending_without_db_config(db: Session, tenant: Tenant) -> Tenant:
+    live_jobs = (
+        db.query(ProvisioningJob)
+        .filter(ProvisioningJob.tenant_id == tenant.id)
+        .filter(ProvisioningJob.status.in_(["pending", "retry_pending", "running"]))
+        .all()
+    )
+    for job in live_jobs:
+        job.status = "failed"
+        job.error_code = "tenant_db_config_reset"
+        job.error_message = (
+            "Tenant reset to pending without DB config by frontend demo baseline seed"
+        )
+        job.next_retry_at = None
+
     tenant.status = "pending"
     tenant.status_reason = "Pendiente de provisioning inicial"
     tenant.billing_status = None
@@ -81,6 +96,9 @@ def _mark_pending_without_db_config(db: Session, tenant: Tenant) -> Tenant:
     tenant.db_user = None
     tenant.db_host = None
     tenant.db_port = None
+    tenant.tenant_schema_version = None
+    tenant.tenant_schema_synced_at = None
+    tenant.tenant_db_credentials_rotated_at = None
     return tenant_repository.save(db, tenant)
 
 
