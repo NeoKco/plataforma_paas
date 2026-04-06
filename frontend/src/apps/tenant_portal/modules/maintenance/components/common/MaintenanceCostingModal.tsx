@@ -310,6 +310,10 @@ function buildActualFormFromTemplate(
   };
 }
 
+function getTemplateBaseCost(template: TenantMaintenanceCostTemplate): number {
+  return template.lines.reduce((current, line) => current + (line.total_cost ?? 0), 0);
+}
+
 function findActiveAccountId(accounts: TenantFinanceAccount[], candidateId: number | null | undefined): string {
   if (candidateId == null) {
     return "";
@@ -858,6 +862,18 @@ export function MaintenanceCostingModal({
     );
   }
 
+  function clearActualTemplateTrace() {
+    if (isReadOnly) {
+      return;
+    }
+    setAppliedActualTemplateId(null);
+    setCostBaseMessage(
+      language === "es"
+        ? "Se quitó la trazabilidad de plantilla del cierre real. Los valores actuales se conservan como cierre manual."
+        : "Template traceability was removed from the real close. Current values are kept as a manual close."
+    );
+  }
+
   function addEstimateLine() {
     if (isReadOnly) {
       return;
@@ -1105,6 +1121,62 @@ export function MaintenanceCostingModal({
     return language === "es" ? `${template.name} · Otra tarea` : `${template.name} · Other task`;
   }
 
+  function renderTemplatePreview(
+    template: TenantMaintenanceCostTemplate,
+    options?: {
+      traced?: boolean;
+      allowClearTrace?: boolean;
+    }
+  ) {
+    const baseCost = getTemplateBaseCost(template);
+    const lineCount = template.lines.length;
+    return (
+      <div className={`alert ${options?.traced ? "alert-secondary" : "alert-light"} mb-0`}>
+        <div className="d-flex flex-column flex-md-row justify-content-between gap-2">
+          <div>
+            <div className="maintenance-history-entry__title">{template.name}</div>
+            <div className="maintenance-history-entry__meta">
+              {template.description?.trim()
+                ? template.description
+                : language === "es"
+                  ? "Sin descripción adicional en la plantilla."
+                  : "No extra template description."}
+            </div>
+          </div>
+          {options?.allowClearTrace ? (
+            <div className="d-flex align-items-start">
+              <button className="btn btn-sm btn-outline-secondary" type="button" onClick={clearActualTemplateTrace}>
+                {language === "es" ? "Quitar traza" : "Clear trace"}
+              </button>
+            </div>
+          ) : null}
+        </div>
+        <div className="row g-2 mt-1">
+          <div className="col-12 col-md-3">
+            <div className="maintenance-history-entry__meta">
+              {language === "es" ? "Costo base" : "Base cost"}: {baseCost.toFixed(2)}
+            </div>
+          </div>
+          <div className="col-12 col-md-3">
+            <div className="maintenance-history-entry__meta">
+              {language === "es" ? "Líneas" : "Lines"}: {lineCount}
+            </div>
+          </div>
+          <div className="col-12 col-md-3">
+            <div className="maintenance-history-entry__meta">
+              {language === "es" ? "Margen base" : "Base margin"}: {template.estimate_target_margin_percent.toFixed(2)}%
+            </div>
+          </div>
+          <div className="col-12 col-md-3">
+            <div className="maintenance-history-entry__meta">
+              {language === "es" ? "Usos" : "Usages"}: {template.usage_count}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   function renderLineEditor(
     lines: MaintenanceCostLineFormState[],
     onAdd: () => void,
@@ -1332,6 +1404,11 @@ export function MaintenanceCostingModal({
                             {language === "es" ? "Aplicar plantilla al estimado" : "Apply template to estimate"}
                           </button>
                         </div>
+                        {selectedEstimateTemplate ? (
+                          <div className="col-12">
+                            {renderTemplatePreview(selectedEstimateTemplate)}
+                          </div>
+                        ) : null}
                       </>
                     ) : null}
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Mano de obra" : "Labor"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.labor_cost.toFixed(2) : estimateForm.labor_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, labor_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
@@ -1414,6 +1491,24 @@ export function MaintenanceCostingModal({
                             {language === "es" ? "Aplicar plantilla al real" : "Apply template to actual"}
                           </button>
                         </div>
+                        {selectedActualTemplate && selectedActualTemplate.id !== appliedActualTemplate?.id ? (
+                          <div className="col-12">
+                            {renderTemplatePreview(selectedActualTemplate)}
+                          </div>
+                        ) : null}
+                        {appliedActualTemplate ? (
+                          <div className="col-12">
+                            <div className="maintenance-history-entry__meta mb-2">
+                              {language === "es"
+                                ? "Plantilla actualmente trazada en el cierre real"
+                                : "Template currently traced on the real close"}
+                            </div>
+                            {renderTemplatePreview(appliedActualTemplate, {
+                              traced: true,
+                              allowClearTrace: true,
+                            })}
+                          </div>
+                        ) : null}
                       </>
                     ) : null}
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Mano de obra real" : "Actual labor"}</label><input className="form-control" type="number" min="0" step="0.01" value={actualUsesLines ? actualLineTotals.labor_cost.toFixed(2) : actualForm.labor_cost} onChange={(event) => setActualForm((current) => ({ ...current, labor_cost: event.target.value }))} disabled={actualUsesLines || isReadOnly} /></div>

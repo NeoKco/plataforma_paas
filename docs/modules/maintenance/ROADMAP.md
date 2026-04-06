@@ -325,8 +325,7 @@ Avance actual:
 
 Pendiente inmediato de esta fase:
 
-- refinar más adelante la UX de `Plantillas de costeo` dentro del modal `Costos`, sin mover todavía ese frente por sobre el roadmap principal
-- dejar para un slice posterior la trazabilidad explícita de qué `Plantilla de costeo de mantención` quedó aplicada al cierre económico real de cada OT
+- profundizar `Visitas` con edición masiva más explícita o coordinación encadenada sobre varias ventanas abiertas y responsables
 
 ## Mejoras de producto recomendadas
 

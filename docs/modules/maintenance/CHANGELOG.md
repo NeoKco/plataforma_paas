@@ -6,6 +6,9 @@
   - persiste el identificador de la plantilla aplicada
   - guarda también un snapshot del nombre para lectura histórica
   - el modal muestra esa traza tanto antes de guardar como en lectura posterior
+- la UX de `Plantillas` dentro del modal `Costos` se refina:
+  - ahora muestra un preview de la plantilla seleccionada con costo base, líneas, margen y usos
+  - permite quitar la traza de plantilla del cierre real sin borrar el resumen económico ya editado
 - si una OT `completed` ya cerrada corrige su `Fecha efectiva de cierre` y el tenant usa `auto_on_close`, el backend vuelve a intentar la sincronización con `finance` para re-alinear la fecha contable real
 - `Historial -> Editar cierre` ahora permite a `admin` y `manager` ajustar la fecha efectiva de cierre en OT `completed`:
   - pensado para cierres registrados horas después de la ejecución real

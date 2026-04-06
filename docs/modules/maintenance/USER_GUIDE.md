@@ -64,6 +64,8 @@ El primer corte del modulo ya permite:
 - esa plantilla luego puede elegirse y aplicarse tanto al `Costeo estimado` como al `Costo real`
 - el `Monto cobrado` no se pisa con la plantilla; queda manual para respetar el cierre comercial real
 - cuando aplicas una plantilla al `Costo real`, el histórico económico final deja visible qué plantilla quedó trazada en ese cierre
+- antes de aplicar una plantilla, la modal ahora muestra un resumen corto con costo base, cantidad de líneas, margen y uso acumulado para ayudar a elegir mejor
+- si el cierre real terminó quedando demasiado distinto a la base, puedes quitar la traza de plantilla sin borrar los valores manuales ya cargados
 - abrir `Ver costos` desde `Historial` para revisar en modo solo lectura el cierre económico ya congelado de una orden cerrada
 - abrir `Checklist` desde una mantención abierta para registrar checklist técnico, observación de cierre y evidencias del trabajo ejecutado
 - abrir `Ver checklist` desde `Historial` para consultar ese cierre técnico en modo solo lectura

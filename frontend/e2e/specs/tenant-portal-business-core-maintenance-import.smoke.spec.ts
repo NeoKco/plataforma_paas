@@ -192,6 +192,9 @@ test("tenant portal shows imported business core and maintenance data from ieris
         name: /Aplicar plantilla al real|Apply template to actual/i,
       })
     ).toBeVisible();
+    await expect(costingDialog.getByText(/Costo base|Base cost/i).first()).toBeVisible();
+    await expect(costingDialog.getByText(/Líneas|Lines/i).first()).toBeVisible();
+    await expect(costingDialog.getByRole("button", { name: /Quitar traza|Clear trace/i })).toBeVisible();
     await expect(costingDialog.getByRole("button", { name: /Agregar línea|Add line/i }).first()).toBeVisible();
     await expect(costingDialog.getByLabel(/Sincronizar ingreso|Sync income/i)).toBeVisible();
     await expect(
@@ -381,6 +384,7 @@ test("tenant portal shows imported business core and maintenance data from ieris
         name: /Aplicar plantilla al real|Apply template to actual/i,
       })
     ).toHaveCount(0);
+    await expect(historyCostingDialog.getByRole("button", { name: /Quitar traza|Clear trace/i })).toHaveCount(0);
     await expect(historyCostingDialog.getByRole("button", { name: /Guardar estimado|Save estimate/i })).toHaveCount(0);
     await expect(historyCostingDialog.getByRole("button", { name: /Guardar costo real|Save actual cost/i })).toHaveCount(0);
     await historyCostingDialog.getByRole("button", { name: /Cerrar|Close/i }).click();

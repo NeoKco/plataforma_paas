@@ -104,6 +104,7 @@ Estado del corte hoy:
 - `Mantenciones` ya permite abrir `Costos` por OT para guardar estimado, costo real, monto cobrado y sincronizar manualmente a `finance`
 - el mismo modal `Costos` ahora permite elegir y reaplicar cualquier `Plantilla de costeo de mantención` activa sobre el estimado o el costo real; en `Costo real y cobro` la plantilla copia valores al resumen editable, sin dejar bloqueado el ajuste posterior del cierre
 - cuando se aplica una plantilla al `Costo real y cobro`, el cierre económico ya deja trazado explícito de qué plantilla quedó aplicada al costo real final de la OT
+- la UX de `Plantillas` dentro del modal `Costos` ahora también muestra un preview operativo de la plantilla seleccionada (costo base, líneas, margen y uso) y permite quitar la traza del cierre real sin borrar los valores ya ajustados
 - `Historial` ya permite abrir el mismo modal `Costos` sobre órdenes cerradas, sin volver editable la programación operativa
 - `Costos y cobro` ya permite detalle granular por líneas:
   - mano de obra
