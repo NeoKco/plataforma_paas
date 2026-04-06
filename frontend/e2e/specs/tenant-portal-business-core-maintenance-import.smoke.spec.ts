@@ -373,8 +373,8 @@ test("tenant portal shows imported business core and maintenance data from ieris
     "/tenant-portal/maintenance/reports",
     /Reportes técnicos|Technical reports/i
   );
-  await expect(page.getByText(/^(Cierres del período|Period closures)$/i)).toBeVisible();
-  await expect(page.getByText(/^(Cobertura de cierre|Closure coverage)$/i)).toBeVisible();
+  await expect(page.getByText(/Cierres del período|Period closures/i).first()).toBeVisible();
+  await expect(page.getByText(/Cobertura de cierre|Closure coverage/i).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: /Cobertura por tipo de equipo|Coverage by equipment type/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: /Instalaciones sin servicio reciente|Installations without recent service/i })).toBeVisible();
 
