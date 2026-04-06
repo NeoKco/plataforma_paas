@@ -6,6 +6,7 @@
 - `Resumen técnico` ahora incorpora `AppSpotlight` para dejar el punto de entrada del módulo dentro del mismo lenguaje visual ya usado por el `design system` transversal
 - la misma pasada ahora cubre también `placeholder page`, panel de impacto al reprogramar visitas, `Checklist y evidencias` y `Ficha de mantención`, reduciendo copy manual repetido en componentes operativos reutilizados
 - esa alineación continúa también en `Historial técnico`, cubriendo cabecera, filtros, columnas, tarjetas resumen y el arranque del modal de edición de cierre
+- la misma capa transversal alcanza ahora además `Costos de mantenciones`, alineando cabecera, filtros, tabla y modal de líneas base con el helper compartido y la convención visual del módulo
 
 ## 2026-04-05
 

@@ -341,17 +341,18 @@ export function BusinessCoreWorkGroupMembersPage() {
       </div>
 
       <DataTableCard
-        title={language === "es" ? "Miembros del grupo" : "Group members"}
+        title={t("Miembros del grupo", "Group members")}
         subtitle={
-          language === "es"
-            ? "Usuarios tenant asociados a este grupo con su perfil funcional operativo."
-            : "Tenant users associated with this group and their operational functional profile."
+          t(
+            "Usuarios tenant asociados a este grupo con su perfil funcional operativo.",
+            "Tenant users associated with this group and their operational functional profile."
+          )
         }
         rows={members}
         columns={[
           {
             key: "user",
-            header: language === "es" ? "Usuario" : "User",
+            header: t("Usuario", "User"),
             render: (item) => (
               <div>
                 <div className="business-core-cell__title">
@@ -365,22 +366,22 @@ export function BusinessCoreWorkGroupMembersPage() {
           },
           {
             key: "profile",
-            header: language === "es" ? "Perfil funcional" : "Functional profile",
+            header: t("Perfil funcional", "Functional profile"),
             render: (item) => item.function_profile_name || "—",
           },
           {
             key: "flags",
-            header: language === "es" ? "Rol en el grupo" : "Group role",
+            header: t("Rol en el grupo", "Group role"),
             render: (item) => (
               <div className="business-core-card__actions">
                 {item.is_primary ? (
                   <AppBadge tone="info">
-                    {language === "es" ? "principal" : "primary"}
+                    {t("principal", "primary")}
                   </AppBadge>
                 ) : null}
                 {item.is_lead ? (
                   <AppBadge tone="warning">
-                    {language === "es" ? "líder" : "lead"}
+                    {t("líder", "lead")}
                   </AppBadge>
                 ) : null}
                 {!item.is_primary && !item.is_lead ? "—" : null}
@@ -389,29 +390,23 @@ export function BusinessCoreWorkGroupMembersPage() {
           },
           {
             key: "status",
-            header: language === "es" ? "Estado" : "Status",
+            header: t("Estado", "Status"),
             render: (item) => (
               <AppBadge tone={item.is_active ? "success" : "warning"}>
-                {item.is_active
-                  ? language === "es"
-                    ? "activo"
-                    : "active"
-                  : language === "es"
-                    ? "inactivo"
-                    : "inactive"}
+                {item.is_active ? t("activo", "active") : t("inactivo", "inactive")}
               </AppBadge>
             ),
           },
           {
             key: "actions",
-            header: language === "es" ? "Acciones" : "Actions",
+            header: t("Acciones", "Actions"),
             render: (item) => (
               <AppToolbar compact>
                 <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => startEdit(item)}>
-                  {language === "es" ? "Editar" : "Edit"}
+                  {t("Editar", "Edit")}
                 </button>
                 <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => void handleDelete(item)}>
-                  {language === "es" ? "Eliminar" : "Delete"}
+                  {t("Eliminar", "Delete")}
                 </button>
               </AppToolbar>
             ),
@@ -427,38 +422,23 @@ export function BusinessCoreWorkGroupMembersPage() {
             aria-modal="true"
             aria-label={
               editingId
-                ? language === "es"
-                  ? "Editar miembro del grupo"
-                  : "Edit group member"
-                : language === "es"
-                  ? "Nuevo miembro del grupo"
-                  : "New group member"
+                ? t("Editar miembro del grupo", "Edit group member")
+                : t("Nuevo miembro del grupo", "New group member")
             }
             onClick={(event) => event.stopPropagation()}
           >
             <div className="business-core-form-modal__eyebrow">
-              {editingId
-                ? language === "es"
-                  ? "Edición puntual"
-                  : "Targeted edit"
-                : language === "es"
-                  ? "Alta bajo demanda"
-                  : "On-demand creation"}
+              {editingId ? t("Edición puntual", "Targeted edit") : t("Alta bajo demanda", "On-demand creation")}
             </div>
             <PanelCard
               title={
-                editingId
-                  ? language === "es"
-                    ? "Editar miembro"
-                    : "Edit member"
-                  : language === "es"
-                    ? "Nuevo miembro"
-                    : "New member"
+                editingId ? t("Editar miembro", "Edit member") : t("Nuevo miembro", "New member")
               }
               subtitle={
-                language === "es"
-                  ? "Asocia un usuario tenant al grupo y, si aplica, marca su perfil funcional y flags de operación."
-                  : "Associate a tenant user to the group and, if applicable, set their functional profile and operation flags."
+                t(
+                  "Asocia un usuario tenant al grupo y, si aplica, marca su perfil funcional y flags de operación.",
+                  "Associate a tenant user to the group and, if applicable, set their functional profile and operation flags."
+                )
               }
             >
               <form
@@ -470,7 +450,7 @@ export function BusinessCoreWorkGroupMembersPage() {
               >
                 <div className="row g-3">
                   <div className="col-12 col-md-6">
-                    <label className="form-label">{language === "es" ? "Usuario" : "User"}</label>
+                    <label className="form-label">{t("Usuario", "User")}</label>
                     <select
                       className="form-select"
                       value={form.tenant_user_id}
@@ -482,7 +462,7 @@ export function BusinessCoreWorkGroupMembersPage() {
                       }
                     >
                       <option value={0}>
-                        {language === "es" ? "Selecciona un usuario" : "Select a user"}
+                        {t("Selecciona un usuario", "Select a user")}
                       </option>
                       {activeUsers.map((user) => (
                         <option key={user.id} value={user.id}>
@@ -493,7 +473,7 @@ export function BusinessCoreWorkGroupMembersPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Perfil funcional" : "Functional profile"}
+                      {t("Perfil funcional", "Functional profile")}
                     </label>
                     <select
                       className="form-select"
@@ -506,7 +486,7 @@ export function BusinessCoreWorkGroupMembersPage() {
                       }
                     >
                       <option value="">
-                        {language === "es" ? "Sin perfil específico" : "No specific profile"}
+                        {t("Sin perfil específico", "No specific profile")}
                       </option>
                       {activeProfiles.map((profile) => (
                         <option key={profile.id} value={profile.id}>
@@ -530,7 +510,7 @@ export function BusinessCoreWorkGroupMembersPage() {
                           }
                         />
                         <span className="form-check-label">
-                          {language === "es" ? "Grupo principal del usuario" : "Primary group for user"}
+                          {t("Grupo principal del usuario", "Primary group for user")}
                         </span>
                       </label>
                       <label className="form-check">
@@ -546,7 +526,7 @@ export function BusinessCoreWorkGroupMembersPage() {
                           }
                         />
                         <span className="form-check-label">
-                          {language === "es" ? "Líder del grupo" : "Group lead"}
+                          {t("Líder del grupo", "Group lead")}
                         </span>
                       </label>
                       <label className="form-check">
@@ -562,13 +542,13 @@ export function BusinessCoreWorkGroupMembersPage() {
                           }
                         />
                         <span className="form-check-label">
-                          {language === "es" ? "Membresía activa" : "Active membership"}
+                          {t("Membresía activa", "Active membership")}
                         </span>
                       </label>
                     </div>
                   </div>
                   <div className="col-12 col-md-6">
-                    <label className="form-label">{language === "es" ? "Inicio" : "Start"}</label>
+                    <label className="form-label">{t("Inicio", "Start")}</label>
                     <input
                       className="form-control"
                       type="datetime-local"
@@ -582,7 +562,7 @@ export function BusinessCoreWorkGroupMembersPage() {
                     />
                   </div>
                   <div className="col-12 col-md-6">
-                    <label className="form-label">{language === "es" ? "Fin" : "End"}</label>
+                    <label className="form-label">{t("Fin", "End")}</label>
                     <input
                       className="form-control"
                       type="datetime-local"
@@ -596,7 +576,7 @@ export function BusinessCoreWorkGroupMembersPage() {
                     />
                   </div>
                   <div className="col-12">
-                    <label className="form-label">{language === "es" ? "Notas" : "Notes"}</label>
+                    <label className="form-label">{t("Notas", "Notes")}</label>
                     <textarea
                       className="form-control"
                       rows={3}
@@ -612,16 +592,17 @@ export function BusinessCoreWorkGroupMembersPage() {
                   {selectedUser ? (
                     <div className="col-12">
                       <div className="business-core-cell__meta">
-                        {language === "es"
-                          ? `Se asignará a ${selectedUser.full_name} (${selectedUser.email}).`
-                          : `${selectedUser.full_name} (${selectedUser.email}) will be assigned.`}
+                        {t(
+                          `Se asignará a ${selectedUser.full_name} (${selectedUser.email}).`,
+                          `${selectedUser.full_name} (${selectedUser.email}) will be assigned.`
+                        )}
                       </div>
                     </div>
                   ) : null}
                 </div>
                 <div className="business-core-form__actions">
                   <button className="btn btn-outline-secondary" type="button" onClick={() => setIsFormOpen(false)}>
-                    {language === "es" ? "Cancelar" : "Cancel"}
+                    {t("Cancelar", "Cancel")}
                   </button>
                   <button
                     className="btn btn-primary"
@@ -629,16 +610,10 @@ export function BusinessCoreWorkGroupMembersPage() {
                     disabled={isSubmitting || Number(form.tenant_user_id) <= 0}
                   >
                     {isSubmitting
-                      ? language === "es"
-                        ? "Guardando..."
-                        : "Saving..."
+                      ? t("Guardando...", "Saving...")
                       : editingId
-                        ? language === "es"
-                          ? "Guardar cambios"
-                          : "Save changes"
-                        : language === "es"
-                          ? "Crear miembro"
-                          : "Create member"}
+                        ? t("Guardar cambios", "Save changes")
+                        : t("Crear miembro", "Create member")}
                   </button>
                 </div>
               </form>

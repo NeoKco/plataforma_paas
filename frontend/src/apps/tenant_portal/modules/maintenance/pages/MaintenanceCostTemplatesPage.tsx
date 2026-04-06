@@ -7,7 +7,7 @@ import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
-import { useLanguage } from "../../../../../store/language-context";
+import { pickLocalizedText, useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
 import type { ApiError } from "../../../../../types";
@@ -83,6 +83,7 @@ function formatDateTime(value: string, language: "es" | "en", timeZone?: string 
 export function MaintenanceCostTemplatesPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const [rows, setRows] = useState<TenantMaintenanceCostTemplate[]>([]);
   const [taskTypes, setTaskTypes] = useState<TenantBusinessTaskType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -279,11 +280,11 @@ export function MaintenanceCostTemplatesPage() {
   const columns = [
     {
       key: "template",
-      header: language === "es" ? "Plantilla" : "Template",
+      header: t("Plantilla", "Template"),
       render: (item: TenantMaintenanceCostTemplate) => {
         const taskTypeName =
           taskTypeById.get(item.task_type_id ?? -1)?.name ??
-          (language === "es" ? "General" : "General");
+          t("General", "General");
         return (
           <div>
             <div className="maintenance-cell__title">{item.name}</div>
@@ -297,59 +298,47 @@ export function MaintenanceCostTemplatesPage() {
     },
     {
       key: "summary",
-      header: language === "es" ? "Resumen" : "Summary",
+      header: t("Resumen", "Summary"),
       render: (item: TenantMaintenanceCostTemplate) => (
         <div>
           <div>
-            {item.lines.length} {language === "es" ? "líneas" : "lines"}
+            {item.lines.length} {t("líneas", "lines")}
           </div>
           <div className="maintenance-cell__meta">
-            {language === "es" ? "Base" : "Base"}: ${getTemplateBaseTotal(item).toFixed(2)}
+            {t("Base", "Base")}: ${getTemplateBaseTotal(item).toFixed(2)}
           </div>
           <div className="maintenance-cell__meta">
-            {item.usage_count} {language === "es" ? "usos" : "uses"}
+            {item.usage_count} {t("usos", "uses")}
           </div>
         </div>
       ),
     },
     {
       key: "status",
-      header: language === "es" ? "Estado" : "Status",
+      header: t("Estado", "Status"),
       render: (item: TenantMaintenanceCostTemplate) => (
         <AppBadge tone={item.is_active ? "success" : "neutral"}>
-          {item.is_active
-            ? language === "es"
-              ? "Activa"
-              : "Active"
-            : language === "es"
-              ? "Archivada"
-              : "Archived"}
+          {item.is_active ? t("Activa", "Active") : t("Archivada", "Archived")}
         </AppBadge>
       ),
     },
     {
       key: "updated",
-      header: language === "es" ? "Actualizada" : "Updated",
+      header: t("Actualizada", "Updated"),
       render: (item: TenantMaintenanceCostTemplate) => (
         <span>{formatDateTime(item.updated_at, language, effectiveTimeZone)}</span>
       ),
     },
     {
       key: "actions",
-      header: language === "es" ? "Acciones" : "Actions",
+      header: t("Acciones", "Actions"),
       render: (item: TenantMaintenanceCostTemplate) => (
         <AppToolbar compact>
           <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => openEdit(item)}>
-            {language === "es" ? "Editar" : "Edit"}
+            {t("Editar", "Edit")}
           </button>
           <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => void handleToggle(item)}>
-            {item.is_active
-              ? language === "es"
-                ? "Archivar"
-                : "Archive"
-              : language === "es"
-                ? "Reactivar"
-                : "Reactivate"}
+            {item.is_active ? t("Archivar", "Archive") : t("Reactivar", "Reactivate")}
           </button>
         </AppToolbar>
       ),
@@ -359,29 +348,31 @@ export function MaintenanceCostTemplatesPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow={language === "es" ? "Mantenciones" : "Maintenance"}
+        eyebrow={t("Mantenciones", "Maintenance")}
         icon="maintenance"
-        title={language === "es" ? "Costos de mantenciones" : "Maintenance costs"}
+        title={t("Costos de mantenciones", "Maintenance costs")}
         description={
-          language === "es"
-            ? "Slice dedicado para definir, editar y archivar costos base reutilizables para las mantenciones."
-            : "Dedicated slice to define, edit, and archive reusable base costs for maintenance work."
+          t(
+            "Slice dedicado para definir, editar y archivar costos base reutilizables para las mantenciones.",
+            "Dedicated slice to define, edit, and archive reusable base costs for maintenance work."
+          )
         }
         actions={
           <AppToolbar compact>
             <MaintenanceHelpBubble
-              label={language === "es" ? "Ayuda" : "Help"}
+              label={t("Ayuda", "Help")}
               helpText={
-                language === "es"
-                  ? "Usa esta vista para definir el costo base por tipo de mantención: mano de obra, traslado, materiales, servicios o indirectos. Ese costo se reutiliza luego en el costeo estimado y en el cierre."
-                  : "Use this view to define the base cost by maintenance type: labor, travel, materials, services, or overhead. That cost is then reused in estimated costing and closure."
+                t(
+                  "Usa esta vista para definir el costo base por tipo de mantención: mano de obra, traslado, materiales, servicios o indirectos. Ese costo se reutiliza luego en el costeo estimado y en el cierre.",
+                  "Use this view to define the base cost by maintenance type: labor, travel, materials, services, or overhead. That cost is then reused in estimated costing and closure."
+                )
               }
             />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
-              {language === "es" ? "Recargar" : "Reload"}
+              {t("Recargar", "Reload")}
             </button>
             <button className="btn btn-primary" type="button" onClick={openCreate}>
-              {language === "es" ? "Nuevo costo base" : "New base cost"}
+              {t("Nuevo costo base", "New base cost")}
             </button>
           </AppToolbar>
         }
@@ -391,28 +382,29 @@ export function MaintenanceCostTemplatesPage() {
       {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
       {error ? (
         <ErrorState
-          title={language === "es" ? "No se pudo cargar la vista" : "The view could not be loaded"}
+          title={t("No se pudo cargar la vista", "The view could not be loaded")}
           detail={getApiErrorDisplayMessage(error)}
           requestId={error.payload?.request_id}
         />
       ) : null}
       {isLoading ? (
-        <LoadingBlock label={language === "es" ? "Cargando costos..." : "Loading costs..."} />
+        <LoadingBlock label={t("Cargando costos...", "Loading costs...")} />
       ) : null}
 
       <PanelCard
-        title={language === "es" ? "Filtros" : "Filters"}
+        title={t("Filtros", "Filters")}
         subtitle={
-          language === "es"
-            ? `Mostrando ${filteredRows.length} de ${rows.length} costos base.`
-            : `Showing ${filteredRows.length} of ${rows.length} base costs.`
+          t(
+            `Mostrando ${filteredRows.length} de ${rows.length} costos base.`,
+            `Showing ${filteredRows.length} of ${rows.length} base costs.`
+          )
         }
       >
         <div className="row g-3 align-items-end">
           <div className="col-12 col-md-6">
-            <label className="form-label">{language === "es" ? "Tipo de mantención" : "Task type"}</label>
+            <label className="form-label">{t("Tipo de mantención", "Task type")}</label>
             <select className="form-select" value={taskTypeFilter} onChange={(event) => setTaskTypeFilter(event.target.value)}>
-              <option value="">{language === "es" ? "Todos" : "All"}</option>
+              <option value="">{t("Todos", "All")}</option>
               {taskTypes.map((taskType) => (
                 <option key={taskType.id} value={String(taskType.id)}>
                   {taskType.name}
@@ -421,11 +413,11 @@ export function MaintenanceCostTemplatesPage() {
             </select>
           </div>
           <div className="col-12 col-md-4">
-            <label className="form-label">{language === "es" ? "Estado" : "Status"}</label>
+            <label className="form-label">{t("Estado", "Status")}</label>
             <select className="form-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as "all" | "active" | "inactive")}>
-              <option value="all">{language === "es" ? "Todas" : "All"}</option>
-              <option value="active">{language === "es" ? "Activas" : "Active"}</option>
-              <option value="inactive">{language === "es" ? "Archivadas" : "Archived"}</option>
+              <option value="all">{t("Todas", "All")}</option>
+              <option value="active">{t("Activas", "Active")}</option>
+              <option value="inactive">{t("Archivadas", "Archived")}</option>
             </select>
           </div>
           <div className="col-12 col-md-2 d-grid">
@@ -433,18 +425,19 @@ export function MaintenanceCostTemplatesPage() {
               setTaskTypeFilter("");
               setStatusFilter("all");
             }}>
-              {language === "es" ? "Limpiar" : "Clear"}
+              {t("Limpiar", "Clear")}
             </button>
           </div>
         </div>
       </PanelCard>
 
       <DataTableCard
-        title={language === "es" ? "Costos base disponibles" : "Available base costs"}
+        title={t("Costos base disponibles", "Available base costs")}
         subtitle={
-          language === "es"
-            ? "Catálogo exclusivo de Mantenciones para reutilizar costos base en el estimado y en el cierre real."
-            : "Maintenance-only catalog to reuse base costs in estimate and actual closure."
+          t(
+            "Catálogo exclusivo de Mantenciones para reutilizar costos base en el estimado y en el cierre real.",
+            "Maintenance-only catalog to reuse base costs in estimate and actual closure."
+          )
         }
         rows={filteredRows}
         columns={columns}
@@ -456,24 +449,19 @@ export function MaintenanceCostTemplatesPage() {
             className="maintenance-form-modal"
             role="dialog"
             aria-modal="true"
-            aria-label={language === "es" ? "Costo de mantención" : "Maintenance cost"}
+            aria-label={t("Costo de mantención", "Maintenance cost")}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="maintenance-form-modal__eyebrow">
-              {editingId
-                ? language === "es"
-                  ? "Edición puntual"
-                  : "Targeted edit"
-                : language === "es"
-                  ? "Alta bajo demanda"
-                  : "On-demand creation"}
+              {editingId ? t("Edición puntual", "Targeted edit") : t("Alta bajo demanda", "On-demand creation")}
             </div>
             <PanelCard
-              title={editingId ? (language === "es" ? "Editar costo base" : "Edit base cost") : (language === "es" ? "Nuevo costo base" : "New base cost")}
+              title={editingId ? t("Editar costo base", "Edit base cost") : t("Nuevo costo base", "New base cost")}
               subtitle={
-                language === "es"
-                  ? "Define un costo base reutilizable sin mezclar este catálogo con otros módulos del tenant."
-                  : "Define a reusable base cost without turning this catalog into a shared tenant-wide module."
+                t(
+                  "Define un costo base reutilizable sin mezclar este catálogo con otros módulos del tenant.",
+                  "Define a reusable base cost without turning this catalog into a shared tenant-wide module."
+                )
               }
             >
               <form className="maintenance-form" onSubmit={(event) => {
@@ -482,11 +470,11 @@ export function MaintenanceCostTemplatesPage() {
               }}>
                 <div className="row g-3">
                   <div className="col-12 col-md-6">
-                    <label className="form-label">{language === "es" ? "Nombre" : "Name"}</label>
+                    <label className="form-label">{t("Nombre", "Name")}</label>
                     <input className="form-control" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
                   </div>
                   <div className="col-12 col-md-6">
-                    <label className="form-label">{language === "es" ? "Tipo de mantención" : "Task type"}</label>
+                    <label className="form-label">{t("Tipo de mantención", "Task type")}</label>
                     <select
                       className="form-select"
                       value={form.task_type_id ?? ""}
@@ -497,7 +485,7 @@ export function MaintenanceCostTemplatesPage() {
                         }))
                       }
                     >
-                      <option value="">{language === "es" ? "General" : "General"}</option>
+                      <option value="">{t("General", "General")}</option>
                       {taskTypes.map((taskType) => (
                         <option key={taskType.id} value={taskType.id}>
                           {taskType.name}
@@ -506,7 +494,7 @@ export function MaintenanceCostTemplatesPage() {
                     </select>
                   </div>
                   <div className="col-12 col-md-4">
-                    <label className="form-label">{language === "es" ? "Margen objetivo %" : "Target margin %"}</label>
+                    <label className="form-label">{t("Margen objetivo %", "Target margin %")}</label>
                     <input
                       className="form-control"
                       type="number"
@@ -522,7 +510,7 @@ export function MaintenanceCostTemplatesPage() {
                     />
                   </div>
                   <div className="col-12 col-md-4">
-                    <label className="form-label">{language === "es" ? "Estado" : "Status"}</label>
+                    <label className="form-label">{t("Estado", "Status")}</label>
                     <select
                       className="form-select"
                       value={form.is_active ? "active" : "inactive"}
@@ -533,16 +521,16 @@ export function MaintenanceCostTemplatesPage() {
                         }))
                       }
                     >
-                      <option value="active">{language === "es" ? "Activa" : "Active"}</option>
-                      <option value="inactive">{language === "es" ? "Archivada" : "Archived"}</option>
+                      <option value="active">{t("Activa", "Active")}</option>
+                      <option value="inactive">{t("Archivada", "Archived")}</option>
                     </select>
                   </div>
                   <div className="col-12 col-md-4">
-                    <label className="form-label">{language === "es" ? "Total base" : "Base total"}</label>
+                    <label className="form-label">{t("Total base", "Base total")}</label>
                     <input className="form-control" value={`$${getTemplateBaseTotal(form).toFixed(2)}`} disabled />
                   </div>
                   <div className="col-12">
-                    <label className="form-label">{language === "es" ? "Descripción" : "Description"}</label>
+                    <label className="form-label">{t("Descripción", "Description")}</label>
                     <textarea
                       className="form-control"
                       rows={3}
@@ -551,7 +539,7 @@ export function MaintenanceCostTemplatesPage() {
                     />
                   </div>
                   <div className="col-12">
-                    <label className="form-label">{language === "es" ? "Notas de costeo" : "Costing notes"}</label>
+                    <label className="form-label">{t("Notas de costeo", "Costing notes")}</label>
                     <textarea
                       className="form-control"
                       rows={3}
@@ -563,16 +551,17 @@ export function MaintenanceCostTemplatesPage() {
                     <div className="d-flex justify-content-between align-items-center gap-2 mb-2">
                       <div>
                         <div className="panel-card__title h6 mb-1">
-                          {language === "es" ? "Líneas base" : "Base lines"}
+                          {t("Líneas base", "Base lines")}
                         </div>
                         <div className="maintenance-cell__meta">
-                          {language === "es"
-                            ? "Estas líneas se reutilizan automáticamente en el costeo estimado y en el cierre real de la mantención."
-                            : "These lines are automatically reused in estimated costing and in the actual maintenance closure."}
+                          {t(
+                            "Estas líneas se reutilizan automáticamente en el costeo estimado y en el cierre real de la mantención.",
+                            "These lines are automatically reused in estimated costing and in the actual maintenance closure."
+                          )}
                         </div>
                       </div>
                       <button className="btn btn-sm btn-outline-primary" type="button" onClick={addLine}>
-                        {language === "es" ? "Agregar línea" : "Add line"}
+                        {t("Agregar línea", "Add line")}
                       </button>
                     </div>
                     <div className="d-grid gap-3">
@@ -580,21 +569,21 @@ export function MaintenanceCostTemplatesPage() {
                         <div key={`${line.id ?? "new"}-${index}`} className="maintenance-cost-lines__item">
                           <div className="row g-3 align-items-end">
                             <div className="col-12 col-md-2">
-                              <label className="form-label">{language === "es" ? "Tipo" : "Type"}</label>
+                              <label className="form-label">{t("Tipo", "Type")}</label>
                               <select
                                 className="form-select"
                                 value={line.line_type}
                                 onChange={(event) => updateLine(index, "line_type", event.target.value)}
                               >
-                                <option value="labor">{language === "es" ? "Mano de obra" : "Labor"}</option>
-                                <option value="travel">{language === "es" ? "Traslado" : "Travel"}</option>
-                                <option value="material">{language === "es" ? "Material" : "Material"}</option>
-                                <option value="service">{language === "es" ? "Servicio externo" : "External service"}</option>
-                                <option value="overhead">{language === "es" ? "Indirecto" : "Overhead"}</option>
+                                <option value="labor">{t("Mano de obra", "Labor")}</option>
+                                <option value="travel">{t("Traslado", "Travel")}</option>
+                                <option value="material">{t("Material", "Material")}</option>
+                                <option value="service">{t("Servicio externo", "External service")}</option>
+                                <option value="overhead">{t("Indirecto", "Overhead")}</option>
                               </select>
                             </div>
                             <div className="col-12 col-md-3">
-                              <label className="form-label">{language === "es" ? "Descripción" : "Description"}</label>
+                              <label className="form-label">{t("Descripción", "Description")}</label>
                               <input
                                 className="form-control"
                                 value={line.description ?? ""}
@@ -602,7 +591,7 @@ export function MaintenanceCostTemplatesPage() {
                               />
                             </div>
                             <div className="col-6 col-md-2">
-                              <label className="form-label">{language === "es" ? "Cantidad" : "Quantity"}</label>
+                              <label className="form-label">{t("Cantidad", "Quantity")}</label>
                               <input
                                 className="form-control"
                                 type="number"
@@ -613,7 +602,7 @@ export function MaintenanceCostTemplatesPage() {
                               />
                             </div>
                             <div className="col-6 col-md-2">
-                              <label className="form-label">{language === "es" ? "Costo unit." : "Unit cost"}</label>
+                              <label className="form-label">{t("Costo unit.", "Unit cost")}</label>
                               <input
                                 className="form-control"
                                 type="number"
@@ -624,7 +613,7 @@ export function MaintenanceCostTemplatesPage() {
                               />
                             </div>
                             <div className="col-12 col-md-2">
-                              <label className="form-label">{language === "es" ? "Total" : "Total"}</label>
+                              <label className="form-label">{t("Total", "Total")}</label>
                               <input
                                 className="form-control"
                                 value={`$${(Number(line.quantity || 0) * Number(line.unit_cost || 0)).toFixed(2)}`}
@@ -633,11 +622,11 @@ export function MaintenanceCostTemplatesPage() {
                             </div>
                             <div className="col-12 col-md-1 d-grid">
                               <button className="btn btn-outline-danger" type="button" onClick={() => removeLine(index)}>
-                                {language === "es" ? "Quitar" : "Remove"}
+                                {t("Quitar", "Remove")}
                               </button>
                             </div>
                             <div className="col-12">
-                              <label className="form-label">{language === "es" ? "Notas" : "Notes"}</label>
+                              <label className="form-label">{t("Notas", "Notes")}</label>
                               <input
                                 className="form-control"
                                 value={line.notes ?? ""}
@@ -652,20 +641,14 @@ export function MaintenanceCostTemplatesPage() {
                 </div>
                 <div className="maintenance-form__actions">
                   <button className="btn btn-outline-secondary" type="button" onClick={closeForm}>
-                    {language === "es" ? "Cancelar" : "Cancel"}
+                    {t("Cancelar", "Cancel")}
                   </button>
                   <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
                     {isSubmitting
-                      ? language === "es"
-                        ? "Guardando..."
-                        : "Saving..."
+                      ? t("Guardando...", "Saving...")
                       : editingId
-                        ? language === "es"
-                          ? "Guardar cambios"
-                          : "Save changes"
-                        : language === "es"
-                          ? "Crear plantilla"
-                          : "Create template"}
+                        ? t("Guardar cambios", "Save changes")
+                        : t("Crear plantilla", "Create template")}
                   </button>
                 </div>
               </form>

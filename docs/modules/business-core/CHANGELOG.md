@@ -6,6 +6,7 @@
 - `Resumen` ahora incorpora `AppSpotlight` para dejar el bloque de entrada del módulo dentro de la misma convención visual aplicada previamente en `finance`
 - la `placeholder page` compartida del módulo también se alinea con ese helper para que nuevas pantallas temporales no vuelvan a abrir copy bilingüe manual fuera de la convención
 - la pasada transversal se extiende además a `Taxonomías` y `Ficha de cliente`, bajando copy manual en métricas, filtros, paneles y modales principales del módulo
+- esa misma pasada ahora cubre también `Miembros del grupo`, alineando encabezado, tabla, alertas y modal de membresía con la convención transversal del portal tenant
 
 - Se agrega direccion propia de `Organizations` en una primera ola: el modelo, la API y la vista administrativa ahora permiten capturar `address_line`, `commune`, `city`, `region` y `country_code` sin mezclar la direccion con `sites`.
 - `Maintenance` ahora abre accesos directos desde `Instalaciones` hacia `Activos` en `business-core`, y el expediente tecnico de instalacion muestra activos compartidos del sitio.
