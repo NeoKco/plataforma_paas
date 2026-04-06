@@ -9,6 +9,10 @@ import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { getTenantUsers } from "../../../../../services/tenant-api";
 import { useLanguage } from "../../../../../store/language-context";
+import {
+  pickLocalizedText,
+  useLanguage,
+} from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import {
   formatDateTimeInTimeZone,
@@ -73,7 +77,7 @@ function formatDateTime(
   timeZone?: string | null
 ): string {
   if (!value) {
-    return language === "es" ? "sin fecha" : "no date";
+    return pickLocalizedText(language, { es: "sin fecha", en: "no date" });
   }
   return formatDateTimeInTimeZone(value, language, timeZone);
 }
@@ -81,13 +85,13 @@ function formatDateTime(
 function getStatusLabel(status: string, language: "es" | "en"): string {
   switch (status) {
     case "completed":
-      return language === "es" ? "Completada" : "Completed";
+      return pickLocalizedText(language, { es: "Completada", en: "Completed" });
     case "cancelled":
-      return language === "es" ? "Anulada" : "Cancelled";
+      return pickLocalizedText(language, { es: "Anulada", en: "Cancelled" });
     case "in_progress":
-      return language === "es" ? "En curso" : "In progress";
+      return pickLocalizedText(language, { es: "En curso", en: "In progress" });
     case "scheduled":
-      return language === "es" ? "Programada" : "Scheduled";
+      return pickLocalizedText(language, { es: "Programada", en: "Scheduled" });
     default:
       return status;
   }
@@ -96,13 +100,13 @@ function getStatusLabel(status: string, language: "es" | "en"): string {
 function getVisitTypeLabel(type: string, language: "es" | "en"): string {
   switch (type) {
     case "diagnostic":
-      return language === "es" ? "Diagnóstico" : "Diagnostic";
+      return pickLocalizedText(language, { es: "Diagnóstico", en: "Diagnostic" });
     case "execution":
-      return language === "es" ? "Ejecución" : "Execution";
+      return pickLocalizedText(language, { es: "Ejecución", en: "Execution" });
     case "follow_up":
-      return language === "es" ? "Seguimiento" : "Follow-up";
+      return pickLocalizedText(language, { es: "Seguimiento", en: "Follow-up" });
     case "closure":
-      return language === "es" ? "Cierre" : "Closure";
+      return pickLocalizedText(language, { es: "Cierre", en: "Closure" });
     default:
       return type;
   }
@@ -111,17 +115,26 @@ function getVisitTypeLabel(type: string, language: "es" | "en"): string {
 function getVisitResultLabel(type: string, language: "es" | "en"): string {
   switch (type) {
     case "executed":
-      return language === "es" ? "Ejecutada" : "Executed";
+      return pickLocalizedText(language, { es: "Ejecutada", en: "Executed" });
     case "client_absent":
-      return language === "es" ? "Cliente ausente" : "Client absent";
+      return pickLocalizedText(language, { es: "Cliente ausente", en: "Client absent" });
     case "no_access":
-      return language === "es" ? "Sin acceso" : "No access";
+      return pickLocalizedText(language, { es: "Sin acceso", en: "No access" });
     case "pending_spare_parts":
-      return language === "es" ? "Pendiente repuestos" : "Pending spare parts";
+      return pickLocalizedText(language, {
+        es: "Pendiente repuestos",
+        en: "Pending spare parts",
+      });
     case "rescheduled_on_site":
-      return language === "es" ? "Reprogramada en terreno" : "Rescheduled on site";
+      return pickLocalizedText(language, {
+        es: "Reprogramada en terreno",
+        en: "Rescheduled on site",
+      });
     case "cancelled_on_site":
-      return language === "es" ? "Cancelada en terreno" : "Cancelled on site";
+      return pickLocalizedText(language, {
+        es: "Cancelada en terreno",
+        en: "Cancelled on site",
+      });
     default:
       return type;
   }
@@ -137,12 +150,15 @@ function getStatusLogTitle(
     log.to_status === "completed" &&
     note.startsWith("ajuste fecha efectiva de cierre")
   ) {
-    return language === "es" ? "Ajuste de fecha de cierre" : "Closure date adjustment";
+    return pickLocalizedText(language, {
+      es: "Ajuste de fecha de cierre",
+      en: "Closure date adjustment",
+    });
   }
   if (log.from_status && log.from_status === log.to_status && note.startsWith("reprogramación")) {
-    return language === "es" ? "Reprogramación" : "Reschedule";
+    return pickLocalizedText(language, { es: "Reprogramación", en: "Reschedule" });
   }
-  return `${log.from_status || (language === "es" ? "inicio" : "start")} -> ${log.to_status}`;
+  return `${log.from_status || pickLocalizedText(language, { es: "inicio", en: "start" })} -> ${log.to_status}`;
 }
 
 function getStatusTone(status: string): "success" | "danger" | "warning" | "info" | "neutral" {
@@ -173,6 +189,7 @@ function inferReopenStatus(item: TenantMaintenanceHistoryWorkOrder): "scheduled"
 export function MaintenanceHistoryPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const canReopenFromHistory = session?.role === "admin" || session?.role === "manager";
   const canAdjustCompletedAt = session?.role === "admin" || session?.role === "manager";
   const [rows, setRows] = useState<TenantMaintenanceHistoryWorkOrder[]>([]);
@@ -466,19 +483,19 @@ export function MaintenanceHistoryPage() {
     return (
       stripLegacyVisibleText(organization?.name) ||
       stripLegacyVisibleText(organization?.legal_name) ||
-      (language === "es" ? "Cliente sin nombre" : "Unnamed client")
+      t("Cliente sin nombre", "Unnamed client")
     );
   }
 
   function getSiteDisplayName(siteId: number): string {
     const site = siteById.get(siteId);
     if (!site) {
-      return language === "es" ? "Dirección sin registrar" : "Missing address";
+      return t("Dirección sin registrar", "Missing address");
     }
     const base =
       stripLegacyVisibleText(getVisibleAddressLabel(site)) ||
       stripLegacyVisibleText(site.name) ||
-      (language === "es" ? "Dirección sin nombre" : "Unnamed address");
+      t("Dirección sin nombre", "Unnamed address");
     const locality = [site.commune, site.city, site.region]
       .map((value) => stripLegacyVisibleText(value))
       .filter((value): value is string => Boolean(value))
@@ -489,7 +506,7 @@ export function MaintenanceHistoryPage() {
   function getTaskTypeLabel(item: Pick<TenantMaintenanceHistoryWorkOrder, "schedule_id">): string {
     const taskTypeId = item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id : null;
     if (!taskTypeId) {
-      return language === "es" ? "Sin tipo" : "No task type";
+      return t("Sin tipo", "No task type");
     }
     return taskTypeById.get(taskTypeId)?.name || `#${taskTypeId}`;
   }
@@ -498,11 +515,11 @@ export function MaintenanceHistoryPage() {
     item: Pick<TenantMaintenanceHistoryWorkOrder, "assigned_work_group_id" | "assigned_tenant_user_id">
   ): string {
     if (!item.assigned_work_group_id || !item.assigned_tenant_user_id) {
-      return language === "es" ? "Sin perfil" : "No profile";
+      return t("Sin perfil", "No profile");
     }
     return (
       workGroupMemberByKey.get(`${item.assigned_work_group_id}:${item.assigned_tenant_user_id}`)
-        ?.function_profile_name || (language === "es" ? "Sin perfil" : "No profile")
+        ?.function_profile_name || t("Sin perfil", "No profile")
     );
   }
 
@@ -510,7 +527,7 @@ export function MaintenanceHistoryPage() {
     item: Pick<TenantMaintenanceHistoryWorkOrder, "assigned_work_group_id">
   ): string {
     if (!item.assigned_work_group_id) {
-      return language === "es" ? "Sin grupo" : "No group";
+      return t("Sin grupo", "No group");
     }
     return workGroupById.get(item.assigned_work_group_id)?.name || `#${item.assigned_work_group_id}`;
   }
@@ -519,7 +536,7 @@ export function MaintenanceHistoryPage() {
     item: Pick<TenantMaintenanceHistoryWorkOrder, "assigned_work_group_id" | "assigned_tenant_user_id">
   ): string {
     if (!item.assigned_tenant_user_id) {
-      return language === "es" ? "Sin responsable" : "No responsible";
+      return t("Sin responsable", "No responsible");
     }
     const user = tenantUserById.get(item.assigned_tenant_user_id);
     const member =
@@ -537,7 +554,7 @@ export function MaintenanceHistoryPage() {
   const historyColumns = [
     {
       key: "order",
-      header: language === "es" ? "Orden" : "Order",
+      header: t("Orden", "Order"),
       render: (item: TenantMaintenanceHistoryWorkOrder) => (
         <div>
           <div className="maintenance-cell__title">{item.title}</div>
@@ -549,7 +566,7 @@ export function MaintenanceHistoryPage() {
     },
     {
       key: "status",
-      header: language === "es" ? "Estado final" : "Final status",
+      header: t("Estado final", "Final status"),
       render: (item: TenantMaintenanceHistoryWorkOrder) => (
         <AppBadge tone={getStatusTone(item.maintenance_status)}>
           {getStatusLabel(item.maintenance_status, language)}
@@ -558,7 +575,7 @@ export function MaintenanceHistoryPage() {
     },
     {
       key: "taskType",
-      header: language === "es" ? "Tipo y perfil" : "Task and profile",
+      header: t("Tipo y perfil", "Task and profile"),
       render: (item: TenantMaintenanceHistoryWorkOrder) => (
         <div>
           <div>{getTaskTypeLabel(item)}</div>
@@ -568,7 +585,7 @@ export function MaintenanceHistoryPage() {
     },
     {
       key: "responsible",
-      header: language === "es" ? "Responsable" : "Responsible",
+      header: t("Responsable", "Responsible"),
       render: (item: TenantMaintenanceHistoryWorkOrder) => (
         <div>
           <div>{getAssignedWorkGroupLabel(item)}</div>
@@ -578,7 +595,7 @@ export function MaintenanceHistoryPage() {
     },
     {
       key: "dates",
-      header: language === "es" ? "Fechas" : "Dates",
+      header: t("Fechas", "Dates"),
       render: (item: TenantMaintenanceHistoryWorkOrder) => (
         <div>
           <div>
@@ -587,7 +604,7 @@ export function MaintenanceHistoryPage() {
               : formatDateTime(item.cancelled_at, language, effectiveTimeZone)}
           </div>
           <div className="maintenance-cell__meta">
-            {language === "es" ? "Solicitada" : "Requested"}{" "}
+            {t("Solicitada", "Requested")}{" "}
             {formatDateTime(item.requested_at, language, effectiveTimeZone)}
           </div>
         </div>
@@ -595,7 +612,7 @@ export function MaintenanceHistoryPage() {
     },
     {
       key: "traceability",
-      header: language === "es" ? "Trazabilidad" : "Traceability",
+      header: t("Trazabilidad", "Traceability"),
       render: (item: TenantMaintenanceHistoryWorkOrder) => (
         <div>
           <div>
@@ -789,26 +806,26 @@ export function MaintenanceHistoryPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow={language === "es" ? "Mantenciones" : "Maintenance"}
+        eyebrow={t("Mantenciones", "Maintenance")}
         icon="tenant-history"
-        title={language === "es" ? "Historial técnico" : "Technical history"}
-        description={
-          language === "es"
-            ? "Órdenes cerradas con trazabilidad, visitas registradas y lectura operativa por cliente y sitio."
-            : "Closed work orders with traceability, registered visits, and operational reading by client and site."
-        }
+        title={t("Historial técnico", "Technical history")}
+        description={t(
+          "Órdenes cerradas con trazabilidad, visitas registradas y lectura operativa por cliente y sitio.",
+          "Closed work orders with traceability, registered visits, and operational reading by client and site."
+        )}
         actions={
           <AppToolbar compact>
             <MaintenanceHelpBubble
-              label={language === "es" ? "Ayuda" : "Help"}
+              label={t("Ayuda", "Help")}
               helpText={
-                language === "es"
-                  ? "Aquí no se consulta una tabla paralela de histórico de la app vieja. La lectura se deriva del lifecycle de las órdenes cerradas en el PaaS."
-                  : "This does not read a parallel legacy history table. The view is derived from the lifecycle of closed work orders in the PaaS."
+                t(
+                  "Aquí no se consulta una tabla paralela de histórico de la app vieja. La lectura se deriva del lifecycle de las órdenes cerradas en el PaaS.",
+                  "This does not read a parallel legacy history table. The view is derived from the lifecycle of closed work orders in the PaaS."
+                )
               }
             />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
-              {language === "es" ? "Recargar" : "Reload"}
+              {t("Recargar", "Reload")}
             </button>
           </AppToolbar>
         }
@@ -816,30 +833,34 @@ export function MaintenanceHistoryPage() {
       <MaintenanceModuleNav />
 
       <PanelCard
-        title={language === "es" ? "Filtros por grupo/líder" : "Group/leader filters"}
+        title={t("Filtros por grupo/líder", "Group/leader filters")}
         subtitle={
-          language === "es"
-            ? `Mostrando ${filteredRows.length} de ${rows.length} órdenes cerradas o anuladas.`
-            : `Showing ${filteredRows.length} of ${rows.length} closed or cancelled work orders.`
+          t(
+            `Mostrando ${filteredRows.length} de ${rows.length} órdenes cerradas o anuladas.`,
+            `Showing ${filteredRows.length} of ${rows.length} closed or cancelled work orders.`
+          )
         }
       >
         <div className="alert alert-info mb-3">
-          {language === "es"
-            ? "Grupo responsable = el equipo asignado a la mantención. Líder o técnico responsable = la persona concreta dentro de ese equipo. Si filtras por uno de ellos y no ves resultados, significa que esas órdenes no quedaron cerradas con esa asignación exacta."
-            : "Work group = the team assigned to the maintenance. Leader or responsible technician = the specific person inside that team. If you filter by one of them and see no results, those orders were not closed with that exact assignment."}
+          {t(
+            "Grupo responsable = el equipo asignado a la mantención. Líder o técnico responsable = la persona concreta dentro de ese equipo. Si filtras por uno de ellos y no ves resultados, significa que esas órdenes no quedaron cerradas con esa asignación exacta.",
+            "Work group = the team assigned to the maintenance. Leader or responsible technician = the specific person inside that team. If you filter by one of them and see no results, those orders were not closed with that exact assignment."
+          )}
         </div>
         {canReopenFromHistory ? (
           <div className="alert alert-warning mb-3">
-            {language === "es"
-              ? "La acción Reabrir devuelve la OT a la bandeja activa solo a nivel operativo. No anula movimientos ya sincronizados en Finanzas. Si el cierre erróneo también afectó finance, usa el runbook y el script de reversa manual."
-              : "The Reopen action returns the work order to the active tray only at the operational level. It does not void movements already synced to Finance. If the mistaken closure also affected finance, use the runbook and the manual rollback script."}
+            {t(
+              "La acción Reabrir devuelve la OT a la bandeja activa solo a nivel operativo. No anula movimientos ya sincronizados en Finanzas. Si el cierre erróneo también afectó finance, usa el runbook y el script de reversa manual.",
+              "The Reopen action returns the work order to the active tray only at the operational level. It does not void movements already synced to Finance. If the mistaken closure also affected finance, use the runbook and the manual rollback script."
+            )}
           </div>
         ) : null}
         <div className="row g-3 align-items-end">
           <div className="col-12 col-md-5">
             <label className="form-label">
-              {language === "es" ? "Grupo de trabajo" : "Work group"}
+              {t("Grupo de trabajo", "Work group")}
             </label>
+                          <option value="">{t("Todos los grupos", "All groups")}</option>
             <select
               className="form-select"
               value={selectedWorkGroupId}
@@ -855,8 +876,9 @@ export function MaintenanceHistoryPage() {
           </div>
           <div className="col-12 col-md-5">
             <label className="form-label">
-              {language === "es" ? "Responsable" : "Responsible"}
+              {t("Responsable", "Responsible")}
             </label>
+                          <option value="">{t("Todos los usuarios", "All users")}</option>
             <select
               className="form-select"
               value={selectedTenantUserId}
@@ -879,7 +901,7 @@ export function MaintenanceHistoryPage() {
                 setSelectedTenantUserId("");
               }}
             >
-              {language === "es" ? "Limpiar" : "Clear"}
+              {t("Limpiar", "Clear")}
             </button>
           </div>
         </div>
@@ -887,11 +909,7 @@ export function MaintenanceHistoryPage() {
 
       {error ? (
         <ErrorState
-          title={
-            language === "es"
-              ? "No se pudo cargar el historial"
-              : "The history could not be loaded"
-          }
+          title={t("No se pudo cargar el historial", "The history could not be loaded")}
           detail={getApiErrorDisplayMessage(error)}
           requestId={error.payload?.request_id}
         />
@@ -900,16 +918,15 @@ export function MaintenanceHistoryPage() {
       {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
 
       {isLoading ? (
-        <LoadingBlock label={language === "es" ? "Cargando historial..." : "Loading history..."} />
+        <LoadingBlock label={t("Cargando historial...", "Loading history...")} />
       ) : null}
 
       <DataTableCard
-        title={language === "es" ? "Mantenciones realizadas" : "Completed maintenance"}
-        subtitle={
-          language === "es"
-            ? "Trabajo efectivamente ejecutado y ya cerrado."
-            : "Work effectively executed and already closed."
-        }
+        title={t("Mantenciones realizadas", "Completed maintenance")}
+        subtitle={t(
+          "Trabajo efectivamente ejecutado y ya cerrado.",
+          "Work effectively executed and already closed."
+        )}
         rows={completedRows}
         columns={historyColumns}
       />
@@ -917,12 +934,11 @@ export function MaintenanceHistoryPage() {
       {renderHistoryCards(completedRows)}
 
       <DataTableCard
-        title={language === "es" ? "Mantenciones anuladas" : "Cancelled maintenance"}
-        subtitle={
-          language === "es"
-            ? "Trabajo cancelado, separado de las mantenciones realmente ejecutadas."
-            : "Cancelled work, separated from work that was actually executed."
-        }
+        title={t("Mantenciones anuladas", "Cancelled maintenance")}
+        subtitle={t(
+          "Trabajo cancelado, separado de las mantenciones realmente ejecutadas.",
+          "Cancelled work, separated from work that was actually executed."
+        )}
         rows={cancelledRows}
         columns={historyColumns}
       />
