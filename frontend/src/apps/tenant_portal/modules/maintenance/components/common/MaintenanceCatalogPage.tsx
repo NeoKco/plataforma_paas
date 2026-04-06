@@ -341,47 +341,47 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
                               [field.key]:
                                 field.type === "number"
                                   ? Number(event.target.value || 0)
-                                  {pickLocalizedText(language, { es: "Cancelar", en: "Cancel" })}
+                                  : event.target.value,
                             })
                           }
-                                  {isSubmitting
-                                    ? pickLocalizedText(language, { es: "Guardando...", en: "Saving..." })
-                                    : editingId
-                                      ? pickLocalizedText(language, {
-                                          es: "Guardar cambios",
-                                          en: "Save changes",
-                                        })
-                                      : pickLocalizedText(language, {
-                                          es: "Crear registro",
-                                          en: "Create record",
-                                        })}
-                      ? language === "es"
-                        ? "Guardando..."
-                        : "Saving..."
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="maintenance-form__actions">
+                  <button className="btn btn-outline-secondary" type="button" onClick={handleCloseForm}>
+                    {pickLocalizedText(language, { es: "Cancelar", en: "Cancel" })}
+                  </button>
+                  <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
+                    {isSubmitting
+                      ? pickLocalizedText(language, { es: "Guardando...", en: "Saving..." })
                       : editingId
-                        ? language === "es"
-                          ? "Guardar cambios"
-                          : "Save changes"
-                        : language === "es"
-                          ? "Crear registro"
-                      title={pickLocalizedText(language, {
-                        es: "Catálogo operativo",
-                        en: "Operational catalog",
-                      })}
-                      subtitle={pickLocalizedText(language, {
-                        es: "Base técnica que alimenta la operación del módulo.",
-                        en: "Technical base that feeds the module operation.",
-                      })}
+                        ? pickLocalizedText(language, {
+                            es: "Guardar cambios",
+                            en: "Save changes",
+                          })
+                        : pickLocalizedText(language, {
+                            es: "Crear registro",
+                            en: "Create record",
+                          })}
+                  </button>
+                </div>
+              </form>
+            </PanelCard>
+          </div>
         </div>
       ) : null}
 
       <DataTableCard
-        title={language === "es" ? "Catálogo operativo" : "Operational catalog"}
-        subtitle={
-          language === "es"
-            ? "Lista base del módulo técnico."
-            : "Base list for the technical module."
-        }
+        title={pickLocalizedText(language, {
+          es: "Catálogo operativo",
+          en: "Operational catalog",
+        })}
+        subtitle={pickLocalizedText(language, {
+          es: "Base técnica que alimenta la operación del módulo.",
+          en: "Technical base that feeds the module operation.",
+        })}
         rows={rows}
         columns={localizedColumns}
       />
