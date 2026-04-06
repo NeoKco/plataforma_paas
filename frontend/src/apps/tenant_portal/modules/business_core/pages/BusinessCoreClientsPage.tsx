@@ -850,38 +850,37 @@ export function BusinessCoreClientsPage() {
             className="confirm-dialog business-core-form-modal business-core-client-modal"
             role="dialog"
             aria-modal="true"
-            aria-label={language === "es" ? "Cliente" : "Client"}
+            aria-label={t("Cliente", "Client")}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="business-core-form-modal__eyebrow">
-              {language === "es" ? "Captura base" : "Base capture"}
+              {t("Captura base", "Base capture")}
             </div>
             <div className="confirm-dialog__title">
               {modalState.mode === "edit"
-                ? language === "es"
-                  ? "Editar cliente"
-                  : "Edit client"
-                : language === "es"
-                  ? "Nuevo cliente"
-                  : "New client"}
+                ? t("Editar cliente", "Edit client")
+                : t("Nuevo cliente", "New client")}
             </div>
             <div className="confirm-dialog__description">
-              {language === "es"
-                ? "Carga aquí los datos base del cliente. Los detalles adicionales de mantención vivirán luego sobre sus instalaciones."
-                : "Load the client's base data here. Additional maintenance details will later live on top of its installations."}
+              {t(
+                "Carga aquí los datos base del cliente. Los detalles adicionales de mantención vivirán luego sobre sus instalaciones.",
+                "Load the client's base data here. Additional maintenance details will later live on top of its installations."
+              )}
             </div>
             {modalError ? <div className="alert alert-danger mb-3">{modalError}</div> : null}
             {duplicateCandidate ? (
               <div className="alert alert-warning mb-3">
                 <div className="fw-semibold mb-1">
-                  {language === "es"
-                    ? `Cliente ya existente: ${duplicateCandidate.row.organization?.name ?? "cliente"}`
-                    : `Existing client: ${duplicateCandidate.row.organization?.name ?? "client"}`}
+                  {t(
+                    `Cliente ya existente: ${duplicateCandidate.row.organization?.name ?? "cliente"}`,
+                    `Existing client: ${duplicateCandidate.row.organization?.name ?? "client"}`
+                  )}
                 </div>
                 <div className="mb-2">
-                  {language === "es"
-                    ? `Se detectó coincidencia porque ${duplicateCandidate.reasons.join(", ")}.`
-                    : `A match was detected because ${duplicateCandidate.reasons.join(", ")}.`}
+                  {t(
+                    `Se detectó coincidencia porque ${duplicateCandidate.reasons.join(", ")}.`,
+                    `A match was detected because ${duplicateCandidate.reasons.join(", ")}.`
+                  )}
                 </div>
                 <div className="d-flex gap-2 flex-wrap">
                   <button
@@ -893,14 +892,14 @@ export function BusinessCoreClientsPage() {
                       navigate(`/tenant-portal/business-core/clients/${clientId}`);
                     }}
                   >
-                    {language === "es" ? "Abrir ficha existente" : "Open existing detail"}
+                    {t("Abrir ficha existente", "Open existing detail")}
                   </button>
                   <button
                     className="btn btn-sm btn-outline-secondary"
                     type="button"
                     onClick={() => setDuplicateCandidate(null)}
                   >
-                    {language === "es" ? "Seguir revisando" : "Keep reviewing"}
+                    {t("Seguir revisando", "Keep reviewing")}
                   </button>
                 </div>
               </div>
@@ -908,17 +907,18 @@ export function BusinessCoreClientsPage() {
             <div className="business-core-modal-grid business-core-modal-grid--client">
               <div className="business-core-modal-section business-core-modal-section--client-main">
                 <div className="business-core-modal-section__title">
-                  {language === "es" ? "Cliente" : "Client"}
+                  {t("Cliente", "Client")}
                 </div>
                 <div className="business-core-modal-section__hint">
-                  {language === "es"
-                    ? "Solo identidad y datos comerciales del cliente. Los datos de contacto quedan abajo, en principal y secundario."
-                    : "Only client identity and commercial data. Contact information stays below, in primary and secondary contact blocks."}
+                  {t(
+                    "Solo identidad y datos comerciales del cliente. Los datos de contacto quedan abajo, en principal y secundario.",
+                    "Only client identity and commercial data. Contact information stays below, in primary and secondary contact blocks."
+                  )}
                 </div>
                 <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Nombre cliente" : "Client name"}
+                      {t("Nombre cliente", "Client name")}
                     </label>
                     <input
                       className="form-control"
@@ -933,7 +933,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Organización / Razón social" : "Organization / legal name"}
+                      {t("Organización / Razón social", "Organization / legal name")}
                     </label>
                     <input
                       className="form-control"
@@ -961,7 +961,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Estado servicio" : "Service status"}
+                      {t("Estado servicio", "Service status")}
                     </label>
                     <select
                       className="form-select"
@@ -973,14 +973,14 @@ export function BusinessCoreClientsPage() {
                         }))
                       }
                     >
-                      <option value="active">{language === "es" ? "Activo" : "Active"}</option>
-                      <option value="paused">{language === "es" ? "Pausado" : "Paused"}</option>
-                      <option value="prospect">{language === "es" ? "Prospecto" : "Prospect"}</option>
+                      <option value="active">{t("Activo", "Active")}</option>
+                      <option value="paused">{t("Pausado", "Paused")}</option>
+                      <option value="prospect">{t("Prospecto", "Prospect")}</option>
                     </select>
                   </div>
                   <div className="col-12">
                     <label className="form-label">
-                      {language === "es" ? "Notas comerciales" : "Commercial notes"}
+                      {t("Notas comerciales", "Commercial notes")}
                     </label>
                     <textarea
                       className="form-control"
@@ -999,17 +999,18 @@ export function BusinessCoreClientsPage() {
 
               <div className="business-core-modal-section business-core-modal-section--client-side">
                 <div className="business-core-modal-section__title">
-                  {language === "es" ? "Contacto principal" : "Primary contact"}
+                  {t("Contacto principal", "Primary contact")}
                 </div>
                 <div className="business-core-modal-section__hint">
-                  {language === "es"
-                    ? "El contacto que debería aparecer primero en lectura diaria."
-                    : "The contact that should appear first in day-to-day reading."}
+                  {t(
+                    "El contacto que debería aparecer primero en lectura diaria.",
+                    "The contact that should appear first in day-to-day reading."
+                  )}
                 </div>
                 <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Nombre completo" : "Full name"}
+                      {t("Nombre completo", "Full name")}
                     </label>
                     <input
                       className="form-control"
@@ -1024,7 +1025,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Cargo" : "Role"}
+                      {t("Cargo", "Role")}
                     </label>
                     <input
                       className="form-control"
@@ -1039,7 +1040,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Teléfono contacto" : "Contact phone"}
+                      {t("Teléfono contacto", "Contact phone")}
                     </label>
                     <input
                       className="form-control"
@@ -1054,7 +1055,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Email contacto" : "Contact email"}
+                      {t("Email contacto", "Contact email")}
                     </label>
                     <input
                       className="form-control"
@@ -1073,17 +1074,18 @@ export function BusinessCoreClientsPage() {
 
               <div className="business-core-modal-section business-core-modal-section--client-side">
                 <div className="business-core-modal-section__title">
-                  {language === "es" ? "Contacto secundario" : "Secondary contact"}
+                  {t("Contacto secundario", "Secondary contact")}
                 </div>
                 <div className="business-core-modal-section__hint">
-                  {language === "es"
-                    ? "Respaldo operativo si el contacto principal no responde. Los contactos extra siguen pudiendo gestionarse luego desde la ficha."
-                    : "Operational backup if the primary contact does not respond. Extra contacts can still be managed later from the detail page."}
+                  {t(
+                    "Respaldo operativo si el contacto principal no responde. Los contactos extra siguen pudiendo gestionarse luego desde la ficha.",
+                    "Operational backup if the primary contact does not respond. Extra contacts can still be managed later from the detail page."
+                  )}
                 </div>
                 <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Nombre completo" : "Full name"}
+                      {t("Nombre completo", "Full name")}
                     </label>
                     <input
                       className="form-control"
@@ -1098,7 +1100,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Cargo" : "Role"}
+                      {t("Cargo", "Role")}
                     </label>
                     <input
                       className="form-control"
@@ -1113,7 +1115,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Teléfono contacto" : "Contact phone"}
+                      {t("Teléfono contacto", "Contact phone")}
                     </label>
                     <input
                       className="form-control"
@@ -1128,7 +1130,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Email contacto" : "Contact email"}
+                      {t("Email contacto", "Contact email")}
                     </label>
                     <input
                       className="form-control"
@@ -1147,17 +1149,18 @@ export function BusinessCoreClientsPage() {
 
               <div className="business-core-modal-section business-core-modal-section--client-side">
                 <div className="business-core-modal-section__title">
-                  {language === "es" ? "Dirección principal" : "Primary address"}
+                  {t("Dirección principal", "Primary address")}
                 </div>
                 <div className="business-core-modal-section__hint">
-                  {language === "es"
-                    ? "Dirección operativa desde donde después colgarán instalaciones y mantenciones."
-                    : "Operating address where installations and work orders will later hang from."}
+                  {t(
+                    "Dirección operativa desde donde después colgarán instalaciones y mantenciones.",
+                    "Operating address where installations and work orders will later hang from."
+                  )}
                 </div>
                 <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Calle" : "Street"}
+                      {t("Calle", "Street")}
                     </label>
                     <input
                       className="form-control"
@@ -1172,7 +1175,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Número" : "Number"}
+                      {t("Número", "Number")}
                     </label>
                     <input
                       className="form-control"
@@ -1187,7 +1190,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-4">
                     <label className="form-label">
-                      {language === "es" ? "Comuna" : "Commune"}
+                      {t("Comuna", "Commune")}
                     </label>
                     <input
                       className="form-control"
@@ -1202,7 +1205,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-4">
                     <label className="form-label">
-                      {language === "es" ? "Ciudad" : "City"}
+                      {t("Ciudad", "City")}
                     </label>
                     <input
                       className="form-control"
@@ -1217,7 +1220,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12 col-md-4">
                     <label className="form-label">
-                      {language === "es" ? "Región" : "Region"}
+                      {t("Región", "Region")}
                     </label>
                     <input
                       className="form-control"
@@ -1232,7 +1235,7 @@ export function BusinessCoreClientsPage() {
                   </div>
                   <div className="col-12">
                     <label className="form-label">
-                      {language === "es" ? "Notas de referencia" : "Reference notes"}
+                      {t("Notas de referencia", "Reference notes")}
                     </label>
                     <textarea
                       className="form-control"
@@ -1257,7 +1260,7 @@ export function BusinessCoreClientsPage() {
                 onClick={closeModal}
                 disabled={isSubmitting}
               >
-                {language === "es" ? "Cancelar" : "Cancel"}
+                {t("Cancelar", "Cancel")}
               </button>
               <button
                 className="btn btn-primary"
@@ -1266,16 +1269,10 @@ export function BusinessCoreClientsPage() {
                 disabled={isSubmitting}
               >
                 {isSubmitting
-                  ? language === "es"
-                    ? "Guardando..."
-                    : "Saving..."
+                  ? t("Guardando...", "Saving...")
                   : modalState.mode === "edit"
-                    ? language === "es"
-                      ? "Guardar cambios"
-                      : "Save changes"
-                    : language === "es"
-                      ? "Crear cliente"
-                      : "Create client"}
+                    ? t("Guardar cambios", "Save changes")
+                    : t("Crear cliente", "Create client")}
               </button>
             </div>
           </div>
