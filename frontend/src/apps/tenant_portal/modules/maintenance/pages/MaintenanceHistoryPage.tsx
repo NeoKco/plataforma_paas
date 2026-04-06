@@ -8,7 +8,6 @@ import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { getTenantUsers } from "../../../../../services/tenant-api";
-import { useLanguage } from "../../../../../store/language-context";
 import {
   pickLocalizedText,
   useLanguage,
