@@ -12,6 +12,8 @@ HEALTHCHECK_URL="${HEALTHCHECK_URL:-http://127.0.0.1/health}"
 BACKEND_AUTO_SYNC_POST_DEPLOY="${BACKEND_AUTO_SYNC_POST_DEPLOY:-true}"
 BACKEND_AUTO_SYNC_LIMIT="${BACKEND_AUTO_SYNC_LIMIT:-100}"
 
+source "$SCRIPT_DIR/load_dotenv.sh"
+
 echo "Deploying backend from $PROJECT_ROOT"
 
 if [ ! -f "$ENV_FILE" ]; then
@@ -21,9 +23,7 @@ fi
 
 bash "$SCRIPT_DIR/validate_backend_env.sh" "$ENV_FILE" "$EXPECTED_APP_ENV"
 
-set -a
-source "$ENV_FILE"
-set +a
+load_dotenv_file "$ENV_FILE"
 
 cd "$BACKEND_DIR"
 

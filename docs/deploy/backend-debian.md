@@ -129,7 +129,7 @@ REQUIRE_FRONTEND_DIST=true \
 bash deploy/check_backend_release_readiness.sh
 ```
 
-Ese script:
+El wrapper real luego:
 
 - valida que exista el árbol base esperado
 - valida `.env` con el mismo gate del deploy real
@@ -209,6 +209,7 @@ sudo journalctl -u platform-paas-backend -n 50 --no-pager
 - el verify post-deploy ahora tambien puede dejar ya encolado el sync de schema tenant sin depender de una corrida manual posterior
 - para una validacion funcional externa adicional se puede usar `deploy/run_remote_backend_smoke.py` contra la URL publica del entorno
 - el preflight `check_backend_release_readiness.sh` sirve para detectar antes del deploy bloqueos típicos como `.env` inválido, unidad `systemd` ausente o build frontend no generado
+- la carga de `.env` del deploy ya no depende de `source` crudo, por lo que secretos con espacios o caracteres especiales como `$` quedan soportados de forma más segura
 
 ## Siguiente Evolucion Natural
 

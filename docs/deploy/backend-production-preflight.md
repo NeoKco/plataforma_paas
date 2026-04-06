@@ -47,7 +47,7 @@ bash deploy/check_backend_release_readiness.sh
 
 ## Bloqueos típicos detectables
 
-### 1. `.env` no compatible con shell
+### 1. `.env` mal formado
 
 Ejemplo típico:
 
@@ -60,6 +60,8 @@ Eso no debe quedar sin comillas. Debe verse así:
 ```dotenv
 APP_NAME="Platform Backend"
 ```
+
+Además, si un secreto contiene caracteres especiales como `$`, `%` o `#`, debe quedar guardado como valor literal válido del `.env`. El preflight y el deploy ahora usan un loader dotenv dedicado para no romperse por ese tipo de credenciales.
 
 ### 2. Entorno no coincide con producción
 

@@ -3,6 +3,9 @@ set -euo pipefail
 
 ENV_FILE="${1:-}"
 EXPECTED_APP_ENV="${2:-}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+source "$SCRIPT_DIR/load_dotenv.sh"
 
 if [ -z "$ENV_FILE" ]; then
     echo "Usage: validate_backend_env.sh <env_file> [expected_app_env]" >&2
@@ -14,9 +17,7 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 fi
 
-set -a
-source "$ENV_FILE"
-set +a
+load_dotenv_file "$ENV_FILE"
 
 required_vars=(
     APP_ENV
