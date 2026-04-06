@@ -11,6 +11,7 @@ Esta guia deja una base minima para ejecutar despliegues manuales asistidos y ro
 ## Archivos Base
 
 - `deploy/rollback_backend.sh`
+- `deploy/check_backend_release_readiness.sh`
 - `deploy/verify_backend_deploy.sh`
 - `deploy/run_backend_post_deploy_gate.sh`
 - `deploy/collect_backend_operational_evidence.sh`
@@ -19,6 +20,17 @@ Esta guia deja una base minima para ejecutar despliegues manuales asistidos y ro
 - `.github/workflows/backend-deploy.yml`
 
 ## Deploy Manual desde Servidor
+
+Preflight recomendado antes del deploy:
+
+```bash
+PROJECT_ROOT=/opt/platform_paas \
+ENV_FILE=/opt/platform_paas/.env \
+EXPECTED_APP_ENV=production \
+SERVICE_NAME=platform-paas-backend \
+REQUIRE_FRONTEND_DIST=true \
+bash deploy/check_backend_release_readiness.sh
+```
 
 Ya existe el flujo base por wrapper:
 
@@ -29,6 +41,7 @@ bash deploy/deploy_backend_production.sh
 
 Ese flujo:
 
+- parte mejor parado si el preflight ya confirmó `.env`, unidad `systemd`, checkout y artefactos base
 - valida variables de entorno
 - corre migraciones de control
 - ejecuta pruebas backend base
@@ -116,6 +129,7 @@ Que hace la plantilla:
 
 - usar tags para production cuando sea posible
 - probar primero la ref en `staging`
+- correr primero `check_backend_release_readiness.sh` sobre el host objetivo
 - no considerar exitoso un deploy si falla la verificacion post-deploy
 - no considerar exitoso un deploy si falla el auto-sync post-deploy cuando ese paso esta habilitado
 - si una release falla por codigo, usar rollback a la tag previa

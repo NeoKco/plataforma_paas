@@ -75,6 +75,7 @@ La documentacion ya cubre arquitectura, modulos, runbooks, deploy, API y baselin
 - [CI backend](./runbooks/backend-ci.md)
 - [Pruebas backend](./runbooks/backend-tests.md)
 - [Deploy backend Debian](./deploy/backend-debian.md)
+- [Preflight de producción backend](./deploy/backend-production-preflight.md)
 - [Backend HTTPS con Nginx](./deploy/backend-https-nginx.md)
 - [Checklist de aceptacion operativa](./deploy/operational-acceptance-checklist.md)
 - [Checklist de release funcional](./deploy/functional-release-checklist.md)

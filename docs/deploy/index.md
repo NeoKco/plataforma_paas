@@ -5,6 +5,7 @@ Esta seccion agrupa guias de despliegue y operacion del proyecto.
 ## Documentos
 
 - [Backend Debian](./backend-debian.md): base de despliegue con `systemd`, `nginx`, archivo `.env` y script de actualizacion.
+- [Preflight de Producción Backend](./backend-production-preflight.md): chequeo previo del host antes de ejecutar el deploy real.
 - [Backend HTTPS con Nginx](./backend-https-nginx.md): terminacion TLS base con redirect a `443` y headers de seguridad.
 - [Checklist de Aceptacion Operativa](./operational-acceptance-checklist.md): criterio minimo para aceptar deploys y restore drills.
 - [Checklist de Release Funcional](./functional-release-checklist.md): validaciones funcionales para considerar la app usable despues de un release.

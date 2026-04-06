@@ -21,6 +21,7 @@ Archivos ejemplo incluidos en el repositorio:
 - `infra/nginx/platform-paas-backend-ssl.conf`
 - `infra/env/backend.production.example.env`
 - `deploy/deploy_backend.sh`
+- `deploy/check_backend_release_readiness.sh`
 - `deploy/validate_backend_env.sh`
 - `deploy/verify_backend_deploy.sh`
 - `deploy/deploy_backend_staging.sh`
@@ -115,6 +116,25 @@ sudo systemctl reload nginx
 Script base incluido:
 
 - `deploy/deploy_backend.sh`
+- `deploy/check_backend_release_readiness.sh`
+
+Preflight recomendado antes de correr el wrapper real:
+
+```bash
+PROJECT_ROOT=/opt/platform_paas \
+ENV_FILE=/opt/platform_paas/.env \
+EXPECTED_APP_ENV=production \
+SERVICE_NAME=platform-paas-backend \
+REQUIRE_FRONTEND_DIST=true \
+bash deploy/check_backend_release_readiness.sh
+```
+
+Ese script:
+
+- valida que exista el árbol base esperado
+- valida `.env` con el mismo gate del deploy real
+- comprueba virtualenv, checkout git, build frontend y unidad `systemd`
+- deja un resumen corto de fallos y advertencias antes de tocar el servicio
 
 Ese script:
 
@@ -188,6 +208,7 @@ sudo journalctl -u platform-paas-backend -n 50 --no-pager
 - el deploy ahora falla rapido si faltan variables criticas o si el entorno no coincide con el wrapper usado
 - el verify post-deploy ahora tambien puede dejar ya encolado el sync de schema tenant sin depender de una corrida manual posterior
 - para una validacion funcional externa adicional se puede usar `deploy/run_remote_backend_smoke.py` contra la URL publica del entorno
+- el preflight `check_backend_release_readiness.sh` sirve para detectar antes del deploy bloqueos típicos como `.env` inválido, unidad `systemd` ausente o build frontend no generado
 
 ## Siguiente Evolucion Natural
 
