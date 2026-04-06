@@ -2,7 +2,7 @@
 
 Estado actual:
 
-- `Descubrimiento completado, business-core operativo y maintenance en slice_base_live`
+- `Primer corte funcional cerrado, business-core operativo y maintenance ya estabilizado en slice_base_live`
 
 Prioridad:
 
@@ -397,6 +397,11 @@ Estado actual del checklist:
 
 - checklist funcional del primer corte: cumplido
 - quedan pendientes solo endurecimientos operativos y mejoras futuras no bloqueantes
+
+Conclusión de roadmap del primer corte:
+
+- roadmap funcional del módulo `maintenance`: cerrado
+- pendientes restantes: endurecimiento operativo del import legacy y mejoras futuras no bloqueantes
 
 Validacion reciente:
 
