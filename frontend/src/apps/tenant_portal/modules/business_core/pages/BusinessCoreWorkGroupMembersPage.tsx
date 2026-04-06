@@ -9,7 +9,7 @@ import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { getTenantUsers } from "../../../../../services/tenant-api";
-import { useLanguage } from "../../../../../store/language-context";
+import { pickLocalizedText, useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError, TenantUsersItem } from "../../../../../types";
 import { BusinessCoreModuleNav } from "../components/common/BusinessCoreModuleNav";
@@ -50,6 +50,7 @@ function normalizeNullable(value: string | null): string | null {
 export function BusinessCoreWorkGroupMembersPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
+  const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const { workGroupId } = useParams<{ workGroupId: string }>();
   const [workGroup, setWorkGroup] = useState<TenantBusinessWorkGroup | null>(null);
   const [members, setMembers] = useState<TenantBusinessWorkGroupMember[]>([]);
@@ -187,9 +188,10 @@ export function BusinessCoreWorkGroupMembersPage() {
       return;
     }
     const confirmed = window.confirm(
-      language === "es"
-        ? `Quitar a "${member.user_full_name || member.user_email || `#${member.tenant_user_id}`}" de este grupo?`
-        : `Remove "${member.user_full_name || member.user_email || `#${member.tenant_user_id}`}" from this group?`
+      t(
+        `Quitar a "${member.user_full_name || member.user_email || `#${member.tenant_user_id}`}" de este grupo?`,
+        `Remove "${member.user_full_name || member.user_email || `#${member.tenant_user_id}`}" from this group?`
+      )
     );
     if (!confirmed) {
       return;
@@ -215,25 +217,27 @@ export function BusinessCoreWorkGroupMembersPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow={language === "es" ? "Core de negocio" : "Business core"}
+        eyebrow={t("Core de negocio", "Business core")}
         icon="users"
-        title={language === "es" ? "Miembros del grupo" : "Group members"}
+        title={t("Miembros del grupo", "Group members")}
         description={
           workGroup
-            ? language === "es"
-              ? `Gestiona quién pertenece a ${workGroup.name}, con perfil funcional y flags operativos.`
-              : `Manage who belongs to ${workGroup.name}, with functional profile and operational flags.`
-            : language === "es"
-              ? "Gestiona la membresía real entre usuarios tenant y grupos de trabajo."
-              : "Manage the real membership between tenant users and work groups."
+            ? t(
+                `Gestiona quién pertenece a ${workGroup.name}, con perfil funcional y flags operativos.`,
+                `Manage who belongs to ${workGroup.name}, with functional profile and operational flags.`
+              )
+            : t(
+                "Gestiona la membresía real entre usuarios tenant y grupos de trabajo.",
+                "Manage the real membership between tenant users and work groups."
+              )
         }
         actions={
           <AppToolbar compact>
             <Link className="btn btn-outline-secondary" to="/tenant-portal/business-core/work-groups">
-              {language === "es" ? "Volver a grupos" : "Back to groups"}
+              {t("Volver a grupos", "Back to groups")}
             </Link>
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
-              {language === "es" ? "Recargar" : "Reload"}
+              {t("Recargar", "Reload")}
             </button>
             <button
               className="btn btn-primary"
@@ -241,7 +245,7 @@ export function BusinessCoreWorkGroupMembersPage() {
               onClick={startCreate}
               disabled={activeUsers.length === 0}
             >
-              {language === "es" ? "Nuevo miembro" : "New member"}
+              {t("Nuevo miembro", "New member")}
             </button>
           </AppToolbar>
         }
@@ -251,57 +255,59 @@ export function BusinessCoreWorkGroupMembersPage() {
       {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
       {error ? (
         <ErrorState
-          title={language === "es" ? "No se pudo cargar la membresía" : "Could not load membership"}
+          title={t("No se pudo cargar la membresía", "Could not load membership")}
           detail={getApiErrorDisplayMessage(error)}
           requestId={error.payload?.request_id}
         />
       ) : null}
       {isLoading ? (
-        <LoadingBlock label={language === "es" ? "Cargando membresías..." : "Loading memberships..."} />
+        <LoadingBlock label={t("Cargando membresías...", "Loading memberships...")} />
       ) : null}
 
       {activeUsers.length === 0 && !isLoading ? (
         <div className="alert alert-warning mb-0">
-          {language === "es"
-            ? "Antes de asignar miembros a un grupo, deben existir usuarios activos en el tenant."
-            : "Active tenant users must exist before assigning group members."}{" "}
+          {t(
+            "Antes de asignar miembros a un grupo, deben existir usuarios activos en el tenant.",
+            "Active tenant users must exist before assigning group members."
+          )}{" "}
           <Link to="/tenant-portal/users">
-            {language === "es" ? "Ir a usuarios" : "Go to users"}
+            {t("Ir a usuarios", "Go to users")}
           </Link>
         </div>
       ) : null}
 
       <div className="business-core-detail-grid">
         <PanelCard
-          title={language === "es" ? "Resumen del grupo" : "Group summary"}
+          title={t("Resumen del grupo", "Group summary")}
           subtitle={
-            language === "es"
-              ? "Lectura rápida del equipo operativo seleccionado."
-              : "Quick reading of the selected operational team."
+            t(
+              "Lectura rápida del equipo operativo seleccionado.",
+              "Quick reading of the selected operational team."
+            )
           }
         >
           <div className="business-core-detail-list">
             <div className="business-core-detail-item">
               <span className="business-core-detail-label">
-                {language === "es" ? "Grupo" : "Group"}
+                {t("Grupo", "Group")}
               </span>
               <span>{workGroup?.name || "—"}</span>
             </div>
             <div className="business-core-detail-item">
               <span className="business-core-detail-label">
-                {language === "es" ? "Tipo" : "Kind"}
+                {t("Tipo", "Kind")}
               </span>
               <span>{workGroup?.group_kind || "—"}</span>
             </div>
             <div className="business-core-detail-item">
               <span className="business-core-detail-label">
-                {language === "es" ? "Miembros activos" : "Active members"}
+                {t("Miembros activos", "Active members")}
               </span>
               <span>{members.filter((member) => member.is_active).length}</span>
             </div>
             <div className="business-core-detail-item">
               <span className="business-core-detail-label">
-                {language === "es" ? "Descripción" : "Description"}
+                {t("Descripción", "Description")}
               </span>
               <span>{stripLegacyVisibleText(workGroup?.description) || "—"}</span>
             </div>
@@ -309,23 +315,26 @@ export function BusinessCoreWorkGroupMembersPage() {
         </PanelCard>
 
         <PanelCard
-          title={language === "es" ? "Criterio operativo" : "Operational rule"}
+          title={t("Criterio operativo", "Operational rule")}
           subtitle={
-            language === "es"
-              ? "La membresía sirve para planificar por grupo y luego ejecutar por técnico."
-              : "Membership is used to plan by group and then execute by technician."
+            t(
+              "La membresía sirve para planificar por grupo y luego ejecutar por técnico.",
+              "Membership is used to plan by group and then execute by technician."
+            )
           }
         >
           <div className="business-core-stack">
             <div className="business-core-cell__meta">
-              {language === "es"
-                ? "Marca un miembro como principal si ese usuario usa este grupo como base operativa."
-                : "Mark a member as primary if that user uses this group as their main operational base."}
+              {t(
+                "Marca un miembro como principal si ese usuario usa este grupo como base operativa.",
+                "Mark a member as primary if that user uses this group as their main operational base."
+              )}
             </div>
             <div className="business-core-cell__meta">
-              {language === "es"
-                ? "Marca líder cuando ese usuario coordina o recibe primero la asignación del grupo."
-                : "Mark lead when that user coordinates or receives the group assignment first."}
+              {t(
+                "Marca líder cuando ese usuario coordina o recibe primero la asignación del grupo.",
+                "Mark lead when that user coordinates or receives the group assignment first."
+              )}
             </div>
           </div>
         </PanelCard>
