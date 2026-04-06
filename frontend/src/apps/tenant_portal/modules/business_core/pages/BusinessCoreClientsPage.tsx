@@ -7,7 +7,7 @@ import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
-import { useLanguage } from "../../../../../store/language-context";
+import { pickLocalizedText, useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { BusinessCoreHelpBubble } from "../components/common/BusinessCoreHelpBubble";
@@ -174,6 +174,7 @@ function buildGoogleMapsUrl(address: TenantBusinessSite): string | null {
 export function BusinessCoreClientsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
+  const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const navigate = useNavigate();
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
@@ -402,11 +403,7 @@ export function BusinessCoreClientsPage() {
       ].filter(Boolean);
 
       if (taxIdKey && normalizeTaxIdKey(organization?.tax_id) === taxIdKey) {
-        reasons.push(
-          language === "es"
-            ? "coincide el RUT / Tax ID"
-            : "the Tax ID matches"
-        );
+        reasons.push(t("coincide el RUT / Tax ID", "the Tax ID matches"));
         score += 100;
       }
       if (
@@ -416,11 +413,7 @@ export function BusinessCoreClientsPage() {
           normalizeHumanKey(organization?.legal_name),
         ].includes(organizationNameKey)
       ) {
-        reasons.push(
-          language === "es"
-            ? "coincide el nombre del cliente"
-            : "the client name matches"
-        );
+        reasons.push(t("coincide el nombre del cliente", "the client name matches"));
         score += 70;
       }
       if (
@@ -430,35 +423,19 @@ export function BusinessCoreClientsPage() {
           normalizeHumanKey(organization?.legal_name),
         ].includes(legalNameKey)
       ) {
-        reasons.push(
-          language === "es"
-            ? "coincide la razón social"
-            : "the legal name matches"
-        );
+        reasons.push(t("coincide la razón social", "the legal name matches"));
         score += 70;
       }
       if (addressKey && existingAddressKeys.includes(addressKey)) {
-        reasons.push(
-          language === "es"
-            ? "coincide la dirección principal"
-            : "the main address matches"
-        );
+        reasons.push(t("coincide la dirección principal", "the main address matches"));
         score += 80;
       }
       if (phoneKeys.some((phone) => existingPhoneKeys.includes(phone))) {
-        reasons.push(
-          language === "es"
-            ? "coincide un teléfono existente"
-            : "an existing phone matches"
-        );
+        reasons.push(t("coincide un teléfono existente", "an existing phone matches"));
         score += 75;
       }
       if (emailKeys.some((email) => existingEmailKeys.includes(email))) {
-        reasons.push(
-          language === "es"
-            ? "coincide un email existente"
-            : "an existing email matches"
-        );
+        reasons.push(t("coincide un email existente", "an existing email matches"));
         score += 75;
       }
 
@@ -480,9 +457,10 @@ export function BusinessCoreClientsPage() {
       if (candidate) {
         setDuplicateCandidate(candidate);
         setModalError(
-          language === "es"
-            ? "Ya existe un cliente muy parecido. Antes de crear otro, abre la ficha existente y agrega a la pareja o familiar como contacto si corresponde."
-            : "A very similar client already exists. Before creating another one, open the existing detail and add the spouse or family member as a contact if appropriate."
+          t(
+            "Ya existe un cliente muy parecido. Antes de crear otro, abre la ficha existente y agrega a la pareja o familiar como contacto si corresponde.",
+            "A very similar client already exists. Before creating another one, open the existing detail and add the spouse or family member as a contact if appropriate."
+          )
         );
         return;
       }
@@ -596,9 +574,7 @@ export function BusinessCoreClientsPage() {
       ) {
         const addressPayload: TenantBusinessSiteWriteRequest = {
           client_id: client.id,
-          name:
-            composedAddressLine ||
-            (language === "es" ? "Dirección principal" : "Primary address"),
+          name: composedAddressLine || t("Dirección principal", "Primary address"),
           site_code: null,
           address_line: normalizeNullable(composedAddressLine),
           commune: normalizeNullable(modalForm.commune),
@@ -622,12 +598,8 @@ export function BusinessCoreClientsPage() {
 
       setFeedback(
         modalState.mode === "edit"
-          ? language === "es"
-            ? "Cliente actualizado correctamente"
-            : "Client updated successfully"
-          : language === "es"
-            ? "Cliente creado correctamente"
-            : "Client created successfully"
+          ? t("Cliente actualizado correctamente", "Client updated successfully")
+          : t("Cliente creado correctamente", "Client created successfully")
       );
       closeModal();
       await loadData();
@@ -660,9 +632,10 @@ export function BusinessCoreClientsPage() {
       return;
     }
     const confirmed = window.confirm(
-      language === "es"
-        ? `Eliminar "${row.organization?.name ?? "cliente"}" solo funcionará si no tiene direcciones ni mantenciones asociadas. Si ya tiene historial, debe desactivarse.`
-        : `Deleting "${row.organization?.name ?? "client"}" only works if it has no linked addresses or maintenance history. If it already has history, it must be deactivated.`
+      t(
+        `Eliminar "${row.organization?.name ?? "cliente"}" solo funcionará si no tiene direcciones ni mantenciones asociadas. Si ya tiene historial, debe desactivarse.`,
+        `Deleting "${row.organization?.name ?? "client"}" only works if it has no linked addresses or maintenance history. If it already has history, it must be deactivated.`
+      )
     );
     if (!confirmed) {
       return;
@@ -679,22 +652,24 @@ export function BusinessCoreClientsPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow={language === "es" ? "Core de negocio" : "Business core"}
+        eyebrow={t("Core de negocio", "Business core")}
         icon="business-core"
-        title={language === "es" ? "Clientes" : "Clients"}
+        title={t("Clientes", "Clients")}
         description={
-          language === "es"
-            ? "Vista principal de lectura comercial. Aquí debes poder ubicar un cliente por nombre, contacto o dirección."
-            : "Primary commercial reading view. You should be able to find a client by name, contact, or address here."
+          t(
+            "Vista principal de lectura comercial. Aquí debes poder ubicar un cliente por nombre, contacto o dirección.",
+            "Primary commercial reading view. You should be able to find a client by name, contact, or address here."
+          )
         }
         actions={
           <AppToolbar compact>
             <BusinessCoreHelpBubble
-              label={language === "es" ? "Ayuda" : "Help"}
+              label={t("Ayuda", "Help")}
               helpText={
-                language === "es"
-                  ? "La tabla de clientes debe ser tu lectura principal. Contactos y direcciones se consultan desde aquí y la ficha del cliente, no como catálogos separados."
-                  : "The clients table should be your main reading view. Contacts and addresses are consulted from here and from the client detail, not as separate catalogs."
+                t(
+                  "La tabla de clientes debe ser tu lectura principal. Contactos y direcciones se consultan desde aquí y la ficha del cliente, no como catálogos separados.",
+                  "The clients table should be your main reading view. Contacts and addresses are consulted from here and from the client detail, not as separate catalogs."
+                )
               }
             />
             <button
@@ -702,10 +677,10 @@ export function BusinessCoreClientsPage() {
               type="button"
               onClick={() => void loadData()}
             >
-              {language === "es" ? "Recargar" : "Reload"}
+              {t("Recargar", "Reload")}
             </button>
             <button className="btn btn-primary" type="button" onClick={openCreateModal}>
-              {language === "es" ? "Nuevo cliente" : "New client"}
+              {t("Nuevo cliente", "New client")}
             </button>
           </AppToolbar>
         }
@@ -715,25 +690,22 @@ export function BusinessCoreClientsPage() {
       {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
       {error ? (
         <ErrorState
-          title={
-            language === "es"
-              ? "No se pudo cargar la vista de clientes"
-              : "The clients view could not be loaded"
-          }
+          title={t("No se pudo cargar la vista de clientes", "The clients view could not be loaded")}
           detail={getApiErrorDisplayMessage(error)}
           requestId={error.payload?.request_id}
         />
       ) : null}
       {isLoading ? (
-        <LoadingBlock label={language === "es" ? "Cargando clientes..." : "Loading clients..."} />
+        <LoadingBlock label={t("Cargando clientes...", "Loading clients...")} />
       ) : null}
 
       <DataTableCard
-        title={language === "es" ? "Clientes activos y cartera" : "Client portfolio"}
+        title={t("Clientes activos y cartera", "Client portfolio")}
         subtitle={
-          language === "es"
-            ? "Busca por nombre, RUT, contacto o dirección."
-            : "Search by name, tax ID, contact, or address."
+          t(
+            "Busca por nombre, RUT, contacto o dirección.",
+            "Search by name, tax ID, contact, or address."
+          )
         }
         rows={filteredRows}
         actions={
@@ -741,9 +713,10 @@ export function BusinessCoreClientsPage() {
             className="form-control business-core-search"
             type="search"
             placeholder={
-              language === "es"
-                ? "Buscar por cliente, RUT, contacto o dirección"
-                : "Search by client, tax ID, contact, or address"
+              t(
+                "Buscar por cliente, RUT, contacto o dirección",
+                "Search by client, tax ID, contact, or address"
+              )
             }
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -752,11 +725,11 @@ export function BusinessCoreClientsPage() {
         columns={[
           {
             key: "client",
-            header: language === "es" ? "Cliente" : "Client",
+            header: t("Cliente", "Client"),
             render: (row) => (
               <div>
                 <div className="business-core-cell__title">
-                  {row.organization?.name ?? (language === "es" ? "Sin nombre" : "No name")}
+                  {row.organization?.name ?? t("Sin nombre", "No name")}
                 </div>
                 <div className="business-core-cell__meta">
                   {row.organization?.tax_id || "—"}
@@ -766,7 +739,7 @@ export function BusinessCoreClientsPage() {
           },
           {
             key: "contact",
-            header: language === "es" ? "Contacto principal" : "Primary contact",
+            header: t("Contacto principal", "Primary contact"),
             render: (row) => {
               const primaryContact =
                 row.contacts.find((contact) => contact.is_primary) ?? row.contacts[0];
@@ -775,13 +748,9 @@ export function BusinessCoreClientsPage() {
               );
               const secondaryLabel =
                 secondaryContacts.length === 1
-                  ? language === "es"
-                    ? `+1 respaldo`
-                    : `+1 backup`
+                  ? t(`+1 respaldo`, `+1 backup`)
                   : secondaryContacts.length > 1
-                    ? language === "es"
-                      ? `+${secondaryContacts.length} respaldos`
-                      : `+${secondaryContacts.length} backups`
+                    ? t(`+${secondaryContacts.length} respaldos`, `+${secondaryContacts.length} backups`)
                     : null;
               return (
                 <div>
@@ -802,7 +771,7 @@ export function BusinessCoreClientsPage() {
           },
           {
             key: "address",
-            header: language === "es" ? "Dirección principal" : "Primary address",
+            header: t("Dirección principal", "Primary address"),
             render: (row) => {
               const primaryAddress = row.addresses[0];
               const mapsUrl = primaryAddress ? buildGoogleMapsUrl(primaryAddress) : null;
@@ -829,22 +798,16 @@ export function BusinessCoreClientsPage() {
           },
           {
             key: "status",
-            header: language === "es" ? "Estado" : "Status",
+            header: t("Estado", "Status"),
             render: (row) => (
               <AppBadge tone={row.client.is_active ? "success" : "warning"}>
-                {row.client.is_active
-                  ? language === "es"
-                    ? "activo"
-                    : "active"
-                  : language === "es"
-                    ? "inactivo"
-                    : "inactive"}
+                {row.client.is_active ? t("activo", "active") : t("inactivo", "inactive")}
               </AppBadge>
             ),
           },
           {
             key: "actions",
-            header: language === "es" ? "Acciones" : "Actions",
+            header: t("Acciones", "Actions"),
             render: (row) => (
               <AppToolbar compact>
                 <button
@@ -852,34 +815,28 @@ export function BusinessCoreClientsPage() {
                   type="button"
                   onClick={() => navigate(`/tenant-portal/business-core/clients/${row.client.id}`)}
                 >
-                  {language === "es" ? "Ver ficha" : "Open detail"}
+                  {t("Ver ficha", "Open detail")}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-dark"
                   type="button"
                   onClick={() => openEditModal(row)}
                 >
-                  {language === "es" ? "Editar" : "Edit"}
+                  {t("Editar", "Edit")}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-secondary"
                   type="button"
                   onClick={() => void handleToggle(row)}
                 >
-                  {row.client.is_active
-                    ? language === "es"
-                      ? "Desactivar"
-                      : "Deactivate"
-                    : language === "es"
-                      ? "Activar"
-                      : "Activate"}
+                  {row.client.is_active ? t("Desactivar", "Deactivate") : t("Activar", "Activate")}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-danger"
                   type="button"
                   onClick={() => void handleDelete(row)}
                 >
-                  {language === "es" ? "Eliminar" : "Delete"}
+                  {t("Eliminar", "Delete")}
                 </button>
               </AppToolbar>
             ),

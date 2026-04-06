@@ -7,6 +7,7 @@
 - la `placeholder page` compartida del módulo también se alinea con ese helper para que nuevas pantallas temporales no vuelvan a abrir copy bilingüe manual fuera de la convención
 - la pasada transversal se extiende además a `Taxonomías` y `Ficha de cliente`, bajando copy manual en métricas, filtros, paneles y modales principales del módulo
 - esa misma pasada ahora cubre también `Miembros del grupo`, alineando encabezado, tabla, alertas y modal de membresía con la convención transversal del portal tenant
+- la misma limpieza transversal avanza también en `Clientes`, alineando detección de duplicados, tabla principal, feedback y cabecera de la vista con `pickLocalizedText()` para bajar ternarios manuales en la lectura comercial base
 
 - Se agrega direccion propia de `Organizations` en una primera ola: el modelo, la API y la vista administrativa ahora permiten capturar `address_line`, `commune`, `city`, `region` y `country_code` sin mezclar la direccion con `sites`.
 - `Maintenance` ahora abre accesos directos desde `Instalaciones` hacia `Activos` en `business-core`, y el expediente tecnico de instalacion muestra activos compartidos del sitio.

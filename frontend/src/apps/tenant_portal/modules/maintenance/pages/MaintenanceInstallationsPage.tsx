@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
-import { useLanguage } from "../../../../../store/language-context";
+import { pickLocalizedText, useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { MaintenanceCatalogPage } from "../components/common/MaintenanceCatalogPage";
@@ -64,9 +64,14 @@ function normalizeNullable(value: string | null | undefined): string | null {
   return trimmed ? trimmed : null;
 }
 
+function localizeDynamic(language: string, es: string, en: string): string {
+  return pickLocalizedText(language === "en" ? "en" : "es", { es, en });
+}
+
 export function MaintenanceInstallationsPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<TenantMaintenanceInstallation[]>([]);
@@ -174,18 +179,18 @@ export function MaintenanceInstallationsPage() {
     return (
       stripLegacyVisibleText(organization?.name) ||
       stripLegacyVisibleText(organization?.legal_name) ||
-      (language === "es" ? "Cliente sin nombre" : "Unnamed client")
+      t("Cliente sin nombre", "Unnamed client")
     );
   }
 
   function getSiteDisplayName(site: TenantBusinessSite | undefined): string {
     if (!site) {
-      return language === "es" ? "Dirección sin registrar" : "Missing address";
+      return t("Dirección sin registrar", "Missing address");
     }
     const base =
       stripLegacyVisibleText(getVisibleAddressLabel(site)) ||
       stripLegacyVisibleText(site.name) ||
-      (language === "es" ? "Dirección sin nombre" : "Unnamed address");
+      t("Dirección sin nombre", "Unnamed address");
     const locality = [site.commune, site.city, site.region]
       .map((value) => stripLegacyVisibleText(value))
       .filter((value): value is string => Boolean(value))
@@ -340,9 +345,10 @@ export function MaintenanceInstallationsPage() {
       return;
     }
     const confirmed = window.confirm(
-      language === "es"
-        ? `Eliminar la instalación "${item.name}" solo funcionará si no tiene mantenciones asociadas. ¿Continuar?`
-        : `Delete installation "${item.name}" only if it has no linked work orders. Continue?`
+      t(
+        `Eliminar la instalación "${item.name}" solo funcionará si no tiene mantenciones asociadas. ¿Continuar?`,
+        `Delete installation "${item.name}" only if it has no linked work orders. Continue?`
+      )
     );
     if (!confirmed) {
       return;
@@ -461,12 +467,12 @@ export function MaintenanceInstallationsPage() {
           labelEn: "Technical status",
           type: "select",
           options: [
-            { value: "active", label: language === "es" ? "Activa" : "Active" },
+            { value: "active", label: t("Activa", "Active") },
             {
               value: "maintenance",
-              label: language === "es" ? "En mantención" : "In maintenance",
+              label: t("En mantención", "In maintenance"),
             },
-            { value: "retired", label: language === "es" ? "Retirada" : "Retired" },
+            { value: "retired", label: t("Retirada", "Retired") },
           ],
         },
         {
@@ -498,7 +504,7 @@ export function MaintenanceInstallationsPage() {
               <div className="maintenance-cell__title">{item.name}</div>
               <div className="maintenance-cell__meta">
                 {item.serial_number ||
-                  (currentLanguage === "es" ? "sin serie" : "no serial")}
+                  localizeDynamic(currentLanguage, "sin serie", "no serial")}
               </div>
             </div>
           ),
@@ -514,12 +520,12 @@ export function MaintenanceInstallationsPage() {
                 <div className="maintenance-cell__title">
                   {site
                     ? getClientDisplayName(site.client_id)
-                    : currentLanguage === "es"
-                      ? "Cliente no encontrado"
-                      : "Client not found"}
+                    : localizeDynamic(currentLanguage, "Cliente no encontrado", "Client not found")}
                 </div>
                 <div className="maintenance-cell__meta">
-                  {site ? getSiteDisplayName(site) : currentLanguage === "es" ? "sin dirección" : "no address"}
+                  {site
+                    ? getSiteDisplayName(site)
+                    : localizeDynamic(currentLanguage, "sin dirección", "no address")}
                 </div>
               </div>
             );
@@ -531,7 +537,9 @@ export function MaintenanceInstallationsPage() {
           headerEn: "Address",
           render: (item, currentLanguage) => {
             const site = siteById.get(item.site_id);
-            return site ? getSiteDisplayName(site) : currentLanguage === "es" ? "sin dirección" : "no address";
+            return site
+              ? getSiteDisplayName(site)
+              : localizeDynamic(currentLanguage, "sin dirección", "no address");
           },
         },
         {
@@ -547,12 +555,8 @@ export function MaintenanceInstallationsPage() {
           render: (item, currentLanguage) => (
             <AppBadge tone={item.is_active ? "success" : "neutral"}>
               {item.is_active
-                ? currentLanguage === "es"
-                  ? "Activa"
-                  : "Active"
-                : currentLanguage === "es"
-                  ? "Inactiva"
-                  : "Inactive"}
+                ? localizeDynamic(currentLanguage, "Activa", "Active")
+                : localizeDynamic(currentLanguage, "Inactiva", "Inactive")}
             </AppBadge>
           ),
         },
@@ -567,21 +571,21 @@ export function MaintenanceInstallationsPage() {
                 type="button"
                 onClick={() => navigate(`/tenant-portal/business-core/assets?siteId=${item.site_id}`)}
               >
-                {currentLanguage === "es" ? "Activos" : "Assets"}
+                {localizeDynamic(currentLanguage, "Activos", "Assets")}
               </button>
               <button
                 className="btn btn-sm btn-outline-info"
                 type="button"
                 onClick={() => openTechnicalRecord(item)}
               >
-                {currentLanguage === "es" ? "Expediente" : "Record"}
+                {localizeDynamic(currentLanguage, "Expediente", "Record")}
               </button>
               <button
                 className="btn btn-sm btn-outline-primary"
                 type="button"
                 onClick={() => startEdit(item)}
               >
-                {currentLanguage === "es" ? "Editar" : "Edit"}
+                {localizeDynamic(currentLanguage, "Editar", "Edit")}
               </button>
               <button
                 className="btn btn-sm btn-outline-secondary"
@@ -589,19 +593,15 @@ export function MaintenanceInstallationsPage() {
                 onClick={() => void handleToggle(item)}
               >
                 {item.is_active
-                  ? currentLanguage === "es"
-                    ? "Desactivar"
-                    : "Deactivate"
-                  : currentLanguage === "es"
-                    ? "Activar"
-                    : "Activate"}
+                  ? localizeDynamic(currentLanguage, "Desactivar", "Deactivate")
+                  : localizeDynamic(currentLanguage, "Activar", "Activate")}
               </button>
               <button
                 className="btn btn-sm btn-outline-danger"
                 type="button"
                 onClick={() => void handleDelete(item)}
               >
-                {currentLanguage === "es" ? "Eliminar" : "Delete"}
+                {localizeDynamic(currentLanguage, "Eliminar", "Delete")}
               </button>
             </AppToolbar>
           ),

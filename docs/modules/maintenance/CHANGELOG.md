@@ -7,6 +7,7 @@
 - la misma pasada ahora cubre también `placeholder page`, panel de impacto al reprogramar visitas, `Checklist y evidencias` y `Ficha de mantención`, reduciendo copy manual repetido en componentes operativos reutilizados
 - esa alineación continúa también en `Historial técnico`, cubriendo cabecera, filtros, columnas, tarjetas resumen y el arranque del modal de edición de cierre
 - la misma capa transversal alcanza ahora además `Costos de mantenciones`, alineando cabecera, filtros, tabla y modal de líneas base con el helper compartido y la convención visual del módulo
+- esa misma limpieza transversal cubre además `Instalaciones`, alineando confirmaciones, etiquetas derivadas, opciones de estado y acciones de tabla con el helper compartido para mantener consistencia con el resto del módulo
 
 ## 2026-04-05
 
