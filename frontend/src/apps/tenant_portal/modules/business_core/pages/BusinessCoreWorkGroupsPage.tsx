@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
-import { useLanguage } from "../../../../../store/language-context";
+import { pickLocalizedText, useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { BusinessCoreCatalogPage } from "../components/common/BusinessCoreCatalogPage";
@@ -37,6 +37,7 @@ export function BusinessCoreWorkGroupsPage() {
   const navigate = useNavigate();
   const { session } = useTenantAuth();
   const { language } = useLanguage();
+  const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const [items, setItems] = useState<TenantBusinessWorkGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -129,9 +130,10 @@ export function BusinessCoreWorkGroupsPage() {
   async function handleDelete(item: TenantBusinessWorkGroup) {
     if (!session?.accessToken) return;
     const confirmed = window.confirm(
-      language === "es"
-        ? `Eliminar "${item.name}" quitará este grupo base del dominio compartido. ¿Continuar?`
-        : `Deleting "${item.name}" will remove this base group from the shared domain. Continue?`
+      t(
+        `Eliminar "${item.name}" quitará este grupo base del dominio compartido. ¿Continuar?`,
+        `Deleting "${item.name}" will remove this base group from the shared domain. Continue?`
+      )
     );
     if (!confirmed) return;
     try {
@@ -174,10 +176,10 @@ export function BusinessCoreWorkGroupsPage() {
           labelEn: "Group kind",
           type: "select",
           options: [
-            { value: "operations", label: language === "es" ? "Operaciones" : "Operations" },
-            { value: "field", label: language === "es" ? "Terreno" : "Field" },
-            { value: "sales", label: language === "es" ? "Ventas" : "Sales" },
-            { value: "support", label: language === "es" ? "Soporte" : "Support" },
+            { value: "operations", label: t("Operaciones", "Operations") },
+            { value: "field", label: t("Terreno", "Field") },
+            { value: "sales", label: t("Ventas", "Sales") },
+            { value: "support", label: t("Soporte", "Support") },
           ],
         },
         { key: "is_active", labelEs: "Activo", labelEn: "Active", type: "checkbox" },
@@ -203,21 +205,22 @@ export function BusinessCoreWorkGroupsPage() {
           headerEn: "Kind",
           render: (item, currentLanguage) =>
             item.group_kind === "field"
-              ? currentLanguage === "es" ? "Terreno" : "Field"
+              ? pickLocalizedText(currentLanguage === "en" ? "en" : "es", { es: "Terreno", en: "Field" })
               : item.group_kind === "sales"
-                ? currentLanguage === "es" ? "Ventas" : "Sales"
+                ? pickLocalizedText(currentLanguage === "en" ? "en" : "es", { es: "Ventas", en: "Sales" })
                 : item.group_kind === "support"
-                  ? currentLanguage === "es" ? "Soporte" : "Support"
-                  : currentLanguage === "es" ? "Operaciones" : "Operations",
+                  ? pickLocalizedText(currentLanguage === "en" ? "en" : "es", { es: "Soporte", en: "Support" })
+                  : pickLocalizedText(currentLanguage === "en" ? "en" : "es", { es: "Operaciones", en: "Operations" }),
         },
         {
           key: "members",
           headerEs: "Miembros",
           headerEn: "Members",
           render: (item, currentLanguage) =>
-            currentLanguage === "es"
-              ? `${item.member_count} asignados`
-              : `${item.member_count} assigned`,
+            pickLocalizedText(currentLanguage === "en" ? "en" : "es", {
+              es: `${item.member_count} asignados`,
+              en: `${item.member_count} assigned`,
+            }),
         },
         {
           key: "status",
@@ -226,8 +229,8 @@ export function BusinessCoreWorkGroupsPage() {
           render: (item, currentLanguage) => (
             <AppBadge tone={item.is_active ? "success" : "warning"}>
               {item.is_active
-                ? currentLanguage === "es" ? "activo" : "active"
-                : currentLanguage === "es" ? "inactivo" : "inactive"}
+                ? pickLocalizedText(currentLanguage === "en" ? "en" : "es", { es: "activo", en: "active" })
+                : pickLocalizedText(currentLanguage === "en" ? "en" : "es", { es: "inactivo", en: "inactive" })}
             </AppBadge>
           ),
         },
@@ -238,22 +241,22 @@ export function BusinessCoreWorkGroupsPage() {
           render: (item, currentLanguage) => (
             <AppToolbar compact>
               <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => startEdit(item)}>
-                {currentLanguage === "es" ? "Editar" : "Edit"}
+                {pickLocalizedText(currentLanguage === "en" ? "en" : "es", { es: "Editar", en: "Edit" })}
               </button>
               <button
                 className="btn btn-sm btn-outline-secondary"
                 type="button"
                 onClick={() => navigate(`/tenant-portal/business-core/work-groups/${item.id}/members`)}
               >
-                {currentLanguage === "es" ? "Miembros" : "Members"}
+                {pickLocalizedText(currentLanguage === "en" ? "en" : "es", { es: "Miembros", en: "Members" })}
               </button>
               <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => void handleToggle(item)}>
                 {item.is_active
-                  ? currentLanguage === "es" ? "Desactivar" : "Deactivate"
-                  : currentLanguage === "es" ? "Activar" : "Activate"}
+                  ? pickLocalizedText(currentLanguage === "en" ? "en" : "es", { es: "Desactivar", en: "Deactivate" })
+                  : pickLocalizedText(currentLanguage === "en" ? "en" : "es", { es: "Activar", en: "Activate" })}
               </button>
               <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => void handleDelete(item)}>
-                {currentLanguage === "es" ? "Eliminar" : "Delete"}
+                {pickLocalizedText(currentLanguage === "en" ? "en" : "es", { es: "Eliminar", en: "Delete" })}
               </button>
             </AppToolbar>
           ),

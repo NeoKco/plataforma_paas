@@ -10,7 +10,7 @@ import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { getTenantUsers } from "../../../../../services/tenant-api";
-import { useLanguage } from "../../../../../store/language-context";
+import { pickLocalizedText, useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
 import type { ApiError, TenantUsersItem } from "../../../../../types";
@@ -211,6 +211,7 @@ function isMembershipActive(member: {
 export function MaintenanceWorkOrdersPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
@@ -601,19 +602,19 @@ export function MaintenanceWorkOrdersPage() {
     return (
       stripLegacyVisibleText(organization?.name) ||
       stripLegacyVisibleText(organization?.legal_name) ||
-      (language === "es" ? "Cliente sin nombre" : "Unnamed client")
+      t("Cliente sin nombre", "Unnamed client")
     );
   }
 
   function getSiteDisplayName(siteId: number): string {
     const site = siteById.get(siteId);
     if (!site) {
-      return language === "es" ? "Dirección sin registrar" : "Missing address";
+      return t("Dirección sin registrar", "Missing address");
     }
     const visibleAddress =
       stripLegacyVisibleText(getVisibleAddressLabel(site)) ||
       stripLegacyVisibleText(site.name) ||
-      (language === "es" ? "Dirección sin nombre" : "Unnamed address");
+      t("Dirección sin nombre", "Unnamed address");
     const locality = [site.commune, site.city, site.region]
       .map((value) => stripLegacyVisibleText(value))
       .filter((value): value is string => Boolean(value))
@@ -624,7 +625,7 @@ export function MaintenanceWorkOrdersPage() {
   function getTaskTypeLabel(item: Pick<TenantMaintenanceWorkOrder, "schedule_id">): string {
     const taskTypeId = item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id : null;
     if (!taskTypeId) {
-      return language === "es" ? "Sin tipo" : "No task type";
+      return t("Sin tipo", "No task type");
     }
     return taskTypeById.get(taskTypeId)?.name || `#${taskTypeId}`;
   }
@@ -633,11 +634,11 @@ export function MaintenanceWorkOrdersPage() {
     item: Pick<TenantMaintenanceWorkOrder, "assigned_work_group_id" | "assigned_tenant_user_id">
   ): string {
     if (!item.assigned_work_group_id || !item.assigned_tenant_user_id) {
-      return language === "es" ? "Sin perfil" : "No profile";
+      return t("Sin perfil", "No profile");
     }
     return (
       workGroupMemberByKey.get(`${item.assigned_work_group_id}:${item.assigned_tenant_user_id}`)
-        ?.function_profile_name || (language === "es" ? "Sin perfil" : "No profile")
+        ?.function_profile_name || t("Sin perfil", "No profile")
     );
   }
 
@@ -846,26 +847,28 @@ export function MaintenanceWorkOrdersPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow={language === "es" ? "Mantenciones" : "Maintenance"}
+        eyebrow={t("Mantenciones", "Maintenance")}
         icon="maintenance"
-        title={language === "es" ? "Mantenciones abiertas" : "Open maintenance work"}
+        title={t("Mantenciones abiertas", "Open maintenance work")}
         description={
-          language === "es"
-            ? "Aquí solo se trabajan las mantenciones programadas o en curso. Las realizadas o anuladas pasan de inmediato al historial."
-            : "Only scheduled or in-progress maintenance is worked here. Completed or cancelled work moves immediately to history."
+          t(
+            "Aquí solo se trabajan las mantenciones programadas o en curso. Las realizadas o anuladas pasan de inmediato al historial.",
+            "Only scheduled or in-progress maintenance is worked here. Completed or cancelled work moves immediately to history."
+          )
         }
         actions={
           <AppToolbar compact>
             <MaintenanceHelpBubble
-              label={language === "es" ? "Ayuda" : "Help"}
+              label={t("Ayuda", "Help")}
               helpText={
-                language === "es"
-                  ? "Toda mantención debe colgar de un cliente, una dirección y una instalación real. Si falta uno de esos tres, primero debes crearlo."
-                  : "Every maintenance work item must belong to a real client, address, and installation. If any is missing, create it first."
+                t(
+                  "Toda mantención debe colgar de un cliente, una dirección y una instalación real. Si falta uno de esos tres, primero debes crearlo.",
+                  "Every maintenance work item must belong to a real client, address, and installation. If any is missing, create it first."
+                )
               }
             />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
-              {language === "es" ? "Recargar" : "Reload"}
+              {t("Recargar", "Reload")}
             </button>
             <button
               className="btn btn-primary"
@@ -874,13 +877,11 @@ export function MaintenanceWorkOrdersPage() {
               disabled={noClientsAvailable}
               title={
                 noClientsAvailable
-                  ? language === "es"
-                    ? "Primero crea un cliente en Core de negocio"
-                    : "Create a client in Business core first"
+                  ? t("Primero crea un cliente en Core de negocio", "Create a client in Business core first")
                   : undefined
               }
             >
-              {language === "es" ? "Nueva orden" : "New work order"}
+              {t("Nueva orden", "New work order")}
             </button>
           </AppToolbar>
         }
@@ -889,19 +890,21 @@ export function MaintenanceWorkOrdersPage() {
 
       {requestedClientId > 0 ? (
         <div className="maintenance-context-banner">
-          {language === "es"
-            ? "Vista abierta desde la ficha del cliente. Las mantenciones quedan filtradas por ese cliente y la nueva orden se precarga con sus datos."
-            : "View opened from the client detail. Work orders are filtered by that client and the new work order is preloaded with its data."}
+          {t(
+            "Vista abierta desde la ficha del cliente. Las mantenciones quedan filtradas por ese cliente y la nueva orden se precarga con sus datos.",
+            "View opened from the client detail. Work orders are filtered by that client and the new work order is preloaded with its data."
+          )}
         </div>
       ) : null}
 
       {noClientsAvailable ? (
         <div className="alert alert-warning mb-0">
-          {language === "es"
-            ? "Antes de agendar una mantención debe existir un cliente en Core de negocio."
-            : "A client must exist in Business core before scheduling maintenance."}{" "}
+          {t(
+            "Antes de agendar una mantención debe existir un cliente en Core de negocio.",
+            "A client must exist in Business core before scheduling maintenance."
+          )}{" "}
           <Link to="/tenant-portal/business-core/clients">
-            {language === "es" ? "Ir a clientes" : "Go to clients"}
+            {t("Ir a clientes", "Go to clients")}
           </Link>
         </div>
       ) : null}
@@ -910,61 +913,62 @@ export function MaintenanceWorkOrdersPage() {
 
       {error ? (
         <ErrorState
-          title={language === "es" ? "No se pudo cargar la vista" : "The view could not be loaded"}
+          title={t("No se pudo cargar la vista", "The view could not be loaded")}
           detail={getApiErrorDisplayMessage(error)}
           requestId={error.payload?.request_id}
         />
       ) : null}
 
       {isLoading ? (
-        <LoadingBlock label={language === "es" ? "Cargando mantenciones..." : "Loading maintenance..."} />
+        <LoadingBlock label={t("Cargando mantenciones...", "Loading maintenance...")} />
       ) : null}
 
       <div className="row g-3">
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
-            label={language === "es" ? "Abiertas" : "Open"}
+            label={t("Abiertas", "Open")}
             value={summary.total}
-            hint={language === "es" ? "Mantenciones visibles aquí" : "Maintenance work visible here"}
+            hint={t("Mantenciones visibles aquí", "Maintenance work visible here")}
             icon="maintenance"
             tone="info"
           />
         </div>
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
-            label={language === "es" ? "Programadas" : "Scheduled"}
+            label={t("Programadas", "Scheduled")}
             value={summary.scheduled}
-            hint={language === "es" ? "Pendientes de ejecutar" : "Waiting to be executed"}
+            hint={t("Pendientes de ejecutar", "Waiting to be executed")}
             icon="planning"
             tone="warning"
           />
         </div>
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
-            label={language === "es" ? "En curso" : "In progress"}
+            label={t("En curso", "In progress")}
             value={summary.inProgress}
-            hint={language === "es" ? "Trabajo activo de terreno" : "Active field work"}
+            hint={t("Trabajo activo de terreno", "Active field work")}
             icon="focus"
             tone="info"
           />
         </div>
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
-            label={language === "es" ? "Historial" : "History"}
+            label={t("Historial", "History")}
             value={summary.completed + summary.cancelled}
-            hint={language === "es" ? "Realizadas o anuladas" : "Completed or cancelled"}
+            hint={t("Realizadas o anuladas", "Completed or cancelled")}
             icon="reports"
             tone="success"
           />
         </div>
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
-            label={language === "es" ? "Conflictos" : "Conflicts"}
+            label={t("Conflictos", "Conflicts")}
             value={conflictingCount}
             hint={
-              language === "es"
-                ? "Cruces visibles por instalación, grupo o técnico en el mismo horario"
-                : "Visible clashes by installation, group, or technician in the same slot"
+              t(
+                "Cruces visibles por instalación, grupo o técnico en el mismo horario",
+                "Visible clashes by installation, group, or technician in the same slot"
+              )
             }
             icon="planning"
             tone={conflictingCount > 0 ? "danger" : "default"}
@@ -974,25 +978,28 @@ export function MaintenanceWorkOrdersPage() {
 
       {conflictingCount > 0 ? (
         <div className="alert alert-warning mb-0">
-          {language === "es"
-            ? "La bandeja detectó cruces de agenda en mantenciones abiertas. Revísalos antes de seguir asignando el mismo horario."
-            : "The tray detected schedule clashes in open work orders. Review them before assigning the same time slot again."}
+          {t(
+            "La bandeja detectó cruces de agenda en mantenciones abiertas. Revísalos antes de seguir asignando el mismo horario.",
+            "The tray detected schedule clashes in open work orders. Review them before assigning the same time slot again."
+          )}
         </div>
       ) : null}
 
       {activeRows.length === 0 && !isLoading ? (
         <PanelCard
-          title={language === "es" ? "No hay mantenciones abiertas" : "There are no open work orders"}
+          title={t("No hay mantenciones abiertas", "There are no open work orders")}
           subtitle={
-            language === "es"
-              ? "Las mantenciones realizadas o anuladas ya no aparecen aquí; revísalas en Historial. Usa Nueva orden para programar trabajo nuevo."
-              : "Completed or cancelled maintenance no longer appears here; review it in History. Use New work order to schedule new work."
+            t(
+              "Las mantenciones realizadas o anuladas ya no aparecen aquí; revísalas en Historial. Usa Nueva orden para programar trabajo nuevo.",
+              "Completed or cancelled maintenance no longer appears here; review it in History. Use New work order to schedule new work."
+            )
           }
         >
           <div className="maintenance-cell__meta">
-            {language === "es"
-              ? "La bandeja diaria queda reservada solo para trabajo pendiente."
-              : "The day-to-day tray is reserved only for pending work."}
+            {t(
+              "La bandeja diaria queda reservada solo para trabajo pendiente.",
+              "The day-to-day tray is reserved only for pending work."
+            )}
           </div>
         </PanelCard>
       ) : null}
@@ -1522,17 +1529,18 @@ export function MaintenanceWorkOrdersPage() {
       />
 
       <DataTableCard
-        title={language === "es" ? "Mantenciones abiertas" : "Open maintenance work"}
+        title={t("Mantenciones abiertas", "Open maintenance work")}
         subtitle={
-          language === "es"
-            ? "Solo se muestran programadas o en curso. Al completar o anular, pasan de inmediato al historial."
-            : "Only scheduled or in-progress work is shown here. Once completed or cancelled, it immediately moves to history."
+          t(
+            "Solo se muestran programadas o en curso. Al completar o anular, pasan de inmediato al historial.",
+            "Only scheduled or in-progress work is shown here. Once completed or cancelled, it immediately moves to history."
+          )
         }
         rows={activeRows}
         columns={[
           {
             key: "order",
-            header: language === "es" ? "Trabajo" : "Work",
+            header: t("Trabajo", "Work"),
             render: (item) => (
               <div>
                 <div className="maintenance-cell__title">
@@ -1540,14 +1548,14 @@ export function MaintenanceWorkOrdersPage() {
                 </div>
                 <div className="maintenance-cell__meta">
                   {stripLegacyVisibleText(item.description) ||
-                    (language === "es" ? "Sin detalle adicional" : "No additional detail")}
+                    t("Sin detalle adicional", "No additional detail")}
                 </div>
               </div>
             ),
           },
           {
             key: "client",
-            header: language === "es" ? "Cliente" : "Client",
+            header: t("Cliente", "Client"),
             render: (item) => (
               <div>
                 <div className="maintenance-cell__title">{getClientDisplayName(item.client_id)}</div>
@@ -1557,22 +1565,18 @@ export function MaintenanceWorkOrdersPage() {
           },
           {
             key: "responsible",
-            header: language === "es" ? "Responsable" : "Responsible",
+            header: t("Responsable", "Responsible"),
             render: (item) => (
               <div>
                 <div className="maintenance-cell__title">
                   {item.assigned_work_group_id
                     ? workGroupById.get(item.assigned_work_group_id)?.name || `#${item.assigned_work_group_id}`
-                    : language === "es"
-                      ? "Sin grupo"
-                      : "No group"}
+                    : t("Sin grupo", "No group")}
                 </div>
                 <div className="maintenance-cell__meta">
                   {item.assigned_tenant_user_id
                     ? tenantUserById.get(item.assigned_tenant_user_id)?.full_name || `#${item.assigned_tenant_user_id}`
-                    : language === "es"
-                      ? "Sin técnico"
-                      : "No technician"}
+                    : t("Sin técnico", "No technician")}
                 </div>
                 <div className="maintenance-cell__meta">{getTechnicianFunctionProfileLabel(item)}</div>
               </div>
@@ -1580,17 +1584,17 @@ export function MaintenanceWorkOrdersPage() {
           },
           {
             key: "taskType",
-            header: language === "es" ? "Tipo de tarea" : "Task type",
+            header: t("Tipo de tarea", "Task type"),
             render: (item) => getTaskTypeLabel(item),
           },
           {
             key: "schedule",
-            header: language === "es" ? "Fecha y hora" : "Date and time",
+            header: t("Fecha y hora", "Date and time"),
             render: (item) => (
               <div>
                 <div>{formatDateTime(item.scheduled_for, language, effectiveTimeZone)}</div>
                 <div className="maintenance-cell__meta">
-                  {language === "es" ? "Solicitada" : "Requested"}{" "}
+                  {t("Solicitada", "Requested")}{" "}
                   {formatDateTime(item.requested_at, language, effectiveTimeZone)}
                 </div>
               </div>
@@ -1598,7 +1602,7 @@ export function MaintenanceWorkOrdersPage() {
           },
           {
             key: "status",
-            header: language === "es" ? "Estado" : "Status",
+            header: t("Estado", "Status"),
             render: (item) => (
               <div className="d-grid gap-1">
                 <AppBadge tone={getStatusTone(item.maintenance_status)}>
@@ -1606,9 +1610,10 @@ export function MaintenanceWorkOrdersPage() {
                 </AppBadge>
                 {(conflictSummaryById.get(item.id)?.count ?? 0) > 0 ? (
                   <div className="maintenance-cell__meta text-danger">
-                    {language === "es"
-                      ? `Conflictos visibles: ${conflictSummaryById.get(item.id)?.count ?? 0}`
-                      : `Visible conflicts: ${conflictSummaryById.get(item.id)?.count ?? 0}`}
+                    {t(
+                      `Conflictos visibles: ${conflictSummaryById.get(item.id)?.count ?? 0}`,
+                      `Visible conflicts: ${conflictSummaryById.get(item.id)?.count ?? 0}`
+                    )}
                   </div>
                 ) : null}
               </div>
@@ -1616,17 +1621,15 @@ export function MaintenanceWorkOrdersPage() {
           },
           {
             key: "installation",
-            header: language === "es" ? "Instalación" : "Installation",
+            header: t("Instalación", "Installation"),
             render: (item) =>
               item.installation_id
                 ? installationById.get(item.installation_id)?.name || `#${item.installation_id}`
-                : language === "es"
-                  ? "Instalación pendiente"
-                  : "Installation pending",
+                : t("Instalación pendiente", "Installation pending"),
           },
           {
             key: "actions",
-            header: language === "es" ? "Acciones" : "Actions",
+            header: t("Acciones", "Actions"),
             render: (item) => (
               <AppToolbar compact>
                 <button
@@ -1634,42 +1637,42 @@ export function MaintenanceWorkOrdersPage() {
                   type="button"
                   onClick={() => openDetailModal(item)}
                 >
-                  {language === "es" ? "Ver ficha" : "Open detail"}
+                  {t("Ver ficha", "Open detail")}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-primary"
                   type="button"
                   onClick={() => startEdit(item)}
                 >
-                  {language === "es" ? "Editar" : "Edit"}
+                  {t("Editar", "Edit")}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-info"
                   type="button"
                   onClick={() => startReschedule(item)}
                 >
-                  {language === "es" ? "Reprogramar" : "Reschedule"}
+                  {t("Reprogramar", "Reschedule")}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-secondary"
                   type="button"
                   onClick={() => openVisitsModal(item)}
                 >
-                  {language === "es" ? "Visitas" : "Visits"}
+                  {t("Visitas", "Visits")}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-secondary"
                   type="button"
                   onClick={() => void openCostingModal(item)}
                 >
-                  {language === "es" ? "Costos" : "Costing"}
+                  {t("Costos", "Costing")}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-secondary"
                   type="button"
                   onClick={() => openFieldReportModal(item)}
                 >
-                  {language === "es" ? "Checklist" : "Checklist"}
+                  {t("Checklist", "Checklist")}
                 </button>
                 {item.maintenance_status === "scheduled" ? (
                   <button
@@ -1677,7 +1680,7 @@ export function MaintenanceWorkOrdersPage() {
                     type="button"
                     onClick={() => void handleStatusChange(item, "in_progress")}
                   >
-                    {language === "es" ? "Iniciar" : "Start"}
+                    {t("Iniciar", "Start")}
                   </button>
                 ) : null}
                 <button
@@ -1685,21 +1688,21 @@ export function MaintenanceWorkOrdersPage() {
                   type="button"
                   onClick={() => void openCostingModal(item)}
                 >
-                  {language === "es" ? "Cerrar con costos" : "Close with costing"}
+                  {t("Cerrar con costos", "Close with costing")}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-danger"
                   type="button"
                   onClick={() => void handleStatusChange(item, "cancelled")}
                 >
-                  {language === "es" ? "Anular" : "Cancel"}
+                  {t("Anular", "Cancel")}
                 </button>
                 <button
                   className="btn btn-sm btn-outline-danger"
                   type="button"
                   onClick={() => void handleDelete(item)}
                 >
-                  {language === "es" ? "Eliminar" : "Delete"}
+                  {t("Eliminar", "Delete")}
                 </button>
               </AppToolbar>
             ),
