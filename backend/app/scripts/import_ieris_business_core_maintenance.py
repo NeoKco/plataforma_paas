@@ -41,6 +41,25 @@ from app.common.db.control_database import ControlSessionLocal  # noqa: E402
 
 LOCAL_TZ = ZoneInfo("America/Santiago")
 
+IMPORT_VERIFICATION_SPECS = {
+    "business_core": {
+        "organizations": "empresa",
+        "clients": "clientes",
+        "contacts": None,
+        "sites": None,
+        "function_profiles": "perfil_funcional",
+        "work_groups": "work_groups",
+        "task_types": "task_types",
+    },
+    "maintenance": {
+        "equipment_types": "tipo_equipo",
+        "installations": "instalacion_sst",
+        "work_orders": ("mantenciones", "historico_mantenciones"),
+        "status_logs": ("mantenciones", "historico_mantenciones"),
+        "visits": ("mantenciones", "historico_mantenciones"),
+    },
+}
+
 
 @dataclass
 class ImportCounters:
@@ -1425,6 +1444,44 @@ def import_business_core_and_maintenance(
     }
 
 
+def verify_import_summary(result: dict) -> dict:
+    source_counts = result.get("source_counts") or {}
+    verification: dict[str, dict[str, int | bool]] = {}
+    mismatches: list[str] = []
+
+    for section, entity_map in IMPORT_VERIFICATION_SPECS.items():
+        section_result = result.get(section) or {}
+        for entity_name, source_keys in entity_map.items():
+            counters = section_result.get(entity_name) or {}
+            processed = sum(
+                int(counters.get(counter_name, 0) or 0)
+                for counter_name in ("created", "existing", "updated", "skipped")
+            )
+            if isinstance(source_keys, tuple):
+                expected = sum(int(source_counts.get(source_key, 0) or 0) for source_key in source_keys)
+            elif source_keys is None:
+                expected = processed
+            else:
+                expected = int(source_counts.get(source_keys, 0) or 0)
+
+            verification[f"{section}.{entity_name}"] = {
+                "expected": expected,
+                "processed": processed,
+                "matches": processed == expected,
+            }
+            if processed != expected:
+                mismatches.append(
+                    f"{section}.{entity_name}: expected {expected}, processed {processed}"
+                )
+
+    if mismatches:
+        raise ValueError(
+            "La verificacion post-import detecto inconsistencias: " + "; ".join(mismatches)
+        )
+
+    return verification
+
+
 def main() -> int:
     args = parse_args()
     report_out = args.report_out
@@ -1454,12 +1511,15 @@ def main() -> int:
             legacy_data=legacy_data,
             actor_user_id=args.actor_user_id,
         )
+        verification = verify_import_summary(result)
+        result["verification"] = verification
         if args.apply:
             tenant_db.commit()
         else:
             tenant_db.rollback()
 
         report = {
+            "status": "ok",
             "mode": "apply" if args.apply else "dry-run",
             "tenant_slug": args.tenant_slug,
             "legacy": {

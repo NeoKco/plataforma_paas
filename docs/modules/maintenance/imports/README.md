@@ -75,6 +75,8 @@ Salida:
 
 - reporte JSON por defecto en:
   - `/home/felipe/platform_paas/tmp/ieris_business_core_maintenance_import_report.json`
+- el reporte incluye `status: ok` cuando la corrida termina bien y `status: error` cuando falla
+- en modo exitoso tambien incluye un bloque `verification` con validaciones de consistencia entre fuente y resultado
 
 Alcance del importador inicial:
 
