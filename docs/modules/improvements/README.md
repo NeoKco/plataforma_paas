@@ -26,6 +26,7 @@ Mejoras sugeridas:
 - mejor cobertura de membresias por grupo con filtros por vigencia y capacidad
 - mejor lectura de compatibilidad entre tipos de tarea y perfiles funcionales
 - extension de `assets` hacia relaciones mas ricas con `maintenance` e `iot`
+- cierre editorial residual de i18n/`design system` en `Duplicados`, `Organizations`, `Contacts`, `Sites`, `Assets`, `Asset Types`, `Function Profiles` y `Task Types`, ya tratado como backlog no bloqueante para la salida a terreno
 - smokes browser mas finos para duplicados, assets y catálogos compartidos
 
 Cobertura E2E sugerida:
@@ -99,6 +100,7 @@ Mejoras sugeridas resumidas:
 - ficha tecnica y reportes mas completos
 - importacion legacy con mapeo mas amplio
 - UX operativa y movilidad mas pulida
+- cierre editorial residual de i18n/`design system` en `Pendientes`, `Resumen técnico` y remanentes de vistas secundarias, ya tratado como backlog no bloqueante para priorizar la prueba en terreno
 
 Cobertura E2E sugerida:
 
@@ -140,6 +142,14 @@ Si hay capacidad limitada, el orden sugerido es:
 3. `finance` mejoras de UX y observabilidad
 4. `maintenance` mejoras incrementales de operacion diaria
 5. `community-core` cuando la veta residencial se active de verdad
+
+## 6. Estado transversal previo a salida a terreno
+
+Estado recomendado hoy:
+
+- la base visible principal del frontend ya está suficientemente alineada para una prueba operativa real del PaaS
+- los remanentes de i18n/`design system` detectados en `business-core` y `maintenance` quedan explícitamente como backlog no bloqueante
+- antes de un deploy productivo real la prioridad deja de ser copy/UI residual y pasa a ser hardening operativo, validación de entorno y verificación post-deploy
 
 ## 7. Regla de mantenimiento del backlog
 

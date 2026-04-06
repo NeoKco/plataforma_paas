@@ -22,6 +22,7 @@ Un deploy backend se considera aceptable si:
 - el healthcheck responde `200`
 - no hay errores persistentes en logs recientes del servicio
 - la verificacion post-deploy termina exitosa
+- la lectura operativa base de `business-core` y `maintenance` no presenta errores visibles en la prueba corta de terreno definida para el release
 
 Comandos minimos:
 

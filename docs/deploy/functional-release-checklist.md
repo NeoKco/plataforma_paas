@@ -55,6 +55,9 @@ Este checklist complementa el release tecnico. La idea es validar que la app sig
 - dashboard inicial carga `capabilities`
 - la sesion persiste entre refreshes
 - errores backend con `request_id` se muestran de forma legible
+- `business-core` permite al menos abrir `Resumen`, `Clientes` y `Duplicados` sin errores visibles
+- `maintenance` permite al menos abrir `Resumen técnico`, `Mantenciones`, `Pendientes` e `Historial técnico` sin errores visibles
+- si el release prioriza salida a terreno, validar además una lectura rápida de `Instalaciones`, `Costos` y `Checklist` para confirmar que el remanente editorial no bloquea la operación diaria
 
 ## Criterio de Aprobacion
 

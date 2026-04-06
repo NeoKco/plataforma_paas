@@ -9,6 +9,7 @@
 - la misma capa transversal alcanza ahora además `Costos de mantenciones`, alineando cabecera, filtros, tabla y modal de líneas base con el helper compartido y la convención visual del módulo
 - esa misma limpieza transversal cubre además `Instalaciones`, alineando confirmaciones, etiquetas derivadas, opciones de estado y acciones de tabla con el helper compartido para mantener consistencia con el resto del módulo
 - la misma pasada avanza también en `Mantenciones abiertas`, alineando helpers base, cabecera, métricas, alertas y tabla principal con `pickLocalizedText()` para reducir ternarios manuales en la bandeja operativa diaria
+- se deja explícito que el remanente transversal no bloqueante del módulo pasa a backlog para priorizar salida a terreno: quedan focos editoriales en `Pendientes`, partes de `Resumen técnico`, `Mantenciones abiertas` y otras vistas secundarias, pero el flujo visible principal del módulo ya queda alineado con la base actual de i18n y `design system`
 
 ## 2026-04-05
 
