@@ -13,14 +13,10 @@ Estado actual:
 - alcance base ya definido para iniciar migracion por slice
 - slice inicial ya scaffolded dentro de `platform_paas`
 - queda redefinido como modulo dependiente de `business-core`
-- `business-core` ya existe como dominio real en backend, frontend y migraciones tenant
-- `maintenance` ya tiene esquema tenant base versionado con work orders, visits, installations y equipment types
-- el primer corte backend ya expone APIs reales para `equipment_types`, `installations` y `work_orders`
-- el frontend tenant ya opera sobre esas APIs en sus tres vistas principales
-- `history` ya muestra órdenes cerradas con `status_logs` y `visits`
-- `history` ahora también permite filtrar por `grupo responsable` y `técnico responsable`, y muestra el responsable como lectura rápida de grupo + usuario en la ficha y la tabla
-- `grupo responsable` significa el equipo asignado a la OT; `técnico responsable` significa la persona concreta dentro de ese equipo, no un permiso del sistema
-- en este módulo, cuando se diga `responsables`, se entiende `grupo responsable` + líder/técnico asignado; no hay responsable separado por sitio o dirección
+ las mejoras sugeridas posteriores al cierre funcional quedaron reunidas en [improvements/README.md](/home/felipe/platform_paas/docs/modules/maintenance/improvements/README.md)
+   Backlog de mejoras sugeridas por submodulo despues del cierre funcional.
+ [improvements/README.md](/home/felipe/platform_paas/docs/modules/maintenance/improvements/README.md)
+  Backlog de mejoras sugeridas por submodulo despues del cierre funcional.
 - `Mantenciones` y `Historial` ya comparten `Ver ficha` para abrir una lectura consolidada de cada OT
 - la `Ficha de mantención` ya muestra contexto operativo, snapshots de cliente/instalación/responsables, fechas, trazabilidad, visitas, cierre técnico y accesos contextuales a `Costos`, `Checklist` o `Editar cierre`
 - `Mantenciones` ya permite gestionar `Visitas` por OT para modelar ventanas programadas, ejecución real y responsables de terreno
