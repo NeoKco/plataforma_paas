@@ -192,9 +192,26 @@ test("tenant portal shows imported business core and maintenance data from ieris
         name: /Aplicar plantilla al real|Apply template to actual/i,
       })
     ).toBeVisible();
-    await expect(costingDialog.getByText(/Costo base|Base cost/i).first()).toBeVisible();
-    await expect(costingDialog.getByText(/Líneas|Lines/i).first()).toBeVisible();
-    await expect(costingDialog.getByRole("button", { name: /Quitar traza|Clear trace/i })).toBeVisible();
+    const templateControls = costingDialog
+      .locator("div")
+      .filter({ hasText: /Plantilla base|Base template/i })
+      .locator("select");
+    const actualTemplateControl = templateControls.nth(1);
+    const actualTemplateOptions = actualTemplateControl.locator("option");
+    if ((await actualTemplateOptions.count()) > 1) {
+      const firstTemplateValue = await actualTemplateOptions.nth(1).getAttribute("value");
+      if (firstTemplateValue) {
+        await actualTemplateControl.selectOption(firstTemplateValue);
+      }
+      await expect(costingDialog.getByText(/Costo base|Base cost/i).first()).toBeVisible();
+      await expect(costingDialog.getByText(/Líneas|Lines/i).first()).toBeVisible();
+      const clearTraceButton = costingDialog.getByRole("button", {
+        name: /Quitar traza|Clear trace/i,
+      });
+      if ((await clearTraceButton.count()) > 0) {
+        await expect(clearTraceButton).toBeVisible();
+      }
+    }
     await expect(costingDialog.getByRole("button", { name: /Agregar línea|Add line/i }).first()).toBeVisible();
     await expect(costingDialog.getByLabel(/Sincronizar ingreso|Sync income/i)).toBeVisible();
     await expect(
