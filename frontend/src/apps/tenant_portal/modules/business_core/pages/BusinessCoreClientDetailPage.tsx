@@ -7,7 +7,10 @@ import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
-import { useLanguage } from "../../../../../store/language-context";
+import {
+  pickLocalizedText,
+  useLanguage,
+} from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { getTenantUsers } from "../../../../../services/tenant-api";
 import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
@@ -107,6 +110,7 @@ function buildDefaultAddressForm(clientId: number): AddressModalForm {
 export function BusinessCoreClientDetailPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const { clientId } = useParams<{ clientId: string }>();
   const [client, setClient] = useState<TenantBusinessClient | null>(null);
   const [organization, setOrganization] = useState<TenantBusinessOrganization | null>(null);
@@ -202,17 +206,17 @@ export function BusinessCoreClientDetailPage() {
 
   function formatDateTime(value: string | null): string {
     if (!value) {
-      return language === "es" ? "sin fecha" : "no date";
+      return t("sin fecha", "no date");
     }
     return formatDateTimeInTimeZone(value, language, effectiveTimeZone);
   }
 
   function getHistoryStatusLabel(status: string): string {
     if (status === "completed") {
-      return language === "es" ? "realizada" : "completed";
+      return t("realizada", "completed");
     }
     if (status === "cancelled") {
-      return language === "es" ? "anulada" : "cancelled";
+      return t("anulada", "cancelled");
     }
     return status;
   }
@@ -246,7 +250,7 @@ export function BusinessCoreClientDetailPage() {
       return assignedUser.full_name.trim();
     }
 
-    return language === "es" ? "sin responsable asignado" : "no assigned operator";
+    return t("sin responsable asignado", "no assigned operator");
   }
 
   useEffect(() => {
@@ -397,7 +401,7 @@ export function BusinessCoreClientDetailPage() {
         client_id: client.id,
         name:
           composedAddressLine ||
-          (language === "es" ? "Dirección principal" : "Primary address"),
+          t("Dirección principal", "Primary address"),
         site_code: null,
         address_line: normalizeNullable(composedAddressLine),
         commune: normalizeNullable(addressForm.commune),
@@ -446,11 +450,7 @@ export function BusinessCoreClientDetailPage() {
   if (isLoading) {
     return (
       <LoadingBlock
-        label={
-          language === "es"
-            ? "Cargando ficha de cliente..."
-            : "Loading client detail..."
-        }
+        label={t("Cargando ficha de cliente...", "Loading client detail...")}
       />
     );
   }
@@ -458,17 +458,11 @@ export function BusinessCoreClientDetailPage() {
   if (error || !client || !organization) {
     return (
       <ErrorState
-        title={
-          language === "es"
-            ? "No se pudo cargar la ficha del cliente"
-            : "The client detail could not be loaded"
-        }
+        title={t("No se pudo cargar la ficha del cliente", "The client detail could not be loaded")}
         detail={
           error
             ? getApiErrorDisplayMessage(error)
-            : language === "es"
-              ? "Cliente no encontrado"
-              : "Client not found"
+            : t("Cliente no encontrado", "Client not found")
         }
         requestId={error?.payload?.request_id}
       />
@@ -478,21 +472,20 @@ export function BusinessCoreClientDetailPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow={language === "es" ? "Core de negocio" : "Business core"}
+        eyebrow={t("Core de negocio", "Business core")}
         icon="business-core"
         title={organization.name}
-        description={
-          language === "es"
-            ? "Ficha consolidada del cliente: identidad, contactos y direcciones operativas."
-            : "Consolidated client detail: identity, contacts, and operating addresses."
-        }
+        description={t(
+          "Ficha consolidada del cliente: identidad, contactos y direcciones operativas.",
+          "Consolidated client detail: identity, contacts, and operating addresses."
+        )}
         actions={
           <AppToolbar compact>
             <Link
               className="btn btn-outline-secondary"
               to="/tenant-portal/business-core/clients"
             >
-              {language === "es" ? "Volver a clientes" : "Back to clients"}
+              {t("Volver a clientes", "Back to clients")}
             </Link>
           </AppToolbar>
         }
@@ -504,17 +497,13 @@ export function BusinessCoreClientDetailPage() {
 
       <div className="business-core-detail-grid">
         <PanelCard
-          title={language === "es" ? "Resumen del cliente" : "Client summary"}
-          subtitle={
-            language === "es"
-              ? "Lectura principal para operación diaria."
-              : "Primary reading for day-to-day operation."
-          }
+          title={t("Resumen del cliente", "Client summary")}
+          subtitle={t("Lectura principal para operación diaria.", "Primary reading for day-to-day operation.")}
         >
           <div className="business-core-detail-list">
             <div className="business-core-detail-item">
               <span className="business-core-detail-label">
-                {language === "es" ? "Organización / Razón social" : "Organization / legal name"}
+                {t("Organización / Razón social", "Organization / legal name")}
               </span>
               <span>{organization.legal_name || organization.name}</span>
             </div>
@@ -524,7 +513,7 @@ export function BusinessCoreClientDetailPage() {
             </div>
             <div className="business-core-detail-item">
               <span className="business-core-detail-label">
-                {language === "es" ? "Estado servicio" : "Service status"}
+                {t("Estado servicio", "Service status")}
               </span>
               <AppBadge tone={client.is_active ? "success" : "warning"}>
                 {client.service_status}
@@ -532,13 +521,13 @@ export function BusinessCoreClientDetailPage() {
             </div>
             <div className="business-core-detail-item">
               <span className="business-core-detail-label">
-                {language === "es" ? "Contacto principal" : "Primary contact"}
+                {t("Contacto principal", "Primary contact")}
               </span>
               <span>{primaryContact?.full_name || "—"}</span>
             </div>
             <div className="business-core-detail-item">
               <span className="business-core-detail-label">
-                {language === "es" ? "Teléfono principal" : "Primary phone"}
+                {t("Teléfono principal", "Primary phone")}
               </span>
               <span>{primaryContact?.phone || organization.phone || "—"}</span>
             </div>
@@ -549,19 +538,18 @@ export function BusinessCoreClientDetailPage() {
           </div>
           {stripLegacyVisibleText(client.commercial_notes) ? (
             <div className="business-core-detail-note">
-              <strong>{language === "es" ? "Notas" : "Notes"}:</strong>{" "}
+              <strong>{t("Notas", "Notes")}:</strong>{" "}
               {stripLegacyVisibleText(client.commercial_notes)}
             </div>
           ) : null}
         </PanelCard>
 
         <PanelCard
-          title={language === "es" ? "Contactos asociados" : "Linked contacts"}
-          subtitle={
-            language === "es"
-              ? "Todos los contactos de la organización base del cliente."
-              : "All contacts from the client's base organization."
-          }
+          title={t("Contactos asociados", "Linked contacts")}
+          subtitle={t(
+            "Todos los contactos de la organización base del cliente.",
+            "All contacts from the client's base organization."
+          )}
           actions={
             <AppToolbar compact>
               <button
@@ -569,16 +557,14 @@ export function BusinessCoreClientDetailPage() {
               type="button"
               onClick={openCreateContactModal}
             >
-              {language === "es" ? "Nuevo contacto" : "New contact"}
+              {t("Nuevo contacto", "New contact")}
             </button>
           </AppToolbar>
         }
       >
           {contacts.length === 0 ? (
             <p className="mb-0 text-muted">
-              {language === "es"
-                ? "Este cliente no tiene contactos cargados."
-                : "This client has no contacts yet."}
+              {t("Este cliente no tiene contactos cargados.", "This client has no contacts yet.")}
             </p>
           ) : (
             <div className="business-core-stack">
@@ -588,13 +574,12 @@ export function BusinessCoreClientDetailPage() {
                     {contact.full_name}
                     {contact.is_primary ? (
                       <AppBadge tone="success">
-                        {language === "es" ? "principal" : "primary"}
+                        {t("principal", "primary")}
                       </AppBadge>
                     ) : null}
                   </div>
                   <div className="business-core-cell__meta">
-                    {contact.role_title ||
-                      (language === "es" ? "sin cargo" : "no role")}
+                    {contact.role_title || t("sin cargo", "no role")}
                   </div>
                   <div className="business-core-cell__meta">
                     {contact.phone || "—"} · {contact.email || "—"}
@@ -605,14 +590,14 @@ export function BusinessCoreClientDetailPage() {
                       type="button"
                       onClick={() => startEditContact(contact)}
                     >
-                      {language === "es" ? "Editar" : "Edit"}
+                      {t("Editar", "Edit")}
                     </button>
                     <button
                       className="btn btn-sm btn-outline-danger"
                       type="button"
                       onClick={() => void handleDeleteContact(contact)}
                     >
-                      {language === "es" ? "Eliminar" : "Delete"}
+                      {t("Eliminar", "Delete")}
                     </button>
                   </div>
                 </div>
@@ -623,12 +608,11 @@ export function BusinessCoreClientDetailPage() {
       </div>
 
       <PanelCard
-        title={language === "es" ? "Direcciones del cliente" : "Client addresses"}
-        subtitle={
-          language === "es"
-            ? "Direcciones operativas donde luego cuelgan mantenciones, proyectos o activos."
-            : "Operating addresses where maintenance, projects, or assets will later hang."
-        }
+        title={t("Direcciones del cliente", "Client addresses")}
+        subtitle={t(
+          "Direcciones operativas donde luego cuelgan mantenciones, proyectos o activos.",
+          "Operating addresses where maintenance, projects, or assets will later hang."
+        )}
         actions={
           <AppToolbar compact>
             <button
@@ -636,16 +620,14 @@ export function BusinessCoreClientDetailPage() {
               type="button"
               onClick={openCreateAddressModal}
             >
-              {language === "es" ? "Nueva dirección" : "New address"}
+              {t("Nueva dirección", "New address")}
             </button>
           </AppToolbar>
         }
       >
         {addresses.length === 0 ? (
           <p className="mb-0 text-muted">
-            {language === "es"
-              ? "Este cliente no tiene direcciones cargadas."
-              : "This client has no addresses yet."}
+            {t("Este cliente no tiene direcciones cargadas.", "This client has no addresses yet.")}
           </p>
         ) : (
           <div className="business-core-stack">
@@ -672,7 +654,7 @@ export function BusinessCoreClientDetailPage() {
                       type="button"
                       onClick={() => startEditAddress(site)}
                     >
-                      {language === "es" ? "Editar" : "Edit"}
+                      {t("Editar", "Edit")}
                     </button>
                     {mapsUrl ? (
                       <a
@@ -691,7 +673,7 @@ export function BusinessCoreClientDetailPage() {
                       type="button"
                       onClick={() => void handleDeleteAddress(site)}
                     >
-                      {language === "es" ? "Eliminar" : "Delete"}
+                      {t("Eliminar", "Delete")}
                     </button>
                   </div>
                 </div>
@@ -711,37 +693,33 @@ export function BusinessCoreClientDetailPage() {
             className="confirm-dialog business-core-form-modal business-core-form-modal--compact"
             role="dialog"
             aria-modal="true"
-            aria-label={editingContactId ? "Editar contacto" : "Nuevo contacto"}
+            aria-label={editingContactId ? t("Editar contacto", "Edit contact") : t("Nuevo contacto", "New contact")}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="business-core-form-modal__eyebrow">
-              {language === "es" ? "Edición puntual" : "Targeted edit"}
+              {t("Edición puntual", "Targeted edit")}
             </div>
             <div className="confirm-dialog__title">
-              {editingContactId
-                ? language === "es"
-                  ? "Editar contacto"
-                  : "Edit contact"
-                : language === "es"
-                  ? "Nuevo contacto"
-                  : "New contact"}
+              {editingContactId ? t("Editar contacto", "Edit contact") : t("Nuevo contacto", "New contact")}
             </div>
             <div className="confirm-dialog__description">
-              {language === "es"
-                ? "Completa solo cuando realmente necesites agregar o corregir un contacto del cliente."
-                : "Fill this only when you actually need to add or correct a client contact."}
+              {t(
+                "Completa solo cuando realmente necesites agregar o corregir un contacto del cliente.",
+                "Fill this only when you actually need to add or correct a client contact."
+              )}
             </div>
             <div className="business-core-modal-grid">
               <div className="business-core-modal-section">
                 <div className="business-core-modal-section__hint">
-                  {language === "es"
-                    ? "Corrige o agrega el contacto sin salir de la ficha del cliente."
-                    : "Add or correct the contact without leaving the client detail page."}
+                  {t(
+                    "Corrige o agrega el contacto sin salir de la ficha del cliente.",
+                    "Add or correct the contact without leaving the client detail page."
+                  )}
                 </div>
                 <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Nombre completo" : "Full name"}
+                      {t("Nombre completo", "Full name")}
                     </label>
                     <input
                       className="form-control"
@@ -756,7 +734,7 @@ export function BusinessCoreClientDetailPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Cargo" : "Role"}
+                      {t("Cargo", "Role")}
                     </label>
                     <input
                       className="form-control"
@@ -785,7 +763,7 @@ export function BusinessCoreClientDetailPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
-                      {language === "es" ? "Teléfono" : "Phone"}
+                      {t("Teléfono", "Phone")}
                     </label>
                     <input
                       className="form-control"
@@ -812,7 +790,7 @@ export function BusinessCoreClientDetailPage() {
                         }
                       />
                       <span className="form-check-label">
-                        {language === "es" ? "Contacto principal" : "Primary contact"}
+                        {t("Contacto principal", "Primary contact")}
                       </span>
                     </label>
                     <label className="form-check">
@@ -828,7 +806,7 @@ export function BusinessCoreClientDetailPage() {
                         }
                       />
                       <span className="form-check-label">
-                        {language === "es" ? "Activo" : "Active"}
+                        {t("Activo", "Active")}
                       </span>
                     </label>
                   </div>
@@ -841,7 +819,7 @@ export function BusinessCoreClientDetailPage() {
                 type="button"
                 onClick={closeContactModal}
               >
-                {language === "es" ? "Cancelar" : "Cancel"}
+                {t("Cancelar", "Cancel")}
               </button>
               <button
                 className="btn btn-primary"
@@ -849,13 +827,7 @@ export function BusinessCoreClientDetailPage() {
                 disabled={isSavingContact}
                 onClick={() => void handleSaveContact()}
               >
-                {editingContactId
-                  ? language === "es"
-                    ? "Guardar contacto"
-                    : "Save contact"
-                  : language === "es"
-                    ? "Agregar contacto"
-                    : "Add contact"}
+                {editingContactId ? t("Guardar contacto", "Save contact") : t("Agregar contacto", "Add contact")}
               </button>
             </div>
           </div>
@@ -872,37 +844,33 @@ export function BusinessCoreClientDetailPage() {
             className="confirm-dialog business-core-form-modal business-core-form-modal--compact"
             role="dialog"
             aria-modal="true"
-            aria-label={editingAddressId ? "Editar dirección" : "Nueva dirección"}
+            aria-label={editingAddressId ? t("Editar dirección", "Edit address") : t("Nueva dirección", "New address")}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="business-core-form-modal__eyebrow">
-              {language === "es" ? "Edición puntual" : "Targeted edit"}
+              {t("Edición puntual", "Targeted edit")}
             </div>
             <div className="confirm-dialog__title">
-              {editingAddressId
-                ? language === "es"
-                  ? "Editar dirección"
-                  : "Edit address"
-                : language === "es"
-                  ? "Nueva dirección"
-                  : "New address"}
+              {editingAddressId ? t("Editar dirección", "Edit address") : t("Nueva dirección", "New address")}
             </div>
             <div className="confirm-dialog__description">
-              {language === "es"
-                ? "Agrega o corrige una dirección del cliente solo cuando haga falta."
-                : "Add or correct a client address only when needed."}
+              {t(
+                "Agrega o corrige una dirección del cliente solo cuando haga falta.",
+                "Add or correct a client address only when needed."
+              )}
             </div>
             <div className="business-core-modal-grid">
               <div className="business-core-modal-section">
                 <div className="business-core-modal-section__hint">
-                  {language === "es"
-                    ? "Captura la dirección visible del cliente; el código técnico queda interno."
-                    : "Capture the visible client address; the technical code stays internal."}
+                  {t(
+                    "Captura la dirección visible del cliente; el código técnico queda interno.",
+                    "Capture the visible client address; the technical code stays internal."
+                  )}
                 </div>
                 <div className="row g-3 business-core-form-grid--dense">
                   <div className="col-12 col-md-8">
                     <label className="form-label">
-                      {language === "es" ? "Calle" : "Street"}
+                      {t("Calle", "Street")}
                     </label>
                     <input
                       className="form-control"
@@ -917,7 +885,7 @@ export function BusinessCoreClientDetailPage() {
                   </div>
                   <div className="col-12 col-md-4">
                     <label className="form-label">
-                      {language === "es" ? "Número" : "Number"}
+                      {t("Número", "Number")}
                     </label>
                     <input
                       className="form-control"
@@ -932,7 +900,7 @@ export function BusinessCoreClientDetailPage() {
                   </div>
                   <div className="col-12 col-md-4">
                     <label className="form-label">
-                      {language === "es" ? "Comuna" : "Commune"}
+                      {t("Comuna", "Commune")}
                     </label>
                     <input
                       className="form-control"
@@ -947,7 +915,7 @@ export function BusinessCoreClientDetailPage() {
                   </div>
                   <div className="col-12 col-md-4">
                     <label className="form-label">
-                      {language === "es" ? "Ciudad" : "City"}
+                      {t("Ciudad", "City")}
                     </label>
                     <input
                       className="form-control"
@@ -962,7 +930,7 @@ export function BusinessCoreClientDetailPage() {
                   </div>
                   <div className="col-12 col-md-4">
                     <label className="form-label">
-                      {language === "es" ? "Región" : "Region"}
+                      {t("Región", "Region")}
                     </label>
                     <input
                       className="form-control"
@@ -977,7 +945,7 @@ export function BusinessCoreClientDetailPage() {
                   </div>
                   <div className="col-12 col-md-4">
                     <label className="form-label">
-                      {language === "es" ? "País" : "Country"}
+                      {t("País", "Country")}
                     </label>
                     <input
                       className="form-control"
@@ -992,7 +960,7 @@ export function BusinessCoreClientDetailPage() {
                   </div>
                   <div className="col-12">
                     <label className="form-label">
-                      {language === "es" ? "Notas de referencia" : "Reference notes"}
+                      {t("Notas de referencia", "Reference notes")}
                     </label>
                     <textarea
                       className="form-control"
@@ -1015,7 +983,7 @@ export function BusinessCoreClientDetailPage() {
                 type="button"
                 onClick={closeAddressModal}
               >
-                {language === "es" ? "Cancelar" : "Cancel"}
+                {t("Cancelar", "Cancel")}
               </button>
               <button
                 className="btn btn-primary"
@@ -1023,13 +991,7 @@ export function BusinessCoreClientDetailPage() {
                 disabled={isSavingAddress}
                 onClick={() => void handleSaveAddress()}
               >
-                {editingAddressId
-                  ? language === "es"
-                    ? "Guardar dirección"
-                    : "Save address"
-                  : language === "es"
-                    ? "Agregar dirección"
-                    : "Add address"}
+                {editingAddressId ? t("Guardar dirección", "Save address") : t("Agregar dirección", "Add address")}
               </button>
             </div>
           </div>
@@ -1038,28 +1000,28 @@ export function BusinessCoreClientDetailPage() {
 
       <div className="business-core-detail-grid">
         <PanelCard
-          title={language === "es" ? "Instalaciones asociadas" : "Linked installations"}
-          subtitle={
-            language === "es"
-              ? "Resumen técnico conectado al cliente a través de sus direcciones."
-              : "Technical summary connected to the client through its addresses."
-          }
+          title={t("Instalaciones asociadas", "Linked installations")}
+          subtitle={t(
+            "Resumen técnico conectado al cliente a través de sus direcciones.",
+            "Technical summary connected to the client through its addresses."
+          )}
           actions={
             <AppToolbar compact>
               <Link
                 className="btn btn-outline-secondary"
                 to={`/tenant-portal/maintenance/installations?clientId=${client.id}`}
               >
-                {language === "es" ? "Ver instalaciones" : "View installations"}
+                {t("Ver instalaciones", "View installations")}
               </Link>
             </AppToolbar>
           }
         >
           {relatedInstallations.length === 0 ? (
             <p className="mb-0 text-muted">
-              {language === "es"
-                ? "Este cliente todavía no tiene instalaciones técnicas registradas."
-                : "This client has no technical installations yet."}
+              {t(
+                "Este cliente todavía no tiene instalaciones técnicas registradas.",
+                "This client has no technical installations yet."
+              )}
             </p>
           ) : (
             <div className="business-core-stack">
@@ -1087,7 +1049,7 @@ export function BusinessCoreClientDetailPage() {
                         className="btn btn-sm btn-outline-primary"
                         to={`/tenant-portal/maintenance/work-orders?${scheduleParams}`}
                       >
-                        {language === "es" ? "Agendar mantención" : "Schedule maintenance"}
+                        {t("Agendar mantención", "Schedule maintenance")}
                       </Link>
                     </div>
                   </div>
@@ -1098,18 +1060,18 @@ export function BusinessCoreClientDetailPage() {
         </PanelCard>
 
         <PanelCard
-          title={language === "es" ? "Mantenciones realizadas" : "Completed maintenance"}
-          subtitle={
-            language === "es"
-              ? "Trabajo cerrado de este cliente, tomado desde historial técnico."
-              : "Closed work for this client, sourced from technical history."
-          }
+          title={t("Mantenciones realizadas", "Completed maintenance")}
+          subtitle={t(
+            "Trabajo cerrado de este cliente, tomado desde historial técnico.",
+            "Closed work for this client, sourced from technical history."
+          )}
         >
           {recentWorkOrders.length === 0 ? (
             <p className="mb-0 text-muted">
-              {language === "es"
-                ? "Este cliente todavía no tiene mantenciones cerradas en historial."
-                : "This client has no closed maintenance in history yet."}
+              {t(
+                "Este cliente todavía no tiene mantenciones cerradas en historial.",
+                "This client has no closed maintenance in history yet."
+              )}
             </p>
           ) : (
             <div className="business-core-stack">
@@ -1132,15 +1094,15 @@ export function BusinessCoreClientDetailPage() {
                       {targetAddress?.address_line || targetAddress?.name || "—"}
                     </div>
                     <div className="business-core-cell__meta">
-                      {language === "es" ? "Instalación" : "Installation"}:{" "}
-                      {installation?.name || (language === "es" ? "sin instalación" : "no installation")}
+                      {t("Instalación", "Installation")}:{" "}
+                      {installation?.name || t("sin instalación", "no installation")}
                     </div>
                     <div className="business-core-cell__meta">
-                      {language === "es" ? "Responsable" : "Responsible"}:{" "}
+                      {t("Responsable", "Responsible")}:{" "}
                       {getResponsibleLabel(workOrder)}
                     </div>
                     <div className="business-core-cell__meta">
-                      {language === "es" ? "Cierre" : "Closed"}:{" "}
+                      {t("Cierre", "Closed")}:{" "}
                       {formatDateTime(workOrder.completed_at || workOrder.cancelled_at)}
                     </div>
                     {visibleDescription ? (

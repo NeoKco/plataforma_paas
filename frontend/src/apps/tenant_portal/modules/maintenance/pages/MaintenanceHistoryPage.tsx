@@ -658,21 +658,21 @@ export function MaintenanceHistoryPage() {
                     type="button"
                     onClick={() => openDetailModal(item)}
                   >
-                    {language === "es" ? "Ver ficha" : "Open detail"}
+                    {t("Ver ficha", "Open detail")}
                   </button>
                   <button
                     className="btn btn-sm btn-outline-primary"
                     type="button"
                     onClick={() => openCostingModal(item)}
                   >
-                    {language === "es" ? "Ver costos" : "View costing"}
+                    {t("Ver costos", "View costing")}
                   </button>
                   <button
                     className="btn btn-sm btn-outline-primary"
                     type="button"
                     onClick={() => openFieldReportModal(item)}
                   >
-                    {language === "es" ? "Ver checklist" : "View checklist"}
+                    {t("Ver checklist", "View checklist")}
                   </button>
                   {canReopenFromHistory ? (
                     <button
@@ -680,7 +680,7 @@ export function MaintenanceHistoryPage() {
                       type="button"
                       onClick={() => void handleReopen(item)}
                     >
-                      {language === "es" ? "Reabrir" : "Reopen"}
+                      {t("Reabrir", "Reopen")}
                     </button>
                   ) : null}
                   <button
@@ -688,7 +688,7 @@ export function MaintenanceHistoryPage() {
                     type="button"
                     onClick={() => startEdit(item)}
                   >
-                    {language === "es" ? "Editar cierre" : "Edit closure"}
+                    {t("Editar cierre", "Edit closure")}
                   </button>
                 </AppToolbar>
               }
@@ -696,31 +696,29 @@ export function MaintenanceHistoryPage() {
               <div className="row g-3">
                 <div className="col-12 col-lg-6">
                   <h3 className="panel-card__title h6 mb-3">
-                    {language === "es" ? "Resumen" : "Summary"}
+                    {t("Resumen", "Summary")}
                   </h3>
                   <div className="maintenance-cell__meta">
-                    {language === "es" ? "Instalación" : "Installation"}:{" "}
+                    {t("Instalación", "Installation")}:{" "}
                     {item.installation_id
                       ? installationById.get(item.installation_id)?.name || `#${item.installation_id}`
-                      : language === "es"
-                        ? "sin instalación"
-                        : "no installation"}
+                      : t("sin instalación", "no installation")}
                   </div>
                   <div className="maintenance-cell__meta">
-                    {language === "es" ? "Programada" : "Scheduled"}:{" "}
+                    {t("Programada", "Scheduled")}:{" "}
                     {formatDateTime(item.scheduled_for, language, effectiveTimeZone)}
                   </div>
                   <div className="maintenance-cell__meta">
-                    {language === "es" ? "Tipo de tarea" : "Task type"}: {getTaskTypeLabel(item)}
+                    {t("Tipo de tarea", "Task type")}: {getTaskTypeLabel(item)}
                   </div>
                   <div className="maintenance-cell__meta">
-                    {language === "es" ? "Perfil funcional" : "Function profile"}: {getTechnicianFunctionProfileLabel(item)}
+                    {t("Perfil funcional", "Function profile")}: {getTechnicianFunctionProfileLabel(item)}
                   </div>
                   <div className="maintenance-cell__meta">
-                    {language === "es" ? "Responsable" : "Responsible"}: {getAssignedWorkGroupLabel(item)} · {getAssignedTenantUserLabel(item)}
+                    {t("Responsable", "Responsible")}: {getAssignedWorkGroupLabel(item)} · {getAssignedTenantUserLabel(item)}
                   </div>
                   <div className="maintenance-cell__meta">
-                    {language === "es" ? "Cierre" : "Closed"}:{" "}
+                    {t("Cierre", "Closed")}:{" "}
                     {formatDateTime(
                       item.completed_at || item.cancelled_at,
                       language,
@@ -733,7 +731,7 @@ export function MaintenanceHistoryPage() {
                 </div>
                 <div className="col-12 col-lg-3">
                   <h3 className="panel-card__title h6 mb-3">
-                    {language === "es" ? "Cambios de estado" : "Status changes"}
+                    {t("Cambios de estado", "Status changes")}
                   </h3>
                   <div className="d-grid gap-2">
                     {item.status_logs.map((log) => (
@@ -755,12 +753,12 @@ export function MaintenanceHistoryPage() {
                 </div>
                 <div className="col-12 col-lg-3">
                   <h3 className="panel-card__title h6 mb-3">
-                    {language === "es" ? "Visitas" : "Visits"}
+                    {t("Visitas", "Visits")}
                   </h3>
                   <div className="d-grid gap-2">
                     {item.visits.length === 0 ? (
                       <div className="maintenance-history-entry__meta">
-                        {language === "es" ? "Sin visitas registradas" : "No visits recorded"}
+                        {t("Sin visitas registradas", "No visits recorded")}
                       </div>
                     ) : (
                       item.visits.map((visit) => (
@@ -951,14 +949,14 @@ export function MaintenanceHistoryPage() {
             className="maintenance-form-modal"
             role="dialog"
             aria-modal="true"
-            aria-label={language === "es" ? "Editar cierre de mantención" : "Edit maintenance closure"}
+            aria-label={t("Editar cierre de mantención", "Edit maintenance closure")}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="maintenance-form-modal__eyebrow">
-              {language === "es" ? "Cierre e historial" : "Closure and history"}
+              {t("Cierre e historial", "Closure and history")}
             </div>
             <PanelCard
-              title={language === "es" ? "Editar cierre" : "Edit closure"}
+              title={t("Editar cierre", "Edit closure")}
               subtitle={
                 language === "es"
                   ? canAdjustCompletedAt && editingRow.maintenance_status === "completed"
@@ -978,11 +976,11 @@ export function MaintenanceHistoryPage() {
               >
                 <div className="row g-3">
                   <div className="col-12">
-                    <label className="form-label">{language === "es" ? "Trabajo realizado" : "Completed work"}</label>
+                    <label className="form-label">{t("Trabajo realizado", "Completed work")}</label>
                     <input className="form-control" value={editingRow.title} disabled />
                   </div>
                   <div className="col-12">
-                    <label className="form-label">{language === "es" ? "Descripción" : "Description"}</label>
+                    <label className="form-label">{t("Descripción", "Description")}</label>
                     <textarea
                       className="form-control"
                       rows={4}
