@@ -12,6 +12,7 @@ Eso evita mezclar la SPA con las rutas backend ya expuestas en `/`, `/platform/*
 ## Archivos base
 
 - `deploy/build_frontend.sh`
+- `deploy/check_frontend_static_readiness.sh`
 - `infra/nginx/platform-paas-frontend.conf`
 - `infra/nginx/platform-paas-frontend-ssl.conf`
 - `frontend/.env.example`
@@ -75,6 +76,14 @@ sudo systemctl reload nginx
 ```
 
 ## 4. Validación mínima
+
+Preflight rápido recomendado:
+
+```bash
+cd /opt/platform_paas
+EXPECTED_API_BASE_URL=https://api.example.com \
+bash deploy/check_frontend_static_readiness.sh
+```
 
 Después de publicar el build:
 
