@@ -81,78 +81,32 @@ Alcance:
 - work orders
 - instalaciones
 - mantenciones activas
-- cierre/anulacion
-- historial
-- tipos de equipo o activos enlazados al dominio base
-
-Criterio de salida:
-
 - backend tenant operativo
 - frontend tenant visible
 - migraciones tenant creadas
-- pruebas backend minimas
-- sin dependencia runtime contra la BD de `ieris_app`
-
-Avance actual:
 
 - modulo frontend/backend ya operativo en primer corte
 - migracion tenant `0016_maintenance_base` creada
-- tablas iniciales ya definidas:
   - `maintenance_equipment_types`
   - `maintenance_installations`
   - `maintenance_work_orders`
-  - `maintenance_visits`
-  - `maintenance_status_logs`
-- prueba de migraciones validada
-- `business-core` ya cubre el prerequisito de taxonomias compartidas
-- APIs reales ya disponibles para:
-  - `equipment_types`
-  - `installations`
-  - `work_orders`
-- frontend tenant ya conectado a esas tres APIs
-- historial tecnico ya visible con `status_logs` y `visits`
-- `Mantenciones` ya muestra solo trabajo abierto (`scheduled` / `in_progress`)
-- `Historial` ya agrupa trabajo realizado o anulado
-- `Resumen` ya muestra ultimas 5 mantenciones realizadas
-- `Agenda` ya es una vista mensual de mantenciones abiertas con alta desde calendario
-
-Pendiente inmediato de esta fase:
-
-- endurecer reglas operativas más finas entre `function_profiles`, `task_types` y capacidad del equipo
-- endurecer y ejecutar importadores desde `ieris_app`
 - agenda visual con conflictos, filtros y reprogramación auditada ya lista; faltan ventanas de visita más finas
 - abrir programaciones automáticas y bandeja preventiva de vencimientos
 - abrir costeo y cobro por orden de trabajo
 - primer corte de costeo/cobro por orden de trabajo ya operativo en `Mantenciones`
 
-## Fase 4. Endurecimiento operativo
-
-Estado:
-
-- `En progreso avanzado`
-
-Objetivo:
 
 - que el modulo sirva mejor que la fuente para operacion diaria
-
-Alcance:
 
 - lectura por ficha/orden de trabajo
 - mejores estados de ciclo de vida
 - agenda integrada
-- conflictos visibles de programacion
-- snapshot historico mas rico de grupo y tecnico con filtros operativos reales
 - trazabilidad de cambios
 - alinear todo el modulo con el [Estandar de construccion de modulos](/home/felipe/platform_paas/docs/architecture/module-build-standard.md) hasta cerrar checklist completa
 - controles de cierre donde fecha/hora queden congeladas al pasar a historial
 
-Avance actual:
-
 - `Mantenciones` y `Historial` ya exponen `Ver ficha` como lectura secundaria compartida por OT
 - la `Ficha de mantención` ya reúne contexto operativo, snapshots más ricos por cliente/instalación/responsables, fechas clave, cierre técnico, `status_logs` y `visits`
-- la trazabilidad detallada se carga bajo demanda, manteniendo el patrón de lectura primero en las bandejas principales
-- `Historial` ya puede abrir `Editar cierre` desde esa ficha sin volver editable la programación histórica
-- `Mantenciones` ya puede gestionar `Visitas` por OT con ventanas programadas, ejecución real y responsables desde una modal operativa
 - `Mantenciones` ya expone `Plantillas` como slice visible para crear, editar y archivar plantillas de costeo sin depender de `Pendientes` o de una OT puntual
 - `Mantenciones`, `Historial` y la ficha ya leen `Tipo de tarea` desde `maintenance_schedules.task_type_id` y `Perfil funcional` desde membresías reales de `business_work_groups`
 - `Mantenciones` y `Visitas` ya validan que técnico y grupo correspondan a una membresía activa y vigente antes de guardar
@@ -357,7 +311,7 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- endurecer el importador legacy en modo `--apply` con verificación aplicada y cierre operativo del tenant destino
+- endurecimiento del importador legacy ya cubierto con verificación aplicada y cierre operativo del tenant destino
 
 ## Backlog pendiente visible
 
@@ -379,7 +333,7 @@ Pendiente inmediato de esta fase:
 - modelo canónico de programacion preventiva y costeo: documentado
 - costeo estimado default por programación: listo en primer corte
 - evidencias y checklist: listos en primer corte
-- importadores legacy: primer corte listo, falta solo endurecimiento operativo del flujo aplicado
+- importadores legacy: primer corte listo y flujo aplicado ya endurecido con verificación post-import
 
 ## Checklist de salida del modulo
 
@@ -396,12 +350,12 @@ Antes de considerar `maintenance` como primer corte realmente cerrado, deberia q
 Estado actual del checklist:
 
 - checklist funcional del primer corte: cumplido
-- quedan pendientes solo endurecimientos operativos y mejoras futuras no bloqueantes
+- quedan pendientes solo mejoras futuras no bloqueantes
 
 Conclusión de roadmap del primer corte:
 
 - roadmap funcional del módulo `maintenance`: cerrado
-- pendientes restantes: endurecimiento operativo del import legacy y mejoras futuras no bloqueantes
+- pendientes restantes: mejoras futuras no bloqueantes
 
 Validacion reciente:
 
