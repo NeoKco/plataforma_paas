@@ -7,6 +7,7 @@ from app.apps.tenant_modules.maintenance.schemas.common import MaintenanceRespon
 
 class MaintenanceVisitBase(BaseModel):
     work_order_id: int
+    visit_type: str = "execution"
     visit_status: str = "scheduled"
     scheduled_start_at: datetime | None = None
     scheduled_end_at: datetime | None = None

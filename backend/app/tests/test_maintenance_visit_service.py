@@ -43,6 +43,66 @@ class _FakeTenantDb:
 
 
 class MaintenanceVisitServiceTestCase(unittest.TestCase):
+    def test_create_visit_accepts_visit_type(self) -> None:
+        service = MaintenanceVisitService()
+        saved_items: list[SimpleNamespace] = []
+        service.visit_repository.save = lambda _tenant_db, item: saved_items.append(item) or item
+        tenant_db = _FakeTenantDb(
+            {
+                MaintenanceWorkOrder: SimpleNamespace(
+                    id=91,
+                    maintenance_status="scheduled",
+                    schedule_id=None,
+                ),
+                BusinessWorkGroup: SimpleNamespace(id=5, name="Cuadrilla Norte"),
+                User.id: SimpleNamespace(id=3),
+                BusinessWorkGroupMember: SimpleNamespace(
+                    id=20,
+                    is_active=True,
+                    starts_at=None,
+                    ends_at=None,
+                    function_profile_id=12,
+                ),
+            }
+        )
+
+        item = service.create_visit(
+            tenant_db,
+            MaintenanceVisitCreateRequest(
+                work_order_id=91,
+                visit_type="diagnostic",
+                visit_status="scheduled",
+                scheduled_start_at="2026-04-10T16:00:00+00:00",
+                assigned_work_group_id=5,
+                assigned_tenant_user_id=3,
+            ),
+        )
+
+        self.assertEqual(item.visit_type, "diagnostic")
+        self.assertEqual(item.assigned_group_label, "Cuadrilla Norte")
+
+    def test_create_visit_rejects_unknown_visit_type(self) -> None:
+        service = MaintenanceVisitService()
+        tenant_db = _FakeTenantDb(
+            {
+                MaintenanceWorkOrder: SimpleNamespace(
+                    id=91,
+                    maintenance_status="scheduled",
+                    schedule_id=None,
+                ),
+            }
+        )
+
+        with self.assertRaisesRegex(ValueError, "tipo de visita seleccionado no es válido"):
+            service.create_visit(
+                tenant_db,
+                MaintenanceVisitCreateRequest(
+                    work_order_id=91,
+                    visit_type="onsite",
+                    visit_status="scheduled",
+                ),
+            )
+
     def test_create_visit_rejects_task_typed_assignment_without_function_profile(self) -> None:
         service = MaintenanceVisitService()
         tenant_db = _FakeTenantDb(

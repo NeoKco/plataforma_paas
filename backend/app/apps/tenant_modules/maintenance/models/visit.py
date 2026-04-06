@@ -14,6 +14,7 @@ class MaintenanceVisit(TenantBase):
         nullable=False,
         index=True,
     )
+    visit_type: Mapped[str] = mapped_column(String(40), nullable=False, default="execution", index=True)
     visit_status: Mapped[str] = mapped_column(String(40), nullable=False, default="scheduled", index=True)
     scheduled_start_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
     scheduled_end_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)

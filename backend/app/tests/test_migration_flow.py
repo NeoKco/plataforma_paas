@@ -183,6 +183,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0032_business_core_assets",
                 "0033_business_organization_addresses",
                 "0034_maintenance_actual_template_trace",
+                "0035_maintenance_visit_type",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -233,6 +234,10 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("maintenance_work_order_checklist_items", tables)
         self.assertIn("maintenance_work_order_evidences", tables)
         self.assertIn("maintenance_visits", tables)
+        maintenance_visit_columns = {
+            column["name"] for column in inspect(engine).get_columns("maintenance_visits")
+        }
+        self.assertIn("visit_type", maintenance_visit_columns)
         self.assertIn("maintenance_status_logs", tables)
         self.assertIn("tenant_schema_migrations", tables)
         installment_columns = {

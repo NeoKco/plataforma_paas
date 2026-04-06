@@ -16,6 +16,7 @@ from app.apps.tenant_modules.maintenance.schemas import (
 )
 
 FINAL_WORK_ORDER_STATUSES = {"completed", "cancelled"}
+ALLOWED_VISIT_TYPES = {"diagnostic", "execution", "follow_up", "closure"}
 
 
 class MaintenanceVisitService:
@@ -108,6 +109,7 @@ class MaintenanceVisitService:
     ) -> dict:
         return {
             "work_order_id": payload.work_order_id,
+            "visit_type": payload.visit_type.strip().lower(),
             "visit_status": payload.visit_status.strip().lower(),
             "scheduled_start_at": payload.scheduled_start_at,
             "scheduled_end_at": payload.scheduled_end_at,
@@ -133,6 +135,10 @@ class MaintenanceVisitService:
             raise ValueError(
                 "No puedes programar o editar visitas sobre una mantencion cerrada o anulada"
             )
+        if not payload["visit_type"]:
+            raise ValueError("El tipo de visita es obligatorio")
+        if payload["visit_type"] not in ALLOWED_VISIT_TYPES:
+            raise ValueError("El tipo de visita seleccionado no es válido")
         if not payload["visit_status"]:
             raise ValueError("El estado de la visita es obligatorio")
         if (
