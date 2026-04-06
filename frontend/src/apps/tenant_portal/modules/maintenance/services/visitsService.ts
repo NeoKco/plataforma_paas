@@ -3,6 +3,7 @@ import { apiRequest } from "../../../../../services/api";
 export type TenantMaintenanceVisit = {
   id: number;
   work_order_id: number;
+  visit_type: string;
   visit_status: string;
   scheduled_start_at: string | null;
   scheduled_end_at: string | null;
@@ -31,6 +32,7 @@ export type TenantMaintenanceVisitMutationResponse = {
 
 export type TenantMaintenanceVisitWriteRequest = {
   work_order_id: number;
+  visit_type: string;
   visit_status: string;
   scheduled_start_at: string | null;
   scheduled_end_at: string | null;

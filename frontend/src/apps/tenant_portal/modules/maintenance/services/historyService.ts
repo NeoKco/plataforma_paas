@@ -13,6 +13,7 @@ export type TenantMaintenanceStatusLog = {
 export type TenantMaintenanceVisit = {
   id: number;
   work_order_id: number;
+  visit_type: string;
   visit_status: string;
   scheduled_start_at: string | null;
   scheduled_end_at: string | null;

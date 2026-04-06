@@ -35,6 +35,7 @@ from migrations.tenant import v0026_maintenance_cost_templates
 from migrations.tenant import v0027_maintenance_schedule_template_links
 from migrations.tenant import v0028_maintenance_field_reports
 from migrations.tenant import v0034_maintenance_actual_template_trace
+from migrations.tenant import v0035_maintenance_visit_type
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -464,6 +465,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0032_business_core_assets",
                 "0033_business_organization_addresses",
                 "0034_maintenance_actual_template_trace",
+                "0035_maintenance_visit_type",
             ],
         )
 

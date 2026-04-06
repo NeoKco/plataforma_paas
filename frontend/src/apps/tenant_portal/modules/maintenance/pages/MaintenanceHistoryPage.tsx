@@ -93,6 +93,21 @@ function getStatusLabel(status: string, language: "es" | "en"): string {
   }
 }
 
+function getVisitTypeLabel(type: string, language: "es" | "en"): string {
+  switch (type) {
+    case "diagnostic":
+      return language === "es" ? "Diagnóstico" : "Diagnostic";
+    case "execution":
+      return language === "es" ? "Ejecución" : "Execution";
+    case "follow_up":
+      return language === "es" ? "Seguimiento" : "Follow-up";
+    case "closure":
+      return language === "es" ? "Cierre" : "Closure";
+    default:
+      return type;
+  }
+}
+
 function getStatusLogTitle(
   log: { from_status: string | null; to_status: string; note: string | null },
   language: "es" | "en"
@@ -715,7 +730,7 @@ export function MaintenanceHistoryPage() {
                       item.visits.map((visit) => (
                         <div key={visit.id} className="maintenance-history-entry">
                           <div className="maintenance-history-entry__title">
-                            {getStatusLabel(visit.visit_status, language)}
+                            {getVisitTypeLabel(visit.visit_type, language)} · {getStatusLabel(visit.visit_status, language)}
                           </div>
                           <div className="maintenance-history-entry__meta">
                             {formatDateTime(

@@ -2,6 +2,10 @@
 
 ## 2026-04-05
 
+- `Visitas` ahora agrega `Tipo de visita` operativo:
+  - valores base `Diagnóstico`, `Ejecución`, `Seguimiento` y `Cierre`
+  - se captura en la modal de visitas y se refleja en historial y ficha de mantención
+  - las visitas creadas desde `Crear seguimiento` quedan tipificadas automáticamente como `Seguimiento`
 - `Costo real y cobro` ahora deja trazabilidad explícita de la `Plantilla de costeo de mantención` aplicada al cierre económico final:
   - persiste el identificador de la plantilla aplicada
   - guarda también un snapshot del nombre para lectura histórica

@@ -273,6 +273,7 @@ test("tenant portal shows imported business core and maintenance data from ieris
     }
     await visitsDialog.getByRole("button", { name: /Nueva visita|New visit/i }).click();
     await expect(visitsDialog.getByText(/Atajos de coordinación|Coordination shortcuts/i)).toBeVisible();
+    await expect(getFieldControl(visitsDialog, /Tipo de visita|Visit type/i)).toBeVisible();
     await expect(visitsDialog.getByRole("button", { name: /Usar ventana OT|Use work order window/i })).toBeVisible();
     await expect(getFieldControl(visitsDialog, /Inicio programado|Scheduled start/i)).toBeVisible();
     await expect(getFieldControl(visitsDialog, /Fin programado|Scheduled end/i)).toBeVisible();

@@ -337,6 +337,7 @@ Pendiente inmediato de esta fase:
 - reprogramacion clara sin perder historial
 - agrupacion visual por organizacion, pero gestion operativa por cliente/sitio/instalacion
 - reporte de clientes con instalacion activa y sin plan de mantencion
+- profundizar `Visitas` con estados de resultado más finos sobre cada salida a terreno, encima del nuevo `Tipo de visita`
 
 ## Mejoras futuras no bloqueantes
 

@@ -63,6 +63,7 @@ type Props = {
 };
 
 type VisitFormState = {
+  visit_type: string;
   visit_status: string;
   scheduled_start_at: string;
   scheduled_end_at: string;
@@ -178,6 +179,21 @@ function getVisitStatusLabel(status: string, language: "es" | "en") {
       return language === "es" ? "Anulada" : "Cancelled";
     default:
       return status;
+  }
+}
+
+function getVisitTypeLabel(type: string, language: "es" | "en") {
+  switch (type) {
+    case "diagnostic":
+      return language === "es" ? "Diagnóstico" : "Diagnostic";
+    case "execution":
+      return language === "es" ? "Ejecución" : "Execution";
+    case "follow_up":
+      return language === "es" ? "Seguimiento" : "Follow-up";
+    case "closure":
+      return language === "es" ? "Cierre" : "Closure";
+    default:
+      return type;
   }
 }
 
@@ -312,6 +328,7 @@ function buildFormState(
   visit?: TenantMaintenanceVisit | null
 ): VisitFormState {
   return {
+    visit_type: visit?.visit_type ?? "execution",
     visit_status: visit?.visit_status ?? "scheduled",
     scheduled_start_at: toLocalInput(visit?.scheduled_start_at ?? workOrder.scheduled_for),
     scheduled_end_at: toLocalInput(visit?.scheduled_end_at),
@@ -343,6 +360,7 @@ function buildFollowUpFormState(
         )
       : "";
   return {
+    visit_type: "follow_up",
     visit_status: "scheduled",
     scheduled_start_at: nextStart,
     scheduled_end_at: nextEnd,
@@ -597,6 +615,7 @@ export function MaintenanceVisitsModal({
     setError(null);
     const payload: TenantMaintenanceVisitWriteRequest = {
       work_order_id: workOrder.id,
+      visit_type: form.visit_type,
       visit_status: form.visit_status,
       scheduled_start_at: normalizeNullable(form.scheduled_start_at),
       scheduled_end_at: normalizeNullable(form.scheduled_end_at),
@@ -619,6 +638,7 @@ export function MaintenanceVisitsModal({
           for (const update of visitChainPlan.updates) {
             await updateTenantMaintenanceVisit(accessToken, update.visit.id, {
               work_order_id: update.visit.work_order_id,
+              visit_type: update.visit.visit_type,
               visit_status: update.visit.visit_status,
               scheduled_start_at: update.scheduled_start_at,
               scheduled_end_at: update.scheduled_end_at,
@@ -824,7 +844,7 @@ export function MaintenanceVisitsModal({
                     <div className="maintenance-visit-sequence__content">
                       <div className="d-flex flex-wrap gap-2 align-items-center mb-1">
                         <div className="maintenance-history-entry__title">
-                          {getVisitStatusLabel(item.visit.visit_status, language)}
+                          {getVisitTypeLabel(item.visit.visit_type, language)} · {getVisitStatusLabel(item.visit.visit_status, language)}
                         </div>
                         {index === 0 ? (
                           <span className="maintenance-visit-sequence__badge">
@@ -984,6 +1004,28 @@ export function MaintenanceVisitsModal({
                   </div>
                 ) : null}
                 <div className="row g-3">
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Tipo de visita" : "Visit type"}</label>
+                    <select
+                      className="form-select"
+                      value={form.visit_type}
+                      onChange={(event) =>
+                        setForm((current) =>
+                          current
+                            ? {
+                                ...current,
+                                visit_type: event.target.value,
+                              }
+                            : current
+                        )
+                      }
+                    >
+                      <option value="diagnostic">{language === "es" ? "Diagnóstico" : "Diagnostic"}</option>
+                      <option value="execution">{language === "es" ? "Ejecución" : "Execution"}</option>
+                      <option value="follow_up">{language === "es" ? "Seguimiento" : "Follow-up"}</option>
+                      <option value="closure">{language === "es" ? "Cierre" : "Closure"}</option>
+                    </select>
+                  </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">{language === "es" ? "Estado" : "Status"}</label>
                     <select
@@ -1227,7 +1269,7 @@ export function MaintenanceVisitsModal({
                     <div className="d-flex flex-wrap justify-content-between gap-3 align-items-start">
                       <div>
                         <div className="maintenance-history-entry__title">
-                          {getVisitStatusLabel(visit.visit_status, language)}
+                          {getVisitTypeLabel(visit.visit_type, language)} · {getVisitStatusLabel(visit.visit_status, language)}
                         </div>
                         <div className="maintenance-history-entry__meta">
                           {language === "es" ? "Ventana" : "Window"}: {formatDateTime(visit.scheduled_start_at, language, effectiveTimeZone)}

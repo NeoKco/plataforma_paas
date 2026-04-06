@@ -138,6 +138,7 @@ Estado del corte hoy:
   - ordena la secuencia de terreno por ventana programada
   - alerta cuando una visita se solapa con la anterior
   - permite crear una visita de seguimiento reutilizando duración y responsables de la visita base
+- cada visita ahora también puede tipificarse como `diagnóstico`, `ejecución`, `seguimiento` o `cierre`, para distinguir mejor el objetivo operativo de cada salida a terreno
 - al editar una visita programada, la modal ahora también puede `reencadenar` las siguientes visitas programadas:
   - preserva duración y separaciones entre ventanas posteriores
   - muestra una previsualización corta de las visitas que se moverán en cadena
