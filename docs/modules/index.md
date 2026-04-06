@@ -25,6 +25,8 @@ Documento adicional:
 
 - `API_REFERENCE.md`
   recomendado cuando el módulo expone endpoints propios o contratos públicos claros
+- [improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
+  backlog transversal de mejoras sugeridas por modulo
 
 La idea no es duplicar toda la documentación técnica existente, sino:
 
@@ -44,3 +46,5 @@ La idea no es duplicar toda la documentación técnica existente, sino:
   Modulo operativo de mantenciones, redefinido para apoyarse sobre `business-core`.
 - [platform-core](/home/felipe/platform_paas/docs/modules/platform-core/README.md)
   Bloque central de instalación, `platform_admin`, tenants, provisioning, billing y ciclo operativo base.
+- [improvements](/home/felipe/platform_paas/docs/modules/improvements/README.md)
+  Backlog transversal de mejoras sugeridas para todos los modulos existentes.
