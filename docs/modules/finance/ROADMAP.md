@@ -38,6 +38,7 @@ Ya cubre:
 
 ## Próximo nivel recomendado
 
+- backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - seguir la migración transversal del frontend al `design system`
 - terminar de pulir copy residual `es/en`
 - crear más specs browser sobre provisioning y recorridos tenant completos

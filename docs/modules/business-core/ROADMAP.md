@@ -123,6 +123,7 @@ Completado recientemente:
 
 ## Siguiente paso recomendado
 
+- backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - profundizar la adopcion de `assets` por `maintenance` e `iot`
 - endurecer el importador inicial desde `ieris_app`
 - profundizar la depuracion de duplicados para soportar consolidacion profunda de entidades y no solo reasignacion operativa + desactivacion segura

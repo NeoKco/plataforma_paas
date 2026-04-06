@@ -46,6 +46,7 @@ La base central ya es operable:
 
 ## Próximo nivel recomendado
 
+- backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - ampliar E2E browser a acceso tenant más profundo tras el salto desde `Tenants`, y a DLQ individual/filtros más finos
 - más regresión sobre provisioning y billing
 - seguir endureciendo copy, validaciones y observabilidad visible

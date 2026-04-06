@@ -60,5 +60,6 @@ Alcance:
 
 ## Siguiente paso recomendado
 
+- backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - no abrirlo aun si la prioridad inmediata sigue siendo `business-core` + `maintenance`
 - tenerlo ya definido para cuando la veta condominio pase a implementacion real
