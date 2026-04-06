@@ -21,6 +21,8 @@ No reemplaza la documentación detallada ya existente. La ordena.
 - [API_REFERENCE.md](/home/felipe/platform_paas/docs/modules/platform-core/API_REFERENCE.md)
 - [ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md)
 - [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+- [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
+  Backlog transversal de mejoras sugeridas por modulo.
 
 ## Fuentes de detalle ya existentes
 

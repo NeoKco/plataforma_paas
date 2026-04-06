@@ -29,6 +29,9 @@ Estado actual:
   Estado, siguientes pasos, deuda técnica y backlog post-cierre.
 - [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/finance/CHANGELOG.md)
   Consolidado de hitos funcionales y técnicos del módulo.
+- [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
+  Backlog transversal de mejoras sugeridas por modulo.
+  Backlog transversal de mejoras sugeridas por modulo.
 
 ## Fuentes de detalle ya existentes
 

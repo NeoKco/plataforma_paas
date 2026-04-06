@@ -184,6 +184,7 @@ Lectura base recomendada:
 - [ROADMAP.md](/home/felipe/platform_paas/docs/modules/business-core/ROADMAP.md)
 - [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/business-core/CHANGELOG.md)
 - [MIGRATION_MATRIX.md](/home/felipe/platform_paas/docs/modules/business-core/MIGRATION_MATRIX.md)
+- [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 
 ## Criterio de uso
 

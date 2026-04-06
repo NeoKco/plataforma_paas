@@ -228,6 +228,8 @@ Nota importante:
   Guia de uso del importador inicial desde la BD legacy de `ieris_app`.
 - [improvements/README.md](/home/felipe/platform_paas/docs/modules/maintenance/improvements/README.md)
   Backlog de mejoras sugeridas por submodulo despues del cierre funcional.
+- [../../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
+  Backlog transversal de mejoras sugeridas por modulo.
 
 ## Regla operativa de migracion
 

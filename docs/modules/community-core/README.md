@@ -53,3 +53,5 @@ Alcance recomendado despues:
 - [API_REFERENCE.md](/home/felipe/platform_paas/docs/modules/community-core/API_REFERENCE.md)
 - [ROADMAP.md](/home/felipe/platform_paas/docs/modules/community-core/ROADMAP.md)
 - [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/community-core/CHANGELOG.md)
+- [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
+  Backlog transversal de mejoras sugeridas por modulo.
