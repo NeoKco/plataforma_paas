@@ -85,6 +85,7 @@ export function buildRescheduleVisitSyncPayload(
   const scheduledStartAt = options.scheduledFor;
   return {
     work_order_id: visit.work_order_id,
+    visit_type: visit.visit_type,
     visit_status: visit.visit_status,
     scheduled_start_at: scheduledStartAt,
     scheduled_end_at: buildShiftedEnd(
