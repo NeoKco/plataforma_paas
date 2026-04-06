@@ -4,6 +4,7 @@
 
 - se alinea la capa transversal del frontend del módulo con el helper compartido `pickLocalizedText()` para navegación, formularios catálogo y lecturas operativas compartidas
 - `Resumen técnico` ahora incorpora `AppSpotlight` para dejar el punto de entrada del módulo dentro del mismo lenguaje visual ya usado por el `design system` transversal
+- la misma pasada ahora cubre también `placeholder page`, panel de impacto al reprogramar visitas, `Checklist y evidencias` y `Ficha de mantención`, reduciendo copy manual repetido en componentes operativos reutilizados
 
 ## 2026-04-05
 

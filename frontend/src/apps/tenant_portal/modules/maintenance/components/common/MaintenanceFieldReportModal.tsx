@@ -3,6 +3,7 @@ import { PanelCard } from "../../../../../../components/common/PanelCard";
 import { ErrorState } from "../../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../../components/feedback/LoadingBlock";
 import { getApiErrorDisplayMessage } from "../../../../../../services/api";
+import { pickLocalizedText } from "../../../../../../store/language-context";
 import { formatDateTimeInTimeZone } from "../../../../../../utils/dateTimeLocal";
 import type { ApiError } from "../../../../../../types";
 import {
@@ -42,7 +43,7 @@ type Props = {
 
 function formatDateTime(value: string | null, language: "es" | "en", timeZone?: string | null) {
   if (!value) {
-    return language === "es" ? "sin fecha" : "no date";
+    return pickLocalizedText(language, { es: "sin fecha", en: "no date" });
   }
   return formatDateTimeInTimeZone(value, language, timeZone);
 }
@@ -70,6 +71,7 @@ export function MaintenanceFieldReportModal({
   workOrder,
 }: Props) {
   const isReadOnly = mode === "readonly";
+  const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -237,27 +239,18 @@ export function MaintenanceFieldReportModal({
         className="maintenance-form-modal maintenance-form-modal--wide"
         role="dialog"
         aria-modal="true"
-        aria-label={
-          language === "es"
-            ? "Checklist y evidencias de mantención"
-            : "Maintenance checklist and evidence"
-        }
+        aria-label={t("Checklist y evidencias de mantención", "Maintenance checklist and evidence")}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="maintenance-form-modal__eyebrow">
-          {language === "es" ? "Terreno y cierre" : "Field work and closure"}
+          {t("Terreno y cierre", "Field work and closure")}
         </div>
         <PanelCard
-          title={
-            language === "es"
-              ? "Checklist y evidencias"
-              : "Checklist and evidence"
-          }
-          subtitle={
-            language === "es"
-              ? "Registro técnico base del trabajo ejecutado, con adjuntos y observación de cierre estandarizada."
-              : "Base technical record of executed work, with attachments and standardized closure notes."
-          }
+          title={t("Checklist y evidencias", "Checklist and evidence")}
+          subtitle={t(
+            "Registro técnico base del trabajo ejecutado, con adjuntos y observación de cierre estandarizada.",
+            "Base technical record of executed work, with attachments and standardized closure notes."
+          )}
         >
           <div className="maintenance-history-entry__meta mb-3">
             <strong>{workOrder.title}</strong>
@@ -268,70 +261,65 @@ export function MaintenanceFieldReportModal({
             <div className="maintenance-mobile-quick-actions__header">
               <div>
                 <div className="maintenance-history-entry__title">
-                  {language === "es" ? "Acciones rápidas en terreno" : "Field quick actions"}
+                  {t("Acciones rápidas en terreno", "Field quick actions")}
                 </div>
                 <div className="maintenance-history-entry__meta">
-                  {language === "es"
-                    ? "Atajos móviles para completar cierre, checklist y evidencias sin recorrer toda la modal."
-                    : "Mobile shortcuts to complete closure, checklist, and evidence without scrolling through the full modal."}
+                  {t(
+                    "Atajos móviles para completar cierre, checklist y evidencias sin recorrer toda la modal.",
+                    "Mobile shortcuts to complete closure, checklist, and evidence without scrolling through the full modal."
+                  )}
                 </div>
               </div>
               <div className="maintenance-mobile-quick-actions__metrics">
                 <div className="maintenance-mobile-quick-actions__metric">
                   <strong>{completedCount}/{checklistItems.length}</strong>
-                  <span>{language === "es" ? "checklist" : "checklist"}</span>
+                  <span>{t("checklist", "checklist")}</span>
                 </div>
                 <div className="maintenance-mobile-quick-actions__metric">
                   <strong>{evidenceCount}</strong>
-                  <span>{language === "es" ? "evidencias" : "evidence"}</span>
+                  <span>{t("evidencias", "evidence")}</span>
                 </div>
               </div>
             </div>
             <div className="maintenance-mobile-quick-actions__buttons">
               <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => scrollToSection(closureSectionRef)}>
-                {language === "es" ? "Ir a cierre" : "Jump to closure"}
+                {t("Ir a cierre", "Jump to closure")}
               </button>
               <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => scrollToSection(checklistSectionRef)}>
-                {language === "es" ? "Ir a checklist" : "Jump to checklist"}
+                {t("Ir a checklist", "Jump to checklist")}
               </button>
               <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => scrollToSection(evidenceSectionRef)}>
-                {language === "es" ? "Ir a evidencias" : "Jump to evidence"}
+                {t("Ir a evidencias", "Jump to evidence")}
               </button>
             </div>
           </div>
 
           {error ? (
             <ErrorState
-              title={
-                language === "es"
-                  ? "No se pudo cargar el checklist"
-                  : "The checklist could not be loaded"
-              }
+              title={t("No se pudo cargar el checklist", "The checklist could not be loaded")}
               detail={getApiErrorDisplayMessage(error)}
               requestId={error.payload?.request_id}
             />
           ) : null}
 
           {isLoading ? (
-            <LoadingBlock label={language === "es" ? "Cargando checklist..." : "Loading checklist..."} />
+            <LoadingBlock label={t("Cargando checklist...", "Loading checklist...")} />
           ) : (
             <div className="d-grid gap-3">
               <div ref={closureSectionRef} className="row g-3">
                 <div className="col-12 col-lg-4">
                   <div className="maintenance-history-entry">
                     <div className="maintenance-history-entry__title">
-                      {language === "es" ? "Avance checklist" : "Checklist progress"}
+                      {t("Avance checklist", "Checklist progress")}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {completedCount}/{checklistItems.length} {language === "es" ? "ítems completos" : "items completed"}
+                      {completedCount}/{checklistItems.length} {t("ítems completos", "items completed")}
                     </div>
                   </div>
                 </div>
                 <div className="col-12 col-lg-8">
                   <label className="form-label">
-                    {language === "es"
-                      ? "Observación de cierre estandarizada"
-                      : "Standardized closure notes"}
+                    {t("Observación de cierre estandarizada", "Standardized closure notes")}
                   </label>
                   <textarea
                     className="form-control"
@@ -347,12 +335,13 @@ export function MaintenanceFieldReportModal({
                 <div className="panel-card__header pb-2">
                   <div>
                     <h3 className="panel-card__title mb-1">
-                      {language === "es" ? "Checklist técnico" : "Technical checklist"}
+                      {t("Checklist técnico", "Technical checklist")}
                     </h3>
                     <p className="panel-card__subtitle mb-0">
-                      {language === "es"
-                        ? "Checklist base para dejar trazabilidad homogénea de terreno."
-                        : "Base checklist to keep consistent field traceability."}
+                      {t(
+                        "Checklist base para dejar trazabilidad homogénea de terreno.",
+                        "Base checklist to keep consistent field traceability."
+                      )}
                     </p>
                   </div>
                 </div>
@@ -384,7 +373,7 @@ export function MaintenanceFieldReportModal({
                           <textarea
                             className="form-control"
                             rows={2}
-                            placeholder={language === "es" ? "Nota técnica breve" : "Short technical note"}
+                            placeholder={t("Nota técnica breve", "Short technical note")}
                             value={item.notes}
                             disabled={isReadOnly}
                             onChange={(event) =>
@@ -408,12 +397,13 @@ export function MaintenanceFieldReportModal({
                 <div className="panel-card__header pb-2">
                   <div>
                     <h3 className="panel-card__title mb-1">
-                      {language === "es" ? "Evidencias" : "Evidence"}
+                      {t("Evidencias", "Evidence")}
                     </h3>
                     <p className="panel-card__subtitle mb-0">
-                      {language === "es"
-                        ? "Adjuntos PDF o imagen del trabajo ejecutado."
-                        : "PDF or image attachments from the executed work."}
+                      {t(
+                        "Adjuntos PDF o imagen del trabajo ejecutado.",
+                        "PDF or image attachments from the executed work."
+                      )}
                     </p>
                   </div>
                 </div>
@@ -422,7 +412,7 @@ export function MaintenanceFieldReportModal({
                     <div className="maintenance-cost-lines__item">
                       <div className="row g-3 align-items-end">
                         <div className="col-12 col-lg-5">
-                          <label className="form-label">{language === "es" ? "Archivo" : "File"}</label>
+                          <label className="form-label">{t("Archivo", "File")}</label>
                           <input
                             className="form-control"
                             type="file"
@@ -431,13 +421,14 @@ export function MaintenanceFieldReportModal({
                             onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
                           />
                           <div className="form-text text-muted">
-                            {language === "es"
-                              ? "En móvil puedes abrir cámara o galería según lo permita el dispositivo."
-                              : "On mobile, the device may offer camera or gallery capture."}
+                            {t(
+                              "En móvil puedes abrir cámara o galería según lo permita el dispositivo.",
+                              "On mobile, the device may offer camera or gallery capture."
+                            )}
                           </div>
                         </div>
                         <div className="col-12 col-lg-5">
-                          <label className="form-label">{language === "es" ? "Nota" : "Note"}</label>
+                          <label className="form-label">{t("Nota", "Note")}</label>
                           <input
                             className="form-control"
                             value={uploadNotes}
@@ -451,13 +442,7 @@ export function MaintenanceFieldReportModal({
                             disabled={!selectedFile || isUploading}
                             onClick={() => void handleUpload()}
                           >
-                            {isUploading
-                              ? language === "es"
-                                ? "Subiendo..."
-                                : "Uploading..."
-                              : language === "es"
-                                ? "Adjuntar"
-                                : "Upload"}
+                            {isUploading ? t("Subiendo...", "Uploading...") : t("Adjuntar", "Upload")}
                           </button>
                         </div>
                       </div>
@@ -472,7 +457,7 @@ export function MaintenanceFieldReportModal({
                             <div>
                               <div className="maintenance-history-entry__title">{item.file_name}</div>
                               <div className="maintenance-history-entry__meta">
-                                {item.notes || (language === "es" ? "Sin nota" : "No note")}
+                                {item.notes || t("Sin nota", "No note")}
                               </div>
                               <div className="maintenance-history-entry__meta">
                                 {Math.max(item.file_size / 1024, 0).toFixed(1)} KB · {formatDateTime(item.created_at, language, effectiveTimeZone)}
@@ -484,7 +469,7 @@ export function MaintenanceFieldReportModal({
                                 type="button"
                                 onClick={() => void handleDownloadEvidence(item.id, item.file_name)}
                               >
-                                {language === "es" ? "Descargar" : "Download"}
+                                {t("Descargar", "Download")}
                               </button>
                               {!isReadOnly ? (
                                 <button
@@ -492,7 +477,7 @@ export function MaintenanceFieldReportModal({
                                   type="button"
                                   onClick={() => void handleDeleteEvidence(item.id)}
                                 >
-                                  {language === "es" ? "Eliminar" : "Delete"}
+                                  {t("Eliminar", "Delete")}
                                 </button>
                               ) : null}
                             </div>
@@ -502,7 +487,7 @@ export function MaintenanceFieldReportModal({
                     </div>
                   ) : (
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Aún no hay evidencias adjuntas." : "There is no evidence attached yet."}
+                      {t("Aún no hay evidencias adjuntas.", "There is no evidence attached yet.")}
                     </div>
                   )}
                 </div>
@@ -512,17 +497,11 @@ export function MaintenanceFieldReportModal({
 
           <div className="maintenance-form__actions maintenance-form__actions--sticky-mobile mt-4">
             <button className="btn btn-outline-secondary" type="button" onClick={onClose}>
-              {language === "es" ? "Cerrar" : "Close"}
+              {t("Cerrar", "Close")}
             </button>
             {!isReadOnly ? (
               <button className="btn btn-primary" type="button" onClick={() => void handleSave()} disabled={isSaving}>
-                {isSaving
-                  ? language === "es"
-                    ? "Guardando..."
-                    : "Saving..."
-                  : language === "es"
-                    ? "Guardar checklist"
-                    : "Save checklist"}
+                {isSaving ? t("Guardando...", "Saving...") : t("Guardar checklist", "Save checklist")}
               </button>
             ) : null}
           </div>

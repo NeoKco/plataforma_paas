@@ -1,4 +1,5 @@
 import { formatDateTimeInTimeZone } from "../../../../../../utils/dateTimeLocal";
+import { pickLocalizedText } from "../../../../../../store/language-context";
 import type { RescheduleVisitSummary } from "../../services/rescheduleVisitSync";
 
 type Props = {
@@ -18,7 +19,7 @@ function formatDateRange(
   timeZone?: string | null
 ) {
   if (!start && !end) {
-    return language === "es" ? "sin ventana" : "no window";
+    return pickLocalizedText(language, { es: "sin ventana", en: "no window" });
   }
   if (!start) {
     return formatDateTimeInTimeZone(end as string, language, timeZone);
@@ -43,7 +44,10 @@ function buildProjectedDateRange(
   timeZone?: string | null
 ) {
   if (!nextStart) {
-    return language === "es" ? "define primero la nueva OT" : "set the new work order first";
+    return pickLocalizedText(language, {
+      es: "define primero la nueva OT",
+      en: "set the new work order first",
+    });
   }
   if (!start || !end) {
     return formatDateRange(nextStart, null, language, timeZone);
@@ -73,53 +77,50 @@ export function MaintenanceRescheduleVisitSyncPanel({
   onSyncEnabledChange,
 }: Props) {
   const syncDisabled = !scheduledFor || !summary.syncCandidate;
+  const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
 
   return (
     <div className="panel-card border-0 bg-light-subtle">
       <div className="panel-card__header pb-2">
         <h3 className="panel-card__title mb-0">
-          {language === "es" ? "Impacto sobre visitas" : "Visit impact"}
+          {t("Impacto sobre visitas", "Visit impact")}
         </h3>
       </div>
       <div className="panel-card__body pt-0 d-grid gap-2">
         {isLoading ? (
           <div className="maintenance-history-entry__meta">
-            {language === "es"
-              ? "Cargando ventanas de terreno asociadas..."
-              : "Loading linked field windows..."}
+            {t("Cargando ventanas de terreno asociadas...", "Loading linked field windows...")}
           </div>
         ) : summary.total === 0 ? (
           <div className="maintenance-history-entry__meta">
-            {language === "es"
-              ? "Esta OT aún no tiene visitas registradas; la reprogramación solo moverá la orden principal."
-              : "This work order does not have recorded visits yet; rescheduling will only move the main work order."}
+            {t(
+              "Esta OT aún no tiene visitas registradas; la reprogramación solo moverá la orden principal.",
+              "This work order does not have recorded visits yet; rescheduling will only move the main work order."
+            )}
           </div>
         ) : (
           <>
             <div className="maintenance-history-entry__meta">
-              {summary.total} {language === "es" ? "visita(s) total(es)" : "total visit(s)"} · {summary.openCount}{" "}
-              {language === "es" ? "abierta(s)" : "open"} · {summary.completedCount}{" "}
-              {language === "es" ? "completada(s)" : "completed"}
+              {summary.total} {t("visita(s) total(es)", "total visit(s)")} · {summary.openCount}{" "}
+              {t("abierta(s)", "open")} · {summary.completedCount} {t("completada(s)", "completed")}
             </div>
             <div className="maintenance-history-entry__meta">
-              {language === "es" ? "Próxima ventana" : "Next window"}: {summary.nextVisit
+              {t("Próxima ventana", "Next window")}: {summary.nextVisit
                 ? formatDateRange(
                     summary.nextVisit.scheduled_start_at,
                     summary.nextVisit.scheduled_end_at,
                     language,
                     effectiveTimeZone
                   )
-                : language === "es"
-                  ? "Sin visitas abiertas"
-                  : "No open visits"}
+                : t("Sin visitas abiertas", "No open visits")}
             </div>
             {summary.syncCandidate ? (
               <div className="maintenance-history-entry">
                 <div className="maintenance-history-entry__title">
-                  {language === "es" ? "Ventana a sincronizar" : "Window to sync"}
+                  {t("Ventana a sincronizar", "Window to sync")}
                 </div>
                 <div className="maintenance-history-entry__meta">
-                  {language === "es" ? "Actual" : "Current"}: {formatDateRange(
+                  {t("Actual", "Current")}: {formatDateRange(
                     summary.syncCandidate.scheduled_start_at,
                     summary.syncCandidate.scheduled_end_at,
                     language,
@@ -127,7 +128,7 @@ export function MaintenanceRescheduleVisitSyncPanel({
                   )}
                 </div>
                 <div className="maintenance-history-entry__meta">
-                  {language === "es" ? "Propuesta al reprogramar" : "Proposed after reschedule"}: {buildProjectedDateRange(
+                  {t("Propuesta al reprogramar", "Proposed after reschedule")}: {buildProjectedDateRange(
                     summary.syncCandidate.scheduled_start_at,
                     summary.syncCandidate.scheduled_end_at,
                     scheduledFor,
@@ -148,21 +149,23 @@ export function MaintenanceRescheduleVisitSyncPanel({
                   type="checkbox"
                 />
                 <label className="form-check-label" htmlFor="maintenance-sync-open-visit">
-                  {language === "es"
-                    ? "Mover también la primera visita abierta al nuevo horario y responsables de la OT."
-                    : "Also move the first open visit to the new work order time slot and assignees."}
+                  {t(
+                    "Mover también la primera visita abierta al nuevo horario y responsables de la OT.",
+                    "Also move the first open visit to the new work order time slot and assignees."
+                  )}
                 </label>
               </div>
             ) : null}
             {summary.remainingOpenVisits.length > 0 ? (
               <div className="maintenance-history-entry">
                 <div className="maintenance-history-entry__title">
-                  {language === "es" ? "Visitas abiertas por coordinar" : "Open visits pending coordination"}
+                  {t("Visitas abiertas por coordinar", "Open visits pending coordination")}
                 </div>
                 <div className="maintenance-history-entry__meta text-warning mb-2">
-                  {language === "es"
-                    ? "La sincronización automática solo ajusta la primera visita abierta; estas ventanas quedan para coordinación fina en Visitas."
-                    : "Automatic sync only adjusts the first open visit; these windows remain for fine coordination in Visits."}
+                  {t(
+                    "La sincronización automática solo ajusta la primera visita abierta; estas ventanas quedan para coordinación fina en Visitas.",
+                    "Automatic sync only adjusts the first open visit; these windows remain for fine coordination in Visits."
+                  )}
                 </div>
                 <div className="maintenance-reschedule-visit-list">
                   {summary.remainingOpenVisits.slice(0, 3).map((visit) => (
@@ -190,9 +193,10 @@ export function MaintenanceRescheduleVisitSyncPanel({
             ) : null}
             {!scheduledFor ? (
               <div className="maintenance-history-entry__meta text-warning">
-                {language === "es"
-                  ? "Define primero la nueva fecha/hora de la OT para habilitar la sincronización automática." 
-                  : "Set the new work order date/time first to enable automatic sync."}
+                {t(
+                  "Define primero la nueva fecha/hora de la OT para habilitar la sincronización automática.",
+                  "Set the new work order date/time first to enable automatic sync."
+                )}
               </div>
             ) : null}
           </>

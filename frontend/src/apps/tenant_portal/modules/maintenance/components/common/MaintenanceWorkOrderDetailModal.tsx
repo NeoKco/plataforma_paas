@@ -4,6 +4,7 @@ import { ErrorState } from "../../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../../components/feedback/LoadingBlock";
 import { AppBadge } from "../../../../../../design-system/AppBadge";
 import { getApiErrorDisplayMessage } from "../../../../../../services/api";
+import { pickLocalizedText } from "../../../../../../store/language-context";
 import { formatDateTimeInTimeZone } from "../../../../../../utils/dateTimeLocal";
 import { stripLegacyVisibleText } from "../../../../../../utils/legacyVisibleText";
 import type { ApiError } from "../../../../../../types";
@@ -56,7 +57,7 @@ type Props = {
 
 function formatDateTime(value: string | null, language: "es" | "en", timeZone?: string | null) {
   if (!value) {
-    return language === "es" ? "sin fecha" : "no date";
+    return pickLocalizedText(language, { es: "sin fecha", en: "no date" });
   }
   return formatDateTimeInTimeZone(value, language, timeZone);
 }
@@ -80,13 +81,13 @@ function getStatusTone(status: string): "success" | "warning" | "danger" | "info
 function getStatusLabel(status: string, language: "es" | "en") {
   switch (status) {
     case "scheduled":
-      return language === "es" ? "Programada" : "Scheduled";
+      return pickLocalizedText(language, { es: "Programada", en: "Scheduled" });
     case "in_progress":
-      return language === "es" ? "En curso" : "In progress";
+      return pickLocalizedText(language, { es: "En curso", en: "In progress" });
     case "completed":
-      return language === "es" ? "Completada" : "Completed";
+      return pickLocalizedText(language, { es: "Completada", en: "Completed" });
     case "cancelled":
-      return language === "es" ? "Anulada" : "Cancelled";
+      return pickLocalizedText(language, { es: "Anulada", en: "Cancelled" });
     default:
       return status;
   }
@@ -95,13 +96,13 @@ function getStatusLabel(status: string, language: "es" | "en") {
 function getVisitTypeLabel(type: string, language: "es" | "en") {
   switch (type) {
     case "diagnostic":
-      return language === "es" ? "Diagnóstico" : "Diagnostic";
+      return pickLocalizedText(language, { es: "Diagnóstico", en: "Diagnostic" });
     case "execution":
-      return language === "es" ? "Ejecución" : "Execution";
+      return pickLocalizedText(language, { es: "Ejecución", en: "Execution" });
     case "follow_up":
-      return language === "es" ? "Seguimiento" : "Follow-up";
+      return pickLocalizedText(language, { es: "Seguimiento", en: "Follow-up" });
     case "closure":
-      return language === "es" ? "Cierre" : "Closure";
+      return pickLocalizedText(language, { es: "Cierre", en: "Closure" });
     default:
       return type;
   }
@@ -110,17 +111,26 @@ function getVisitTypeLabel(type: string, language: "es" | "en") {
 function getVisitResultLabel(result: string, language: "es" | "en") {
   switch (result) {
     case "executed":
-      return language === "es" ? "Ejecutada" : "Executed";
+      return pickLocalizedText(language, { es: "Ejecutada", en: "Executed" });
     case "client_absent":
-      return language === "es" ? "Cliente ausente" : "Client absent";
+      return pickLocalizedText(language, { es: "Cliente ausente", en: "Client absent" });
     case "no_access":
-      return language === "es" ? "Sin acceso" : "No access";
+      return pickLocalizedText(language, { es: "Sin acceso", en: "No access" });
     case "pending_spare_parts":
-      return language === "es" ? "Pendiente repuestos" : "Pending spare parts";
+      return pickLocalizedText(language, {
+        es: "Pendiente repuestos",
+        en: "Pending spare parts",
+      });
     case "rescheduled_on_site":
-      return language === "es" ? "Reprogramada en terreno" : "Rescheduled on site";
+      return pickLocalizedText(language, {
+        es: "Reprogramada en terreno",
+        en: "Rescheduled on site",
+      });
     case "cancelled_on_site":
-      return language === "es" ? "Cancelada en terreno" : "Cancelled on site";
+      return pickLocalizedText(language, {
+        es: "Cancelada en terreno",
+        en: "Cancelled on site",
+      });
     default:
       return result;
   }
@@ -132,9 +142,9 @@ function getStatusLogTitle(
 ) {
   const note = (log.note || "").trim().toLowerCase();
   if (log.from_status && log.from_status === log.to_status && note.startsWith("reprogramación")) {
-    return language === "es" ? "Reprogramación" : "Reschedule";
+    return pickLocalizedText(language, { es: "Reprogramación", en: "Reschedule" });
   }
-  return `${log.from_status || (language === "es" ? "inicio" : "start")} -> ${log.to_status}`;
+  return `${log.from_status || pickLocalizedText(language, { es: "inicio", en: "start" })} -> ${log.to_status}`;
 }
 
 function isRescheduleLog(log: {
@@ -161,7 +171,7 @@ function formatDateRange(
   timeZone?: string | null
 ) {
   if (!start && !end) {
-    return language === "es" ? "sin ventana" : "no window";
+    return pickLocalizedText(language, { es: "sin ventana", en: "no window" });
   }
   if (!start) {
     return formatDateTime(end, language, timeZone);
@@ -191,6 +201,7 @@ export function MaintenanceWorkOrderDetailModal({
   onReopen,
   workOrder,
 }: Props) {
+  const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [statusLogs, setStatusLogs] = useState<TenantMaintenanceStatusLog[]>([]);
@@ -297,7 +308,7 @@ export function MaintenanceWorkOrderDetailModal({
   }, [visits]);
   const visitGroupSummary = useMemo(() => {
     if (visitGroupLabels.length === 0) {
-      return language === "es" ? "Sin grupos de visita" : "No visit groups";
+      return t("Sin grupos de visita", "No visit groups");
     }
     if (visitGroupLabels.length <= 2) {
       return visitGroupLabels.join(", ");
@@ -311,25 +322,20 @@ export function MaintenanceWorkOrderDetailModal({
         className="maintenance-form-modal maintenance-form-modal--wide"
         role="dialog"
         aria-modal="true"
-        aria-label={language === "es" ? "Ficha de mantención" : "Maintenance detail"}
+        aria-label={t("Ficha de mantención", "Maintenance detail")}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="maintenance-form-modal__eyebrow">
           {mode === "history"
-            ? language === "es"
-              ? "Ficha histórica"
-              : "Historical detail"
-            : language === "es"
-              ? "Ficha operativa"
-              : "Operational detail"}
+            ? t("Ficha histórica", "Historical detail")
+            : t("Ficha operativa", "Operational detail")}
         </div>
         <PanelCard
-          title={language === "es" ? "Ficha de mantención" : "Maintenance detail"}
-          subtitle={
-            language === "es"
-              ? "Lectura consolidada de la orden, su trazabilidad, responsables y visitas asociadas."
-              : "Consolidated reading of the work order, traceability, assignees, and linked visits."
-          }
+          title={t("Ficha de mantención", "Maintenance detail")}
+          subtitle={t(
+            "Lectura consolidada de la orden, su trazabilidad, responsables y visitas asociadas.",
+            "Consolidated reading of the work order, traceability, assignees, and linked visits."
+          )}
         >
           <div className="d-flex flex-wrap justify-content-between gap-3 align-items-start mb-3">
             <div>
@@ -344,128 +350,124 @@ export function MaintenanceWorkOrderDetailModal({
 
           {error ? (
             <ErrorState
-              title={language === "es" ? "No se pudo cargar la ficha" : "The detail could not be loaded"}
+              title={t("No se pudo cargar la ficha", "The detail could not be loaded")}
               detail={getApiErrorDisplayMessage(error)}
               requestId={error.payload?.request_id}
             />
           ) : null}
 
           {isLoading ? (
-            <LoadingBlock label={language === "es" ? "Cargando ficha..." : "Loading detail..."} />
+            <LoadingBlock label={t("Cargando ficha...", "Loading detail...")} />
           ) : (
             <div className="d-grid gap-3">
               <div className="row g-3">
                 <div className="col-12 col-lg-4">
                   <div className="maintenance-history-entry h-100">
                     <div className="maintenance-history-entry__title">
-                      {language === "es" ? "Cliente e instalación" : "Client and installation"}
+                      {t("Cliente e instalación", "Client and installation")}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Cliente" : "Client"}: {clientLabel}
+                      {t("Cliente", "Client")}: {clientLabel}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Dirección" : "Address"}: {siteLabel}
+                      {t("Dirección", "Address")}: {siteLabel}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Instalación" : "Installation"}: {installationLabel}
+                      {t("Instalación", "Installation")}: {installationLabel}
                     </div>
                   </div>
                 </div>
                 <div className="col-12 col-lg-4">
                   <div className="maintenance-history-entry h-100">
                     <div className="maintenance-history-entry__title">
-                      {language === "es" ? "Asignación actual" : "Current assignment"}
+                      {t("Asignación actual", "Current assignment")}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Grupo" : "Group"}: {workGroupLabel}
+                      {t("Grupo", "Group")}: {workGroupLabel}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Técnico" : "Technician"}: {technicianLabel}
+                      {t("Técnico", "Technician")}: {technicianLabel}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Tipo de tarea" : "Task type"}: {taskTypeLabel || (language === "es" ? "Sin tipo" : "No task type")}
+                      {t("Tipo de tarea", "Task type")}: {taskTypeLabel || t("Sin tipo", "No task type")}
                     </div>
                     <div className="maintenance-history-entry__meta mt-2">
-                      {language === "es" ? "Perfil funcional" : "Function profile"}: {technicianProfileLabel || (language === "es" ? "Sin perfil" : "No profile")}
+                      {t("Perfil funcional", "Function profile")}: {technicianProfileLabel || t("Sin perfil", "No profile")}
                     </div>
                     <div className="maintenance-history-entry__meta mt-2">
-                      {language === "es" ? "Prioridad" : "Priority"}: {workOrder.priority}
+                      {t("Prioridad", "Priority")}: {workOrder.priority}
                     </div>
                   </div>
                 </div>
                 <div className="col-12 col-lg-4">
                   <div className="maintenance-history-entry h-100">
                     <div className="maintenance-history-entry__title">
-                      {language === "es" ? "Fechas clave" : "Key dates"}
+                      {t("Fechas clave", "Key dates")}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Solicitada" : "Requested"}: {formatDateTime(workOrder.requested_at, language, effectiveTimeZone)}
+                      {t("Solicitada", "Requested")}: {formatDateTime(workOrder.requested_at, language, effectiveTimeZone)}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Programada" : "Scheduled"}: {formatDateTime(workOrder.scheduled_for, language, effectiveTimeZone)}
+                      {t("Programada", "Scheduled")}: {formatDateTime(workOrder.scheduled_for, language, effectiveTimeZone)}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Cierre" : "Closed"}: {formatDateTime(workOrder.completed_at || workOrder.cancelled_at, language, effectiveTimeZone)}
+                      {t("Cierre", "Closed")}: {formatDateTime(workOrder.completed_at || workOrder.cancelled_at, language, effectiveTimeZone)}
                     </div>
                   </div>
                 </div>
                 <div className="col-12 col-lg-6">
                   <div className="maintenance-history-entry h-100">
                     <div className="maintenance-history-entry__title">
-                      {language === "es" ? "Terreno y visitas" : "Field windows and visits"}
+                      {t("Terreno y visitas", "Field windows and visits")}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Próxima ventana" : "Next window"}: {nextVisit
+                      {t("Próxima ventana", "Next window")}: {nextVisit
                         ? formatDateRange(
                             nextVisit.scheduled_start_at,
                             nextVisit.scheduled_end_at,
                             language,
                             effectiveTimeZone
                           )
-                        : language === "es"
-                          ? "Sin visitas abiertas"
-                          : "No open visits"}
+                        : t("Sin visitas abiertas", "No open visits")}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Última ejecución" : "Latest execution"}: {latestFieldExecution
+                      {t("Última ejecución", "Latest execution")}: {latestFieldExecution
                         ? formatDateRange(
                             latestFieldExecution.actual_start_at || latestFieldExecution.scheduled_start_at,
                             latestFieldExecution.actual_end_at,
                             language,
                             effectiveTimeZone
                           )
-                        : language === "es"
-                          ? "Sin ejecución registrada"
-                          : "No execution recorded"}
+                        : t("Sin ejecución registrada", "No execution recorded")}
                     </div>
                     <div className="maintenance-history-entry__meta mt-2">
-                      {openVisits.length} {language === "es" ? "visita(s) abierta(s)" : "open visit(s)"}
+                      {openVisits.length} {t("visita(s) abierta(s)", "open visit(s)")}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {completedVisits.length} {language === "es" ? "visita(s) completada(s)" : "completed visit(s)"}
+                      {completedVisits.length} {t("visita(s) completada(s)", "completed visit(s)")}
                     </div>
                   </div>
                 </div>
                 <div className="col-12 col-lg-6">
                   <div className="maintenance-history-entry h-100">
                     <div className="maintenance-history-entry__title">
-                      {language === "es" ? "Responsables y trazabilidad" : "Assignees and traceability"}
+                      {t("Responsables y trazabilidad", "Assignees and traceability")}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {logSummary} {language === "es" ? "evento(s)" : "event(s)"}
+                      {logSummary} {t("evento(s)", "event(s)")}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {visitSummary} {language === "es" ? "visita(s)" : "visit(s)"}
+                      {visitSummary} {t("visita(s)", "visit(s)")}
                     </div>
                     <div className="maintenance-history-entry__meta mt-2">
-                      {rescheduleCount} {language === "es" ? "reprogramación(es) auditada(s)" : "audited reschedule(s)"}
+                      {rescheduleCount} {t("reprogramación(es) auditada(s)", "audited reschedule(s)")}
                     </div>
                     <div className="maintenance-history-entry__meta">
-                      {language === "es" ? "Grupos en terreno" : "Field groups"}: {visitGroupSummary}
+                      {t("Grupos en terreno", "Field groups")}: {visitGroupSummary}
                     </div>
                     {stripLegacyVisibleText(workOrder.cancellation_reason) ? (
                       <div className="maintenance-history-entry__meta mt-2">
-                        {language === "es" ? "Motivo anulación" : "Cancellation reason"}: {stripLegacyVisibleText(workOrder.cancellation_reason)}
+                        {t("Motivo anulación", "Cancellation reason")}: {stripLegacyVisibleText(workOrder.cancellation_reason)}
                       </div>
                     ) : null}
                   </div>
@@ -475,7 +477,7 @@ export function MaintenanceWorkOrderDetailModal({
               {stripLegacyVisibleText(workOrder.description) ? (
                 <div className="panel-card border-0 bg-light-subtle">
                   <div className="panel-card__header pb-2">
-                    <h3 className="panel-card__title mb-0">{language === "es" ? "Detalle técnico" : "Technical detail"}</h3>
+                    <h3 className="panel-card__title mb-0">{t("Detalle técnico", "Technical detail")}</h3>
                   </div>
                   <div className="panel-card__body pt-0">
                     {stripLegacyVisibleText(workOrder.description)}
@@ -486,7 +488,7 @@ export function MaintenanceWorkOrderDetailModal({
               {stripLegacyVisibleText(workOrder.closure_notes) ? (
                 <div className="panel-card border-0 bg-light-subtle">
                   <div className="panel-card__header pb-2">
-                    <h3 className="panel-card__title mb-0">{language === "es" ? "Cierre técnico" : "Closure notes"}</h3>
+                    <h3 className="panel-card__title mb-0">{t("Cierre técnico", "Closure notes")}</h3>
                   </div>
                   <div className="panel-card__body pt-0">
                     {stripLegacyVisibleText(workOrder.closure_notes)}
@@ -498,12 +500,12 @@ export function MaintenanceWorkOrderDetailModal({
                 <div className="col-12 col-lg-6">
                   <div className="panel-card border-0 bg-light-subtle h-100">
                     <div className="panel-card__header pb-2">
-                      <h3 className="panel-card__title mb-0">{language === "es" ? "Cambios y eventos" : "Changes and events"}</h3>
+                      <h3 className="panel-card__title mb-0">{t("Cambios y eventos", "Changes and events")}</h3>
                     </div>
                     <div className="panel-card__body pt-0 d-grid gap-2">
                       {statusLogs.length === 0 ? (
                         <div className="maintenance-history-entry__meta">
-                          {language === "es" ? "Aún no hay eventos registrados." : "There are no recorded events yet."}
+                          {t("Aún no hay eventos registrados.", "There are no recorded events yet.")}
                         </div>
                       ) : (
                         statusLogs.map((log) => (
@@ -522,12 +524,12 @@ export function MaintenanceWorkOrderDetailModal({
                 <div className="col-12 col-lg-6">
                   <div className="panel-card border-0 bg-light-subtle h-100">
                     <div className="panel-card__header pb-2">
-                      <h3 className="panel-card__title mb-0">{language === "es" ? "Visitas asociadas" : "Linked visits"}</h3>
+                      <h3 className="panel-card__title mb-0">{t("Visitas asociadas", "Linked visits")}</h3>
                     </div>
                     <div className="panel-card__body pt-0 d-grid gap-2">
                       {visits.length === 0 ? (
                         <div className="maintenance-history-entry__meta">
-                          {language === "es" ? "Sin visitas registradas." : "No visits recorded."}
+                          {t("Sin visitas registradas.", "No visits recorded.")}
                         </div>
                       ) : (
                         visits.map((visit) => (
@@ -555,31 +557,31 @@ export function MaintenanceWorkOrderDetailModal({
 
           <div className="maintenance-form__actions mt-4">
             <button className="btn btn-outline-secondary" type="button" onClick={onClose}>
-              {language === "es" ? "Cerrar" : "Close"}
+              {t("Cerrar", "Close")}
             </button>
             {onOpenCosting ? (
               <button className="btn btn-outline-primary" type="button" onClick={onOpenCosting}>
-                {language === "es" ? "Ver costos" : "View costing"}
+                {t("Ver costos", "View costing")}
               </button>
             ) : null}
             {onOpenChecklist ? (
               <button className="btn btn-outline-primary" type="button" onClick={onOpenChecklist}>
-                {language === "es" ? "Ver checklist" : "View checklist"}
+                {t("Ver checklist", "View checklist")}
               </button>
             ) : null}
             {onManageVisits ? (
               <button className="btn btn-outline-primary" type="button" onClick={onManageVisits}>
-                {language === "es" ? "Visitas" : "Visits"}
+                {t("Visitas", "Visits")}
               </button>
             ) : null}
             {onEditClosure ? (
               <button className="btn btn-primary" type="button" onClick={onEditClosure}>
-                {language === "es" ? "Editar cierre" : "Edit closure"}
+                {t("Editar cierre", "Edit closure")}
               </button>
             ) : null}
             {onReopen ? (
               <button className="btn btn-outline-warning" type="button" onClick={onReopen}>
-                {language === "es" ? "Reabrir" : "Reopen"}
+                {t("Reabrir", "Reopen")}
               </button>
             ) : null}
           </div>
