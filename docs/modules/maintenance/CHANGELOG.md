@@ -2,6 +2,8 @@
 
 ## 2026-04-05
 
+- se separa el backlog de mejoras sugeridas del modulo en [improvements/README.md](/home/felipe/platform_paas/docs/modules/maintenance/improvements/README.md), dejando el roadmap funcional como cierre del primer corte
+
 - `Visitas` ahora agrega `Tipo de visita` operativo:
   - valores base `Diagnóstico`, `Ejecución`, `Seguimiento` y `Cierre`
   - se captura en la modal de visitas y se refleja en historial y ficha de mantención

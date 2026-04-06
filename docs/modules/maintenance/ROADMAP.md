@@ -295,6 +295,8 @@ Pendiente inmediato de esta fase:
 
 ## Mejoras futuras no bloqueantes
 
+- detalle consolidado en [improvements/README.md](/home/felipe/platform_paas/docs/modules/maintenance/improvements/README.md)
+
 - contratos de mantencion
 - alertas por WhatsApp o email
 - asignacion automatica de tecnicos
