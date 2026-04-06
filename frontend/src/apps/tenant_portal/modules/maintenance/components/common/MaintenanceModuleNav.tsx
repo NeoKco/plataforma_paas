@@ -1,53 +1,59 @@
 import { NavLink } from "react-router-dom";
 import { AppIcon } from "../../../../../../design-system/AppIcon";
-import { useLanguage } from "../../../../../../store/language-context";
+import {
+  pickLocalizedText,
+  useLanguage,
+} from "../../../../../../store/language-context";
 
 export function MaintenanceModuleNav() {
   const { language } = useLanguage();
   const navItems = [
     {
       to: "/tenant-portal/maintenance",
-      label: language === "es" ? "Resumen" : "Overview",
+      label: pickLocalizedText(language, { es: "Resumen", en: "Overview" }),
       icon: "maintenance" as const,
     },
     {
       to: "/tenant-portal/maintenance/due-items",
-      label: language === "es" ? "Pendientes" : "Due",
+      label: pickLocalizedText(language, { es: "Pendientes", en: "Due" }),
       icon: "planning" as const,
     },
     {
       to: "/tenant-portal/maintenance/work-orders",
-      label: language === "es" ? "Mantenciones" : "Work orders",
+      label: pickLocalizedText(language, { es: "Mantenciones", en: "Work orders" }),
       icon: "planning" as const,
     },
     {
       to: "/tenant-portal/maintenance/installations",
-      label: language === "es" ? "Instalaciones" : "Installations",
+      label: pickLocalizedText(language, { es: "Instalaciones", en: "Installations" }),
       icon: "catalogs" as const,
     },
     {
       to: "/tenant-portal/maintenance/equipment-types",
-      label: language === "es" ? "Tipos de equipo" : "Equipment types",
+      label: pickLocalizedText(language, { es: "Tipos de equipo", en: "Equipment types" }),
       icon: "categories" as const,
     },
     {
       to: "/tenant-portal/maintenance/cost-templates",
-      label: language === "es" ? "Costos de mantenciones" : "Maintenance costs",
+      label: pickLocalizedText(language, {
+        es: "Costos de mantenciones",
+        en: "Maintenance costs",
+      }),
       icon: "categories" as const,
     },
     {
       to: "/tenant-portal/maintenance/history",
-      label: language === "es" ? "Historial" : "History",
+      label: pickLocalizedText(language, { es: "Historial", en: "History" }),
       icon: "tenant-history" as const,
     },
     {
       to: "/tenant-portal/maintenance/calendar",
-      label: language === "es" ? "Agenda" : "Calendar",
+      label: pickLocalizedText(language, { es: "Agenda", en: "Calendar" }),
       icon: "overview" as const,
     },
     {
       to: "/tenant-portal/maintenance/reports",
-      label: language === "es" ? "Reportes" : "Reports",
+      label: pickLocalizedText(language, { es: "Reportes", en: "Reports" }),
       icon: "reports" as const,
     },
   ];

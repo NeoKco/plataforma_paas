@@ -9,6 +9,11 @@ import type { ReactNode } from "react";
 
 export type Language = "es" | "en";
 
+export type LocalizedText = {
+  es: string;
+  en: string;
+};
+
 const LANGUAGE_STORAGE_KEY = "platform_paas.language";
 
 type LanguageContextValue = {
@@ -52,4 +57,11 @@ export function useLanguage() {
     throw new Error("useLanguage must be used within LanguageProvider");
   }
   return context;
+}
+
+export function pickLocalizedText(
+  language: Language,
+  text: LocalizedText
+): string {
+  return language === "es" ? text.es : text.en;
 }

@@ -1,5 +1,8 @@
 import { NavLink } from "react-router-dom";
-import { useLanguage } from "../../../../../../store/language-context";
+import {
+  pickLocalizedText,
+  useLanguage,
+} from "../../../../../../store/language-context";
 
 export function BusinessCoreModuleNav() {
   const { language } = useLanguage();
@@ -7,43 +10,43 @@ export function BusinessCoreModuleNav() {
   const items = [
     {
       to: "/tenant-portal/business-core",
-      label: language === "es" ? "Resumen" : "Overview",
+      label: pickLocalizedText(language, { es: "Resumen", en: "Overview" }),
     },
     {
       to: "/tenant-portal/business-core/organizations",
-      label: language === "es" ? "Empresas" : "Organizations",
+      label: pickLocalizedText(language, { es: "Empresas", en: "Organizations" }),
     },
     {
       to: "/tenant-portal/business-core/clients",
-      label: language === "es" ? "Clientes" : "Clients",
+      label: pickLocalizedText(language, { es: "Clientes", en: "Clients" }),
     },
     {
       to: "/tenant-portal/business-core/duplicates",
-      label: language === "es" ? "Duplicados" : "Duplicates",
+      label: pickLocalizedText(language, { es: "Duplicados", en: "Duplicates" }),
     },
     {
       to: "/tenant-portal/business-core/function-profiles",
-      label: language === "es" ? "Perfiles" : "Profiles",
+      label: pickLocalizedText(language, { es: "Perfiles", en: "Profiles" }),
     },
     {
       to: "/tenant-portal/business-core/asset-types",
-      label: language === "es" ? "Tipos de activo" : "Asset types",
+      label: pickLocalizedText(language, { es: "Tipos de activo", en: "Asset types" }),
     },
     {
       to: "/tenant-portal/business-core/assets",
-      label: language === "es" ? "Activos" : "Assets",
+      label: pickLocalizedText(language, { es: "Activos", en: "Assets" }),
     },
     {
       to: "/tenant-portal/business-core/work-groups",
-      label: language === "es" ? "Grupos" : "Groups",
+      label: pickLocalizedText(language, { es: "Grupos", en: "Groups" }),
     },
     {
       to: "/tenant-portal/business-core/task-types",
-      label: language === "es" ? "Tipos de tarea" : "Task types",
+      label: pickLocalizedText(language, { es: "Tipos de tarea", en: "Task types" }),
     },
     {
       to: "/tenant-portal/business-core/taxonomy",
-      label: language === "es" ? "Taxonomías" : "Taxonomy",
+      label: pickLocalizedText(language, { es: "Taxonomías", en: "Taxonomy" }),
     },
   ];
 
