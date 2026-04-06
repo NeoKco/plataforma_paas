@@ -178,6 +178,10 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0026_maintenance_cost_templates",
                 "0027_maintenance_schedule_template_links",
                 "0028_maintenance_field_reports",
+                "0029_business_task_type_function_profiles",
+                "0030_business_core_merge_audits",
+                "0032_business_core_assets",
+                "0033_business_organization_addresses",
                 "0034_maintenance_actual_template_trace",
             ],
         )
@@ -450,6 +454,11 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0026_maintenance_cost_templates",
                 "0027_maintenance_schedule_template_links",
                 "0028_maintenance_field_reports",
+                "0029_business_task_type_function_profiles",
+                "0030_business_core_merge_audits",
+                "0032_business_core_assets",
+                "0033_business_organization_addresses",
+                "0034_maintenance_actual_template_trace",
             ],
         )
 

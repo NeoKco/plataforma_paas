@@ -257,9 +257,11 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
         work_order_repository.get_by_id.return_value = existing_item
         work_order_repository.save.side_effect = lambda _tenant_db, item: item
         status_log_repository = Mock()
+        costing_service = Mock()
         service = MaintenanceWorkOrderService(
             work_order_repository=work_order_repository,
             status_log_repository=status_log_repository,
+            costing_service=costing_service,
         )
         tenant_db = _FakeTenantDb({MaintenanceSchedule: schedule})
 
@@ -293,6 +295,7 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
             "Registro posterior al cierre original",
             status_log_repository.create.call_args.kwargs["note"],
         )
+        costing_service.maybe_auto_sync_by_tenant_policy.assert_called_once()
 
     def test_update_completed_work_order_rejects_operator_completed_at_adjustment(self) -> None:
         existing_item = SimpleNamespace(

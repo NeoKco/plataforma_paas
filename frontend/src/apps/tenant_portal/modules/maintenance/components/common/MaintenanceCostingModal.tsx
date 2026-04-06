@@ -542,6 +542,7 @@ export function MaintenanceCostingModal({
     () => costTemplates.find((template) => String(template.id) === appliedActualTemplateId) ?? null,
     [appliedActualTemplateId, costTemplates]
   );
+  const appliedActualTemplateLabel = appliedActualTemplate?.name ?? selectedActualTemplate?.name ?? "";
   const financeSyncMode = tenantInfo?.maintenance_finance_sync_mode ?? "manual";
   const autoSyncOnClose = financeSyncMode === "auto_on_close";
   const autoSyncIncomeEnabled = tenantInfo?.maintenance_finance_auto_sync_income ?? true;
@@ -1378,11 +1379,11 @@ export function MaintenanceCostingModal({
                         ? `Plantilla trazada al cierre real: ${costingDetail.actual.applied_cost_template_name_snapshot}`
                         : `Template traced on the real close: ${costingDetail.actual.applied_cost_template_name_snapshot}`}
                     </div>
-                  ) : !isReadOnly && appliedActualTemplateId && (appliedActualTemplate || selectedActualTemplate) ? (
+                  ) : !isReadOnly && appliedActualTemplateId && appliedActualTemplateLabel ? (
                     <div className="maintenance-history-entry__meta mt-2">
                       {language === "es"
-                        ? `Se guardará trazabilidad del cierre real usando la plantilla ${(appliedActualTemplate ?? selectedActualTemplate).name}.`
-                        : `The real close will keep traceability using template ${(appliedActualTemplate ?? selectedActualTemplate).name}.`}
+                        ? `Se guardará trazabilidad del cierre real usando la plantilla ${appliedActualTemplateLabel}.`
+                        : `The real close will keep traceability using template ${appliedActualTemplateLabel}.`}
                     </div>
                   ) : null}
                   <div className="row g-3 mt-1">
