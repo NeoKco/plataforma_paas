@@ -6,8 +6,12 @@ import { PanelCard } from "../../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../../components/common/StatusBadge";
 import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
+import { AppSpotlight } from "../../../../../design-system/AppSpotlight";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
-import { useLanguage } from "../../../../../store/language-context";
+import {
+  pickLocalizedText,
+  useLanguage,
+} from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
 import type { ApiError } from "../../../../../types";
@@ -113,41 +117,77 @@ export function BusinessCoreOverviewPage() {
       }));
   }, [clients, organizations]);
 
+  const spotlightStats = useMemo(
+    () => [
+      {
+        label: pickLocalizedText(language, {
+          es: "Empresas visibles",
+          en: "Visible organizations",
+        }),
+        value: visibleOrganizations.length,
+      },
+      {
+        label: pickLocalizedText(language, {
+          es: "Clientes visibles",
+          en: "Visible clients",
+        }),
+        value: clients.length,
+      },
+      {
+        label: pickLocalizedText(language, {
+          es: "Consumidores",
+          en: "Consumers",
+        }),
+        value: "3",
+      },
+    ],
+    [clients.length, language, visibleOrganizations.length]
+  );
+
   return (
     <div className="d-grid gap-4">
       <div className="d-grid gap-4">
         <PageHeader
-          eyebrow={language === "es" ? "Core de negocio" : "Business core"}
+          eyebrow={pickLocalizedText(language, {
+            es: "Core de negocio",
+            en: "Business core",
+          })}
           icon="business-core"
-          title={language === "es" ? "Base compartida tenant" : "Shared tenant base"}
-          description={
-            language === "es"
-              ? "Primer slice para normalizar empresas, clientes, contactos y direcciones antes de seguir con Mantenciones."
-              : "First slice to normalize organizations, clients, contacts, and addresses before continuing with Maintenance."
-          }
+          title={pickLocalizedText(language, {
+            es: "Base compartida tenant",
+            en: "Shared tenant base",
+          })}
+          description={pickLocalizedText(language, {
+            es: "Primer slice para normalizar empresas, clientes, contactos y direcciones antes de seguir con Mantenciones.",
+            en: "First slice to normalize organizations, clients, contacts, and addresses before continuing with Maintenance.",
+          })}
         />
         <BusinessCoreModuleNav />
+        <AppSpotlight
+          icon="business-core"
+          eyebrow={pickLocalizedText(language, {
+            es: "Dominio transversal",
+            en: "Shared domain",
+          })}
+          title={pickLocalizedText(language, {
+            es: "Base maestra reutilizable",
+            en: "Reusable master base",
+          })}
+          description={pickLocalizedText(language, {
+            es: "El primer corte técnico se centra en empresas, clientes, contactos y direcciones. Grupos, perfiles funcionales y tipos de tarea quedan como taxonomía compartida para los siguientes módulos.",
+            en: "The first technical wave focuses on organizations, clients, contacts, and addresses. Work groups, functional profiles, and task types remain as the shared taxonomy for the next modules.",
+          })}
+          stats={spotlightStats}
+        />
         <PanelCard
-          title={language === "es" ? "Dominio transversal" : "Shared domain"}
-          subtitle={
-            language === "es"
-              ? "Este frente define la base tenant que luego reutilizan Mantenciones, Proyectos e IoT."
-              : "This front defines the tenant base later reused by Maintenance, Projects, and IoT."
-          }
-        >
-          <p className="mb-0 text-secondary">
-            {language === "es"
-              ? "El primer corte técnico se centra en empresas, clientes, contactos y direcciones. Grupos, perfiles funcionales y tipos de tarea quedan como la taxonomía compartida del segundo bloque."
-              : "The first technical wave focuses on organizations, clients, contacts, and addresses. Work groups, functional profiles, and task types remain as the shared taxonomy of the second block."}
-          </p>
-        </PanelCard>
-        <PanelCard
-          title={language === "es" ? "Limpieza de duplicados" : "Duplicate cleanup"}
-          subtitle={
-            language === "es"
-              ? "Si no encuentras el slice, está dentro de Core de negocio y ahora aparece como `Duplicados` en la navegación superior."
-              : "If you cannot find the slice, it lives inside Business core and now appears as `Duplicates` in the top navigation."
-          }
+          title={pickLocalizedText(language, {
+            es: "Limpieza de duplicados",
+            en: "Duplicate cleanup",
+          })}
+          subtitle={pickLocalizedText(language, {
+            es: "Si no encuentras el slice, está dentro de Core de negocio y ahora aparece como Duplicados en la navegación superior.",
+            en: "If you cannot find the slice, it lives inside Business core and now appears as Duplicates in the top navigation.",
+          })}
         >
           <div className="business-core-card__actions">
             <button
@@ -155,12 +195,16 @@ export function BusinessCoreOverviewPage() {
               type="button"
               onClick={() => navigate("/tenant-portal/business-core/duplicates")}
             >
-              {language === "es" ? "Abrir duplicados" : "Open duplicates"}
+              {pickLocalizedText(language, {
+                es: "Abrir duplicados",
+                en: "Open duplicates",
+              })}
             </button>
             <div className="business-core-cell__meta">
-              {language === "es"
-                ? "Ruta directa: /tenant-portal/business-core/duplicates"
-                : "Direct route: /tenant-portal/business-core/duplicates"}
+              {pickLocalizedText(language, {
+                es: "Ruta directa: /tenant-portal/business-core/duplicates",
+                en: "Direct route: /tenant-portal/business-core/duplicates",
+              })}
             </div>
           </div>
         </PanelCard>

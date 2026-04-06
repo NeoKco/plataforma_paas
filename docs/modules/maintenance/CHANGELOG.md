@@ -1,5 +1,10 @@
 # Maintenance Changelog
 
+## 2026-04-06
+
+- se alinea la capa transversal del frontend del módulo con el helper compartido `pickLocalizedText()` para navegación, formularios catálogo y lecturas operativas compartidas
+- `Resumen técnico` ahora incorpora `AppSpotlight` para dejar el punto de entrada del módulo dentro del mismo lenguaje visual ya usado por el `design system` transversal
+
 ## 2026-04-05
 
 - se separa el backlog de mejoras sugeridas del modulo en [improvements/README.md](/home/felipe/platform_paas/docs/modules/maintenance/improvements/README.md), dejando el roadmap funcional como cierre del primer corte

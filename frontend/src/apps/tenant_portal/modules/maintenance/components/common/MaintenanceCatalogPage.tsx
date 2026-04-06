@@ -6,7 +6,10 @@ import { ErrorState } from "../../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../../components/feedback/LoadingBlock";
 import { AppToolbar } from "../../../../../../design-system/AppLayout";
 import { getApiErrorDisplayMessage } from "../../../../../../services/api";
-import { useLanguage } from "../../../../../../store/language-context";
+import {
+  pickLocalizedText,
+  useLanguage,
+} from "../../../../../../store/language-context";
 import type { ApiError } from "../../../../../../types";
 import { MaintenanceHelpBubble } from "./MaintenanceHelpBubble";
 import { MaintenanceModuleNav } from "./MaintenanceModuleNav";
@@ -101,12 +104,25 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
   const { language } = useLanguage();
   const [localError, setLocalError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const localizedTitle = pickLocalizedText(language, { es: titleEs, en: titleEn });
+  const localizedDescription = pickLocalizedText(language, {
+    es: descriptionEs,
+    en: descriptionEn,
+  });
+  const localizedHelp = pickLocalizedText(language, { es: helpEs, en: helpEn });
+  const localizedLoadingLabel = pickLocalizedText(language, {
+    es: loadingLabelEs,
+    en: loadingLabelEn,
+  });
 
   const localizedColumns = useMemo(
     () =>
       columns.map((column) => ({
         key: column.key,
-        header: language === "es" ? column.headerEs : column.headerEn,
+        header: pickLocalizedText(language, {
+          es: column.headerEs,
+          en: column.headerEn,
+        }),
         render: (row: TRow) => column.render(row, language),
       })),
     [columns, language]
@@ -156,21 +172,24 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow={language === "es" ? "Mantenciones" : "Maintenance"}
+        eyebrow={pickLocalizedText(language, {
+          es: "Mantenciones",
+          en: "Maintenance",
+        })}
         icon="maintenance"
-        title={language === "es" ? titleEs : titleEn}
-        description={language === "es" ? descriptionEs : descriptionEn}
+        title={localizedTitle}
+        description={localizedDescription}
         actions={
           <AppToolbar compact>
             <MaintenanceHelpBubble
-              label={language === "es" ? "Ayuda" : "Help"}
-              helpText={language === "es" ? helpEs : helpEn}
+              label={pickLocalizedText(language, { es: "Ayuda", en: "Help" })}
+              helpText={localizedHelp}
             />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void onReload()}>
-              {language === "es" ? "Recargar" : "Reload"}
+              {pickLocalizedText(language, { es: "Recargar", en: "Reload" })}
             </button>
             <button className="btn btn-primary" type="button" onClick={handleOpenCreate}>
-              {language === "es" ? "Nuevo registro" : "New record"}
+              {pickLocalizedText(language, { es: "Nuevo registro", en: "New record" })}
             </button>
           </AppToolbar>
         }
@@ -181,17 +200,16 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
       {localError ? <div className="alert alert-danger mb-0">{localError}</div> : null}
       {error ? (
         <ErrorState
-          title={
-            language === "es"
-              ? "No se pudo cargar la vista"
-              : "The view could not be loaded"
-          }
+          title={pickLocalizedText(language, {
+            es: "No se pudo cargar la vista",
+            en: "The view could not be loaded",
+          })}
           detail={getApiErrorDisplayMessage(error)}
           requestId={error.payload?.request_id}
         />
       ) : null}
       {isLoading ? (
-        <LoadingBlock label={language === "es" ? loadingLabelEs : loadingLabelEn} />
+        <LoadingBlock label={localizedLoadingLabel} />
       ) : null}
 
       {isFormOpen ? (
@@ -204,48 +222,39 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
             className="maintenance-form-modal"
             role="dialog"
             aria-modal="true"
-            aria-label={
-              editingId
-                ? language === "es"
-                  ? "Editar registro"
-                  : "Edit record"
-                : language === "es"
-                  ? "Nuevo registro"
-                  : "New record"
-            }
+            aria-label={pickLocalizedText(language, {
+              es: editingId ? "Editar registro" : "Nuevo registro",
+              en: editingId ? "Edit record" : "New record",
+            })}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="maintenance-form-modal__eyebrow">
-              {editingId
-                ? language === "es"
-                  ? "Edición puntual"
-                  : "Targeted edit"
-                : language === "es"
-                  ? "Alta bajo demanda"
-                  : "On-demand creation"}
+              {pickLocalizedText(language, {
+                es: editingId ? "Edición puntual" : "Alta bajo demanda",
+                en: editingId ? "Targeted edit" : "On-demand creation",
+              })}
             </div>
             <PanelCard
-              title={
-                editingId
-                  ? language === "es"
-                    ? "Editar registro"
-                    : "Edit record"
-                  : language === "es"
-                    ? "Nuevo registro"
-                    : "New record"
-              }
-              subtitle={
-                language === "es"
-                  ? "Mantén limpio este dominio técnico para que el ciclo de mantenciones no se degrade."
-                  : "Keep this technical domain clean so the work-order lifecycle does not degrade."
-              }
+              title={pickLocalizedText(language, {
+                es: editingId ? "Editar registro" : "Nuevo registro",
+                en: editingId ? "Edit record" : "New record",
+              })}
+              subtitle={pickLocalizedText(language, {
+                es: "Mantén limpio este dominio técnico para que el ciclo de mantenciones no se degrade.",
+                en: "Keep this technical domain clean so the work-order lifecycle does not degrade.",
+              })}
             >
               <form className="maintenance-form" onSubmit={(event) => void handleSubmit(event)}>
                 <div className="row g-3">
                   {fields.map((field) => {
-                    const label = language === "es" ? field.labelEs : field.labelEn;
-                    const placeholder =
-                      language === "es" ? field.placeholderEs : field.placeholderEn;
+                    const label = pickLocalizedText(language, {
+                      es: field.labelEs,
+                      en: field.labelEn,
+                    });
+                    const placeholder = pickLocalizedText(language, {
+                      es: field.placeholderEs ?? "",
+                      en: field.placeholderEn ?? "",
+                    });
                     const value = form[field.key];
 
                     if (field.type === "checkbox") {
@@ -332,20 +341,20 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
                               [field.key]:
                                 field.type === "number"
                                   ? Number(event.target.value || 0)
-                                  : event.target.value,
+                                  {pickLocalizedText(language, { es: "Cancelar", en: "Cancel" })}
                             })
                           }
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="maintenance-form__actions">
-                  <button className="btn btn-outline-secondary" type="button" onClick={handleCloseForm}>
-                    {language === "es" ? "Cancelar" : "Cancel"}
-                  </button>
-                  <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-                    {isSubmitting
+                                  {isSubmitting
+                                    ? pickLocalizedText(language, { es: "Guardando...", en: "Saving..." })
+                                    : editingId
+                                      ? pickLocalizedText(language, {
+                                          es: "Guardar cambios",
+                                          en: "Save changes",
+                                        })
+                                      : pickLocalizedText(language, {
+                                          es: "Crear registro",
+                                          en: "Create record",
+                                        })}
                       ? language === "es"
                         ? "Guardando..."
                         : "Saving..."
@@ -355,12 +364,14 @@ export function MaintenanceCatalogPage<TRow, TForm extends Record<string, unknow
                           : "Save changes"
                         : language === "es"
                           ? "Crear registro"
-                          : "Create record"}
-                  </button>
-                </div>
-              </form>
-            </PanelCard>
-          </div>
+                      title={pickLocalizedText(language, {
+                        es: "Catálogo operativo",
+                        en: "Operational catalog",
+                      })}
+                      subtitle={pickLocalizedText(language, {
+                        es: "Base técnica que alimenta la operación del módulo.",
+                        en: "Technical base that feeds the module operation.",
+                      })}
         </div>
       ) : null}
 

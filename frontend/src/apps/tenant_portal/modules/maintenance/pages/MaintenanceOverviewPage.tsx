@@ -6,8 +6,12 @@ import { ErrorState } from "../../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../../components/feedback/LoadingBlock";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
+import { AppSpotlight } from "../../../../../design-system/AppSpotlight";
 import { getApiErrorDisplayMessage } from "../../../../../services/api";
-import { useLanguage } from "../../../../../store/language-context";
+import {
+  pickLocalizedText,
+  useLanguage,
+} from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
 import type { ApiError } from "../../../../../types";
@@ -152,6 +156,29 @@ export function MaintenanceOverviewPage() {
   const activeCurrencies = useMemo(
     () => financeCurrencies.filter((currency) => currency.is_active),
     [financeCurrencies]
+  );
+  const spotlightStats = useMemo(
+    () => [
+      {
+        label: pickLocalizedText(language, { es: "Abiertas", en: "Open" }),
+        value: activeSummary.total,
+      },
+      {
+        label: pickLocalizedText(language, {
+          es: "Programadas",
+          en: "Scheduled",
+        }),
+        value: activeSummary.scheduled,
+      },
+      {
+        label: pickLocalizedText(language, {
+          es: "Realizadas",
+          en: "Completed",
+        }),
+        value: historyRows.length,
+      },
+    ],
+    [activeSummary.scheduled, activeSummary.total, historyRows.length, language]
   );
 
   async function loadData() {
@@ -308,42 +335,71 @@ export function MaintenanceOverviewPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow={language === "es" ? "Mantenciones" : "Maintenance"}
+        eyebrow={pickLocalizedText(language, {
+          es: "Mantenciones",
+          en: "Maintenance",
+        })}
         icon="maintenance"
-        title={language === "es" ? "Resumen técnico" : "Technical overview"}
-        description={
-          language === "es"
-            ? "Panel corto del módulo: abiertas para ejecutar y últimas mantenciones ya realizadas."
-            : "Short operational dashboard: open work to execute and the latest completed maintenance."
-        }
+        title={pickLocalizedText(language, {
+          es: "Resumen técnico",
+          en: "Technical overview",
+        })}
+        description={pickLocalizedText(language, {
+          es: "Panel corto del módulo: abiertas para ejecutar y últimas mantenciones ya realizadas.",
+          en: "Short operational dashboard: open work to execute and the latest completed maintenance.",
+        })}
         actions={
           <AppToolbar compact>
             <MaintenanceHelpBubble
-              label={language === "es" ? "Ayuda" : "Help"}
-              helpText={
-                language === "es"
-                  ? "Este resumen debe leerse así: abiertas para trabajo diario y últimas realizadas como control rápido de cierre."
-                  : "Read this summary as: open work for day-to-day operations and latest completed work as a quick closing check."
-              }
+              label={pickLocalizedText(language, { es: "Ayuda", en: "Help" })}
+              helpText={pickLocalizedText(language, {
+                es: "Este resumen debe leerse así: abiertas para trabajo diario y últimas realizadas como control rápido de cierre.",
+                en: "Read this summary as: open work for day-to-day operations and latest completed work as a quick closing check.",
+              })}
             />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadData()}>
-              {language === "es" ? "Recargar" : "Reload"}
+              {pickLocalizedText(language, { es: "Recargar", en: "Reload" })}
             </button>
           </AppToolbar>
         }
       />
       <MaintenanceModuleNav />
 
+      <AppSpotlight
+        icon="maintenance"
+        eyebrow={pickLocalizedText(language, {
+          es: "Operación técnica",
+          en: "Technical operation",
+        })}
+        title={pickLocalizedText(language, {
+          es: "Vista corta para priorizar trabajo",
+          en: "Short view to prioritize work",
+        })}
+        description={pickLocalizedText(language, {
+          es: "El módulo concentra abiertas, programadas y cierres recientes para que la agenda diaria y el control post-servicio queden en el mismo punto de entrada.",
+          en: "The module concentrates open work, scheduled items, and recent closures so the daily agenda and post-service control stay in the same entry point.",
+        })}
+        stats={spotlightStats}
+      />
+
       {error ? (
         <ErrorState
-          title={language === "es" ? "No se pudo cargar el resumen" : "The overview could not be loaded"}
+          title={pickLocalizedText(language, {
+            es: "No se pudo cargar el resumen",
+            en: "The overview could not be loaded",
+          })}
           detail={getApiErrorDisplayMessage(error)}
           requestId={error.payload?.request_id}
         />
       ) : null}
 
       {isLoading ? (
-        <LoadingBlock label={language === "es" ? "Cargando resumen técnico..." : "Loading technical overview..."} />
+        <LoadingBlock
+          label={pickLocalizedText(language, {
+            es: "Cargando resumen técnico...",
+            en: "Loading technical overview...",
+          })}
+        />
       ) : null}
 
       <div className="row g-3">

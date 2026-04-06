@@ -7,7 +7,10 @@ import { LoadingBlock } from "../../../../../../components/feedback/LoadingBlock
 import { AppToolbar } from "../../../../../../design-system/AppLayout";
 import { AppBadge } from "../../../../../../design-system/AppBadge";
 import { getApiErrorDisplayMessage } from "../../../../../../services/api";
-import { useLanguage } from "../../../../../../store/language-context";
+import {
+  pickLocalizedText,
+  useLanguage,
+} from "../../../../../../store/language-context";
 import type { ApiError } from "../../../../../../types";
 import { BusinessCoreHelpBubble } from "./BusinessCoreHelpBubble";
 import { BusinessCoreModuleNav } from "./BusinessCoreModuleNav";
@@ -94,12 +97,25 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
   const { language } = useLanguage();
   const [localError, setLocalError] = useState<string | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const localizedTitle = pickLocalizedText(language, { es: titleEs, en: titleEn });
+  const localizedDescription = pickLocalizedText(language, {
+    es: descriptionEs,
+    en: descriptionEn,
+  });
+  const localizedHelp = pickLocalizedText(language, { es: helpEs, en: helpEn });
+  const localizedLoadingLabel = pickLocalizedText(language, {
+    es: loadingLabelEs,
+    en: loadingLabelEn,
+  });
 
   const localizedColumns = useMemo(
     () =>
       columns.map((column) => ({
         key: column.key,
-        header: language === "es" ? column.headerEs : column.headerEn,
+        header: pickLocalizedText(language, {
+          es: column.headerEs,
+          en: column.headerEn,
+        }),
         render: (row: TRow) => column.render(row, language),
       })),
     [columns, language]
@@ -144,21 +160,24 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow={language === "es" ? "Core de negocio" : "Business core"}
+        eyebrow={pickLocalizedText(language, {
+          es: "Core de negocio",
+          en: "Business core",
+        })}
         icon="business-core"
-        title={language === "es" ? titleEs : titleEn}
-        description={language === "es" ? descriptionEs : descriptionEn}
+        title={localizedTitle}
+        description={localizedDescription}
         actions={
           <AppToolbar compact>
             <BusinessCoreHelpBubble
-              label={language === "es" ? "Ayuda" : "Help"}
-              helpText={language === "es" ? helpEs : helpEn}
+              label={pickLocalizedText(language, { es: "Ayuda", en: "Help" })}
+              helpText={localizedHelp}
             />
             <button className="btn btn-outline-secondary" type="button" onClick={() => void onReload()}>
-              {language === "es" ? "Recargar" : "Reload"}
+              {pickLocalizedText(language, { es: "Recargar", en: "Reload" })}
             </button>
             <button className="btn btn-primary" type="button" onClick={handleOpenNew}>
-              {language === "es" ? "Nuevo registro" : "New record"}
+              {pickLocalizedText(language, { es: "Nuevo registro", en: "New record" })}
             </button>
           </AppToolbar>
         }
@@ -169,26 +188,27 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
       {localError ? <div className="alert alert-danger mb-0">{localError}</div> : null}
       {error ? (
         <ErrorState
-          title={
-            language === "es"
-              ? "No se pudo cargar la vista"
-              : "The view could not be loaded"
-          }
+          title={pickLocalizedText(language, {
+            es: "No se pudo cargar la vista",
+            en: "The view could not be loaded",
+          })}
           detail={getApiErrorDisplayMessage(error)}
           requestId={error.payload?.request_id}
         />
       ) : null}
       {isLoading ? (
-        <LoadingBlock label={language === "es" ? loadingLabelEs : loadingLabelEn} />
+        <LoadingBlock label={localizedLoadingLabel} />
       ) : null}
 
       <DataTableCard
-        title={language === "es" ? "Catálogo activo" : "Active catalog"}
-        subtitle={
-          language === "es"
-            ? "Lista operativa del dominio compartido."
-            : "Operational list of the shared domain."
-        }
+        title={pickLocalizedText(language, {
+          es: "Catálogo activo",
+          en: "Active catalog",
+        })}
+        subtitle={pickLocalizedText(language, {
+          es: "Lista operativa del dominio compartido.",
+          en: "Operational list of the shared domain.",
+        })}
         rows={rows}
         columns={localizedColumns}
       />
@@ -199,48 +219,51 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
             className="confirm-dialog business-core-form-modal business-core-form-modal--catalog"
             role="dialog"
             aria-modal="true"
-            aria-label={editingId ? "Editar registro" : "Nuevo registro"}
+            aria-label={pickLocalizedText(language, {
+              es: editingId ? "Editar registro" : "Nuevo registro",
+              en: editingId ? "Edit record" : "New record",
+            })}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="business-core-form-modal__eyebrow">
-              {language === "es" ? "Captura puntual" : "Targeted capture"}
+              {pickLocalizedText(language, {
+                es: "Captura puntual",
+                en: "Targeted capture",
+              })}
             </div>
             <div className="confirm-dialog__title">
-              {editingId
-                ? language === "es"
-                  ? "Editar registro"
-                  : "Edit record"
-                : language === "es"
-                  ? "Nuevo registro"
-                  : "New record"}
+              {pickLocalizedText(language, {
+                es: editingId ? "Editar registro" : "Nuevo registro",
+                en: editingId ? "Edit record" : "New record",
+              })}
             </div>
             <div className="confirm-dialog__description">
-              {language === "es"
-                ? "Abre este formulario solo cuando realmente necesites crear o corregir un registro del core compartido."
-                : "Open this form only when you actually need to create or correct a shared core record."}
+              {pickLocalizedText(language, {
+                es: "Abre este formulario solo cuando realmente necesites crear o corregir un registro del core compartido.",
+                en: "Open this form only when you actually need to create or correct a shared core record.",
+              })}
             </div>
             <PanelCard
-              title={
-                editingId
-                  ? language === "es"
-                    ? "Edición"
-                    : "Edition"
-                  : language === "es"
-                    ? "Alta"
-                    : "Creation"
-              }
-              subtitle={
-                language === "es"
-                  ? "Mantén esta base transversal limpia para que otros módulos la reutilicen."
-                  : "Keep this shared base clean so other modules can reuse it."
-              }
+              title={pickLocalizedText(language, {
+                es: editingId ? "Edición" : "Alta",
+                en: editingId ? "Edition" : "Creation",
+              })}
+              subtitle={pickLocalizedText(language, {
+                es: "Mantén esta base transversal limpia para que otros módulos la reutilicen.",
+                en: "Keep this shared base clean so other modules can reuse it.",
+              })}
             >
               <form className="business-core-form" onSubmit={(event) => void handleSubmit(event)}>
                 <div className="row g-3 business-core-form-grid--dense">
                   {fields.map((field) => {
-                    const label = language === "es" ? field.labelEs : field.labelEn;
-                    const placeholder =
-                      language === "es" ? field.placeholderEs : field.placeholderEn;
+                    const label = pickLocalizedText(language, {
+                      es: field.labelEs,
+                      en: field.labelEn,
+                    });
+                    const placeholder = pickLocalizedText(language, {
+                      es: field.placeholderEs ?? "",
+                      en: field.placeholderEn ?? "",
+                    });
                     const value = form[field.key];
 
                     if (field.type === "checkbox") {
@@ -338,20 +361,20 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
                 </div>
                 <div className="business-core-form__actions">
                   <button className="btn btn-outline-secondary" type="button" onClick={handleCloseEditor}>
-                    {language === "es" ? "Cancelar" : "Cancel"}
+                    {pickLocalizedText(language, { es: "Cancelar", en: "Cancel" })}
                   </button>
                   <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
                     {isSubmitting
-                      ? language === "es"
-                        ? "Guardando..."
-                        : "Saving..."
+                      ? pickLocalizedText(language, { es: "Guardando...", en: "Saving..." })
                       : editingId
-                        ? language === "es"
-                          ? "Guardar cambios"
-                          : "Save changes"
-                        : language === "es"
-                          ? "Crear registro"
-                          : "Create record"}
+                        ? pickLocalizedText(language, {
+                            es: "Guardar cambios",
+                            en: "Save changes",
+                          })
+                        : pickLocalizedText(language, {
+                            es: "Crear registro",
+                            en: "Create record",
+                          })}
                   </button>
                 </div>
               </form>
