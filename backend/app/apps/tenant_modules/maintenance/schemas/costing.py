@@ -32,6 +32,7 @@ class MaintenanceCostActualWriteRequest(BaseModel):
     external_services_cost: float = 0
     overhead_cost: float = 0
     actual_price_charged: float = 0
+    applied_template_id: int | None = None
     notes: str | None = None
     lines: list[MaintenanceCostLineWriteItem] = Field(default_factory=list)
 
@@ -96,6 +97,8 @@ class MaintenanceCostActualItemResponse(BaseModel):
     actual_income: float
     actual_profit: float
     actual_margin_percent: float | None = None
+    applied_cost_template_id: int | None = None
+    applied_cost_template_name_snapshot: str | None = None
     notes: str | None = None
     income_transaction_id: int | None = None
     expense_transaction_id: int | None = None

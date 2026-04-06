@@ -26,6 +26,8 @@ class MaintenanceCostActual(TenantBase):
     actual_profit: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     actual_margin_percent: Mapped[float | None] = mapped_column(Float, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    applied_cost_template_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    applied_cost_template_name_snapshot: Mapped[str | None] = mapped_column(Text, nullable=True)
     income_transaction_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     expense_transaction_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     finance_synced_at: Mapped[DateTime | None] = mapped_column(

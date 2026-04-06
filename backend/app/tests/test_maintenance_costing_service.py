@@ -12,6 +12,7 @@ from app.apps.tenant_modules.maintenance.models import (  # noqa: E402
     MaintenanceCostActual,
     MaintenanceCostEstimate,
     MaintenanceCostLine,
+    MaintenanceCostTemplate,
     MaintenanceSchedule,
     MaintenanceScheduleCostLine,
     MaintenanceWorkOrder,
@@ -222,6 +223,34 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
         self.assertEqual(actual.actual_margin_percent, 54.0)
         self.assertEqual(len(detail["actual_lines"]), 2)
         self.assertEqual(detail["actual_lines"][0].cost_stage, "actual")
+
+    def test_upsert_cost_actual_traces_applied_template(self) -> None:
+        work_order = SimpleNamespace(id=29, title="Visita técnica")
+        template = SimpleNamespace(id=4, name="Plantilla cierre estándar")
+        tenant_db = _FakeTenantDb(
+            {
+                MaintenanceWorkOrder: work_order,
+                MaintenanceCostTemplate: template,
+                MaintenanceCostLine: [],
+            }
+        )
+        service = MaintenanceCostingService(finance_service=Mock())
+
+        detail = service.upsert_cost_actual(
+            tenant_db,
+            29,
+            MaintenanceCostActualWriteRequest(
+                labor_cost=10000,
+                travel_cost=5000,
+                actual_price_charged=25000,
+                applied_template_id=4,
+            ),
+            actor_user_id=6,
+        )
+
+        actual = detail["actual"]
+        self.assertEqual(actual.applied_cost_template_id, 4)
+        self.assertEqual(actual.applied_cost_template_name_snapshot, "Plantilla cierre estándar")
 
     def test_sync_to_finance_creates_income_and_expense_transactions(self) -> None:
         work_order = SimpleNamespace(

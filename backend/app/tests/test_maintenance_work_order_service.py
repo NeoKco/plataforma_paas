@@ -344,6 +344,58 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
                 actor_role="operator",
             )
 
+    def test_update_completed_work_order_retries_auto_sync_after_completed_at_adjustment(self) -> None:
+        existing_item = SimpleNamespace(
+            id=120,
+            client_id=11,
+            site_id=31,
+            installation_id=9,
+            schedule_id=None,
+            external_reference="LEGACY-HIST-MAINT-120",
+            title="Mantencion cerrada",
+            description="Descripcion vieja",
+            priority="normal",
+            scheduled_for="2026-04-04T10:00:00",
+            cancellation_reason=None,
+            closure_notes="Cierre viejo",
+            assigned_work_group_id=4,
+            assigned_tenant_user_id=None,
+            maintenance_status="completed",
+            completed_at=datetime(2026, 4, 4, 18, 0, tzinfo=timezone.utc),
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        work_order_repository.save.side_effect = lambda _tenant_db, item: item
+        costing_service = Mock()
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+            costing_service=costing_service,
+        )
+
+        service.update_work_order(
+            _FakeTenantDb({}),
+            120,
+            MaintenanceWorkOrderUpdateRequest(
+                client_id=11,
+                site_id=31,
+                installation_id=9,
+                assigned_work_group_id=4,
+                external_reference="WO-NO-IMPORTA",
+                title="Intento de cambio",
+                description="Descripcion corregida",
+                priority="critical",
+                scheduled_for=None,
+                cancellation_reason=None,
+                closure_notes="cierre corregido",
+                completed_at_override=datetime(2026, 4, 4, 15, 30, tzinfo=timezone.utc),
+                closure_adjustment_note="Cierre tardío",
+            ),
+            changed_by_user_id=8,
+            actor_role="manager",
+        )
+
+        costing_service.maybe_auto_sync_by_tenant_policy.assert_called_once()
+
     def test_create_work_order_rejects_unknown_assigned_work_group(self) -> None:
         work_order_repository = Mock()
         service = MaintenanceWorkOrderService(

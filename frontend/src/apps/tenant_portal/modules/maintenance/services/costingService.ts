@@ -48,6 +48,8 @@ export type TenantMaintenanceCostActual = {
   actual_income: number;
   actual_profit: number;
   actual_margin_percent: number | null;
+  applied_cost_template_id: number | null;
+  applied_cost_template_name_snapshot: string | null;
   notes: string | null;
   income_transaction_id: number | null;
   expense_transaction_id: number | null;
@@ -90,6 +92,7 @@ export type TenantMaintenanceCostActualWriteRequest = {
   external_services_cost: number;
   overhead_cost: number;
   actual_price_charged: number;
+  applied_template_id?: number | null;
   notes: string | null;
   lines: TenantMaintenanceCostLineWriteItem[];
 };

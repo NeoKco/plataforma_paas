@@ -13,6 +13,7 @@ from app.apps.tenant_modules.maintenance.models import (
     MaintenanceCostActual,
     MaintenanceCostEstimate,
     MaintenanceCostLine,
+    MaintenanceCostTemplate,
     MaintenanceSchedule,
     MaintenanceScheduleCostLine,
     MaintenanceWorkOrder,
@@ -144,6 +145,12 @@ class MaintenanceCostingService:
         actual.actual_income = actual_income
         actual.actual_profit = actual_profit
         actual.actual_margin_percent = actual_margin_percent
+        actual.applied_cost_template_id = None
+        actual.applied_cost_template_name_snapshot = None
+        if payload.applied_template_id is not None:
+            template = self._get_cost_template_or_raise(tenant_db, payload.applied_template_id)
+            actual.applied_cost_template_id = template.id
+            actual.applied_cost_template_name_snapshot = template.name
         actual.notes = self._normalize_text(payload.notes)
         actual.updated_by_user_id = actor_user_id
 
@@ -171,6 +178,20 @@ class MaintenanceCostingService:
         )
         refreshed_detail = self.get_costing_detail(tenant_db, work_order_id)
         return refreshed_detail if refreshed_detail.get("actual") is not None else detail
+
+    def _get_cost_template_or_raise(
+        self,
+        tenant_db: Session,
+        template_id: int,
+    ) -> MaintenanceCostTemplate:
+        item = (
+            tenant_db.query(MaintenanceCostTemplate)
+            .filter(MaintenanceCostTemplate.id == template_id)
+            .first()
+        )
+        if item is None:
+            raise ValueError("La plantilla de costeo seleccionada no existe")
+        return item
 
     def sync_to_finance(
         self,

@@ -140,6 +140,11 @@ class MaintenanceWorkOrderService:
             saved = self.work_order_repository.save(tenant_db, item)
             if item.maintenance_status == "completed" and payload.completed_at_override is not None:
                 self._sync_schedule_after_completed_at_adjustment(tenant_db, saved)
+                self.costing_service.maybe_auto_sync_by_tenant_policy(
+                    tenant_db,
+                    saved.id,
+                    actor_user_id=changed_by_user_id,
+                )
             return saved
         self._validate_payload(tenant_db, normalized, current_item=item)
         reschedule_note = self._build_reschedule_audit_note(

@@ -62,6 +62,8 @@ def _build_actual(item) -> MaintenanceCostActualItemResponse | None:
         actual_income=item.actual_income,
         actual_profit=item.actual_profit,
         actual_margin_percent=item.actual_margin_percent,
+        applied_cost_template_id=getattr(item, "applied_cost_template_id", None),
+        applied_cost_template_name_snapshot=getattr(item, "applied_cost_template_name_snapshot", None),
         notes=item.notes,
         income_transaction_id=item.income_transaction_id,
         expense_transaction_id=item.expense_transaction_id,
