@@ -63,7 +63,7 @@ El primer corte del modulo ya permite:
 - ahora también existe la vista `Plantillas` dentro de `Mantenciones` para administrar esas plantillas sin depender de `Pendientes` o de una OT puntual
 - esa plantilla luego puede elegirse y aplicarse tanto al `Costeo estimado` como al `Costo real`
 - el `Monto cobrado` no se pisa con la plantilla; queda manual para respetar el cierre comercial real
-- por ahora el módulo no deja una marca explícita de "plantilla aplicada al cierre" dentro del histórico económico final; ese refinamiento queda pendiente
+- cuando aplicas una plantilla al `Costo real`, el histórico económico final deja visible qué plantilla quedó trazada en ese cierre
 - abrir `Ver costos` desde `Historial` para revisar en modo solo lectura el cierre económico ya congelado de una orden cerrada
 - abrir `Checklist` desde una mantención abierta para registrar checklist técnico, observación de cierre y evidencias del trabajo ejecutado
 - abrir `Ver checklist` desde `Historial` para consultar ese cierre técnico en modo solo lectura
@@ -204,6 +204,7 @@ Regla UX operativa:
   - la OT completada intenta generar ingreso/egreso usando las cuentas, categorías, moneda y toggles por defecto del tenant
   - el modal `Costos` avisa si falta alguna configuración activa en `Resumen` para que el cierre no salga sin el puente esperado a `Finanzas`
   - en ese modo, el botón de sync queda como respaldo para reintentar o corregir la sincronización si cambió la configuración o si el primer intento no pudo completarse
+  - si luego `admin` o `manager` corrigen la `Fecha efectiva de cierre`, el backend vuelve a intentar la sync automática para realinear la fecha contable con ese nuevo cierre efectivo
 - si la OT nace desde una programación preventiva con costeo default:
   - `Costeo estimado` ya se abre precargado con sus líneas base
   - el operador puede ajustar ese estimado antes de ejecutar la mantención real

@@ -103,7 +103,7 @@ Estado del corte hoy:
 - `Pendientes` ya muestra instalaciones activas sin plan preventivo y permite abrir `Crear plan` con cliente/dirección/instalación precargados
 - `Mantenciones` ya permite abrir `Costos` por OT para guardar estimado, costo real, monto cobrado y sincronizar manualmente a `finance`
 - el mismo modal `Costos` ahora permite elegir y reaplicar cualquier `Plantilla de costeo de mantención` activa sobre el estimado o el costo real; en `Costo real y cobro` la plantilla copia valores al resumen editable, sin dejar bloqueado el ajuste posterior del cierre
-- queda pendiente un slice posterior para que el cierre económico deje trazado de forma explícita qué plantilla quedó aplicada al costo real final de la OT
+- cuando se aplica una plantilla al `Costo real y cobro`, el cierre económico ya deja trazado explícito de qué plantilla quedó aplicada al costo real final de la OT
 - `Historial` ya permite abrir el mismo modal `Costos` sobre órdenes cerradas, sin volver editable la programación operativa
 - `Costos y cobro` ya permite detalle granular por líneas:
   - mano de obra
@@ -125,6 +125,7 @@ Estado del corte hoy:
 - `Mantenciones` y `Agenda` ya permiten `Reprogramar` con una nota opcional para dejar trazabilidad del cambio de slot y responsables en historial técnico
 - `Historial` ya permite abrir `Editar cierre` también desde la nueva `Ficha de mantención`, sin exponer reprogramación ni edición operativa de una OT cerrada
 - en OT `completed`, `Editar cierre` ahora también permite a `admin` y `manager` corregir la fecha efectiva de cierre cuando el registro administrativo ocurrió más tarde; ese cambio deja traza explícita en `maintenance_status_logs`
+- si esa OT ya estaba con política `auto_on_close`, corregir la fecha efectiva de cierre vuelve a intentar la sincronización con `finance` para alinear la fecha contable real
 - `Historial` ya permite `Reabrir` una OT cerrada para devolverla rápidamente a la bandeja activa cuando el error es solo operativo; si hubo impacto en `finance`, se mantiene el runbook/script de reversa como camino formal
 - ya existe un runbook operativo para revertir cierres erróneos y devolver una OT desde `Historial` a un estado activo mediante [docs/runbooks/maintenance-status-recovery.md](/home/felipe/platform_paas/docs/runbooks/maintenance-status-recovery.md)
 - `Mantenciones` ya permite abrir `Visitas` desde la fila o desde la `Ficha de mantención`, para bajar a una coordinación más fina por ventana de terreno
@@ -166,7 +167,6 @@ Pendientes visibles inmediatos:
 - automatización opcional tenant-side del puente `maintenance -> finance`
 - importadores desde `ieris_app`
 - reprogramación operativa aún más rica con edición multi-visita y reglas más finas de coordinación
-- trazabilidad explícita de plantilla de costeo aplicada al cierre real de cada OT
 
 ## Checklist contra el estandar de modulos
 

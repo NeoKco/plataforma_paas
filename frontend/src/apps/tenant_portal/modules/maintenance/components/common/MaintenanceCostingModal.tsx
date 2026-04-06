@@ -432,6 +432,7 @@ export function MaintenanceCostingModal({
   const [costBaseMessage, setCostBaseMessage] = useState<string | null>(null);
   const [estimateTemplateId, setEstimateTemplateId] = useState("");
   const [actualTemplateId, setActualTemplateId] = useState("");
+  const [appliedActualTemplateId, setAppliedActualTemplateId] = useState<string | null>(null);
   const [estimateForm, setEstimateForm] = useState<MaintenanceCostEstimateFormState>(
     buildDefaultCostEstimateForm()
   );
@@ -536,6 +537,10 @@ export function MaintenanceCostingModal({
   const selectedActualTemplate = useMemo(
     () => activeCostTemplates.find((template) => String(template.id) === actualTemplateId) ?? null,
     [activeCostTemplates, actualTemplateId]
+  );
+  const appliedActualTemplate = useMemo(
+    () => costTemplates.find((template) => String(template.id) === appliedActualTemplateId) ?? null,
+    [appliedActualTemplateId, costTemplates]
   );
   const financeSyncMode = tenantInfo?.maintenance_finance_sync_mode ?? "manual";
   const autoSyncOnClose = financeSyncMode === "auto_on_close";
@@ -719,9 +724,15 @@ export function MaintenanceCostingModal({
             ...buildActualFormFromTemplate(autoTemplate),
             notes: autoTemplate.estimate_notes ?? detail.actual?.notes ?? "",
           });
+          setAppliedActualTemplateId(String(autoTemplate.id));
         } else {
           setActualForm(buildDefaultCostActualForm(detail.actual));
           setActualLines(buildDefaultCostLines(detail.actual_lines));
+          setAppliedActualTemplateId(
+            detail.actual?.applied_cost_template_id != null
+              ? String(detail.actual.applied_cost_template_id)
+              : null
+          );
         }
 
         const preferredTemplateId = String(
@@ -838,6 +849,7 @@ export function MaintenanceCostingModal({
     setActualTemplateId(String(template.id));
     setActualLines([]);
     setActualForm(buildActualFormFromTemplate(template));
+    setAppliedActualTemplateId(String(template.id));
     setCostBaseMessage(
       language === "es"
         ? `Plantilla ${template.name} copiada al costo real y cobro. Los valores quedaron libres para que ajustes traslado, materiales, cobro o agregues líneas manuales si lo necesitas.`
@@ -937,12 +949,18 @@ export function MaintenanceCostingModal({
         external_services_cost: normalizeNumericInput(actualForm.external_services_cost),
         overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
         actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
+        applied_template_id: appliedActualTemplateId ? Number(appliedActualTemplateId) : null,
         notes: normalizeNullable(actualForm.notes),
         lines: normalizeLineWritePayload(actualLines),
       });
       setCostingDetail(response.data);
       setActualForm(buildDefaultCostActualForm(response.data.actual));
       setActualLines(buildDefaultCostLines(response.data.actual_lines));
+      setAppliedActualTemplateId(
+        response.data.actual?.applied_cost_template_id != null
+          ? String(response.data.actual.applied_cost_template_id)
+          : null
+      );
       onFeedback?.(response.message);
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -973,12 +991,18 @@ export function MaintenanceCostingModal({
         external_services_cost: normalizeNumericInput(actualForm.external_services_cost),
         overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
         actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
+        applied_template_id: appliedActualTemplateId ? Number(appliedActualTemplateId) : null,
         notes: normalizeNullable(actualForm.notes),
         lines: normalizeLineWritePayload(actualLines),
       });
       setCostingDetail(costingResponse.data);
       setActualForm(buildDefaultCostActualForm(costingResponse.data.actual));
       setActualLines(buildDefaultCostLines(costingResponse.data.actual_lines));
+      setAppliedActualTemplateId(
+        costingResponse.data.actual?.applied_cost_template_id != null
+          ? String(costingResponse.data.actual.applied_cost_template_id)
+          : null
+      );
 
       const statusResponse = await updateTenantMaintenanceWorkOrderStatus(
         accessToken,
@@ -1016,12 +1040,18 @@ export function MaintenanceCostingModal({
           external_services_cost: normalizeNumericInput(actualForm.external_services_cost),
           overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
           actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
+          applied_template_id: appliedActualTemplateId ? Number(appliedActualTemplateId) : null,
           notes: normalizeNullable(actualForm.notes),
           lines: normalizeLineWritePayload(actualLines),
         });
         setCostingDetail(savedActualResponse.data);
         setActualForm(buildDefaultCostActualForm(savedActualResponse.data.actual));
         setActualLines(buildDefaultCostLines(savedActualResponse.data.actual_lines));
+        setAppliedActualTemplateId(
+          savedActualResponse.data.actual?.applied_cost_template_id != null
+            ? String(savedActualResponse.data.actual.applied_cost_template_id)
+            : null
+        );
       }
 
       const response = await syncTenantMaintenanceWorkOrderToFinance(accessToken, currentWorkOrder.id, {
@@ -1342,6 +1372,19 @@ export function MaintenanceCostingModal({
                       ? "Aquí la plantilla solo copia valores base al resumen real. Después puedes ajustar traslado, materiales, cobro o agregar líneas manuales para detallar el cierre real."
                       : "Here the template only copies base values into the real summary. You can then adjust travel, materials, charged amount, or add manual lines to detail the real close."}
                   </div>
+                  {costingDetail?.actual?.applied_cost_template_name_snapshot ? (
+                    <div className="maintenance-history-entry__meta mt-2">
+                      {language === "es"
+                        ? `Plantilla trazada al cierre real: ${costingDetail.actual.applied_cost_template_name_snapshot}`
+                        : `Template traced on the real close: ${costingDetail.actual.applied_cost_template_name_snapshot}`}
+                    </div>
+                  ) : !isReadOnly && appliedActualTemplateId && (appliedActualTemplate || selectedActualTemplate) ? (
+                    <div className="maintenance-history-entry__meta mt-2">
+                      {language === "es"
+                        ? `Se guardará trazabilidad del cierre real usando la plantilla ${(appliedActualTemplate ?? selectedActualTemplate).name}.`
+                        : `The real close will keep traceability using template ${(appliedActualTemplate ?? selectedActualTemplate).name}.`}
+                    </div>
+                  ) : null}
                   <div className="row g-3 mt-1">
                     {!isReadOnly ? (
                       <>

@@ -2,6 +2,11 @@
 
 ## 2026-04-05
 
+- `Costo real y cobro` ahora deja trazabilidad explícita de la `Plantilla de costeo de mantención` aplicada al cierre económico final:
+  - persiste el identificador de la plantilla aplicada
+  - guarda también un snapshot del nombre para lectura histórica
+  - el modal muestra esa traza tanto antes de guardar como en lectura posterior
+- si una OT `completed` ya cerrada corrige su `Fecha efectiva de cierre` y el tenant usa `auto_on_close`, el backend vuelve a intentar la sincronización con `finance` para re-alinear la fecha contable real
 - `Historial -> Editar cierre` ahora permite a `admin` y `manager` ajustar la fecha efectiva de cierre en OT `completed`:
   - pensado para cierres registrados horas después de la ejecución real
   - exige motivo del ajuste
@@ -88,7 +93,6 @@
 - `Visitas` ahora también puede reencadenar visitas programadas posteriores al editar una ventana:
   - preserva duración y separación relativa de las siguientes visitas programadas
   - previsualiza una lista breve de las visitas que se moverán en cadena antes de guardar
-- se deja explícitamente pendiente el slice de trazabilidad de `Plantilla de costeo de mantención` aplicada al cierre económico final de cada OT
 - se completa la gestión operativa de `Plantillas de costeo de mantención` dentro de `Nueva programación`:
   - edición directa desde la misma vista
   - archivado y reactivación sin borrar historial de uso
