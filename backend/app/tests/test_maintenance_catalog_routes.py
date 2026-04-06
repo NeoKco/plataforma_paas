@@ -518,7 +518,9 @@ class MaintenanceCatalogRoutesTestCase(unittest.TestCase):
         visit = SimpleNamespace(
             id=2,
             work_order_id=12,
+            visit_type="execution",
             visit_status="scheduled",
+            visit_result=None,
             scheduled_start_at=datetime(2026, 4, 3, 10, 0, tzinfo=timezone.utc),
             scheduled_end_at=None,
             actual_start_at=None,
@@ -540,12 +542,15 @@ class MaintenanceCatalogRoutesTestCase(unittest.TestCase):
             )
         self.assertEqual(response.total, 1)
         self.assertEqual(response.data[0].visit_status, "scheduled")
+        self.assertEqual(response.data[0].visit_type, "execution")
 
     def test_list_maintenance_visits_catalog_returns_filtered_items(self) -> None:
         visit = SimpleNamespace(
             id=2,
             work_order_id=12,
+            visit_type="execution",
             visit_status="scheduled",
+            visit_result=None,
             scheduled_start_at=datetime(2026, 4, 3, 10, 0, tzinfo=timezone.utc),
             scheduled_end_at=None,
             actual_start_at=None,
@@ -593,7 +598,9 @@ class MaintenanceCatalogRoutesTestCase(unittest.TestCase):
         visit = SimpleNamespace(
             id=2,
             work_order_id=12,
+            visit_type="execution",
             visit_status="scheduled",
+            visit_result=None,
             scheduled_start_at=datetime(2026, 4, 3, 10, 0, tzinfo=timezone.utc),
             scheduled_end_at=None,
             actual_start_at=None,

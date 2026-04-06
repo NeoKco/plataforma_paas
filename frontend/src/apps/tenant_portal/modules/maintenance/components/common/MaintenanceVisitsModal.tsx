@@ -65,6 +65,7 @@ type Props = {
 type VisitFormState = {
   visit_type: string;
   visit_status: string;
+  visit_result: string;
   scheduled_start_at: string;
   scheduled_end_at: string;
   actual_start_at: string;
@@ -194,6 +195,25 @@ function getVisitTypeLabel(type: string, language: "es" | "en") {
       return language === "es" ? "Cierre" : "Closure";
     default:
       return type;
+  }
+}
+
+function getVisitResultLabel(result: string, language: "es" | "en") {
+  switch (result) {
+    case "executed":
+      return language === "es" ? "Ejecutada" : "Executed";
+    case "client_absent":
+      return language === "es" ? "Cliente ausente" : "Client absent";
+    case "no_access":
+      return language === "es" ? "Sin acceso" : "No access";
+    case "pending_spare_parts":
+      return language === "es" ? "Pendiente repuestos" : "Pending spare parts";
+    case "rescheduled_on_site":
+      return language === "es" ? "Reprogramada en terreno" : "Rescheduled on site";
+    case "cancelled_on_site":
+      return language === "es" ? "Cancelada en terreno" : "Cancelled on site";
+    default:
+      return result;
   }
 }
 
@@ -330,6 +350,7 @@ function buildFormState(
   return {
     visit_type: visit?.visit_type ?? "execution",
     visit_status: visit?.visit_status ?? "scheduled",
+    visit_result: visit?.visit_result ?? "",
     scheduled_start_at: toLocalInput(visit?.scheduled_start_at ?? workOrder.scheduled_for),
     scheduled_end_at: toLocalInput(visit?.scheduled_end_at),
     actual_start_at: toLocalInput(visit?.actual_start_at),
@@ -362,6 +383,7 @@ function buildFollowUpFormState(
   return {
     visit_type: "follow_up",
     visit_status: "scheduled",
+    visit_result: "",
     scheduled_start_at: nextStart,
     scheduled_end_at: nextEnd,
     actual_start_at: "",
@@ -587,6 +609,7 @@ export function MaintenanceVisitsModal({
         ? {
             ...current,
             visit_status: "in_progress",
+            visit_result: "",
             actual_start_at: current.actual_start_at || now,
           }
         : current
@@ -600,6 +623,7 @@ export function MaintenanceVisitsModal({
         ? {
             ...current,
             visit_status: "completed",
+            visit_result: current.visit_result || "executed",
             actual_start_at: current.actual_start_at || now,
             actual_end_at: now,
           }
@@ -617,6 +641,7 @@ export function MaintenanceVisitsModal({
       work_order_id: workOrder.id,
       visit_type: form.visit_type,
       visit_status: form.visit_status,
+      visit_result: normalizeNullable(form.visit_result),
       scheduled_start_at: normalizeNullable(form.scheduled_start_at),
       scheduled_end_at: normalizeNullable(form.scheduled_end_at),
       actual_start_at: normalizeNullable(form.actual_start_at),
@@ -640,6 +665,7 @@ export function MaintenanceVisitsModal({
               work_order_id: update.visit.work_order_id,
               visit_type: update.visit.visit_type,
               visit_status: update.visit.visit_status,
+              visit_result: update.visit.visit_result,
               scheduled_start_at: update.scheduled_start_at,
               scheduled_end_at: update.scheduled_end_at,
               actual_start_at: update.visit.actual_start_at,
@@ -846,6 +872,11 @@ export function MaintenanceVisitsModal({
                         <div className="maintenance-history-entry__title">
                           {getVisitTypeLabel(item.visit.visit_type, language)} · {getVisitStatusLabel(item.visit.visit_status, language)}
                         </div>
+                        {item.visit.visit_result ? (
+                          <div className="maintenance-history-entry__meta">
+                            {language === "es" ? "Resultado" : "Result"}: {getVisitResultLabel(item.visit.visit_result, language)}
+                          </div>
+                        ) : null}
                         {index === 0 ? (
                           <span className="maintenance-visit-sequence__badge">
                             {language === "es" ? "Primer tramo" : "First leg"}
@@ -1047,6 +1078,39 @@ export function MaintenanceVisitsModal({
                       <option value="completed">{language === "es" ? "Completada" : "Completed"}</option>
                       <option value="cancelled">{language === "es" ? "Anulada" : "Cancelled"}</option>
                     </select>
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">{language === "es" ? "Resultado operativo" : "Operational result"}</label>
+                    <select
+                      className="form-select"
+                      value={form.visit_result}
+                      disabled={form.visit_status === "scheduled" || form.visit_status === "in_progress"}
+                      onChange={(event) =>
+                        setForm((current) =>
+                          current
+                            ? {
+                                ...current,
+                                visit_result: event.target.value,
+                              }
+                            : current
+                        )
+                      }
+                    >
+                      <option value="">{language === "es" ? "Sin resultado todavía" : "No result yet"}</option>
+                      <option value="executed">{language === "es" ? "Ejecutada" : "Executed"}</option>
+                      <option value="client_absent">{language === "es" ? "Cliente ausente" : "Client absent"}</option>
+                      <option value="no_access">{language === "es" ? "Sin acceso" : "No access"}</option>
+                      <option value="pending_spare_parts">{language === "es" ? "Pendiente repuestos" : "Pending spare parts"}</option>
+                      <option value="rescheduled_on_site">{language === "es" ? "Reprogramada en terreno" : "Rescheduled on site"}</option>
+                      <option value="cancelled_on_site">{language === "es" ? "Cancelada en terreno" : "Cancelled on site"}</option>
+                    </select>
+                    {form.visit_status === "scheduled" || form.visit_status === "in_progress" ? (
+                      <div className="form-text text-muted">
+                        {language === "es"
+                          ? "El resultado operativo se registra cuando la visita queda completada o anulada."
+                          : "The operational result is recorded once the visit is completed or cancelled."}
+                      </div>
+                    ) : null}
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
@@ -1271,6 +1335,11 @@ export function MaintenanceVisitsModal({
                         <div className="maintenance-history-entry__title">
                           {getVisitTypeLabel(visit.visit_type, language)} · {getVisitStatusLabel(visit.visit_status, language)}
                         </div>
+                        {visit.visit_result ? (
+                          <div className="maintenance-history-entry__meta">
+                            {language === "es" ? "Resultado" : "Result"}: {getVisitResultLabel(visit.visit_result, language)}
+                          </div>
+                        ) : null}
                         <div className="maintenance-history-entry__meta">
                           {language === "es" ? "Ventana" : "Window"}: {formatDateTime(visit.scheduled_start_at, language, effectiveTimeZone)}
                           {visit.scheduled_end_at

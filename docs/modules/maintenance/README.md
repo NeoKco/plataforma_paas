@@ -139,6 +139,7 @@ Estado del corte hoy:
   - alerta cuando una visita se solapa con la anterior
   - permite crear una visita de seguimiento reutilizando duración y responsables de la visita base
 - cada visita ahora también puede tipificarse como `diagnóstico`, `ejecución`, `seguimiento` o `cierre`, para distinguir mejor el objetivo operativo de cada salida a terreno
+- además cada visita cerrada puede registrar un `resultado operativo` como `ejecutada`, `cliente ausente`, `sin acceso`, `pendiente repuestos`, `reprogramada en terreno` o `cancelada en terreno`
 - al editar una visita programada, la modal ahora también puede `reencadenar` las siguientes visitas programadas:
   - preserva duración y separaciones entre ventanas posteriores
   - muestra una previsualización corta de las visitas que se moverán en cadena

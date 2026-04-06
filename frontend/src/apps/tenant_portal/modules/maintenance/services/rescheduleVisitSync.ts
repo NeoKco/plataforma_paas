@@ -87,6 +87,7 @@ export function buildRescheduleVisitSyncPayload(
     work_order_id: visit.work_order_id,
     visit_type: visit.visit_type,
     visit_status: visit.visit_status,
+    visit_result: visit.visit_result,
     scheduled_start_at: scheduledStartAt,
     scheduled_end_at: buildShiftedEnd(
       visit.scheduled_start_at,

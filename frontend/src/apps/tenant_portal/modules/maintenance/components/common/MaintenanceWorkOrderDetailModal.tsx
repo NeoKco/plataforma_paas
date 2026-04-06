@@ -107,6 +107,25 @@ function getVisitTypeLabel(type: string, language: "es" | "en") {
   }
 }
 
+function getVisitResultLabel(result: string, language: "es" | "en") {
+  switch (result) {
+    case "executed":
+      return language === "es" ? "Ejecutada" : "Executed";
+    case "client_absent":
+      return language === "es" ? "Cliente ausente" : "Client absent";
+    case "no_access":
+      return language === "es" ? "Sin acceso" : "No access";
+    case "pending_spare_parts":
+      return language === "es" ? "Pendiente repuestos" : "Pending spare parts";
+    case "rescheduled_on_site":
+      return language === "es" ? "Reprogramada en terreno" : "Rescheduled on site";
+    case "cancelled_on_site":
+      return language === "es" ? "Cancelada en terreno" : "Cancelled on site";
+    default:
+      return result;
+  }
+}
+
 function getStatusLogTitle(
   log: { from_status: string | null; to_status: string; note: string | null },
   language: "es" | "en"
@@ -514,6 +533,9 @@ export function MaintenanceWorkOrderDetailModal({
                         visits.map((visit) => (
                           <div key={visit.id} className="maintenance-history-entry">
                             <div className="maintenance-history-entry__title">{getVisitTypeLabel(visit.visit_type, language)} · {getStatusLabel(visit.visit_status, language)}</div>
+                            {visit.visit_result ? (
+                              <div className="maintenance-history-entry__meta">{getVisitResultLabel(visit.visit_result, language)}</div>
+                            ) : null}
                             <div className="maintenance-history-entry__meta">{formatDateTime(visit.scheduled_start_at, language, effectiveTimeZone)}</div>
                             {stripLegacyVisibleText(visit.assigned_group_label) ? (
                               <div className="maintenance-history-entry__meta">{stripLegacyVisibleText(visit.assigned_group_label)}</div>

@@ -103,6 +103,57 @@ class MaintenanceVisitServiceTestCase(unittest.TestCase):
                 ),
             )
 
+    def test_create_completed_visit_defaults_executed_result(self) -> None:
+        service = MaintenanceVisitService()
+        saved_items: list[SimpleNamespace] = []
+        service.visit_repository.save = lambda _tenant_db, item: saved_items.append(item) or item
+        tenant_db = _FakeTenantDb(
+            {
+                MaintenanceWorkOrder: SimpleNamespace(
+                    id=91,
+                    maintenance_status="scheduled",
+                    schedule_id=None,
+                ),
+            }
+        )
+
+        item = service.create_visit(
+            tenant_db,
+            MaintenanceVisitCreateRequest(
+                work_order_id=91,
+                visit_type="execution",
+                visit_status="completed",
+            ),
+        )
+
+        self.assertEqual(item.visit_result, "executed")
+
+    def test_create_visit_rejects_result_for_open_status(self) -> None:
+        service = MaintenanceVisitService()
+        tenant_db = _FakeTenantDb(
+            {
+                MaintenanceWorkOrder: SimpleNamespace(
+                    id=91,
+                    maintenance_status="scheduled",
+                    schedule_id=None,
+                ),
+            }
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Solo puedes registrar resultado operativo cuando la visita ya quedó completada o anulada",
+        ):
+            service.create_visit(
+                tenant_db,
+                MaintenanceVisitCreateRequest(
+                    work_order_id=91,
+                    visit_type="execution",
+                    visit_status="scheduled",
+                    visit_result="client_absent",
+                ),
+            )
+
     def test_create_visit_rejects_task_typed_assignment_without_function_profile(self) -> None:
         service = MaintenanceVisitService()
         tenant_db = _FakeTenantDb(

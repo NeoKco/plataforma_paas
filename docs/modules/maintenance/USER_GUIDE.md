@@ -143,6 +143,7 @@ Lectura funcional de cada vista:
   - cada fila ya permite abrir `Visitas`
   - `Visitas` ahora muestra una lectura rápida de abiertas/en curso/completadas, alertas por visitas sin responsable y atajos para copiar la ventana/responsables de la OT o marcar salida/cierre
   - cada visita puede marcarse como `Diagnóstico`, `Ejecución`, `Seguimiento` o `Cierre`, para que el historial de terreno explique mejor qué se hizo en cada salida
+  - cuando una visita termina o se anula, también puedes dejar `Resultado operativo` para distinguir si se ejecutó, faltó acceso, faltó cliente, quedaron repuestos pendientes o se reprogramó en terreno
   - además ordena la secuencia de terreno y deja crear `seguimiento` desde una visita previa para no reconstruir ventana ni responsables desde cero
   - si editas una visita programada, también puedes reencadenar automáticamente las siguientes visitas programadas para mover toda la secuencia sin recalcular una por una
   - cada fila ya permite abrir `Costos`

@@ -15,6 +15,7 @@ export type TenantMaintenanceVisit = {
   work_order_id: number;
   visit_type: string;
   visit_status: string;
+  visit_result: string | null;
   scheduled_start_at: string | null;
   scheduled_end_at: string | null;
   actual_start_at: string | null;

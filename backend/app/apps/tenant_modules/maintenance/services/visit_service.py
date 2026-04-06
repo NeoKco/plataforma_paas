@@ -17,6 +17,14 @@ from app.apps.tenant_modules.maintenance.schemas import (
 
 FINAL_WORK_ORDER_STATUSES = {"completed", "cancelled"}
 ALLOWED_VISIT_TYPES = {"diagnostic", "execution", "follow_up", "closure"}
+ALLOWED_VISIT_RESULTS = {
+    "executed",
+    "client_absent",
+    "no_access",
+    "pending_spare_parts",
+    "rescheduled_on_site",
+    "cancelled_on_site",
+}
 
 
 class MaintenanceVisitService:
@@ -111,6 +119,9 @@ class MaintenanceVisitService:
             "work_order_id": payload.work_order_id,
             "visit_type": payload.visit_type.strip().lower(),
             "visit_status": payload.visit_status.strip().lower(),
+            "visit_result": payload.visit_result.strip().lower()
+            if payload.visit_result and payload.visit_result.strip()
+            else None,
             "scheduled_start_at": payload.scheduled_start_at,
             "scheduled_end_at": payload.scheduled_end_at,
             "actual_start_at": payload.actual_start_at,
@@ -141,6 +152,14 @@ class MaintenanceVisitService:
             raise ValueError("El tipo de visita seleccionado no es válido")
         if not payload["visit_status"]:
             raise ValueError("El estado de la visita es obligatorio")
+        if payload["visit_result"] and payload["visit_result"] not in ALLOWED_VISIT_RESULTS:
+            raise ValueError("El resultado operativo de la visita no es válido")
+        if payload["visit_status"] in {"scheduled", "in_progress"} and payload["visit_result"] is not None:
+            raise ValueError(
+                "Solo puedes registrar resultado operativo cuando la visita ya quedó completada o anulada"
+            )
+        if payload["visit_status"] == "completed" and payload["visit_result"] is None:
+            payload["visit_result"] = "executed"
         if (
             payload["scheduled_start_at"]
             and payload["scheduled_end_at"]

@@ -36,6 +36,7 @@ from migrations.tenant import v0027_maintenance_schedule_template_links
 from migrations.tenant import v0028_maintenance_field_reports
 from migrations.tenant import v0034_maintenance_actual_template_trace
 from migrations.tenant import v0035_maintenance_visit_type
+from migrations.tenant import v0036_maintenance_visit_result
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -185,6 +186,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0033_business_organization_addresses",
                 "0034_maintenance_actual_template_trace",
                 "0035_maintenance_visit_type",
+                "0036_maintenance_visit_result",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -239,6 +241,7 @@ class MigrationFlowTestCase(unittest.TestCase):
             column["name"] for column in inspect(engine).get_columns("maintenance_visits")
         }
         self.assertIn("visit_type", maintenance_visit_columns)
+        self.assertIn("visit_result", maintenance_visit_columns)
         self.assertIn("maintenance_status_logs", tables)
         self.assertIn("tenant_schema_migrations", tables)
         installment_columns = {
@@ -466,6 +469,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0033_business_organization_addresses",
                 "0034_maintenance_actual_template_trace",
                 "0035_maintenance_visit_type",
+                "0036_maintenance_visit_result",
             ],
         )
 

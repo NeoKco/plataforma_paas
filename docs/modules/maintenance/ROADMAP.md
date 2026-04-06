@@ -337,7 +337,7 @@ Pendiente inmediato de esta fase:
 - reprogramacion clara sin perder historial
 - agrupacion visual por organizacion, pero gestion operativa por cliente/sitio/instalacion
 - reporte de clientes con instalacion activa y sin plan de mantencion
-- profundizar `Visitas` con estados de resultado más finos sobre cada salida a terreno, encima del nuevo `Tipo de visita`
+- profundizar `Visitas` con automatizaciones más finas sobre responsables múltiples, salidas encadenadas y coordinación masiva
 
 ## Mejoras futuras no bloqueantes
 
@@ -357,7 +357,7 @@ Pendiente inmediato de esta fase:
 
 ## Siguiente paso recomendado
 
-- profundizar `Visitas` con edición masiva más explícita o coordinación encadenada sobre varias ventanas abiertas y responsables
+- endurecer el importador legacy en modo `--apply` con verificación aplicada y cierre operativo del tenant destino
 
 ## Backlog pendiente visible
 
@@ -367,7 +367,7 @@ Pendiente inmediato de esta fase:
 - `history`: backend/frontend base listo
 - `visits`: backend/frontend base listo
 - `status_logs` operativos: backend/frontend lectura lista
-- integración con agenda visual: en progreso
+- integración con agenda visual: lista en primer corte operativo
 - agenda visual mensual base: lista
 - conflictos visibles en agenda y bandeja abierta: listos en frontend
 - bloqueo backend de cruces por instalación/grupo/técnico: listo en primer corte
@@ -379,7 +379,7 @@ Pendiente inmediato de esta fase:
 - modelo canónico de programacion preventiva y costeo: documentado
 - costeo estimado default por programación: listo en primer corte
 - evidencias y checklist: listos en primer corte
-- importadores legacy: primer corte listo, falta validacion aplicada y endurecimiento
+- importadores legacy: primer corte listo, falta solo endurecimiento operativo del flujo aplicado
 
 ## Checklist de salida del modulo
 
@@ -392,6 +392,11 @@ Antes de considerar `maintenance` como primer corte realmente cerrado, deberia q
 - evidencias y checklist tecnico
 - smoke E2E propio del modulo
 - documentacion canonica al dia con cambios visibles
+
+Estado actual del checklist:
+
+- checklist funcional del primer corte: cumplido
+- quedan pendientes solo endurecimientos operativos y mejoras futuras no bloqueantes
 
 Validacion reciente:
 

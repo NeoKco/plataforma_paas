@@ -20,6 +20,7 @@ class MaintenanceVisitItemResponse(BaseModel):
     work_order_id: int
     visit_type: str = "execution"
     visit_status: str
+    visit_result: str | None = None
     scheduled_start_at: datetime | None = None
     scheduled_end_at: datetime | None = None
     actual_start_at: datetime | None = None

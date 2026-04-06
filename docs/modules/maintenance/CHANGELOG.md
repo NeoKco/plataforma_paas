@@ -6,6 +6,10 @@
   - valores base `Diagnóstico`, `Ejecución`, `Seguimiento` y `Cierre`
   - se captura en la modal de visitas y se refleja en historial y ficha de mantención
   - las visitas creadas desde `Crear seguimiento` quedan tipificadas automáticamente como `Seguimiento`
+- `Visitas` ahora agrega también `Resultado operativo` para salidas ya cerradas:
+  - valores base `Ejecutada`, `Cliente ausente`, `Sin acceso`, `Pendiente repuestos`, `Reprogramada en terreno` y `Cancelada en terreno`
+  - si una visita se marca como `completed` sin resultado explícito, queda como `Ejecutada`
+  - las visitas abiertas no aceptan resultado hasta cerrarse o anularse
 - `Costo real y cobro` ahora deja trazabilidad explícita de la `Plantilla de costeo de mantención` aplicada al cierre económico final:
   - persiste el identificador de la plantilla aplicada
   - guarda también un snapshot del nombre para lectura histórica

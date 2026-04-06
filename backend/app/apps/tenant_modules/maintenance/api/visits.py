@@ -26,6 +26,7 @@ def _build_visit_item(item) -> MaintenanceVisitItemResponse:
         work_order_id=item.work_order_id,
         visit_type=getattr(item, "visit_type", "execution"),
         visit_status=item.visit_status,
+        visit_result=getattr(item, "visit_result", None),
         scheduled_start_at=getattr(item, "scheduled_start_at", None),
         scheduled_end_at=getattr(item, "scheduled_end_at", None),
         actual_start_at=getattr(item, "actual_start_at", None),
