@@ -22,6 +22,22 @@ Guia rapida:
 - [Manual visual de la app](./docs/architecture/app-visual-manual.md)
 - [Onboarding de developers](./docs/runbooks/developer-onboarding.md)
 
+## Handoff rapido para otra IA o developer
+
+Si alguien retoma el trabajo sin contexto conversacional, debe partir por estos archivos del root:
+
+- [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)
+- [REGLAS_IMPLEMENTACION.md](./REGLAS_IMPLEMENTACION.md)
+- [PROMPT_MAESTRO_MODULO.md](./PROMPT_MAESTRO_MODULO.md)
+- [ESTADO_ACTUAL.md](./ESTADO_ACTUAL.md)
+- [SIGUIENTE_PASO.md](./SIGUIENTE_PASO.md)
+- [HANDOFF_STATE.json](./HANDOFF_STATE.json)
+- [HISTORIAL_ITERACIONES.md](./HISTORIAL_ITERACIONES.md)
+- [PLANTILLA_ACTUALIZACION_ESTADO.md](./PLANTILLA_ACTUALIZACION_ESTADO.md)
+- [PAQUETE_RELEASE_OPERADOR.md](./PAQUETE_RELEASE_OPERADOR.md)
+
+Estos archivos existen para que la memoria operativa del proyecto viva en el repo y no dependa del chat.
+
 ## Empieza aqui
 
 Si es tu primera vez con este repo, usa este orden:
@@ -154,6 +170,14 @@ Referencia:
 
 ## Documentacion recomendada
 
+- [Contexto raiz del proyecto](./PROJECT_CONTEXT.md)
+- [Reglas de implementacion](./REGLAS_IMPLEMENTACION.md)
+- [Estado actual de la iteracion](./ESTADO_ACTUAL.md)
+- [Siguiente paso recomendado](./SIGUIENTE_PASO.md)
+- [Estado maquina-legible de handoff](./HANDOFF_STATE.json)
+- [Historial de iteraciones](./HISTORIAL_ITERACIONES.md)
+- [Plantilla de actualizacion de estado](./PLANTILLA_ACTUALIZACION_ESTADO.md)
+- [Paquete resumido de release para operador](./PAQUETE_RELEASE_OPERADOR.md)
 - [Indice general de docs](./docs/index.md)
 - [Business core: donde encontrar Duplicados](./docs/modules/business-core/USER_GUIDE.md)
 - [Guia unica para entender la app](./docs/architecture/app-understanding-guide.md)

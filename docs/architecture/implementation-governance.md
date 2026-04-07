@@ -6,6 +6,13 @@ No reemplaza las guias especificas de backend, frontend o de cada modulo. Las or
 
 Debe leerse junto con:
 
+- [PROJECT_CONTEXT.md](../../PROJECT_CONTEXT.md)
+- [REGLAS_IMPLEMENTACION.md](../../REGLAS_IMPLEMENTACION.md)
+- [ESTADO_ACTUAL.md](../../ESTADO_ACTUAL.md)
+- [SIGUIENTE_PASO.md](../../SIGUIENTE_PASO.md)
+- [HANDOFF_STATE.json](../../HANDOFF_STATE.json)
+- [HISTORIAL_ITERACIONES.md](../../HISTORIAL_ITERACIONES.md)
+- [PLANTILLA_ACTUALIZACION_ESTADO.md](../../PLANTILLA_ACTUALIZACION_ESTADO.md)
 - [Estandar de construccion de modulos](./module-build-standard.md)
 - [Convencion modular por slice](./module-slice-convention.md)
 - [Estructura raiz del proyecto](./project-structure.md)
@@ -190,6 +197,8 @@ Todo cierre relevante debe dejar a otra IA con capacidad real de continuar sin r
 
 Minimo esperado:
 
+- `PROJECT_CONTEXT.md`, `ESTADO_ACTUAL.md` y `SIGUIENTE_PASO.md` revisados cuando el cambio altera el estado real del proyecto
+- `HANDOFF_STATE.json` e `HISTORIAL_ITERACIONES.md` revisados cuando la iteración cierre o cambie de foco
 - documentos canónicos enlazados desde `docs/index.md`
 - `ROADMAP.md` con estado real, no deseado
 - `CHANGELOG.md` con el hito recién implementado

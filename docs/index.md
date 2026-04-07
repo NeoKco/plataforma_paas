@@ -15,8 +15,36 @@ Este directorio centraliza la documentacion funcional, tecnica y operativa del p
 
 La documentacion ya cubre arquitectura, modulos, runbooks, deploy, API y baseline E2E. El siguiente criterio oficial es mantenerla viva y alineada con cada cambio visible o estructural del producto.
 
+## Memoria viva fuera del chat
+
+Además del árbol `docs/`, el proyecto mantiene un set de archivos raíz para handoff rápido entre developers o IAs:
+
+- [PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md)
+- [REGLAS_IMPLEMENTACION.md](../REGLAS_IMPLEMENTACION.md)
+- [PROMPT_MAESTRO_MODULO.md](../PROMPT_MAESTRO_MODULO.md)
+- [ESTADO_ACTUAL.md](../ESTADO_ACTUAL.md)
+- [SIGUIENTE_PASO.md](../SIGUIENTE_PASO.md)
+- [HANDOFF_STATE.json](../HANDOFF_STATE.json)
+- [HISTORIAL_ITERACIONES.md](../HISTORIAL_ITERACIONES.md)
+- [PLANTILLA_ACTUALIZACION_ESTADO.md](../PLANTILLA_ACTUALIZACION_ESTADO.md)
+- [PAQUETE_RELEASE_OPERADOR.md](../PAQUETE_RELEASE_OPERADOR.md)
+
+La regla práctica es esta:
+
+- el chat no debe ser la memoria principal del proyecto
+- el repo sí debe serlo
+- si cambia el estado real del proyecto, estos archivos también deben revisarse
+
 ## Documento Inicial Recomendado
 
+- [Contexto raiz del proyecto](../PROJECT_CONTEXT.md)
+- [Reglas de implementacion raiz](../REGLAS_IMPLEMENTACION.md)
+- [Estado actual de la iteracion](../ESTADO_ACTUAL.md)
+- [Siguiente paso recomendado](../SIGUIENTE_PASO.md)
+- [Estado maquina-legible de handoff](../HANDOFF_STATE.json)
+- [Historial de iteraciones](../HISTORIAL_ITERACIONES.md)
+- [Plantilla de actualizacion de estado](../PLANTILLA_ACTUALIZACION_ESTADO.md)
+- [Paquete resumido de release para operador](../PAQUETE_RELEASE_OPERADOR.md)
 - [Guia unica para entender la app](./architecture/app-understanding-guide.md)
 - [Onboarding de developers](./runbooks/developer-onboarding.md)
 - [Flujo visual del instalador](./install/installer-visual-flow.md)

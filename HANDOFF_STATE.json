@@ -1,0 +1,81 @@
+{
+  "project": "platform_paas",
+  "updated_at": "2026-04-07",
+  "handoff_status": "active",
+  "current_focus": "preparacion de salida a produccion + continuidad entre IAs",
+  "project_phase": "codigo y documentacion listos; deploy real pendiente de host objetivo",
+  "active_modules": [
+    "platform-core",
+    "finance",
+    "business-core",
+    "maintenance"
+  ],
+  "module_in_focus": [
+    "business-core",
+    "maintenance"
+  ],
+  "decisions_closed": [
+    "finance sigue como modulo piloto y referencia de slice tenant",
+    "business-core es el dominio transversal tenant",
+    "maintenance depende de business-core y no debe duplicarlo",
+    "el remanente editorial de frontend queda como backlog no bloqueante",
+    "la salida a terreno no debe frenarse por copy residual",
+    "la estrategia de despliegue inicial recomendada es backend separado + frontend estatico + nginx",
+    "la memoria operativa del proyecto debe vivir en archivos del repo"
+  ],
+  "completed_recently": [
+    "alineacion transversal relevante de frontend en business-core y maintenance",
+    "actualizacion documental del backlog residual no bloqueante",
+    "preflight backend",
+    "preflight frontend estatico",
+    "build frontend productivo",
+    "loader robusto de dotenv",
+    "guia de cutover a produccion",
+    "archivos raiz para handoff entre IAs"
+  ],
+  "blocking_issues": [
+    "no existe host productivo confirmado dentro de este workspace",
+    "no existe unidad systemd platform-paas-backend instalada en este host",
+    "el .env local no representa el entorno productivo real"
+  ],
+  "next_decision_required": "determinar si ya existe host productivo real listo para recibir el deploy",
+  "next_step_if_prod_host_exists": [
+    "preparar .env productivo real",
+    "ejecutar preflight backend",
+    "ejecutar build y preflight frontend",
+    "ejecutar cutover",
+    "ejecutar smoke corto de terreno",
+    "actualizar ESTADO_ACTUAL.md y SIGUIENTE_PASO.md"
+  ],
+  "next_step_if_prod_host_missing": [
+    "no simular produccion desde este workspace",
+    "entregar paquete operativo para el host real",
+    "o retomar backlog residual no bloqueante"
+  ],
+  "residual_backlog_non_blocking": [
+    "BusinessCoreDuplicatesPage.tsx",
+    "BusinessCoreOrganizationsPage.tsx",
+    "BusinessCoreContactsPage.tsx",
+    "BusinessCoreSitesPage.tsx",
+    "BusinessCoreAssetsPage.tsx",
+    "BusinessCoreAssetTypesPage.tsx",
+    "BusinessCoreFunctionProfilesPage.tsx",
+    "BusinessCoreTaskTypesPage.tsx",
+    "MaintenanceDueItemsPage.tsx",
+    "MaintenanceOverviewPage.tsx",
+    "MaintenanceWorkOrdersPage.tsx"
+  ],
+  "key_files_to_read_first": [
+    "PROJECT_CONTEXT.md",
+    "REGLAS_IMPLEMENTACION.md",
+    "ESTADO_ACTUAL.md",
+    "SIGUIENTE_PASO.md",
+    "docs/deploy/production-cutover-checklist.md"
+  ],
+  "validation_status": {
+    "backend_baseline": "pass",
+    "frontend_build": "pass",
+    "frontend_static_preflight_local": "pass",
+    "backend_release_preflight_local": "fail_due_to_environment"
+  }
+}
