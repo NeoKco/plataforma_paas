@@ -9,6 +9,34 @@ export async function openCreateTenantForm(page: Page): Promise<Locator> {
   return form;
 }
 
+export async function fillCreateTenantForm(
+  form: Locator,
+  tenant: {
+    name: string;
+    slug: string;
+    adminFullName: string;
+    adminEmail: string;
+    adminPassword: string;
+  }
+): Promise<void> {
+  await form
+    .getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i)
+    .fill(tenant.name);
+  await form.getByPlaceholder("empresa-centro").fill(tenant.slug);
+  await form
+    .getByPlaceholder(/Ej: Ana Pérez|Ex: Ana Perez/i)
+    .fill(tenant.adminFullName);
+  await form.getByPlaceholder("admin@empresa-centro.local").fill(tenant.adminEmail);
+  await form
+    .locator('input[type="password"]')
+    .nth(0)
+    .fill(tenant.adminPassword);
+  await form
+    .locator('input[type="password"]')
+    .nth(1)
+    .fill(tenant.adminPassword);
+}
+
 export async function openCreatePlatformUserForm(page: Page): Promise<Locator> {
   await page.getByRole("button", { name: /Nuevo usuario|New user/i }).click();
   const dialog = page.getByRole("dialog", {

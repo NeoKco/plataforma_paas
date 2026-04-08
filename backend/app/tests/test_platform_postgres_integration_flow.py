@@ -64,6 +64,9 @@ class PlatformPostgresIntegrationTestCase(unittest.TestCase):
             name="Empresa PG",
             slug="empresa-pg",
             tenant_type="empresa",
+            admin_full_name="Admin PG",
+            admin_email="admin@empresa-pg.local",
+            admin_password="AdminEmpresaPg123!",
         )
         jobs = self.provisioning_job_service.list_jobs(self.db)
 

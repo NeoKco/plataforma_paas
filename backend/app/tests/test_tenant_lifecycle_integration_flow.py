@@ -174,6 +174,9 @@ class TenantLifecycleIntegrationTestCase(unittest.TestCase):
             name="Empresa Demo",
             slug="empresa-demo",
             tenant_type="empresa",
+            admin_full_name="Admin Demo",
+            admin_email="admin@empresa-demo.local",
+            admin_password="AdminEmpresaDemo123!",
         )
 
         create_job = self.provisioning_job_service.list_jobs(self.control_db)[0]

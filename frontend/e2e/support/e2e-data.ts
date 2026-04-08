@@ -31,6 +31,9 @@ export function buildE2ETenantIdentity(scope: string) {
     id,
     slug: `e2e-${id}`,
     name: `E2E ${label || "Tenant"} ${id}`,
+    adminFullName: `E2E Tenant Admin ${id}`,
+    adminEmail: `admin-${id}@e2e-tenant.local`,
+    adminPassword: `TenantAdmin${id.replace(/-/g, "")}!`,
   };
 }
 
