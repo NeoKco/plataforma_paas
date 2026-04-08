@@ -59,6 +59,12 @@ Documentación base:
   - zona horaria
   - política `maintenance -> finance`
   - la edición de esa política sigue siendo self-service del tenant admin mediante `/tenant/info/maintenance-finance-sync`
+- `/tenant/info` ya expone además `effective_enabled_modules` como fuente de verdad de navegación tenant-side:
+  - `overview` sigue siempre visible
+  - `users` requiere `users`
+  - `business-core` y `maintenance` dependen de `core`
+  - `finance` requiere `finance`
+  - el sidebar del `tenant_portal` no debe volver a hardcodear estas visibilidades fuera de esa fuente
 
 ## Cómo extender este bloque
 
@@ -128,6 +134,7 @@ Cobertura actual:
 - requeue batch de filas DLQ filtradas desde `Provisioning` en entornos con backend `broker`
 - filtros finos DLQ por texto de error y validación visible de `delay/reset attempts` antes del requeue individual en backend `broker`
 - enforcement visible de límites de usuarios activos en `tenant_portal` con overrides preparados de forma determinista
+- visibilidad backend-driven del sidebar `tenant_portal` según `effective_enabled_modules`
 - enforcement visible de límites de `finance.entries` en `tenant_portal` con overrides preparados de forma determinista
 - precedencia visible de `finance.entries` sobre `finance.entries.monthly` cuando ambos límites aplican a la vez en `tenant_portal`
 - enforcement de límites mensuales de `finance.entries.monthly` en `tenant_portal` con overrides preparados de forma determinista

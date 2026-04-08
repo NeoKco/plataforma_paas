@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-08
-- prioridad vigente: abrir el siguiente frente real del roadmap con `production` estable y `staging` ya devuelto a espejo instalado
+- prioridad vigente: elegir el siguiente frente real del roadmap ahora que también quedó cerrado el sidebar backend-driven de `tenant_portal`
 
 ## Objetivo del próximo paso
 
@@ -16,6 +16,12 @@ El siguiente paso correcto es aprovechar el mini PC con tres carriles separados:
 - `production`
 
 y usar el staging ya restaurado a espejo como carril previo normal antes de abrir otro frente.
+
+El frente inmediatamente anterior ya quedó cerrado:
+
+- el sidebar de `tenant_portal` ya responde a `effective_enabled_modules`
+- existe smoke browser específico para esa regla
+- el carril `dev` volvió a quedar utilizable para browser tenant
 
 ## Prioridad inmediata
 
@@ -54,7 +60,8 @@ La próxima iteración debe elegir una sola de estas rutas:
 4. leer `ESTADO_ACTUAL.md`
 5. leer `REGLAS_IMPLEMENTACION.md`
 6. confirmar que producción y staging siguen saludables
-7. elegir el siguiente frente explícito ahora que `staging` ya volvió a modo espejo
+7. asumir cerrado el frente `tenant sidebar backend-driven`
+8. elegir el siguiente frente explícito ahora que `staging` ya volvió a modo espejo
 8. actualizar `ESTADO_ACTUAL.md` si cambia la prioridad real
 
 ## Qué debe actualizar la próxima IA al cerrar

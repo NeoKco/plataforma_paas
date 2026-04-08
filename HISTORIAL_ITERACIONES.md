@@ -15,6 +15,47 @@ Para nuevas entradas usar:
 
 ---
 
+## 2026-04-08 — Sidebar backend-driven de tenant_portal + realineación de dev
+
+### Objetivo
+
+- cerrar el pendiente central de `tenant_portal` para que el sidebar visible dependa de `effective_enabled_modules`
+- validar el cambio en browser y dejar el carril `dev` consistente con esa política
+
+### Cambios principales
+
+- se agrega [module-visibility.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/utils/module-visibility.ts) como matriz única de visibilidad tenant-side para `overview`, `users`, `business-core`, `maintenance` y `finance`
+- [TenantSidebarNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/layout/TenantSidebarNav.tsx) deja de hardcodear el menú y ahora filtra por `tenantInfo.effective_enabled_modules`
+- [auth.ts](/home/felipe/platform_paas/frontend/e2e/support/auth.ts) deja de asumir que `Finanzas` siempre está visible después del login tenant
+- se agrega [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
+- durante la validación se corrigen desalineamientos reales del carril `dev`:
+  - CORS local seguía apuntando a `4173` en `.env`
+  - faltaba declarar `TENANT_BILLING_GRACE_*` en `.env`
+  - [settings.py](/home/felipe/platform_paas/backend/app/common/config/settings.py) ahora agrega orígenes locales esperados en `development`
+- se rota la credencial técnica local de `empresa-bootstrap` para reparar el baseline tenant de `dev`
+
+### Validaciones
+
+- `npm run build`: OK
+- `npx playwright test --list`: OK (`39 tests`)
+- smoke aislado de sidebar en `dev` limpio:
+  - backend temporal `8101` con `.env` cargado
+  - frontend temporal `4173` apuntando a `8101`
+  - `tenant-portal-sidebar-modules.smoke.spec.ts`: `1 passed`
+
+### Bloqueos
+
+- no queda bloqueo técnico en este frente
+- el carril `dev` principal que ya estaba arriba en `8100/5173` venía desalineado; el cambio quedó corregido en código/env, pero la validación formal se hizo sobre un carril limpio aislado para no pisar procesos existentes
+
+### Siguiente paso
+
+- asumir cerrado el frente `tenant sidebar backend-driven`
+- elegir el siguiente frente explícito del roadmap
+- usar `staging` como carril previo real si el próximo frente vuelve a tocar UI visible
+
+---
+
 ## 2026-04-07 — Separación dev/staging/prod en mini PC
 
 ### Objetivo

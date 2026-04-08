@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-08
-- foco de iteración: separación operativa `dev/staging/prod` en mini PC y cierre del ciclo `staging bootstrap -> staging espejo`
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado y staging actualmente restaurado a modo espejo instalado
+- foco de iteración: cierre del frente `tenant_portal sidebar backend-driven` + alineación real del carril `dev`
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo y sidebar tenant ya filtrando por `effective_enabled_modules`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -22,17 +22,16 @@
 - el staging ya puede volver al modo instalador inicial mediante un wrapper seguro del repo
 - el staging ya fue reseteado realmente y el flujo visual `/install` quedó validado sobre el mini PC
 - el staging ya fue restaurado otra vez a espejo instalado y hoy responde con `installed=true`
+- el sidebar principal del `tenant_portal` ya quedó backend-driven según `/tenant/info.effective_enabled_modules`
+- el carril `dev` ya quedó alineado para reproducir ese gating: CORS local corregido a `5173` y política `TENANT_BILLING_GRACE_*` declarada en `.env`
 
 ## Frente activo real al momento de este estado
 
-El frente activo real ya no es abrir funcionalidad mayor nueva.
+El frente activo real que se acaba de cerrar fue este:
 
-Es este:
-
-- sostener producción ya validada sin mezclarla con desarrollo local
-- dejar staging/test utilizable como carril previo a producción
-- dejar resuelto el cambio de modo entre staging espejo y bootstrap inicial
-- dejar explícito que `staging` ya volvió a espejo operativo antes del siguiente frente real
+- endurecer `tenant_portal` para que el menú visible no dependa de hardcode frontend
+- validar ese gating en browser usando el baseline tenant y una reducción real de módulos efectivos
+- corregir el carril `dev` para que vuelva a servir como primer paso de validación antes de staging
 
 ## Qué módulo se estaba construyendo
 
@@ -61,6 +60,7 @@ En otras palabras:
 - `finance` ya está cerrado en su alcance actual
 - `business-core` ya está operativo en backend y frontend
 - `maintenance` ya está operativo en su primer corte funcional
+- `tenant_portal` ya refleja visualmente los módulos efectivos calculados por backend en su sidebar principal
 
 ### A nivel transversal frontend
 
@@ -111,6 +111,10 @@ Ya quedaron creados, documentados y usados realmente:
 - validación real del reset bootstrap con `platform-paas-backend-staging` activo y `/install/` disponible en backend
 - validación browser real de `/install` en `http://192.168.7.42:8081/install` con Playwright opt-in aprobado
 - restauración real de `staging` a espejo instalado con baseline frontend y `health` en `installed=true`
+- smoke browser nuevo de sidebar tenant validado en carril `dev` aislado sobre `4173 -> 8101`
+- alineación local real de `dev` para browser tenant:
+  - CORS ya no queda atrasado en `4173` cuando la convención vigente es `5173`
+  - el baseline `.env` ya declara `TENANT_BILLING_GRACE_*` para reproducir `effective_enabled_modules=core,users` durante `billing grace`
 
 ### A nivel handoff entre IAs
 
@@ -217,6 +221,12 @@ Entre los archivos frontend más relevantes ya intervenidos están:
 ## Qué falta exactamente
 
 ### No queda bloqueo operativo de salida
+
+Tampoco queda pendiente el frente central de sidebar tenant:
+
+- el menú principal del `tenant_portal` ya consume `effective_enabled_modules`
+- existe smoke browser específico para validarlo
+- el siguiente paso ya no es cerrar este frente, sino elegir el siguiente frente explícito del roadmap
 
 La salida inicial ya quedó validada para operación:
 

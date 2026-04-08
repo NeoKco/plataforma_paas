@@ -25,9 +25,9 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Estado rápido vigente
 
 - fecha: 2026-04-08
-- foco activo: separación `dev/staging/prod` ya operativa en mini PC + staging devuelto a espejo instalado
-- prioridad inmediata: abrir el siguiente frente real del roadmap
-- módulo o frente activo: transversal / platform-core / staging-test
+- foco activo: cierre del sidebar backend-driven de `tenant_portal` + realineación del carril `dev`
+- prioridad inmediata: elegir el siguiente frente real del roadmap
+- módulo o frente activo: transversal / platform-core / tenant portal
 
 ## Último contexto útil
 
@@ -45,12 +45,15 @@ Debe permanecer corto, operativo y fácil de escanear.
 - el health staging ya responde en `8200` y `8081`
 - el staging ya fue reseteado a bootstrap y el instalador visual quedó validado en browser
 - el staging ya volvió a espejo instalado con baseline frontend y responde `installed=true`
+- el sidebar principal del `tenant_portal` ya quedó backend-driven usando `effective_enabled_modules`
+- existe smoke browser dedicado `tenant-portal-sidebar-modules`
+- el carril `dev` ya quedó alineado para reproducir billing grace tenant-side con CORS y `.env` consistentes
 
 ## Bloqueo actual
 
 - no existe bloqueo productivo
 - no existe bloqueo técnico
-- no hay bloqueo técnico ni productivo
+- el frente del sidebar tenant ya no bloquea nada
 - la única decisión abierta ya es cuál es el siguiente frente real del roadmap
 
 ## Siguiente acción inmediata

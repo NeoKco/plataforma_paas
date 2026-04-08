@@ -35,6 +35,7 @@ Archivos principales:
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
+- [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
 - [tenant-portal-finance-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit.smoke.spec.ts)
 - [tenant-portal-finance-limit-precedence.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit-precedence.smoke.spec.ts)
 - [tenant-portal-finance-monthly-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-monthly-limit.smoke.spec.ts)
@@ -66,6 +67,7 @@ Cobertura actual:
 - filtros finos DLQ por texto de error y revisión de `delay/reset attempts` antes del requeue individual cuando el backend usa broker
 - login `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
+- visibilidad del sidebar `tenant_portal` según `effective_enabled_modules`
 - enforcement visible de cuota admin y reactivación bloqueada en `tenant_portal > Usuarios`
 - enforcement visible de límite mensual de creación en `tenant_portal > Usuarios`
 - enforcement visible de límites de `finance` en `tenant_portal`
@@ -180,6 +182,13 @@ cd /home/felipe/platform_paas/frontend
 npx playwright test e2e/specs/tenant-portal-business-core-maintenance-import.smoke.spec.ts --list
 ```
 
+3.a validar el spec de sidebar backend-driven:
+
+```bash
+cd /home/felipe/platform_paas/frontend
+npx playwright test e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts --list
+```
+
 4. correr baseline tenant:
 
 ```bash
@@ -248,6 +257,7 @@ Resultado tenant revalidado al cierre de esta iteración:
 - `Provisioning` ya tiene además un smoke broker-only para validar filtros DLQ por `error contains` y confirmar opciones de requeue individual
 - `tenant_portal` ya cubre además enforcement visible de límites de usuarios activos con overrides preparados de forma determinista
 - `tenant_portal` ya cubre además login permitido cuando el tenant está `past_due` pero sigue en gracia, y bloqueo visible cuando la deuda vencida ya corta el acceso
+- `tenant_portal` ya cubre además la visibilidad del sidebar principal según `effective_enabled_modules`, ocultando `Finanzas` cuando `billing grace` reduce el tenant a `core,users`
 - `tenant_portal` ya cubre además bloqueo por cuota `core.users.admin` al crear un admin extra y al intentar reactivar un admin inactivo
 - `tenant_portal` ya cubre además bloqueo por `core.users.monthly` al intentar crear usuarios después de agotar el cupo del mes
 - `tenant_portal` ya cubre además enforcement visible de límites de `finance.entries` bloqueando nuevas transacciones cuando el tenant queda al límite

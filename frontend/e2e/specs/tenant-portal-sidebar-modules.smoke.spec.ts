@@ -30,7 +30,11 @@ test("tenant portal sidebar follows effective enabled modules from tenant info",
 
     const modulesCard = page
       .locator(".panel-card")
-      .filter({ hasText: /Módulos habilitados|Enabled modules/i })
+      .filter({
+        has: page.getByRole("heading", {
+          name: /Módulos habilitados|Enabled modules/i,
+        }),
+      })
       .first();
 
     await expect(

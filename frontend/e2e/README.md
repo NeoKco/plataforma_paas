@@ -28,6 +28,7 @@ Cobertura validada:
 - login de `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
 - login `tenant_portal` permitido en `past_due` con gracia y bloqueado al vencer la deuda
+- visibilidad del sidebar `tenant_portal` alineada a `effective_enabled_modules`
 - enforcement visible de límites de `finance` en `tenant_portal`
 - enforcement de límites mensuales de `finance` en `tenant_portal`
 - smoke real de `finance` creando una transacción
@@ -58,6 +59,7 @@ Specs actuales:
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-login-billing.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-login-billing.smoke.spec.ts)
+- [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
 - [tenant-portal-users-admin-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-admin-limit.smoke.spec.ts)
 - [tenant-portal-users-monthly-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-monthly-limit.smoke.spec.ts)
 - [tenant-portal-finance-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit.smoke.spec.ts)
@@ -210,6 +212,8 @@ Notas:
 - el smoke batch de `Billing` crea un tenant efímero, siembra dos eventos persistidos del mismo filtro y valida `Reconciliar eventos filtrados` sobre el workspace tenant
 - el smoke de `Histórico tenants` crea un tenant efímero, le siembra billing, lo archiva y elimina para validar filtros, exportaciones y lectura del snapshot histórico desde UI real
 - el smoke de login billing tenant usa el baseline `empresa-bootstrap`, fuerza primero `past_due` con gracia para validar acceso permitido y luego `invoice overdue` sin gracia para congelar el mensaje visible de bloqueo en el login
+- el smoke `tenant-portal-sidebar-modules` reutiliza ese baseline y valida que `effective_enabled_modules` también gobierna visualmente el sidebar principal: en gracia siguen visibles `Resumen`, `Usuarios`, `Core negocio` y `Mantenciones`, mientras `Finanzas` desaparece
+- durante esta iteración también se corrigió un desalineamiento real del `dev` local: CORS seguía apuntando a `4173` y faltaba declarar `TENANT_BILLING_GRACE_*` en `.env`, lo que impedía reproducir el gating tenant esperado en browser
 - el smoke admin de `tenant users` valida bloqueo de creación de un admin extra y bloqueo de reactivación de un admin inactivo cuando `core.users.admin` queda agotado
 - el smoke mensual de `tenant users` siembra un usuario del mes por backend-control y valida que `core.users.monthly` bloquee nuevas altas en el portal
 - el smoke de precedencia de `finance` fuerza a la vez `finance.entries` y `finance.entries.monthly` para validar que el bloqueo visible prioriza el límite total

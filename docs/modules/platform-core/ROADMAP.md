@@ -37,6 +37,7 @@ Estado práctico de cierre:
 - smoke browser de `platform_admin` para `create`, `archive` y `restore`
 - validación browser del acceso rápido desde `Tenants` hacia `tenant_portal` con `slug` precargado
 - validación browser del bloqueo visible del acceso rápido al `tenant_portal` cuando el tenant aún no es elegible
+- sidebar de `tenant_portal` backend-driven según `effective_enabled_modules`, con smoke browser dedicado para billing grace
 - validación browser de aparición de jobs nuevos en `Provisioning`
 - validación browser de ejecución manual de jobs `pending` desde `Provisioning`
 - validación browser de requeue de jobs `failed` desde `Provisioning`
@@ -90,14 +91,13 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - más regresión sobre provisioning y billing
 - seguir endureciendo copy, validaciones y observabilidad visible
 - mantener la política documental canónica al abrir más dominios
-- dejar el sidebar de `tenant_portal` backend-driven según `effective_enabled_modules`, para que cada tenant vea solo los módulos contratados y vigentes
-- tratar ese gating visual como trabajo posterior al cierre funcional de `maintenance`, no antes
+- decidir si después del gating visual del sidebar conviene endurecer también rutas visibles secundarias del `tenant_portal` o si basta con backend + navegación principal
 
 ## Deuda técnica visible
 
 - algunos recorridos siguen mejor cubiertos por backend tests que por browser E2E
 - la documentación central era abundante pero estaba dispersa; ya quedó indexada, pero aún puede seguir normalizándose
-- el backend ya calcula y aplica entitlements por módulo tenant, pero el menú frontend sigue hardcodeado y todavía no filtra por contrato/billing
+- el backend ya calcula y aplica entitlements por módulo tenant y el sidebar principal del `tenant_portal` ya filtra por contrato/billing usando `effective_enabled_modules`
 - el staging ya puede alternar entre espejo instalado y bootstrap reset; hoy ya quedó devuelto a espejo operativo y el siguiente paso ya no es de entorno sino de roadmap
 
 ## Conclusión práctica

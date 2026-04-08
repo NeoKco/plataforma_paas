@@ -1,5 +1,14 @@
 # Platform Core Changelog
 
+## 2026-04-08
+
+- el sidebar de [tenant_portal](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/layout/TenantSidebarNav.tsx) deja de ser hardcodeado y pasa a leer [effective_enabled_modules](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/utils/module-visibility.ts) desde `/tenant/info`
+- la visibilidad tenant queda alineada a la matriz efectiva ya aplicada en backend: `users -> users`, `business-core/maintenance -> core`, `finance -> finance`, `overview -> siempre`
+- se relaja [loginTenant](/home/felipe/platform_paas/frontend/e2e/support/auth.ts) para no asumir que `Finanzas` siempre aparece después del login
+- se agrega el smoke [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts) para validar que `Finanzas` desaparece cuando `billing grace` reduce los módulos efectivos a `core,users`
+- se agrega [setTenantPlan](/home/felipe/platform_paas/frontend/e2e/support/backend-control.ts) a backend-control para futuras pruebas tenant-side de contratos o entitlements
+- se alinea el carril local `dev` con la convención actual: [settings.py](/home/felipe/platform_paas/backend/app/common/config/settings.py) añade orígenes locales esperados en `development`, `.env` y `.env.example` quedan en `5173`, y `.env` declara explícitamente `TENANT_BILLING_GRACE_*` para que el baseline local reproduzca la política visible esperada
+
 ## 2026-04-07
 
 - se normaliza la convención local de puertos para no pisar la producción del mini PC: desarrollo pasa a backend `8100` y frontend `5173`, mientras producción mantiene backend `8000` detrás de `nginx`

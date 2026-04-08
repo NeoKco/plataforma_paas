@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-08T01:36:00-04:00",
+  "updated_at": "2026-04-08T02:28:00-04:00",
   "handoff_status": "active",
-  "current_focus": "mini PC con dev/staging/prod separados + staging ya restaurado a espejo instalado",
-  "project_phase": "produccion validada con HTTPS, staging/test separado y ciclo bootstrap->espejo ya validado en el mismo mini PC",
+  "current_focus": "sidebar backend-driven de tenant_portal cerrado + carril dev realineado para browser tenant",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, sidebar tenant filtrando por effective_enabled_modules y carril dev otra vez utilizable para smokes tenant",
   "active_modules": [
     "platform-core",
     "finance",
@@ -24,7 +24,8 @@
     "la primera salida productiva real puede operar temporalmente en topologia single-host sobre un mini PC",
     "orkestia.ddns.net ya quedo activo con HTTPS sobre la misma topologia single-host",
     "el mini PC ya opera con tres carriles separados: desarrollo 8100/5173, staging 8200/8081 y produccion 8000/443",
-    "el staging ya puede alternar entre espejo instalado y bootstrap reset sin tocar production"
+    "el staging ya puede alternar entre espejo instalado y bootstrap reset sin tocar production",
+    "el sidebar principal de tenant_portal debe consumir effective_enabled_modules desde /tenant/info y no volver a hardcodearse por modulo"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -46,10 +47,13 @@
     "flujo visual /install validado en browser sobre staging bootstrap",
     "ruta /install corregida en frontend con RequireNotInstalled",
     "wrapper restore_staging_mirror.sh agregado para devolver staging a espejo",
-    "staging restaurado realmente a espejo instalado con baseline frontend"
+    "staging restaurado realmente a espejo instalado con baseline frontend",
+    "sidebar principal de tenant_portal filtrado por effective_enabled_modules",
+    "smoke browser tenant-portal-sidebar-modules agregado y validado en dev aislado",
+    "carril dev alineado en CORS y billing grace para reproducir gating tenant-side"
   ],
   "blocking_issues": [],
-  "next_decision_required": "elegir el siguiente frente funcional o transversal ahora que production y staging ya quedaron estables",
+  "next_decision_required": "elegir el siguiente frente funcional o transversal ahora que production, staging y el gating principal de tenant_portal ya quedaron estables",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -100,6 +104,7 @@
     "staging_nginx_local": "pass",
     "staging_bootstrap_reset": "pass",
     "staging_installer_browser_smoke": "pass",
-    "staging_restore_to_mirror": "pass"
+    "staging_restore_to_mirror": "pass",
+    "tenant_sidebar_modules_smoke_dev_isolated": "pass"
   }
 }
