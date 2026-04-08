@@ -101,6 +101,23 @@ Validar al menos:
 7. login real de `tenant_portal`
 8. lectura rápida de `Instalaciones`, `Costos` y `Checklist`
 
+Smoke técnico adicional ya disponible para la URL pública:
+
+```bash
+cd /opt/platform_paas
+SMOKE_BASE_URL=https://orkestia.ddns.net \
+SMOKE_PLATFORM_EMAIL=admin@platform.local \
+SMOKE_PLATFORM_PASSWORD='***' \
+SMOKE_TENANT_SLUG=empresa-bootstrap \
+SMOKE_TENANT_EMAIL=admin@empresa-bootstrap.local \
+SMOKE_TENANT_PASSWORD='***' \
+bash scripts/dev/run_remote_backend_smoke.sh --target all
+```
+
+Evidencia validada en esta salida:
+
+- `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260407_final.json`
+
 ## 7. Si algo falla
 
 ### Falla backend
@@ -140,3 +157,12 @@ Si el release realmente se ejecuta, actualizar:
 - `HISTORIAL_ITERACIONES.md`
 
 La siguiente IA no debería tener que adivinar si el cutover ocurrió o no.
+
+## 10. Estado actual de este paquete
+
+La primera salida productiva sobre el mini PC ya quedó:
+
+- publicada
+- validada con HTTPS
+- validada por smoke remoto backend
+- aceptada como operación inicial

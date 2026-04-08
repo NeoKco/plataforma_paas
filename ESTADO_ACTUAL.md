@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-07
-- foco de iteración: bootstrap productivo real en mini PC + cierre de handoff
-- estado general: código y documentación listos; producción técnica ya desplegada en mini PC con HTTPS, pendiente smoke final de terreno
+- foco de iteración: cierre post-cutover productivo real en mini PC
+- estado general: código y documentación listos; producción ya desplegada, validada externamente y aceptada para operación inicial en mini PC con HTTPS
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -15,6 +15,7 @@
 - ya existe host productivo real sobre mini PC Debian
 - `/opt/platform_paas` quedó creado como árbol productivo separado
 - backend y frontend quedaron levantados en `https://orkestia.ddns.net` bajo topología single-host
+- el smoke remoto completo contra la URL pública ya pasó con `7/7` checks OK
 
 ## Frente activo real al momento de este estado
 
@@ -24,8 +25,8 @@ Es este:
 
 - consolidar continuidad entre IAs y developers
 - mantener backlog residual explícito
-- endurecer la salida productiva ya levantada
-- dejar la validación externa y el smoke de terreno como siguiente cierre operativo
+- sostener la salida productiva ya validada
+- dejar explícito el siguiente frente real post-producción
 
 ## Qué módulo se estaba construyendo
 
@@ -93,6 +94,7 @@ Ya quedaron creados, documentados y usados realmente:
 - publicación SPA + backend por rutas en `orkestia.ddns.net`
 - certificado Let's Encrypt activo para `orkestia.ddns.net`
 - evidencia operativa post-deploy en `/opt/platform_paas/operational_evidence/`
+- smoke remoto backend aprobado sobre `https://orkestia.ddns.net`
 
 ### A nivel handoff entre IAs
 
@@ -198,26 +200,27 @@ Entre los archivos frontend más relevantes ya intervenidos están:
 
 ## Qué falta exactamente
 
-### Falta operativa real
+### No queda bloqueo operativo de salida
 
-Lo que falta ya no es principalmente código de negocio.
+La salida inicial ya quedó validada para operación:
 
-Lo que falta es terminar de validar y endurecer la salida real ya levantada.
+1. `https://orkestia.ddns.net` respondió correctamente desde navegador real
+2. el smoke remoto completo pasó sobre la URL pública
+3. el estado y la evidencia post-cutover ya quedaron asentados en el repo
 
-Puntualmente:
+### Lo siguiente ya es post-producción
 
-1. validar acceso externo real desde navegador a `https://orkestia.ddns.net`
-2. ejecutar smoke corto de terreno
-3. actualizar evidencia y estado post-producción final
+Lo que queda ahora no es un pendiente de cutover, sino decisión de continuidad:
 
-### Falta de contexto operativo aún no resuelta
+- definir si `orkestia.ddns.net` queda como host single-host estable o si luego se separará en `app/api`
+- decidir cuál es el siguiente frente real de producto o hardening transversal
+- seguir con backlog explícito, no con pendientes implícitos de deploy
 
-Todavía falta dejar explícito en el repo:
+### Evidencia operativa ya disponible
 
-- si `orkestia.ddns.net` quedará definitivo como host único o es solo paso intermedio
-- si luego se migrará a separación `app/api`
-- evidencia de validación externa desde navegador real
-- evidencia de un primer cutover ejecutado
+- backend health público: `https://orkestia.ddns.net/health`
+- reporte smoke remoto: `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260407_final.json`
+- evidencia backend post-deploy previa: `/opt/platform_paas/operational_evidence/backend_operational_evidence_20260407_223208.log`
 
 Eso significa que el proyecto está listo para salir, pero no puede declararse todavía como “ya desplegado en producción”.
 

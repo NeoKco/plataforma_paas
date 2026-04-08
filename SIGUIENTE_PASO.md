@@ -3,29 +3,32 @@
 ## Última actualización
 
 - fecha: 2026-04-07
-- prioridad vigente: ejecutar el smoke corto final de terreno sobre `https://orkestia.ddns.net`
+- prioridad vigente: salir del frente de cutover y definir el siguiente bloque real post-producción
 
 ## Objetivo del próximo paso
 
-No abrir más trabajo de producto.
+No repetir trabajo de deploy ni de validación básica ya cerrada.
 
-El siguiente paso correcto es mover el proyecto desde estado "desplegado técnicamente con HTTPS" a estado "validado externamente en terreno".
+El siguiente paso correcto es mover el proyecto desde estado "publicado y validado en producción inicial" a estado "estabilización post-producción o siguiente frente de roadmap".
 
 ## Prioridad inmediata
 
-### 1. Validar acceso externo real
+### 1. No reabrir el frente central sin motivo
 
-Desde un navegador fuera del shell local:
+El cutover inicial ya quedó cerrado sobre:
 
-- abrir `http://orkestia.ddns.net`
-- confirmar login `platform_admin`
-- confirmar login `tenant_portal`
+- `https://orkestia.ddns.net`
+- backend `systemd`
+- frontend `nginx`
+- smoke remoto `all` aprobado
 
-### 2. Ejecutar smoke corto de terreno
+### 2. Elegir el siguiente frente explícito
 
-Seguir:
+La próxima iteración debe elegir una sola de estas rutas:
 
-- `docs/deploy/production-cutover-checklist.md`
+- estabilización post-producción del host real
+- backlog transversal recomendado del PaaS
+- nuevo frente funcional explícito con documentación canónica desde el inicio
 
 ## Orden exacto recomendado
 
@@ -34,30 +37,24 @@ Seguir:
 3. leer `PROMPT_MAESTRO_MODULO.md`
 4. leer `ESTADO_ACTUAL.md`
 5. leer `REGLAS_IMPLEMENTACION.md`
-6. verificar desde navegador real `https://orkestia.ddns.net`
-7. ejecutar smoke corto de terreno
-8. actualizar `ESTADO_ACTUAL.md` con resultado final post-cutover
+6. confirmar que el estado del deploy real ya está cerrado
+7. elegir el siguiente frente explícito del roadmap
+8. actualizar `ESTADO_ACTUAL.md` si cambia la prioridad real
 
 ## Qué debe actualizar la próxima IA al cerrar
 
-Si completa la validación externa:
+Si abre un frente nuevo:
 
 - actualizar `ESTADO_ACTUAL.md`
-- reescribir este archivo con nuevo siguiente paso post-producción
-- dejar evidencia documental del cutover real
-
-Si no completa la validación externa:
-
-- declarar bloqueo exacto
-- actualizar `ESTADO_ACTUAL.md`
-- dejar este archivo apuntando al paso siguiente verdadero, no al deseado
+- reescribir este archivo con el nuevo siguiente paso real
+- dejar el backlog previo explícitamente cerrado o diferido
 
 ## Qué debe hacer otra IA al retomar
 
-Antes de escribir código funcional, debe decidir cuál es la realidad operativa:
+Antes de escribir código funcional, debe partir desde esta realidad operativa:
 
-- producción ya está publicada técnicamente con HTTPS en `orkestia.ddns.net`
-- lo pendiente es validación externa y cierre de evidencia
+- producción ya está publicada y validada inicialmente con HTTPS en `orkestia.ddns.net`
+- lo pendiente ya no es deploy, sino decidir el siguiente frente útil
 
 ## Regla de cierre de la próxima iteración
 
@@ -65,13 +62,13 @@ La próxima iteración debe terminar con una de estas dos salidas claras:
 
 ### Salida A
 
-- `orkestia.ddns.net` validado externamente y aceptado para operación
+- se elige y se abre un frente nuevo explícito con estado y roadmap alineados
 
 ### Salida B
 
-- bloqueo explícito de DNS/TLS/navegador, con estado y runbook actualizados
+- se documenta un bloqueo real de operación post-producción o de continuidad
 
-No cerrar la próxima iteración con un estado intermedio confuso.
+No cerrar la próxima iteración con un estado intermedio tipo "ya casi".
 
 ## Regla práctica final
 
@@ -83,5 +80,5 @@ Y si una iteración importante cambia el estado real del proyecto, estos archivo
 
 Este archivo debería reescribirse cuando:
 
-- se cierre la validación externa real
-- el foco pase de cutover a estabilización post-terreno
+- se decida el nuevo foco post-producción
+- el proyecto pase de estabilización a nuevo desarrollo funcional o hardening

@@ -102,6 +102,7 @@ sudo systemctl reload nginx
 - `GET /health`
 - servicio `systemd` activo
 - evidencia operativa generada
+- opcional pero recomendado: smoke remoto contra la URL pública con `scripts/dev/run_remote_backend_smoke.sh --target all`
 
 ### Frontend
 

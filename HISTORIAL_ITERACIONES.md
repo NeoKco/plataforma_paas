@@ -81,6 +81,35 @@ Para nuevas entradas usar:
 
 - ejecutar smoke corto de terreno y cerrar evidencia post-producción
 
+## 2026-04-07 — Cierre post-cutover validado
+
+### Objetivo
+
+- cerrar la salida inicial real en el mini PC y sacar al proyecto del estado "deploy pendiente"
+
+### Cambios principales
+
+- el operador confirma acceso real a `orkestia.ddns.net` desde navegador
+- se ejecuta smoke remoto completo contra `https://orkestia.ddns.net`
+- se reasienta el estado del repo para dejar `platform-core` como bloque central ya validado en producción inicial
+
+### Validaciones
+
+- smoke remoto `all` sobre `https://orkestia.ddns.net`: `7/7` checks OK
+- `platform_admin` login: OK
+- `tenant_portal` login baseline `empresa-bootstrap`: OK
+- evidencia JSON guardada en `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260407_final.json`
+
+### Bloqueos
+
+- no queda bloqueo operativo de cutover
+- queda pendiente solo decidir el siguiente frente real del roadmap
+
+### Siguiente paso
+
+- salir del frente central de deploy
+- elegir el siguiente bloque explícito de estabilización o desarrollo
+
 ## 2026-04-07 — Endurecimiento del prompt maestro de continuidad
 
 ### Objetivo

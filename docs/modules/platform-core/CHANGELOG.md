@@ -8,6 +8,8 @@
 - se endurece [deploy_backend.sh](/home/felipe/platform_paas/deploy/deploy_backend.sh) para exportar `PYTHONPATH` en migraciones y pruebas, evitando fallos de import al desplegar fuera del workspace de desarrollo
 - se endurece [validate_backend_env.sh](/home/felipe/platform_paas/deploy/validate_backend_env.sh) para rechazar `TENANT_BOOTSTRAP_DB_PASSWORD_*` inseguros antes del restart del servicio
 - se actualiza [backend.production.example.env](/home/felipe/platform_paas/infra/env/backend.production.example.env) para declarar explícitamente los overrides de passwords bootstrap requeridos en producción
+- se valida externamente `https://orkestia.ddns.net` desde navegador real y se ejecuta smoke remoto completo `all` contra la URL pública con `7/7` checks OK
+- el frente central pasa de `cutover pendiente de validación externa` a `producción inicial validada`
 
 ## 2026-04-04
 

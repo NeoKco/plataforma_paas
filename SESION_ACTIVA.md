@@ -25,9 +25,9 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Estado rápido vigente
 
 - fecha: 2026-04-07
-- foco activo: producción real en mini PC + cierre de handoff entre IAs
-- prioridad inmediata: smoke corto de terreno y validación externa final sobre `https://orkestia.ddns.net`
-- módulo o frente activo: transversal / deploy / post-cutover
+- foco activo: producción inicial ya validada + continuidad post-cutover
+- prioridad inmediata: decidir el siguiente frente real sin reabrir deploy
+- módulo o frente activo: transversal / platform-core / post-producción
 
 ## Último contexto útil
 
@@ -38,11 +38,12 @@ Debe permanecer corto, operativo y fácil de escanear.
 - `/opt/platform_paas` ya existe como árbol productivo separado
 - `platform-paas-backend` ya quedó instalado en `systemd`
 - `nginx` ya publica la SPA y enruta backend por un único dominio HTTPS: `orkestia.ddns.net`
+- el smoke remoto completo contra `https://orkestia.ddns.net` ya pasó con `7/7` checks OK
 
 ## Bloqueo actual
 
-- no se ha validado todavía el smoke corto final desde navegador real sobre `https://orkestia.ddns.net`
-- falta resincronizar `/opt/platform_paas` con los últimos cambios documentales de este cierre HTTPS
+- no existe bloqueo operativo de cutover en este momento
+- falta decidir el siguiente frente real del roadmap para no quedar en pausa difusa
 
 ## Siguiente acción inmediata
 
@@ -50,9 +51,9 @@ El siguiente movimiento correcto ya no es desplegar.
 
 Es este:
 
-- validar desde navegador real `http://orkestia.ddns.net`
-- validar desde navegador real `https://orkestia.ddns.net`
-- ejecutar smoke corto de terreno y luego actualizar el estado post-producción
+- tomar el frente central como cerrado en su salida inicial
+- elegir el siguiente bloque explícito de trabajo
+- actualizar estado si cambia el foco real
 
 ## Archivos a leer justo después de este
 
@@ -68,3 +69,4 @@ Es este:
 - `GET http://127.0.0.1:8000/health`: OK
 - `GET https://orkestia.ddns.net/health` validado por resolución local: OK
 - frontend static preflight en `/opt/platform_paas`: OK
+- smoke remoto público `all` en `https://orkestia.ddns.net`: OK (`7/7`)

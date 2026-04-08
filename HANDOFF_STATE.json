@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-07T22:57:00-04:00",
+  "updated_at": "2026-04-07T23:03:51-04:00",
   "handoff_status": "active",
-  "current_focus": "post-cutover HTTPS en mini PC + continuidad entre IAs",
-  "project_phase": "deploy tecnico real ejecutado con HTTPS; pendiente validacion externa final",
+  "current_focus": "post-cutover validado en mini PC + continuidad entre IAs",
+  "project_phase": "produccion inicial validada en mini PC con HTTPS; pendiente solo siguiente frente post-produccion",
   "active_modules": [
     "platform-core",
     "finance",
@@ -31,19 +31,18 @@
     "frontend publicado por nginx en orkestia.ddns.net",
     "certificado Let's Encrypt emitido para orkestia.ddns.net",
     "frontend reconstruido con VITE_API_BASE_URL=https://orkestia.ddns.net",
+    "validacion externa inicial confirmada desde navegador real",
+    "smoke remoto completo aprobado contra https://orkestia.ddns.net",
     "deploy_backend.sh endurecido con PYTHONPATH para produccion",
     "validate_backend_env.sh endurecido para bloquear bootstrap passwords inseguras",
     "sesion_activa como puntero corto oficial para alternar entre cuentas"
   ],
-  "blocking_issues": [
-    "falta validacion externa real desde navegador sobre https://orkestia.ddns.net",
-    "el arbol /opt/platform_paas aun no ha sido resincronizado con todos los cambios documentales posteriores al bootstrap"
-  ],
-  "next_decision_required": "definir si orkestia.ddns.net quedara como host definitivo o si luego se separaran app/api",
+  "blocking_issues": [],
+  "next_decision_required": "definir el siguiente frente real post-produccion y si orkestia.ddns.net quedara estable como single-host o luego se separara en app/api",
   "next_step_if_prod_host_exists": [
-    "validar externamente https://orkestia.ddns.net desde navegador real",
-    "ejecutar smoke corto de terreno",
-    "actualizar ESTADO_ACTUAL.md y SIGUIENTE_PASO.md"
+    "tomar el frente central como cerrado en su salida inicial",
+    "elegir el siguiente frente explicito del roadmap",
+    "actualizar ESTADO_ACTUAL.md y SIGUIENTE_PASO.md si cambia la prioridad real"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -78,6 +77,8 @@
     "backend_systemd_prod": "pass",
     "backend_health_prod_local": "pass",
     "single_host_nginx_prod_local": "pass",
-    "single_host_https_prod_local": "pass"
+    "single_host_https_prod_local": "pass",
+    "external_browser_validation": "pass",
+    "remote_backend_smoke_prod": "pass"
   }
 }
