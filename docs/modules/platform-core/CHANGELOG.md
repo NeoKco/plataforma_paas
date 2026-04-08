@@ -3,6 +3,9 @@
 ## 2026-04-07
 
 - se normaliza la convención local de puertos para no pisar la producción del mini PC: desarrollo pasa a backend `8100` y frontend `5173`, mientras producción mantiene backend `8000` detrás de `nginx`
+- se agrega [platform-paas-backend-staging.service](/home/felipe/platform_paas/infra/systemd/platform-paas-backend-staging.service) y [platform-paas-staging-local.conf](/home/felipe/platform_paas/infra/nginx/platform-paas-staging-local.conf) para montar un entorno `staging/test` separado en el mismo mini PC, con backend `8200` y frontend `8081`
+- se endurece [run_backend_tests.py](/home/felipe/platform_paas/backend/app/scripts/run_backend_tests.py) y [fixtures.py](/home/felipe/platform_paas/backend/app/tests/fixtures.py) para que la baseline backend siga siendo determinística aunque el shell herede variables reales de `staging` o `production`
+- el entorno `staging` queda levantado y validado localmente en `http://192.168.7.42:8081`, con `health` operativo en `8200/8081`
 - se ejecuta la primera salida productiva técnica sobre mini PC Debian en `/opt/platform_paas`, con backend real bajo `systemd`, frontend Vite publicado por `nginx` y topología single-host inicial en `orkestia.ddns.net`
 - se agrega [platform-paas-single-host.conf](/home/felipe/platform_paas/infra/nginx/platform-paas-single-host.conf) para operar SPA + backend por rutas sobre un único dominio cuando todavía no existe separación `app/api`
 - se agrega [platform-paas-single-host-ssl.conf](/home/felipe/platform_paas/infra/nginx/platform-paas-single-host-ssl.conf) y se activa HTTPS real para `orkestia.ddns.net` con certificado Let's Encrypt

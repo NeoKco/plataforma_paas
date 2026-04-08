@@ -9,6 +9,10 @@ BACKEND_DIR = Path(__file__).resolve().parents[2]
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
+from app.tests.fixtures import set_test_environment
+
+set_test_environment()
+
 
 def _ordered_unique(modules: list[str]) -> list[str]:
     return list(dict.fromkeys(modules))

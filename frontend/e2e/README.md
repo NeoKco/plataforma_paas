@@ -82,6 +82,7 @@ Variables de entorno:
 - si `Playwright` no encuentra su browser exacto, puedes apuntar `E2E_CHROMIUM_EXECUTABLE_PATH` a un `chromium` ya instalado
 - el baseline actualmente validado usa `empresa-bootstrap`, porque queda reservado como tenant estable para pruebas browser tenant
 - si tu entorno no tiene ese tenant o usa otra clave, sobreescribe `E2E_TENANT_*`
+- en el mini PC ya existe además un `staging` separado en `http://192.168.7.42:8081`; usarlo solo cuando quieras validar sobre el entorno de pruebas publicado, no para la baseline local por defecto
 
 ## Regla oficial de continuidad
 

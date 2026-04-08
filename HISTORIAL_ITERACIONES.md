@@ -15,6 +15,41 @@ Para nuevas entradas usar:
 
 ---
 
+## 2026-04-07 — Separación dev/staging/prod en mini PC
+
+### Objetivo
+
+- evitar que desarrollo local pise producción
+- montar un carril previo real de `staging/test` en el mismo mini PC
+
+### Cambios principales
+
+- desarrollo local queda normalizado a backend `8100` y frontend `5173`
+- se crea el árbol `/opt/platform_paas_staging`
+- se crea la unidad `systemd` `platform-paas-backend-staging`
+- se agrega el sitio `nginx` local para staging en `8081`
+- se endurecen `backend/app/tests/fixtures.py` y `backend/app/scripts/run_backend_tests.py` para que la baseline backend siga siendo determinística aunque el shell cargue `.env.staging`
+- se deja documentada la diferencia entre `staging espejo instalado` y `bootstrap inicial`
+
+### Validaciones
+
+- frontend build local: OK
+- `Playwright --list`: OK
+- baseline backend con `.env.staging` cargado: `510 tests OK`
+- `platform-paas-backend-staging` activo en `systemd`: OK
+- `GET http://127.0.0.1:8200/health`: OK
+- `GET http://127.0.0.1:8081/health`: OK
+
+### Bloqueos
+
+- staging actualmente quedó en modo `installed`
+- si se quiere validar el instalador desde cero, falta un reset explícito del entorno staging o un staging efímero adicional
+
+### Siguiente paso
+
+- decidir si la siguiente iteración automatiza el reset/bootstrap de staging
+- o si se pasa ya a otro frente funcional del roadmap
+
 ## 2026-04-07 — Bootstrap productivo real en mini PC
 
 ### Objetivo

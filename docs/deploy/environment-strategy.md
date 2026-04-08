@@ -20,7 +20,7 @@ Esta guia deja una base minima para separar `development`, `staging` y `producti
 Usar un archivo por entorno real:
 
 - desarrollo local: `.env`
-- staging: `/opt/platform_paas/.env.staging`
+- staging: `/opt/platform_paas_staging/.env.staging`
 - produccion: `/opt/platform_paas/.env`
 
 Y mantener los ejemplos del repo solo como plantillas.
@@ -45,7 +45,9 @@ Y mantener los ejemplos del repo solo como plantillas.
 - replica el flujo operativo sin tocar datos reales
 - si vive en el mismo mini PC, reservar puertos distintos a dev y prod:
   - backend: `127.0.0.1:8200`
-  - frontend o preview: `127.0.0.1:5273`
+  - frontend publicado por `nginx`: `http://192.168.7.42:8081`
+- el staging operativo actual ya existe en `/opt/platform_paas_staging`
+- hoy funciona como espejo instalado; si se necesita validar bootstrap inicial, hace falta reset controlado o un staging efimero adicional
 
 ### Production
 
@@ -70,6 +72,12 @@ Para staging o produccion en servidor, copiar y adaptar fuera del repo:
 ```bash
 cp infra/env/backend.staging.example.env /opt/platform_paas/.env.staging
 cp infra/env/backend.production.example.env /opt/platform_paas/.env
+```
+
+En el mini PC actual, la copia correcta para staging es:
+
+```bash
+cp infra/env/backend.staging.example.env /opt/platform_paas_staging/.env.staging
 ```
 
 ## Recomendacion Operativa
@@ -99,7 +107,7 @@ Convención recomendada para el mini PC actual:
   - frontend `5173`
 - staging/test:
   - backend `8200`
-  - frontend `5273`
+  - frontend `8081` via `nginx`
 - producción:
   - backend `8000`
   - publicación pública en `80/443` con `nginx`
@@ -108,6 +116,10 @@ Wrappers incluidos para reducir errores manuales:
 
 - `deploy/deploy_backend_staging.sh`
 - `deploy/deploy_backend_production.sh`
+
+Referencia operativa del staging actual:
+
+- [Staging Single-Host](./staging-single-host.md)
 
 Validador previo de entorno:
 

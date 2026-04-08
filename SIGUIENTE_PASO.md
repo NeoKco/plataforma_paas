@@ -3,13 +3,19 @@
 ## Última actualización
 
 - fecha: 2026-04-07
-- prioridad vigente: salir del frente de cutover y definir el siguiente bloque real post-producción
+- prioridad vigente: consolidar el uso del staging/test separado y decidir si también cubrirá bootstrap inicial
 
 ## Objetivo del próximo paso
 
-No repetir trabajo de deploy ni de validación básica ya cerrada.
+No reabrir el cutover productivo ya cerrado.
 
-El siguiente paso correcto es mover el proyecto desde estado "publicado y validado en producción inicial" a estado "estabilización post-producción o siguiente frente de roadmap".
+El siguiente paso correcto es aprovechar el mini PC con tres carriles separados:
+
+- `dev`
+- `staging/test`
+- `production`
+
+y decidir si el staging actual se mantiene como espejo instalado o si se le suma un reset controlado para validar el instalador desde cero.
 
 ## Prioridad inmediata
 
@@ -22,10 +28,20 @@ El cutover inicial ya quedó cerrado sobre:
 - frontend `nginx`
 - smoke remoto `all` aprobado
 
-### 2. Elegir el siguiente frente explícito
+### 2. Usar staging como carril previo real
+
+Ya existe un entorno staging separado:
+
+- backend `127.0.0.1:8200`
+- frontend `http://192.168.7.42:8081`
+- árbol `/opt/platform_paas_staging`
+- servicio `platform-paas-backend-staging`
+
+### 3. Elegir el siguiente frente explícito
 
 La próxima iteración debe elegir una sola de estas rutas:
 
+- automatizar reset/bootstrap del staging para ensayar instalación inicial
 - estabilización post-producción del host real
 - backlog transversal recomendado del PaaS
 - nuevo frente funcional explícito con documentación canónica desde el inicio
@@ -37,8 +53,8 @@ La próxima iteración debe elegir una sola de estas rutas:
 3. leer `PROMPT_MAESTRO_MODULO.md`
 4. leer `ESTADO_ACTUAL.md`
 5. leer `REGLAS_IMPLEMENTACION.md`
-6. confirmar que el estado del deploy real ya está cerrado
-7. elegir el siguiente frente explícito del roadmap
+6. confirmar que producción y staging siguen saludables
+7. decidir si la siguiente iteración es `bootstrap reset de staging` o `nuevo frente funcional`
 8. actualizar `ESTADO_ACTUAL.md` si cambia la prioridad real
 
 ## Qué debe actualizar la próxima IA al cerrar
@@ -54,7 +70,8 @@ Si abre un frente nuevo:
 Antes de escribir código funcional, debe partir desde esta realidad operativa:
 
 - producción ya está publicada y validada inicialmente con HTTPS en `orkestia.ddns.net`
-- lo pendiente ya no es deploy, sino decidir el siguiente frente útil
+- staging/test ya existe en el mismo mini PC
+- lo pendiente ya no es deploy productivo, sino decidir el siguiente frente útil y si se automatiza el bootstrap en staging
 
 ## Regla de cierre de la próxima iteración
 
@@ -80,5 +97,5 @@ Y si una iteración importante cambia el estado real del proyecto, estos archivo
 
 Este archivo debería reescribirse cuando:
 
-- se decida el nuevo foco post-producción
-- el proyecto pase de estabilización a nuevo desarrollo funcional o hardening
+- se decida si staging tendrá reset/bootstrap explícito
+- el proyecto pase desde hardening de entornos a nuevo desarrollo funcional

@@ -25,9 +25,9 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Estado rápido vigente
 
 - fecha: 2026-04-07
-- foco activo: producción inicial ya validada + continuidad post-cutover
-- prioridad inmediata: decidir el siguiente frente real sin reabrir deploy
-- módulo o frente activo: transversal / platform-core / post-producción
+- foco activo: separación `dev/staging/prod` ya operativa en mini PC
+- prioridad inmediata: decidir si el staging actual también cubrirá bootstrap inicial
+- módulo o frente activo: transversal / platform-core / staging-test
 
 ## Último contexto útil
 
@@ -36,14 +36,18 @@ Debe permanecer corto, operativo y fácil de escanear.
 - el backlog residual editorial no bloquea salida a terreno
 - el mini PC ya quedó asumido como host productivo real
 - `/opt/platform_paas` ya existe como árbol productivo separado
+- `/opt/platform_paas_staging` ya existe como árbol staging separado
 - `platform-paas-backend` ya quedó instalado en `systemd`
+- `platform-paas-backend-staging` ya quedó instalado en `systemd`
 - `nginx` ya publica la SPA y enruta backend por un único dominio HTTPS: `orkestia.ddns.net`
+- `nginx` ya publica además el staging local en `http://192.168.7.42:8081`
 - el smoke remoto completo contra `https://orkestia.ddns.net` ya pasó con `7/7` checks OK
+- el health staging ya responde en `8200` y `8081`
 
 ## Bloqueo actual
 
-- no existe bloqueo operativo de cutover en este momento
-- falta decidir el siguiente frente real del roadmap para no quedar en pausa difusa
+- no existe bloqueo productivo
+- la única decisión abierta es si el staging actual seguirá como espejo instalado o si se sumará un reset/bootstrap explícito
 
 ## Siguiente acción inmediata
 
@@ -51,9 +55,9 @@ El siguiente movimiento correcto ya no es desplegar.
 
 Es este:
 
-- tomar el frente central como cerrado en su salida inicial
-- elegir el siguiente bloque explícito de trabajo
-- actualizar estado si cambia el foco real
+- mantener producción estable
+- usar staging como carril previo real
+- decidir si la siguiente iteración automatiza bootstrap/reset de staging o abre otro frente del roadmap
 
 ## Archivos a leer justo después de este
 
@@ -70,3 +74,7 @@ Es este:
 - `GET https://orkestia.ddns.net/health` validado por resolución local: OK
 - frontend static preflight en `/opt/platform_paas`: OK
 - smoke remoto público `all` en `https://orkestia.ddns.net`: OK (`7/7`)
+- backend staging en `/opt/platform_paas_staging`: desplegado
+- `platform-paas-backend-staging`: activo en `systemd`
+- `GET http://127.0.0.1:8200/health`: OK
+- `GET http://127.0.0.1:8081/health`: OK

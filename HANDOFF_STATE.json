@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-07T23:03:51-04:00",
+  "updated_at": "2026-04-07T23:40:00-04:00",
   "handoff_status": "active",
-  "current_focus": "post-cutover validado en mini PC + continuidad entre IAs",
-  "project_phase": "produccion inicial validada en mini PC con HTTPS; pendiente solo siguiente frente post-produccion",
+  "current_focus": "mini PC con dev/staging/prod separados + staging operativo",
+  "project_phase": "produccion validada con HTTPS y staging/test separado ya desplegado en el mismo mini PC",
   "active_modules": [
     "platform-core",
     "finance",
@@ -11,8 +11,7 @@
     "maintenance"
   ],
   "module_in_focus": [
-    "business-core",
-    "maintenance"
+    "platform-core"
   ],
   "decisions_closed": [
     "finance sigue como modulo piloto y referencia de slice tenant",
@@ -23,7 +22,9 @@
     "la estrategia de despliegue inicial recomendada es backend separado + frontend estatico + nginx",
     "la memoria operativa del proyecto debe vivir en archivos del repo",
     "la primera salida productiva real puede operar temporalmente en topologia single-host sobre un mini PC",
-    "orkestia.ddns.net ya quedo activo con HTTPS sobre la misma topologia single-host"
+    "orkestia.ddns.net ya quedo activo con HTTPS sobre la misma topologia single-host",
+    "el mini PC ya opera con tres carriles separados: desarrollo 8100/5173, staging 8200/8081 y produccion 8000/443",
+    "el staging actual existe como espejo instalado y no como bootstrap limpio"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -35,14 +36,18 @@
     "smoke remoto completo aprobado contra https://orkestia.ddns.net",
     "deploy_backend.sh endurecido con PYTHONPATH para produccion",
     "validate_backend_env.sh endurecido para bloquear bootstrap passwords inseguras",
-    "sesion_activa como puntero corto oficial para alternar entre cuentas"
+    "sesion_activa como puntero corto oficial para alternar entre cuentas",
+    "staging/test separado levantado en /opt/platform_paas_staging",
+    "platform-paas-backend-staging activo en systemd",
+    "health staging validado en 8200 y 8081",
+    "baseline backend endurecida para ignorar settings heredados desde env staging/prod"
   ],
   "blocking_issues": [],
-  "next_decision_required": "definir el siguiente frente real post-produccion y si orkestia.ddns.net quedara estable como single-host o luego se separara en app/api",
+  "next_decision_required": "decidir si el staging actual debe seguir como espejo instalado o si se automatizara un reset/bootstrap controlado para validar instalacion inicial",
   "next_step_if_prod_host_exists": [
-    "tomar el frente central como cerrado en su salida inicial",
-    "elegir el siguiente frente explicito del roadmap",
-    "actualizar ESTADO_ACTUAL.md y SIGUIENTE_PASO.md si cambia la prioridad real"
+    "mantener produccion estable",
+    "usar staging como carril previo real",
+    "decidir si la siguiente iteracion automatiza reset/bootstrap de staging o abre otro frente del roadmap"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -67,7 +72,8 @@
     "REGLAS_IMPLEMENTACION.md",
     "ESTADO_ACTUAL.md",
     "SIGUIENTE_PASO.md",
-    "docs/deploy/production-cutover-checklist.md"
+    "docs/deploy/environment-strategy.md",
+    "docs/deploy/staging-single-host.md"
   ],
   "validation_status": {
     "backend_baseline": "pass",
@@ -79,6 +85,10 @@
     "single_host_nginx_prod_local": "pass",
     "single_host_https_prod_local": "pass",
     "external_browser_validation": "pass",
-    "remote_backend_smoke_prod": "pass"
+    "remote_backend_smoke_prod": "pass",
+    "backend_baseline_staging_env": "pass",
+    "backend_systemd_staging": "pass",
+    "backend_health_staging_local": "pass",
+    "staging_nginx_local": "pass"
   }
 }

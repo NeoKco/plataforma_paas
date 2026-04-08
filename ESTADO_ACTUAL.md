@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-07
-- foco de iteración: cierre post-cutover productivo real en mini PC
-- estado general: código y documentación listos; producción ya desplegada, validada externamente y aceptada para operación inicial en mini PC con HTTPS
+- foco de iteración: separación operativa `dev/staging/prod` en mini PC y consolidación del entorno staging/test
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos y staging/test ya levantado en el mismo mini PC
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -14,8 +14,11 @@
 - ya existen preflight backend/frontend y documentación de cutover
 - ya existe host productivo real sobre mini PC Debian
 - `/opt/platform_paas` quedó creado como árbol productivo separado
+- `/opt/platform_paas_staging` quedó creado como árbol staging separado
 - backend y frontend quedaron levantados en `https://orkestia.ddns.net` bajo topología single-host
 - el smoke remoto completo contra la URL pública ya pasó con `7/7` checks OK
+- desarrollo local ya no pisa producción: backend `8100`, frontend `5173`
+- staging/test ya quedó operativo: backend `8200`, frontend `8081`
 
 ## Frente activo real al momento de este estado
 
@@ -23,10 +26,9 @@ El frente activo real ya no es abrir funcionalidad mayor nueva.
 
 Es este:
 
-- consolidar continuidad entre IAs y developers
-- mantener backlog residual explícito
-- sostener la salida productiva ya validada
-- dejar explícito el siguiente frente real post-producción
+- sostener producción ya validada sin mezclarla con desarrollo local
+- dejar staging/test utilizable como carril previo a producción
+- documentar claramente la diferencia entre staging espejo y bootstrap inicial
 
 ## Qué módulo se estaba construyendo
 
@@ -90,11 +92,15 @@ Ya quedaron creados, documentados y usados realmente:
 - guía de preflight backend
 - checklist de cutover a producción
 - árbol productivo `/opt/platform_paas`
+- árbol staging `/opt/platform_paas_staging`
 - unidad `systemd` `platform-paas-backend`
+- unidad `systemd` `platform-paas-backend-staging`
 - publicación SPA + backend por rutas en `orkestia.ddns.net`
+- publicación staging local por `nginx` en `http://192.168.7.42:8081`
 - certificado Let's Encrypt activo para `orkestia.ddns.net`
 - evidencia operativa post-deploy en `/opt/platform_paas/operational_evidence/`
 - smoke remoto backend aprobado sobre `https://orkestia.ddns.net`
+- baseline backend estable bajo `.env.staging` con `510 tests OK`
 
 ### A nivel handoff entre IAs
 
@@ -208,11 +214,11 @@ La salida inicial ya quedó validada para operación:
 2. el smoke remoto completo pasó sobre la URL pública
 3. el estado y la evidencia post-cutover ya quedaron asentados en el repo
 
-### Lo siguiente ya es post-producción
+### Lo siguiente ya es post-producción y pre-producción controlada
 
 Lo que queda ahora no es un pendiente de cutover, sino decisión de continuidad:
 
-- definir si `orkestia.ddns.net` queda como host single-host estable o si luego se separará en `app/api`
+- decidir si el staging actual quedará como espejo instalado o si se agregará un reset explícito para validar bootstrap inicial
 - decidir cuál es el siguiente frente real de producto o hardening transversal
 - seguir con backlog explícito, no con pendientes implícitos de deploy
 
@@ -221,8 +227,10 @@ Lo que queda ahora no es un pendiente de cutover, sino decisión de continuidad:
 - backend health público: `https://orkestia.ddns.net/health`
 - reporte smoke remoto: `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260407_final.json`
 - evidencia backend post-deploy previa: `/opt/platform_paas/operational_evidence/backend_operational_evidence_20260407_223208.log`
+- health staging backend: `http://127.0.0.1:8200/health`
+- health staging frontend/nginx: `http://127.0.0.1:8081/health`
 
-Eso significa que el proyecto está listo para salir, pero no puede declararse todavía como “ya desplegado en producción”.
+Eso significa que el proyecto ya está desplegado en producción y además tiene un carril staging separado en el mismo mini PC.
 
 ### Falta residual de frontend, pero no bloqueante
 
