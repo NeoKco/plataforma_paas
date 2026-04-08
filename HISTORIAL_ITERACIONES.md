@@ -36,20 +36,33 @@ Para nuevas entradas usar:
 ### Validaciones
 
 - `npm run build`: OK
-- `npx playwright test --list`: OK (`39 tests`)
+- `npx playwright test --list`: OK (`40 tests`)
 - suite backend del slice:
   - `252 tests OK (skipped=1)`
+- smoke visible nuevo:
+  - `platform-admin-tenants-create-form.smoke.spec.ts`: OK en `staging`
+  - `platform-admin-tenants-create-form.smoke.spec.ts`: OK en `production`
+
+### Cierre operativo adicional
+
+- `staging` queda desplegado con migración de control `0025_tenant_bootstrap_admin`
+- `production` queda desplegada con el mismo frente
+- durante el deploy productivo se detecta y corrige una desalineación real del host:
+  - `/opt/platform_paas/.env` estaba heredando `APP_ENV=development`
+  - se corrige a `APP_ENV=production`
+  - se corrige `DEBUG=false`
+  - se corrige `INSTALL_FLAG_FILE=/opt/platform_paas/.platform_installed`
+  - se fijan `TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP` y `TENANT_BOOTSTRAP_DB_PASSWORD_CONDOMINIO_DEMO` con valores seguros explícitos para pasar validación runtime
 
 ### Bloqueos
 
-- no hay bloqueo técnico de repo
-- falta todavía aplicar este frente al entorno real (`staging` / `production`)
+- no hay bloqueo técnico en este frente
+- ya no queda pendiente de despliegue para este slice
 
 ### Siguiente paso
 
-- desplegar a `staging`
-- validar el flujo visible de `Nuevo tenant` y `Plan y módulos`
-- si pasa, propagar a `production`
+- asumir cerrado este frente
+- elegir el siguiente frente explícito del roadmap
 
 ---
 

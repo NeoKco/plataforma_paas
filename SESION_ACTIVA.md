@@ -25,9 +25,9 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Estado rápido vigente
 
 - fecha: 2026-04-08
-- foco activo: `platform_admin > Nuevo tenant` con admin inicial explícito + módulos visibles por plan
-- prioridad inmediata: desplegar y validar este frente en `staging` y luego en `production`
-- módulo o frente activo: `platform-core` / `platform_admin` / `Tenants`
+- foco activo: frente `Nuevo tenant` ya cerrado; listo para abrir el siguiente frente explícito
+- prioridad inmediata: elegir el próximo frente del roadmap y usar `staging` si vuelve a tocar UI visible
+- módulo o frente activo: `platform-core` / continuidad central
 
 ## Último contexto útil
 
@@ -51,20 +51,23 @@ Debe permanecer corto, operativo y fácil de escanear.
 - en código, `Nuevo tenant` ya exige `admin_full_name`, `admin_email` y `admin_password`
 - en código, provisioning ya usa ese admin explícito en vez de depender de `TenantAdmin123!`
 - en código, `Tenants` ya muestra preview de módulos por `plan` y el bloque `Plan y módulos` queda visible para operación
+- ese mismo frente ya quedó desplegado y validado en `staging` y `production`
+- el host productivo también quedó corregido para arrancar realmente con `APP_ENV=production`
 
 ## Bloqueo actual
 
-- no existe bloqueo técnico en repo
-- el único trabajo pendiente de este frente es despliegue + validación visible en `staging`/`production`
+- no existe bloqueo técnico en este frente
+- no queda trabajo pendiente de `Nuevo tenant`; solo falta decidir qué abrir después
 
 ## Siguiente acción inmediata
 
-El siguiente movimiento correcto sí es desplegar este frente:
+El siguiente movimiento correcto ya no es desplegar este frente.
 
-- correr migración de control `0025_tenant_bootstrap_admin` en `staging`
-- publicar backend/frontend staging
-- validar `Nuevo tenant` y `Plan y módulos`
-- si pasa, repetir en `production`
+Es este:
+
+- mantener `production` estable
+- mantener `staging` como carril previo real
+- elegir el siguiente frente explícito del roadmap
 
 ## Archivos a leer justo después de este
 

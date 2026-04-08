@@ -170,6 +170,9 @@ Nota:
 - esas credenciales siguen siendo válidas para el baseline demo `empresa-bootstrap`
 - no describen el alta de tenants nuevos
 - desde `2026-04-08`, los smokes de `platform_admin` ya deben completar admin explícito en `Nuevo tenant`
+- el smoke más directo de esa regla ahora es:
+  - [platform-admin-tenants-create-form.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenants-create-form.smoke.spec.ts)
+  - puede correrse contra `staging` o `production` con `E2E_USE_EXISTING_FRONTEND=1`
 
 Se prioriza `empresa-bootstrap` como baseline browser estable del repo para no mezclar la automatización con el tenant operativo `empresa-demo`.
 

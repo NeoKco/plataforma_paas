@@ -106,6 +106,10 @@ Regla práctica adicional para esta iteración:
 - esto aplica ya tanto a `tenant_portal` como a `platform_admin`, especialmente en flujos de `Nuevo tenant` y `Nuevo usuario`
 - desde `2026-04-08`, `Nuevo tenant` exige además admin explícito (`nombre`, `correo`, `password`) y los smokes deben rellenarlo vía [frontend/e2e/support/platform-admin.ts](support/platform-admin.ts)
 - los módulos visibles de `Nuevo tenant` ya no se testean como toggles manuales; se leen como preview del `plan` seleccionado
+- smoke visible específico del alta tenant:
+  - [platform-admin-tenants-create-form.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenants-create-form.smoke.spec.ts)
+  - valida que `Nuevo tenant` no habilite el submit sin admin inicial explícito
+  - valida que el `plan` seleccionado muestre preview de módulos
 
 Regla operativa adicional para artefactos de fallo:
 

@@ -3,44 +3,44 @@
 ## Última actualización
 
 - fecha: 2026-04-08
-- prioridad vigente: desplegar y validar en vivo el endurecimiento de `Nuevo tenant` ahora que ya quedó corregido en código
+- prioridad vigente: elegir el siguiente frente real del roadmap ahora que también quedó cerrado el endurecimiento de `Nuevo tenant`
 
 ## Objetivo del próximo paso
 
-Aplicar y validar en entorno real este frente ya implementado en el repo:
+No reabrir el frente ya cerrado de `Nuevo tenant`.
 
-- `Nuevo tenant` debe capturar admin inicial explícito
-- provisioning ya no debe sembrar un admin bootstrap fijo compartido para tenants nuevos
-- `Tenants` debe dejar visible que los módulos se habilitan por `plan`
-- el operador debe poder ver el preview de módulos en el alta y en `Plan y módulos`
+Ese frente ya quedó:
+
+- implementado en repo
+- desplegado en `staging`
+- desplegado en `production`
+- validado visualmente por smoke browser
 
 ## Prioridad inmediata
 
-### 1. Desplegar primero a staging
+### 1. Mantener estable lo ya cerrado
 
-Usar el carril ya existente:
+- `Nuevo tenant` con admin inicial explícito
+- preview de módulos por `plan`
+- bloque `Plan y módulos`
+- `APP_ENV=production` real en el host productivo
+
+### 2. Usar `staging` como carril previo si el siguiente frente toca UI visible
+
+Ya existe y sigue sano:
 
 - backend `127.0.0.1:8200`
 - frontend `http://192.168.7.42:8081`
 - árbol `/opt/platform_paas_staging`
 - servicio `platform-paas-backend-staging`
 
-### 2. Validar el flujo real
+### 3. Elegir el siguiente frente explícito
 
-Comprobar al menos:
+La próxima iteración debe escoger uno solo:
 
-- `Nuevo tenant` pide admin inicial explícito
-- el alta rechaza dejar vacío nombre/correo/password del admin
-- el preview de módulos por plan es visible
-- el bloque `Plan y módulos` queda entendible para operación
-
-### 3. Si staging pasa, propagar a producción
-
-Aplicar:
-
-- migración de control `0025_tenant_bootstrap_admin`
-- despliegue backend/frontend
-- smoke corto de `platform_admin > Tenants`
+- backlog transversal recomendado del PaaS
+- nuevo frente funcional explícito
+- endurecimiento puntual de `platform_admin` si hay necesidad operativa concreta
 
 ## Orden exacto recomendado
 
@@ -51,18 +51,17 @@ Aplicar:
 5. leer `REGLAS_IMPLEMENTACION.md`
 6. confirmar que producción y staging siguen saludables
 7. asumir cerrado el frente `tenant sidebar backend-driven`
-8. desplegar el frente `Nuevo tenant admin explícito + módulos por plan` a `staging`
-9. validar el flujo visible
-10. si pasa, propagar a `production`
-11. actualizar `ESTADO_ACTUAL.md` si cambia la prioridad real
+8. asumir cerrado el frente `Nuevo tenant admin explícito + módulos por plan`
+9. elegir el siguiente frente explícito
+10. actualizar `ESTADO_ACTUAL.md` si cambia la prioridad real
 
 ## Qué debe actualizar la próxima IA al cerrar
 
-Si cierra este frente:
+Si abre un frente nuevo:
 
 - actualizar `ESTADO_ACTUAL.md`
 - reescribir este archivo con el nuevo siguiente paso real
-- dejar explícito si ya quedó desplegado solo en repo, en `staging` o también en `production`
+- dejar explícito si quedó solo en repo, en `staging` o también en `production`
 
 ## Qué debe hacer otra IA al retomar
 
@@ -70,7 +69,8 @@ Antes de escribir código funcional, debe partir desde esta realidad operativa:
 
 - producción ya está publicada y validada inicialmente con HTTPS en `orkestia.ddns.net`
 - staging/test ya existe en el mismo mini PC
-- el frente activo inmediato ya no es deploy base ni entorno: es cerrar el endurecimiento de `Nuevo tenant` en entorno real
+- el frente de `Nuevo tenant` ya quedó cerrado en entorno real
+- lo pendiente vuelve a ser elegir el siguiente frente explícito del roadmap
 
 ## Regla de cierre de la próxima iteración
 
@@ -78,17 +78,17 @@ La próxima iteración debe terminar con una de estas dos salidas claras:
 
 ### Salida A
 
-- el cambio de `Nuevo tenant` queda validado en `staging` o en `production`
+- se abre un frente nuevo explícito con estado y roadmap alineados
 
 ### Salida B
 
-- se documenta un bloqueo real de despliegue o validación en vivo
+- se documenta un bloqueo real de priorización o una razón concreta para no abrir todavía ese frente
 
 No cerrar la próxima iteración con un estado intermedio tipo "ya casi".
 
 ## Regla práctica final
 
-Si la próxima IA no sabe en los primeros minutos si debe desplegar este frente o quedarse solo en repo, entonces primero debe actualizar el estado antes de tocar código.
+Si la próxima IA no sabe en los primeros minutos qué frente abrir, entonces primero debe actualizar el estado antes de tocar código.
 
 Y si una iteración importante cambia el estado real del proyecto, estos archivos raíz también deben actualizarse antes de cerrar esa iteración.
 
@@ -96,5 +96,4 @@ Y si una iteración importante cambia el estado real del proyecto, estos archivo
 
 Este archivo debería reescribirse cuando:
 
-- el frente `Nuevo tenant admin explícito + módulos por plan` quede validado en vivo
-- se elija explícitamente el siguiente frente del roadmap después de eso
+- se elija explícitamente el siguiente frente del roadmap

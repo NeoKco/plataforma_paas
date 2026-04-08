@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-08
-- foco de iteración: endurecimiento de `Nuevo tenant` en `platform_admin` + visibilidad real de módulos por `plan`
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules` y alta de tenant ya preparada para exigir admin inicial explícito
+- foco de iteración: cierre del frente `Nuevo tenant` en `platform_admin` + despliegue/validación real en `staging` y `production`
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules` y alta de tenant ya operativa con admin inicial explícito
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -27,14 +27,17 @@
 - el alta de `Nuevo tenant` ya quedó corregida en código para exigir `admin_full_name`, `admin_email` y `admin_password`
 - el alta de `Nuevo tenant` ya no depende de un bootstrap fijo compartido tipo `admin@<slug>.local / TenantAdmin123!`
 - `platform_admin` ya expone un `plan_catalog` visible para mostrar qué módulos habilita cada plan en el alta y en el bloque `Plan y módulos`
+- el smoke browser específico `platform-admin-tenants-create-form` ya quedó aprobado en `staging` y `production`
+- el `.env` productivo quedó realineado a `APP_ENV=production`, `DEBUG=false`, `INSTALL_FLAG_FILE=/opt/platform_paas/.platform_installed` y variables bootstrap seguras explícitas para los tenants demo heredados
 
 ## Frente activo real al momento de este estado
 
-El frente activo real de esta iteración pasó a ser este:
+El frente activo real que se acaba de cerrar fue este:
 
 - corregir `platform_admin > Nuevo tenant` para que deje de crear siempre el mismo admin bootstrap implícito
 - mover esa responsabilidad al momento explícito del alta tenant
 - dejar visible para el operador que los módulos del tenant se habilitan por `plan`, no por toggles manuales
+- desplegar esa corrección a `staging` y `production` y validarla en browser
 
 ## Qué módulo se estaba construyendo
 
@@ -65,6 +68,7 @@ En otras palabras:
 - `maintenance` ya está operativo en su primer corte funcional
 - `tenant_portal` ya refleja visualmente los módulos efectivos calculados por backend en su sidebar principal
 - `platform_admin` ya tiene en código el alta de tenant con admin inicial explícito y preview de módulos por plan
+- `platform_admin` ya tiene ese mismo flujo visible y validado en `staging` y `production`
 
 ### A nivel transversal frontend
 
@@ -120,6 +124,10 @@ Ya quedaron creados, documentados y usados realmente:
 - alineación local real de `dev` para browser tenant:
   - CORS ya no queda atrasado en `4173` cuando la convención vigente es `5173`
   - el baseline `.env` ya declara `TENANT_BILLING_GRACE_*` para reproducir `effective_enabled_modules=core,users` durante `billing grace`
+- migración de control `0025_tenant_bootstrap_admin` ya aplicada en `staging`
+- flujo `Nuevo tenant` validado en `staging` con smoke browser dedicado
+- flujo `Nuevo tenant` validado en `production` con smoke browser dedicado
+- `.env` productivo corregido en host real para arrancar verdaderamente como `production`
 
 ### A nivel handoff entre IAs
 
@@ -242,7 +250,7 @@ La salida inicial ya quedó validada para operación:
 
 ### Lo siguiente ya es post-producción y pre-producción controlada
 
-Lo que queda ahora no es un pendiente de cutover ni de entorno, sino abrir el siguiente frente real:
+Lo que queda ahora no es este frente de `Nuevo tenant`, sino elegir el siguiente frente real:
 
 - mantener `staging` como espejo operativo para regresión normal
 - decidir cuál es el siguiente frente real de producto o hardening transversal

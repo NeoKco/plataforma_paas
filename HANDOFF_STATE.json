@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-08T09:35:00-04:00",
+  "updated_at": "2026-04-08T10:05:00-04:00",
   "handoff_status": "active",
-  "current_focus": "Nuevo tenant en platform_admin endurecido con admin inicial explicito + visibilidad de modulos por plan",
-  "project_phase": "produccion validada con HTTPS, staging/test separado y nuevo frente activo de platform_admin listo para desplegarse en vivo",
+  "current_focus": "frente Nuevo tenant con admin explicito + modulos por plan ya cerrado; esperando siguiente frente del roadmap",
+  "project_phase": "produccion validada con HTTPS, staging/test separado y platform_admin tenants ya corregido y desplegado en vivo",
   "active_modules": [
     "platform-core",
     "finance",
@@ -57,16 +57,19 @@
     "plan_catalog expuesto en capacidades de platform_control para preview visible de modulos por plan",
     "provisioning reutiliza bootstrap admin explicito para tenants nuevos",
     "suite backend del slice tenant/provisioning aprobada con 252 tests",
-    "frontend build y playwright list aprobados tras el cambio de platform_admin tenants"
+    "frontend build y playwright list aprobados tras el cambio de platform_admin tenants",
+    "staging desplegado con el frente Nuevo tenant admin explicito + modulos por plan",
+    "production desplegada con el frente Nuevo tenant admin explicito + modulos por plan",
+    "smoke browser platform-admin-tenants-create-form aprobado en staging",
+    "smoke browser platform-admin-tenants-create-form aprobado en production",
+    "host productivo realineado a APP_ENV=production con bootstrap env seguro explicito para tenants demo heredados"
   ],
   "blocking_issues": [],
-  "next_decision_required": "desplegar y validar en vivo el frente Nuevo tenant admin explicito + modulos por plan usando staging como carril previo",
+  "next_decision_required": "elegir el siguiente frente funcional o transversal ahora que production, staging y platform_admin tenants ya quedaron estables",
   "next_step_if_prod_host_exists": [
-    "desplegar primero a staging",
-    "correr migracion de control 0025_tenant_bootstrap_admin",
-    "publicar backend y frontend staging",
-    "validar visualmente Nuevo tenant y Plan y modulos",
-    "si pasa, propagar a production"
+    "mantener produccion estable",
+    "usar staging como carril previo real",
+    "elegir el siguiente frente funcional o transversal con estado y roadmap explicitos"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -116,6 +119,8 @@
     "tenant_sidebar_modules_smoke_dev_isolated": "pass",
     "platform_admin_new_tenant_backend_slice": "pass",
     "platform_admin_new_tenant_frontend_build": "pass",
-    "platform_admin_new_tenant_playwright_list": "pass"
+    "platform_admin_new_tenant_playwright_list": "pass",
+    "platform_admin_new_tenant_smoke_staging": "pass",
+    "platform_admin_new_tenant_smoke_production": "pass"
   }
 }
