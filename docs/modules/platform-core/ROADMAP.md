@@ -18,7 +18,8 @@ La base central ya es operable:
 Estado práctico de cierre:
 
 - cierre funcional base: `Completado`
-- cierre operativo definitivo: `Pendiente solo por deploy real en host productivo`
+- cierre operativo técnico: `Completado en mini PC Debian`
+- cierre operativo definitivo: `Pendiente por validación externa / humo de terreno / TLS`
 
 ## Cerrado
 
@@ -56,12 +57,11 @@ Este frente ya no depende de abrir más funcionalidad de producto.
 Lo pendiente real para considerar el bloque central efectivamente cerrado en terreno es:
 
 - confirmar host productivo real
-- preparar `.env` productivo final
-- correr preflight backend sin fallos
-- correr build y preflight frontend con la URL real de API
-- ejecutar cutover
-- ejecutar smoke corto de terreno
-- actualizar estado post-producción y evidencia operativa
+- completar validación externa real sobre `orkestia.ddns.net`
+- emitir y activar TLS para `orkestia.ddns.net` o separar `app/api`
+- reconstruir frontend con URL final HTTPS si cambia el origen público
+- ejecutar smoke corto de terreno desde navegador real
+- actualizar estado post-producción y evidencia operativa final
 
 Referencia operativa:
 
@@ -96,7 +96,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - `business-core`: operativo
 - `maintenance`: cerrado en su primer corte
 - `platform-core`: funcionalmente cerrado
-- lo único realmente pendiente para cerrar el frente central es el deploy real y su validación en terreno
+- el deploy técnico base ya quedó resuelto en el mini PC; lo pendiente real es la validación externa final y el endurecimiento TLS
 
 ## Regla futura
 

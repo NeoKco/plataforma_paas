@@ -61,6 +61,14 @@ placeholder_values=(
     "change_this_secret_in_development"
 )
 
+insecure_bootstrap_password_values=(
+    "123456789"
+    "12345678"
+    "password"
+    "changeme"
+    "change_me"
+)
+
 for value in "${placeholder_values[@]}"; do
     if [ "${CONTROL_DB_PASSWORD}" = "$value" ]; then
         echo "CONTROL_DB_PASSWORD still uses a placeholder value." >&2
@@ -77,5 +85,27 @@ for value in "${placeholder_values[@]}"; do
         exit 1
     fi
 done
+
+while IFS='=' read -r var_name _; do
+    [ -n "$var_name" ] || continue
+    case "$var_name" in
+        TENANT_BOOTSTRAP_DB_PASSWORD_*)
+            value="${!var_name:-}"
+            normalized="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')"
+
+            for insecure_value in "${insecure_bootstrap_password_values[@]}"; do
+                if [ "$normalized" = "$insecure_value" ]; then
+                    echo "$var_name still uses an insecure demo bootstrap password." >&2
+                    exit 1
+                fi
+            done
+
+            if [ "${#value}" -lt 16 ]; then
+                echo "$var_name must be at least 16 characters long for production/staging deploys." >&2
+                exit 1
+            fi
+            ;;
+    esac
+done < <(grep -E '^[A-Za-z_][A-Za-z0-9_]*=' "$ENV_FILE")
 
 echo "Environment validation passed for APP_ENV=${APP_ENV} using ${ENV_FILE}"

@@ -9,6 +9,13 @@ Está pensada para una primera salida a terreno, sin asumir todavía CD completo
 - `https://api.example.com` → backend FastAPI
 - `https://app.example.com` → frontend SPA estática
 
+Fallback operativo válido para un mini PC único:
+
+- `http://orkestia.ddns.net/` -> SPA estática
+- `http://orkestia.ddns.net/platform/*` -> backend platform
+- `http://orkestia.ddns.net/tenant/*` -> backend tenant
+- `http://orkestia.ddns.net/health` -> healthcheck backend
+
 ## Variables a decidir antes del cutover
 
 - dominio backend público
@@ -16,6 +23,11 @@ Está pensada para una primera salida a terreno, sin asumir todavía CD completo
 - ruta real del checkout: `/opt/platform_paas`
 - archivo productivo: `/opt/platform_paas/.env`
 - servicio backend: `platform-paas-backend`
+
+Si usas single-host:
+
+- dominio único público: `orkestia.ddns.net`
+- `API_BASE_URL` del build: `http://orkestia.ddns.net`
 
 ## Pre-cutover
 
@@ -70,6 +82,15 @@ Instalar o actualizar la plantilla nginx del frontend y recargar:
 ```bash
 sudo cp infra/nginx/platform-paas-frontend-ssl.conf /etc/nginx/sites-available/platform-paas-frontend.conf
 sudo ln -sf /etc/nginx/sites-available/platform-paas-frontend.conf /etc/nginx/sites-enabled/platform-paas-frontend.conf
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Si usas single-host en un solo mini PC:
+
+```bash
+sudo cp infra/nginx/platform-paas-single-host.conf /etc/nginx/sites-available/platform-paas-orkestia.conf
+sudo ln -sf /etc/nginx/sites-available/platform-paas-orkestia.conf /etc/nginx/sites-enabled/platform-paas-orkestia.conf
 sudo nginx -t
 sudo systemctl reload nginx
 ```

@@ -64,6 +64,7 @@ Ajustes minimos obligatorios:
 - `CONTROL_DB_*`
 - `POSTGRES_ADMIN_PASSWORD`
 - `JWT_SECRET_KEY`
+- cualquier `TENANT_BOOTSTRAP_DB_PASSWORD_*` que exista para tenants demo debe salir con valor fuerte real, no con passwords bootstrap de ejemplo
 
 ## 2. Instalar unidad `systemd`
 

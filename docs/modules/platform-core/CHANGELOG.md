@@ -1,5 +1,13 @@
 # Platform Core Changelog
 
+## 2026-04-07
+
+- se ejecuta la primera salida productiva técnica sobre mini PC Debian en `/opt/platform_paas`, con backend real bajo `systemd`, frontend Vite publicado por `nginx` y topología single-host inicial en `orkestia.ddns.net`
+- se agrega [platform-paas-single-host.conf](/home/felipe/platform_paas/infra/nginx/platform-paas-single-host.conf) para operar SPA + backend por rutas sobre un único dominio cuando todavía no existe separación `app/api`
+- se endurece [deploy_backend.sh](/home/felipe/platform_paas/deploy/deploy_backend.sh) para exportar `PYTHONPATH` en migraciones y pruebas, evitando fallos de import al desplegar fuera del workspace de desarrollo
+- se endurece [validate_backend_env.sh](/home/felipe/platform_paas/deploy/validate_backend_env.sh) para rechazar `TENANT_BOOTSTRAP_DB_PASSWORD_*` inseguros antes del restart del servicio
+- se actualiza [backend.production.example.env](/home/felipe/platform_paas/infra/env/backend.production.example.env) para declarar explícitamente los overrides de passwords bootstrap requeridos en producción
+
 ## 2026-04-04
 
 - se agrega [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md) como canon transversal de estandares, revisiones, estructura minima, documentacion viva y handoff para continuidad con otra IA
