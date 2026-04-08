@@ -24,9 +24,9 @@ Debe permanecer corto, operativo y fácil de escanear.
 
 ## Estado rápido vigente
 
-- fecha: 2026-04-07
-- foco activo: separación `dev/staging/prod` ya operativa en mini PC + staging bootstrap validado
-- prioridad inmediata: decidir si `staging` queda en bootstrap o vuelve a espejo antes del siguiente frente real
+- fecha: 2026-04-08
+- foco activo: separación `dev/staging/prod` ya operativa en mini PC + staging devuelto a espejo instalado
+- prioridad inmediata: abrir el siguiente frente real del roadmap
 - módulo o frente activo: transversal / platform-core / staging-test
 
 ## Último contexto útil
@@ -43,14 +43,15 @@ Debe permanecer corto, operativo y fácil de escanear.
 - `nginx` ya publica además el staging local en `http://192.168.7.42:8081`
 - el smoke remoto completo contra `https://orkestia.ddns.net` ya pasó con `7/7` checks OK
 - el health staging ya responde en `8200` y `8081`
-- el staging ya fue reseteado a bootstrap y el backend responde `installed=false`
-- el instalador visual ya fue validado en browser sobre `http://192.168.7.42:8081/install`
+- el staging ya fue reseteado a bootstrap y el instalador visual quedó validado en browser
+- el staging ya volvió a espejo instalado con baseline frontend y responde `installed=true`
 
 ## Bloqueo actual
 
 - no existe bloqueo productivo
 - no existe bloqueo técnico
-- la única decisión abierta es si `staging` se deja temporalmente en bootstrap o si se reinstala como espejo y se abre otro frente
+- no hay bloqueo técnico ni productivo
+- la única decisión abierta ya es cuál es el siguiente frente real del roadmap
 
 ## Siguiente acción inmediata
 
@@ -60,8 +61,8 @@ Es este:
 
 - mantener producción estable
 - usar staging como carril previo real
-- decidir el modo final de `staging`
-- elegir después el siguiente frente del roadmap
+- mantener `staging` como espejo operativo
+- elegir el siguiente frente del roadmap
 
 ## Archivos a leer justo después de este
 
@@ -83,3 +84,4 @@ Es este:
 - `GET http://127.0.0.1:8200/health`: OK
 - `GET http://127.0.0.1:8081/health`: OK
 - smoke opt-in `platform-admin-installer-availability`: OK
+- `GET http://127.0.0.1:8200/health` otra vez con `installed=true`: OK

@@ -9,6 +9,8 @@ PYTHON_BIN="${PYTHON_BIN:-$PROJECT_ROOT/platform_paas_venv/bin/python}"
 BACKEND_DIR="${BACKEND_DIR:-$PROJECT_ROOT/backend}"
 SEED_SCRIPT="${SEED_SCRIPT:-$BACKEND_DIR/app/scripts/seed_frontend_demo_baseline.py}"
 INSTALL_FLAG_PATH_DEFAULT="$PROJECT_ROOT/.platform_installed"
+POSTGRES_ADMIN_USER="${POSTGRES_ADMIN_USER:-postgres}"
+POSTGRES_ADMIN_DB="${POSTGRES_ADMIN_DB:-postgres}"
 MODE="plan"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -45,6 +47,65 @@ set_env_value() {
     else
         printf '\n%s=%s\n' "$key" "$value" >>"$ENV_FILE"
     fi
+}
+
+sql_literal() {
+    local value="$1"
+    value="${value//\'/''}"
+    printf "'%s'" "$value"
+}
+
+sql_identifier() {
+    local value="$1"
+    value="${value//\"/\"\"}"
+    printf '"%s"' "$value"
+}
+
+psql_admin() {
+    PGPASSWORD="$POSTGRES_ADMIN_PASSWORD" psql \
+        -h "$CONTROL_DB_HOST" \
+        -p "$CONTROL_DB_PORT" \
+        -U "$POSTGRES_ADMIN_USER" \
+        -d "$POSTGRES_ADMIN_DB" \
+        -v ON_ERROR_STOP=1 \
+        "$@"
+}
+
+role_exists() {
+    local role_name="$1"
+    local result
+    result="$(
+        psql_admin -Atqc "SELECT 1 FROM pg_roles WHERE rolname = $(sql_literal "$role_name");"
+    )"
+    [[ "$result" == "1" ]]
+}
+
+database_exists() {
+    local db_name="$1"
+    local result
+    result="$(
+        psql_admin -Atqc "SELECT 1 FROM pg_database WHERE datname = $(sql_literal "$db_name");"
+    )"
+    [[ "$result" == "1" ]]
+}
+
+create_or_update_role() {
+    local role_name="$1"
+    local role_password="$2"
+    if role_exists "$role_name"; then
+        psql_admin -c "ALTER ROLE $(sql_identifier "$role_name") WITH LOGIN PASSWORD $(sql_literal "$role_password");" >/dev/null
+        return
+    fi
+    psql_admin -c "CREATE ROLE $(sql_identifier "$role_name") WITH LOGIN PASSWORD $(sql_literal "$role_password");" >/dev/null
+}
+
+create_database_if_missing() {
+    local db_name="$1"
+    local owner_name="$2"
+    if database_exists "$db_name"; then
+        return
+    fi
+    psql_admin -c "CREATE DATABASE $(sql_identifier "$db_name") OWNER $(sql_identifier "$owner_name");" >/dev/null
 }
 
 while (($#)); do
@@ -96,6 +157,7 @@ fi
 
 command -v systemctl >/dev/null 2>&1 || fail "systemctl no esta disponible"
 command -v curl >/dev/null 2>&1 || fail "curl no esta disponible"
+command -v psql >/dev/null 2>&1 || fail "psql no esta disponible"
 
 log "Deteniendo servicio $SERVICE_NAME"
 systemctl stop "$SERVICE_NAME"
@@ -107,6 +169,10 @@ fi
 
 set_env_value "PLATFORM_INSTALLED" "true"
 set_env_value "INSTALL_FLAG_FILE" "$INSTALL_FLAG_PATH"
+
+log "Asegurando control DB y role de staging"
+create_or_update_role "$CONTROL_DB_USER" "$CONTROL_DB_PASSWORD"
+create_database_if_missing "$CONTROL_DB_NAME" "$CONTROL_DB_USER"
 
 log "Corriendo migraciones de control en staging"
 (

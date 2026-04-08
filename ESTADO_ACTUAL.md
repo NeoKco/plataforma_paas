@@ -2,9 +2,9 @@
 
 ## Última actualización
 
-- fecha: 2026-04-07
-- foco de iteración: separación operativa `dev/staging/prod` en mini PC, bootstrap controlado de `staging` y validación visual del instalador
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado y staging actualmente reseteado a modo bootstrap con `/install` validado en browser
+- fecha: 2026-04-08
+- foco de iteración: separación operativa `dev/staging/prod` en mini PC y cierre del ciclo `staging bootstrap -> staging espejo`
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado y staging actualmente restaurado a modo espejo instalado
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -20,8 +20,8 @@
 - desarrollo local ya no pisa producción: backend `8100`, frontend `5173`
 - staging/test ya quedó operativo: backend `8200`, frontend `8081`
 - el staging ya puede volver al modo instalador inicial mediante un wrapper seguro del repo
-- el staging ya fue reseteado realmente y hoy responde con `installed=false`
-- el flujo visual `/install` ya quedó validado realmente sobre `staging` con smoke browser opt-in aprobado
+- el staging ya fue reseteado realmente y el flujo visual `/install` quedó validado sobre el mini PC
+- el staging ya fue restaurado otra vez a espejo instalado y hoy responde con `installed=true`
 
 ## Frente activo real al momento de este estado
 
@@ -32,7 +32,7 @@ Es este:
 - sostener producción ya validada sin mezclarla con desarrollo local
 - dejar staging/test utilizable como carril previo a producción
 - dejar resuelto el cambio de modo entre staging espejo y bootstrap inicial
-- dejar explícito si `staging` debe quedar temporalmente en bootstrap o volver a espejo antes del siguiente frente real
+- dejar explícito que `staging` ya volvió a espejo operativo antes del siguiente frente real
 
 ## Qué módulo se estaba construyendo
 
@@ -106,9 +106,11 @@ Ya quedaron creados, documentados y usados realmente:
 - smoke remoto backend aprobado sobre `https://orkestia.ddns.net`
 - baseline backend estable bajo `.env.staging` con `510 tests OK`
 - wrapper formal `deploy/reset_staging_bootstrap.sh` para devolver staging al modo bootstrap sin tocar `production`
+- wrapper formal `deploy/restore_staging_mirror.sh` para devolver staging desde bootstrap a espejo instalado
 - smoke browser opt-in del instalador para validar `/install` en staging bootstrap
 - validación real del reset bootstrap con `platform-paas-backend-staging` activo y `/install/` disponible en backend
 - validación browser real de `/install` en `http://192.168.7.42:8081/install` con Playwright opt-in aprobado
+- restauración real de `staging` a espejo instalado con baseline frontend y `health` en `installed=true`
 
 ### A nivel handoff entre IAs
 
@@ -220,14 +222,14 @@ La salida inicial ya quedó validada para operación:
 
 1. `https://orkestia.ddns.net` respondió correctamente desde navegador real
 2. el smoke remoto completo pasó sobre la URL pública
-3. `staging` ya fue llevado a bootstrap y el instalador quedó validado visualmente
+3. `staging` ya fue llevado a bootstrap, el instalador quedó validado visualmente y luego volvió a espejo instalado
 4. el estado y la evidencia operativa ya quedaron asentados en el repo
 
 ### Lo siguiente ya es post-producción y pre-producción controlada
 
-Lo que queda ahora no es un pendiente de cutover, sino decisión de continuidad:
+Lo que queda ahora no es un pendiente de cutover ni de entorno, sino abrir el siguiente frente real:
 
-- decidir si `staging` queda temporalmente en bootstrap o si vuelve a espejo instalado
+- mantener `staging` como espejo operativo para regresión normal
 - decidir cuál es el siguiente frente real de producto o hardening transversal
 - seguir con backlog explícito, no con pendientes implícitos de deploy
 
@@ -238,6 +240,7 @@ Lo que queda ahora no es un pendiente de cutover, sino decisión de continuidad:
 - evidencia backend post-deploy previa: `/opt/platform_paas/operational_evidence/backend_operational_evidence_20260407_223208.log`
 - health staging backend: `http://127.0.0.1:8200/health`
 - health staging frontend/nginx: `http://127.0.0.1:8081/health`
+- login staging app: `http://192.168.7.42:8081/login`
 
 Eso significa que el proyecto ya está desplegado en producción y además tiene un carril staging separado en el mismo mini PC.
 
@@ -316,12 +319,13 @@ Tampoco conviene:
 
 - no hay bloqueo productivo activo
 - no hay bloqueo técnico activo en `dev`, `staging` o `production`
-- la única decisión abierta es operativa: en qué modo debe quedar `staging` antes de abrir el siguiente frente
+- la decisión abierta ya no es de entorno sino de roadmap: cuál es el siguiente frente real a abrir
 
 ### Tipo de bloqueo
 
-- no es principalmente bloqueo de código
-- es bloqueo de entorno y operación real
+- no es bloqueo de código
+- no es bloqueo de entorno
+- es solo una decisión de priorización del siguiente frente
 
 ## Cómo debe actualizarse este archivo en adelante
 

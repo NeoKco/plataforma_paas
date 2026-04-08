@@ -109,6 +109,35 @@ Para nuevas entradas usar:
 
 - decidir si `staging` vuelve a espejo o si se mantiene en bootstrap por más validaciones del instalador
 
+## 2026-04-08 — Restauración de staging a espejo instalado
+
+### Objetivo
+
+- cerrar el ciclo completo del mini PC dejando `staging` nuevamente utilizable para regresion normal despues de validar el instalador
+
+### Cambios principales
+
+- se agrega `deploy/restore_staging_mirror.sh`
+- se agrega `docs/deploy/staging-restore-mirror.md`
+- el wrapper recrea el role y la DB `platform_control_staging` si faltan
+- el wrapper corre migraciones de control, siembra `seed_frontend_demo_baseline.py`, recrea `.platform_installed` y levanta otra vez `platform-paas-backend-staging`
+
+### Validaciones
+
+- `bash -n deploy/restore_staging_mirror.sh`: OK
+- restauracion real ejecutada sobre `/opt/platform_paas_staging`: OK
+- `GET http://127.0.0.1:8200/health` responde `installed=true`: OK
+- `http://192.168.7.42:8081/login` vuelve al flujo normal de `platform_admin`: OK
+
+### Bloqueos
+
+- no hay bloqueo tecnico
+- no hay bloqueo de entorno
+
+### Siguiente paso
+
+- abrir el siguiente frente real del roadmap ahora que `production` y `staging` ya quedaron estables
+
 ## 2026-04-07 — Bootstrap productivo real en mini PC
 
 ### Objetivo

@@ -23,6 +23,7 @@ Estado práctico de cierre:
 - entorno staging/test separado en el mismo mini PC: `Completado`
 - reset controlado de `staging` para volver al instalador inicial: `Completado`
 - validación visual del instalador sobre `staging bootstrap`: `Completado`
+- restauración de `staging` a espejo instalado después del bootstrap: `Completado`
 
 ## Cerrado
 
@@ -67,6 +68,7 @@ El bloque central ya quedó cerrado para su primera salida real en terreno:
 - backend staging bajo `systemd` en `127.0.0.1:8200`
 - frontend staging publicado por `nginx` en `http://192.168.7.42:8081`
 - flujo `/install` validado realmente sobre `staging` en modo bootstrap
+- `staging` restaurado a espejo operativo después de la validación del instalador
 
 Referencia operativa:
 
@@ -96,7 +98,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - algunos recorridos siguen mejor cubiertos por backend tests que por browser E2E
 - la documentación central era abundante pero estaba dispersa; ya quedó indexada, pero aún puede seguir normalizándose
 - el backend ya calcula y aplica entitlements por módulo tenant, pero el menú frontend sigue hardcodeado y todavía no filtra por contrato/billing
-- el staging ya puede alternar entre espejo instalado y bootstrap reset, pero ese cambio de modo debe quedar explicitado en los archivos raíz de continuidad y resolverse antes de abrir el siguiente frente real
+- el staging ya puede alternar entre espejo instalado y bootstrap reset; hoy ya quedó devuelto a espejo operativo y el siguiente paso ya no es de entorno sino de roadmap
 
 ## Conclusión práctica
 

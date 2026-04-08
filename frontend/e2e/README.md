@@ -193,6 +193,7 @@ Notas:
 	- ejecutar `sudo bash deploy/reset_staging_bootstrap.sh --execute`
 	- correr `E2E_BASE_URL=http://192.168.7.42:8081 E2E_EXPECT_INSTALLER=1 E2E_USE_EXISTING_FRONTEND=1 npx playwright test e2e/specs/platform-admin-installer-availability.smoke.spec.ts`
 	- estado validado actual: `1 passed` sobre `staging bootstrap`
+	- cuando termine esa validación, devolver `staging` a espejo con `sudo bash deploy/restore_staging_mirror.sh --execute`
 - credenciales validadas para esta iteración:
 	- `E2E_TENANT_SLUG=empresa-bootstrap`
 	- `E2E_TENANT_EMAIL=admin@empresa-bootstrap.local`

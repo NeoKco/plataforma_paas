@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-08T01:05:00-04:00",
+  "updated_at": "2026-04-08T01:36:00-04:00",
   "handoff_status": "active",
-  "current_focus": "mini PC con dev/staging/prod separados + staging bootstrap ya validado visualmente",
-  "project_phase": "produccion validada con HTTPS, staging/test separado y staging bootstrap ya validado backend+browser en el mismo mini PC",
+  "current_focus": "mini PC con dev/staging/prod separados + staging ya restaurado a espejo instalado",
+  "project_phase": "produccion validada con HTTPS, staging/test separado y ciclo bootstrap->espejo ya validado en el mismo mini PC",
   "active_modules": [
     "platform-core",
     "finance",
@@ -44,14 +44,17 @@
     "wrapper formal deploy/reset_staging_bootstrap.sh agregado para staging",
     "reset real de staging ejecutado con /health installed=false y /install disponible",
     "flujo visual /install validado en browser sobre staging bootstrap",
-    "ruta /install corregida en frontend con RequireNotInstalled"
+    "ruta /install corregida en frontend con RequireNotInstalled",
+    "wrapper restore_staging_mirror.sh agregado para devolver staging a espejo",
+    "staging restaurado realmente a espejo instalado con baseline frontend"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir si staging se mantiene temporalmente en bootstrap o si se reinstala como espejo antes de abrir el siguiente frente funcional o transversal",
+  "next_decision_required": "elegir el siguiente frente funcional o transversal ahora que production y staging ya quedaron estables",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
-    "aprovechar que staging ya quedo validado en bootstrap para decidir si se conserva ese modo o se reinstala antes de abrir otro frente"
+    "mantener staging como espejo operativo para regresion normal",
+    "abrir el siguiente frente funcional o transversal con estado y roadmap explicitos"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -96,6 +99,7 @@
     "backend_health_staging_local": "pass",
     "staging_nginx_local": "pass",
     "staging_bootstrap_reset": "pass",
-    "staging_installer_browser_smoke": "pass"
+    "staging_installer_browser_smoke": "pass",
+    "staging_restore_to_mirror": "pass"
   }
 }

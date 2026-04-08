@@ -2,8 +2,8 @@
 
 ## Última actualización
 
-- fecha: 2026-04-07
-- prioridad vigente: decidir si `staging` se mantiene temporalmente en `bootstrap` o si vuelve a `espejo instalado` antes de abrir el siguiente frente real
+- fecha: 2026-04-08
+- prioridad vigente: abrir el siguiente frente real del roadmap con `production` estable y `staging` ya devuelto a espejo instalado
 
 ## Objetivo del próximo paso
 
@@ -15,7 +15,7 @@ El siguiente paso correcto es aprovechar el mini PC con tres carriles separados:
 - `staging/test`
 - `production`
 
-y usar el staging ya validado en bootstrap para tomar una decisión explícita de continuidad antes de abrir otro frente.
+y usar el staging ya restaurado a espejo como carril previo normal antes de abrir otro frente.
 
 ## Prioridad inmediata
 
@@ -41,8 +41,9 @@ Ya existe un entorno staging separado:
 
 La próxima iteración debe elegir una sola de estas rutas:
 
-- reinstalar `staging` como espejo operativo y abrir el siguiente frente funcional o transversal
-- conservar `staging` en bootstrap un poco más si se harán más pruebas del instalador
+- abrir el backlog transversal recomendado del PaaS
+- abrir un nuevo frente funcional explícito con documentación canónica desde el inicio
+- endurecer una zona central ya existente si hay una justificación operativa clara
 - backlog transversal recomendado del PaaS
 
 ## Orden exacto recomendado
@@ -53,7 +54,7 @@ La próxima iteración debe elegir una sola de estas rutas:
 4. leer `ESTADO_ACTUAL.md`
 5. leer `REGLAS_IMPLEMENTACION.md`
 6. confirmar que producción y staging siguen saludables
-7. decidir si el `staging` ya validado en `/install` se mantiene temporalmente en bootstrap o si primero vuelve a modo espejo y luego abre un `nuevo frente funcional`
+7. elegir el siguiente frente explícito ahora que `staging` ya volvió a modo espejo
 8. actualizar `ESTADO_ACTUAL.md` si cambia la prioridad real
 
 ## Qué debe actualizar la próxima IA al cerrar
@@ -70,7 +71,7 @@ Antes de escribir código funcional, debe partir desde esta realidad operativa:
 
 - producción ya está publicada y validada inicialmente con HTTPS en `orkestia.ddns.net`
 - staging/test ya existe en el mismo mini PC
-- lo pendiente ya no es deploy productivo ni validar `/install`, sino decidir en qué modo debe quedar `staging` antes del siguiente frente
+- lo pendiente ya no es deploy productivo ni entorno, sino elegir el siguiente frente real del roadmap
 
 ## Regla de cierre de la próxima iteración
 
@@ -78,11 +79,11 @@ La próxima iteración debe terminar con una de estas dos salidas claras:
 
 ### Salida A
 
-- se devuelve `staging` a espejo instalado y se abre un frente nuevo explícito con estado y roadmap alineados
+- se abre un frente nuevo explícito con estado y roadmap alineados
 
 ### Salida B
 
-- se deja `staging` temporalmente en bootstrap para más validación del instalador y eso queda documentado sin ambigüedad
+- se documenta un bloqueo real de priorización o una razón concreta para no abrir todavía ese frente
 
 No cerrar la próxima iteración con un estado intermedio tipo "ya casi".
 
@@ -96,5 +97,5 @@ Y si una iteración importante cambia el estado real del proyecto, estos archivo
 
 Este archivo debería reescribirse cuando:
 
-- se decida explícitamente en qué modo queda `staging`
+- se elija explícitamente el siguiente frente del roadmap
 - el proyecto pase desde hardening de entornos a nuevo desarrollo funcional
