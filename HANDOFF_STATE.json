@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-07T23:55:00-04:00",
+  "updated_at": "2026-04-08T00:12:00-04:00",
   "handoff_status": "active",
-  "current_focus": "mini PC con dev/staging/prod separados + staging con reset bootstrap automatizado",
-  "project_phase": "produccion validada con HTTPS, staging/test separado y carril bootstrap reset ya documentado en el mismo mini PC",
+  "current_focus": "mini PC con dev/staging/prod separados + staging actualmente reseteado a bootstrap",
+  "project_phase": "produccion validada con HTTPS, staging/test separado y staging bootstrap ya activado realmente en el mismo mini PC",
   "active_modules": [
     "platform-core",
     "finance",
@@ -41,14 +41,15 @@
     "platform-paas-backend-staging activo en systemd",
     "health staging validado en 8200 y 8081",
     "baseline backend endurecida para ignorar settings heredados desde env staging/prod",
-    "wrapper formal deploy/reset_staging_bootstrap.sh agregado para staging"
+    "wrapper formal deploy/reset_staging_bootstrap.sh agregado para staging",
+    "reset real de staging ejecutado con /health installed=false y /install disponible"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir en que iteracion se usara el bootstrap reset de staging y cual sera el siguiente frente funcional o transversal",
+  "next_decision_required": "decidir si ahora se valida visualmente el instalador en staging o si staging se reinstala y se abre el siguiente frente funcional o transversal",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
-    "usar bootstrap reset solo cuando haga falta validar el instalador y luego abrir otro frente del roadmap"
+    "aprovechar que staging ya quedo en bootstrap para validar /install o reinstalarlo antes de abrir otro frente"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -91,6 +92,7 @@
     "backend_baseline_staging_env": "pass",
     "backend_systemd_staging": "pass",
     "backend_health_staging_local": "pass",
-    "staging_nginx_local": "pass"
+    "staging_nginx_local": "pass",
+    "staging_bootstrap_reset": "pass"
   }
 }

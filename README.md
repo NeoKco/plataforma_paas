@@ -52,7 +52,7 @@ Si solo quieres levantarlo rapido:
 
 1. backend
 2. frontend
-3. abrir `http://127.0.0.1:4173`
+3. abrir `http://127.0.0.1:5173`
 4. si el sistema no esta instalado, completar `/install`
 5. entrar a `Platform Admin`
 
@@ -102,7 +102,7 @@ Backend HTTP:
 
 ```bash
 cd /home/felipe/platform_paas/backend
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8100
 ```
 
 ### 2. Frontend
@@ -111,14 +111,14 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 cd /home/felipe/platform_paas/frontend
 cp .env.example .env
 npm install
-npm run dev -- --host 0.0.0.0 --port 4173
+VITE_API_BASE_URL=http://127.0.0.1:8100 npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
 ### 3. Primer arranque visual
 
 Si `GET /health` responde `installed=false`, el frontend redirige a:
 
-- `http://127.0.0.1:4173/install`
+- `http://127.0.0.1:5173/install`
 
 Desde ahi puedes:
 
@@ -199,6 +199,7 @@ El repo ya esta preparado para GitHub:
 - capturas finales del manual visual si versionadas como documentacion
 - baseline browser institucionalizado en GitHub Actions con `build + e2e:platform + e2e:tenant`
 - baseline browser local repetible con [scripts/dev/run_local_browser_baseline.sh](./scripts/dev/run_local_browser_baseline.sh)
+- reset bootstrap de staging disponible con [deploy/reset_staging_bootstrap.sh](./deploy/reset_staging_bootstrap.sh) cuando haga falta revalidar el instalador inicial en el mini PC
 - baseline backend institucionalizado en GitHub Actions con [.github/workflows/backend-tests.yml](.github/workflows/backend-tests.yml)
 - baseline backend local repetible con [scripts/dev/run_local_backend_baseline.sh](./scripts/dev/run_local_backend_baseline.sh)
 - helper broker-only para DLQ con [scripts/dev/run_local_broker_dlq_baseline.sh](./scripts/dev/run_local_broker_dlq_baseline.sh)

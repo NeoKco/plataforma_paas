@@ -27,6 +27,21 @@ Pasar `platform_paas` desde estado "listo para salir" a estado "publicado y vali
 - estado actual: HTTPS single-host operativo
 - renovación automática: `certbot.timer` ya activo en el host
 
+## Carriles vigentes en el mini PC
+
+- desarrollo:
+  - backend `8100`
+  - frontend `5173`
+- staging:
+  - checkout `/opt/platform_paas_staging`
+  - backend `platform-paas-backend-staging` en `127.0.0.1:8200`
+  - frontend publicado por `nginx` en `http://192.168.7.42:8081`
+  - puede correr como `espejo instalado` o como `bootstrap reset`
+- producción:
+  - checkout `/opt/platform_paas`
+  - backend `platform-paas-backend` en `127.0.0.1:8000`
+  - frontend/backend publicados en `https://orkestia.ddns.net`
+
 ## 1. Precondiciones del host
 
 Debe existir:

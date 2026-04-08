@@ -26,7 +26,7 @@ Debe permanecer corto, operativo y fácil de escanear.
 
 - fecha: 2026-04-07
 - foco activo: separación `dev/staging/prod` ya operativa en mini PC
-- prioridad inmediata: dejar validado el carril `bootstrap reset` de staging y luego abrir el siguiente frente real
+- prioridad inmediata: usar el staging ya reseteado para validar el instalador y luego abrir el siguiente frente real
 - módulo o frente activo: transversal / platform-core / staging-test
 
 ## Último contexto útil
@@ -43,12 +43,13 @@ Debe permanecer corto, operativo y fácil de escanear.
 - `nginx` ya publica además el staging local en `http://192.168.7.42:8081`
 - el smoke remoto completo contra `https://orkestia.ddns.net` ya pasó con `7/7` checks OK
 - el health staging ya responde en `8200` y `8081`
+- el staging ya fue reseteado a bootstrap y el backend responde `installed=false`
 
 ## Bloqueo actual
 
 - no existe bloqueo productivo
 - no existe bloqueo técnico
-- la única decisión abierta es cuándo usar el `bootstrap reset` recién automatizado y cuál será el siguiente frente funcional o transversal
+- la única decisión abierta es si se valida ahora mismo el instalador en browser o si luego se reinstala staging y se abre otro frente
 
 ## Siguiente acción inmediata
 
@@ -58,7 +59,7 @@ Es este:
 
 - mantener producción estable
 - usar staging como carril previo real
-- ejecutar `bootstrap reset` solo cuando una iteración necesite validar el instalador desde cero
+- validar el instalador en el staging ya reseteado
 - elegir después el siguiente frente del roadmap
 
 ## Archivos a leer justo después de este

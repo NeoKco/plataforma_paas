@@ -67,16 +67,20 @@ Para nuevas entradas usar:
 
 - `bash -n deploy/reset_staging_bootstrap.sh`: esperado para esta iteración
 - `Playwright --list` debe incluir el spec del instalador sin romper la baseline normal
+- reset real ejecutado sobre `/opt/platform_paas_staging`: OK
+- `platform-paas-backend-staging` vuelve arriba en `8200`: OK
+- `GET http://127.0.0.1:8200/health` responde `installed=false`: OK
+- `GET http://127.0.0.1:8200/install/` responde `Installer available`: OK
 
 ### Bloqueos
 
 - no hay bloqueo técnico
-- falta solo decidir en qué iteración se quiere ejecutar el reset real sobre el staging operativo
+- falta solo decidir si se valida ahora mismo el instalador en browser o si primero se reinstala staging
 
 ### Siguiente paso
 
-- ejecutar el reset real si la siguiente validación necesita probar `/install`
-- si no, abrir directamente el siguiente frente del roadmap
+- abrir `http://192.168.7.42:8081` y validar visualmente `/install`
+- luego decidir si staging vuelve a modo espejo o si se abre directamente el siguiente frente del roadmap
 
 ## 2026-04-07 — Bootstrap productivo real en mini PC
 

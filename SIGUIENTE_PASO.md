@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-07
-- prioridad vigente: usar el staging/test ya separado con dos modos explícitos (`espejo` y `bootstrap reset`) y elegir el siguiente frente real
+- prioridad vigente: aprovechar que `staging` ya quedó en `bootstrap reset`, validar ese flujo visual y luego elegir el siguiente frente real
 
 ## Objetivo del próximo paso
 
@@ -15,7 +15,7 @@ El siguiente paso correcto es aprovechar el mini PC con tres carriles separados:
 - `staging/test`
 - `production`
 
-y usar el reset controlado de staging cuando haga falta validar el instalador desde cero.
+y usar el staging ya reseteado para validar el instalador desde cero antes de devolverlo a modo espejo o abrir otro frente.
 
 ## Prioridad inmediata
 
@@ -53,7 +53,7 @@ La próxima iteración debe elegir una sola de estas rutas:
 4. leer `ESTADO_ACTUAL.md`
 5. leer `REGLAS_IMPLEMENTACION.md`
 6. confirmar que producción y staging siguen saludables
-7. decidir si la siguiente iteración ejecuta `bootstrap reset de staging` para una validación concreta o si abre directamente un `nuevo frente funcional`
+7. decidir si la siguiente iteración usa el `staging` ya reseteado para validar `/install` o si primero lo vuelve a modo espejo y abre directamente un `nuevo frente funcional`
 8. actualizar `ESTADO_ACTUAL.md` si cambia la prioridad real
 
 ## Qué debe actualizar la próxima IA al cerrar
@@ -70,7 +70,7 @@ Antes de escribir código funcional, debe partir desde esta realidad operativa:
 
 - producción ya está publicada y validada inicialmente con HTTPS en `orkestia.ddns.net`
 - staging/test ya existe en el mismo mini PC
-- lo pendiente ya no es deploy productivo, sino decidir el siguiente frente útil y cuándo usar el bootstrap reset de staging
+- lo pendiente ya no es deploy productivo, sino decidir si primero se valida el instalador sobre el staging ya reseteado o si se salta a un frente nuevo
 
 ## Regla de cierre de la próxima iteración
 
@@ -96,5 +96,5 @@ Y si una iteración importante cambia el estado real del proyecto, estos archivo
 
 Este archivo debería reescribirse cuando:
 
-- se use o no el `bootstrap reset` de staging en una iteración real
+- se valide o descarte explícitamente el flujo `/install` sobre el staging ya reseteado
 - el proyecto pase desde hardening de entornos a nuevo desarrollo funcional

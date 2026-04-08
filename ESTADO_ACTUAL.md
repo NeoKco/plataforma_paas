@@ -4,7 +4,7 @@
 
 - fecha: 2026-04-07
 - foco de iteración: separación operativa `dev/staging/prod` en mini PC y consolidación del entorno staging/test
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado y reset bootstrap de staging ya automatizado
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado y staging actualmente reseteado a modo bootstrap
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -20,6 +20,7 @@
 - desarrollo local ya no pisa producción: backend `8100`, frontend `5173`
 - staging/test ya quedó operativo: backend `8200`, frontend `8081`
 - el staging ya puede volver al modo instalador inicial mediante un wrapper seguro del repo
+- el staging ya fue reseteado realmente y hoy responde con `installed=false`
 
 ## Frente activo real al momento de este estado
 
@@ -104,6 +105,7 @@ Ya quedaron creados, documentados y usados realmente:
 - baseline backend estable bajo `.env.staging` con `510 tests OK`
 - wrapper formal `deploy/reset_staging_bootstrap.sh` para devolver staging al modo bootstrap sin tocar `production`
 - smoke browser opt-in del instalador para validar `/install` en staging bootstrap
+- validación real del reset bootstrap con `platform-paas-backend-staging` activo y `/install/` disponible en backend
 
 ### A nivel handoff entre IAs
 
@@ -221,7 +223,7 @@ La salida inicial ya quedó validada para operación:
 
 Lo que queda ahora no es un pendiente de cutover, sino decisión de continuidad:
 
-- ejecutar o no el reset bootstrap según la necesidad de la iteración
+- validar visualmente el instalador en `staging` o reinstalar staging cuando termine esa prueba
 - decidir cuál es el siguiente frente real de producto o hardening transversal
 - seguir con backlog explícito, no con pendientes implícitos de deploy
 
