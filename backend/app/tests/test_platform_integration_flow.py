@@ -71,6 +71,9 @@ class PlatformIntegrationTestCase(unittest.TestCase):
 
         self.assertIsNotNone(tenant.id)
         self.assertEqual(tenant.status, "pending")
+        self.assertEqual(tenant.bootstrap_admin_email, "admin@empresa-bootstrap.local")
+        self.assertEqual(tenant.bootstrap_admin_full_name, "Admin Bootstrap")
+        self.assertIsNotNone(tenant.bootstrap_admin_password_hash)
         self.assertEqual(len(jobs), 1)
         self.assertEqual(jobs[0].tenant_id, tenant.id)
         self.assertEqual(jobs[0].job_type, "create_tenant_database")

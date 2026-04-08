@@ -161,9 +161,15 @@ Baseline recomendado para desarrollo local:
 
 - usar un tenant realmente `active`
 - el baseline actual del smoke tenant usa:
-  - `E2E_TENANT_SLUG=empresa-bootstrap`
-  - `E2E_TENANT_EMAIL=admin@empresa-bootstrap.local`
-  - `E2E_TENANT_PASSWORD=TenantAdmin123!`
+- `E2E_TENANT_SLUG=empresa-bootstrap`
+- `E2E_TENANT_EMAIL=admin@empresa-bootstrap.local`
+- `E2E_TENANT_PASSWORD=TenantAdmin123!`
+
+Nota:
+
+- esas credenciales siguen siendo válidas para el baseline demo `empresa-bootstrap`
+- no describen el alta de tenants nuevos
+- desde `2026-04-08`, los smokes de `platform_admin` ya deben completar admin explícito en `Nuevo tenant`
 
 Se prioriza `empresa-bootstrap` como baseline browser estable del repo para no mezclar la automatización con el tenant operativo `empresa-demo`.
 

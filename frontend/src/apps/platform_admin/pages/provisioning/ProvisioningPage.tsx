@@ -753,8 +753,8 @@ function handleRefresh() {
           </div>
           <div>
             {language === "es"
-              ? "`Provisionar` prepara la DB tenant, el usuario técnico, el esquema y el admin bootstrap."
-              : "`Provision` prepares the tenant DB, technical user, schema and bootstrap admin."}
+              ? "`Provisionar` prepara la DB tenant, el usuario técnico, el esquema y el admin inicial que se capturó al crear el tenant."
+              : "`Provision` prepares the tenant DB, the technical user, the schema and the initial admin captured during tenant creation."}
           </div>
           <div>
             {language === "es"
@@ -961,29 +961,33 @@ function handleRefresh() {
           icon="users"
           title={
             language === "es"
-              ? "Credenciales bootstrap de desarrollo"
-              : "Development bootstrap credentials"
+              ? "Referencia bootstrap en desarrollo"
+              : "Development bootstrap reference"
           }
           subtitle={
             language === "es"
-              ? "Ayuda visible solo en entorno local para validar rápido el acceso al portal tenant después del provisioning."
-              : "Helper visible only in local environments to quickly validate tenant portal access after provisioning."
+              ? "Ayuda visible solo en entorno local para recordar que el admin inicial ahora se define al crear el tenant."
+              : "Helper visible only in local environments to remind that the initial admin is now defined during tenant creation."
           }
         >
           <div className="text-secondary">
-            {language === "es" ? "Usuario bootstrap tenant:" : "Tenant bootstrap user:"}
+            {language === "es"
+              ? "Correo del admin inicial:"
+              : "Initial admin email:"}
             {" "}
-            <code>admin@{"<tenant_slug>"}.local</code>
+            <code>{language === "es" ? "el que ingresaste en `Crear tenant`" : "the one entered in `Create tenant`"}</code>
           </div>
           <div className="text-secondary">
-            {language === "es" ? "Contraseña bootstrap tenant:" : "Tenant bootstrap password:"}
+            {language === "es"
+              ? "Contraseña del admin inicial:"
+              : "Initial admin password:"}
             {" "}
-            <code>TenantAdmin123!</code>
+            <code>{language === "es" ? "la que definiste en `Crear tenant`" : "the one defined in `Create tenant`"}</code>
           </div>
           <div className="tenant-inline-note">
             {language === "es"
-              ? "Usa esta referencia solo para pruebas de desarrollo. No representa una política válida de producción."
-              : "Use this reference only for development tests. It does not represent a valid production policy."}
+              ? "Los tenants demo seed pueden seguir usando credenciales conocidas de prueba, pero las altas nuevas ya no heredan un admin fijo."
+              : "Seeded demo tenants may still use known test credentials, but new tenants no longer inherit a fixed admin."}
           </div>
         </PanelCard>
       ) : null}

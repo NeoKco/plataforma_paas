@@ -1358,6 +1358,12 @@ class ProvisioningServiceRetryTestCase(unittest.TestCase):
         self.assertIs(result, job)
         self.assertEqual(job.status, "completed")
         self.assertEqual(tenant.status, "active")
+        tenant_bootstrap_cls.return_value.bootstrap.assert_called_once()
+        bootstrap_kwargs = tenant_bootstrap_cls.return_value.bootstrap.call_args.kwargs
+        self.assertEqual(
+            bootstrap_kwargs["admin_email"],
+            getattr(tenant, "bootstrap_admin_email", "admin@empresa-bootstrap.local"),
+        )
         fake_tenant_service.request_tenant_schema_sync.assert_called_once_with(
             db=ANY,
             tenant_id=tenant.id,

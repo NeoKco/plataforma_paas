@@ -2,6 +2,10 @@
 
 ## 2026-04-08
 
+- `Nuevo tenant` en [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ahora exige `admin_full_name`, `admin_email` y `admin_password`, en vez de dejar que provisioning cree siempre `admin@<slug>.local / TenantAdmin123!`
+- el backend guarda bootstrap admin explícito en [tenant.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant.py), lo migra con [v0025_tenant_bootstrap_admin.py](/home/felipe/platform_paas/backend/migrations/control/v0025_tenant_bootstrap_admin.py) y lo usa en provisioning desde [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py)
+- `platform_control` expone ahora un `plan_catalog` en capacidades para que `platform_admin` muestre qué módulos habilita cada plan, sin romper el modelo plan-driven
+- el bloque de operación tenant cambia de hecho a `Plan y módulos`, para que quede visible dónde se habilitan módulos y no se confunda con un toggle manual inexistente
 - el sidebar de [tenant_portal](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/layout/TenantSidebarNav.tsx) deja de ser hardcodeado y pasa a leer [effective_enabled_modules](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/utils/module-visibility.ts) desde `/tenant/info`
 - la visibilidad tenant queda alineada a la matriz efectiva ya aplicada en backend: `users -> users`, `business-core/maintenance -> core`, `finance -> finance`, `overview -> siempre`
 - se relaja [loginTenant](/home/felipe/platform_paas/frontend/e2e/support/auth.ts) para no asumir que `Finanzas` siempre aparece después del login

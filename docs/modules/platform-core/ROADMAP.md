@@ -38,6 +38,8 @@ Estado práctico de cierre:
 - validación browser del acceso rápido desde `Tenants` hacia `tenant_portal` con `slug` precargado
 - validación browser del bloqueo visible del acceso rápido al `tenant_portal` cuando el tenant aún no es elegible
 - sidebar de `tenant_portal` backend-driven según `effective_enabled_modules`, con smoke browser dedicado para billing grace
+- alta de `Nuevo tenant` con admin inicial explícito y sin bootstrap fijo compartido
+- lectura visible en `Tenants` de que los módulos se habilitan por `plan`, tanto en el alta como en el bloque `Plan y módulos`
 - validación browser de aparición de jobs nuevos en `Provisioning`
 - validación browser de ejecución manual de jobs `pending` desde `Provisioning`
 - validación browser de requeue de jobs `failed` desde `Provisioning`

@@ -115,6 +115,14 @@ Nota operativa:
 - los smokes de límites tenant (`core.users.active` y `finance.entries`) ahora preparan y limpian overrides de forma determinista por control DB
 - si otro entorno no tiene `empresa-bootstrap` disponible, hay que sobreescribir `E2E_TENANT_*` y revalidar el baseline
 
+Regla vigente para `Nuevo tenant` en `platform_admin`:
+
+- el alta ya debe capturar explícitamente `admin_full_name`, `admin_email` y `admin_password`
+- quedó prohibido depender de un bootstrap fijo tipo `admin@<slug>.local / TenantAdmin123!` para tenants nuevos
+- los módulos no se habilitan manualmente uno a uno en el alta: se habilitan por `plan`
+- el modal de `Nuevo tenant` ya debe mostrar claramente qué módulos habilita el plan seleccionado
+- el bloque operativo para cambiar módulos en un tenant existente es `Plan y módulos` dentro de `Tenants`
+
 Cobertura actual:
 
 - login `platform_admin`

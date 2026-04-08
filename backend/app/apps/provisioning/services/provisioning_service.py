@@ -146,7 +146,8 @@ class ProvisioningService:
                 )
                 print(
                     "Tenant admin email: {0}".format(
-                        tenant.bootstrap_admin_email or f"admin@{tenant.slug}.local"
+                        getattr(tenant, "bootstrap_admin_email", None)
+                        or f"admin@{tenant.slug}.local"
                     )
                 )
                 print("Tenant admin password: configured during tenant creation")
@@ -352,9 +353,15 @@ class ProvisioningService:
                 tenant_name=tenant.name,
                 tenant_slug=tenant.slug,
                 tenant_type=tenant.tenant_type,
-                admin_full_name=tenant.bootstrap_admin_full_name or "Tenant Admin",
-                admin_email=tenant.bootstrap_admin_email or f"admin@{tenant.slug}.local",
-                admin_password_hash=tenant.bootstrap_admin_password_hash
+                admin_full_name=getattr(tenant, "bootstrap_admin_full_name", None)
+                or "Tenant Admin",
+                admin_email=getattr(tenant, "bootstrap_admin_email", None)
+                or f"admin@{tenant.slug}.local",
+                admin_password_hash=getattr(
+                    tenant,
+                    "bootstrap_admin_password_hash",
+                    None,
+                )
                 or hash_password(self._generate_password()),
             )
 

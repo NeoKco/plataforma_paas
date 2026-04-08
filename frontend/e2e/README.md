@@ -104,6 +104,8 @@ Regla práctica adicional para esta iteración:
 - evitar asumir que `page.locator("form").first()` o un `getByLabel(...)` global siguen apuntando al flujo correcto cuando la pantalla pasó a un patrón `modal-first`
 - cuando una alta deja abierto un `detail modal` operativo, el spec debe decidir explícitamente si continúa dentro de ese modal o si lo cierra antes de volver a interactuar con la grilla
 - esto aplica ya tanto a `tenant_portal` como a `platform_admin`, especialmente en flujos de `Nuevo tenant` y `Nuevo usuario`
+- desde `2026-04-08`, `Nuevo tenant` exige además admin explícito (`nombre`, `correo`, `password`) y los smokes deben rellenarlo vía [frontend/e2e/support/platform-admin.ts](support/platform-admin.ts)
+- los módulos visibles de `Nuevo tenant` ya no se testean como toggles manuales; se leen como preview del `plan` seleccionado
 
 Regla operativa adicional para artefactos de fallo:
 

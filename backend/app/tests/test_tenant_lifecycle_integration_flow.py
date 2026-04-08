@@ -106,14 +106,15 @@ class TenantLifecycleIntegrationTestCase(unittest.TestCase):
                 if code not in existing_roles:
                     tenant_db.add(Role(code=code, name=name))
 
-            admin_email = f"admin@{tenant.slug}.local"
+            admin_email = tenant.bootstrap_admin_email or f"admin@{tenant.slug}.local"
             admin_user = tenant_db.query(User).filter(User.email == admin_email).first()
             if admin_user is None:
                 tenant_db.add(
                     User(
-                        full_name="Tenant Admin",
+                        full_name=tenant.bootstrap_admin_full_name or "Tenant Admin",
                         email=admin_email,
-                        password_hash=hash_password("TenantAdmin123!"),
+                        password_hash=tenant.bootstrap_admin_password_hash
+                        or hash_password("TenantAdmin123!"),
                         role="admin",
                         is_active=True,
                     )
@@ -169,14 +170,16 @@ class TenantLifecycleIntegrationTestCase(unittest.TestCase):
         }
 
     def test_full_tenant_lifecycle_until_retirement_archive(self) -> None:
+        tenant_admin_email = "admin@empresa-demo.local"
+        tenant_admin_password = "AdminEmpresaDemo123!"
         tenant = self.tenant_service.create_tenant(
             db=self.control_db,
             name="Empresa Demo",
             slug="empresa-demo",
             tenant_type="empresa",
             admin_full_name="Admin Demo",
-            admin_email="admin@empresa-demo.local",
-            admin_password="AdminEmpresaDemo123!",
+            admin_email=tenant_admin_email,
+            admin_password=tenant_admin_password,
         )
 
         create_job = self.provisioning_job_service.list_jobs(self.control_db)[0]
@@ -206,8 +209,8 @@ class TenantLifecycleIntegrationTestCase(unittest.TestCase):
             login_response = tenant_login(
                 TenantLoginRequest(
                     tenant_slug=tenant.slug,
-                    email=f"admin@{tenant.slug}.local",
-                    password="TenantAdmin123!",
+                    email=tenant_admin_email,
+                    password=tenant_admin_password,
                 ),
                 control_db=self.control_db,
             )
@@ -257,8 +260,8 @@ class TenantLifecycleIntegrationTestCase(unittest.TestCase):
                 tenant_login(
                     TenantLoginRequest(
                         tenant_slug=tenant.slug,
-                        email=f"admin@{tenant.slug}.local",
-                        password="TenantAdmin123!",
+                        email=tenant_admin_email,
+                        password=tenant_admin_password,
                     ),
                     control_db=self.control_db,
                 )
@@ -288,8 +291,8 @@ class TenantLifecycleIntegrationTestCase(unittest.TestCase):
             restored_login = tenant_login(
                 TenantLoginRequest(
                     tenant_slug=tenant.slug,
-                    email=f"admin@{tenant.slug}.local",
-                    password="TenantAdmin123!",
+                    email=tenant_admin_email,
+                    password=tenant_admin_password,
                 ),
                 control_db=self.control_db,
             )
