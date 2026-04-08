@@ -81,4 +81,9 @@ Mantener dos usos distintos:
 - `staging espejo`: para validar la app ya instalada
 - `bootstrap reset`: solo cuando haya que ensayar instalacion inicial
 
+Para volver desde bootstrap a espejo:
+
+- [restore_staging_mirror.sh](/home/felipe/platform_paas/deploy/restore_staging_mirror.sh)
+- [Restaurar Staging a Espejo](./staging-restore-mirror.md)
+
 Si al terminar una iteracion cambias el modo real del staging, debes actualizar los archivos raíz de continuidad.

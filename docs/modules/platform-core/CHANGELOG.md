@@ -11,6 +11,7 @@
 - se agrega el smoke opt-in [platform-admin-installer-availability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-installer-availability.smoke.spec.ts) para validar la visibilidad del instalador cuando `staging` se resetea a bootstrap
 - se corrige [AppRouter.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/routes/AppRouter.tsx) para que `/install` quede protegido por [RequireNotInstalled.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/routes/RequireNotInstalled.tsx) y no por `RequireInstalled`
 - el reset bootstrap de `staging` queda validado también en browser real con el smoke opt-in del instalador (`1 passed`)
+- se agrega [restore_staging_mirror.sh](/home/felipe/platform_paas/deploy/restore_staging_mirror.sh) para devolver `staging` desde bootstrap a espejo instalado usando migraciones + `seed_frontend_demo_baseline`
 - se ejecuta la primera salida productiva técnica sobre mini PC Debian en `/opt/platform_paas`, con backend real bajo `systemd`, frontend Vite publicado por `nginx` y topología single-host inicial en `orkestia.ddns.net`
 - se agrega [platform-paas-single-host.conf](/home/felipe/platform_paas/infra/nginx/platform-paas-single-host.conf) para operar SPA + backend por rutas sobre un único dominio cuando todavía no existe separación `app/api`
 - se agrega [platform-paas-single-host-ssl.conf](/home/felipe/platform_paas/infra/nginx/platform-paas-single-host-ssl.conf) y se activa HTTPS real para `orkestia.ddns.net` con certificado Let's Encrypt

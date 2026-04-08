@@ -118,6 +118,7 @@ Wrappers incluidos para reducir errores manuales:
 - `deploy/deploy_backend_staging.sh`
 - `deploy/deploy_backend_production.sh`
 - `deploy/reset_staging_bootstrap.sh`
+- `deploy/restore_staging_mirror.sh`
 
 Referencia operativa del staging actual:
 

@@ -200,6 +200,7 @@ El repo ya esta preparado para GitHub:
 - baseline browser institucionalizado en GitHub Actions con `build + e2e:platform + e2e:tenant`
 - baseline browser local repetible con [scripts/dev/run_local_browser_baseline.sh](./scripts/dev/run_local_browser_baseline.sh)
 - reset bootstrap de staging disponible con [deploy/reset_staging_bootstrap.sh](./deploy/reset_staging_bootstrap.sh) cuando haga falta revalidar el instalador inicial en el mini PC
+- restauración de staging a espejo disponible con [deploy/restore_staging_mirror.sh](./deploy/restore_staging_mirror.sh) cuando toque volver a regresión normal tras probar el instalador
 - el flujo `/install` ya quedó validado realmente sobre `staging` bootstrap con el smoke opt-in de Playwright
 - baseline backend institucionalizado en GitHub Actions con [.github/workflows/backend-tests.yml](.github/workflows/backend-tests.yml)
 - baseline backend local repetible con [scripts/dev/run_local_backend_baseline.sh](./scripts/dev/run_local_backend_baseline.sh)

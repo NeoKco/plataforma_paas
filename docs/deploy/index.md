@@ -16,6 +16,7 @@ Esta seccion agrupa guias de despliegue y operacion del proyecto.
 - [Estrategia de Entornos](./environment-strategy.md): separacion base entre `development`, `staging` y `production`.
 - [Staging Single-Host](./staging-single-host.md): referencia del entorno de pruebas montado en el mini PC con backend `8200` y frontend `8081`.
 - [Reset Bootstrap de Staging](./staging-bootstrap-reset.md): vuelta controlada del staging al modo instalador inicial para ensayar bootstrap desde cero.
+- [Restaurar Staging a Espejo](./staging-restore-mirror.md): regreso controlado del staging desde bootstrap a espejo instalado para regresion normal.
 - [Sincronizacion Externa de Backups](./external-backup-sync.md): copia de respaldos locales hacia almacenamiento externo.
 - [PostgreSQL Backup y Restore](./postgres-backup-and-restore.md): respaldo y recuperacion base para `platform_control` y tenants.
 - [Provisioning Worker](./provisioning-worker.md): ejecucion base de `provisioning_jobs` pendientes fuera del request HTTP.
