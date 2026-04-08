@@ -1,6 +1,7 @@
 import { Navigate, createBrowserRouter, RouterProvider } from "react-router-dom";
 import { RequireAuth } from "./RequireAuth";
 import { RequireInstalled } from "./RequireInstalled";
+import { RequireNotInstalled } from "./RequireNotInstalled";
 import { RequirePlatformRoles } from "./RequirePlatformRoles";
 import { businessCoreTenantPortalRoutes } from "../../tenant_portal/modules/business_core";
 import { financeTenantPortalRoutes } from "../../tenant_portal/modules/finance";
@@ -17,9 +18,9 @@ const router = createBrowserRouter([
       const module = await import("../pages/install/InstallPage");
       return {
         element: (
-          <RequireInstalled>
+          <RequireNotInstalled>
             <module.InstallPage />
-          </RequireInstalled>
+          </RequireNotInstalled>
         ),
       };
     },

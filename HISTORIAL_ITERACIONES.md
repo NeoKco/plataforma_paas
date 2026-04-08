@@ -75,12 +75,39 @@ Para nuevas entradas usar:
 ### Bloqueos
 
 - no hay bloqueo técnico
-- falta solo decidir si se valida ahora mismo el instalador en browser o si primero se reinstala staging
+- queda solo decidir si `staging` se mantiene temporalmente en bootstrap o si se reinstala como espejo
 
 ### Siguiente paso
 
-- abrir `http://192.168.7.42:8081` y validar visualmente `/install`
-- luego decidir si staging vuelve a modo espejo o si se abre directamente el siguiente frente del roadmap
+- tomar la decisión operativa sobre el modo final de `staging`
+- luego abrir el siguiente frente del roadmap
+
+## 2026-04-07 — Validación visual del instalador en staging bootstrap
+
+### Objetivo
+
+- confirmar que el reset controlado de `staging` no solo deja el backend en `installed=false`, sino que también expone correctamente el flujo visual `/install`
+
+### Cambios principales
+
+- se corrige el enrutado frontend para que `/install` quede protegido por `RequireNotInstalled` y no por `RequireInstalled`
+- se agrega `RequireNotInstalled.tsx` como guard explícito del instalador
+- se usa el smoke opt-in `platform-admin-installer-availability.smoke.spec.ts` contra `http://192.168.7.42:8081`
+
+### Validaciones
+
+- `GET http://127.0.0.1:8200/health` responde `installed=false`: OK
+- `GET http://127.0.0.1:8200/install/` responde `Installer available`: OK
+- `E2E_BASE_URL=http://192.168.7.42:8081 E2E_EXPECT_INSTALLER=1 E2E_USE_EXISTING_FRONTEND=1 npx playwright test e2e/specs/platform-admin-installer-availability.smoke.spec.ts`: `1 passed`
+
+### Bloqueos
+
+- no hay bloqueo técnico
+- queda solo decidir en qué modo debe quedar `staging` antes del próximo frente real
+
+### Siguiente paso
+
+- decidir si `staging` vuelve a espejo o si se mantiene en bootstrap por más validaciones del instalador
 
 ## 2026-04-07 — Bootstrap productivo real en mini PC
 

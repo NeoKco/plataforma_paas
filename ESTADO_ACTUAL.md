@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-07
-- foco de iteración: separación operativa `dev/staging/prod` en mini PC y consolidación del entorno staging/test
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado y staging actualmente reseteado a modo bootstrap
+- foco de iteración: separación operativa `dev/staging/prod` en mini PC, bootstrap controlado de `staging` y validación visual del instalador
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado y staging actualmente reseteado a modo bootstrap con `/install` validado en browser
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -21,6 +21,7 @@
 - staging/test ya quedó operativo: backend `8200`, frontend `8081`
 - el staging ya puede volver al modo instalador inicial mediante un wrapper seguro del repo
 - el staging ya fue reseteado realmente y hoy responde con `installed=false`
+- el flujo visual `/install` ya quedó validado realmente sobre `staging` con smoke browser opt-in aprobado
 
 ## Frente activo real al momento de este estado
 
@@ -31,6 +32,7 @@ Es este:
 - sostener producción ya validada sin mezclarla con desarrollo local
 - dejar staging/test utilizable como carril previo a producción
 - dejar resuelto el cambio de modo entre staging espejo y bootstrap inicial
+- dejar explícito si `staging` debe quedar temporalmente en bootstrap o volver a espejo antes del siguiente frente real
 
 ## Qué módulo se estaba construyendo
 
@@ -106,6 +108,7 @@ Ya quedaron creados, documentados y usados realmente:
 - wrapper formal `deploy/reset_staging_bootstrap.sh` para devolver staging al modo bootstrap sin tocar `production`
 - smoke browser opt-in del instalador para validar `/install` en staging bootstrap
 - validación real del reset bootstrap con `platform-paas-backend-staging` activo y `/install/` disponible en backend
+- validación browser real de `/install` en `http://192.168.7.42:8081/install` con Playwright opt-in aprobado
 
 ### A nivel handoff entre IAs
 
@@ -217,7 +220,8 @@ La salida inicial ya quedó validada para operación:
 
 1. `https://orkestia.ddns.net` respondió correctamente desde navegador real
 2. el smoke remoto completo pasó sobre la URL pública
-3. el estado y la evidencia post-cutover ya quedaron asentados en el repo
+3. `staging` ya fue llevado a bootstrap y el instalador quedó validado visualmente
+4. el estado y la evidencia operativa ya quedaron asentados en el repo
 
 ### Lo siguiente ya es post-producción y pre-producción controlada
 

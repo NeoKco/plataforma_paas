@@ -37,6 +37,7 @@ Pasar `platform_paas` desde estado "listo para salir" a estado "publicado y vali
   - backend `platform-paas-backend-staging` en `127.0.0.1:8200`
   - frontend publicado por `nginx` en `http://192.168.7.42:8081`
   - puede correr como `espejo instalado` o como `bootstrap reset`
+  - el flujo `/install` ya quedó validado realmente en browser cuando corre como `bootstrap reset`
 - producción:
   - checkout `/opt/platform_paas`
   - backend `platform-paas-backend` en `127.0.0.1:8000`
