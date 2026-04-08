@@ -107,10 +107,10 @@ La prioridad no es abrir un módulo nuevo desde cero.
 
 La prioridad actual es:
 
-1. conservar cerrada la base visible del sistema
-2. mantener `business-core` y `maintenance` alineados a la capa transversal
-3. sacar el PaaS a producción / terreno con un flujo repetible
-4. dejar backlog explícito para lo residual en vez de mezclarlo con el deploy
+1. conservar estable la salida productiva ya publicada
+2. usar `staging/test` como carril previo real sin mezclarlo con `production`
+3. abrir nuevos frentes funcionales solo con estado, roadmap y handoff explícitos
+4. dejar backlog explícito para lo residual en vez de mezclarlo con el frente activo
 
 ## Estrategia vigente de continuidad entre IAs
 

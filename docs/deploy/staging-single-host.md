@@ -22,6 +22,7 @@ Guia operativa del entorno `staging/test` montado en el mismo mini PC que produc
 - `GET http://127.0.0.1:8200/health`: OK
 - `GET http://127.0.0.1:8081/health`: OK
 - SPA servida por `nginx` en `8081`: OK
+- smoke browser opt-in del instalador en modo bootstrap: `1 passed`
 
 ## Modos validos del staging
 
@@ -39,6 +40,7 @@ El staging puede operar en dos modos distintos:
 - `/health` responde con `"installed": false`
 - el frontend termina en el flujo `/install`
 - sirve para ensayar la instalacion inicial desde cero
+- este modo ya quedó validado de punta a punta en backend y browser
 
 ## Cuando usar este staging
 

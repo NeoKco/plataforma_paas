@@ -45,9 +45,10 @@ Y mantener los ejemplos del repo solo como plantillas.
 - replica el flujo operativo sin tocar datos reales
 - si vive en el mismo mini PC, reservar puertos distintos a dev y prod:
   - backend: `127.0.0.1:8200`
-  - frontend publicado por `nginx`: `http://192.168.7.42:8081`
+- frontend publicado por `nginx`: `http://192.168.7.42:8081`
 - el staging operativo actual ya existe en `/opt/platform_paas_staging`
 - hoy puede operar como espejo instalado o quedar temporalmente en modo bootstrap mediante `deploy/reset_staging_bootstrap.sh`
+- el modo bootstrap ya quedó validado realmente con backend `installed=false` y smoke browser del instalador aprobado
 
 ### Production
 

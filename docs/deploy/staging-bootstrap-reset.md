@@ -89,6 +89,12 @@ Referencia:
 
 - [frontend/e2e/README.md](/home/felipe/platform_paas/frontend/e2e/README.md)
 
+Estado validado actual:
+
+- backend staging en bootstrap: OK
+- `/install` backend disponible: OK
+- smoke Playwright opt-in del instalador: `1 passed`
+
 ## Regla operativa
 
 - si quieres regresion funcional: usa el staging ya instalado

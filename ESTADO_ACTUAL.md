@@ -227,7 +227,7 @@ La salida inicial ya quedó validada para operación:
 
 Lo que queda ahora no es un pendiente de cutover, sino decisión de continuidad:
 
-- validar visualmente el instalador en `staging` o reinstalar staging cuando termine esa prueba
+- decidir si `staging` queda temporalmente en bootstrap o si vuelve a espejo instalado
 - decidir cuál es el siguiente frente real de producto o hardening transversal
 - seguir con backlog explícito, no con pendientes implícitos de deploy
 
@@ -314,9 +314,9 @@ Tampoco conviene:
 
 ### Bloqueos del workspace actual
 
-- el `.env` local no representa producción real
-- el servicio `platform-paas-backend` no existe instalado en este host
-- el cutover productivo no puede completarse desde esta máquina
+- no hay bloqueo productivo activo
+- no hay bloqueo técnico activo en `dev`, `staging` o `production`
+- la única decisión abierta es operativa: en qué modo debe quedar `staging` antes de abrir el siguiente frente
 
 ### Tipo de bloqueo
 
