@@ -1,34 +1,42 @@
 import { NavLink } from "react-router-dom";
 import { AppIcon, type AppIconName } from "../../../design-system/AppIcon";
 import { useLanguage } from "../../../store/language-context";
+import { useTenantAuth } from "../../../store/tenant-auth-context";
+import { isTenantPortalSectionVisible } from "../utils/module-visibility";
 
 export function TenantSidebarNav() {
   const { language } = useLanguage();
+  const { tenantInfo } = useTenantAuth();
   const navItems = [
     {
       to: "/tenant-portal",
       label: language === "es" ? "Resumen" : "Overview",
       icon: "overview" as AppIconName,
+      visible: isTenantPortalSectionVisible(tenantInfo, "overview"),
     },
     {
       to: "/tenant-portal/users",
       label: language === "es" ? "Usuarios" : "Users",
       icon: "users" as AppIconName,
+      visible: isTenantPortalSectionVisible(tenantInfo, "users"),
     },
     {
       to: "/tenant-portal/business-core",
       label: language === "es" ? "Core negocio" : "Business core",
       icon: "business-core" as AppIconName,
+      visible: isTenantPortalSectionVisible(tenantInfo, "business-core"),
     },
     {
       to: "/tenant-portal/finance",
       label: language === "es" ? "Finanzas" : "Finance",
       icon: "finance" as AppIconName,
+      visible: isTenantPortalSectionVisible(tenantInfo, "finance"),
     },
     {
       to: "/tenant-portal/maintenance",
       label: language === "es" ? "Mantenciones" : "Maintenance",
       icon: "maintenance" as AppIconName,
+      visible: isTenantPortalSectionVisible(tenantInfo, "maintenance"),
     },
   ];
 
@@ -44,7 +52,7 @@ export function TenantSidebarNav() {
         </div>
       </div>
       <nav className="platform-sidebar__nav">
-        {navItems.map((item) => (
+        {navItems.filter((item) => item.visible).map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

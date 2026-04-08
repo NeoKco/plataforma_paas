@@ -32,6 +32,11 @@ type TenantModuleLimitMutation = {
   value: number | null;
 };
 
+type TenantPlanMutation = {
+  tenantSlug: string;
+  planCode: string | null;
+};
+
 type SeedTenantUserInput = {
   tenantSlug: string;
   fullName: string;
@@ -88,6 +93,13 @@ type SeededTenantBillingSyncEvent = {
   wasDuplicate: boolean;
   processingResult: string;
   syncEventId: number;
+};
+
+type TenantPlanMutationResult = {
+  tenantSlug: string;
+  tenantId: number;
+  tenantPlanCode: string | null;
+  tenantPlanEnabledModules: string[] | null;
 };
 
 function getRepoRoot() {
@@ -330,6 +342,53 @@ finally:
     tenantSlug: string;
     moduleLimits: Record<string, number>;
   };
+}
+
+export function setTenantPlan({
+  tenantSlug,
+  planCode,
+}: TenantPlanMutation): TenantPlanMutationResult {
+  const script = `
+import json
+import sys
+
+from app.common.db.control_database import ControlSessionLocal
+from app.apps.platform_control.repositories.tenant_repository import TenantRepository
+from app.apps.platform_control.services.tenant_service import TenantService
+
+tenant_slug = sys.argv[1]
+plan_code = None if sys.argv[2] == "__NONE__" else sys.argv[2]
+
+db = ControlSessionLocal()
+service = TenantService()
+repository = TenantRepository()
+try:
+    tenant = repository.get_by_slug(db, tenant_slug)
+    if tenant is None:
+        raise SystemExit(f"Tenant not found: {tenant_slug}")
+
+    updated = service.set_plan(
+        db=db,
+        tenant_id=tenant.id,
+        plan_code=plan_code,
+    )
+
+    print(json.dumps({
+        "tenantSlug": updated.slug,
+        "tenantId": updated.id,
+        "tenantPlanCode": updated.plan_code,
+        "tenantPlanEnabledModules": service.tenant_plan_policy_service.get_enabled_modules(updated.plan_code),
+    }))
+finally:
+    db.close()
+`;
+
+  const output = runBackendPython(script, [
+    tenantSlug,
+    planCode?.trim() || "__NONE__",
+  ]);
+
+  return JSON.parse(output) as TenantPlanMutationResult;
 }
 
 export function seedTenantUser({

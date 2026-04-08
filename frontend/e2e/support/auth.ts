@@ -77,9 +77,6 @@ export async function loginTenant(page: Page) {
       .filter({ hasText: /Módulos habilitados|Enabled modules/i })
       .first()
   ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: /Finanzas|Finance/ })
-  ).toBeVisible();
 }
 
 export async function logoutPlatform(page: Page) {
