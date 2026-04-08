@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-07T22:40:00-04:00",
+  "updated_at": "2026-04-07T22:57:00-04:00",
   "handoff_status": "active",
-  "current_focus": "post-cutover productivo en mini PC + continuidad entre IAs",
-  "project_phase": "deploy tecnico real ejecutado en mini PC; pendiente validacion externa y TLS",
+  "current_focus": "post-cutover HTTPS en mini PC + continuidad entre IAs",
+  "project_phase": "deploy tecnico real ejecutado con HTTPS; pendiente validacion externa final",
   "active_modules": [
     "platform-core",
     "finance",
@@ -22,26 +22,26 @@
     "la salida a terreno no debe frenarse por copy residual",
     "la estrategia de despliegue inicial recomendada es backend separado + frontend estatico + nginx",
     "la memoria operativa del proyecto debe vivir en archivos del repo",
-    "la primera salida productiva real puede operar temporalmente en topologia single-host sobre un mini PC"
+    "la primera salida productiva real puede operar temporalmente en topologia single-host sobre un mini PC",
+    "orkestia.ddns.net ya quedo activo con HTTPS sobre la misma topologia single-host"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
     "backend desplegado bajo systemd como platform-paas-backend",
     "frontend publicado por nginx en orkestia.ddns.net",
+    "certificado Let's Encrypt emitido para orkestia.ddns.net",
+    "frontend reconstruido con VITE_API_BASE_URL=https://orkestia.ddns.net",
     "deploy_backend.sh endurecido con PYTHONPATH para produccion",
     "validate_backend_env.sh endurecido para bloquear bootstrap passwords inseguras",
     "sesion_activa como puntero corto oficial para alternar entre cuentas"
   ],
   "blocking_issues": [
-    "falta validacion externa real desde navegador sobre orkestia.ddns.net",
-    "la salida actual esta en HTTP single-host y falta endurecimiento TLS",
+    "falta validacion externa real desde navegador sobre https://orkestia.ddns.net",
     "el arbol /opt/platform_paas aun no ha sido resincronizado con todos los cambios documentales posteriores al bootstrap"
   ],
-  "next_decision_required": "definir si orkestia.ddns.net quedara como host definitivo con TLS o si luego se separaran app/api",
+  "next_decision_required": "definir si orkestia.ddns.net quedara como host definitivo o si luego se separaran app/api",
   "next_step_if_prod_host_exists": [
-    "validar externamente http://orkestia.ddns.net desde navegador real",
-    "emitir TLS o definir topologia final app/api",
-    "reconstruir frontend si cambia la URL publica a https",
+    "validar externamente https://orkestia.ddns.net desde navegador real",
     "ejecutar smoke corto de terreno",
     "actualizar ESTADO_ACTUAL.md y SIGUIENTE_PASO.md"
   ],
@@ -77,6 +77,7 @@
     "backend_release_preflight_local": "pass",
     "backend_systemd_prod": "pass",
     "backend_health_prod_local": "pass",
-    "single_host_nginx_prod_local": "pass"
+    "single_host_nginx_prod_local": "pass",
+    "single_host_https_prod_local": "pass"
   }
 }

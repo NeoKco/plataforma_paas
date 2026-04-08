@@ -4,7 +4,7 @@
 
 - fecha: 2026-04-07
 - foco de iteración: bootstrap productivo real en mini PC + cierre de handoff
-- estado general: código y documentación listos; producción técnica ya desplegada en mini PC, pendiente validación externa final
+- estado general: código y documentación listos; producción técnica ya desplegada en mini PC con HTTPS, pendiente smoke final de terreno
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -14,7 +14,7 @@
 - ya existen preflight backend/frontend y documentación de cutover
 - ya existe host productivo real sobre mini PC Debian
 - `/opt/platform_paas` quedó creado como árbol productivo separado
-- backend y frontend quedaron levantados en `orkestia.ddns.net` bajo topología single-host HTTP
+- backend y frontend quedaron levantados en `https://orkestia.ddns.net` bajo topología single-host
 
 ## Frente activo real al momento de este estado
 
@@ -25,7 +25,7 @@ Es este:
 - consolidar continuidad entre IAs y developers
 - mantener backlog residual explícito
 - endurecer la salida productiva ya levantada
-- dejar la validación externa y TLS como siguiente cierre operativo
+- dejar la validación externa y el smoke de terreno como siguiente cierre operativo
 
 ## Qué módulo se estaba construyendo
 
@@ -91,6 +91,7 @@ Ya quedaron creados, documentados y usados realmente:
 - árbol productivo `/opt/platform_paas`
 - unidad `systemd` `platform-paas-backend`
 - publicación SPA + backend por rutas en `orkestia.ddns.net`
+- certificado Let's Encrypt activo para `orkestia.ddns.net`
 - evidencia operativa post-deploy en `/opt/platform_paas/operational_evidence/`
 
 ### A nivel handoff entre IAs
@@ -181,6 +182,7 @@ Entre los archivos frontend más relevantes ya intervenidos están:
 - `infra/nginx/platform-paas-frontend.conf`
 - `infra/nginx/platform-paas-frontend-ssl.conf`
 - `infra/nginx/platform-paas-single-host.conf`
+- `infra/nginx/platform-paas-single-host-ssl.conf`
 
 ## Qué decisiones quedaron cerradas
 
@@ -204,18 +206,16 @@ Lo que falta es terminar de validar y endurecer la salida real ya levantada.
 
 Puntualmente:
 
-1. validar acceso externo real desde navegador a `http://orkestia.ddns.net`
-2. emitir TLS para `orkestia.ddns.net` o separar `app/api` si ya existe DNS para eso
-3. reconstruir frontend con la URL pública final si cambia a `https`
-4. ejecutar smoke corto de terreno
-5. actualizar evidencia y estado post-producción final
+1. validar acceso externo real desde navegador a `https://orkestia.ddns.net`
+2. ejecutar smoke corto de terreno
+3. actualizar evidencia y estado post-producción final
 
 ### Falta de contexto operativo aún no resuelta
 
 Todavía falta dejar explícito en el repo:
 
 - si `orkestia.ddns.net` quedará definitivo como host único o es solo paso intermedio
-- si se activará TLS sobre el mismo host o se migrará luego a `app/api`
+- si luego se migrará a separación `app/api`
 - evidencia de validación externa desde navegador real
 - evidencia de un primer cutover ejecutado
 

@@ -11,10 +11,10 @@ Está pensada para una primera salida a terreno, sin asumir todavía CD completo
 
 Fallback operativo válido para un mini PC único:
 
-- `http://orkestia.ddns.net/` -> SPA estática
-- `http://orkestia.ddns.net/platform/*` -> backend platform
-- `http://orkestia.ddns.net/tenant/*` -> backend tenant
-- `http://orkestia.ddns.net/health` -> healthcheck backend
+- `https://orkestia.ddns.net/` -> SPA estática
+- `https://orkestia.ddns.net/platform/*` -> backend platform
+- `https://orkestia.ddns.net/tenant/*` -> backend tenant
+- `https://orkestia.ddns.net/health` -> healthcheck backend
 
 ## Variables a decidir antes del cutover
 
@@ -27,7 +27,7 @@ Fallback operativo válido para un mini PC único:
 Si usas single-host:
 
 - dominio único público: `orkestia.ddns.net`
-- `API_BASE_URL` del build: `http://orkestia.ddns.net`
+- `API_BASE_URL` del build: `https://orkestia.ddns.net`
 
 ## Pre-cutover
 
@@ -89,7 +89,7 @@ sudo systemctl reload nginx
 Si usas single-host en un solo mini PC:
 
 ```bash
-sudo cp infra/nginx/platform-paas-single-host.conf /etc/nginx/sites-available/platform-paas-orkestia.conf
+sudo cp infra/nginx/platform-paas-single-host-ssl.conf /etc/nginx/sites-available/platform-paas-orkestia.conf
 sudo ln -sf /etc/nginx/sites-available/platform-paas-orkestia.conf /etc/nginx/sites-enabled/platform-paas-orkestia.conf
 sudo nginx -t
 sudo systemctl reload nginx

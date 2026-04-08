@@ -24,8 +24,8 @@ Pasar `platform_paas` desde estado "listo para salir" a estado "publicado y vali
   - `/platform/*` -> backend
   - `/tenant/*` -> backend
   - `/health` -> backend
-- estado actual: HTTP single-host operativo
-- siguiente endurecimiento recomendado: TLS real para `orkestia.ddns.net`
+- estado actual: HTTPS single-host operativo
+- renovación automática: `certbot.timer` ya activo en el host
 
 ## 1. Precondiciones del host
 
@@ -92,7 +92,7 @@ sudo systemctl reload nginx
 
 Validar al menos:
 
-1. `GET /health`
+1. `GET https://orkestia.ddns.net/health`
 2. login `platform_admin`
 3. carga de `Dashboard`
 4. carga de `Tenants`
@@ -119,6 +119,7 @@ Revisar:
 - build generado
 - `try_files` de `nginx`
 - recarga de rutas SPA
+- certificado activo y server block HTTPS correcto si el error aparece solo sobre `https`
 
 ## 8. Documentos de apoyo
 

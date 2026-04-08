@@ -7,6 +7,7 @@ No sustituye una politica completa de edge o WAF. El objetivo es pasar de proxy 
 ## Archivo Base
 
 - `infra/nginx/platform-paas-backend-ssl.conf`
+- `infra/nginx/platform-paas-single-host-ssl.conf`
 
 ## Que Resuelve
 
@@ -15,6 +16,17 @@ No sustituye una politica completa de edge o WAF. El objetivo es pasar de proxy 
 - reenvio del trafico a `uvicorn` en `127.0.0.1:8000`
 - conservacion de `X-Request-ID`
 - headers basicos de hardening
+
+Si frontend y backend conviven temporalmente en un solo dominio, usar:
+
+- `infra/nginx/platform-paas-single-host-ssl.conf`
+
+Esa plantilla deja:
+
+- `/` -> frontend
+- `/platform/*` -> backend
+- `/tenant/*` -> backend
+- `/health` -> backend
 
 ## Ajustes Obligatorios
 

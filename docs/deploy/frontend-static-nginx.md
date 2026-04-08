@@ -13,14 +13,15 @@ Eso evita mezclar la SPA con las rutas backend ya expuestas en `/`, `/platform/*
 
 Si todavía no tienes subdominios separados y vas a salir con un solo host, puedes publicar una topología single-host:
 
-- `http://orkestia.ddns.net/` -> SPA
-- `http://orkestia.ddns.net/platform/*` -> backend platform
-- `http://orkestia.ddns.net/tenant/*` -> backend tenant
-- `http://orkestia.ddns.net/health` -> healthcheck backend
+- `https://orkestia.ddns.net/` -> SPA
+- `https://orkestia.ddns.net/platform/*` -> backend platform
+- `https://orkestia.ddns.net/tenant/*` -> backend tenant
+- `https://orkestia.ddns.net/health` -> healthcheck backend
 
 Plantilla base incluida:
 
 - `infra/nginx/platform-paas-single-host.conf`
+- `infra/nginx/platform-paas-single-host-ssl.conf`
 
 Esta variante es válida para la primera salida productiva en un mini PC, pero la recomendación de mediano plazo sigue siendo separar:
 
@@ -138,7 +139,7 @@ VITE_API_BASE_URL=https://api.example.com
 Si operas con single-host, el build puede salir apuntando al mismo origen:
 
 ```dotenv
-VITE_API_BASE_URL=http://orkestia.ddns.net
+VITE_API_BASE_URL=https://orkestia.ddns.net
 ```
 
 ## Guías relacionadas

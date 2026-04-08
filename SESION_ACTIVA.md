@@ -26,7 +26,7 @@ Debe permanecer corto, operativo y fácil de escanear.
 
 - fecha: 2026-04-07
 - foco activo: producción real en mini PC + cierre de handoff entre IAs
-- prioridad inmediata: validación externa y endurecimiento TLS de `orkestia.ddns.net`
+- prioridad inmediata: smoke corto de terreno y validación externa final sobre `https://orkestia.ddns.net`
 - módulo o frente activo: transversal / deploy / post-cutover
 
 ## Último contexto útil
@@ -37,13 +37,12 @@ Debe permanecer corto, operativo y fácil de escanear.
 - el mini PC ya quedó asumido como host productivo real
 - `/opt/platform_paas` ya existe como árbol productivo separado
 - `platform-paas-backend` ya quedó instalado en `systemd`
-- `nginx` ya publica la SPA y enruta backend por un único dominio HTTP: `orkestia.ddns.net`
+- `nginx` ya publica la SPA y enruta backend por un único dominio HTTPS: `orkestia.ddns.net`
 
 ## Bloqueo actual
 
-- no se ha validado todavía acceso externo real desde navegador hacia `orkestia.ddns.net`
-- la primera salida quedó en HTTP single-host; falta endurecer TLS o separar `app/api`
-- `/opt/platform_paas` no ha sido resincronizado todavía con todos los cambios documentales posteriores al bootstrap
+- no se ha validado todavía el smoke corto final desde navegador real sobre `https://orkestia.ddns.net`
+- falta resincronizar `/opt/platform_paas` con los últimos cambios documentales de este cierre HTTPS
 
 ## Siguiente acción inmediata
 
@@ -52,8 +51,7 @@ El siguiente movimiento correcto ya no es desplegar.
 Es este:
 
 - validar desde navegador real `http://orkestia.ddns.net`
-- si el dominio ya resuelve bien hacia el mini PC, emitir TLS y pasar el host a `https`
-- reconstruir frontend con la URL pública final si cambia de `http` a `https`
+- validar desde navegador real `https://orkestia.ddns.net`
 - ejecutar smoke corto de terreno y luego actualizar el estado post-producción
 
 ## Archivos a leer justo después de este
@@ -68,5 +66,5 @@ Es este:
 - backend productivo en `/opt/platform_paas`: desplegado
 - `platform-paas-backend`: activo en `systemd`
 - `GET http://127.0.0.1:8000/health`: OK
-- `GET http://orkestia.ddns.net/health` validado por resolución local: OK
+- `GET https://orkestia.ddns.net/health` validado por resolución local: OK
 - frontend static preflight en `/opt/platform_paas`: OK

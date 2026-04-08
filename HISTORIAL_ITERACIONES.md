@@ -54,6 +54,33 @@ Para nuevas entradas usar:
 - emitir TLS o decidir si luego se separará `app/api`
 - cerrar evidencia post-producción y actualizar el estado final
 
+## 2026-04-07 — Activación HTTPS en orkestia.ddns.net
+
+### Objetivo
+
+- cerrar el endurecimiento TLS sobre el mismo mini PC sin cambiar la topología single-host ya operativa
+
+### Cambios principales
+
+- se emite certificado Let's Encrypt para `orkestia.ddns.net` con `certbot`
+- se agrega `infra/nginx/platform-paas-single-host-ssl.conf`
+- se reconstruye el frontend con `VITE_API_BASE_URL=https://orkestia.ddns.net`
+- `nginx` queda redirigiendo `http -> https` y sirviendo SPA + backend sobre HTTPS
+
+### Validaciones
+
+- `GET https://orkestia.ddns.net/health` validado localmente por resolución forzada: OK
+- `GET http://orkestia.ddns.net/` redirige a `https://orkestia.ddns.net/`: OK
+- `certbot.timer` ya estaba activo y queda cubriendo renovación automática
+
+### Bloqueos
+
+- falta el smoke corto final desde navegador real sobre HTTPS
+
+### Siguiente paso
+
+- ejecutar smoke corto de terreno y cerrar evidencia post-producción
+
 ## 2026-04-07 — Endurecimiento del prompt maestro de continuidad
 
 ### Objetivo
