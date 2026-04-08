@@ -24,6 +24,7 @@ from app.apps.provisioning.services.provisioning_dispatch_service import (
 )
 from app.common.config.settings import settings
 from app.common.observability.logging_service import LoggingService
+from app.common.security.password_service import hash_password
 from app.common.security.tenant_secret_service import TenantSecretService
 
 
@@ -143,8 +144,12 @@ class ProvisioningService:
                     f"{provisioning_output['env_var_name']}="
                     f"{self.tenant_secret_service.mask_secret(provisioning_output['db_password'])}"
                 )
-                print("Tenant admin email: admin@{0}.local".format(tenant.slug))
-                print("Tenant admin password: TenantAdmin123! (bootstrap de desarrollo)")
+                print(
+                    "Tenant admin email: {0}".format(
+                        tenant.bootstrap_admin_email or f"admin@{tenant.slug}.local"
+                    )
+                )
+                print("Tenant admin password: configured during tenant creation")
                 print("===========================")
 
             return job
@@ -347,6 +352,10 @@ class ProvisioningService:
                 tenant_name=tenant.name,
                 tenant_slug=tenant.slug,
                 tenant_type=tenant.tenant_type,
+                admin_full_name=tenant.bootstrap_admin_full_name or "Tenant Admin",
+                admin_email=tenant.bootstrap_admin_email or f"admin@{tenant.slug}.local",
+                admin_password_hash=tenant.bootstrap_admin_password_hash
+                or hash_password(self._generate_password()),
             )
 
             tenant.db_name = db_name

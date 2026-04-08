@@ -24,6 +24,24 @@ class PlatformCapabilityService:
         )
 
     def get_catalog(self) -> dict:
+        plan_catalog = []
+        for plan_code in self.tenant_plan_policy_service.list_plan_codes():
+            policy = self.tenant_plan_policy_service.get_policy(plan_code)
+            if policy is None:
+                continue
+            plan_catalog.append(
+                {
+                    "plan_code": plan_code,
+                    "read_requests_per_minute": policy.read_requests_per_minute,
+                    "write_requests_per_minute": policy.write_requests_per_minute,
+                    "enabled_modules": None
+                    if policy.enabled_modules is None
+                    else list(policy.enabled_modules),
+                    "module_limits": None
+                    if policy.module_limits is None
+                    else dict(policy.module_limits),
+                }
+            )
         return {
             "tenant_statuses": sorted(self.tenant_service.VALID_STATUSES),
             "tenant_billing_statuses": sorted(
@@ -37,6 +55,7 @@ class PlatformCapabilityService:
             ),
             "available_plan_codes": self.tenant_plan_policy_service.list_plan_codes(),
             "plan_modules": sorted(self.tenant_plan_policy_service.VALID_MODULES),
+            "plan_catalog": plan_catalog,
             "supported_module_limit_keys": sorted(
                 self.tenant_plan_policy_service.VALID_MODULE_LIMIT_KEYS
             ),

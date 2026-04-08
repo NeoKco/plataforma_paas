@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from dataclasses import dataclass
+from email.utils import parseaddr
 import json
 from pathlib import Path
 
@@ -37,6 +38,7 @@ from app.common.policies.tenant_billing_grace_policy_service import (
 from app.common.policies.tenant_plan_policy_service import TenantPlanPolicyService
 from app.common.config.settings import settings
 from app.common.db.tenant_database import get_tenant_session_factory
+from app.common.security.password_service import hash_password
 from app.common.security.tenant_secret_service import TenantSecretService
 
 
@@ -100,18 +102,46 @@ class TenantService:
         name: str,
         slug: str,
         tenant_type: str,
+        admin_full_name: str,
+        admin_email: str,
+        admin_password: str,
         plan_code: str | None = None,
     ) -> Tenant:
         existing = self.tenant_repository.get_by_slug(db, slug)
         if existing:
             raise ValueError("Tenant slug already exists")
 
+        normalized_name = name.strip()
+        normalized_slug = slug.strip().lower()
+        normalized_tenant_type = tenant_type.strip().lower()
+        normalized_admin_full_name = admin_full_name.strip()
+        normalized_admin_email = admin_email.strip().lower()
+        normalized_admin_password = admin_password.strip()
+
+        if not normalized_name:
+            raise ValueError("Tenant name is required")
+        if not normalized_slug:
+            raise ValueError("Tenant slug is required")
+        if not normalized_tenant_type:
+            raise ValueError("Tenant type is required")
+        if not normalized_admin_full_name:
+            raise ValueError("Tenant admin full name is required")
+        if not normalized_admin_email:
+            raise ValueError("Tenant admin email is required")
+        if not self._is_valid_email(normalized_admin_email):
+            raise ValueError("Tenant admin email is invalid")
+        if len(normalized_admin_password) < 10:
+            raise ValueError("Tenant admin password must be at least 10 characters")
+
         normalized_plan_code = self._normalize_plan_code(plan_code)
         tenant = Tenant(
-            name=name,
-            slug=slug,
-            tenant_type=tenant_type,
+            name=normalized_name,
+            slug=normalized_slug,
+            tenant_type=normalized_tenant_type,
             plan_code=normalized_plan_code,
+            bootstrap_admin_full_name=normalized_admin_full_name,
+            bootstrap_admin_email=normalized_admin_email,
+            bootstrap_admin_password_hash=hash_password(normalized_admin_password),
             status="pending",
         )
 
@@ -1326,6 +1356,15 @@ class TenantService:
             raise ValueError("Invalid tenant plan")
 
         return normalized_plan_code
+
+    def _is_valid_email(self, value: str) -> bool:
+        parsed_name, parsed_email = parseaddr(value)
+        if parsed_name:
+            return False
+        if not parsed_email or "@" not in parsed_email:
+            return False
+        local_part, _, domain = parsed_email.partition("@")
+        return bool(local_part and domain and "." in domain)
 
     def _normalize_module_limits_override(
         self,

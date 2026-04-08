@@ -153,11 +153,20 @@ class PlatformCapabilityCatalogResponse(BaseModel):
     maintenance_access_modes: list[str]
     available_plan_codes: list[str]
     plan_modules: list[str]
+    plan_catalog: list[PlatformPlanCatalogEntryResponse]
     supported_module_limit_keys: list[str]
     module_limit_capabilities: list[PlatformModuleLimitCapabilityResponse]
     billing_providers: list[str]
     billing_sync_processing_results: list[str]
     provisioning_dispatch_backends: list[str]
+
+
+class PlatformPlanCatalogEntryResponse(BaseModel):
+    plan_code: str
+    read_requests_per_minute: int | None = None
+    write_requests_per_minute: int | None = None
+    enabled_modules: list[str] | None = None
+    module_limits: dict[str, int] | None = None
 
 
 class PlatformRuntimeSecurityPostureResponse(BaseModel):
@@ -174,6 +183,9 @@ class TenantCreateRequest(BaseModel):
     slug: str
     tenant_type: str
     plan_code: str | None = None
+    admin_full_name: str
+    admin_email: str
+    admin_password: str
 
 
 class TenantIdentityUpdateRequest(BaseModel):

@@ -699,6 +699,9 @@ class PlatformServicesTestCase(unittest.TestCase):
             name="Empresa Bootstrap",
             slug="empresa-bootstrap",
             tenant_type="empresa",
+            admin_full_name="Admin Tenant",
+            admin_email="admin@empresa-bootstrap.local",
+            admin_password="AdminTenant123!",
         )
 
         self.assertIs(tenant, saved_tenant)
@@ -710,6 +713,22 @@ class PlatformServicesTestCase(unittest.TestCase):
                 ("create_job", 1, "create_tenant_database", "pending"),
             ],
         )
+
+    def test_tenant_service_rejects_invalid_bootstrap_admin_email(self) -> None:
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_slug=lambda db, slug: None)
+        )
+
+        with self.assertRaises(ValueError):
+            service.create_tenant(
+                db=object(),
+                name="Empresa Bootstrap",
+                slug="empresa-bootstrap",
+                tenant_type="empresa",
+                admin_full_name="Admin Tenant",
+                admin_email="admin-invalido",
+                admin_password="AdminTenant123!",
+            )
 
     def test_tenant_service_updates_basic_identity(self) -> None:
         tenant = build_tenant_record_stub(
@@ -2734,6 +2753,7 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertIn("finance", catalog["maintenance_scopes"])
         self.assertIn("full_block", catalog["maintenance_access_modes"])
         self.assertIn("all", catalog["plan_modules"])
+        self.assertIn("plan_catalog", catalog)
         self.assertIn(
             "finance.entries.monthly.income",
             catalog["supported_module_limit_keys"],
@@ -3824,6 +3844,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(response.billing_providers, ["stripe"])
         self.assertIn("broker", response.provisioning_dispatch_backends)
+        self.assertIsInstance(response.plan_catalog, list)
 
     @patch("app.apps.platform_control.api.routes.runtime_security_service")
     @patch("app.apps.platform_control.api.routes.settings")
@@ -4152,6 +4173,9 @@ class PlatformRoutesTestCase(unittest.TestCase):
                     slug="empresa-bootstrap",
                     tenant_type="empresa",
                     plan_code="pro",
+                    admin_full_name="Admin Bootstrap",
+                    admin_email="admin@empresa-bootstrap.local",
+                    admin_password="AdminBootstrap123!",
                 ),
                 db=object(),
                 _token=self._token_payload(),
@@ -6075,6 +6099,9 @@ class PlatformRoutesTestCase(unittest.TestCase):
                     slug="empresa-central",
                     tenant_type="empresa",
                     plan_code=None,
+                    admin_full_name="Admin Central",
+                    admin_email="admin@empresa-central.local",
+                    admin_password="AdminCentral123!",
                 ),
                 db=object(),
                 _token=self._token_payload(),

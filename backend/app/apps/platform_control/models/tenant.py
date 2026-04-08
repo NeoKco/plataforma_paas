@@ -94,6 +94,18 @@ class Tenant(Base):
     db_user: Mapped[str | None] = mapped_column(String(150), nullable=True)
     db_host: Mapped[str | None] = mapped_column(String(100), nullable=True)
     db_port: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    bootstrap_admin_full_name: Mapped[str | None] = mapped_column(
+        String(150),
+        nullable=True,
+    )
+    bootstrap_admin_email: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    bootstrap_admin_password_hash: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
     tenant_schema_version: Mapped[str | None] = mapped_column(
         String(100),
         nullable=True,

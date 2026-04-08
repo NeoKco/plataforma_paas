@@ -62,6 +62,9 @@ class PlatformIntegrationTestCase(unittest.TestCase):
             name="Empresa Bootstrap",
             slug="empresa-bootstrap",
             tenant_type="empresa",
+            admin_full_name="Admin Bootstrap",
+            admin_email="admin@empresa-bootstrap.local",
+            admin_password="AdminBootstrap123!",
         )
 
         jobs = self.provisioning_job_service.list_jobs(self.db)
@@ -132,12 +135,18 @@ class PlatformIntegrationTestCase(unittest.TestCase):
             name="Tenant Uno",
             slug="tenant-uno",
             tenant_type="empresa",
+            admin_full_name="Tenant Uno Admin",
+            admin_email="admin@tenant-uno.local",
+            admin_password="TenantUnoAdmin123!",
         )
         second_tenant = self.tenant_service.create_tenant(
             db=self.db,
             name="Tenant Dos",
             slug="tenant-dos",
             tenant_type="empresa",
+            admin_full_name="Tenant Dos Admin",
+            admin_email="admin@tenant-dos.local",
+            admin_password="TenantDosAdmin123!",
         )
 
         jobs = self.provisioning_job_service.list_jobs(self.db)

@@ -420,6 +420,9 @@ def create_tenant(
             name=payload.name,
             slug=payload.slug,
             tenant_type=payload.tenant_type,
+            admin_full_name=payload.admin_full_name,
+            admin_email=payload.admin_email,
+            admin_password=payload.admin_password,
             plan_code=payload.plan_code,
         )
         auth_audit_service.log_event(
@@ -430,7 +433,10 @@ def create_tenant(
             subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
             email=_token.get("email"),
             tenant_slug=tenant.slug,
-            detail=f"Creo tenant {tenant.slug} de tipo {tenant.tenant_type}",
+            detail=(
+                f"Creo tenant {tenant.slug} de tipo {tenant.tenant_type} "
+                f"con admin bootstrap {payload.admin_email}"
+            ),
         )
         return _build_tenant_response(tenant)
     except ValueError as exc:

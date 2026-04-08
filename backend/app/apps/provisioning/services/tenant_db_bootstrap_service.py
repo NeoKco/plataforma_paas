@@ -6,7 +6,6 @@ from app.apps.tenant_modules.core.models.tenant_info import TenantInfo
 from app.apps.tenant_modules.core.models.user import User
 from app.apps.provisioning.services.tenant_schema_service import TenantSchemaService
 from app.common.db.url_factory import build_postgres_url
-from app.common.security.password_service import hash_password
 
 
 class TenantDatabaseBootstrapService:
@@ -26,6 +25,9 @@ class TenantDatabaseBootstrapService:
         tenant_name: str,
         tenant_slug: str,
         tenant_type: str,
+        admin_full_name: str,
+        admin_email: str,
+        admin_password_hash: str,
     ) -> None:
         database_url = build_postgres_url(
             host=host,
@@ -50,7 +52,12 @@ class TenantDatabaseBootstrapService:
         try:
             self._seed_tenant_info(db, tenant_name, tenant_slug, tenant_type)
             self._seed_roles(db)
-            self._seed_admin_user(db, tenant_slug)
+            self._seed_admin_user(
+                db,
+                admin_full_name=admin_full_name,
+                admin_email=admin_email,
+                admin_password_hash=admin_password_hash,
+            )
             db.commit()
         finally:
             db.close()
@@ -86,17 +93,23 @@ class TenantDatabaseBootstrapService:
             if not existing:
                 db.add(Role(code=code, name=name))
 
-    def _seed_admin_user(self, db: Session, tenant_slug: str) -> None:
-        admin_email = f"admin@{tenant_slug}.local"
+    def _seed_admin_user(
+        self,
+        db: Session,
+        *,
+        admin_full_name: str,
+        admin_email: str,
+        admin_password_hash: str,
+    ) -> None:
         existing = db.query(User).filter(User.email == admin_email).first()
         if existing:
             return
 
         db.add(
             User(
-                full_name="Tenant Admin",
+                full_name=admin_full_name,
                 email=admin_email,
-                password_hash=hash_password("TenantAdmin123!"),
+                password_hash=admin_password_hash,
                 role="admin",
                 is_active=True,
             )

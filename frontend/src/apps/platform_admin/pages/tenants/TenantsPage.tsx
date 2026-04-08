@@ -173,6 +173,11 @@ export function TenantsPage() {
   const [createTenantSlugTouched, setCreateTenantSlugTouched] = useState(false);
   const [createTenantType, setCreateTenantType] = useState("empresa");
   const [createTenantPlanCode, setCreateTenantPlanCode] = useState("");
+  const [createTenantAdminFullName, setCreateTenantAdminFullName] = useState("");
+  const [createTenantAdminEmail, setCreateTenantAdminEmail] = useState("");
+  const [createTenantAdminPassword, setCreateTenantAdminPassword] = useState("");
+  const [createTenantAdminPasswordConfirm, setCreateTenantAdminPasswordConfirm] =
+    useState("");
   const [isCreateTenantModalOpen, setIsCreateTenantModalOpen] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState("");
   const [retirementSearch, setRetirementSearch] = useState("");
@@ -189,6 +194,10 @@ export function TenantsPage() {
 
   const selectedTenantSummary =
     tenants.find((tenant) => tenant.id === selectedTenantId) || selectedTenant;
+
+  const createTenantPasswordsMatch =
+    createTenantAdminPassword.length > 0 &&
+    createTenantAdminPassword === createTenantAdminPasswordConfirm;
 
   const tenantTypeOptions = useMemo(
     () =>
@@ -255,6 +264,23 @@ export function TenantsPage() {
       ).sort(),
     [capabilities?.available_plan_codes, tenants]
   );
+
+  const planCatalogByCode = useMemo(
+    () =>
+      new Map(
+        (capabilities?.plan_catalog || []).map((entry) => [entry.plan_code, entry])
+      ),
+    [capabilities?.plan_catalog]
+  );
+
+  const selectedCreatePlanCatalog = createTenantPlanCode
+    ? planCatalogByCode.get(createTenantPlanCode) || null
+    : null;
+
+  const selectedTenantPlanCatalog =
+    selectedTenantSummary?.plan_code
+      ? planCatalogByCode.get(selectedTenantSummary.plan_code) || null
+      : null;
 
   const moduleLimitCapabilityMap = useMemo(
     () =>
@@ -734,6 +760,9 @@ export function TenantsPage() {
         slug: createTenantSlug.trim(),
         tenant_type: createTenantType,
         plan_code: normalizeNullableString(createTenantPlanCode),
+        admin_full_name: createTenantAdminFullName.trim(),
+        admin_email: createTenantAdminEmail.trim().toLowerCase(),
+        admin_password: createTenantAdminPassword,
       });
       await loadTenantsCatalog();
       setSelectedTenantId(createdTenant.id);
@@ -743,6 +772,10 @@ export function TenantsPage() {
       setCreateTenantSlugTouched(false);
       setCreateTenantType("empresa");
       setCreateTenantPlanCode("");
+      setCreateTenantAdminFullName("");
+      setCreateTenantAdminEmail("");
+      setCreateTenantAdminPassword("");
+      setCreateTenantAdminPasswordConfirm("");
       setIsCreateTenantModalOpen(false);
       setActionFeedback({
         scope: "create-tenant",
@@ -771,6 +804,10 @@ export function TenantsPage() {
     setCreateTenantSlugTouched(false);
     setCreateTenantType("empresa");
     setCreateTenantPlanCode("");
+    setCreateTenantAdminFullName("");
+    setCreateTenantAdminEmail("");
+    setCreateTenantAdminPassword("");
+    setCreateTenantAdminPasswordConfirm("");
   }
 
   function handleIdentitySubmit(event: FormEvent<HTMLFormElement>) {
@@ -1566,8 +1603,8 @@ export function TenantsPage() {
                   label={language === "es" ? "Plan inicial" : "Initial plan"}
                   help={
                     language === "es"
-                      ? "Puedes partir sin plan o asignar uno desde el alta para que el tenant nazca con su política base."
-                      : "You can start without a plan or assign one during creation so the tenant is born with its base policy."
+                      ? "Aquí se habilitan los módulos del tenant. El plan define módulos, límites y política base."
+                      : "This is where tenant modules are enabled. The plan defines modules, limits and the base policy."
                   }
                 />
                 <select
@@ -1584,11 +1621,127 @@ export function TenantsPage() {
                 </select>
               </AppFormField>
               <div className="app-form-field app-form-field--full">
+                <FieldHelpLabel
+                  label={language === "es" ? "Admin inicial del tenant" : "Initial tenant admin"}
+                  help={
+                    language === "es"
+                      ? "Estas credenciales se usan para bootstrap del primer administrador del portal tenant. Ya no se genera un admin por defecto."
+                      : "These credentials bootstrap the first tenant portal administrator. A default admin is no longer generated."
+                  }
+                />
+              </div>
+              <AppFormField>
+                <FieldHelpLabel
+                  label={language === "es" ? "Nombre completo admin" : "Admin full name"}
+                  help={
+                    language === "es"
+                      ? "Nombre visible del primer administrador del tenant."
+                      : "Display name for the tenant first administrator."
+                  }
+                />
+                <input
+                  className="form-control"
+                  value={createTenantAdminFullName}
+                  onChange={(event) => setCreateTenantAdminFullName(event.target.value)}
+                  placeholder={language === "es" ? "Ej: Ana Pérez" : "Ex: Ana Perez"}
+                  required
+                />
+              </AppFormField>
+              <AppFormField>
+                <FieldHelpLabel
+                  label={language === "es" ? "Correo admin" : "Admin email"}
+                  help={
+                    language === "es"
+                      ? "Correo que usará el primer login del portal tenant."
+                      : "Email to be used for the first tenant portal login."
+                  }
+                />
+                <input
+                  className="form-control"
+                  type="email"
+                  value={createTenantAdminEmail}
+                  onChange={(event) => setCreateTenantAdminEmail(event.target.value)}
+                  placeholder="admin@empresa-centro.local"
+                  required
+                />
+              </AppFormField>
+              <AppFormField>
+                <FieldHelpLabel
+                  label={language === "es" ? "Contraseña admin" : "Admin password"}
+                  help={
+                    language === "es"
+                      ? "Mínimo 10 caracteres. Esta clave ya no se deja fija por defecto."
+                      : "At least 10 characters. This password is no longer fixed by default."
+                  }
+                />
+                <input
+                  className="form-control"
+                  type="password"
+                  value={createTenantAdminPassword}
+                  onChange={(event) => setCreateTenantAdminPassword(event.target.value)}
+                  required
+                  minLength={10}
+                />
+              </AppFormField>
+              <AppFormField>
+                <FieldHelpLabel
+                  label={language === "es" ? "Confirmar contraseña" : "Confirm password"}
+                  help={
+                    language === "es"
+                      ? "Debe coincidir con la contraseña admin."
+                      : "Must match the admin password."
+                  }
+                />
+                <input
+                  className="form-control"
+                  type="password"
+                  value={createTenantAdminPasswordConfirm}
+                  onChange={(event) =>
+                    setCreateTenantAdminPasswordConfirm(event.target.value)
+                  }
+                  required
+                  minLength={10}
+                />
+              </AppFormField>
+              <div className="app-form-field app-form-field--full">
+                {selectedCreatePlanCatalog ? (
+                  <>
+                    <p className="tenant-help-text mt-2 mb-2">
+                      {language === "es"
+                        ? "Módulos habilitados por el plan seleccionado:"
+                        : "Modules enabled by the selected plan:"}
+                    </p>
+                    <div className="tenant-list__chips">
+                      {(selectedCreatePlanCatalog.enabled_modules || []).map((moduleKey) => (
+                        <span key={moduleKey} className="tenant-chip">
+                          {getTenantPlanModuleLabel(moduleKey)}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <p className="tenant-help-text mt-2 mb-0">
+                    {language === "es"
+                      ? "Si dejas el tenant sin plan, no se activará una política base de módulos desde el alta."
+                      : "If you leave the tenant without a plan, no base module policy will be activated during creation."}
+                  </p>
+                )}
+              </div>
+              <div className="app-form-field app-form-field--full">
                 <p className="tenant-help-text mt-2 mb-0">
                   {language === "es"
-                    ? "Al crear el tenant se dispara provisioning para preparar su base tenant y dejar el acceso bootstrap listo."
-                    : "Creating the tenant triggers provisioning to prepare its tenant database and leave bootstrap access ready."}
+                    ? "Al crear el tenant se dispara provisioning para preparar su base tenant y dejar el acceso bootstrap listo con el admin definido arriba."
+                    : "Creating the tenant triggers provisioning to prepare its tenant database and leave bootstrap access ready with the admin defined above."}
                 </p>
+                {!createTenantPasswordsMatch &&
+                createTenantAdminPassword.length > 0 &&
+                createTenantAdminPasswordConfirm.length > 0 ? (
+                  <p className="text-danger mt-2 mb-0">
+                    {language === "es"
+                      ? "La confirmación de contraseña no coincide."
+                      : "Password confirmation does not match."}
+                  </p>
+                ) : null}
               </div>
               <div className="confirm-dialog__actions">
                 <button
@@ -1605,7 +1758,10 @@ export function TenantsPage() {
                   disabled={
                     isActionSubmitting ||
                     !createTenantName.trim() ||
-                    !createTenantSlug.trim()
+                    !createTenantSlug.trim() ||
+                    !createTenantAdminFullName.trim() ||
+                    !createTenantAdminEmail.trim() ||
+                    !createTenantPasswordsMatch
                   }
                 >
                   {language === "es" ? "Crear tenant" : "Create tenant"}
@@ -1901,6 +2057,19 @@ export function TenantsPage() {
                     {language === "es" ? "Motivo de facturación" : "Billing reason"}: {selectedTenantSummary.billing_status_reason}
                   </div>
                 ) : null}
+                <div className="tenant-inline-note">
+                  {language === "es"
+                    ? "Módulos vigentes por plan"
+                    : "Active modules by plan"}
+                  :{" "}
+                  {selectedTenantPlanCatalog?.enabled_modules?.length
+                    ? selectedTenantPlanCatalog.enabled_modules
+                        .map((moduleKey) => getTenantPlanModuleLabel(moduleKey))
+                        .join(", ")
+                    : language === "es"
+                      ? "sin plan activo o sin módulos declarados"
+                      : "no active plan or declared modules"}
+                </div>
                 {selectedTenantSummary.maintenance_reason ? (
                   <div className="tenant-inline-note">
                     {language === "es" ? "Motivo de mantenimiento" : "Maintenance reason"}: {selectedTenantSummary.maintenance_reason}
@@ -2727,15 +2896,15 @@ export function TenantsPage() {
 
                   <AppForm className="tenant-action-form" onSubmit={handlePlanSubmit}>
                     <h3 className="tenant-action-form__title">
-                      {language === "es" ? "Plan" : "Plan"}
+                      {language === "es" ? "Plan y módulos" : "Plan and modules"}
                     </h3>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
                         label={language === "es" ? "Código de plan" : "Plan code"}
                         help={
                           language === "es"
-                            ? "Selecciona uno de los planes válidos que conoce el backend. Si eliges vacío, el tenant queda sin plan."
-                            : "Select one of the valid plans known by the backend. If you leave it empty, the tenant remains without a plan."
+                            ? "Aquí habilitas módulos a nivel tenant. El plan seleccionado define módulos, límites y políticas derivadas."
+                            : "This is where modules are enabled at tenant level. The selected plan defines modules, limits and derived policies."
                         }
                         placement="left"
                       />
@@ -2753,10 +2922,28 @@ export function TenantsPage() {
                       </select>
                     </AppFormField>
                     <div className="app-form-field app-form-field--full">
+                      {planCode && planCatalogByCode.get(planCode)?.enabled_modules?.length ? (
+                        <>
+                          <p className="tenant-help-text mt-2 mb-2">
+                            {language === "es"
+                              ? "Módulos que quedarán habilitados si aplicas este plan:"
+                              : "Modules that will be enabled if you apply this plan:"}
+                          </p>
+                          <div className="tenant-list__chips">
+                            {(planCatalogByCode.get(planCode)?.enabled_modules || []).map(
+                              (moduleKey) => (
+                                <span key={moduleKey} className="tenant-chip">
+                                  {getTenantPlanModuleLabel(moduleKey)}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        </>
+                      ) : null}
                       <p className="tenant-help-text mt-2 mb-0">
                         {language === "es"
-                          ? "Solo puedes aplicar planes definidos en la política de backend. Si no seleccionas ninguno, el tenant opera sin plan asociado."
-                          : "You can only apply plans defined in the backend policy. If you do not select one, the tenant operates without an associated plan."}
+                          ? "Solo puedes aplicar planes definidos en la política de backend. Si no seleccionas ninguno, el tenant opera sin plan asociado y no habilita módulos por esta vía."
+                          : "You can only apply plans defined in the backend policy. If you do not select one, the tenant operates without an associated plan and no modules are enabled through this path."}
                       </p>
                     </div>
                     <AppFormActions>
@@ -3539,4 +3726,16 @@ function normalizeScopes(scopes: string[]): string[] {
     return ["all"];
   }
   return Array.from(new Set(scopes)).sort();
+}
+
+function getTenantPlanModuleLabel(moduleKey: string): string {
+  const language = getCurrentLanguage();
+  const labels: Record<string, string> = {
+    all: language === "es" ? "Todos los módulos" : "All modules",
+    core: language === "es" ? "Core negocio" : "Business core",
+    users: language === "es" ? "Usuarios" : "Users",
+    finance: language === "es" ? "Finanzas" : "Finance",
+  };
+
+  return labels[moduleKey] || moduleKey;
 }

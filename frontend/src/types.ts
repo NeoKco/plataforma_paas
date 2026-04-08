@@ -104,6 +104,14 @@ export type PlatformModuleLimitCapability = {
   description: string | null;
 };
 
+export type PlatformPlanCatalogEntry = {
+  plan_code: string;
+  read_requests_per_minute: number | null;
+  write_requests_per_minute: number | null;
+  enabled_modules: string[] | null;
+  module_limits: Record<string, number> | null;
+};
+
 export type PlatformCapabilities = {
   success: boolean;
   message: string;
@@ -113,6 +121,7 @@ export type PlatformCapabilities = {
   maintenance_access_modes: string[];
   available_plan_codes: string[];
   plan_modules: string[];
+  plan_catalog: PlatformPlanCatalogEntry[];
   supported_module_limit_keys: string[];
   module_limit_capabilities: PlatformModuleLimitCapability[];
   billing_providers: string[];
@@ -310,6 +319,9 @@ export type PlatformTenantCreateRequest = {
   slug: string;
   tenant_type: string;
   plan_code: string | null;
+  admin_full_name: string;
+  admin_email: string;
+  admin_password: string;
 };
 
 export type PlatformTenantIdentityResponse = {
