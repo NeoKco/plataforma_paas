@@ -40,6 +40,8 @@ Estado práctico de cierre:
 - sidebar de `tenant_portal` backend-driven según `effective_enabled_modules`, con smoke browser dedicado para billing grace
 - alta de `Nuevo tenant` con admin inicial explícito y sin bootstrap fijo compartido
 - lectura visible en `Tenants` de que los módulos se habilitan por `plan`, tanto en el alta como en el bloque `Plan y módulos`
+- smoke browser específico `platform-admin-tenants-create-form` aprobado para validar admin inicial explícito + preview de módulos por plan
+- despliegue y validación real del frente `Nuevo tenant` en `staging` y `production`
 - validación browser de aparición de jobs nuevos en `Provisioning`
 - validación browser de ejecución manual de jobs `pending` desde `Provisioning`
 - validación browser de requeue de jobs `failed` desde `Provisioning`
@@ -87,8 +89,7 @@ Referencia operativa:
 Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
-- decidir si el `staging` actual seguirá como espejo instalado o si se automatizará un reset controlado para validar bootstrap inicial desde cero
-- decidir en qué modo operativo debe quedar `staging` después de validar `/install`: espejo instalado o bootstrap temporal
+- mantener `staging` como espejo instalado por defecto y usar `bootstrap reset` solo para validar `/install` cuando haga falta
 - ampliar E2E browser a acceso tenant más profundo tras el salto desde `Tenants`, y a DLQ individual/filtros más finos
 - más regresión sobre provisioning y billing
 - seguir endureciendo copy, validaciones y observabilidad visible
@@ -100,7 +101,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - algunos recorridos siguen mejor cubiertos por backend tests que por browser E2E
 - la documentación central era abundante pero estaba dispersa; ya quedó indexada, pero aún puede seguir normalizándose
 - el backend ya calcula y aplica entitlements por módulo tenant y el sidebar principal del `tenant_portal` ya filtra por contrato/billing usando `effective_enabled_modules`
-- el staging ya puede alternar entre espejo instalado y bootstrap reset; hoy ya quedó devuelto a espejo operativo y el siguiente paso ya no es de entorno sino de roadmap
+- el staging ya puede alternar entre espejo instalado y bootstrap reset; hoy queda institucionalizado que el modo normal es espejo operativo y el siguiente paso ya no es de entorno sino de roadmap
 
 ## Conclusión práctica
 

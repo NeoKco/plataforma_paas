@@ -31,6 +31,7 @@ Archivos principales:
 - [platform-admin-provisioning-run-now.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-run-now.smoke.spec.ts)
 - [platform-admin-provisioning-retry.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-retry.smoke.spec.ts)
 - [platform-admin-schema-auto-sync.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-schema-auto-sync.smoke.spec.ts)
+- [platform-admin-tenants-create-form.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenants-create-form.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-row.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts)
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
@@ -58,6 +59,7 @@ Cobertura actual:
 - acceso rápido al `tenant_portal` desde `Tenants` con `slug` precargado
 - bloqueo visible del acceso rápido al `tenant_portal` cuando el tenant no está operativo para abrir portal
 - lifecycle básico de tenant en `platform_admin` con `create`, `archive` y `restore`
+- enforcement visible de `Nuevo tenant` con admin inicial explícito y preview de módulos por `plan`
 - visibilidad de job nuevo en `Provisioning` después de crear tenant
 - ejecución manual de un job `pending` desde `Provisioning`
 - requeue de un job `failed` desde `Provisioning`

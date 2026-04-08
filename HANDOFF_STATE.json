@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-08T10:05:00-04:00",
+  "updated_at": "2026-04-08T18:20:00-04:00",
   "handoff_status": "active",
-  "current_focus": "frente Nuevo tenant con admin explicito + modulos por plan ya cerrado; esperando siguiente frente del roadmap",
+  "current_focus": "sin frente tecnico abierto; slice Nuevo tenant con admin explicito + modulos por plan ya cerrado y alineado en codigo, docs y handoff",
   "project_phase": "produccion validada con HTTPS, staging/test separado y platform_admin tenants ya corregido y desplegado en vivo",
   "active_modules": [
     "platform-core",
@@ -62,7 +62,8 @@
     "production desplegada con el frente Nuevo tenant admin explicito + modulos por plan",
     "smoke browser platform-admin-tenants-create-form aprobado en staging",
     "smoke browser platform-admin-tenants-create-form aprobado en production",
-    "host productivo realineado a APP_ENV=production con bootstrap env seguro explicito para tenants demo heredados"
+    "host productivo realineado a APP_ENV=production con bootstrap env seguro explicito para tenants demo heredados",
+    "documentacion canónica y handoff realineados para fijar staging como espejo operativo por defecto"
   ],
   "blocking_issues": [],
   "next_decision_required": "elegir el siguiente frente funcional o transversal ahora que production, staging y platform_admin tenants ya quedaron estables",

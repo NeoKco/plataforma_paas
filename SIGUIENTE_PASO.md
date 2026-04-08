@@ -24,6 +24,7 @@ Ese frente ya quedó:
 - preview de módulos por `plan`
 - bloque `Plan y módulos`
 - `APP_ENV=production` real en el host productivo
+- `staging` operando como espejo instalado por defecto
 
 ### 2. Usar `staging` como carril previo si el siguiente frente toca UI visible
 

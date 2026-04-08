@@ -29,6 +29,7 @@
 - `platform_admin` ya expone un `plan_catalog` visible para mostrar qué módulos habilita cada plan en el alta y en el bloque `Plan y módulos`
 - el smoke browser específico `platform-admin-tenants-create-form` ya quedó aprobado en `staging` y `production`
 - el `.env` productivo quedó realineado a `APP_ENV=production`, `DEBUG=false`, `INSTALL_FLAG_FILE=/opt/platform_paas/.platform_installed` y variables bootstrap seguras explícitas para los tenants demo heredados
+- la documentación canónica ya deja fijado que `staging` opera por defecto como espejo instalado, no como bootstrap permanente
 
 ## Frente activo real al momento de este estado
 
@@ -240,6 +241,7 @@ Tampoco queda pendiente el frente central de sidebar tenant:
 - el menú principal del `tenant_portal` ya consume `effective_enabled_modules`
 - existe smoke browser específico para validarlo
 - el siguiente paso ya no es cerrar este frente, sino elegir el siguiente frente explícito del roadmap
+- la documentación y el handoff de este slice ya quedaron cerrados; no queda deuda editorial específica del frente `Nuevo tenant`
 
 La salida inicial ya quedó validada para operación:
 

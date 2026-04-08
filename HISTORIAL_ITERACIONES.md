@@ -15,6 +15,37 @@ Para nuevas entradas usar:
 
 ---
 
+## 2026-04-08 — Alineación final de documentación y handoff del frente `Nuevo tenant`
+
+### Objetivo
+
+- dejar el repo completamente coherente con el cierre real del frente `Nuevo tenant`
+- fijar por documentación que `staging` ya no está “por decidir”, sino que opera por defecto como espejo instalado
+
+### Cambios principales
+
+- `platform-core/ROADMAP.md` ya refleja explícitamente el smoke y despliegue real del frente `Nuevo tenant`
+- `platform-core/DEV_GUIDE.md` incorpora el smoke `platform-admin-tenants-create-form`
+- `frontend/e2e/README.md` y `frontend-e2e-browser.md` incluyen ese smoke en listas y cobertura validada
+- `PAQUETE_RELEASE_OPERADOR.md` deja explícitos los invariantes del `.env` productivo real
+- `ESTADO_ACTUAL.md`, `SIGUIENTE_PASO.md`, `SESION_ACTIVA.md` y `HANDOFF_STATE.json` quedan alineados al hecho de que este slice ya está cerrado
+
+### Validaciones
+
+- revisión cruzada de roadmap, handoff y runbooks: OK
+- `HANDOFF_STATE.json` válido: esperado en esta iteración
+
+### Bloqueos
+
+- no hay bloqueo técnico
+- no hay bloqueo editorial pendiente en este frente
+
+### Siguiente paso
+
+- elegir el siguiente frente explícito del roadmap sin reabrir `Nuevo tenant`
+
+---
+
 ## 2026-04-08 — Nuevo tenant con admin explícito + módulos visibles por plan
 
 ### Objetivo

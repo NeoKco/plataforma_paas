@@ -99,6 +99,7 @@ Smokes actuales del bloque central:
 - [platform-admin-provisioning-run-now.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-run-now.smoke.spec.ts)
 - [platform-admin-provisioning-retry.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-retry.smoke.spec.ts)
 - [platform-admin-schema-auto-sync.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-schema-auto-sync.smoke.spec.ts)
+- [platform-admin-tenants-create-form.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenants-create-form.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-row.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts)
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
@@ -130,6 +131,7 @@ Cobertura actual:
 - lifecycle tenant base en UI con `create`, `archive` y `restore`
 - acceso rápido desde `Tenants` al login de `tenant_portal` con `slug` precargado
 - feedback de bloqueo en `Tenants` cuando el acceso rápido al `tenant_portal` todavía no debe habilitarse
+- enforcement visible de que `Nuevo tenant` exige admin inicial explícito y preview de módulos por `plan`
 - enforcement visible por rol en `platform_admin` para `admin` y `support`
 - workspace de `Billing` con reconcile individual sobre evento tenant persistido
 - workspace de `Billing` con reconcile batch sobre eventos filtrados

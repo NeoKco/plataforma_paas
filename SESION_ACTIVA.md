@@ -53,6 +53,7 @@ Debe permanecer corto, operativo y fácil de escanear.
 - en código, `Tenants` ya muestra preview de módulos por `plan` y el bloque `Plan y módulos` queda visible para operación
 - ese mismo frente ya quedó desplegado y validado en `staging` y `production`
 - el host productivo también quedó corregido para arrancar realmente con `APP_ENV=production`
+- la documentación canónica ya fija `staging` como espejo operativo por defecto y deja `bootstrap reset` como flujo puntual de validación
 
 ## Bloqueo actual
 

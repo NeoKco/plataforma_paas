@@ -8,6 +8,8 @@
 - el bloque de operación tenant cambia de hecho a `Plan y módulos`, para que quede visible dónde se habilitan módulos y no se confunda con un toggle manual inexistente
 - se agrega el smoke [platform-admin-tenants-create-form.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenants-create-form.smoke.spec.ts) para validar admin inicial explícito + preview de módulos por plan
 - el frente ya quedó desplegado y validado en `staging` (`http://192.168.7.42:8081`) y en `production` (`https://orkestia.ddns.net`)
+- la documentación operativa queda alineada para tratar `staging` como espejo instalado por defecto, usando `bootstrap reset` solo cuando se necesite revalidar `/install`
+- el paquete de release deja explícito como invariante que `/opt/platform_paas/.env` debe permanecer en modo productivo real (`APP_ENV=production`, `DEBUG=false`, `INSTALL_FLAG_FILE=/opt/platform_paas/.platform_installed`)
 - el sidebar de [tenant_portal](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/layout/TenantSidebarNav.tsx) deja de ser hardcodeado y pasa a leer [effective_enabled_modules](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/utils/module-visibility.ts) desde `/tenant/info`
 - la visibilidad tenant queda alineada a la matriz efectiva ya aplicada en backend: `users -> users`, `business-core/maintenance -> core`, `finance -> finance`, `overview -> siempre`
 - se relaja [loginTenant](/home/felipe/platform_paas/frontend/e2e/support/auth.ts) para no asumir que `Finanzas` siempre aparece después del login

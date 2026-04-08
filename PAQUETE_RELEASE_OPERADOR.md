@@ -55,6 +55,13 @@ Debe existir:
 - `systemd` operativo
 - `/opt/platform_paas/.env` productivo real
 
+Invariantes operativos que no deben degradarse:
+
+- `APP_ENV=production`
+- `DEBUG=false`
+- `INSTALL_FLAG_FILE=/opt/platform_paas/.platform_installed`
+- passwords bootstrap explícitas y seguras para cualquier tenant demo heredado que siga existiendo en el host
+
 ## 2. Preflight backend
 
 Ejecutar:
@@ -182,3 +189,8 @@ La primera salida productiva sobre el mini PC ya quedó:
 - validada con HTTPS
 - validada por smoke remoto backend
 - aceptada como operación inicial
+
+Lección operativa ya asentada:
+
+- no reutilizar en `/opt/platform_paas/.env` valores de desarrollo
+- si el host productivo vuelve a heredar `APP_ENV=development` o passwords bootstrap inseguras, el runtime debe considerarse desalineado y corregirse antes de cualquier restart
