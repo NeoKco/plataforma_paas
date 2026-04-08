@@ -107,16 +107,16 @@ class TenantService:
         admin_password: str,
         plan_code: str | None = None,
     ) -> Tenant:
-        existing = self.tenant_repository.get_by_slug(db, slug)
-        if existing:
-            raise ValueError("Tenant slug already exists")
-
         normalized_name = name.strip()
         normalized_slug = slug.strip().lower()
         normalized_tenant_type = tenant_type.strip().lower()
         normalized_admin_full_name = admin_full_name.strip()
         normalized_admin_email = admin_email.strip().lower()
         normalized_admin_password = admin_password.strip()
+
+        existing = self.tenant_repository.get_by_slug(db, normalized_slug)
+        if existing:
+            raise ValueError("Tenant slug already exists")
 
         if not normalized_name:
             raise ValueError("Tenant name is required")

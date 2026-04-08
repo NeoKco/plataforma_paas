@@ -153,7 +153,7 @@ class PlatformCapabilityCatalogResponse(BaseModel):
     maintenance_access_modes: list[str]
     available_plan_codes: list[str]
     plan_modules: list[str]
-    plan_catalog: list[PlatformPlanCatalogEntryResponse]
+    plan_catalog: list["PlatformPlanCatalogEntryResponse"]
     supported_module_limit_keys: list[str]
     module_limit_capabilities: list[PlatformModuleLimitCapabilityResponse]
     billing_providers: list[str]
