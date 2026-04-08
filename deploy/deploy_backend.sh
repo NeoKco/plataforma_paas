@@ -11,6 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HEALTHCHECK_URL="${HEALTHCHECK_URL:-http://127.0.0.1/health}"
 BACKEND_AUTO_SYNC_POST_DEPLOY="${BACKEND_AUTO_SYNC_POST_DEPLOY:-true}"
 BACKEND_AUTO_SYNC_LIMIT="${BACKEND_AUTO_SYNC_LIMIT:-100}"
+PYTHONPATH_VALUE="${PYTHONPATH_VALUE:-$BACKEND_DIR}"
 
 source "$SCRIPT_DIR/load_dotenv.sh"
 
@@ -33,8 +34,8 @@ if [ ! -x "$VENV_PYTHON" ]; then
 fi
 
 "$VENV_PYTHON" -m pip install -r requirements/base.txt
-"$VENV_PYTHON" app/scripts/run_control_migrations.py
-"$VENV_PYTHON" app/scripts/run_backend_tests.py --skip-http-smoke --skip-postgres
+PYTHONPATH="$PYTHONPATH_VALUE" "$VENV_PYTHON" app/scripts/run_control_migrations.py
+PYTHONPATH="$PYTHONPATH_VALUE" "$VENV_PYTHON" app/scripts/run_backend_tests.py --skip-http-smoke --skip-postgres
 
 sudo systemctl restart "$SERVICE_NAME"
 sudo systemctl status "$SERVICE_NAME" --no-pager
