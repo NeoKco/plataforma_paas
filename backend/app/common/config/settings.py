@@ -8,6 +8,14 @@ from app.common.db.url_factory import build_postgres_url
 
 
 BASE_DIR = Path(__file__).resolve().parents[4]
+DEFAULT_DEVELOPMENT_CORS_ORIGINS = (
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+    "http://192.168.7.42:5173",
+    "http://127.0.0.1:4173",
+    "http://localhost:4173",
+    "http://192.168.7.42:4173",
+)
 
 
 class Settings(BaseSettings):
@@ -186,11 +194,21 @@ class Settings(BaseSettings):
 
     @property
     def backend_cors_allowed_origins(self) -> list[str]:
-        return [
+        origins = [
             value.strip()
             for value in self.BACKEND_CORS_ALLOW_ORIGINS.split(",")
             if value.strip()
         ]
+
+        if self.APP_ENV.strip().lower() in {"development", "dev"}:
+            seen = {value.lower() for value in origins}
+            for value in DEFAULT_DEVELOPMENT_CORS_ORIGINS:
+                if value.lower() in seen:
+                    continue
+                origins.append(value)
+                seen.add(value.lower())
+
+        return origins
 
 
 settings = Settings()
