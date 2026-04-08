@@ -15,6 +15,11 @@ La base central ya es operable:
 - activity
 - acceso tenant
 
+Estado práctico de cierre:
+
+- cierre funcional base: `Completado`
+- cierre operativo definitivo: `Pendiente solo por deploy real en host productivo`
+
 ## Cerrado
 
 - instalación inicial reproducible
@@ -44,7 +49,32 @@ La base central ya es operable:
 - validación browser del flujo base de préstamos `finance` en `tenant_portal`
 - validación browser del pago y reversa en lote de préstamos `finance` en `tenant_portal`
 
+## Pendiente para cierre operativo del bloque central
+
+Este frente ya no depende de abrir más funcionalidad de producto.
+
+Lo pendiente real para considerar el bloque central efectivamente cerrado en terreno es:
+
+- confirmar host productivo real
+- preparar `.env` productivo final
+- correr preflight backend sin fallos
+- correr build y preflight frontend con la URL real de API
+- ejecutar cutover
+- ejecutar smoke corto de terreno
+- actualizar estado post-producción y evidencia operativa
+
+Referencia operativa:
+
+- [ESTADO_ACTUAL.md](/home/felipe/platform_paas/ESTADO_ACTUAL.md)
+- [SIGUIENTE_PASO.md](/home/felipe/platform_paas/SIGUIENTE_PASO.md)
+- [PAQUETE_RELEASE_OPERADOR.md](/home/felipe/platform_paas/PAQUETE_RELEASE_OPERADOR.md)
+- [backend-production-preflight.md](/home/felipe/platform_paas/docs/deploy/backend-production-preflight.md)
+- [frontend-static-nginx.md](/home/felipe/platform_paas/docs/deploy/frontend-static-nginx.md)
+- [production-cutover-checklist.md](/home/felipe/platform_paas/docs/deploy/production-cutover-checklist.md)
+
 ## Próximo nivel recomendado
+
+Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - ampliar E2E browser a acceso tenant más profundo tras el salto desde `Tenants`, y a DLQ individual/filtros más finos
@@ -59,6 +89,14 @@ La base central ya es operable:
 - algunos recorridos siguen mejor cubiertos por backend tests que por browser E2E
 - la documentación central era abundante pero estaba dispersa; ya quedó indexada, pero aún puede seguir normalizándose
 - el backend ya calcula y aplica entitlements por módulo tenant, pero el menú frontend sigue hardcodeado y todavía no filtra por contrato/billing
+
+## Conclusión práctica
+
+- `finance`: cerrado para el alcance actual
+- `business-core`: operativo
+- `maintenance`: cerrado en su primer corte
+- `platform-core`: funcionalmente cerrado
+- lo único realmente pendiente para cerrar el frente central es el deploy real y su validación en terreno
 
 ## Regla futura
 

@@ -5,6 +5,7 @@
 - se agrega [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md) como canon transversal de estandares, revisiones, estructura minima, documentacion viva y handoff para continuidad con otra IA
 - se actualizan [project-structure.md](/home/felipe/platform_paas/docs/architecture/project-structure.md), [development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md), [developer-onboarding.md](/home/felipe/platform_paas/docs/runbooks/developer-onboarding.md), [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md) y [frontend/e2e/README.md](/home/felipe/platform_paas/frontend/e2e/README.md) para dejar un marco único de implementación y validación browser
 - se endurece la política oficial de continuidad: todo cambio visible debe actualizar documentación canónica, revisar cobertura E2E existente y dejar handoff explícito para el siguiente developer o IA
+- se alinea [platform-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md) para dejar explícito que el cierre funcional central ya está logrado y que el pendiente real del bloque central es el cutover productivo sobre un host real
 
 ## 2026-04-03
 
