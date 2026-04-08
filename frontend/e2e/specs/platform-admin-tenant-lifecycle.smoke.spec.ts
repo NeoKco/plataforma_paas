@@ -1,7 +1,7 @@
 import { expect, test } from "../support/test";
 import { loginPlatform } from "../support/auth";
 import { buildE2ETenantIdentity } from "../support/e2e-data";
-import { openCreateTenantForm } from "../support/platform-admin";
+import { fillCreateTenantForm, openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can create archive and restore a tenant", async ({ page }) => {
   const tenant = buildE2ETenantIdentity("tenant");
@@ -14,8 +14,7 @@ test("platform admin can create archive and restore a tenant", async ({ page }) 
   ).toBeVisible();
 
   const createForm = await openCreateTenantForm(page);
-  await createForm.getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i).fill(tenant.name);
-  await createForm.getByPlaceholder("empresa-centro").fill(tenant.slug);
+  await fillCreateTenantForm(createForm, tenant);
   await createForm
     .getByRole("button", { name: /Crear tenant|Create tenant/ })
     .click();
