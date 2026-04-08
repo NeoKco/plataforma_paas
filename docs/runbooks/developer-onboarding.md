@@ -119,16 +119,23 @@ cd /home/felipe/platform_paas/frontend
 cp .env.example .env
 ```
 
+La convención local recomendada en el mini PC ahora es:
+
+- backend dev: `127.0.0.1:8100`
+- frontend dev: `127.0.0.1:5173`
+
+Eso evita pisar la producción real que ya usa backend en `127.0.0.1:8000` detrás de `nginx`.
+
 La variable minima es:
 
-- `VITE_API_BASE_URL=http://127.0.0.1:8000`
+- `VITE_API_BASE_URL=http://127.0.0.1:8100`
 
 Instalacion y arranque:
 
 ```bash
 cd /home/felipe/platform_paas/frontend
 npm install
-npm run dev
+VITE_API_BASE_URL=http://127.0.0.1:8100 npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
 Flujo esperado al abrir el navegador:

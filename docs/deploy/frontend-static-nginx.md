@@ -67,7 +67,7 @@ Ejemplo típico productivo:
 VITE_API_BASE_URL=https://api.example.com
 ```
 
-Si no se define, el frontend intentará deducir una URL tipo `http(s)://<host>:8000`, útil para desarrollo pero no recomendable para producción pública.
+Si no se define, el frontend intentará deducir una URL tipo `http(s)://<host>:8100`, útil para desarrollo local pero no recomendable para producción pública.
 
 ## 3. Publicar `dist/` con `nginx`
 

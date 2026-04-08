@@ -171,7 +171,7 @@ Si tu entorno no tiene `empresa-bootstrap` operativo o usa otra clave, sobreescr
 
 Si otra IA tiene que correr la baseline sin rearmar el contexto del proyecto, esta es la secuencia mínima recomendada:
 
-1. confirmar backend en `127.0.0.1:8000`
+1. confirmar backend en `127.0.0.1:8100`
 2. confirmar tenant baseline `empresa-bootstrap`
 3. validar el spec de importación/mantenciones:
 
@@ -237,7 +237,7 @@ Resultado validado en local a la fecha:
 
 Resultado tenant revalidado al cierre de esta iteración:
 
-- backend local en `127.0.0.1:8000/health` → `200`
+- backend local en `127.0.0.1:8100/health` → `200`
 - `npm run e2e:tenant` → `22 passed`
 - `npm run e2e:platform` → `12 passed`, `3 skipped`
 - `npm run e2e` → `34 passed`, `3 skipped`

@@ -5,13 +5,13 @@ const TENANT_AUTH_ERROR_EVENT = "platform_paas:tenant-auth-error";
 
 export function getDefaultApiBaseUrl() {
   if (typeof window === "undefined") {
-    return "http://127.0.0.1:8000";
+    return "http://127.0.0.1:8100";
   }
 
   const protocol = window.location.protocol === "https:" ? "https:" : "http:";
   const hostname = window.location.hostname || "127.0.0.1";
 
-  return `${protocol}//${hostname}:8000`;
+  return `${protocol}//${hostname}:8100`;
 }
 
 export const API_BASE_URL =

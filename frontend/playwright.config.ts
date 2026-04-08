@@ -2,10 +2,10 @@ import { defineConfig } from "@playwright/test";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 
-const baseURL = process.env.E2E_BASE_URL?.trim() || "http://127.0.0.1:4173";
+const baseURL = process.env.E2E_BASE_URL?.trim() || "http://127.0.0.1:5173";
 const frontendCommand =
   process.env.E2E_FRONTEND_COMMAND?.trim() ||
-  "npm run dev -- --host 127.0.0.1 --port 4173";
+  "npm run dev -- --host 127.0.0.1 --port 5173";
 const useExistingFrontend = process.env.E2E_USE_EXISTING_FRONTEND === "1";
 const chromiumExecutablePath = [
   process.env.E2E_CHROMIUM_EXECUTABLE_PATH?.trim(),

@@ -3,7 +3,7 @@ import { loginTenant } from "../support/auth";
 import { buildE2EText, buildFutureIso } from "../support/e2e-data";
 import { e2eEnv } from "../support/env";
 
-const tenantApiBaseUrl = process.env.VITE_API_BASE_URL?.trim() || "http://127.0.0.1:8000";
+const tenantApiBaseUrl = process.env.VITE_API_BASE_URL?.trim() || "http://127.0.0.1:8100";
 
 async function ensureFinanceSettingsPage(page: Page) {
   await page.goto("/tenant-portal/finance/settings");

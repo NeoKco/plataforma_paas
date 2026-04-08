@@ -22,20 +22,20 @@ Si no recuerdas el contexto del producto, empieza por:
 
 ```bash
 cd /home/felipe/platform_paas/backend
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8100
 ```
 
 ### Frontend
 
 ```bash
 cd /home/felipe/platform_paas/frontend
-npm run dev -- --host 0.0.0.0 --port 4173
+VITE_API_BASE_URL=http://127.0.0.1:8100 npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
 ### Verificación rápida
 
-- backend: `http://127.0.0.1:8000/health`
-- frontend: `http://127.0.0.1:4173`
+- backend: `http://127.0.0.1:8100/health`
+- frontend: `http://127.0.0.1:5173`
 
 Si `installed=false`, el flujo correcto es:
 

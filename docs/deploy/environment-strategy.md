@@ -33,6 +33,9 @@ Y mantener los ejemplos del repo solo como plantillas.
 - `DEBUG=true`
 - puede trabajar con valores menos estrictos
 - pensado para instalacion local y pruebas manuales
+- en el mini PC compartido con producción, usar puertos dev separados:
+  - backend: `127.0.0.1:8100`
+  - frontend: `127.0.0.1:5173`
 
 ### Staging
 
@@ -40,6 +43,9 @@ Y mantener los ejemplos del repo solo como plantillas.
 - `DEBUG=false`
 - credenciales separadas de produccion
 - replica el flujo operativo sin tocar datos reales
+- si vive en el mismo mini PC, reservar puertos distintos a dev y prod:
+  - backend: `127.0.0.1:8200`
+  - frontend o preview: `127.0.0.1:5273`
 
 ### Production
 
@@ -47,6 +53,9 @@ Y mantener los ejemplos del repo solo como plantillas.
 - `DEBUG=false`
 - secretos fuertes
 - certificados, backups y timers reales
+- mini PC actual:
+  - backend: `127.0.0.1:8000`
+  - frontend publicado por `nginx` en `https://orkestia.ddns.net`
 
 ## Uso Local
 
@@ -82,6 +91,18 @@ Si staging vive en la misma maquina, conviene duplicar la unidad `systemd` con:
 - `EnvironmentFile` distinto
 - puerto backend distinto
 - `server_name` y `nginx` separados
+
+Convención recomendada para el mini PC actual:
+
+- desarrollo local:
+  - backend `8100`
+  - frontend `5173`
+- staging/test:
+  - backend `8200`
+  - frontend `5273`
+- producción:
+  - backend `8000`
+  - publicación pública en `80/443` con `nginx`
 
 Wrappers incluidos para reducir errores manuales:
 
