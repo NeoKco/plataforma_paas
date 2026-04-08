@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-08
-- foco de iteración: cierre del frente `tenant_portal sidebar backend-driven` + alineación real del carril `dev`
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo y sidebar tenant ya filtrando por `effective_enabled_modules`
+- foco de iteración: endurecimiento de `Nuevo tenant` en `platform_admin` + visibilidad real de módulos por `plan`
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules` y alta de tenant ya preparada para exigir admin inicial explícito
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -24,14 +24,17 @@
 - el staging ya fue restaurado otra vez a espejo instalado y hoy responde con `installed=true`
 - el sidebar principal del `tenant_portal` ya quedó backend-driven según `/tenant/info.effective_enabled_modules`
 - el carril `dev` ya quedó alineado para reproducir ese gating: CORS local corregido a `5173` y política `TENANT_BILLING_GRACE_*` declarada en `.env`
+- el alta de `Nuevo tenant` ya quedó corregida en código para exigir `admin_full_name`, `admin_email` y `admin_password`
+- el alta de `Nuevo tenant` ya no depende de un bootstrap fijo compartido tipo `admin@<slug>.local / TenantAdmin123!`
+- `platform_admin` ya expone un `plan_catalog` visible para mostrar qué módulos habilita cada plan en el alta y en el bloque `Plan y módulos`
 
 ## Frente activo real al momento de este estado
 
-El frente activo real que se acaba de cerrar fue este:
+El frente activo real de esta iteración pasó a ser este:
 
-- endurecer `tenant_portal` para que el menú visible no dependa de hardcode frontend
-- validar ese gating en browser usando el baseline tenant y una reducción real de módulos efectivos
-- corregir el carril `dev` para que vuelva a servir como primer paso de validación antes de staging
+- corregir `platform_admin > Nuevo tenant` para que deje de crear siempre el mismo admin bootstrap implícito
+- mover esa responsabilidad al momento explícito del alta tenant
+- dejar visible para el operador que los módulos del tenant se habilitan por `plan`, no por toggles manuales
 
 ## Qué módulo se estaba construyendo
 
@@ -61,6 +64,7 @@ En otras palabras:
 - `business-core` ya está operativo en backend y frontend
 - `maintenance` ya está operativo en su primer corte funcional
 - `tenant_portal` ya refleja visualmente los módulos efectivos calculados por backend en su sidebar principal
+- `platform_admin` ya tiene en código el alta de tenant con admin inicial explícito y preview de módulos por plan
 
 ### A nivel transversal frontend
 
@@ -83,6 +87,7 @@ Se actualizaron documentos de:
 - backlog transversal por módulos
 - checklist de release funcional
 - checklist de aceptación operativa
+- guía de desarrollo y roadmap de `platform-core` para reflejar el alta explícita del admin tenant y la visibilidad plan-driven de módulos
 
 ### A nivel producción / deploy
 

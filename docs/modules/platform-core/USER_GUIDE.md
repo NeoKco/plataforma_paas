@@ -36,6 +36,14 @@ Referencia:
 Nota operativa:
 
 - la alta de tenant ya no debería quedar desplegada por defecto en la misma pantalla; se abre solo cuando el operador pulsa `Nuevo tenant`
+- `Nuevo tenant` ahora exige capturar explícitamente:
+  - nombre del admin inicial
+  - correo del admin inicial
+  - contraseña del admin inicial
+- para tenants nuevos ya no corresponde asumir un bootstrap fijo tipo `admin@<slug>.local / TenantAdmin123!`
+- los módulos del tenant no se habilitan con toggles manuales en el alta; se habilitan por el `plan`
+- la misma pantalla ya debe mostrar qué módulos activa el plan seleccionado
+- en tenants existentes, el bloque correcto para revisar o cambiar eso es `Plan y módulos`
 
 Referencia:
 

@@ -15,6 +15,44 @@ Para nuevas entradas usar:
 
 ---
 
+## 2026-04-08 — Nuevo tenant con admin explícito + módulos visibles por plan
+
+### Objetivo
+
+- eliminar la dependencia de un admin bootstrap fijo compartido para tenants nuevos
+- hacer visible en `platform_admin` que los módulos del tenant se habilitan por `plan`
+
+### Cambios principales
+
+- `platform_control` ahora acepta `admin_full_name`, `admin_email` y `admin_password` al crear tenant
+- el control DB guarda bootstrap admin explícito por tenant
+- provisioning reutiliza ese admin explícito al sembrar la DB tenant
+- se agrega la migración de control `0025_tenant_bootstrap_admin`
+- `platform_admin > Tenants` ahora exige admin inicial explícito en `Nuevo tenant`
+- el modal de alta ya muestra preview de módulos habilitados por el plan seleccionado
+- el bloque de tenant existente se vuelve explícito como `Plan y módulos`
+- se actualizan los smokes de `platform_admin` para rellenar admin explícito en el alta
+
+### Validaciones
+
+- `npm run build`: OK
+- `npx playwright test --list`: OK (`39 tests`)
+- suite backend del slice:
+  - `252 tests OK (skipped=1)`
+
+### Bloqueos
+
+- no hay bloqueo técnico de repo
+- falta todavía aplicar este frente al entorno real (`staging` / `production`)
+
+### Siguiente paso
+
+- desplegar a `staging`
+- validar el flujo visible de `Nuevo tenant` y `Plan y módulos`
+- si pasa, propagar a `production`
+
+---
+
 ## 2026-04-08 — Sidebar backend-driven de tenant_portal + realineación de dev
 
 ### Objetivo

@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-08T02:28:00-04:00",
+  "updated_at": "2026-04-08T09:35:00-04:00",
   "handoff_status": "active",
-  "current_focus": "sidebar backend-driven de tenant_portal cerrado + carril dev realineado para browser tenant",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, sidebar tenant filtrando por effective_enabled_modules y carril dev otra vez utilizable para smokes tenant",
+  "current_focus": "Nuevo tenant en platform_admin endurecido con admin inicial explicito + visibilidad de modulos por plan",
+  "project_phase": "produccion validada con HTTPS, staging/test separado y nuevo frente activo de platform_admin listo para desplegarse en vivo",
   "active_modules": [
     "platform-core",
     "finance",
@@ -25,7 +25,9 @@
     "orkestia.ddns.net ya quedo activo con HTTPS sobre la misma topologia single-host",
     "el mini PC ya opera con tres carriles separados: desarrollo 8100/5173, staging 8200/8081 y produccion 8000/443",
     "el staging ya puede alternar entre espejo instalado y bootstrap reset sin tocar production",
-    "el sidebar principal de tenant_portal debe consumir effective_enabled_modules desde /tenant/info y no volver a hardcodearse por modulo"
+    "el sidebar principal de tenant_portal debe consumir effective_enabled_modules desde /tenant/info y no volver a hardcodearse por modulo",
+    "todo tenant nuevo debe capturar admin inicial explicito al momento del alta",
+    "los modulos tenant-side siguen siendo plan-driven y deben hacerse visibles en la UI por preview de plan, no por toggles manuales ad hoc"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -50,15 +52,21 @@
     "staging restaurado realmente a espejo instalado con baseline frontend",
     "sidebar principal de tenant_portal filtrado por effective_enabled_modules",
     "smoke browser tenant-portal-sidebar-modules agregado y validado en dev aislado",
-    "carril dev alineado en CORS y billing grace para reproducir gating tenant-side"
+    "carril dev alineado en CORS y billing grace para reproducir gating tenant-side",
+    "nuevo tenant endurecido para exigir admin_full_name admin_email y admin_password",
+    "plan_catalog expuesto en capacidades de platform_control para preview visible de modulos por plan",
+    "provisioning reutiliza bootstrap admin explicito para tenants nuevos",
+    "suite backend del slice tenant/provisioning aprobada con 252 tests",
+    "frontend build y playwright list aprobados tras el cambio de platform_admin tenants"
   ],
   "blocking_issues": [],
-  "next_decision_required": "elegir el siguiente frente funcional o transversal ahora que production, staging y el gating principal de tenant_portal ya quedaron estables",
+  "next_decision_required": "desplegar y validar en vivo el frente Nuevo tenant admin explicito + modulos por plan usando staging como carril previo",
   "next_step_if_prod_host_exists": [
-    "mantener produccion estable",
-    "usar staging como carril previo real",
-    "mantener staging como espejo operativo para regresion normal",
-    "abrir el siguiente frente funcional o transversal con estado y roadmap explicitos"
+    "desplegar primero a staging",
+    "correr migracion de control 0025_tenant_bootstrap_admin",
+    "publicar backend y frontend staging",
+    "validar visualmente Nuevo tenant y Plan y modulos",
+    "si pasa, propagar a production"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -105,6 +113,9 @@
     "staging_bootstrap_reset": "pass",
     "staging_installer_browser_smoke": "pass",
     "staging_restore_to_mirror": "pass",
-    "tenant_sidebar_modules_smoke_dev_isolated": "pass"
+    "tenant_sidebar_modules_smoke_dev_isolated": "pass",
+    "platform_admin_new_tenant_backend_slice": "pass",
+    "platform_admin_new_tenant_frontend_build": "pass",
+    "platform_admin_new_tenant_playwright_list": "pass"
   }
 }

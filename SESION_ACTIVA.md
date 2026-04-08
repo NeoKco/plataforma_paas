@@ -25,9 +25,9 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Estado rápido vigente
 
 - fecha: 2026-04-08
-- foco activo: cierre del sidebar backend-driven de `tenant_portal` + realineación del carril `dev`
-- prioridad inmediata: elegir el siguiente frente real del roadmap
-- módulo o frente activo: transversal / platform-core / tenant portal
+- foco activo: `platform_admin > Nuevo tenant` con admin inicial explícito + módulos visibles por plan
+- prioridad inmediata: desplegar y validar este frente en `staging` y luego en `production`
+- módulo o frente activo: `platform-core` / `platform_admin` / `Tenants`
 
 ## Último contexto útil
 
@@ -48,24 +48,23 @@ Debe permanecer corto, operativo y fácil de escanear.
 - el sidebar principal del `tenant_portal` ya quedó backend-driven usando `effective_enabled_modules`
 - existe smoke browser dedicado `tenant-portal-sidebar-modules`
 - el carril `dev` ya quedó alineado para reproducir billing grace tenant-side con CORS y `.env` consistentes
+- en código, `Nuevo tenant` ya exige `admin_full_name`, `admin_email` y `admin_password`
+- en código, provisioning ya usa ese admin explícito en vez de depender de `TenantAdmin123!`
+- en código, `Tenants` ya muestra preview de módulos por `plan` y el bloque `Plan y módulos` queda visible para operación
 
 ## Bloqueo actual
 
-- no existe bloqueo productivo
-- no existe bloqueo técnico
-- el frente del sidebar tenant ya no bloquea nada
-- la única decisión abierta ya es cuál es el siguiente frente real del roadmap
+- no existe bloqueo técnico en repo
+- el único trabajo pendiente de este frente es despliegue + validación visible en `staging`/`production`
 
 ## Siguiente acción inmediata
 
-El siguiente movimiento correcto ya no es desplegar.
+El siguiente movimiento correcto sí es desplegar este frente:
 
-Es este:
-
-- mantener producción estable
-- usar staging como carril previo real
-- mantener `staging` como espejo operativo
-- elegir el siguiente frente del roadmap
+- correr migración de control `0025_tenant_bootstrap_admin` en `staging`
+- publicar backend/frontend staging
+- validar `Nuevo tenant` y `Plan y módulos`
+- si pasa, repetir en `production`
 
 ## Archivos a leer justo después de este
 
