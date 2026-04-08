@@ -15,6 +15,7 @@ Esta seccion agrupa guias de despliegue y operacion del proyecto.
 - [Backend Release y Rollback](./backend-release-and-rollback.md): base de deploy manual desde repo y rollback por ref git.
 - [Estrategia de Entornos](./environment-strategy.md): separacion base entre `development`, `staging` y `production`.
 - [Staging Single-Host](./staging-single-host.md): referencia del entorno de pruebas montado en el mini PC con backend `8200` y frontend `8081`.
+- [Reset Bootstrap de Staging](./staging-bootstrap-reset.md): vuelta controlada del staging al modo instalador inicial para ensayar bootstrap desde cero.
 - [Sincronizacion Externa de Backups](./external-backup-sync.md): copia de respaldos locales hacia almacenamiento externo.
 - [PostgreSQL Backup y Restore](./postgres-backup-and-restore.md): respaldo y recuperacion base para `platform_control` y tenants.
 - [Provisioning Worker](./provisioning-worker.md): ejecucion base de `provisioning_jobs` pendientes fuera del request HTTP.

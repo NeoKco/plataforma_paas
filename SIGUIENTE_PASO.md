@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-07
-- prioridad vigente: consolidar el uso del staging/test separado y decidir si también cubrirá bootstrap inicial
+- prioridad vigente: usar el staging/test ya separado con dos modos explícitos (`espejo` y `bootstrap reset`) y elegir el siguiente frente real
 
 ## Objetivo del próximo paso
 
@@ -15,7 +15,7 @@ El siguiente paso correcto es aprovechar el mini PC con tres carriles separados:
 - `staging/test`
 - `production`
 
-y decidir si el staging actual se mantiene como espejo instalado o si se le suma un reset controlado para validar el instalador desde cero.
+y usar el reset controlado de staging cuando haga falta validar el instalador desde cero.
 
 ## Prioridad inmediata
 
@@ -41,7 +41,6 @@ Ya existe un entorno staging separado:
 
 La próxima iteración debe elegir una sola de estas rutas:
 
-- automatizar reset/bootstrap del staging para ensayar instalación inicial
 - estabilización post-producción del host real
 - backlog transversal recomendado del PaaS
 - nuevo frente funcional explícito con documentación canónica desde el inicio
@@ -54,7 +53,7 @@ La próxima iteración debe elegir una sola de estas rutas:
 4. leer `ESTADO_ACTUAL.md`
 5. leer `REGLAS_IMPLEMENTACION.md`
 6. confirmar que producción y staging siguen saludables
-7. decidir si la siguiente iteración es `bootstrap reset de staging` o `nuevo frente funcional`
+7. decidir si la siguiente iteración ejecuta `bootstrap reset de staging` para una validación concreta o si abre directamente un `nuevo frente funcional`
 8. actualizar `ESTADO_ACTUAL.md` si cambia la prioridad real
 
 ## Qué debe actualizar la próxima IA al cerrar
@@ -71,7 +70,7 @@ Antes de escribir código funcional, debe partir desde esta realidad operativa:
 
 - producción ya está publicada y validada inicialmente con HTTPS en `orkestia.ddns.net`
 - staging/test ya existe en el mismo mini PC
-- lo pendiente ya no es deploy productivo, sino decidir el siguiente frente útil y si se automatiza el bootstrap en staging
+- lo pendiente ya no es deploy productivo, sino decidir el siguiente frente útil y cuándo usar el bootstrap reset de staging
 
 ## Regla de cierre de la próxima iteración
 
@@ -97,5 +96,5 @@ Y si una iteración importante cambia el estado real del proyecto, estos archivo
 
 Este archivo debería reescribirse cuando:
 
-- se decida si staging tendrá reset/bootstrap explícito
+- se use o no el `bootstrap reset` de staging en una iteración real
 - el proyecto pase desde hardening de entornos a nuevo desarrollo funcional

@@ -4,7 +4,7 @@
 
 - fecha: 2026-04-07
 - foco de iteración: separación operativa `dev/staging/prod` en mini PC y consolidación del entorno staging/test
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos y staging/test ya levantado en el mismo mini PC
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado y reset bootstrap de staging ya automatizado
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -19,6 +19,7 @@
 - el smoke remoto completo contra la URL pública ya pasó con `7/7` checks OK
 - desarrollo local ya no pisa producción: backend `8100`, frontend `5173`
 - staging/test ya quedó operativo: backend `8200`, frontend `8081`
+- el staging ya puede volver al modo instalador inicial mediante un wrapper seguro del repo
 
 ## Frente activo real al momento de este estado
 
@@ -28,7 +29,7 @@ Es este:
 
 - sostener producción ya validada sin mezclarla con desarrollo local
 - dejar staging/test utilizable como carril previo a producción
-- documentar claramente la diferencia entre staging espejo y bootstrap inicial
+- dejar resuelto el cambio de modo entre staging espejo y bootstrap inicial
 
 ## Qué módulo se estaba construyendo
 
@@ -101,6 +102,8 @@ Ya quedaron creados, documentados y usados realmente:
 - evidencia operativa post-deploy en `/opt/platform_paas/operational_evidence/`
 - smoke remoto backend aprobado sobre `https://orkestia.ddns.net`
 - baseline backend estable bajo `.env.staging` con `510 tests OK`
+- wrapper formal `deploy/reset_staging_bootstrap.sh` para devolver staging al modo bootstrap sin tocar `production`
+- smoke browser opt-in del instalador para validar `/install` en staging bootstrap
 
 ### A nivel handoff entre IAs
 
@@ -218,7 +221,7 @@ La salida inicial ya quedó validada para operación:
 
 Lo que queda ahora no es un pendiente de cutover, sino decisión de continuidad:
 
-- decidir si el staging actual quedará como espejo instalado o si se agregará un reset explícito para validar bootstrap inicial
+- ejecutar o no el reset bootstrap según la necesidad de la iteración
 - decidir cuál es el siguiente frente real de producto o hardening transversal
 - seguir con backlog explícito, no con pendientes implícitos de deploy
 

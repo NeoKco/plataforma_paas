@@ -21,6 +21,7 @@ Estado práctico de cierre:
 - cierre operativo técnico: `Completado en mini PC Debian con HTTPS`
 - cierre operativo definitivo: `Completado`
 - entorno staging/test separado en el mismo mini PC: `Completado`
+- reset controlado de `staging` para volver al instalador inicial: `Completado`
 
 ## Cerrado
 
@@ -92,7 +93,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - algunos recorridos siguen mejor cubiertos por backend tests que por browser E2E
 - la documentación central era abundante pero estaba dispersa; ya quedó indexada, pero aún puede seguir normalizándose
 - el backend ya calcula y aplica entitlements por módulo tenant, pero el menú frontend sigue hardcodeado y todavía no filtra por contrato/billing
-- el staging operativo actual quedó en modo `installed`; falta decidir si se mantiene así o si se suma una rutina explícita de reset para ensayar el instalador
+- el staging ya puede alternar entre espejo instalado y bootstrap reset, pero ese cambio de modo debe quedar explicitado en los archivos raíz de continuidad
 
 ## Conclusión práctica
 

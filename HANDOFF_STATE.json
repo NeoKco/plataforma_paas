@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-07T23:40:00-04:00",
+  "updated_at": "2026-04-07T23:55:00-04:00",
   "handoff_status": "active",
-  "current_focus": "mini PC con dev/staging/prod separados + staging operativo",
-  "project_phase": "produccion validada con HTTPS y staging/test separado ya desplegado en el mismo mini PC",
+  "current_focus": "mini PC con dev/staging/prod separados + staging con reset bootstrap automatizado",
+  "project_phase": "produccion validada con HTTPS, staging/test separado y carril bootstrap reset ya documentado en el mismo mini PC",
   "active_modules": [
     "platform-core",
     "finance",
@@ -24,7 +24,7 @@
     "la primera salida productiva real puede operar temporalmente en topologia single-host sobre un mini PC",
     "orkestia.ddns.net ya quedo activo con HTTPS sobre la misma topologia single-host",
     "el mini PC ya opera con tres carriles separados: desarrollo 8100/5173, staging 8200/8081 y produccion 8000/443",
-    "el staging actual existe como espejo instalado y no como bootstrap limpio"
+    "el staging ya puede alternar entre espejo instalado y bootstrap reset sin tocar production"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -40,14 +40,15 @@
     "staging/test separado levantado en /opt/platform_paas_staging",
     "platform-paas-backend-staging activo en systemd",
     "health staging validado en 8200 y 8081",
-    "baseline backend endurecida para ignorar settings heredados desde env staging/prod"
+    "baseline backend endurecida para ignorar settings heredados desde env staging/prod",
+    "wrapper formal deploy/reset_staging_bootstrap.sh agregado para staging"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir si el staging actual debe seguir como espejo instalado o si se automatizara un reset/bootstrap controlado para validar instalacion inicial",
+  "next_decision_required": "decidir en que iteracion se usara el bootstrap reset de staging y cual sera el siguiente frente funcional o transversal",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
-    "decidir si la siguiente iteracion automatiza reset/bootstrap de staging o abre otro frente del roadmap"
+    "usar bootstrap reset solo cuando haga falta validar el instalador y luego abrir otro frente del roadmap"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -73,7 +74,8 @@
     "ESTADO_ACTUAL.md",
     "SIGUIENTE_PASO.md",
     "docs/deploy/environment-strategy.md",
-    "docs/deploy/staging-single-host.md"
+    "docs/deploy/staging-single-host.md",
+    "docs/deploy/staging-bootstrap-reset.md"
   ],
   "validation_status": {
     "backend_baseline": "pass",

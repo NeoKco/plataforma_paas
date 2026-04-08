@@ -42,13 +42,41 @@ Para nuevas entradas usar:
 
 ### Bloqueos
 
-- staging actualmente quedó en modo `installed`
-- si se quiere validar el instalador desde cero, falta un reset explícito del entorno staging o un staging efímero adicional
+- no hay bloqueo técnico en este frente
+- el siguiente uso del staging debe dejar explícito si corre como `espejo` o como `bootstrap reset`
 
 ### Siguiente paso
 
-- decidir si la siguiente iteración automatiza el reset/bootstrap de staging
-- o si se pasa ya a otro frente funcional del roadmap
+- usar el wrapper de `bootstrap reset` cuando se necesite validar el instalador
+- después abrir el siguiente frente funcional o transversal explícito
+
+## 2026-04-07 — Staging bootstrap reset automatizado
+
+### Objetivo
+
+- dejar una forma segura y repetible de volver `staging` al modo instalador inicial
+
+### Cambios principales
+
+- se agrega `deploy/reset_staging_bootstrap.sh`
+- se agrega `docs/deploy/staging-bootstrap-reset.md`
+- `staging-single-host.md` reconoce formalmente los modos `espejo instalado` y `bootstrap reset`
+- se agrega smoke browser opt-in `platform-admin-installer-availability.smoke.spec.ts`
+
+### Validaciones
+
+- `bash -n deploy/reset_staging_bootstrap.sh`: esperado para esta iteración
+- `Playwright --list` debe incluir el spec del instalador sin romper la baseline normal
+
+### Bloqueos
+
+- no hay bloqueo técnico
+- falta solo decidir en qué iteración se quiere ejecutar el reset real sobre el staging operativo
+
+### Siguiente paso
+
+- ejecutar el reset real si la siguiente validación necesita probar `/install`
+- si no, abrir directamente el siguiente frente del roadmap
 
 ## 2026-04-07 — Bootstrap productivo real en mini PC
 

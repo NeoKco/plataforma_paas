@@ -23,15 +23,22 @@ Guia operativa del entorno `staging/test` montado en el mismo mini PC que produc
 - `GET http://127.0.0.1:8081/health`: OK
 - SPA servida por `nginx` en `8081`: OK
 
-## Importante: modo actual del staging
+## Modos validos del staging
 
-Hoy `staging` esta levantado como espejo instalado del PaaS.
+El staging puede operar en dos modos distintos:
 
-Eso significa:
+### 1. Espejo instalado
 
 - existe `/opt/platform_paas_staging/.platform_installed`
 - la UI entra al flujo normal del producto
-- no esta mostrando por defecto las pantallas iniciales de instalacion/bootstrap
+- sirve para regresion funcional antes de tocar `production`
+
+### 2. Bootstrap reset
+
+- no existe `.platform_installed`
+- `/health` responde con `"installed": false`
+- el frontend termina en el flujo `/install`
+- sirve para ensayar la instalacion inicial desde cero
 
 ## Cuando usar este staging
 
@@ -44,22 +51,14 @@ Usarlo para:
 
 ## Si quieres probar bootstrap inicial desde cero
 
-No conviene reutilizar ciegamente este staging activo.
+La ruta canonica ya no es manual.
 
-La ruta correcta es una de estas:
+Usar:
 
-1. reset controlado del staging actual
-2. segundo staging efimero solo para bootstrap
+- [reset_staging_bootstrap.sh](/home/felipe/platform_paas/deploy/reset_staging_bootstrap.sh)
+- [Reset Bootstrap de Staging](./staging-bootstrap-reset.md)
 
-Reset controlado implica como minimo:
-
-- detener `platform-paas-backend-staging`
-- limpiar o recrear `platform_control_staging`
-- remover `/opt/platform_paas_staging/.platform_installed`
-- confirmar `PLATFORM_INSTALLED=false` en `.env.staging`
-- volver a levantar backend y frontend staging
-
-Ese reset no debe hacerse por sorpresa si el staging se esta usando para regresion funcional.
+Ese reset no debe dispararse por sorpresa si el staging se esta usando para regresion funcional.
 
 ## Relacion con otros entornos del mini PC
 
@@ -79,3 +78,5 @@ Mantener dos usos distintos:
 
 - `staging espejo`: para validar la app ya instalada
 - `bootstrap reset`: solo cuando haya que ensayar instalacion inicial
+
+Si al terminar una iteracion cambias el modo real del staging, debes actualizar los archivos raíz de continuidad.

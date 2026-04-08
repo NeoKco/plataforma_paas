@@ -8,6 +8,9 @@ function readOptionalEnv(name: string) {
 }
 
 export const e2eEnv = {
+  installer: {
+    expected: readOptionalEnv("E2E_EXPECT_INSTALLER") === "1",
+  },
   platform: {
     email: readEnv("E2E_PLATFORM_EMAIL", "admin@platform.local"),
     password: readEnv("E2E_PLATFORM_PASSWORD", "AdminTemporal123!"),

@@ -26,7 +26,7 @@ Debe permanecer corto, operativo y fácil de escanear.
 
 - fecha: 2026-04-07
 - foco activo: separación `dev/staging/prod` ya operativa en mini PC
-- prioridad inmediata: decidir si el staging actual también cubrirá bootstrap inicial
+- prioridad inmediata: dejar validado el carril `bootstrap reset` de staging y luego abrir el siguiente frente real
 - módulo o frente activo: transversal / platform-core / staging-test
 
 ## Último contexto útil
@@ -47,7 +47,8 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Bloqueo actual
 
 - no existe bloqueo productivo
-- la única decisión abierta es si el staging actual seguirá como espejo instalado o si se sumará un reset/bootstrap explícito
+- no existe bloqueo técnico
+- la única decisión abierta es cuándo usar el `bootstrap reset` recién automatizado y cuál será el siguiente frente funcional o transversal
 
 ## Siguiente acción inmediata
 
@@ -57,7 +58,8 @@ Es este:
 
 - mantener producción estable
 - usar staging como carril previo real
-- decidir si la siguiente iteración automatiza bootstrap/reset de staging o abre otro frente del roadmap
+- ejecutar `bootstrap reset` solo cuando una iteración necesite validar el instalador desde cero
+- elegir después el siguiente frente del roadmap
 
 ## Archivos a leer justo después de este
 

@@ -47,7 +47,7 @@ Y mantener los ejemplos del repo solo como plantillas.
   - backend: `127.0.0.1:8200`
   - frontend publicado por `nginx`: `http://192.168.7.42:8081`
 - el staging operativo actual ya existe en `/opt/platform_paas_staging`
-- hoy funciona como espejo instalado; si se necesita validar bootstrap inicial, hace falta reset controlado o un staging efimero adicional
+- hoy puede operar como espejo instalado o quedar temporalmente en modo bootstrap mediante `deploy/reset_staging_bootstrap.sh`
 
 ### Production
 
@@ -116,10 +116,12 @@ Wrappers incluidos para reducir errores manuales:
 
 - `deploy/deploy_backend_staging.sh`
 - `deploy/deploy_backend_production.sh`
+- `deploy/reset_staging_bootstrap.sh`
 
 Referencia operativa del staging actual:
 
 - [Staging Single-Host](./staging-single-host.md)
+- [Reset Bootstrap de Staging](./staging-bootstrap-reset.md)
 
 Validador previo de entorno:
 

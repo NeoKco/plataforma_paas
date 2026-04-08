@@ -41,6 +41,7 @@ Cobertura validada:
 Specs actuales:
 
 - [platform-admin.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin.smoke.spec.ts)
+- [platform-admin-installer-availability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-installer-availability.smoke.spec.ts)
 - [platform-admin-tenant-lifecycle.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-lifecycle.smoke.spec.ts)
 - [platform-admin-tenant-portal-access.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-portal-access.smoke.spec.ts)
 - [platform-admin-tenant-portal-blocked.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-portal-blocked.smoke.spec.ts)
@@ -83,6 +84,7 @@ Variables de entorno:
 - el baseline actualmente validado usa `empresa-bootstrap`, porque queda reservado como tenant estable para pruebas browser tenant
 - si tu entorno no tiene ese tenant o usa otra clave, sobreescribe `E2E_TENANT_*`
 - en el mini PC ya existe además un `staging` separado en `http://192.168.7.42:8081`; usarlo solo cuando quieras validar sobre el entorno de pruebas publicado, no para la baseline local por defecto
+- si quieres validar el instalador inicial, primero resetea `staging` a modo bootstrap con [reset_staging_bootstrap.sh](/home/felipe/platform_paas/deploy/reset_staging_bootstrap.sh) y luego corre el smoke opt-in del instalador
 
 ## Regla oficial de continuidad
 
@@ -186,6 +188,10 @@ Notas:
 - el frontend puede levantarse automáticamente desde `playwright.config.ts`, o reutilizar uno existente con `E2E_USE_EXISTING_FRONTEND=1`
 - para instalar el navegador local usa `npm run e2e:install`
 - el baseline tenant actualmente validado es `empresa-bootstrap`
+- el smoke `platform-admin-installer-availability` no entra al baseline normal; solo corre si `E2E_EXPECT_INSTALLER=1`
+- para usar ese smoke sobre el mini PC:
+	- ejecutar `sudo bash deploy/reset_staging_bootstrap.sh --execute`
+	- correr `E2E_BASE_URL=http://192.168.7.42:8081 E2E_EXPECT_INSTALLER=1 npx playwright test e2e/specs/platform-admin-installer-availability.smoke.spec.ts`
 - credenciales validadas para esta iteración:
 	- `E2E_TENANT_SLUG=empresa-bootstrap`
 	- `E2E_TENANT_EMAIL=admin@empresa-bootstrap.local`
