@@ -32,10 +32,12 @@ Si el cambio es solo de estado puntual de una iteración, ese cambio pertenece m
 Si una IA llega sin contexto, este es el orden recomendado:
 
 1. `PROJECT_CONTEXT.md`
-2. `REGLAS_IMPLEMENTACION.md`
-3. `ESTADO_ACTUAL.md`
-4. `SIGUIENTE_PASO.md`
-5. documentación canónica del módulo o frente activo
+2. `SESION_ACTIVA.md`
+3. `PROMPT_MAESTRO_MODULO.md`
+4. `REGLAS_IMPLEMENTACION.md`
+5. `ESTADO_ACTUAL.md`
+6. `SIGUIENTE_PASO.md`
+7. documentación canónica del módulo o frente activo
 
 Con eso debería poder responder rápidamente:
 
@@ -126,12 +128,18 @@ Vive en:
 
 Vive en:
 
+- `SESION_ACTIVA.md`
 - `ESTADO_ACTUAL.md`
 - `SIGUIENTE_PASO.md`
 
 La primera capa explica el proyecto.
 
 La segunda capa explica en qué punto exacto quedó el trabajo.
+
+Matiz operativo:
+
+- `SESION_ACTIVA.md` sirve como puntero corto para retomar en segundos
+- `ESTADO_ACTUAL.md` y `SIGUIENTE_PASO.md` siguen siendo la fuente descriptiva principal del estado vivo
 
 Regla operativa asociada:
 

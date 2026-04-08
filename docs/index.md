@@ -20,6 +20,7 @@ La documentacion ya cubre arquitectura, modulos, runbooks, deploy, API y baselin
 Además del árbol `docs/`, el proyecto mantiene un set de archivos raíz para handoff rápido entre developers o IAs:
 
 - [PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md)
+- [SESION_ACTIVA.md](../SESION_ACTIVA.md)
 - [REGLAS_IMPLEMENTACION.md](../REGLAS_IMPLEMENTACION.md)
 - [PROMPT_MAESTRO_MODULO.md](../PROMPT_MAESTRO_MODULO.md)
 - [ESTADO_ACTUAL.md](../ESTADO_ACTUAL.md)
@@ -38,6 +39,8 @@ La regla práctica es esta:
 ## Documento Inicial Recomendado
 
 - [Contexto raiz del proyecto](../PROJECT_CONTEXT.md)
+- [Sesión activa / puntero corto](../SESION_ACTIVA.md)
+- [Prompt maestro de reanudación](../PROMPT_MAESTRO_MODULO.md)
 - [Reglas de implementacion raiz](../REGLAS_IMPLEMENTACION.md)
 - [Estado actual de la iteracion](../ESTADO_ACTUAL.md)
 - [Siguiente paso recomendado](../SIGUIENTE_PASO.md)

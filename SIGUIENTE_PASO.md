@@ -91,16 +91,18 @@ Seguir:
 ## Orden exacto recomendado
 
 1. leer `PROJECT_CONTEXT.md`
-2. leer `ESTADO_ACTUAL.md`
-3. leer `REGLAS_IMPLEMENTACION.md`
-4. preparar servidor real
-5. preparar `.env` productivo
-6. correr preflight backend
-7. desplegar backend
-8. construir frontend con `VITE_API_BASE_URL` real
-9. publicar frontend con `nginx`
-10. correr smoke corto de terreno
-11. actualizar `ESTADO_ACTUAL.md` con resultado real del deploy
+2. leer `SESION_ACTIVA.md`
+3. leer `PROMPT_MAESTRO_MODULO.md`
+4. leer `ESTADO_ACTUAL.md`
+5. leer `REGLAS_IMPLEMENTACION.md`
+6. preparar servidor real
+7. preparar `.env` productivo
+8. correr preflight backend
+9. desplegar backend
+10. construir frontend con `VITE_API_BASE_URL` real
+11. publicar frontend con `nginx`
+12. correr smoke corto de terreno
+13. actualizar `ESTADO_ACTUAL.md` con resultado real del deploy
 
 ## Si todavía no hay servidor productivo
 

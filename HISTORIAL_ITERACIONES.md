@@ -15,6 +15,44 @@ Para nuevas entradas usar:
 
 ---
 
+## 2026-04-07 — Endurecimiento del prompt maestro de continuidad
+
+### Objetivo
+
+- dejar un prompt root suficientemente fuerte para que cualquier IA retome el proyecto sin depender del chat previo
+
+### Cambios principales
+
+- se reescribió `PROMPT_MAESTRO_MODULO.md` con:
+  - orden de lectura obligatorio
+  - reglas de precedencia entre fuentes
+  - fase inicial de diagnóstico
+  - formato mínimo de respuesta
+  - obligación de actualizar handoff y estado
+- se agrega `SESION_ACTIVA.md` como puntero corto para alternar entre cuentas o sesiones sin releer todo el estado vivo
+- se reforzó `ESTADO_ACTUAL.md` para dejar explícito ese protocolo como decisión cerrada
+
+### Validaciones
+
+- revisión manual de consistencia contra:
+  - `PROJECT_CONTEXT.md`
+  - `REGLAS_IMPLEMENTACION.md`
+  - `ESTADO_ACTUAL.md`
+  - `SIGUIENTE_PASO.md`
+  - `HANDOFF_STATE.json`
+  - documentación canónica de arquitectura y E2E
+
+### Bloqueos
+
+- no cambia el bloqueo principal del proyecto: sigue faltando host productivo real confirmado en este workspace
+
+### Siguiente paso
+
+- sigue vigente la misma decisión raíz:
+  - confirmar si ya existe host productivo real
+  - si existe, ir a preflight y cutover
+  - si no existe, preparar release packet o retomar backlog residual explícito
+
 ## 2026-04-07 — Handoff entre IAs y preparación de producción
 
 ### Objetivo

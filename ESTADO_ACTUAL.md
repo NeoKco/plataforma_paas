@@ -91,10 +91,19 @@ Ya quedaron creados y documentados:
 Ya quedaron creados y enlazados desde el repo:
 
 - `PROJECT_CONTEXT.md`
+- `SESION_ACTIVA.md`
 - `REGLAS_IMPLEMENTACION.md`
 - `PROMPT_MAESTRO_MODULO.md`
 - `ESTADO_ACTUAL.md`
 - `SIGUIENTE_PASO.md`
+
+Además, el `PROMPT_MAESTRO_MODULO.md` ya quedó endurecido para obligar:
+
+- precedencia explícita entre fuentes root, arquitectura y módulos
+- fase inicial de diagnóstico antes de ejecutar
+- formato de respuesta homogéneo entre IAs
+- actualización obligatoria de estado e handoff si la iteración cambia el estado real
+- lectura inicial rápida desde `SESION_ACTIVA.md` para alternar entre cuentas sin perder el hilo
 
 Además, `README.md`, `docs/index.md` y la gobernanza ya apuntan a ellos como memoria viva del proyecto.
 
@@ -103,10 +112,13 @@ Además, `README.md`, `docs/index.md` y la gobernanza ya apuntan a ellos como me
 ### Archivos raíz de continuidad creados recientemente
 
 - `PROJECT_CONTEXT.md`
+- `SESION_ACTIVA.md`
 - `REGLAS_IMPLEMENTACION.md`
 - `PROMPT_MAESTRO_MODULO.md`
 - `ESTADO_ACTUAL.md`
 - `SIGUIENTE_PASO.md`
+- `HANDOFF_STATE.json`
+- `HISTORIAL_ITERACIONES.md`
 
 ### Frontend / transversal ya tocado en iteraciones recientes
 
@@ -174,6 +186,8 @@ Entre los archivos frontend más relevantes ya intervenidos están:
    - frontend estático separado
    - `nginx` delante
 7. la memoria útil del proyecto debe vivir en archivos del repo, no en el chat
+8. toda IA que retome debe partir con diagnóstico explícito antes de proponer o ejecutar cambios
+9. `SESION_ACTIVA.md` queda como puntero corto oficial para retomar entre cuentas o sesiones con cuota limitada
 
 ## Qué falta exactamente
 

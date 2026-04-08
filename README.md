@@ -27,6 +27,7 @@ Guia rapida:
 Si alguien retoma el trabajo sin contexto conversacional, debe partir por estos archivos del root:
 
 - [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)
+- [SESION_ACTIVA.md](./SESION_ACTIVA.md)
 - [REGLAS_IMPLEMENTACION.md](./REGLAS_IMPLEMENTACION.md)
 - [PROMPT_MAESTRO_MODULO.md](./PROMPT_MAESTRO_MODULO.md)
 - [ESTADO_ACTUAL.md](./ESTADO_ACTUAL.md)
@@ -171,6 +172,7 @@ Referencia:
 ## Documentacion recomendada
 
 - [Contexto raiz del proyecto](./PROJECT_CONTEXT.md)
+- [Sesión activa / puntero corto](./SESION_ACTIVA.md)
 - [Reglas de implementacion](./REGLAS_IMPLEMENTACION.md)
 - [Estado actual de la iteracion](./ESTADO_ACTUAL.md)
 - [Siguiente paso recomendado](./SIGUIENTE_PASO.md)

@@ -19,6 +19,7 @@ Si una tarea cambia el estado real del proyecto, debe quedar reflejada en docume
 Antes de tocar código, revisar al menos:
 
 - `PROJECT_CONTEXT.md`
+- `SESION_ACTIVA.md`
 - `ESTADO_ACTUAL.md`
 - `SIGUIENTE_PASO.md`
 - documentación canónica del módulo afectado
@@ -166,6 +167,7 @@ Salvo que la tarea lo exija claramente:
 
 Al terminar una iteración importante, actualizar si aplica:
 
+- `SESION_ACTIVA.md`
 - `ESTADO_ACTUAL.md`
 - `SIGUIENTE_PASO.md`
 
@@ -213,6 +215,15 @@ Actualizar cuando cambie cualquiera de estos puntos:
 - archivos tocados relevantes
 - backlog exacto restante
 - bloqueos reales
+
+### `SESION_ACTIVA.md`
+
+Actualizar cuando cambie:
+
+- el foco inmediato
+- el bloqueo principal
+- la siguiente acción concreta para retomar
+- el frente activo entre cuentas o sesiones
 
 ### `SIGUIENTE_PASO.md`
 

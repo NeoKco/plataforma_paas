@@ -1,102 +1,117 @@
 # PROMPT_MAESTRO_MODULO
 
-Usar este prompt como base cuando una IA retome un módulo o una iteración transversal del proyecto.
+Usar este prompt como base cuando una IA retome un módulo, una iteración transversal o una salida a producción del proyecto.
+
+La meta es que cualquier IA pueda continuar desde el repo sin depender del chat previo.
 
 ---
 
-## Prompt base
+## Prompt maestro recomendado
 
-Estás trabajando en el repositorio `platform_paas`.
+Estoy trabajando en el repositorio `platform_paas`.
 
-Antes de implementar, debes leer y respetar estos archivos del root:
+Antes de responder, proponer o tocar código, debes leer y usar como contexto principal estos archivos del root, en este orden:
 
-- `PROJECT_CONTEXT.md`
-- `REGLAS_IMPLEMENTACION.md`
-- `ESTADO_ACTUAL.md`
-- `SIGUIENTE_PASO.md`
+1. `PROJECT_CONTEXT.md`
+2. `SESION_ACTIVA.md`
+3. `REGLAS_IMPLEMENTACION.md`
+4. `ESTADO_ACTUAL.md`
+5. `SIGUIENTE_PASO.md`
+6. `HANDOFF_STATE.json`
+7. `HISTORIAL_ITERACIONES.md`
+8. `PLANTILLA_ACTUALIZACION_ESTADO.md`
+9. `PAQUETE_RELEASE_OPERADOR.md`
+10. `PROMPT_MAESTRO_MODULO.md`
 
-Y además la documentación canónica del módulo o frente afectado.
+Además, debes usar como fuente secundaria obligatoria la documentación canónica ya existente del repo, especialmente:
 
-### Tu tarea
+- `docs/architecture/implementation-governance.md`
+- `docs/architecture/module-build-standard.md`
+- `docs/architecture/module-slice-convention.md`
+- `docs/architecture/project-structure.md`
+- `docs/runbooks/developer-onboarding.md`
+- `docs/runbooks/backend-rules-and-change-guidelines.md`
+- `docs/runbooks/frontend-e2e-browser.md`
+- `frontend/e2e/README.md`
+- y la documentación canónica del módulo o frente afectado en `docs/modules/<modulo>/`
 
-1. entender el estado real del proyecto antes de tocar código
-2. identificar qué parte de la tarea ya está hecha y qué parte no
-3. no reabrir decisiones ya cerradas sin dejarlo explícito
-4. implementar solo lo necesario con cambios mínimos y coherentes
-5. mantener documentación, validación y handoff al día
+## Reglas de precedencia
 
-### Reglas de ejecución
+- si hay conflicto entre chat y repo, manda el repo
+- si hay conflicto entre resumen operativo y documentación arquitectónica, debes explicitarlo
+- `ESTADO_ACTUAL.md`, `SIGUIENTE_PASO.md` y `HANDOFF_STATE.json` mandan para el foco vigente
+- `docs/architecture/*` manda para estándares y decisiones transversales
+- `docs/modules/<modulo>/*` manda para fronteras, roadmap y UX del módulo
 
-- la memoria del proyecto vive en archivos del repo, no en el chat
-- no asumir contexto no escrito
-- si una decisión ya está cerrada, respetarla
-- si una mejora es residual y no bloqueante, dejarla como backlog explícito
-- cualquier cambio visible debe actualizar documentación relevante
-- cualquier cambio operacional debe pensar en validación y deploy
+## Restricciones
 
-### Si el trabajo es sobre un módulo
+- no asumas contexto fuera del repo
+- no inventes estructura nueva si ya existe una convención documentada
+- respeta la arquitectura y decisiones ya cerradas
+- no modifiques `auth`, lifecycle tenant, provisioning o billing sin necesidad explícita
+- sigue el patrón `router -> service -> repository`
+- no abras trabajo nuevo si `SIGUIENTE_PASO.md` indica otra prioridad vigente
+- si el estado real cambia durante la iteración, debes mantener actualizados:
+  - `SESION_ACTIVA.md`
+  - `ESTADO_ACTUAL.md`
+  - `SIGUIENTE_PASO.md`
+  - `HANDOFF_STATE.json`
+  - `HISTORIAL_ITERACIONES.md`
+- usa `PLANTILLA_ACTUALIZACION_ESTADO.md` como guía para actualizar estado
+- si la iteración afecta salida a producción, también debes revisar y actualizar `PAQUETE_RELEASE_OPERADOR.md` si corresponde
 
-Debes responder al menos estas preguntas antes de editar:
+## Modo de trabajo obligatorio
 
-- cuál es el objetivo funcional del módulo
-- cuál es su frontera con otros módulos
-- qué documentación canónica ya existe
-- qué backlog ya está declarado
-- qué validaciones existen
-- qué no debe tocarse
+### Fase 1. Diagnóstico
 
-### Si el trabajo es transversal frontend
+Primero debes:
 
-Debes usar la capa transversal ya existente:
+- confirmar que entendiste el contexto
+- resumir el estado actual real del proyecto
+- decir cuál es el siguiente paso correcto según los archivos
+- listar los archivos clave que revisaste
+- indicar cualquier contradicción, ambigüedad o riesgo detectado
 
-- `pickLocalizedText()`
-- `AppIcon`
-- `AppSpotlight`
-- `AppBadge`
-- `AppToolbar`
-- `AppFilterGrid`
-- `AppTableWrap`
-- `AppForm`
+No debes editar código todavía, salvo que el usuario explícitamente pida ejecutar de inmediato.
 
-No abrir una convención paralela.
+### Fase 2. Propuesta o ejecución
 
-### Si el trabajo es de producción o deploy
+Solo después del diagnóstico:
 
-Debes revisar antes:
+- propón el cambio correcto o ejecútalo si te lo piden
+- limita el cambio al foco vigente
+- actualiza documentación, roadmap, changelog, E2E y handoff si el cambio lo exige
+- no dejes backlog implícito; si algo queda pendiente, déjalo explícito
 
-- `docs/deploy/backend-production-preflight.md`
-- `docs/deploy/frontend-static-nginx.md`
-- `docs/deploy/production-cutover-checklist.md`
-- `docs/deploy/backend-release-and-rollback.md`
+## Formato mínimo obligatorio de la primera respuesta
 
-Y usar los scripts del repo en vez de inventar flujo nuevo.
+1. `Contexto entendido`
+2. `Estado actual real`
+3. `Siguiente paso correcto`
+4. `Archivos revisados`
+5. `Riesgos o contradicciones detectadas`
 
-### Entregable mínimo esperado al terminar
+## Formato mínimo obligatorio de la respuesta de cierre
 
-Debes dejar claro:
+Si haces cambios, debes cerrar con:
 
-- qué hiciste
-- qué validaste
-- qué quedó pendiente
-- qué archivos se tocaron
-- si hace falta actualizar `ESTADO_ACTUAL.md`
-- cuál es el siguiente paso correcto
+1. `Qué hice`
+2. `Qué validé`
+3. `Qué archivos actualicé`
+4. `Qué quedó pendiente`
+5. `Cuál es ahora el siguiente paso correcto`
 
-Además, antes de cerrar debes revisar explícitamente:
+## Regla especial vigente del proyecto
 
-- si cambió el contexto estable del proyecto → actualizar `PROJECT_CONTEXT.md`
-- si cambió una regla transversal → actualizar `REGLAS_IMPLEMENTACION.md`
-- si cambió el estado real de la iteración → actualizar `ESTADO_ACTUAL.md`
-- si cambió la prioridad siguiente → actualizar `SIGUIENTE_PASO.md`
-- en cada iteración importante debes mantener estos archivos actualizados para no perder continuidad entre IAs
+Si los archivos indican que el foco actual es deploy, preflight o cutover productivo, no abras trabajo funcional nuevo salvo instrucción explícita del usuario.
 
 ---
 
-## Plantilla breve para módulos nuevos o retomados
+## Plantilla breve para iteraciones
 
-### Contexto del módulo
+### Contexto de la iteración
 
-- módulo:
+- frente o módulo:
 - objetivo:
 - estado actual:
 - documentación canónica:
@@ -121,10 +136,13 @@ Además, antes de cerrar debes revisar explícitamente:
 
 ### Handoff obligatorio al cerrar
 
-- actualizar `ESTADO_ACTUAL.md`
-- actualizar `SIGUIENTE_PASO.md`
-- actualizar roadmap/changelog si hubo cambio visible
-- declarar explícitamente si hubo bloqueo de entorno, de deploy o de producto
+- actualizar `ESTADO_ACTUAL.md` si cambia el estado real
+- actualizar `SESION_ACTIVA.md` si cambia el foco inmediato o el bloqueo principal
+- actualizar `SIGUIENTE_PASO.md` si cambia la prioridad siguiente
+- actualizar `HANDOFF_STATE.json` si cambia foco, bloqueos o validaciones
+- actualizar `HISTORIAL_ITERACIONES.md` si la iteración fue relevante
+- actualizar roadmap/changelog del módulo si hubo cambio visible o funcional
+- declarar explícitamente si hubo bloqueo de entorno, deploy o producto
 
 ---
 
@@ -132,4 +150,4 @@ Además, antes de cerrar debes revisar explícitamente:
 
 Usar esto cuando una nueva IA solo necesite retomar rápido:
 
-"Lee `PROJECT_CONTEXT.md`, `REGLAS_IMPLEMENTACION.md`, `ESTADO_ACTUAL.md` y `SIGUIENTE_PASO.md`. Luego revisa la documentación canónica del frente activo. No asumas contexto fuera del repo. Resume primero el estado real, identifica bloqueos reales y solo después propone o ejecuta el siguiente paso correcto." 
+`Lee PROJECT_CONTEXT.md, SESION_ACTIVA.md, REGLAS_IMPLEMENTACION.md, ESTADO_ACTUAL.md, SIGUIENTE_PASO.md y HANDOFF_STATE.json. Luego revisa la documentación canónica del frente activo. No asumas contexto fuera del repo. Resume primero el estado real, identifica bloqueos reales y solo después propone o ejecuta el siguiente paso correcto.`

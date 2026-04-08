@@ -31,7 +31,9 @@
     "build frontend productivo",
     "loader robusto de dotenv",
     "guia de cutover a produccion",
-    "archivos raiz para handoff entre IAs"
+    "archivos raiz para handoff entre IAs",
+    "prompt maestro endurecido con diagnostico obligatorio y precedencia explicita de fuentes",
+    "sesion_activa como puntero corto oficial para alternar entre cuentas"
   ],
   "blocking_issues": [
     "no existe host productivo confirmado dentro de este workspace",
@@ -67,6 +69,8 @@
   ],
   "key_files_to_read_first": [
     "PROJECT_CONTEXT.md",
+    "SESION_ACTIVA.md",
+    "PROMPT_MAESTRO_MODULO.md",
     "REGLAS_IMPLEMENTACION.md",
     "ESTADO_ACTUAL.md",
     "SIGUIENTE_PASO.md",
