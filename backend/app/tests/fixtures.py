@@ -4,8 +4,18 @@ from types import SimpleNamespace
 
 
 def set_test_environment() -> None:
+    # Keep backend tests deterministic even when the parent shell exports
+    # staging/production settings before Python imports the global settings object.
     os.environ["DEBUG"] = "true"
     os.environ["APP_ENV"] = "test"
+    os.environ["PROVISIONING_DISPATCH_BACKEND"] = "database"
+    os.environ["PROVISIONING_BROKER_URL"] = ""
+    os.environ["REDIS_URL"] = ""
+    os.environ["TENANT_API_RATE_LIMIT_BACKEND"] = "memory"
+    os.environ["TENANT_API_RATE_LIMIT_REDIS_URL"] = ""
+    os.environ["TENANT_PLAN_RATE_LIMITS"] = ""
+    os.environ["TENANT_PLAN_ENABLED_MODULES"] = ""
+    os.environ["TENANT_PLAN_MODULE_LIMITS"] = ""
 
 
 def build_tenant_request(

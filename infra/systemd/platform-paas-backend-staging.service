@@ -1,0 +1,18 @@
+[Unit]
+Description=Platform PaaS Backend Staging
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=platform
+Group=platform
+WorkingDirectory=/opt/platform_paas_staging/backend
+EnvironmentFile=/opt/platform_paas_staging/.env.staging
+ExecStart=/opt/platform_paas_staging/platform_paas_venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8200
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target
