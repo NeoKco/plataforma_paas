@@ -25,41 +25,36 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Estado rápido vigente
 
 - fecha: 2026-04-07
-- foco activo: continuidad entre IAs + preparación de salida a producción
-- prioridad inmediata: confirmar si ya existe host productivo real antes de abrir trabajo nuevo
-- módulo o frente activo: transversal / deploy / handoff
+- foco activo: producción real en mini PC + cierre de handoff entre IAs
+- prioridad inmediata: validación externa y endurecimiento TLS de `orkestia.ddns.net`
+- módulo o frente activo: transversal / deploy / post-cutover
 
 ## Último contexto útil
 
 - `finance` quedó cerrado en su alcance actual
 - `business-core` y `maintenance` quedaron operativos en su primer corte y alineados al frente transversal
 - el backlog residual editorial no bloquea salida a terreno
-- el proyecto quedó en estado "listo para salir", pero este workspace no es todavía el host productivo real
+- el mini PC ya quedó asumido como host productivo real
+- `/opt/platform_paas` ya existe como árbol productivo separado
+- `platform-paas-backend` ya quedó instalado en `systemd`
+- `nginx` ya publica la SPA y enruta backend por un único dominio HTTP: `orkestia.ddns.net`
 
 ## Bloqueo actual
 
-- no existe host productivo confirmado dentro de este workspace
-- no existe unidad `platform-paas-backend` en este host
-- el `.env` local no representa producción real
+- no se ha validado todavía acceso externo real desde navegador hacia `orkestia.ddns.net`
+- la primera salida quedó en HTTP single-host; falta endurecer TLS o separar `app/api`
+- `/opt/platform_paas` no ha sido resincronizado todavía con todos los cambios documentales posteriores al bootstrap
 
 ## Siguiente acción inmediata
 
-Responder primero esta pregunta:
+El siguiente movimiento correcto ya no es desplegar.
 
-- ¿ya existe un host productivo real listo para recibir el deploy?
+Es este:
 
-Si la respuesta es `sí`:
-
-- ir a preflight backend
-- preflight frontend
-- cutover
-- smoke corto de terreno
-
-Si la respuesta es `no`:
-
-- no simular producción desde este workspace
-- preparar paquete operativo para el host real
-- o retomar backlog residual explícito
+- validar desde navegador real `http://orkestia.ddns.net`
+- si el dominio ya resuelve bien hacia el mini PC, emitir TLS y pasar el host a `https`
+- reconstruir frontend con la URL pública final si cambia de `http` a `https`
+- ejecutar smoke corto de terreno y luego actualizar el estado post-producción
 
 ## Archivos a leer justo después de este
 
@@ -70,7 +65,8 @@ Si la respuesta es `no`:
 
 ## Última verificación útil conocida
 
-- baseline backend: OK
-- build frontend: OK
-- preflight frontend local: OK
-- preflight backend local: bloqueado por entorno no productivo
+- backend productivo en `/opt/platform_paas`: desplegado
+- `platform-paas-backend`: activo en `systemd`
+- `GET http://127.0.0.1:8000/health`: OK
+- `GET http://orkestia.ddns.net/health` validado por resolución local: OK
+- frontend static preflight en `/opt/platform_paas`: OK

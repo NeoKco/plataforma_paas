@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-07
-- foco de iteración: cierre de handoff entre IAs + preparación de salida a producción
-- estado general: código y documentación listos; producción real aún depende de host objetivo
+- foco de iteración: bootstrap productivo real en mini PC + cierre de handoff
+- estado general: código y documentación listos; producción técnica ya desplegada en mini PC, pendiente validación externa final
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -12,7 +12,9 @@
 - `business-core` y `maintenance` quedaron como foco transversal reciente
 - el remanente editorial de frontend quedó explícitamente como backlog no bloqueante
 - ya existen preflight backend/frontend y documentación de cutover
-- no se ejecutó producción real porque el workspace actual no es el host productivo
+- ya existe host productivo real sobre mini PC Debian
+- `/opt/platform_paas` quedó creado como árbol productivo separado
+- backend y frontend quedaron levantados en `orkestia.ddns.net` bajo topología single-host HTTP
 
 ## Frente activo real al momento de este estado
 
@@ -22,7 +24,8 @@ Es este:
 
 - consolidar continuidad entre IAs y developers
 - mantener backlog residual explícito
-- dejar el proyecto listo para salida a producción real en cuanto exista host objetivo
+- endurecer la salida productiva ya levantada
+- dejar la validación externa y TLS como siguiente cierre operativo
 
 ## Qué módulo se estaba construyendo
 
@@ -76,7 +79,7 @@ Se actualizaron documentos de:
 
 ### A nivel producción / deploy
 
-Ya quedaron creados y documentados:
+Ya quedaron creados, documentados y usados realmente:
 
 - preflight backend
 - preflight frontend estático
@@ -85,6 +88,10 @@ Ya quedaron creados y documentados:
 - guía de frontend estático con `nginx`
 - guía de preflight backend
 - checklist de cutover a producción
+- árbol productivo `/opt/platform_paas`
+- unidad `systemd` `platform-paas-backend`
+- publicación SPA + backend por rutas en `orkestia.ddns.net`
+- evidencia operativa post-deploy en `/opt/platform_paas/operational_evidence/`
 
 ### A nivel handoff entre IAs
 
@@ -173,6 +180,7 @@ Entre los archivos frontend más relevantes ya intervenidos están:
 - `infra/env/backend.production.example.env`
 - `infra/nginx/platform-paas-frontend.conf`
 - `infra/nginx/platform-paas-frontend-ssl.conf`
+- `infra/nginx/platform-paas-single-host.conf`
 
 ## Qué decisiones quedaron cerradas
 
@@ -181,10 +189,7 @@ Entre los archivos frontend más relevantes ya intervenidos están:
 3. `maintenance` depende de `business-core`; no debe duplicarlo
 4. el remanente editorial de i18n / `design system` en `business-core` y `maintenance` queda como backlog no bloqueante
 5. la salida a terreno no debe frenarse por copy residual si el flujo principal ya está validado
-6. el deploy recomendado para una primera salida productiva es:
-   - backend separado
-   - frontend estático separado
-   - `nginx` delante
+6. la topología objetivo recomendada sigue siendo backend y frontend separados, pero la primera salida productiva puede operar temporalmente como single-host en un mini PC
 7. la memoria útil del proyecto debe vivir en archivos del repo, no en el chat
 8. toda IA que retome debe partir con diagnóstico explícito antes de proponer o ejecutar cambios
 9. `SESION_ACTIVA.md` queda como puntero corto oficial para retomar entre cuentas o sesiones con cuota limitada
@@ -195,29 +200,23 @@ Entre los archivos frontend más relevantes ya intervenidos están:
 
 Lo que falta ya no es principalmente código de negocio.
 
-Lo que falta es ejecutar la salida real en un host de producción.
+Lo que falta es terminar de validar y endurecer la salida real ya levantada.
 
 Puntualmente:
 
-1. preparar servidor real en `/opt/platform_paas`
-2. crear `.env` productivo final y real
-3. instalar unidad `systemd` `platform-paas-backend`
-4. configurar `nginx` backend
-5. construir frontend con la URL real de API
-6. publicar `frontend/dist` con `nginx`
-7. correr preflight backend sin fallos
-8. correr preflight frontend sin fallos
-9. ejecutar cutover productivo
-10. ejecutar smoke corto de terreno
+1. validar acceso externo real desde navegador a `http://orkestia.ddns.net`
+2. emitir TLS para `orkestia.ddns.net` o separar `app/api` si ya existe DNS para eso
+3. reconstruir frontend con la URL pública final si cambia a `https`
+4. ejecutar smoke corto de terreno
+5. actualizar evidencia y estado post-producción final
 
 ### Falta de contexto operativo aún no resuelta
 
-Todavía no existe en este repo información concreta de producción real como:
+Todavía falta dejar explícito en el repo:
 
-- dominio backend definitivo
-- dominio frontend definitivo
-- host productivo definitivo
-- ruta exacta del servidor real ya provisionado
+- si `orkestia.ddns.net` quedará definitivo como host único o es solo paso intermedio
+- si se activará TLS sobre el mismo host o se migrará luego a `app/api`
+- evidencia de validación externa desde navegador real
 - evidencia de un primer cutover ejecutado
 
 Eso significa que el proyecto está listo para salir, pero no puede declararse todavía como “ya desplegado en producción”.

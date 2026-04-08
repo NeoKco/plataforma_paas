@@ -13,6 +13,20 @@ Pasar `platform_paas` desde estado "listo para salir" a estado "publicado y vali
 - checkout servidor: `/opt/platform_paas`
 - servicio backend: `platform-paas-backend`
 
+## Topología actualmente aplicada en el mini PC
+
+- host real: `orkestia.ddns.net`
+- checkout productivo: `/opt/platform_paas`
+- backend real: `platform-paas-backend` en `127.0.0.1:8000`
+- frontend real: SPA publicada por `nginx` en el mismo host
+- enrutamiento actual:
+  - `/` -> frontend
+  - `/platform/*` -> backend
+  - `/tenant/*` -> backend
+  - `/health` -> backend
+- estado actual: HTTP single-host operativo
+- siguiente endurecimiento recomendado: TLS real para `orkestia.ddns.net`
+
 ## 1. Precondiciones del host
 
 Debe existir:

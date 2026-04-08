@@ -3,86 +3,39 @@
 ## Última actualización
 
 - fecha: 2026-04-07
-- prioridad vigente: preparar y ejecutar salida real a producción si ya existe host objetivo
+- prioridad vigente: validar externamente y endurecer la producción ya levantada en `orkestia.ddns.net`
 
 ## Objetivo del próximo paso
 
-No abrir más trabajo difuso.
+No abrir más trabajo de producto.
 
-El siguiente paso correcto es mover el proyecto desde estado "listo para salir" a estado "publicado y validado en terreno".
-
-## Decisión previa obligatoria
-
-Antes de seguir, la siguiente IA debe responder explícitamente una pregunta:
-
-### ¿Ya existe un host productivo real listo para recibir el deploy?
-
-Solo hay dos respuestas válidas:
-
-- sí
-- no
-
-No seguir con ambigüedad.
-
-## Árbol de decisión rápido
-
-### Si la respuesta es `sí`
-
-Entonces el trabajo prioritario es:
-
-1. preflight backend
-2. preflight frontend
-3. cutover
-4. smoke corto de terreno
-5. actualización de estado post-producción
-
-### Si la respuesta es `no`
-
-Entonces el trabajo prioritario es:
-
-1. no simular deploy productivo desde este workspace
-2. dejar paquete operativo para el host real o
-3. retomar backlog residual explícito
+El siguiente paso correcto es mover el proyecto desde estado "desplegado técnicamente" a estado "validado externamente y endurecido para operación real".
 
 ## Prioridad inmediata
 
-### 1. Preparar host productivo real
+### 1. Validar acceso externo real
 
-Debe existir un host con esta base:
+Desde un navegador fuera del shell local:
 
-- `/opt/platform_paas`
-- checkout funcional del repo
-- virtualenv operativo
-- PostgreSQL listo
-- `nginx` listo
-- `systemd` listo
+- abrir `http://orkestia.ddns.net`
+- confirmar login `platform_admin`
+- confirmar login `tenant_portal`
 
-### 2. Preparar `.env` productivo final
+### 2. Endurecer transporte
 
-Debe existir:
+Elegir una de estas dos rutas:
 
-- `/opt/platform_paas/.env`
+- emitir TLS para `orkestia.ddns.net` y mantener single-host
+- o separar después `app/api` si ya tienes DNS adicional
 
-Y debe pasar el gate productivo real.
+### 3. Si cambia el origen público a HTTPS
 
-### 3. Ejecutar preflight backend
+Reconstruir frontend con la URL pública final:
 
-Correr:
+- `API_BASE_URL=https://orkestia.ddns.net bash deploy/build_frontend.sh`
+- `EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh`
 
-- `deploy/check_backend_release_readiness.sh`
-
-Hasta quedar con cero fallos.
-
-### 4. Ejecutar build y preflight frontend
-
-Correr:
-
-- `deploy/build_frontend.sh`
-- `deploy/check_frontend_static_readiness.sh`
-
-Con la URL real de API.
-
-### 5. Ejecutar cutover
+### 4. Ejecutar smoke corto de terreno
 
 Seguir:
 
@@ -95,51 +48,21 @@ Seguir:
 3. leer `PROMPT_MAESTRO_MODULO.md`
 4. leer `ESTADO_ACTUAL.md`
 5. leer `REGLAS_IMPLEMENTACION.md`
-6. preparar servidor real
-7. preparar `.env` productivo
-8. correr preflight backend
-9. desplegar backend
-10. construir frontend con `VITE_API_BASE_URL` real
-11. publicar frontend con `nginx`
-12. correr smoke corto de terreno
-13. actualizar `ESTADO_ACTUAL.md` con resultado real del deploy
-
-## Si todavía no hay servidor productivo
-
-Entonces no corresponde seguir tocando producción como si pudiera cerrarse desde este workspace.
-
-En ese caso, el siguiente paso útil pasa a ser solo uno de estos dos:
-
-### Opción A. Preparar release packet para operador
-
-Dejar listo un paquete claro con:
-
-- pasos exactos
-- dominios esperados
-- valores de variables necesarias
-- checklists de ejecución
-- criterios de aceptación
-
-### Opción B. Retomar backlog residual no bloqueante
-
-Solo si producción queda explícitamente pausada.
-
-El backlog residual más lógico para retomar sería:
-
-1. `BusinessCoreDuplicatesPage.tsx`
-2. `MaintenanceDueItemsPage.tsx`
-3. `MaintenanceOverviewPage.tsx`
-4. remanentes editoriales en catálogos `business-core`
+6. verificar desde navegador real `http://orkestia.ddns.net`
+7. decidir si se emitirá TLS sobre ese mismo host
+8. si cambia a HTTPS, reconstruir frontend con la URL final
+9. ejecutar smoke corto de terreno
+10. actualizar `ESTADO_ACTUAL.md` con resultado final post-cutover
 
 ## Qué debe actualizar la próxima IA al cerrar
 
-Si completa producción real:
+Si completa la validación externa / endurecimiento:
 
 - actualizar `ESTADO_ACTUAL.md`
 - reescribir este archivo con nuevo siguiente paso post-producción
 - dejar evidencia documental del cutover real
 
-Si no completa producción real:
+Si no completa la validación externa / endurecimiento:
 
 - declarar bloqueo exacto
 - actualizar `ESTADO_ACTUAL.md`
@@ -147,15 +70,10 @@ Si no completa producción real:
 
 ## Qué debe hacer otra IA al retomar
 
-Antes de escribir código, debe decidir primero cuál de estas dos situaciones es la real:
+Antes de escribir código funcional, debe decidir cuál es la realidad operativa:
 
-### Escenario 1. Ya existe host productivo
-
-Entonces debe priorizar deploy, preflight y cutover.
-
-### Escenario 2. No existe host productivo todavía
-
-Entonces no debe simular producción; debe dejar listo el paquete operativo o volver al backlog residual explícito.
+- producción ya está publicada técnicamente en `orkestia.ddns.net`
+- lo pendiente es validación externa, TLS y cierre de evidencia
 
 ## Regla de cierre de la próxima iteración
 
@@ -163,11 +81,11 @@ La próxima iteración debe terminar con una de estas dos salidas claras:
 
 ### Salida A
 
-- producción realmente ejecutada y validada
+- `orkestia.ddns.net` validado externamente y con siguiente endurecimiento definido
 
 ### Salida B
 
-- producción todavía no ejecutada, pero con contexto, checklist y estado actualizados sin ambigüedad
+- bloqueo explícito de DNS/TLS/navegador, con estado y runbook actualizados
 
 No cerrar la próxima iteración con un estado intermedio confuso.
 
@@ -181,6 +99,6 @@ Y si una iteración importante cambia el estado real del proyecto, estos archivo
 
 Este archivo debería reescribirse cuando:
 
-- exista confirmación de host productivo real
-- el siguiente paso deje de ser producción
-- se complete el cutover y el foco pase a estabilización post-terreno
+- se cierre la validación externa real
+- se active TLS definitivo o se separen `app/api`
+- el foco pase de cutover a estabilización post-terreno

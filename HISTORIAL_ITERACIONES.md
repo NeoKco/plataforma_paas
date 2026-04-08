@@ -15,6 +15,45 @@ Para nuevas entradas usar:
 
 ---
 
+## 2026-04-07 — Bootstrap productivo real en mini PC
+
+### Objetivo
+
+- ejecutar la primera salida productiva técnica real sobre el mini PC Debian usando `/opt/platform_paas`
+
+### Cambios principales
+
+- se crea `/opt/platform_paas` como árbol productivo separado del workspace de desarrollo
+- se crea el usuario de servicio `platform`
+- se instala la unidad `systemd` `platform-paas-backend`
+- se corrige `deploy/deploy_backend.sh` para exportar `PYTHONPATH` en migraciones y pruebas
+- se agrega `httpx` a `backend/requirements/base.txt` para que el deploy pueda ejecutar la baseline real que exige
+- se endurece `deploy/validate_backend_env.sh` para bloquear `TENANT_BOOTSTRAP_DB_PASSWORD_*` inseguros antes del restart
+- se agrega `infra/nginx/platform-paas-single-host.conf` y se publica frontend + backend por rutas bajo `orkestia.ddns.net`
+- se rotan en producción las bootstrap passwords inseguras de tenants demo para permitir arranque en `APP_ENV=production`
+
+### Validaciones
+
+- preflight backend en `/opt/platform_paas`: OK
+- deploy backend productivo: OK
+- baseline backend productiva: `510 tests OK`
+- `platform-paas-backend` en `systemd`: OK
+- `GET http://127.0.0.1:8000/health`: OK
+- build frontend en `/opt/platform_paas`: OK
+- frontend static preflight en `/opt/platform_paas`: OK
+- `GET http://orkestia.ddns.net/health` validado por resolución local: OK
+
+### Bloqueos
+
+- falta validación externa real desde navegador sobre `orkestia.ddns.net`
+- la salida actual sigue en HTTP single-host; TLS queda como endurecimiento inmediato recomendado
+
+### Siguiente paso
+
+- validar externamente `orkestia.ddns.net`
+- emitir TLS o decidir si luego se separará `app/api`
+- cerrar evidencia post-producción y actualizar el estado final
+
 ## 2026-04-07 — Endurecimiento del prompt maestro de continuidad
 
 ### Objetivo
