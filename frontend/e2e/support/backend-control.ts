@@ -102,6 +102,23 @@ type TenantPlanMutationResult = {
   tenantPlanEnabledModules: string[] | null;
 };
 
+type SeedTenantCatalogInput = {
+  name: string;
+  slug: string;
+  tenantType?: string;
+  adminFullName: string;
+  adminEmail: string;
+  adminPassword: string;
+  planCode?: string | null;
+};
+
+type SeededTenantCatalogRecord = {
+  tenantId: number;
+  tenantSlug: string;
+  status: string;
+  planCode: string | null;
+};
+
 function getRepoRoot() {
   const currentFilePath = fileURLToPath(import.meta.url);
   const currentDirPath = path.dirname(currentFilePath);
@@ -197,6 +214,67 @@ finally:
   ]);
 
   return JSON.parse(output) as SeededProvisioningJob;
+}
+
+export function seedPlatformTenantCatalogRecord({
+  name,
+  slug,
+  tenantType = "empresa",
+  adminFullName,
+  adminEmail,
+  adminPassword,
+  planCode = "anual",
+}: SeedTenantCatalogInput): SeededTenantCatalogRecord {
+  const script = `
+import json
+import sys
+
+from app.common.db.control_database import ControlSessionLocal
+from app.apps.platform_control.services.tenant_service import TenantService
+
+name = sys.argv[1]
+slug = sys.argv[2]
+tenant_type = sys.argv[3]
+admin_full_name = sys.argv[4]
+admin_email = sys.argv[5]
+admin_password = sys.argv[6]
+plan_code = sys.argv[7] or None
+
+db = ControlSessionLocal()
+service = TenantService()
+try:
+    tenant = service.create_tenant(
+        db=db,
+        name=name,
+        slug=slug,
+        tenant_type=tenant_type,
+        admin_full_name=admin_full_name,
+        admin_email=admin_email,
+        admin_password=admin_password,
+        plan_code=plan_code,
+    )
+
+    print(json.dumps({
+        "tenantId": tenant.id,
+        "tenantSlug": tenant.slug,
+        "status": tenant.status,
+        "planCode": tenant.plan_code,
+    }))
+finally:
+    db.close()
+`;
+
+  const output = runBackendPython(script, [
+    name,
+    slug,
+    tenantType,
+    adminFullName,
+    adminEmail,
+    adminPassword,
+    planCode || "",
+  ]);
+
+  return JSON.parse(output) as SeededTenantCatalogRecord;
 }
 
 export function getProvisioningDispatchInfo(): ProvisioningDispatchInfo {

@@ -1,8 +1,10 @@
 import { expect, test } from "../support/test";
-import { seedFailedProvisioningJob } from "../support/backend-control";
+import {
+  seedFailedProvisioningJob,
+  seedPlatformTenantCatalogRecord,
+} from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
 import { buildE2ETenantIdentity } from "../support/e2e-data";
-import { fillCreateTenantForm, openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can prefill DLQ investigation from failures by code", async ({
   page,
@@ -10,22 +12,15 @@ test("platform admin can prefill DLQ investigation from failures by code", async
   const tenant = buildE2ETenantIdentity("provisioning-dlq-investigation");
   const errorCode = `e2e-dlq-investigation-${tenant.id}`;
 
+  seedPlatformTenantCatalogRecord({
+    name: tenant.name,
+    slug: tenant.slug,
+    adminFullName: tenant.adminFullName,
+    adminEmail: tenant.adminEmail,
+    adminPassword: tenant.adminPassword,
+  });
+
   await loginPlatform(page);
-  await page.goto("/tenants");
-  await expect(page).toHaveURL(/\/tenants$/);
-
-  const createForm = await openCreateTenantForm(page);
-  await fillCreateTenantForm(createForm, tenant);
-  await createForm
-    .getByRole("button", { name: /Crear tenant|Create tenant/ })
-    .click();
-
-  await expect(
-    page
-      .locator(".tenant-action-feedback--success")
-      .filter({ hasText: /Alta de tenant|Create tenant/i })
-      .first()
-  ).toContainText(/creado|created/i);
 
   seedFailedProvisioningJob({
     tenantSlug: tenant.slug,
