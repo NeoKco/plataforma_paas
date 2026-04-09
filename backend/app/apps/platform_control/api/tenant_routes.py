@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from datetime import date
 import json
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy import desc, func, or_, text
 from sqlalchemy.exc import OperationalError, ProgrammingError
@@ -48,6 +48,8 @@ from app.apps.platform_control.schemas import (
     TenantDataExportJobCreateRequest,
     TenantDataExportJobListResponse,
     TenantDataExportJobResponse,
+    TenantDataImportJobListResponse,
+    TenantDataImportJobResponse,
     TenantDataTransferArtifactResponse,
     TenantStatusResponse,
     TenantStatusUpdateRequest,
@@ -283,6 +285,34 @@ def _build_tenant_retirement_archive_item(
 
 def _build_tenant_data_export_job_response(job) -> TenantDataExportJobResponse:
     return TenantDataExportJobResponse(
+        id=job.id,
+        tenant_id=job.tenant_id,
+        direction=job.direction,
+        data_format=job.data_format,
+        export_scope=job.export_scope,
+        status=job.status,
+        requested_by_email=job.requested_by_email,
+        error_message=job.error_message,
+        summary_json=job.summary_json,
+        created_at=job.created_at,
+        completed_at=job.completed_at,
+        artifacts=[
+            TenantDataTransferArtifactResponse(
+                id=artifact.id,
+                artifact_type=artifact.artifact_type,
+                file_name=artifact.file_name,
+                content_type=artifact.content_type,
+                sha256_hex=artifact.sha256_hex,
+                size_bytes=artifact.size_bytes,
+                created_at=artifact.created_at,
+            )
+            for artifact in getattr(job, "artifacts", [])
+        ],
+    )
+
+
+def _build_tenant_data_import_job_response(job) -> TenantDataImportJobResponse:
+    return TenantDataImportJobResponse(
         id=job.id,
         tenant_id=job.tenant_id,
         direction=job.direction,
@@ -562,6 +592,98 @@ def download_tenant_data_export_job(
         filename=artifact.file_name,
         media_type=artifact.content_type,
     )
+
+
+@router.post(
+    "/{tenant_id}/data-import-jobs",
+    response_model=TenantDataImportJobResponse,
+)
+def create_tenant_data_import_job(
+    tenant_id: int,
+    package_file: UploadFile = File(...),
+    dry_run: bool = Form(True),
+    import_strategy: str = Form("skip_existing"),
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantDataImportJobResponse:
+    try:
+        job = tenant_data_portability_service.create_import_job(
+            db,
+            tenant_id=tenant_id,
+            requested_by_email=_token.get("email"),
+            package_bytes=package_file.file.read(),
+            package_file_name=package_file.filename or "tenant-import.zip",
+            dry_run=dry_run,
+            import_strategy=import_strategy,
+        )
+        tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+        auth_audit_service.log_event(
+            db,
+            event_type="platform.tenant.data_import.create",
+            subject_scope="platform",
+            outcome="success",
+            subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+            email=_token.get("email"),
+            tenant_slug=None if tenant is None else tenant.slug,
+            detail=(
+                f"Genero import portable CSV para tenant_id={tenant_id} "
+                f"(dry_run={str(dry_run).lower()})"
+            ),
+        )
+        return _build_tenant_data_import_job_response(job)
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 409
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+
+@router.get(
+    "/{tenant_id}/data-import-jobs",
+    response_model=TenantDataImportJobListResponse,
+)
+def list_tenant_data_import_jobs(
+    tenant_id: int,
+    limit: int = 10,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantDataImportJobListResponse:
+    try:
+        jobs = tenant_data_portability_service.list_import_jobs(
+            db,
+            tenant_id=tenant_id,
+            limit=max(1, min(limit, 25)),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return TenantDataImportJobListResponse(
+        success=True,
+        message="Jobs de importación portable recuperados correctamente",
+        total_jobs=len(jobs),
+        data=[_build_tenant_data_import_job_response(job) for job in jobs],
+    )
+
+
+@router.get(
+    "/{tenant_id}/data-import-jobs/{job_id}",
+    response_model=TenantDataImportJobResponse,
+)
+def get_tenant_data_import_job(
+    tenant_id: int,
+    job_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantDataImportJobResponse:
+    try:
+        job = tenant_data_portability_service.get_import_job(
+            db,
+            tenant_id=tenant_id,
+            job_id=job_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return _build_tenant_data_import_job_response(job)
 
 
 @router.post("/", response_model=TenantResponse)

@@ -1,6 +1,7 @@
 import asyncio
 import hashlib
 import hmac
+import io
 import os
 from pathlib import Path
 import tempfile
@@ -9,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.routing import APIRoute
 from sqlalchemy.exc import OperationalError
@@ -71,6 +72,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     bulk_sync_tenant_schemas,
     create_tenant,
     create_tenant_data_export_job,
+    create_tenant_data_import_job,
     deprovision_tenant,
     download_tenant_data_export_job,
     delete_tenant,
@@ -79,10 +81,12 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     get_platform_billing_events_summary,
     get_tenant,
     get_tenant_data_export_job,
+    get_tenant_data_import_job,
     get_tenant_finance_usage,
     get_tenant_module_usage,
     list_tenant_portal_users,
     list_tenant_data_export_jobs,
+    list_tenant_data_import_jobs,
     list_tenant_retirement_archives,
     get_tenant_retirement_archive,
     get_tenant_schema_status,
@@ -125,6 +129,8 @@ from app.apps.platform_control.schemas import (  # noqa: E402
     TenantBillingUpdateRequest,
     TenantCreateRequest,
     TenantDataExportJobCreateRequest,
+    TenantDataImportJobListResponse,
+    TenantDataImportJobResponse,
     TenantIdentityUpdateRequest,
     TenantMaintenanceUpdateRequest,
     TenantModuleLimitsUpdateRequest,
@@ -4355,6 +4361,145 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertIsInstance(response, FileResponse)
         self.assertEqual(response.path, str(artifact_path))
         self.assertEqual(response.media_type, "application/zip")
+
+    def test_create_tenant_data_import_job_returns_schema(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Nueva",
+            tenant_slug="empresa-nueva",
+        )
+        tenant.id = 2
+        artifact = SimpleNamespace(
+            id=17,
+            artifact_type="tenant_portable_csv_import_source_zip",
+            file_name="empresa-demo-portable-export-job-3.zip",
+            content_type="application/zip",
+            sha256_hex="def456",
+            size_bytes=4096,
+            created_at=None,
+        )
+        job = SimpleNamespace(
+            id=8,
+            tenant_id=2,
+            direction="import",
+            data_format="csv_zip",
+            export_scope="portable_minimum",
+            status="completed",
+            requested_by_email="admin@platform.local",
+            error_message=None,
+            summary_json='{"mode":"dry_run"}',
+            created_at=None,
+            completed_at=None,
+            artifacts=[artifact],
+        )
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_data_portability_service.create_import_job",
+            return_value=job,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.tenant_repository.get_by_id",
+            return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
+        ):
+            response = create_tenant_data_import_job(
+                tenant_id=2,
+                package_file=UploadFile(
+                    file=io.BytesIO(b"fake-zip"),
+                    filename="tenant-import.zip",
+                ),
+                dry_run=True,
+                import_strategy="skip_existing",
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertIsInstance(response, TenantDataImportJobResponse)
+        self.assertEqual(response.id, 8)
+        self.assertEqual(response.direction, "import")
+
+    def test_list_tenant_data_import_jobs_returns_rows(self) -> None:
+        artifact = SimpleNamespace(
+            id=17,
+            artifact_type="tenant_portable_csv_import_source_zip",
+            file_name="tenant-import.zip",
+            content_type="application/zip",
+            sha256_hex="def456",
+            size_bytes=4096,
+            created_at=None,
+        )
+        job = SimpleNamespace(
+            id=8,
+            tenant_id=2,
+            direction="import",
+            data_format="csv_zip",
+            export_scope="portable_minimum",
+            status="completed",
+            requested_by_email="admin@platform.local",
+            error_message=None,
+            summary_json='{"mode":"dry_run"}',
+            created_at=None,
+            completed_at=None,
+            artifacts=[artifact],
+        )
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_data_portability_service.list_import_jobs",
+            return_value=[job],
+        ):
+            response = list_tenant_data_import_jobs(
+                tenant_id=2,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertIsInstance(response, TenantDataImportJobListResponse)
+        self.assertTrue(response.success)
+        self.assertEqual(response.total_jobs, 1)
+        self.assertEqual(response.data[0].id, 8)
+
+    def test_get_tenant_data_import_job_returns_detail(self) -> None:
+        artifact = SimpleNamespace(
+            id=17,
+            artifact_type="tenant_portable_csv_import_source_zip",
+            file_name="tenant-import.zip",
+            content_type="application/zip",
+            sha256_hex="def456",
+            size_bytes=4096,
+            created_at=None,
+        )
+        job = SimpleNamespace(
+            id=8,
+            tenant_id=2,
+            direction="import",
+            data_format="csv_zip",
+            export_scope="portable_minimum",
+            status="completed",
+            requested_by_email="admin@platform.local",
+            error_message=None,
+            summary_json='{"mode":"dry_run"}',
+            created_at=None,
+            completed_at=None,
+            artifacts=[artifact],
+        )
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_data_portability_service.get_import_job",
+            return_value=job,
+        ):
+            response = get_tenant_data_import_job(
+                tenant_id=2,
+                job_id=8,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertIsInstance(response, TenantDataImportJobResponse)
+        self.assertEqual(response.id, 8)
+        self.assertEqual(response.export_scope, "portable_minimum")
 
     def test_update_tenant_identity_returns_schema(self) -> None:
         previous_tenant = build_tenant_record_stub(

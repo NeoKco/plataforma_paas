@@ -30,6 +30,7 @@ import {
 import {
   createPlatformTenant,
   createPlatformTenantDataExportJob,
+  createPlatformTenantDataImportJob,
   deprovisionPlatformTenant,
   deletePlatformTenant,
   downloadPlatformTenantDataExportJob,
@@ -37,6 +38,7 @@ import {
   getPlatformTenant,
   getPlatformTenantAccessPolicy,
   listPlatformTenantDataExportJobs,
+  listPlatformTenantDataImportJobs,
   getPlatformTenantRetirementArchive,
   getPlatformTenantModuleUsage,
   getPlatformTenantSchemaStatus,
@@ -70,6 +72,7 @@ import type {
   PlatformTenant,
   PlatformTenantAccessPolicy,
   PlatformTenantDataExportJob,
+  PlatformTenantDataImportJob,
   PlatformTenantPortalUserItem,
   PlatformTenantRetirementArchiveItem,
   PlatformTenantPolicyChangeEvent,
@@ -116,6 +119,9 @@ export function TenantsPage() {
   const [dataExportJobs, setDataExportJobs] = useState<PlatformTenantDataExportJob[]>(
     []
   );
+  const [dataImportJobs, setDataImportJobs] = useState<PlatformTenantDataImportJob[]>(
+    []
+  );
   const [retirementArchives, setRetirementArchives] = useState<
     PlatformTenantRetirementArchiveItem[]
   >([]);
@@ -137,6 +143,7 @@ export function TenantsPage() {
   const [moduleUsageError, setModuleUsageError] = useState<ApiError | null>(null);
   const [policyHistoryError, setPolicyHistoryError] = useState<ApiError | null>(null);
   const [dataExportJobsError, setDataExportJobsError] = useState<ApiError | null>(null);
+  const [dataImportJobsError, setDataImportJobsError] = useState<ApiError | null>(null);
   const [provisioningJobError, setProvisioningJobError] = useState<ApiError | null>(null);
   const [schemaStatusError, setSchemaStatusError] = useState<ApiError | null>(null);
   const [isListLoading, setIsListLoading] = useState(true);
@@ -145,6 +152,7 @@ export function TenantsPage() {
     useState(false);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isDataExportJobsLoading, setIsDataExportJobsLoading] = useState(false);
+  const [isDataImportJobsLoading, setIsDataImportJobsLoading] = useState(false);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
   const [pendingConfirmation, setPendingConfirmation] =
@@ -187,6 +195,8 @@ export function TenantsPage() {
   const [createTenantAdminPassword, setCreateTenantAdminPassword] = useState("");
   const [createTenantAdminPasswordConfirm, setCreateTenantAdminPasswordConfirm] =
     useState("");
+  const [tenantImportFile, setTenantImportFile] = useState<File | null>(null);
+  const [tenantImportDryRun, setTenantImportDryRun] = useState(true);
   const [isCreateTenantModalOpen, setIsCreateTenantModalOpen] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState("");
   const [retirementSearch, setRetirementSearch] = useState("");
@@ -460,6 +470,7 @@ export function TenantsPage() {
     setModuleUsageNotice(null);
     setPolicyHistoryError(null);
     setDataExportJobsError(null);
+    setDataImportJobsError(null);
     setProvisioningJobError(null);
     setSchemaStatusError(null);
     setSelectedTenant(null);
@@ -468,6 +479,7 @@ export function TenantsPage() {
     setSchemaStatus(null);
     setPolicyHistory([]);
     setDataExportJobs([]);
+    setDataImportJobs([]);
     setSelectedProvisioningJob(null);
     setTenantPortalUsers([]);
     let tenantStatus: string | null = null;
@@ -588,6 +600,21 @@ export function TenantsPage() {
       setDataExportJobsError(rawError as ApiError);
     } finally {
       setIsDataExportJobsLoading(false);
+    }
+
+    try {
+      setIsDataImportJobsLoading(true);
+      const importJobsResponse = await listPlatformTenantDataImportJobs(
+        session.accessToken,
+        tenantId,
+        { limit: 5 }
+      );
+      setDataImportJobs(importJobsResponse.data);
+    } catch (rawError) {
+      setDataImportJobs([]);
+      setDataImportJobsError(rawError as ApiError);
+    } finally {
+      setIsDataImportJobsLoading(false);
     }
 
     try {
@@ -1209,6 +1236,45 @@ export function TenantsPage() {
     } finally {
       setIsActionSubmitting(false);
     }
+  }
+
+  async function handleCreateTenantDataImport() {
+    if (
+      !session?.accessToken ||
+      selectedTenantId === null ||
+      !selectedTenantSummary ||
+      !tenantImportFile
+    ) {
+      return;
+    }
+
+    await runAction("tenant-data-import", async () => {
+      const job = await createPlatformTenantDataImportJob(
+        session.accessToken,
+        selectedTenantId,
+        {
+          file: tenantImportFile,
+          dry_run: tenantImportDryRun,
+          import_strategy: "skip_existing",
+        }
+      );
+
+      return {
+        message:
+          language === "es"
+            ? tenantImportDryRun
+              ? "Simulación de import ejecutada correctamente"
+              : "Import portable aplicado correctamente"
+            : tenantImportDryRun
+              ? "Import dry run completed successfully"
+              : "Portable import applied successfully",
+        afterSuccess: async () => {
+          setTenantImportFile(null);
+          setTenantImportDryRun(true);
+          await reloadSelectedTenantWorkspace();
+        },
+      };
+    });
   }
 
   function handleRunProvisioningJob() {
@@ -2237,6 +2303,116 @@ export function TenantsPage() {
                 ) : null}
               </PanelCard>
 
+              <PanelCard
+                title={
+                  language === "es"
+                    ? "Import portable controlado"
+                    : "Controlled portable import"
+                }
+                subtitle={
+                  language === "es"
+                    ? "Carga un paquete `zip + manifest + csv` exportado por la plataforma y ejecútalo primero en `dry_run` antes de aplicar."
+                    : "Upload a platform-generated `zip + manifest + csv` package and run it in `dry_run` before applying."
+                }
+              >
+                <div className="tenant-context-actions tenant-context-actions--compact">
+                  <div className="tenant-help-text">
+                    {language === "es"
+                      ? "La importación actual usa estrategia `skip_existing`: inserta solo filas faltantes y no reemplaza datos ya existentes."
+                      : "The current import uses `skip_existing`: it inserts only missing rows and does not replace existing data."}
+                  </div>
+                </div>
+                <div className="tenant-form-grid">
+                  <label className="tenant-field">
+                    <span>{language === "es" ? "Paquete portable" : "Portable package"}</span>
+                    <input
+                      key={`${selectedTenantId}-${tenantImportFile?.name || "empty"}`}
+                      type="file"
+                      accept=".zip,application/zip"
+                      onChange={(event) =>
+                        setTenantImportFile(event.target.files?.[0] || null)
+                      }
+                    />
+                  </label>
+                  <label className="tenant-field tenant-field--checkbox">
+                    <input
+                      type="checkbox"
+                      checked={tenantImportDryRun}
+                      onChange={(event) => setTenantImportDryRun(event.target.checked)}
+                    />
+                    <span>
+                      {language === "es"
+                        ? "Ejecutar como dry_run"
+                        : "Run as dry_run"}
+                    </span>
+                  </label>
+                </div>
+                {tenantImportFile ? (
+                  <div className="tenant-inline-note">
+                    {language === "es" ? "Archivo seleccionado" : "Selected file"}:{" "}
+                    {tenantImportFile.name}
+                  </div>
+                ) : null}
+                {!selectedTenantSummary.db_configured ? (
+                  <div className="tenant-inline-note">
+                    {language === "es"
+                      ? "Primero debes completar provisioning y sincronización del esquema del tenant destino."
+                      : "Complete provisioning and schema sync first for the target tenant."}
+                  </div>
+                ) : null}
+                <div className="tenant-context-actions__buttons">
+                  <button
+                    className="btn btn-outline-primary btn-sm"
+                    type="button"
+                    onClick={() => void handleCreateTenantDataImport()}
+                    disabled={
+                      isActionSubmitting ||
+                      !selectedTenantSummary.db_configured ||
+                      tenantImportFile === null
+                    }
+                  >
+                    {tenantImportDryRun
+                      ? language === "es"
+                        ? "Simular import portable"
+                        : "Run portable import dry_run"
+                      : language === "es"
+                        ? "Aplicar import portable"
+                        : "Apply portable import"}
+                  </button>
+                </div>
+                {isDataImportJobsLoading ? (
+                  <LoadingBlock
+                    label={
+                      language === "es"
+                        ? "Cargando imports portables..."
+                        : "Loading portable imports..."
+                    }
+                  />
+                ) : null}
+                {dataImportJobsError ? (
+                  <ErrorState
+                    title={
+                      language === "es"
+                        ? "Falló la lectura de imports portables"
+                        : "Portable imports read failed"
+                    }
+                    detail={
+                      dataImportJobsError.payload?.detail || dataImportJobsError.message
+                    }
+                    requestId={dataImportJobsError.payload?.request_id}
+                  />
+                ) : null}
+                {!isDataImportJobsLoading &&
+                !dataImportJobsError &&
+                dataImportJobs.length === 0 ? (
+                  <div className="text-secondary">
+                    {language === "es"
+                      ? "Aún no hay imports portables para este tenant."
+                      : "There are no portable imports for this tenant yet."}
+                  </div>
+                ) : null}
+              </PanelCard>
+
               {dataExportJobs.length > 0 ? (
                 <DataTableCard
                   title={
@@ -2292,6 +2468,60 @@ export function TenantsPage() {
                               (language === "es" ? "sin descarga" : "no download")}
                           </span>
                         ),
+                    },
+                  ]}
+                />
+              ) : null}
+
+              {dataImportJobs.length > 0 ? (
+                <DataTableCard
+                  title={
+                    language === "es"
+                      ? "Últimos imports portables"
+                      : "Latest portable imports"
+                  }
+                  rows={dataImportJobs}
+                  columns={[
+                    {
+                      key: "id",
+                      header: "Job",
+                      render: (row) => `#${row.id}`,
+                    },
+                    {
+                      key: "status",
+                      header: language === "es" ? "Estado" : "Status",
+                      render: (row) => <StatusBadge value={row.status} />,
+                    },
+                    {
+                      key: "mode",
+                      header: language === "es" ? "Modo" : "Mode",
+                      render: (row) => {
+                        const summary =
+                          row.summary_json && row.summary_json.trim()
+                            ? JSON.parse(row.summary_json)
+                            : null;
+                        return summary?.mode || "n/a";
+                      },
+                    },
+                    {
+                      key: "source",
+                      header: language === "es" ? "Paquete" : "Package",
+                      render: (row) => {
+                        const summary =
+                          row.summary_json && row.summary_json.trim()
+                            ? JSON.parse(row.summary_json)
+                            : null;
+                        return (
+                          summary?.source_file_name ||
+                          row.artifacts[0]?.file_name ||
+                          (language === "es" ? "sin paquete" : "no package")
+                        );
+                      },
+                    },
+                    {
+                      key: "created_at",
+                      header: language === "es" ? "Creado" : "Created",
+                      render: (row) => formatDateTime(row.created_at),
                     },
                   ]}
                 />

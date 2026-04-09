@@ -32,6 +32,9 @@ Tenants:
 - `POST /platform/tenants/{tenant_id}/data-export-jobs`
 - `GET /platform/tenants/{tenant_id}/data-export-jobs`
 - `GET /platform/tenants/{tenant_id}/data-export-jobs/{job_id}/download`
+- `POST /platform/tenants/{tenant_id}/data-import-jobs`
+- `GET /platform/tenants/{tenant_id}/data-import-jobs`
+- `GET /platform/tenants/{tenant_id}/data-import-jobs/{job_id}`
 - mutaciones de identity, lifecycle, maintenance, access policy y billing
 
 Provisioning:

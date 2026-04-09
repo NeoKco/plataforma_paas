@@ -33,6 +33,7 @@ Referencia:
 4. archivar o restaurar cuando corresponda
 5. abrir el `tenant_portal` desde `Tenants` cuando el tenant ya esté activo y con DB operativa
 6. usar `Exportar CSV portable` cuando necesites un paquete portable del tenant
+7. usar `Simular import portable` y luego `Aplicar import portable` cuando necesites cargar un paquete `zip + manifest + csv` sobre un tenant destino
 
 Nota operativa:
 
@@ -77,6 +78,24 @@ Regla operativa:
 
 - esto no reemplaza `pg_dump`
 - si el tenant todavía no tiene `db_configured=true`, el export no se puede generar
+
+### Import portable por tenant
+
+Desde `Tenants`, el bloque `Import portable controlado` ya permite:
+
+1. cargar un paquete `zip` exportado por la plataforma
+2. ejecutar `dry_run`
+3. revisar el historial reciente de imports
+4. ejecutar `apply` explícito si el `dry_run` fue correcto
+
+Reglas operativas:
+
+- el tenant destino debe estar provisionado
+- el tenant destino no puede estar `archived`
+- el paquete debe traer `manifest.json`
+- el import valida checksums y `schema_version`
+- la estrategia actual es `skip_existing`
+- la importación no reemplaza registros ya existentes
 
 ### Operar usuarios de plataforma
 

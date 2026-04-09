@@ -2,9 +2,9 @@
 
 ## Última actualización
 
-- fecha: 2026-04-08
-- foco de iteración: implementación de la Fase 1 de `tenant data portability CSV`
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado y Fase 1 de export portable tenant ya implementada
+- fecha: 2026-04-09
+- foco de iteración: implementación de la Fase 2 mínima de `tenant data portability CSV`
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado y portabilidad tenant ya implementada en repo con export + import mínimo
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -33,17 +33,18 @@
 - `provisioning` y `retiro técnico` ya no dependen de escribir `/opt/platform_paas/.env`; el runtime usa `TENANT_SECRETS_FILE`
 - `condominio-demo` ya quedó re-alineado con credencial técnica válida y su `sync_tenant_schema` volvió a `completed`
 - `ierisltda` ya terminó retiro técnico y fue eliminado de `platform_control`, quedando libre para recreación limpia con nuevo correo/password
-- el frente `tenant data portability CSV` ya dejó de ser solo diseño: la Fase 1 de export portable mínimo ya quedó implementada en `platform_control`
+- el frente `tenant data portability CSV` ya dejó de ser solo diseño: la Fase 1 de export portable mínimo y la Fase 2 mínima de import controlado ya quedaron implementadas en repo en `platform_control`
 - `platform_admin > Tenants` ya permite generar y descargar `zip + manifest + csv` por tenant cuando la DB tenant está operativa
-- el siguiente paso de ese frente ya pasó a ser Fase 2: import controlado con `dry_run`
+- `platform_admin > Tenants` ya permite además cargar un `zip` portable, ejecutar `dry_run` y aplicar import con estrategia inicial `skip_existing`
+- el siguiente paso de ese frente ya no es implementación base, sino validación browser y despliegue controlado
 
 ## Frente activo real al momento de este estado
 
 El frente activo real que ahora queda abierto es este:
 
-- consolidar la Fase 1 de export portable por tenant en `CSV + manifest`
-- mantenerla separada del backup técnico PostgreSQL ya existente
-- abrir después la Fase 2 de import controlado dentro de `platform-core`
+- mantener separada la portabilidad tenant del backup técnico PostgreSQL ya existente
+- validar browser/dev-staging del import portable mínimo ya implementado
+- decidir despliegue a `staging` y luego a `production`
 
 ## Qué módulo se estaba construyendo
 
@@ -102,6 +103,9 @@ Se actualizaron documentos de:
 - servicio backend `tenant_data_portability_service` para generar paquete `zip + manifest + csv`
 - bloque visible `Portabilidad tenant` dentro de `platform_admin > Tenants`
 - smoke browser nuevo `platform-admin-tenant-data-export`
+- endpoints nuevos de import portable tenant-side en `platform_control`
+- carga de `zip` + `dry_run` + `apply` explícito desde `platform_admin > Tenants`
+- tests backend del import controlado mínimo
 
 ### A nivel producción / deploy
 

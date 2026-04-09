@@ -24,9 +24,9 @@ Debe permanecer corto, operativo y fácil de escanear.
 
 ## Estado rápido vigente
 
-- fecha: 2026-04-08
-- foco activo: Fase 1 implementada de `tenant data portability CSV`
-- prioridad inmediata: mantener estable lo ya cerrado y abrir la Fase 2 de import controlado con `dry_run`
+- fecha: 2026-04-09
+- foco activo: Fase 2 mínima implementada de `tenant data portability CSV`
+- prioridad inmediata: validar browser/dev-staging y preparar despliegue del import portable mínimo
 - módulo o frente activo: `platform-core` / continuidad central
 
 ## Último contexto útil
@@ -55,7 +55,9 @@ Debe permanecer corto, operativo y fácil de escanear.
 - el host productivo también quedó corregido para arrancar realmente con `APP_ENV=production`
 - la documentación canónica ya fija `staging` como espejo operativo por defecto y deja `bootstrap reset` como flujo puntual de validación
 - el hotfix productivo de `provisioning` ya quedó aplicado: secretos tenant runtime salen a `TENANT_SECRETS_FILE`, `condominio-demo` volvió a quedar sano y `ierisltda` quedó eliminado para recreación limpia
-- la Fase 1 de export/import portable tenant ya quedó parcialmente implementada: export mínimo `zip + manifest + csv`
+- la portabilidad tenant ya quedó implementada en repo con:
+  - export mínimo `zip + manifest + csv`
+  - import mínimo controlado con carga de `zip`, `dry_run` y `apply`
 - el modelo canónico de ese frente ya quedó abierto y actualizado en `docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md`
 - `Tenants` ya muestra el bloque `Portabilidad tenant` con creación de job, lectura de últimos exports y descarga del `zip`
 - ya existe smoke browser `platform-admin-tenant-data-export`
@@ -63,7 +65,7 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Bloqueo actual
 
 - no existe bloqueo técnico en este frente
-- la Fase 2 de import todavía no está implementada
+- falta validación browser y despliegue del import portable mínimo
 
 ## Siguiente acción inmediata
 
@@ -73,7 +75,8 @@ Es este:
 
 - mantener `production` estable
 - mantener `staging` como carril previo real
-- implementar la Fase 2 del frente `tenant data portability CSV`
+- validar el import portable mínimo en `dev/staging`
+- decidir despliegue a `staging` y `production`
 
 ## Archivos a leer justo después de este
 

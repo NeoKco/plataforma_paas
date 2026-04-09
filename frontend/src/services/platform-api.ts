@@ -25,6 +25,8 @@ import type {
   PlatformTenantDataExportJob,
   PlatformTenantDataExportJobCreateRequest,
   PlatformTenantDataExportJobListResponse,
+  PlatformTenantDataImportJob,
+  PlatformTenantDataImportJobListResponse,
   PlatformTenantDeleteResponse,
   PlatformTenantIdentityResponse,
   PlatformTenantListResponse,
@@ -244,6 +246,47 @@ export function listPlatformTenantDataExportJobs(
   const suffix = query.toString() ? `?${query.toString()}` : "";
   return apiRequest<PlatformTenantDataExportJobListResponse>(
     `/platform/tenants/${tenantId}/data-export-jobs${suffix}`,
+    {
+      token: accessToken,
+    }
+  );
+}
+
+export function createPlatformTenantDataImportJob(
+  accessToken: string,
+  tenantId: number,
+  payload: {
+    file: File;
+    dry_run?: boolean;
+    import_strategy?: string;
+  }
+) {
+  const formData = new FormData();
+  formData.append("package_file", payload.file);
+  formData.append("dry_run", String(payload.dry_run ?? true));
+  formData.append("import_strategy", payload.import_strategy ?? "skip_existing");
+  return apiRequest<PlatformTenantDataImportJob>(
+    `/platform/tenants/${tenantId}/data-import-jobs`,
+    {
+      method: "POST",
+      token: accessToken,
+      body: formData,
+    }
+  );
+}
+
+export function listPlatformTenantDataImportJobs(
+  accessToken: string,
+  tenantId: number,
+  params?: { limit?: number }
+) {
+  const query = new URLSearchParams();
+  if (params?.limit) {
+    query.set("limit", String(params.limit));
+  }
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return apiRequest<PlatformTenantDataImportJobListResponse>(
+    `/platform/tenants/${tenantId}/data-import-jobs${suffix}`,
     {
       token: accessToken,
     }

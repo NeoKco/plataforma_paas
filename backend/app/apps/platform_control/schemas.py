@@ -264,6 +264,28 @@ class TenantDataExportJobListResponse(BaseModel):
     data: list[TenantDataExportJobResponse]
 
 
+class TenantDataImportJobResponse(BaseModel):
+    id: int
+    tenant_id: int
+    direction: str
+    data_format: str
+    export_scope: str
+    status: str
+    requested_by_email: str | None = None
+    error_message: str | None = None
+    summary_json: str | None = None
+    created_at: datetime | None = None
+    completed_at: datetime | None = None
+    artifacts: list[TenantDataTransferArtifactResponse] = []
+
+
+class TenantDataImportJobListResponse(BaseModel):
+    success: bool
+    message: str
+    total_jobs: int
+    data: list[TenantDataImportJobResponse]
+
+
 class TenantListResponse(BaseModel):
     success: bool
     message: str

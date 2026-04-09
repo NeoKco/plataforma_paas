@@ -14,6 +14,7 @@ Cobertura validada:
 - lifecycle básico de tenant en `platform_admin` (`create`, `archive`, `restore`)
 - enforcement visible de `Nuevo tenant` con admin inicial explícito y preview de módulos por `plan`
 - export portable por tenant desde `Tenants`
+- visibilidad del bloque inicial de import portable controlado desde `Tenants`
 - acceso rápido al `tenant_portal` desde `Tenants` con slug precargado
 - bloqueo visible del acceso rápido al `tenant_portal` cuando el tenant todavía no es elegible
 - matriz visible por rol en `platform_admin` para `admin` y `support`

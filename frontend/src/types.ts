@@ -339,6 +339,8 @@ export type PlatformTenantDataExportJob = {
   artifacts: PlatformTenantDataTransferArtifact[];
 };
 
+export type PlatformTenantDataImportJob = PlatformTenantDataExportJob;
+
 export type PlatformTenantDataExportJobCreateRequest = {
   export_scope?: string;
 };
@@ -348,6 +350,13 @@ export type PlatformTenantDataExportJobListResponse = {
   message: string;
   total_jobs: number;
   data: PlatformTenantDataExportJob[];
+};
+
+export type PlatformTenantDataImportJobListResponse = {
+  success: boolean;
+  message: string;
+  total_jobs: number;
+  data: PlatformTenantDataImportJob[];
 };
 
 export type PlatformTenantCreateRequest = {

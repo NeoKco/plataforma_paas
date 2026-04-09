@@ -1,6 +1,6 @@
 # Tenant Data Portability
 
-Runbook corto para operar la Fase 1 de portabilidad tenant.
+Runbook corto para operar la portabilidad tenant actual.
 
 ## Propósito
 
@@ -18,7 +18,7 @@ Esto sirve para:
 
 No reemplaza el backup PostgreSQL canónico.
 
-## Flujo operativo
+## Flujo operativo de export
 
 Desde `platform_admin > Tenants`:
 
@@ -33,7 +33,7 @@ Si el tenant todavía no tiene DB configurada:
 - el botón queda bloqueado
 - primero hay que completar provisioning o reprovision
 
-## Qué genera la Fase 1
+## Qué genera el export actual
 
 Paquete portable mínimo:
 
@@ -69,11 +69,27 @@ TENANT_DATA_EXPORT_ARTIFACTS_DIR=/opt/platform_paas/storage/tenant_data_exports
 - `pg_dump` sigue siendo el respaldo técnico serio
 - `CSV + manifest` es portabilidad, no sustituto del backup técnico
 
-## Siguiente fase
+## Flujo operativo de import
 
-La siguiente fase ya no es export:
+Desde `platform_admin > Tenants`:
 
-- import controlado
-- `dry_run`
-- validación previa
-- aplicación explícita sobre tenant destino
+1. seleccionar el tenant destino
+2. verificar que `db_configured=true`
+3. cargar un paquete `zip` exportado por la plataforma
+4. ejecutar primero `Simular import portable`
+5. revisar el resultado del job
+6. ejecutar `Aplicar import portable` solo si el `dry_run` quedó sano
+
+Reglas operativas:
+
+- el tenant destino no puede estar `archived`
+- el paquete debe incluir `manifest.json`
+- la validación actual revisa `checksums` y `schema_version`
+- la estrategia inicial es `skip_existing`
+- la importación no reemplaza filas existentes
+
+## Estado actual del frente
+
+- export portable mínimo: implementado
+- import controlado mínimo: implementado en repo
+- siguiente paso recomendado: validación browser en `dev/staging` y despliegue controlado

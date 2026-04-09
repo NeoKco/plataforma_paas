@@ -15,6 +15,38 @@ Para nuevas entradas usar:
 
 ---
 
+## 2026-04-09 — Fase 2 mínima implementada de `tenant data portability CSV`
+
+### Objetivo
+
+- implementar el import controlado mínimo sobre el paquete portable ya exportable
+- dejar `dry_run` y `apply` explícito dentro de `platform_admin > Tenants`
+
+### Cambios principales
+
+- `tenant_data_portability_service.py` ahora soporta import desde `zip + manifest + csv`
+- el import valida `manifest.json`, `checksums` y `schema_version`
+- la estrategia inicial queda cerrada como `skip_existing`
+- `platform_admin > Tenants` suma el bloque `Import portable controlado`
+- el smoke `platform-admin-tenant-data-export` se amplía para fijar la superficie visible del import
+
+### Validaciones
+
+- backend slice afectado: `218 OK`
+- frontend `npm run build`: OK
+- `npx playwright test --list`: `41 tests`
+
+### Bloqueos
+
+- no hay bloqueo técnico de implementación base
+- falta validación browser real del import antes de despliegue
+
+### Siguiente paso
+
+- validar browser/dev-staging del import portable mínimo y decidir despliegue
+
+---
+
 ## 2026-04-08 — Fase 1 implementada de `tenant data portability CSV`
 
 ### Objetivo

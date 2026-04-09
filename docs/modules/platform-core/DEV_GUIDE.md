@@ -68,8 +68,9 @@ Documentación base:
 - backup PostgreSQL y portabilidad CSV son frentes distintos:
   - `pg_dump` sigue siendo el respaldo técnico canónico
   - export/import CSV tenant-side vive en `platform_control`, no dentro de un módulo tenant suelto
-  - la Fase 1 ya implementada cubre solo export portable mínimo por tenant
-  - la futura importación debe usar `dry_run` antes de `apply` y no debe venderse como reemplazo del backup real
+  - hoy ya existe export portable mínimo e import controlado mínimo por tenant
+  - la importación debe ofrecer `dry_run` antes de `apply` y no debe venderse como reemplazo del backup real
+  - la estrategia actual del import es `skip_existing`
 
 ## Cómo extender este bloque
 
@@ -139,6 +140,7 @@ Cobertura actual:
 - acceso rápido desde `Tenants` al login de `tenant_portal` con `slug` precargado
 - feedback de bloqueo en `Tenants` cuando el acceso rápido al `tenant_portal` todavía no debe habilitarse
 - enforcement visible de que `Nuevo tenant` exige admin inicial explícito y preview de módulos por `plan`
+- bloque visible de `Portabilidad tenant` con export portable y superficie inicial de import controlado
 - enforcement visible por rol en `platform_admin` para `admin` y `support`
 - workspace de `Billing` con reconcile individual sobre evento tenant persistido
 - workspace de `Billing` con reconcile batch sobre eventos filtrados

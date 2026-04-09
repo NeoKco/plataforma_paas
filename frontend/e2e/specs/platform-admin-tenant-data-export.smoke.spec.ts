@@ -30,6 +30,15 @@ test("platform admin can trigger portable tenant CSV export from tenants", async
     page.getByText(/portable-export-job|portable export/i).first()
   ).toBeVisible({ timeout: 15000 });
 
+  await expect(
+    page.getByText(/Import portable controlado|Controlled portable import/i)
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: /Simular import portable|Run portable import dry_run/i,
+    })
+  ).toBeVisible();
+
   const download = await downloadPromise;
   if (download) {
     expect(download.suggestedFilename()).toMatch(/\.zip$/i);

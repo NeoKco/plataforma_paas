@@ -2,6 +2,13 @@
 
 ## 2026-04-08
 
+- se implementa la Fase 2 mínima de portabilidad tenant en `platform_control`: import controlado desde paquete `zip + manifest + csv`, con `dry_run`, validación de checksums, validación de `schema_version` y estrategia inicial `skip_existing`
+- `platform_admin > Tenants` agrega el bloque `Import portable controlado` en [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx), con carga de archivo `zip`, simulación `dry_run` y aplicación explícita
+- se extiende el contrato frontend/backend con [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py), [platform-api.ts](/home/felipe/platform_paas/frontend/src/services/platform-api.ts) y [types.ts](/home/felipe/platform_paas/frontend/src/types.ts) para exponer `data-import-jobs`
+- la batería backend del frente queda cubierta por [test_tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_data_portability_service.py) y [test_platform_flow.py](/home/felipe/platform_paas/backend/app/tests/test_platform_flow.py)
+- el smoke [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts) se amplía para fijar la visibilidad del bloque de import controlado
+- el siguiente paso del frente deja de ser “implementar Fase 2” y pasa a “validar browser + staging/prod del import portable mínimo antes de endurecer Fase 3”
+
 - se implementa la Fase 1 de portabilidad tenant en `platform_control`: [tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_data_portability_service.py), [tenant_data_transfer_job.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_data_transfer_job.py), [tenant_data_transfer_artifact.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_data_transfer_artifact.py) y migración [v0026_tenant_data_transfer_jobs.py](/home/felipe/platform_paas/backend/migrations/control/v0026_tenant_data_transfer_jobs.py)
 - `platform_admin > Tenants` agrega el bloque `Portabilidad tenant` en [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) para generar y descargar exports portables `CSV + manifest + zip`
 - el contrato frontend/backend queda expuesto en [platform-api.ts](/home/felipe/platform_paas/frontend/src/services/platform-api.ts), [api.ts](/home/felipe/platform_paas/frontend/src/services/api.ts), [types.ts](/home/felipe/platform_paas/frontend/src/types.ts) y [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py)

@@ -27,7 +27,7 @@ La plataforma debe manejar dos capas distintas de respaldo:
 - alcance: datos funcionales seleccionados por dominio
 - estado actual:
   - Fase 1 export portable mínimo: implementada
-  - import controlado: pendiente
+  - Fase 2 import controlado mínimo: implementada en repo
 
 Regla cerrada:
 
@@ -194,8 +194,8 @@ Contratos HTTP sugeridos:
 - `GET /platform/tenants/{tenant_id}/data-export-jobs/{job_id}`
 - `GET /platform/tenants/{tenant_id}/data-export-jobs/{job_id}/download`
 - `POST /platform/tenants/{tenant_id}/data-import-jobs`
+- `GET /platform/tenants/{tenant_id}/data-import-jobs`
 - `GET /platform/tenants/{tenant_id}/data-import-jobs/{job_id}`
-- `POST /platform/tenants/{tenant_id}/data-import-jobs/{job_id}/run`
 
 ## 7. Flujo UI sugerido
 
@@ -303,10 +303,15 @@ Smoke sugerido futuro:
 
 ### Fase 2. Import controlado mínimo
 
-- upload de paquete
+Estado: implementada en repo.
+
+- upload de paquete `zip`
 - validación de `manifest`
+- validación de checksums
+- validación de `schema_version`
 - `dry_run`
-- `apply` solo para recursos seguros
+- `apply` con estrategia inicial `skip_existing`
+- historial visible de jobs por tenant en `platform_admin > Tenants`
 
 ### Fase 3. Cobertura ampliada por dominio
 
@@ -322,7 +327,12 @@ Smoke sugerido futuro:
 
 ## 13. Estado de esta decisión
 
-Este frente queda abierto como siguiente línea explícita del roadmap de `platform-core`.
+Este frente ya dejó de estar solo en diseño:
+
+- Fase 1: implementada
+- Fase 2 mínima: implementada en repo
+
+El siguiente paso recomendado ya no es abrir el frente, sino validar browser/despliegue y luego endurecer Fase 3.
 
 No está implementado aún.
 

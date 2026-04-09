@@ -48,12 +48,13 @@ class TenantDataTransferJobRepository:
         tenant_id: int,
         *,
         limit: int = 10,
+        direction: str | None = None,
     ) -> list[TenantDataTransferJob]:
-        return (
+        query = (
             db.query(TenantDataTransferJob)
             .options(joinedload(TenantDataTransferJob.artifacts))
             .filter(TenantDataTransferJob.tenant_id == tenant_id)
-            .order_by(TenantDataTransferJob.id.desc())
-            .limit(limit)
-            .all()
         )
+        if direction:
+            query = query.filter(TenantDataTransferJob.direction == direction)
+        return query.order_by(TenantDataTransferJob.id.desc()).limit(limit).all()
