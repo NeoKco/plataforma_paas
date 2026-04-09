@@ -26,6 +26,16 @@ bash "$SCRIPT_DIR/validate_backend_env.sh" "$ENV_FILE" "$EXPECTED_APP_ENV"
 
 load_dotenv_file "$ENV_FILE"
 
+SERVICE_RUNTIME_USER="$(systemctl show -p User --value "$SERVICE_NAME" 2>/dev/null || true)"
+SERVICE_RUNTIME_GROUP="$(systemctl show -p Group --value "$SERVICE_NAME" 2>/dev/null || true)"
+SERVICE_RUNTIME_USER="${SERVICE_RUNTIME_USER:-platform}"
+SERVICE_RUNTIME_GROUP="${SERVICE_RUNTIME_GROUP:-$SERVICE_RUNTIME_USER}"
+
+if [ -n "${TENANT_DATA_EXPORT_ARTIFACTS_DIR:-}" ]; then
+    mkdir -p "$TENANT_DATA_EXPORT_ARTIFACTS_DIR"
+    chown -R "$SERVICE_RUNTIME_USER:$SERVICE_RUNTIME_GROUP" "$TENANT_DATA_EXPORT_ARTIFACTS_DIR"
+fi
+
 cd "$BACKEND_DIR"
 
 if [ ! -x "$VENV_PYTHON" ]; then
