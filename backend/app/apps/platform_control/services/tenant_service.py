@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from email.utils import parseaddr
 import json
 from pathlib import Path
-
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -424,15 +423,22 @@ class TenantService:
                 "Rotated credentials failed validation and the previous password was restored"
             ) from exc
 
+        runtime_env_path = Path(settings.TENANT_SECRETS_FILE)
+        legacy_env_path = Path(settings.BASE_DIR) / ".env"
         env_var_name = self.tenant_secret_service.store_tenant_db_password(
             tenant_slug=tenant.slug,
             password=new_password,
-            env_path=Path(settings.BASE_DIR) / ".env",
+            env_path=runtime_env_path,
         )
         self.tenant_secret_service.clear_tenant_bootstrap_db_password(
             tenant_slug=tenant.slug,
-            env_path=Path(settings.BASE_DIR) / ".env",
+            env_path=runtime_env_path,
         )
+        if legacy_env_path != runtime_env_path:
+            self.tenant_secret_service.clear_tenant_bootstrap_db_password(
+                tenant_slug=tenant.slug,
+                env_path=legacy_env_path,
+            )
         tenant.tenant_db_credentials_rotated_at = datetime.now(timezone.utc)
         tenant = self.tenant_repository.save(db, tenant)
         return {
@@ -484,16 +490,26 @@ class TenantService:
                 raise
             dropped_role = True
 
-        env_path = Path(settings.BASE_DIR) / ".env"
+        runtime_env_path = Path(settings.TENANT_SECRETS_FILE)
+        legacy_env_path = Path(settings.BASE_DIR) / ".env"
         try:
             self.tenant_secret_service.clear_tenant_db_password(
                 tenant_slug=tenant.slug,
-                env_path=env_path,
+                env_path=runtime_env_path,
             )
             self.tenant_secret_service.clear_tenant_bootstrap_db_password(
                 tenant_slug=tenant.slug,
-                env_path=env_path,
+                env_path=runtime_env_path,
             )
+            if legacy_env_path != runtime_env_path:
+                self.tenant_secret_service.clear_tenant_db_password(
+                    tenant_slug=tenant.slug,
+                    env_path=legacy_env_path,
+                )
+                self.tenant_secret_service.clear_tenant_bootstrap_db_password(
+                    tenant_slug=tenant.slug,
+                    env_path=legacy_env_path,
+                )
         except Exception as exc:
             setattr(exc, "_provisioning_stage", "deprovision_tenant_secret")
             raise

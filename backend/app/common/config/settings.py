@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     BACKEND_CORS_ALLOW_ORIGINS: str = ""
 
     INSTALL_FLAG_FILE: str = str(BASE_DIR / ".platform_installed")
+    TENANT_SECRETS_FILE: str = str(BASE_DIR / ".tenant-secrets.env")
 
     CONTROL_DB_HOST: str = "127.0.0.1"
     CONTROL_DB_PORT: int = 5432

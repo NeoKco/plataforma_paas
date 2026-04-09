@@ -65,6 +65,7 @@ Desde `.env`:
 - `PROVISIONING_ALERT_CYCLE_FAILED_COUNT_THRESHOLD`
 - `PROVISIONING_ALERT_CYCLE_DURATION_MS_THRESHOLD`
 - `PROVISIONING_ALERT_CYCLE_AGED_JOBS_THRESHOLD`
+- `TENANT_SECRETS_FILE`
 - `OBSERVABILITY_PROMETHEUS_TEXTFILE_ENABLED`
 - `OBSERVABILITY_PROMETHEUS_TEXTFILE_PATH`
 - `CONTROL_DB_POOL_SIZE`
@@ -135,6 +136,7 @@ Lectura practica:
 - `create_tenant_database` materializa DB tenant, rol tecnico, esquema y secreto tecnico
 - `deprovision_tenant_database` retira DB tenant, rol tecnico y secretos tecnicos asociados
 - `sync_tenant_schema` aplica migraciones sobre una DB tenant ya existente
+- el runtime de credenciales tenant usa `TENANT_SECRETS_FILE` como archivo escribible de trabajo; el `.env` principal solo queda como respaldo de lectura/limpieza por compatibilidad con instalaciones antiguas
 
 Lectura operativa en consola:
 

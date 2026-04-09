@@ -136,12 +136,15 @@ class TenantSecretServiceTestCase(unittest.TestCase):
         service = TenantSecretService()
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            fake_settings = SimpleNamespace(BASE_DIR=Path(temp_dir))
-            env_path = Path(temp_dir) / ".env"
+            secrets_path = Path(temp_dir) / ".tenant-secrets.env"
+            fake_settings = SimpleNamespace(
+                BASE_DIR=Path(temp_dir),
+                TENANT_SECRETS_FILE=str(secrets_path),
+            )
             env_var = service.store_tenant_db_password(
                 tenant_slug="empresa-bootstrap",
                 password="SuperSecret123!",
-                env_path=env_path,
+                env_path=secrets_path,
             )
 
             resolved = service.resolve_tenant_db_password(
@@ -177,6 +180,32 @@ class TenantSecretServiceTestCase(unittest.TestCase):
                 os.environ[env_var] = previous_value
 
         self.assertEqual(resolved, "fresh-file-secret")
+
+    def test_resolve_tenant_db_password_prefers_runtime_secret_file_over_legacy_env(self) -> None:
+        service = TenantSecretService()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_dir = Path(temp_dir)
+            runtime_path = base_dir / ".tenant-secrets.env"
+            legacy_path = base_dir / ".env"
+            legacy_path.write_text(
+                "TENANT_DB_PASSWORD__EMPRESA_DEMO=legacy-secret\n",
+                encoding="utf-8",
+            )
+            runtime_path.write_text(
+                "TENANT_DB_PASSWORD__EMPRESA_DEMO=runtime-secret\n",
+                encoding="utf-8",
+            )
+
+            resolved = service.resolve_tenant_db_password(
+                "empresa-demo",
+                SimpleNamespace(
+                    BASE_DIR=base_dir,
+                    TENANT_SECRETS_FILE=str(runtime_path),
+                ),
+            )
+
+        self.assertEqual(resolved, "runtime-secret")
 
     def test_mask_secret_keeps_last_characters_only(self) -> None:
         service = TenantSecretService()

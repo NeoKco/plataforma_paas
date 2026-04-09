@@ -1012,8 +1012,10 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertTrue(result["dropped_role"])
         bootstrap.drop_database_if_exists.assert_called_once_with("tenant_empresa_demo")
         bootstrap.drop_role_if_exists.assert_called_once_with("user_empresa_demo")
-        tenant_secret_service.clear_tenant_db_password.assert_called_once()
-        tenant_secret_service.clear_tenant_bootstrap_db_password.assert_called_once()
+        self.assertEqual(tenant_secret_service.clear_tenant_db_password.call_count, 2)
+        self.assertEqual(
+            tenant_secret_service.clear_tenant_bootstrap_db_password.call_count, 2
+        )
         self.assertIsNone(tenant.db_name)
         self.assertIsNone(tenant.db_user)
         self.assertIsNone(tenant.db_host)
@@ -1309,7 +1311,9 @@ class PlatformServicesTestCase(unittest.TestCase):
             "user_empresa_demo", "new-tenant-secret"
         )
         tenant_secret_service.store_tenant_db_password.assert_called_once()
-        tenant_secret_service.clear_tenant_bootstrap_db_password.assert_called_once()
+        self.assertEqual(
+            tenant_secret_service.clear_tenant_bootstrap_db_password.call_count, 2
+        )
 
     def test_tenant_service_restores_previous_password_when_rotation_validation_fails(self) -> None:
         tenant = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")

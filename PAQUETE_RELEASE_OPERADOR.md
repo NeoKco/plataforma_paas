@@ -194,3 +194,4 @@ Lección operativa ya asentada:
 
 - no reutilizar en `/opt/platform_paas/.env` valores de desarrollo
 - si el host productivo vuelve a heredar `APP_ENV=development` o passwords bootstrap inseguras, el runtime debe considerarse desalineado y corregirse antes de cualquier restart
+- los secretos tecnicos tenant de runtime ya no deben escribirse en `/opt/platform_paas/.env`; el backend usa `TENANT_SECRETS_FILE=/opt/platform_paas/.tenant-secrets.env` como archivo escribible de trabajo para provisioning y deprovision

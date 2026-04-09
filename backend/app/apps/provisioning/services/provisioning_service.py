@@ -372,10 +372,11 @@ class ProvisioningService:
             tenant.status = "active"
 
             current_stage = "store_tenant_secret"
+            secrets_env_path = Path(settings.TENANT_SECRETS_FILE)
             env_var_name = self.tenant_secret_service.store_tenant_db_password(
                 tenant_slug=tenant.slug,
                 password=db_password,
-                env_path=Path(settings.BASE_DIR) / ".env",
+                env_path=secrets_env_path,
             )
             return {
                 "db_name": db_name,

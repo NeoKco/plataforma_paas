@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-08
-- foco de iteración: cierre del frente `Nuevo tenant` en `platform_admin` + despliegue/validación real en `staging` y `production`
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules` y alta de tenant ya operativa con admin inicial explícito
+- foco de iteración: hotfix de `provisioning/deprovision` en producción + alineación de secretos tenant runtime
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito y `provisioning` productivo re-alineado
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -30,6 +30,9 @@
 - el smoke browser específico `platform-admin-tenants-create-form` ya quedó aprobado en `staging` y `production`
 - el `.env` productivo quedó realineado a `APP_ENV=production`, `DEBUG=false`, `INSTALL_FLAG_FILE=/opt/platform_paas/.platform_installed` y variables bootstrap seguras explícitas para los tenants demo heredados
 - la documentación canónica ya deja fijado que `staging` opera por defecto como espejo instalado, no como bootstrap permanente
+- `provisioning` y `retiro técnico` ya no dependen de escribir `/opt/platform_paas/.env`; el runtime usa `TENANT_SECRETS_FILE`
+- `condominio-demo` ya quedó re-alineado con credencial técnica válida y su `sync_tenant_schema` volvió a `completed`
+- `ierisltda` ya terminó retiro técnico y fue eliminado de `platform_control`, quedando libre para recreación limpia con nuevo correo/password
 
 ## Frente activo real al momento de este estado
 

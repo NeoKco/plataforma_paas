@@ -54,6 +54,7 @@ Debe permanecer corto, operativo y fácil de escanear.
 - ese mismo frente ya quedó desplegado y validado en `staging` y `production`
 - el host productivo también quedó corregido para arrancar realmente con `APP_ENV=production`
 - la documentación canónica ya fija `staging` como espejo operativo por defecto y deja `bootstrap reset` como flujo puntual de validación
+- el hotfix productivo de `provisioning` ya quedó aplicado: secretos tenant runtime salen a `TENANT_SECRETS_FILE`, `condominio-demo` volvió a quedar sano y `ierisltda` quedó eliminado para recreación limpia
 
 ## Bloqueo actual
 

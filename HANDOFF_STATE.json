@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-08T18:20:00-04:00",
+  "updated_at": "2026-04-08T19:50:00-04:00",
   "handoff_status": "active",
-  "current_focus": "sin frente tecnico abierto; slice Nuevo tenant con admin explicito + modulos por plan ya cerrado y alineado en codigo, docs y handoff",
-  "project_phase": "produccion validada con HTTPS, staging/test separado y platform_admin tenants ya corregido y desplegado en vivo",
+  "current_focus": "sin frente tecnico abierto; hotfix de provisioning/deprovision aplicado y slice Nuevo tenant ya cerrado",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido y provisioning productivo realineado",
   "active_modules": [
     "platform-core",
     "finance",
@@ -63,7 +63,10 @@
     "smoke browser platform-admin-tenants-create-form aprobado en staging",
     "smoke browser platform-admin-tenants-create-form aprobado en production",
     "host productivo realineado a APP_ENV=production con bootstrap env seguro explicito para tenants demo heredados",
-    "documentacion canónica y handoff realineados para fijar staging como espejo operativo por defecto"
+    "documentacion canónica y handoff realineados para fijar staging como espejo operativo por defecto",
+    "hotfix de provisioning aplicado en staging y production usando TENANT_SECRETS_FILE para secretos tenant runtime",
+    "condominio-demo re-alineado con credencial tecnica valida y schema sync completado",
+    "ierisltda deprovisionado y eliminado para permitir recreacion limpia"
   ],
   "blocking_issues": [],
   "next_decision_required": "elegir el siguiente frente funcional o transversal ahora que production, staging y platform_admin tenants ya quedaron estables",
@@ -122,6 +125,8 @@
     "platform_admin_new_tenant_frontend_build": "pass",
     "platform_admin_new_tenant_playwright_list": "pass",
     "platform_admin_new_tenant_smoke_staging": "pass",
-    "platform_admin_new_tenant_smoke_production": "pass"
+    "platform_admin_new_tenant_smoke_production": "pass",
+    "provisioning_runtime_secrets_hotfix_tests": "pass",
+    "provisioning_runtime_secrets_hotfix_prod": "pass"
   }
 }

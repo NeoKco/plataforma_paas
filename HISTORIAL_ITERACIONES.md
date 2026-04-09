@@ -15,6 +15,44 @@ Para nuevas entradas usar:
 
 ---
 
+## 2026-04-08 — Hotfix de provisioning/deprovision en producción
+
+### Objetivo
+
+- corregir los fallos visibles de `Provisioning` en producción
+- permitir de nuevo el retiro técnico y borrado seguro de un tenant archivado para recrearlo limpio
+
+### Cambios principales
+
+- `TenantSecretService` deja institucionalizado `TENANT_SECRETS_FILE` como archivo runtime para passwords técnicas tenant
+- `provisioning` y `deprovision` escriben/limpian primero ese archivo y mantienen compatibilidad con el `.env` legado
+- se actualizan `.env.example`, `backend.production.example.env` y el catálogo de variables backend
+- se despliega el hotfix en `staging` y `production`
+- se crea `/opt/platform_paas/.tenant-secrets.env` y `/opt/platform_paas_staging/.tenant-secrets.env` con permisos para el usuario `platform`
+- se rota la credencial técnica de `condominio-demo`, su `sync_tenant_schema` vuelve a `completed`
+- se reencola y completa el retiro técnico de `ierisltda`, y luego se elimina el tenant archivado para permitir recreación limpia
+
+### Validaciones
+
+- `app.tests.test_security_hardening`: `10 OK`
+- slice backend afectado: `236 OK`
+- baseline backend en `/opt/platform_paas_staging`: `512 OK`
+- baseline backend en `/opt/platform_paas`: `512 OK`
+- `GET http://127.0.0.1:8000/health`: OK
+- verificación final en `platform_control`:
+  - `condominio-demo` activo y sano
+  - `ierisltda` ya no existe
+
+### Bloqueos
+
+- no queda bloqueo técnico en este frente
+
+### Siguiente paso
+
+- volver al roadmap principal y elegir el siguiente frente explícito
+
+---
+
 ## 2026-04-08 — Alineación final de documentación y handoff del frente `Nuevo tenant`
 
 ### Objetivo

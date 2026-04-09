@@ -5,22 +5,45 @@ from app.common.config.settings import BASE_DIR
 
 
 class TenantSecretService:
+    def get_runtime_env_path(self, current_settings) -> Path:
+        return Path(
+            getattr(
+                current_settings,
+                "TENANT_SECRETS_FILE",
+                Path(getattr(current_settings, "BASE_DIR", BASE_DIR))
+                / ".tenant-secrets.env",
+            )
+        )
+
+    def get_legacy_env_path(self, current_settings) -> Path:
+        return Path(getattr(current_settings, "BASE_DIR", BASE_DIR)) / ".env"
+
+    def get_candidate_env_paths(self, current_settings) -> list[Path]:
+        paths: list[Path] = []
+        for path in (
+            self.get_runtime_env_path(current_settings),
+            self.get_legacy_env_path(current_settings),
+        ):
+            if path not in paths:
+                paths.append(path)
+        return paths
+
     def build_tenant_db_password_env_var_name(self, tenant_slug: str) -> str:
         normalized_slug = tenant_slug.upper().replace("-", "_")
         return f"TENANT_DB_PASSWORD__{normalized_slug}"
 
     def resolve_tenant_db_password(self, tenant_slug: str, current_settings) -> str:
         normalized_slug = tenant_slug.upper().replace("-", "_")
-        env_path = Path(getattr(current_settings, "BASE_DIR", BASE_DIR)) / ".env"
         candidates = [
             self.build_tenant_db_password_env_var_name(tenant_slug),
             f"TENANT_BOOTSTRAP_DB_PASSWORD_{normalized_slug}",
         ]
 
         for env_var in candidates:
-            env_file_value = self._read_env_var_from_file(env_path, env_var)
-            if env_file_value:
-                return env_file_value
+            for env_path in self.get_candidate_env_paths(current_settings):
+                env_file_value = self._read_env_var_from_file(env_path, env_var)
+                if env_file_value:
+                    return env_file_value
 
             env_value = os.getenv(env_var)
             if env_value:
@@ -69,6 +92,7 @@ class TenantSecretService:
         return ("*" * hidden_length) + value[-visible:]
 
     def _upsert_env_var(self, env_path: Path, env_var: str, value: str) -> None:
+        env_path.parent.mkdir(parents=True, exist_ok=True)
         existing_lines: list[str] = []
         if env_path.exists():
             existing_lines = env_path.read_text(encoding="utf-8").splitlines()

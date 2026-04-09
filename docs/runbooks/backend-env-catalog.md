@@ -37,11 +37,13 @@ Uso:
 ## 3. PostgreSQL administrativo
 
 - `POSTGRES_ADMIN_PASSWORD`
+- `TENANT_SECRETS_FILE`
 
 Uso:
 
 - instalacion
 - provisioning tenant
+- archivo runtime donde se persisten y limpian passwords tecnicas tenant sin escribir el `.env` principal
 
 ## 4. JWT y sesion
 
@@ -79,12 +81,18 @@ Con ese baseline:
 
 Y variables dinamicas por tenant, por ejemplo:
 
+- `TENANT_DB_PASSWORD__EMPRESA_DEMO`
 - `TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP`
 
 Uso:
 
 - conexiones tenant por request
 - bootstrap y runtime tenant
+
+Regla operativa vigente:
+
+- en hosts reales, `TENANT_SECRETS_FILE` debe apuntar a un archivo escribible por el usuario del servicio backend
+- el `.env` principal sigue siendo la fuente de configuracion general, pero ya no debe ser el lugar donde runtime escriba secretos tenant nuevos
 
 ## 6. Redis
 

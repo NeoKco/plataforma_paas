@@ -25,6 +25,7 @@ Ese frente ya quedó:
 - bloque `Plan y módulos`
 - `APP_ENV=production` real en el host productivo
 - `staging` operando como espejo instalado por defecto
+- `provisioning` productivo usando `TENANT_SECRETS_FILE` en vez de depender de escritura sobre `/opt/platform_paas/.env`
 
 ### 2. Usar `staging` como carril previo si el siguiente frente toca UI visible
 
