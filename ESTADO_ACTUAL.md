@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-08
-- foco de iteración: hotfix de `provisioning/deprovision` en producción + alineación de secretos tenant runtime
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito y `provisioning` productivo re-alineado
+- foco de iteración: apertura del frente `tenant data portability CSV` como siguiente línea explícita de `platform-core`
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado y próximo frente ya elegido
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -33,15 +33,16 @@
 - `provisioning` y `retiro técnico` ya no dependen de escribir `/opt/platform_paas/.env`; el runtime usa `TENANT_SECRETS_FILE`
 - `condominio-demo` ya quedó re-alineado con credencial técnica válida y su `sync_tenant_schema` volvió a `completed`
 - `ierisltda` ya terminó retiro técnico y fue eliminado de `platform_control`, quedando libre para recreación limpia con nuevo correo/password
+- el siguiente frente explícito del roadmap ya quedó elegido y documentado: `tenant data portability CSV`
+- ya existe modelo canónico para ese frente, separado explícitamente del backup PostgreSQL real
 
 ## Frente activo real al momento de este estado
 
-El frente activo real que se acaba de cerrar fue este:
+El frente activo real que ahora queda abierto es este:
 
-- corregir `platform_admin > Nuevo tenant` para que deje de crear siempre el mismo admin bootstrap implícito
-- mover esa responsabilidad al momento explícito del alta tenant
-- dejar visible para el operador que los módulos del tenant se habilitan por `plan`, no por toggles manuales
-- desplegar esa corrección a `staging` y `production` y validarla en browser
+- diseñar export/import portable por tenant en `CSV + manifest`
+- mantenerlo separado del backup técnico PostgreSQL ya existente
+- dejarlo listo para implementación por fases dentro de `platform-core`
 
 ## Qué módulo se estaba construyendo
 
@@ -49,17 +50,16 @@ En esta etapa no se estaba abriendo un módulo completamente nuevo desde cero.
 
 Lo que se estaba haciendo era esto:
 
-1. cerrar la alineación transversal de frontend sobre los módulos nuevos ya abiertos, principalmente:
-   - `business-core`
-   - `maintenance`
-2. dejar explícito qué parte de ese trabajo queda como backlog no bloqueante
-3. preparar el proyecto para salida a producción / prueba en terreno
+1. cerrar la salida real de `platform-core`
+2. estabilizar `Nuevo tenant` y `provisioning`
+3. elegir el siguiente frente central con documentación, roadmap y handoff explícitos
 
 En otras palabras:
 
 - `finance` ya quedó como módulo piloto cerrado
 - `business-core` y `maintenance` quedaron como foco de alineación transversal
 - luego el foco cambió a deploy, preflight y cutover productivo
+- ahora el foco pasa a portabilidad de datos tenant en `CSV + manifest`
 
 ## Qué ya quedó hecho
 
@@ -96,6 +96,7 @@ Se actualizaron documentos de:
 - checklist de release funcional
 - checklist de aceptación operativa
 - guía de desarrollo y roadmap de `platform-core` para reflejar el alta explícita del admin tenant y la visibilidad plan-driven de módulos
+- modelo canónico nuevo de portabilidad tenant en CSV dentro de `platform-core`
 
 ### A nivel producción / deploy
 

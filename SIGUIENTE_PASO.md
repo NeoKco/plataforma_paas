@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-08
-- prioridad vigente: elegir el siguiente frente real del roadmap ahora que también quedó cerrado el endurecimiento de `Nuevo tenant`
+- prioridad vigente: implementar la Fase 1 del frente `tenant data portability CSV`
 
 ## Objetivo del próximo paso
 
@@ -16,6 +16,12 @@ Ese frente ya quedó:
 - desplegado en `production`
 - validado visualmente por smoke browser
 
+El siguiente frente explícito ya fue elegido:
+
+- export/import portable tenant en `CSV + manifest`
+- separado del backup PostgreSQL canónico
+- documentado en `docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md`
+
 ## Prioridad inmediata
 
 ### 1. Mantener estable lo ya cerrado
@@ -26,6 +32,7 @@ Ese frente ya quedó:
 - `APP_ENV=production` real en el host productivo
 - `staging` operando como espejo instalado por defecto
 - `provisioning` productivo usando `TENANT_SECRETS_FILE` en vez de depender de escritura sobre `/opt/platform_paas/.env`
+- backup PostgreSQL tenant como respaldo técnico canónico
 
 ### 2. Usar `staging` como carril previo si el siguiente frente toca UI visible
 
@@ -36,13 +43,16 @@ Ya existe y sigue sano:
 - árbol `/opt/platform_paas_staging`
 - servicio `platform-paas-backend-staging`
 
-### 3. Elegir el siguiente frente explícito
+### 3. Implementar el siguiente frente explícito ya elegido
 
-La próxima iteración debe escoger uno solo:
+La próxima iteración ya no debe volver a decidir el frente.
 
-- backlog transversal recomendado del PaaS
-- nuevo frente funcional explícito
-- endurecimiento puntual de `platform_admin` si hay necesidad operativa concreta
+Debe avanzar sobre:
+
+- `tenant data portability CSV`
+- Fase 1: export portable mínimo por tenant
+- jobs en `platform_control`
+- paquete `zip + manifest + csv`
 
 ## Orden exacto recomendado
 
@@ -54,7 +64,7 @@ La próxima iteración debe escoger uno solo:
 6. confirmar que producción y staging siguen saludables
 7. asumir cerrado el frente `tenant sidebar backend-driven`
 8. asumir cerrado el frente `Nuevo tenant admin explícito + módulos por plan`
-9. elegir el siguiente frente explícito
+9. abrir implementación del frente `tenant data portability CSV`
 10. actualizar `ESTADO_ACTUAL.md` si cambia la prioridad real
 
 ## Qué debe actualizar la próxima IA al cerrar
@@ -72,7 +82,7 @@ Antes de escribir código funcional, debe partir desde esta realidad operativa:
 - producción ya está publicada y validada inicialmente con HTTPS en `orkestia.ddns.net`
 - staging/test ya existe en el mismo mini PC
 - el frente de `Nuevo tenant` ya quedó cerrado en entorno real
-- lo pendiente vuelve a ser elegir el siguiente frente explícito del roadmap
+- el siguiente frente ya quedó elegido y documentado en `TENANT_DATA_PORTABILITY_MODEL.md`
 
 ## Regla de cierre de la próxima iteración
 
@@ -80,7 +90,7 @@ La próxima iteración debe terminar con una de estas dos salidas claras:
 
 ### Salida A
 
-- se abre un frente nuevo explícito con estado y roadmap alineados
+- se implementa una parte real del frente `tenant data portability CSV` con estado y roadmap alineados
 
 ### Salida B
 
@@ -98,4 +108,4 @@ Y si una iteración importante cambia el estado real del proyecto, estos archivo
 
 Este archivo debería reescribirse cuando:
 
-- se elija explícitamente el siguiente frente del roadmap
+- la Fase 1 del frente `tenant data portability CSV` pase de diseño a implementación real

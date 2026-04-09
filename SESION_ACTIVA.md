@@ -25,8 +25,8 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Estado rápido vigente
 
 - fecha: 2026-04-08
-- foco activo: frente `Nuevo tenant` ya cerrado; listo para abrir el siguiente frente explícito
-- prioridad inmediata: elegir el próximo frente del roadmap y usar `staging` si vuelve a tocar UI visible
+- foco activo: frente nuevo elegido `tenant data portability CSV`
+- prioridad inmediata: mantener estable lo ya cerrado y usar `staging` si la futura UI de export/import llega a tocar operación visible
 - módulo o frente activo: `platform-core` / continuidad central
 
 ## Último contexto útil
@@ -55,11 +55,13 @@ Debe permanecer corto, operativo y fácil de escanear.
 - el host productivo también quedó corregido para arrancar realmente con `APP_ENV=production`
 - la documentación canónica ya fija `staging` como espejo operativo por defecto y deja `bootstrap reset` como flujo puntual de validación
 - el hotfix productivo de `provisioning` ya quedó aplicado: secretos tenant runtime salen a `TENANT_SECRETS_FILE`, `condominio-demo` volvió a quedar sano y `ierisltda` quedó eliminado para recreación limpia
+- ya quedó elegido el siguiente frente explícito del roadmap: export/import portable tenant en `CSV + manifest`, separado del backup PostgreSQL canónico
+- el modelo canónico de ese frente ya quedó abierto en `docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md`
 
 ## Bloqueo actual
 
 - no existe bloqueo técnico en este frente
-- no queda trabajo pendiente de `Nuevo tenant`; solo falta decidir qué abrir después
+- el frente CSV aún no está implementado; por ahora solo quedó diseñado y canonizado
 
 ## Siguiente acción inmediata
 
@@ -69,7 +71,7 @@ Es este:
 
 - mantener `production` estable
 - mantener `staging` como carril previo real
-- elegir el siguiente frente explícito del roadmap
+- implementar la Fase 1 del frente `tenant data portability CSV`
 
 ## Archivos a leer justo después de este
 

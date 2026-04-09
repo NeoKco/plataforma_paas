@@ -2,6 +2,12 @@
 
 Esta guia deja una base minima para respaldar y restaurar PostgreSQL en un entorno Debian, cubriendo tanto `platform_control` como las bases tenant.
 
+Importante:
+
+- este flujo sigue siendo el respaldo técnico canónico
+- no debe confundirse con el futuro export/import tenant en `CSV + manifest`
+- el diseño de portabilidad tenant queda en [TENANT_DATA_PORTABILITY_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md)
+
 ## Archivos Base
 
 - `infra/postgres/backups/backup_platform_control.sh`

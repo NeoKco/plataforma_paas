@@ -15,6 +15,42 @@ Para nuevas entradas usar:
 
 ---
 
+## 2026-04-08 — Apertura del frente `tenant data portability CSV`
+
+### Objetivo
+
+- elegir explícitamente el siguiente frente central del roadmap
+- dejar canónico cómo debe resolverse export/import portable por tenant sin confundirlo con backup PostgreSQL real
+
+### Cambios principales
+
+- se agrega [TENANT_DATA_PORTABILITY_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md) dentro de `platform-core`
+- el modelo deja explícito:
+  - `pg_dump` como respaldo técnico canónico
+  - `CSV + manifest` como portabilidad y migración
+  - jobs centralizados en `platform_control`
+  - paquete por tenant en `zip`
+  - `dry_run` obligatorio antes de `apply`
+- `platform-core/README`, `DEV_GUIDE`, `ROADMAP` y `CHANGELOG` quedan alineados con este frente nuevo
+- `postgres-backup-and-restore.md` deja explícito que backup PostgreSQL y export/import CSV no son lo mismo
+- estado vivo y handoff quedan reescritos para que la próxima IA ya no tenga que “elegir frente”, sino implementar la Fase 1
+
+### Validaciones
+
+- revisión cruzada de documentación canónica: OK
+- `HANDOFF_STATE.json` válido: esperado en esta iteración
+
+### Bloqueos
+
+- no hay bloqueo técnico
+- el frente todavía está en fase de diseño, no de implementación
+
+### Siguiente paso
+
+- implementar la Fase 1 de `tenant data portability CSV` en `platform-core`
+
+---
+
 ## 2026-04-08 — Hotfix de provisioning/deprovision en producción
 
 ### Objetivo

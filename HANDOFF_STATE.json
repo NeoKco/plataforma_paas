@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-08T19:50:00-04:00",
+  "updated_at": "2026-04-08T20:35:00-04:00",
   "handoff_status": "active",
-  "current_focus": "sin frente tecnico abierto; hotfix de provisioning/deprovision aplicado y slice Nuevo tenant ya cerrado",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido y provisioning productivo realineado",
+  "current_focus": "frente tenant data portability CSV abierto a nivel de diseño canónico dentro de platform-core",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado y siguiente frente central ya elegido",
   "active_modules": [
     "platform-core",
     "finance",
@@ -27,7 +27,8 @@
     "el staging ya puede alternar entre espejo instalado y bootstrap reset sin tocar production",
     "el sidebar principal de tenant_portal debe consumir effective_enabled_modules desde /tenant/info y no volver a hardcodearse por modulo",
     "todo tenant nuevo debe capturar admin inicial explicito al momento del alta",
-    "los modulos tenant-side siguen siendo plan-driven y deben hacerse visibles en la UI por preview de plan, no por toggles manuales ad hoc"
+    "los modulos tenant-side siguen siendo plan-driven y deben hacerse visibles en la UI por preview de plan, no por toggles manuales ad hoc",
+    "backup PostgreSQL por tenant sigue siendo el respaldo tecnico canonico; el futuro CSV tenant-side debe ser portabilidad y migracion, no sustituto del backup real"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -66,10 +67,11 @@
     "documentacion canónica y handoff realineados para fijar staging como espejo operativo por defecto",
     "hotfix de provisioning aplicado en staging y production usando TENANT_SECRETS_FILE para secretos tenant runtime",
     "condominio-demo re-alineado con credencial tecnica valida y schema sync completado",
-    "ierisltda deprovisionado y eliminado para permitir recreacion limpia"
+    "ierisltda deprovisionado y eliminado para permitir recreacion limpia",
+    "modelo canónico tenant data portability CSV agregado a platform-core como siguiente frente explícito del roadmap"
   ],
   "blocking_issues": [],
-  "next_decision_required": "elegir el siguiente frente funcional o transversal ahora que production, staging y platform_admin tenants ya quedaron estables",
+  "next_decision_required": "implementar la Fase 1 del frente tenant data portability CSV respetando la separación frente al backup PostgreSQL canónico",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -98,6 +100,7 @@
     "REGLAS_IMPLEMENTACION.md",
     "ESTADO_ACTUAL.md",
     "SIGUIENTE_PASO.md",
+    "docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md",
     "docs/deploy/environment-strategy.md",
     "docs/deploy/staging-single-host.md",
     "docs/deploy/staging-bootstrap-reset.md"

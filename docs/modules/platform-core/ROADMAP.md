@@ -88,6 +88,7 @@ Referencia operativa:
 
 Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 
+- abrir el frente explícito `tenant data portability CSV` como capacidad central de `platform-core`, separado del backup PostgreSQL canónico
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - mantener `staging` como espejo instalado por defecto y usar `bootstrap reset` solo para validar `/install` cuando haga falta
 - ampliar E2E browser a acceso tenant más profundo tras el salto desde `Tenants`, y a DLQ individual/filtros más finos
@@ -102,6 +103,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - la documentación central era abundante pero estaba dispersa; ya quedó indexada, pero aún puede seguir normalizándose
 - el backend ya calcula y aplica entitlements por módulo tenant y el sidebar principal del `tenant_portal` ya filtra por contrato/billing usando `effective_enabled_modules`
 - el staging ya puede alternar entre espejo instalado y bootstrap reset; hoy queda institucionalizado que el modo normal es espejo operativo y el siguiente paso ya no es de entorno sino de roadmap
+- la plataforma ya tiene backup y restore PostgreSQL por tenant, pero todavía no tiene export/import portable en `CSV + manifest` como capacidad de producto para migración de datos
 
 ## Conclusión práctica
 

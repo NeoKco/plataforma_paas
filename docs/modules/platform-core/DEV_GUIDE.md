@@ -65,6 +65,10 @@ Documentación base:
   - `business-core` y `maintenance` dependen de `core`
   - `finance` requiere `finance`
   - el sidebar del `tenant_portal` no debe volver a hardcodear estas visibilidades fuera de esa fuente
+- backup PostgreSQL y portabilidad CSV son frentes distintos:
+  - `pg_dump` sigue siendo el respaldo técnico canónico
+  - el futuro export/import CSV tenant-side debe vivir en `platform_control`, no dentro de un módulo tenant suelto
+  - ese frente debe usar `dry_run` antes de `apply` y no debe venderse como reemplazo del backup real
 
 ## Cómo extender este bloque
 
@@ -82,6 +86,7 @@ Documentación base:
 - Error/status matrix: [backend-error-status-matrix.md](/home/felipe/platform_paas/docs/architecture/backend-error-status-matrix.md)
 - Mapa de permisos: [permission-map.md](/home/felipe/platform_paas/docs/architecture/permission-map.md)
 - E2E browser: [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md)
+- Modelo de portabilidad tenant: [TENANT_DATA_PORTABILITY_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md)
 
 ## E2E vigente
 

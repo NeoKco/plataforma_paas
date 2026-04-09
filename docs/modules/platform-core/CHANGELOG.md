@@ -19,6 +19,7 @@
 - `provisioning` y `deprovision` dejan de depender de escritura runtime sobre el `.env` principal: [TenantSecretService](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py) ahora usa `TENANT_SECRETS_FILE` como archivo de secretos tenant escribible y mantiene compatibilidad de lectura/limpieza con el `.env` legado
 - el catálogo de entorno y los ejemplos `.env` ya documentan `TENANT_SECRETS_FILE` como parte del runtime productivo para evitar fallos tipo `Permission denied: '/opt/platform_paas/.env'`
 - el ciclo operativo de `Tenants` y `Provisioning` queda documentado para llevar cualquier tenant nuevo o desalineado hasta `active`, `db_configured=true`, esquema al dia y acciones visibles `Archivar tenant` / `Abrir portal tenant`
+- se abre como siguiente frente explícito de `platform-core` el modelo [TENANT_DATA_PORTABILITY_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md), separando backup PostgreSQL canónico de export/import portable tenant en `CSV + manifest`
 
 ## 2026-04-07
 
