@@ -12,6 +12,7 @@ import { AppTableWrap, AppToolbar } from "../../../../design-system/AppLayout";
 import { EmptyState } from "../../../../components/feedback/EmptyState";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
+import { useSearchParams } from "react-router-dom";
 import { getApiErrorDisplayMessage } from "../../../../services/api";
 import {
   getPlatformActionFeedbackLabel,
@@ -63,6 +64,11 @@ export function ProvisioningPage() {
   const showDevelopmentBootstrapHelp = import.meta.env.DEV;
   const { session } = useAuth();
   const { language } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedTenantSlug = normalizeNullableString(searchParams.get("tenantSlug") || "") || "";
+  const requestedOperationFilter = normalizeProvisioningOperationFilter(
+    searchParams.get("operation")
+  );
   const [jobs, setJobs] = useState<ProvisioningJob[]>([]);
   const [metrics, setMetrics] = useState<ProvisioningJobMetricsResponse | null>(null);
   const [metricsByJobType, setMetricsByJobType] =
@@ -87,19 +93,96 @@ export function ProvisioningPage() {
 
   const [dlqLimit, setDlqLimit] = useState("25");
   const [dlqJobType, setDlqJobType] = useState("");
-  const [dlqTenantSlug, setDlqTenantSlug] = useState("");
+  const [dlqTenantSlug, setDlqTenantSlug] = useState(requestedTenantSlug);
   const [dlqErrorCode, setDlqErrorCode] = useState("");
   const [dlqErrorContains, setDlqErrorContains] = useState("");
   const [dlqResetAttempts, setDlqResetAttempts] = useState(true);
   const [dlqDelaySeconds, setDlqDelaySeconds] = useState("0");
-  const [jobOperationFilter, setJobOperationFilter] = useState("all");
+  const [jobOperationFilter, setJobOperationFilter] = useState(requestedOperationFilter);
+  const [tenantSlugFilter, setTenantSlugFilter] = useState(requestedTenantSlug);
+
+  const tenantSlugById = useMemo(() => {
+    const entries = new Map<number, string>();
+    metrics?.data.forEach((row) => entries.set(row.tenant_id, row.tenant_slug));
+    metricsByJobType?.data.forEach((row) => {
+      if (!entries.has(row.tenant_id)) {
+        entries.set(row.tenant_id, row.tenant_slug);
+      }
+    });
+    jobs.forEach((job) => {
+      if (!entries.has(job.tenant_id)) {
+        entries.set(job.tenant_id, `tenant-${job.tenant_id}`);
+      }
+    });
+    return entries;
+  }, [jobs, metrics?.data, metricsByJobType?.data]);
+
+  const normalizedTenantSlugFilter = tenantSlugFilter.trim().toLowerCase();
+
+  const tenantScopedJobs = useMemo(() => {
+    if (!normalizedTenantSlugFilter) {
+      return jobs;
+    }
+    return jobs.filter((job) =>
+      (tenantSlugById.get(job.tenant_id) || `tenant-${job.tenant_id}`)
+        .toLowerCase()
+        .includes(normalizedTenantSlugFilter)
+    );
+  }, [jobs, normalizedTenantSlugFilter, tenantSlugById]);
+
+  const filteredMetricsByTenantRows = useMemo(() => {
+    if (!normalizedTenantSlugFilter) {
+      return metrics?.data || [];
+    }
+    return (metrics?.data || []).filter((row) =>
+      row.tenant_slug.toLowerCase().includes(normalizedTenantSlugFilter)
+    );
+  }, [metrics?.data, normalizedTenantSlugFilter]);
+
+  const filteredMetricsByJobTypeRows = useMemo(() => {
+    if (!normalizedTenantSlugFilter) {
+      return metricsByJobType?.data || [];
+    }
+    return (metricsByJobType?.data || []).filter((row) =>
+      row.tenant_slug.toLowerCase().includes(normalizedTenantSlugFilter)
+    );
+  }, [metricsByJobType?.data, normalizedTenantSlugFilter]);
+
+  const filteredMetricsByErrorCodeRows = useMemo(() => {
+    if (!normalizedTenantSlugFilter) {
+      return metricsByErrorCode?.data || [];
+    }
+    return (metricsByErrorCode?.data || []).filter((row) =>
+      row.tenant_slug.toLowerCase().includes(normalizedTenantSlugFilter)
+    );
+  }, [metricsByErrorCode?.data, normalizedTenantSlugFilter]);
+
+  const filteredAlertsRows = useMemo(() => {
+    if (!normalizedTenantSlugFilter) {
+      return alerts?.data || [];
+    }
+    return (alerts?.data || []).filter((row) =>
+      (row.tenant_slug || "").toLowerCase().includes(normalizedTenantSlugFilter)
+    );
+  }, [alerts?.data, normalizedTenantSlugFilter]);
+
+  const filteredDlqRows = useMemo(() => {
+    if (!normalizedTenantSlugFilter) {
+      return dlq?.data || [];
+    }
+    return (dlq?.data || []).filter((row) =>
+      (tenantSlugById.get(row.tenant_id) || `tenant-${row.tenant_id}`)
+        .toLowerCase()
+        .includes(normalizedTenantSlugFilter)
+    );
+  }, [dlq?.data, normalizedTenantSlugFilter, tenantSlugById]);
 
   const overview = useMemo(() => {
-    const totalJobs = jobs.length;
-    const failedJobs = jobs.filter((job) => job.status === "failed").length;
-    const runningJobs = jobs.filter((job) => job.status === "running").length;
-    const activeAlerts = alerts?.total_alerts || 0;
-    const dlqJobs = dlq?.total_jobs || 0;
+    const totalJobs = tenantScopedJobs.length;
+    const failedJobs = tenantScopedJobs.filter((job) => job.status === "failed").length;
+    const runningJobs = tenantScopedJobs.filter((job) => job.status === "running").length;
+    const activeAlerts = filteredAlertsRows.length;
+    const dlqJobs = filteredDlqRows.length;
 
     return {
       totalJobs,
@@ -108,25 +191,25 @@ export function ProvisioningPage() {
       activeAlerts,
       dlqJobs,
     };
-  }, [alerts?.total_alerts, dlq?.total_jobs, jobs]);
+  }, [filteredAlertsRows.length, filteredDlqRows.length, tenantScopedJobs]);
 
   const jobsRequiringAction = useMemo(() => {
-    return jobs.filter(
+    return tenantScopedJobs.filter(
       (job) =>
         job.status === "failed" ||
         job.status === "retry_pending" ||
         job.status === "pending"
     );
-  }, [jobs]);
+  }, [tenantScopedJobs]);
 
   const filteredJobs = useMemo(() => {
     if (jobOperationFilter === "all") {
-      return jobs;
+      return tenantScopedJobs;
     }
-    return jobs.filter(
+    return tenantScopedJobs.filter(
       (job) => getProvisioningOperationKind(job.job_type) === jobOperationFilter
     );
-  }, [jobOperationFilter, jobs]);
+  }, [jobOperationFilter, tenantScopedJobs]);
 
   const filteredJobsRequiringAction = useMemo(() => {
     if (jobOperationFilter === "all") {
@@ -145,10 +228,10 @@ export function ProvisioningPage() {
     }> = [];
 
     const latestCycle = cycleHistory?.data[0];
-    const failedJobCount = jobs.filter((job) => job.status === "failed").length;
-    const retryJobCount = jobs.filter((job) => job.status === "retry_pending").length;
-    const pendingJobCount = jobs.filter((job) => job.status === "pending").length;
-    const activeDeprovisionJobs = jobs.filter(
+    const failedJobCount = tenantScopedJobs.filter((job) => job.status === "failed").length;
+    const retryJobCount = tenantScopedJobs.filter((job) => job.status === "retry_pending").length;
+    const pendingJobCount = tenantScopedJobs.filter((job) => job.status === "pending").length;
+    const activeDeprovisionJobs = tenantScopedJobs.filter(
       (job) =>
         job.job_type === "deprovision_tenant_database" &&
         (job.status === "failed" ||
@@ -179,13 +262,13 @@ export function ProvisioningPage() {
       });
     }
 
-    if (dlq?.total_jobs) {
+    if (filteredDlqRows.length > 0) {
       signals.push({
         key: "dlq-jobs",
         title:
           language === "es"
-            ? `${dlq.total_jobs} filas quedaron en DLQ`
-            : `${dlq.total_jobs} rows landed in the DLQ`,
+            ? `${filteredDlqRows.length} filas quedaron en DLQ`
+            : `${filteredDlqRows.length} rows landed in the DLQ`,
         detail:
           language === "es"
             ? "Usa los filtros DLQ para aislar una familia de fallos y reencola solo el subconjunto necesario en vez de devolver toda la cola."
@@ -250,7 +333,7 @@ export function ProvisioningPage() {
     }
 
     return signals;
-  }, [cycleHistory?.data, dlq?.total_jobs, jobs]);
+  }, [cycleHistory?.data, filteredDlqRows.length, language, tenantScopedJobs]);
 
   const jobTypeOptions = useMemo(() => {
     const keys = new Set<string>();
@@ -260,33 +343,22 @@ export function ProvisioningPage() {
     return Array.from(keys).sort();
   }, [dlq?.data, jobs, metricsByJobType?.data]);
 
-  const tenantSlugById = useMemo(() => {
-    const entries = new Map<number, string>();
-    metrics?.data.forEach((row) => entries.set(row.tenant_id, row.tenant_slug));
-    metricsByJobType?.data.forEach((row) => {
-      if (!entries.has(row.tenant_id)) {
-        entries.set(row.tenant_id, row.tenant_slug);
-      }
-    });
-    return entries;
-  }, [metrics?.data, metricsByJobType?.data]);
-
   const jobsByOperation = useMemo(() => {
     return {
-      provision: jobs.filter(
+      provision: tenantScopedJobs.filter(
         (job) => getProvisioningOperationKind(job.job_type) === "provision"
       ).length,
-      deprovision: jobs.filter(
+      deprovision: tenantScopedJobs.filter(
         (job) => getProvisioningOperationKind(job.job_type) === "deprovision"
       ).length,
-      schema: jobs.filter(
+      schema: tenantScopedJobs.filter(
         (job) => getProvisioningOperationKind(job.job_type) === "schema"
       ).length,
-      other: jobs.filter(
+      other: tenantScopedJobs.filter(
         (job) => getProvisioningOperationKind(job.job_type) === "other"
       ).length,
     };
-  }, [jobs]);
+  }, [tenantScopedJobs]);
 
   async function loadProvisioningWorkspace() {
     if (!session?.accessToken) {
@@ -389,6 +461,45 @@ export function ProvisioningPage() {
     void loadProvisioningWorkspace();
   }, [session?.accessToken]);
 
+  useEffect(() => {
+    if (requestedTenantSlug !== tenantSlugFilter) {
+      setTenantSlugFilter(requestedTenantSlug);
+    }
+    if (requestedTenantSlug !== dlqTenantSlug) {
+      setDlqTenantSlug(requestedTenantSlug);
+    }
+    if (requestedOperationFilter !== jobOperationFilter) {
+      setJobOperationFilter(requestedOperationFilter);
+    }
+  }, [
+    dlqTenantSlug,
+    jobOperationFilter,
+    requestedOperationFilter,
+    requestedTenantSlug,
+    tenantSlugFilter,
+  ]);
+
+  useEffect(() => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    const normalizedTenantSlug = normalizeNullableString(tenantSlugFilter);
+
+    if (normalizedTenantSlug) {
+      nextSearchParams.set("tenantSlug", normalizedTenantSlug);
+    } else {
+      nextSearchParams.delete("tenantSlug");
+    }
+
+    if (jobOperationFilter !== "all") {
+      nextSearchParams.set("operation", jobOperationFilter);
+    } else {
+      nextSearchParams.delete("operation");
+    }
+
+    if (nextSearchParams.toString() !== searchParams.toString()) {
+      setSearchParams(nextSearchParams, { replace: true });
+    }
+  }, [jobOperationFilter, searchParams, setSearchParams, tenantSlugFilter]);
+
   async function runAction(
     scope: string,
     action: () => Promise<unknown>
@@ -487,7 +598,7 @@ function handleRefresh() {
           ? "Esta acción vuelve a poner en cola el subconjunto actual del DLQ usando los filtros visibles en pantalla."
           : "This action puts the current DLQ subset back in queue using the filters currently visible on screen.",
       details: [
-        `${language === "es" ? "Filas candidatas" : "Candidate rows"}: ${dlq?.total_jobs || 0}`,
+        `${language === "es" ? "Filas candidatas" : "Candidate rows"}: ${filteredDlqRows.length}`,
         `${language === "es" ? "Tipo de job" : "Job type"}: ${
           normalizeNullableString(dlqJobType) || (language === "es" ? "todos" : "all")
         }`,
@@ -629,7 +740,7 @@ function handleRefresh() {
               onClick={() =>
                 downloadTextFile(
                   buildProvisioningJobsCsv(filteredJobs, tenantSlugById, language),
-                  `provisioning-jobs-${jobOperationFilter}.csv`,
+                  `provisioning-jobs-${jobOperationFilter}${normalizedTenantSlugFilter ? `-${normalizedTenantSlugFilter}` : ""}.csv`,
                   "text/csv;charset=utf-8;"
                 )
               }
@@ -645,6 +756,7 @@ function handleRefresh() {
                   JSON.stringify(
                     buildProvisioningWorkspaceExportPayload({
                       operationFilter: jobOperationFilter,
+                      tenantSlugFilter,
                       dlqLimit,
                       dlqJobType,
                       dlqTenantSlug,
@@ -653,12 +765,12 @@ function handleRefresh() {
                       dlqResetAttempts,
                       dlqDelaySeconds,
                       jobs: filteredJobs,
-                      metrics,
-                      metricsByJobType,
-                      metricsByErrorCode,
+                      metricsByTenantRows: filteredMetricsByTenantRows,
+                      metricsByJobTypeRows: filteredMetricsByJobTypeRows,
+                      metricsByErrorCodeRows: filteredMetricsByErrorCodeRows,
                       cycleHistory,
-                      alerts,
-                      dlq,
+                      alertsRows: filteredAlertsRows,
+                      dlqRows: filteredDlqRows,
                     }),
                     null,
                     2
@@ -669,12 +781,12 @@ function handleRefresh() {
               }
               disabled={
                 filteredJobs.length === 0 &&
-                !metrics &&
-                !metricsByJobType &&
-                !metricsByErrorCode &&
+                filteredMetricsByTenantRows.length === 0 &&
+                filteredMetricsByJobTypeRows.length === 0 &&
+                filteredMetricsByErrorCodeRows.length === 0 &&
                 !cycleHistory &&
-                !alerts &&
-                !dlq
+                filteredAlertsRows.length === 0 &&
+                filteredDlqRows.length === 0
               }
             >
               {language === "es" ? "Exportar JSON" : "Export JSON"}
@@ -808,6 +920,30 @@ function handleRefresh() {
             {language === "es" ? "Esquema" : "Schema"}
           </button>
         </AppToolbar>
+        <div className="row g-3 mt-1">
+          <div className="col-12 col-md-6 col-xl-4">
+            <label className="form-label">
+              {language === "es" ? "Foco tenant" : "Tenant focus"}
+            </label>
+            <input
+              className="form-control"
+              value={tenantSlugFilter}
+              onChange={(event) => setTenantSlugFilter(event.target.value)}
+              placeholder={
+                language === "es"
+                  ? "Filtra jobs y métricas por slug tenant"
+                  : "Filter jobs and metrics by tenant slug"
+              }
+            />
+          </div>
+        </div>
+        {normalizedTenantSlugFilter ? (
+          <div className="tenant-inline-note mt-2">
+            {language === "es"
+              ? `La consola está enfocada en tenants que coinciden con "${tenantSlugFilter.trim()}". El DLQ mantiene su filtro propio, pero la lectura operativa ya quedó acotada a ese tenant.`
+              : `The console is focused on tenants matching "${tenantSlugFilter.trim()}". DLQ keeps its own filter, but the operational read is now scoped to that tenant.`}
+          </div>
+        ) : null}
         <div className="provisioning-operation-summary">
           <ProvisioningOperationSummaryItem
             label={language === "es" ? "Altas" : "Creates"}
@@ -1154,7 +1290,7 @@ function handleRefresh() {
         <div className="provisioning-data-grid">
           <DataTableCard
             title={language === "es" ? "Métricas por tenant" : "Metrics by tenant"}
-            rows={metrics.data}
+            rows={filteredMetricsByTenantRows}
             columns={[
               {
                 key: "tenant_slug",
@@ -1192,7 +1328,7 @@ function handleRefresh() {
           {metricsByJobType ? (
             <DataTableCard
               title={language === "es" ? "Métricas por tipo de job" : "Metrics by job type"}
-              rows={metricsByJobType.data}
+              rows={filteredMetricsByJobTypeRows}
               columns={[
                 {
                   key: "tenant_slug",
@@ -1236,7 +1372,7 @@ function handleRefresh() {
                   ? "Agrupa familias de error para no depender solo del texto libre del último intento."
                   : "Groups error families so you do not depend only on the free text of the latest attempt."
               }
-              rows={metricsByErrorCode.data}
+              rows={filteredMetricsByErrorCodeRows}
               columns={[
                 {
                   key: "tenant_slug",
@@ -1287,10 +1423,10 @@ function handleRefresh() {
       ) : null}
 
       {!alertsError && alerts ? (
-        alerts.data.length > 0 ? (
+        filteredAlertsRows.length > 0 ? (
           <DataTableCard
             title={language === "es" ? "Alertas activas" : "Active alerts"}
-            rows={alerts.data}
+            rows={filteredAlertsRows}
             columns={[
               {
                 key: "severity",
@@ -1546,10 +1682,10 @@ function handleRefresh() {
       ) : null}
 
       {!dlqError && dlq ? (
-        dlq.data.length > 0 ? (
+        filteredDlqRows.length > 0 ? (
           <DataTableCard
             title={language === "es" ? "Filas DLQ" : "DLQ rows"}
-            rows={dlq.data}
+            rows={filteredDlqRows}
             columns={[
               {
                 key: "job_id",
@@ -1851,6 +1987,18 @@ function formatProvisioningOperationFilterLabel(value: string): string {
   );
 }
 
+function normalizeProvisioningOperationFilter(value: string | null): string {
+  if (
+    value === "provision" ||
+    value === "deprovision" ||
+    value === "schema" ||
+    value === "other"
+  ) {
+    return value;
+  }
+  return "all";
+}
+
 function kindToRepresentativeJobType(
   kind: "provision" | "deprovision" | "schema" | "other"
 ): string {
@@ -1947,6 +2095,7 @@ function buildDlqOptions(filters: {
 
 function buildProvisioningWorkspaceExportPayload({
   operationFilter,
+  tenantSlugFilter,
   dlqLimit,
   dlqJobType,
   dlqTenantSlug,
@@ -1955,14 +2104,15 @@ function buildProvisioningWorkspaceExportPayload({
   dlqResetAttempts,
   dlqDelaySeconds,
   jobs,
-  metrics,
-  metricsByJobType,
-  metricsByErrorCode,
+  metricsByTenantRows,
+  metricsByJobTypeRows,
+  metricsByErrorCodeRows,
   cycleHistory,
-  alerts,
-  dlq,
+  alertsRows,
+  dlqRows,
 }: {
   operationFilter: string;
+  tenantSlugFilter: string;
   dlqLimit: string;
   dlqJobType: string;
   dlqTenantSlug: string;
@@ -1971,17 +2121,18 @@ function buildProvisioningWorkspaceExportPayload({
   dlqResetAttempts: boolean;
   dlqDelaySeconds: string;
   jobs: ProvisioningJob[];
-  metrics: ProvisioningJobMetricsResponse | null;
-  metricsByJobType: ProvisioningJobDetailedMetricsResponse | null;
-  metricsByErrorCode: ProvisioningJobErrorCodeMetricsResponse | null;
+  metricsByTenantRows: ProvisioningJobMetricsResponse["data"];
+  metricsByJobTypeRows: ProvisioningJobDetailedMetricsResponse["data"];
+  metricsByErrorCodeRows: ProvisioningJobErrorCodeMetricsResponse["data"];
   cycleHistory: ProvisioningWorkerCycleTraceHistoryResponse | null;
-  alerts: ProvisioningOperationalAlertsResponse | null;
-  dlq: ProvisioningBrokerDeadLetterResponse | null;
+  alertsRows: ProvisioningOperationalAlertsResponse["data"];
+  dlqRows: ProvisioningBrokerDeadLetterResponse["data"];
 }) {
   return {
     exported_at: new Date().toISOString(),
     filters: {
       operation: operationFilter,
+      tenant_slug: normalizeNullableString(tenantSlugFilter),
       dlq_limit: parsePositiveInteger(dlqLimit, 25),
       dlq_job_type: normalizeNullableString(dlqJobType),
       dlq_tenant_slug: normalizeNullableString(dlqTenantSlug),
@@ -1991,12 +2142,12 @@ function buildProvisioningWorkspaceExportPayload({
       dlq_delay_seconds: parseNonNegativeInteger(dlqDelaySeconds, 0),
     },
     jobs,
-    metrics_by_tenant: metrics?.data || [],
-    metrics_by_job_type: metricsByJobType?.data || [],
-    metrics_by_error_code: metricsByErrorCode?.data || [],
+    metrics_by_tenant: metricsByTenantRows,
+    metrics_by_job_type: metricsByJobTypeRows,
+    metrics_by_error_code: metricsByErrorCodeRows,
     cycle_history: cycleHistory?.data || [],
-    alerts: alerts?.data || [],
-    dlq_rows: dlq?.data || [],
+    alerts: alertsRows,
+    dlq_rows: dlqRows,
   };
 }
 

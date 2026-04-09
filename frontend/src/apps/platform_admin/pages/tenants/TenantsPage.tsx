@@ -2649,7 +2649,13 @@ export function TenantsPage() {
                           : "Creating a tenant triggers provisioning automatically. Here you can see whether the tenant database is ready or whether the job needs intervention."}
                       </div>
                       <div className="tenant-context-actions__buttons">
-                        <Link className="btn btn-outline-primary btn-sm" to="/provisioning">
+                        <Link
+                          className="btn btn-outline-primary btn-sm"
+                          to={buildProvisioningWorkspaceLink(
+                            selectedTenantSummary.slug,
+                            selectedProvisioningJob?.job_type || null
+                          )}
+                        >
                           {language === "es" ? "Abrir provisioning" : "Open provisioning"}
                         </Link>
                         {(selectedProvisioningJob.status === "pending" ||
@@ -4106,6 +4112,35 @@ function selectLatestProvisioningJob(
     .filter((job) => job.tenant_id === tenantId)
     .sort((left, right) => right.id - left.id);
   return tenantJobs[0] || null;
+}
+
+function buildProvisioningWorkspaceLink(tenantSlug: string, jobType: string | null): string {
+  const searchParams = new URLSearchParams({
+    tenantSlug,
+  });
+  const operation = getProvisioningOperationKind(jobType);
+  if (operation !== "all") {
+    searchParams.set("operation", operation);
+  }
+  return `/provisioning?${searchParams.toString()}`;
+}
+
+function getProvisioningOperationKind(
+  jobType: string | null
+): "all" | "provision" | "deprovision" | "schema" | "other" {
+  if (!jobType) {
+    return "all";
+  }
+  if (jobType === "create_tenant_database") {
+    return "provision";
+  }
+  if (jobType === "deprovision_tenant_database") {
+    return "deprovision";
+  }
+  if (jobType === "sync_tenant_schema" || jobType === "repair_tenant_schema") {
+    return "schema";
+  }
+  return "other";
 }
 
 function formatProvisioningJobType(value: string): string {
