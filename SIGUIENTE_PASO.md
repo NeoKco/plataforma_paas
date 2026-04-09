@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-09
-- prioridad vigente: continuar el frente explícito `platform-core hardening + E2E` después de cerrar el salto `Tenants -> Provisioning`
+- prioridad vigente: continuar el frente explícito `platform-core hardening + E2E` sobre `Provisioning`, estabilizando el nuevo corte de investigación DLQ antes de subirlo a `production`
 
 ## Objetivo del próximo paso
 
@@ -26,6 +26,7 @@ El siguiente frente explícito ya fue elegido:
 - con foco en `Provisioning`
 - con foco en DLQ
 - con foco restante en recuperación fina, observabilidad visible y filtros DLQ dentro de `Provisioning`
+- con un corte ya abierto en `repo + staging`: `Investigar en DLQ` desde `Fallos por código` y `Alertas activas`
 
 ## Prioridad inmediata
 
@@ -58,6 +59,8 @@ Debe avanzar sobre:
 - hardening operativo y browser de `Provisioning`
 - recuperación / requeue / DLQ visibles
 - sin reabrir el salto `Tenants -> Provisioning`, que ya quedó validado
+- cerrar la estabilización del smoke `platform-admin-provisioning-dlq-investigation`
+- solo después promover este corte a `production`
 
 ## Orden exacto recomendado
 

@@ -26,7 +26,7 @@ Debe permanecer corto, operativo y fácil de escanear.
 
 - fecha: 2026-04-09
 - foco activo: `platform-core hardening + E2E` sobre `Provisioning`
-- prioridad inmediata: seguir con DLQ y recuperación fina dentro de `Provisioning`
+- prioridad inmediata: estabilizar el corte `Investigar en DLQ` dentro de `Provisioning` y decidir recién después su despliegue a `production`
 - módulo o frente activo: `platform-core` / continuidad central
 
 ## Último contexto útil
@@ -69,11 +69,13 @@ Debe permanecer corto, operativo y fácil de escanear.
 - `Provisioning` ya enfoca jobs, métricas, alertas y DLQ según ese tenant sin perder la consola global
 - ya existe smoke browser `platform-admin-tenant-provisioning-context`
 - ese smoke ya quedó validado en `staging` y `production`
+- `Provisioning` ya implementa en repo y `staging` la acción `Investigar en DLQ` desde `Fallos por código` y `Alertas activas`
+- el smoke nuevo `platform-admin-provisioning-dlq-investigation` ya quedó agregado y compila/lista, pero todavía no cierra verde sobre el entorno publicado
 
 ## Bloqueo actual
 
-- no existe bloqueo técnico en este frente
-- el subfrente `Tenants -> Provisioning` ya quedó validado y desplegado
+- el cambio nuevo de `Investigar en DLQ` ya está en `repo + staging`
+- el bloqueo actual es de estabilización E2E: el smoke específico no está encontrando la fila sembrada en browser publicado, aunque el resumen backend sí la devuelve por consulta directa
 
 ## Siguiente acción inmediata
 
@@ -82,7 +84,8 @@ El siguiente movimiento correcto es este:
 - mantener `production` estable
 - mantener `staging` como carril previo real
 - seguir dentro de `platform-core hardening + E2E`
-- continuar por DLQ, requeue y observabilidad fina dentro de `Provisioning`
+- cerrar el smoke `platform-admin-provisioning-dlq-investigation`
+- si pasa en `staging`, promover el corte a `production`
 
 ## Archivos a leer justo después de este
 
@@ -109,3 +112,6 @@ El siguiente movimiento correcto es este:
 - smoke `platform-admin-tenant-data-export` en `production`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `staging`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `production`: OK
+- `npm run build` del frontend: OK para el corte `Investigar en DLQ`
+- `npx playwright test --list`: OK (`43 tests`)
+- smoke de regresión `platform-admin-tenant-provisioning-context` en `staging`: OK después del nuevo cambio

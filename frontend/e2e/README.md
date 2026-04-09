@@ -29,6 +29,7 @@ Cobertura validada:
 - requeue individual de una fila DLQ desde `Provisioning` cuando el backend usa broker
 - requeue batch de filas DLQ filtradas desde `Provisioning` cuando el backend usa broker
 - filtros finos DLQ por `error contains` y revisión de `delay/reset attempts` antes del requeue individual cuando el backend usa broker
+- navegación asistida desde `Fallos por código` hacia filtros DLQ dentro de `Provisioning`
 - login de `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
 - login `tenant_portal` permitido en `past_due` con gracia y bloqueado al vencer la deuda
@@ -64,6 +65,7 @@ Specs actuales:
 - [platform-admin-provisioning-dlq-row.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts)
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-investigation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-investigation.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-login-billing.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-login-billing.smoke.spec.ts)
 - [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
@@ -89,6 +91,7 @@ Variables de entorno:
 
 - usar `.env.e2e.example` como referencia
 - si tu demo local usa otro tenant o credenciales, sobreescribe `E2E_TENANT_*` y `E2E_PLATFORM_*`
+- si un smoke necesita sembrar datos contra un backend distinto al repo local, sobreescribe además `E2E_BACKEND_ROOT` y `E2E_BACKEND_PYTHON`
 - si `Playwright` no encuentra su browser exacto, puedes apuntar `E2E_CHROMIUM_EXECUTABLE_PATH` a un `chromium` ya instalado
 - el baseline actualmente validado usa `empresa-bootstrap`, porque queda reservado como tenant estable para pruebas browser tenant
 - si tu entorno no tiene ese tenant o usa otra clave, sobreescribe `E2E_TENANT_*`
@@ -217,6 +220,7 @@ Notas:
 - `npm run e2e:platform` ya ejecuta todo el bloque `platform-admin*.spec.ts`, no solo el smoke de login/navegación base
 - `npm run e2e:tenant` ya ejecuta todo el bloque `tenant-portal*.spec.ts`, no solo el smoke base de `finance`
 - el smoke de `retry` de provisioning siembra un job `failed` controlado en la DB de control usando el Python del backend; si tu entorno usa otra ruta, sobreescribe `E2E_BACKEND_PYTHON`
+- los smokes de `Provisioning` que siembran tenant/jobs pueden además usar `E2E_BACKEND_ROOT` para apuntar a un árbol publicado como `/opt/platform_paas_staging` y así compartir DB/control real del entorno browser
 - el smoke de DLQ requiere `PROVISIONING_DISPATCH_BACKEND=broker`; si el entorno usa `database`, el spec queda omitido automáticamente
 - el smoke DLQ individual y el smoke DLQ batch comparten ese requisito broker-only y se omiten automáticamente en backend `database`
 - los smokes de límites tenant ahora fijan y limpian overrides por control DB para evitar fragilidad al preparar estado por UI

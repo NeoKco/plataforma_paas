@@ -1,5 +1,23 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-09 - Provisioning DLQ investigation repo+staging
+
+- se implementa la acción visible `Investigar en DLQ` en [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) sobre `Fallos por código` y `Alertas activas`
+- el cambio precarga `tenantSlug`, `errorCode` y/o `errorContains`, muestra feedback visible y desplaza la lectura al panel `Operación DLQ`
+- se agrega el smoke [platform-admin-provisioning-dlq-investigation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-investigation.smoke.spec.ts)
+- se endurece [backend-control.ts](/home/felipe/platform_paas/frontend/e2e/support/backend-control.ts) con `E2E_BACKEND_ROOT` y `E2E_BACKEND_PYTHON` para seeds contra árboles publicados como `/opt/platform_paas_staging`
+- se endurece [platform-admin.ts](/home/felipe/platform_paas/frontend/e2e/support/platform-admin.ts) para que el helper del modal `Nuevo tenant` deje de depender de placeholders ambiguos
+- validaciones cerradas en esta iteración:
+  - `npm run build` OK
+  - `npx playwright test --list` OK (`43 tests`)
+  - smoke de regresión [platform-admin-tenant-provisioning-context.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-provisioning-context.smoke.spec.ts) OK en `staging`
+- estado de despliegue:
+  - `repo`: actualizado
+  - `staging`: frontend publicado
+  - `production`: pendiente hasta estabilizar el smoke nuevo
+- bloqueo abierto:
+  - el smoke `platform-admin-provisioning-dlq-investigation` todavía no encuentra la fila sembrada en browser publicado, aunque la agregación backend por `error_code` sí devuelve filas en consulta directa sobre `staging`
+
 Este archivo resume iteraciones importantes para que otra IA o developer pueda ver la secuencia reciente sin releer todo el repositorio.
 
 ## Formato recomendado

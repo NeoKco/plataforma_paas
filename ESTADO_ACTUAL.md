@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-09
-- foco de iteración: `platform-core hardening + E2E` sobre `Provisioning` con acceso tenant más profundo desde `Tenants`
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado, portabilidad tenant ya implementada y el salto `Tenants -> Provisioning` ya enfocado por tenant y validado en `staging` y `production`
+- foco de iteración: `platform-core hardening + E2E` sobre `Provisioning` y DLQ
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado, portabilidad tenant ya implementada, el salto `Tenants -> Provisioning` ya validado en `staging` y `production`, y el nuevo corte `Investigar en DLQ` ya quedó en `repo + staging` a la espera de estabilización E2E final antes de subir a `production`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -41,6 +41,9 @@
 - `Tenants` ya abre `Provisioning` con `tenantSlug` precargado y, si existe job visible, con la operación técnica correspondiente ya enfocada
 - `Provisioning` ya deja leer jobs, métricas, alertas y tabla DLQ en foco tenant sin perderse en la cola global
 - el smoke browser `platform-admin-tenant-provisioning-context` ya quedó aprobado en `staging` y `production`
+- `Provisioning` ya agrega en código la acción `Investigar en DLQ` desde `Fallos por código` y `Alertas activas`, precargando filtros DLQ y llevando el foco al panel operativo
+- ese cambio ya quedó publicado en `staging`
+- el smoke nuevo `platform-admin-provisioning-dlq-investigation` ya compila/lista, pero aún no queda verde sobre el entorno publicado; por eso este corte todavía no sube a `production`
 
 ## Frente activo real al momento de este estado
 

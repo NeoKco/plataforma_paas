@@ -106,6 +106,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
   - `Provisioning`
   - DLQ
   - filtros y recuperación fina dentro de `Provisioning`
+  - estabilización browser del salto asistido `Fallos por código/Alertas -> Investigar en DLQ` antes de subirlo a `production`
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - mantener `staging` como espejo instalado por defecto y usar `bootstrap reset` solo para validar `/install` cuando haga falta
 - ampliar E2E browser a DLQ individual/filtros más finos y a recuperación operativa guiada dentro de `Provisioning`
