@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-09T03:20:00-04:00",
+  "updated_at": "2026-04-09T04:05:00-04:00",
   "handoff_status": "active",
-  "current_focus": "platform-core hardening + E2E en Provisioning/DLQ; salto Tenants -> Provisioning ya cerrado y el nuevo corte Investigar en DLQ queda en repo + staging pendiente de estabilizacion browser antes de production",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant ya operativa, salto Tenants -> Provisioning ya desplegado y validado, y nuevo corte Investigar en DLQ publicado solo en staging",
+  "current_focus": "platform-core hardening + E2E en Provisioning/DLQ; salto Tenants -> Provisioning ya cerrado y el corte Investigar en DLQ ya queda validado en staging y publicado en production",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant ya operativa, salto Tenants -> Provisioning ya desplegado y validado, y corte Investigar en DLQ ya publicado en staging y production",
   "active_modules": [
     "platform-core",
     "finance",
@@ -32,7 +32,7 @@
     "la portabilidad tenant ya cubre export portable minimo e import controlado minimo; la siguiente fase ya no es base sino endurecimiento opcional",
     "el siguiente frente recomendado del roadmap central pasa a ser platform-core hardening + E2E sobre Provisioning y DLQ",
     "el salto Tenants -> Provisioning con tenantSlug precargado ya quedo cerrado y no debe reabrirse salvo necesidad explicita",
-    "el corte Investigar en DLQ no debe subir a production hasta cerrar el smoke browser especifico sobre entorno publicado"
+    "el corte Investigar en DLQ ya quedó validado en staging con smoke específico y publicado en production con regresión segura"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -89,18 +89,19 @@
     "smoke platform-admin-tenant-provisioning-context validado en production",
     "Provisioning agrega Investigar en DLQ desde Fallos por codigo y Alertas activas en repo",
     "frontend de staging publicado con el corte Investigar en DLQ",
-    "backend-control E2E acepta E2E_BACKEND_ROOT y E2E_BACKEND_PYTHON para seeds contra arboles publicados"
+    "backend-control E2E acepta E2E_BACKEND_ROOT y E2E_BACKEND_PYTHON para seeds contra arboles publicados",
+    "smoke especifico platform-admin-provisioning-dlq-investigation validado en staging usando el env real /opt/platform_paas_staging/.env.staging",
+    "frontend de production publicado con el corte Investigar en DLQ",
+    "smoke de regresion platform-admin-tenant-provisioning-context revalidado en production despues del publish frontend"
   ],
-  "blocking_issues": [
-    "el smoke platform-admin-provisioning-dlq-investigation aun no encuentra en browser publicado la fila sembrada, aunque la agregacion backend por error_code si responde en consulta directa sobre staging"
-  ],
-  "next_decision_required": "cerrar la estabilizacion del smoke platform-admin-provisioning-dlq-investigation en staging y solo despues decidir promotion a production",
+  "blocking_issues": [],
+  "next_decision_required": "elegir el siguiente subfrente explicito dentro de Provisioning/DLQ ahora que Investigar en DLQ ya quedó cerrado",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
     "seguir con platform-core hardening + E2E sobre Provisioning y DLQ",
-    "estabilizar el smoke platform-admin-provisioning-dlq-investigation",
-    "promover a production solo si el smoke nuevo queda verde"
+    "asumir cerrado el corte Investigar en DLQ",
+    "abrir el siguiente subfrente operativo dentro de Provisioning o DLQ"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -166,6 +167,8 @@
     "platform_admin_provisioning_dlq_investigation_build": "pass",
     "platform_admin_provisioning_dlq_investigation_playwright_list": "pass",
     "platform_admin_provisioning_dlq_investigation_regression_smoke_staging": "pass",
-    "platform_admin_provisioning_dlq_investigation_specific_smoke_staging": "blocked"
+    "platform_admin_provisioning_dlq_investigation_specific_smoke_staging": "pass",
+    "platform_admin_provisioning_dlq_investigation_frontend_publish_production": "pass",
+    "platform_admin_provisioning_dlq_investigation_safe_regression_smoke_production": "pass"
   }
 }
