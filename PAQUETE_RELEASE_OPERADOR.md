@@ -124,6 +124,7 @@ Validar al menos:
 7. login real de `tenant_portal`
 8. lectura rápida de `Instalaciones`, `Costos` y `Checklist`
 9. si el release toca `platform_admin > Tenants`, validar también el bloque `Portabilidad tenant`
+10. si el release toca `Tenants` o `Provisioning`, validar también el salto `Abrir provisioning` con tenant precargado
 
 Smoke técnico adicional ya disponible para la URL pública:
 

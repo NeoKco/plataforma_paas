@@ -37,6 +37,7 @@ Estado práctico de cierre:
 - smoke browser de `platform_admin` para `create`, `archive` y `restore`
 - validación browser del acceso rápido desde `Tenants` hacia `tenant_portal` con `slug` precargado
 - validación browser del bloqueo visible del acceso rápido al `tenant_portal` cuando el tenant aún no es elegible
+- validación browser del acceso rápido desde `Tenants` hacia `Provisioning` con `tenantSlug` y foco operativo precargados
 - sidebar de `tenant_portal` backend-driven según `effective_enabled_modules`, con smoke browser dedicado para billing grace
 - alta de `Nuevo tenant` con admin inicial explícito y sin bootstrap fijo compartido
 - lectura visible en `Tenants` de que los módulos se habilitan por `plan`, tanto en el alta como en el bloque `Plan y módulos`
@@ -104,10 +105,10 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - o, si se prefiere retomar el roadmap central más visible, abrir `platform-core hardening + E2E` sobre:
   - `Provisioning`
   - DLQ
-  - acceso tenant más profundo desde `Tenants`
+  - filtros y recuperación fina dentro de `Provisioning`
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - mantener `staging` como espejo instalado por defecto y usar `bootstrap reset` solo para validar `/install` cuando haga falta
-- ampliar E2E browser a acceso tenant más profundo tras el salto desde `Tenants`, y a DLQ individual/filtros más finos
+- ampliar E2E browser a DLQ individual/filtros más finos y a recuperación operativa guiada dentro de `Provisioning`
 - más regresión sobre provisioning y billing
 - seguir endureciendo copy, validaciones y observabilidad visible
 - mantener la política documental canónica al abrir más dominios

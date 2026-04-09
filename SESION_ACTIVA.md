@@ -25,8 +25,8 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Estado rápido vigente
 
 - fecha: 2026-04-09
-- foco activo: cierre y despliegue ya completado de `tenant data portability CSV`
-- prioridad inmediata: abrir el siguiente frente `platform-core hardening + E2E`
+- foco activo: `platform-core hardening + E2E` sobre `Provisioning`
+- prioridad inmediata: seguir con DLQ y recuperación fina dentro de `Provisioning`
 - módulo o frente activo: `platform-core` / continuidad central
 
 ## Último contexto útil
@@ -65,11 +65,15 @@ Debe permanecer corto, operativo y fácil de escanear.
 - el modelo canónico de ese frente ya quedó abierto y actualizado en `docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md`
 - `Tenants` ya muestra el bloque `Portabilidad tenant` con creación de job, lectura de últimos exports y descarga del `zip`
 - ya existe smoke browser `platform-admin-tenant-data-export`
+- `Tenants` ya abre `Provisioning` con `tenantSlug` precargado
+- `Provisioning` ya enfoca jobs, métricas, alertas y DLQ según ese tenant sin perder la consola global
+- ya existe smoke browser `platform-admin-tenant-provisioning-context`
+- ese smoke ya quedó validado en `staging` y `production`
 
 ## Bloqueo actual
 
 - no existe bloqueo técnico en este frente
-- el frente de portabilidad tenant ya quedó validado y desplegado
+- el subfrente `Tenants -> Provisioning` ya quedó validado y desplegado
 
 ## Siguiente acción inmediata
 
@@ -77,8 +81,8 @@ El siguiente movimiento correcto es este:
 
 - mantener `production` estable
 - mantener `staging` como carril previo real
-- abrir `platform-core hardening + E2E`
-- empezar por `Provisioning`, DLQ y acceso tenant más profundo desde `Tenants`
+- seguir dentro de `platform-core hardening + E2E`
+- continuar por DLQ, requeue y observabilidad fina dentro de `Provisioning`
 
 ## Archivos a leer justo después de este
 
@@ -103,3 +107,5 @@ El siguiente movimiento correcto es este:
 - `GET http://127.0.0.1:8200/health` otra vez con `installed=true`: OK
 - smoke `platform-admin-tenant-data-export` en `staging`: OK
 - smoke `platform-admin-tenant-data-export` en `production`: OK
+- smoke `platform-admin-tenant-provisioning-context` en `staging`: OK
+- smoke `platform-admin-tenant-provisioning-context` en `production`: OK

@@ -2,6 +2,9 @@
 
 ## 2026-04-09
 
+- `Tenants` ahora abre [Provisioning](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) con `tenantSlug` precargado y, cuando existe job vigente, con `operation` alineada al tipo de job del tenant seleccionado
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega foco tenant visible por URL/UI, filtra jobs, métricas, alertas y lectura DLQ en forma client-side, y deja exportaciones CSV/JSON coherentes con ese foco
+- se agrega el smoke [platform-admin-tenant-provisioning-context.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-provisioning-context.smoke.spec.ts) para validar el salto `Tenants -> Provisioning` con contexto tenant en `staging` y `production`
 - la Fase 2 mínima de `tenant data portability CSV` queda validada end-to-end en browser sobre `staging` y `production`, usando el smoke [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts) ya ampliado para cubrir `export + dry_run + apply`
 - el backend portable corrige la inserción de tipos desde CSV en [tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_data_portability_service.py), convirtiendo según tipo de columna destino antes de insertar y evitando fallos como booleanos `'True'` sobre columnas `BOOLEAN`
 - [deploy_backend.sh](/home/felipe/platform_paas/deploy/deploy_backend.sh) queda endurecido para crear y dejar escribible `TENANT_DATA_EXPORT_ARTIFACTS_DIR` al usuario real del servicio antes del restart

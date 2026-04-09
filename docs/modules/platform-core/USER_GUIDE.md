@@ -32,8 +32,9 @@ Referencia:
 3. revisar acceso, billing, maintenance y límites
 4. archivar o restaurar cuando corresponda
 5. abrir el `tenant_portal` desde `Tenants` cuando el tenant ya esté activo y con DB operativa
-6. usar `Exportar CSV portable` cuando necesites un paquete portable del tenant
-7. usar `Simular import portable` y luego `Aplicar import portable` cuando necesites cargar un paquete `zip + manifest + csv` sobre un tenant destino
+6. abrir `Provisioning` desde el mismo tenant cuando necesites leer solo su backlog técnico sin perderte en la cola global
+7. usar `Exportar CSV portable` cuando necesites un paquete portable del tenant
+8. usar `Simular import portable` y luego `Aplicar import portable` cuando necesites cargar un paquete `zip + manifest + csv` sobre un tenant destino
 
 Nota operativa:
 
@@ -61,6 +62,7 @@ Desde `Provisioning`, la operación normal ya permite:
 3. reencolar un job `failed` cuando ya se corrigió la causa o se quiere reintentar formalmente
 4. lanzar `schema auto-sync` para tenants activos después de cambios backend o deploys
 5. revisar y reencolar filas DLQ individualmente o en lote cuando la instalación usa backend de provisioning tipo `broker`, incluyendo filtros por texto de error cuando necesites aislar solo una familia de fallos
+6. llegar desde `Tenants` con `tenantSlug` precargado cuando quieras abrir una lectura ya enfocada en un tenant específico
 
 Referencia:
 

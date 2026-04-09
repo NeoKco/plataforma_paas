@@ -922,10 +922,11 @@ function handleRefresh() {
         </AppToolbar>
         <div className="row g-3 mt-1">
           <div className="col-12 col-md-6 col-xl-4">
-            <label className="form-label">
+            <label className="form-label" htmlFor="provisioning-tenant-focus">
               {language === "es" ? "Foco tenant" : "Tenant focus"}
             </label>
             <input
+              id="provisioning-tenant-focus"
               className="form-control"
               value={tenantSlugFilter}
               onChange={(event) => setTenantSlugFilter(event.target.value)}

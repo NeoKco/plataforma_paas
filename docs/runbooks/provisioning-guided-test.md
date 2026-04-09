@@ -21,8 +21,8 @@ Provisionar significa dejar lista su infraestructura minima:
 - DB tenant
 - usuario tecnico de la DB
 - esquema tenant
-- secreto tecnico en `/.env`
-- admin bootstrap del tenant
+- secreto tecnico en `TENANT_SECRETS_FILE`
+- admin inicial del tenant capturado al momento del alta
 
 Lectura corta para no confundir conceptos:
 
@@ -41,6 +41,7 @@ Hoy ese ciclo se ve repartido asi:
 - las acciones manuales de `Ejecutar ahora`, `Reencolar job` y `Reencolar DLQ` ya pasan por confirmacion previa y dejan feedback especifico por accion
 - `Provisioning` ya muestra tambien un bloque `Que revisar ahora` para distinguir backlog normal, retries, jobs fallidos, DLQ y ciclos del worker cortados por error
 - `Tenants` ya deja `Reprovisionar tenant` cuando el historial previo quedo `completed`, pero la configuracion DB sigue incompleta
+- `Tenants` ya deja abrir `Provisioning` con el `tenantSlug` precargado cuando quieres leer solo el backlog tecnico de ese tenant
 
 ## Cuándo usar esta prueba
 
@@ -88,6 +89,9 @@ try:
         slug="empresa-provisioning-demo",
         tenant_type="empresa",
         plan_code="mensual",
+        admin_full_name="Provisioning Demo Admin",
+        admin_email="admin@empresa-provisioning-demo.local",
+        admin_password="TenantAdmin123!",
     )
     print(
         f"tenant_id={tenant.id} slug={tenant.slug} "
@@ -103,6 +107,7 @@ Resultado esperado:
 - el tenant queda creado en `platform_control`
 - el tenant queda con `status=pending`
 - se genera automaticamente un job `create_tenant_database`
+- el admin inicial queda explícitamente fijado al crear el tenant; ya no debe asumirse un bootstrap implícito fuera de este caso controlado
 
 ## Paso 2. Leer la pantalla `Provisioning`
 
@@ -216,11 +221,9 @@ Resultado real:
 - se imprimio `==== TENANT DB CREATED ====`
 - se creo `tenant_empresa_provisioning_demo`
 - se creo `user_empresa_provisioning_demo`
-- se guardo `TENANT_DB_PASSWORD__EMPRESA_PROVISIONING_DEMO` en `/.env`
+- se guardo `TENANT_DB_PASSWORD__EMPRESA_PROVISIONING_DEMO` en `TENANT_SECRETS_FILE`
 - el job paso a `completed`
-- el login tenant bootstrap quedo disponible con:
-  - `admin@empresa-provisioning-demo.local`
-  - `TenantAdmin123!`
+- el login tenant bootstrap quedo disponible con el correo y password capturados al crear el tenant
 
 ## Qué significa cada estado en Provisioning
 

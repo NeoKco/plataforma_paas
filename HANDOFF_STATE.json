@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-09T02:50:00-04:00",
+  "updated_at": "2026-04-08T23:45:03-04:00",
   "handoff_status": "active",
-  "current_focus": "tenant data portability CSV cerrada en su primer corte con validacion browser en staging y production; siguiente frente recomendado: platform-core hardening + E2E",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado y portabilidad tenant ya operativa en export + import minimo desplegado y validado",
+  "current_focus": "platform-core hardening + E2E en Provisioning; acceso tenant desde Tenants hacia Provisioning ya cerrado con validacion browser en staging y production",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant ya operativa y salto Tenants -> Provisioning ya desplegado y validado",
   "active_modules": [
     "platform-core",
     "finance",
@@ -30,7 +30,8 @@
     "los modulos tenant-side siguen siendo plan-driven y deben hacerse visibles en la UI por preview de plan, no por toggles manuales ad hoc",
     "backup PostgreSQL por tenant sigue siendo el respaldo tecnico canonico; CSV tenant-side es portabilidad y migracion, no sustituto del backup real",
     "la portabilidad tenant ya cubre export portable minimo e import controlado minimo; la siguiente fase ya no es base sino endurecimiento opcional",
-    "el siguiente frente recomendado del roadmap central pasa a ser platform-core hardening + E2E sobre Provisioning DLQ y acceso tenant mas profundo"
+    "el siguiente frente recomendado del roadmap central pasa a ser platform-core hardening + E2E sobre Provisioning y DLQ",
+    "el salto Tenants -> Provisioning con tenantSlug precargado ya quedo cerrado y no debe reabrirse salvo necesidad explicita"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -80,14 +81,18 @@
     "import portable tenant validado en production con smoke browser end-to-end",
     "import portable endurecido para convertir tipos desde CSV segun la columna destino",
     "deploy_backend.sh endurecido para crear TENANT_DATA_EXPORT_ARTIFACTS_DIR con permisos correctos",
-    "settings.py deja de traer passwords bootstrap demo inseguras como defaults embebidos"
+    "settings.py deja de traer passwords bootstrap demo inseguras como defaults embebidos",
+    "Tenants ahora abre Provisioning con tenantSlug y operation precargados",
+    "Provisioning enfoca jobs metricas alertas y lectura DLQ por tenant sin perder la consola global",
+    "smoke platform-admin-tenant-provisioning-context validado en staging",
+    "smoke platform-admin-tenant-provisioning-context validado en production"
   ],
   "blocking_issues": [],
-  "next_decision_required": "abrir el siguiente corte de platform-core hardening + E2E sin reabrir portabilidad tenant base salvo necesidad explicita",
+  "next_decision_required": "seguir con el siguiente corte de platform-core hardening + E2E dentro de Provisioning/DLQ sin reabrir portabilidad tenant base ni el salto tenant ya cerrado salvo necesidad explicita",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
-    "abrir platform-core hardening + E2E sobre Provisioning DLQ y acceso tenant"
+    "seguir con platform-core hardening + E2E sobre Provisioning y DLQ"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -147,6 +152,8 @@
     "tenant_data_portability_frontend_build": "pass",
     "tenant_data_portability_playwright_list": "pass",
     "tenant_data_portability_browser_smoke_staging": "pass",
-    "tenant_data_portability_browser_smoke_production": "pass"
+    "tenant_data_portability_browser_smoke_production": "pass",
+    "platform_admin_tenant_provisioning_context_smoke_staging": "pass",
+    "platform_admin_tenant_provisioning_context_smoke_production": "pass"
   }
 }

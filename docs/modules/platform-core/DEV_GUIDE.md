@@ -98,6 +98,7 @@ Smokes actuales del bloque central:
 - [platform-admin-tenant-lifecycle.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-lifecycle.smoke.spec.ts)
 - [platform-admin-tenant-portal-access.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-portal-access.smoke.spec.ts)
 - [platform-admin-tenant-portal-blocked.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-portal-blocked.smoke.spec.ts)
+- [platform-admin-tenant-provisioning-context.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-provisioning-context.smoke.spec.ts)
 - [platform-admin-role-access.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-role-access.smoke.spec.ts)
 - [platform-admin-billing-reconcile.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-billing-reconcile.smoke.spec.ts)
 - [platform-admin-billing-batch-reconcile.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-billing-batch-reconcile.smoke.spec.ts)
@@ -139,6 +140,7 @@ Cobertura actual:
 - lifecycle tenant base en UI con `create`, `archive` y `restore`
 - acceso rápido desde `Tenants` al login de `tenant_portal` con `slug` precargado
 - feedback de bloqueo en `Tenants` cuando el acceso rápido al `tenant_portal` todavía no debe habilitarse
+- acceso rápido desde `Tenants` a `Provisioning` con `tenantSlug` y foco operativo precargados
 - enforcement visible de que `Nuevo tenant` exige admin inicial explícito y preview de módulos por `plan`
 - bloque visible de `Portabilidad tenant` con export portable y superficie inicial de import controlado
 - enforcement visible por rol en `platform_admin` para `admin` y `support`

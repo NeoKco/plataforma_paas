@@ -15,6 +15,38 @@ Para nuevas entradas usar:
 
 ---
 
+## 2026-04-09 — Tenants abre Provisioning con foco tenant precargado
+
+### Objetivo
+
+- cerrar el subfrente de acceso tenant más profundo desde `Tenants`
+- evitar que el operador se pierda en la cola global de `Provisioning` cuando ya viene desde un tenant concreto
+
+### Cambios principales
+
+- [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ahora abre `Provisioning` con `tenantSlug` y `operation` precargados cuando existe job visible
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega foco tenant visible por URL/UI y filtra jobs, métricas, alertas y lectura DLQ en client-side
+- se agrega el smoke [platform-admin-tenant-provisioning-context.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-provisioning-context.smoke.spec.ts)
+- el frontend actualizado se publica en `staging` y `production`
+
+### Validaciones
+
+- `npm run build`: OK
+- `npx playwright test --list`: `42 tests`
+- `platform-admin-tenant-provisioning-context.smoke.spec.ts`: OK en `staging`
+- `platform-admin-tenant-provisioning-context.smoke.spec.ts`: OK en `production`
+
+### Bloqueos
+
+- no quedó bloqueo técnico en este corte
+
+### Siguiente paso
+
+- seguir con el frente `platform-core hardening + E2E`
+- abrir el siguiente corte dentro de `Provisioning` con foco en DLQ, recuperación fina y observabilidad visible
+
+---
+
 ## 2026-04-09 — Fase 2 mínima implementada de `tenant data portability CSV`
 
 ### Objetivo

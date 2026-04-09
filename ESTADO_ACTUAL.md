@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-09
-- foco de iteración: implementación de la Fase 2 mínima de `tenant data portability CSV`
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado y portabilidad tenant ya implementada, validada y desplegada con export + import mínimo
+- foco de iteración: `platform-core hardening + E2E` sobre `Provisioning` con acceso tenant más profundo desde `Tenants`
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado, portabilidad tenant ya implementada y el salto `Tenants -> Provisioning` ya enfocado por tenant y validado en `staging` y `production`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -38,15 +38,19 @@
 - `platform_admin > Tenants` ya permite además cargar un `zip` portable, ejecutar `dry_run` y aplicar import con estrategia inicial `skip_existing`
 - el flujo completo `export + dry_run + apply` ya quedó validado en browser sobre `staging` y `production`
 - el siguiente paso de ese frente ya no es despliegue base sino, si se decide seguir ahí, una Fase 3 de endurecimiento
+- `Tenants` ya abre `Provisioning` con `tenantSlug` precargado y, si existe job visible, con la operación técnica correspondiente ya enfocada
+- `Provisioning` ya deja leer jobs, métricas, alertas y tabla DLQ en foco tenant sin perderse en la cola global
+- el smoke browser `platform-admin-tenant-provisioning-context` ya quedó aprobado en `staging` y `production`
 
 ## Frente activo real al momento de este estado
 
-El frente activo real ya no es portabilidad tenant base, porque ese frente quedó cerrado en su primer corte.
+El frente activo real sigue siendo `platform-core hardening + E2E`, pero ya no en su arranque.
 
-El siguiente frente recomendado pasa a ser este:
+El siguiente corte recomendado dentro de ese mismo frente pasa a ser este:
 
 - `platform-core hardening + E2E`
-- con foco en `Provisioning`, DLQ y acceso tenant más profundo desde `Tenants`
+- con foco en `Provisioning` y DLQ
+- con el subfrente `acceso tenant más profundo desde Tenants` ya cerrado
 
 ## Qué módulo se estaba construyendo
 
@@ -63,7 +67,7 @@ En otras palabras:
 - `finance` ya quedó como módulo piloto cerrado
 - `business-core` y `maintenance` quedaron como foco de alineación transversal
 - luego el foco cambió a deploy, preflight y cutover productivo
-- ahora el foco pasa a portabilidad de datos tenant en `CSV + manifest`
+- ahora el foco pasa a endurecimiento operativo de `Provisioning` después de cerrar portabilidad tenant base
 
 ## Qué ya quedó hecho
 
@@ -77,6 +81,7 @@ En otras palabras:
 - `tenant_portal` ya refleja visualmente los módulos efectivos calculados por backend en su sidebar principal
 - `platform_admin` ya tiene en código el alta de tenant con admin inicial explícito y preview de módulos por plan
 - `platform_admin` ya tiene ese mismo flujo visible y validado en `staging` y `production`
+- `platform_admin` ya permite saltar desde `Tenants` a `Provisioning` con contexto tenant precargado y lectura operativa acotada
 
 ### A nivel transversal frontend
 

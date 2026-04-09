@@ -17,6 +17,7 @@ Cobertura validada:
 - import portable controlado por tenant desde `Tenants`, incluyendo `dry_run` y `apply`
 - acceso rápido al `tenant_portal` desde `Tenants` con slug precargado
 - bloqueo visible del acceso rápido al `tenant_portal` cuando el tenant todavía no es elegible
+- acceso rápido a `Provisioning` desde `Tenants` con `tenantSlug` precargado
 - matriz visible por rol en `platform_admin` para `admin` y `support`
 - workspace de `Billing` con evento tenant y reconcile individual
 - workspace de `Billing` con reconcile batch sobre eventos filtrados
@@ -49,6 +50,7 @@ Specs actuales:
 - [platform-admin-tenant-lifecycle.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-lifecycle.smoke.spec.ts)
 - [platform-admin-tenant-portal-access.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-portal-access.smoke.spec.ts)
 - [platform-admin-tenant-portal-blocked.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-portal-blocked.smoke.spec.ts)
+- [platform-admin-tenant-provisioning-context.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-provisioning-context.smoke.spec.ts)
 - [platform-admin-role-access.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-role-access.smoke.spec.ts)
 - [platform-admin-billing-reconcile.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-billing-reconcile.smoke.spec.ts)
 - [platform-admin-billing-batch-reconcile.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-billing-batch-reconcile.smoke.spec.ts)

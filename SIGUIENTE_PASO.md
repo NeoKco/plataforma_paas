@@ -3,25 +3,29 @@
 ## Última actualización
 
 - fecha: 2026-04-09
-- prioridad vigente: abrir el siguiente frente explícito después de cerrar la Fase 2 mínima de `tenant data portability CSV`
+- prioridad vigente: continuar el frente explícito `platform-core hardening + E2E` después de cerrar el salto `Tenants -> Provisioning`
 
 ## Objetivo del próximo paso
 
-No reabrir el frente ya cerrado de `Nuevo tenant`.
+No reabrir frentes ya cerrados:
 
-Ese frente ya quedó:
+- `Nuevo tenant`
+- `tenant data portability CSV` base
+- `acceso tenant más profundo desde Tenants` para abrir `Provisioning`
 
-- implementado en repo
-- desplegado en `staging`
-- desplegado en `production`
-- validado visualmente por smoke browser
+Esos frentes ya quedaron:
+
+- implementados en repo
+- desplegados en `staging`
+- desplegados en `production`
+- validados visualmente por smoke browser
 
 El siguiente frente explícito ya fue elegido:
 
 - `platform-core hardening + E2E`
 - con foco en `Provisioning`
 - con foco en DLQ
-- con foco en acceso tenant más profundo desde `Tenants`
+- con foco restante en recuperación fina, observabilidad visible y filtros DLQ dentro de `Provisioning`
 
 ## Prioridad inmediata
 
@@ -53,7 +57,7 @@ Debe avanzar sobre:
 
 - hardening operativo y browser de `Provisioning`
 - recuperación / requeue / DLQ visibles
-- acceso tenant más profundo desde `Tenants`
+- sin reabrir el salto `Tenants -> Provisioning`, que ya quedó validado
 
 ## Orden exacto recomendado
 
@@ -67,7 +71,7 @@ Debe avanzar sobre:
 8. asumir cerrado el frente `Nuevo tenant admin explícito + módulos por plan`
 9. asumir cerrada la Fase 1 de export portable tenant
 10. asumir cerrada la Fase 2 mínima de import controlado con `dry_run` y `apply`
-11. abrir el siguiente frente central sin reabrir portabilidad base salvo necesidad explícita
+11. continuar el frente central sin reabrir portabilidad base ni el salto tenant ya cerrado salvo necesidad explícita
 
 ## Qué debe actualizar la próxima IA al cerrar
 
@@ -84,7 +88,7 @@ Antes de escribir código funcional, debe partir desde esta realidad operativa:
 - producción ya está publicada y validada inicialmente con HTTPS en `orkestia.ddns.net`
 - staging/test ya existe en el mismo mini PC
 - el frente de `Nuevo tenant` ya quedó cerrado en entorno real
-- el siguiente frente ya quedó elegido y es `platform-core hardening + E2E` sobre `Provisioning`, DLQ y acceso tenant
+- el siguiente frente ya quedó elegido y sigue siendo `platform-core hardening + E2E` sobre `Provisioning` y DLQ
 
 ## Regla de cierre de la próxima iteración
 
@@ -92,7 +96,7 @@ La próxima iteración debe terminar con una de estas dos salidas claras:
 
 ### Salida A
 
-- se avanza y valida un corte real del frente `platform-core hardening + E2E`
+- se avanza y valida un nuevo corte real del frente `platform-core hardening + E2E`
 
 ### Salida B
 
@@ -110,4 +114,4 @@ Y si una iteración importante cambia el estado real del proyecto, estos archivo
 
 Este archivo debería reescribirse cuando:
 
-- el siguiente corte de `platform-core hardening + E2E` cambie el foco real del proyecto
+- el siguiente corte de `platform-core hardening + E2E` cambie otra vez el foco real del proyecto
