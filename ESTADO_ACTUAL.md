@@ -4,7 +4,7 @@
 
 - fecha: 2026-04-09
 - foco de iteración: implementación de la Fase 2 mínima de `tenant data portability CSV`
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado y portabilidad tenant ya implementada en repo con export + import mínimo
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado y portabilidad tenant ya implementada, validada y desplegada con export + import mínimo
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -36,15 +36,17 @@
 - el frente `tenant data portability CSV` ya dejó de ser solo diseño: la Fase 1 de export portable mínimo y la Fase 2 mínima de import controlado ya quedaron implementadas en repo en `platform_control`
 - `platform_admin > Tenants` ya permite generar y descargar `zip + manifest + csv` por tenant cuando la DB tenant está operativa
 - `platform_admin > Tenants` ya permite además cargar un `zip` portable, ejecutar `dry_run` y aplicar import con estrategia inicial `skip_existing`
-- el siguiente paso de ese frente ya no es implementación base, sino validación browser y despliegue controlado
+- el flujo completo `export + dry_run + apply` ya quedó validado en browser sobre `staging` y `production`
+- el siguiente paso de ese frente ya no es despliegue base sino, si se decide seguir ahí, una Fase 3 de endurecimiento
 
 ## Frente activo real al momento de este estado
 
-El frente activo real que ahora queda abierto es este:
+El frente activo real ya no es portabilidad tenant base, porque ese frente quedó cerrado en su primer corte.
 
-- mantener separada la portabilidad tenant del backup técnico PostgreSQL ya existente
-- validar browser/dev-staging del import portable mínimo ya implementado
-- decidir despliegue a `staging` y luego a `production`
+El siguiente frente recomendado pasa a ser este:
+
+- `platform-core hardening + E2E`
+- con foco en `Provisioning`, DLQ y acceso tenant más profundo desde `Tenants`
 
 ## Qué módulo se estaba construyendo
 
@@ -106,6 +108,11 @@ Se actualizaron documentos de:
 - endpoints nuevos de import portable tenant-side en `platform_control`
 - carga de `zip` + `dry_run` + `apply` explícito desde `platform_admin > Tenants`
 - tests backend del import controlado mínimo
+- corrección backend del import para tipar booleanos, fechas, numéricos, JSON y binarios según la columna destino
+- deploy backend endurecido para crear/chownear `TENANT_DATA_EXPORT_ARTIFACTS_DIR`
+- defaults inseguros de `TENANT_BOOTSTRAP_DB_PASSWORD_*` eliminados del código para no romper arranque productivo
+- smoke browser de portabilidad tenant aprobado en `staging`
+- smoke browser de portabilidad tenant aprobado en `production`
 
 ### A nivel producción / deploy
 

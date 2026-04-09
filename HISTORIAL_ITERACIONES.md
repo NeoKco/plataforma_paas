@@ -574,6 +574,40 @@ Para nuevas entradas usar:
 - si existe, ejecutar preflight y cutover
 - si no existe, preparar release packet o volver al backlog residual explícito
 
+## 2026-04-09 — Cierre de portabilidad tenant CSV y validación en staging/production
+
+### Objetivo
+
+- cerrar la Fase 2 mínima de `tenant data portability CSV`
+- validarla en browser sobre `staging` y `production`
+- dejar el repo y el handoff alineados para abrir el siguiente frente
+
+### Cambios principales
+
+- se amplía [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts) para cubrir `export + dry_run + apply`
+- se corrige [tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_data_portability_service.py) para convertir valores CSV según el tipo real de la columna destino
+- se endurece [deploy_backend.sh](/home/felipe/platform_paas/deploy/deploy_backend.sh) para crear y dejar escribible `TENANT_DATA_EXPORT_ARTIFACTS_DIR`
+- se corrige [settings.py](/home/felipe/platform_paas/backend/app/common/config/settings.py) para no arrastrar passwords bootstrap demo inseguras como defaults embebidos en `production`
+- se redeploya backend en `staging` y `production`
+- se reconstruye el frontend productivo para publicar la UI nueva de `Portabilidad tenant`
+
+### Validaciones
+
+- backend slice local: `214 tests OK`
+- frontend build local: OK
+- smoke browser `platform-admin-tenant-data-export` en `staging`: OK
+- smoke browser `platform-admin-tenant-data-export` en `production`: OK
+
+### Bloqueos
+
+- no queda bloqueo técnico en el frente de portabilidad tenant base
+
+### Siguiente paso
+
+- abrir el siguiente frente explícito del roadmap central:
+  - `platform-core hardening + E2E`
+  - con foco en `Provisioning`, DLQ y acceso tenant más profundo desde `Tenants`
+
 ---
 
 ## 2026-04-06 — Cierre transversal frontend en módulos nuevos

@@ -4,7 +4,7 @@ Runbook corto para operar la portabilidad tenant actual.
 
 ## Propósito
 
-La plataforma ahora soporta un export portable por tenant en:
+La plataforma ahora soporta portabilidad tenant por:
 
 - `zip`
 - `manifest.json`
@@ -14,7 +14,7 @@ Esto sirve para:
 
 - respaldo operativo portable
 - consulta externa
-- base para una futura importación controlada
+- migración o importación controlada sobre otro tenant
 
 No reemplaza el backup PostgreSQL canónico.
 
@@ -90,6 +90,25 @@ Reglas operativas:
 
 ## Estado actual del frente
 
-- export portable mínimo: implementado
-- import controlado mínimo: implementado en repo
-- siguiente paso recomendado: validación browser en `dev/staging` y despliegue controlado
+- export portable mínimo: implementado y validado
+- import controlado mínimo: implementado y validado
+- `dry_run`: validado en browser
+- `apply`: validado en browser
+- `staging`: validado
+- `production`: validado
+- siguiente paso recomendado: Fase 3 de endurecimiento solo si el roadmap lo prioriza
+
+## Lecciones operativas ya cerradas
+
+- el deploy backend debe crear y dejar escribible `TENANT_DATA_EXPORT_ARTIFACTS_DIR` para el usuario real del servicio
+- el import no debe insertar strings crudos desde CSV en columnas tipadas
+- el import actual ya convierte por tipo de columna al menos:
+  - boolean
+  - integer
+  - numeric
+  - date
+  - datetime
+  - time
+  - json
+  - binary base64
+- si el cambio toca UI visible de `platform_admin`, no basta con desplegar backend: también hay que reconstruir el frontend publicado

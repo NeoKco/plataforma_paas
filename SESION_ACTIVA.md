@@ -25,8 +25,8 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Estado rápido vigente
 
 - fecha: 2026-04-09
-- foco activo: Fase 2 mínima implementada de `tenant data portability CSV`
-- prioridad inmediata: validar browser/dev-staging y preparar despliegue del import portable mínimo
+- foco activo: cierre y despliegue ya completado de `tenant data portability CSV`
+- prioridad inmediata: abrir el siguiente frente `platform-core hardening + E2E`
 - módulo o frente activo: `platform-core` / continuidad central
 
 ## Último contexto útil
@@ -58,6 +58,10 @@ Debe permanecer corto, operativo y fácil de escanear.
 - la portabilidad tenant ya quedó implementada en repo con:
   - export mínimo `zip + manifest + csv`
   - import mínimo controlado con carga de `zip`, `dry_run` y `apply`
+- el flujo browser completo `export + dry_run + apply` ya quedó validado en `staging` y `production`
+- el import ya quedó endurecido para tipar booleanos, fechas, numéricos, JSON y binarios según la columna destino
+- el deploy backend ya crea y deja escribible `TENANT_DATA_EXPORT_ARTIFACTS_DIR` al usuario real del servicio
+- el backend productivo ya no arranca con defaults bootstrap demo inseguros embebidos en `settings.py`
 - el modelo canónico de ese frente ya quedó abierto y actualizado en `docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md`
 - `Tenants` ya muestra el bloque `Portabilidad tenant` con creación de job, lectura de últimos exports y descarga del `zip`
 - ya existe smoke browser `platform-admin-tenant-data-export`
@@ -65,18 +69,16 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Bloqueo actual
 
 - no existe bloqueo técnico en este frente
-- falta validación browser y despliegue del import portable mínimo
+- el frente de portabilidad tenant ya quedó validado y desplegado
 
 ## Siguiente acción inmediata
 
-El siguiente movimiento correcto ya no es desplegar este frente.
-
-Es este:
+El siguiente movimiento correcto es este:
 
 - mantener `production` estable
 - mantener `staging` como carril previo real
-- validar el import portable mínimo en `dev/staging`
-- decidir despliegue a `staging` y `production`
+- abrir `platform-core hardening + E2E`
+- empezar por `Provisioning`, DLQ y acceso tenant más profundo desde `Tenants`
 
 ## Archivos a leer justo después de este
 
@@ -99,3 +101,5 @@ Es este:
 - `GET http://127.0.0.1:8081/health`: OK
 - smoke opt-in `platform-admin-installer-availability`: OK
 - `GET http://127.0.0.1:8200/health` otra vez con `installed=true`: OK
+- smoke `platform-admin-tenant-data-export` en `staging`: OK
+- smoke `platform-admin-tenant-data-export` en `production`: OK

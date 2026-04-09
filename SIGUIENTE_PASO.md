@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-09
-- prioridad vigente: validar y preparar despliegue de la Fase 2 mínima del frente `tenant data portability CSV`
+- prioridad vigente: abrir el siguiente frente explícito después de cerrar la Fase 2 mínima de `tenant data portability CSV`
 
 ## Objetivo del próximo paso
 
@@ -18,9 +18,10 @@ Ese frente ya quedó:
 
 El siguiente frente explícito ya fue elegido:
 
-- export/import portable tenant en `CSV + manifest`
-- separado del backup PostgreSQL canónico
-- documentado en `docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md`
+- `platform-core hardening + E2E`
+- con foco en `Provisioning`
+- con foco en DLQ
+- con foco en acceso tenant más profundo desde `Tenants`
 
 ## Prioridad inmediata
 
@@ -29,6 +30,7 @@ El siguiente frente explícito ya fue elegido:
 - `Nuevo tenant` con admin inicial explícito
 - preview de módulos por `plan`
 - bloque `Plan y módulos`
+- `tenant data portability CSV` ya validado en `staging` y `production`
 - `APP_ENV=production` real en el host productivo
 - `staging` operando como espejo instalado por defecto
 - `provisioning` productivo usando `TENANT_SECRETS_FILE` en vez de depender de escritura sobre `/opt/platform_paas/.env`
@@ -49,10 +51,9 @@ La próxima iteración ya no debe volver a decidir el frente.
 
 Debe avanzar sobre:
 
-- `tenant data portability CSV`
-- Fase 2 mínima ya implementada en repo
-- validación browser/dev-staging del import controlado
-- decisión de despliegue a `staging` y luego `production`
+- hardening operativo y browser de `Provisioning`
+- recuperación / requeue / DLQ visibles
+- acceso tenant más profundo desde `Tenants`
 
 ## Orden exacto recomendado
 
@@ -65,8 +66,8 @@ Debe avanzar sobre:
 7. asumir cerrado el frente `tenant sidebar backend-driven`
 8. asumir cerrado el frente `Nuevo tenant admin explícito + módulos por plan`
 9. asumir cerrada la Fase 1 de export portable tenant
-10. asumir implementada en repo la Fase 2 mínima de import controlado con `dry_run`
-11. validar browser y despliegue del frente antes de abrir una Fase 3
+10. asumir cerrada la Fase 2 mínima de import controlado con `dry_run` y `apply`
+11. abrir el siguiente frente central sin reabrir portabilidad base salvo necesidad explícita
 
 ## Qué debe actualizar la próxima IA al cerrar
 
@@ -83,7 +84,7 @@ Antes de escribir código funcional, debe partir desde esta realidad operativa:
 - producción ya está publicada y validada inicialmente con HTTPS en `orkestia.ddns.net`
 - staging/test ya existe en el mismo mini PC
 - el frente de `Nuevo tenant` ya quedó cerrado en entorno real
-- el siguiente frente ya quedó elegido y documentado en `TENANT_DATA_PORTABILITY_MODEL.md`
+- el siguiente frente ya quedó elegido y es `platform-core hardening + E2E` sobre `Provisioning`, DLQ y acceso tenant
 
 ## Regla de cierre de la próxima iteración
 
@@ -91,11 +92,11 @@ La próxima iteración debe terminar con una de estas dos salidas claras:
 
 ### Salida A
 
-- se valida y deja lista para despliegue la Fase 2 mínima ya implementada del frente `tenant data portability CSV`
+- se avanza y valida un corte real del frente `platform-core hardening + E2E`
 
 ### Salida B
 
-- se documenta un bloqueo real de priorización o una razón concreta para no abrir todavía ese frente
+- se documenta un bloqueo real que impide abrir ese frente
 
 No cerrar la próxima iteración con un estado intermedio tipo "ya casi".
 
@@ -109,4 +110,4 @@ Y si una iteración importante cambia el estado real del proyecto, estos archivo
 
 Este archivo debería reescribirse cuando:
 
-- la Fase 2 mínima del frente `tenant data portability CSV` pase de repo a `staging` y quede lista para `production`
+- el siguiente corte de `platform-core hardening + E2E` cambie el foco real del proyecto

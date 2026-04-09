@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-09T02:10:00-04:00",
+  "updated_at": "2026-04-09T02:50:00-04:00",
   "handoff_status": "active",
-  "current_focus": "fase 2 minima de tenant data portability CSV implementada en repo y siguiente paso movido a validacion browser + despliegue controlado",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado y portabilidad tenant ya operativa en export + import minimo en repo",
+  "current_focus": "tenant data portability CSV cerrada en su primer corte con validacion browser en staging y production; siguiente frente recomendado: platform-core hardening + E2E",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado y portabilidad tenant ya operativa en export + import minimo desplegado y validado",
   "active_modules": [
     "platform-core",
     "finance",
@@ -29,7 +29,8 @@
     "todo tenant nuevo debe capturar admin inicial explicito al momento del alta",
     "los modulos tenant-side siguen siendo plan-driven y deben hacerse visibles en la UI por preview de plan, no por toggles manuales ad hoc",
     "backup PostgreSQL por tenant sigue siendo el respaldo tecnico canonico; CSV tenant-side es portabilidad y migracion, no sustituto del backup real",
-    "la portabilidad tenant ya cubre export portable minimo e import controlado minimo; la siguiente fase ya no es base sino endurecimiento y despliegue"
+    "la portabilidad tenant ya cubre export portable minimo e import controlado minimo; la siguiente fase ya no es base sino endurecimiento opcional",
+    "el siguiente frente recomendado del roadmap central pasa a ser platform-core hardening + E2E sobre Provisioning DLQ y acceso tenant mas profundo"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -74,14 +75,19 @@
     "tenant_data_portability_service implementado con zip manifest y csv por tenant",
     "bloque Portabilidad tenant agregado en Tenants con creación de job y descarga autenticada",
     "smoke browser platform-admin-tenant-data-export agregado y listado por Playwright",
-    "fase 2 minima de import portable tenant implementada con carga de zip dry_run apply y estrategia skip_existing"
+    "fase 2 minima de import portable tenant implementada con carga de zip dry_run apply y estrategia skip_existing",
+    "import portable tenant validado en staging con smoke browser end-to-end",
+    "import portable tenant validado en production con smoke browser end-to-end",
+    "import portable endurecido para convertir tipos desde CSV segun la columna destino",
+    "deploy_backend.sh endurecido para crear TENANT_DATA_EXPORT_ARTIFACTS_DIR con permisos correctos",
+    "settings.py deja de traer passwords bootstrap demo inseguras como defaults embebidos"
   ],
   "blocking_issues": [],
-  "next_decision_required": "validar browser y decidir despliegue controlado del import portable minimo antes de abrir una fase 3",
+  "next_decision_required": "abrir el siguiente corte de platform-core hardening + E2E sin reabrir portabilidad tenant base salvo necesidad explicita",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
-    "elegir el siguiente frente funcional o transversal con estado y roadmap explicitos"
+    "abrir platform-core hardening + E2E sobre Provisioning DLQ y acceso tenant"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -139,6 +145,8 @@
     "provisioning_runtime_secrets_hotfix_prod": "pass",
     "tenant_data_portability_backend_tests": "pass",
     "tenant_data_portability_frontend_build": "pass",
-    "tenant_data_portability_playwright_list": "pass"
+    "tenant_data_portability_playwright_list": "pass",
+    "tenant_data_portability_browser_smoke_staging": "pass",
+    "tenant_data_portability_browser_smoke_production": "pass"
   }
 }

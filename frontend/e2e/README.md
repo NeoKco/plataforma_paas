@@ -14,7 +14,7 @@ Cobertura validada:
 - lifecycle básico de tenant en `platform_admin` (`create`, `archive`, `restore`)
 - enforcement visible de `Nuevo tenant` con admin inicial explícito y preview de módulos por `plan`
 - export portable por tenant desde `Tenants`
-- visibilidad del bloque inicial de import portable controlado desde `Tenants`
+- import portable controlado por tenant desde `Tenants`, incluyendo `dry_run` y `apply`
 - acceso rápido al `tenant_portal` desde `Tenants` con slug precargado
 - bloqueo visible del acceso rápido al `tenant_portal` cuando el tenant todavía no es elegible
 - matriz visible por rol en `platform_admin` para `admin` y `support`
@@ -218,6 +218,8 @@ Notas:
 - el smoke de DLQ requiere `PROVISIONING_DISPATCH_BACKEND=broker`; si el entorno usa `database`, el spec queda omitido automáticamente
 - el smoke DLQ individual y el smoke DLQ batch comparten ese requisito broker-only y se omiten automáticamente en backend `database`
 - los smokes de límites tenant ahora fijan y limpian overrides por control DB para evitar fragilidad al preparar estado por UI
+- el smoke [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts) hoy valida el ciclo completo `export + dry_run + apply`
+- ese smoke prioriza `empresa-bootstrap` como tenant baseline para evitar falsos negativos si `condominio-demo` arrastra una credencial técnica desalineada en un entorno heredado
 - el smoke de roles `platform_admin` crea un `admin` efímero, valida sus redirecciones/navegación visibles y luego crea un `support` efímero para congelar el modo solo lectura del bloque `Usuarios de plataforma`
 - el smoke de `Billing` crea un tenant efímero, siembra un evento `invoice.payment_failed` por backend-control y valida la lectura del workspace tenant más el reconcile individual sobre la fila persistida
 - el smoke batch de `Billing` crea un tenant efímero, siembra dos eventos persistidos del mismo filtro y valida `Reconciliar eventos filtrados` sobre el workspace tenant

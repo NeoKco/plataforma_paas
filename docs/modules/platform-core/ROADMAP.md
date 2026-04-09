@@ -50,6 +50,11 @@ Estado práctico de cierre:
 - descarga autenticada del artifact portable desde `platform_admin`
 - smoke browser inicial del export portable tenant-side
 - import portable mínimo por tenant con carga de `zip`, `dry_run` y `apply` explícito sobre tenant destino
+- validación browser end-to-end del flujo portable tenant (`export + dry_run + apply`) en `staging`
+- validación browser end-to-end del flujo portable tenant (`export + dry_run + apply`) en `production`
+- endurecimiento del import portable para convertir valores CSV según el tipo real de la columna destino antes de insertar
+- endurecimiento del deploy backend para crear y dejar escribible `TENANT_DATA_EXPORT_ARTIFACTS_DIR` al usuario real del servicio
+- corrección de `settings.py` para que ningún `TENANT_BOOTSTRAP_DB_PASSWORD_*` demo inseguro quede embebido como default de código en `production`
 - validación browser broker-only de requeue individual sobre filas DLQ desde `Provisioning`
 - validación browser broker-only de requeue batch sobre filas DLQ filtradas desde `Provisioning`
 - validación browser broker-only de filtros finos DLQ por texto de error y opciones de requeue desde `Provisioning`
@@ -92,11 +97,14 @@ Referencia operativa:
 
 Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 
-- validar browser y despliegue del import portable mínimo ya implementado
-- luego abrir una Fase 3 de endurecimiento:
+- si se quiere seguir sobre portabilidad tenant, abrir una Fase 3 de endurecimiento:
   - download del reporte de import
   - compatibilidad más amplia con paquetes externos
   - opciones explícitas de estrategia de merge
+- o, si se prefiere retomar el roadmap central más visible, abrir `platform-core hardening + E2E` sobre:
+  - `Provisioning`
+  - DLQ
+  - acceso tenant más profundo desde `Tenants`
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - mantener `staging` como espejo instalado por defecto y usar `bootstrap reset` solo para validar `/install` cuando haga falta
 - ampliar E2E browser a acceso tenant más profundo tras el salto desde `Tenants`, y a DLQ individual/filtros más finos
@@ -111,7 +119,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - la documentación central era abundante pero estaba dispersa; ya quedó indexada, pero aún puede seguir normalizándose
 - el backend ya calcula y aplica entitlements por módulo tenant y el sidebar principal del `tenant_portal` ya filtra por contrato/billing usando `effective_enabled_modules`
 - el staging ya puede alternar entre espejo instalado y bootstrap reset; hoy queda institucionalizado que el modo normal es espejo operativo y el siguiente paso ya no es de entorno sino de roadmap
-- la plataforma ya tiene backup y restore PostgreSQL por tenant, export portable mínimo en `CSV + manifest` e import controlado mínimo con `dry_run`
+- la plataforma ya tiene backup y restore PostgreSQL por tenant, export portable mínimo en `CSV + manifest` e import controlado mínimo con `dry_run` y `apply`, ya validados en `staging` y `production`
 
 ## Conclusión práctica
 

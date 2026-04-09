@@ -1,5 +1,13 @@
 # Platform Core Changelog
 
+## 2026-04-09
+
+- la Fase 2 mínima de `tenant data portability CSV` queda validada end-to-end en browser sobre `staging` y `production`, usando el smoke [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts) ya ampliado para cubrir `export + dry_run + apply`
+- el backend portable corrige la inserción de tipos desde CSV en [tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_data_portability_service.py), convirtiendo según tipo de columna destino antes de insertar y evitando fallos como booleanos `'True'` sobre columnas `BOOLEAN`
+- [deploy_backend.sh](/home/felipe/platform_paas/deploy/deploy_backend.sh) queda endurecido para crear y dejar escribible `TENANT_DATA_EXPORT_ARTIFACTS_DIR` al usuario real del servicio antes del restart
+- [settings.py](/home/felipe/platform_paas/backend/app/common/config/settings.py) deja de traer `TENANT_BOOTSTRAP_DB_PASSWORD_*` inseguros embebidos como defaults de código, evitando reinicios fallidos del backend productivo por hardening al arrancar
+- `production` vuelve a requerir explícitamente rebuild de frontend cuando el cambio toca UI visible de `platform_admin`; en esta iteración se redeployan backend y frontend en `/opt/platform_paas` y el smoke público queda `1 passed`
+
 ## 2026-04-08
 
 - se implementa la Fase 2 mínima de portabilidad tenant en `platform_control`: import controlado desde paquete `zip + manifest + csv`, con `dry_run`, validación de checksums, validación de `schema_version` y estrategia inicial `skip_existing`

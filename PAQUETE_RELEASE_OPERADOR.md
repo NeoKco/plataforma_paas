@@ -123,6 +123,7 @@ Validar al menos:
 6. `maintenance -> Resumen técnico`, `Mantenciones`, `Pendientes`, `Historial técnico`
 7. login real de `tenant_portal`
 8. lectura rápida de `Instalaciones`, `Costos` y `Checklist`
+9. si el release toca `platform_admin > Tenants`, validar también el bloque `Portabilidad tenant`
 
 Smoke técnico adicional ya disponible para la URL pública:
 
@@ -196,3 +197,4 @@ Lección operativa ya asentada:
 - si el host productivo vuelve a heredar `APP_ENV=development` o passwords bootstrap inseguras, el runtime debe considerarse desalineado y corregirse antes de cualquier restart
 - los secretos tecnicos tenant de runtime ya no deben escribirse en `/opt/platform_paas/.env`; el backend usa `TENANT_SECRETS_FILE=/opt/platform_paas/.tenant-secrets.env` como archivo escribible de trabajo para provisioning y deprovision
 - los artifacts de export portable tenant ya no deben improvisarse en carpetas temporales opacas; el backend usa `TENANT_DATA_EXPORT_ARTIFACTS_DIR=/opt/platform_paas/storage/tenant_data_exports` como raíz operativa para `zip + manifest + csv`
+- si el release cambia UI visible de `platform_admin` o `tenant_portal`, no basta con deploy backend: también hay que reconstruir el frontend publicado
