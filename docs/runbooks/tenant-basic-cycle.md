@@ -298,7 +298,56 @@ El detalle historico actual muestra:
 - limites efectivos al retiro
 - tablas resumidas de billing reciente, policy history reciente y jobs tecnicos recientes
 
-## 7. Estado actual del bloque basico
+## 8. Recuperar un tenant nuevo o desalineado hasta dejarlo operativo
+
+Esta es la secuencia que debes seguir cuando un tenant:
+
+- acaba de crearse
+- quedo `pending`, `retry_pending` o `failed`
+- quedo `active` pero sin DB tenant materializada
+- quedo `active` pero con esquema atrasado
+- todavia no muestra `Abrir portal tenant`
+
+Objetivo final:
+
+- `status=active`
+- `db_configured=true`
+- `sync_tenant_schema` completado
+- acciones visibles: `Archivar tenant` y `Abrir portal tenant`
+
+### Secuencia recomendada
+
+1. entrar a `Platform Admin > Tenants`
+2. seleccionar el tenant afectado
+3. revisar en el panel derecho el bloque `Provisioning`
+4. si el tenant sigue `pending` o `retry_pending`, abrir `Provisioning` y ejecutar o reencolar el job que corresponda
+5. si el job historico quedo `completed` pero la DB sigue incompleta, usar `Reprovisionar tenant`
+6. si la DB existe pero el esquema esta atrasado, ejecutar `sync_tenant_schema` desde `Provisioning` o lanzar `schema auto-sync`
+7. volver a `Tenants` y verificar que:
+   - `status = active`
+   - `db_configured = true`
+   - la version de esquema ya aparece como al dia
+   - no exista bloqueo operativo visible
+8. confirmar que ahora aparecen las acciones:
+   - `Archivar tenant`
+   - `Abrir portal tenant`
+
+### Regla de lectura operativa
+
+- `pending` o `retry_pending` significa que primero falta completar provisioning
+- `active` pero `db_configured=false` significa que el tenant ya existe en catalogo, pero todavia no puede abrir portal tenant
+- `active` + `db_configured=true` + schema al dia significa que el portal tenant ya debe quedar disponible
+- si un `sync_tenant_schema` falla por configuracion DB incompleta, el camino correcto no es insistir sobre el mismo job historico: es `Reprovisionar tenant`
+
+### Atajo practico
+
+Si solo quieres saber si ya esta listo para operar, usa esta regla simple:
+
+- si ves `Abrir portal tenant`, ya puedes entrar al portal
+- si solo ves `Archivar tenant`, el tenant ya esta vivo pero aun no necesariamente listo para usar
+- si no ves `Abrir portal tenant`, revisa primero provisioning y esquema antes de tocar otras cosas
+
+## 9. Estado actual del bloque basico
 
 Este bloque ya queda practicamente cerrado a nivel de consola:
 

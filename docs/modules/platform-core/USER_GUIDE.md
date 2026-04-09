@@ -103,6 +103,16 @@ Revisar:
 
 La UI de `Tenants` deja un mensaje explícito cuando el portal todavía no debe abrirse; hoy también queda cubierto por smoke browser para evitar regresiones sobre ese bloqueo.
 
+Secuencia corta para dejar un tenant nuevo operativo:
+
+1. crear el tenant
+2. revisar su job en `Provisioning`
+3. si queda `pending` o `retry_pending`, ejecutar o reencolar
+4. si el job quedó `completed` pero la DB sigue incompleta, usar `Reprovisionar tenant`
+5. si la DB existe pero el esquema está atrasado, correr `schema auto-sync`
+6. volver a `Tenants` y confirmar `status=active` + `db_configured=true`
+7. recién ahí deben aparecer `Archivar tenant` y `Abrir portal tenant`
+
 ### Límite de usuarios activos en portal tenant
 
 Si el tenant ya alcanzó el cupo de usuarios activos, `Tenant Portal > Users` bloqueará la creación o reactivación de más cuentas activas y mostrará un mensaje operativo explícito. Este enforcement visible también queda cubierto por smoke browser.

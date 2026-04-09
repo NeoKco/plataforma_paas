@@ -264,6 +264,31 @@ Eso existe para facilitar onboarding y pruebas manuales del `tenant_portal` sin 
 - los reintentos deben ser idempotentes
 - el detalle importante no es solo el `error_code`, sino tambien el `error_message`
 
+### Secuencia operativa para dejar un tenant nuevo listo
+
+Cuando el tenant todavia no debe abrir portal tenant, sigue esta secuencia:
+
+1. crear el tenant desde `Platform Admin > Tenants`
+2. verificar que se genere `create_tenant_database`
+3. revisar el job en `Provisioning`
+4. si queda `pending` o `retry_pending`, ejecutar o reencolar segun corresponda
+5. si el tenant quedo `completed` historico pero la DB sigue incompleta, usar `Reprovisionar tenant`
+6. si la DB ya existe pero el esquema esta atrasado, ejecutar `sync_tenant_schema` o `schema auto-sync`
+7. volver a `Tenants` y verificar:
+   - `status=active`
+   - `db_configured=true`
+   - esquema al dia
+8. confirmar que ahora ya aparecen:
+   - `Archivar tenant`
+   - `Abrir portal tenant`
+
+Regla de interpretacion:
+
+- `pending` / `retry_pending`: aun falta provisioning
+- `active` + `db_configured=false`: el tenant existe, pero no debe abrir portal
+- `active` + `db_configured=true` + esquema al dia: el portal ya debe estar disponible
+- `sync_tenant_schema` fallando por DB incompleta: reprovisionar, no insistir sobre el mismo job
+
 ## Cómo leer la pantalla después de la prueba
 
 Si todo esta sano, `Provisioning` deberia mostrar:

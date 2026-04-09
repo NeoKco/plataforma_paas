@@ -18,6 +18,7 @@
 - se alinea el carril local `dev` con la convención actual: [settings.py](/home/felipe/platform_paas/backend/app/common/config/settings.py) añade orígenes locales esperados en `development`, `.env` y `.env.example` quedan en `5173`, y `.env` declara explícitamente `TENANT_BILLING_GRACE_*` para que el baseline local reproduzca la política visible esperada
 - `provisioning` y `deprovision` dejan de depender de escritura runtime sobre el `.env` principal: [TenantSecretService](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py) ahora usa `TENANT_SECRETS_FILE` como archivo de secretos tenant escribible y mantiene compatibilidad de lectura/limpieza con el `.env` legado
 - el catálogo de entorno y los ejemplos `.env` ya documentan `TENANT_SECRETS_FILE` como parte del runtime productivo para evitar fallos tipo `Permission denied: '/opt/platform_paas/.env'`
+- el ciclo operativo de `Tenants` y `Provisioning` queda documentado para llevar cualquier tenant nuevo o desalineado hasta `active`, `db_configured=true`, esquema al dia y acciones visibles `Archivar tenant` / `Abrir portal tenant`
 
 ## 2026-04-07
 
