@@ -41,6 +41,8 @@ import type {
   ProvisioningJob,
   ProvisioningJobDetailedMetricsResponse,
   ProvisioningJobMetricsResponse,
+  ProvisioningJobTenantErrorCodeSummary,
+  ProvisioningOperationalAlert,
   ProvisioningOperationalAlertsResponse,
   ProvisioningWorkerCycleTraceHistoryResponse,
 } from "../../../../types";
@@ -58,6 +60,14 @@ type PendingConfirmation = {
   details: string[];
   confirmLabel: string;
   action: () => Promise<unknown>;
+};
+
+type DlqFormFilters = {
+  limit: string;
+  jobType: string;
+  tenantSlug: string;
+  errorCode: string;
+  errorContains: string;
 };
 
 export function ProvisioningPage() {
@@ -360,7 +370,7 @@ export function ProvisioningPage() {
     };
   }, [tenantScopedJobs]);
 
-  async function loadProvisioningWorkspace() {
+  async function loadProvisioningWorkspace(overrides?: Partial<DlqFormFilters>) {
     if (!session?.accessToken) {
       return;
     }
@@ -368,11 +378,11 @@ export function ProvisioningPage() {
     setIsLoading(true);
 
     const dlqOptions = buildDlqOptions({
-      limit: dlqLimit,
-      jobType: dlqJobType,
-      tenantSlug: dlqTenantSlug,
-      errorCode: dlqErrorCode,
-      errorContains: dlqErrorContains,
+      limit: overrides?.limit ?? dlqLimit,
+      jobType: overrides?.jobType ?? dlqJobType,
+      tenantSlug: overrides?.tenantSlug ?? dlqTenantSlug,
+      errorCode: overrides?.errorCode ?? dlqErrorCode,
+      errorContains: overrides?.errorContains ?? dlqErrorContains,
     });
 
     const results = await Promise.allSettled([
@@ -582,6 +592,49 @@ function handleRefresh() {
   function handleDlqFilterSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void loadProvisioningWorkspace();
+  }
+
+  function focusDlqPanel() {
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById("provisioning-dlq-panel")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  function handleDlqInvestigation(filters: {
+    sourceLabel: string;
+    tenantSlug?: string | null;
+    errorCode?: string | null;
+    errorContains?: string | null;
+    jobType?: string | null;
+  }) {
+    const nextTenantSlug = normalizeNullableString(filters.tenantSlug || "") || "";
+    const nextErrorCode = normalizeNullableString(filters.errorCode || "") || "";
+    const nextErrorContains = normalizeNullableString(filters.errorContains || "") || "";
+    const nextJobType = normalizeNullableString(filters.jobType || "") || "";
+
+    setTenantSlugFilter(nextTenantSlug);
+    setDlqTenantSlug(nextTenantSlug);
+    setDlqErrorCode(nextErrorCode);
+    setDlqErrorContains(nextErrorContains);
+    setDlqJobType(nextJobType);
+    setActionFeedback({
+      scope: "focus-dlq",
+      type: "success",
+      message:
+        language === "es"
+          ? `Se precargó la investigación DLQ desde ${filters.sourceLabel}. Revisa el panel inferior y ajusta el filtro si quieres ampliar el alcance.`
+          : `DLQ investigation was prefilled from ${filters.sourceLabel}. Review the panel below and adjust the filter if you want to broaden the scope.`,
+    });
+    focusDlqPanel();
+    void loadProvisioningWorkspace({
+      limit: dlqLimit,
+      tenantSlug: nextTenantSlug,
+      errorCode: nextErrorCode,
+      errorContains: nextErrorContains,
+      jobType: nextJobType,
+    });
   }
 
   function handleDlqBatchRequeue(event: FormEvent<HTMLFormElement>) {
@@ -1405,6 +1458,21 @@ function handleRefresh() {
                   header: language === "es" ? "Fallidos" : "Failed",
                   render: (row) => row.failed_jobs,
                 },
+                {
+                  key: "actions",
+                  header: language === "es" ? "Acciones" : "Actions",
+                  render: (row) => (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() =>
+                        handleDlqInvestigation(buildDlqInvestigationFromErrorMetric(row))
+                      }
+                    >
+                      {language === "es" ? "Investigar en DLQ" : "Investigate in DLQ"}
+                    </button>
+                  ),
+                },
               ]}
             />
           ) : null}
@@ -1464,6 +1532,21 @@ function handleRefresh() {
                 header: language === "es" ? "Capturada en" : "Captured at",
                 render: (row) => formatDateTime(row.captured_at),
               },
+              {
+                key: "actions",
+                header: language === "es" ? "Acciones" : "Actions",
+                render: (row) => (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() =>
+                      handleDlqInvestigation(buildDlqInvestigationFromAlert(row))
+                    }
+                  >
+                    {language === "es" ? "Investigar en DLQ" : "Investigate in DLQ"}
+                  </button>
+                ),
+              },
             ]}
           />
         ) : (
@@ -1492,15 +1575,16 @@ function handleRefresh() {
         )
       ) : null}
 
-      <PanelCard
-        icon="reports"
-        title={language === "es" ? "Operación DLQ" : "DLQ operations"}
-        subtitle={
-          language === "es"
-            ? "Inspecciona filas dead-letter del broker y reencólalas individualmente o en lote."
-            : "Inspect broker dead-letter rows and requeue them individually or in batches."
-        }
-      >
+      <div id="provisioning-dlq-panel">
+        <PanelCard
+          icon="reports"
+          title={language === "es" ? "Operación DLQ" : "DLQ operations"}
+          subtitle={
+            language === "es"
+              ? "Inspecciona filas dead-letter del broker y reencólalas individualmente o en lote."
+              : "Inspect broker dead-letter rows and requeue them individually or in batches."
+          }
+        >
         <div className="provisioning-dlq-grid">
           <AppForm className="tenant-action-form" onSubmit={handleDlqFilterSubmit}>
             <h3 className="tenant-action-form__title">
@@ -1672,7 +1756,8 @@ function handleRefresh() {
             </AppFormActions>
           </AppForm>
         </div>
-      </PanelCard>
+        </PanelCard>
+      </div>
 
       {dlqError ? (
         <ErrorState
@@ -2037,6 +2122,36 @@ function formatProvisioningAlertCode(value: string): string {
   };
 
   return knownLabels[value] || formatProvisioningCodeLabel(value);
+}
+
+function buildDlqInvestigationFromErrorMetric(
+  row: ProvisioningJobTenantErrorCodeSummary
+): {
+  sourceLabel: string;
+  tenantSlug: string;
+  errorCode: string;
+} {
+  return {
+    sourceLabel: `${row.tenant_slug} / ${formatProvisioningCodeLabel(row.error_code)}`,
+    tenantSlug: row.tenant_slug,
+    errorCode: row.error_code,
+  };
+}
+
+function buildDlqInvestigationFromAlert(
+  row: ProvisioningOperationalAlert
+): {
+  sourceLabel: string;
+  tenantSlug?: string | null;
+  errorCode?: string | null;
+  errorContains?: string | null;
+} {
+  return {
+    sourceLabel: formatProvisioningAlertCode(row.alert_code),
+    tenantSlug: row.tenant_slug,
+    errorCode: row.error_code,
+    errorContains: row.error_code ? null : row.message,
+  };
 }
 
 function formatProvisioningCodeLabel(value: string): string {

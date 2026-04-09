@@ -22,11 +22,13 @@ export async function fillCreateTenantForm(
   await form
     .getByPlaceholder(/Ej: Empresa Centro|Ex: Empresa Centro/i)
     .fill(tenant.name);
-  await form.getByPlaceholder("empresa-centro").fill(tenant.slug);
+  await form.getByPlaceholder(/^empresa-centro$/i).fill(tenant.slug);
   await form
-    .getByPlaceholder(/Ej: Ana Pérez|Ex: Ana Perez/i)
+    .getByPlaceholder(/^(Ej: Ana Pérez|Ex: Ana Perez)$/i)
     .fill(tenant.adminFullName);
-  await form.getByPlaceholder("admin@empresa-centro.local").fill(tenant.adminEmail);
+  await form
+    .getByPlaceholder(/^admin@empresa-centro\.local$/i)
+    .fill(tenant.adminEmail);
   await form
     .locator('input[type="password"]')
     .nth(0)

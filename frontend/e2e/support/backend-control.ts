@@ -108,21 +108,25 @@ function getRepoRoot() {
   return path.resolve(currentDirPath, "../../..");
 }
 
+function getBackendRoot() {
+  return process.env.E2E_BACKEND_ROOT?.trim() || getRepoRoot();
+}
+
 function getBackendPythonExecutable() {
-  const repoRoot = getRepoRoot();
+  const backendRoot = getBackendRoot();
   return (
     process.env.E2E_BACKEND_PYTHON?.trim() ||
-    path.join(repoRoot, "platform_paas_venv", "bin", "python")
+    path.join(backendRoot, "platform_paas_venv", "bin", "python")
   );
 }
 
 function runBackendPython(script: string, args: string[]) {
-  const repoRoot = getRepoRoot();
+  const backendRoot = getBackendRoot();
   return execFileSync(getBackendPythonExecutable(), ["-c", script, ...args], {
-    cwd: path.join(repoRoot, "backend"),
+    cwd: path.join(backendRoot, "backend"),
     env: {
       ...process.env,
-      PYTHONPATH: path.join(repoRoot, "backend"),
+      PYTHONPATH: path.join(backendRoot, "backend"),
     },
     encoding: "utf-8",
   }).trim();

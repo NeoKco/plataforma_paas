@@ -34,6 +34,7 @@ export function getPlatformActionFeedbackLabel(
       "module-limits": "Límites por módulo",
       "sync-schema": "Esquema tenant",
       "bulk-sync-schema": "Auto-sync de esquemas",
+      "focus-dlq": "Investigación DLQ",
       "run-provisioning-job": "Ejecución de provisioning",
       "requeue-provisioning-job": "Reintento de provisioning",
       "requeue-dlq-batch": "Reencolado DLQ",
@@ -64,6 +65,7 @@ export function getPlatformActionFeedbackLabel(
       "module-limits": "Module limits",
       "sync-schema": "Tenant schema",
       "bulk-sync-schema": "Schema auto-sync",
+      "focus-dlq": "DLQ investigation",
       "run-provisioning-job": "Run provisioning",
       "requeue-provisioning-job": "Retry provisioning",
       "requeue-dlq-batch": "Requeue DLQ",
@@ -121,6 +123,8 @@ export function getPlatformActionSuccessMessage(
       "sync-schema": "La sincronización del esquema tenant fue lanzada correctamente.",
       "bulk-sync-schema":
         "Se encolaron jobs de sincronización de esquema para tenants activos.",
+      "focus-dlq":
+        "Los filtros DLQ quedaron precargados para investigar la familia de error seleccionada.",
       "run-provisioning-job": "El job de provisioning fue ejecutado correctamente.",
       "requeue-provisioning-job":
         "El job de provisioning volvió a cola para un nuevo intento.",
@@ -160,6 +164,8 @@ export function getPlatformActionSuccessMessage(
       "sync-schema": "The tenant schema sync was started successfully.",
       "bulk-sync-schema":
         "Schema sync jobs were queued for active tenants.",
+      "focus-dlq":
+        "The DLQ filters were prefilled to investigate the selected error family.",
       "run-provisioning-job": "The provisioning job was started successfully.",
       "requeue-provisioning-job":
         "The provisioning job was returned to the queue for retry.",
