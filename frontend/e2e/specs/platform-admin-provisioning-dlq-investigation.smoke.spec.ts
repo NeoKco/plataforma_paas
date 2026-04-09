@@ -1,38 +1,27 @@
 import { expect, test } from "../support/test";
-import {
-  seedFailedProvisioningJob,
-  seedPlatformTenantCatalogRecord,
-} from "../support/backend-control";
+import { seedFailedProvisioningJob } from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
-import { buildE2ETenantIdentity } from "../support/e2e-data";
 
 test("platform admin can prefill DLQ investigation from failures by code", async ({
   page,
 }) => {
-  const tenant = buildE2ETenantIdentity("provisioning-dlq-investigation");
-  const errorCode = `e2e-dlq-investigation-${tenant.id}`;
-
-  seedPlatformTenantCatalogRecord({
-    name: tenant.name,
-    slug: tenant.slug,
-    adminFullName: tenant.adminFullName,
-    adminEmail: tenant.adminEmail,
-    adminPassword: tenant.adminPassword,
-  });
+  const tenantSlug = "empresa-demo";
+  const errorCode = `e2e-dlq-investigation-${Date.now()}`;
 
   await loginPlatform(page);
 
   seedFailedProvisioningJob({
-    tenantSlug: tenant.slug,
+    tenantSlug,
     errorCode,
-    errorMessage: `E2E investigate DLQ ${tenant.id}`,
+    errorMessage: `E2E investigate DLQ ${errorCode}`,
   });
 
-  await page.goto("/provisioning");
-  await expect(page).toHaveURL(/\/provisioning$/);
+  await page.goto(`/provisioning?tenantSlug=${tenantSlug}`);
+  await expect(page).toHaveURL(new RegExp(`/provisioning\\?tenantSlug=${tenantSlug}`));
   await expect(
     page.getByRole("heading", { name: "Provisioning", exact: true })
   ).toBeVisible();
+  await page.getByRole("button", { name: /Recargar datos|Reload data/i }).click();
 
   const failureTable = page.locator(".panel-card.data-table-card").filter({
     has: page.getByRole("heading", { name: /Fallos por código|Failures by code/i }),
@@ -40,7 +29,7 @@ test("platform admin can prefill DLQ investigation from failures by code", async
 
   const failureRow = failureTable
     .locator("tr")
-    .filter({ hasText: tenant.slug })
+    .filter({ hasText: tenantSlug })
     .filter({ hasText: errorCode })
     .first();
 
@@ -61,7 +50,7 @@ test("platform admin can prefill DLQ investigation from failures by code", async
     has: page.getByText(/Filtros DLQ|DLQ filters/i),
   });
   await expect(filtersForm.locator("input.form-control").nth(2)).toHaveValue(
-    tenant.slug
+    tenantSlug
   );
   await expect(filtersForm.locator("input.form-control").nth(3)).toHaveValue(
     errorCode
