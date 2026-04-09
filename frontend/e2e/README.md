@@ -13,6 +13,7 @@ Cobertura validada:
 - navegación base de `platform_admin`
 - lifecycle básico de tenant en `platform_admin` (`create`, `archive`, `restore`)
 - enforcement visible de `Nuevo tenant` con admin inicial explícito y preview de módulos por `plan`
+- export portable por tenant desde `Tenants`
 - acceso rápido al `tenant_portal` desde `Tenants` con slug precargado
 - bloqueo visible del acceso rápido al `tenant_portal` cuando el tenant todavía no es elegible
 - matriz visible por rol en `platform_admin` para `admin` y `support`
@@ -56,6 +57,7 @@ Specs actuales:
 - [platform-admin-provisioning-retry.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-retry.smoke.spec.ts)
 - [platform-admin-schema-auto-sync.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-schema-auto-sync.smoke.spec.ts)
 - [platform-admin-tenants-create-form.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenants-create-form.smoke.spec.ts)
+- [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-row.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts)
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)

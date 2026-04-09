@@ -5,7 +5,8 @@ Esta guia deja una base minima para respaldar y restaurar PostgreSQL en un entor
 Importante:
 
 - este flujo sigue siendo el respaldo técnico canónico
-- no debe confundirse con el futuro export/import tenant en `CSV + manifest`
+- no debe confundirse con el export/import tenant en `CSV + manifest`
+- la Fase 1 de export portable ya existe en `platform_admin > Tenants`, pero no reemplaza este backup técnico
 - el diseño de portabilidad tenant queda en [TENANT_DATA_PORTABILITY_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md)
 
 ## Archivos Base

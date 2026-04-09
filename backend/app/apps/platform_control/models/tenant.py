@@ -124,6 +124,10 @@ class Tenant(Base):
         server_default=func.now(),
         nullable=False,
     )
+    data_transfer_jobs = relationship(
+        "TenantDataTransferJob",
+        back_populates="tenant",
+    )
     provisioning_jobs = relationship(
         "ProvisioningJob",
         back_populates="tenant",

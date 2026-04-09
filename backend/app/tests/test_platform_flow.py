@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import hmac
 import os
+from pathlib import Path
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -9,6 +10,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from fastapi import HTTPException
+from fastapi.responses import FileResponse
 from fastapi.routing import APIRoute
 from sqlalchemy.exc import OperationalError
 
@@ -68,15 +70,19 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     router as tenant_router,
     bulk_sync_tenant_schemas,
     create_tenant,
+    create_tenant_data_export_job,
     deprovision_tenant,
+    download_tenant_data_export_job,
     delete_tenant,
     get_platform_billing_event_alerts,
     get_platform_billing_event_alert_history,
     get_platform_billing_events_summary,
     get_tenant,
+    get_tenant_data_export_job,
     get_tenant_finance_usage,
     get_tenant_module_usage,
     list_tenant_portal_users,
+    list_tenant_data_export_jobs,
     list_tenant_retirement_archives,
     get_tenant_retirement_archive,
     get_tenant_schema_status,
@@ -118,6 +124,7 @@ from app.apps.platform_control.schemas import (  # noqa: E402
     TenantBillingSyncEventRequest,
     TenantBillingUpdateRequest,
     TenantCreateRequest,
+    TenantDataExportJobCreateRequest,
     TenantIdentityUpdateRequest,
     TenantMaintenanceUpdateRequest,
     TenantModuleLimitsUpdateRequest,
@@ -4188,6 +4195,166 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.slug, "empresa-bootstrap")
         self.assertEqual(response.status, "pending")
         self.assertEqual(response.plan_enabled_modules, ["core", "users", "finance"])
+
+    def test_create_tenant_data_export_job_returns_schema(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Demo",
+            tenant_slug="empresa-demo",
+        )
+        tenant.id = 1
+        artifact = SimpleNamespace(
+            id=7,
+            artifact_type="tenant_portable_csv_zip",
+            file_name="empresa-demo-portable-export-job-3.zip",
+            content_type="application/zip",
+            sha256_hex="abc123",
+            size_bytes=2048,
+            created_at=None,
+        )
+        job = SimpleNamespace(
+            id=3,
+            tenant_id=1,
+            direction="export",
+            data_format="csv_zip",
+            export_scope="portable_minimum",
+            status="completed",
+            requested_by_email="admin@platform.local",
+            error_message=None,
+            summary_json='{"artifact_file_name":"empresa-demo-portable-export-job-3.zip"}',
+            created_at=None,
+            completed_at=None,
+            artifacts=[artifact],
+        )
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_data_portability_service.create_export_job",
+            return_value=job,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.tenant_repository.get_by_id",
+            return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
+        ):
+            response = create_tenant_data_export_job(
+                tenant_id=1,
+                payload=TenantDataExportJobCreateRequest(),
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertEqual(response.id, 3)
+        self.assertEqual(response.status, "completed")
+        self.assertEqual(response.artifacts[0].file_name, artifact.file_name)
+
+    def test_list_tenant_data_export_jobs_returns_rows(self) -> None:
+        artifact = SimpleNamespace(
+            id=7,
+            artifact_type="tenant_portable_csv_zip",
+            file_name="empresa-demo-portable-export-job-3.zip",
+            content_type="application/zip",
+            sha256_hex="abc123",
+            size_bytes=2048,
+            created_at=None,
+        )
+        job = SimpleNamespace(
+            id=3,
+            tenant_id=1,
+            direction="export",
+            data_format="csv_zip",
+            export_scope="portable_minimum",
+            status="completed",
+            requested_by_email="admin@platform.local",
+            error_message=None,
+            summary_json=None,
+            created_at=None,
+            completed_at=None,
+            artifacts=[artifact],
+        )
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_data_portability_service.list_export_jobs",
+            return_value=[job],
+        ):
+            response = list_tenant_data_export_jobs(
+                tenant_id=1,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.total_jobs, 1)
+        self.assertEqual(response.data[0].id, 3)
+
+    def test_get_tenant_data_export_job_returns_detail(self) -> None:
+        artifact = SimpleNamespace(
+            id=7,
+            artifact_type="tenant_portable_csv_zip",
+            file_name="empresa-demo-portable-export-job-3.zip",
+            content_type="application/zip",
+            sha256_hex="abc123",
+            size_bytes=2048,
+            created_at=None,
+        )
+        job = SimpleNamespace(
+            id=3,
+            tenant_id=1,
+            direction="export",
+            data_format="csv_zip",
+            export_scope="portable_minimum",
+            status="completed",
+            requested_by_email="admin@platform.local",
+            error_message=None,
+            summary_json=None,
+            created_at=None,
+            completed_at=None,
+            artifacts=[artifact],
+        )
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_data_portability_service.get_export_job",
+            return_value=job,
+        ):
+            response = get_tenant_data_export_job(
+                tenant_id=1,
+                job_id=3,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertEqual(response.id, 3)
+        self.assertEqual(response.export_scope, "portable_minimum")
+
+    def test_download_tenant_data_export_job_returns_file_response(self) -> None:
+        job = SimpleNamespace(id=3, tenant_id=1)
+        artifact = SimpleNamespace(
+            id=7,
+            file_name="empresa-demo-portable-export-job-3.zip",
+            content_type="application/zip",
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            artifact_path = Path(tmpdir) / artifact.file_name
+            artifact_path.write_bytes(b"fake-zip")
+
+            with patch(
+                "app.apps.platform_control.api.tenant_routes."
+                "tenant_data_portability_service.get_export_artifact",
+                return_value=(job, artifact, artifact_path),
+            ):
+                response = download_tenant_data_export_job(
+                    tenant_id=1,
+                    job_id=3,
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertIsInstance(response, FileResponse)
+        self.assertEqual(response.path, str(artifact_path))
+        self.assertEqual(response.media_type, "application/zip")
 
     def test_update_tenant_identity_returns_schema(self) -> None:
         previous_tenant = build_tenant_record_stub(

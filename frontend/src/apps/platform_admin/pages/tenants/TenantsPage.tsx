@@ -29,11 +29,14 @@ import {
 } from "../../../../utils/platform-labels";
 import {
   createPlatformTenant,
+  createPlatformTenantDataExportJob,
   deprovisionPlatformTenant,
   deletePlatformTenant,
+  downloadPlatformTenantDataExportJob,
   getPlatformCapabilities,
   getPlatformTenant,
   getPlatformTenantAccessPolicy,
+  listPlatformTenantDataExportJobs,
   getPlatformTenantRetirementArchive,
   getPlatformTenantModuleUsage,
   getPlatformTenantSchemaStatus,
@@ -66,6 +69,7 @@ import type {
   ProvisioningJob,
   PlatformTenant,
   PlatformTenantAccessPolicy,
+  PlatformTenantDataExportJob,
   PlatformTenantPortalUserItem,
   PlatformTenantRetirementArchiveItem,
   PlatformTenantPolicyChangeEvent,
@@ -109,6 +113,9 @@ export function TenantsPage() {
   const [policyHistory, setPolicyHistory] = useState<PlatformTenantPolicyChangeEvent[]>(
     []
   );
+  const [dataExportJobs, setDataExportJobs] = useState<PlatformTenantDataExportJob[]>(
+    []
+  );
   const [retirementArchives, setRetirementArchives] = useState<
     PlatformTenantRetirementArchiveItem[]
   >([]);
@@ -129,6 +136,7 @@ export function TenantsPage() {
   const [detailError, setDetailError] = useState<ApiError | null>(null);
   const [moduleUsageError, setModuleUsageError] = useState<ApiError | null>(null);
   const [policyHistoryError, setPolicyHistoryError] = useState<ApiError | null>(null);
+  const [dataExportJobsError, setDataExportJobsError] = useState<ApiError | null>(null);
   const [provisioningJobError, setProvisioningJobError] = useState<ApiError | null>(null);
   const [schemaStatusError, setSchemaStatusError] = useState<ApiError | null>(null);
   const [isListLoading, setIsListLoading] = useState(true);
@@ -136,6 +144,7 @@ export function TenantsPage() {
   const [isRetirementArchiveDetailLoading, setIsRetirementArchiveDetailLoading] =
     useState(false);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [isDataExportJobsLoading, setIsDataExportJobsLoading] = useState(false);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
   const [pendingConfirmation, setPendingConfirmation] =
@@ -450,6 +459,7 @@ export function TenantsPage() {
     setModuleUsageError(null);
     setModuleUsageNotice(null);
     setPolicyHistoryError(null);
+    setDataExportJobsError(null);
     setProvisioningJobError(null);
     setSchemaStatusError(null);
     setSelectedTenant(null);
@@ -457,6 +467,7 @@ export function TenantsPage() {
     setModuleUsage(null);
     setSchemaStatus(null);
     setPolicyHistory([]);
+    setDataExportJobs([]);
     setSelectedProvisioningJob(null);
     setTenantPortalUsers([]);
     let tenantStatus: string | null = null;
@@ -562,6 +573,21 @@ export function TenantsPage() {
     } catch (rawError) {
       setPolicyHistory([]);
       setPolicyHistoryError(rawError as ApiError);
+    }
+
+    try {
+      setIsDataExportJobsLoading(true);
+      const exportJobsResponse = await listPlatformTenantDataExportJobs(
+        session.accessToken,
+        tenantId,
+        { limit: 5 }
+      );
+      setDataExportJobs(exportJobsResponse.data);
+    } catch (rawError) {
+      setDataExportJobs([]);
+      setDataExportJobsError(rawError as ApiError);
+    } finally {
+      setIsDataExportJobsLoading(false);
     }
 
     try {
@@ -1118,6 +1144,71 @@ export function TenantsPage() {
       confirmLabel: language === "es" ? "Sincronizar esquema" : "Sync schema",
       action: () => syncPlatformTenantSchema(session.accessToken, selectedTenantId),
     });
+  }
+
+  async function handleCreateTenantDataExport() {
+    if (!session?.accessToken || selectedTenantId === null || !selectedTenantSummary) {
+      return;
+    }
+
+    await runAction("tenant-data-export", async () => {
+      const job = await createPlatformTenantDataExportJob(
+        session.accessToken,
+        selectedTenantId,
+        {
+          export_scope: "portable_minimum",
+        }
+      );
+
+      return {
+        message:
+          language === "es"
+            ? "Export portable generado correctamente"
+            : "Portable export generated successfully",
+        afterSuccess: async () => {
+          await reloadSelectedTenantWorkspace();
+          if (job.status === "completed" && job.artifacts.length > 0) {
+            await downloadPlatformTenantDataExportJob(
+              session.accessToken,
+              selectedTenantId,
+              job.id
+            );
+          }
+        },
+      };
+    });
+  }
+
+  async function handleDownloadTenantDataExport(jobId: number) {
+    if (!session?.accessToken || selectedTenantId === null) {
+      return;
+    }
+
+    setIsActionSubmitting(true);
+    setActionFeedback(null);
+    try {
+      await downloadPlatformTenantDataExportJob(
+        session.accessToken,
+        selectedTenantId,
+        jobId
+      );
+      setActionFeedback({
+        scope: "tenant-data-export-download",
+        type: "success",
+        message:
+          language === "es"
+            ? "Descarga iniciada correctamente."
+            : "Download started successfully.",
+      });
+    } catch (rawError) {
+      setActionFeedback({
+        scope: "tenant-data-export-download",
+        type: "error",
+        message: getApiErrorDisplayMessage(rawError as ApiError),
+      });
+    } finally {
+      setIsActionSubmitting(false);
+    }
   }
 
   function handleRunProvisioningJob() {
@@ -2076,6 +2167,135 @@ export function TenantsPage() {
                   </div>
                 ) : null}
               </PanelCard>
+
+              <PanelCard
+                title={language === "es" ? "Portabilidad tenant" : "Tenant portability"}
+                subtitle={
+                  language === "es"
+                    ? "Genera un paquete portable `CSV + manifest + zip` para respaldo operativo y migración parcial."
+                    : "Generate a portable `CSV + manifest + zip` package for operational backup and partial migration."
+                }
+              >
+                <div className="tenant-context-actions tenant-context-actions--compact">
+                  <div className="tenant-help-text">
+                    {language === "es"
+                      ? "Este export no reemplaza el backup PostgreSQL. Sirve como respaldo portable por tenant y base para futuras importaciones CSV."
+                      : "This export does not replace PostgreSQL backup. It works as a per-tenant portable backup and as the basis for future CSV imports."}
+                  </div>
+                  <div className="tenant-context-actions__buttons">
+                    <button
+                      className="btn btn-outline-primary btn-sm"
+                      type="button"
+                      onClick={handleCreateTenantDataExport}
+                      disabled={
+                        isActionSubmitting || !selectedTenantSummary.db_configured
+                      }
+                    >
+                      {language === "es"
+                        ? "Exportar CSV portable"
+                        : "Export portable CSV"}
+                    </button>
+                  </div>
+                </div>
+                {!selectedTenantSummary.db_configured ? (
+                  <div className="tenant-inline-note">
+                    {language === "es"
+                      ? "Primero debes completar el provisioning del tenant. Sin configuración DB tenant no hay export portable posible."
+                      : "Complete tenant provisioning first. Without tenant DB configuration, portable export is not possible."}
+                  </div>
+                ) : null}
+                {isDataExportJobsLoading ? (
+                  <LoadingBlock
+                    label={
+                      language === "es"
+                        ? "Cargando exports portables..."
+                        : "Loading portable exports..."
+                    }
+                  />
+                ) : null}
+                {dataExportJobsError ? (
+                  <ErrorState
+                    title={
+                      language === "es"
+                        ? "Falló la lectura de exports portables"
+                        : "Portable exports read failed"
+                    }
+                    detail={
+                      dataExportJobsError.payload?.detail || dataExportJobsError.message
+                    }
+                    requestId={dataExportJobsError.payload?.request_id}
+                  />
+                ) : null}
+                {!isDataExportJobsLoading &&
+                !dataExportJobsError &&
+                dataExportJobs.length === 0 ? (
+                  <div className="text-secondary">
+                    {language === "es"
+                      ? "Aún no hay exports portables para este tenant."
+                      : "There are no portable exports for this tenant yet."}
+                  </div>
+                ) : null}
+              </PanelCard>
+
+              {dataExportJobs.length > 0 ? (
+                <DataTableCard
+                  title={
+                    language === "es"
+                      ? "Últimos exports portables"
+                      : "Latest portable exports"
+                  }
+                  rows={dataExportJobs}
+                  columns={[
+                    {
+                      key: "id",
+                      header: "Job",
+                      render: (row) => `#${row.id}`,
+                    },
+                    {
+                      key: "status",
+                      header: language === "es" ? "Estado" : "Status",
+                      render: (row) => <StatusBadge value={row.status} />,
+                    },
+                    {
+                      key: "export_scope",
+                      header: language === "es" ? "Scope" : "Scope",
+                      render: (row) => row.export_scope,
+                    },
+                    {
+                      key: "created_at",
+                      header: language === "es" ? "Creado" : "Created",
+                      render: (row) => formatDateTime(row.created_at),
+                    },
+                    {
+                      key: "artifact",
+                      header: language === "es" ? "Artifact" : "Artifact",
+                      render: (row) =>
+                        row.artifacts[0]?.file_name ||
+                        (language === "es" ? "sin artifact" : "no artifact"),
+                    },
+                    {
+                      key: "actions",
+                      header: language === "es" ? "Acciones" : "Actions",
+                      render: (row) =>
+                        row.status === "completed" && row.artifacts.length > 0 ? (
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            type="button"
+                            onClick={() => void handleDownloadTenantDataExport(row.id)}
+                            disabled={isActionSubmitting}
+                          >
+                            {language === "es" ? "Descargar zip" : "Download zip"}
+                          </button>
+                        ) : (
+                          <span className="text-secondary">
+                            {row.error_message ||
+                              (language === "es" ? "sin descarga" : "no download")}
+                          </span>
+                        ),
+                    },
+                  ]}
+                />
+              ) : null}
 
               {accessPolicy ? (
                 <PanelCard

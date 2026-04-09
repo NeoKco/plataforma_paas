@@ -6,6 +6,12 @@ from app.apps.platform_control.models.provisioning_job import ProvisioningJob
 from app.apps.platform_control.models.provisioning_operational_alert import (
     ProvisioningOperationalAlert,
 )
+from app.apps.platform_control.models.tenant_data_transfer_artifact import (
+    TenantDataTransferArtifact,
+)
+from app.apps.platform_control.models.tenant_data_transfer_job import (
+    TenantDataTransferJob,
+)
 from app.apps.platform_control.models.tenant import Tenant
 from app.apps.platform_control.models.tenant_policy_change_event import (
     TenantPolicyChangeEvent,

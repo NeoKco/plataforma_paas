@@ -67,8 +67,9 @@ Documentación base:
   - el sidebar del `tenant_portal` no debe volver a hardcodear estas visibilidades fuera de esa fuente
 - backup PostgreSQL y portabilidad CSV son frentes distintos:
   - `pg_dump` sigue siendo el respaldo técnico canónico
-  - el futuro export/import CSV tenant-side debe vivir en `platform_control`, no dentro de un módulo tenant suelto
-  - ese frente debe usar `dry_run` antes de `apply` y no debe venderse como reemplazo del backup real
+  - export/import CSV tenant-side vive en `platform_control`, no dentro de un módulo tenant suelto
+  - la Fase 1 ya implementada cubre solo export portable mínimo por tenant
+  - la futura importación debe usar `dry_run` antes de `apply` y no debe venderse como reemplazo del backup real
 
 ## Cómo extender este bloque
 
@@ -105,6 +106,7 @@ Smokes actuales del bloque central:
 - [platform-admin-provisioning-retry.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-retry.smoke.spec.ts)
 - [platform-admin-schema-auto-sync.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-schema-auto-sync.smoke.spec.ts)
 - [platform-admin-tenants-create-form.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenants-create-form.smoke.spec.ts)
+- [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-row.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts)
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)

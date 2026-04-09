@@ -228,6 +228,42 @@ class TenantResponse(BaseModel):
         from_attributes = True
 
 
+class TenantDataExportJobCreateRequest(BaseModel):
+    export_scope: str = "portable_minimum"
+
+
+class TenantDataTransferArtifactResponse(BaseModel):
+    id: int
+    artifact_type: str
+    file_name: str
+    content_type: str
+    sha256_hex: str
+    size_bytes: int
+    created_at: datetime | None = None
+
+
+class TenantDataExportJobResponse(BaseModel):
+    id: int
+    tenant_id: int
+    direction: str
+    data_format: str
+    export_scope: str
+    status: str
+    requested_by_email: str | None = None
+    error_message: str | None = None
+    summary_json: str | None = None
+    created_at: datetime | None = None
+    completed_at: datetime | None = None
+    artifacts: list[TenantDataTransferArtifactResponse] = []
+
+
+class TenantDataExportJobListResponse(BaseModel):
+    success: bool
+    message: str
+    total_jobs: int
+    data: list[TenantDataExportJobResponse]
+
+
 class TenantListResponse(BaseModel):
     success: bool
     message: str

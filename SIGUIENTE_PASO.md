@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-08
-- prioridad vigente: implementar la Fase 1 del frente `tenant data portability CSV`
+- prioridad vigente: avanzar a la Fase 2 del frente `tenant data portability CSV`
 
 ## Objetivo del próximo paso
 
@@ -50,9 +50,9 @@ La próxima iteración ya no debe volver a decidir el frente.
 Debe avanzar sobre:
 
 - `tenant data portability CSV`
-- Fase 1: export portable mínimo por tenant
-- jobs en `platform_control`
-- paquete `zip + manifest + csv`
+- Fase 2: import controlado con `dry_run`
+- validación previa de `manifest` y tabla por tabla
+- aplicación explícita sobre tenant destino
 
 ## Orden exacto recomendado
 
@@ -64,8 +64,9 @@ Debe avanzar sobre:
 6. confirmar que producción y staging siguen saludables
 7. asumir cerrado el frente `tenant sidebar backend-driven`
 8. asumir cerrado el frente `Nuevo tenant admin explícito + módulos por plan`
-9. abrir implementación del frente `tenant data portability CSV`
-10. actualizar `ESTADO_ACTUAL.md` si cambia la prioridad real
+9. asumir cerrada la Fase 1 de export portable tenant
+10. abrir Fase 2 de import controlado con `dry_run`
+11. actualizar `ESTADO_ACTUAL.md` si cambia la prioridad real
 
 ## Qué debe actualizar la próxima IA al cerrar
 
@@ -108,4 +109,4 @@ Y si una iteración importante cambia el estado real del proyecto, estos archivo
 
 Este archivo debería reescribirse cuando:
 
-- la Fase 1 del frente `tenant data portability CSV` pase de diseño a implementación real
+- la Fase 2 del frente `tenant data portability CSV` pase de planificación a implementación real

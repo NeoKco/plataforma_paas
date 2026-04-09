@@ -3,6 +3,7 @@ from datetime import date
 import json
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy import desc, func, or_, text
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
@@ -44,6 +45,10 @@ from app.apps.platform_control.schemas import (
     TenantRateLimitResponse,
     TenantRateLimitUpdateRequest,
     TenantDeleteResponse,
+    TenantDataExportJobCreateRequest,
+    TenantDataExportJobListResponse,
+    TenantDataExportJobResponse,
+    TenantDataTransferArtifactResponse,
     TenantStatusResponse,
     TenantStatusUpdateRequest,
     TenantResponse,
@@ -82,6 +87,9 @@ from app.apps.platform_control.services.tenant_policy_event_service import (
     TenantPolicyEventService,
 )
 from app.apps.platform_control.services.tenant_service import TenantService
+from app.apps.platform_control.services.tenant_data_portability_service import (
+    TenantDataPortabilityService,
+)
 from app.common.auth.role_dependencies import require_role
 from app.common.db.session_manager import get_control_db
 
@@ -100,6 +108,7 @@ tenant_connection_service = TenantConnectionService()
 finance_service = FinanceService()
 tenant_module_usage_service = TenantModuleUsageService(finance_service=finance_service)
 tenant_data_service = TenantDataService()
+tenant_data_portability_service = TenantDataPortabilityService()
 
 
 def _raise_tenant_schema_http_error(exc: Exception) -> None:
@@ -272,6 +281,34 @@ def _build_tenant_retirement_archive_item(
     )
 
 
+def _build_tenant_data_export_job_response(job) -> TenantDataExportJobResponse:
+    return TenantDataExportJobResponse(
+        id=job.id,
+        tenant_id=job.tenant_id,
+        direction=job.direction,
+        data_format=job.data_format,
+        export_scope=job.export_scope,
+        status=job.status,
+        requested_by_email=job.requested_by_email,
+        error_message=job.error_message,
+        summary_json=job.summary_json,
+        created_at=job.created_at,
+        completed_at=job.completed_at,
+        artifacts=[
+            TenantDataTransferArtifactResponse(
+                id=artifact.id,
+                artifact_type=artifact.artifact_type,
+                file_name=artifact.file_name,
+                content_type=artifact.content_type,
+                sha256_hex=artifact.sha256_hex,
+                size_bytes=artifact.size_bytes,
+                created_at=artifact.created_at,
+            )
+            for artifact in getattr(job, "artifacts", [])
+        ],
+    )
+
+
 def _capture_tenant_snapshot(db: Session, tenant_id: int) -> dict | None:
     tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
     if not tenant:
@@ -405,6 +442,125 @@ def get_platform_billing_event_alert_history(
             PlatformBillingAlertHistoryEntryResponse(**item)
             for item in alerts
         ],
+    )
+
+
+@router.post(
+    "/{tenant_id}/data-export-jobs",
+    response_model=TenantDataExportJobResponse,
+)
+def create_tenant_data_export_job(
+    tenant_id: int,
+    payload: TenantDataExportJobCreateRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantDataExportJobResponse:
+    try:
+        job = tenant_data_portability_service.create_export_job(
+            db,
+            tenant_id=tenant_id,
+            requested_by_email=_token.get("email"),
+            export_scope=payload.export_scope,
+        )
+        tenant = tenant_service.tenant_repository.get_by_id(db, tenant_id)
+        auth_audit_service.log_event(
+            db,
+            event_type="platform.tenant.data_export.create",
+            subject_scope="platform",
+            outcome="success",
+            subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+            email=_token.get("email"),
+            tenant_slug=None if tenant is None else tenant.slug,
+            detail=f"Genero export portable CSV para tenant_id={tenant_id}",
+        )
+        return _build_tenant_data_export_job_response(job)
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 409
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+
+@router.get(
+    "/{tenant_id}/data-export-jobs",
+    response_model=TenantDataExportJobListResponse,
+)
+def list_tenant_data_export_jobs(
+    tenant_id: int,
+    limit: int = 10,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantDataExportJobListResponse:
+    try:
+        jobs = tenant_data_portability_service.list_export_jobs(
+            db,
+            tenant_id=tenant_id,
+            limit=max(1, min(limit, 25)),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return TenantDataExportJobListResponse(
+        success=True,
+        message="Jobs de exportación portable recuperados correctamente",
+        total_jobs=len(jobs),
+        data=[_build_tenant_data_export_job_response(job) for job in jobs],
+    )
+
+
+@router.get(
+    "/{tenant_id}/data-export-jobs/{job_id}",
+    response_model=TenantDataExportJobResponse,
+)
+def get_tenant_data_export_job(
+    tenant_id: int,
+    job_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantDataExportJobResponse:
+    try:
+        job = tenant_data_portability_service.get_export_job(
+            db,
+            tenant_id=tenant_id,
+            job_id=job_id,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail in {"Tenant not found", "Tenant data export job not found"} else 409
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    return _build_tenant_data_export_job_response(job)
+
+
+@router.get("/{tenant_id}/data-export-jobs/{job_id}/download")
+def download_tenant_data_export_job(
+    tenant_id: int,
+    job_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+):
+    try:
+        _job, artifact, artifact_path = tenant_data_portability_service.get_export_artifact(
+            db,
+            tenant_id=tenant_id,
+            job_id=job_id,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = (
+            404
+            if detail
+            in {
+                "Tenant data export job not found",
+                "Tenant data export artifact not found",
+                "Tenant data export artifact file is missing",
+            }
+            else 409
+        )
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    return FileResponse(
+        path=str(artifact_path),
+        filename=artifact.file_name,
+        media_type=artifact.content_type,
     )
 
 

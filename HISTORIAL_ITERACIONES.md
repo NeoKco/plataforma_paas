@@ -15,6 +15,41 @@ Para nuevas entradas usar:
 
 ---
 
+## 2026-04-08 — Fase 1 implementada de `tenant data portability CSV`
+
+### Objetivo
+
+- implementar el primer corte real de portabilidad tenant en `CSV + manifest`
+- dejar una capacidad de producto usable desde `platform_admin > Tenants`
+
+### Cambios principales
+
+- se agrega la migración [v0026_tenant_data_transfer_jobs.py](/home/felipe/platform_paas/backend/migrations/control/v0026_tenant_data_transfer_jobs.py)
+- `platform_control` ahora persiste jobs y artifacts de export portable por tenant
+- se implementa [tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_data_portability_service.py) para generar `zip + manifest + csv`
+- `platform_admin > Tenants` agrega el bloque `Portabilidad tenant` y el historial corto de exports
+- se agrega el smoke [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts)
+- se agrega el runbook [tenant-data-portability.md](/home/felipe/platform_paas/docs/runbooks/tenant-data-portability.md)
+- `.env.example`, `backend.production.example.env` y `backend-env-catalog.md` documentan `TENANT_DATA_EXPORT_ARTIFACTS_DIR`
+
+### Validaciones
+
+- backend slice afectado: `213 OK`
+- `python3 -m compileall` sobre `platform_control`: OK
+- frontend `npm run build`: OK
+- `npx playwright test --list`: `41 tests`
+
+### Bloqueos
+
+- no hay bloqueo técnico para export
+- la importación controlada todavía no existe
+
+### Siguiente paso
+
+- abrir la Fase 2: import controlado con `dry_run`
+
+---
+
 ## 2026-04-08 — Apertura del frente `tenant data portability CSV`
 
 ### Objetivo

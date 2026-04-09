@@ -25,8 +25,8 @@ Debe permanecer corto, operativo y fácil de escanear.
 ## Estado rápido vigente
 
 - fecha: 2026-04-08
-- foco activo: frente nuevo elegido `tenant data portability CSV`
-- prioridad inmediata: mantener estable lo ya cerrado y usar `staging` si la futura UI de export/import llega a tocar operación visible
+- foco activo: Fase 1 implementada de `tenant data portability CSV`
+- prioridad inmediata: mantener estable lo ya cerrado y abrir la Fase 2 de import controlado con `dry_run`
 - módulo o frente activo: `platform-core` / continuidad central
 
 ## Último contexto útil
@@ -55,13 +55,15 @@ Debe permanecer corto, operativo y fácil de escanear.
 - el host productivo también quedó corregido para arrancar realmente con `APP_ENV=production`
 - la documentación canónica ya fija `staging` como espejo operativo por defecto y deja `bootstrap reset` como flujo puntual de validación
 - el hotfix productivo de `provisioning` ya quedó aplicado: secretos tenant runtime salen a `TENANT_SECRETS_FILE`, `condominio-demo` volvió a quedar sano y `ierisltda` quedó eliminado para recreación limpia
-- ya quedó elegido el siguiente frente explícito del roadmap: export/import portable tenant en `CSV + manifest`, separado del backup PostgreSQL canónico
-- el modelo canónico de ese frente ya quedó abierto en `docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md`
+- la Fase 1 de export/import portable tenant ya quedó parcialmente implementada: export mínimo `zip + manifest + csv`
+- el modelo canónico de ese frente ya quedó abierto y actualizado en `docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md`
+- `Tenants` ya muestra el bloque `Portabilidad tenant` con creación de job, lectura de últimos exports y descarga del `zip`
+- ya existe smoke browser `platform-admin-tenant-data-export`
 
 ## Bloqueo actual
 
 - no existe bloqueo técnico en este frente
-- el frente CSV aún no está implementado; por ahora solo quedó diseñado y canonizado
+- la Fase 2 de import todavía no está implementada
 
 ## Siguiente acción inmediata
 
@@ -71,7 +73,7 @@ Es este:
 
 - mantener `production` estable
 - mantener `staging` como carril previo real
-- implementar la Fase 1 del frente `tenant data portability CSV`
+- implementar la Fase 2 del frente `tenant data portability CSV`
 
 ## Archivos a leer justo después de este
 

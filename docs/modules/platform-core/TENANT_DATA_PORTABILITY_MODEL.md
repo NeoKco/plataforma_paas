@@ -25,7 +25,9 @@ La plataforma debe manejar dos capas distintas de respaldo:
 - formato: `zip` con `manifest.json` + múltiples `csv`
 - objetivo: migración, portabilidad y restauración parcial
 - alcance: datos funcionales seleccionados por dominio
-- estado actual: pendiente de implementación
+- estado actual:
+  - Fase 1 export portable mínimo: implementada
+  - import controlado: pendiente
 
 Regla cerrada:
 
@@ -190,10 +192,10 @@ Contratos HTTP sugeridos:
 - `POST /platform/tenants/{tenant_id}/data-export-jobs`
 - `GET /platform/tenants/{tenant_id}/data-export-jobs`
 - `GET /platform/tenants/{tenant_id}/data-export-jobs/{job_id}`
+- `GET /platform/tenants/{tenant_id}/data-export-jobs/{job_id}/download`
 - `POST /platform/tenants/{tenant_id}/data-import-jobs`
 - `GET /platform/tenants/{tenant_id}/data-import-jobs/{job_id}`
 - `POST /platform/tenants/{tenant_id}/data-import-jobs/{job_id}/run`
-- `POST /platform/tenants/{tenant_id}/data-export-jobs/{job_id}/download`
 
 ## 7. Flujo UI sugerido
 

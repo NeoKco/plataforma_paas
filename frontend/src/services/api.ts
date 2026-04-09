@@ -24,6 +24,12 @@ type RequestOptions = {
   token?: string | null;
 };
 
+type DownloadOptions = {
+  method?: string;
+  body?: unknown;
+  token?: string | null;
+};
+
 export function getApiErrorDisplayMessage(error: ApiError): string {
   const detail = error.payload?.detail?.trim();
   const requestId = error.payload?.request_id?.trim();
@@ -108,6 +114,80 @@ export async function apiRequest<T>(
   }
 
   return (await response.json()) as T;
+}
+
+export async function apiDownload(
+  path: string,
+  options: DownloadOptions = {}
+): Promise<{
+  blob: Blob;
+  fileName: string | null;
+  contentType: string;
+}> {
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: options.method ?? "GET",
+      headers: {
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
+        ...(options.token
+          ? { Authorization: `Bearer ${options.token}` }
+          : {}),
+      },
+      body:
+        options.body === undefined
+          ? undefined
+          : isFormData
+            ? (options.body as FormData)
+            : JSON.stringify(options.body),
+    });
+  } catch {
+    const error = new Error(
+      `No se pudo conectar con la API en ${API_BASE_URL}. Revisa VITE_API_BASE_URL, CORS y que el backend esté levantado.`
+    ) as ApiError;
+    error.payload = {
+      detail:
+        `No se pudo conectar con la API en ${API_BASE_URL}. ` +
+        "Revisa VITE_API_BASE_URL, CORS y que el backend esté levantado.",
+      error_type: "network_error",
+    };
+    throw error;
+  }
+
+  if (!response.ok) {
+    let payload: ApiErrorPayload | undefined;
+    try {
+      payload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      payload = undefined;
+    }
+
+    if (response.status === 401 && typeof window !== "undefined") {
+      if (path.startsWith("/platform/") && !path.startsWith("/platform/auth/")) {
+        window.dispatchEvent(new CustomEvent(PLATFORM_AUTH_ERROR_EVENT));
+      }
+      if (path.startsWith("/tenant/") && !path.startsWith("/tenant/auth/")) {
+        window.dispatchEvent(new CustomEvent(TENANT_AUTH_ERROR_EVENT));
+      }
+    }
+
+    const error = new Error(
+      payload?.detail || `Request failed with status ${response.status}`
+    ) as ApiError;
+    error.status = response.status;
+    error.payload = payload;
+    throw error;
+  }
+
+  const contentDisposition = response.headers.get("content-disposition");
+  const fileNameMatch = contentDisposition?.match(/filename=\"?([^\";]+)\"?/i);
+
+  return {
+    blob: await response.blob(),
+    fileName: fileNameMatch?.[1] || null,
+    contentType: response.headers.get("content-type") || "application/octet-stream",
+  };
 }
 
 export const authErrorEvents = {

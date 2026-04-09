@@ -2,6 +2,13 @@
 
 ## 2026-04-08
 
+- se implementa la Fase 1 de portabilidad tenant en `platform_control`: [tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_data_portability_service.py), [tenant_data_transfer_job.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_data_transfer_job.py), [tenant_data_transfer_artifact.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_data_transfer_artifact.py) y migración [v0026_tenant_data_transfer_jobs.py](/home/felipe/platform_paas/backend/migrations/control/v0026_tenant_data_transfer_jobs.py)
+- `platform_admin > Tenants` agrega el bloque `Portabilidad tenant` en [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) para generar y descargar exports portables `CSV + manifest + zip`
+- el contrato frontend/backend queda expuesto en [platform-api.ts](/home/felipe/platform_paas/frontend/src/services/platform-api.ts), [api.ts](/home/felipe/platform_paas/frontend/src/services/api.ts), [types.ts](/home/felipe/platform_paas/frontend/src/types.ts) y [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py)
+- se agrega el smoke [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts) para validar wiring browser del export portable en `Tenants`
+- se agrega el runbook [tenant-data-portability.md](/home/felipe/platform_paas/docs/runbooks/tenant-data-portability.md) y se documenta `TENANT_DATA_EXPORT_ARTIFACTS_DIR` en el catálogo backend/env examples
+- el siguiente paso explícito del frente deja de ser “abrir export CSV” y pasa a “import controlado con dry_run”
+
 - `Nuevo tenant` en [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ahora exige `admin_full_name`, `admin_email` y `admin_password`, en vez de dejar que provisioning cree siempre `admin@<slug>.local / TenantAdmin123!`
 - el backend guarda bootstrap admin explícito en [tenant.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant.py), lo migra con [v0025_tenant_bootstrap_admin.py](/home/felipe/platform_paas/backend/migrations/control/v0025_tenant_bootstrap_admin.py) y lo usa en provisioning desde [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py)
 - `platform_control` expone ahora un `plan_catalog` en capacidades para que `platform_admin` muestre qué módulos habilita cada plan, sin romper el modelo plan-driven

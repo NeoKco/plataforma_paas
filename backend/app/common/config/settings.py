@@ -158,6 +158,9 @@ class Settings(BaseSettings):
         / "storage"
         / "evidence"
     )
+    TENANT_DATA_EXPORT_ARTIFACTS_DIR: str = str(
+        BASE_DIR / "storage" / "tenant_data_exports"
+    )
 
     @field_validator("DEBUG", mode="before")
     @classmethod

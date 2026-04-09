@@ -6,6 +6,7 @@ from pathlib import Path
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+import app.apps.platform_control.models  # noqa: F401
 from app.apps.installer.services.postgres_bootstrap_service import (
     PostgresBootstrapService,
 )

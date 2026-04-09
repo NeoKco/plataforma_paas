@@ -22,6 +22,9 @@ import type {
   PlatformUserUpdateRequest,
   PlatformUserWriteResponse,
   PlatformTenantCreateRequest,
+  PlatformTenantDataExportJob,
+  PlatformTenantDataExportJobCreateRequest,
+  PlatformTenantDataExportJobListResponse,
   PlatformTenantDeleteResponse,
   PlatformTenantIdentityResponse,
   PlatformTenantListResponse,
@@ -53,7 +56,7 @@ import type {
   TenantBillingSyncHistoryResponse,
   TenantBillingSyncSummaryResponse,
 } from "../types";
-import { apiRequest } from "./api";
+import { apiDownload, apiRequest } from "./api";
 
 export function loginPlatform(email: string, password: string) {
   return apiRequest<PlatformLoginResponse>("/platform/auth/login", {
@@ -212,6 +215,71 @@ export function listPlatformTenants(accessToken: string) {
   return apiRequest<PlatformTenantListResponse>("/platform/tenants/", {
     token: accessToken,
   });
+}
+
+export function createPlatformTenantDataExportJob(
+  accessToken: string,
+  tenantId: number,
+  payload: PlatformTenantDataExportJobCreateRequest = {}
+) {
+  return apiRequest<PlatformTenantDataExportJob>(
+    `/platform/tenants/${tenantId}/data-export-jobs`,
+    {
+      method: "POST",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function listPlatformTenantDataExportJobs(
+  accessToken: string,
+  tenantId: number,
+  params?: { limit?: number }
+) {
+  const query = new URLSearchParams();
+  if (params?.limit) {
+    query.set("limit", String(params.limit));
+  }
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return apiRequest<PlatformTenantDataExportJobListResponse>(
+    `/platform/tenants/${tenantId}/data-export-jobs${suffix}`,
+    {
+      token: accessToken,
+    }
+  );
+}
+
+export function getPlatformTenantDataExportJob(
+  accessToken: string,
+  tenantId: number,
+  jobId: number
+) {
+  return apiRequest<PlatformTenantDataExportJob>(
+    `/platform/tenants/${tenantId}/data-export-jobs/${jobId}`,
+    {
+      token: accessToken,
+    }
+  );
+}
+
+export async function downloadPlatformTenantDataExportJob(
+  accessToken: string,
+  tenantId: number,
+  jobId: number
+) {
+  const result = await apiDownload(
+    `/platform/tenants/${tenantId}/data-export-jobs/${jobId}/download`,
+    {
+      token: accessToken,
+    }
+  );
+  const url = URL.createObjectURL(result.blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = result.fileName || `tenant-export-${tenantId}-job-${jobId}.zip`;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 export function listPlatformTenantRetirementArchives(

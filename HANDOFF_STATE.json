@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-08T20:35:00-04:00",
+  "updated_at": "2026-04-08T22:20:00-04:00",
   "handoff_status": "active",
-  "current_focus": "frente tenant data portability CSV abierto a nivel de diseño canónico dentro de platform-core",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado y siguiente frente central ya elegido",
+  "current_focus": "fase 1 de tenant data portability CSV implementada en platform-core y siguiente paso movido a import controlado con dry_run",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado y export portable tenant ya operativo",
   "active_modules": [
     "platform-core",
     "finance",
@@ -28,7 +28,8 @@
     "el sidebar principal de tenant_portal debe consumir effective_enabled_modules desde /tenant/info y no volver a hardcodearse por modulo",
     "todo tenant nuevo debe capturar admin inicial explicito al momento del alta",
     "los modulos tenant-side siguen siendo plan-driven y deben hacerse visibles en la UI por preview de plan, no por toggles manuales ad hoc",
-    "backup PostgreSQL por tenant sigue siendo el respaldo tecnico canonico; el futuro CSV tenant-side debe ser portabilidad y migracion, no sustituto del backup real"
+    "backup PostgreSQL por tenant sigue siendo el respaldo tecnico canonico; CSV tenant-side es portabilidad y migracion, no sustituto del backup real",
+    "la Fase 1 de tenant data portability cubre solo export portable minimo por tenant; la importacion controlada queda para la siguiente fase"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -68,10 +69,14 @@
     "hotfix de provisioning aplicado en staging y production usando TENANT_SECRETS_FILE para secretos tenant runtime",
     "condominio-demo re-alineado con credencial tecnica valida y schema sync completado",
     "ierisltda deprovisionado y eliminado para permitir recreacion limpia",
-    "modelo canónico tenant data portability CSV agregado a platform-core como siguiente frente explícito del roadmap"
+    "modelo canónico tenant data portability CSV agregado a platform-core como siguiente frente explícito del roadmap",
+    "migración de control 0026 agregada para jobs y artifacts de export portable tenant",
+    "tenant_data_portability_service implementado con zip manifest y csv por tenant",
+    "bloque Portabilidad tenant agregado en Tenants con creación de job y descarga autenticada",
+    "smoke browser platform-admin-tenant-data-export agregado y listado por Playwright"
   ],
   "blocking_issues": [],
-  "next_decision_required": "implementar la Fase 1 del frente tenant data portability CSV respetando la separación frente al backup PostgreSQL canónico",
+  "next_decision_required": "implementar la Fase 2 del frente tenant data portability CSV respetando dry_run y validación previa antes de aplicar import",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -130,6 +135,9 @@
     "platform_admin_new_tenant_smoke_staging": "pass",
     "platform_admin_new_tenant_smoke_production": "pass",
     "provisioning_runtime_secrets_hotfix_tests": "pass",
-    "provisioning_runtime_secrets_hotfix_prod": "pass"
+    "provisioning_runtime_secrets_hotfix_prod": "pass",
+    "tenant_data_portability_backend_tests": "pass",
+    "tenant_data_portability_frontend_build": "pass",
+    "tenant_data_portability_playwright_list": "pass"
   }
 }

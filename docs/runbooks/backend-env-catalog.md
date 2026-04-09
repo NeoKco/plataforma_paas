@@ -38,12 +38,14 @@ Uso:
 
 - `POSTGRES_ADMIN_PASSWORD`
 - `TENANT_SECRETS_FILE`
+- `TENANT_DATA_EXPORT_ARTIFACTS_DIR`
 
 Uso:
 
 - instalacion
 - provisioning tenant
 - archivo runtime donde se persisten y limpian passwords tecnicas tenant sin escribir el `.env` principal
+- almacenamiento de artifacts `zip` para export portable tenant-side
 
 ## 4. JWT y sesion
 
@@ -92,6 +94,7 @@ Uso:
 Regla operativa vigente:
 
 - en hosts reales, `TENANT_SECRETS_FILE` debe apuntar a un archivo escribible por el usuario del servicio backend
+- en hosts reales, `TENANT_DATA_EXPORT_ARTIFACTS_DIR` debe apuntar a un directorio escribible por el usuario del servicio backend
 - el `.env` principal sigue siendo la fuente de configuracion general, pero ya no debe ser el lugar donde runtime escriba secretos tenant nuevos
 
 ## 6. Redis

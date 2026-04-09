@@ -32,6 +32,7 @@ Referencia:
 3. revisar acceso, billing, maintenance y límites
 4. archivar o restaurar cuando corresponda
 5. abrir el `tenant_portal` desde `Tenants` cuando el tenant ya esté activo y con DB operativa
+6. usar `Exportar CSV portable` cuando necesites un paquete portable del tenant
 
 Nota operativa:
 
@@ -48,6 +49,7 @@ Nota operativa:
 Referencia:
 
 - [tenant-basic-cycle.md](/home/felipe/platform_paas/docs/runbooks/tenant-basic-cycle.md)
+- [tenant-data-portability.md](/home/felipe/platform_paas/docs/runbooks/tenant-data-portability.md)
 
 ### Operar provisioning
 
@@ -62,6 +64,19 @@ Desde `Provisioning`, la operación normal ya permite:
 Referencia:
 
 - [provisioning-guided-test.md](/home/felipe/platform_paas/docs/runbooks/provisioning-guided-test.md)
+
+### Export portable por tenant
+
+Desde `Tenants`, el bloque `Portabilidad tenant` ya permite:
+
+1. generar un export portable `CSV + manifest + zip`
+2. revisar los últimos jobs de export
+3. descargar el `zip` generado
+
+Regla operativa:
+
+- esto no reemplaza `pg_dump`
+- si el tenant todavía no tiene `db_configured=true`, el export no se puede generar
 
 ### Operar usuarios de plataforma
 

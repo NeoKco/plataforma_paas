@@ -89,6 +89,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0023_tenant_db_credentials_tracking",
                 "0024_tenant_retirement_archives",
                 "0025_tenant_bootstrap_admin",
+                "0026_tenant_data_transfer_jobs",
             ],
         )
         self.assertIn("platform_installation", tables)
@@ -121,6 +122,8 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("bootstrap_admin_full_name", tenant_columns)
         self.assertIn("bootstrap_admin_email", tenant_columns)
         self.assertIn("bootstrap_admin_password_hash", tenant_columns)
+        self.assertIn("tenant_data_transfer_jobs", tables)
+        self.assertIn("tenant_data_transfer_artifacts", tables)
         self.assertIn("provisioning_jobs", tables)
         provisioning_job_columns = {
             column["name"] for column in inspect(engine).get_columns("provisioning_jobs")

@@ -314,6 +314,42 @@ export type PlatformTenantListResponse = {
   data: PlatformTenant[];
 };
 
+export type PlatformTenantDataTransferArtifact = {
+  id: number;
+  artifact_type: string;
+  file_name: string;
+  content_type: string;
+  sha256_hex: string;
+  size_bytes: number;
+  created_at: string | null;
+};
+
+export type PlatformTenantDataExportJob = {
+  id: number;
+  tenant_id: number;
+  direction: string;
+  data_format: string;
+  export_scope: string;
+  status: string;
+  requested_by_email: string | null;
+  error_message: string | null;
+  summary_json: string | null;
+  created_at: string | null;
+  completed_at: string | null;
+  artifacts: PlatformTenantDataTransferArtifact[];
+};
+
+export type PlatformTenantDataExportJobCreateRequest = {
+  export_scope?: string;
+};
+
+export type PlatformTenantDataExportJobListResponse = {
+  success: boolean;
+  message: string;
+  total_jobs: number;
+  data: PlatformTenantDataExportJob[];
+};
+
 export type PlatformTenantCreateRequest = {
   name: string;
   slug: string;

@@ -22,6 +22,7 @@ No reemplaza la documentación detallada ya existente. La ordena.
 - [ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md)
 - [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
 - [TENANT_DATA_PORTABILITY_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md)
+- [../../runbooks/tenant-data-portability.md](/home/felipe/platform_paas/docs/runbooks/tenant-data-portability.md)
 - [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
   Backlog transversal de mejoras sugeridas por modulo.
 
