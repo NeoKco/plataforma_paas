@@ -13,6 +13,17 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 from sqlalchemy import MetaData, Table, inspect, select, text
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.sqltypes import (
+    JSON,
+    Boolean,
+    Date,
+    DateTime,
+    Float,
+    Integer,
+    LargeBinary,
+    Numeric,
+    Time,
+)
 
 from app.apps.platform_control.models.tenant import Tenant
 from app.apps.platform_control.models.tenant_data_transfer_artifact import (
@@ -674,7 +685,10 @@ class TenantDataPortabilityService:
             if pk_name not in row or row.get(pk_name, "") == "":
                 continue
             prepared = {
-                column_name: self._deserialize_value(value)
+                column_name: self._deserialize_value_for_column(
+                    reflected_table.c[column_name],
+                    value,
+                )
                 for column_name, value in row.items()
                 if column_name in table_columns
             }
@@ -715,6 +729,50 @@ class TenantDataPortabilityService:
         if value in ("", None):
             return None
         return value
+
+    def _deserialize_value_for_column(self, column, value):
+        parsed = self._deserialize_value(value)
+        if parsed is None:
+            return None
+
+        column_type = column.type
+        if isinstance(column_type, Boolean):
+            if isinstance(parsed, bool):
+                return parsed
+            normalized = str(parsed).strip().lower()
+            if normalized in {"true", "t", "1", "yes", "y"}:
+                return True
+            if normalized in {"false", "f", "0", "no", "n"}:
+                return False
+            raise ValueError(f"Invalid boolean value for column {column.name}: {parsed!r}")
+
+        if isinstance(column_type, Integer):
+            return int(str(parsed).strip())
+
+        if isinstance(column_type, (Numeric, Float)):
+            return Decimal(str(parsed).strip())
+
+        if isinstance(column_type, DateTime):
+            normalized = str(parsed).strip().replace("Z", "+00:00")
+            return datetime.fromisoformat(normalized)
+
+        if isinstance(column_type, Date):
+            return date.fromisoformat(str(parsed).strip())
+
+        if isinstance(column_type, Time):
+            return time.fromisoformat(str(parsed).strip())
+
+        if isinstance(column_type, JSON):
+            if isinstance(parsed, (dict, list)):
+                return parsed
+            return json.loads(str(parsed))
+
+        if isinstance(column_type, LargeBinary):
+            if isinstance(parsed, bytes):
+                return parsed
+            return base64.b64decode(str(parsed))
+
+        return parsed
 
     def _compute_sha256(self, path: Path) -> str:
         digest = hashlib.sha256()

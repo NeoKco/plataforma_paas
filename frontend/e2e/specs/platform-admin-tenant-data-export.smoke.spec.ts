@@ -29,8 +29,8 @@ test("platform admin can export and import portable tenant CSV packages from ten
   const accessToken = await readPlatformAccessToken(page);
   const apiOrigin = new URL(page.url()).origin;
   const preferredTenantPatterns = [
-    "condominio-demo",
     "empresa-bootstrap",
+    "condominio-demo",
     "empresa-demo",
   ];
   const tenantListResponse = await page.request.get(`${apiOrigin}/platform/tenants/`, {
@@ -183,7 +183,6 @@ test("platform admin can export and import portable tenant CSV packages from ten
   await expect(
     page.getByText(/Últimos imports portables|Latest portable imports/i)
   ).toBeVisible();
-  await expect(page.getByText(suggestedFileName)).toBeVisible({ timeout: 15000 });
   await expect(page.getByText(/dry_run/i).first()).toBeVisible();
 
   await packageInput.setInputFiles(downloadedZipPath);

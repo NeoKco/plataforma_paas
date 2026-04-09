@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import patch
 from zipfile import ZipFile
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import Boolean, Column, DateTime, Integer, JSON, MetaData, Numeric, Table, create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -342,6 +342,49 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
                 tenant_id=tenant.id,
                 requested_by_email="admin@platform.local",
             )
+
+    def test_deserialize_value_for_column_casts_typed_csv_values(self) -> None:
+        table = Table(
+            "typed_values",
+            MetaData(),
+            Column("id", Integer, primary_key=True),
+            Column("enabled", Boolean),
+            Column("created_at", DateTime(timezone=True)),
+            Column("payload", JSON),
+            Column("amount", Numeric(10, 2)),
+        )
+
+        self.assertEqual(
+            self.service._deserialize_value_for_column(table.c.id, "7"),
+            7,
+        )
+        self.assertIs(
+            self.service._deserialize_value_for_column(table.c.enabled, "True"),
+            True,
+        )
+        self.assertEqual(
+            self.service._deserialize_value_for_column(
+                table.c.created_at,
+                "2026-04-08T22:36:38+00:00",
+            ).isoformat(),
+            "2026-04-08T22:36:38+00:00",
+        )
+        self.assertEqual(
+            self.service._deserialize_value_for_column(
+                table.c.payload,
+                '{"mode":"apply"}',
+            ),
+            {"mode": "apply"},
+        )
+        self.assertEqual(
+            str(
+                self.service._deserialize_value_for_column(
+                    table.c.amount,
+                    "19.90",
+                )
+            ),
+            "19.90",
+        )
 
 
 if __name__ == "__main__":
