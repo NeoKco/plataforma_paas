@@ -1,6 +1,6 @@
 # HISTORIAL_ITERACIONES
 
-## 2026-04-09 - Provisioning DLQ investigation repo+staging
+## 2026-04-09 - Provisioning DLQ investigation staging+production
 
 - se implementa la acción visible `Investigar en DLQ` en [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) sobre `Fallos por código` y `Alertas activas`
 - el cambio precarga `tenantSlug`, `errorCode` y/o `errorContains`, muestra feedback visible y desplaza la lectura al panel `Operación DLQ`
@@ -11,12 +11,14 @@
   - `npm run build` OK
   - `npx playwright test --list` OK (`43 tests`)
   - smoke de regresión [platform-admin-tenant-provisioning-context.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-provisioning-context.smoke.spec.ts) OK en `staging`
+  - smoke específico [platform-admin-provisioning-dlq-investigation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-investigation.smoke.spec.ts) OK en `staging`
+  - smoke de regresión [platform-admin-tenant-provisioning-context.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-provisioning-context.smoke.spec.ts) OK en `production` después del publish frontend
 - estado de despliegue:
   - `repo`: actualizado
-  - `staging`: frontend publicado
-  - `production`: pendiente hasta estabilizar el smoke nuevo
-- bloqueo abierto:
-  - el smoke `platform-admin-provisioning-dlq-investigation` todavía no encuentra la fila sembrada en browser publicado, aunque la agregación backend por `error_code` sí devuelve filas en consulta directa sobre `staging`
+  - `staging`: frontend publicado y smoke específico verde
+  - `production`: frontend publicado y regresión segura verde
+- hallazgo operativo:
+  - los smokes publicados que siembran backend en `staging` deben cargar `/opt/platform_paas_staging/.env.staging`; usar `/opt/platform_paas_staging/.env` deja el seed apuntando al entorno equivocado
 
 Este archivo resume iteraciones importantes para que otra IA o developer pueda ver la secuencia reciente sin releer todo el repositorio.
 

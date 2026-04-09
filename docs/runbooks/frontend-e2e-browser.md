@@ -181,6 +181,8 @@ Nota:
 - el smoke más directo de esa regla ahora es:
   - [platform-admin-tenants-create-form.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenants-create-form.smoke.spec.ts)
   - puede correrse contra `staging` o `production` con `E2E_USE_EXISTING_FRONTEND=1`
+- para smokes publicados en `staging` que siembran backend, el env correcto del servicio es `/opt/platform_paas_staging/.env.staging`
+- si hace falta `sudo` para leer ese env, exporta `HOME=/home/felipe` dentro del comando para reutilizar el cache real de Playwright y luego corrige la propiedad de `frontend/e2e/test-results` y `frontend/e2e/playwright-report`
 
 Se prioriza `empresa-bootstrap` como baseline browser estable del repo para no mezclar la automatización con el tenant operativo `empresa-demo`.
 
