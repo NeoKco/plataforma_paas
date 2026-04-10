@@ -35,9 +35,10 @@ Si una IA llega sin contexto, este es el orden recomendado:
 2. `SESION_ACTIVA.md`
 3. `PROMPT_MAESTRO_MODULO.md`
 4. `REGLAS_IMPLEMENTACION.md`
-5. `ESTADO_ACTUAL.md`
-6. `SIGUIENTE_PASO.md`
-7. documentación canónica del módulo o frente activo
+5. `CHECKLIST_CIERRE_ITERACION.md`
+6. `ESTADO_ACTUAL.md`
+7. `SIGUIENTE_PASO.md`
+8. documentación canónica del módulo o frente activo
 
 Con eso debería poder responder rápidamente:
 

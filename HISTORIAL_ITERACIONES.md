@@ -20,6 +20,12 @@
 - hallazgo operativo:
   - los smokes publicados que siembran backend en `staging` deben cargar `/opt/platform_paas_staging/.env.staging`; usar `/opt/platform_paas_staging/.env` deja el seed apuntando al entorno equivocado
 
+## 2026-04-09 - Checklist único de cierre de iteración
+
+- se agrega [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md) como checklist corto oficial para cerrar iteraciones
+- se integra el checklist al flujo de retoma y handoff en [PROMPT_MAESTRO_MODULO.md](/home/felipe/platform_paas/PROMPT_MAESTRO_MODULO.md), [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md), [PROJECT_CONTEXT.md](/home/felipe/platform_paas/PROJECT_CONTEXT.md), [README.md](/home/felipe/platform_paas/README.md), [SESION_ACTIVA.md](/home/felipe/platform_paas/SESION_ACTIVA.md) y [docs/architecture/implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+- la regla queda institucionalizada: ninguna iteración relevante debe cerrarse sin revisar código, validación, documentación y handoff contra ese checklist
+
 Este archivo resume iteraciones importantes para que otra IA o developer pueda ver la secuencia reciente sin releer todo el repositorio.
 
 ## Formato recomendado

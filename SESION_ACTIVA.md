@@ -9,6 +9,7 @@ No reemplaza:
 - `ESTADO_ACTUAL.md`
 - `SIGUIENTE_PASO.md`
 - `HANDOFF_STATE.json`
+- `CHECKLIST_CIERRE_ITERACION.md`
 
 Su objetivo es más corto:
 
@@ -21,6 +22,10 @@ Su objetivo es más corto:
 Actualizar este archivo cuando cierres una iteración relevante o cuando vayas a cambiar de sesión/cuenta.
 
 Debe permanecer corto, operativo y fácil de escanear.
+
+Antes de cerrar una iteración relevante, pasar también por:
+
+- `CHECKLIST_CIERRE_ITERACION.md`
 
 ## Estado rápido vigente
 

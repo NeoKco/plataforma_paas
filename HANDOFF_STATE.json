@@ -1,6 +1,6 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-09T04:05:00-04:00",
+  "updated_at": "2026-04-09T04:45:00-04:00",
   "handoff_status": "active",
   "current_focus": "platform-core hardening + E2E en Provisioning/DLQ; salto Tenants -> Provisioning ya cerrado y el corte Investigar en DLQ ya queda validado en staging y publicado en production",
   "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant ya operativa, salto Tenants -> Provisioning ya desplegado y validado, y corte Investigar en DLQ ya publicado en staging y production",
@@ -124,6 +124,7 @@
     "SESION_ACTIVA.md",
     "PROMPT_MAESTRO_MODULO.md",
     "REGLAS_IMPLEMENTACION.md",
+    "CHECKLIST_CIERRE_ITERACION.md",
     "ESTADO_ACTUAL.md",
     "SIGUIENTE_PASO.md",
     "docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md",

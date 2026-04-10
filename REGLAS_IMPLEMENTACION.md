@@ -20,6 +20,7 @@ Antes de tocar código, revisar al menos:
 
 - `PROJECT_CONTEXT.md`
 - `SESION_ACTIVA.md`
+- `CHECKLIST_CIERRE_ITERACION.md`
 - `ESTADO_ACTUAL.md`
 - `SIGUIENTE_PASO.md`
 - documentación canónica del módulo afectado
@@ -259,13 +260,8 @@ Si eso no ocurre, hay que mejorar estos archivos antes de seguir abriendo trabaj
 
 ## Checklist corto antes de cerrar cualquier iteración
 
-Antes de dar una iteración por cerrada, revisar:
+El checklist corto oficial ya vive en:
 
-- ¿el código quedó validado proporcionalmente al riesgo?
-- ¿la documentación visible quedó actualizada?
-- ¿`ESTADO_ACTUAL.md` refleja el estado real y no el deseado?
-- ¿`SIGUIENTE_PASO.md` apunta al siguiente paso verdadero?
-- ¿quedaron declarados los bloqueos reales?
-- ¿otra IA podría seguir sin el chat?
+- `CHECKLIST_CIERRE_ITERACION.md`
 
-Si alguna respuesta es `no`, el cierre todavía está incompleto.
+Debe usarse como referencia rápida obligatoria antes de dar una iteración por cerrada.

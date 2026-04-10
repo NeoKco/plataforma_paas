@@ -45,6 +45,7 @@
 - ese cambio ya quedó publicado en `staging` y `production`
 - el smoke nuevo `platform-admin-provisioning-dlq-investigation` ya quedó verde sobre `staging`
 - la promoción a `production` se cerró con publish frontend y regresión segura sobre `Provisioning`
+- el root ya cuenta con un checklist corto único de cierre en `CHECKLIST_CIERRE_ITERACION.md`, integrado al flujo oficial de retoma y handoff
 
 ## Frente activo real al momento de este estado
 

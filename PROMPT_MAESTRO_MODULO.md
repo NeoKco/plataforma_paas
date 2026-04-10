@@ -15,13 +15,14 @@ Antes de responder, proponer o tocar código, debes leer y usar como contexto pr
 1. `PROJECT_CONTEXT.md`
 2. `SESION_ACTIVA.md`
 3. `REGLAS_IMPLEMENTACION.md`
-4. `ESTADO_ACTUAL.md`
-5. `SIGUIENTE_PASO.md`
-6. `HANDOFF_STATE.json`
-7. `HISTORIAL_ITERACIONES.md`
-8. `PLANTILLA_ACTUALIZACION_ESTADO.md`
-9. `PAQUETE_RELEASE_OPERADOR.md`
-10. `PROMPT_MAESTRO_MODULO.md`
+4. `CHECKLIST_CIERRE_ITERACION.md`
+5. `ESTADO_ACTUAL.md`
+6. `SIGUIENTE_PASO.md`
+7. `HANDOFF_STATE.json`
+8. `HISTORIAL_ITERACIONES.md`
+9. `PLANTILLA_ACTUALIZACION_ESTADO.md`
+10. `PAQUETE_RELEASE_OPERADOR.md`
+11. `PROMPT_MAESTRO_MODULO.md`
 
 Además, debes usar como fuente secundaria obligatoria la documentación canónica ya existente del repo, especialmente:
 
@@ -57,6 +58,7 @@ Además, debes usar como fuente secundaria obligatoria la documentación canóni
   - `SIGUIENTE_PASO.md`
   - `HANDOFF_STATE.json`
   - `HISTORIAL_ITERACIONES.md`
+- usa `CHECKLIST_CIERRE_ITERACION.md` como control corto obligatorio antes de cerrar
 - usa `PLANTILLA_ACTUALIZACION_ESTADO.md` como guía para actualizar estado
 - si la iteración afecta salida a producción, también debes revisar y actualizar `PAQUETE_RELEASE_OPERADOR.md` si corresponde
 
@@ -82,6 +84,7 @@ Solo después del diagnóstico:
 - limita el cambio al foco vigente
 - actualiza documentación, roadmap, changelog, E2E y handoff si el cambio lo exige
 - no dejes backlog implícito; si algo queda pendiente, déjalo explícito
+- no cierres una iteración sin pasar por `CHECKLIST_CIERRE_ITERACION.md`
 
 ## Formato mínimo obligatorio de la primera respuesta
 
@@ -143,6 +146,7 @@ Si los archivos indican que el foco actual es deploy, preflight o cutover produc
 - actualizar `HISTORIAL_ITERACIONES.md` si la iteración fue relevante
 - actualizar roadmap/changelog del módulo si hubo cambio visible o funcional
 - declarar explícitamente si hubo bloqueo de entorno, deploy o producto
+- revisar `CHECKLIST_CIERRE_ITERACION.md`
 
 ---
 
@@ -150,4 +154,4 @@ Si los archivos indican que el foco actual es deploy, preflight o cutover produc
 
 Usar esto cuando una nueva IA solo necesite retomar rápido:
 
-`Lee PROJECT_CONTEXT.md, SESION_ACTIVA.md, REGLAS_IMPLEMENTACION.md, ESTADO_ACTUAL.md, SIGUIENTE_PASO.md y HANDOFF_STATE.json. Luego revisa la documentación canónica del frente activo. No asumas contexto fuera del repo. Resume primero el estado real, identifica bloqueos reales y solo después propone o ejecuta el siguiente paso correcto.`
+`Lee PROJECT_CONTEXT.md, SESION_ACTIVA.md, REGLAS_IMPLEMENTACION.md, CHECKLIST_CIERRE_ITERACION.md, ESTADO_ACTUAL.md, SIGUIENTE_PASO.md y HANDOFF_STATE.json. Luego revisa la documentación canónica del frente activo. No asumas contexto fuera del repo. Resume primero el estado real, identifica bloqueos reales y solo después propone o ejecuta el siguiente paso correcto.`
