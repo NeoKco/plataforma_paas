@@ -1,5 +1,27 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-10 - Portabilidad tenant dual-mode y dual-surface en repo
+
+- se generaliza la portabilidad tenant para soportar dos modos visibles:
+  - `portable_full`
+  - `functional_data_only`
+- [tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_data_portability_service.py) deja de tratar `portable_minimum` como único scope operativo y lo conserva solo para compatibilidad de import heredada
+- [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/tenant_routes.py) y [schemas.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/schemas.py) exponen export/import portable también desde `tenant_portal`, restringido a admin tenant
+- [TenantOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/overview/TenantOverviewPage.tsx) agrega UI tenant-side para export, download e import `dry_run`
+- el smoke [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts) se amplía para fijar `functional_data_only`
+- se agrega [tenant-portal-data-portability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-data-portability.smoke.spec.ts)
+- validaciones cerradas en repo:
+  - backend `unittest`: `294 OK`
+  - frontend `npm run build`: OK
+  - `npx playwright test --list`: OK (`44 tests`)
+- estado de despliegue:
+  - `repo`: actualizado y validado
+  - `staging`: pendiente
+  - `production`: pendiente
+- siguiente paso:
+  - validar el corte tenant-side en `staging`
+  - si queda verde, promoverlo y luego volver al roadmap central de `Provisioning/DLQ`
+
 ## 2026-04-09 - Provisioning DLQ investigation staging+production
 
 - se implementa la acción visible `Investigar en DLQ` en [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) sobre `Fallos por código` y `Alertas activas`

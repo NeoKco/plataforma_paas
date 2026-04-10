@@ -2,9 +2,9 @@
 
 ## Última actualización
 
-- fecha: 2026-04-09
-- foco de iteración: `platform-core hardening + E2E` sobre `Provisioning` y DLQ
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado, portabilidad tenant ya implementada, el salto `Tenants -> Provisioning` ya validado en `staging` y `production`, y el corte `Investigar en DLQ` ya quedó validado en `staging` y publicado en `production`
+- fecha: 2026-04-10
+- foco de iteración: cierre de `tenant data portability` con doble modo y doble superficie
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado, portabilidad tenant ya implementada en su base, el salto `Tenants -> Provisioning` ya validado en `staging` y `production`, el corte `Investigar en DLQ` ya quedó validado en `staging` y publicado en `production`, y ahora el repo ya soporta portabilidad dual (`portable_full` + `functional_data_only`) tanto en `platform_admin` como en `tenant_portal`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -37,7 +37,17 @@
 - `platform_admin > Tenants` ya permite generar y descargar `zip + manifest + csv` por tenant cuando la DB tenant está operativa
 - `platform_admin > Tenants` ya permite además cargar un `zip` portable, ejecutar `dry_run` y aplicar import con estrategia inicial `skip_existing`
 - el flujo completo `export + dry_run + apply` ya quedó validado en browser sobre `staging` y `production`
-- el siguiente paso de ese frente ya no es despliegue base sino, si se decide seguir ahí, una Fase 3 de endurecimiento
+- el repo ahora soporta además dos modos visibles de portabilidad:
+  - `Paquete completo`
+  - `Solo datos funcionales`
+- el repo ahora expone esa misma portabilidad también desde `tenant_portal > Resumen técnico` para admin tenant
+- existe smoke browser nuevo `tenant-portal-data-portability`
+- la validación de este último corte quedó cerrada en repo con:
+  - backend `unittest`: `294 OK`
+  - frontend `npm run build`: OK
+  - `npx playwright test --list`: OK (`44 tests`)
+- este último corte dual todavía no fue desplegado ni validado en `staging` o `production`
+- el siguiente paso de ese frente ya no es diseño; es validación operativa en `staging` y luego decisión de release
 - `Tenants` ya abre `Provisioning` con `tenantSlug` precargado y, si existe job visible, con la operación técnica correspondiente ya enfocada
 - `Provisioning` ya deja leer jobs, métricas, alertas y tabla DLQ en foco tenant sin perderse en la cola global
 - el smoke browser `platform-admin-tenant-provisioning-context` ya quedó aprobado en `staging` y `production`
@@ -49,13 +59,13 @@
 
 ## Frente activo real al momento de este estado
 
-El frente activo real sigue siendo `platform-core hardening + E2E`, pero ya no en su arranque.
+El frente activo real del proyecto sigue siendo `platform-core`, pero el corte puntual de esta iteración se movió a portabilidad tenant.
 
 El siguiente corte recomendado dentro de ese mismo frente pasa a ser este:
 
-- `platform-core hardening + E2E`
+- validar primero el corte dual de portabilidad tenant en `staging`
+- luego, si queda estable, volver a `platform-core hardening + E2E`
 - con foco en `Provisioning` y DLQ
-- con el subfrente `acceso tenant más profundo desde Tenants` ya cerrado
 
 ## Qué módulo se estaba construyendo
 
@@ -123,6 +133,9 @@ Se actualizaron documentos de:
 - defaults inseguros de `TENANT_BOOTSTRAP_DB_PASSWORD_*` eliminados del código para no romper arranque productivo
 - smoke browser de portabilidad tenant aprobado en `staging`
 - smoke browser de portabilidad tenant aprobado en `production`
+- runbook y documentación canónica de `platform-core` actualizados para reflejar los dos scopes portables y la nueva superficie tenant-side
+- smoke browser nuevo `tenant-portal-data-portability`
+- este último corte queda validado en repo, no todavía en `staging` ni `production`
 
 ### A nivel producción / deploy
 

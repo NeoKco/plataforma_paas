@@ -33,8 +33,11 @@ Referencia:
 4. archivar o restaurar cuando corresponda
 5. abrir el `tenant_portal` desde `Tenants` cuando el tenant ya esté activo y con DB operativa
 6. abrir `Provisioning` desde el mismo tenant cuando necesites leer solo su backlog técnico sin perderte en la cola global
-7. usar `Exportar CSV portable` cuando necesites un paquete portable del tenant
-8. usar `Simular import portable` y luego `Aplicar import portable` cuando necesites cargar un paquete `zip + manifest + csv` sobre un tenant destino
+7. usar `Exportar paquete portable` cuando necesites un paquete portable del tenant
+8. elegir si el paquete debe salir como:
+   - `Paquete completo`
+   - `Solo datos funcionales`
+9. usar `Simular import portable` y luego `Aplicar import portable` cuando necesites cargar un paquete `zip + manifest + csv` sobre un tenant destino
 
 Nota operativa:
 
@@ -68,13 +71,23 @@ Referencia:
 
 - [provisioning-guided-test.md](/home/felipe/platform_paas/docs/runbooks/provisioning-guided-test.md)
 
-### Export portable por tenant
+### Export portable por tenant desde platform admin
 
 Desde `Tenants`, el bloque `Portabilidad tenant` ya permite:
 
 1. generar un export portable `CSV + manifest + zip`
-2. revisar los últimos jobs de export
-3. descargar el `zip` generado
+2. elegir `Paquete completo` o `Solo datos funcionales`
+3. revisar los últimos jobs de export
+4. descargar el `zip` generado
+
+### Export portable por tenant desde tenant portal
+
+Desde `Tenant Portal > Resumen técnico`, el bloque `Portabilidad tenant` ya permite, para admin tenant:
+
+1. generar un export portable `CSV + manifest + zip`
+2. elegir `Paquete completo` o `Solo datos funcionales`
+3. revisar los últimos jobs de export
+4. descargar el `zip` generado
 
 Regla operativa:
 
@@ -83,7 +96,7 @@ Regla operativa:
 
 ### Import portable por tenant
 
-Desde `Tenants`, el bloque `Import portable controlado` ya permite:
+Desde `Tenants` o `Tenant Portal > Resumen técnico`, el bloque `Import portable controlado` ya permite:
 
 1. cargar un paquete `zip` exportado por la plataforma
 2. ejecutar `dry_run`
@@ -96,6 +109,7 @@ Reglas operativas:
 - el tenant destino no puede estar `archived`
 - el paquete debe traer `manifest.json`
 - el import valida checksums y `schema_version`
+- el paquete puede venir como `portable_full`, `functional_data_only` o `portable_minimum` heredado
 - la estrategia actual es `skip_existing`
 - la importación no reemplaza registros ya existentes
 

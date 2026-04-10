@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-09T04:45:00-04:00",
+  "updated_at": "2026-04-10T11:30:00-04:00",
   "handoff_status": "active",
-  "current_focus": "platform-core hardening + E2E en Provisioning/DLQ; salto Tenants -> Provisioning ya cerrado y el corte Investigar en DLQ ya queda validado en staging y publicado en production",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant ya operativa, salto Tenants -> Provisioning ya desplegado y validado, y corte Investigar en DLQ ya publicado en staging y production",
+  "current_focus": "tenant data portability dual-mode y dual-surface en repo; platform_admin y tenant_portal ya comparten export/import portable con portable_full y functional_data_only",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base ya operativa en production y el nuevo corte dual tenant-side ya implementado y validado en repo",
   "active_modules": [
     "platform-core",
     "finance",
@@ -29,7 +29,8 @@
     "todo tenant nuevo debe capturar admin inicial explicito al momento del alta",
     "los modulos tenant-side siguen siendo plan-driven y deben hacerse visibles en la UI por preview de plan, no por toggles manuales ad hoc",
     "backup PostgreSQL por tenant sigue siendo el respaldo tecnico canonico; CSV tenant-side es portabilidad y migracion, no sustituto del backup real",
-    "la portabilidad tenant ya cubre export portable minimo e import controlado minimo; la siguiente fase ya no es base sino endurecimiento opcional",
+    "la portabilidad tenant ya cubre export/import portable base y ahora soporta dos scopes visibles: portable_full y functional_data_only",
+    "tenant_portal admin tambien debe poder operar la misma portabilidad tenant, sin duplicar logica backend",
     "el siguiente frente recomendado del roadmap central pasa a ser platform-core hardening + E2E sobre Provisioning y DLQ",
     "el salto Tenants -> Provisioning con tenantSlug precargado ya quedo cerrado y no debe reabrirse salvo necesidad explicita",
     "el corte Investigar en DLQ ya quedó validado en staging con smoke específico y publicado en production con regresión segura"
@@ -92,16 +93,22 @@
     "backend-control E2E acepta E2E_BACKEND_ROOT y E2E_BACKEND_PYTHON para seeds contra arboles publicados",
     "smoke especifico platform-admin-provisioning-dlq-investigation validado en staging usando el env real /opt/platform_paas_staging/.env.staging",
     "frontend de production publicado con el corte Investigar en DLQ",
-    "smoke de regresion platform-admin-tenant-provisioning-context revalidado en production despues del publish frontend"
+    "smoke de regresion platform-admin-tenant-provisioning-context revalidado en production despues del publish frontend",
+    "tenant_data_portability_service generalizado para soportar portable_full y functional_data_only manteniendo portable_minimum solo como compatibilidad heredada",
+    "tenant portal ahora expone data-export-jobs y data-import-jobs para admin tenant",
+    "smoke tenant-portal-data-portability agregado en repo",
+    "backend unittest del corte dual aprobado con 294 tests",
+    "frontend build del corte dual aprobado",
+    "playwright list del corte dual aprobado con 44 tests"
   ],
   "blocking_issues": [],
-  "next_decision_required": "elegir el siguiente subfrente explicito dentro de Provisioning/DLQ ahora que Investigar en DLQ ya quedó cerrado",
+  "next_decision_required": "validar en staging el corte dual de portabilidad tenant-side antes de volver al roadmap central de Provisioning/DLQ",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
-    "seguir con platform-core hardening + E2E sobre Provisioning y DLQ",
-    "asumir cerrado el corte Investigar en DLQ",
-    "abrir el siguiente subfrente operativo dentro de Provisioning o DLQ"
+    "validar en staging el corte dual de portabilidad tenant-side y los dos modos visibles",
+    "si queda verde, promover el corte a production",
+    "despues retomar platform-core hardening + E2E sobre Provisioning y DLQ"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -128,6 +135,7 @@
     "ESTADO_ACTUAL.md",
     "SIGUIENTE_PASO.md",
     "docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md",
+    "docs/runbooks/tenant-data-portability.md",
     "docs/deploy/environment-strategy.md",
     "docs/deploy/staging-single-host.md",
     "docs/deploy/staging-bootstrap-reset.md"
@@ -163,6 +171,9 @@
     "tenant_data_portability_playwright_list": "pass",
     "tenant_data_portability_browser_smoke_staging": "pass",
     "tenant_data_portability_browser_smoke_production": "pass",
+    "tenant_data_portability_dual_mode_backend_unittest_repo": "pass",
+    "tenant_data_portability_dual_mode_frontend_build_repo": "pass",
+    "tenant_data_portability_dual_mode_playwright_list_repo": "pass",
     "platform_admin_tenant_provisioning_context_smoke_staging": "pass",
     "platform_admin_tenant_provisioning_context_smoke_production": "pass",
     "platform_admin_provisioning_dlq_investigation_build": "pass",

@@ -4,7 +4,7 @@ Runbook corto para operar la portabilidad tenant actual.
 
 ## Propósito
 
-La plataforma ahora soporta portabilidad tenant por:
+La plataforma soporta portabilidad tenant mediante:
 
 - `zip`
 - `manifest.json`
@@ -18,15 +18,34 @@ Esto sirve para:
 
 No reemplaza el backup PostgreSQL canónico.
 
+## Modos soportados
+
+- `portable_full`
+  incluye el paquete portable completo soportado por la plataforma: identidad tenant, roles, usuarios y datos funcionales soportados
+- `functional_data_only`
+  excluye identidad tenant, roles y usuarios; deja solo datos funcionales soportados
+- `portable_minimum`
+  queda solo como compatibilidad de import para paquetes heredados ya emitidos
+
+## Superficies disponibles
+
+- `platform_admin > Tenants`
+- `tenant_portal > Resumen técnico`, solo para admin tenant
+
+Ambas superficies usan la misma lógica backend y generan el mismo tipo de artifact portable.
+
 ## Flujo operativo de export
 
-Desde `platform_admin > Tenants`:
+Desde `platform_admin > Tenants` o `tenant_portal > Resumen técnico`:
 
 1. seleccionar el tenant
 2. verificar que `db_configured=true`
-3. usar `Exportar CSV portable`
-4. esperar job `completed`
-5. descargar el `zip`
+3. elegir el modo:
+   - `Paquete completo`
+   - `Solo datos funcionales`
+4. usar `Exportar paquete portable`
+5. esperar job `completed`
+6. descargar el `zip`
 
 Si el tenant todavía no tiene DB configurada:
 
@@ -35,13 +54,18 @@ Si el tenant todavía no tiene DB configurada:
 
 ## Qué genera el export actual
 
-Paquete portable mínimo:
+Paquete portable actual:
 
 - `manifest.json`
-- `tenant_info.csv`
-- `users.csv`
-- `business_clients.csv`
-- y otras tablas del scope `portable_minimum` cuando existen en la DB tenant
+- múltiples `csv`
+- `export_scope` declarado en el `manifest`
+
+Según el scope:
+
+- `portable_full`
+  incluye identidad tenant, roles, usuarios y datos funcionales soportados
+- `functional_data_only`
+  excluye identidad tenant, roles y usuarios
 
 Tablas ausentes:
 
@@ -71,7 +95,7 @@ TENANT_DATA_EXPORT_ARTIFACTS_DIR=/opt/platform_paas/storage/tenant_data_exports
 
 ## Flujo operativo de import
 
-Desde `platform_admin > Tenants`:
+Desde `platform_admin > Tenants` o `tenant_portal > Resumen técnico`:
 
 1. seleccionar el tenant destino
 2. verificar que `db_configured=true`
@@ -85,18 +109,19 @@ Reglas operativas:
 - el tenant destino no puede estar `archived`
 - el paquete debe incluir `manifest.json`
 - la validación actual revisa `checksums` y `schema_version`
+- el `manifest` puede venir con `export_scope=portable_full`, `functional_data_only` o `portable_minimum` heredado
 - la estrategia inicial es `skip_existing`
 - la importación no reemplaza filas existentes
 
 ## Estado actual del frente
 
-- export portable mínimo: implementado y validado
-- import controlado mínimo: implementado y validado
-- `dry_run`: validado en browser
-- `apply`: validado en browser
-- `staging`: validado
-- `production`: validado
-- siguiente paso recomendado: Fase 3 de endurecimiento solo si el roadmap lo prioriza
+- export/import portable desde `platform_admin`: implementado y validado
+- dos modos de export/import (`portable_full` y `functional_data_only`): implementados en repo
+- export/import portable desde `tenant_portal` para admin tenant: implementado en repo
+- compatibilidad con `portable_minimum`: mantenida solo para import de paquetes heredados
+- `dry_run`: soportado
+- `apply`: soportado
+- siguiente paso recomendado: validar `tenant_portal` en `staging/production` si el release lo prioriza; luego abrir Fase 3 de endurecimiento solo si el roadmap lo exige
 
 ## Lecciones operativas ya cerradas
 
@@ -111,4 +136,4 @@ Reglas operativas:
   - time
   - json
   - binary base64
-- si el cambio toca UI visible de `platform_admin`, no basta con desplegar backend: también hay que reconstruir el frontend publicado
+- si el cambio toca UI visible de `platform_admin` o `tenant_portal`, no basta con desplegar backend: también hay que reconstruir el frontend publicado

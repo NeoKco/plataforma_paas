@@ -29,10 +29,10 @@ Antes de cerrar una iteración relevante, pasar también por:
 
 ## Estado rápido vigente
 
-- fecha: 2026-04-09
-- foco activo: `platform-core hardening + E2E` sobre `Provisioning`
-- prioridad inmediata: abrir el siguiente subfrente de `Provisioning/DLQ` ahora que `Investigar en DLQ` ya quedó cerrado
-- módulo o frente activo: `platform-core` / continuidad central
+- fecha: 2026-04-10
+- foco activo: cierre de `tenant data portability` con doble modo y doble superficie
+- prioridad inmediata: dejar repo, documentación viva y handoff alineados, y luego validar este corte en `staging`
+- módulo o frente activo: `platform-core` / portabilidad tenant
 
 ## Último contexto útil
 
@@ -61,15 +61,19 @@ Antes de cerrar una iteración relevante, pasar también por:
 - la documentación canónica ya fija `staging` como espejo operativo por defecto y deja `bootstrap reset` como flujo puntual de validación
 - el hotfix productivo de `provisioning` ya quedó aplicado: secretos tenant runtime salen a `TENANT_SECRETS_FILE`, `condominio-demo` volvió a quedar sano y `ierisltda` quedó eliminado para recreación limpia
 - la portabilidad tenant ya quedó implementada en repo con:
-  - export mínimo `zip + manifest + csv`
-  - import mínimo controlado con carga de `zip`, `dry_run` y `apply`
-- el flujo browser completo `export + dry_run + apply` ya quedó validado en `staging` y `production`
+  - export/import portable `zip + manifest + csv`
+  - dos modos visibles: `portable_full` y `functional_data_only`
+  - compatibilidad heredada de import para `portable_minimum`
+- el flujo browser completo `export + dry_run + apply` desde `platform_admin` ya quedó validado en `staging` y `production`
+- el mismo flujo ya quedó expuesto también en `tenant_portal` para admin tenant, con smoke dedicado en repo
 - el import ya quedó endurecido para tipar booleanos, fechas, numéricos, JSON y binarios según la columna destino
 - el deploy backend ya crea y deja escribible `TENANT_DATA_EXPORT_ARTIFACTS_DIR` al usuario real del servicio
 - el backend productivo ya no arranca con defaults bootstrap demo inseguros embebidos en `settings.py`
 - el modelo canónico de ese frente ya quedó abierto y actualizado en `docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md`
-- `Tenants` ya muestra el bloque `Portabilidad tenant` con creación de job, lectura de últimos exports y descarga del `zip`
+- `Tenants` ya muestra el bloque `Portabilidad tenant` con selección de modo, creación de job, lectura de últimos exports y descarga del `zip`
+- `Tenant Portal > Resumen técnico` ya muestra el mismo bloque de portabilidad e import controlado para admin tenant
 - ya existe smoke browser `platform-admin-tenant-data-export`
+- ya existe smoke browser `tenant-portal-data-portability`
 - `Tenants` ya abre `Provisioning` con `tenantSlug` precargado
 - `Provisioning` ya enfoca jobs, métricas, alertas y DLQ según ese tenant sin perder la consola global
 - ya existe smoke browser `platform-admin-tenant-provisioning-context`
@@ -88,8 +92,8 @@ El siguiente movimiento correcto es este:
 
 - mantener `production` estable
 - mantener `staging` como carril previo real
-- seguir dentro de `platform-core hardening + E2E`
-- elegir el siguiente subfrente concreto dentro de `Provisioning/DLQ`
+- validar en `staging` el corte de portabilidad tenant-side y doble modo
+- si esa validación cierra bien, recién volver al roadmap central de `Provisioning/DLQ`
 
 ## Archivos a leer justo después de este
 
@@ -116,7 +120,7 @@ El siguiente movimiento correcto es este:
 - smoke `platform-admin-tenant-data-export` en `production`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `staging`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `production`: OK
-- `npm run build` del frontend: OK para el corte `Investigar en DLQ`
-- `npx playwright test --list`: OK (`43 tests`)
-- smoke específico `platform-admin-provisioning-dlq-investigation` en `staging`: OK
-- smoke de regresión `platform-admin-tenant-provisioning-context` en `production`: OK después de publicar el frontend
+- backend `unittest` del corte de portabilidad dual: OK (`294 tests`)
+- `npm run build` del frontend: OK para el corte de portabilidad dual
+- `npx playwright test --list`: OK (`44 tests`)
+- despliegue `staging/production` del corte dual tenant-side: pendiente

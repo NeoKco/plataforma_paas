@@ -229,7 +229,7 @@ class TenantResponse(BaseModel):
 
 
 class TenantDataExportJobCreateRequest(BaseModel):
-    export_scope: str = "portable_minimum"
+    export_scope: str = "portable_full"
 
 
 class TenantDataTransferArtifactResponse(BaseModel):

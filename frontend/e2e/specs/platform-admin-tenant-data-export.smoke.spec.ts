@@ -67,10 +67,15 @@ test("platform admin can export and import portable tenant CSV packages from ten
   await tenantCard.click();
 
   const exportButton = page.getByRole("button", {
-    name: /Exportar CSV portable|Export portable CSV/i,
+    name: /Exportar paquete portable|Export portable package/i,
   });
+  const exportScopeSelect = page.getByLabel(
+    /Modo de exportación portable|Portable export mode/i
+  );
   await expect(exportButton).toBeVisible();
   await expect(exportButton).toBeEnabled();
+  await expect(exportScopeSelect).toBeVisible();
+  await exportScopeSelect.selectOption("functional_data_only");
   await expect(
     page.getByText(/Import portable controlado|Controlled portable import/i)
   ).toBeVisible();
@@ -106,6 +111,21 @@ test("platform admin can export and import portable tenant CSV packages from ten
     await page.waitForTimeout(1000);
   }
   expect(latestExportJob?.status).toBe("completed");
+  const latestExportScopeResponse = await page.request.get(
+    `${apiOrigin}/platform/tenants/${selectedTenant!.id}/data-export-jobs`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  expect(latestExportScopeResponse.ok()).toBeTruthy();
+  const latestExportScopePayload = (await latestExportScopeResponse.json()) as {
+    data: Array<{ export_scope: string }>;
+  };
+  expect(latestExportScopePayload.data[0]?.export_scope).toBe(
+    "functional_data_only"
+  );
 
   const exportDownloadResponse = await page.request.get(
     `${apiOrigin}/platform/tenants/${selectedTenant!.id}/data-export-jobs/${latestExportJob!.id}/download`,
@@ -179,6 +199,7 @@ test("platform admin can export and import portable tenant CSV packages from ten
   expect(latestImportJob?.summary_json).toBeTruthy();
   const dryRunSummary = JSON.parse(latestImportJob!.summary_json || "{}");
   expect(dryRunSummary.mode).toBe("dry_run");
+  expect(dryRunSummary.export_scope).toBe("functional_data_only");
   expect(dryRunSummary.source_file_name).toBe(suggestedFileName);
   await expect(
     page.getByText(/Últimos imports portables|Latest portable imports/i)
@@ -231,6 +252,7 @@ test("platform admin can export and import portable tenant CSV packages from ten
   expect(latestImportJob?.summary_json).toBeTruthy();
   const applySummary = JSON.parse(latestImportJob!.summary_json || "{}");
   expect(applySummary.mode).toBe("apply");
+  expect(applySummary.export_scope).toBe("functional_data_only");
   expect(applySummary.source_file_name).toBe(suggestedFileName);
   await expect(page.getByText(/apply/i).first()).toBeVisible({ timeout: 15000 });
 });

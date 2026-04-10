@@ -19,6 +19,13 @@ from app.tests.fixtures import (  # noqa: E402
 set_test_environment()
 
 from app.apps.tenant_modules.core.api.tenant_routes import (  # noqa: E402
+    create_tenant_self_data_export_job,
+    create_tenant_self_data_import_job,
+    download_tenant_self_data_export_job,
+    get_tenant_self_data_export_job,
+    get_tenant_self_data_import_job,
+    list_tenant_self_data_export_jobs,
+    list_tenant_self_data_import_jobs,
     tenant_create_user,
     tenant_delete_user,
     tenant_info,
@@ -1737,6 +1744,135 @@ class TenantRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.applied_now, [])
         self.assertIsNotNone(response.queued_job)
         self.assertEqual(response.queued_job.job_id, 77)
+
+    def test_tenant_data_export_routes_use_current_tenant_context(self) -> None:
+        tenant = build_tenant_record_stub()
+        tenant.id = 1
+        tenant.slug = "empresa-bootstrap"
+        export_job = SimpleNamespace(
+            id=15,
+            tenant_id=tenant.id,
+            direction="export",
+            data_format="csv_zip",
+            export_scope="functional_data_only",
+            status="completed",
+            requested_by_email="admin@empresa-bootstrap.local",
+            error_message=None,
+            summary_json='{"export_scope":"functional_data_only"}',
+            created_at=datetime.now(timezone.utc),
+            completed_at=datetime.now(timezone.utc),
+            artifacts=[
+                SimpleNamespace(
+                    id=9,
+                    artifact_type="tenant_portable_csv_zip",
+                    file_name="empresa-bootstrap-functional.zip",
+                    content_type="application/zip",
+                    sha256_hex="abc123",
+                    size_bytes=128,
+                    created_at=datetime.now(timezone.utc),
+                )
+            ],
+        )
+
+        with patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_connection_service.get_tenant_by_slug",
+            return_value=tenant,
+        ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_portability_service.create_export_job",
+            return_value=export_job,
+        ) as create_mock, patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_portability_service.list_export_jobs",
+            return_value=[export_job],
+        ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_portability_service.get_export_job",
+            return_value=export_job,
+        ):
+            created = create_tenant_self_data_export_job(
+                payload=SimpleNamespace(export_scope="functional_data_only"),
+                current_user=self._current_user(),
+                control_db=object(),
+            )
+            listed = list_tenant_self_data_export_jobs(
+                current_user=self._current_user(),
+                control_db=object(),
+            )
+            detail = get_tenant_self_data_export_job(
+                job_id=15,
+                current_user=self._current_user(),
+                control_db=object(),
+            )
+
+        create_mock.assert_called_once()
+        self.assertEqual(created.export_scope, "functional_data_only")
+        self.assertEqual(listed.total_jobs, 1)
+        self.assertEqual(detail.id, 15)
+        self.assertEqual(detail.artifacts[0].file_name, "empresa-bootstrap-functional.zip")
+
+    def test_tenant_data_import_routes_use_current_tenant_context(self) -> None:
+        tenant = build_tenant_record_stub()
+        tenant.id = 1
+        tenant.slug = "empresa-bootstrap"
+        import_job = SimpleNamespace(
+            id=18,
+            tenant_id=tenant.id,
+            direction="import",
+            data_format="csv_zip",
+            export_scope="portable_full",
+            status="completed",
+            requested_by_email="admin@empresa-bootstrap.local",
+            error_message=None,
+            summary_json='{"mode":"dry_run","export_scope":"portable_full"}',
+            created_at=datetime.now(timezone.utc),
+            completed_at=datetime.now(timezone.utc),
+            artifacts=[],
+        )
+        fake_upload = SimpleNamespace(
+            file=SimpleNamespace(read=lambda: b"zip-bytes"),
+            filename="tenant-import.zip",
+        )
+
+        with patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_connection_service.get_tenant_by_slug",
+            return_value=tenant,
+        ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_portability_service.create_import_job",
+            return_value=import_job,
+        ) as create_mock, patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_portability_service.list_import_jobs",
+            return_value=[import_job],
+        ), patch(
+            "app.apps.tenant_modules.core.api.tenant_routes."
+            "tenant_data_portability_service.get_import_job",
+            return_value=import_job,
+        ):
+            created = create_tenant_self_data_import_job(
+                package_file=fake_upload,
+                dry_run=True,
+                import_strategy="skip_existing",
+                current_user=self._current_user(),
+                control_db=object(),
+            )
+            listed = list_tenant_self_data_import_jobs(
+                current_user=self._current_user(),
+                control_db=object(),
+            )
+            detail = get_tenant_self_data_import_job(
+                job_id=18,
+                current_user=self._current_user(),
+                control_db=object(),
+            )
+
+        create_mock.assert_called_once()
+        self.assertEqual(created.export_scope, "portable_full")
+        self.assertEqual(listed.total_jobs, 1)
+        self.assertEqual(detail.id, 18)
 
     def test_tenant_module_usage_returns_usage_rows(self) -> None:
         with patch(

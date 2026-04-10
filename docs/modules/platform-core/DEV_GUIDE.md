@@ -68,7 +68,11 @@ Documentación base:
 - backup PostgreSQL y portabilidad CSV son frentes distintos:
   - `pg_dump` sigue siendo el respaldo técnico canónico
   - export/import CSV tenant-side vive en `platform_control`, no dentro de un módulo tenant suelto
-  - hoy ya existe export portable mínimo e import controlado mínimo por tenant
+  - hoy ya existe export/import portable por tenant con dos scopes:
+    - `portable_full`
+    - `functional_data_only`
+  - `portable_minimum` queda solo como compatibilidad de import para paquetes heredados
+  - la misma lógica se expone tanto en `platform_admin > Tenants` como en `tenant_portal > Resumen técnico` para admin tenant
   - la importación debe ofrecer `dry_run` antes de `apply` y no debe venderse como reemplazo del backup real
   - la estrategia actual del import es `skip_existing`
 
@@ -109,6 +113,7 @@ Smokes actuales del bloque central:
 - [platform-admin-schema-auto-sync.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-schema-auto-sync.smoke.spec.ts)
 - [platform-admin-tenants-create-form.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenants-create-form.smoke.spec.ts)
 - [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts)
+- [tenant-portal-data-portability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-data-portability.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-row.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts)
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
@@ -143,6 +148,8 @@ Cobertura actual:
 - acceso rápido desde `Tenants` a `Provisioning` con `tenantSlug` y foco operativo precargados
 - enforcement visible de que `Nuevo tenant` exige admin inicial explícito y preview de módulos por `plan`
 - bloque visible de `Portabilidad tenant` con export portable y superficie inicial de import controlado
+- selección visible del scope portable entre `Paquete completo` y `Solo datos funcionales`
+- misma portabilidad disponible también en `tenant_portal` para admin tenant
 - enforcement visible por rol en `platform_admin` para `admin` y `support`
 - workspace de `Billing` con reconcile individual sobre evento tenant persistido
 - workspace de `Billing` con reconcile batch sobre eventos filtrados

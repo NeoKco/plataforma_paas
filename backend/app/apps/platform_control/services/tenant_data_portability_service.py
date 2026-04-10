@@ -123,7 +123,7 @@ class TenantDataPortabilityService:
         *,
         tenant_id: int,
         requested_by_email: str | None,
-        export_scope: str = PORTABLE_MINIMUM_SCOPE,
+        export_scope: str = PORTABLE_FULL_SCOPE,
     ) -> TenantDataTransferJob:
         tenant = self.tenant_repository.get_by_id(db, tenant_id)
         if not tenant:

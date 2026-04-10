@@ -6,6 +6,7 @@ Este frente nace para resolver dos necesidades distintas:
 
 - respaldo portable por tenant para consulta o migración
 - importación controlada de datos hacia un tenant nuevo o existente
+- operación del mismo flujo tanto desde `platform_admin` como desde `tenant_portal` admin
 
 No reemplaza el respaldo técnico canónico de PostgreSQL.
 
@@ -24,10 +25,12 @@ La plataforma debe manejar dos capas distintas de respaldo:
 
 - formato: `zip` con `manifest.json` + múltiples `csv`
 - objetivo: migración, portabilidad y restauración parcial
-- alcance: datos funcionales seleccionados por dominio
+- alcance: paquete portable soportado por la plataforma o solo datos funcionales según `export_scope`
 - estado actual:
-  - Fase 1 export portable mínimo: implementada
-  - Fase 2 import controlado mínimo: implementada en repo
+  - export/import `portable_full`: implementado
+  - export/import `functional_data_only`: implementado
+  - superficie `platform_admin`: implementada
+  - superficie `tenant_portal` admin: implementada en repo
 
 Regla cerrada:
 
@@ -42,7 +45,25 @@ Regla cerrada:
 - dejar un paquete auditable por tenant para revisión operativa
 - importar datos históricos a un tenant recién provisionado
 
-## 3. Qué se debe exportar
+## 3. Scopes soportados
+
+### `portable_full`
+
+- incluye identidad tenant soportada por el contrato portable
+- incluye roles y usuarios
+- incluye datos funcionales soportados por dominio
+
+### `functional_data_only`
+
+- excluye identidad tenant
+- excluye roles y usuarios
+- deja solo datos funcionales soportados por dominio
+
+### Compatibilidad heredada
+
+- `portable_minimum` se mantiene solo para importar paquetes antiguos ya emitidos
+
+## 4. Qué se debe exportar
 
 No conviene exportar la base completa como un solo CSV.
 
@@ -75,7 +96,7 @@ Regla práctica:
 - los adjuntos binarios no deben ir dentro del CSV
 - los adjuntos deben quedar referenciados en el `manifest` o en un directorio separado del paquete si después se decide soportarlos
 
-## 4. Estructura del paquete
+## 5. Estructura del paquete
 
 Ejemplo:
 
@@ -112,7 +133,7 @@ tenant-export__ieris-ltda__20260408_221500.zip
 - `row_counts`
 - `checksums`
 
-## 5. Estructura de tablas recomendada
+## 6. Estructura de tablas recomendada
 
 Este frente debe vivir en `platform_control`, no dentro de un módulo tenant concreto.
 
@@ -170,7 +191,7 @@ Decisión de ownership:
 - `platform_control` gobierna el job y el paquete
 - cada módulo tenant expone su propio `export/import contract` interno
 
-## 6. Backend propuesto
+## 7. Backend propuesto
 
 Patrón esperado:
 
@@ -196,22 +217,31 @@ Contratos HTTP sugeridos:
 - `POST /platform/tenants/{tenant_id}/data-import-jobs`
 - `GET /platform/tenants/{tenant_id}/data-import-jobs`
 - `GET /platform/tenants/{tenant_id}/data-import-jobs/{job_id}`
+- `POST /tenant/data-export-jobs`
+- `GET /tenant/data-export-jobs`
+- `GET /tenant/data-export-jobs/{job_id}`
+- `GET /tenant/data-export-jobs/{job_id}/download`
+- `POST /tenant/data-import-jobs`
+- `GET /tenant/data-import-jobs`
+- `GET /tenant/data-import-jobs/{job_id}`
 
-## 7. Flujo UI sugerido
+## 8. Flujo UI sugerido
 
-Entrada natural:
+Superficies operativas:
 
 - `Platform Admin > Tenants`
+- `Tenant Portal > Resumen técnico`, solo para admin tenant
 
-En el detalle del tenant, abrir un bloque nuevo:
+En el detalle del tenant o en el resumen técnico, abrir un bloque nuevo:
 
 - `Datos portables`
 
 Acciones:
 
-- `Exportar CSV`
-- `Importar CSV`
+- `Exportar paquete portable`
+- `Importar paquete portable`
 - `Ver historial`
+- `Elegir modo: Paquete completo / Solo datos funcionales`
 
 Lectura mínima visible:
 
@@ -222,7 +252,7 @@ Lectura mínima visible:
 - fecha
 - módulos incluidos
 
-## 8. Reglas de negocio
+## 9. Reglas de negocio
 
 - no permitir import sobre tenants `archived`
 - no permitir import sobre tenants no provisionados
@@ -233,12 +263,13 @@ Lectura mínima visible:
 - el import debe soportar `dry_run` antes de `apply`
 - el import debe dejar reporte de conflictos y conteos por recurso
 - el export debe poder limitarse por módulos o recursos
+- el export debe dejar claro qué `export_scope` emitió el paquete
 - el import debe ser idempotente o explicitar claramente qué estrategia usa:
   - `skip_existing`
   - `upsert_safe`
   - `replace_allowed_resources`
 
-## 9. Estrategia recomendada de importación
+## 10. Estrategia recomendada de importación
 
 No conviene implementar un import “ciego”.
 
@@ -259,7 +290,7 @@ Orden de import recomendado:
 
 Esto respeta dependencias reales del producto.
 
-## 10. Riesgos que hay que evitar
+## 11. Riesgos que hay que evitar
 
 - vender CSV como sustituto de backup técnico
 - importar datos sobre un tenant con esquema atrasado
@@ -268,7 +299,7 @@ Esto respeta dependencias reales del producto.
 - romper ownership entre `business-core` y `maintenance`
 - permitir imports destructivos sin `dry_run`
 
-## 11. Cobertura esperada
+## 12. Cobertura esperada
 
 Backend:
 

@@ -4222,7 +4222,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
             tenant_id=1,
             direction="export",
             data_format="csv_zip",
-            export_scope="portable_minimum",
+            export_scope="portable_full",
             status="completed",
             requested_by_email="admin@platform.local",
             error_message=None,
@@ -4269,7 +4269,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
             tenant_id=1,
             direction="export",
             data_format="csv_zip",
-            export_scope="portable_minimum",
+            export_scope="portable_full",
             status="completed",
             requested_by_email="admin@platform.local",
             error_message=None,
@@ -4309,7 +4309,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
             tenant_id=1,
             direction="export",
             data_format="csv_zip",
-            export_scope="portable_minimum",
+            export_scope="portable_full",
             status="completed",
             requested_by_email="admin@platform.local",
             error_message=None,
@@ -4332,7 +4332,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
             )
 
         self.assertEqual(response.id, 3)
-        self.assertEqual(response.export_scope, "portable_minimum")
+        self.assertEqual(response.export_scope, "portable_full")
 
     def test_download_tenant_data_export_job_returns_file_response(self) -> None:
         job = SimpleNamespace(id=3, tenant_id=1)
@@ -4382,7 +4382,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
             tenant_id=2,
             direction="import",
             data_format="csv_zip",
-            export_scope="portable_minimum",
+            export_scope="portable_full",
             status="completed",
             requested_by_email="admin@platform.local",
             error_message=None,
@@ -4434,7 +4434,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
             tenant_id=2,
             direction="import",
             data_format="csv_zip",
-            export_scope="portable_minimum",
+            export_scope="portable_full",
             status="completed",
             requested_by_email="admin@platform.local",
             error_message=None,
@@ -4475,7 +4475,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
             tenant_id=2,
             direction="import",
             data_format="csv_zip",
-            export_scope="portable_minimum",
+            export_scope="portable_full",
             status="completed",
             requested_by_email="admin@platform.local",
             error_message=None,
@@ -4499,7 +4499,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
 
         self.assertIsInstance(response, TenantDataImportJobResponse)
         self.assertEqual(response.id, 8)
-        self.assertEqual(response.export_scope, "portable_minimum")
+        self.assertEqual(response.export_scope, "portable_full")
 
     def test_update_tenant_identity_returns_schema(self) -> None:
         previous_tenant = build_tenant_record_stub(

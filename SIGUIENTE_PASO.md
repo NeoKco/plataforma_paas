@@ -2,8 +2,8 @@
 
 ## Última actualización
 
-- fecha: 2026-04-09
-- prioridad vigente: continuar el frente explícito `platform-core hardening + E2E` sobre `Provisioning`, ahora ya sin el bloqueo del corte `Investigar en DLQ`
+- fecha: 2026-04-10
+- prioridad vigente: cerrar operativamente el corte de `tenant data portability` con doble modo y doble superficie antes de retomar `Provisioning/DLQ`
 
 ## Objetivo del próximo paso
 
@@ -20,13 +20,20 @@ Esos frentes ya quedaron:
 - desplegados en `production`
 - validados visualmente por smoke browser
 
-El siguiente frente explícito ya fue elegido:
+El siguiente movimiento correcto ahora es más acotado:
+
+- validar y dejar listo para release el corte dual de portabilidad tenant:
+  - `portable_full`
+  - `functional_data_only`
+  - disponible en `platform_admin`
+  - disponible en `tenant_portal` admin
+
+Después de eso, sí volver a:
 
 - `platform-core hardening + E2E`
 - con foco en `Provisioning`
 - con foco en DLQ
 - con foco restante en recuperación fina, observabilidad visible y filtros DLQ dentro de `Provisioning`
-- con el corte `Investigar en DLQ` ya cerrado y publicado
 
 ## Prioridad inmediata
 
@@ -35,7 +42,7 @@ El siguiente frente explícito ya fue elegido:
 - `Nuevo tenant` con admin inicial explícito
 - preview de módulos por `plan`
 - bloque `Plan y módulos`
-- `tenant data portability CSV` ya validado en `staging` y `production`
+- `tenant data portability CSV` base ya validado en `staging` y `production`
 - `APP_ENV=production` real en el host productivo
 - `staging` operando como espejo instalado por defecto
 - `provisioning` productivo usando `TENANT_SECRETS_FILE` en vez de depender de escritura sobre `/opt/platform_paas/.env`
@@ -50,9 +57,18 @@ Ya existe y sigue sano:
 - árbol `/opt/platform_paas_staging`
 - servicio `platform-paas-backend-staging`
 
-### 3. Implementar el siguiente frente explícito ya elegido
+### 3. Cerrar el corte dual de portabilidad tenant
 
-La próxima iteración ya no debe volver a decidir el frente.
+La próxima iteración debe:
+
+- validar `platform_admin` con el modo `functional_data_only`
+- validar `tenant_portal` admin con export + download + dry_run
+- si corresponde, promover luego el frontend/backend a `staging` y `production`
+- actualizar estado e historial según el entorno realmente alcanzado
+
+### 4. Volver al frente central explícito ya elegido
+
+Una vez cerrado lo anterior, la iteración siguiente ya no debe volver a decidir el frente.
 
 Debe avanzar sobre:
 
@@ -72,9 +88,9 @@ Debe avanzar sobre:
 6. confirmar que producción y staging siguen saludables
 7. asumir cerrado el frente `tenant sidebar backend-driven`
 8. asumir cerrado el frente `Nuevo tenant admin explícito + módulos por plan`
-9. asumir cerrada la Fase 1 de export portable tenant
-10. asumir cerrada la Fase 2 mínima de import controlado con `dry_run` y `apply`
-11. continuar el frente central sin reabrir portabilidad base ni el salto tenant ya cerrado salvo necesidad explícita
+9. asumir cerrada la base portable tenant en `platform_admin`
+10. cerrar primero la validación operativa del nuevo corte dual y tenant-side
+11. recién después continuar el frente central sin reabrir portabilidad base salvo necesidad explícita
 
 ## Qué debe actualizar la próxima IA al cerrar
 
@@ -99,9 +115,13 @@ La próxima iteración debe terminar con una de estas dos salidas claras:
 
 ### Salida A
 
-- se avanza y valida un nuevo corte real del frente `platform-core hardening + E2E`
+- se valida y documenta el corte dual de portabilidad tenant en el entorno que corresponda
 
 ### Salida B
+
+- se avanza y valida un nuevo corte real del frente `platform-core hardening + E2E`
+
+### Salida C
 
 - se documenta un bloqueo real que impide abrir ese frente
 

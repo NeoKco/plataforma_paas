@@ -31,11 +31,22 @@ Tenants:
 - `GET /platform/tenants/{tenant_id}`
 - `POST /platform/tenants/{tenant_id}/data-export-jobs`
 - `GET /platform/tenants/{tenant_id}/data-export-jobs`
+- `GET /platform/tenants/{tenant_id}/data-export-jobs/{job_id}`
 - `GET /platform/tenants/{tenant_id}/data-export-jobs/{job_id}/download`
 - `POST /platform/tenants/{tenant_id}/data-import-jobs`
 - `GET /platform/tenants/{tenant_id}/data-import-jobs`
 - `GET /platform/tenants/{tenant_id}/data-import-jobs/{job_id}`
 - mutaciones de identity, lifecycle, maintenance, access policy y billing
+
+Tenant portal:
+
+- `POST /tenant/data-export-jobs`
+- `GET /tenant/data-export-jobs`
+- `GET /tenant/data-export-jobs/{job_id}`
+- `GET /tenant/data-export-jobs/{job_id}/download`
+- `POST /tenant/data-import-jobs`
+- `GET /tenant/data-import-jobs`
+- `GET /tenant/data-import-jobs/{job_id}`
 
 Provisioning:
 
@@ -57,4 +68,8 @@ Capabilities:
 ## Notas
 
 - la referencia detallada de contratos sigue viviendo en la documentación API general
+- el payload `export_scope` hoy soporta:
+  - `portable_full`
+  - `functional_data_only`
+  - `portable_minimum` solo para compatibilidad de import heredado
 - este archivo existe para que `platform-core` mantenga el mismo patrón documental que los módulos funcionales

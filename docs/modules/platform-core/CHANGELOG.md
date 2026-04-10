@@ -1,5 +1,25 @@
 # Platform Core Changelog
 
+## 2026-04-10
+
+- la portabilidad tenant deja de ofrecer un solo scope operativo y ahora soporta dos modos visibles en [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) y [TenantOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/overview/TenantOverviewPage.tsx):
+  - `portable_full`
+  - `functional_data_only`
+- [tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_data_portability_service.py) se generaliza para exportar e importar ambos scopes, manteniendo `portable_minimum` solo como compatibilidad de import para paquetes heredados
+- [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/tenant_routes.py) y [schemas.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/schemas.py) exponen ahora jobs de export/import portable también desde `tenant_portal`, restringidos a admin tenant
+- se agregan contratos frontend tenant-side en [tenant-api.ts](/home/felipe/platform_paas/frontend/src/services/tenant-api.ts) y [types.ts](/home/felipe/platform_paas/frontend/src/types.ts) para crear, listar, descargar e importar paquetes portables desde el propio tenant
+- se amplía el smoke [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts) para fijar el modo `functional_data_only`
+- se agrega el smoke [tenant-portal-data-portability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-data-portability.smoke.spec.ts) para cubrir export + download + dry_run desde `tenant_portal`
+- validación cerrada en repo para este corte:
+  - backend `unittest`: `294 OK`
+  - frontend `npm run build`: OK
+  - `npx playwright test --list`: OK (`44 tests`)
+- estado de despliegue de este corte:
+  - `repo`: actualizado y validado
+  - `staging`: pendiente
+  - `production`: pendiente
+  - lo previamente validado en `staging/production` sigue siendo la superficie `platform_admin` del corte portable anterior
+
 ## 2026-04-09
 
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega la acción visible `Investigar en DLQ` dentro de `Fallos por código` y `Alertas activas`, precargando filtros DLQ, enfocando el tenant asociado y desplazando la lectura hacia el panel operativo correspondiente

@@ -97,8 +97,8 @@ function getTenantDataExportScopeLabel(
     case "portable_full":
     case "portable_minimum":
       return language === "es"
-        ? "Completo tenant"
-        : "Full tenant";
+        ? "Paquete completo"
+        : "Full package";
     case "functional_data_only":
       return language === "es"
         ? "Solo datos funcionales"
@@ -2282,8 +2282,8 @@ export function TenantsPage() {
                       disabled={isActionSubmitting}
                       aria-label={
                         language === "es"
-                          ? "Scope de export portable"
-                          : "Portable export scope"
+                          ? "Modo de exportación portable"
+                          : "Portable export mode"
                       }
                     >
                       <option value="portable_full">
@@ -2305,8 +2305,8 @@ export function TenantsPage() {
                       }
                     >
                       {language === "es"
-                        ? "Exportar CSV portable"
-                        : "Export portable CSV"}
+                        ? "Exportar paquete portable"
+                        : "Export portable package"}
                     </button>
                   </div>
                 </div>

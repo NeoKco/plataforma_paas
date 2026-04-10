@@ -238,12 +238,42 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
 
                 manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
                 self.assertEqual(manifest["tenant"]["slug"], "empresa-demo")
-                self.assertEqual(manifest["export_scope"], "portable_minimum")
+                self.assertEqual(manifest["export_scope"], "portable_full")
                 exported_table_names = {item["table_name"] for item in manifest["tables"]}
                 self.assertIn("tenant_info", exported_table_names)
                 self.assertIn("users", exported_table_names)
                 self.assertIn("business_clients", exported_table_names)
                 self.assertIn("roles", set(manifest["skipped_tables"]))
+
+    def test_create_export_job_functional_scope_excludes_identity_tables(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch(
+                "app.apps.platform_control.services.tenant_data_portability_service.settings.TENANT_DATA_EXPORT_ARTIFACTS_DIR",
+                tmpdir,
+            ):
+                job = self.service.create_export_job(
+                    self.control_db,
+                    tenant_id=self.source_tenant.id,
+                    requested_by_email="admin@platform.local",
+                    export_scope="functional_data_only",
+                )
+                _job, artifact, artifact_path = self.service.get_export_artifact(
+                    self.control_db,
+                    tenant_id=self.source_tenant.id,
+                    job_id=job.id,
+                )
+
+            with ZipFile(artifact_path, "r") as archive:
+                names = set(archive.namelist())
+                self.assertIn("manifest.json", names)
+                self.assertIn("business_clients.csv", names)
+                self.assertNotIn("tenant_info.csv", names)
+                self.assertNotIn("users.csv", names)
+
+                manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
+                self.assertEqual(manifest["export_scope"], "functional_data_only")
+                exported_table_names = {item["table_name"] for item in manifest["tables"]}
+                self.assertEqual(exported_table_names, {"business_clients"})
 
     def test_create_import_job_dry_run_validates_without_writing_rows(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -320,6 +350,57 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
                 target_db.close()
 
             self.assertEqual(user_count, 1)
+            self.assertEqual(client_count, 1)
+
+    def test_create_import_job_apply_functional_scope_skips_users(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch(
+                "app.apps.platform_control.services.tenant_data_portability_service.settings.TENANT_DATA_EXPORT_ARTIFACTS_DIR",
+                tmpdir,
+            ):
+                export_job = self.service.create_export_job(
+                    self.control_db,
+                    tenant_id=self.source_tenant.id,
+                    requested_by_email="admin@platform.local",
+                    export_scope="functional_data_only",
+                )
+                _job, artifact, artifact_path = self.service.get_export_artifact(
+                    self.control_db,
+                    tenant_id=self.source_tenant.id,
+                    job_id=export_job.id,
+                )
+                import_job = self.service.create_import_job(
+                    self.control_db,
+                    tenant_id=self.target_tenant.id,
+                    requested_by_email="admin@platform.local",
+                    package_bytes=artifact_path.read_bytes(),
+                    package_file_name=artifact.file_name,
+                    dry_run=False,
+                )
+
+            persisted_job = self.service.get_import_job(
+                self.control_db,
+                tenant_id=self.target_tenant.id,
+                job_id=import_job.id,
+            )
+            summary = json.loads(persisted_job.summary_json or "{}")
+            self.assertEqual(summary["export_scope"], "functional_data_only")
+            table_summaries = {
+                item["table_name"]: item for item in summary["tables"]
+            }
+            self.assertIn("business_clients", table_summaries)
+            self.assertNotIn("users", table_summaries)
+
+            target_db = self.target_session_factory()
+            try:
+                user_count = target_db.execute(text("SELECT COUNT(*) FROM users")).scalar()
+                client_count = target_db.execute(
+                    text("SELECT COUNT(*) FROM business_clients")
+                ).scalar()
+            finally:
+                target_db.close()
+
+            self.assertEqual(user_count, 0)
             self.assertEqual(client_count, 1)
 
     def test_create_export_job_rejects_tenant_without_db_configuration(self) -> None:
