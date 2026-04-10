@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -18,6 +19,27 @@ type SeededProvisioningJob = {
   status: string;
   errorCode: string;
   errorMessage: string;
+};
+
+type SeedProvisioningObservabilityHistoryInput = {
+  tenantSlug: string;
+  captureKey?: string;
+  alertCode?: string;
+  severity?: string;
+  workerProfile?: string;
+  errorCode?: string | null;
+  message?: string;
+};
+
+type SeededProvisioningObservabilityHistory = {
+  tenantId: number;
+  tenantSlug: string;
+  captureKey: string;
+  snapshotId: number;
+  alertId: number;
+  alertCode: string;
+  severity: string;
+  workerProfile: string | null;
 };
 
 type ProvisioningDispatchInfo = {
@@ -137,12 +159,49 @@ function getBackendPythonExecutable() {
   );
 }
 
+function loadBackendEnvOverrides() {
+  const envFile = process.env.E2E_BACKEND_ENV_FILE?.trim();
+  if (!envFile || !existsSync(envFile)) {
+    return {};
+  }
+
+  const content = readFileSync(envFile, "utf-8");
+  const overrides: Record<string, string> = {};
+
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex <= 0) {
+      continue;
+    }
+
+    const key = line.slice(0, separatorIndex).trim();
+    let value = line.slice(separatorIndex + 1).trim();
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    overrides[key] = value;
+  }
+
+  return overrides;
+}
+
 function runBackendPython(script: string, args: string[]) {
   const backendRoot = getBackendRoot();
   return execFileSync(getBackendPythonExecutable(), ["-c", script, ...args], {
     cwd: path.join(backendRoot, "backend"),
     env: {
       ...process.env,
+      ...loadBackendEnvOverrides(),
       PYTHONPATH: path.join(backendRoot, "backend"),
     },
     encoding: "utf-8",
@@ -214,6 +273,101 @@ finally:
   ]);
 
   return JSON.parse(output) as SeededProvisioningJob;
+}
+
+export function seedProvisioningObservabilityHistory({
+  tenantSlug,
+  captureKey = `e2e-observability-${Date.now()}`,
+  alertCode = "tenant_failed_jobs_threshold_exceeded",
+  severity = "error",
+  workerProfile = "e2e-worker",
+  errorCode = null,
+  message = "E2E provisioning observability history",
+}: SeedProvisioningObservabilityHistoryInput): SeededProvisioningObservabilityHistory {
+  const script = `
+import json
+import sys
+from datetime import datetime, timezone
+
+from app.common.db.control_database import ControlSessionLocal
+from app.apps.platform_control.models.tenant import Tenant
+from app.apps.platform_control.models.provisioning_job_metric_snapshot import ProvisioningJobMetricSnapshot
+from app.apps.platform_control.models.provisioning_operational_alert import ProvisioningOperationalAlert
+
+tenant_slug = sys.argv[1]
+capture_key = sys.argv[2]
+alert_code = sys.argv[3]
+severity = sys.argv[4]
+worker_profile = sys.argv[5] or None
+error_code = None if sys.argv[6] == "__NONE__" else sys.argv[6]
+message = sys.argv[7]
+captured_at = datetime.now(timezone.utc)
+
+db = ControlSessionLocal()
+try:
+    tenant = db.query(Tenant).filter(Tenant.slug == tenant_slug).first()
+    if tenant is None:
+        raise SystemExit(f"Tenant not found: {tenant_slug}")
+
+    snapshot = ProvisioningJobMetricSnapshot(
+        capture_key=capture_key,
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        total_jobs=97,
+        pending_jobs=14,
+        retry_pending_jobs=5,
+        running_jobs=0,
+        completed_jobs=75,
+        failed_jobs=3,
+        max_attempts_seen=9,
+        captured_at=captured_at,
+    )
+    db.add(snapshot)
+    db.flush()
+
+    alert = ProvisioningOperationalAlert(
+        alert_code=alert_code,
+        severity=severity,
+        source_type="tenant_snapshot",
+        error_code=error_code,
+        tenant_slug=tenant.slug,
+        worker_profile=worker_profile,
+        capture_key=capture_key,
+        message=message,
+        observed_value_json=json.dumps(1),
+        threshold_value_json=json.dumps(0),
+        source_captured_at=captured_at,
+    )
+    db.add(alert)
+    db.commit()
+    db.refresh(snapshot)
+    db.refresh(alert)
+
+    print(json.dumps({
+        "tenantId": tenant.id,
+        "tenantSlug": tenant.slug,
+        "captureKey": capture_key,
+        "snapshotId": snapshot.id,
+        "alertId": alert.id,
+        "alertCode": alert.alert_code,
+        "severity": alert.severity,
+        "workerProfile": alert.worker_profile,
+    }))
+finally:
+    db.close()
+`;
+
+  const output = runBackendPython(script, [
+    tenantSlug,
+    captureKey,
+    alertCode,
+    severity,
+    workerProfile,
+    errorCode ?? "__NONE__",
+    message,
+  ]);
+
+  return JSON.parse(output) as SeededProvisioningObservabilityHistory;
 }
 
 export function seedPlatformTenantCatalogRecord({

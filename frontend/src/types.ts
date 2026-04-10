@@ -750,6 +750,28 @@ export type ProvisioningJobErrorCodeMetricsResponse = {
   data: ProvisioningJobTenantErrorCodeSummary[];
 };
 
+export type ProvisioningJobMetricSnapshot = {
+  id: number;
+  capture_key: string;
+  tenant_id: number;
+  tenant_slug: string;
+  total_jobs: number;
+  pending_jobs: number;
+  retry_pending_jobs: number;
+  running_jobs: number;
+  completed_jobs: number;
+  failed_jobs: number;
+  max_attempts_seen: number;
+  captured_at: string;
+};
+
+export type ProvisioningJobMetricsHistoryResponse = {
+  success: boolean;
+  message: string;
+  total_snapshots: number;
+  data: ProvisioningJobMetricSnapshot[];
+};
+
 export type ProvisioningWorkerCycleTrace = {
   id: number;
   capture_key: string;
@@ -794,6 +816,29 @@ export type ProvisioningOperationalAlertsResponse = {
   message: string;
   total_alerts: number;
   data: ProvisioningOperationalAlert[];
+};
+
+export type ProvisioningOperationalAlertHistoryEntry = {
+  id: number;
+  alert_code: string;
+  severity: string;
+  source_type: string;
+  error_code: string | null;
+  tenant_slug: string | null;
+  worker_profile: string | null;
+  capture_key: string;
+  message: string;
+  observed_value: number | string | boolean;
+  threshold_value: number | string | boolean | null;
+  source_captured_at: string;
+  recorded_at: string;
+};
+
+export type ProvisioningOperationalAlertHistoryResponse = {
+  success: boolean;
+  message: string;
+  total_alerts: number;
+  data: ProvisioningOperationalAlertHistoryEntry[];
 };
 
 export type ProvisioningBrokerDeadLetterJob = {

@@ -20,10 +20,12 @@ import {
 } from "../../../../utils/action-feedback";
 import {
   bulkSyncPlatformTenantSchemas,
+  getProvisioningAlertHistory,
   getProvisioningCycleHistory,
   getProvisioningAlerts,
   getProvisioningBrokerDlq,
   getProvisioningMetricsByErrorCode,
+  getProvisioningMetricsHistory,
   getProvisioningMetrics,
   getProvisioningMetricsByJobType,
   listProvisioningJobs,
@@ -40,7 +42,9 @@ import type {
   ProvisioningJobErrorCodeMetricsResponse,
   ProvisioningJob,
   ProvisioningJobDetailedMetricsResponse,
+  ProvisioningJobMetricsHistoryResponse,
   ProvisioningJobMetricsResponse,
+  ProvisioningOperationalAlertHistoryResponse,
   ProvisioningJobTenantErrorCodeSummary,
   ProvisioningOperationalAlert,
   ProvisioningOperationalAlertsResponse,
@@ -85,11 +89,15 @@ export function ProvisioningPage() {
     useState<ProvisioningJobDetailedMetricsResponse | null>(null);
   const [metricsByErrorCode, setMetricsByErrorCode] =
     useState<ProvisioningJobErrorCodeMetricsResponse | null>(null);
+  const [metricsHistory, setMetricsHistory] =
+    useState<ProvisioningJobMetricsHistoryResponse | null>(null);
   const [cycleHistory, setCycleHistory] =
     useState<ProvisioningWorkerCycleTraceHistoryResponse | null>(null);
   const [alerts, setAlerts] = useState<ProvisioningOperationalAlertsResponse | null>(
     null
   );
+  const [alertHistory, setAlertHistory] =
+    useState<ProvisioningOperationalAlertHistoryResponse | null>(null);
   const [dlq, setDlq] = useState<ProvisioningBrokerDeadLetterResponse | null>(null);
   const [jobsError, setJobsError] = useState<ApiError | null>(null);
   const [metricsError, setMetricsError] = useState<ApiError | null>(null);
@@ -108,6 +116,10 @@ export function ProvisioningPage() {
   const [dlqErrorContains, setDlqErrorContains] = useState("");
   const [dlqResetAttempts, setDlqResetAttempts] = useState(true);
   const [dlqDelaySeconds, setDlqDelaySeconds] = useState("0");
+  const [historyLimit, setHistoryLimit] = useState("10");
+  const [workerProfileFilter, setWorkerProfileFilter] = useState("");
+  const [alertHistorySeverity, setAlertHistorySeverity] = useState("");
+  const [alertHistoryCode, setAlertHistoryCode] = useState("");
   const [jobOperationFilter, setJobOperationFilter] = useState(requestedOperationFilter);
   const [tenantSlugFilter, setTenantSlugFilter] = useState(requestedTenantSlug);
 
@@ -353,6 +365,26 @@ export function ProvisioningPage() {
     return Array.from(keys).sort();
   }, [dlq?.data, jobs, metricsByJobType?.data]);
 
+  const workerProfileOptions = useMemo(() => {
+    const keys = new Set<string>();
+    cycleHistory?.data.forEach((row) => {
+      if (row.worker_profile) {
+        keys.add(row.worker_profile);
+      }
+    });
+    alerts?.data.forEach((row) => {
+      if (row.worker_profile) {
+        keys.add(row.worker_profile);
+      }
+    });
+    alertHistory?.data.forEach((row) => {
+      if (row.worker_profile) {
+        keys.add(row.worker_profile);
+      }
+    });
+    return Array.from(keys).sort();
+  }, [alertHistory?.data, alerts?.data, cycleHistory?.data]);
+
   const jobsByOperation = useMemo(() => {
     return {
       provision: tenantScopedJobs.filter(
@@ -376,6 +408,12 @@ export function ProvisioningPage() {
     }
 
     setIsLoading(true);
+    const effectiveTenantFocus = normalizeNullableString(
+      overrides?.tenantSlug ?? tenantSlugFilter
+    );
+    const normalizedWorkerProfile = normalizeNullableString(workerProfileFilter);
+    const normalizedAlertHistorySeverity = normalizeNullableString(alertHistorySeverity);
+    const normalizedAlertHistoryCode = normalizeNullableString(alertHistoryCode);
 
     const dlqOptions = buildDlqOptions({
       limit: overrides?.limit ?? dlqLimit,
@@ -390,8 +428,25 @@ export function ProvisioningPage() {
       getProvisioningMetrics(session.accessToken),
       getProvisioningMetricsByJobType(session.accessToken),
       getProvisioningMetricsByErrorCode(session.accessToken),
-      getProvisioningCycleHistory(session.accessToken, { limit: 10 }),
-      getProvisioningAlerts(session.accessToken),
+      getProvisioningMetricsHistory(session.accessToken, {
+        limit: parsePositiveInteger(historyLimit, 10),
+        tenantSlug: effectiveTenantFocus,
+      }),
+      getProvisioningCycleHistory(session.accessToken, {
+        limit: parsePositiveInteger(historyLimit, 10),
+        workerProfile: normalizedWorkerProfile,
+      }),
+      getProvisioningAlerts(session.accessToken, {
+        tenantSlug: effectiveTenantFocus,
+        workerProfile: normalizedWorkerProfile,
+      }),
+      getProvisioningAlertHistory(session.accessToken, {
+        limit: parsePositiveInteger(historyLimit, 10),
+        tenantSlug: effectiveTenantFocus,
+        workerProfile: normalizedWorkerProfile,
+        alertCode: normalizedAlertHistoryCode,
+        severity: normalizedAlertHistorySeverity,
+      }),
       getProvisioningBrokerDlq(session.accessToken, dlqOptions),
     ]);
 
@@ -400,8 +455,10 @@ export function ProvisioningPage() {
       metricsResult,
       jobTypeResult,
       errorCodeResult,
+      metricsHistoryResult,
       cycleHistoryResult,
       alertsResult,
+      alertHistoryResult,
       dlqResult,
     ] = results;
 
@@ -437,6 +494,14 @@ export function ProvisioningPage() {
       setMetricsError(errorCodeResult.reason as ApiError);
     }
 
+    if (metricsHistoryResult.status === "fulfilled") {
+      setMetricsHistory(metricsHistoryResult.value);
+      setMetricsError(null);
+    } else {
+      setMetricsHistory(null);
+      setMetricsError(metricsHistoryResult.reason as ApiError);
+    }
+
     if (cycleHistoryResult.status === "fulfilled") {
       setCycleHistory(cycleHistoryResult.value);
       setMetricsError(null);
@@ -451,6 +516,14 @@ export function ProvisioningPage() {
     } else {
       setAlerts(null);
       setAlertsError(alertsResult.reason as ApiError);
+    }
+
+    if (alertHistoryResult.status === "fulfilled") {
+      setAlertHistory(alertHistoryResult.value);
+      setAlertsError(null);
+    } else {
+      setAlertHistory(null);
+      setAlertsError(alertHistoryResult.reason as ApiError);
     }
 
     if (dlqResult.status === "fulfilled") {
@@ -544,52 +617,57 @@ export function ProvisioningPage() {
       });
     } finally {
       setIsActionSubmitting(false);
+    }
   }
-}
 
-function getProvisioningActionRecommendation(job: ProvisioningJob): string {
-  if (job.job_type === "deprovision_tenant_database") {
+  function getProvisioningActionRecommendation(job: ProvisioningJob): string {
+    if (job.job_type === "deprovision_tenant_database") {
+      switch (job.status) {
+        case "failed":
+          return language === "es"
+            ? "Corrige el bloqueo del retiro técnico y reencola el job antes de intentar borrar el tenant."
+            : "Fix the technical retirement blocker and requeue the job before trying to delete the tenant.";
+        case "retry_pending":
+          return language === "es"
+            ? "El retiro técnico volverá a intentarse. Puedes esperar el worker o forzar la ejecución si quieres cerrar el tenant ahora."
+            : "The technical retirement will be retried. You can wait for the worker or force execution if you want to close the tenant now.";
+        case "pending":
+          return language === "es"
+            ? "El retiro técnico quedó en cola. Ejecútalo ahora si necesitas liberar infraestructura sin esperar al worker."
+            : "The technical retirement is queued. Run it now if you need to release infrastructure without waiting for the worker.";
+        default:
+          return "n/a";
+      }
+    }
+
     switch (job.status) {
       case "failed":
         return language === "es"
-          ? "Corrige el bloqueo del retiro técnico y reencola el job antes de intentar borrar el tenant."
-          : "Fix the technical retirement blocker and requeue the job before trying to delete the tenant.";
+          ? "Reencola el job o revisa el error antes de volver a intentar."
+          : "Requeue the job or review the error before trying again.";
       case "retry_pending":
         return language === "es"
-          ? "El retiro técnico volverá a intentarse. Puedes esperar el worker o forzar la ejecución si quieres cerrar el tenant ahora."
-          : "The technical retirement will be retried. You can wait for the worker or force execution if you want to close the tenant now.";
+          ? "Puedes esperar el próximo ciclo del worker o forzar ejecución ahora."
+          : "You can wait for the next worker cycle or force execution now.";
       case "pending":
         return language === "es"
-          ? "El retiro técnico quedó en cola. Ejecútalo ahora si necesitas liberar infraestructura sin esperar al worker."
-          : "The technical retirement is queued. Run it now if you need to release infrastructure without waiting for the worker.";
+          ? "Puedes dejarlo en cola o ejecutarlo ahora si necesitas acelerar el alta."
+          : "You can leave it queued or run it now if you need to speed up provisioning.";
       default:
         return "n/a";
     }
   }
 
-  switch (job.status) {
-    case "failed":
-      return language === "es"
-        ? "Reencola el job o revisa el error antes de volver a intentar."
-        : "Requeue the job or review the error before trying again.";
-    case "retry_pending":
-      return language === "es"
-        ? "Puedes esperar el próximo ciclo del worker o forzar ejecución ahora."
-        : "You can wait for the next worker cycle or force execution now.";
-    case "pending":
-      return language === "es"
-        ? "Puedes dejarlo en cola o ejecutarlo ahora si necesitas acelerar el alta."
-        : "You can leave it queued or run it now if you need to speed up provisioning.";
-    default:
-      return "n/a";
+  function handleRefresh() {
+    void loadProvisioningWorkspace();
   }
-}
-
-function handleRefresh() {
-  void loadProvisioningWorkspace();
-}
 
   function handleDlqFilterSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void loadProvisioningWorkspace();
+  }
+
+  function handleObservabilityFilterSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void loadProvisioningWorkspace();
   }
@@ -1146,6 +1224,192 @@ function handleRefresh() {
         )}
       </PanelCard>
 
+      <PanelCard
+        icon="pulse"
+        title={
+          language === "es" ? "Observabilidad visible" : "Visible observability"
+        }
+        subtitle={
+          language === "es"
+            ? "Lee tendencia reciente por tenant y alertas persistidas sin depender solo del estado activo actual."
+            : "Read recent tenant trends and persisted alerts without depending only on the current active state."
+        }
+      >
+        <AppForm className="tenant-action-form" onSubmit={handleObservabilityFilterSubmit}>
+          <AppFormField>
+            <FieldHelpLabel
+              label={language === "es" ? "Límite de historial" : "History limit"}
+              help={
+                language === "es"
+                  ? "Cantidad máxima de snapshots, alertas históricas y ciclos recientes a recuperar por consulta."
+                  : "Maximum number of snapshots, historical alerts and recent cycles to fetch per query."
+              }
+            />
+            <input
+              className="form-control"
+              type="number"
+              min="1"
+              value={historyLimit}
+              onChange={(event) => setHistoryLimit(event.target.value)}
+            />
+          </AppFormField>
+          <AppFormField>
+            <FieldHelpLabel
+              label={language === "es" ? "Worker profile" : "Worker profile"}
+              help={
+                language === "es"
+                  ? "Acota ciclos recientes y alertas históricas a un worker específico cuando operas más de un perfil."
+                  : "Scope recent cycles and alert history to a specific worker when more than one profile is operating."
+              }
+            />
+            <input
+              className="form-control"
+              list="provisioning-worker-profile-options"
+              value={workerProfileFilter}
+              onChange={(event) => setWorkerProfileFilter(event.target.value)}
+            />
+            <datalist id="provisioning-worker-profile-options">
+              {workerProfileOptions.map((value) => (
+                <option key={value} value={value} />
+              ))}
+            </datalist>
+          </AppFormField>
+          <AppFormField>
+            <FieldHelpLabel
+              label={language === "es" ? "Código de alerta" : "Alert code"}
+              help={
+                language === "es"
+                  ? "Permite revisar solo una familia histórica de alertas operativas."
+                  : "Lets you review only one historical family of operational alerts."
+              }
+            />
+            <input
+              className="form-control"
+              value={alertHistoryCode}
+              onChange={(event) => setAlertHistoryCode(event.target.value)}
+            />
+          </AppFormField>
+          <AppFormField>
+            <FieldHelpLabel
+              label={language === "es" ? "Severidad" : "Severity"}
+              help={
+                language === "es"
+                  ? "Usa warning o error para separar degradación leve de fallos ya críticos."
+                  : "Use warning or error to separate mild degradation from already critical failures."
+              }
+            />
+            <select
+              className="form-select"
+              value={alertHistorySeverity}
+              onChange={(event) => setAlertHistorySeverity(event.target.value)}
+            >
+              <option value="">{language === "es" ? "Todas" : "All"}</option>
+              <option value="warning">warning</option>
+              <option value="error">error</option>
+              <option value="critical">critical</option>
+            </select>
+          </AppFormField>
+          <div className="app-form-field app-form-field--full">
+            <p className="tenant-help-text mt-0 mb-0">
+              {language === "es"
+                ? `El foco tenant superior también se reutiliza aquí${normalizeNullableString(tenantSlugFilter) ? ` para ${tenantSlugFilter.trim()}` : ""}, así que puedes alternar entre lectura global o acotada sin cambiar de pantalla.`
+                : `The tenant focus above is also reused here${normalizeNullableString(tenantSlugFilter) ? ` for ${tenantSlugFilter.trim()}` : ""}, so you can switch between global and scoped readings without leaving the screen.`}
+            </p>
+          </div>
+          <AppFormActions>
+            <button
+              type="submit"
+              className="btn btn-outline-primary"
+              disabled={isLoading || isActionSubmitting}
+            >
+              {language === "es" ? "Recargar observabilidad" : "Reload observability"}
+            </button>
+          </AppFormActions>
+        </AppForm>
+      </PanelCard>
+
+      {!metricsError && metricsHistory ? (
+        metricsHistory.data.length > 0 ? (
+          <DataTableCard
+            title={
+              language === "es"
+                ? "Snapshots recientes por tenant"
+                : "Recent tenant snapshots"
+            }
+            subtitle={
+              language === "es"
+                ? "Serie corta de backlog y fallos para distinguir tendencia reciente del tenant enfocado."
+                : "Short series of backlog and failures to distinguish the recent trend of the focused tenant."
+            }
+            rows={metricsHistory.data}
+            columns={[
+              {
+                key: "captured_at",
+                header: language === "es" ? "Capturado en" : "Captured at",
+                render: (row) => formatDateTime(row.captured_at),
+              },
+              {
+                key: "tenant_slug",
+                header: language === "es" ? "Tenant" : "Tenant",
+                render: (row) => <code>{row.tenant_slug}</code>,
+              },
+              {
+                key: "total_jobs",
+                header: language === "es" ? "Total" : "Total",
+                render: (row) => row.total_jobs,
+              },
+              {
+                key: "pending_jobs",
+                header: language === "es" ? "Pendientes" : "Pending",
+                render: (row) => row.pending_jobs,
+              },
+              {
+                key: "retry_pending_jobs",
+                header: language === "es" ? "Reintento" : "Retrying",
+                render: (row) => row.retry_pending_jobs,
+              },
+              {
+                key: "failed_jobs",
+                header: language === "es" ? "Fallidos" : "Failed",
+                render: (row) => row.failed_jobs,
+              },
+              {
+                key: "max_attempts_seen",
+                header: language === "es" ? "Máx. intentos" : "Max attempts",
+                render: (row) => row.max_attempts_seen,
+              },
+            ]}
+          />
+        ) : (
+          <PanelCard
+            icon="activity"
+            title={
+              language === "es"
+                ? "Snapshots recientes por tenant"
+                : "Recent tenant snapshots"
+            }
+            subtitle={
+              language === "es"
+                ? "Todavía no hay snapshots persistidos para el filtro visible."
+                : "There are no persisted snapshots for the visible filter yet."
+            }
+          >
+            <EmptyState
+              title={
+                language === "es"
+                  ? "No hay snapshots recientes"
+                  : "There are no recent snapshots"
+              }
+              detail={
+                language === "es"
+                  ? "Esto suele pasar cuando el worker aún no capturó métricas persistidas o el filtro actual es demasiado estrecho."
+                  : "This usually happens when the worker has not captured persisted metrics yet or the current filter is too narrow."
+              }
+            />
+          </PanelCard>
+        )
+      ) : null}
+
       {showDevelopmentBootstrapHelp ? (
         <PanelCard
           icon="users"
@@ -1569,6 +1833,114 @@ function handleRefresh() {
                 language === "es"
                   ? "La operación está estable y no hay señales abiertas de backlog, fallos o degradación."
                   : "Operations are stable and there are no open signs of backlog, failures or degradation."
+              }
+            />
+          </PanelCard>
+        )
+      ) : null}
+
+      {!alertsError && alertHistory ? (
+        alertHistory.data.length > 0 ? (
+          <DataTableCard
+            title={
+              language === "es"
+                ? "Historial de alertas operativas"
+                : "Operational alert history"
+            }
+            subtitle={
+              language === "es"
+                ? "Lectura persistida para revisar si un problema fue puntual o ya viene repitiéndose entre ciclos."
+                : "Persisted reading to review whether a problem was isolated or already repeating across cycles."
+            }
+            rows={alertHistory.data}
+            columns={[
+              {
+                key: "recorded_at",
+                header: language === "es" ? "Registrada en" : "Recorded at",
+                render: (row) => formatDateTime(row.recorded_at),
+              },
+              {
+                key: "severity",
+                header: language === "es" ? "Severidad" : "Severity",
+                render: (row) => <SeverityBadge value={row.severity} />,
+              },
+              {
+                key: "alert_code",
+                header: language === "es" ? "Alerta" : "Alert",
+                render: (row) => (
+                  <ProvisioningCodeCell
+                    label={formatProvisioningAlertCode(row.alert_code)}
+                    code={row.alert_code}
+                  />
+                ),
+              },
+              {
+                key: "tenant_slug",
+                header: language === "es" ? "Tenant" : "Tenant",
+                render: (row) => row.tenant_slug || "—",
+              },
+              {
+                key: "worker_profile",
+                header: language === "es" ? "Worker" : "Worker",
+                render: (row) => row.worker_profile || "—",
+              },
+              {
+                key: "message",
+                header: language === "es" ? "Mensaje" : "Message",
+                render: (row) => row.message,
+              },
+              {
+                key: "observed_value",
+                header: language === "es" ? "Valor observado" : "Observed value",
+                render: (row) => formatScalarValue(row.observed_value),
+              },
+              {
+                key: "threshold_value",
+                header: language === "es" ? "Umbral" : "Threshold",
+                render: (row) =>
+                  row.threshold_value === null ? "—" : formatScalarValue(row.threshold_value),
+              },
+              {
+                key: "actions",
+                header: language === "es" ? "Acciones" : "Actions",
+                render: (row) => (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() =>
+                      handleDlqInvestigation(buildDlqInvestigationFromAlertHistory(row))
+                    }
+                  >
+                    {language === "es" ? "Investigar en DLQ" : "Investigate in DLQ"}
+                  </button>
+                ),
+              },
+            ]}
+          />
+        ) : (
+          <PanelCard
+            icon="reports"
+            title={
+              language === "es"
+                ? "Historial de alertas operativas"
+                : "Operational alert history"
+            }
+            subtitle={
+              language === "es"
+                ? "No hay alertas persistidas para el set visible de filtros."
+                : "There are no persisted alerts for the current visible filter set."
+            }
+          >
+            <EmptyState
+              title={
+                language === "es"
+                  ? "No hay historial reciente de alertas"
+                  : "There is no recent alert history"
+              }
+              detail={
+                language === "es"
+                  ? "Esto es esperable cuando la operación estuvo estable o cuando el filtro por worker, severidad o código es demasiado específico."
+                  : "This is expected when operations were stable or when the worker, severity or code filter is too specific."
               }
             />
           </PanelCard>
@@ -2154,6 +2526,25 @@ function buildDlqInvestigationFromAlert(
   };
 }
 
+function buildDlqInvestigationFromAlertHistory(row: {
+  alert_code: string;
+  tenant_slug?: string | null;
+  error_code?: string | null;
+  message: string;
+}): {
+  sourceLabel: string;
+  tenantSlug?: string | null;
+  errorCode?: string | null;
+  errorContains?: string | null;
+} {
+  return {
+    sourceLabel: formatProvisioningAlertCode(row.alert_code),
+    tenantSlug: row.tenant_slug,
+    errorCode: row.error_code,
+    errorContains: row.error_code ? null : row.message,
+  };
+}
+
 function formatProvisioningCodeLabel(value: string): string {
   return value
     .replace(/_/g, " ")
@@ -2191,6 +2582,13 @@ function formatDateTime(value: string | null): string {
     return value;
   }
   return parsed.toLocaleString(getCurrentLocale(language));
+}
+
+function formatScalarValue(value: string | number | boolean): string {
+  if (typeof value === "boolean") {
+    return value ? "true" : "false";
+  }
+  return String(value);
 }
 
 function buildDlqOptions(filters: {

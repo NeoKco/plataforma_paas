@@ -50,7 +50,9 @@ import type {
   ProvisioningJobErrorCodeMetricsResponse,
   ProvisioningJob,
   ProvisioningJobDetailedMetricsResponse,
+  ProvisioningJobMetricsHistoryResponse,
   ProvisioningJobMetricsResponse,
+  ProvisioningOperationalAlertHistoryResponse,
   ProvisioningOperationalAlertsResponse,
   ProvisioningWorkerCycleTraceHistoryResponse,
   TenantBillingReconcileBatchResponse,
@@ -793,6 +795,30 @@ export function getProvisioningMetricsByErrorCode(accessToken: string) {
   );
 }
 
+export function getProvisioningMetricsHistory(
+  accessToken: string,
+  options: {
+    limit?: number;
+    tenantSlug?: string | null;
+  } = {}
+) {
+  const params = new URLSearchParams();
+  if (options.limit !== undefined) {
+    params.set("limit", String(options.limit));
+  }
+  if (options.tenantSlug) {
+    params.set("tenant_slug", options.tenantSlug);
+  }
+  const query = params.toString();
+
+  return apiRequest<ProvisioningJobMetricsHistoryResponse>(
+    `/platform/provisioning-jobs/metrics/history${query ? `?${query}` : ""}`,
+    {
+      token: accessToken,
+    }
+  );
+}
+
 export function getProvisioningCycleHistory(
   accessToken: string,
   options: {
@@ -835,6 +861,42 @@ export function getProvisioningAlerts(
 
   return apiRequest<ProvisioningOperationalAlertsResponse>(
     `/platform/provisioning-jobs/metrics/alerts${query ? `?${query}` : ""}`,
+    {
+      token: accessToken,
+    }
+  );
+}
+
+export function getProvisioningAlertHistory(
+  accessToken: string,
+  options: {
+    limit?: number;
+    tenantSlug?: string | null;
+    workerProfile?: string | null;
+    alertCode?: string | null;
+    severity?: string | null;
+  } = {}
+) {
+  const params = new URLSearchParams();
+  if (options.limit !== undefined) {
+    params.set("limit", String(options.limit));
+  }
+  if (options.tenantSlug) {
+    params.set("tenant_slug", options.tenantSlug);
+  }
+  if (options.workerProfile) {
+    params.set("worker_profile", options.workerProfile);
+  }
+  if (options.alertCode) {
+    params.set("alert_code", options.alertCode);
+  }
+  if (options.severity) {
+    params.set("severity", options.severity);
+  }
+  const query = params.toString();
+
+  return apiRequest<ProvisioningOperationalAlertHistoryResponse>(
+    `/platform/provisioning-jobs/metrics/alerts/history${query ? `?${query}` : ""}`,
     {
       token: accessToken,
     }
