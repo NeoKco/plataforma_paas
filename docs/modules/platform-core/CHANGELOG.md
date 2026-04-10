@@ -2,6 +2,20 @@
 
 ## 2026-04-10
 
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega el subfrente de `requeue guiado` dentro de `Operación DLQ`:
+  - resumen visible del subconjunto DLQ actual
+  - recomendación operativa entre requeue individual, batch o afinación previa de filtros
+  - acción `Guiar requeue` por fila para acotar tenant, tipo de job y error antes de reintentar
+  - CTA visible `Reencolar job sugerido` o `Reencolar lote sugerido` reutilizando los contratos backend ya cerrados
+- se agrega el smoke [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts) para fijar el flujo browser `fila DLQ -> guiar requeue -> confirmación -> requeue individual`
+- validación cerrada de este corte:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts --list` OK
+  - `staging`: frontend publicado + smoke nuevo `1 passed`
+  - `production`: frontend publicado; el smoke broker-only quedó `skipped` porque el dispatch backend actual del host no resuelve como `broker`
+- hallazgo operativo del cierre:
+  - cuando el smoke nuevo depende de DLQ real del broker, la validación publicada canónica debe hacerse en un entorno cuyo `PROVISIONING_DISPATCH_BACKEND` sea efectivamente `broker`; si `production` opera con otro backend, el publish sigue siendo válido pero el smoke debe registrarse como `skipped`, no como `passed`
+
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) suma el subfrente de `observabilidad visible`, mostrando filtros y tablas de:
   - snapshots recientes por tenant
   - historial de alertas operativas persistidas

@@ -38,6 +38,7 @@ Archivos principales:
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-investigation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-investigation.smoke.spec.ts)
 - [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts)
+- [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
 - [tenant-portal-finance-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit.smoke.spec.ts)
@@ -73,6 +74,7 @@ Cobertura actual:
 - filtros finos DLQ por texto de error y revisión de `delay/reset attempts` antes del requeue individual cuando el backend usa broker
 - navegación asistida desde `Fallos por código` y `Alertas activas` hacia el panel `Operación DLQ`, con prefill visible de filtros
 - observabilidad visible de `Provisioning` con snapshots recientes por tenant e historial de alertas persistidas
+- `requeue guiado` desde una fila DLQ para acotar filtros y disparar el reintento sugerido
 - login `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
 - visibilidad del sidebar `tenant_portal` según `effective_enabled_modules`
@@ -167,6 +169,11 @@ Variables principales:
 - `E2E_BACKEND_ROOT`
 - `E2E_BACKEND_PYTHON`
 - `E2E_BACKEND_ENV_FILE`
+
+Nota operativa para cortes broker-only de `Provisioning`:
+
+- si el smoke toca DLQ real del broker, puede quedar `skipped` en un entorno publicado cuyo `PROVISIONING_DISPATCH_BACKEND` no sea `broker`
+- ese `skip` debe documentarse como limitación/topología del entorno, no como validación funcional verde
 
 Baseline recomendado para desarrollo local:
 

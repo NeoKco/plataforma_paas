@@ -1,5 +1,23 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-10 - Provisioning guided requeue publicado
+
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega `requeue guiado` dentro de `Operación DLQ`, con:
+  - lectura del subconjunto DLQ visible
+  - recomendación entre requeue individual, batch homogéneo o afinación previa
+  - acción `Guiar requeue` por fila para estrechar filtros
+- se agrega [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts)
+- validaciones cerradas:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts --list` OK
+  - `staging`: frontend publicado + smoke nuevo `1 passed`
+  - `production`: frontend publicado + smoke nuevo `1 skipped` porque el backend no resuelve como `broker`
+- hallazgo operativo:
+  - los smokes DLQ broker-only deben registrarse como `skipped` en entornos publicados que no usan dispatch backend `broker`; eso no invalida el publish del frontend, pero sí impide marcar cierre broker-only real sobre ese host
+- siguiente paso:
+  - seguir dentro de `Provisioning/DLQ`
+  - decidir si el siguiente corte es profundización broker-only o la habilitación de backend `broker` en `production`
+
 ## 2026-04-10 - Provisioning observability visible staging+production
 
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega el subfrente de observabilidad visible con:

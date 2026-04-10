@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-10
-- foco de iteración: cierre de `tenant data portability` con doble modo y doble superficie
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado, portabilidad tenant ya implementada en su base, el salto `Tenants -> Provisioning` ya validado en `staging` y `production`, el corte `Investigar en DLQ` ya quedó validado en `staging` y publicado en `production`, y ahora el repo ya soporta portabilidad dual (`portable_full` + `functional_data_only`) tanto en `platform_admin` como en `tenant_portal`
+- foco de iteración: `platform-core hardening + E2E` sobre `Provisioning/DLQ`, cerrando el subfrente `requeue guiado`
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado, portabilidad tenant ya implementada en su base, el salto `Tenants -> Provisioning` ya validado en `staging` y `production`, el corte `Investigar en DLQ` ya quedó validado en `staging` y publicado en `production`, el repo ya soporta portabilidad dual (`portable_full` + `functional_data_only`) tanto en `platform_admin` como en `tenant_portal`, y `Provisioning` ya agrega además `requeue guiado` publicado en `staging` y `production` con validación broker-only efectiva en `staging`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -59,19 +59,23 @@
 - la promoción a `production` se cerró con publish frontend y regresión segura sobre `Provisioning`
 - `Provisioning` ya expone también observabilidad visible con snapshots recientes por tenant e historial de alertas operativas persistidas
 - el smoke nuevo `platform-admin-provisioning-observability-history` ya quedó verde en `staging` y `production`
+- `Provisioning` ya expone también `requeue guiado` en `Operación DLQ`, con recomendación visible entre fila individual, lote homogéneo o afinación previa de filtros
+- el smoke nuevo `platform-admin-provisioning-guided-requeue` ya quedó verde en `staging`
+- en `production` ese mismo smoke quedó `skipped` porque el dispatch backend actual del host no resuelve como `broker`; el frontend sí quedó publicado
 - el helper browser `backend-control` ya soporta `E2E_BACKEND_ENV_FILE` para sembrar contra árboles publicados usando el env correcto del servicio
 - el root ya cuenta con un checklist corto único de cierre en `CHECKLIST_CIERRE_ITERACION.md`, integrado al flujo oficial de retoma y handoff
 
 ## Frente activo real al momento de este estado
 
-El frente activo real del proyecto sigue siendo `platform-core`, pero el corte puntual de esta iteración se movió a portabilidad tenant.
+El frente activo real del proyecto sigue siendo `platform-core`, y el corte puntual volvió a `Provisioning/DLQ`.
 
 El siguiente corte recomendado dentro de ese mismo frente pasa a ser este:
 
 - considerar cerrado el corte dual de portabilidad tenant
+- considerar cerrado también el subfrente `requeue guiado` en repo + `staging`
+- mantener explícito que `production` hoy sólo tiene este corte publicado, no validado broker-only
 - volver a `platform-core hardening + E2E`
-- con foco en `Provisioning` y DLQ
-- considerando ya cerrado también el subfrente de observabilidad visible en `Provisioning`
+- con foco siguiente en profundización broker-only de DLQ o en la decisión de topología productiva si se quiere validar allí mismo esos smokes
 
 ## Qué módulo se estaba construyendo
 
@@ -89,7 +93,7 @@ En otras palabras:
 - `business-core` y `maintenance` quedaron como foco de alineación transversal
 - luego el foco cambió a deploy, preflight y cutover productivo
 - ahora el foco pasa a endurecimiento operativo de `Provisioning` después de cerrar portabilidad tenant base
-- dentro de ese endurecimiento, el subfrente de observabilidad visible ya quedó cerrado; el siguiente candidato natural pasa a ser `requeue guiado`
+- dentro de ese endurecimiento, los subfrentes `observabilidad visible` y `requeue guiado` ya quedaron cerrados en repo; el siguiente candidato natural pasa a ser profundización broker-only de DLQ y/o cierre de topología productiva para esos casos
 
 ## Qué ya quedó hecho
 

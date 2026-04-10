@@ -117,6 +117,9 @@ Smokes actuales del bloque central:
 - [platform-admin-provisioning-dlq-row.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts)
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-investigation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-investigation.smoke.spec.ts)
+- [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts)
+- [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts)
 
 Baseline E2E tenant actualmente validado para continuar pruebas browser:
 
@@ -162,6 +165,7 @@ Cobertura actual:
 - requeue batch de filas DLQ filtradas desde `Provisioning` en entornos con backend `broker`
 - filtros finos DLQ por texto de error y validación visible de `delay/reset attempts` antes del requeue individual en backend `broker`
 - observabilidad visible de `Provisioning` con snapshots recientes por tenant e historial de alertas operativas persistidas
+- `requeue guiado` en `Provisioning` para enfocar una fila DLQ y recomendar si corresponde requeue individual o batch
 - enforcement visible de límites de usuarios activos en `tenant_portal` con overrides preparados de forma determinista
 - visibilidad backend-driven del sidebar `tenant_portal` según `effective_enabled_modules`
 - enforcement visible de límites de `finance.entries` en `tenant_portal` con overrides preparados de forma determinista

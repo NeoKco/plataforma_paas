@@ -64,6 +64,7 @@ Estado práctico de cierre:
 - validación browser broker-only de requeue individual sobre filas DLQ desde `Provisioning`
 - validación browser broker-only de requeue batch sobre filas DLQ filtradas desde `Provisioning`
 - validación browser broker-only de filtros finos DLQ por texto de error y opciones de requeue desde `Provisioning`
+- validación browser de `requeue guiado` dentro de `Provisioning`, usando una fila DLQ para enfocar filtros y disparar el reintento sugerido
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`
@@ -114,6 +115,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - mantener `staging` como espejo instalado por defecto y usar `bootstrap reset` solo para validar `/install` cuando haga falta
 - ampliar E2E browser a DLQ individual/filtros más finos y a recuperación operativa guiada dentro de `Provisioning`
+- decidir si `production` debe correr también con `PROVISIONING_DISPATCH_BACKEND=broker` para poder validar allí mismo los smokes broker-only de DLQ
 - más regresión sobre provisioning y billing
 - seguir endureciendo copy, validaciones y observabilidad visible
 - mantener la política documental canónica al abrir más dominios
@@ -129,6 +131,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - el repo ya soporta además export/import dual (`portable_full` y `functional_data_only`) desde `platform_admin` y `tenant_portal`; ese corte ya quedó validado en `staging` y `production`
 - el salto asistido `Fallos por código/Alertas -> Investigar en DLQ` ya quedó validado en `staging` con smoke específico y promovido a `production`; el siguiente trabajo sobre DLQ ya no es de cierre base sino de profundización operativa
 - `Provisioning` ya expone además observabilidad visible con historial de snapshots y alertas persistidas; el siguiente subfrente recomendado pasa a ser requeue guiado o profundización broker-only de DLQ
+- `Provisioning` ya expone también `requeue guiado` sobre DLQ y quedó validado en `staging`; en `production` el frontend quedó publicado pero el smoke broker-only se salta mientras el backend no resuelva como `broker`
 
 ## Conclusión práctica
 

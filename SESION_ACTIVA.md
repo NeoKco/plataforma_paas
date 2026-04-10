@@ -30,8 +30,8 @@ Antes de cerrar una iteración relevante, pasar también por:
 ## Estado rápido vigente
 
 - fecha: 2026-04-10
-- foco activo: `platform-core` sobre `Provisioning`, después de cerrar observabilidad visible
-- prioridad inmediata: dejar repo, documentación viva y handoff alineados al nuevo cierre y luego abrir el siguiente subfrente de `Provisioning/DLQ`
+- foco activo: `platform-core` sobre `Provisioning`, después de cerrar `requeue guiado`
+- prioridad inmediata: dejar repo, documentación viva y handoff alineados al nuevo cierre y luego abrir el siguiente subfrente broker-only de `Provisioning/DLQ`
 - módulo o frente activo: `platform-core` / `Provisioning`
 
 ## Último contexto útil
@@ -79,6 +79,9 @@ Antes de cerrar una iteración relevante, pasar también por:
 - `Provisioning` ya expone observabilidad visible con snapshots recientes e historial de alertas
 - el smoke `platform-admin-provisioning-observability-history` ya quedó validado en `staging`
 - el smoke `platform-admin-provisioning-observability-history` ya quedó validado en `production`
+- `Provisioning` ya expone además `requeue guiado` dentro de `Operación DLQ`
+- el smoke `platform-admin-provisioning-guided-requeue` ya quedó validado en `staging`
+- en `production`, ese smoke broker-only queda `skipped` mientras el dispatch backend no sea `broker`
 - `Tenants` ya abre `Provisioning` con `tenantSlug` precargado
 - `Provisioning` ya enfoca jobs, métricas, alertas y DLQ según ese tenant sin perder la consola global
 - ya existe smoke browser `platform-admin-tenant-provisioning-context`
@@ -99,8 +102,8 @@ El siguiente movimiento correcto es este:
 - mantener `production` estable
 - mantener `staging` como carril previo real
 - asumir cerrado el corte dual de portabilidad tenant-side y doble modo
-- asumir cerrado también el subfrente de observabilidad visible en `Provisioning`
-- volver al roadmap central de `Provisioning/DLQ` con foco en `requeue guiado`
+- asumir cerrado también el subfrente de `requeue guiado` en repo y `staging`
+- volver al roadmap central de `Provisioning/DLQ` con foco en profundización broker-only y/o definición de topología productiva para DLQ
 
 ## Archivos a leer justo después de este
 
@@ -129,6 +132,8 @@ El siguiente movimiento correcto es este:
 - smoke `tenant-portal-data-portability` en `production`: OK
 - smoke `platform-admin-provisioning-observability-history` en `staging`: OK
 - smoke `platform-admin-provisioning-observability-history` en `production`: OK
+- smoke `platform-admin-provisioning-guided-requeue` en `staging`: OK
+- smoke `platform-admin-provisioning-guided-requeue` en `production`: SKIPPED (`dispatch backend != broker`)
 - smoke `platform-admin-tenant-provisioning-context` en `staging`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `production`: OK
 - backend `unittest` del corte de portabilidad dual: OK (`294 tests`)

@@ -34,6 +34,7 @@ Cobertura validada:
 - requeue batch de filas DLQ filtradas desde `Provisioning` cuando el backend usa broker
 - filtros finos DLQ por `error contains` y revisión de `delay/reset attempts` antes del requeue individual cuando el backend usa broker
 - navegación asistida desde `Fallos por código` hacia filtros DLQ dentro de `Provisioning`
+- `requeue guiado` desde una fila DLQ dentro de `Provisioning` cuando el backend usa broker
 - login de `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
 - login `tenant_portal` permitido en `past_due` con gracia y bloqueado al vencer la deuda
@@ -72,6 +73,7 @@ Specs actuales:
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-investigation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-investigation.smoke.spec.ts)
 - [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts)
+- [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-login-billing.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-login-billing.smoke.spec.ts)
 - [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
@@ -200,6 +202,7 @@ Baseline institucionalizado:
 - además publica como artefactos el reporte HTML de Playwright, los `test-results` crudos y el log del backend para depuración de fallos en CI
 - cuando se lanza manualmente con `workflow_dispatch`, permite además `target=all|platform|tenant` para revalidar solo el subset necesario
 - los `3 skipped` broker-only de DLQ siguen siendo esperables dentro de ese baseline estándar porque CI corre con `PROVISIONING_DISPATCH_BACKEND=database`
+- si corres el smoke broker-only nuevo [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts) sobre un published env no-broker, el resultado correcto también será `skipped`
 - los escenarios broker-only quedan documentados y validados aparte cuando se necesite una pasada específica con Redis/broker real
 - para desarrollo local existe además [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh), que corre migraciones, siembra baseline, levanta backend si hace falta y ejecuta `build + e2e:platform + e2e:tenant`
 - ese helper local acepta además `--target all|platform|tenant`, útil para revalidar solo la mitad necesaria sin correr toda la baseline principal

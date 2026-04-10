@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-10T15:25:00-04:00",
+  "updated_at": "2026-04-10T15:55:00-04:00",
   "handoff_status": "active",
-  "current_focus": "platform-core hardening + E2E sobre Provisioning/DLQ; observabilidad visible ya cerrada en staging y production y el siguiente subfrente recomendado pasa a requeue guiado",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side ya operativos, y observabilidad visible de Provisioning ya publicada y validada en staging y production",
+  "current_focus": "platform-core hardening + E2E sobre Provisioning/DLQ; requeue guiado ya cerrado en repo y staging, publicado en production, y el siguiente subfrente recomendado pasa a profundizacion broker-only o decision de topologia productiva",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side ya operativos, observabilidad visible de Provisioning ya publicada y validada, y requeue guiado ya publicado con validacion broker-only efectiva en staging",
   "active_modules": [
     "platform-core",
     "finance",
@@ -35,7 +35,8 @@
     "el siguiente frente recomendado del roadmap central pasa a ser platform-core hardening + E2E sobre Provisioning y DLQ",
     "el salto Tenants -> Provisioning con tenantSlug precargado ya quedo cerrado y no debe reabrirse salvo necesidad explicita",
     "el corte Investigar en DLQ ya quedó validado en staging con smoke específico y publicado en production con regresión segura",
-    "el subfrente observabilidad visible en Provisioning ya quedo publicado y validado en staging y production; el siguiente candidato natural pasa a ser requeue guiado"
+    "el subfrente observabilidad visible en Provisioning ya quedo publicado y validado en staging y production; el siguiente candidato natural pasa a ser requeue guiado",
+    "requeue guiado en Provisioning ya quedo publicado y validado en staging; en production el frontend esta publicado pero el smoke broker-only se salta mientras el backend no resuelva como broker"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -115,17 +116,23 @@
     "frontend staging publicado con el corte Provisioning observability visible",
     "smoke platform-admin-provisioning-observability-history validado en staging",
     "frontend production publicado con el corte Provisioning observability visible",
-    "smoke platform-admin-provisioning-observability-history validado en production"
+    "smoke platform-admin-provisioning-observability-history validado en production",
+    "Provisioning agrega requeue guiado sobre DLQ con accion Guiar requeue por fila",
+    "frontend staging publicado con el corte Provisioning guided requeue",
+    "smoke platform-admin-provisioning-guided-requeue validado en staging",
+    "frontend production publicado con el corte Provisioning guided requeue",
+    "smoke platform-admin-provisioning-guided-requeue skipped en production por dispatch backend no-broker"
   ],
   "blocking_issues": [],
-  "next_decision_required": "abrir el siguiente corte concreto de platform-core hardening + E2E dentro de Provisioning/DLQ; la recomendacion vigente es requeue guiado",
+  "next_decision_required": "abrir el siguiente corte concreto de platform-core hardening + E2E dentro de Provisioning/DLQ; la recomendacion vigente es profundizacion broker-only de DLQ o definir si production debe validar tambien esos smokes con backend broker",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
     "asumir cerrado el corte dual de portabilidad tenant-side y los dos modos visibles",
     "asumir cerrado tambien el subfrente de observabilidad visible en Provisioning",
+    "asumir cerrado tambien requeue guiado en repo y staging",
     "retomar platform-core hardening + E2E sobre Provisioning y DLQ",
-    "abrir el subfrente de requeue guiado"
+    "abrir el subfrente de profundizacion broker-only o definir topologia productiva para validarlo en production"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -212,6 +219,12 @@
     "platform_admin_provisioning_dlq_investigation_regression_smoke_staging": "pass",
     "platform_admin_provisioning_dlq_investigation_specific_smoke_staging": "pass",
     "platform_admin_provisioning_dlq_investigation_frontend_publish_production": "pass",
-    "platform_admin_provisioning_dlq_investigation_safe_regression_smoke_production": "pass"
+    "platform_admin_provisioning_dlq_investigation_safe_regression_smoke_production": "pass",
+    "platform_admin_provisioning_guided_requeue_repo_build": "pass",
+    "platform_admin_provisioning_guided_requeue_repo_playwright_list": "pass",
+    "platform_admin_provisioning_guided_requeue_staging_frontend_publish": "pass",
+    "platform_admin_provisioning_guided_requeue_staging_smoke": "pass",
+    "platform_admin_provisioning_guided_requeue_production_frontend_publish": "pass",
+    "platform_admin_provisioning_guided_requeue_production_smoke": "skipped_non_broker"
   }
 }
