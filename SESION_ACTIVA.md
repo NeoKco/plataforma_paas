@@ -31,7 +31,7 @@ Antes de cerrar una iteración relevante, pasar también por:
 
 - fecha: 2026-04-10
 - foco activo: cierre de `tenant data portability` con doble modo y doble superficie
-- prioridad inmediata: dejar repo, documentación viva y handoff alineados, y luego validar este corte en `staging`
+- prioridad inmediata: dejar repo, documentación viva y handoff alineados al estado real, y luego retomar el roadmap central
 - módulo o frente activo: `platform-core` / portabilidad tenant
 
 ## Último contexto útil
@@ -74,6 +74,8 @@ Antes de cerrar una iteración relevante, pasar también por:
 - `Tenant Portal > Resumen técnico` ya muestra el mismo bloque de portabilidad e import controlado para admin tenant
 - ya existe smoke browser `platform-admin-tenant-data-export`
 - ya existe smoke browser `tenant-portal-data-portability`
+- el corte dual portable ya quedó desplegado y validado en `staging`
+- el corte dual portable ya quedó desplegado y validado en `production`
 - `Tenants` ya abre `Provisioning` con `tenantSlug` precargado
 - `Provisioning` ya enfoca jobs, métricas, alertas y DLQ según ese tenant sin perder la consola global
 - ya existe smoke browser `platform-admin-tenant-provisioning-context`
@@ -85,6 +87,7 @@ Antes de cerrar una iteración relevante, pasar también por:
 
 - no hay bloqueo activo en este corte
 - la última corrección operativa fue usar `/opt/platform_paas_staging/.env.staging` como env real del servicio `staging` para los smokes publicados que siembran backend
+- el único detalle operativo adicional es de ejecución del agente: el smoke tenant-side puede requerir salir del sandbox si Chromium falla con `SIGTRAP`
 
 ## Siguiente acción inmediata
 
@@ -92,8 +95,8 @@ El siguiente movimiento correcto es este:
 
 - mantener `production` estable
 - mantener `staging` como carril previo real
-- validar en `staging` el corte de portabilidad tenant-side y doble modo
-- si esa validación cierra bien, recién volver al roadmap central de `Provisioning/DLQ`
+- asumir cerrado el corte dual de portabilidad tenant-side y doble modo
+- volver al roadmap central de `Provisioning/DLQ`
 
 ## Archivos a leer justo después de este
 
@@ -118,9 +121,11 @@ El siguiente movimiento correcto es este:
 - `GET http://127.0.0.1:8200/health` otra vez con `installed=true`: OK
 - smoke `platform-admin-tenant-data-export` en `staging`: OK
 - smoke `platform-admin-tenant-data-export` en `production`: OK
+- smoke `tenant-portal-data-portability` en `staging`: OK
+- smoke `tenant-portal-data-portability` en `production`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `staging`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `production`: OK
 - backend `unittest` del corte de portabilidad dual: OK (`294 tests`)
 - `npm run build` del frontend: OK para el corte de portabilidad dual
 - `npx playwright test --list`: OK (`44 tests`)
-- despliegue `staging/production` del corte dual tenant-side: pendiente
+- despliegue `staging/production` del corte dual tenant-side: completado

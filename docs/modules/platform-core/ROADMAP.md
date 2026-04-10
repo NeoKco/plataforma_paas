@@ -125,7 +125,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - el backend ya calcula y aplica entitlements por módulo tenant y el sidebar principal del `tenant_portal` ya filtra por contrato/billing usando `effective_enabled_modules`
 - el staging ya puede alternar entre espejo instalado y bootstrap reset; hoy queda institucionalizado que el modo normal es espejo operativo y el siguiente paso ya no es de entorno sino de roadmap
 - la plataforma ya tiene backup y restore PostgreSQL por tenant, export portable mínimo en `CSV + manifest` e import controlado mínimo con `dry_run` y `apply`, ya validados en `staging` y `production`
-- el repo ya soporta además export/import dual (`portable_full` y `functional_data_only`) desde `platform_admin` y `tenant_portal`; su siguiente paso operativo es validar el corte tenant-side en `staging` y `production`
+- el repo ya soporta además export/import dual (`portable_full` y `functional_data_only`) desde `platform_admin` y `tenant_portal`; ese corte ya quedó validado en `staging` y `production`
 - el salto asistido `Fallos por código/Alertas -> Investigar en DLQ` ya quedó validado en `staging` con smoke específico y promovido a `production`; el siguiente trabajo sobre DLQ ya no es de cierre base sino de profundización operativa
 
 ## Conclusión práctica

@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-10T11:30:00-04:00",
+  "updated_at": "2026-04-10T14:10:00-04:00",
   "handoff_status": "active",
-  "current_focus": "tenant data portability dual-mode y dual-surface en repo; platform_admin y tenant_portal ya comparten export/import portable con portable_full y functional_data_only",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base ya operativa en production y el nuevo corte dual tenant-side ya implementado y validado en repo",
+  "current_focus": "cierre documental y de handoff despues de publicar tenant data portability dual-mode y dual-surface; el siguiente frente vuelve a platform-core hardening + E2E sobre Provisioning/DLQ",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side ya operativos y validados en staging y production",
   "active_modules": [
     "platform-core",
     "finance",
@@ -31,6 +31,7 @@
     "backup PostgreSQL por tenant sigue siendo el respaldo tecnico canonico; CSV tenant-side es portabilidad y migracion, no sustituto del backup real",
     "la portabilidad tenant ya cubre export/import portable base y ahora soporta dos scopes visibles: portable_full y functional_data_only",
     "tenant_portal admin tambien debe poder operar la misma portabilidad tenant, sin duplicar logica backend",
+    "el corte dual portable tenant-side ya quedo publicado y validado en staging y production; no debe reabrirse salvo necesidad explicita",
     "el siguiente frente recomendado del roadmap central pasa a ser platform-core hardening + E2E sobre Provisioning y DLQ",
     "el salto Tenants -> Provisioning con tenantSlug precargado ya quedo cerrado y no debe reabrirse salvo necesidad explicita",
     "el corte Investigar en DLQ ya quedó validado en staging con smoke específico y publicado en production con regresión segura"
@@ -99,16 +100,24 @@
     "smoke tenant-portal-data-portability agregado en repo",
     "backend unittest del corte dual aprobado con 294 tests",
     "frontend build del corte dual aprobado",
-    "playwright list del corte dual aprobado con 44 tests"
+    "playwright list del corte dual aprobado con 44 tests",
+    "backend staging desplegado con el corte dual portable tenant-side",
+    "frontend staging publicado con el corte dual portable tenant-side",
+    "smoke platform-admin-tenant-data-export validado en staging para functional_data_only",
+    "smoke tenant-portal-data-portability validado en staging",
+    "backend production desplegado con el corte dual portable tenant-side",
+    "frontend production publicado con el corte dual portable tenant-side",
+    "smoke platform-admin-tenant-data-export validado en production para functional_data_only",
+    "smoke tenant-portal-data-portability validado en production"
   ],
   "blocking_issues": [],
-  "next_decision_required": "validar en staging el corte dual de portabilidad tenant-side antes de volver al roadmap central de Provisioning/DLQ",
+  "next_decision_required": "elegir el siguiente corte concreto de platform-core hardening + E2E dentro de Provisioning/DLQ, sin reabrir portabilidad tenant salvo necesidad explicita",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
-    "validar en staging el corte dual de portabilidad tenant-side y los dos modos visibles",
-    "si queda verde, promover el corte a production",
-    "despues retomar platform-core hardening + E2E sobre Provisioning y DLQ"
+    "asumir cerrado el corte dual de portabilidad tenant-side y los dos modos visibles",
+    "retomar platform-core hardening + E2E sobre Provisioning y DLQ",
+    "abrir un subfrente concreto de recuperacion fina, requeue guiado u observabilidad visible"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -174,6 +183,14 @@
     "tenant_data_portability_dual_mode_backend_unittest_repo": "pass",
     "tenant_data_portability_dual_mode_frontend_build_repo": "pass",
     "tenant_data_portability_dual_mode_playwright_list_repo": "pass",
+    "tenant_data_portability_dual_mode_staging_backend_deploy": "pass",
+    "tenant_data_portability_dual_mode_staging_frontend_publish": "pass",
+    "tenant_data_portability_dual_mode_staging_platform_admin_smoke": "pass",
+    "tenant_data_portability_dual_mode_staging_tenant_portal_smoke": "pass",
+    "tenant_data_portability_dual_mode_production_backend_deploy": "pass",
+    "tenant_data_portability_dual_mode_production_frontend_publish": "pass",
+    "tenant_data_portability_dual_mode_production_platform_admin_smoke": "pass",
+    "tenant_data_portability_dual_mode_production_tenant_portal_smoke": "pass",
     "platform_admin_tenant_provisioning_context_smoke_staging": "pass",
     "platform_admin_tenant_provisioning_context_smoke_production": "pass",
     "platform_admin_provisioning_dlq_investigation_build": "pass",

@@ -103,6 +103,7 @@ Variables de entorno:
 - en el mini PC ya existe además un `staging` separado en `http://192.168.7.42:8081`; usarlo solo cuando quieras validar sobre el entorno de pruebas publicado, no para la baseline local por defecto
 - si un smoke publicado en `staging` necesita sembrar datos backend, no basta con `source /opt/platform_paas_staging/.env`: el servicio vivo usa `/opt/platform_paas_staging/.env.staging`
 - si ese `.env.staging` está protegido para el usuario de servicio, el comando publicado puede requerir `sudo`, `HOME=/home/felipe` y luego devolver la propiedad de `frontend/e2e/test-results` y `frontend/e2e/playwright-report` a `felipe`
+- en este entorno de agente, algunos smokes tenant-side publicados pueden fallar al arrancar Chromium dentro del sandbox con `SIGTRAP` o errores de `sandbox_host_linux`; si ocurre, reejecutar el mismo spec fuera del sandbox antes de diagnosticar un fallo funcional
 - si quieres validar el instalador inicial, primero resetea `staging` a modo bootstrap con [reset_staging_bootstrap.sh](/home/felipe/platform_paas/deploy/reset_staging_bootstrap.sh) y luego corre el smoke opt-in del instalador
 
 ## Regla oficial de continuidad
@@ -233,6 +234,7 @@ Notas:
 - los smokes de límites tenant ahora fijan y limpian overrides por control DB para evitar fragilidad al preparar estado por UI
 - el smoke [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts) hoy valida el ciclo completo `export + dry_run + apply`
 - ese smoke prioriza `empresa-bootstrap` como tenant baseline para evitar falsos negativos si `condominio-demo` arrastra una credencial técnica desalineada en un entorno heredado
+- el smoke [tenant-portal-data-portability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-data-portability.smoke.spec.ts) ya quedó validado sobre `staging` y `production`
 - el smoke de roles `platform_admin` crea un `admin` efímero, valida sus redirecciones/navegación visibles y luego crea un `support` efímero para congelar el modo solo lectura del bloque `Usuarios de plataforma`
 - el smoke de `Billing` crea un tenant efímero, siembra un evento `invoice.payment_failed` por backend-control y valida la lectura del workspace tenant más el reconcile individual sobre la fila persistida
 - el smoke batch de `Billing` crea un tenant efímero, siembra dos eventos persistidos del mismo filtro y valida `Reconciliar eventos filtrados` sobre el workspace tenant

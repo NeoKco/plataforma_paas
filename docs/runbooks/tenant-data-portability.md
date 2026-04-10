@@ -116,12 +116,14 @@ Reglas operativas:
 ## Estado actual del frente
 
 - export/import portable desde `platform_admin`: implementado y validado
-- dos modos de export/import (`portable_full` y `functional_data_only`): implementados en repo
-- export/import portable desde `tenant_portal` para admin tenant: implementado en repo
+- dos modos de export/import (`portable_full` y `functional_data_only`): implementados y validados en `staging` y `production`
+- export/import portable desde `tenant_portal` para admin tenant: implementado y validado en `staging` y `production`
 - compatibilidad con `portable_minimum`: mantenida solo para import de paquetes heredados
 - `dry_run`: soportado
 - `apply`: soportado
-- siguiente paso recomendado: validar `tenant_portal` en `staging/production` si el release lo prioriza; luego abrir Fase 3 de endurecimiento solo si el roadmap lo exige
+- siguiente paso recomendado:
+  - si el roadmap vuelve a portabilidad, abrir Fase 3 de endurecimiento
+  - si no, considerar este corte cerrado y retomar `platform-core hardening + E2E` sobre `Provisioning/DLQ`
 
 ## Lecciones operativas ya cerradas
 
@@ -137,3 +139,4 @@ Reglas operativas:
   - json
   - binary base64
 - si el cambio toca UI visible de `platform_admin` o `tenant_portal`, no basta con desplegar backend: también hay que reconstruir el frontend publicado
+- en este entorno de agente, el smoke `tenant-portal-data-portability` puede requerir ejecución fuera del sandbox cuando Chromium falla al arrancar con `SIGTRAP`; tratarlo como limitación de ejecución del agente, no como fallo funcional, si el mismo spec pasa fuera de sandbox

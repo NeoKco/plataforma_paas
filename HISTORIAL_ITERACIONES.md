@@ -1,6 +1,6 @@
 # HISTORIAL_ITERACIONES
 
-## 2026-04-10 - Portabilidad tenant dual-mode y dual-surface en repo
+## 2026-04-10 - Portabilidad tenant dual-mode y dual-surface publicada
 
 - se generaliza la portabilidad tenant para soportar dos modos visibles:
   - `portable_full`
@@ -16,11 +16,16 @@
   - `npx playwright test --list`: OK (`44 tests`)
 - estado de despliegue:
   - `repo`: actualizado y validado
-  - `staging`: pendiente
-  - `production`: pendiente
+  - `staging`: backend desplegado, frontend publicado y smokes `platform_admin` + `tenant_portal` aprobados
+  - `production`: backend desplegado, frontend publicado y smokes `platform_admin` + `tenant_portal` aprobados
+- evidencia backend:
+  - `staging`: `/opt/platform_paas_staging/operational_evidence/backend_operational_evidence_20260410_131857.log`
+  - `production`: `/opt/platform_paas/operational_evidence/backend_operational_evidence_20260410_132248.log`
+- hallazgo operativo:
+  - en el entorno de este agente, el smoke tenant-side puede fallar lanzando Chromium dentro del sandbox con `SIGTRAP`; reejecutarlo fuera de sandbox dejó el corte validado sin cambios funcionales
 - siguiente paso:
-  - validar el corte tenant-side en `staging`
-  - si queda verde, promoverlo y luego volver al roadmap central de `Provisioning/DLQ`
+  - volver al roadmap central de `Provisioning/DLQ`
+  - abrir el siguiente subfrente concreto de hardening + E2E sin reabrir portabilidad salvo necesidad explícita
 
 ## 2026-04-09 - Provisioning DLQ investigation staging+production
 

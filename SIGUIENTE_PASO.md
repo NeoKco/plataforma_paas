@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-10
-- prioridad vigente: cerrar operativamente el corte de `tenant data portability` con doble modo y doble superficie antes de retomar `Provisioning/DLQ`
+- prioridad vigente: retomar el roadmap central después de cerrar operativamente el corte de `tenant data portability` con doble modo y doble superficie
 
 ## Objetivo del próximo paso
 
@@ -20,15 +20,14 @@ Esos frentes ya quedaron:
 - desplegados en `production`
 - validados visualmente por smoke browser
 
-El siguiente movimiento correcto ahora es más acotado:
+Ese corte ya quedó:
 
-- validar y dejar listo para release el corte dual de portabilidad tenant:
-  - `portable_full`
-  - `functional_data_only`
-  - disponible en `platform_admin`
-  - disponible en `tenant_portal` admin
+- desplegado en `staging`
+- desplegado en `production`
+- validado por smoke browser en `platform_admin`
+- validado por smoke browser en `tenant_portal`
 
-Después de eso, sí volver a:
+El siguiente movimiento correcto ahora es volver a:
 
 - `platform-core hardening + E2E`
 - con foco en `Provisioning`
@@ -57,14 +56,14 @@ Ya existe y sigue sano:
 - árbol `/opt/platform_paas_staging`
 - servicio `platform-paas-backend-staging`
 
-### 3. Cerrar el corte dual de portabilidad tenant
+### 3. Mantener cerrada la portabilidad tenant dual
 
-La próxima iteración debe:
+La próxima iteración no debe reabrir este frente salvo necesidad explícita. El estado correcto es:
 
-- validar `platform_admin` con el modo `functional_data_only`
-- validar `tenant_portal` admin con export + download + dry_run
-- si corresponde, promover luego el frontend/backend a `staging` y `production`
-- actualizar estado e historial según el entorno realmente alcanzado
+- `portable_full`: publicado
+- `functional_data_only`: publicado
+- `platform_admin`: validado
+- `tenant_portal`: validado
 
 ### 4. Volver al frente central explícito ya elegido
 
@@ -89,8 +88,8 @@ Debe avanzar sobre:
 7. asumir cerrado el frente `tenant sidebar backend-driven`
 8. asumir cerrado el frente `Nuevo tenant admin explícito + módulos por plan`
 9. asumir cerrada la base portable tenant en `platform_admin`
-10. cerrar primero la validación operativa del nuevo corte dual y tenant-side
-11. recién después continuar el frente central sin reabrir portabilidad base salvo necesidad explícita
+10. asumir cerrada también la validación operativa del corte dual y tenant-side
+11. continuar el frente central sin reabrir portabilidad salvo necesidad explícita
 
 ## Qué debe actualizar la próxima IA al cerrar
 
@@ -115,13 +114,9 @@ La próxima iteración debe terminar con una de estas dos salidas claras:
 
 ### Salida A
 
-- se valida y documenta el corte dual de portabilidad tenant en el entorno que corresponda
-
-### Salida B
-
 - se avanza y valida un nuevo corte real del frente `platform-core hardening + E2E`
 
-### Salida C
+### Salida B
 
 - se documenta un bloqueo real que impide abrir ese frente
 

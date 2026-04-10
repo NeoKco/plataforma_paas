@@ -16,9 +16,13 @@
   - `npx playwright test --list`: OK (`44 tests`)
 - estado de despliegue de este corte:
   - `repo`: actualizado y validado
-  - `staging`: pendiente
-  - `production`: pendiente
-  - lo previamente validado en `staging/production` sigue siendo la superficie `platform_admin` del corte portable anterior
+  - `staging`: backend desplegado, frontend publicado y smokes `platform_admin` + `tenant_portal` aprobados
+  - `production`: backend desplegado, frontend publicado y smokes `platform_admin` + `tenant_portal` aprobados
+- evidencia operativa de deploy backend:
+  - `staging`: `/opt/platform_paas_staging/operational_evidence/backend_operational_evidence_20260410_131857.log`
+  - `production`: `/opt/platform_paas/operational_evidence/backend_operational_evidence_20260410_132248.log`
+- hallazgo operativo del cierre:
+  - en este entorno de agente, el smoke browser tenant-side puede fallar al lanzar Chromium dentro del sandbox con `SIGTRAP`; la reejecución fuera de sandbox dejó ambos entornos verdes sin cambios funcionales adicionales
 
 ## 2026-04-09
 

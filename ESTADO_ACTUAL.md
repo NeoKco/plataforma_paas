@@ -46,8 +46,10 @@
   - backend `unittest`: `294 OK`
   - frontend `npm run build`: OK
   - `npx playwright test --list`: OK (`44 tests`)
-- este último corte dual todavía no fue desplegado ni validado en `staging` o `production`
-- el siguiente paso de ese frente ya no es diseño; es validación operativa en `staging` y luego decisión de release
+- este último corte dual ya fue desplegado y validado también en `staging` y `production`
+- el smoke `platform-admin-tenant-data-export` quedó verde en ambos entornos publicados
+- el smoke `tenant-portal-data-portability` quedó verde en ambos entornos publicados
+- en este entorno de agente, el smoke tenant-side requirió ejecución fuera de sandbox por un fallo de arranque de Chromium con `SIGTRAP`; el resultado funcional quedó validado igual
 - `Tenants` ya abre `Provisioning` con `tenantSlug` precargado y, si existe job visible, con la operación técnica correspondiente ya enfocada
 - `Provisioning` ya deja leer jobs, métricas, alertas y tabla DLQ en foco tenant sin perderse en la cola global
 - el smoke browser `platform-admin-tenant-provisioning-context` ya quedó aprobado en `staging` y `production`
@@ -63,8 +65,8 @@ El frente activo real del proyecto sigue siendo `platform-core`, pero el corte p
 
 El siguiente corte recomendado dentro de ese mismo frente pasa a ser este:
 
-- validar primero el corte dual de portabilidad tenant en `staging`
-- luego, si queda estable, volver a `platform-core hardening + E2E`
+- considerar cerrado el corte dual de portabilidad tenant
+- volver a `platform-core hardening + E2E`
 - con foco en `Provisioning` y DLQ
 
 ## Qué módulo se estaba construyendo
@@ -135,7 +137,7 @@ Se actualizaron documentos de:
 - smoke browser de portabilidad tenant aprobado en `production`
 - runbook y documentación canónica de `platform-core` actualizados para reflejar los dos scopes portables y la nueva superficie tenant-side
 - smoke browser nuevo `tenant-portal-data-portability`
-- este último corte queda validado en repo, no todavía en `staging` ni `production`
+- este último corte queda validado en repo, `staging` y `production`
 
 ### A nivel producción / deploy
 
