@@ -66,8 +66,10 @@ class ImportedTableSummary:
 
 class TenantDataPortabilityService:
     PORTABLE_MINIMUM_SCOPE = "portable_minimum"
+    PORTABLE_FULL_SCOPE = "portable_full"
+    FUNCTIONAL_DATA_ONLY_SCOPE = "functional_data_only"
     IMPORT_STRATEGY_SKIP_EXISTING = "skip_existing"
-    PORTABLE_MINIMUM_TABLES = (
+    PORTABLE_FULL_TABLES = (
         "tenant_info",
         "roles",
         "users",
@@ -85,6 +87,18 @@ class TenantDataPortabilityService:
         "finance_categories",
         "finance_currencies",
         "finance_transactions",
+    )
+    FUNCTIONAL_DATA_ONLY_TABLES = tuple(
+        table_name
+        for table_name in PORTABLE_FULL_TABLES
+        if table_name not in {"tenant_info", "roles", "users"}
+    )
+    SUPPORTED_EXPORT_SCOPES = frozenset(
+        {
+            PORTABLE_MINIMUM_SCOPE,
+            PORTABLE_FULL_SCOPE,
+            FUNCTIONAL_DATA_ONLY_SCOPE,
+        }
     )
 
     def __init__(
@@ -115,7 +129,7 @@ class TenantDataPortabilityService:
         if not tenant:
             raise ValueError("Tenant not found")
 
-        if export_scope != self.PORTABLE_MINIMUM_SCOPE:
+        if export_scope not in self.SUPPORTED_EXPORT_SCOPES:
             raise ValueError("Unsupported tenant data export scope")
 
         self._ensure_tenant_exportable(tenant)
@@ -131,7 +145,7 @@ class TenantDataPortabilityService:
         )
 
         try:
-            artifact = self._run_portable_minimum_export(db=db, tenant=tenant, job=job)
+            artifact = self._run_export(db=db, tenant=tenant, job=job)
             summary = {
                 "artifact_id": artifact.id,
                 "artifact_file_name": artifact.file_name,
@@ -184,7 +198,7 @@ class TenantDataPortabilityService:
         )
 
         try:
-            self._run_portable_minimum_import(
+            self._run_import(
                 db=db,
                 tenant=tenant,
                 job=job,
@@ -298,7 +312,7 @@ class TenantDataPortabilityService:
         if not tenant.tenant_schema_version:
             raise ValueError("Tenant schema version is unknown")
 
-    def _run_portable_minimum_export(
+    def _run_export(
         self,
         *,
         db: Session,
@@ -311,12 +325,13 @@ class TenantDataPortabilityService:
         tenant_session_factory = self.tenant_connection_service.get_tenant_session(tenant)
         exported_tables: list[ExportedTableSummary] = []
         skipped_tables: list[str] = []
+        table_names = self._get_scope_table_names(job.export_scope)
 
         tenant_db = tenant_session_factory()
         try:
             inspector = inspect(tenant_db.bind)
             available_tables = set(inspector.get_table_names())
-            for table_name in self.PORTABLE_MINIMUM_TABLES:
+            for table_name in table_names:
                 if table_name not in available_tables:
                     skipped_tables.append(table_name)
                     continue
@@ -364,7 +379,7 @@ class TenantDataPortabilityService:
         self.job_repository.save(db, job)
         return artifact
 
-    def _run_portable_minimum_import(
+    def _run_import(
         self,
         *,
         db: Session,
@@ -395,14 +410,17 @@ class TenantDataPortabilityService:
             package_path=package_path,
             target_tenant=tenant,
         )
+        export_scope = manifest.get("export_scope", self.PORTABLE_MINIMUM_SCOPE)
         imported_tables = self._simulate_or_apply_import(
             tenant=tenant,
             table_payloads=table_payloads,
             dry_run=dry_run,
+            export_scope=export_scope,
         )
         report = {
             "mode": "dry_run" if dry_run else "apply",
             "import_strategy": import_strategy,
+            "export_scope": export_scope,
             "source_file_name": package_file_name,
             "target_tenant": {
                 "id": tenant.id,
@@ -541,7 +559,8 @@ class TenantDataPortabilityService:
             raise ValueError("Tenant data import package direction is invalid")
         if manifest.get("data_format") != "csv_zip":
             raise ValueError("Tenant data import package format is invalid")
-        if manifest.get("export_scope") != self.PORTABLE_MINIMUM_SCOPE:
+        export_scope = manifest.get("export_scope")
+        if export_scope not in self.SUPPORTED_EXPORT_SCOPES:
             raise ValueError("Unsupported tenant data import scope")
         source_schema_version = (manifest.get("tenant") or {}).get("schema_version")
         if not source_schema_version:
@@ -557,10 +576,12 @@ class TenantDataPortabilityService:
         tenant: Tenant,
         table_payloads: dict[str, list[dict[str, str]]],
         dry_run: bool,
+        export_scope: str,
     ) -> list[ImportedTableSummary]:
         tenant_session_factory = self.tenant_connection_service.get_tenant_session(tenant)
         tenant_db = tenant_session_factory()
         summaries: list[ImportedTableSummary] = []
+        table_names = self._get_scope_table_names(export_scope)
         try:
             tenant_engine = tenant_db.bind
         finally:
@@ -575,7 +596,7 @@ class TenantDataPortabilityService:
             with tenant_engine.connect() as tenant_connection:
                 transaction = tenant_connection.begin()
                 try:
-                    for table_name in self.PORTABLE_MINIMUM_TABLES:
+                    for table_name in table_names:
                         if table_name not in table_payloads:
                             continue
                         if table_name not in available_tables:
@@ -607,7 +628,7 @@ class TenantDataPortabilityService:
                     raise
 
         try:
-            for table_name in self.PORTABLE_MINIMUM_TABLES:
+            for table_name in table_names:
                 if table_name not in table_payloads:
                     continue
                 if table_name not in available_tables:
@@ -773,6 +794,16 @@ class TenantDataPortabilityService:
             return base64.b64decode(str(parsed))
 
         return parsed
+
+    def _get_scope_table_names(self, export_scope: str) -> tuple[str, ...]:
+        if export_scope in {
+            self.PORTABLE_MINIMUM_SCOPE,
+            self.PORTABLE_FULL_SCOPE,
+        }:
+            return self.PORTABLE_FULL_TABLES
+        if export_scope == self.FUNCTIONAL_DATA_ONLY_SCOPE:
+            return self.FUNCTIONAL_DATA_ONLY_TABLES
+        raise ValueError("Unsupported tenant data export scope")
 
     def _compute_sha256(self, path: Path) -> str:
         digest = hashlib.sha256()

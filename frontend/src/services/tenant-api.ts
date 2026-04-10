@@ -1,6 +1,11 @@
 import type {
+  TenantDataExportJob,
+  TenantDataExportJobListResponse,
+  TenantDataExportScope,
   TenantFinanceEntriesResponse,
   TenantFinanceEntryMutationResponse,
+  TenantDataImportJob,
+  TenantDataImportJobListResponse,
   TenantFinanceSummaryResponse,
   TenantFinanceUsageResponse,
   TenantInfoResponse,
@@ -12,7 +17,7 @@ import type {
   TenantUserMutationResponse,
   TenantUsersResponse,
 } from "../types";
-import { apiRequest } from "./api";
+import { apiDownload, apiRequest } from "./api";
 
 export function loginTenant(
   tenantSlug: string,
@@ -50,6 +55,87 @@ export function getTenantInfo(accessToken: string) {
   return apiRequest<TenantInfoResponse>("/tenant/info", {
     token: accessToken,
   });
+}
+
+export function createTenantDataExportJob(
+  accessToken: string,
+  payload: {
+    export_scope?: TenantDataExportScope;
+  } = {}
+) {
+  return apiRequest<TenantDataExportJob>("/tenant/data-export-jobs", {
+    method: "POST",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function listTenantDataExportJobs(
+  accessToken: string,
+  params?: { limit?: number }
+) {
+  const query = new URLSearchParams();
+  if (params?.limit) {
+    query.set("limit", String(params.limit));
+  }
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return apiRequest<TenantDataExportJobListResponse>(
+    `/tenant/data-export-jobs${suffix}`,
+    {
+      token: accessToken,
+    }
+  );
+}
+
+export function createTenantDataImportJob(
+  accessToken: string,
+  payload: {
+    file: File;
+    dry_run?: boolean;
+    import_strategy?: string;
+  }
+) {
+  const formData = new FormData();
+  formData.append("package_file", payload.file);
+  formData.append("dry_run", String(payload.dry_run ?? true));
+  formData.append("import_strategy", payload.import_strategy ?? "skip_existing");
+  return apiRequest<TenantDataImportJob>("/tenant/data-import-jobs", {
+    method: "POST",
+    token: accessToken,
+    body: formData,
+  });
+}
+
+export function listTenantDataImportJobs(
+  accessToken: string,
+  params?: { limit?: number }
+) {
+  const query = new URLSearchParams();
+  if (params?.limit) {
+    query.set("limit", String(params.limit));
+  }
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return apiRequest<TenantDataImportJobListResponse>(
+    `/tenant/data-import-jobs${suffix}`,
+    {
+      token: accessToken,
+    }
+  );
+}
+
+export async function downloadTenantDataExportJob(
+  accessToken: string,
+  jobId: number
+) {
+  const result = await apiDownload(`/tenant/data-export-jobs/${jobId}/download`, {
+    token: accessToken,
+  });
+  const url = URL.createObjectURL(result.blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = result.fileName || `tenant-export-job-${jobId}.zip`;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 export function updateTenantTimeZone(

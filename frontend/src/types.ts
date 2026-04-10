@@ -324,6 +324,11 @@ export type PlatformTenantDataTransferArtifact = {
   created_at: string | null;
 };
 
+export type TenantDataExportScope =
+  | "portable_minimum"
+  | "portable_full"
+  | "functional_data_only";
+
 export type PlatformTenantDataExportJob = {
   id: number;
   tenant_id: number;
@@ -342,7 +347,7 @@ export type PlatformTenantDataExportJob = {
 export type PlatformTenantDataImportJob = PlatformTenantDataExportJob;
 
 export type PlatformTenantDataExportJobCreateRequest = {
-  export_scope?: string;
+  export_scope?: TenantDataExportScope;
 };
 
 export type PlatformTenantDataExportJobListResponse = {
@@ -1076,6 +1081,28 @@ export type TenantFinanceEntriesResponse = {
   requested_by: TenantUserContext;
   total: number;
   data: TenantFinanceEntryItem[];
+};
+
+export type TenantDataTransferArtifact = PlatformTenantDataTransferArtifact;
+
+export type TenantDataExportJob = PlatformTenantDataExportJob;
+
+export type TenantDataImportJob = PlatformTenantDataImportJob;
+
+export type TenantDataExportJobListResponse = {
+  success: boolean;
+  message: string;
+  requested_by: TenantUserContext;
+  total_jobs: number;
+  data: TenantDataExportJob[];
+};
+
+export type TenantDataImportJobListResponse = {
+  success: boolean;
+  message: string;
+  requested_by: TenantUserContext;
+  total_jobs: number;
+  data: TenantDataImportJob[];
 };
 
 export type TenantFinanceSummaryData = {

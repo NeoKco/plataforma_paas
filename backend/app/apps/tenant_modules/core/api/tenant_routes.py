@@ -1,9 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.core.schemas import (
     TenantDbInfoPayload,
     TenantDbInfoResponse,
+    TenantDataExportJobCreateRequest,
+    TenantDataExportJobListResponse,
+    TenantDataExportJobResponse,
+    TenantDataImportJobListResponse,
+    TenantDataImportJobResponse,
+    TenantDataTransferArtifactResponse,
     TenantHealthResponse,
     TenantInfoData,
     TenantInfoResponse,
@@ -41,6 +48,9 @@ from app.apps.tenant_modules.core.services.tenant_data_service import (
     TenantUserLimitExceededError,
 )
 from app.apps.platform_control.services.tenant_service import TenantService
+from app.apps.platform_control.services.tenant_data_portability_service import (
+    TenantDataPortabilityService,
+)
 from app.common.auth.dependencies import (
     get_current_tenant_context,
     require_tenant_admin,
@@ -55,6 +65,7 @@ tenant_data_service = TenantDataService()
 tenant_module_usage_service = TenantModuleUsageService()
 tenant_service = TenantService()
 tenant_connection_service = TenantConnectionService()
+tenant_data_portability_service = TenantDataPortabilityService()
 
 
 def _build_tenant_user_context(context: dict) -> TenantUserContextResponse:
@@ -82,6 +93,52 @@ def _build_tenant_schema_job(job) -> TenantSchemaJobData | None:
         created_at=getattr(job, "created_at", None),
         last_attempt_at=getattr(job, "last_attempt_at", None),
         next_retry_at=getattr(job, "next_retry_at", None),
+    )
+
+
+def _build_tenant_data_transfer_artifact(artifact) -> TenantDataTransferArtifactResponse:
+    return TenantDataTransferArtifactResponse(
+        id=artifact.id,
+        artifact_type=artifact.artifact_type,
+        file_name=artifact.file_name,
+        content_type=artifact.content_type,
+        sha256_hex=artifact.sha256_hex,
+        size_bytes=artifact.size_bytes,
+        created_at=getattr(artifact, "created_at", None),
+    )
+
+
+def _build_tenant_data_export_job(job) -> TenantDataExportJobResponse:
+    return TenantDataExportJobResponse(
+        id=job.id,
+        tenant_id=job.tenant_id,
+        direction=job.direction,
+        data_format=job.data_format,
+        export_scope=job.export_scope,
+        status=job.status,
+        requested_by_email=job.requested_by_email,
+        error_message=job.error_message,
+        summary_json=job.summary_json,
+        created_at=getattr(job, "created_at", None),
+        completed_at=getattr(job, "completed_at", None),
+        artifacts=[_build_tenant_data_transfer_artifact(item) for item in job.artifacts],
+    )
+
+
+def _build_tenant_data_import_job(job) -> TenantDataImportJobResponse:
+    return TenantDataImportJobResponse(
+        id=job.id,
+        tenant_id=job.tenant_id,
+        direction=job.direction,
+        data_format=job.data_format,
+        export_scope=job.export_scope,
+        status=job.status,
+        requested_by_email=job.requested_by_email,
+        error_message=job.error_message,
+        summary_json=job.summary_json,
+        created_at=getattr(job, "created_at", None),
+        completed_at=getattr(job, "completed_at", None),
+        artifacts=[_build_tenant_data_transfer_artifact(item) for item in job.artifacts],
     )
 
 
@@ -536,6 +593,174 @@ def tenant_sync_schema(
         applied_now=[],
         queued_job=_build_tenant_schema_job(queued_job),
     )
+
+
+@router.post("/data-export-jobs", response_model=TenantDataExportJobResponse)
+def create_tenant_self_data_export_job(
+    payload: TenantDataExportJobCreateRequest,
+    current_user=Depends(require_tenant_admin),
+    control_db: Session = Depends(get_control_db),
+) -> TenantDataExportJobResponse:
+    tenant = _get_current_platform_tenant(control_db, current_user["tenant_slug"])
+    try:
+        job = tenant_data_portability_service.create_export_job(
+            control_db,
+            tenant_id=tenant.id,
+            requested_by_email=current_user.get("email"),
+            export_scope=payload.export_scope,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 409
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    return _build_tenant_data_export_job(job)
+
+
+@router.get("/data-export-jobs", response_model=TenantDataExportJobListResponse)
+def list_tenant_self_data_export_jobs(
+    limit: int = 10,
+    current_user=Depends(require_tenant_admin),
+    control_db: Session = Depends(get_control_db),
+) -> TenantDataExportJobListResponse:
+    tenant = _get_current_platform_tenant(control_db, current_user["tenant_slug"])
+    try:
+        jobs = tenant_data_portability_service.list_export_jobs(
+            control_db,
+            tenant_id=tenant.id,
+            limit=max(1, min(limit, 25)),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return TenantDataExportJobListResponse(
+        success=True,
+        message="Jobs de exportación portable recuperados correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        total_jobs=len(jobs),
+        data=[_build_tenant_data_export_job(job) for job in jobs],
+    )
+
+
+@router.get("/data-export-jobs/{job_id}", response_model=TenantDataExportJobResponse)
+def get_tenant_self_data_export_job(
+    job_id: int,
+    current_user=Depends(require_tenant_admin),
+    control_db: Session = Depends(get_control_db),
+) -> TenantDataExportJobResponse:
+    tenant = _get_current_platform_tenant(control_db, current_user["tenant_slug"])
+    try:
+        job = tenant_data_portability_service.get_export_job(
+            control_db,
+            tenant_id=tenant.id,
+            job_id=job_id,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = (
+            404 if detail in {"Tenant not found", "Tenant data export job not found"} else 409
+        )
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    return _build_tenant_data_export_job(job)
+
+
+@router.get("/data-export-jobs/{job_id}/download")
+def download_tenant_self_data_export_job(
+    job_id: int,
+    current_user=Depends(require_tenant_admin),
+    control_db: Session = Depends(get_control_db),
+):
+    tenant = _get_current_platform_tenant(control_db, current_user["tenant_slug"])
+    try:
+        _job, artifact, artifact_path = tenant_data_portability_service.get_export_artifact(
+            control_db,
+            tenant_id=tenant.id,
+            job_id=job_id,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = (
+            404
+            if detail
+            in {
+                "Tenant data export job not found",
+                "Tenant data export artifact not found",
+                "Tenant data export artifact file is missing",
+            }
+            else 409
+        )
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    return FileResponse(
+        path=str(artifact_path),
+        filename=artifact.file_name,
+        media_type=artifact.content_type,
+    )
+
+
+@router.post("/data-import-jobs", response_model=TenantDataImportJobResponse)
+def create_tenant_self_data_import_job(
+    package_file: UploadFile = File(...),
+    dry_run: bool = Form(True),
+    import_strategy: str = Form("skip_existing"),
+    current_user=Depends(require_tenant_admin),
+    control_db: Session = Depends(get_control_db),
+) -> TenantDataImportJobResponse:
+    tenant = _get_current_platform_tenant(control_db, current_user["tenant_slug"])
+    try:
+        job = tenant_data_portability_service.create_import_job(
+            control_db,
+            tenant_id=tenant.id,
+            requested_by_email=current_user.get("email"),
+            package_bytes=package_file.file.read(),
+            package_file_name=package_file.filename or "tenant-import.zip",
+            dry_run=dry_run,
+            import_strategy=import_strategy,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 409
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    return _build_tenant_data_import_job(job)
+
+
+@router.get("/data-import-jobs", response_model=TenantDataImportJobListResponse)
+def list_tenant_self_data_import_jobs(
+    limit: int = 10,
+    current_user=Depends(require_tenant_admin),
+    control_db: Session = Depends(get_control_db),
+) -> TenantDataImportJobListResponse:
+    tenant = _get_current_platform_tenant(control_db, current_user["tenant_slug"])
+    try:
+        jobs = tenant_data_portability_service.list_import_jobs(
+            control_db,
+            tenant_id=tenant.id,
+            limit=max(1, min(limit, 25)),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return TenantDataImportJobListResponse(
+        success=True,
+        message="Jobs de importación portable recuperados correctamente",
+        requested_by=_build_tenant_user_context(current_user),
+        total_jobs=len(jobs),
+        data=[_build_tenant_data_import_job(job) for job in jobs],
+    )
+
+
+@router.get("/data-import-jobs/{job_id}", response_model=TenantDataImportJobResponse)
+def get_tenant_self_data_import_job(
+    job_id: int,
+    current_user=Depends(require_tenant_admin),
+    control_db: Session = Depends(get_control_db),
+) -> TenantDataImportJobResponse:
+    tenant = _get_current_platform_tenant(control_db, current_user["tenant_slug"])
+    try:
+        job = tenant_data_portability_service.get_import_job(
+            control_db,
+            tenant_id=tenant.id,
+            job_id=job_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return _build_tenant_data_import_job(job)
 
 
 @router.get("/db-info", response_model=TenantDbInfoResponse)

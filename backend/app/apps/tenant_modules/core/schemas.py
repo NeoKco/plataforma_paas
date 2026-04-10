@@ -136,6 +136,55 @@ class TenantModuleUsageResponse(BaseModel):
     data: list[TenantModuleUsageItemResponse]
 
 
+class TenantDataExportJobCreateRequest(BaseModel):
+    export_scope: str = "portable_full"
+
+
+class TenantDataTransferArtifactResponse(BaseModel):
+    id: int
+    artifact_type: str
+    file_name: str
+    content_type: str
+    sha256_hex: str
+    size_bytes: int
+    created_at: datetime | None = None
+
+
+class TenantDataExportJobResponse(BaseModel):
+    id: int
+    tenant_id: int
+    direction: str
+    data_format: str
+    export_scope: str
+    status: str
+    requested_by_email: str | None = None
+    error_message: str | None = None
+    summary_json: str | None = None
+    created_at: datetime | None = None
+    completed_at: datetime | None = None
+    artifacts: list[TenantDataTransferArtifactResponse] = []
+
+
+class TenantDataExportJobListResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    total_jobs: int
+    data: list[TenantDataExportJobResponse]
+
+
+class TenantDataImportJobResponse(TenantDataExportJobResponse):
+    pass
+
+
+class TenantDataImportJobListResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    total_jobs: int
+    data: list[TenantDataImportJobResponse]
+
+
 class TenantDbInfoPayload(BaseModel):
     tenant_name: str | None = None
     tenant_slug: str | None = None

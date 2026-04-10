@@ -72,6 +72,7 @@ import type {
   PlatformTenant,
   PlatformTenantAccessPolicy,
   PlatformTenantDataExportJob,
+  TenantDataExportScope,
   PlatformTenantDataImportJob,
   PlatformTenantPortalUserItem,
   PlatformTenantRetirementArchiveItem,
@@ -87,6 +88,25 @@ type ActionFeedback = {
   message: string;
   details?: string[];
 };
+
+function getTenantDataExportScopeLabel(
+  scope: string,
+  language: "es" | "en"
+) {
+  switch (scope) {
+    case "portable_full":
+    case "portable_minimum":
+      return language === "es"
+        ? "Completo tenant"
+        : "Full tenant";
+    case "functional_data_only":
+      return language === "es"
+        ? "Solo datos funcionales"
+        : "Functional data only";
+    default:
+      return scope;
+  }
+}
 
 type PendingConfirmation = {
   scope: string;
@@ -195,6 +215,8 @@ export function TenantsPage() {
   const [createTenantAdminPassword, setCreateTenantAdminPassword] = useState("");
   const [createTenantAdminPasswordConfirm, setCreateTenantAdminPasswordConfirm] =
     useState("");
+  const [tenantDataExportScope, setTenantDataExportScope] =
+    useState<TenantDataExportScope>("portable_full");
   const [tenantImportFile, setTenantImportFile] = useState<File | null>(null);
   const [tenantImportDryRun, setTenantImportDryRun] = useState(true);
   const [isCreateTenantModalOpen, setIsCreateTenantModalOpen] = useState(false);
@@ -1183,7 +1205,7 @@ export function TenantsPage() {
         session.accessToken,
         selectedTenantId,
         {
-          export_scope: "portable_minimum",
+          export_scope: tenantDataExportScope,
         }
       );
 
@@ -2245,10 +2267,35 @@ export function TenantsPage() {
                 <div className="tenant-context-actions tenant-context-actions--compact">
                   <div className="tenant-help-text">
                     {language === "es"
-                      ? "Este export no reemplaza el backup PostgreSQL. Sirve como respaldo portable por tenant y base para futuras importaciones CSV."
-                      : "This export does not replace PostgreSQL backup. It works as a per-tenant portable backup and as the basis for future CSV imports."}
+                      ? "Puedes exportar el tenant completo soportado por portabilidad actual o solo los datos funcionales. Ningún modo reemplaza el backup PostgreSQL."
+                      : "You can export the supported full tenant package or only the functional data. Neither mode replaces PostgreSQL backup."}
                   </div>
                   <div className="tenant-context-actions__buttons">
+                    <select
+                      className="form-select form-select-sm"
+                      value={tenantDataExportScope}
+                      onChange={(event) =>
+                        setTenantDataExportScope(
+                          event.target.value as TenantDataExportScope
+                        )
+                      }
+                      disabled={isActionSubmitting}
+                      aria-label={
+                        language === "es"
+                          ? "Scope de export portable"
+                          : "Portable export scope"
+                      }
+                    >
+                      <option value="portable_full">
+                        {getTenantDataExportScopeLabel("portable_full", language)}
+                      </option>
+                      <option value="functional_data_only">
+                        {getTenantDataExportScopeLabel(
+                          "functional_data_only",
+                          language
+                        )}
+                      </option>
+                    </select>
                     <button
                       className="btn btn-outline-primary btn-sm"
                       type="button"
@@ -2270,6 +2317,15 @@ export function TenantsPage() {
                       : "Complete tenant provisioning first. Without tenant DB configuration, portable export is not possible."}
                   </div>
                 ) : null}
+                <div className="tenant-inline-note">
+                  {language === "es"
+                    ? tenantDataExportScope === "functional_data_only"
+                      ? "Modo actual: solo datos funcionales. Excluye identidad tenant, roles y usuarios."
+                      : "Modo actual: completo tenant soportado. Incluye identidad tenant, roles, usuarios y datos funcionales."
+                    : tenantDataExportScope === "functional_data_only"
+                      ? "Current mode: functional data only. It excludes tenant identity, roles, and users."
+                      : "Current mode: supported full tenant. It includes tenant identity, roles, users, and functional data."}
+                </div>
                 {isDataExportJobsLoading ? (
                   <LoadingBlock
                     label={
@@ -2318,8 +2374,8 @@ export function TenantsPage() {
                 <div className="tenant-context-actions tenant-context-actions--compact">
                   <div className="tenant-help-text">
                     {language === "es"
-                      ? "La importación actual usa estrategia `skip_existing`: inserta solo filas faltantes y no reemplaza datos ya existentes."
-                      : "The current import uses `skip_existing`: it inserts only missing rows and does not replace existing data."}
+                      ? "La importación acepta paquetes completos y paquetes de solo datos funcionales. La estrategia actual sigue siendo `skip_existing`."
+                      : "Import accepts full packages and functional-data-only packages. The current strategy is still `skip_existing`."}
                   </div>
                 </div>
                 <div className="tenant-form-grid">
@@ -2435,7 +2491,8 @@ export function TenantsPage() {
                     {
                       key: "export_scope",
                       header: language === "es" ? "Scope" : "Scope",
-                      render: (row) => row.export_scope,
+                      render: (row) =>
+                        getTenantDataExportScopeLabel(row.export_scope, language),
                     },
                     {
                       key: "created_at",
@@ -2501,6 +2558,20 @@ export function TenantsPage() {
                             ? JSON.parse(row.summary_json)
                             : null;
                         return summary?.mode || "n/a";
+                      },
+                    },
+                    {
+                      key: "export_scope",
+                      header: language === "es" ? "Scope" : "Scope",
+                      render: (row) => {
+                        const summary =
+                          row.summary_json && row.summary_json.trim()
+                            ? JSON.parse(row.summary_json)
+                            : null;
+                        return getTenantDataExportScopeLabel(
+                          summary?.export_scope || row.export_scope,
+                          language
+                        );
                       },
                     },
                     {
