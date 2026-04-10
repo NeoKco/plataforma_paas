@@ -204,4 +204,5 @@ Lección operativa ya asentada:
   - `Paquete completo`
   - `Solo datos funcionales`
 - si el release toca además `tenant_portal > Resumen técnico`, validar también el smoke tenant-side de portabilidad; este corte ya quedó aprobado en `staging` y `production`
+- si el release toca `Provisioning`, validar también el smoke visible del slice afectado; para este corte ya quedó aprobado [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts) en `staging` y `production`
 - si el release cambia UI visible de `platform_admin` o `tenant_portal`, no basta con deploy backend: también hay que reconstruir el frontend publicado

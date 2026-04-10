@@ -47,6 +47,7 @@ Estado práctico de cierre:
 - validación browser de ejecución manual de jobs `pending` desde `Provisioning`
 - validación browser de requeue de jobs `failed` desde `Provisioning`
 - validación browser del disparo de `schema auto-sync` desde `Provisioning`
+- observabilidad visible de `Provisioning` con snapshots recientes por tenant e historial de alertas operativas persistidas
 - export portable mínimo por tenant en `Tenants` con `zip + manifest + csv`
 - descarga autenticada del artifact portable desde `platform_admin`
 - smoke browser inicial del export portable tenant-side
@@ -127,6 +128,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - la plataforma ya tiene backup y restore PostgreSQL por tenant, export portable mínimo en `CSV + manifest` e import controlado mínimo con `dry_run` y `apply`, ya validados en `staging` y `production`
 - el repo ya soporta además export/import dual (`portable_full` y `functional_data_only`) desde `platform_admin` y `tenant_portal`; ese corte ya quedó validado en `staging` y `production`
 - el salto asistido `Fallos por código/Alertas -> Investigar en DLQ` ya quedó validado en `staging` con smoke específico y promovido a `production`; el siguiente trabajo sobre DLQ ya no es de cierre base sino de profundización operativa
+- `Provisioning` ya expone además observabilidad visible con historial de snapshots y alertas persistidas; el siguiente subfrente recomendado pasa a ser requeue guiado o profundización broker-only de DLQ
 
 ## Conclusión práctica
 

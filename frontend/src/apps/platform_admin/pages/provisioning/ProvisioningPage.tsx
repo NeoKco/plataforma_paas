@@ -39,6 +39,7 @@ import { getCurrentLanguage, getCurrentLocale } from "../../../../utils/i18n";
 import type {
   ApiError,
   ProvisioningBrokerDeadLetterResponse,
+  ProvisioningBrokerDeadLetterJob,
   ProvisioningJobErrorCodeMetricsResponse,
   ProvisioningJob,
   ProvisioningJobDetailedMetricsResponse,
@@ -108,6 +109,7 @@ export function ProvisioningPage() {
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
   const [pendingConfirmation, setPendingConfirmation] =
     useState<PendingConfirmation | null>(null);
+  const [guidedDlqJobId, setGuidedDlqJobId] = useState<number | null>(null);
 
   const [dlqLimit, setDlqLimit] = useState("25");
   const [dlqJobType, setDlqJobType] = useState("");
@@ -198,6 +200,138 @@ export function ProvisioningPage() {
         .includes(normalizedTenantSlugFilter)
     );
   }, [dlq?.data, normalizedTenantSlugFilter, tenantSlugById]);
+
+  const guidedDlqRow = useMemo(() => {
+    if (guidedDlqJobId !== null) {
+      return filteredDlqRows.find((row) => row.job_id === guidedDlqJobId) || null;
+    }
+    if (filteredDlqRows.length === 1) {
+      return filteredDlqRows[0];
+    }
+    return null;
+  }, [filteredDlqRows, guidedDlqJobId]);
+
+  const dlqGuidance = useMemo(() => {
+    const tenantLabels = Array.from(
+      new Set(
+        filteredDlqRows.map(
+          (row) => tenantSlugById.get(row.tenant_id) || `tenant-${row.tenant_id}`
+        )
+      )
+    );
+    const errorCodes = Array.from(
+      new Set(filteredDlqRows.map((row) => normalizeNullableString(row.error_code || "") || ""))
+    ).filter(Boolean);
+    const jobTypes = Array.from(new Set(filteredDlqRows.map((row) => row.job_type)));
+    const hasHomogeneousBatch =
+      filteredDlqRows.length > 1 &&
+      tenantLabels.length === 1 &&
+      jobTypes.length === 1 &&
+      errorCodes.length <= 1;
+
+    if (filteredDlqRows.length === 0) {
+      return {
+        tone: "neutral" as const,
+        title:
+          language === "es" ? "Sin candidato visible para requeue" : "No visible requeue candidate",
+        detail:
+          language === "es"
+            ? "Primero acota el DLQ hasta obtener una fila concreta o una familia homogénea de fallos."
+            : "First narrow the DLQ until you get a concrete row or a homogeneous failure family.",
+        bullets: [
+          `${language === "es" ? "Tenant" : "Tenant"}: ${
+            normalizeNullableString(dlqTenantSlug) || (language === "es" ? "sin filtro" : "no filter")
+          }`,
+          `${language === "es" ? "Código de error" : "Error code"}: ${
+            normalizeNullableString(dlqErrorCode) || (language === "es" ? "sin filtro" : "no filter")
+          }`,
+        ],
+        primaryAction: "none" as const,
+        secondaryAction: "none" as const,
+      };
+    }
+
+    if (guidedDlqRow) {
+      const tenantLabel =
+        tenantSlugById.get(guidedDlqRow.tenant_id) || `tenant-${guidedDlqRow.tenant_id}`;
+      return {
+        tone: "info" as const,
+        title:
+          language === "es"
+            ? `Requeue guiado sobre job #${guidedDlqRow.job_id}`
+            : `Guided requeue for job #${guidedDlqRow.job_id}`,
+        detail:
+          language === "es"
+            ? "Ya hay una fila concreta enfocada. Puedes reencolar sólo ese job o, si el subconjunto sigue homogéneo, devolver también el lote visible."
+            : "A concrete row is already focused. You can requeue only that job or, if the visible subset is still homogeneous, return the visible batch as well.",
+        bullets: [
+          `Tenant: ${tenantLabel}`,
+          `${language === "es" ? "Tipo de job" : "Job type"}: ${formatProvisioningJobType(
+            guidedDlqRow.job_type
+          )}`,
+          `${language === "es" ? "Error" : "Error"}: ${
+            guidedDlqRow.error_code
+              ? formatProvisioningCodeLabel(guidedDlqRow.error_code)
+              : guidedDlqRow.error_message || "—"
+          }`,
+          `${language === "es" ? "Filas visibles del mismo set" : "Visible rows in the same set"}: ${
+            filteredDlqRows.length
+          }`,
+        ],
+        primaryAction: "single" as const,
+        secondaryAction: hasHomogeneousBatch ? ("batch" as const) : ("none" as const),
+      };
+    }
+
+    if (hasHomogeneousBatch) {
+      return {
+        tone: "success" as const,
+        title:
+          language === "es" ? "Lote seguro para requeue" : "Safe batch requeue candidate",
+        detail:
+          language === "es"
+            ? "El subconjunto visible pertenece a la misma familia operativa. Puedes reencolar el lote completo con bajo riesgo de mezclar fallos distintos."
+            : "The visible subset belongs to the same operational family. You can requeue the full batch with low risk of mixing different failures.",
+        bullets: [
+          `Tenant: ${tenantLabels[0]}`,
+          `${language === "es" ? "Tipo de job" : "Job type"}: ${formatProvisioningJobType(jobTypes[0])}`,
+          `${language === "es" ? "Código de error" : "Error code"}: ${
+            errorCodes[0] ? formatProvisioningCodeLabel(errorCodes[0]) : "n/a"
+          }`,
+          `${language === "es" ? "Filas candidatas" : "Candidate rows"}: ${filteredDlqRows.length}`,
+        ],
+        primaryAction: "batch" as const,
+        secondaryAction: "none" as const,
+      };
+    }
+
+    return {
+      tone: "warning" as const,
+      title:
+        language === "es"
+          ? "Refina el DLQ antes de reencolar"
+          : "Refine the DLQ before requeuing",
+      detail:
+        language === "es"
+          ? "El set visible mezcla tenants, tipos de job o códigos de error. Enfoca una fila o ajusta filtros antes de ejecutar un lote."
+          : "The visible set mixes tenants, job types or error codes. Focus a row or tighten filters before running a batch.",
+      bullets: [
+        `${language === "es" ? "Tenants visibles" : "Visible tenants"}: ${tenantLabels.length}`,
+        `${language === "es" ? "Tipos de job" : "Job types"}: ${jobTypes.length}`,
+        `${language === "es" ? "Códigos de error" : "Error codes"}: ${errorCodes.length || 0}`,
+        `${language === "es" ? "Filas visibles" : "Visible rows"}: ${filteredDlqRows.length}`,
+      ],
+      primaryAction: "none" as const,
+      secondaryAction: "none" as const,
+    };
+  }, [
+    dlqErrorCode,
+    dlqTenantSlug,
+    filteredDlqRows,
+    guidedDlqRow,
+    language,
+    tenantSlugById,
+  ]);
 
   const overview = useMemo(() => {
     const totalJobs = tenantScopedJobs.length;
@@ -583,6 +717,15 @@ export function ProvisioningPage() {
     }
   }, [jobOperationFilter, searchParams, setSearchParams, tenantSlugFilter]);
 
+  useEffect(() => {
+    if (
+      guidedDlqJobId !== null &&
+      !filteredDlqRows.some((row) => row.job_id === guidedDlqJobId)
+    ) {
+      setGuidedDlqJobId(null);
+    }
+  }, [filteredDlqRows, guidedDlqJobId]);
+
   async function runAction(
     scope: string,
     action: () => Promise<unknown>
@@ -664,6 +807,7 @@ export function ProvisioningPage() {
 
   function handleDlqFilterSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setGuidedDlqJobId(null);
     void loadProvisioningWorkspace();
   }
 
@@ -717,6 +861,10 @@ export function ProvisioningPage() {
 
   function handleDlqBatchRequeue(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    openDlqBatchRequeueConfirmation();
+  }
+
+  function openDlqBatchRequeueConfirmation() {
     if (!session?.accessToken) {
       return;
     }
@@ -756,6 +904,37 @@ export function ProvisioningPage() {
           reset_attempts: dlqResetAttempts,
           delay_seconds: parseNonNegativeInteger(dlqDelaySeconds, 0),
         }),
+    });
+  }
+
+  function handleGuidedDlqFocus(row: ProvisioningBrokerDeadLetterJob) {
+    const tenantSlug = tenantSlugById.get(row.tenant_id) || `tenant-${row.tenant_id}`;
+    const nextErrorCode = normalizeNullableString(row.error_code || "") || "";
+    const nextErrorContains = nextErrorCode
+      ? ""
+      : normalizeNullableString(row.error_message || "") || "";
+
+    setGuidedDlqJobId(row.job_id);
+    setTenantSlugFilter(tenantSlug);
+    setDlqTenantSlug(tenantSlug);
+    setDlqJobType(row.job_type);
+    setDlqErrorCode(nextErrorCode);
+    setDlqErrorContains(nextErrorContains);
+    setActionFeedback({
+      scope: "focus-dlq",
+      type: "success",
+      message:
+        language === "es"
+          ? `Se enfocó requeue guiado desde el job #${row.job_id}. El DLQ quedó acotado a su familia operativa.`
+          : `Guided requeue was focused from job #${row.job_id}. The DLQ is now narrowed to its operational family.`,
+    });
+    focusDlqPanel();
+    void loadProvisioningWorkspace({
+      limit: dlqLimit,
+      tenantSlug,
+      errorCode: nextErrorCode,
+      errorContains: nextErrorContains,
+      jobType: row.job_type,
     });
   }
 
@@ -1957,6 +2136,71 @@ export function ProvisioningPage() {
               : "Inspect broker dead-letter rows and requeue them individually or in batches."
           }
         >
+        <div
+          className="tenant-help-text"
+          style={{
+            display: "grid",
+            gap: "0.75rem",
+            marginBottom: "1rem",
+            padding: "1rem",
+            border: "1px solid var(--border-subtle, #d7deed)",
+            borderRadius: "0.875rem",
+            background: "var(--surface-muted, #f8fbff)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+            <strong>{language === "es" ? "Requeue guiado" : "Guided requeue"}</strong>
+            <AppBadge tone={dlqGuidance.tone}>{dlqGuidance.title}</AppBadge>
+            {guidedDlqRow ? (
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-secondary"
+                onClick={() => setGuidedDlqJobId(null)}
+                disabled={isActionSubmitting}
+              >
+                {language === "es" ? "Quitar foco" : "Clear focus"}
+              </button>
+            ) : null}
+          </div>
+          <p className="mb-0">{dlqGuidance.detail}</p>
+          <ul className="mb-0 ps-3">
+            {dlqGuidance.bullets.map((detail) => (
+              <li key={detail}>{detail}</li>
+            ))}
+          </ul>
+          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+            {dlqGuidance.primaryAction === "single" && guidedDlqRow ? (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => handleSingleRequeue(guidedDlqRow.job_id)}
+                disabled={isActionSubmitting}
+              >
+                {language === "es" ? "Reencolar job sugerido" : "Requeue suggested job"}
+              </button>
+            ) : null}
+            {dlqGuidance.primaryAction === "batch" ? (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={openDlqBatchRequeueConfirmation}
+                disabled={isActionSubmitting}
+              >
+                {language === "es" ? "Reencolar lote sugerido" : "Requeue suggested batch"}
+              </button>
+            ) : null}
+            {dlqGuidance.secondaryAction === "batch" ? (
+              <button
+                type="button"
+                className="btn btn-outline-primary"
+                onClick={openDlqBatchRequeueConfirmation}
+                disabled={isActionSubmitting}
+              >
+                {language === "es" ? "Reencolar lote visible" : "Requeue visible batch"}
+              </button>
+            ) : null}
+          </div>
+        </div>
         <div className="provisioning-dlq-grid">
           <AppForm className="tenant-action-form" onSubmit={handleDlqFilterSubmit}>
             <h3 className="tenant-action-form__title">
@@ -2197,14 +2441,24 @@ export function ProvisioningPage() {
                 key: "actions",
                 header: language === "es" ? "Acciones" : "Actions",
                 render: (row) => (
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() => handleSingleRequeue(row.job_id)}
-                    disabled={isActionSubmitting}
-                  >
-                    {language === "es" ? "Reencolar" : "Requeue"}
-                  </button>
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={() => handleGuidedDlqFocus(row)}
+                      disabled={isActionSubmitting}
+                    >
+                      {language === "es" ? "Guiar requeue" : "Guide requeue"}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => handleSingleRequeue(row.job_id)}
+                      disabled={isActionSubmitting}
+                    >
+                      {language === "es" ? "Reencolar" : "Requeue"}
+                    </button>
+                  </div>
                 ),
               },
             ]}

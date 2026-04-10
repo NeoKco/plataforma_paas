@@ -57,6 +57,9 @@
 - ese cambio ya quedó publicado en `staging` y `production`
 - el smoke nuevo `platform-admin-provisioning-dlq-investigation` ya quedó verde sobre `staging`
 - la promoción a `production` se cerró con publish frontend y regresión segura sobre `Provisioning`
+- `Provisioning` ya expone también observabilidad visible con snapshots recientes por tenant e historial de alertas operativas persistidas
+- el smoke nuevo `platform-admin-provisioning-observability-history` ya quedó verde en `staging` y `production`
+- el helper browser `backend-control` ya soporta `E2E_BACKEND_ENV_FILE` para sembrar contra árboles publicados usando el env correcto del servicio
 - el root ya cuenta con un checklist corto único de cierre en `CHECKLIST_CIERRE_ITERACION.md`, integrado al flujo oficial de retoma y handoff
 
 ## Frente activo real al momento de este estado
@@ -68,6 +71,7 @@ El siguiente corte recomendado dentro de ese mismo frente pasa a ser este:
 - considerar cerrado el corte dual de portabilidad tenant
 - volver a `platform-core hardening + E2E`
 - con foco en `Provisioning` y DLQ
+- considerando ya cerrado también el subfrente de observabilidad visible en `Provisioning`
 
 ## Qué módulo se estaba construyendo
 
@@ -85,6 +89,7 @@ En otras palabras:
 - `business-core` y `maintenance` quedaron como foco de alineación transversal
 - luego el foco cambió a deploy, preflight y cutover productivo
 - ahora el foco pasa a endurecimiento operativo de `Provisioning` después de cerrar portabilidad tenant base
+- dentro de ese endurecimiento, el subfrente de observabilidad visible ya quedó cerrado; el siguiente candidato natural pasa a ser `requeue guiado`
 
 ## Qué ya quedó hecho
 

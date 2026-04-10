@@ -1,5 +1,25 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-10 - Provisioning observability visible staging+production
+
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega el subfrente de observabilidad visible con:
+  - snapshots recientes por tenant
+  - historial de alertas operativas persistidas
+  - filtros visibles de límite, worker profile, código de alerta y severidad
+- [platform-api.ts](/home/felipe/platform_paas/frontend/src/services/platform-api.ts) y [types.ts](/home/felipe/platform_paas/frontend/src/types.ts) suman contratos para `metrics/history` y `alerts/history`
+- [backend-control.ts](/home/felipe/platform_paas/frontend/e2e/support/backend-control.ts) soporta ahora `E2E_BACKEND_ENV_FILE`, útil para sembrar datos browser contra árboles publicados con env protegido
+- se agrega [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts)
+- validaciones cerradas:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test ... --list` OK
+  - `staging`: frontend publicado + smoke nuevo `1 passed`
+  - `production`: frontend publicado + smoke nuevo `1 passed`
+- hallazgo operativo:
+  - para published E2E sobre `staging` o `production`, puede hacer falta copiar el env real del servicio a `/tmp/...` y usar `E2E_BACKEND_ENV_FILE` si el `.env` original no es legible para el usuario que corre Playwright
+- siguiente paso:
+  - seguir dentro de `Provisioning/DLQ`
+  - abrir el subfrente de `requeue guiado`
+
 ## 2026-04-10 - Portabilidad tenant dual-mode y dual-surface publicada
 
 - se generaliza la portabilidad tenant para soportar dos modos visibles:

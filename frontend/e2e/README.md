@@ -71,6 +71,7 @@ Specs actuales:
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-investigation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-investigation.smoke.spec.ts)
+- [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-login-billing.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-login-billing.smoke.spec.ts)
 - [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
@@ -97,6 +98,7 @@ Variables de entorno:
 - usar `.env.e2e.example` como referencia
 - si tu demo local usa otro tenant o credenciales, sobreescribe `E2E_TENANT_*` y `E2E_PLATFORM_*`
 - si un smoke necesita sembrar datos contra un backend distinto al repo local, sobreescribe además `E2E_BACKEND_ROOT` y `E2E_BACKEND_PYTHON`
+- si además ese árbol publicado usa un env protegido no legible para tu usuario, sobreescribe `E2E_BACKEND_ENV_FILE` apuntando a una copia temporal legible del env real del servicio
 - si `Playwright` no encuentra su browser exacto, puedes apuntar `E2E_CHROMIUM_EXECUTABLE_PATH` a un `chromium` ya instalado
 - el baseline actualmente validado usa `empresa-bootstrap`, porque queda reservado como tenant estable para pruebas browser tenant
 - si tu entorno no tiene ese tenant o usa otra clave, sobreescribe `E2E_TENANT_*`
@@ -235,6 +237,7 @@ Notas:
 - el smoke [platform-admin-tenant-data-export.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenant-data-export.smoke.spec.ts) hoy valida el ciclo completo `export + dry_run + apply`
 - ese smoke prioriza `empresa-bootstrap` como tenant baseline para evitar falsos negativos si `condominio-demo` arrastra una credencial técnica desalineada en un entorno heredado
 - el smoke [tenant-portal-data-portability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-data-portability.smoke.spec.ts) ya quedó validado sobre `staging` y `production`
+- el smoke [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts) ya quedó validado sobre `staging` y `production`
 - el smoke de roles `platform_admin` crea un `admin` efímero, valida sus redirecciones/navegación visibles y luego crea un `support` efímero para congelar el modo solo lectura del bloque `Usuarios de plataforma`
 - el smoke de `Billing` crea un tenant efímero, siembra un evento `invoice.payment_failed` por backend-control y valida la lectura del workspace tenant más el reconcile individual sobre la fila persistida
 - el smoke batch de `Billing` crea un tenant efímero, siembra dos eventos persistidos del mismo filtro y valida `Reconciliar eventos filtrados` sobre el workspace tenant

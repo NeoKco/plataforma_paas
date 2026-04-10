@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-10
-- prioridad vigente: retomar el roadmap central después de cerrar operativamente el corte de `tenant data portability` con doble modo y doble superficie
+- prioridad vigente: seguir con `platform-core hardening + E2E` dentro de `Provisioning/DLQ` después de cerrar observabilidad visible
 
 ## Objetivo del próximo paso
 
@@ -32,7 +32,7 @@ El siguiente movimiento correcto ahora es volver a:
 - `platform-core hardening + E2E`
 - con foco en `Provisioning`
 - con foco en DLQ
-- con foco restante en recuperación fina, observabilidad visible y filtros DLQ dentro de `Provisioning`
+- con foco restante en recuperación fina y requeue guiado dentro de `Provisioning`
 
 ## Prioridad inmediata
 
@@ -75,7 +75,8 @@ Debe avanzar sobre:
 - recuperación / requeue / DLQ visibles
 - sin reabrir el salto `Tenants -> Provisioning`, que ya quedó validado
 - asumir cerrado el corte `Investigar en DLQ`
-- abrir el siguiente subfrente explícito dentro de `Provisioning`: DLQ individual, requeue guiado u observabilidad fina
+- asumir cerrado también el subfrente de observabilidad visible
+- abrir el siguiente subfrente explícito dentro de `Provisioning`: `requeue guiado`
 
 ## Orden exacto recomendado
 

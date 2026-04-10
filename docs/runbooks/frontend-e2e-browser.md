@@ -37,6 +37,7 @@ Archivos principales:
 - [platform-admin-provisioning-dlq.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-investigation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-investigation.smoke.spec.ts)
+- [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
 - [tenant-portal-finance-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit.smoke.spec.ts)
@@ -71,6 +72,7 @@ Cobertura actual:
 - requeue batch de filas DLQ filtradas desde `Provisioning` cuando el backend usa broker
 - filtros finos DLQ por texto de error y revisión de `delay/reset attempts` antes del requeue individual cuando el backend usa broker
 - navegación asistida desde `Fallos por código` y `Alertas activas` hacia el panel `Operación DLQ`, con prefill visible de filtros
+- observabilidad visible de `Provisioning` con snapshots recientes por tenant e historial de alertas persistidas
 - login `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
 - visibilidad del sidebar `tenant_portal` según `effective_enabled_modules`
@@ -164,6 +166,7 @@ Variables principales:
 - `E2E_TENANT_PASSWORD`
 - `E2E_BACKEND_ROOT`
 - `E2E_BACKEND_PYTHON`
+- `E2E_BACKEND_ENV_FILE`
 
 Baseline recomendado para desarrollo local:
 
@@ -178,6 +181,7 @@ Nota:
 - esas credenciales siguen siendo válidas para el baseline demo `empresa-bootstrap`
 - no describen el alta de tenants nuevos
 - desde `2026-04-08`, los smokes de `platform_admin` ya deben completar admin explícito en `Nuevo tenant`
+- desde `2026-04-10`, los smokes publicados que usan `backend-control` contra árboles como `/opt/platform_paas_staging` o `/opt/platform_paas` pueden además requerir `E2E_BACKEND_ENV_FILE` apuntando a una copia temporal legible del env real del servicio
 - el smoke más directo de esa regla ahora es:
   - [platform-admin-tenants-create-form.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-tenants-create-form.smoke.spec.ts)
   - puede correrse contra `staging` o `production` con `E2E_USE_EXISTING_FRONTEND=1`

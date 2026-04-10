@@ -30,9 +30,9 @@ Antes de cerrar una iteración relevante, pasar también por:
 ## Estado rápido vigente
 
 - fecha: 2026-04-10
-- foco activo: cierre de `tenant data portability` con doble modo y doble superficie
-- prioridad inmediata: dejar repo, documentación viva y handoff alineados al estado real, y luego retomar el roadmap central
-- módulo o frente activo: `platform-core` / portabilidad tenant
+- foco activo: `platform-core` sobre `Provisioning`, después de cerrar observabilidad visible
+- prioridad inmediata: dejar repo, documentación viva y handoff alineados al nuevo cierre y luego abrir el siguiente subfrente de `Provisioning/DLQ`
+- módulo o frente activo: `platform-core` / `Provisioning`
 
 ## Último contexto útil
 
@@ -76,6 +76,9 @@ Antes de cerrar una iteración relevante, pasar también por:
 - ya existe smoke browser `tenant-portal-data-portability`
 - el corte dual portable ya quedó desplegado y validado en `staging`
 - el corte dual portable ya quedó desplegado y validado en `production`
+- `Provisioning` ya expone observabilidad visible con snapshots recientes e historial de alertas
+- el smoke `platform-admin-provisioning-observability-history` ya quedó validado en `staging`
+- el smoke `platform-admin-provisioning-observability-history` ya quedó validado en `production`
 - `Tenants` ya abre `Provisioning` con `tenantSlug` precargado
 - `Provisioning` ya enfoca jobs, métricas, alertas y DLQ según ese tenant sin perder la consola global
 - ya existe smoke browser `platform-admin-tenant-provisioning-context`
@@ -96,7 +99,8 @@ El siguiente movimiento correcto es este:
 - mantener `production` estable
 - mantener `staging` como carril previo real
 - asumir cerrado el corte dual de portabilidad tenant-side y doble modo
-- volver al roadmap central de `Provisioning/DLQ`
+- asumir cerrado también el subfrente de observabilidad visible en `Provisioning`
+- volver al roadmap central de `Provisioning/DLQ` con foco en `requeue guiado`
 
 ## Archivos a leer justo después de este
 
@@ -123,6 +127,8 @@ El siguiente movimiento correcto es este:
 - smoke `platform-admin-tenant-data-export` en `production`: OK
 - smoke `tenant-portal-data-portability` en `staging`: OK
 - smoke `tenant-portal-data-portability` en `production`: OK
+- smoke `platform-admin-provisioning-observability-history` en `staging`: OK
+- smoke `platform-admin-provisioning-observability-history` en `production`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `staging`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `production`: OK
 - backend `unittest` del corte de portabilidad dual: OK (`294 tests`)

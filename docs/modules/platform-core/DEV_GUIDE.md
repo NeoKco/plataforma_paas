@@ -161,6 +161,7 @@ Cobertura actual:
 - requeue individual de filas DLQ desde `Provisioning` en entornos con backend `broker`
 - requeue batch de filas DLQ filtradas desde `Provisioning` en entornos con backend `broker`
 - filtros finos DLQ por texto de error y validación visible de `delay/reset attempts` antes del requeue individual en backend `broker`
+- observabilidad visible de `Provisioning` con snapshots recientes por tenant e historial de alertas operativas persistidas
 - enforcement visible de límites de usuarios activos en `tenant_portal` con overrides preparados de forma determinista
 - visibilidad backend-driven del sidebar `tenant_portal` según `effective_enabled_modules`
 - enforcement visible de límites de `finance.entries` en `tenant_portal` con overrides preparados de forma determinista

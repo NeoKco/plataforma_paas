@@ -2,6 +2,21 @@
 
 ## 2026-04-10
 
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) suma el subfrente de `observabilidad visible`, mostrando filtros y tablas de:
+  - snapshots recientes por tenant
+  - historial de alertas operativas persistidas
+  - reutilizando el foco tenant actual de `Provisioning`
+- [platform-api.ts](/home/felipe/platform_paas/frontend/src/services/platform-api.ts) y [types.ts](/home/felipe/platform_paas/frontend/src/types.ts) exponen los contratos frontend para `metrics/history` y `alerts/history`
+- [backend-control.ts](/home/felipe/platform_paas/frontend/e2e/support/backend-control.ts) acepta ahora `E2E_BACKEND_ENV_FILE`, útil para sembrar datos browser contra árboles publicados como `/opt/platform_paas_staging` o `/opt/platform_paas`
+- se agrega el smoke [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts) para fijar la lectura visible de snapshots recientes + historial de alertas en `Provisioning`
+- validación cerrada de este corte:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts --list` OK
+  - `staging`: frontend publicado + smoke nuevo `1 passed`
+  - `production`: frontend publicado + smoke nuevo `1 passed`
+- hallazgo operativo del cierre:
+  - cuando el árbol publicado protege su `.env` real, el smoke browser debe usar `E2E_BACKEND_ENV_FILE` apuntando a una copia temporal legible, por ejemplo en `/tmp`, para que `backend-control` siembre sobre el backend correcto sin depender de lectura directa sobre `/opt/.../.env*`
+
 - la portabilidad tenant deja de ofrecer un solo scope operativo y ahora soporta dos modos visibles en [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) y [TenantOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/overview/TenantOverviewPage.tsx):
   - `portable_full`
   - `functional_data_only`
