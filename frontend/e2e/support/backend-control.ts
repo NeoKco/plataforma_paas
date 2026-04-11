@@ -141,6 +141,13 @@ type SeededTenantCatalogRecord = {
   planCode: string | null;
 };
 
+type TenantCatalogRecord = {
+  tenantId: number;
+  tenantSlug: string;
+  status: string;
+  planCode: string | null;
+};
+
 function getRepoRoot() {
   const currentFilePath = fileURLToPath(import.meta.url);
   const currentDirPath = path.dirname(currentFilePath);
@@ -208,6 +215,10 @@ function runBackendPython(script: string, args: string[]) {
   }).trim();
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export function seedFailedProvisioningJob({
   tenantSlug,
   jobType = "sync_tenant_schema",
@@ -273,6 +284,62 @@ finally:
   ]);
 
   return JSON.parse(output) as SeededProvisioningJob;
+}
+
+export function getTenantCatalogRecord(tenantSlug: string): TenantCatalogRecord | null {
+  const script = `
+import json
+import sys
+
+from app.common.db.control_database import ControlSessionLocal
+from app.apps.platform_control.models.tenant import Tenant
+
+tenant_slug = sys.argv[1]
+
+db = ControlSessionLocal()
+try:
+    tenant = db.query(Tenant).filter(Tenant.slug == tenant_slug).first()
+    if tenant is None:
+        print("")
+    else:
+        print(json.dumps({
+            "tenantId": tenant.id,
+            "tenantSlug": tenant.slug,
+            "status": tenant.status,
+            "planCode": tenant.plan_code,
+        }))
+finally:
+    db.close()
+`;
+
+  const output = runBackendPython(script, [tenantSlug]);
+  if (!output) {
+    return null;
+  }
+  return JSON.parse(output) as TenantCatalogRecord;
+}
+
+export async function waitForTenantCatalogRecord(
+  tenantSlug: string,
+  {
+    timeoutMs = 10000,
+    intervalMs = 250,
+  }: {
+    timeoutMs?: number;
+    intervalMs?: number;
+  } = {}
+): Promise<TenantCatalogRecord> {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt <= timeoutMs) {
+    const record = getTenantCatalogRecord(tenantSlug);
+    if (record) {
+      return record;
+    }
+    await sleep(intervalMs);
+  }
+
+  throw new Error(`Tenant not found in catalog after ${timeoutMs}ms: ${tenantSlug}`);
 }
 
 export function seedProvisioningObservabilityHistory({
