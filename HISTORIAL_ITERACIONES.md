@@ -1,5 +1,18 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-10 - Helper published broker-only de staging
+
+- se agrega [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh)
+- el helper:
+  - copia `/opt/platform_paas_staging/.env.staging` a `/tmp/platform_paas_staging.env`
+  - valida `dispatch backend = broker`
+  - exporta `E2E_BASE_URL`, `E2E_BACKEND_ROOT`, `E2E_BACKEND_PYTHON` y `E2E_BACKEND_ENV_FILE`
+  - ejecuta smokes broker-only published con targets `all|batch|row|filters|guided|family`
+- validación real:
+  - `--help` OK
+  - `--target family` OK sobre `staging`
+- esto cierra la deuda operativa de tener que rearmar a mano el setup broker-only publicado en cada sesión
+
 ## 2026-04-10 - Provisioning DLQ family focus validado
 
 - `Provisioning` suma `familias DLQ visibles` y la acción broker-only `Enfocar familia`

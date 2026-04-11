@@ -162,6 +162,7 @@ Comandos útiles:
 - `npm run e2e`
 - `../../scripts/dev/run_local_browser_baseline.sh`
 - `../../scripts/dev/run_local_broker_dlq_baseline.sh`
+- `../../scripts/dev/run_staging_published_broker_dlq_smoke.sh`
 - `PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python /home/felipe/platform_paas/backend/app/scripts/cleanup_e2e_tenants.py --apply`
 
 ## Handoff rápido para otra IA
@@ -212,6 +213,13 @@ Baseline institucionalizado:
 - el smoke [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts) sirve precisamente para fijar esa lectura visible antes de correr los casos broker-only
 - el smoke [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts) valida además que la propia UI retire o reemplace acciones broker-only cuando el entorno publicado no usa `broker`
 - el smoke [platform-admin-provisioning-dlq-family-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts) valida el nuevo foco por familia DLQ; para published `staging` debe apuntar al árbol backend real con `E2E_BACKEND_ROOT=/opt/platform_paas_staging`, `E2E_BACKEND_PYTHON=/opt/platform_paas_staging/platform_paas_venv/bin/python` y `E2E_BACKEND_ENV_FILE=/tmp/platform_paas_staging.env`
+- ese setup publicado ya quedó encapsulado en [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh)
+- ejemplo corto:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family
+```
 - los escenarios broker-only quedan documentados y validados aparte cuando se necesite una pasada específica con Redis/broker real
 - para desarrollo local existe además [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh), que corre migraciones, siembra baseline, levanta backend si hace falta y ejecuta `build + e2e:platform + e2e:tenant`
 - ese helper local acepta además `--target all|platform|tenant`, útil para revalidar solo la mitad necesaria sin correr toda la baseline principal

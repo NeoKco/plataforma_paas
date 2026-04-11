@@ -30,8 +30,8 @@ Antes de cerrar una iteración relevante, pasar también por:
 ## Estado rápido vigente
 
 - fecha: 2026-04-10
-- foco activo: `platform-core` sobre `Provisioning`, después de cerrar `familias DLQ visibles + Enfocar familia`
-- prioridad inmediata: dejar repo, documentación viva y handoff alineados al nuevo cierre y luego encapsular mejor el setup published broker-only de `staging` o abrir el siguiente slice DLQ
+- foco activo: `platform-core` sobre `Provisioning`, después de cerrar el helper published broker-only de `staging`
+- prioridad inmediata: dejar repo, documentación viva y handoff alineados al nuevo cierre y luego abrir el siguiente slice funcional DLQ broker-only
 - módulo o frente activo: `platform-core` / `Provisioning`
 
 ## Último contexto útil
@@ -91,6 +91,8 @@ Antes de cerrar una iteración relevante, pasar también por:
 - `Provisioning` ya expone además `familias DLQ visibles` y `Enfocar familia` dentro del panel broker-only
 - el smoke `platform-admin-provisioning-dlq-family-focus` ya quedó validado en `staging`
 - en `production`, ese smoke broker-only queda `skipped` mientras el dispatch backend siga sin ser `broker`
+- ya existe el helper `scripts/dev/run_staging_published_broker_dlq_smoke.sh`
+- ese helper ya quedó validado con `--target family` en el staging publicado
 - `Tenants` ya abre `Provisioning` con `tenantSlug` precargado
 - `Provisioning` ya enfoca jobs, métricas, alertas y DLQ según ese tenant sin perder la consola global
 - ya existe smoke browser `platform-admin-tenant-provisioning-context`
@@ -101,7 +103,7 @@ Antes de cerrar una iteración relevante, pasar también por:
 ## Bloqueo actual
 
 - no hay bloqueo activo en este corte
-- la última corrección operativa fue usar `/opt/platform_paas_staging/.env.staging` como env real del servicio `staging` para los smokes publicados que siembran backend, copiándolo temporalmente a `/tmp/platform_paas_staging.env`
+- la última corrección operativa fue encapsular ese setup published broker-only en un helper reutilizable
 - el único detalle operativo adicional es de ejecución del agente: el smoke tenant-side puede requerir salir del sandbox si Chromium falla con `SIGTRAP`
 
 ## Siguiente acción inmediata
@@ -113,7 +115,8 @@ El siguiente movimiento correcto es este:
 - asumir cerrado el corte dual de portabilidad tenant-side y doble modo
 - asumir cerrado también el subfrente de `requeue guiado` en repo y `staging`
 - asumir cerrado también el subfrente `familias DLQ visibles`
-- volver al roadmap central de `Provisioning/DLQ` con foco en published broker-only estable: helper/setup corto o siguiente slice funcional
+- asumir cerrado también el helper published broker-only de `staging`
+- volver al roadmap central de `Provisioning/DLQ` con foco en el siguiente slice funcional broker-only
 
 ## Archivos a leer justo después de este
 

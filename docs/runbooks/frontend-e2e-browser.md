@@ -56,6 +56,7 @@ Archivos principales:
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
 - [tenant-portal-business-core-maintenance-import.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-business-core-maintenance-import.smoke.spec.ts)
+- [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh)
 
 ## Alcance inicial
 
@@ -187,6 +188,20 @@ Nota operativa para cortes broker-only de `Provisioning`:
   - `E2E_BACKEND_PYTHON=/opt/platform_paas_staging/platform_paas_venv/bin/python`
   - `E2E_BACKEND_ENV_FILE=/tmp/platform_paas_staging.env`
   - resultado validado actual: `staging -> 1 passed`, `production -> 1 skipped`
+- desde este corte ya no hace falta armar ese setup a mano; usar:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family
+```
+
+- targets soportados hoy por ese helper:
+  - `all`
+  - `batch`
+  - `row`
+  - `filters`
+  - `guided`
+  - `family`
 
 Baseline recomendado para desarrollo local:
 

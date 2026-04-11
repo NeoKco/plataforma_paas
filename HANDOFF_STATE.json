@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-10T20:56:26-04:00",
+  "updated_at": "2026-04-10T21:05:00-04:00",
   "handoff_status": "active",
-  "current_focus": "platform-core hardening + E2E sobre Provisioning/DLQ; requeue guiado, visibilidad del dispatch backend activo, gating visible de la superficie DLQ y familias DLQ visibles ya cerrados en repo, staging y production, y el siguiente subfrente recomendado pasa a endurecimiento published broker-only o a la siguiente profundizacion funcional sobre esa base",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side ya operativos, observabilidad visible de Provisioning ya publicada y validada, requeue guiado ya publicado, y la consola de Provisioning ya deja visible y alineada la superficie DLQ segun el dispatch backend activo del entorno con foco broker-only por familias",
+  "current_focus": "platform-core hardening + E2E sobre Provisioning/DLQ; requeue guiado, visibilidad del dispatch backend activo, gating visible de la superficie DLQ, familias DLQ visibles y helper published broker-only de staging ya cerrados, y el siguiente subfrente recomendado pasa al siguiente slice funcional broker-only sobre esa base",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side ya operativos, observabilidad visible de Provisioning ya publicada y validada, requeue guiado ya publicado, y la consola de Provisioning ya deja visible y alineada la superficie DLQ segun el dispatch backend activo del entorno con foco broker-only por familias y helper published para staging",
   "active_modules": [
     "platform-core",
     "finance",
@@ -39,7 +39,8 @@
     "requeue guiado en Provisioning ya quedo publicado y validado en staging; en production el frontend esta publicado pero el smoke broker-only se salta mientras el backend no resuelva como broker",
     "Provisioning debe exponer el dispatch backend activo del entorno para que la operacion y los smokes DLQ broker-only no dependan de inferencias externas",
     "la superficie DLQ visible debe alinearse al dispatch backend activo para no dejar acciones broker-only ambiguas en entornos database",
-    "las acciones in-page broker-only de Provisioning como Enfocar familia no deben ser revertidas por sincronizacion tardia URL -> estado local"
+    "las acciones in-page broker-only de Provisioning como Enfocar familia no deben ser revertidas por sincronizacion tardia URL -> estado local",
+    "el carril published broker-only de staging debe tener helper operativo propio; no conviene rearmarlo manualmente con E2E_BACKEND_* en cada sesion"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -138,10 +139,12 @@
     "smoke platform-admin-provisioning-dlq-family-focus validado en staging usando E2E_BACKEND_ROOT y E2E_BACKEND_ENV_FILE sobre el arbol publicado",
     "frontend production publicado con el corte Provisioning DLQ family focus",
     "smoke platform-admin-provisioning-dlq-family-focus skipped en production por dispatch backend no-broker",
+    "helper scripts/dev/run_staging_published_broker_dlq_smoke.sh agregado para encapsular el setup published broker-only de staging",
+    "helper staging published broker-only validado con --target family",
     "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
   ],
   "blocking_issues": [],
-  "next_decision_required": "definir si el siguiente corte concreto de platform-core hardening + E2E dentro de Provisioning/DLQ prioriza endurecimiento operativo del carril published broker-only con helper para E2E_BACKEND_* o si vuelve a profundizacion funcional broker-only sobre la nueva base de familias visibles",
+  "next_decision_required": "definir cual sera el siguiente slice funcional broker-only dentro de Provisioning/DLQ ahora que staging ya tiene helper published propio y que la capacidad, el gating y el foco por familia ya quedaron cerrados",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -151,9 +154,9 @@
     "asumir cerrada tambien la visibilidad del dispatch backend activo",
     "asumir cerrado tambien el gating visible de la superficie DLQ",
     "asumir cerrado tambien el subfrente familias DLQ visibles",
+    "asumir cerrado tambien el helper published broker-only de staging",
     "retomar platform-core hardening + E2E sobre Provisioning y DLQ",
-    "encapsular el setup published broker-only de staging para no depender manualmente de E2E_BACKEND_ROOT E2E_BACKEND_PYTHON y E2E_BACKEND_ENV_FILE en cada corrida",
-    "o abrir el siguiente subfrente de profundizacion broker-only usando la capacidad visible del entorno para decidir validacion"
+    "abrir el siguiente subfrente de profundizacion broker-only usando la capacidad visible del entorno, las familias visibles y el helper de staging para decidir y validar"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -267,6 +270,8 @@
     "platform_admin_provisioning_dlq_family_focus_staging_frontend_publish": "pass",
     "platform_admin_provisioning_dlq_family_focus_staging_smoke": "pass",
     "platform_admin_provisioning_dlq_family_focus_production_frontend_publish": "pass",
-    "platform_admin_provisioning_dlq_family_focus_production_smoke": "skipped_non_broker"
+    "platform_admin_provisioning_dlq_family_focus_production_smoke": "skipped_non_broker",
+    "staging_published_broker_dlq_helper_help": "pass",
+    "staging_published_broker_dlq_helper_family": "pass"
   }
 }

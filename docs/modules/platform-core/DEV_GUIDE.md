@@ -94,6 +94,7 @@ Documentación base:
 - Mapa de permisos: [permission-map.md](/home/felipe/platform_paas/docs/architecture/permission-map.md)
 - E2E browser: [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md)
 - Modelo de portabilidad tenant: [TENANT_DATA_PORTABILITY_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md)
+- Helper published broker-only staging: [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh)
 
 ## E2E vigente
 
@@ -173,6 +174,7 @@ Cobertura actual:
 - visibilidad explícita del `dispatch backend` activo dentro de `Provisioning`, para saber si el entorno opera hoy con `broker` o `database`
 - gating visible de la propia superficie `Operación DLQ` según el backend activo, retirando acciones broker-only cuando el entorno corre con `database`
 - resumen broker-only de `familias DLQ visibles` para agrupar el subconjunto por tenant, tipo de job y error antes de aplicar un foco operativo
+- helper published broker-only para `staging`, evitando rearmar manualmente `E2E_BACKEND_ROOT`, `E2E_BACKEND_PYTHON` y `E2E_BACKEND_ENV_FILE` en cada validación DLQ
 - enforcement visible de límites de usuarios activos en `tenant_portal` con overrides preparados de forma determinista
 - visibilidad backend-driven del sidebar `tenant_portal` según `effective_enabled_modules`
 - enforcement visible de límites de `finance.entries` en `tenant_portal` con overrides preparados de forma determinista

@@ -2,6 +2,15 @@
 
 ## 2026-04-10
 
+- se agrega el helper [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) para encapsular la validación published broker-only de `Provisioning/DLQ` sobre `staging`:
+  - copia el env real del servicio a `/tmp/platform_paas_staging.env`
+  - valida que `staging` siga corriendo con `dispatch backend = broker`
+  - exporta `E2E_BASE_URL`, `E2E_BACKEND_ROOT`, `E2E_BACKEND_PYTHON` y `E2E_BACKEND_ENV_FILE`
+  - ejecuta el target broker-only pedido (`batch`, `row`, `filters`, `guided`, `family` o `all`)
+- validación cerrada del helper:
+  - `scripts/dev/run_staging_published_broker_dlq_smoke.sh --help` OK
+  - `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family`: `1 passed`
+
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega el subfrente broker-only `familias DLQ visibles` dentro de `Operación DLQ`:
   - agrupa el subconjunto broker visible por `tenant + job_type + error`
   - expone tarjetas operativas con conteo, último registro y acción `Enfocar familia`
