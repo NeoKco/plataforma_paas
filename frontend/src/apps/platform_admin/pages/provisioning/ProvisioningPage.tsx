@@ -89,6 +89,17 @@ type DlqFamilySummary = {
   latestRecordedAt: string | null;
 };
 
+type DlqFamilyRecommendation = {
+  tone: "neutral" | "info" | "warning" | "success";
+  title: string;
+  detail: string;
+  bullets: string[];
+  primaryAction: "none" | "focus-single" | "focus-family" | "requeue-family" | "requeue-family-batch";
+  secondaryAction: "none" | "clear-selection" | "focus-family";
+  primaryFamilyKey: string | null;
+  secondaryFamilyKey: string | null;
+};
+
 export function ProvisioningPage() {
   const showDevelopmentBootstrapHelp = import.meta.env.DEV;
   const { session } = useAuth();
@@ -348,6 +359,117 @@ export function ProvisioningPage() {
           : "The selection is homogeneous by tenant and job type. You can requeue several visible families without mixing different operations.",
     };
   }, [language, selectedDlqFamilies]);
+
+  const dlqFamilyRecommendation = useMemo<DlqFamilyRecommendation>(() => {
+    if (selectedDlqFamilies.length >= 2 && dlqFamilyBatchSelection.isHomogeneous) {
+      return {
+        tone: "success",
+        title:
+          language === "es"
+            ? "Batch homogéneo listo"
+            : "Homogeneous batch ready",
+        detail:
+          language === "es"
+            ? "La selección visible ya está alineada por tenant y tipo de job. Puedes devolver varias familias a cola sin mezclar operaciones distintas."
+            : "The visible selection is already aligned by tenant and job type. You can put several families back in queue without mixing different operations.",
+        bullets: [
+          `${language === "es" ? "Familias seleccionadas" : "Selected families"}: ${selectedDlqFamilies.length}`,
+          `${language === "es" ? "Filas visibles totales" : "Total visible rows"}: ${dlqFamilyBatchSelection.totalRows}`,
+          `Tenant: ${dlqFamilyBatchSelection.tenantSlug || "n/a"}`,
+          `${language === "es" ? "Tipo de job" : "Job type"}: ${
+            dlqFamilyBatchSelection.jobType
+              ? formatProvisioningJobType(dlqFamilyBatchSelection.jobType)
+              : "n/a"
+          }`,
+        ],
+        primaryAction: "requeue-family-batch",
+        secondaryAction: "clear-selection",
+        primaryFamilyKey: null,
+        secondaryFamilyKey: null,
+      };
+    }
+
+    if (selectedDlqFamilies.length >= 2 && !dlqFamilyBatchSelection.isHomogeneous) {
+      return {
+        tone: "warning",
+        title: language === "es" ? "Selección mixta" : "Mixed selection",
+        detail:
+          language === "es"
+            ? "La selección visible mezcla tenants o tipos de job. Limpia la selección o deja solo una familia homogénea antes de ejecutar un requeue."
+            : "The visible selection mixes tenants or job types. Clear the selection or keep only one homogeneous family before requeueing.",
+        bullets: [
+          `${language === "es" ? "Familias seleccionadas" : "Selected families"}: ${selectedDlqFamilies.length}`,
+          `${language === "es" ? "Filas visibles totales" : "Total visible rows"}: ${dlqFamilyBatchSelection.totalRows}`,
+        ],
+        primaryAction: "none",
+        secondaryAction: "clear-selection",
+        primaryFamilyKey: null,
+        secondaryFamilyKey: null,
+      };
+    }
+
+    const recommendedFamily =
+      selectedDlqFamilies[0] || (dlqFamilySummaries.length === 1 ? dlqFamilySummaries[0] : null);
+
+    if (recommendedFamily) {
+      const isSingleRowFamily = recommendedFamily.totalRows === 1;
+      return {
+        tone: "info",
+        title: isSingleRowFamily
+          ? language === "es"
+            ? "Fila única sugerida"
+            : "Single-row suggestion"
+          : language === "es"
+            ? "Familia sugerida"
+            : "Family suggestion",
+        detail: isSingleRowFamily
+          ? language === "es"
+            ? "Esta familia visible tiene una sola fila. Conviene enfocarla primero para dejar listo el requeue puntual con el menor radio de impacto."
+            : "This visible family has a single row. It is better to focus it first so the one-off requeue is ready with the smallest blast radius."
+          : language === "es"
+            ? "Esta familia visible ya está aislada y contiene varias filas del mismo patrón. Conviene operarla como familia en vez de volver al lote completo."
+            : "This visible family is already isolated and contains several rows from the same pattern. It is better to operate it as a family instead of going back to the full batch.",
+        bullets: [
+          `Tenant: ${recommendedFamily.tenantSlug}`,
+          `${language === "es" ? "Tipo de job" : "Job type"}: ${formatProvisioningJobType(
+            recommendedFamily.jobType
+          )}`,
+          `${language === "es" ? "Error" : "Error"}: ${recommendedFamily.errorLabel}`,
+          `${language === "es" ? "Filas visibles de la familia" : "Visible family rows"}: ${recommendedFamily.totalRows}`,
+        ],
+        primaryAction: isSingleRowFamily ? "focus-single" : "requeue-family",
+        secondaryAction: isSingleRowFamily ? "none" : "focus-family",
+        primaryFamilyKey: recommendedFamily.key,
+        secondaryFamilyKey: isSingleRowFamily ? null : recommendedFamily.key,
+      };
+    }
+
+    return {
+      tone: "neutral",
+      title:
+        language === "es"
+          ? "Selecciona una familia visible"
+          : "Select a visible family",
+      detail:
+        language === "es"
+          ? "Todavía no hay una recomendación operativa cerrada. El siguiente paso sano es aislar una familia visible o armar un batch homogéneo."
+          : "There is no closed operational recommendation yet. The safe next step is to isolate one visible family or build a homogeneous batch.",
+      bullets: [
+        `${language === "es" ? "Familias visibles" : "Visible families"}: ${dlqFamilySummaries.length}`,
+        `${language === "es" ? "Filas visibles" : "Visible rows"}: ${filteredDlqRows.length}`,
+      ],
+      primaryAction: "none",
+      secondaryAction: "none",
+      primaryFamilyKey: null,
+      secondaryFamilyKey: null,
+    };
+  }, [
+    dlqFamilyBatchSelection,
+    dlqFamilySummaries,
+    filteredDlqRows.length,
+    language,
+    selectedDlqFamilies,
+  ]);
 
   const dlqGuidance = useMemo(() => {
     const tenantLabels = Array.from(
@@ -1225,6 +1347,13 @@ export function ProvisioningPage() {
         };
       },
     });
+  }
+
+  function findDlqFamilyByKey(familyKey: string | null) {
+    if (!familyKey) {
+      return null;
+    }
+    return dlqFamilySummaries.find((family) => family.key === familyKey) || null;
   }
 
   function handleSingleRequeue(jobId: number) {
@@ -2566,6 +2695,113 @@ export function ProvisioningPage() {
                     </div>
                   </div>
                   <div
+                    data-testid="provisioning-dlq-family-recommendation"
+                    style={{
+                      display: "grid",
+                      gap: "0.5rem",
+                      padding: "0.875rem",
+                      border: "1px dashed var(--border-subtle, #d7deed)",
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <strong>
+                        {language === "es"
+                          ? "Plan operativo sugerido"
+                          : "Suggested operational plan"}
+                      </strong>
+                      <AppBadge tone={dlqFamilyRecommendation.tone}>
+                        {dlqFamilyRecommendation.title}
+                      </AppBadge>
+                    </div>
+                    <p className="mb-0">{dlqFamilyRecommendation.detail}</p>
+                    <ul className="mb-0 ps-3">
+                      {dlqFamilyRecommendation.bullets.map((detail) => (
+                        <li key={detail}>{detail}</li>
+                      ))}
+                    </ul>
+                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                      {dlqFamilyRecommendation.primaryAction === "focus-single" &&
+                      dlqFamilyRecommendation.primaryFamilyKey ? (
+                        <button
+                          type="button"
+                          data-testid="provisioning-dlq-family-recommendation-primary"
+                          className="btn btn-sm btn-primary"
+                          onClick={() => {
+                            const family = findDlqFamilyByKey(dlqFamilyRecommendation.primaryFamilyKey);
+                            if (family) {
+                              handleDlqFamilyFocus(family);
+                            }
+                          }}
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es" ? "Enfocar fila sugerida" : "Focus suggested row"}
+                        </button>
+                      ) : null}
+                      {dlqFamilyRecommendation.primaryAction === "requeue-family" &&
+                      dlqFamilyRecommendation.primaryFamilyKey ? (
+                        <button
+                          type="button"
+                          data-testid="provisioning-dlq-family-recommendation-primary"
+                          className="btn btn-sm btn-primary"
+                          onClick={() => {
+                            const family = findDlqFamilyByKey(dlqFamilyRecommendation.primaryFamilyKey);
+                            if (family) {
+                              handleDlqFamilyRequeue(family);
+                            }
+                          }}
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es"
+                            ? "Reencolar familia sugerida"
+                            : "Requeue suggested family"}
+                        </button>
+                      ) : null}
+                      {dlqFamilyRecommendation.primaryAction === "requeue-family-batch" ? (
+                        <button
+                          type="button"
+                          data-testid="provisioning-dlq-family-recommendation-primary"
+                          className="btn btn-sm btn-primary"
+                          onClick={handleDlqFamilyBatchRequeue}
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es"
+                            ? "Reencolar batch sugerido"
+                            : "Requeue suggested batch"}
+                        </button>
+                      ) : null}
+                      {dlqFamilyRecommendation.secondaryAction === "focus-family" &&
+                      dlqFamilyRecommendation.secondaryFamilyKey ? (
+                        <button
+                          type="button"
+                          data-testid="provisioning-dlq-family-recommendation-secondary"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => {
+                            const family = findDlqFamilyByKey(dlqFamilyRecommendation.secondaryFamilyKey);
+                            if (family) {
+                              handleDlqFamilyFocus(family);
+                            }
+                          }}
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es" ? "Enfocar familia sugerida" : "Focus suggested family"}
+                        </button>
+                      ) : null}
+                      {dlqFamilyRecommendation.secondaryAction === "clear-selection" ? (
+                        <button
+                          type="button"
+                          data-testid="provisioning-dlq-family-recommendation-secondary"
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={handleClearDlqFamilySelection}
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es" ? "Limpiar selección" : "Clear selection"}
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div
                     style={{
                       display: "grid",
                       gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
@@ -2606,6 +2842,22 @@ export function ProvisioningPage() {
                           <strong>{family.tenantSlug}</strong>
                         </div>
                         <div>{formatProvisioningJobType(family.jobType)}</div>
+                        <div style={{ color: "var(--text-muted, #51607a)", fontSize: "0.9rem" }}>
+                          {language === "es" ? "Acción sugerida" : "Suggested action"}:{" "}
+                          {selectedDlqFamilyKeys.includes(family.key) &&
+                          selectedDlqFamilies.length >= 2 &&
+                          dlqFamilyBatchSelection.isHomogeneous
+                            ? language === "es"
+                              ? "incluida en batch homogéneo"
+                              : "included in homogeneous batch"
+                            : family.totalRows === 1
+                              ? language === "es"
+                                ? "foco fino o requeue puntual"
+                                : "fine focus or single requeue"
+                              : language === "es"
+                                ? "requeue por familia"
+                                : "family requeue"}
+                        </div>
                         <div style={{ color: "var(--text-muted, #51607a)" }}>{family.errorLabel}</div>
                         <div style={{ color: "var(--text-muted, #51607a)", fontSize: "0.9rem" }}>
                           {language === "es" ? "Último registro" : "Latest record"}:{" "}
