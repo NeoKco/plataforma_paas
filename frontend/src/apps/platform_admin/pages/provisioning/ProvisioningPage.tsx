@@ -1044,6 +1044,49 @@ export function ProvisioningPage() {
     });
   }
 
+  function handleDlqFamilyRequeue(family: DlqFamilySummary) {
+    if (!session?.accessToken) {
+      return;
+    }
+
+    const normalizedErrorCode = family.errorCode || "";
+    const normalizedErrorContains = family.errorCode ? "" : family.errorContains || "";
+
+    setPendingConfirmation({
+      scope: "requeue-dlq-family",
+      title:
+        language === "es"
+          ? `Reencolar familia DLQ: ${family.tenantSlug}`
+          : `Requeue DLQ family: ${family.tenantSlug}`,
+      description:
+        language === "es"
+          ? "Esta acción devuelve a cola solo la familia DLQ visible seleccionada, sin mezclar otras filas del subconjunto actual."
+          : "This action puts back in queue only the selected visible DLQ family, without mixing other rows from the current subset.",
+      details: [
+        `Tenant: ${family.tenantSlug}`,
+        `${language === "es" ? "Tipo de job" : "Job type"}: ${formatProvisioningJobType(family.jobType)}`,
+        `${language === "es" ? "Error" : "Error"}: ${family.errorLabel}`,
+        `${language === "es" ? "Filas visibles de la familia" : "Visible family rows"}: ${family.totalRows}`,
+        `${language === "es" ? "Resetear intentos" : "Reset attempts"}: ${
+          dlqResetAttempts ? (language === "es" ? "sí" : "yes") : "no"
+        }`,
+        `${language === "es" ? "Demora antes de reencolar" : "Delay before requeue"}: ${parseNonNegativeInteger(dlqDelaySeconds, 0)} s`,
+      ],
+      confirmLabel:
+        language === "es" ? "Reencolar familia" : "Requeue family",
+      action: () =>
+        requeueProvisioningBrokerDlq(session.accessToken, {
+          limit: parsePositiveInteger(dlqLimit, 25),
+          job_type: family.jobType,
+          tenant_slug: family.tenantSlug,
+          error_code: normalizedErrorCode || null,
+          error_contains: normalizedErrorContains || null,
+          reset_attempts: dlqResetAttempts,
+          delay_seconds: parseNonNegativeInteger(dlqDelaySeconds, 0),
+        }),
+    });
+  }
+
   function handleSingleRequeue(jobId: number) {
     if (!session?.accessToken) {
       return;
@@ -2360,7 +2403,13 @@ export function ProvisioningPage() {
                           {language === "es" ? "Último registro" : "Latest record"}:{" "}
                           {formatDateTime(family.latestRecordedAt)}
                         </div>
-                        <div>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "0.5rem",
+                            flexWrap: "wrap",
+                          }}
+                        >
                           <button
                             type="button"
                             data-testid="provisioning-dlq-family-focus"
@@ -2369,6 +2418,15 @@ export function ProvisioningPage() {
                             disabled={isActionSubmitting}
                           >
                             {language === "es" ? "Enfocar familia" : "Focus family"}
+                          </button>
+                          <button
+                            type="button"
+                            data-testid="provisioning-dlq-family-requeue"
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={() => handleDlqFamilyRequeue(family)}
+                            disabled={isActionSubmitting}
+                          >
+                            {language === "es" ? "Reencolar familia" : "Requeue family"}
                           </button>
                         </div>
                       </div>

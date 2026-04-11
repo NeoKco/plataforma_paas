@@ -763,6 +763,51 @@ Para nuevas entradas usar:
 - se creó y documentó el cutover productivo recomendado
 - se dejó explícito que el remanente editorial de frontend pasa a backlog no bloqueante
 
+## 2026-04-10 — Hotfix de portabilidad tenant y traspaso funcional `empresa-demo -> ieris-ltda`
+
+### Objetivo
+
+- copiar todos los datos funcionales de `empresa-demo` hacia `ieris-ltda`
+- usar el flujo portable oficial en vez de una copia manual directa
+- corregir cualquier bug real detectado durante la operación
+
+### Cambios principales
+
+- se ejecuta export real `functional_data_only` desde `empresa-demo`
+- se ejecuta `dry_run` y luego `apply` real hacia `ieris-ltda`
+- el primer `apply` falla por FK faltante hacia `maintenance_equipment_types`
+- se inspeccionan dependencias reales y se amplía [tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_data_portability_service.py) para incluir:
+  - `maintenance_equipment_types`
+  - `finance_beneficiaries`
+  - `finance_people`
+  - `finance_projects`
+- el segundo `apply` revela otra falla real: `skip_existing` solo evitaba colisiones por PK
+- se endurece el import portable para omitir también filas ya existentes por constraints únicos simples o compuestos
+- se agrega cobertura de regresión en [test_tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_data_portability_service.py)
+- se sincroniza el hotfix y la documentación a `/opt/platform_paas` y `/opt/platform_paas_staging`
+- se reinicia `platform-paas-backend` y se reintenta la carga con éxito
+
+### Validaciones
+
+- repo:
+  - `python -m unittest app.tests.test_tenant_data_portability_service -v`: `OK (9 tests)`
+- producción:
+  - mismo `unittest` sobre `/opt/platform_paas/backend`: `OK (9 tests)`
+  - `https://orkestia.ddns.net/health`: `OK`
+  - import real `empresa-demo -> ieris-ltda`: `OK`
+
+### Bloqueos
+
+- no queda bloqueo activo
+- como deuda futura, el `dry_run` todavía puede endurecerse más para anticipar más fallos de `apply`
+
+### Siguiente paso
+
+- cerrar este frente como resuelto
+- volver al roadmap central de `platform-core`, retomando el siguiente slice de `Provisioning/DLQ`
+
+---
+
 ### Validaciones
 
 - baseline backend: OK

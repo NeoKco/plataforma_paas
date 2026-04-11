@@ -137,6 +137,18 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
             connection.execute(
                 text(
                     """
+                    CREATE TABLE finance_categories (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        category_type TEXT NOT NULL,
+                        UNIQUE (name, category_type)
+                    )
+                    """
+                )
+            )
+            connection.execute(
+                text(
+                    """
                     INSERT INTO tenant_info (id, legal_name, timezone)
                     VALUES (1, 'Empresa Demo', 'America/Santiago')
                     """
@@ -155,6 +167,14 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
                     """
                     INSERT INTO business_clients (id, legal_name, tax_id)
                     VALUES (1, 'Cliente Uno', '76.123.456-7')
+                    """
+                )
+            )
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO finance_categories (id, name, category_type)
+                    VALUES (10, 'Transferencia interna', 'transfer')
                     """
                 )
             )
@@ -192,6 +212,26 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
                         legal_name TEXT,
                         tax_id TEXT
                     )
+                    """
+                )
+            )
+            connection.execute(
+                text(
+                    """
+                    CREATE TABLE finance_categories (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        category_type TEXT NOT NULL,
+                        UNIQUE (name, category_type)
+                    )
+                    """
+                )
+            )
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO finance_categories (id, name, category_type)
+                    VALUES (77, 'Transferencia interna', 'transfer')
                     """
                 )
             )
@@ -273,7 +313,10 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
                 manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
                 self.assertEqual(manifest["export_scope"], "functional_data_only")
                 exported_table_names = {item["table_name"] for item in manifest["tables"]}
-                self.assertEqual(exported_table_names, {"business_clients"})
+                self.assertEqual(
+                    exported_table_names,
+                    {"business_clients", "finance_categories"},
+                )
 
     def test_create_import_job_dry_run_validates_without_writing_rows(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -402,6 +445,54 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
 
             self.assertEqual(user_count, 0)
             self.assertEqual(client_count, 1)
+
+    def test_create_import_job_apply_skips_existing_unique_business_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            _job, artifact, artifact_path = self._create_export_package(tmpdir)
+            import_job = self.service.create_import_job(
+                self.control_db,
+                tenant_id=self.target_tenant.id,
+                requested_by_email="admin@platform.local",
+                package_bytes=artifact_path.read_bytes(),
+                package_file_name=artifact.file_name,
+                dry_run=False,
+            )
+
+            persisted_job = self.service.get_import_job(
+                self.control_db,
+                tenant_id=self.target_tenant.id,
+                job_id=import_job.id,
+            )
+            summary = json.loads(persisted_job.summary_json or "{}")
+            table_summaries = {
+                item["table_name"]: item for item in summary["tables"]
+            }
+            self.assertEqual(table_summaries["finance_categories"]["existing_rows"], 1)
+            self.assertEqual(table_summaries["finance_categories"]["inserted_rows"], 0)
+
+            target_db = self.target_session_factory()
+            try:
+                category_count = target_db.execute(
+                    text("SELECT COUNT(*) FROM finance_categories")
+                ).scalar()
+            finally:
+                target_db.close()
+
+            self.assertEqual(category_count, 1)
+
+    def test_functional_scope_includes_required_support_tables(self) -> None:
+        required_tables = {
+            "maintenance_equipment_types",
+            "finance_beneficiaries",
+            "finance_people",
+            "finance_projects",
+        }
+        self.assertTrue(
+            required_tables.issubset(set(self.service.PORTABLE_FULL_TABLES))
+        )
+        self.assertTrue(
+            required_tables.issubset(set(self.service.FUNCTIONAL_DATA_ONLY_TABLES))
+        )
 
     def test_create_export_job_rejects_tenant_without_db_configuration(self) -> None:
         tenant = Tenant(

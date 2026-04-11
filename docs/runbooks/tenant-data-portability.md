@@ -66,6 +66,12 @@ Según el scope:
   incluye identidad tenant, roles, usuarios y datos funcionales soportados
 - `functional_data_only`
   excluye identidad tenant, roles y usuarios
+  pero sí conserva catálogos y tablas de soporte necesarias para respetar FKs funcionales
+  por ejemplo:
+  - `maintenance_equipment_types`
+  - `finance_beneficiaries`
+  - `finance_people`
+  - `finance_projects`
 
 Tablas ausentes:
 
@@ -112,6 +118,7 @@ Reglas operativas:
 - el `manifest` puede venir con `export_scope=portable_full`, `functional_data_only` o `portable_minimum` heredado
 - la estrategia inicial es `skip_existing`
 - la importación no reemplaza filas existentes
+- `skip_existing` hoy evita colisiones tanto por PK como por constraints únicos simples/compuestos ya presentes en el tenant destino
 
 ## Estado actual del frente
 
@@ -129,6 +136,7 @@ Reglas operativas:
 
 - el deploy backend debe crear y dejar escribible `TENANT_DATA_EXPORT_ARTIFACTS_DIR` para el usuario real del servicio
 - el import no debe insertar strings crudos desde CSV en columnas tipadas
+- los scopes portables deben incluir también tablas de soporte referenciadas por FK desde tablas funcionales; si no, el `dry_run` puede verse sano pero el `apply` fallará en runtime
 - el import actual ya convierte por tipo de columna al menos:
   - boolean
   - integer

@@ -103,6 +103,17 @@
 - hallazgo operativo del cierre:
   - en este entorno de agente, el smoke browser tenant-side puede fallar al lanzar Chromium dentro del sandbox con `SIGTRAP`; la reejecución fuera de sandbox dejó ambos entornos verdes sin cambios funcionales adicionales
 
+# 2026-04-10
+
+- hotfix de portabilidad tenant: [tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_data_portability_service.py) amplía `PORTABLE_FULL_TABLES` y `FUNCTIONAL_DATA_ONLY_TABLES` para incluir tablas de soporte con FK reales:
+  - `maintenance_equipment_types`
+  - `finance_beneficiaries`
+  - `finance_people`
+  - `finance_projects`
+- el import portable `skip_existing` deja además de depender solo de PK y pasa a omitir también filas que ya existen por constraints únicos simples o compuestos, evitando fallos reales como `uq_finance_categories_name_type`
+- se agrega cobertura de regresión en [test_tenant_data_portability_service.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_data_portability_service.py) para impedir que esos catálogos vuelvan a quedar fuera del contrato portable
+- origen del hotfix: un import real `empresa-demo -> ieris-ltda` con `functional_data_only` falló en `apply` porque `maintenance_installations.equipment_type_id` referenciaba `maintenance_equipment_types` fuera del paquete; el mismo análisis detectó además referencias de `finance_transactions` hacia `finance_beneficiaries`, `finance_people` y `finance_projects`
+
 ## 2026-04-09
 
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega la acción visible `Investigar en DLQ` dentro de `Fallos por código` y `Alertas activas`, precargando filtros DLQ, enfocando el tenant asociado y desplazando la lectura hacia el panel operativo correspondiente

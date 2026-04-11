@@ -58,6 +58,11 @@ Regla cerrada:
 - excluye identidad tenant
 - excluye roles y usuarios
 - deja solo datos funcionales soportados por dominio
+- incluye además catálogos de soporte requeridos por FK desde esos datos funcionales
+  - `maintenance_equipment_types`
+  - `finance_beneficiaries`
+  - `finance_people`
+  - `finance_projects`
 
 ### Compatibilidad heredada
 

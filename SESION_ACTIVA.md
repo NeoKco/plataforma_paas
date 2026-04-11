@@ -30,9 +30,9 @@ Antes de cerrar una iteración relevante, pasar también por:
 ## Estado rápido vigente
 
 - fecha: 2026-04-10
-- foco activo: `platform-core` sobre `Provisioning`, después de cerrar el helper published broker-only de `staging`
-- prioridad inmediata: dejar repo, documentación viva y handoff alineados al nuevo cierre y luego abrir el siguiente slice funcional DLQ broker-only
-- módulo o frente activo: `platform-core` / `Provisioning`
+- foco activo: hotfix de `tenant data portability` ya cerrado tras copiar datos funcionales `empresa-demo -> ieris-ltda`
+- prioridad inmediata: dejar handoff alineado a ese cierre y volver al roadmap central de `platform-core` sobre `Provisioning/DLQ`
+- módulo o frente activo: `platform-core` / `tenant data portability`
 
 ## Último contexto útil
 
@@ -93,6 +93,11 @@ Antes de cerrar una iteración relevante, pasar también por:
 - en `production`, ese smoke broker-only queda `skipped` mientras el dispatch backend siga sin ser `broker`
 - ya existe el helper `scripts/dev/run_staging_published_broker_dlq_smoke.sh`
 - ese helper ya quedó validado con `--target family` en el staging publicado
+- el flujo portable real `empresa-demo -> ieris-ltda` ya quedó ejecutado con `functional_data_only`
+- durante esa operación se corrigieron dos bugs reales del servicio portable:
+  - faltaban tablas soporte por FK en el scope funcional
+  - `skip_existing` no respetaba constraints únicos de negocio
+- `ieris-ltda` ya quedó poblado con los datos funcionales operativos de `empresa-demo`
 - `Tenants` ya abre `Provisioning` con `tenantSlug` precargado
 - `Provisioning` ya enfoca jobs, métricas, alertas y DLQ según ese tenant sin perder la consola global
 - ya existe smoke browser `platform-admin-tenant-provisioning-context`
@@ -103,7 +108,7 @@ Antes de cerrar una iteración relevante, pasar también por:
 ## Bloqueo actual
 
 - no hay bloqueo activo en este corte
-- la última corrección operativa fue encapsular ese setup published broker-only en un helper reutilizable
+- la última corrección operativa fue endurecer portabilidad tenant y completar la copia funcional real hacia `ieris-ltda`
 - el único detalle operativo adicional es de ejecución del agente: el smoke tenant-side puede requerir salir del sandbox si Chromium falla con `SIGTRAP`
 
 ## Siguiente acción inmediata
@@ -112,7 +117,7 @@ El siguiente movimiento correcto es este:
 
 - mantener `production` estable
 - mantener `staging` como carril previo real
-- asumir cerrado el corte dual de portabilidad tenant-side y doble modo
+- asumir cerrado el corte dual de portabilidad tenant-side y este hotfix operativo adicional
 - asumir cerrado también el subfrente de `requeue guiado` en repo y `staging`
 - asumir cerrado también el subfrente `familias DLQ visibles`
 - asumir cerrado también el helper published broker-only de `staging`
@@ -131,6 +136,7 @@ El siguiente movimiento correcto es este:
 - `platform-paas-backend`: activo en `systemd`
 - `GET http://127.0.0.1:8000/health`: OK
 - `GET https://orkestia.ddns.net/health` validado por resolución local: OK
+- import real `empresa-demo -> ieris-ltda` con `functional_data_only`: OK
 - frontend static preflight en `/opt/platform_paas`: OK
 - smoke remoto público `all` en `https://orkestia.ddns.net`: OK (`7/7`)
 - backend staging en `/opt/platform_paas_staging`: desplegado

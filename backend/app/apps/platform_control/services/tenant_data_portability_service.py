@@ -79,13 +79,17 @@ class TenantDataPortabilityService:
         "business_sites",
         "business_task_types",
         "business_work_groups",
+        "maintenance_equipment_types",
         "maintenance_installations",
         "maintenance_schedules",
         "maintenance_due_items",
         "maintenance_work_orders",
         "finance_accounts",
+        "finance_beneficiaries",
         "finance_categories",
         "finance_currencies",
+        "finance_people",
+        "finance_projects",
         "finance_transactions",
     )
     FUNCTIONAL_DATA_ONLY_TABLES = tuple(
@@ -696,6 +700,12 @@ class TenantDataPortabilityService:
             MetaData(),
             autoload_with=tenant_connection,
         )
+        unique_constraints = self._get_table_unique_constraints(inspector, table_name)
+        unique_values_by_constraint = self._load_existing_unique_values(
+            tenant_connection,
+            reflected_table,
+            unique_constraints,
+        )
         prepared_rows: list[dict[str, object]] = []
         existing_pk_values = {
             row[0] for row in tenant_connection.execute(select(reflected_table.c[pk_name]))
@@ -716,7 +726,20 @@ class TenantDataPortabilityService:
             if prepared[pk_name] in existing_pk_values:
                 existing_rows += 1
                 continue
+            if self._row_matches_existing_unique_constraint(
+                prepared,
+                unique_constraints,
+                unique_values_by_constraint,
+            ):
+                existing_rows += 1
+                continue
             prepared_rows.append(prepared)
+            existing_pk_values.add(prepared[pk_name])
+            self._register_row_unique_values(
+                prepared,
+                unique_constraints,
+                unique_values_by_constraint,
+            )
             insertable_rows += 1
 
         inserted_rows = 0
@@ -814,3 +837,74 @@ class TenantDataPortabilityService:
                     break
                 digest.update(chunk)
         return digest.hexdigest()
+
+    def _get_table_unique_constraints(self, inspector, table_name: str) -> list[tuple[str, ...]]:
+        constraints: list[tuple[str, ...]] = []
+        seen: set[tuple[str, ...]] = set()
+
+        for item in inspector.get_unique_constraints(table_name) or []:
+            columns = tuple(item.get("column_names") or [])
+            if columns and columns not in seen:
+                seen.add(columns)
+                constraints.append(columns)
+
+        for item in inspector.get_indexes(table_name) or []:
+            if not item.get("unique"):
+                continue
+            columns = tuple(item.get("column_names") or [])
+            if columns and columns not in seen:
+                seen.add(columns)
+                constraints.append(columns)
+
+        return constraints
+
+    def _load_existing_unique_values(
+        self,
+        tenant_connection,
+        reflected_table: Table,
+        unique_constraints: list[tuple[str, ...]],
+    ) -> dict[tuple[str, ...], set[tuple[object, ...]]]:
+        existing: dict[tuple[str, ...], set[tuple[object, ...]]] = {}
+        for columns in unique_constraints:
+            if any(column_name not in reflected_table.c for column_name in columns):
+                continue
+            result = tenant_connection.execute(
+                select(*(reflected_table.c[column_name] for column_name in columns))
+            )
+            values = {
+                tuple(row)
+                for row in result
+                if all(value is not None for value in tuple(row))
+            }
+            existing[columns] = values
+        return existing
+
+    def _row_matches_existing_unique_constraint(
+        self,
+        prepared_row: dict[str, object],
+        unique_constraints: list[tuple[str, ...]],
+        unique_values_by_constraint: dict[tuple[str, ...], set[tuple[object, ...]]],
+    ) -> bool:
+        for columns in unique_constraints:
+            if any(column_name not in prepared_row for column_name in columns):
+                continue
+            candidate = tuple(prepared_row[column_name] for column_name in columns)
+            if any(value is None for value in candidate):
+                continue
+            if candidate in unique_values_by_constraint.get(columns, set()):
+                return True
+        return False
+
+    def _register_row_unique_values(
+        self,
+        prepared_row: dict[str, object],
+        unique_constraints: list[tuple[str, ...]],
+        unique_values_by_constraint: dict[tuple[str, ...], set[tuple[object, ...]]],
+    ) -> None:
+        for columns in unique_constraints:
+            if any(column_name not in prepared_row for column_name in columns):
+                continue
+            candidate = tuple(prepared_row[column_name] for column_name in columns)
+            if any(value is None for value in candidate):
+                continue
+            unique_values_by_constraint.setdefault(columns, set()).add(candidate)

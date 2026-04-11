@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-10T21:05:00-04:00",
+  "updated_at": "2026-04-10T23:10:00-04:00",
   "handoff_status": "active",
-  "current_focus": "platform-core hardening + E2E sobre Provisioning/DLQ; requeue guiado, visibilidad del dispatch backend activo, gating visible de la superficie DLQ, familias DLQ visibles y helper published broker-only de staging ya cerrados, y el siguiente subfrente recomendado pasa al siguiente slice funcional broker-only sobre esa base",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side ya operativos, observabilidad visible de Provisioning ya publicada y validada, requeue guiado ya publicado, y la consola de Provisioning ya deja visible y alineada la superficie DLQ segun el dispatch backend activo del entorno con foco broker-only por familias y helper published para staging",
+  "current_focus": "hotfix operativo de tenant data portability ya cerrado despues de transferir datos funcionales empresa-demo -> ieris-ltda; el servicio portable ya considera tablas soporte por FK y colisiones por constraints unicos, y el siguiente frente recomendado vuelve a Provisioning/DLQ broker-only",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, y Provisioning listo para retomar el siguiente slice broker-only",
   "active_modules": [
     "platform-core",
     "finance",
@@ -43,6 +43,11 @@
     "el carril published broker-only de staging debe tener helper operativo propio; no conviene rearmarlo manualmente con E2E_BACKEND_* en cada sesion"
   ],
   "completed_recently": [
+    "transferencia funcional real empresa-demo -> ieris-ltda completada con functional_data_only",
+    "tenant_data_portability_service ampliado para incluir tablas soporte por FK: maintenance_equipment_types finance_beneficiaries finance_people finance_projects",
+    "tenant_data_portability_service endurecido para que skip_existing también omita filas ya existentes por constraints únicos simples o compuestos",
+    "backend unittest de portabilidad actualizado y validado con 9 tests en repo y producción",
+    "backend productivo reiniciado sano después del hotfix de portabilidad",
     "bootstrap productivo real en /opt/platform_paas",
     "backend desplegado bajo systemd como platform-paas-backend",
     "frontend publicado por nginx en orkestia.ddns.net",
@@ -144,7 +149,7 @@
     "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
   ],
   "blocking_issues": [],
-  "next_decision_required": "definir cual sera el siguiente slice funcional broker-only dentro de Provisioning/DLQ ahora que staging ya tiene helper published propio y que la capacidad, el gating y el foco por familia ya quedaron cerrados",
+  "next_decision_required": "decidir si se retoma inmediatamente el siguiente slice funcional broker-only dentro de Provisioning/DLQ o si se abre una microfase adicional de endurecimiento sobre tenant data portability; la recomendación actual es volver a Provisioning/DLQ",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -218,6 +223,9 @@
     "tenant_data_portability_frontend_build": "pass",
     "tenant_data_portability_playwright_list": "pass",
     "tenant_data_portability_browser_smoke_staging": "pass",
+    "tenant_data_portability_hotfix_backend_repo": "pass",
+    "tenant_data_portability_hotfix_backend_production": "pass",
+    "tenant_data_portability_real_transfer_empresa_demo_to_ieris_ltda": "pass",
     "tenant_data_portability_browser_smoke_production": "pass",
     "tenant_data_portability_dual_mode_backend_unittest_repo": "pass",
     "tenant_data_portability_dual_mode_frontend_build_repo": "pass",
