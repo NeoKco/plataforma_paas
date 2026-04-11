@@ -1,5 +1,25 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-11 - Provisioning DLQ tenant focus validado
+
+- objetivo:
+  - cerrar el slice broker-only `Prioridad por tenant visible` dentro de `Familias DLQ visibles`
+- cambios principales:
+  - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) ahora resume tenants visibles por filas, familias y tipos de job
+  - la UI recomienda cuándo conviene aislar un tenant visible antes de operar familias
+  - se agrega [platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts)
+  - [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) ya soporta `--target tenant-focus`
+- validaciones:
+  - repo: `cd frontend && npm run build` OK
+  - repo: `cd frontend && npx playwright test e2e/specs/platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts --list` OK
+  - `staging`: `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target tenant-focus` -> `1 passed`
+  - `production`: smoke publicado -> `1 skipped`
+- bloqueos:
+  - no queda bloqueo funcional
+  - apareció una nulabilidad TypeScript en el render del tenant activo y quedó corregida antes del publish
+- siguiente paso:
+  - abrir el próximo slice broker-only real dentro de `Provisioning/DLQ`
+
 ## 2026-04-11 - Provisioning DLQ family recommendation validado
 
 - objetivo:

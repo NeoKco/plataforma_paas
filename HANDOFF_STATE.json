@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-11T04:35:00-04:00",
+  "updated_at": "2026-04-11T05:25:00-04:00",
   "handoff_status": "active",
-  "current_focus": "slice broker-only Provisioning/DLQ family recommendation cerrado; staging published ya valida la recomendacion operativa sobre familias visibles y production lo confirma como skipped_non_broker, con release frontend republicado correctamente por entorno tras corregir el API_BASE_URL de staging",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, Provisioning/DLQ profundizado hasta family recommendation con publish frontend por entorno ya revalidado",
+  "current_focus": "slice broker-only Provisioning/DLQ tenant focus cerrado; staging published ya valida la priorizacion por tenant visible y production lo confirma como skipped_non_broker, con release frontend republicado correctamente por entorno",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, Provisioning/DLQ profundizado hasta tenant focus con publish frontend por entorno ya revalidado",
   "active_modules": [
     "platform-core",
     "finance",
@@ -46,6 +46,10 @@
     "los seeds broker-only de Provisioning/DLQ deben respetar los limites reales de provisioning_jobs como error_code varchar(100) y no confiar en ids efimeros demasiado largos"
   ],
   "completed_recently": [
+    "Provisioning agrega Prioridad por tenant visible dentro de Familias DLQ visibles",
+    "smoke platform-admin-provisioning-dlq-tenant-focus agregado y validado en staging",
+    "smoke platform-admin-provisioning-dlq-tenant-focus validado como skipped_non_broker en production",
+    "helper staging published broker-only ahora soporta --target tenant-focus",
     "Provisioning agrega Plan operativo sugerido sobre Familias DLQ visibles",
     "smoke platform-admin-provisioning-dlq-family-recommendation agregado y validado en staging",
     "smoke platform-admin-provisioning-dlq-family-recommendation validado como skipped_non_broker en production",
@@ -171,7 +175,7 @@
     "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir cual sera el siguiente slice broker-only real dentro de Provisioning/DLQ despues de row batch filters guided family focus family requeue family batch requeue y family recommendation; la recomendacion actual es consolidacion operativa del subconjunto visible y no reabrir tenant data portability",
+  "next_decision_required": "decidir cual sera el siguiente slice broker-only real dentro de Provisioning/DLQ despues de row batch filters guided family focus family requeue family batch requeue family recommendation y tenant focus; la recomendacion actual es consolidacion operativa del subconjunto ya aislado y no reabrir tenant data portability",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -184,6 +188,7 @@
     "asumir cerrado tambien el subfrente Reencolar familia",
     "asumir cerrado tambien el subfrente Reencolar seleccion por familias visibles",
     "asumir cerrado tambien el subfrente Plan operativo sugerido por familias visibles",
+    "asumir cerrado tambien el subfrente Prioridad por tenant visible",
     "asumir cerrado tambien el helper published broker-only de staging",
     "retomar platform-core hardening + E2E sobre Provisioning y DLQ",
     "abrir el siguiente subfrente de profundizacion broker-only usando la capacidad visible del entorno, las familias visibles, el batch homogeneo y el helper de staging para decidir y validar"
@@ -323,6 +328,12 @@
     "platform_admin_provisioning_dlq_family_recommendation_staging_frontend_publish": "pass",
     "platform_admin_provisioning_dlq_family_recommendation_staging_smoke": "pass",
     "platform_admin_provisioning_dlq_family_recommendation_production_frontend_publish": "pass",
-    "platform_admin_provisioning_dlq_family_recommendation_production_smoke": "skipped_non_broker"
+    "platform_admin_provisioning_dlq_family_recommendation_production_smoke": "skipped_non_broker",
+    "platform_admin_provisioning_dlq_tenant_focus_repo_frontend_build": "pass",
+    "platform_admin_provisioning_dlq_tenant_focus_repo_playwright_list": "pass",
+    "platform_admin_provisioning_dlq_tenant_focus_staging_frontend_publish": "pass",
+    "platform_admin_provisioning_dlq_tenant_focus_staging_smoke": "pass",
+    "platform_admin_provisioning_dlq_tenant_focus_production_frontend_publish": "pass",
+    "platform_admin_provisioning_dlq_tenant_focus_production_smoke": "skipped_non_broker"
   }
 }

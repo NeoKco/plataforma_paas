@@ -20,7 +20,7 @@ Ejecuta smokes broker-only de Provisioning/DLQ contra el staging publicado,
 apuntando el seed backend al árbol real /opt/platform_paas_staging.
 
 Opciones:
-  --target VALUE   Uno de: all, batch, row, filters, guided, family, family-requeue, family-batch, family-recommendation
+  --target VALUE   Uno de: all, batch, row, filters, guided, family, family-requeue, family-batch, family-recommendation, tenant-focus
   --keep-tmp-env   Conserva /tmp/platform_paas_staging.env al terminar
   --help           Muestra esta ayuda
 
@@ -117,7 +117,8 @@ echo "==> Ejecutando smokes broker-only de staging publicado"
         e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts \
         e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts \
         e2e/specs/platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts
+        e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts \
+        e2e/specs/platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts
       ;;
     batch)
       npx playwright test e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts
@@ -142,6 +143,9 @@ echo "==> Ejecutando smokes broker-only de staging publicado"
       ;;
     family-recommendation)
       npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts
+      ;;
+    tenant-focus)
+      npx playwright test e2e/specs/platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts
       ;;
     *)
       echo "Target no soportado: $TARGET" >&2

@@ -2,6 +2,20 @@
 
 ## 2026-04-11
 
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega la capa broker-only `Prioridad por tenant visible` dentro de `Familias DLQ visibles`:
+  - resume tenants visibles por filas, familias y tipos de job
+  - recomienda cuándo conviene aislar un tenant antes de operar familias
+  - expone acción directa `Enfocar tenant`
+- se agrega el smoke [platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts)
+- el helper [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) agrega el target `tenant-focus`
+- validación cerrada de este corte:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts --list` OK
+  - `staging`: `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target tenant-focus` -> `1 passed`
+  - `production`: smoke publicado -> `1 skipped` por backend no `broker`
+- hallazgo operativo del cierre:
+  - el render del tenant activo quedó endurecido para no romper `build` por nullability al comparar contra `dlqTenantSlug`
+
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega el bloque broker-only `Plan operativo sugerido` dentro de `Familias DLQ visibles`:
   - sin selección, pide elegir una familia visible
   - con una familia de una sola fila, recomienda `Enfocar fila`

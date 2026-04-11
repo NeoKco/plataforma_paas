@@ -30,7 +30,7 @@ Antes de cerrar una iteración relevante, pasar también por:
 ## Estado rápido vigente
 
 - fecha: 2026-04-11
-- foco activo: slice broker-only `Provisioning/DLQ family recommendation` ya cerrado
+- foco activo: slice broker-only `Provisioning/DLQ tenant focus` ya cerrado
 - prioridad inmediata: abrir el siguiente slice broker-only real dentro de `Provisioning/DLQ`
 - módulo o frente activo: `platform-core` / `Provisioning/DLQ`
 
@@ -100,9 +100,12 @@ Antes de cerrar una iteración relevante, pasar también por:
 - `Provisioning` ya expone además un bloque `Plan operativo sugerido` sobre `Familias DLQ visibles`
 - el smoke `platform-admin-provisioning-dlq-family-recommendation` ya quedó validado en `staging`
 - en `production`, ese smoke nuevo también queda `skipped` mientras el dispatch backend siga sin ser `broker`
+- `Provisioning` ya expone además una lectura ejecutiva `Prioridad por tenant visible`
+- el smoke `platform-admin-provisioning-dlq-tenant-focus` ya quedó validado en `staging`
+- en `production`, ese smoke nuevo también queda `skipped` mientras el dispatch backend siga sin ser `broker`
 - el catálogo de `Tenants` ya no desborda la columna izquierda cuando aparecen slugs largos o tenants efímeros E2E
 - ya existe el helper `scripts/dev/run_staging_published_broker_dlq_smoke.sh`
-- ese helper ya quedó validado con `--target family`, `--target family-requeue`, `--target family-batch` y `--target family-recommendation` en el staging publicado
+- ese helper ya quedó validado con `--target family`, `--target family-requeue`, `--target family-batch`, `--target family-recommendation` y `--target tenant-focus` en el staging publicado
 - el flujo portable real `empresa-demo -> ieris-ltda` ya quedó ejecutado con `functional_data_only`
 - durante esa operación se corrigieron dos bugs reales del servicio portable:
   - faltaban tablas soporte por FK en el scope funcional
@@ -119,8 +122,8 @@ Antes de cerrar una iteración relevante, pasar también por:
 
 - no hay bloqueo activo en este corte
 - la última corrección operativa fue doble:
-  - cerrar la recomendación operativa sobre familias visibles en `Provisioning/DLQ`
-  - corregir el release frontend por entorno para no romper `staging` con `API_BASE_URL` equivocada
+  - cerrar la prioridad por tenant visible en `Provisioning/DLQ`
+  - corregir una nulabilidad TypeScript antes del publish final
 - el único detalle operativo adicional es de ejecución del agente: el smoke tenant-side puede requerir salir del sandbox si Chromium falla con `SIGTRAP`
 
 ## Siguiente acción inmediata
@@ -135,6 +138,7 @@ El siguiente movimiento correcto es este:
 - asumir cerrado también el subfrente `Reencolar familia`
 - asumir cerrado también el subfrente `Reencolar selección` por familias visibles
 - asumir cerrado también el subfrente `Plan operativo sugerido` por familias visibles
+- asumir cerrado también el subfrente `Prioridad por tenant visible`
 - asumir cerrado también el helper published broker-only de `staging`
 - volver al roadmap central de `Provisioning/DLQ` con foco en el siguiente slice funcional broker-only
 
@@ -180,6 +184,8 @@ El siguiente movimiento correcto es este:
 - smoke `platform-admin-provisioning-dlq-family-batch-requeue` en `production`: SKIPPED (`dispatch backend != broker`)
 - smoke `platform-admin-provisioning-dlq-family-recommendation` en `staging`: OK
 - smoke `platform-admin-provisioning-dlq-family-recommendation` en `production`: SKIPPED (`dispatch backend != broker`)
+- smoke `platform-admin-provisioning-dlq-tenant-focus` en `staging`: OK
+- smoke `platform-admin-provisioning-dlq-tenant-focus` en `production`: SKIPPED (`dispatch backend != broker`)
 - backend `unittest` del corte de portabilidad dual: OK (`294 tests`)
 - `npm run build` del frontend: OK para el corte de portabilidad dual
 - `npx playwright test --list`: OK (`44 tests`)

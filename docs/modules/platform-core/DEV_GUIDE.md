@@ -128,6 +128,7 @@ Smokes actuales del bloque central:
 - [platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts)
 
 Baseline E2E tenant actualmente validado para continuar pruebas browser:
 
@@ -180,6 +181,7 @@ Cobertura actual:
 - requeue directo de una `familia DLQ visible` desde ese mismo resumen broker-only
 - batch broker-only homogéneo sobre múltiples `familias DLQ visibles`, con selección explícita y validación por `tenant + job type`
 - recomendación operativa broker-only sobre `familias DLQ visibles`, para decidir entre `focus single`, `requeue family`, `family-batch` o limpieza de selección según el subconjunto actual
+- prioridad ejecutiva broker-only por `tenant` visible, para aislar primero un tenant cargado antes de operar sus familias
 - helper published broker-only para `staging`, evitando rearmar manualmente `E2E_BACKEND_ROOT`, `E2E_BACKEND_PYTHON` y `E2E_BACKEND_ENV_FILE` en cada validación DLQ
 - enforcement visible de límites de usuarios activos en `tenant_portal` con overrides preparados de forma determinista
 - visibilidad backend-driven del sidebar `tenant_portal` según `effective_enabled_modules`

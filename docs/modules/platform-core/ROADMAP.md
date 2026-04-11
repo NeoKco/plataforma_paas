@@ -75,6 +75,7 @@ Estado práctico de cierre:
 - validación browser de `Reencolar familia` dentro de `Provisioning`, reintentando directamente una familia DLQ homogénea desde el resumen broker-only
 - validación browser de batch homogéneo sobre múltiples `familias DLQ visibles` dentro de `Provisioning`, con selección explícita y requeue por lote broker-only sobre el mismo `tenant + job type`
 - validación browser de recomendación operativa sobre `familias DLQ visibles` dentro de `Provisioning`, para decidir entre `single`, `family`, `family-batch` o limpiar selección según el subconjunto visible
+- validación browser de prioridad por `tenant` visible dentro de `Provisioning`, para aislar primero un tenant cargado antes de operar sus familias DLQ
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`
@@ -150,6 +151,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - `Provisioning` ya expone además `Reencolar familia` sobre ese mismo resumen broker-only; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
 - `Provisioning` ya expone además `Reencolar selección` sobre múltiples familias visibles homogéneas; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
 - `Provisioning` ya expone además `Plan operativo sugerido` sobre `Familias DLQ visibles`; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
+- `Provisioning` ya expone además `Prioridad por tenant visible`; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
 
 ## Conclusión práctica
 

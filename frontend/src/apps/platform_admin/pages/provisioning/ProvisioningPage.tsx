@@ -89,6 +89,15 @@ type DlqFamilySummary = {
   latestRecordedAt: string | null;
 };
 
+type DlqTenantSummary = {
+  tenantSlug: string;
+  totalRows: number;
+  totalFamilies: number;
+  jobTypeCount: number;
+  latestRecordedAt: string | null;
+  topFamilyKey: string | null;
+};
+
 type DlqFamilyRecommendation = {
   tone: "neutral" | "info" | "warning" | "success";
   title: string;
@@ -470,6 +479,132 @@ export function ProvisioningPage() {
     language,
     selectedDlqFamilies,
   ]);
+
+  const dlqTenantSummaries = useMemo(() => {
+    const summaries = new Map<string, DlqTenantSummary>();
+
+    dlqFamilySummaries.forEach((family) => {
+      const existing = summaries.get(family.tenantSlug);
+
+      if (!existing) {
+        summaries.set(family.tenantSlug, {
+          tenantSlug: family.tenantSlug,
+          totalRows: family.totalRows,
+          totalFamilies: 1,
+          jobTypeCount: 1,
+          latestRecordedAt: family.latestRecordedAt,
+          topFamilyKey: family.key,
+        });
+        return;
+      }
+
+      existing.totalRows += family.totalRows;
+      existing.totalFamilies += 1;
+      if (
+        buildComparableTimestamp(family.latestRecordedAt) >
+        buildComparableTimestamp(existing.latestRecordedAt)
+      ) {
+        existing.latestRecordedAt = family.latestRecordedAt;
+      }
+
+      const currentTopFamily = dlqFamilySummaries.find(
+        (candidate) => candidate.key === existing.topFamilyKey
+      );
+      if (!currentTopFamily || family.totalRows > currentTopFamily.totalRows) {
+        existing.topFamilyKey = family.key;
+      }
+    });
+
+    return Array.from(summaries.values())
+      .map((summary) => {
+        const familySet = new Set(
+          dlqFamilySummaries
+            .filter((family) => family.tenantSlug === summary.tenantSlug)
+            .map((family) => family.jobType)
+        );
+        return {
+          ...summary,
+          jobTypeCount: familySet.size,
+        };
+      })
+      .sort((left, right) => {
+        if (right.totalRows !== left.totalRows) {
+          return right.totalRows - left.totalRows;
+        }
+        if (right.totalFamilies !== left.totalFamilies) {
+          return right.totalFamilies - left.totalFamilies;
+        }
+        return (
+          buildComparableTimestamp(right.latestRecordedAt) -
+          buildComparableTimestamp(left.latestRecordedAt)
+        );
+      });
+  }, [dlqFamilySummaries]);
+
+  const dlqTenantRecommendation = useMemo(() => {
+    if (dlqTenantSummaries.length === 0) {
+      return {
+        tone: "neutral" as const,
+        title:
+          language === "es"
+            ? "Sin tenants visibles"
+            : "No visible tenants",
+        detail:
+          language === "es"
+            ? "Todavía no hay un tenant visible para priorizar dentro del subconjunto broker-only."
+            : "There is no visible tenant to prioritize within the broker-only subset yet.",
+        bullets: [
+          `${language === "es" ? "Tenants visibles" : "Visible tenants"}: 0`,
+          `${language === "es" ? "Familias visibles" : "Visible families"}: ${dlqFamilySummaries.length}`,
+        ],
+        primaryTenantSlug: null,
+        primaryAction: "none" as const,
+      };
+    }
+
+    const topTenant = dlqTenantSummaries[0];
+
+    if (dlqTenantSummaries.length === 1) {
+      return {
+        tone: "info" as const,
+        title:
+          language === "es"
+            ? "Tenant ya aislado"
+            : "Tenant already isolated",
+        detail:
+          language === "es"
+            ? "El subconjunto broker-only ya quedó concentrado en un solo tenant. El siguiente paso sano es operar sus familias visibles."
+            : "The broker-only subset is already concentrated on a single tenant. The safe next step is to operate its visible families.",
+        bullets: [
+          `Tenant: ${topTenant.tenantSlug}`,
+          `${language === "es" ? "Filas visibles" : "Visible rows"}: ${topTenant.totalRows}`,
+          `${language === "es" ? "Familias visibles" : "Visible families"}: ${topTenant.totalFamilies}`,
+        ],
+        primaryTenantSlug: topTenant.tenantSlug,
+        primaryAction: "none" as const,
+      };
+    }
+
+    return {
+      tone: "warning" as const,
+      title:
+        language === "es"
+          ? "Prioriza un tenant visible"
+          : "Prioritize one visible tenant",
+      detail:
+        language === "es"
+          ? "El subconjunto broker-only mezcla varios tenants. Conviene aislar primero el tenant con más filas visibles para no repartir el análisis."
+          : "The broker-only subset mixes several tenants. It is better to isolate the tenant with the most visible rows before splitting the analysis.",
+      bullets: [
+        `${language === "es" ? "Tenants visibles" : "Visible tenants"}: ${dlqTenantSummaries.length}`,
+        `Tenant: ${topTenant.tenantSlug}`,
+        `${language === "es" ? "Filas visibles" : "Visible rows"}: ${topTenant.totalRows}`,
+        `${language === "es" ? "Familias visibles" : "Visible families"}: ${topTenant.totalFamilies}`,
+      ],
+      primaryTenantSlug: topTenant.tenantSlug,
+      primaryAction: "focus-tenant" as const,
+    };
+  }, [dlqFamilySummaries.length, dlqTenantSummaries, language]);
 
   const dlqGuidance = useMemo(() => {
     const tenantLabels = Array.from(
@@ -1234,6 +1369,32 @@ export function ProvisioningPage() {
       errorCode: family.errorCode || "",
       errorContains: family.errorCode ? "" : family.errorContains || "",
       jobType: family.jobType,
+    });
+  }
+
+  function handleDlqTenantFocus(tenantSlug: string) {
+    setGuidedDlqJobId(null);
+    setSelectedDlqFamilyKeys([]);
+    setTenantSlugFilter(tenantSlug);
+    setDlqTenantSlug(tenantSlug);
+    setDlqJobType("");
+    setDlqErrorCode("");
+    setDlqErrorContains("");
+    setActionFeedback({
+      scope: "focus-dlq-tenant",
+      type: "success",
+      message:
+        language === "es"
+          ? `Se aisló el subconjunto DLQ del tenant ${tenantSlug}.`
+          : `The DLQ subset for tenant ${tenantSlug} is now isolated.`,
+    });
+    focusDlqPanel();
+    void loadProvisioningWorkspace({
+      limit: dlqLimit,
+      tenantSlug,
+      errorCode: "",
+      errorContains: "",
+      jobType: "",
     });
   }
 
@@ -2642,6 +2803,125 @@ export function ProvisioningPage() {
                       ? "Agrupa el subconjunto broker visible por tenant, tipo de job y error para enfocar una familia homogénea antes de reencolar."
                       : "Groups the visible broker subset by tenant, job type and error so you can focus one homogeneous family before requeueing."}
                   </p>
+                  <div
+                    data-testid="provisioning-dlq-tenant-recommendation"
+                    style={{
+                      display: "grid",
+                      gap: "0.5rem",
+                      padding: "0.875rem",
+                      border: "1px dashed var(--border-subtle, #d7deed)",
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <strong>
+                        {language === "es"
+                          ? "Prioridad por tenant visible"
+                          : "Visible tenant priority"}
+                      </strong>
+                      <AppBadge tone={dlqTenantRecommendation.tone}>
+                        {dlqTenantRecommendation.title}
+                      </AppBadge>
+                    </div>
+                    <p className="mb-0">{dlqTenantRecommendation.detail}</p>
+                    <ul className="mb-0 ps-3">
+                      {dlqTenantRecommendation.bullets.map((detail) => (
+                        <li key={detail}>{detail}</li>
+                      ))}
+                    </ul>
+                    {dlqTenantRecommendation.primaryAction === "focus-tenant" &&
+                    dlqTenantRecommendation.primaryTenantSlug ? (
+                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                        <button
+                          type="button"
+                          data-testid="provisioning-dlq-tenant-recommendation-primary"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() =>
+                            handleDlqTenantFocus(dlqTenantRecommendation.primaryTenantSlug || "")
+                          }
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es"
+                            ? "Enfocar tenant sugerido"
+                            : "Focus suggested tenant"}
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                  <div
+                    data-testid="provisioning-dlq-tenant-summary"
+                    style={{
+                      display: "grid",
+                      gap: "0.75rem",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                    }}
+                  >
+                    {dlqTenantSummaries.slice(0, 4).map((tenant) => (
+                      <div
+                        key={tenant.tenantSlug}
+                        data-testid="provisioning-dlq-tenant-card"
+                        style={{
+                          display: "grid",
+                          gap: "0.5rem",
+                          padding: "0.875rem",
+                          border:
+                            (normalizeNullableString(dlqTenantSlug) || "").toLowerCase() ===
+                            tenant.tenantSlug.toLowerCase()
+                              ? "1px solid var(--accent-primary, #2563eb)"
+                              : "1px solid var(--border-subtle, #d7deed)",
+                          borderRadius: "0.75rem",
+                          background:
+                            (normalizeNullableString(dlqTenantSlug) || "").toLowerCase() ===
+                            tenant.tenantSlug.toLowerCase()
+                              ? "var(--surface-muted, #f8fbff)"
+                              : "#fff",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                          <AppBadge tone={tenant.totalRows > 1 ? "warning" : "neutral"}>
+                            {language === "es"
+                              ? `${tenant.totalRows} fila${tenant.totalRows === 1 ? "" : "s"}`
+                              : `${tenant.totalRows} row${tenant.totalRows === 1 ? "" : "s"}`}
+                          </AppBadge>
+                          <AppBadge tone="info">
+                            {language === "es"
+                              ? `${tenant.totalFamilies} familia${tenant.totalFamilies === 1 ? "" : "s"}`
+                              : `${tenant.totalFamilies} famil${tenant.totalFamilies === 1 ? "y" : "ies"}`}
+                          </AppBadge>
+                        </div>
+                        <div>
+                          <strong>{tenant.tenantSlug}</strong>
+                        </div>
+                        <div style={{ color: "var(--text-muted, #51607a)", fontSize: "0.9rem" }}>
+                          {language === "es" ? "Tipos de job visibles" : "Visible job types"}:{" "}
+                          {tenant.jobTypeCount}
+                        </div>
+                        <div style={{ color: "var(--text-muted, #51607a)", fontSize: "0.9rem" }}>
+                          {language === "es" ? "Último registro" : "Latest record"}:{" "}
+                          {formatDateTime(tenant.latestRecordedAt)}
+                        </div>
+                        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                          <button
+                            type="button"
+                            data-testid="provisioning-dlq-tenant-focus"
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleDlqTenantFocus(tenant.tenantSlug)}
+                            disabled={isActionSubmitting}
+                          >
+                            {language === "es" ? "Enfocar tenant" : "Focus tenant"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {dlqTenantSummaries.length > 4 ? (
+                    <p className="mb-0" style={{ color: "var(--text-muted, #51607a)" }}>
+                      {language === "es"
+                        ? `Se muestran los 4 tenants más cargados. Ajusta filtros si necesitas aislar los ${dlqTenantSummaries.length - 4} restantes.`
+                        : `Showing the top 4 busiest tenants. Tighten filters if you need to isolate the remaining ${dlqTenantSummaries.length - 4}.`}
+                    </p>
+                  ) : null}
                   <div
                     data-testid="provisioning-dlq-family-batch-summary"
                     style={{
