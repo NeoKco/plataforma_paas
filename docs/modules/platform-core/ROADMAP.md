@@ -73,6 +73,7 @@ Estado práctico de cierre:
 - validación browser de ese gating mediante `platform-admin-provisioning-dlq-surface-gating`
 - validación browser de `familias DLQ visibles` y `Enfocar familia` dentro de `Provisioning`, con agrupación broker-only sobre el subconjunto visible
 - validación browser de `Reencolar familia` dentro de `Provisioning`, reintentando directamente una familia DLQ homogénea desde el resumen broker-only
+- validación browser de batch homogéneo sobre múltiples `familias DLQ visibles` dentro de `Provisioning`, con selección explícita y requeue por lote broker-only sobre el mismo `tenant + job type`
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`
@@ -146,6 +147,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - `Provisioning` ya alinea además la propia superficie `Operación DLQ` con ese backend activo, evitando acciones broker-only ambiguas en entornos `database`; ese corte ya quedó validado en `staging` y `production`
 - `Provisioning` ya expone además `familias DLQ visibles` para enfocar una familia homogénea antes de reencolar; ese corte ya quedó validado en `staging` y publicado en `production`, donde el smoke queda `skipped` si el backend sigue siendo `database`
 - `Provisioning` ya expone además `Reencolar familia` sobre ese mismo resumen broker-only; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
+- `Provisioning` ya expone además `Reencolar selección` sobre múltiples familias visibles homogéneas; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
 
 ## Conclusión práctica
 

@@ -844,6 +844,45 @@ Para nuevas entradas usar:
 
 ---
 
+## 2026-04-10 — Cierre de batch homogéneo sobre familias DLQ visibles
+
+### Objetivo
+
+- cerrar el siguiente slice broker-only real de `Provisioning/DLQ`
+- permitir reencolar varias familias visibles sin mezclar tenants ni tipos de job
+- validar el corte en `repo`, `staging` y `production`
+
+### Cambios principales
+
+- se extiende [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) con:
+  - selección explícita de familias visibles
+  - resumen `Batch homogéneo por familias visibles`
+  - validación por `tenant + job type`
+  - acción `Reencolar selección`
+- se ajusta [action-feedback.ts](/home/felipe/platform_paas/frontend/src/utils/action-feedback.ts) para que el feedback muestre el resumen real del lote reencolado
+- se agrega [platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts)
+- se amplía [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) con el target `family-batch`
+- se corrige el publish del frontend por entorno para no dejar `staging` apuntando al API equivocado
+
+### Validaciones
+
+- `cd frontend && npm run build`: OK
+- `cd frontend && npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts --list`: OK
+- `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-batch`: `1 passed`
+- `E2E_BASE_URL=https://orkestia.ddns.net ... platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts`: `1 skipped`
+
+### Bloqueos
+
+- no quedó bloqueo funcional
+- el único incidente real fue un publish inicial de `staging` con `API_BASE_URL` incorrecta; quedó corregido en la misma iteración
+
+### Siguiente paso
+
+- abrir el siguiente slice broker-only real de `Provisioning/DLQ`
+- recomendación actual: consolidación operativa de recomendaciones por familia o por selección visible
+
+---
+
 ### Validaciones
 
 - baseline backend: OK

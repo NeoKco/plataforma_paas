@@ -42,6 +42,8 @@ Archivos principales:
 - [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-family-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
 - [tenant-portal-finance-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit.smoke.spec.ts)
@@ -82,6 +84,7 @@ Cobertura actual:
 - visibilidad del `dispatch backend` activo dentro de `Provisioning`, para fijar si el entorno corre con `broker` o `database`
 - gating visible de la superficie `Operación DLQ`, para que el panel broker-only se alinee al backend activo del entorno publicado
 - foco broker-only de `familias DLQ visibles`, para convertir una familia homogénea del subconjunto visible en filtros operativos coherentes
+- batch broker-only homogéneo sobre múltiples `familias DLQ visibles`, con selección explícita y requeue sobre el mismo `tenant + job type`
 - login `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
 - visibilidad del sidebar `tenant_portal` según `effective_enabled_modules`
@@ -202,6 +205,13 @@ cd /home/felipe/platform_paas
 scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-requeue
 ```
 
+- para validar el batch homogéneo sobre varias familias visibles:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-batch
+```
+
 - targets soportados hoy por ese helper:
   - `all`
   - `batch`
@@ -210,6 +220,7 @@ scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-requeue
   - `guided`
   - `family`
   - `family-requeue`
+  - `family-batch`
 
 Baseline recomendado para desarrollo local:
 

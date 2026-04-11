@@ -2,26 +2,24 @@
 
 ## Prioridad vigente
 
-- seguir con `platform-core hardening + E2E` en `Provisioning/DLQ`, ya con `row`, `batch`, `filters`, `guided`, `family focus` y `family requeue` cerrados
+- seguir con `platform-core hardening + E2E` en `Provisioning/DLQ`, ya con `row`, `batch`, `filters`, `guided`, `family focus`, `family requeue` y `family batch requeue` cerrados
 
 ## Decisión previa obligatoria
 
 - ¿qué decisión define el camino siguiente?
-  - decidir cuál será el próximo slice broker-only real del panel `Operación DLQ`
-- recomendación actual:
-  - no abrir otro frente transversal
-  - no volver a portabilidad tenant
-  - seguir en `Provisioning/DLQ` sobre una operación broker-only todavía no visible o no suficientemente endurecida
+  - decidir si el siguiente slice broker-only será:
+    - consolidación operativa de recomendaciones por familia
+    - o una lectura ejecutiva del subconjunto visible para decidir entre `single`, `family` y `family-batch`
 
 ## Próximo paso correcto
 
 - usar como base el carril ya institucionalizado:
-  - `scripts/dev/run_staging_published_broker_dlq_smoke.sh`
+  - [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh)
   - published `staging` con backend `broker`
   - `production` solo como confirmación `skipped_non_broker` si sigue en `database`
-- abrir un siguiente slice broker-only reutilizando `familias DLQ visibles`, por ejemplo:
-  - batch homogéneo sobre múltiples familias visibles
-  - o consolidación operativa de recomendaciones por familia
+- abrir el siguiente slice broker-only reutilizando `Familias DLQ visibles` y el batch homogéneo ya cerrado, por ejemplo:
+  - recomendación operativa por familia visible
+  - o consolidación de recomendaciones sobre el subconjunto ya seleccionado
 - cerrar ese siguiente slice con:
   - implementación visible
   - smoke dedicado
@@ -29,9 +27,9 @@
 
 ## Si el escenario principal falla
 
-- si el siguiente smoke vuelve a mostrar desalineación entre UI y backend published, mover toda la preparación del estado al helper `backend-control` del mismo entorno
+- si el smoke vuelve a fallar antes de llegar al flujo, revisar primero el `API_BASE_URL` del build publicado por entorno
 - si `staging` deja de correr con `dispatch backend = broker`, detener el slice y corregir entorno antes de seguir
-- si el nuevo slice no justifica UI nueva, convertirlo en endurecimiento de helper/runbook en vez de inventar una pantalla o acción innecesaria
+- si el siguiente cambio no justifica UI nueva, convertirlo en endurecimiento de helper/runbook en vez de agregar otra acción artificial
 
 ## Condición de cierre de la próxima iteración
 

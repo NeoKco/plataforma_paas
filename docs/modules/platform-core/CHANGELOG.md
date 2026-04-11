@@ -11,6 +11,20 @@
   - `production`: frontend publicado con la corrección CSS
   - `staging`: frontend publicado con la corrección CSS
 
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega el batch broker-only sobre múltiples `Familias DLQ visibles`:
+  - cada tarjeta visible ahora puede entrar en una selección explícita
+  - el resumen `Batch homogéneo por familias visibles` valida `tenant + job_type`
+  - la acción `Reencolar selección` exige al menos `2` familias homogéneas y ejecuta requeue secuencial por familia
+- se agrega el smoke [platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts)
+- el helper [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) agrega el target `family-batch`
+- durante el cierre apareció y quedó resuelto un problema real de release:
+  - `staging` había sido republicado con un build genérico apuntando al API incorrecto; el deploy correcto vuelve a exigir `build por entorno + publish por entorno`
+- validación cerrada de este corte:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts --list` OK
+  - `staging`: `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-batch` -> `1 passed`
+  - `production`: smoke publicado -> `1 skipped` por backend no `broker`
+
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega la acción broker-only `Reencolar familia` dentro de `Familias DLQ visibles`:
   - permite devolver a cola una familia homogénea del subconjunto visible sin pasar antes por `Enfocar familia`
   - reutiliza el contrato backend DLQ ya cerrado con `tenant_slug + job_type + error_code/error_contains`
