@@ -20,7 +20,7 @@ Ejecuta smokes broker-only de Provisioning/DLQ contra el staging publicado,
 apuntando el seed backend al árbol real /opt/platform_paas_staging.
 
 Opciones:
-  --target VALUE   Uno de: all, batch, row, filters, guided, family, family-requeue
+  --target VALUE   Uno de: all, batch, row, filters, guided, family, family-requeue, family-batch
   --keep-tmp-env   Conserva /tmp/platform_paas_staging.env al terminar
   --help           Muestra esta ayuda
 
@@ -115,7 +115,8 @@ echo "==> Ejecutando smokes broker-only de staging publicado"
         e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts \
         e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts \
         e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts
+        e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts \
+        e2e/specs/platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts
       ;;
     batch)
       npx playwright test e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts
@@ -134,6 +135,9 @@ echo "==> Ejecutando smokes broker-only de staging publicado"
       ;;
     family-requeue)
       npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts
+      ;;
+    family-batch)
+      npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts
       ;;
     *)
       echo "Target no soportado: $TARGET" >&2

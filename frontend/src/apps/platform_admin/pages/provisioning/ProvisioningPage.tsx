@@ -126,6 +126,7 @@ export function ProvisioningPage() {
   const [pendingConfirmation, setPendingConfirmation] =
     useState<PendingConfirmation | null>(null);
   const [guidedDlqJobId, setGuidedDlqJobId] = useState<number | null>(null);
+  const [selectedDlqFamilyKeys, setSelectedDlqFamilyKeys] = useState<string[]>([]);
 
   const [dlqLimit, setDlqLimit] = useState("25");
   const [dlqJobType, setDlqJobType] = useState("");
@@ -283,6 +284,70 @@ export function ProvisioningPage() {
       );
     });
   }, [filteredDlqRows, tenantSlugById]);
+
+  const selectedDlqFamilies = useMemo(
+    () =>
+      dlqFamilySummaries.filter((family) => selectedDlqFamilyKeys.includes(family.key)),
+    [dlqFamilySummaries, selectedDlqFamilyKeys]
+  );
+
+  const dlqFamilyBatchSelection = useMemo(() => {
+    const tenantSlugs = Array.from(
+      new Set(selectedDlqFamilies.map((family) => family.tenantSlug))
+    );
+    const jobTypes = Array.from(new Set(selectedDlqFamilies.map((family) => family.jobType)));
+    const totalRows = selectedDlqFamilies.reduce((sum, family) => sum + family.totalRows, 0);
+
+    if (selectedDlqFamilies.length < 2) {
+      return {
+        isHomogeneous: false,
+        totalRows,
+        tenantSlug: tenantSlugs[0] || null,
+        jobType: jobTypes[0] || null,
+        guidance:
+          language === "es"
+            ? "Selecciona al menos 2 familias visibles para usar el requeue batch por familias."
+            : "Select at least 2 visible families to use the family batch requeue.",
+      };
+    }
+
+    if (tenantSlugs.length !== 1) {
+      return {
+        isHomogeneous: false,
+        totalRows,
+        tenantSlug: null,
+        jobType: null,
+        guidance:
+          language === "es"
+            ? "La selección mezcla tenants. El batch por familias solo acepta un tenant operativo por vez."
+            : "The selection mixes tenants. Family batch only supports one operational tenant at a time.",
+      };
+    }
+
+    if (jobTypes.length !== 1) {
+      return {
+        isHomogeneous: false,
+        totalRows,
+        tenantSlug: tenantSlugs[0] || null,
+        jobType: null,
+        guidance:
+          language === "es"
+            ? "La selección mezcla tipos de job. Mantén un solo tipo antes de reencolar varias familias."
+            : "The selection mixes job types. Keep a single job type before requeueing multiple families.",
+      };
+    }
+
+    return {
+      isHomogeneous: true,
+      totalRows,
+      tenantSlug: tenantSlugs[0] || null,
+      jobType: jobTypes[0] || null,
+      guidance:
+        language === "es"
+          ? "La selección es homogénea por tenant y tipo de job. Puedes reencolar varias familias visibles sin mezclar operaciones distintas."
+          : "The selection is homogeneous by tenant and job type. You can requeue several visible families without mixing different operations.",
+    };
+  }, [language, selectedDlqFamilies]);
 
   const dlqGuidance = useMemo(() => {
     const tenantLabels = Array.from(
@@ -803,6 +868,12 @@ export function ProvisioningPage() {
     }
   }, [filteredDlqRows, guidedDlqJobId]);
 
+  useEffect(() => {
+    setSelectedDlqFamilyKeys((current) =>
+      current.filter((key) => dlqFamilySummaries.some((family) => family.key === key))
+    );
+  }, [dlqFamilySummaries]);
+
   async function runAction(
     scope: string,
     action: () => Promise<unknown>
@@ -1084,6 +1155,75 @@ export function ProvisioningPage() {
           reset_attempts: dlqResetAttempts,
           delay_seconds: parseNonNegativeInteger(dlqDelaySeconds, 0),
         }),
+    });
+  }
+
+  function handleToggleDlqFamilySelection(family: DlqFamilySummary) {
+    setSelectedDlqFamilyKeys((current) =>
+      current.includes(family.key)
+        ? current.filter((key) => key !== family.key)
+        : [...current, family.key]
+    );
+  }
+
+  function handleClearDlqFamilySelection() {
+    setSelectedDlqFamilyKeys([]);
+  }
+
+  function handleDlqFamilyBatchRequeue() {
+    if (!session?.accessToken || !dlqFamilyBatchSelection.isHomogeneous || selectedDlqFamilies.length < 2) {
+      return;
+    }
+
+    const familiesSnapshot = [...selectedDlqFamilies];
+    const totalRows = familiesSnapshot.reduce((sum, family) => sum + family.totalRows, 0);
+    const tenantSlug = dlqFamilyBatchSelection.tenantSlug || "n/a";
+    const jobTypeLabel = dlqFamilyBatchSelection.jobType
+      ? formatProvisioningJobType(dlqFamilyBatchSelection.jobType)
+      : "n/a";
+
+    setPendingConfirmation({
+      scope: "requeue-dlq-family-batch",
+      title:
+        language === "es"
+          ? `Reencolar familias DLQ: ${tenantSlug}`
+          : `Requeue DLQ families: ${tenantSlug}`,
+      description:
+        language === "es"
+          ? "Esta acción recorre varias familias visibles del mismo tenant y tipo de job para devolverlas a cola sin mezclar otros subconjuntos."
+          : "This action iterates over several visible families from the same tenant and job type to put them back in queue without mixing other subsets.",
+      details: [
+        `${language === "es" ? "Familias seleccionadas" : "Selected families"}: ${familiesSnapshot.length}`,
+        `${language === "es" ? "Filas visibles totales" : "Total visible rows"}: ${totalRows}`,
+        `Tenant: ${tenantSlug}`,
+        `${language === "es" ? "Tipo de job" : "Job type"}: ${jobTypeLabel}`,
+        `${language === "es" ? "Resetear intentos" : "Reset attempts"}: ${
+          dlqResetAttempts ? (language === "es" ? "sí" : "yes") : "no"
+        }`,
+        `${language === "es" ? "Demora antes de reencolar" : "Delay before requeue"}: ${parseNonNegativeInteger(dlqDelaySeconds, 0)} s`,
+      ],
+      confirmLabel:
+        language === "es" ? "Reencolar familias" : "Requeue families",
+      action: async () => {
+        for (const family of familiesSnapshot) {
+          await requeueProvisioningBrokerDlq(session.accessToken, {
+            limit: parsePositiveInteger(dlqLimit, 25),
+            job_type: family.jobType,
+            tenant_slug: family.tenantSlug,
+            error_code: family.errorCode || null,
+            error_contains: family.errorCode ? null : family.errorContains || null,
+            reset_attempts: dlqResetAttempts,
+            delay_seconds: parseNonNegativeInteger(dlqDelaySeconds, 0),
+          });
+        }
+        setSelectedDlqFamilyKeys([]);
+        return {
+          message:
+            language === "es"
+              ? `Se reencolaron ${familiesSnapshot.length} familias visibles (${totalRows} filas) del tenant ${tenantSlug}.`
+              : `Requeued ${familiesSnapshot.length} visible families (${totalRows} rows) for tenant ${tenantSlug}.`,
+        };
+      },
     });
   }
 
@@ -2360,12 +2500,71 @@ export function ProvisioningPage() {
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
                     <strong>{language === "es" ? "Familias DLQ visibles" : "Visible DLQ families"}</strong>
                     <AppBadge tone="info">{dlqFamilySummaries.length}</AppBadge>
+                    {selectedDlqFamilies.length > 0 ? (
+                      <AppBadge tone={dlqFamilyBatchSelection.isHomogeneous ? "success" : "warning"}>
+                        {language === "es"
+                          ? `${selectedDlqFamilies.length} seleccionada${selectedDlqFamilies.length === 1 ? "" : "s"}`
+                          : `${selectedDlqFamilies.length} selected`}
+                      </AppBadge>
+                    ) : null}
                   </div>
                   <p className="mb-0">
                     {language === "es"
                       ? "Agrupa el subconjunto broker visible por tenant, tipo de job y error para enfocar una familia homogénea antes de reencolar."
                       : "Groups the visible broker subset by tenant, job type and error so you can focus one homogeneous family before requeueing."}
                   </p>
+                  <div
+                    data-testid="provisioning-dlq-family-batch-summary"
+                    style={{
+                      display: "grid",
+                      gap: "0.5rem",
+                      padding: "0.875rem",
+                      border: "1px dashed var(--border-subtle, #d7deed)",
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <strong>
+                        {language === "es"
+                          ? "Batch homogéneo por familias visibles"
+                          : "Homogeneous batch across visible families"}
+                      </strong>
+                      <AppBadge tone={dlqFamilyBatchSelection.isHomogeneous ? "success" : "neutral"}>
+                        {selectedDlqFamilies.length > 0
+                          ? language === "es"
+                            ? `${selectedDlqFamilies.length} familias / ${dlqFamilyBatchSelection.totalRows} filas`
+                            : `${selectedDlqFamilies.length} families / ${dlqFamilyBatchSelection.totalRows} rows`
+                          : language === "es"
+                            ? "sin selección"
+                            : "no selection"}
+                      </AppBadge>
+                    </div>
+                    <p className="mb-0">{dlqFamilyBatchSelection.guidance}</p>
+                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <button
+                        type="button"
+                        data-testid="provisioning-dlq-family-batch-requeue"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={handleDlqFamilyBatchRequeue}
+                        disabled={
+                          isActionSubmitting ||
+                          !dlqFamilyBatchSelection.isHomogeneous ||
+                          selectedDlqFamilies.length < 2
+                        }
+                      >
+                        {language === "es" ? "Reencolar selección" : "Requeue selection"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={handleClearDlqFamilySelection}
+                        disabled={isActionSubmitting || selectedDlqFamilies.length === 0}
+                      >
+                        {language === "es" ? "Limpiar selección" : "Clear selection"}
+                      </button>
+                    </div>
+                  </div>
                   <div
                     style={{
                       display: "grid",
@@ -2381,9 +2580,13 @@ export function ProvisioningPage() {
                           display: "grid",
                           gap: "0.5rem",
                           padding: "0.875rem",
-                          border: "1px solid var(--border-subtle, #d7deed)",
+                          border: selectedDlqFamilyKeys.includes(family.key)
+                            ? "1px solid var(--accent-primary, #2563eb)"
+                            : "1px solid var(--border-subtle, #d7deed)",
                           borderRadius: "0.75rem",
-                          background: "#fff",
+                          background: selectedDlqFamilyKeys.includes(family.key)
+                            ? "var(--surface-muted, #f8fbff)"
+                            : "#fff",
                         }}
                       >
                         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -2392,6 +2595,11 @@ export function ProvisioningPage() {
                               ? `${family.totalRows} fila${family.totalRows === 1 ? "" : "s"}`
                               : `${family.totalRows} row${family.totalRows === 1 ? "" : "s"}`}
                           </AppBadge>
+                          {selectedDlqFamilyKeys.includes(family.key) ? (
+                            <AppBadge tone="info">
+                              {language === "es" ? "seleccionada" : "selected"}
+                            </AppBadge>
+                          ) : null}
                           <code>#{family.representativeJobId}</code>
                         </div>
                         <div>
@@ -2410,6 +2618,22 @@ export function ProvisioningPage() {
                             flexWrap: "wrap",
                           }}
                         >
+                          <button
+                            type="button"
+                            data-testid="provisioning-dlq-family-select"
+                            className="btn btn-sm btn-outline-dark"
+                            aria-pressed={selectedDlqFamilyKeys.includes(family.key)}
+                            onClick={() => handleToggleDlqFamilySelection(family)}
+                            disabled={isActionSubmitting}
+                          >
+                            {selectedDlqFamilyKeys.includes(family.key)
+                              ? language === "es"
+                                ? "Quitar"
+                                : "Remove"
+                              : language === "es"
+                                ? "Seleccionar"
+                                : "Select"}
+                          </button>
                           <button
                             type="button"
                             data-testid="provisioning-dlq-family-focus"
