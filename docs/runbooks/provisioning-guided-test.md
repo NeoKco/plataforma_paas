@@ -40,6 +40,10 @@ Hoy ese ciclo se ve repartido asi:
 - `Provisioning` ya resume primero los jobs que requieren accion para no perderse entre historial y tablas largas
 - las acciones manuales de `Ejecutar ahora`, `Reencolar job` y `Reencolar DLQ` ya pasan por confirmacion previa y dejan feedback especifico por accion
 - `Provisioning` ya muestra tambien un bloque `Que revisar ahora` para distinguir backlog normal, retries, jobs fallidos, DLQ y ciclos del worker cortados por error
+- `Provisioning` ya deja explicito si el entorno corre con `dispatch backend` `broker` o `database`
+- la propia superficie `Operación DLQ` ya se adapta a ese backend:
+  - en `broker`, deja operar filtros, batch y requeue guiado
+  - en `database`, reemplaza esa superficie por un estado broker-only no activo
 - `Tenants` ya deja `Reprovisionar tenant` cuando el historial previo quedo `completed`, pero la configuracion DB sigue incompleta
 - `Tenants` ya deja abrir `Provisioning` con el `tenantSlug` precargado cuando quieres leer solo el backlog tecnico de ese tenant
 

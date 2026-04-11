@@ -67,6 +67,10 @@ Estado práctico de cierre:
 - validación browser de `requeue guiado` dentro de `Provisioning`, usando una fila DLQ para enfocar filtros y disparar el reintento sugerido
 - visibilidad explícita del `dispatch backend` activo dentro de `Provisioning`, para distinguir si el entorno publicado opera hoy con `broker` o `database`
 - validación browser de esa capacidad visible mediante `platform-admin-provisioning-dispatch-capability`
+- gating visible de la superficie `Operación DLQ` según el backend activo:
+  - `broker`: filtros, batch y requeue guiado activos
+  - `database`: estado broker-only no activo y derivación operativa al entorno correcto
+- validación browser de ese gating mediante `platform-admin-provisioning-dlq-surface-gating`
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`
@@ -136,6 +140,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - `Provisioning` ya expone además observabilidad visible con historial de snapshots y alertas persistidas; el siguiente subfrente recomendado pasa a ser requeue guiado o profundización broker-only de DLQ
 - `Provisioning` ya expone también `requeue guiado` sobre DLQ y quedó validado en `staging`; en `production` el frontend quedó publicado pero el smoke broker-only se salta mientras el backend no resuelva como `broker`
 - `Provisioning` ya expone también la `capacidad activa de provisioning`, dejando visible si el entorno corre con `dispatch backend` `broker` o `database`; ese corte ya quedó validado en `staging` y `production`
+- `Provisioning` ya alinea además la propia superficie `Operación DLQ` con ese backend activo, evitando acciones broker-only ambiguas en entornos `database`; ese corte ya quedó validado en `staging` y `production`
 
 ## Conclusión práctica
 

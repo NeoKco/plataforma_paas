@@ -36,6 +36,7 @@ Cobertura validada:
 - navegación asistida desde `Fallos por código` hacia filtros DLQ dentro de `Provisioning`
 - `requeue guiado` desde una fila DLQ dentro de `Provisioning` cuando el backend usa broker
 - visibilidad del `dispatch backend` activo dentro de `Provisioning`, para distinguir si el entorno publicado corre con `broker` o `database`
+- gating visible de la superficie `Operación DLQ`, para que el panel broker-only desaparezca o se reemplace cuando el entorno corre con `database`
 - login de `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
 - login `tenant_portal` permitido en `past_due` con gracia y bloqueado al vencer la deuda
@@ -76,6 +77,7 @@ Specs actuales:
 - [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts)
 - [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts)
 - [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-login-billing.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-login-billing.smoke.spec.ts)
 - [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
@@ -206,6 +208,7 @@ Baseline institucionalizado:
 - los `3 skipped` broker-only de DLQ siguen siendo esperables dentro de ese baseline estándar porque CI corre con `PROVISIONING_DISPATCH_BACKEND=database`
 - si corres el smoke broker-only nuevo [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts) sobre un published env no-broker, el resultado correcto también será `skipped`
 - el smoke [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts) sirve precisamente para fijar esa lectura visible antes de correr los casos broker-only
+- el smoke [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts) valida además que la propia UI retire o reemplace acciones broker-only cuando el entorno publicado no usa `broker`
 - los escenarios broker-only quedan documentados y validados aparte cuando se necesite una pasada específica con Redis/broker real
 - para desarrollo local existe además [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh), que corre migraciones, siembra baseline, levanta backend si hace falta y ejecuta `build + e2e:platform + e2e:tenant`
 - ese helper local acepta además `--target all|platform|tenant`, útil para revalidar solo la mitad necesaria sin correr toda la baseline principal

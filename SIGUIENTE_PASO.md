@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-10
-- prioridad vigente: seguir con `platform-core hardening + E2E` dentro de `Provisioning/DLQ` después de cerrar la visibilidad del `dispatch backend` activo
+- prioridad vigente: seguir con `platform-core hardening + E2E` dentro de `Provisioning/DLQ` después de cerrar el gating visible de la superficie broker-only
 
 ## Objetivo del próximo paso
 
@@ -77,6 +77,7 @@ Debe avanzar sobre:
 - asumir cerrado el corte `Investigar en DLQ`
 - asumir cerrado también el subfrente de `requeue guiado`
 - asumir cerrado además el subfrente `capacidad activa de provisioning`, ya visible en `staging` y `production`
+- asumir cerrado además el gating del panel `Operación DLQ`, ya adaptado a `broker` o `database` en `staging` y `production`
 - usar esa capacidad visible como criterio antes de correr smokes broker-only
 - abrir el siguiente subfrente explícito dentro de `Provisioning`: profundización broker-only de DLQ, ya sin ambigüedad sobre si el entorno actual corre con `broker` o `database`
 

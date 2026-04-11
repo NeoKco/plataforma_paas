@@ -30,7 +30,7 @@ Antes de cerrar una iteración relevante, pasar también por:
 ## Estado rápido vigente
 
 - fecha: 2026-04-10
-- foco activo: `platform-core` sobre `Provisioning`, después de cerrar la visibilidad del `dispatch backend` activo
+- foco activo: `platform-core` sobre `Provisioning`, después de cerrar el gating visible del panel DLQ broker-only
 - prioridad inmediata: dejar repo, documentación viva y handoff alineados al nuevo cierre y luego abrir el siguiente subfrente broker-only de `Provisioning/DLQ`
 - módulo o frente activo: `platform-core` / `Provisioning`
 
@@ -85,6 +85,9 @@ Antes de cerrar una iteración relevante, pasar también por:
 - `Provisioning` ya expone además la `Capacidad activa de provisioning`, mostrando si el entorno corre con `dispatch backend` `broker` o `database`
 - el smoke `platform-admin-provisioning-dispatch-capability` ya quedó validado en `staging`
 - el smoke `platform-admin-provisioning-dispatch-capability` ya quedó validado en `production`
+- `Provisioning` ya adapta además el panel `Operación DLQ` según ese backend activo
+- el smoke `platform-admin-provisioning-dlq-surface-gating` ya quedó validado en `staging`
+- el smoke `platform-admin-provisioning-dlq-surface-gating` ya quedó validado en `production`
 - `Tenants` ya abre `Provisioning` con `tenantSlug` precargado
 - `Provisioning` ya enfoca jobs, métricas, alertas y DLQ según ese tenant sin perder la consola global
 - ya existe smoke browser `platform-admin-tenant-provisioning-context`
@@ -139,6 +142,8 @@ El siguiente movimiento correcto es este:
 - smoke `platform-admin-provisioning-guided-requeue` en `production`: SKIPPED (`dispatch backend != broker`)
 - smoke `platform-admin-provisioning-dispatch-capability` en `staging`: OK
 - smoke `platform-admin-provisioning-dispatch-capability` en `production`: OK
+- smoke `platform-admin-provisioning-dlq-surface-gating` en `staging`: OK
+- smoke `platform-admin-provisioning-dlq-surface-gating` en `production`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `staging`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `production`: OK
 - backend `unittest` del corte de portabilidad dual: OK (`294 tests`)

@@ -2,6 +2,18 @@
 
 ## 2026-04-10
 
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) profundiza el corte `DLQ broker-only` para que la propia superficie `Operación DLQ` se alinee al backend activo del entorno:
+  - en `broker`, mantiene visibles filtros DLQ, reencolado en lote, requeue guiado y acciones por fila
+  - en `database`, reemplaza esas acciones por un estado broker-only no activo y deriva la operación al entorno correcto
+- se agrega el smoke [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts) para fijar ese gating visible en `staging` y `production`
+- validación cerrada de este corte:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts --list` OK
+  - `staging`: frontend publicado + smoke nuevo `1 passed`
+  - `production`: frontend publicado + smoke nuevo `1 passed`
+- hallazgo operativo del cierre:
+  - una vez visible el `dispatch backend` activo, la consola también debe retirar o reemplazar acciones broker-only en entornos `database`; no basta con un aviso global si el panel local sigue sugiriendo acciones que ahí no aplican
+
 - [platform_capability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/platform_capability_service.py) y [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) ahora exponen `current_provisioning_dispatch_backend` dentro del catálogo de capacidades de `platform_control`
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega la tarjeta `Capacidad activa de provisioning`, que deja visible:
   - backend actual `broker` o `database`

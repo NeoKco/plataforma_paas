@@ -2200,247 +2200,298 @@ export function ProvisioningPage() {
           icon="reports"
           title={language === "es" ? "Operación DLQ" : "DLQ operations"}
           subtitle={
-            language === "es"
-              ? "Inspecciona filas dead-letter del broker y reencólalas individualmente o en lote."
-              : "Inspect broker dead-letter rows and requeue them individually or in batches."
+            isBrokerDispatchActive
+              ? language === "es"
+                ? "Inspecciona filas dead-letter del broker y reencólalas individualmente o en lote."
+                : "Inspect broker dead-letter rows and requeue them individually or in batches."
+              : language === "es"
+                ? "Este entorno no expone DLQ broker-only. La consola deja visible el estado y te deriva al entorno broker cuando corresponda."
+                : "This environment does not expose broker-only DLQ. The console keeps the state visible and points you to a broker environment when needed."
           }
         >
-        <div
-          className="tenant-help-text"
-          style={{
-            display: "grid",
-            gap: "0.75rem",
-            marginBottom: "1rem",
-            padding: "1rem",
-            border: "1px solid var(--border-subtle, #d7deed)",
-            borderRadius: "0.875rem",
-            background: "var(--surface-muted, #f8fbff)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-            <strong>{language === "es" ? "Requeue guiado" : "Guided requeue"}</strong>
-            <AppBadge tone={dlqGuidance.tone}>{dlqGuidance.title}</AppBadge>
-            {guidedDlqRow ? (
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-secondary"
-                onClick={() => setGuidedDlqJobId(null)}
-                disabled={isActionSubmitting}
+          {isBrokerDispatchActive ? (
+            <>
+              <div
+                className="tenant-help-text"
+                style={{
+                  display: "grid",
+                  gap: "0.75rem",
+                  marginBottom: "1rem",
+                  padding: "1rem",
+                  border: "1px solid var(--border-subtle, #d7deed)",
+                  borderRadius: "0.875rem",
+                  background: "var(--surface-muted, #f8fbff)",
+                }}
               >
-                {language === "es" ? "Quitar foco" : "Clear focus"}
-              </button>
-            ) : null}
-          </div>
-          <p className="mb-0">{dlqGuidance.detail}</p>
-          <ul className="mb-0 ps-3">
-            {dlqGuidance.bullets.map((detail) => (
-              <li key={detail}>{detail}</li>
-            ))}
-          </ul>
-          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-            {dlqGuidance.primaryAction === "single" && guidedDlqRow ? (
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => handleSingleRequeue(guidedDlqRow.job_id)}
-                disabled={isActionSubmitting}
-              >
-                {language === "es" ? "Reencolar job sugerido" : "Requeue suggested job"}
-              </button>
-            ) : null}
-            {dlqGuidance.primaryAction === "batch" ? (
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={openDlqBatchRequeueConfirmation}
-                disabled={isActionSubmitting}
-              >
-                {language === "es" ? "Reencolar lote sugerido" : "Requeue suggested batch"}
-              </button>
-            ) : null}
-            {dlqGuidance.secondaryAction === "batch" ? (
-              <button
-                type="button"
-                className="btn btn-outline-primary"
-                onClick={openDlqBatchRequeueConfirmation}
-                disabled={isActionSubmitting}
-              >
-                {language === "es" ? "Reencolar lote visible" : "Requeue visible batch"}
-              </button>
-            ) : null}
-          </div>
-        </div>
-        <div className="provisioning-dlq-grid">
-          <AppForm className="tenant-action-form" onSubmit={handleDlqFilterSubmit}>
-            <h3 className="tenant-action-form__title">
-              {language === "es" ? "Filtros DLQ" : "DLQ filters"}
-            </h3>
-            <AppFormField>
-                <FieldHelpLabel
-                  label={language === "es" ? "Límite" : "Limit"}
-                  help={
-                    language === "es"
-                      ? "Máximo de filas DLQ que quieres inspeccionar en la consulta actual."
-                      : "Maximum number of DLQ rows you want to inspect in the current query."
-                  }
-                />
-                <input
-                  className="form-control"
-                  type="number"
-                  min="1"
-                  value={dlqLimit}
-                  onChange={(event) => setDlqLimit(event.target.value)}
-                />
-            </AppFormField>
-            <AppFormField>
-                <FieldHelpLabel
-                  label={language === "es" ? "Tipo de job" : "Job type"}
-                  help={
-                    language === "es"
-                      ? "Filtra por operación interna de provisioning, por ejemplo crear base tenant, sincronizar esquema o retirar infraestructura técnica."
-                      : "Filter by internal provisioning operation, for example create tenant DB, sync schema or retire technical infrastructure."
-                  }
-                />
-                <input
-                  className="form-control"
-                  list="provisioning-job-type-options"
-                  value={dlqJobType}
-                  onChange={(event) => setDlqJobType(event.target.value)}
-                />
-                <datalist id="provisioning-job-type-options">
-                  {jobTypeOptions.map((value) => (
-                    <option key={value} value={value} />
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <strong>{language === "es" ? "Requeue guiado" : "Guided requeue"}</strong>
+                  <AppBadge tone={dlqGuidance.tone}>{dlqGuidance.title}</AppBadge>
+                  {guidedDlqRow ? (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={() => setGuidedDlqJobId(null)}
+                      disabled={isActionSubmitting}
+                    >
+                      {language === "es" ? "Quitar foco" : "Clear focus"}
+                    </button>
+                  ) : null}
+                </div>
+                <p className="mb-0">{dlqGuidance.detail}</p>
+                <ul className="mb-0 ps-3">
+                  {dlqGuidance.bullets.map((detail) => (
+                    <li key={detail}>{detail}</li>
                   ))}
-                </datalist>
-            </AppFormField>
-            <AppFormField>
-                <FieldHelpLabel
-                  label={language === "es" ? "Slug tenant" : "Tenant slug"}
-                  help={
-                    language === "es"
-                      ? "Código técnico del tenant sobre el que quieres revisar filas DLQ."
-                      : "Technical code of the tenant whose DLQ rows you want to review."
-                  }
-                />
-                <input
-                  className="form-control"
-                  value={dlqTenantSlug}
-                  onChange={(event) => setDlqTenantSlug(event.target.value)}
-                />
-            </AppFormField>
-            <AppFormField>
-                <FieldHelpLabel
-                  label={language === "es" ? "Código de error" : "Error code"}
-                  help={
-                    language === "es"
-                      ? "Usa el código interno cuando quieras acotar una familia específica de fallos."
-                      : "Use the internal code when you want to narrow a specific failure family."
-                  }
-                />
-                <input
-                  className="form-control"
-                  value={dlqErrorCode}
-                  onChange={(event) => setDlqErrorCode(event.target.value)}
-                />
-            </AppFormField>
-            <AppFormField fullWidth>
-              <FieldHelpLabel
-                label={language === "es" ? "Error contiene" : "Error contains"}
-                help={
-                  language === "es"
-                    ? "Busca un texto dentro del mensaje de error para aislar casos similares."
-                    : "Search for text inside the error message to isolate similar cases."
-                }
-              />
-              <input
-                className="form-control"
-                value={dlqErrorContains}
-                onChange={(event) => setDlqErrorContains(event.target.value)}
-              />
-            </AppFormField>
-            <AppFormActions>
-              <button
-                type="submit"
-                className="btn btn-outline-primary"
-                disabled={isLoading || isActionSubmitting}
-              >
-                {language === "es" ? "Aplicar filtros" : "Apply filters"}
-              </button>
-            </AppFormActions>
-          </AppForm>
-
-          <AppForm className="tenant-action-form" onSubmit={handleDlqBatchRequeue}>
-            <h3 className="tenant-action-form__title">
-              {language === "es" ? "Reencolado en lote" : "Batch requeue"}
-            </h3>
-            <AppFormField>
-                <FieldHelpLabel
-                  label={language === "es" ? "Límite" : "Limit"}
-                  help={
-                    language === "es"
-                      ? "Cantidad máxima de filas filtradas que se van a devolver a la cola."
-                      : "Maximum amount of filtered rows that will be returned to the queue."
-                  }
-                  placement="left"
-                />
-                <input
-                  className="form-control"
-                  type="number"
-                  min="1"
-                  value={dlqLimit}
-                  onChange={(event) => setDlqLimit(event.target.value)}
-                />
-            </AppFormField>
-            <AppFormField>
-                <FieldHelpLabel
-                  label={language === "es" ? "Segundos de demora" : "Delay seconds"}
-                  help={
-                    language === "es"
-                      ? "Espera opcional antes de volver a entregar el job al worker."
-                      : "Optional wait before handing the job back to the worker."
-                  }
-                  placement="left"
-                />
-                <input
-                  className="form-control"
-                  type="number"
-                  min="0"
-                  value={dlqDelaySeconds}
-                  onChange={(event) => setDlqDelaySeconds(event.target.value)}
-                />
-            </AppFormField>
-            <div className="app-form-field app-form-field--full">
-              <div className="form-check mt-0">
-                <input
-                  id="dlq-reset-attempts"
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={dlqResetAttempts}
-                  onChange={(event) => setDlqResetAttempts(event.target.checked)}
-                />
-                <label className="form-check-label" htmlFor="dlq-reset-attempts">
-                  {language === "es" ? "Reiniciar intentos al reencolar" : "Reset attempts when requeuing"}
-                </label>
+                </ul>
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                  {dlqGuidance.primaryAction === "single" && guidedDlqRow ? (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => handleSingleRequeue(guidedDlqRow.job_id)}
+                      disabled={isActionSubmitting}
+                    >
+                      {language === "es" ? "Reencolar job sugerido" : "Requeue suggested job"}
+                    </button>
+                  ) : null}
+                  {dlqGuidance.primaryAction === "batch" ? (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={openDlqBatchRequeueConfirmation}
+                      disabled={isActionSubmitting}
+                    >
+                      {language === "es" ? "Reencolar lote sugerido" : "Requeue suggested batch"}
+                    </button>
+                  ) : null}
+                  {dlqGuidance.secondaryAction === "batch" ? (
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary"
+                      onClick={openDlqBatchRequeueConfirmation}
+                      disabled={isActionSubmitting}
+                    >
+                      {language === "es" ? "Reencolar lote visible" : "Requeue visible batch"}
+                    </button>
+                  ) : null}
+                </div>
               </div>
-            </div>
-            <div className="app-form-field app-form-field--full">
-              <p className="tenant-help-text mt-0 mb-0">
+              <div className="provisioning-dlq-grid">
+                <AppForm className="tenant-action-form" onSubmit={handleDlqFilterSubmit}>
+                  <h3 className="tenant-action-form__title">
+                    {language === "es" ? "Filtros DLQ" : "DLQ filters"}
+                  </h3>
+                  <AppFormField>
+                      <FieldHelpLabel
+                        label={language === "es" ? "Límite" : "Limit"}
+                        help={
+                          language === "es"
+                            ? "Máximo de filas DLQ que quieres inspeccionar en la consulta actual."
+                            : "Maximum number of DLQ rows you want to inspect in the current query."
+                        }
+                      />
+                      <input
+                        className="form-control"
+                        type="number"
+                        min="1"
+                        value={dlqLimit}
+                        onChange={(event) => setDlqLimit(event.target.value)}
+                      />
+                  </AppFormField>
+                  <AppFormField>
+                      <FieldHelpLabel
+                        label={language === "es" ? "Tipo de job" : "Job type"}
+                        help={
+                          language === "es"
+                            ? "Filtra por operación interna de provisioning, por ejemplo crear base tenant, sincronizar esquema o retirar infraestructura técnica."
+                            : "Filter by internal provisioning operation, for example create tenant DB, sync schema or retire technical infrastructure."
+                        }
+                      />
+                      <input
+                        className="form-control"
+                        list="provisioning-job-type-options"
+                        value={dlqJobType}
+                        onChange={(event) => setDlqJobType(event.target.value)}
+                      />
+                      <datalist id="provisioning-job-type-options">
+                        {jobTypeOptions.map((value) => (
+                          <option key={value} value={value} />
+                        ))}
+                      </datalist>
+                  </AppFormField>
+                  <AppFormField>
+                      <FieldHelpLabel
+                        label={language === "es" ? "Slug tenant" : "Tenant slug"}
+                        help={
+                          language === "es"
+                            ? "Código técnico del tenant sobre el que quieres revisar filas DLQ."
+                            : "Technical code of the tenant whose DLQ rows you want to review."
+                        }
+                      />
+                      <input
+                        className="form-control"
+                        value={dlqTenantSlug}
+                        onChange={(event) => setDlqTenantSlug(event.target.value)}
+                      />
+                  </AppFormField>
+                  <AppFormField>
+                      <FieldHelpLabel
+                        label={language === "es" ? "Código de error" : "Error code"}
+                        help={
+                          language === "es"
+                            ? "Usa el código interno cuando quieras acotar una familia específica de fallos."
+                            : "Use the internal code when you want to narrow a specific failure family."
+                        }
+                      />
+                      <input
+                        className="form-control"
+                        value={dlqErrorCode}
+                        onChange={(event) => setDlqErrorCode(event.target.value)}
+                      />
+                  </AppFormField>
+                  <AppFormField fullWidth>
+                    <FieldHelpLabel
+                      label={language === "es" ? "Error contiene" : "Error contains"}
+                      help={
+                        language === "es"
+                          ? "Busca un texto dentro del mensaje de error para aislar casos similares."
+                          : "Search for text inside the error message to isolate similar cases."
+                      }
+                    />
+                    <input
+                      className="form-control"
+                      value={dlqErrorContains}
+                      onChange={(event) => setDlqErrorContains(event.target.value)}
+                    />
+                  </AppFormField>
+                  <AppFormActions>
+                    <button
+                      type="submit"
+                      className="btn btn-outline-primary"
+                      disabled={isLoading || isActionSubmitting}
+                    >
+                      {language === "es" ? "Aplicar filtros" : "Apply filters"}
+                    </button>
+                  </AppFormActions>
+                </AppForm>
+
+                <AppForm className="tenant-action-form" onSubmit={handleDlqBatchRequeue}>
+                  <h3 className="tenant-action-form__title">
+                    {language === "es" ? "Reencolado en lote" : "Batch requeue"}
+                  </h3>
+                  <AppFormField>
+                      <FieldHelpLabel
+                        label={language === "es" ? "Límite" : "Limit"}
+                        help={
+                          language === "es"
+                            ? "Cantidad máxima de filas filtradas que se van a devolver a la cola."
+                            : "Maximum amount of filtered rows that will be returned to the queue."
+                        }
+                        placement="left"
+                      />
+                      <input
+                        className="form-control"
+                        type="number"
+                        min="1"
+                        value={dlqLimit}
+                        onChange={(event) => setDlqLimit(event.target.value)}
+                      />
+                  </AppFormField>
+                  <AppFormField>
+                      <FieldHelpLabel
+                        label={language === "es" ? "Segundos de demora" : "Delay seconds"}
+                        help={
+                          language === "es"
+                            ? "Espera opcional antes de volver a entregar el job al worker."
+                            : "Optional wait before handing the job back to the worker."
+                        }
+                        placement="left"
+                      />
+                      <input
+                        className="form-control"
+                        type="number"
+                        min="0"
+                        value={dlqDelaySeconds}
+                        onChange={(event) => setDlqDelaySeconds(event.target.value)}
+                      />
+                  </AppFormField>
+                  <div className="app-form-field app-form-field--full">
+                    <div className="form-check mt-0">
+                      <input
+                        id="dlq-reset-attempts"
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={dlqResetAttempts}
+                        onChange={(event) => setDlqResetAttempts(event.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor="dlq-reset-attempts">
+                        {language === "es" ? "Reiniciar intentos al reencolar" : "Reset attempts when requeuing"}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="app-form-field app-form-field--full">
+                    <p className="tenant-help-text mt-0 mb-0">
+                      {language === "es"
+                        ? "La acción en lote reutiliza el set actual de filtros, así que puedes reprocesar una porción focalizada del DLQ en vez de toda la cola."
+                        : "The batch action reuses the current filter set, so you can reprocess a focused slice of the DLQ instead of the whole queue."}
+                    </p>
+                  </div>
+                  <AppFormActions>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={isActionSubmitting}
+                    >
+                      {language === "es" ? "Reencolar filas DLQ filtradas" : "Requeue filtered DLQ rows"}
+                    </button>
+                  </AppFormActions>
+                </AppForm>
+              </div>
+            </>
+          ) : (
+            <div
+              className="tenant-help-text"
+              style={{
+                display: "grid",
+                gap: "0.75rem",
+                padding: "1rem",
+                border: "1px solid var(--border-subtle, #d7deed)",
+                borderRadius: "0.875rem",
+                background: "var(--surface-muted, #f8fbff)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                <strong>
+                  {language === "es"
+                    ? "Superficie broker-only no activa"
+                    : "Broker-only surface is not active"}
+                </strong>
+                <AppBadge tone="warning">{currentDispatchBackend || "n/a"}</AppBadge>
+              </div>
+              <p className="mb-0">
                 {language === "es"
-                  ? "La acción en lote reutiliza el set actual de filtros, así que puedes reprocesar una porción focalizada del DLQ en vez de toda la cola."
-                  : "The batch action reuses the current filter set, so you can reprocess a focused slice of the DLQ instead of the whole queue."}
+                  ? "Este host sigue siendo útil para leer jobs, métricas, alertas y contexto por tenant, pero el panel DLQ broker-only no se opera aquí."
+                  : "This host is still useful to read jobs, metrics, alerts and tenant context, but the broker-only DLQ panel is not operated here."}
               </p>
+              <ul className="mb-0 ps-3">
+                <li>
+                  {language === "es"
+                    ? "Backend activo: la cola visible se procesa por base de datos, no por broker."
+                    : "Active backend: visible backlog is processed through the database, not through the broker."}
+                </li>
+                <li>
+                  {language === "es"
+                    ? "Usa este entorno para análisis y correlación con métricas/alertas."
+                    : "Use this environment for analysis and correlation with metrics/alerts."}
+                </li>
+                <li>
+                  {language === "es"
+                    ? "Valida filas DLQ, requeue individual, batch y requeue guiado en staging u otro entorno con backend broker."
+                    : "Validate DLQ rows, individual requeue, batch and guided requeue in staging or another broker-backed environment."}
+                </li>
+              </ul>
             </div>
-            <AppFormActions>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={isActionSubmitting}
-              >
-                {language === "es" ? "Reencolar filas DLQ filtradas" : "Requeue filtered DLQ rows"}
-              </button>
-            </AppFormActions>
-          </AppForm>
-        </div>
+          )}
         </PanelCard>
       </div>
 
@@ -2452,7 +2503,7 @@ export function ProvisioningPage() {
         />
       ) : null}
 
-      {!dlqError && dlq ? (
+      {!dlqError && dlq && isBrokerDispatchActive ? (
         filteredDlqRows.length > 0 ? (
           <DataTableCard
             title={language === "es" ? "Filas DLQ" : "DLQ rows"}

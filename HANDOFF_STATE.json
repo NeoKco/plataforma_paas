@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-10T19:58:00-04:00",
+  "updated_at": "2026-04-10T20:12:00-04:00",
   "handoff_status": "active",
-  "current_focus": "platform-core hardening + E2E sobre Provisioning/DLQ; requeue guiado y visibilidad del dispatch backend activo ya cerrados en repo, staging y production, y el siguiente subfrente recomendado pasa a profundizacion broker-only usando esa capacidad visible como gate",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side ya operativos, observabilidad visible de Provisioning ya publicada y validada, requeue guiado ya publicado, y la consola de Provisioning ya deja visible el dispatch backend activo del entorno",
+  "current_focus": "platform-core hardening + E2E sobre Provisioning/DLQ; requeue guiado, visibilidad del dispatch backend activo y gating visible de la superficie DLQ ya cerrados en repo, staging y production, y el siguiente subfrente recomendado pasa a profundizacion broker-only usando esa capacidad visible como gate",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side ya operativos, observabilidad visible de Provisioning ya publicada y validada, requeue guiado ya publicado, y la consola de Provisioning ya deja visible y alineada la superficie DLQ segun el dispatch backend activo del entorno",
   "active_modules": [
     "platform-core",
     "finance",
@@ -37,7 +37,8 @@
     "el corte Investigar en DLQ ya quedó validado en staging con smoke específico y publicado en production con regresión segura",
     "el subfrente observabilidad visible en Provisioning ya quedo publicado y validado en staging y production; el siguiente candidato natural pasa a ser requeue guiado",
     "requeue guiado en Provisioning ya quedo publicado y validado en staging; en production el frontend esta publicado pero el smoke broker-only se salta mientras el backend no resuelva como broker",
-    "Provisioning debe exponer el dispatch backend activo del entorno para que la operacion y los smokes DLQ broker-only no dependan de inferencias externas"
+    "Provisioning debe exponer el dispatch backend activo del entorno para que la operacion y los smokes DLQ broker-only no dependan de inferencias externas",
+    "la superficie DLQ visible debe alinearse al dispatch backend activo para no dejar acciones broker-only ambiguas en entornos database"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -126,10 +127,13 @@
     "catalogo de capacidades backend ahora expone current_provisioning_dispatch_backend",
     "Provisioning muestra una tarjeta visible con el dispatch backend activo y el alcance broker-only del entorno",
     "smoke platform-admin-provisioning-dispatch-capability validado en staging",
-    "smoke platform-admin-provisioning-dispatch-capability validado en production"
+    "smoke platform-admin-provisioning-dispatch-capability validado en production",
+    "Provisioning oculta acciones broker-only de DLQ cuando el backend activo no es broker y muestra un estado guiado de no disponibilidad",
+    "smoke platform-admin-provisioning-dlq-surface-gating validado en staging",
+    "smoke platform-admin-provisioning-dlq-surface-gating validado en production"
   ],
   "blocking_issues": [],
-  "next_decision_required": "abrir el siguiente corte concreto de platform-core hardening + E2E dentro de Provisioning/DLQ; la recomendacion vigente es profundizacion broker-only de DLQ, usando primero current_provisioning_dispatch_backend para decidir si el entorno actual soporta o no esos smokes",
+  "next_decision_required": "abrir el siguiente corte concreto de platform-core hardening + E2E dentro de Provisioning/DLQ; la recomendacion vigente es profundizacion broker-only de DLQ, usando primero current_provisioning_dispatch_backend para decidir si el entorno actual soporta o no esos smokes y dejando la superficie visible ya alineada a esa decision",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -137,6 +141,7 @@
     "asumir cerrado tambien el subfrente de observabilidad visible en Provisioning",
     "asumir cerrado tambien requeue guiado",
     "asumir cerrada tambien la visibilidad del dispatch backend activo",
+    "asumir cerrado tambien el gating visible de la superficie DLQ",
     "retomar platform-core hardening + E2E sobre Provisioning y DLQ",
     "abrir el subfrente de profundizacion broker-only usando la capacidad visible del entorno para decidir validacion"
   ],
@@ -240,6 +245,12 @@
     "platform_admin_provisioning_dispatch_capability_staging_smoke": "pass",
     "platform_admin_provisioning_dispatch_capability_production_backend_deploy": "pass",
     "platform_admin_provisioning_dispatch_capability_production_frontend_publish": "pass",
-    "platform_admin_provisioning_dispatch_capability_production_smoke": "pass"
+    "platform_admin_provisioning_dispatch_capability_production_smoke": "pass",
+    "platform_admin_provisioning_dlq_surface_gating_repo_frontend_build": "pass",
+    "platform_admin_provisioning_dlq_surface_gating_repo_playwright_list": "pass",
+    "platform_admin_provisioning_dlq_surface_gating_staging_frontend_publish": "pass",
+    "platform_admin_provisioning_dlq_surface_gating_staging_smoke": "pass",
+    "platform_admin_provisioning_dlq_surface_gating_production_frontend_publish": "pass",
+    "platform_admin_provisioning_dlq_surface_gating_production_smoke": "pass"
   }
 }

@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-10
-- foco de iteración: `platform-core hardening + E2E` sobre `Provisioning/DLQ`, cerrando el subfrente `capacidad activa de dispatch backend`
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado, portabilidad tenant ya implementada en su base, el salto `Tenants -> Provisioning` ya validado en `staging` y `production`, el corte `Investigar en DLQ` ya quedó validado en `staging` y publicado en `production`, el repo ya soporta portabilidad dual (`portable_full` + `functional_data_only`) tanto en `platform_admin` como en `tenant_portal`, `Provisioning` ya agrega además `requeue guiado` publicado en `staging` y `production`, y ahora también deja visible en consola cuál es el `dispatch backend` activo del entorno con smoke verde en `staging` y `production`
+- foco de iteración: `platform-core hardening + E2E` sobre `Provisioning/DLQ`, cerrando el subfrente `gating visible de superficie DLQ broker-only`
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado, portabilidad tenant ya implementada en su base, el salto `Tenants -> Provisioning` ya validado en `staging` y `production`, el corte `Investigar en DLQ` ya quedó validado en `staging` y publicado en `production`, el repo ya soporta portabilidad dual (`portable_full` + `functional_data_only`) tanto en `platform_admin` como en `tenant_portal`, `Provisioning` ya agrega además `requeue guiado` publicado en `staging` y `production`, deja visible en consola cuál es el `dispatch backend` activo del entorno, y ahora adapta además la superficie misma de `Operación DLQ` según ese backend con smoke verde en `staging` y `production`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -65,6 +65,11 @@
 - `Provisioning` ya deja visible la `Capacidad activa de provisioning`, mostrando explícitamente si el entorno opera hoy con `dispatch backend` `broker` o `database`
 - el smoke nuevo `platform-admin-provisioning-dispatch-capability` ya quedó verde en `staging`
 - el smoke nuevo `platform-admin-provisioning-dispatch-capability` ya quedó verde en `production`
+- `Provisioning` ya adapta el panel `Operación DLQ` según la capacidad activa del entorno:
+  - en `broker`, muestra filtros, batch y acciones de requeue
+  - en `database`, muestra un estado broker-only no activo y deriva al entorno broker
+- el smoke nuevo `platform-admin-provisioning-dlq-surface-gating` ya quedó verde en `staging`
+- el smoke nuevo `platform-admin-provisioning-dlq-surface-gating` ya quedó verde en `production`
 - el helper browser `backend-control` ya soporta `E2E_BACKEND_ENV_FILE` para sembrar contra árboles publicados usando el env correcto del servicio
 - el root ya cuenta con un checklist corto único de cierre en `CHECKLIST_CIERRE_ITERACION.md`, integrado al flujo oficial de retoma y handoff
 
@@ -77,9 +82,10 @@ El siguiente corte recomendado dentro de ese mismo frente pasa a ser este:
 - considerar cerrado el corte dual de portabilidad tenant
 - considerar cerrado también el subfrente `requeue guiado`
 - considerar cerrado además el subfrente `capacidad activa de dispatch backend`
+- considerar cerrado además el subfrente `gating visible de superficie DLQ broker-only`
 - mantener explícito que la propia consola ya dice si un entorno es `broker` o `database`
 - volver a `platform-core hardening + E2E`
-- con foco siguiente en profundización broker-only de DLQ usando esa capacidad visible como gate operativo
+- con foco siguiente en profundización broker-only de DLQ usando esa capacidad visible como gate operativo y sin dejar acciones ambiguas en entornos `database`
 
 ## Qué módulo se estaba construyendo
 

@@ -1,5 +1,29 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-10 - Provisioning DLQ surface gating staging+production
+
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) ya no solo informa el backend activo de dispatch: ahora adapta el panel `Operación DLQ` según si el entorno corre con `broker` o con `database`
+- cuando el entorno es `broker`, la consola mantiene visibles:
+  - filtros DLQ
+  - reencolado en lote
+  - requeue guiado
+  - acciones de requeue por fila
+- cuando el entorno es `database`, la consola:
+  - reemplaza esa superficie por un estado broker-only no activo
+  - deja explícito que el host sirve para leer jobs, métricas y alertas
+  - deriva la operación DLQ broker-only a `staging` u otro entorno broker
+- se agrega [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts)
+- validaciones cerradas:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts --list` OK
+  - `staging`: frontend publicado + smoke nuevo `1 passed`
+  - `production`: frontend publicado + smoke nuevo `1 passed`
+- hallazgo operativo:
+  - con este corte, la lectura publicada ya no deja acciones DLQ ambiguas en entornos `database`; el propio panel visible se alinea al backend activo
+- siguiente paso:
+  - seguir dentro de `Provisioning/DLQ`
+  - abrir una profundización broker-only real, ya con capacidad y superficie visible alineadas
+
 ## 2026-04-10 - Provisioning dispatch capability visible staging+production
 
 - [platform_capability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/platform_capability_service.py) y [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) exponen `current_provisioning_dispatch_backend` dentro del catálogo de capacidades de `platform_control`
