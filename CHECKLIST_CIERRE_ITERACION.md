@@ -35,6 +35,10 @@ Si el estado real cambió, revisar y actualizar:
 - `HANDOFF_STATE.json`
 - `HISTORIAL_ITERACIONES.md`
 
+Usar como formato guía:
+
+- `PLANTILLA_ACTUALIZACION_ESTADO.md`
+
 ## Actualización mínima por tipo de cambio
 
 ### Si hubo frontend visible

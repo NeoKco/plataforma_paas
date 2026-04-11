@@ -59,7 +59,7 @@ Además, debes usar como fuente secundaria obligatoria la documentación canóni
   - `HANDOFF_STATE.json`
   - `HISTORIAL_ITERACIONES.md`
 - usa `CHECKLIST_CIERRE_ITERACION.md` como control corto obligatorio antes de cerrar
-- usa `PLANTILLA_ACTUALIZACION_ESTADO.md` como guía para actualizar estado
+- usa `PLANTILLA_ACTUALIZACION_ESTADO.md` como formato obligatorio para actualizar estado
 - si la iteración afecta salida a producción, también debes revisar y actualizar `PAQUETE_RELEASE_OPERADOR.md` si corresponde
 
 ## Modo de trabajo obligatorio
@@ -144,6 +144,7 @@ Si los archivos indican que el foco actual es deploy, preflight o cutover produc
 - actualizar `SIGUIENTE_PASO.md` si cambia la prioridad siguiente
 - actualizar `HANDOFF_STATE.json` si cambia foco, bloqueos o validaciones
 - actualizar `HISTORIAL_ITERACIONES.md` si la iteración fue relevante
+- reescribir `ESTADO_ACTUAL.md` y `SIGUIENTE_PASO.md` siguiendo literalmente `PLANTILLA_ACTUALIZACION_ESTADO.md`
 - actualizar roadmap/changelog del módulo si hubo cambio visible o funcional
 - declarar explícitamente si hubo bloqueo de entorno, deploy o producto
 - revisar `CHECKLIST_CIERRE_ITERACION.md`

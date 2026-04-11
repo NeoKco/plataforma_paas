@@ -77,6 +77,18 @@ type DlqFormFilters = {
   errorContains: string;
 };
 
+type DlqFamilySummary = {
+  key: string;
+  tenantSlug: string;
+  jobType: string;
+  errorCode: string | null;
+  errorContains: string | null;
+  errorLabel: string;
+  totalRows: number;
+  representativeJobId: number;
+  latestRecordedAt: string | null;
+};
+
 export function ProvisioningPage() {
   const showDevelopmentBootstrapHelp = import.meta.env.DEV;
   const { session } = useAuth();
@@ -217,6 +229,60 @@ export function ProvisioningPage() {
     }
     return null;
   }, [filteredDlqRows, guidedDlqJobId]);
+
+  const dlqFamilySummaries = useMemo(() => {
+    const summaries = new Map<string, DlqFamilySummary>();
+
+    filteredDlqRows.forEach((row) => {
+      const tenantSlug = tenantSlugById.get(row.tenant_id) || `tenant-${row.tenant_id}`;
+      const errorCode = normalizeNullableString(row.error_code || "");
+      const errorContains = errorCode
+        ? null
+        : buildDlqErrorContainsFingerprint(row.error_message || "");
+      const familyKey = [
+        tenantSlug.toLowerCase(),
+        row.job_type,
+        errorCode || `message:${errorContains || "n/a"}`,
+      ].join("|");
+      const errorLabel = errorCode
+        ? formatProvisioningCodeLabel(errorCode)
+        : normalizeNullableString(row.error_message || "") || "n/a";
+      const existing = summaries.get(familyKey);
+
+      if (!existing) {
+        summaries.set(familyKey, {
+          key: familyKey,
+          tenantSlug,
+          jobType: row.job_type,
+          errorCode,
+          errorContains,
+          errorLabel,
+          totalRows: 1,
+          representativeJobId: row.job_id,
+          latestRecordedAt: row.recorded_at,
+        });
+        return;
+      }
+
+      existing.totalRows += 1;
+      if (
+        buildComparableTimestamp(row.recorded_at) >
+        buildComparableTimestamp(existing.latestRecordedAt)
+      ) {
+        existing.latestRecordedAt = row.recorded_at;
+      }
+    });
+
+    return Array.from(summaries.values()).sort((left, right) => {
+      if (right.totalRows !== left.totalRows) {
+        return right.totalRows - left.totalRows;
+      }
+      return (
+        buildComparableTimestamp(right.latestRecordedAt) -
+        buildComparableTimestamp(left.latestRecordedAt)
+      );
+    });
+  }, [filteredDlqRows, tenantSlugById]);
 
   const dlqGuidance = useMemo(() => {
     const tenantLabels = Array.from(
@@ -955,6 +1021,35 @@ export function ProvisioningPage() {
     });
   }
 
+  function handleDlqFamilyFocus(family: DlqFamilySummary) {
+    setGuidedDlqJobId(family.totalRows === 1 ? family.representativeJobId : null);
+    setTenantSlugFilter(family.tenantSlug);
+    setDlqTenantSlug(family.tenantSlug);
+    setDlqJobType(family.jobType);
+    setDlqErrorCode(family.errorCode || "");
+    setDlqErrorContains(family.errorCode ? "" : family.errorContains || "");
+    setActionFeedback({
+      scope: "focus-dlq-family",
+      type: "success",
+      message:
+        language === "es"
+          ? `Se enfocó la familia DLQ ${formatProvisioningJobType(
+              family.jobType
+            )} / ${family.errorLabel}.`
+          : `DLQ family ${formatProvisioningJobType(
+              family.jobType
+            )} / ${family.errorLabel} is now focused.`,
+    });
+    focusDlqPanel();
+    void loadProvisioningWorkspace({
+      limit: dlqLimit,
+      tenantSlug: family.tenantSlug,
+      errorCode: family.errorCode || "",
+      errorContains: family.errorCode ? "" : family.errorContains || "",
+      jobType: family.jobType,
+    });
+  }
+
   function handleSingleRequeue(jobId: number) {
     if (!session?.accessToken) {
       return;
@@ -1098,6 +1193,7 @@ export function ProvisioningPage() {
                       cycleHistory,
                       alertsRows: filteredAlertsRows,
                       dlqRows: filteredDlqRows,
+                      dlqFamilySummaries,
                     }),
                     null,
                     2
@@ -2211,6 +2307,88 @@ export function ProvisioningPage() {
         >
           {isBrokerDispatchActive ? (
             <>
+              {dlqFamilySummaries.length > 0 ? (
+                <div
+                  className="tenant-help-text"
+                  style={{
+                    display: "grid",
+                    gap: "0.75rem",
+                    marginBottom: "1rem",
+                    padding: "1rem",
+                    border: "1px solid var(--border-subtle, #d7deed)",
+                    borderRadius: "0.875rem",
+                    background: "var(--surface-muted, #f8fbff)",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                    <strong>{language === "es" ? "Familias DLQ visibles" : "Visible DLQ families"}</strong>
+                    <AppBadge tone="info">{dlqFamilySummaries.length}</AppBadge>
+                  </div>
+                  <p className="mb-0">
+                    {language === "es"
+                      ? "Agrupa el subconjunto broker visible por tenant, tipo de job y error para enfocar una familia homogénea antes de reencolar."
+                      : "Groups the visible broker subset by tenant, job type and error so you can focus one homogeneous family before requeueing."}
+                  </p>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                      gap: "0.75rem",
+                    }}
+                  >
+                    {dlqFamilySummaries.slice(0, 6).map((family) => (
+                      <div
+                        key={family.key}
+                        data-testid="provisioning-dlq-family-card"
+                        style={{
+                          display: "grid",
+                          gap: "0.5rem",
+                          padding: "0.875rem",
+                          border: "1px solid var(--border-subtle, #d7deed)",
+                          borderRadius: "0.75rem",
+                          background: "#fff",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                          <AppBadge tone={family.totalRows > 1 ? "success" : "neutral"}>
+                            {language === "es"
+                              ? `${family.totalRows} fila${family.totalRows === 1 ? "" : "s"}`
+                              : `${family.totalRows} row${family.totalRows === 1 ? "" : "s"}`}
+                          </AppBadge>
+                          <code>#{family.representativeJobId}</code>
+                        </div>
+                        <div>
+                          <strong>{family.tenantSlug}</strong>
+                        </div>
+                        <div>{formatProvisioningJobType(family.jobType)}</div>
+                        <div style={{ color: "var(--text-muted, #51607a)" }}>{family.errorLabel}</div>
+                        <div style={{ color: "var(--text-muted, #51607a)", fontSize: "0.9rem" }}>
+                          {language === "es" ? "Último registro" : "Latest record"}:{" "}
+                          {formatDateTime(family.latestRecordedAt)}
+                        </div>
+                        <div>
+                          <button
+                            type="button"
+                            data-testid="provisioning-dlq-family-focus"
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleDlqFamilyFocus(family)}
+                            disabled={isActionSubmitting}
+                          >
+                            {language === "es" ? "Enfocar familia" : "Focus family"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {dlqFamilySummaries.length > 6 ? (
+                    <p className="mb-0" style={{ color: "var(--text-muted, #51607a)" }}>
+                      {language === "es"
+                        ? `Se muestran las 6 familias más relevantes. Ajusta filtros para aislar el resto (${dlqFamilySummaries.length - 6} adicionales).`
+                        : `Showing the top 6 relevant families. Tighten filters to isolate the remaining ${dlqFamilySummaries.length - 6}.`}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
               <div
                 className="tenant-help-text"
                 style={{
@@ -2998,6 +3176,7 @@ function buildProvisioningWorkspaceExportPayload({
   cycleHistory,
   alertsRows,
   dlqRows,
+  dlqFamilySummaries,
 }: {
   operationFilter: string;
   tenantSlugFilter: string;
@@ -3015,6 +3194,7 @@ function buildProvisioningWorkspaceExportPayload({
   cycleHistory: ProvisioningWorkerCycleTraceHistoryResponse | null;
   alertsRows: ProvisioningOperationalAlertsResponse["data"];
   dlqRows: ProvisioningBrokerDeadLetterResponse["data"];
+  dlqFamilySummaries: DlqFamilySummary[];
 }) {
   return {
     exported_at: new Date().toISOString(),
@@ -3036,7 +3216,24 @@ function buildProvisioningWorkspaceExportPayload({
     cycle_history: cycleHistory?.data || [],
     alerts: alertsRows,
     dlq_rows: dlqRows,
+    dlq_family_summaries: dlqFamilySummaries,
   };
+}
+
+function buildDlqErrorContainsFingerprint(value: string): string | null {
+  const normalized = normalizeNullableString(value.replace(/\s+/g, " "));
+  if (!normalized) {
+    return null;
+  }
+  return normalized.slice(0, 120);
+}
+
+function buildComparableTimestamp(value: string | null): number {
+  if (!value) {
+    return 0;
+  }
+  const parsed = new Date(value).getTime();
+  return Number.isNaN(parsed) ? 0 : parsed;
 }
 
 function buildProvisioningJobsCsv(

@@ -141,10 +141,12 @@ Matiz operativo:
 
 - `SESION_ACTIVA.md` sirve como puntero corto para retomar en segundos
 - `ESTADO_ACTUAL.md` y `SIGUIENTE_PASO.md` siguen siendo la fuente descriptiva principal del estado vivo
+- `PLANTILLA_ACTUALIZACION_ESTADO.md` define el formato oficial con que deben reescribirse esos archivos cuando el estado cambie
 
 Regla operativa asociada:
 
 - en cada iteración importante deben revisarse y actualizarse estos archivos si el estado real cambió
+- esa actualización no debe hacerse con estructura libre; debe seguir la plantilla oficial del root
 
 ## Módulos clave hoy
 

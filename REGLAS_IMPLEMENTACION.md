@@ -176,6 +176,17 @@ La siguiente IA debe poder retomar sin reconstruir el proyecto desde cero.
 
 Esto implica además que en cada iteración importante deben mantenerse actualizados los archivos raíz de continuidad cuando el estado real cambie.
 
+La actualización de estado no debe hacerse con formato libre:
+
+- `ESTADO_ACTUAL.md`
+- `SIGUIENTE_PASO.md`
+- `HANDOFF_STATE.json`
+- `HISTORIAL_ITERACIONES.md`
+
+deben alinearse usando:
+
+- `PLANTILLA_ACTUALIZACION_ESTADO.md`
+
 ## Regla 16. Protocolo obligatorio de actualización de archivos raíz
 
 Usar esta matriz:
@@ -217,6 +228,8 @@ Actualizar cuando cambie cualquiera de estos puntos:
 - backlog exacto restante
 - bloqueos reales
 
+Usar la estructura explícita de `PLANTILLA_ACTUALIZACION_ESTADO.md`.
+
 ### `SESION_ACTIVA.md`
 
 Actualizar cuando cambie:
@@ -234,6 +247,8 @@ Actualizar cuando cambie:
 - el orden recomendado
 - la condición de salida de la próxima iteración
 - el escenario operativo principal
+
+Usar la estructura explícita de `PLANTILLA_ACTUALIZACION_ESTADO.md`.
 
 ## Regla 17. No cerrar una iteración sin declarar bloqueos reales
 

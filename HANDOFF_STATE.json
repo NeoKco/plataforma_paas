@@ -1,6 +1,6 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-10T20:12:00-04:00",
+  "updated_at": "2026-04-10T20:20:00-04:00",
   "handoff_status": "active",
   "current_focus": "platform-core hardening + E2E sobre Provisioning/DLQ; requeue guiado, visibilidad del dispatch backend activo y gating visible de la superficie DLQ ya cerrados en repo, staging y production, y el siguiente subfrente recomendado pasa a profundizacion broker-only usando esa capacidad visible como gate",
   "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side ya operativos, observabilidad visible de Provisioning ya publicada y validada, requeue guiado ya publicado, y la consola de Provisioning ya deja visible y alineada la superficie DLQ segun el dispatch backend activo del entorno",
@@ -130,7 +130,8 @@
     "smoke platform-admin-provisioning-dispatch-capability validado en production",
     "Provisioning oculta acciones broker-only de DLQ cuando el backend activo no es broker y muestra un estado guiado de no disponibilidad",
     "smoke platform-admin-provisioning-dlq-surface-gating validado en staging",
-    "smoke platform-admin-provisioning-dlq-surface-gating validado en production"
+    "smoke platform-admin-provisioning-dlq-surface-gating validado en production",
+    "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
   ],
   "blocking_issues": [],
   "next_decision_required": "abrir el siguiente corte concreto de platform-core hardening + E2E dentro de Provisioning/DLQ; la recomendacion vigente es profundizacion broker-only de DLQ, usando primero current_provisioning_dispatch_backend para decidir si el entorno actual soporta o no esos smokes y dejando la superficie visible ya alineada a esa decision",

@@ -4,450 +4,103 @@
 
 - fecha: 2026-04-10
 - foco de iteración: `platform-core hardening + E2E` sobre `Provisioning/DLQ`, cerrando el subfrente `gating visible de superficie DLQ broker-only`
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado, portabilidad tenant ya implementada en su base, el salto `Tenants -> Provisioning` ya validado en `staging` y `production`, el corte `Investigar en DLQ` ya quedó validado en `staging` y publicado en `production`, el repo ya soporta portabilidad dual (`portable_full` + `functional_data_only`) tanto en `platform_admin` como en `tenant_portal`, `Provisioning` ya agrega además `requeue guiado` publicado en `staging` y `production`, deja visible en consola cuál es el `dispatch backend` activo del entorno, y ahora adapta además la superficie misma de `Operación DLQ` según ese backend con smoke verde en `staging` y `production`
+- estado general: `production` y `staging` quedaron alineados, con `Provisioning` ya capaz de mostrar el `dispatch backend` activo y de adaptar la superficie `Operación DLQ` según si el entorno corre con `broker` o con `database`
 
 ## Resumen ejecutivo en 30 segundos
 
-- `finance` quedó como módulo piloto cerrado
-- `business-core` y `maintenance` quedaron como foco transversal reciente
-- el remanente editorial de frontend quedó explícitamente como backlog no bloqueante
-- ya existen preflight backend/frontend y documentación de cutover
-- ya existe host productivo real sobre mini PC Debian
-- `/opt/platform_paas` quedó creado como árbol productivo separado
-- `/opt/platform_paas_staging` quedó creado como árbol staging separado
-- backend y frontend quedaron levantados en `https://orkestia.ddns.net` bajo topología single-host
-- el smoke remoto completo contra la URL pública ya pasó con `7/7` checks OK
-- desarrollo local ya no pisa producción: backend `8100`, frontend `5173`
-- staging/test ya quedó operativo: backend `8200`, frontend `8081`
-- el staging ya puede volver al modo instalador inicial mediante un wrapper seguro del repo
-- el staging ya fue reseteado realmente y el flujo visual `/install` quedó validado sobre el mini PC
-- el staging ya fue restaurado otra vez a espejo instalado y hoy responde con `installed=true`
-- el sidebar principal del `tenant_portal` ya quedó backend-driven según `/tenant/info.effective_enabled_modules`
-- el carril `dev` ya quedó alineado para reproducir ese gating: CORS local corregido a `5173` y política `TENANT_BILLING_GRACE_*` declarada en `.env`
-- el alta de `Nuevo tenant` ya quedó corregida en código para exigir `admin_full_name`, `admin_email` y `admin_password`
-- el alta de `Nuevo tenant` ya no depende de un bootstrap fijo compartido tipo `admin@<slug>.local / TenantAdmin123!`
-- `platform_admin` ya expone un `plan_catalog` visible para mostrar qué módulos habilita cada plan en el alta y en el bloque `Plan y módulos`
-- el smoke browser específico `platform-admin-tenants-create-form` ya quedó aprobado en `staging` y `production`
-- el `.env` productivo quedó realineado a `APP_ENV=production`, `DEBUG=false`, `INSTALL_FLAG_FILE=/opt/platform_paas/.platform_installed` y variables bootstrap seguras explícitas para los tenants demo heredados
-- la documentación canónica ya deja fijado que `staging` opera por defecto como espejo instalado, no como bootstrap permanente
-- `provisioning` y `retiro técnico` ya no dependen de escribir `/opt/platform_paas/.env`; el runtime usa `TENANT_SECRETS_FILE`
-- `condominio-demo` ya quedó re-alineado con credencial técnica válida y su `sync_tenant_schema` volvió a `completed`
-- `ierisltda` ya terminó retiro técnico y fue eliminado de `platform_control`, quedando libre para recreación limpia con nuevo correo/password
-- el frente `tenant data portability CSV` ya dejó de ser solo diseño: la Fase 1 de export portable mínimo y la Fase 2 mínima de import controlado ya quedaron implementadas en repo en `platform_control`
-- `platform_admin > Tenants` ya permite generar y descargar `zip + manifest + csv` por tenant cuando la DB tenant está operativa
-- `platform_admin > Tenants` ya permite además cargar un `zip` portable, ejecutar `dry_run` y aplicar import con estrategia inicial `skip_existing`
-- el flujo completo `export + dry_run + apply` ya quedó validado en browser sobre `staging` y `production`
-- el repo ahora soporta además dos modos visibles de portabilidad:
-  - `Paquete completo`
-  - `Solo datos funcionales`
-- el repo ahora expone esa misma portabilidad también desde `tenant_portal > Resumen técnico` para admin tenant
-- existe smoke browser nuevo `tenant-portal-data-portability`
-- la validación de este último corte quedó cerrada en repo con:
-  - backend `unittest`: `294 OK`
-  - frontend `npm run build`: OK
-  - `npx playwright test --list`: OK (`44 tests`)
-- este último corte dual ya fue desplegado y validado también en `staging` y `production`
-- el smoke `platform-admin-tenant-data-export` quedó verde en ambos entornos publicados
-- el smoke `tenant-portal-data-portability` quedó verde en ambos entornos publicados
-- en este entorno de agente, el smoke tenant-side requirió ejecución fuera de sandbox por un fallo de arranque de Chromium con `SIGTRAP`; el resultado funcional quedó validado igual
-- `Tenants` ya abre `Provisioning` con `tenantSlug` precargado y, si existe job visible, con la operación técnica correspondiente ya enfocada
-- `Provisioning` ya deja leer jobs, métricas, alertas y tabla DLQ en foco tenant sin perderse en la cola global
-- el smoke browser `platform-admin-tenant-provisioning-context` ya quedó aprobado en `staging` y `production`
-- `Provisioning` ya agrega en código la acción `Investigar en DLQ` desde `Fallos por código` y `Alertas activas`, precargando filtros DLQ y llevando el foco al panel operativo
-- ese cambio ya quedó publicado en `staging` y `production`
-- el smoke nuevo `platform-admin-provisioning-dlq-investigation` ya quedó verde sobre `staging`
-- la promoción a `production` se cerró con publish frontend y regresión segura sobre `Provisioning`
-- `Provisioning` ya expone también observabilidad visible con snapshots recientes por tenant e historial de alertas operativas persistidas
-- el smoke nuevo `platform-admin-provisioning-observability-history` ya quedó verde en `staging` y `production`
-- `Provisioning` ya expone también `requeue guiado` en `Operación DLQ`, con recomendación visible entre fila individual, lote homogéneo o afinación previa de filtros
-- el smoke nuevo `platform-admin-provisioning-guided-requeue` ya quedó verde en `staging`
-- en `production` ese mismo smoke quedó `skipped` porque el dispatch backend actual del host no resuelve como `broker`; el frontend sí quedó publicado
-- `Provisioning` ya deja visible la `Capacidad activa de provisioning`, mostrando explícitamente si el entorno opera hoy con `dispatch backend` `broker` o `database`
-- el smoke nuevo `platform-admin-provisioning-dispatch-capability` ya quedó verde en `staging`
-- el smoke nuevo `platform-admin-provisioning-dispatch-capability` ya quedó verde en `production`
-- `Provisioning` ya adapta el panel `Operación DLQ` según la capacidad activa del entorno:
-  - en `broker`, muestra filtros, batch y acciones de requeue
-  - en `database`, muestra un estado broker-only no activo y deriva al entorno broker
-- el smoke nuevo `platform-admin-provisioning-dlq-surface-gating` ya quedó verde en `staging`
-- el smoke nuevo `platform-admin-provisioning-dlq-surface-gating` ya quedó verde en `production`
-- el helper browser `backend-control` ya soporta `E2E_BACKEND_ENV_FILE` para sembrar contra árboles publicados usando el env correcto del servicio
-- el root ya cuenta con un checklist corto único de cierre en `CHECKLIST_CIERRE_ITERACION.md`, integrado al flujo oficial de retoma y handoff
-
-## Frente activo real al momento de este estado
-
-El frente activo real del proyecto sigue siendo `platform-core`, y el corte puntual sigue en `Provisioning/DLQ`.
-
-El siguiente corte recomendado dentro de ese mismo frente pasa a ser este:
-
-- considerar cerrado el corte dual de portabilidad tenant
-- considerar cerrado también el subfrente `requeue guiado`
-- considerar cerrado además el subfrente `capacidad activa de dispatch backend`
-- considerar cerrado además el subfrente `gating visible de superficie DLQ broker-only`
-- mantener explícito que la propia consola ya dice si un entorno es `broker` o `database`
-- volver a `platform-core hardening + E2E`
-- con foco siguiente en profundización broker-only de DLQ usando esa capacidad visible como gate operativo y sin dejar acciones ambiguas en entornos `database`
-
-## Qué módulo se estaba construyendo
-
-En esta etapa no se estaba abriendo un módulo completamente nuevo desde cero.
-
-Lo que se estaba haciendo era esto:
-
-1. cerrar la salida real de `platform-core`
-2. estabilizar `Nuevo tenant` y `provisioning`
-3. implementar el siguiente frente central ya elegido
-
-En otras palabras:
-
-- `finance` ya quedó como módulo piloto cerrado
-- `business-core` y `maintenance` quedaron como foco de alineación transversal
-- luego el foco cambió a deploy, preflight y cutover productivo
-- ahora el foco pasa a endurecimiento operativo de `Provisioning` después de cerrar portabilidad tenant base
-- dentro de ese endurecimiento, los subfrentes `observabilidad visible` y `requeue guiado` ya quedaron cerrados en repo; el siguiente candidato natural pasa a ser profundización broker-only de DLQ y/o cierre de topología productiva para esos casos
+- `finance` ya está cerrado en su alcance actual y `business-core` + `maintenance` ya operan en su primer corte funcional
+- la topología real ya está estabilizada en el mini PC: `dev` separado, `staging` separado y `production` con HTTPS en `https://orkestia.ddns.net`
+- `Provisioning` ya cerró los subfrentes visibles de `Investigar en DLQ`, `observabilidad visible`, `requeue guiado`, `capacidad activa de dispatch backend` y `gating visible` del panel DLQ
+- la portabilidad tenant dual (`portable_full` + `functional_data_only`) ya quedó operativa en `platform_admin` y `tenant_portal`
+- la documentación viva, runbooks E2E y handoff ya quedaron actualizados y sincronizados con lo publicado
 
 ## Qué ya quedó hecho
 
-### A nivel funcional general
-
-- `platform_admin` ya es operable
-- `tenant_portal` ya es operable en su base
-- `finance` ya está cerrado en su alcance actual
-- `business-core` ya está operativo en backend y frontend
-- `maintenance` ya está operativo en su primer corte funcional
-- `tenant_portal` ya refleja visualmente los módulos efectivos calculados por backend en su sidebar principal
-- `platform_admin` ya tiene en código el alta de tenant con admin inicial explícito y preview de módulos por plan
-- `platform_admin` ya tiene ese mismo flujo visible y validado en `staging` y `production`
-- `platform_admin` ya permite saltar desde `Tenants` a `Provisioning` con contexto tenant precargado y lectura operativa acotada
-
-### A nivel transversal frontend
-
-Ya quedó incorporado o reforzado:
-
-- helper `pickLocalizedText()`
-- uso del `design system` transversal en superficies importantes
-- alineación de navegación, placeholders, catálogos, paneles, modales y varias páginas densas
-- `AppSpotlight` en entradas principales de módulos nuevos
-
-### A nivel documentación
-
-Ya quedó actualizado que el remanente de i18n/capa transversal no bloquea salida a terreno y pasa a backlog.
-
-Se actualizaron documentos de:
-
-- roadmap frontend
-- changelog de `business-core`
-- changelog de `maintenance`
-- backlog transversal por módulos
-- checklist de release funcional
-- checklist de aceptación operativa
-- guía de desarrollo y roadmap de `platform-core` para reflejar el alta explícita del admin tenant y la visibilidad plan-driven de módulos
-- modelo canónico nuevo de portabilidad tenant en CSV dentro de `platform-core`
-- migración de control `0026_tenant_data_transfer_jobs` con jobs y artifacts de export portable
-- servicio backend `tenant_data_portability_service` para generar paquete `zip + manifest + csv`
-- bloque visible `Portabilidad tenant` dentro de `platform_admin > Tenants`
-- smoke browser nuevo `platform-admin-tenant-data-export`
-- endpoints nuevos de import portable tenant-side en `platform_control`
-- carga de `zip` + `dry_run` + `apply` explícito desde `platform_admin > Tenants`
-- tests backend del import controlado mínimo
-- corrección backend del import para tipar booleanos, fechas, numéricos, JSON y binarios según la columna destino
-- deploy backend endurecido para crear/chownear `TENANT_DATA_EXPORT_ARTIFACTS_DIR`
-- defaults inseguros de `TENANT_BOOTSTRAP_DB_PASSWORD_*` eliminados del código para no romper arranque productivo
-- smoke browser de portabilidad tenant aprobado en `staging`
-- smoke browser de portabilidad tenant aprobado en `production`
-- runbook y documentación canónica de `platform-core` actualizados para reflejar los dos scopes portables y la nueva superficie tenant-side
-- smoke browser nuevo `tenant-portal-data-portability`
-- este último corte queda validado en repo, `staging` y `production`
-
-### A nivel producción / deploy
-
-Ya quedaron creados, documentados y usados realmente:
-
-- preflight backend
-- preflight frontend estático
-- build frontend productivo
-- loader robusto para `.env`
-- guía de frontend estático con `nginx`
-- guía de preflight backend
-- checklist de cutover a producción
-- árbol productivo `/opt/platform_paas`
-- árbol staging `/opt/platform_paas_staging`
-- unidad `systemd` `platform-paas-backend`
-- unidad `systemd` `platform-paas-backend-staging`
-- publicación SPA + backend por rutas en `orkestia.ddns.net`
-- publicación staging local por `nginx` en `http://192.168.7.42:8081`
-- certificado Let's Encrypt activo para `orkestia.ddns.net`
-- evidencia operativa post-deploy en `/opt/platform_paas/operational_evidence/`
-- smoke remoto backend aprobado sobre `https://orkestia.ddns.net`
-- baseline backend estable bajo `.env.staging` con `510 tests OK`
-- wrapper formal `deploy/reset_staging_bootstrap.sh` para devolver staging al modo bootstrap sin tocar `production`
-- wrapper formal `deploy/restore_staging_mirror.sh` para devolver staging desde bootstrap a espejo instalado
-- smoke browser opt-in del instalador para validar `/install` en staging bootstrap
-- validación real del reset bootstrap con `platform-paas-backend-staging` activo y `/install/` disponible en backend
-- validación browser real de `/install` en `http://192.168.7.42:8081/install` con Playwright opt-in aprobado
-- restauración real de `staging` a espejo instalado con baseline frontend y `health` en `installed=true`
-- smoke browser nuevo de sidebar tenant validado en carril `dev` aislado sobre `4173 -> 8101`
-- alineación local real de `dev` para browser tenant:
-  - CORS ya no queda atrasado en `4173` cuando la convención vigente es `5173`
-  - el baseline `.env` ya declara `TENANT_BILLING_GRACE_*` para reproducir `effective_enabled_modules=core,users` durante `billing grace`
-- migración de control `0025_tenant_bootstrap_admin` ya aplicada en `staging`
-- flujo `Nuevo tenant` validado en `staging` con smoke browser dedicado
-- flujo `Nuevo tenant` validado en `production` con smoke browser dedicado
-- `.env` productivo corregido en host real para arrancar verdaderamente como `production`
-
-### A nivel handoff entre IAs
-
-Ya quedaron creados y enlazados desde el repo:
-
-- `PROJECT_CONTEXT.md`
-- `SESION_ACTIVA.md`
-- `REGLAS_IMPLEMENTACION.md`
-- `PROMPT_MAESTRO_MODULO.md`
-- `ESTADO_ACTUAL.md`
-- `SIGUIENTE_PASO.md`
-
-Además, el `PROMPT_MAESTRO_MODULO.md` ya quedó endurecido para obligar:
-
-- precedencia explícita entre fuentes root, arquitectura y módulos
-- fase inicial de diagnóstico antes de ejecutar
-- formato de respuesta homogéneo entre IAs
-- actualización obligatoria de estado e handoff si la iteración cambia el estado real
-- lectura inicial rápida desde `SESION_ACTIVA.md` para alternar entre cuentas sin perder el hilo
-
-Además, `README.md`, `docs/index.md` y la gobernanza ya apuntan a ellos como memoria viva del proyecto.
+- `Nuevo tenant` ya exige `admin_full_name`, `admin_email` y `admin_password`, sin bootstrap fijo compartido
+- `Tenants` ya abre `Provisioning` con `tenantSlug` precargado y lectura operativa enfocada por tenant
+- `Provisioning` ya permite leer jobs, métricas, alertas, investigación DLQ, observabilidad visible y requeue guiado
+- `Provisioning` ya muestra explícitamente el `dispatch backend` activo del entorno
+- `Provisioning` ya adapta la superficie `Operación DLQ`:
+  - `broker`: filtros, batch, requeue guiado y requeue por fila visibles
+  - `database`: estado broker-only no activo y derivación al entorno correcto
+- la portabilidad tenant ya soporta export/import controlado con `dry_run` y `apply` desde `platform_admin` y `tenant_portal`
+- `staging` ya quedó operativo como espejo instalado por defecto, con posibilidad de reset bootstrap controlado
+- `production` ya quedó publicado y validado sobre `https://orkestia.ddns.net`
 
 ## Qué archivos se tocaron
 
-### Archivos raíz de continuidad creados recientemente
-
-- `PROJECT_CONTEXT.md`
-- `SESION_ACTIVA.md`
-- `REGLAS_IMPLEMENTACION.md`
-- `PROMPT_MAESTRO_MODULO.md`
-- `ESTADO_ACTUAL.md`
-- `SIGUIENTE_PASO.md`
-- `HANDOFF_STATE.json`
-- `HISTORIAL_ITERACIONES.md`
-
-### Frontend / transversal ya tocado en iteraciones recientes
-
-Entre los archivos frontend más relevantes ya intervenidos están:
-
-- `frontend/src/store/language-context.tsx`
-- `frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreModuleNav.tsx`
-- `frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceModuleNav.tsx`
-- `frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreCatalogPage.tsx`
-- `frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCatalogPage.tsx`
-- `frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOverviewPage.tsx`
-- `frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx`
-- `frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreTaxonomyPage.tsx`
-- `frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientDetailPage.tsx`
-- `frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx`
-- `frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreWorkGroupsPage.tsx`
-- `frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreWorkGroupMembersPage.tsx`
-- `frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx`
-- `frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCostTemplatesPage.tsx`
-- `frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceInstallationsPage.tsx`
-- `frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx`
-
-### Documentación tocada recientemente
-
-- `README.md`
-- `docs/architecture/frontend-roadmap.md`
-- `docs/modules/business-core/CHANGELOG.md`
-- `docs/modules/maintenance/CHANGELOG.md`
-- `docs/modules/improvements/README.md`
-- `docs/architecture/implementation-governance.md`
-- `docs/deploy/functional-release-checklist.md`
-- `docs/deploy/operational-acceptance-checklist.md`
-- `docs/deploy/backend-debian.md`
-- `docs/deploy/backend-release-and-rollback.md`
-- `docs/deploy/index.md`
-- `docs/index.md`
-- `docs/deploy/backend-production-preflight.md`
-- `docs/deploy/frontend-static-nginx.md`
-- `docs/deploy/production-cutover-checklist.md`
-
-### Scripts y plantillas tocados recientemente
-
-- `.env`
-- `deploy/validate_backend_env.sh`
-- `deploy/deploy_backend.sh`
-- `deploy/load_dotenv.sh`
-- `deploy/check_backend_release_readiness.sh`
-- `deploy/build_frontend.sh`
-- `deploy/check_frontend_static_readiness.sh`
-- `infra/env/backend.development.example.env`
-- `infra/env/backend.staging.example.env`
-- `infra/env/backend.production.example.env`
-- `infra/nginx/platform-paas-frontend.conf`
-- `infra/nginx/platform-paas-frontend-ssl.conf`
-- `infra/nginx/platform-paas-single-host.conf`
-- `infra/nginx/platform-paas-single-host-ssl.conf`
+- código visible de este último corte:
+  - `frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx`
+  - `frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts`
+- estado y handoff:
+  - `ESTADO_ACTUAL.md`
+  - `SIGUIENTE_PASO.md`
+  - `SESION_ACTIVA.md`
+  - `HANDOFF_STATE.json`
+  - `HISTORIAL_ITERACIONES.md`
+- documentación canónica:
+  - `docs/modules/platform-core/ROADMAP.md`
+  - `docs/modules/platform-core/CHANGELOG.md`
+  - `docs/modules/platform-core/USER_GUIDE.md`
+  - `docs/modules/platform-core/DEV_GUIDE.md`
+  - `frontend/e2e/README.md`
+  - `docs/runbooks/frontend-e2e-browser.md`
+  - `docs/runbooks/provisioning-guided-test.md`
+  - `PAQUETE_RELEASE_OPERADOR.md`
 
 ## Qué decisiones quedaron cerradas
 
-1. `finance` sigue siendo el módulo piloto y referencia de slice tenant
-2. `business-core` es el dueño del dominio transversal tenant
-3. `maintenance` depende de `business-core`; no debe duplicarlo
-4. el remanente editorial de i18n / `design system` en `business-core` y `maintenance` queda como backlog no bloqueante
-5. la salida a terreno no debe frenarse por copy residual si el flujo principal ya está validado
-6. la topología objetivo recomendada sigue siendo backend y frontend separados, pero la primera salida productiva puede operar temporalmente como single-host en un mini PC
-7. la memoria útil del proyecto debe vivir en archivos del repo, no en el chat
-8. toda IA que retome debe partir con diagnóstico explícito antes de proponer o ejecutar cambios
-9. `SESION_ACTIVA.md` queda como puntero corto oficial para retomar entre cuentas o sesiones con cuota limitada
+- el host productivo real sigue siendo el mini PC con topología single-host y HTTPS activo
+- `staging` sigue siendo el carril previo oficial para validar UI visible antes de `production`
+- los smokes broker-only no deben asumirse verdes en `production` si el backend activo no es `broker`
+- la consola `Provisioning` debe exponer la capacidad activa del entorno en vez de dejarla implícita
+- la propia superficie `Operación DLQ` debe alinearse a esa capacidad y no mostrar acciones broker-only ambiguas en entornos `database`
+- la portabilidad tenant CSV sigue siendo portabilidad/migración, no reemplazo del backup PostgreSQL real
 
 ## Qué falta exactamente
 
-### No queda bloqueo operativo de salida
-
-Tampoco queda pendiente el frente central de sidebar tenant:
-
-- el menú principal del `tenant_portal` ya consume `effective_enabled_modules`
-- existe smoke browser específico para validarlo
-- el siguiente paso ya no es cerrar este frente, sino elegir el siguiente frente explícito del roadmap
-- la documentación y el handoff de este slice ya quedaron cerrados; no queda deuda editorial específica del frente `Nuevo tenant`
-
-La salida inicial ya quedó validada para operación:
-
-1. `https://orkestia.ddns.net` respondió correctamente desde navegador real
-2. el smoke remoto completo pasó sobre la URL pública
-3. `staging` ya fue llevado a bootstrap, el instalador quedó validado visualmente y luego volvió a espejo instalado
-4. el estado y la evidencia operativa ya quedaron asentados en el repo
-
-### Lo siguiente ya es post-producción y pre-producción controlada
-
-Lo que queda ahora no es este frente de `Nuevo tenant`, sino elegir el siguiente frente real:
-
-- mantener `staging` como espejo operativo para regresión normal
-- decidir cuál es el siguiente frente real de producto o hardening transversal
-- seguir con backlog explícito, no con pendientes implícitos de deploy
-
-### Evidencia operativa ya disponible
-
-- backend health público: `https://orkestia.ddns.net/health`
-- reporte smoke remoto: `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260407_final.json`
-- evidencia backend post-deploy previa: `/opt/platform_paas/operational_evidence/backend_operational_evidence_20260407_223208.log`
-- health staging backend: `http://127.0.0.1:8200/health`
-- health staging frontend/nginx: `http://127.0.0.1:8081/health`
-- login staging app: `http://192.168.7.42:8081/login`
-
-Eso significa que el proyecto ya está desplegado en producción y además tiene un carril staging separado en el mismo mini PC.
-
-### Falta residual de frontend, pero no bloqueante
-
-Sigue quedando remanente editorial/transversal en páginas como:
-
-- `BusinessCoreDuplicatesPage.tsx`
-- `BusinessCoreOrganizationsPage.tsx`
-- `BusinessCoreContactsPage.tsx`
-- `BusinessCoreSitesPage.tsx`
-- `BusinessCoreAssetsPage.tsx`
-- `BusinessCoreAssetTypesPage.tsx`
-- `BusinessCoreFunctionProfilesPage.tsx`
-- `BusinessCoreTaskTypesPage.tsx`
-- `MaintenanceDueItemsPage.tsx`
-- partes de `MaintenanceOverviewPage.tsx`
-- remanentes de `MaintenanceWorkOrdersPage.tsx`
-
-Eso quedó deliberadamente como backlog no bloqueante.
-
-## Fuentes canónicas por frente
-
-### Si alguien retoma producción
-
-- `docs/deploy/backend-production-preflight.md`
-- `docs/deploy/frontend-static-nginx.md`
-- `docs/deploy/production-cutover-checklist.md`
-
-### Si alguien retoma frontend transversal
-
-- `docs/architecture/frontend-roadmap.md`
-- `docs/modules/improvements/README.md`
-
-### Si alguien retoma `business-core`
-
-- `docs/modules/business-core/README.md`
-- `docs/modules/business-core/ROADMAP.md`
-- `docs/modules/business-core/CHANGELOG.md`
-
-### Si alguien retoma `maintenance`
-
-- `docs/modules/maintenance/README.md`
-- `docs/modules/maintenance/ROADMAP.md`
-- `docs/modules/maintenance/CHANGELOG.md`
+- abrir el siguiente subfrente broker-only real dentro de `Provisioning/DLQ`
+- decidir si ese siguiente corte será:
+  - profundización de flujos DLQ broker-only en `staging`
+  - o cambio deliberado de topología si alguna vez se quiere validar esos smokes también en `production`
+- mantener el repo y los árboles `/opt/platform_paas` y `/opt/platform_paas_staging` alineados en cada iteración visible
 
 ## Qué no debe tocarse
 
-No tocar sin una razón clara y documentada:
+- no reabrir `Nuevo tenant` salvo bug real
+- no reabrir la base portable tenant salvo necesidad explícita
+- no modificar auth, lifecycle tenant, provisioning base o billing sin necesidad clara del siguiente subfrente
+- no volver a hardcodear visibilidad tenant-side que ya depende de backend/capabilities
+- no tratar CSV portable como respaldo técnico sustituto de `pg_dump`
 
-- la frontera `business-core` vs `maintenance`
-- la decisión de `finance` como módulo piloto
-- auth/middleware base sin necesidad real
-- lifecycle crítico de tenants sin tarea explícita
-- provisioning crítico sin tarea explícita
-- billing crítico sin tarea explícita
-- contratos ya estabilizados solo por “limpieza”
-- backlog residual mezclándolo como si fuera blocker de producción
+## Validaciones ya ejecutadas
 
-Tampoco conviene:
-
-- abrir un módulo nuevo antes de estabilizar producción
-- volver a meter memoria del proyecto solo en conversaciones
-
-## Validaciones ya ejecutadas en esta etapa
-
-- baseline backend en verde
-- build frontend en verde
-- validación del `.env` local de desarrollo en verde
-- preflight frontend local en verde
-- preflight backend local útil para detectar bloqueos de entorno
+- repo:
+  - `npm run build` OK para el último corte UI de `Provisioning`
+  - `npx playwright test e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts --list` OK
+- `staging`:
+  - rebuild frontend OK
+  - `platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts`: `1 passed`
+- `production`:
+  - rebuild frontend OK
+  - `platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts`: `1 passed`
+- validaciones acumuladas que siguen vigentes:
+  - `platform-admin-provisioning-dispatch-capability`: OK en `staging` y `production`
+  - `platform-admin-provisioning-guided-requeue`: OK en `staging`, `skipped_non_broker` en `production`
+  - `platform-admin-provisioning-observability-history`: OK en `staging` y `production`
+  - `platform-admin-tenant-provisioning-context`: OK en `staging` y `production`
+  - portabilidad tenant dual: OK en `staging` y `production`
 
 ## Bloqueos reales detectados
 
-### Bloqueos del workspace actual
-
-- no hay bloqueo productivo activo
-- no hay bloqueo técnico activo en `dev`, `staging` o `production`
-- la decisión abierta ya no es de entorno sino de roadmap: cuál es el siguiente frente real a abrir
-
-### Tipo de bloqueo
-
-- no es bloqueo de código
-- no es bloqueo de entorno
-- es solo una decisión de priorización del siguiente frente
-
-## Cómo debe actualizarse este archivo en adelante
-
-La próxima IA debe reescribir este archivo si cambia cualquiera de estos puntos:
-
-- foco principal de trabajo
-- estado de deploy real
-- backlog restante
-- decisiones cerradas
-- bloqueos reales
-
-## Condición de obsolescencia de este archivo
-
-Este archivo queda viejo en cuanto ocurra cualquiera de estas cosas:
-
-- se ejecute el primer cutover real a producción
-- cambie la prioridad desde producción hacia backlog residual
-- se abra un módulo nuevo como prioridad principal
-- cambie la frontera entre `business-core` y `maintenance`
+- no hay bloqueo funcional activo en este corte
+- el único límite operativo vigente es topológico:
+  - `production` hoy no corre con `dispatch backend = broker`
+  - por eso los smokes broker-only allí deben seguir tratándose como `not applicable/skipped`
+- en este entorno de agente, algunos smokes browser pueden requerir salir de sandbox si Chromium falla al arrancar
 
 ## Mi conclusión
 
-Sí, la estrategia tiene sentido.
-
-Pedir que la documentación quede entendible por otra IA es correcto y recomendable.
-
-Lo importante no es solo usar el mismo modelo, sino dejar el contexto y las reglas aterrizadas dentro del proyecto.
-
-La idea correcta para este repo es esta:
-
-- la memoria real del proyecto no debe vivir en el chat
-- la memoria real del proyecto debe vivir en archivos del repositorio
-
-Hoy el proyecto ya quedó bastante cerca de ese objetivo, pero estos archivos del root existen justamente para cerrar ese gap y hacer el handoff repetible.
-
-Por lo mismo, en cada iteración importante estos archivos deben revisarse y mantenerse actualizados.
+- el estado vivo del proyecto ya quedó alineado a la plantilla oficial
+- `Provisioning/DLQ` ya tiene capacidad visible y superficie visible coherentes
+- el siguiente paso correcto ya no es ordenar documentación ni aclarar el entorno: es abrir una profundización broker-only real sobre esa base

@@ -1,5 +1,21 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-10 - Handoff alineado a plantilla oficial
+
+- objetivo:
+  - reescribir el estado vivo del proyecto usando la estructura de [PLANTILLA_ACTUALIZACION_ESTADO.md](/home/felipe/platform_paas/PLANTILLA_ACTUALIZACION_ESTADO.md)
+- cambios principales:
+  - [ESTADO_ACTUAL.md](/home/felipe/platform_paas/ESTADO_ACTUAL.md) quedó reestructurado con las secciones explícitas exigidas por la plantilla
+  - [SIGUIENTE_PASO.md](/home/felipe/platform_paas/SIGUIENTE_PASO.md) quedó reescrito con `Prioridad vigente`, `Decisión previa obligatoria`, `Próximo paso correcto`, `Si el escenario principal falla` y `Condición de cierre`
+  - [HANDOFF_STATE.json](/home/felipe/platform_paas/HANDOFF_STATE.json) quedó actualizado para reflejar que el estado root ya fue alineado a la plantilla
+- validaciones:
+  - revisión manual de consistencia contra la plantilla
+  - `python3 -m json.tool HANDOFF_STATE.json`: OK
+- bloqueos:
+  - sin bloqueo técnico; fue una alineación documental y de handoff
+- siguiente paso:
+  - continuar con el siguiente corte broker-only real de `Provisioning/DLQ`
+
 ## 2026-04-10 - Provisioning DLQ surface gating staging+production
 
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) ya no solo informa el backend activo de dispatch: ahora adapta el panel `Operación DLQ` según si el entorno corre con `broker` o con `database`
