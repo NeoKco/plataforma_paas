@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-11T00:15:00-04:00",
+  "updated_at": "2026-04-11T04:35:00-04:00",
   "handoff_status": "active",
-  "current_focus": "slice broker-only Provisioning/DLQ family batch requeue cerrado; staging published ya valida seleccion multiple homogenea sobre familias visibles y production lo confirma como skipped_non_broker, con release frontend republicado correctamente por entorno",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, Provisioning/DLQ profundizado hasta family batch requeue con publish frontend por entorno ya revalidado",
+  "current_focus": "slice broker-only Provisioning/DLQ family recommendation cerrado; staging published ya valida la recomendacion operativa sobre familias visibles y production lo confirma como skipped_non_broker, con release frontend republicado correctamente por entorno tras corregir el API_BASE_URL de staging",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, Provisioning/DLQ profundizado hasta family recommendation con publish frontend por entorno ya revalidado",
   "active_modules": [
     "platform-core",
     "finance",
@@ -42,9 +42,16 @@
     "las acciones in-page broker-only de Provisioning como Enfocar familia no deben ser revertidas por sincronizacion tardia URL -> estado local",
     "el carril published broker-only de staging debe tener helper operativo propio; no conviene rearmarlo manualmente con E2E_BACKEND_* en cada sesion",
     "los smokes published broker-only que solo necesitan un tenant efimero deben crearlo con backend-control en el mismo backend del entorno objetivo y no asumir un plan tenant fijo",
-    "todo publish frontend a staging o production debe reconstruirse con API_BASE_URL explicita por entorno; no sirve copiar un dist generico entre carriles"
+    "todo publish frontend a staging o production debe reconstruirse con API_BASE_URL explicita por entorno; no sirve copiar un dist generico entre carriles",
+    "los seeds broker-only de Provisioning/DLQ deben respetar los limites reales de provisioning_jobs como error_code varchar(100) y no confiar en ids efimeros demasiado largos"
   ],
   "completed_recently": [
+    "Provisioning agrega Plan operativo sugerido sobre Familias DLQ visibles",
+    "smoke platform-admin-provisioning-dlq-family-recommendation agregado y validado en staging",
+    "smoke platform-admin-provisioning-dlq-family-recommendation validado como skipped_non_broker en production",
+    "helper staging published broker-only ahora soporta --target family-recommendation",
+    "smoke family recommendation endurecido para respetar el limite real varchar(100) de provisioning_jobs.error_code",
+    "release staging corregido tras detectar publish con API_BASE_URL equivocada hacia 192.168.7.42:8100",
     "Provisioning agrega seleccion multiple explicita sobre Familias DLQ visibles",
     "Provisioning agrega el resumen broker-only Batch homogeneo por familias visibles",
     "smoke platform-admin-provisioning-dlq-family-batch-requeue agregado y validado en staging",
@@ -164,7 +171,7 @@
     "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir cual sera el siguiente slice broker-only real dentro de Provisioning/DLQ despues de row batch filters guided family focus family requeue y family batch requeue; la recomendacion actual es consolidacion operativa de recomendaciones por familia y no reabrir tenant data portability",
+  "next_decision_required": "decidir cual sera el siguiente slice broker-only real dentro de Provisioning/DLQ despues de row batch filters guided family focus family requeue family batch requeue y family recommendation; la recomendacion actual es consolidacion operativa del subconjunto visible y no reabrir tenant data portability",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -176,6 +183,7 @@
     "asumir cerrado tambien el subfrente familias DLQ visibles",
     "asumir cerrado tambien el subfrente Reencolar familia",
     "asumir cerrado tambien el subfrente Reencolar seleccion por familias visibles",
+    "asumir cerrado tambien el subfrente Plan operativo sugerido por familias visibles",
     "asumir cerrado tambien el helper published broker-only de staging",
     "retomar platform-core hardening + E2E sobre Provisioning y DLQ",
     "abrir el siguiente subfrente de profundizacion broker-only usando la capacidad visible del entorno, las familias visibles, el batch homogeneo y el helper de staging para decidir y validar"
@@ -309,6 +317,12 @@
     "platform_admin_provisioning_dlq_family_batch_requeue_staging_frontend_publish": "pass",
     "platform_admin_provisioning_dlq_family_batch_requeue_staging_smoke": "pass",
     "platform_admin_provisioning_dlq_family_batch_requeue_production_frontend_publish": "pass",
-    "platform_admin_provisioning_dlq_family_batch_requeue_production_smoke": "skipped_non_broker"
+    "platform_admin_provisioning_dlq_family_batch_requeue_production_smoke": "skipped_non_broker",
+    "platform_admin_provisioning_dlq_family_recommendation_repo_frontend_build": "pass",
+    "platform_admin_provisioning_dlq_family_recommendation_repo_playwright_list": "pass",
+    "platform_admin_provisioning_dlq_family_recommendation_staging_frontend_publish": "pass",
+    "platform_admin_provisioning_dlq_family_recommendation_staging_smoke": "pass",
+    "platform_admin_provisioning_dlq_family_recommendation_production_frontend_publish": "pass",
+    "platform_admin_provisioning_dlq_family_recommendation_production_smoke": "skipped_non_broker"
   }
 }

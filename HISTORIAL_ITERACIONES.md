@@ -1,5 +1,26 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-11 - Provisioning DLQ family recommendation validado
+
+- objetivo:
+  - cerrar el slice broker-only `Plan operativo sugerido` dentro de `Familias DLQ visibles`
+- cambios principales:
+  - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) ahora recomienda operativamente cuándo conviene `focus single`, `requeue family`, `family-batch` o limpiar selección
+  - se agrega [platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts)
+  - [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) ya soporta `--target family-recommendation`
+  - el smoke se endurece para no exceder el límite real `varchar(100)` de `provisioning_jobs.error_code`
+  - el release de `staging` vuelve a quedar alineado con `API_BASE_URL=http://192.168.7.42:8081` después de detectar un publish incorrecto hacia `8100`
+- validaciones:
+  - repo: `cd frontend && npm run build` OK
+  - repo: `cd frontend && npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts --list` OK
+  - `staging`: `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-recommendation` -> `1 passed`
+  - `production`: smoke publicado -> `1 skipped`
+- bloqueos:
+  - no queda bloqueo funcional
+  - aparecieron y quedaron resueltos un bug de seed E2E por longitud de `error_code` y un publish erróneo de `staging`
+- siguiente paso:
+  - abrir el próximo slice broker-only real dentro de `Provisioning/DLQ`
+
 ## 2026-04-10 - Hotfix visual catálogo Tenants
 
 - objetivo:

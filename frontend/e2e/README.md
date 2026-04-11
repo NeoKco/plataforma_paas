@@ -39,6 +39,7 @@ Cobertura validada:
 - gating visible de la superficie `Operación DLQ`, para que el panel broker-only desaparezca o se reemplace cuando el entorno corre con `database`
 - foco broker-only de `familias DLQ visibles` dentro de `Provisioning`, agrupando el subconjunto visible antes de reencolar
 - batch broker-only homogéneo sobre múltiples `familias DLQ visibles`, con selección explícita y requeue por lote sobre el mismo `tenant + job type`
+- recomendación operativa broker-only sobre `familias DLQ visibles`, para decidir entre `single`, `family`, `family-batch` o limpiar selección según el subconjunto visible
 - login de `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
 - login `tenant_portal` permitido en `past_due` con gracia y bloqueado al vencer la deuda
@@ -83,6 +84,7 @@ Specs actuales:
 - [platform-admin-provisioning-dlq-family-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-login-billing.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-login-billing.smoke.spec.ts)
 - [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
@@ -231,10 +233,17 @@ scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-requeue
 ```
 
 - para validar el batch homogéneo sobre varias familias visibles:
-
+ 
 ```bash
 cd /home/felipe/platform_paas
 scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-batch
+```
+
+- para validar la recomendación operativa sobre la selección visible:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-recommendation
 ```
 - los escenarios broker-only quedan documentados y validados aparte cuando se necesite una pasada específica con Redis/broker real
 - para desarrollo local existe además [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh), que corre migraciones, siembra baseline, levanta backend si hace falta y ejecuta `build + e2e:platform + e2e:tenant`
@@ -243,7 +252,7 @@ scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-batch
 - para barridos manuales o recuperación operativa sigue disponible [cleanup_e2e_tenants.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_e2e_tenants.py), que usa `archive -> deprovision -> delete`
 - para validar específicamente los `3` smokes DLQ broker-only existe [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh), que levanta un stack paralelo `broker` sobre Redis y ejecuta solo esos casos
 - ese helper local acepta además `--target all|batch|row|filters`, útil para revalidar un smoke DLQ concreto sin correr todo el bloque
-- el helper published broker-only de `staging` acepta hoy `--target all|batch|row|filters|guided|family|family-requeue|family-batch`
+- el helper published broker-only de `staging` acepta hoy `--target all|batch|row|filters|guided|family|family-requeue|family-batch|family-recommendation`
 - para CI manual de esos casos broker-only existe además [.github/workflows/frontend-broker-dlq-e2e.yml](../../.github/workflows/frontend-broker-dlq-e2e.yml), pensado para lanzarse con `workflow_dispatch`
 - ese workflow manual acepta además `target=all|batch|row|filters`, útil para revalidar solo un smoke DLQ concreto cuando se toca esa zona
 

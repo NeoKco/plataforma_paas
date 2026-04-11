@@ -1,5 +1,25 @@
 # Platform Core Changelog
 
+## 2026-04-11
+
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega el bloque broker-only `Plan operativo sugerido` dentro de `Familias DLQ visibles`:
+  - sin selección, pide elegir una familia visible
+  - con una familia de una sola fila, recomienda `Enfocar fila`
+  - con una familia multi-fila, recomienda `Reencolar familia`
+  - con varias familias homogéneas, recomienda `Reencolar batch`
+  - con selección mixta, recomienda `Limpiar selección`
+- las tarjetas de familia ahora muestran además una lectura corta de `Acción sugerida`
+- se agrega el smoke [platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts)
+- el helper [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) agrega el target `family-recommendation`
+- durante la validación real aparecieron y quedaron resueltos dos hallazgos operativos:
+  - el seed E2E excedía el límite real `varchar(100)` de `provisioning_jobs.error_code`
+  - `staging` fue republicado accidentalmente con un build genérico apuntando a `http://192.168.7.42:8100`; se corrigió rehaciendo el build por entorno con `deploy/build_frontend.sh`
+- validación cerrada de este corte:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts --list` OK
+  - `staging`: `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-recommendation` -> `1 passed`
+  - `production`: smoke publicado -> `1 skipped` por backend no `broker`
+
 ## 2026-04-10
 
 - se corrige el layout del catálogo en [platform-admin > Tenants](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) desde [platform-admin.css](/home/felipe/platform_paas/frontend/src/styles/platform-admin.css):
