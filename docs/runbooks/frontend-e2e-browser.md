@@ -39,6 +39,7 @@ Archivos principales:
 - [platform-admin-provisioning-dlq-investigation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-investigation.smoke.spec.ts)
 - [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts)
 - [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts)
+- [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
 - [tenant-portal-finance-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit.smoke.spec.ts)
@@ -75,6 +76,7 @@ Cobertura actual:
 - navegación asistida desde `Fallos por código` y `Alertas activas` hacia el panel `Operación DLQ`, con prefill visible de filtros
 - observabilidad visible de `Provisioning` con snapshots recientes por tenant e historial de alertas persistidas
 - `requeue guiado` desde una fila DLQ para acotar filtros y disparar el reintento sugerido
+- visibilidad del `dispatch backend` activo dentro de `Provisioning`, para fijar si el entorno corre con `broker` o `database`
 - login `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
 - visibilidad del sidebar `tenant_portal` según `effective_enabled_modules`
@@ -174,6 +176,7 @@ Nota operativa para cortes broker-only de `Provisioning`:
 
 - si el smoke toca DLQ real del broker, puede quedar `skipped` en un entorno publicado cuyo `PROVISIONING_DISPATCH_BACKEND` no sea `broker`
 - ese `skip` debe documentarse como limitación/topología del entorno, no como validación funcional verde
+- antes de correr esos smokes, conviene ejecutar primero [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts) para fijar por browser la capacidad activa del entorno publicado
 
 Baseline recomendado para desarrollo local:
 

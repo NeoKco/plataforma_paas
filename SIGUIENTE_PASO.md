@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-10
-- prioridad vigente: seguir con `platform-core hardening + E2E` dentro de `Provisioning/DLQ` después de cerrar `requeue guiado`
+- prioridad vigente: seguir con `platform-core hardening + E2E` dentro de `Provisioning/DLQ` después de cerrar la visibilidad del `dispatch backend` activo
 
 ## Objetivo del próximo paso
 
@@ -75,9 +75,10 @@ Debe avanzar sobre:
 - recuperación / requeue / DLQ visibles
 - sin reabrir el salto `Tenants -> Provisioning`, que ya quedó validado
 - asumir cerrado el corte `Investigar en DLQ`
-- asumir cerrado también el subfrente de `requeue guiado` en repo + `staging`
-- mantener explícito que `production` hoy sólo tiene ese corte publicado, porque el smoke broker-only se salta allí mientras el backend no sea `broker`
-- abrir el siguiente subfrente explícito dentro de `Provisioning`: profundización broker-only de DLQ y/o decisión de topología productiva para validar esos smokes también en `production`
+- asumir cerrado también el subfrente de `requeue guiado`
+- asumir cerrado además el subfrente `capacidad activa de provisioning`, ya visible en `staging` y `production`
+- usar esa capacidad visible como criterio antes de correr smokes broker-only
+- abrir el siguiente subfrente explícito dentro de `Provisioning`: profundización broker-only de DLQ, ya sin ambigüedad sobre si el entorno actual corre con `broker` o `database`
 
 ## Orden exacto recomendado
 

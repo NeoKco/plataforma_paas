@@ -1,5 +1,25 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-10 - Provisioning dispatch capability visible staging+production
+
+- [platform_capability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/platform_capability_service.py) y [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) exponen `current_provisioning_dispatch_backend` dentro del catálogo de capacidades de `platform_control`
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega la tarjeta visible `Capacidad activa de provisioning`, mostrando:
+  - backend actual `broker` o `database`
+  - backends soportados
+  - lectura operativa explícita de si el entorno habilita o no recorridos DLQ broker-only
+- se agrega [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts)
+- validaciones cerradas:
+  - repo: backend unit específico OK
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts --list` OK
+  - `staging`: backend desplegado, frontend publicado y smoke nuevo `1 passed`
+  - `production`: backend desplegado, frontend publicado y smoke nuevo `1 passed`
+- hallazgo operativo:
+  - antes de correr smokes broker-only de `Provisioning/DLQ`, la consola ya deja explícito si el entorno publicado realmente opera con `broker` o con `database`
+- siguiente paso:
+  - seguir dentro de `Provisioning/DLQ`
+  - abrir el siguiente subfrente broker-only real, ya sin ambigüedad sobre la topología activa del entorno
+
 ## 2026-04-10 - Provisioning guided requeue publicado
 
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega `requeue guiado` dentro de `Operación DLQ`, con:

@@ -30,7 +30,7 @@ Antes de cerrar una iteración relevante, pasar también por:
 ## Estado rápido vigente
 
 - fecha: 2026-04-10
-- foco activo: `platform-core` sobre `Provisioning`, después de cerrar `requeue guiado`
+- foco activo: `platform-core` sobre `Provisioning`, después de cerrar la visibilidad del `dispatch backend` activo
 - prioridad inmediata: dejar repo, documentación viva y handoff alineados al nuevo cierre y luego abrir el siguiente subfrente broker-only de `Provisioning/DLQ`
 - módulo o frente activo: `platform-core` / `Provisioning`
 
@@ -82,6 +82,9 @@ Antes de cerrar una iteración relevante, pasar también por:
 - `Provisioning` ya expone además `requeue guiado` dentro de `Operación DLQ`
 - el smoke `platform-admin-provisioning-guided-requeue` ya quedó validado en `staging`
 - en `production`, ese smoke broker-only queda `skipped` mientras el dispatch backend no sea `broker`
+- `Provisioning` ya expone además la `Capacidad activa de provisioning`, mostrando si el entorno corre con `dispatch backend` `broker` o `database`
+- el smoke `platform-admin-provisioning-dispatch-capability` ya quedó validado en `staging`
+- el smoke `platform-admin-provisioning-dispatch-capability` ya quedó validado en `production`
 - `Tenants` ya abre `Provisioning` con `tenantSlug` precargado
 - `Provisioning` ya enfoca jobs, métricas, alertas y DLQ según ese tenant sin perder la consola global
 - ya existe smoke browser `platform-admin-tenant-provisioning-context`
@@ -103,7 +106,7 @@ El siguiente movimiento correcto es este:
 - mantener `staging` como carril previo real
 - asumir cerrado el corte dual de portabilidad tenant-side y doble modo
 - asumir cerrado también el subfrente de `requeue guiado` en repo y `staging`
-- volver al roadmap central de `Provisioning/DLQ` con foco en profundización broker-only y/o definición de topología productiva para DLQ
+- volver al roadmap central de `Provisioning/DLQ` con foco en profundización broker-only, usando primero la capacidad visible del entorno para decidir si el smoke corresponde o no
 
 ## Archivos a leer justo después de este
 
@@ -134,6 +137,8 @@ El siguiente movimiento correcto es este:
 - smoke `platform-admin-provisioning-observability-history` en `production`: OK
 - smoke `platform-admin-provisioning-guided-requeue` en `staging`: OK
 - smoke `platform-admin-provisioning-guided-requeue` en `production`: SKIPPED (`dispatch backend != broker`)
+- smoke `platform-admin-provisioning-dispatch-capability` en `staging`: OK
+- smoke `platform-admin-provisioning-dispatch-capability` en `production`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `staging`: OK
 - smoke `platform-admin-tenant-provisioning-context` en `production`: OK
 - backend `unittest` del corte de portabilidad dual: OK (`294 tests`)

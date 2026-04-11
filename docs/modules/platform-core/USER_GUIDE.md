@@ -64,10 +64,11 @@ Desde `Provisioning`, la operación normal ya permite:
 2. ejecutar manualmente un job `pending` o `retry_pending` si hace falta acelerar el ciclo
 3. reencolar un job `failed` cuando ya se corrigió la causa o se quiere reintentar formalmente
 4. lanzar `schema auto-sync` para tenants activos después de cambios backend o deploys
-5. revisar y reencolar filas DLQ individualmente o en lote cuando la instalación usa backend de provisioning tipo `broker`, incluyendo filtros por texto de error cuando necesites aislar solo una familia de fallos
-6. revisar snapshots recientes por tenant, alertas operativas persistidas y ciclos recientes del worker para distinguir deuda puntual de degradación sostenida
-7. usar `Guiar requeue` sobre una fila DLQ cuando prefieras que la consola te estreche automáticamente tenant, tipo de job y error antes de reencolar
-8. llegar desde `Tenants` con `tenantSlug` precargado cuando quieras abrir una lectura ya enfocada en un tenant específico
+5. revisar primero la tarjeta `Capacidad activa de provisioning` para confirmar si ese entorno corre hoy con `dispatch backend` `broker` o `database`
+6. revisar y reencolar filas DLQ individualmente o en lote cuando la instalación usa backend de provisioning tipo `broker`, incluyendo filtros por texto de error cuando necesites aislar solo una familia de fallos
+7. revisar snapshots recientes por tenant, alertas operativas persistidas y ciclos recientes del worker para distinguir deuda puntual de degradación sostenida
+8. usar `Guiar requeue` sobre una fila DLQ cuando prefieras que la consola te estreche automáticamente tenant, tipo de job y error antes de reencolar
+9. llegar desde `Tenants` con `tenantSlug` precargado cuando quieras abrir una lectura ya enfocada en un tenant específico
 
 Referencia:
 

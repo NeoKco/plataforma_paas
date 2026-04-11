@@ -2,6 +2,21 @@
 
 ## 2026-04-10
 
+- [platform_capability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/platform_capability_service.py) y [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) ahora exponen `current_provisioning_dispatch_backend` dentro del catálogo de capacidades de `platform_control`
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega la tarjeta `Capacidad activa de provisioning`, que deja visible:
+  - backend actual `broker` o `database`
+  - backends soportados
+  - lectura operativa explícita de si el entorno puede o no ejecutar recorridos DLQ broker-only
+- se agrega el smoke [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts) para fijar esa capacidad visible tanto en `staging` como en `production`
+- validación cerrada de este corte:
+  - repo: backend unit específico OK
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts --list` OK
+  - `staging`: backend desplegado, frontend publicado y smoke nuevo `1 passed`
+  - `production`: backend desplegado, frontend publicado y smoke nuevo `1 passed`
+- hallazgo operativo del cierre:
+  - la decisión de si un smoke DLQ broker-only corresponde o no ya no debería inferirse desde fuera; la propia consola `Provisioning` expone esa capacidad activa y la deja verificable por browser
+
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega el subfrente de `requeue guiado` dentro de `Operación DLQ`:
   - resumen visible del subconjunto DLQ actual
   - recomendación operativa entre requeue individual, batch o afinación previa de filtros

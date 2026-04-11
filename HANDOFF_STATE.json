@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-10T15:55:00-04:00",
+  "updated_at": "2026-04-10T19:58:00-04:00",
   "handoff_status": "active",
-  "current_focus": "platform-core hardening + E2E sobre Provisioning/DLQ; requeue guiado ya cerrado en repo y staging, publicado en production, y el siguiente subfrente recomendado pasa a profundizacion broker-only o decision de topologia productiva",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side ya operativos, observabilidad visible de Provisioning ya publicada y validada, y requeue guiado ya publicado con validacion broker-only efectiva en staging",
+  "current_focus": "platform-core hardening + E2E sobre Provisioning/DLQ; requeue guiado y visibilidad del dispatch backend activo ya cerrados en repo, staging y production, y el siguiente subfrente recomendado pasa a profundizacion broker-only usando esa capacidad visible como gate",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side ya operativos, observabilidad visible de Provisioning ya publicada y validada, requeue guiado ya publicado, y la consola de Provisioning ya deja visible el dispatch backend activo del entorno",
   "active_modules": [
     "platform-core",
     "finance",
@@ -36,7 +36,8 @@
     "el salto Tenants -> Provisioning con tenantSlug precargado ya quedo cerrado y no debe reabrirse salvo necesidad explicita",
     "el corte Investigar en DLQ ya quedó validado en staging con smoke específico y publicado en production con regresión segura",
     "el subfrente observabilidad visible en Provisioning ya quedo publicado y validado en staging y production; el siguiente candidato natural pasa a ser requeue guiado",
-    "requeue guiado en Provisioning ya quedo publicado y validado en staging; en production el frontend esta publicado pero el smoke broker-only se salta mientras el backend no resuelva como broker"
+    "requeue guiado en Provisioning ya quedo publicado y validado en staging; en production el frontend esta publicado pero el smoke broker-only se salta mientras el backend no resuelva como broker",
+    "Provisioning debe exponer el dispatch backend activo del entorno para que la operacion y los smokes DLQ broker-only no dependan de inferencias externas"
   ],
   "completed_recently": [
     "bootstrap productivo real en /opt/platform_paas",
@@ -121,18 +122,23 @@
     "frontend staging publicado con el corte Provisioning guided requeue",
     "smoke platform-admin-provisioning-guided-requeue validado en staging",
     "frontend production publicado con el corte Provisioning guided requeue",
-    "smoke platform-admin-provisioning-guided-requeue skipped en production por dispatch backend no-broker"
+    "smoke platform-admin-provisioning-guided-requeue skipped en production por dispatch backend no-broker",
+    "catalogo de capacidades backend ahora expone current_provisioning_dispatch_backend",
+    "Provisioning muestra una tarjeta visible con el dispatch backend activo y el alcance broker-only del entorno",
+    "smoke platform-admin-provisioning-dispatch-capability validado en staging",
+    "smoke platform-admin-provisioning-dispatch-capability validado en production"
   ],
   "blocking_issues": [],
-  "next_decision_required": "abrir el siguiente corte concreto de platform-core hardening + E2E dentro de Provisioning/DLQ; la recomendacion vigente es profundizacion broker-only de DLQ o definir si production debe validar tambien esos smokes con backend broker",
+  "next_decision_required": "abrir el siguiente corte concreto de platform-core hardening + E2E dentro de Provisioning/DLQ; la recomendacion vigente es profundizacion broker-only de DLQ, usando primero current_provisioning_dispatch_backend para decidir si el entorno actual soporta o no esos smokes",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
     "asumir cerrado el corte dual de portabilidad tenant-side y los dos modos visibles",
     "asumir cerrado tambien el subfrente de observabilidad visible en Provisioning",
-    "asumir cerrado tambien requeue guiado en repo y staging",
+    "asumir cerrado tambien requeue guiado",
+    "asumir cerrada tambien la visibilidad del dispatch backend activo",
     "retomar platform-core hardening + E2E sobre Provisioning y DLQ",
-    "abrir el subfrente de profundizacion broker-only o definir topologia productiva para validarlo en production"
+    "abrir el subfrente de profundizacion broker-only usando la capacidad visible del entorno para decidir validacion"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -225,6 +231,15 @@
     "platform_admin_provisioning_guided_requeue_staging_frontend_publish": "pass",
     "platform_admin_provisioning_guided_requeue_staging_smoke": "pass",
     "platform_admin_provisioning_guided_requeue_production_frontend_publish": "pass",
-    "platform_admin_provisioning_guided_requeue_production_smoke": "skipped_non_broker"
+    "platform_admin_provisioning_guided_requeue_production_smoke": "skipped_non_broker",
+    "platform_admin_provisioning_dispatch_capability_repo_backend_unit": "pass",
+    "platform_admin_provisioning_dispatch_capability_repo_frontend_build": "pass",
+    "platform_admin_provisioning_dispatch_capability_repo_playwright_list": "pass",
+    "platform_admin_provisioning_dispatch_capability_staging_backend_deploy": "pass",
+    "platform_admin_provisioning_dispatch_capability_staging_frontend_publish": "pass",
+    "platform_admin_provisioning_dispatch_capability_staging_smoke": "pass",
+    "platform_admin_provisioning_dispatch_capability_production_backend_deploy": "pass",
+    "platform_admin_provisioning_dispatch_capability_production_frontend_publish": "pass",
+    "platform_admin_provisioning_dispatch_capability_production_smoke": "pass"
   }
 }

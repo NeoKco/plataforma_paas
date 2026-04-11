@@ -47,6 +47,7 @@ Documentación base:
 - `restore` es flujo explícito, no cambio manual de estado
 - `delete` físico de tenants sigue fuera del alcance normal de operación
 - frontend y backend deben consumir el catálogo de capacidades como fuente de verdad cuando aplique
+- si `Provisioning` muestra o condiciona recorridos broker-only, la fuente de verdad visible del entorno debe salir del catálogo de capacidades y no de inferencias locales; hoy eso se expone como `current_provisioning_dispatch_backend`
 - en `platform_admin`, las capturas de alta más sensibles (`Tenants`, `Usuarios de plataforma`) no deberían quedar abiertas por defecto; la lectura principal debe mostrarse primero y la creación abrirse bajo demanda en modal
 - en `tenant_portal`, `Usuarios` debe seguir el mismo patrón: catálogo visible primero y alta solo bajo demanda desde botón
 - `tenant_portal > Usuarios` ya expone además edición y borrado seguro: el backend bloquea autoeliminación y protege al último admin activo antes de aceptar `DELETE /tenant/users/{id}` o degradaciones equivalentes
@@ -120,6 +121,7 @@ Smokes actuales del bloque central:
 - [platform-admin-provisioning-dlq-investigation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-investigation.smoke.spec.ts)
 - [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts)
 - [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts)
+- [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts)
 
 Baseline E2E tenant actualmente validado para continuar pruebas browser:
 
@@ -166,6 +168,7 @@ Cobertura actual:
 - filtros finos DLQ por texto de error y validación visible de `delay/reset attempts` antes del requeue individual en backend `broker`
 - observabilidad visible de `Provisioning` con snapshots recientes por tenant e historial de alertas operativas persistidas
 - `requeue guiado` en `Provisioning` para enfocar una fila DLQ y recomendar si corresponde requeue individual o batch
+- visibilidad explícita del `dispatch backend` activo dentro de `Provisioning`, para saber si el entorno opera hoy con `broker` o `database`
 - enforcement visible de límites de usuarios activos en `tenant_portal` con overrides preparados de forma determinista
 - visibilidad backend-driven del sidebar `tenant_portal` según `effective_enabled_modules`
 - enforcement visible de límites de `finance.entries` en `tenant_portal` con overrides preparados de forma determinista

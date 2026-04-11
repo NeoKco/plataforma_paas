@@ -126,6 +126,7 @@ export type PlatformCapabilities = {
   module_limit_capabilities: PlatformModuleLimitCapability[];
   billing_providers: string[];
   billing_sync_processing_results: string[];
+  current_provisioning_dispatch_backend: string;
   provisioning_dispatch_backends: string[];
 };
 

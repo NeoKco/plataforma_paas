@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-10
-- foco de iteración: `platform-core hardening + E2E` sobre `Provisioning/DLQ`, cerrando el subfrente `requeue guiado`
-- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado, portabilidad tenant ya implementada en su base, el salto `Tenants -> Provisioning` ya validado en `staging` y `production`, el corte `Investigar en DLQ` ya quedó validado en `staging` y publicado en `production`, el repo ya soporta portabilidad dual (`portable_full` + `functional_data_only`) tanto en `platform_admin` como en `tenant_portal`, y `Provisioning` ya agrega además `requeue guiado` publicado en `staging` y `production` con validación broker-only efectiva en `staging`
+- foco de iteración: `platform-core hardening + E2E` sobre `Provisioning/DLQ`, cerrando el subfrente `capacidad activa de dispatch backend`
+- estado general: producción validada con HTTPS, desarrollo desacoplado por puertos, staging/test separado, staging restaurado a espejo, sidebar tenant ya filtrando por `effective_enabled_modules`, alta de tenant ya operativa con admin inicial explícito, `provisioning` productivo re-alineado, portabilidad tenant ya implementada en su base, el salto `Tenants -> Provisioning` ya validado en `staging` y `production`, el corte `Investigar en DLQ` ya quedó validado en `staging` y publicado en `production`, el repo ya soporta portabilidad dual (`portable_full` + `functional_data_only`) tanto en `platform_admin` como en `tenant_portal`, `Provisioning` ya agrega además `requeue guiado` publicado en `staging` y `production`, y ahora también deja visible en consola cuál es el `dispatch backend` activo del entorno con smoke verde en `staging` y `production`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -62,20 +62,24 @@
 - `Provisioning` ya expone también `requeue guiado` en `Operación DLQ`, con recomendación visible entre fila individual, lote homogéneo o afinación previa de filtros
 - el smoke nuevo `platform-admin-provisioning-guided-requeue` ya quedó verde en `staging`
 - en `production` ese mismo smoke quedó `skipped` porque el dispatch backend actual del host no resuelve como `broker`; el frontend sí quedó publicado
+- `Provisioning` ya deja visible la `Capacidad activa de provisioning`, mostrando explícitamente si el entorno opera hoy con `dispatch backend` `broker` o `database`
+- el smoke nuevo `platform-admin-provisioning-dispatch-capability` ya quedó verde en `staging`
+- el smoke nuevo `platform-admin-provisioning-dispatch-capability` ya quedó verde en `production`
 - el helper browser `backend-control` ya soporta `E2E_BACKEND_ENV_FILE` para sembrar contra árboles publicados usando el env correcto del servicio
 - el root ya cuenta con un checklist corto único de cierre en `CHECKLIST_CIERRE_ITERACION.md`, integrado al flujo oficial de retoma y handoff
 
 ## Frente activo real al momento de este estado
 
-El frente activo real del proyecto sigue siendo `platform-core`, y el corte puntual volvió a `Provisioning/DLQ`.
+El frente activo real del proyecto sigue siendo `platform-core`, y el corte puntual sigue en `Provisioning/DLQ`.
 
 El siguiente corte recomendado dentro de ese mismo frente pasa a ser este:
 
 - considerar cerrado el corte dual de portabilidad tenant
-- considerar cerrado también el subfrente `requeue guiado` en repo + `staging`
-- mantener explícito que `production` hoy sólo tiene este corte publicado, no validado broker-only
+- considerar cerrado también el subfrente `requeue guiado`
+- considerar cerrado además el subfrente `capacidad activa de dispatch backend`
+- mantener explícito que la propia consola ya dice si un entorno es `broker` o `database`
 - volver a `platform-core hardening + E2E`
-- con foco siguiente en profundización broker-only de DLQ o en la decisión de topología productiva si se quiere validar allí mismo esos smokes
+- con foco siguiente en profundización broker-only de DLQ usando esa capacidad visible como gate operativo
 
 ## Qué módulo se estaba construyendo
 

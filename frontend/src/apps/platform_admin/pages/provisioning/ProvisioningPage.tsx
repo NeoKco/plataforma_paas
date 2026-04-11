@@ -20,6 +20,7 @@ import {
 } from "../../../../utils/action-feedback";
 import {
   bulkSyncPlatformTenantSchemas,
+  getPlatformCapabilities,
   getProvisioningAlertHistory,
   getProvisioningCycleHistory,
   getProvisioningAlerts,
@@ -49,6 +50,7 @@ import type {
   ProvisioningJobTenantErrorCodeSummary,
   ProvisioningOperationalAlert,
   ProvisioningOperationalAlertsResponse,
+  PlatformCapabilities,
   ProvisioningWorkerCycleTraceHistoryResponse,
 } from "../../../../types";
 
@@ -85,6 +87,7 @@ export function ProvisioningPage() {
     searchParams.get("operation")
   );
   const [jobs, setJobs] = useState<ProvisioningJob[]>([]);
+  const [capabilities, setCapabilities] = useState<PlatformCapabilities | null>(null);
   const [metrics, setMetrics] = useState<ProvisioningJobMetricsResponse | null>(null);
   const [metricsByJobType, setMetricsByJobType] =
     useState<ProvisioningJobDetailedMetricsResponse | null>(null);
@@ -101,6 +104,7 @@ export function ProvisioningPage() {
     useState<ProvisioningOperationalAlertHistoryResponse | null>(null);
   const [dlq, setDlq] = useState<ProvisioningBrokerDeadLetterResponse | null>(null);
   const [jobsError, setJobsError] = useState<ApiError | null>(null);
+  const [capabilitiesError, setCapabilitiesError] = useState<ApiError | null>(null);
   const [metricsError, setMetricsError] = useState<ApiError | null>(null);
   const [alertsError, setAlertsError] = useState<ApiError | null>(null);
   const [dlqError, setDlqError] = useState<ApiError | null>(null);
@@ -142,6 +146,9 @@ export function ProvisioningPage() {
   }, [jobs, metrics?.data, metricsByJobType?.data]);
 
   const normalizedTenantSlugFilter = tenantSlugFilter.trim().toLowerCase();
+  const currentDispatchBackend =
+    capabilities?.current_provisioning_dispatch_backend?.trim().toLowerCase() || null;
+  const isBrokerDispatchActive = currentDispatchBackend === "broker";
 
   const tenantScopedJobs = useMemo(() => {
     if (!normalizedTenantSlugFilter) {
@@ -558,6 +565,7 @@ export function ProvisioningPage() {
     });
 
     const results = await Promise.allSettled([
+      getPlatformCapabilities(session.accessToken),
       listProvisioningJobs(session.accessToken),
       getProvisioningMetrics(session.accessToken),
       getProvisioningMetricsByJobType(session.accessToken),
@@ -585,6 +593,7 @@ export function ProvisioningPage() {
     ]);
 
     const [
+      capabilitiesResult,
       jobsResult,
       metricsResult,
       jobTypeResult,
@@ -595,6 +604,14 @@ export function ProvisioningPage() {
       alertHistoryResult,
       dlqResult,
     ] = results;
+
+    if (capabilitiesResult.status === "fulfilled") {
+      setCapabilities(capabilitiesResult.value);
+      setCapabilitiesError(null);
+    } else {
+      setCapabilities(null);
+      setCapabilitiesError(capabilitiesResult.reason as ApiError);
+    }
 
     if (jobsResult.status === "fulfilled") {
       setJobs(jobsResult.value);
@@ -1138,6 +1155,58 @@ export function ProvisioningPage() {
         onCancel={() => setPendingConfirmation(null)}
         isSubmitting={isActionSubmitting}
       />
+
+      {!isLoading && !capabilitiesError && capabilities ? (
+        <PanelCard
+          icon="settings"
+          title={language === "es" ? "Capacidad activa de provisioning" : "Active provisioning capability"}
+          subtitle={
+            language === "es"
+              ? "La consola deja explícito si este entorno puede operar DLQ broker-only o solo backlog por base de datos."
+              : "The console makes it explicit whether this environment can operate broker-only DLQ or only database-backed backlog."
+          }
+        >
+          <div
+            style={{
+              display: "grid",
+              gap: "0.75rem",
+            }}
+          >
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+              <strong>{language === "es" ? "Dispatch backend activo" : "Active dispatch backend"}</strong>
+              <AppBadge tone={isBrokerDispatchActive ? "success" : "warning"}>
+                {currentDispatchBackend || "n/a"}
+              </AppBadge>
+              <span className="tenant-help-text">
+                {language === "es"
+                  ? `Backends soportados por la plataforma: ${(capabilities.provisioning_dispatch_backends || []).join(", ")}`
+                  : `Backends supported by the platform: ${(capabilities.provisioning_dispatch_backends || []).join(", ")}`}
+              </span>
+            </div>
+            <p className="tenant-help-text mb-0">
+              {isBrokerDispatchActive
+                ? language === "es"
+                  ? "Este entorno sí permite operación DLQ broker-only: filtros DLQ, requeue individual, batch y requeue guiado se leen como superficie activa."
+                  : "This environment does support broker-only DLQ operations: DLQ filters, individual requeue, batch and guided requeue are an active surface."
+                : language === "es"
+                  ? "Este entorno no corre hoy con backend broker. Puedes seguir leyendo jobs, métricas y alertas, pero los recorridos DLQ broker-only deben validarse en staging u otro entorno broker."
+                  : "This environment is not currently running with the broker backend. You can still read jobs, metrics and alerts, but broker-only DLQ flows must be validated in staging or another broker environment."}
+            </p>
+          </div>
+        </PanelCard>
+      ) : null}
+
+      {!isLoading && capabilitiesError ? (
+        <ErrorState
+          title={
+            language === "es"
+              ? "Capacidad de provisioning no disponible"
+              : "Provisioning capability unavailable"
+          }
+          detail={capabilitiesError.payload?.detail || capabilitiesError.message}
+          requestId={capabilitiesError.payload?.request_id}
+        />
+      ) : null}
 
       {actionFeedback ? (
         <div

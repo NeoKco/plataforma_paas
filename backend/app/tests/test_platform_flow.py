@@ -3860,6 +3860,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
             "current",
         )
         self.assertEqual(response.billing_providers, ["stripe"])
+        self.assertEqual(response.current_provisioning_dispatch_backend, "database")
         self.assertIn("broker", response.provisioning_dispatch_backends)
         self.assertIsInstance(response.plan_catalog, list)
 

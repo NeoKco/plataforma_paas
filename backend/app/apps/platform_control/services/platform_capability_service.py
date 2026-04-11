@@ -1,6 +1,7 @@
 from app.apps.platform_control.services.tenant_service import TenantService
 from app.common.policies.module_limit_catalog import list_module_limit_capabilities
 from app.common.policies.tenant_plan_policy_service import TenantPlanPolicyService
+from app.common.config.settings import settings
 
 
 class PlatformCapabilityService:
@@ -63,6 +64,9 @@ class PlatformCapabilityService:
             "billing_providers": list(self.BILLING_PROVIDERS),
             "billing_sync_processing_results": list(
                 self.BILLING_SYNC_PROCESSING_RESULTS
+            ),
+            "current_provisioning_dispatch_backend": (
+                settings.PROVISIONING_DISPATCH_BACKEND.strip().lower()
             ),
             "provisioning_dispatch_backends": list(
                 self.PROVISIONING_DISPATCH_BACKENDS

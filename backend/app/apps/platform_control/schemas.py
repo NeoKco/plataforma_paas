@@ -166,6 +166,7 @@ class PlatformCapabilityCatalogResponse(BaseModel):
     module_limit_capabilities: list[PlatformModuleLimitCapabilityResponse]
     billing_providers: list[str]
     billing_sync_processing_results: list[str]
+    current_provisioning_dispatch_backend: str
     provisioning_dispatch_backends: list[str]
 
 
