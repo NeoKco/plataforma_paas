@@ -2,8 +2,8 @@
   "project": "platform_paas",
   "updated_at": "2026-04-11T00:47:40-04:00",
   "handoff_status": "active",
-  "current_focus": "slice broker-only Provisioning/DLQ technical diagnosis cerrado; staging published ya valida el diagnostico tecnico visible DLQ/BD y production lo confirma como skipped_non_broker, con release frontend republicado correctamente por entorno",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, Provisioning/DLQ profundizado hasta technical diagnosis con publish frontend por entorno ya revalidado",
+  "current_focus": "Provisioning/DLQ broker-only cerrado como frente suficientemente endurecido para esta etapa; la prioridad ya no es abrir mas slices DLQ sino volver al siguiente bloque central del roadmap",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, Provisioning/DLQ endurecido y formalmente sacado del foco activo",
   "active_modules": [
     "platform-core",
     "finance",
@@ -45,6 +45,8 @@
     "todo publish frontend a staging o production debe reconstruirse con API_BASE_URL explicita por entorno; no sirve copiar un dist generico entre carriles",
     "los seeds broker-only de Provisioning/DLQ deben respetar los limites reales de provisioning_jobs como error_code varchar(100) y no confiar en ids efimeros demasiado largos",
     "las lecturas tecnicas visibles DLQ/BD deben derivarse desde error_code y job_type reales del backend, no desde heuristicas UI sueltas"
+    ,
+    "Provisioning/DLQ broker-only ya no debe seguir creciendo por inercia; cualquier profundizacion adicional requiere repriorizacion explicita"
   ],
   "completed_recently": [
     "Provisioning agrega Diagnostico DLQ / BD visible dentro de Familias DLQ visibles",
@@ -181,7 +183,7 @@
     "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir cual sera el siguiente slice broker-only real dentro de Provisioning/DLQ despues de row batch filters guided family focus family requeue family batch requeue family recommendation tenant focus y technical diagnosis; la recomendacion actual es decidir entre una matriz visible tenant + capa tecnica o cerrar pronto este frente y volver al siguiente bloque del roadmap central",
+  "next_decision_required": "decidir cual sera el siguiente bloque central fuera de Provisioning/DLQ ahora que ese frente ya quedo suficientemente endurecido para esta etapa",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -196,8 +198,8 @@
     "asumir cerrado tambien el subfrente Plan operativo sugerido por familias visibles",
     "asumir cerrado tambien el subfrente Prioridad por tenant visible",
     "asumir cerrado tambien el helper published broker-only de staging",
-    "retomar platform-core hardening + E2E sobre Provisioning y DLQ",
-    "abrir el siguiente subfrente de profundizacion broker-only usando la capacidad visible del entorno, las familias visibles, el batch homogeneo, el diagnostico tecnico y el helper de staging para decidir y validar"
+    "dejar Provisioning/DLQ fuera del foco activo",
+    "retomar el siguiente bloque central del roadmap fuera de DLQ"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"

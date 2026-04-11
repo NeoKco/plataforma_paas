@@ -30,9 +30,9 @@ Antes de cerrar una iteración relevante, pasar también por:
 ## Estado rápido vigente
 
 - fecha: 2026-04-11
-- foco activo: slice broker-only `Provisioning/DLQ technical diagnosis` ya cerrado
-- prioridad inmediata: decidir si cerramos pronto el frente DLQ broker-only o abrimos una última consolidación visible `tenant + capa técnica`
-- módulo o frente activo: `platform-core` / `Provisioning/DLQ`
+- foco activo: cierre formal de `Provisioning/DLQ broker-only` como frente suficientemente endurecido
+- prioridad inmediata: volver al siguiente bloque central del roadmap fuera de DLQ
+- módulo o frente activo: `platform-core`
 
 ## Último contexto útil
 
@@ -63,6 +63,7 @@ Antes de cerrar una iteración relevante, pasar también por:
   - `Diagnóstico DLQ / BD visible`
 - el smoke `platform-admin-provisioning-dlq-technical-diagnosis` ya quedó validado en `staging`
 - en `production`, ese smoke nuevo queda `skipped` mientras el dispatch backend siga sin ser `broker`
+- este frente ya no debe seguir creciendo por inercia; cualquier profundización adicional de DLQ queda como backlog opcional
 - el flujo portable real `empresa-demo -> ieris-ltda` ya quedó ejecutado con `functional_data_only`
 - `ieris-ltda` ya quedó poblado con los datos funcionales operativos de `empresa-demo`
 
@@ -72,6 +73,7 @@ Antes de cerrar una iteración relevante, pasar también por:
 - la última corrección operativa fue doble:
   - cerrar el diagnóstico técnico visible DLQ/BD en `Provisioning/DLQ`
   - corregir una nulabilidad TypeScript y endurecer el seed del smoke antes del publish final
+- el cierre actual es de priorización, no por falta de capacidad técnica
 - el único detalle operativo adicional es de ejecución del agente: el smoke tenant-side puede requerir salir del sandbox si Chromium falla con `SIGTRAP`
 
 ## Siguiente acción inmediata
@@ -89,7 +91,8 @@ El siguiente movimiento correcto es este:
 - asumir cerrado también el subfrente `Prioridad por tenant visible`
 - asumir cerrado también el subfrente `Diagnóstico DLQ / BD visible`
 - asumir cerrado también el helper published broker-only de `staging`
-- volver al roadmap central de `Provisioning/DLQ` con foco en el siguiente slice funcional broker-only
+- sacar `Provisioning/DLQ` del foco activo
+- volver al siguiente bloque central del roadmap
 
 ## Archivos a leer justo después de este
 

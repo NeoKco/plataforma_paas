@@ -1,5 +1,25 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-11 - Cierre de etapa Provisioning DLQ broker-only
+
+- objetivo:
+  - cerrar formalmente `Provisioning/DLQ broker-only` como frente suficientemente endurecido para esta etapa
+- cambios principales:
+  - se saca DLQ del foco activo del handoff
+  - se mueve la prioridad al siguiente bloque central fuera de DLQ
+  - se actualizan estado, roadmap y handoff para evitar que otra sesión siga abriendo slices por inercia
+- validaciones:
+  - se reutiliza la validación funcional del último corte cerrado:
+    - repo build OK
+    - repo playwright `--list` OK
+    - staging smoke `technical` OK
+    - production `skipped_non_broker` coherente
+- bloqueos:
+  - sin bloqueo técnico
+  - el motivo del cierre es de priorización: seguir profundizando DLQ ya entra en rendimiento decreciente
+- siguiente paso:
+  - volver al siguiente bloque central del roadmap fuera de `Provisioning/DLQ`
+
 ## 2026-04-11 - Provisioning DLQ technical diagnosis validado
 
 - objetivo:

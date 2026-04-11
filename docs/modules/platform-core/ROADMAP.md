@@ -154,6 +154,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - `Provisioning` ya expone además `Plan operativo sugerido` sobre `Familias DLQ visibles`; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
 - `Provisioning` ya expone además `Prioridad por tenant visible`; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
 - `Provisioning` ya expone además `Diagnóstico DLQ / BD visible`; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
+- el frente `Provisioning/DLQ broker-only` queda suficientemente endurecido para esta etapa; cualquier profundización adicional pasa a backlog opcional y deja de ser prioridad activa del roadmap central
 
 ## Conclusión práctica
 

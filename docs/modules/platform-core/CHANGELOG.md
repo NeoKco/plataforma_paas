@@ -2,6 +2,11 @@
 
 ## 2026-04-11
 
+- decisión de cierre de etapa:
+  - `Provisioning/DLQ broker-only` deja de ser frente activo del roadmap central
+  - la profundidad actual se considera suficiente para esta etapa
+  - cualquier nuevo slice DLQ pasa a backlog opcional salvo re-priorización explícita
+
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega la capa broker-only `Diagnóstico DLQ / BD visible` dentro de `Familias DLQ visibles`:
   - clasifica el subconjunto visible entre `postgres-role`, `postgres-database`, `tenant-schema`, `tenant-database-drop` y `other`
   - resume filas visibles, tenants afectados y código dominante por capa técnica
