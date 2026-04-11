@@ -2,6 +2,20 @@
 
 ## 2026-04-10
 
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega el subfrente broker-only `familias DLQ visibles` dentro de `Operación DLQ`:
+  - agrupa el subconjunto broker visible por `tenant + job_type + error`
+  - expone tarjetas operativas con conteo, último registro y acción `Enfocar familia`
+  - exporta esas familias también dentro del snapshot JSON del workspace de `Provisioning`
+- el mismo corte corrige una regresión real en `Provisioning`: la sincronización `URL -> filtros locales` ya no debe vaciar `dlqTenantSlug` ni otros filtros broker-only cuando una acción in-page como `Enfocar familia` cambia el estado local antes de que la URL se actualice
+- se agrega el smoke [platform-admin-provisioning-dlq-family-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts) para fijar el flujo browser `familia DLQ visible -> Enfocar familia -> filtros coherentes`
+- validación cerrada de este corte:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts --list` OK
+  - `staging`: frontend publicado + smoke nuevo `1 passed`
+  - `production`: frontend publicado + smoke nuevo `1 skipped` por backend `database/non-broker`
+- hallazgo operativo del cierre:
+  - los smokes broker-only publicados no deben sembrar contra el backend del repo local por defecto; cuando apuntan a `staging` o `production`, deben usar `E2E_BACKEND_ROOT`, `E2E_BACKEND_PYTHON` y, si aplica, `E2E_BACKEND_ENV_FILE`
+
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) profundiza el corte `DLQ broker-only` para que la propia superficie `Operación DLQ` se alinee al backend activo del entorno:
   - en `broker`, mantiene visibles filtros DLQ, reencolado en lote, requeue guiado y acciones por fila
   - en `database`, reemplaza esas acciones por un estado broker-only no activo y deriva la operación al entorno correcto

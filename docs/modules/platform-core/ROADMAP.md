@@ -71,6 +71,7 @@ Estado práctico de cierre:
   - `broker`: filtros, batch y requeue guiado activos
   - `database`: estado broker-only no activo y derivación operativa al entorno correcto
 - validación browser de ese gating mediante `platform-admin-provisioning-dlq-surface-gating`
+- validación browser de `familias DLQ visibles` y `Enfocar familia` dentro de `Provisioning`, con agrupación broker-only sobre el subconjunto visible
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`
@@ -122,6 +123,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - mantener `staging` como espejo instalado por defecto y usar `bootstrap reset` solo para validar `/install` cuando haga falta
 - ampliar E2E browser a DLQ individual/filtros más finos y a recuperación operativa guiada dentro de `Provisioning`
 - profundizar el carril broker-only de DLQ ahora que la propia consola ya expone el `dispatch backend` activo
+- seguir endureciendo `Provisioning/DLQ` sobre `staging` con slices broker-only reales del subconjunto visible, sin asumir soporte en `production` mientras siga en `database`
 - decidir si `production` debe correr también con `PROVISIONING_DISPATCH_BACKEND=broker` sólo si realmente se quiere que esos smokes broker-only pasen ahí, y no sólo queden explícitamente marcados como no aplicables
 - más regresión sobre provisioning y billing
 - seguir endureciendo copy, validaciones y observabilidad visible
@@ -141,6 +143,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - `Provisioning` ya expone también `requeue guiado` sobre DLQ y quedó validado en `staging`; en `production` el frontend quedó publicado pero el smoke broker-only se salta mientras el backend no resuelva como `broker`
 - `Provisioning` ya expone también la `capacidad activa de provisioning`, dejando visible si el entorno corre con `dispatch backend` `broker` o `database`; ese corte ya quedó validado en `staging` y `production`
 - `Provisioning` ya alinea además la propia superficie `Operación DLQ` con ese backend activo, evitando acciones broker-only ambiguas en entornos `database`; ese corte ya quedó validado en `staging` y `production`
+- `Provisioning` ya expone además `familias DLQ visibles` para enfocar una familia homogénea antes de reencolar; ese corte ya quedó validado en `staging` y publicado en `production`, donde el smoke queda `skipped` si el backend sigue siendo `database`
 
 ## Conclusión práctica
 

@@ -1,5 +1,17 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-10 - Provisioning DLQ family focus validado
+
+- `Provisioning` suma `familias DLQ visibles` y la acción broker-only `Enfocar familia`
+- durante la validación en `staging` apareció una regresión real: la sincronización `requestedTenantSlug -> dlqTenantSlug` vaciaba filtros locales después de una acción in-page
+- el fix quedó en [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) limitando esa sincronización a cambios reales de URL y no a cada cambio local de estado
+- el smoke [platform-admin-provisioning-dlq-family-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts) quedó `1 passed` en `staging` usando:
+  - `E2E_BACKEND_ROOT=/opt/platform_paas_staging`
+  - `E2E_BACKEND_PYTHON=/opt/platform_paas_staging/platform_paas_venv/bin/python`
+  - `E2E_BACKEND_ENV_FILE=/tmp/platform_paas_staging.env`
+- en `production`, el mismo smoke quedó `1 skipped`, coherente con backend no broker
+- repo, docs y árboles `/opt/platform_paas*` deben quedar alineados a este cierre
+
 ## 2026-04-10 - Handoff alineado a plantilla oficial
 
 - objetivo:

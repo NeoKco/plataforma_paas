@@ -41,6 +41,7 @@ Archivos principales:
 - [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts)
 - [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-family-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
 - [tenant-portal-finance-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit.smoke.spec.ts)
@@ -79,6 +80,7 @@ Cobertura actual:
 - `requeue guiado` desde una fila DLQ para acotar filtros y disparar el reintento sugerido
 - visibilidad del `dispatch backend` activo dentro de `Provisioning`, para fijar si el entorno corre con `broker` o `database`
 - gating visible de la superficie `Operación DLQ`, para que el panel broker-only se alinee al backend activo del entorno publicado
+- foco broker-only de `familias DLQ visibles`, para convertir una familia homogénea del subconjunto visible en filtros operativos coherentes
 - login `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
 - visibilidad del sidebar `tenant_portal` según `effective_enabled_modules`
@@ -180,6 +182,11 @@ Nota operativa para cortes broker-only de `Provisioning`:
 - ese `skip` debe documentarse como limitación/topología del entorno, no como validación funcional verde
 - antes de correr esos smokes, conviene ejecutar primero [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts) para fijar por browser la capacidad activa del entorno publicado
 - si además quieres validar que la UI publicada no deje acciones DLQ ambiguas en un entorno `database`, corre [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts)
+- si quieres validar el nuevo foco por familia sobre `staging`, corre [platform-admin-provisioning-dlq-family-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts) apuntando al backend publicado correcto:
+  - `E2E_BACKEND_ROOT=/opt/platform_paas_staging`
+  - `E2E_BACKEND_PYTHON=/opt/platform_paas_staging/platform_paas_venv/bin/python`
+  - `E2E_BACKEND_ENV_FILE=/tmp/platform_paas_staging.env`
+  - resultado validado actual: `staging -> 1 passed`, `production -> 1 skipped`
 
 Baseline recomendado para desarrollo local:
 

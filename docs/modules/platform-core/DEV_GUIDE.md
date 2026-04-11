@@ -123,6 +123,7 @@ Smokes actuales del bloque central:
 - [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts)
 - [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-family-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts)
 
 Baseline E2E tenant actualmente validado para continuar pruebas browser:
 
@@ -171,6 +172,7 @@ Cobertura actual:
 - `requeue guiado` en `Provisioning` para enfocar una fila DLQ y recomendar si corresponde requeue individual o batch
 - visibilidad explícita del `dispatch backend` activo dentro de `Provisioning`, para saber si el entorno opera hoy con `broker` o `database`
 - gating visible de la propia superficie `Operación DLQ` según el backend activo, retirando acciones broker-only cuando el entorno corre con `database`
+- resumen broker-only de `familias DLQ visibles` para agrupar el subconjunto por tenant, tipo de job y error antes de aplicar un foco operativo
 - enforcement visible de límites de usuarios activos en `tenant_portal` con overrides preparados de forma determinista
 - visibilidad backend-driven del sidebar `tenant_portal` según `effective_enabled_modules`
 - enforcement visible de límites de `finance.entries` en `tenant_portal` con overrides preparados de forma determinista

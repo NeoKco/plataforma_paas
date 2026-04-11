@@ -762,22 +762,16 @@ export function ProvisioningPage() {
   }, [session?.accessToken]);
 
   useEffect(() => {
-    if (requestedTenantSlug !== tenantSlugFilter) {
-      setTenantSlugFilter(requestedTenantSlug);
-    }
-    if (requestedTenantSlug !== dlqTenantSlug) {
-      setDlqTenantSlug(requestedTenantSlug);
-    }
-    if (requestedOperationFilter !== jobOperationFilter) {
-      setJobOperationFilter(requestedOperationFilter);
-    }
-  }, [
-    dlqTenantSlug,
-    jobOperationFilter,
-    requestedOperationFilter,
-    requestedTenantSlug,
-    tenantSlugFilter,
-  ]);
+    setTenantSlugFilter((current) =>
+      current !== requestedTenantSlug ? requestedTenantSlug : current
+    );
+    setDlqTenantSlug((current) =>
+      current !== requestedTenantSlug ? requestedTenantSlug : current
+    );
+    setJobOperationFilter((current) =>
+      current !== requestedOperationFilter ? requestedOperationFilter : current
+    );
+  }, [requestedOperationFilter, requestedTenantSlug]);
 
   useEffect(() => {
     const nextSearchParams = new URLSearchParams(searchParams);
