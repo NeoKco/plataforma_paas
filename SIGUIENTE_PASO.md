@@ -2,36 +2,41 @@
 
 ## Prioridad vigente
 
-- retomar `platform-core hardening + E2E` en `Provisioning/DLQ`, ya con el corte operativo de portabilidad tenant cerrado
+- seguir con `platform-core hardening + E2E` en `Provisioning/DLQ`, ya con `row`, `batch`, `filters`, `guided`, `family focus` y `family requeue` cerrados
 
 ## Decisión previa obligatoria
 
 - ¿qué decisión define el camino siguiente?
-  - decidir si se vuelve de inmediato a `Provisioning/DLQ`
-  - o si se abre una microfase explícita de endurecimiento adicional sobre `tenant data portability`
-- la recomendación actual es:
-  - no seguir extendiendo portabilidad en esta iteración
-  - volver al roadmap central de `Provisioning/DLQ`
+  - decidir cuál será el próximo slice broker-only real del panel `Operación DLQ`
+- recomendación actual:
+  - no abrir otro frente transversal
+  - no volver a portabilidad tenant
+  - seguir en `Provisioning/DLQ` sobre una operación broker-only todavía no visible o no suficientemente endurecida
 
 ## Próximo paso correcto
 
-- asumir cerrado este corte:
-  - hotfix de `tenant_data_portability_service`
-  - migración funcional real `empresa-demo -> ieris-ltda`
-  - validación backend repo + producción
-- mantener `production` estable con el backend ya reiniciado y sano
-- abrir el siguiente slice broker-only o de endurecimiento visible en `Provisioning/DLQ`
-- validar primero en `staging`
-- promocionar a `production` solo después de esa validación
+- usar como base el carril ya institucionalizado:
+  - `scripts/dev/run_staging_published_broker_dlq_smoke.sh`
+  - published `staging` con backend `broker`
+  - `production` solo como confirmación `skipped_non_broker` si sigue en `database`
+- abrir un siguiente slice broker-only reutilizando `familias DLQ visibles`, por ejemplo:
+  - batch homogéneo sobre múltiples familias visibles
+  - o consolidación operativa de recomendaciones por familia
+- cerrar ese siguiente slice con:
+  - implementación visible
+  - smoke dedicado
+  - validación `repo + staging + production`
 
 ## Si el escenario principal falla
 
-- si aparece una nueva necesidad de copiar datos tenant reales, reutilizar el flujo portable oficial ya corregido
-- si se detecta otro fallo solo visible en `apply`, abrir una iteración específica de endurecimiento sobre portabilidad antes de volver a usarlo en otra migración real
-- si `staging` pierde el carril broker-only para DLQ, corregir entorno antes de seguir con smokes broker-only
+- si el siguiente smoke vuelve a mostrar desalineación entre UI y backend published, mover toda la preparación del estado al helper `backend-control` del mismo entorno
+- si `staging` deja de correr con `dispatch backend = broker`, detener el slice y corregir entorno antes de seguir
+- si el nuevo slice no justifica UI nueva, convertirlo en endurecimiento de helper/runbook en vez de inventar una pantalla o acción innecesaria
 
 ## Condición de cierre de la próxima iteración
 
-- la próxima iteración debe cerrar con uno de estos resultados:
-  - un nuevo corte funcional de `Provisioning/DLQ` implementado, validado y documentado
-  - o un endurecimiento explícito adicional de portabilidad tenant, si aparece un bug real nuevo, con validación y handoff actualizados
+- la próxima iteración debe dejar otro slice broker-only de `Provisioning/DLQ` cerrado con:
+  - código implementado
+  - smoke dedicado
+  - `staging` published validado
+  - `production` validado o explícitamente `skipped_non_broker`

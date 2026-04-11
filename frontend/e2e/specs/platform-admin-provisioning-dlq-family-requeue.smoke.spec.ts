@@ -1,12 +1,11 @@
 import { expect, test } from "../support/test";
 import {
   getProvisioningDispatchInfo,
+  seedPlatformTenantCatalogRecord,
   seedProvisioningDeadLetterJob,
-  waitForTenantCatalogRecord,
 } from "../support/backend-control";
 import { loginPlatform } from "../support/auth";
 import { buildE2ETenantIdentity } from "../support/e2e-data";
-import { fillCreateTenantForm, openCreateTenantForm } from "../support/platform-admin";
 
 test("platform admin can requeue a visible DLQ family directly from the broker summary", async ({
   page,
@@ -21,23 +20,14 @@ test("platform admin can requeue a visible DLQ family directly from the broker s
   const targetErrorCode = `e2e-dlq-family-requeue-a-${tenant.id}`;
   const otherErrorCode = `e2e-dlq-family-requeue-b-${tenant.id}`;
 
-  await loginPlatform(page);
-  await page.goto("/tenants");
-  await expect(page).toHaveURL(/\/tenants$/);
-
-  const createForm = await openCreateTenantForm(page);
-  await fillCreateTenantForm(createForm, tenant);
-  await createForm
-    .getByRole("button", { name: /Crear tenant|Create tenant/ })
-    .click();
-
-  await expect(
-    page
-      .locator(".tenant-action-feedback--success")
-      .filter({ hasText: /Alta de tenant|Create tenant/i })
-      .first()
-  ).toContainText(/creado|created/i);
-  await waitForTenantCatalogRecord(tenant.slug);
+  seedPlatformTenantCatalogRecord({
+    name: tenant.name,
+    slug: tenant.slug,
+    tenantType: "empresa",
+    adminFullName: tenant.adminFullName,
+    adminEmail: tenant.adminEmail,
+    adminPassword: tenant.adminPassword,
+  });
 
   const familyAJobOne = seedProvisioningDeadLetterJob({
     tenantSlug: tenant.slug,
@@ -55,6 +45,7 @@ test("platform admin can requeue a visible DLQ family directly from the broker s
     errorMessage: `E2E DLQ family requeue B ${tenant.id}`,
   });
 
+  await loginPlatform(page);
   await page.goto("/provisioning");
   await expect(
     page.getByRole("heading", { name: "Provisioning", exact: true })
@@ -101,7 +92,9 @@ test("platform admin can requeue a visible DLQ family directly from the broker s
   ).toBeVisible();
   await expect(confirmDialog).toContainText(new RegExp(tenant.slug, "i"));
   await expect(confirmDialog).toContainText(new RegExp(targetErrorCode, "i"));
-  await expect(confirmDialog).toContainText(/2 filas visibles|2 visible family rows|2 row/i);
+  await expect(confirmDialog).toContainText(
+    /Filas visibles de la familia:\s*2|Visible family rows:\s*2|2 visible family rows|2 row/i
+  );
 
   await confirmDialog
     .getByRole("button", { name: /Reencolar familia|Requeue family/i })

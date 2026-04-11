@@ -195,6 +195,13 @@ cd /home/felipe/platform_paas
 scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family
 ```
 
+- para validar el requeue directo desde el resumen por familia:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-requeue
+```
+
 - targets soportados hoy por ese helper:
   - `all`
   - `batch`
@@ -202,6 +209,7 @@ scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family
   - `filters`
   - `guided`
   - `family`
+  - `family-requeue`
 
 Baseline recomendado para desarrollo local:
 
@@ -222,6 +230,7 @@ Nota:
   - puede correrse contra `staging` o `production` con `E2E_USE_EXISTING_FRONTEND=1`
 - para smokes publicados en `staging` que siembran backend, el env correcto del servicio es `/opt/platform_paas_staging/.env.staging`
 - si hace falta `sudo` para leer ese env, exporta `HOME=/home/felipe` dentro del comando para reutilizar el cache real de Playwright y luego corrige la propiedad de `frontend/e2e/test-results` y `frontend/e2e/playwright-report`
+- si el escenario broker-only solo necesita un tenant efímero instrumental, créalo con `backend-control` sobre el mismo `E2E_BACKEND_ROOT`; no mezcles alta UI en un host y seeds en otro árbol backend
 
 Se prioriza `empresa-bootstrap` como baseline browser estable del repo para no mezclar la automatización con el tenant operativo `empresa-demo`.
 

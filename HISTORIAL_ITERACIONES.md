@@ -1,5 +1,25 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-10 - Provisioning DLQ family requeue validado
+
+- objetivo:
+  - cerrar el slice broker-only `Reencolar familia` dentro de `Familias DLQ visibles`
+- cambios principales:
+  - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) ahora permite reencolar directo una familia DLQ homogénea sin pasar antes por `Enfocar familia`
+  - se agrega [platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts)
+  - [backend-control.ts](/home/felipe/platform_paas/frontend/e2e/support/backend-control.ts) se endurece para crear tenants efímeros published sin asumir `planCode="anual"`
+  - [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) ya soporta `--target family-requeue`
+- validaciones:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts --list` OK
+  - `staging`: `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-requeue` -> `1 passed`
+  - `production`: smoke publicado -> `1 skipped`
+- bloqueos:
+  - apareció una desalineación E2E entre alta UI y backend published, resuelta moviendo la creación del tenant efímero al mismo backend objetivo
+  - apareció una asunción inválida de plan tenant (`anual`), ya corregida en el helper
+- siguiente paso:
+  - abrir el próximo slice broker-only real dentro de `Provisioning/DLQ`
+
 ## 2026-04-10 - Helper published broker-only de staging
 
 - se agrega [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh)

@@ -3,56 +3,45 @@
 ## Última actualización
 
 - fecha: 2026-04-10
-- foco de iteración: hotfix real de `tenant data portability` y traspaso de datos funcionales `empresa-demo -> ieris-ltda`
-- estado general: el traspaso funcional ya quedó aplicado en producción, y el contrato portable quedó corregido para respetar FKs y constraints únicos del destino
+- foco de iteración: cierre del slice broker-only `Provisioning/DLQ family requeue`
+- estado general: el corte ya quedó implementado, validado en `staging` publicado y confirmado como `skipped_non_broker` en `production`
 
 ## Resumen ejecutivo en 30 segundos
 
-- `ieris-ltda` ya recibió los datos funcionales de `empresa-demo` usando el flujo portable oficial `functional_data_only`
-- el servicio portable tenía dos fallos reales detectados en operación: faltaban tablas soporte por FK y `skip_existing` no cubría constraints únicos de negocio
-- ambos fallos ya quedaron corregidos en repo y en `/opt/platform_paas`, con validación backend y servicio productivo reiniciado sano
+- `Provisioning` ya permite `Reencolar familia` directamente desde `Familias DLQ visibles`
+- el smoke published real ya quedó verde en `staging` usando el helper broker-only y sin setup manual
+- durante la validación se corrigieron fragilidades E2E reales del carril published: creación del tenant en el backend correcto, eliminación del plan hardcodeado y matcher alineado al copy real
 
 ## Qué ya quedó hecho
 
-- se confirmó el estado real de los tenants productivos:
-  - `empresa-demo` id `1`
-  - `ieris-ltda` id `212`
-- se ejecutó export portable `functional_data_only` desde `empresa-demo`
-- se ejecutó `dry_run` y luego `apply` sobre `ieris-ltda`
-- el primer `apply` real reveló que faltaba `maintenance_equipment_types` dentro del scope funcional
-- el análisis de FKs detectó además dependencias hacia:
-  - `finance_beneficiaries`
-  - `finance_people`
-  - `finance_projects`
-- se corrigió el contrato portable para incluir esas tablas soporte
-- el segundo `apply` real reveló que `skip_existing` debía considerar constraints únicos además de PK
-- se endureció el import para saltar también filas ya existentes por constraints únicos simples o compuestos
-- se reintentó el import real y quedó completado
-- `ieris-ltda` terminó con estos conteos funcionales principales:
-  - `business_organizations`: `204`
-  - `business_contacts`: `217`
-  - `business_clients`: `191`
-  - `business_sites`: `194`
-  - `maintenance_equipment_types`: `4`
-  - `maintenance_installations`: `192`
-  - `maintenance_schedules`: `50`
-  - `maintenance_due_items`: `20`
-  - `maintenance_work_orders`: `105`
-  - `finance_accounts`: `4`
-  - `finance_categories`: `40`
-  - `finance_currencies`: `2`
-  - `finance_transactions`: `191`
+- se implementó `handleDlqFamilyRequeue()` en [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx)
+- cada tarjeta de familia DLQ visible ya expone la acción `Reencolar familia`
+- se agregó el smoke [platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts)
+- el helper [backend-control.ts](/home/felipe/platform_paas/frontend/e2e/support/backend-control.ts) ahora soporta:
+  - `getTenantCatalogRecord`
+  - `waitForTenantCatalogRecord`
+  - `seedPlatformTenantCatalogRecord` sin asumir `planCode="anual"`
+- el helper [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) ya soporta `--target family-requeue`
+- el frontend quedó republicado en:
+  - `/opt/platform_paas`
+  - `/opt/platform_paas_staging`
+- se confirmó que el smoke publicado nuevo queda:
+  - `staging`: `1 passed`
+  - `production`: `1 skipped`
 
 ## Qué archivos se tocaron
 
-- código backend:
-  - `backend/app/apps/platform_control/services/tenant_data_portability_service.py`
-  - `backend/app/tests/test_tenant_data_portability_service.py`
-- documentación funcional/canónica:
-  - `docs/runbooks/tenant-data-portability.md`
-  - `docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md`
+- frontend funcional:
+  - `frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx`
+- soporte E2E:
+  - `frontend/e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts`
+  - `frontend/e2e/support/backend-control.ts`
+  - `scripts/dev/run_staging_published_broker_dlq_smoke.sh`
+- documentación y handoff:
   - `docs/modules/platform-core/CHANGELOG.md`
-- estado y handoff:
+  - `docs/modules/platform-core/ROADMAP.md`
+  - `frontend/e2e/README.md`
+  - `docs/runbooks/frontend-e2e-browser.md`
   - `ESTADO_ACTUAL.md`
   - `SIGUIENTE_PASO.md`
   - `SESION_ACTIVA.md`
@@ -61,48 +50,50 @@
 
 ## Qué decisiones quedaron cerradas
 
-- el flujo correcto para mover datos tenant reales sigue siendo el portable oficial, no copia manual directa entre bases
-- `functional_data_only` debe incluir también tablas soporte referenciadas por FK desde tablas funcionales
-- `skip_existing` no puede depender solo de PK; también debe respetar constraints únicos de negocio ya presentes en el tenant destino
-- `ieris-ltda` ya no requiere una nueva clonación de `empresa-demo` para este corte; el traspaso funcional quedó aplicado
+- el reintento broker-only por familia ya no requiere pasar antes por `Enfocar familia`
+- los smokes published broker-only que crean tenant efímero deben hacerlo con `backend-control` en el mismo backend del entorno objetivo
+- el helper E2E no debe asumir un plan tenant fijo si el slice validado no depende de esa dimensión
+- `production` puede seguir marcando estos smokes como `skipped_non_broker` mientras su dispatch backend real no sea `broker`
 
 ## Qué falta exactamente
 
-- si se quiere seguir con producto, el siguiente frente correcto vuelve a ser `platform-core hardening + E2E` sobre `Provisioning/DLQ`
-- si se quiere endurecer aún más portabilidad, el backlog razonable sería:
-  - ampliar `dry_run` para detectar colisiones por FK/constraints antes del `apply`
-  - agregar smoke o evidencia operativa específica de import tenant realista
-- mantener sincronizados repo, `/opt/platform_paas` y `/opt/platform_paas_staging`
+- elegir el siguiente slice broker-only real dentro de `Provisioning/DLQ`
+- mantener sincronizados repo, `/opt/platform_paas` y `/opt/platform_paas_staging` al cerrar cada corte
+- si se abre otro smoke published broker-only, reutilizar el patrón ya fijado:
+  - helper de `staging`
+  - tenant efímero creado por backend-control
+  - validación `production = skipped_non_broker` si aplica
 
 ## Qué no debe tocarse
 
-- no volver a copiar datos tenant por SQL manual salvo incidente extremo y explícito
-- no reabrir el contrato portable para reducir tablas soporte recién corregidas
-- no tratar CSV portable como reemplazo del backup técnico `pg_dump`
-- no tocar auth, lifecycle tenant o billing por este hotfix
+- no reabrir `tenant data portability` en esta iteración; ese frente quedó cerrado en su último hotfix
+- no volver a asumir `planCode="anual"` por defecto en helpers E2E published
+- no mezclar creación UI en un entorno con seeds backend en otro árbol publicado
+- no tocar auth, lifecycle tenant, billing ni provisioning backend por este cierre frontend/E2E
 
 ## Validaciones ya ejecutadas
 
 - repo:
-  - `python -m unittest app.tests.test_tenant_data_portability_service -v`: `OK (9 tests)`
-- producción:
-  - mismo `unittest` ejecutado sobre `/opt/platform_paas/backend`: `OK (9 tests)`
-  - `systemctl restart platform-paas-backend`: ejecutado
-  - `https://orkestia.ddns.net/health`: `OK`
-- operación real:
-  - verificación de tenants productivos y schema versions: `OK`
-  - export real `functional_data_only` desde `empresa-demo`: `OK`
-  - `dry_run` real hacia `ieris-ltda`: `OK`
-  - `apply` real final hacia `ieris-ltda`: `OK`
+  - `cd frontend && npm run build`: `OK`
+  - `cd frontend && npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts --list`: `OK`
+- `staging` publicado:
+  - `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-requeue`: `1 passed`
+- `production` publicado:
+  - `E2E_BASE_URL=https://orkestia.ddns.net ... platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts`: `1 skipped`
+- publish:
+  - frontend publicado en `/opt/platform_paas/frontend/dist`
+  - frontend publicado en `/opt/platform_paas_staging/frontend/dist`
 
 ## Bloqueos reales detectados
 
-- no queda bloqueo activo en este corte
-- el `dry_run` portable todavía no modela todos los fallos que recién aparecen en `apply`; ya se redujo una parte importante, pero aún hay espacio de endurecimiento futuro
-- `finance_categories` del destino no quedó con el mismo conteo bruto que el origen porque `skip_existing` consolidó categorías ya existentes por constraint único; esto es esperado y no bloqueó la importación de transacciones
+- no queda bloqueo activo del producto
+- durante la validación hubo tres bloqueos E2E ya resueltos:
+  - carrera o desalineación entre alta UI y backend seed en published `staging`
+  - plan por defecto inválido para el catálogo real de `staging`
+  - aserción frágil del copy del diálogo
 
 ## Mi conclusión
 
-- el objetivo pedido por el usuario ya quedó resuelto: `ieris-ltda` recibió los datos funcionales de `empresa-demo`
-- además del movimiento operativo, quedó corregido un bug real del producto en portabilidad tenant
-- el siguiente paso correcto vuelve a ser el roadmap central sobre `Provisioning/DLQ`, no seguir abriendo este frente salvo endurecimiento explícito
+- el slice `family requeue` ya quedó cerrado con evidencia real
+- el carril published broker-only de `staging` quedó más robusto que antes porque ahora su smoke no depende del flujo UI de alta tenant ni de supuestos de plan
+- el siguiente paso correcto vuelve a ser abrir otro slice broker-only real de `Provisioning/DLQ`, no seguir corrigiendo este corte salvo regresión nueva

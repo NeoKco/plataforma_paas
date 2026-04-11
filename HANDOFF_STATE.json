@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-10T23:10:00-04:00",
+  "updated_at": "2026-04-10T23:40:00-04:00",
   "handoff_status": "active",
-  "current_focus": "hotfix operativo de tenant data portability ya cerrado despues de transferir datos funcionales empresa-demo -> ieris-ltda; el servicio portable ya considera tablas soporte por FK y colisiones por constraints unicos, y el siguiente frente recomendado vuelve a Provisioning/DLQ broker-only",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, y Provisioning listo para retomar el siguiente slice broker-only",
+  "current_focus": "slice broker-only Provisioning/DLQ family requeue cerrado; staging published ya valida el requeue directo por familia y production lo confirma como skipped_non_broker, quedando listo el siguiente slice broker-only real",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, y Provisioning/DLQ profundizado hasta family requeue",
   "active_modules": [
     "platform-core",
     "finance",
@@ -40,9 +40,14 @@
     "Provisioning debe exponer el dispatch backend activo del entorno para que la operacion y los smokes DLQ broker-only no dependan de inferencias externas",
     "la superficie DLQ visible debe alinearse al dispatch backend activo para no dejar acciones broker-only ambiguas en entornos database",
     "las acciones in-page broker-only de Provisioning como Enfocar familia no deben ser revertidas por sincronizacion tardia URL -> estado local",
-    "el carril published broker-only de staging debe tener helper operativo propio; no conviene rearmarlo manualmente con E2E_BACKEND_* en cada sesion"
+    "el carril published broker-only de staging debe tener helper operativo propio; no conviene rearmarlo manualmente con E2E_BACKEND_* en cada sesion",
+    "los smokes published broker-only que solo necesitan un tenant efimero deben crearlo con backend-control en el mismo backend del entorno objetivo y no asumir un plan tenant fijo"
   ],
   "completed_recently": [
+    "Provisioning agrega la accion broker-only Reencolar familia sobre Familias DLQ visibles",
+    "smoke platform-admin-provisioning-dlq-family-requeue agregado y validado en staging",
+    "smoke platform-admin-provisioning-dlq-family-requeue validado como skipped_non_broker en production",
+    "backend-control E2E deja de asumir planCode anual por defecto en seedPlatformTenantCatalogRecord",
     "transferencia funcional real empresa-demo -> ieris-ltda completada con functional_data_only",
     "tenant_data_portability_service ampliado para incluir tablas soporte por FK: maintenance_equipment_types finance_beneficiaries finance_people finance_projects",
     "tenant_data_portability_service endurecido para que skip_existing también omita filas ya existentes por constraints únicos simples o compuestos",
@@ -149,7 +154,7 @@
     "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir si se retoma inmediatamente el siguiente slice funcional broker-only dentro de Provisioning/DLQ o si se abre una microfase adicional de endurecimiento sobre tenant data portability; la recomendación actual es volver a Provisioning/DLQ",
+  "next_decision_required": "decidir cual sera el siguiente slice broker-only real dentro de Provisioning/DLQ despues de row batch filters guided family focus y family requeue; la recomendacion actual es seguir en DLQ y no reabrir tenant data portability",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -159,6 +164,7 @@
     "asumir cerrada tambien la visibilidad del dispatch backend activo",
     "asumir cerrado tambien el gating visible de la superficie DLQ",
     "asumir cerrado tambien el subfrente familias DLQ visibles",
+    "asumir cerrado tambien el subfrente Reencolar familia",
     "asumir cerrado tambien el helper published broker-only de staging",
     "retomar platform-core hardening + E2E sobre Provisioning y DLQ",
     "abrir el siguiente subfrente de profundizacion broker-only usando la capacidad visible del entorno, las familias visibles y el helper de staging para decidir y validar"
@@ -280,6 +286,12 @@
     "platform_admin_provisioning_dlq_family_focus_production_frontend_publish": "pass",
     "platform_admin_provisioning_dlq_family_focus_production_smoke": "skipped_non_broker",
     "staging_published_broker_dlq_helper_help": "pass",
-    "staging_published_broker_dlq_helper_family": "pass"
+    "staging_published_broker_dlq_helper_family": "pass",
+    "platform_admin_provisioning_dlq_family_requeue_repo_frontend_build": "pass",
+    "platform_admin_provisioning_dlq_family_requeue_repo_playwright_list": "pass",
+    "platform_admin_provisioning_dlq_family_requeue_staging_frontend_publish": "pass",
+    "platform_admin_provisioning_dlq_family_requeue_staging_smoke": "pass",
+    "platform_admin_provisioning_dlq_family_requeue_production_frontend_publish": "pass",
+    "platform_admin_provisioning_dlq_family_requeue_production_smoke": "skipped_non_broker"
   }
 }

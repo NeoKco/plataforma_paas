@@ -220,6 +220,12 @@ Baseline institucionalizado:
 cd /home/felipe/platform_paas
 scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family
 ```
+- para validar el reintento directo de una familia homogénea:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-requeue
+```
 - los escenarios broker-only quedan documentados y validados aparte cuando se necesite una pasada específica con Redis/broker real
 - para desarrollo local existe además [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh), que corre migraciones, siembra baseline, levanta backend si hace falta y ejecuta `build + e2e:platform + e2e:tenant`
 - ese helper local acepta además `--target all|platform|tenant`, útil para revalidar solo la mitad necesaria sin correr toda la baseline principal
@@ -227,6 +233,7 @@ scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family
 - para barridos manuales o recuperación operativa sigue disponible [cleanup_e2e_tenants.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_e2e_tenants.py), que usa `archive -> deprovision -> delete`
 - para validar específicamente los `3` smokes DLQ broker-only existe [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh), que levanta un stack paralelo `broker` sobre Redis y ejecuta solo esos casos
 - ese helper local acepta además `--target all|batch|row|filters`, útil para revalidar un smoke DLQ concreto sin correr todo el bloque
+- el helper published broker-only de `staging` acepta hoy `--target all|batch|row|filters|guided|family|family-requeue`
 - para CI manual de esos casos broker-only existe además [.github/workflows/frontend-broker-dlq-e2e.yml](../../.github/workflows/frontend-broker-dlq-e2e.yml), pensado para lanzarse con `workflow_dispatch`
 - ese workflow manual acepta además `target=all|batch|row|filters`, útil para revalidar solo un smoke DLQ concreto cuando se toca esa zona
 
@@ -251,6 +258,7 @@ Notas:
 - `npm run e2e:tenant` ya ejecuta todo el bloque `tenant-portal*.spec.ts`, no solo el smoke base de `finance`
 - el smoke de `retry` de provisioning siembra un job `failed` controlado en la DB de control usando el Python del backend; si tu entorno usa otra ruta, sobreescribe `E2E_BACKEND_PYTHON`
 - los smokes de `Provisioning` que siembran tenant/jobs pueden además usar `E2E_BACKEND_ROOT` para apuntar a un árbol publicado como `/opt/platform_paas_staging` y así compartir DB/control real del entorno browser
+- cuando un smoke published broker-only solo necesita un tenant efímero de soporte, es preferible crearlo con `backend-control` en el mismo backend objetivo antes que depender del flujo UI `Nuevo tenant`
 - el smoke de DLQ requiere `PROVISIONING_DISPATCH_BACKEND=broker`; si el entorno usa `database`, el spec queda omitido automáticamente
 - el smoke DLQ individual y el smoke DLQ batch comparten ese requisito broker-only y se omiten automáticamente en backend `database`
 - los smokes de límites tenant ahora fijan y limpian overrides por control DB para evitar fragilidad al preparar estado por UI

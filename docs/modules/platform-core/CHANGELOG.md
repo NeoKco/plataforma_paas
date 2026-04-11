@@ -2,6 +2,22 @@
 
 ## 2026-04-10
 
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega la acción broker-only `Reencolar familia` dentro de `Familias DLQ visibles`:
+  - permite devolver a cola una familia homogénea del subconjunto visible sin pasar antes por `Enfocar familia`
+  - reutiliza el contrato backend DLQ ya cerrado con `tenant_slug + job_type + error_code/error_contains`
+- se agrega el smoke [platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts)
+- durante la validación real aparecieron y quedaron cerrados tres hallazgos operativos del smoke:
+  - el tenant efímero del escenario debía crearse en el mismo backend publicado del helper E2E, no por UI contra un entorno potencialmente desalineado
+  - el helper [backend-control.ts](/home/felipe/platform_paas/frontend/e2e/support/backend-control.ts) no debía asumir `planCode="anual"` por defecto
+  - la aserción del diálogo debía fijar la redacción real `Filas visibles de la familia`
+- validación cerrada de este corte:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts --list` OK
+  - `staging`: `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-requeue` -> `1 passed`
+  - `production`: smoke publicado -> `1 skipped` por backend no `broker`
+- hallazgo operativo del cierre:
+  - los smokes published broker-only deben crear el estado efímero en el mismo backend publicado del entorno objetivo; si mezclan UI y seeds entre árboles distintos, el fallo ya no es de producto sino de wiring E2E
+
 - se agrega el helper [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) para encapsular la validación published broker-only de `Provisioning/DLQ` sobre `staging`:
   - copia el env real del servicio a `/tmp/platform_paas_staging.env`
   - valida que `staging` siga corriendo con `dispatch backend = broker`

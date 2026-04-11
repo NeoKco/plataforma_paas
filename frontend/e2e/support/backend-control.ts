@@ -444,7 +444,7 @@ export function seedPlatformTenantCatalogRecord({
   adminFullName,
   adminEmail,
   adminPassword,
-  planCode = "anual",
+  planCode = null,
 }: SeedTenantCatalogInput): SeededTenantCatalogRecord {
   const script = `
 import json
