@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-11T05:25:00-04:00",
+  "updated_at": "2026-04-11T00:47:40-04:00",
   "handoff_status": "active",
-  "current_focus": "slice broker-only Provisioning/DLQ tenant focus cerrado; staging published ya valida la priorizacion por tenant visible y production lo confirma como skipped_non_broker, con release frontend republicado correctamente por entorno",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, Provisioning/DLQ profundizado hasta tenant focus con publish frontend por entorno ya revalidado",
+  "current_focus": "slice broker-only Provisioning/DLQ technical diagnosis cerrado; staging published ya valida el diagnostico tecnico visible DLQ/BD y production lo confirma como skipped_non_broker, con release frontend republicado correctamente por entorno",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, Provisioning/DLQ profundizado hasta technical diagnosis con publish frontend por entorno ya revalidado",
   "active_modules": [
     "platform-core",
     "finance",
@@ -43,9 +43,15 @@
     "el carril published broker-only de staging debe tener helper operativo propio; no conviene rearmarlo manualmente con E2E_BACKEND_* en cada sesion",
     "los smokes published broker-only que solo necesitan un tenant efimero deben crearlo con backend-control en el mismo backend del entorno objetivo y no asumir un plan tenant fijo",
     "todo publish frontend a staging o production debe reconstruirse con API_BASE_URL explicita por entorno; no sirve copiar un dist generico entre carriles",
-    "los seeds broker-only de Provisioning/DLQ deben respetar los limites reales de provisioning_jobs como error_code varchar(100) y no confiar en ids efimeros demasiado largos"
+    "los seeds broker-only de Provisioning/DLQ deben respetar los limites reales de provisioning_jobs como error_code varchar(100) y no confiar en ids efimeros demasiado largos",
+    "las lecturas tecnicas visibles DLQ/BD deben derivarse desde error_code y job_type reales del backend, no desde heuristicas UI sueltas"
   ],
   "completed_recently": [
+    "Provisioning agrega Diagnostico DLQ / BD visible dentro de Familias DLQ visibles",
+    "smoke platform-admin-provisioning-dlq-technical-diagnosis agregado y validado en staging",
+    "smoke platform-admin-provisioning-dlq-technical-diagnosis validado como skipped_non_broker en production",
+    "helper staging published broker-only ahora soporta --target technical",
+    "smoke technical diagnosis endurecido para garantizar dominancia estable de tenant-schema",
     "Provisioning agrega Prioridad por tenant visible dentro de Familias DLQ visibles",
     "smoke platform-admin-provisioning-dlq-tenant-focus agregado y validado en staging",
     "smoke platform-admin-provisioning-dlq-tenant-focus validado como skipped_non_broker en production",
@@ -175,7 +181,7 @@
     "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir cual sera el siguiente slice broker-only real dentro de Provisioning/DLQ despues de row batch filters guided family focus family requeue family batch requeue family recommendation y tenant focus; la recomendacion actual es consolidacion operativa del subconjunto ya aislado y no reabrir tenant data portability",
+  "next_decision_required": "decidir cual sera el siguiente slice broker-only real dentro de Provisioning/DLQ despues de row batch filters guided family focus family requeue family batch requeue family recommendation tenant focus y technical diagnosis; la recomendacion actual es decidir entre una matriz visible tenant + capa tecnica o cerrar pronto este frente y volver al siguiente bloque del roadmap central",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -191,7 +197,7 @@
     "asumir cerrado tambien el subfrente Prioridad por tenant visible",
     "asumir cerrado tambien el helper published broker-only de staging",
     "retomar platform-core hardening + E2E sobre Provisioning y DLQ",
-    "abrir el siguiente subfrente de profundizacion broker-only usando la capacidad visible del entorno, las familias visibles, el batch homogeneo y el helper de staging para decidir y validar"
+    "abrir el siguiente subfrente de profundizacion broker-only usando la capacidad visible del entorno, las familias visibles, el batch homogeneo, el diagnostico tecnico y el helper de staging para decidir y validar"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -334,6 +340,12 @@
     "platform_admin_provisioning_dlq_tenant_focus_staging_frontend_publish": "pass",
     "platform_admin_provisioning_dlq_tenant_focus_staging_smoke": "pass",
     "platform_admin_provisioning_dlq_tenant_focus_production_frontend_publish": "pass",
-    "platform_admin_provisioning_dlq_tenant_focus_production_smoke": "skipped_non_broker"
+    "platform_admin_provisioning_dlq_tenant_focus_production_smoke": "skipped_non_broker",
+    "platform_admin_provisioning_dlq_technical_diagnosis_repo_frontend_build": "pass",
+    "platform_admin_provisioning_dlq_technical_diagnosis_repo_playwright_list": "pass",
+    "platform_admin_provisioning_dlq_technical_diagnosis_staging_frontend_publish": "pass",
+    "platform_admin_provisioning_dlq_technical_diagnosis_staging_smoke": "pass",
+    "platform_admin_provisioning_dlq_technical_diagnosis_production_frontend_publish": "pass",
+    "platform_admin_provisioning_dlq_technical_diagnosis_production_smoke": "skipped_non_broker"
   }
 }

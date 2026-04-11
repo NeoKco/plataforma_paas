@@ -98,6 +98,20 @@ type DlqTenantSummary = {
   topFamilyKey: string | null;
 };
 
+type DlqTechnicalCategory =
+  | "postgres-role"
+  | "postgres-database"
+  | "tenant-schema"
+  | "tenant-database-drop"
+  | "other";
+
+type DlqTechnicalSummary = {
+  category: DlqTechnicalCategory;
+  totalRows: number;
+  totalTenants: number;
+  dominantErrorCode: string | null;
+};
+
 type DlqFamilyRecommendation = {
   tone: "neutral" | "info" | "warning" | "success";
   title: string;
@@ -605,6 +619,114 @@ export function ProvisioningPage() {
       primaryAction: "focus-tenant" as const,
     };
   }, [dlqFamilySummaries.length, dlqTenantSummaries, language]);
+
+  const dlqTechnicalSummaries = useMemo(() => {
+    const summaries = new Map<
+      DlqTechnicalCategory,
+      {
+        category: DlqTechnicalCategory;
+        totalRows: number;
+        tenants: Set<string>;
+        errorCounts: Map<string, number>;
+      }
+    >();
+
+    filteredDlqRows.forEach((row) => {
+      const category = classifyDlqTechnicalCategory(row.error_code || "", row.job_type);
+      const tenantSlug = tenantSlugById.get(row.tenant_id) || `tenant-${row.tenant_id}`;
+      const normalizedErrorCode = normalizeNullableString(row.error_code || "") || "";
+      const existing = summaries.get(category) || {
+        category,
+        totalRows: 0,
+        tenants: new Set<string>(),
+        errorCounts: new Map<string, number>(),
+      };
+
+      existing.totalRows += 1;
+      existing.tenants.add(tenantSlug);
+      if (normalizedErrorCode) {
+        existing.errorCounts.set(
+          normalizedErrorCode,
+          (existing.errorCounts.get(normalizedErrorCode) || 0) + 1
+        );
+      }
+      summaries.set(category, existing);
+    });
+
+    return Array.from(summaries.values())
+      .map<DlqTechnicalSummary>((item) => {
+        let dominantErrorCode: string | null = null;
+        let dominantCount = -1;
+        item.errorCounts.forEach((count, errorCode) => {
+          if (count > dominantCount) {
+            dominantCount = count;
+            dominantErrorCode = errorCode;
+          }
+        });
+        return {
+          category: item.category,
+          totalRows: item.totalRows,
+          totalTenants: item.tenants.size,
+          dominantErrorCode,
+        };
+      })
+      .sort((left, right) => right.totalRows - left.totalRows);
+  }, [filteredDlqRows, tenantSlugById]);
+
+  const dlqTechnicalDiagnosis = useMemo(() => {
+    if (dlqTechnicalSummaries.length === 0) {
+      return {
+        tone: "neutral" as const,
+        title:
+          language === "es"
+            ? "Sin diagnóstico técnico visible"
+            : "No visible technical diagnosis",
+        detail:
+          language === "es"
+            ? "Todavía no hay filas DLQ visibles suficientes para inferir si el problema dominante viene de la BD, del esquema o de otra capa."
+            : "There are not enough visible DLQ rows yet to infer whether the dominant issue comes from the database, the schema or another layer.",
+        bullets: [
+          `${language === "es" ? "Filas visibles" : "Visible rows"}: 0`,
+          `${language === "es" ? "Categorías técnicas" : "Technical categories"}: 0`,
+        ],
+        focusErrorCode: null,
+      };
+    }
+
+    const dominant = dlqTechnicalSummaries[0];
+    return {
+      tone:
+        dominant.category === "tenant-schema" || dominant.category === "postgres-database"
+          ? ("warning" as const)
+          : dominant.category === "postgres-role" || dominant.category === "tenant-database-drop"
+            ? ("info" as const)
+            : ("neutral" as const),
+      title:
+        language === "es"
+          ? `Diagnóstico dominante: ${formatDlqTechnicalCategoryLabel(dominant.category)}`
+          : `Dominant diagnosis: ${formatDlqTechnicalCategoryLabel(dominant.category)}`,
+      detail:
+        language === "es"
+          ? `El subconjunto visible se concentra principalmente en ${formatDlqTechnicalCategoryLabel(
+              dominant.category
+            ).toLowerCase()}.`
+          : `The visible subset is mainly concentrated on ${formatDlqTechnicalCategoryLabel(
+              dominant.category
+            ).toLowerCase()}.`,
+      bullets: [
+        `${language === "es" ? "Filas visibles en esta capa" : "Visible rows in this layer"}: ${dominant.totalRows}`,
+        `${language === "es" ? "Tenants afectados" : "Affected tenants"}: ${dominant.totalTenants}`,
+        `${language === "es" ? "Código dominante" : "Dominant code"}: ${
+          dominant.dominantErrorCode
+            ? formatProvisioningCodeLabel(dominant.dominantErrorCode)
+            : language === "es"
+              ? "sin código explícito"
+              : "no explicit code"
+        }`,
+      ],
+      focusErrorCode: dominant.dominantErrorCode,
+    };
+  }, [dlqTechnicalSummaries, language]);
 
   const dlqGuidance = useMemo(() => {
     const tenantLabels = Array.from(
@@ -1395,6 +1517,34 @@ export function ProvisioningPage() {
       errorCode: "",
       errorContains: "",
       jobType: "",
+    });
+  }
+
+  function handleDlqErrorCodeFocus(errorCode: string) {
+    const normalizedErrorCode = normalizeNullableString(errorCode || "") || "";
+    if (!normalizedErrorCode) {
+      return;
+    }
+
+    setGuidedDlqJobId(null);
+    setSelectedDlqFamilyKeys([]);
+    setDlqErrorCode(normalizedErrorCode);
+    setDlqErrorContains("");
+    setActionFeedback({
+      scope: "focus-dlq-error-code",
+      type: "success",
+      message:
+        language === "es"
+          ? `Se aisló el DLQ por el código ${formatProvisioningCodeLabel(normalizedErrorCode)}.`
+          : `The DLQ is now isolated by code ${formatProvisioningCodeLabel(normalizedErrorCode)}.`,
+    });
+    focusDlqPanel();
+    void loadProvisioningWorkspace({
+      limit: dlqLimit,
+      tenantSlug: dlqTenantSlug,
+      errorCode: normalizedErrorCode,
+      errorContains: "",
+      jobType: dlqJobType,
     });
   }
 
@@ -2804,6 +2954,89 @@ export function ProvisioningPage() {
                       : "Groups the visible broker subset by tenant, job type and error so you can focus one homogeneous family before requeueing."}
                   </p>
                   <div
+                    data-testid="provisioning-dlq-technical-diagnosis"
+                    style={{
+                      display: "grid",
+                      gap: "0.75rem",
+                      padding: "0.875rem",
+                      border: "1px dashed var(--border-subtle, #d7deed)",
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <strong>
+                        {language === "es"
+                          ? "Diagnóstico DLQ / BD visible"
+                          : "Visible DLQ / DB diagnosis"}
+                      </strong>
+                      <AppBadge tone={dlqTechnicalDiagnosis.tone}>
+                        {dlqTechnicalDiagnosis.title}
+                      </AppBadge>
+                    </div>
+                    <p className="mb-0">{dlqTechnicalDiagnosis.detail}</p>
+                    <ul className="mb-0 ps-3">
+                      {dlqTechnicalDiagnosis.bullets.map((detail) => (
+                        <li key={detail}>{detail}</li>
+                      ))}
+                    </ul>
+                    {dlqTechnicalDiagnosis.focusErrorCode ? (
+                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                        <button
+                          type="button"
+                          data-testid="provisioning-dlq-technical-focus-error"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => handleDlqErrorCodeFocus(dlqTechnicalDiagnosis.focusErrorCode || "")}
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es"
+                            ? "Enfocar código dominante"
+                            : "Focus dominant code"}
+                        </button>
+                      </div>
+                    ) : null}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                        gap: "0.75rem",
+                      }}
+                    >
+                      {dlqTechnicalSummaries.map((summary) => (
+                        <div
+                          key={summary.category}
+                          data-testid="provisioning-dlq-technical-card"
+                          style={{
+                            display: "grid",
+                            gap: "0.35rem",
+                            padding: "0.75rem",
+                            border: "1px solid var(--border-subtle, #d7deed)",
+                            borderRadius: "0.75rem",
+                            background: "var(--surface-muted, #f8fbff)",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                            <AppBadge tone={summary.totalRows > 1 ? "warning" : "neutral"}>
+                              {summary.totalRows}
+                            </AppBadge>
+                            <strong>{formatDlqTechnicalCategoryLabel(summary.category)}</strong>
+                          </div>
+                          <div style={{ color: "var(--text-muted, #51607a)", fontSize: "0.9rem" }}>
+                            {language === "es" ? "Tenants afectados" : "Affected tenants"}: {summary.totalTenants}
+                          </div>
+                          <div style={{ color: "var(--text-muted, #51607a)", fontSize: "0.9rem" }}>
+                            {language === "es" ? "Código dominante" : "Dominant code"}:{" "}
+                            {summary.dominantErrorCode
+                              ? formatProvisioningCodeLabel(summary.dominantErrorCode)
+                              : language === "es"
+                                ? "sin código"
+                                : "no code"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div
                     data-testid="provisioning-dlq-tenant-recommendation"
                     style={{
                       display: "grid",
@@ -3766,6 +3999,60 @@ function formatProvisioningJobType(value: string): string {
   };
 
   return knownLabels[value] || formatProvisioningCodeLabel(value);
+}
+
+function classifyDlqTechnicalCategory(
+  errorCode: string,
+  jobType: string
+): DlqTechnicalCategory {
+  const normalizedErrorCode = (normalizeNullableString(errorCode) || "").toLowerCase();
+  const normalizedJobType = (normalizeNullableString(jobType) || "").toLowerCase();
+
+  if (
+    normalizedErrorCode === "postgres_role_bootstrap_failed" ||
+    normalizedErrorCode.startsWith("postgres_role_")
+  ) {
+    return "postgres-role";
+  }
+
+  if (
+    normalizedErrorCode === "postgres_database_bootstrap_failed" ||
+    normalizedErrorCode.startsWith("postgres_database_")
+  ) {
+    return "postgres-database";
+  }
+
+  if (
+    normalizedErrorCode === "tenant_database_drop_failed" ||
+    normalizedJobType === "deprovision_tenant_database"
+  ) {
+    return "tenant-database-drop";
+  }
+
+  if (
+    normalizedErrorCode === "tenant_schema_bootstrap_failed" ||
+    normalizedErrorCode === "tenant_schema_sync_failed" ||
+    normalizedErrorCode.startsWith("tenant_schema_") ||
+    normalizedJobType === "sync_tenant_schema" ||
+    normalizedJobType === "repair_tenant_schema"
+  ) {
+    return "tenant-schema";
+  }
+
+  return "other";
+}
+
+function formatDlqTechnicalCategoryLabel(category: DlqTechnicalCategory): string {
+  const language = getCurrentLanguage();
+  const labels: Record<DlqTechnicalCategory, string> = {
+    "postgres-role": language === "es" ? "Rol postgres" : "Postgres role",
+    "postgres-database": language === "es" ? "Base postgres" : "Postgres database",
+    "tenant-schema": language === "es" ? "Esquema tenant" : "Tenant schema",
+    "tenant-database-drop":
+      language === "es" ? "Drop base tenant" : "Tenant database drop",
+    other: language === "es" ? "Otra capa" : "Other layer",
+  };
+  return labels[category];
 }
 
 function getProvisioningOperationKind(
