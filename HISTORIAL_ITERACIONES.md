@@ -1,5 +1,21 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-10 - Hotfix visual catálogo Tenants
+
+- objetivo:
+  - corregir el overflow visual del catálogo izquierdo en `platform-admin > Tenants`
+- cambios principales:
+  - [platform-admin.css](/home/felipe/platform_paas/frontend/src/styles/platform-admin.css) ahora fuerza contención del grid, `min-width: 0`, ancho máximo del item y wrap seguro para títulos/metadatos largos
+  - el catálogo ya no se sale del cuadro central cuando aparecen tenants con slugs extensos
+- validaciones:
+  - repo: `cd frontend && npm run build` OK
+  - `production`: frontend publicado con la corrección
+  - `staging`: frontend publicado con la corrección
+- bloqueos:
+  - sin bloqueo adicional; era un bug visual de layout
+- siguiente paso:
+  - seguir con el roadmap central sobre `Provisioning/DLQ`
+
 ## 2026-04-10 - Provisioning DLQ family requeue validado
 
 - objetivo:

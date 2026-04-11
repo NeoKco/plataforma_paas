@@ -641,9 +641,14 @@ code {
   grid-template-columns: minmax(18rem, 26rem) minmax(0, 1fr);
 }
 
+.tenants-page-grid > * {
+  min-width: 0;
+}
+
 .tenant-list {
   display: grid;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .tenant-catalog-filters {
@@ -662,6 +667,11 @@ code {
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: 16px;
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-width: 0;
+  overflow: hidden;
   padding: 1rem;
   text-align: left;
   transition:
@@ -686,11 +696,23 @@ code {
   display: flex;
   gap: 1rem;
   justify-content: space-between;
+  min-width: 0;
+}
+
+.tenant-list__row > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tenant-list__row > :last-child {
+  flex: 0 0 auto;
 }
 
 .tenant-list__title {
   font-size: 1rem;
   font-weight: 700;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .tenant-list__meta {
@@ -699,6 +721,9 @@ code {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.25rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .tenant-list__chips {

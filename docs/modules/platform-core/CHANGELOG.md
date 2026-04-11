@@ -2,6 +2,15 @@
 
 ## 2026-04-10
 
+- se corrige el layout del catálogo en [platform-admin > Tenants](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) desde [platform-admin.css](/home/felipe/platform_paas/frontend/src/styles/platform-admin.css):
+  - la columna izquierda ya no se expande por slugs largos o nombres efímeros
+  - las tarjetas del catálogo quedan contenidas dentro del panel y del grid central
+  - el texto de título/meta ahora corta y envuelve sin empujar el detalle derecho
+- validación cerrada:
+  - repo: `cd frontend && npm run build` OK
+  - `production`: frontend publicado con la corrección CSS
+  - `staging`: frontend publicado con la corrección CSS
+
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega la acción broker-only `Reencolar familia` dentro de `Familias DLQ visibles`:
   - permite devolver a cola una familia homogénea del subconjunto visible sin pasar antes por `Enfocar familia`
   - reutiliza el contrato backend DLQ ya cerrado con `tenant_slug + job_type + error_code/error_contains`

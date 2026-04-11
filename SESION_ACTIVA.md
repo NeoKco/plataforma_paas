@@ -31,6 +31,7 @@ Antes de cerrar una iteración relevante, pasar también por:
 
 - fecha: 2026-04-10
 - foco activo: slice broker-only `Provisioning/DLQ family requeue` ya cerrado
+- foco activo: slice broker-only `Provisioning/DLQ family requeue` ya cerrado, más hotfix visual del catálogo `Tenants`
 - prioridad inmediata: abrir el siguiente slice broker-only real dentro de `Provisioning/DLQ`
 - módulo o frente activo: `platform-core` / `Provisioning/DLQ`
 
@@ -94,6 +95,7 @@ Antes de cerrar una iteración relevante, pasar también por:
 - `Provisioning` ya expone además `Reencolar familia` directo desde ese resumen broker-only
 - el smoke `platform-admin-provisioning-dlq-family-requeue` ya quedó validado en `staging`
 - en `production`, ese smoke nuevo también queda `skipped` mientras el dispatch backend siga sin ser `broker`
+- el catálogo de `Tenants` ya no desborda la columna izquierda cuando aparecen slugs largos o tenants efímeros E2E
 - ya existe el helper `scripts/dev/run_staging_published_broker_dlq_smoke.sh`
 - ese helper ya quedó validado con `--target family` y `--target family-requeue` en el staging publicado
 - el flujo portable real `empresa-demo -> ieris-ltda` ya quedó ejecutado con `functional_data_only`
@@ -111,7 +113,9 @@ Antes de cerrar una iteración relevante, pasar también por:
 ## Bloqueo actual
 
 - no hay bloqueo activo en este corte
-- la última corrección operativa fue endurecer el carril published broker-only para que el smoke `family-requeue` cree su tenant efímero en el backend correcto y no asuma un plan fijo inválido
+- la última corrección operativa fue doble:
+  - endurecer el carril published broker-only para `family-requeue`
+  - corregir el overflow visual del catálogo `Tenants`
 - el único detalle operativo adicional es de ejecución del agente: el smoke tenant-side puede requerir salir del sandbox si Chromium falla con `SIGTRAP`
 
 ## Siguiente acción inmediata

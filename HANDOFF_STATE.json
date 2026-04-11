@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-10T23:40:00-04:00",
+  "updated_at": "2026-04-10T23:55:00-04:00",
   "handoff_status": "active",
-  "current_focus": "slice broker-only Provisioning/DLQ family requeue cerrado; staging published ya valida el requeue directo por familia y production lo confirma como skipped_non_broker, quedando listo el siguiente slice broker-only real",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, y Provisioning/DLQ profundizado hasta family requeue",
+  "current_focus": "slice broker-only Provisioning/DLQ family requeue cerrado y hotfix visual del catalogo Tenants publicado; staging published ya valida el requeue directo por familia y production lo confirma como skipped_non_broker, mientras el catalogo tenant queda contenido correctamente",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, Provisioning/DLQ profundizado hasta family requeue y catalogo visual de Tenants contenido correctamente",
   "active_modules": [
     "platform-core",
     "finance",
@@ -44,6 +44,9 @@
     "los smokes published broker-only que solo necesitan un tenant efimero deben crearlo con backend-control en el mismo backend del entorno objetivo y no asumir un plan tenant fijo"
   ],
   "completed_recently": [
+    "catalogo visual de Tenants corregido para no desbordar la columna izquierda con slugs largos",
+    "frontend production publicado con el hotfix visual de Tenants",
+    "frontend staging publicado con el hotfix visual de Tenants",
     "Provisioning agrega la accion broker-only Reencolar familia sobre Familias DLQ visibles",
     "smoke platform-admin-provisioning-dlq-family-requeue agregado y validado en staging",
     "smoke platform-admin-provisioning-dlq-family-requeue validado como skipped_non_broker en production",

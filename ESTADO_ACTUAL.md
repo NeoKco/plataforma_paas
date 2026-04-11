@@ -3,20 +3,25 @@
 ## Última actualización
 
 - fecha: 2026-04-10
-- foco de iteración: cierre del slice broker-only `Provisioning/DLQ family requeue`
-- estado general: el corte ya quedó implementado, validado en `staging` publicado y confirmado como `skipped_non_broker` en `production`
+- foco de iteración: cierre del slice broker-only `Provisioning/DLQ family requeue` más hotfix visual del catálogo `Tenants`
+- estado general: el corte DLQ sigue cerrado y además el catálogo `Tenants` ya quedó corregido para no desbordar la columna izquierda con slugs largos
 
 ## Resumen ejecutivo en 30 segundos
 
 - `Provisioning` ya permite `Reencolar familia` directamente desde `Familias DLQ visibles`
 - el smoke published real ya quedó verde en `staging` usando el helper broker-only y sin setup manual
 - durante la validación se corrigieron fragilidades E2E reales del carril published: creación del tenant en el backend correcto, eliminación del plan hardcodeado y matcher alineado al copy real
+- el catálogo `Tenants` ya no desborda su panel izquierdo cuando aparecen tenants con slugs o nombres largos
 
 ## Qué ya quedó hecho
 
 - se implementó `handleDlqFamilyRequeue()` en [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx)
 - cada tarjeta de familia DLQ visible ya expone la acción `Reencolar familia`
 - se agregó el smoke [platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts)
+- se endureció el layout del catálogo `Tenants` en [platform-admin.css](/home/felipe/platform_paas/frontend/src/styles/platform-admin.css) con:
+  - contención de ancho en la columna izquierda
+  - `min-width: 0` en el grid
+  - wrap seguro para títulos y metadatos largos
 - el helper [backend-control.ts](/home/felipe/platform_paas/frontend/e2e/support/backend-control.ts) ahora soporta:
   - `getTenantCatalogRecord`
   - `waitForTenantCatalogRecord`
@@ -33,6 +38,7 @@
 
 - frontend funcional:
   - `frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx`
+  - `frontend/src/styles/platform-admin.css`
 - soporte E2E:
   - `frontend/e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts`
   - `frontend/e2e/support/backend-control.ts`
@@ -80,6 +86,10 @@
   - `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family-requeue`: `1 passed`
 - `production` publicado:
   - `E2E_BASE_URL=https://orkestia.ddns.net ... platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts`: `1 skipped`
+- hotfix visual:
+  - `cd frontend && npm run build`: `OK`
+  - frontend republicado en `production`
+  - frontend republicado en `staging`
 - publish:
   - frontend publicado en `/opt/platform_paas/frontend/dist`
   - frontend publicado en `/opt/platform_paas_staging/frontend/dist`
