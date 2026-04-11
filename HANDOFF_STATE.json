@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-11T00:47:40-04:00",
+  "updated_at": "2026-04-11T01:17:00-04:00",
   "handoff_status": "active",
-  "current_focus": "Provisioning/DLQ broker-only cerrado como frente suficientemente endurecido para esta etapa; la prioridad ya no es abrir mas slices DLQ sino volver al siguiente bloque central del roadmap",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, Provisioning/DLQ endurecido y formalmente sacado del foco activo",
+  "current_focus": "Provisioning/DLQ broker-only cerrado para esta etapa despues del ultimo slice visible tenant + capa tecnica; la prioridad ya no es abrir mas slices DLQ sino volver al siguiente bloque central del roadmap",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, Provisioning/DLQ endurecido y cerrado para esta etapa tras la matriz tenant + capa tecnica",
   "active_modules": [
     "platform-core",
     "finance",
@@ -44,11 +44,16 @@
     "los smokes published broker-only que solo necesitan un tenant efimero deben crearlo con backend-control en el mismo backend del entorno objetivo y no asumir un plan tenant fijo",
     "todo publish frontend a staging o production debe reconstruirse con API_BASE_URL explicita por entorno; no sirve copiar un dist generico entre carriles",
     "los seeds broker-only de Provisioning/DLQ deben respetar los limites reales de provisioning_jobs como error_code varchar(100) y no confiar en ids efimeros demasiado largos",
-    "las lecturas tecnicas visibles DLQ/BD deben derivarse desde error_code y job_type reales del backend, no desde heuristicas UI sueltas"
-    ,
-    "Provisioning/DLQ broker-only ya no debe seguir creciendo por inercia; cualquier profundizacion adicional requiere repriorizacion explicita"
+    "las lecturas tecnicas visibles DLQ/BD deben derivarse desde error_code y job_type reales del backend, no desde heuristicas UI sueltas",
+    "la matriz visible tenant + capa tecnica cierra el ultimo slice util de Provisioning/DLQ para esta etapa y cualquier profundizacion adicional requiere repriorizacion explicita"
   ],
   "completed_recently": [
+    "Provisioning agrega la matriz broker-only tenant + capa tecnica dentro de Familias DLQ visibles",
+    "smoke platform-admin-provisioning-dlq-tenant-technical-matrix agregado y validado en staging",
+    "smoke platform-admin-provisioning-dlq-tenant-technical-matrix validado como skipped_non_broker en production",
+    "helper staging published broker-only ahora soporta --target matrix",
+    "fixture del smoke tenant technical matrix corregido para reflejar una combinacion tecnica inequivoca",
+    "project-structure documenta de forma explicita frontend/e2e scripts/dev y el rol espejo de /opt/platform_paas y /opt/platform_paas_staging",
     "Provisioning agrega Diagnostico DLQ / BD visible dentro de Familias DLQ visibles",
     "smoke platform-admin-provisioning-dlq-technical-diagnosis agregado y validado en staging",
     "smoke platform-admin-provisioning-dlq-technical-diagnosis validado como skipped_non_broker en production",
@@ -183,7 +188,7 @@
     "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir cual sera el siguiente bloque central fuera de Provisioning/DLQ ahora que ese frente ya quedo suficientemente endurecido para esta etapa",
+  "next_decision_required": "decidir cual sera el siguiente bloque central fuera de Provisioning/DLQ ahora que ese frente ya quedo suficientemente endurecido y cerrado para esta etapa",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -197,6 +202,7 @@
     "asumir cerrado tambien el subfrente Reencolar seleccion por familias visibles",
     "asumir cerrado tambien el subfrente Plan operativo sugerido por familias visibles",
     "asumir cerrado tambien el subfrente Prioridad por tenant visible",
+    "asumir cerrado tambien el subfrente Matriz tenant + capa tecnica",
     "asumir cerrado tambien el helper published broker-only de staging",
     "dejar Provisioning/DLQ fuera del foco activo",
     "retomar el siguiente bloque central del roadmap fuera de DLQ"
@@ -348,6 +354,12 @@
     "platform_admin_provisioning_dlq_technical_diagnosis_staging_frontend_publish": "pass",
     "platform_admin_provisioning_dlq_technical_diagnosis_staging_smoke": "pass",
     "platform_admin_provisioning_dlq_technical_diagnosis_production_frontend_publish": "pass",
-    "platform_admin_provisioning_dlq_technical_diagnosis_production_smoke": "skipped_non_broker"
+    "platform_admin_provisioning_dlq_technical_diagnosis_production_smoke": "skipped_non_broker",
+    "platform_admin_provisioning_dlq_tenant_technical_matrix_repo_frontend_build": "pass",
+    "platform_admin_provisioning_dlq_tenant_technical_matrix_repo_playwright_list": "pass",
+    "platform_admin_provisioning_dlq_tenant_technical_matrix_staging_frontend_publish": "pass",
+    "platform_admin_provisioning_dlq_tenant_technical_matrix_staging_smoke": "pass",
+    "platform_admin_provisioning_dlq_tenant_technical_matrix_production_frontend_publish": "pass",
+    "platform_admin_provisioning_dlq_tenant_technical_matrix_production_smoke": "skipped_non_broker"
   }
 }

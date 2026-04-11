@@ -4,8 +4,22 @@
 
 - decisión de cierre de etapa:
   - `Provisioning/DLQ broker-only` deja de ser frente activo del roadmap central
-  - la profundidad actual se considera suficiente para esta etapa
+  - la profundidad actual se considera suficiente para esta etapa después de cerrar la matriz visible `tenant + capa técnica`
   - cualquier nuevo slice DLQ pasa a backlog opcional salvo re-priorización explícita
+
+- [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega la capa broker-only `Matriz tenant + capa técnica` dentro de `Familias DLQ visibles`:
+  - cruza el subconjunto visible por `tenant` y por capa técnica dominante
+  - resume filas, tipos de job visibles, código dominante y último registro por combinación
+  - expone acción directa `Enfocar combinación`
+- se agrega el smoke [platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts)
+- el helper [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) agrega el target `matrix`
+- durante la validación real apareció y quedó resuelto un hallazgo operativo:
+  - el fixture inicial del smoke no garantizaba una combinación técnica inequívoca y hubo que simplificar el seed para ajustarlo al contrato real de la vista
+- validación cerrada de este corte:
+  - repo: `npm run build` OK
+  - repo: `npx playwright test e2e/specs/platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts --list` OK
+  - `staging`: `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target matrix` -> `1 passed`
+  - `production`: smoke publicado -> `1 skipped` por backend no `broker`
 
 - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) agrega la capa broker-only `Diagnóstico DLQ / BD visible` dentro de `Familias DLQ visibles`:
   - clasifica el subconjunto visible entre `postgres-role`, `postgres-database`, `tenant-schema`, `tenant-database-drop` y `other`

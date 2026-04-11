@@ -30,7 +30,7 @@ Antes de cerrar una iteración relevante, pasar también por:
 ## Estado rápido vigente
 
 - fecha: 2026-04-11
-- foco activo: cierre formal de `Provisioning/DLQ broker-only` como frente suficientemente endurecido
+- foco activo: último slice broker-only `tenant + capa técnica` ya validado y cierre formal de `Provisioning/DLQ`
 - prioridad inmediata: volver al siguiente bloque central del roadmap fuera de DLQ
 - módulo o frente activo: `platform-core`
 
@@ -61,9 +61,13 @@ Antes de cerrar una iteración relevante, pasar también por:
   - `Plan operativo sugerido`
   - `Prioridad por tenant visible`
   - `Diagnóstico DLQ / BD visible`
+  - `Matriz tenant + capa técnica`
+- el smoke `platform-admin-provisioning-dlq-tenant-technical-matrix` ya quedó validado en `staging`
+- en `production`, ese smoke nuevo queda `skipped` mientras el dispatch backend siga sin ser `broker`
 - el smoke `platform-admin-provisioning-dlq-technical-diagnosis` ya quedó validado en `staging`
 - en `production`, ese smoke nuevo queda `skipped` mientras el dispatch backend siga sin ser `broker`
 - este frente ya no debe seguir creciendo por inercia; cualquier profundización adicional de DLQ queda como backlog opcional
+- la estructura canónica ya deja explícito además que `frontend/e2e/` y `scripts/dev/` son parte del contrato operativo y que `/opt/...` es solo espejo de runtime
 - el flujo portable real `empresa-demo -> ieris-ltda` ya quedó ejecutado con `functional_data_only`
 - `ieris-ltda` ya quedó poblado con los datos funcionales operativos de `empresa-demo`
 
@@ -90,6 +94,7 @@ El siguiente movimiento correcto es este:
 - asumir cerrado también el subfrente `Plan operativo sugerido` por familias visibles
 - asumir cerrado también el subfrente `Prioridad por tenant visible`
 - asumir cerrado también el subfrente `Diagnóstico DLQ / BD visible`
+- asumir cerrado también el subfrente `Matriz tenant + capa técnica`
 - asumir cerrado también el helper published broker-only de `staging`
 - sacar `Provisioning/DLQ` del foco activo
 - volver al siguiente bloque central del roadmap
@@ -124,3 +129,5 @@ El siguiente movimiento correcto es este:
 - smoke `platform-admin-provisioning-dlq-tenant-focus` en `production`: SKIPPED (`dispatch backend != broker`)
 - smoke `platform-admin-provisioning-dlq-technical-diagnosis` en `staging`: OK
 - smoke `platform-admin-provisioning-dlq-technical-diagnosis` en `production`: SKIPPED (`dispatch backend != broker`)
+- smoke `platform-admin-provisioning-dlq-tenant-technical-matrix` en `staging`: OK
+- smoke `platform-admin-provisioning-dlq-tenant-technical-matrix` en `production`: SKIPPED (`dispatch backend != broker`)

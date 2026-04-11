@@ -1,5 +1,20 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-11 - Alineación estructural de E2E y árboles operativos
+
+- objetivo:
+  - dejar explícita en arquitectura la ubicación canónica de smokes E2E, helpers operativos y árboles `/opt/...`
+- cambios principales:
+  - [project-structure.md](/home/felipe/platform_paas/docs/architecture/project-structure.md) ahora documenta `frontend/e2e/specs`, `frontend/e2e/support`, `frontend/e2e/README.md` y `scripts/dev/` como parte del contrato operativo
+  - el mismo documento deja explícito el rol de `/opt/platform_paas` y `/opt/platform_paas_staging` como espejos de runtime y no como fuente primaria del proyecto
+- validaciones:
+  - revisión manual de la estructura actual del repo: OK
+  - estructura documental alineada con el estado real del workspace y de los árboles operativos: OK
+- bloqueos:
+  - sin bloqueo técnico; fue una alineación documental de continuidad
+- siguiente paso:
+  - seguir fuera de `Provisioning/DLQ` y retomar el siguiente bloque central del roadmap
+
 ## 2026-04-11 - Cierre de etapa Provisioning DLQ broker-only
 
 - objetivo:
@@ -19,6 +34,27 @@
   - el motivo del cierre es de priorización: seguir profundizando DLQ ya entra en rendimiento decreciente
 - siguiente paso:
   - volver al siguiente bloque central del roadmap fuera de `Provisioning/DLQ`
+
+## 2026-04-11 - Provisioning DLQ tenant technical matrix validado y cierre de etapa
+
+- objetivo:
+  - cerrar el último slice broker-only útil de `Provisioning/DLQ` con una matriz visible `tenant + capa técnica` y luego dar por cerrado este frente para la etapa actual
+- cambios principales:
+  - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) ahora expone la matriz `tenant + capa técnica` dentro del bloque broker-only de `Familias DLQ visibles`
+  - la nueva capa cruza `tenant` con `postgres-role`, `postgres-database`, `tenant-schema`, `tenant-database-drop` y `other`
+  - la consola expone `Enfocar combinación` para aislar rápidamente un `tenant + capa técnica` sin revisar fila por fila
+  - se agrega [platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts)
+  - [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) ya soporta `--target matrix`
+- validaciones:
+  - repo: `cd frontend && npm run build` OK
+  - repo: `cd frontend && npx playwright test e2e/specs/platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts --list` OK
+  - `staging`: `scripts/dev/run_staging_published_broker_dlq_smoke.sh --target matrix` -> `1 passed`
+  - `production`: smoke publicado -> `1 skipped`
+- bloqueos:
+  - no quedó bloqueo funcional
+  - apareció una suposición incorrecta en el seed del smoke y quedó corregida antes del cierre
+- siguiente paso:
+  - sacar `Provisioning/DLQ` del foco activo y volver al siguiente bloque central del roadmap fuera de DLQ
 
 ## 2026-04-11 - Provisioning DLQ technical diagnosis validado
 

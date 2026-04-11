@@ -2,17 +2,17 @@
 
 ## Prioridad vigente
 
-- dejar cerrado `Provisioning/DLQ broker-only` y mover la prioridad al siguiente bloque central fuera de DLQ
+- mover la prioridad al siguiente bloque central fuera de DLQ, ya con `Provisioning/DLQ broker-only` cerrado después de su última matriz visible
 
 ## Decisión previa obligatoria
 
 - ¿qué decisión define el camino siguiente?
-  - decidir cuál será el siguiente bloque central a retomar ahora que `Provisioning/DLQ` deja de ser prioridad activa
+  - decidir cuál será el siguiente bloque central a retomar ahora que `Provisioning/DLQ` ya no es prioridad activa
 
 ## Próximo paso correcto
 
-- dejar explícito en el handoff que `Provisioning/DLQ` ya quedó suficientemente endurecido y que nuevos cortes ahí pasan a backlog opcional
 - volver al roadmap central y seleccionar el siguiente frente fuera de DLQ
+- definir si ese siguiente frente será endurecimiento transversal de `platform-core` fuera de DLQ o reanudación de un módulo funcional abierto
 - preparar ese siguiente frente con el mismo estándar:
   - definición clara del alcance
   - corte visible o técnico concreto
@@ -26,4 +26,4 @@
 
 ## Condición de cierre de la próxima iteración
 
-- la próxima iteración debe dejar seleccionado y arrancado el siguiente bloque central fuera de DLQ, con estado y handoff actualizados
+- la próxima iteración debe dejar seleccionado y arrancado el siguiente bloque central fuera de DLQ, con estado y handoff actualizados y sin reabrir DLQ por defecto

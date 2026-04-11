@@ -199,8 +199,37 @@ Sin mover hoy todo el repo, la regla oficial de continuidad es esta:
 - documentos canonicos por modulo bajo `docs/modules/<modulo>/`
 - migraciones tenant versionadas bajo `backend/migrations/tenant/`
 - E2E browser en `frontend/e2e/` con baseline y runbooks actualizados
+- helpers shell de carriles operativos reales bajo `scripts/dev/`
+- los árboles `/opt/platform_paas` y `/opt/platform_paas_staging` son espejos operativos del runtime, no la fuente primaria del proyecto
 
 Todo cambio nuevo debe poder ubicarse rapido dentro de esa grilla. Si un cambio no calza, primero hay que aclarar frontera de dominio o documentar la excepcion.
+
+## Continuidad E2E y Árboles Operativos
+
+Para continuidad entre sesiones, otra IA o validaciones sobre entornos publicados, estas rutas ya son parte del contrato operativo del repo:
+
+```text
+frontend/
+└── e2e/
+    ├── specs/      # smokes y regresión browser por flujo visible
+    ├── support/    # helpers de auth, env, seed y datos efímeros
+    └── README.md   # baseline, comandos y reglas vivas de E2E
+
+scripts/
+└── dev/
+    ├── run_local_browser_baseline.sh
+    ├── run_local_broker_dlq_baseline.sh
+    └── run_staging_published_broker_dlq_smoke.sh
+```
+
+Reglas vigentes:
+
+- los specs browser viven en `frontend/e2e/specs/`
+- los helpers del runner viven en `frontend/e2e/support/`
+- los helpers shell para carriles `local`, `staging` o broker-only viven en `scripts/dev/`
+- `/home/felipe/platform_paas` sigue siendo la fuente de verdad de código, documentación y handoff
+- `/opt/platform_paas` y `/opt/platform_paas_staging` solo se mantienen sincronizados como árboles operativos de `production` y `staging`
+- no se debe editar manualmente `/opt/...` como si fuera el origen del proyecto
 
 ## Backend en Estado Actual
 

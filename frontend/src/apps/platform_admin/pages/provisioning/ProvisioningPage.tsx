@@ -112,6 +112,16 @@ type DlqTechnicalSummary = {
   dominantErrorCode: string | null;
 };
 
+type DlqTenantTechnicalSummary = {
+  key: string;
+  tenantSlug: string;
+  category: DlqTechnicalCategory;
+  totalRows: number;
+  jobTypeCount: number;
+  dominantErrorCode: string | null;
+  latestRecordedAt: string | null;
+};
+
 type DlqFamilyRecommendation = {
   tone: "neutral" | "info" | "warning" | "success";
   title: string;
@@ -727,6 +737,84 @@ export function ProvisioningPage() {
       focusErrorCode: dominant.dominantErrorCode,
     };
   }, [dlqTechnicalSummaries, language]);
+
+  const dlqTenantTechnicalSummaries = useMemo(() => {
+    const summaries = new Map<
+      string,
+      {
+        tenantSlug: string;
+        category: DlqTechnicalCategory;
+        totalRows: number;
+        latestRecordedAt: string | null;
+        jobTypes: Set<string>;
+        errorCounts: Map<string, number>;
+      }
+    >();
+
+    filteredDlqRows.forEach((row) => {
+      const tenantSlug = tenantSlugById.get(row.tenant_id) || `tenant-${row.tenant_id}`;
+      const category = classifyDlqTechnicalCategory(row.error_code || "", row.job_type);
+      const key = `${tenantSlug.toLowerCase()}|${category}`;
+      const normalizedErrorCode = normalizeNullableString(row.error_code || "") || "";
+      const existing = summaries.get(key) || {
+        tenantSlug,
+        category,
+        totalRows: 0,
+        latestRecordedAt: row.recorded_at,
+        jobTypes: new Set<string>(),
+        errorCounts: new Map<string, number>(),
+      };
+
+      existing.totalRows += 1;
+      existing.jobTypes.add(row.job_type);
+      if (
+        buildComparableTimestamp(row.recorded_at) >
+        buildComparableTimestamp(existing.latestRecordedAt)
+      ) {
+        existing.latestRecordedAt = row.recorded_at;
+      }
+      if (normalizedErrorCode) {
+        existing.errorCounts.set(
+          normalizedErrorCode,
+          (existing.errorCounts.get(normalizedErrorCode) || 0) + 1
+        );
+      }
+      summaries.set(key, existing);
+    });
+
+    return Array.from(summaries.entries())
+      .map<DlqTenantTechnicalSummary>(([key, item]) => {
+        let dominantErrorCode: string | null = null;
+        let dominantCount = -1;
+        item.errorCounts.forEach((count, errorCode) => {
+          if (count > dominantCount) {
+            dominantCount = count;
+            dominantErrorCode = errorCode;
+          }
+        });
+        return {
+          key,
+          tenantSlug: item.tenantSlug,
+          category: item.category,
+          totalRows: item.totalRows,
+          jobTypeCount: item.jobTypes.size,
+          dominantErrorCode,
+          latestRecordedAt: item.latestRecordedAt,
+        };
+      })
+      .sort((left, right) => {
+        if (right.totalRows !== left.totalRows) {
+          return right.totalRows - left.totalRows;
+        }
+        if (left.tenantSlug !== right.tenantSlug) {
+          return left.tenantSlug.localeCompare(right.tenantSlug);
+        }
+        return (
+          buildComparableTimestamp(right.latestRecordedAt) -
+          buildComparableTimestamp(left.latestRecordedAt)
+        );
+      });
+  }, [filteredDlqRows, tenantSlugById]);
 
   const dlqGuidance = useMemo(() => {
     const tenantLabels = Array.from(
@@ -1545,6 +1633,32 @@ export function ProvisioningPage() {
       errorCode: normalizedErrorCode,
       errorContains: "",
       jobType: dlqJobType,
+    });
+  }
+
+  function handleDlqTenantTechnicalFocus(summary: DlqTenantTechnicalSummary) {
+    setGuidedDlqJobId(null);
+    setSelectedDlqFamilyKeys([]);
+    setTenantSlugFilter(summary.tenantSlug);
+    setDlqTenantSlug(summary.tenantSlug);
+    setDlqJobType("");
+    setDlqErrorCode(summary.dominantErrorCode || "");
+    setDlqErrorContains("");
+    setActionFeedback({
+      scope: "focus-dlq-tenant-technical",
+      type: "success",
+      message:
+        language === "es"
+          ? `Se aisló la combinación ${summary.tenantSlug} / ${formatDlqTechnicalCategoryLabel(summary.category)}.`
+          : `The combination ${summary.tenantSlug} / ${formatDlqTechnicalCategoryLabel(summary.category)} is now isolated.`,
+    });
+    focusDlqPanel();
+    void loadProvisioningWorkspace({
+      limit: dlqLimit,
+      tenantSlug: summary.tenantSlug,
+      errorCode: summary.dominantErrorCode || "",
+      errorContains: "",
+      jobType: "",
     });
   }
 
@@ -2995,7 +3109,7 @@ export function ProvisioningPage() {
                         </button>
                       </div>
                     ) : null}
-                    <div
+                  <div
                       style={{
                         display: "grid",
                         gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
@@ -3031,6 +3145,96 @@ export function ProvisioningPage() {
                               : language === "es"
                                 ? "sin código"
                                 : "no code"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div
+                    data-testid="provisioning-dlq-tenant-technical-matrix"
+                    style={{
+                      display: "grid",
+                      gap: "0.75rem",
+                      padding: "0.875rem",
+                      border: "1px dashed var(--border-subtle, #d7deed)",
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <strong>
+                        {language === "es"
+                          ? "Matriz tenant + capa técnica"
+                          : "Tenant + technical layer matrix"}
+                      </strong>
+                      <AppBadge tone="info">{dlqTenantTechnicalSummaries.length}</AppBadge>
+                    </div>
+                    <p className="mb-0">
+                      {language === "es"
+                        ? "Cruza tenant y capa técnica visible para detectar rápido dónde se concentra el problema y enfocar la combinación correcta sin revisar fila por fila."
+                        : "Crosses visible tenant and technical layer so you can quickly detect where the issue concentrates and focus the right combination without reviewing row by row."}
+                    </p>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                        gap: "0.75rem",
+                      }}
+                    >
+                      {dlqTenantTechnicalSummaries.slice(0, 8).map((summary) => (
+                        <div
+                          key={summary.key}
+                          data-testid="provisioning-dlq-tenant-technical-card"
+                          style={{
+                            display: "grid",
+                            gap: "0.5rem",
+                            padding: "0.875rem",
+                            border: "1px solid var(--border-subtle, #d7deed)",
+                            borderRadius: "0.75rem",
+                            background: "var(--surface-muted, #f8fbff)",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                            <AppBadge tone={summary.totalRows > 1 ? "warning" : "neutral"}>
+                              {language === "es"
+                                ? `${summary.totalRows} fila${summary.totalRows === 1 ? "" : "s"}`
+                                : `${summary.totalRows} row${summary.totalRows === 1 ? "" : "s"}`}
+                            </AppBadge>
+                            <AppBadge tone="info">
+                              {formatDlqTechnicalCategoryLabel(summary.category)}
+                            </AppBadge>
+                          </div>
+                          <div>
+                            <strong>{summary.tenantSlug}</strong>
+                          </div>
+                          <div style={{ color: "var(--text-muted, #51607a)", fontSize: "0.9rem" }}>
+                            {language === "es" ? "Tipos de job visibles" : "Visible job types"}:{" "}
+                            {summary.jobTypeCount}
+                          </div>
+                          <div style={{ color: "var(--text-muted, #51607a)", fontSize: "0.9rem" }}>
+                            {language === "es" ? "Código dominante" : "Dominant code"}:{" "}
+                            {summary.dominantErrorCode
+                              ? formatProvisioningCodeLabel(summary.dominantErrorCode)
+                              : language === "es"
+                                ? "sin código"
+                                : "no code"}
+                          </div>
+                          <div style={{ color: "var(--text-muted, #51607a)", fontSize: "0.9rem" }}>
+                            {language === "es" ? "Último registro" : "Latest record"}:{" "}
+                            {formatDateTime(summary.latestRecordedAt)}
+                          </div>
+                          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                            <button
+                              type="button"
+                              data-testid="provisioning-dlq-tenant-technical-focus"
+                              className="btn btn-sm btn-outline-primary"
+                              onClick={() => handleDlqTenantTechnicalFocus(summary)}
+                              disabled={isActionSubmitting}
+                            >
+                              {language === "es"
+                                ? "Enfocar combinación"
+                                : "Focus combination"}
+                            </button>
                           </div>
                         </div>
                       ))}

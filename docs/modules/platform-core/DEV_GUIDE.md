@@ -130,6 +130,7 @@ Smokes actuales del bloque central:
 - [platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-technical-diagnosis.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-technical-diagnosis.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts)
 
 Baseline E2E tenant actualmente validado para continuar pruebas browser:
 
@@ -184,6 +185,7 @@ Cobertura actual:
 - recomendación operativa broker-only sobre `familias DLQ visibles`, para decidir entre `focus single`, `requeue family`, `family-batch` o limpieza de selección según el subconjunto actual
 - prioridad ejecutiva broker-only por `tenant` visible, para aislar primero un tenant cargado antes de operar sus familias
 - diagnóstico técnico broker-only `DLQ / BD visible`, para distinguir si el atasco dominante cae en rol postgres, base postgres, esquema tenant o drop de base tenant
+- matriz broker-only `tenant + capa técnica`, para aislar la combinación visible correcta entre tenant y capa técnica sin revisar fila por fila
 - helper published broker-only para `staging`, evitando rearmar manualmente `E2E_BACKEND_ROOT`, `E2E_BACKEND_PYTHON` y `E2E_BACKEND_ENV_FILE` en cada validación DLQ
 - enforcement visible de límites de usuarios activos en `tenant_portal` con overrides preparados de forma determinista
 - visibilidad backend-driven del sidebar `tenant_portal` según `effective_enabled_modules`

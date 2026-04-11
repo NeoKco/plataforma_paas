@@ -77,6 +77,7 @@ Estado práctico de cierre:
 - validación browser de recomendación operativa sobre `familias DLQ visibles` dentro de `Provisioning`, para decidir entre `single`, `family`, `family-batch` o limpiar selección según el subconjunto visible
 - validación browser de prioridad por `tenant` visible dentro de `Provisioning`, para aislar primero un tenant cargado antes de operar sus familias DLQ
 - validación browser de diagnóstico técnico `DLQ / BD` dentro de `Provisioning`, para distinguir si el problema visible dominante cae en rol postgres, base postgres, esquema tenant o drop de base tenant
+- validación browser de matriz broker-only `tenant + capa técnica` dentro de `Provisioning`, para aislar la combinación operativa correcta entre tenant y capa técnica visible
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`
@@ -128,7 +129,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - mantener `staging` como espejo instalado por defecto y usar `bootstrap reset` solo para validar `/install` cuando haga falta
 - ampliar E2E browser a DLQ individual/filtros más finos y a recuperación operativa guiada dentro de `Provisioning`
 - profundizar el carril broker-only de DLQ ahora que la propia consola ya expone el `dispatch backend` activo
-- seguir endureciendo `Provisioning/DLQ` sobre `staging` con slices broker-only reales del subconjunto visible, ya con helper published broker-only para no depender de setup manual cada vez
+- no seguir endureciendo `Provisioning/DLQ` por inercia: el frente broker-only ya quedó suficientemente cerrado para esta etapa después de la matriz `tenant + capa técnica`
 - decidir si `production` debe correr también con `PROVISIONING_DISPATCH_BACKEND=broker` sólo si realmente se quiere que esos smokes broker-only pasen ahí, y no sólo queden explícitamente marcados como no aplicables
 - más regresión sobre provisioning y billing
 - seguir endureciendo copy, validaciones y observabilidad visible
@@ -154,6 +155,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - `Provisioning` ya expone además `Plan operativo sugerido` sobre `Familias DLQ visibles`; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
 - `Provisioning` ya expone además `Prioridad por tenant visible`; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
 - `Provisioning` ya expone además `Diagnóstico DLQ / BD visible`; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
+- `Provisioning` ya expone además la matriz broker-only `tenant + capa técnica`; el smoke nuevo ya quedó verde en `staging` y `skipped` en `production` por backend `database/non-broker`
 - el frente `Provisioning/DLQ broker-only` queda suficientemente endurecido para esta etapa; cualquier profundización adicional pasa a backlog opcional y deja de ser prioridad activa del roadmap central
 
 ## Conclusión práctica

@@ -47,6 +47,7 @@ Archivos principales:
 - [platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-technical-diagnosis.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-technical-diagnosis.smoke.spec.ts)
+- [platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts)
 - [tenant-portal-users-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-users-limit.smoke.spec.ts)
 - [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts)
 - [tenant-portal-finance-limit.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-limit.smoke.spec.ts)
@@ -91,6 +92,7 @@ Cobertura actual:
 - recomendación operativa broker-only sobre `familias DLQ visibles`, para decidir entre `single`, `family`, `family-batch` o limpiar selección según el subconjunto actual
 - prioridad ejecutiva broker-only por `tenant` visible, para aislar primero un tenant cargado antes de operar sus familias
 - diagnóstico técnico broker-only `DLQ / BD visible`, para distinguir si el atasco dominante cae en rol postgres, base postgres, esquema tenant o drop de base tenant
+- matriz broker-only `tenant + capa técnica`, para aislar la combinación visible correcta entre tenant y capa técnica antes de reencolar
 - login `tenant_portal`
 - enforcement visible de límites de usuarios activos en `tenant_portal`
 - visibilidad del sidebar `tenant_portal` según `effective_enabled_modules`
@@ -233,10 +235,17 @@ scripts/dev/run_staging_published_broker_dlq_smoke.sh --target tenant-focus
 ```
 
 - para validar el diagnóstico técnico visible DLQ/BD:
-
+ 
 ```bash
 cd /home/felipe/platform_paas
 scripts/dev/run_staging_published_broker_dlq_smoke.sh --target technical
+```
+
+- para validar la matriz visible `tenant + capa técnica`:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_staging_published_broker_dlq_smoke.sh --target matrix
 ```
 
 - targets soportados hoy por ese helper:
