@@ -8,7 +8,7 @@ Puntero corto para retomar rápido entre sesiones.
 
 - fecha: 2026-04-11
 - foco activo: contrato de módulos tenant y bootstrap financiero por vertical
-- prioridad inmediata: decidir rollout de este corte o abrir enseguida el ajuste fino `maintenance -> finance`
+- prioridad inmediata: decidir promoción a `production` de este corte o abrir enseguida el ajuste fino `maintenance -> finance`
 - módulo o frente activo: `platform-core` + `finance` + `maintenance`
 
 ## Último contexto útil
@@ -16,21 +16,23 @@ Puntero corto para retomar rápido entre sesiones.
 - `Provisioning/DLQ` ya quedó cerrado para esta etapa; no volver por inercia
 - `maintenance` ya es módulo contractual propio en backend y tenant portal
 - el bootstrap tenant ya siembra categorías financieras distintas para `empresa` y `condominio/hogar`
+- `staging` ya quedó publicado con backend/frontend actualizados
+- el smoke tenant-side de sidebar por módulos ya pasó en `staging`
 - el repo ya quedó validado con unittest backend, build frontend y `playwright --list`
-- este corte todavía no está publicado a `staging/production`
+- `production` todavía no tiene este corte publicado
 
 ## Bloqueo actual
 
 - no hay bloqueo técnico
-- la única decisión abierta es operativa: publicar ahora o seguir primero con el slice `maintenance -> finance`
+- la única decisión abierta es operativa: promover ahora a `production` o seguir primero con el slice `maintenance -> finance`
 
 ## Siguiente acción inmediata
 
-- si se quiere validar visible en entorno, desplegar este corte a `staging` y probar:
+- si se quiere cerrar el rollout, promover este corte a `production` y probar:
   - sidebar tenant con `maintenance` separado
   - alta de tenant nuevo `empresa`
   - alta de tenant nuevo `condominio`
-- si no se publica aún, abrir el siguiente slice de autollenado entre `maintenance` y `finance`
+- si no se promueve aún, abrir el siguiente slice de autollenado entre `maintenance` y `finance`
 
 ## Archivos a leer justo después de este
 

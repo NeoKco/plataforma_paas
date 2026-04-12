@@ -2,6 +2,16 @@
 
 ## 2026-04-11
 
+- publicación operativa del corte `maintenance contractual + finance bootstrap por vertical` en `staging`:
+  - backend `staging` desplegado con `/opt/platform_paas_staging/.env.staging`
+  - frontend `staging` reconstruido con `API_BASE_URL=http://192.168.7.42:8081`
+  - smoke [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts) validado con `1 passed`
+- hallazgo operativo real durante el rollout:
+  - [deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh) apuntaba por defecto a `/opt/platform_paas`; quedó corregido para usar `/opt/platform_paas_staging`
+- estado de este corte después del publish:
+  - `staging`: publicado y validado para el contrato modular tenant
+  - `production`: todavía pendiente de promoción para este cambio
+
 - decisión de cierre de etapa:
   - `Provisioning/DLQ broker-only` deja de ser frente activo del roadmap central
   - la profundidad actual se considera suficiente para esta etapa después de cerrar la matriz visible `tenant + capa técnica`

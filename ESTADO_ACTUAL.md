@@ -4,13 +4,14 @@
 
 - fecha: 2026-04-11
 - foco de iteración: separación contractual de `maintenance` respecto de `core` y bootstrap financiero por vertical de tenant
-- estado general: el repo ya soporta `maintenance` como módulo contractual independiente y los tenants nuevos ya pueden nacer con catálogo financiero distinto para `empresa` vs `condominio/hogar`; falta solo la validación/publicación en entorno si se quiere llevar este corte fuera del repo
+- estado general: el corte ya quedó publicado y validado en `staging` para contrato modular tenant; el bootstrap financiero por vertical sigue validado por unit tests en repo y queda pendiente decidir promoción a `production` y/o validación visible creando tenants nuevos de prueba
 
 ## Resumen ejecutivo en 30 segundos
 
 - `Mantenciones` ya no queda implícito dentro de `Core negocio`; backend y frontend tenant-side ahora lo tratan como módulo propio `maintenance`
 - el bootstrap tenant ahora reemplaza el catálogo financiero neutral por un perfil vertical (`empresa` o `condominio/hogar`) cuando la DB está recién creada y sin uso financiero
-- el corte quedó validado en repo con unit tests backend, build frontend y `playwright --list`; todavía no se publicó a `staging/production`
+- el backend y frontend de `staging` ya quedaron publicados con este corte; el smoke real del sidebar tenant por módulos ya pasó contra `http://192.168.7.42:8081`
+- durante el rollout apareció y quedó corregido un bug real del wrapper [deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh), que apuntaba por defecto al root de producción
 
 ## Qué ya quedó hecho
 
@@ -28,6 +29,9 @@
 - el perfil `empresa` ya incluye categorías operativas como `Mantenciones y servicios` y `Costos de mantencion`
 - el perfil `condominio/hogar` ya incluye categorías base de hogar como `Sueldo`, `Mascotas`, `Hipotecario`, `Electricidad`, etc.
 - el bootstrap reemplaza el catálogo neutral solo si no existe uso financiero todavía, evitando mezclar el set genérico de migración con el perfil final del tenant
+- el backend de `staging` ya quedó desplegado usando explícitamente `/opt/platform_paas_staging/.env.staging`
+- el frontend de `staging` ya quedó reconstruido con `API_BASE_URL=http://192.168.7.42:8081`
+- el smoke [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts) ya pasó en `staging` fuera del sandbox, confirmando el contrato nuevo de `maintenance`
 
 ## Qué archivos se tocaron
 
@@ -47,6 +51,7 @@
   - [test_tenant_flow.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_flow.py)
   - [test_tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_db_bootstrap_service.py)
 - configuración y documentación:
+  - [deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh)
   - [settings.py](/home/felipe/platform_paas/backend/app/common/config/settings.py)
   - [backend.development.example.env](/home/felipe/platform_paas/infra/env/backend.development.example.env)
   - [backend.staging.example.env](/home/felipe/platform_paas/infra/env/backend.staging.example.env)
@@ -73,12 +78,12 @@
 - el catálogo financiero inicial ya no será único y genérico para todos los tenants nuevos
 - `tenant_type` pasa a tener impacto funcional explícito sobre el seed financiero inicial del tenant
 - el corte de categorías por vertical se resuelve en bootstrap tenant, no con una migración destructiva sobre tenants ya operativos
+- el wrapper de deploy de `staging` debe usar `/opt/platform_paas_staging` por defecto; cualquier valor a producción solo puede entrar por override explícito
 
 ## Qué falta exactamente
 
-- decidir si este corte debe publicarse ahora a `staging` y `production`
-- si se publica, correr al menos:
-  - smoke tenant-side de sidebar por módulos
+- decidir si este corte debe promoverse ahora a `production`
+- si se quiere cerrar también la parte visible del bootstrap vertical, correr todavía:
   - validación manual o automática de bootstrap de un tenant nuevo `empresa`
   - validación manual o automática de bootstrap de un tenant nuevo `condominio`
 - abrir el siguiente slice funcional pedido por el usuario:
@@ -89,7 +94,7 @@
 
 - no volver a acoplar `maintenance` a `core` por copy, por UI o por middleware
 - no vender el seed financiero por vertical como migración automática de tenants viejos; hoy aplica al bootstrap de tenants nuevos o a DB sin uso financiero
-- no mezclar publicación de este corte con cambios adicionales de `maintenance -> finance` en la misma subida sin antes validar el baseline
+- no mezclar promoción a `production` con cambios adicionales de `maintenance -> finance` en la misma subida sin antes validar el baseline
 - no modificar `.env` reales de producción por inercia; la matriz contractual de planes quedó en `settings.py` y en ejemplos, pero el rollout real debe decidirse conscientemente
 
 ## Validaciones ya ejecutadas
@@ -103,15 +108,27 @@
 - playwright repo:
   - `cd frontend && npx playwright test e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts --list`
   - resultado: `OK`
+- staging deploy backend:
+  - `PROJECT_ROOT=/opt/platform_paas_staging ENV_FILE=/opt/platform_paas_staging/.env.staging SERVICE_NAME=platform-paas-backend-staging EXPECTED_APP_ENV=staging bash deploy/deploy_backend.sh`
+  - resultado: `523 tests ... OK`, `platform-paas-backend-staging.service active`, post-deploy gate OK
+- staging publish frontend:
+  - `API_BASE_URL=http://192.168.7.42:8081 RUN_NPM_INSTALL=false bash deploy/build_frontend.sh`
+  - `frontend/dist` copiado a `/opt/platform_paas_staging/frontend/dist`
+  - `deploy/check_frontend_static_readiness.sh` en `/opt/platform_paas_staging`
+  - resultado: `OK`
+- staging smoke real:
+  - `cd frontend && E2E_BASE_URL=http://192.168.7.42:8081 E2E_USE_EXISTING_FRONTEND=1 npx playwright test e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts`
+  - resultado: `1 passed`
 
 ## Bloqueos reales detectados
 
-- no hay bloqueo técnico real en repo
-- queda pendiente la decisión operativa de rollout: este corte aún no se publicó a `staging/production`
+- no hay bloqueo técnico real
+- queda pendiente la decisión operativa de promoción a `production`
+- la validación visible del bootstrap financiero vertical todavía no se hizo creando tenants nuevos en entorno; hoy esa parte está cerrada por unit tests, no por smoke browser
 - el siguiente frente funcional (`maintenance -> finance` autollenado y defaults más finos) conviene abrirlo sobre esta base nueva, no antes
 
 ## Mi conclusión
 
-- el hueco contractual real quedó resuelto en código: `Mantenciones` ya puede venderse, bloquearse o degradarse aparte de `Core negocio`
+- el hueco contractual real quedó resuelto en código y ya quedó visible en `staging`: `Mantenciones` ya puede venderse, bloquearse o degradarse aparte de `Core negocio`
 - el bootstrap financiero también quedó mejor alineado al negocio real porque los tenants nuevos ya no parten con un único catálogo genérico indiferenciado
-- el siguiente paso correcto ya no es más DLQ; ahora toca decidir rollout de este corte y luego entrar al ajuste fino entre `maintenance` y `finance`
+- el siguiente paso correcto ya no es más DLQ; ahora toca decidir si este corte se promueve a `production` o si se abre de inmediato el ajuste fino entre `maintenance` y `finance` sobre una base ya validada en `staging`

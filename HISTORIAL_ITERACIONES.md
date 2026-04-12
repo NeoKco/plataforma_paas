@@ -1,5 +1,24 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-11 - Publicación en staging del contrato maintenance y bootstrap financiero vertical
+
+- objetivo:
+  - publicar en `staging` el corte donde `maintenance` pasa a ser módulo contractual independiente y el bootstrap financiero depende del tipo de tenant
+- cambios principales:
+  - backend `staging` desplegado usando explícitamente `/opt/platform_paas_staging/.env.staging`
+  - frontend `staging` reconstruido con `API_BASE_URL=http://192.168.7.42:8081` y publicado en `/opt/platform_paas_staging/frontend/dist`
+  - smoke [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts) validado en `staging`
+  - se corrige en repo [deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh) para que el wrapper use `/opt/platform_paas_staging` por defecto y no el root de producción
+- validaciones:
+  - backend staging: `deploy_backend.sh` -> `523 tests ... OK`, `platform-paas-backend-staging.service active`, post-deploy gate OK
+  - frontend staging: `deploy/check_frontend_static_readiness.sh` -> `OK`
+  - smoke staging: `tenant-portal-sidebar-modules.smoke.spec.ts` -> `1 passed`
+- bloqueos:
+  - sin bloqueo técnico
+  - la validación visible del bootstrap vertical creando tenants nuevos sigue pendiente; esa parte quedó cubierta por unit tests y no por smoke browser
+- siguiente paso:
+  - decidir si este corte se promueve a `production` o si se abre primero el slice `maintenance -> finance`
+
 ## 2026-04-11 - Contrato maintenance independiente y bootstrap financiero por vertical
 
 - objetivo:
