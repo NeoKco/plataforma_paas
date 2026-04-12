@@ -1,5 +1,27 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-12 - Defaults efectivos maintenance -> finance cerrados en staging y production
+
+- objetivo:
+  - terminar de validar y promover el primer corte de defaults efectivos `maintenance -> finance`
+- cambios principales:
+  - se agrega el smoke [tenant-portal-maintenance-finance-defaults.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-maintenance-finance-defaults.smoke.spec.ts) como gate específico del slice
+  - se actualizan [frontend/e2e/README.md](/home/felipe/platform_paas/frontend/e2e/README.md) y [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md) para reflejar esa cobertura nueva
+  - se detecta un falso negativo real de runtime en `staging`: [TENANT_PLAN_ENABLED_MODULES](/home/felipe/platform_paas/backend/app/common/config/settings.py) estaba sobreescrito en `/opt/platform_paas_staging/.env.staging` con una matriz vieja sin `maintenance`
+  - se corrige ese env de `staging`, se redepliega backend y se recupera `empresa-bootstrap` como baseline tenant published válido para el smoke
+  - el mismo corte se sincroniza y despliega en `production`
+- validaciones:
+  - `cd frontend && npx playwright test e2e/specs/tenant-portal-maintenance-finance-defaults.smoke.spec.ts --list` -> `OK`
+  - `staging` smoke published -> `1 passed`
+  - `production` smoke published -> `1 passed`
+  - `deploy_backend_staging.sh` -> `523 tests OK`
+  - `deploy_backend_production.sh` -> `523 tests OK`
+  - `deploy/check_frontend_static_readiness.sh` -> `OK` en `staging` y `production`
+- bloqueos:
+  - sin bloqueo técnico
+- siguiente paso:
+  - abrir el segundo corte funcional `maintenance -> finance`, ahora sobre llenado fino operativo
+
 ## 2026-04-12 - Primer corte de defaults efectivos maintenance -> finance
 
 - objetivo:

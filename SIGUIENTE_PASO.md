@@ -2,28 +2,31 @@
 
 ## Prioridad vigente
 
-- validar visualmente en `staging` el primer corte de defaults efectivos `maintenance -> finance` y decidir promoción a `production`
+- abrir el segundo corte funcional `maintenance -> finance`, ahora sobre llenado fino operativo y no sobre defaults efectivos
 
 ## Decisión previa obligatoria
 
-- ¿qué decisión define el camino siguiente?
-- confirmar en `staging` si el prellenado efectivo actual ya cubre la operación real o si hará falta un segundo corte funcional sobre glosas/reglas contables más finas
+- fijar qué parte del llenado fino debe atacarse primero:
+  - glosa y referencia sugerida
+  - sync al cerrar OT
+  - sync manual desde `Costos y cobro`
+  - reglas de campos bloqueados vs editables
 
 ## Próximo paso correcto
 
-- validar visualmente en tenant real de `staging`:
-  - `Resumen técnico`
-  - modal `Costos y cobro`
-  - sync manual
-  - cierre con `auto_on_close`
-- si `staging` queda correcto, promover el mismo corte a `production`
+- definir el flujo funcional exacto del segundo corte `maintenance -> finance`:
+  - qué se propone automáticamente
+  - qué se deriva desde OT
+  - qué sigue editable por el operador
+  - en qué momento se crea o propone el movimiento financiero
+- después implementar el primer subcorte usable con evidencia browser o backend suficiente
 
 ## Si el escenario principal falla
 
-- si falla el endpoint nuevo, corregir primero el contrato backend y no tocar la UX
-- si falla solo el prellenado visual, ajustar frontend manteniendo fijo `GET /tenant/maintenance/finance-sync-defaults`
-- si aparece inconsistencia de moneda/cuenta en `finance`, revisar de inmediato compatibilidad con `transaction_service.py` antes de promover
+- si aparece ambigüedad funcional, cerrar primero reglas de negocio antes de tocar código
+- si el nuevo llenado fino rompe el puente actual, preservar el contrato ya validado de defaults efectivos y aislar el cambio nuevo detrás de un corte más pequeño
+- si surge inconsistencia contable real, revisar primero `transaction_service.py` y la gobernanza de datos antes de automatizar más campos
 
 ## Condición de cierre de la próxima iteración
 
-- el corte `maintenance -> finance defaults efectivos` debe quedar validado visualmente en `staging`, o debe quedar documentado un bloqueo operativo concreto con evidencia suficiente
+- debe quedar cerrada la especificación operativa del segundo corte `maintenance -> finance`, o idealmente implementado y validado su primer subcorte funcional

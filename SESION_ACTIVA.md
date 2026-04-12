@@ -7,8 +7,8 @@ Puntero corto para retomar rápido entre sesiones.
 ## Estado rápido vigente
 
 - fecha: 2026-04-12
-- foco activo: validar visualmente en `staging` el primer corte de defaults efectivos `maintenance -> finance`
-- prioridad inmediata: revisar `Resumen técnico` y `Costos y cobro` ya publicados en `staging`
+- foco activo: abrir el segundo corte funcional de llenado fino `maintenance -> finance`
+- prioridad inmediata: fijar reglas de negocio de autollenado y momento de sync
 - módulo o frente activo: `maintenance` + `finance`
 
 ## Último contexto útil
@@ -16,6 +16,8 @@ Puntero corto para retomar rápido entre sesiones.
 - `maintenance -> finance` ya existía; este corte no recrea la integración, endurece defaults y ergonomía
 - el repo ya agrega `GET /tenant/maintenance/finance-sync-defaults`
 - `Resumen técnico` y `Costos y cobro` ya consumen esa misma fuente de verdad para moneda, cuentas y categorías sugeridas
+- el smoke [tenant-portal-maintenance-finance-defaults.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-maintenance-finance-defaults.smoke.spec.ts) ya pasó en `staging` y `production`
+- durante la validación se detectó un falso negativo de runtime en `staging`: `TENANT_PLAN_ENABLED_MODULES` seguía atrasado y ya quedó corregido
 - el repo ya soporta:
   - `CLP` como moneda base efectiva por defecto
   - categorías `Casa - ...` y `Empresa - ...`
@@ -30,17 +32,17 @@ Puntero corto para retomar rápido entre sesiones.
   - `bootstrap-empresa-20260412002354`
   - `bootstrap-condominio-20260412002354`
 - este nuevo corte ya está publicado en `staging`
-- todavía no está promovido a `production`
+- este nuevo corte ya está también publicado en `production`
 
 ## Bloqueo actual
 
 - no hay bloqueo técnico
-- falta únicamente validación visual en `staging`
+- no hay deuda de rollout abierta para este corte
 
 ## Siguiente acción inmediata
 
-- validar visualmente prellenado efectivo en `Resumen técnico` y `Costos y cobro`
-- decidir promoción a `production`
+- definir el siguiente subcorte de llenado fino `maintenance -> finance`
+- decidir si parte por glosa/referencia sugerida, por sync al cerrar OT o por ambos
 
 ## Archivos a leer justo después de este
 

@@ -11,6 +11,21 @@
   - si faltan datos, resuelve fallback seguro desde backend usando moneda base o `CLP`, categorías de mantención y cuentas activas compatibles por moneda
 - `Resumen técnico` ahora consume ese contrato para precargar la política editable desde defaults efectivos y no sólo desde `/tenant/info`
 - el modal `Costos y cobro` ahora consume el mismo contrato para precargar sincronización manual o `auto_on_close` con la misma fuente de verdad
+- se agrega el smoke [tenant-portal-maintenance-finance-defaults.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-maintenance-finance-defaults.smoke.spec.ts) para validar el contrato visible desde `Resumen técnico` y `Costos y cobro`
+- durante la validación published se detecta un falso negativo real de `staging`: `.env.staging` todavía traía una matriz vieja en `TENANT_PLAN_ENABLED_MODULES` sin `maintenance`
+- se corrige ese runtime en `staging` a:
+  - `mensual=core,users`
+  - `trimestral=core,users,maintenance`
+  - `semestral=core,users,finance`
+  - `anual=all`
+- tras esa corrección, el smoke de defaults efectivos queda validado en:
+  - `staging` -> `1 passed`
+  - `production` -> `1 passed`
+- el primer corte de defaults efectivos `maintenance -> finance` queda cerrado de punta a punta:
+  - repo
+  - staging
+  - production
+  - smoke browser published
 - se agregan pruebas en [test_maintenance_costing_service.py](/home/felipe/platform_paas/backend/app/tests/test_maintenance_costing_service.py) para cubrir:
   - resolución de defaults efectivos sin política explícita
   - prioridad de política tenant activa sobre los fallbacks

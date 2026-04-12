@@ -222,6 +222,7 @@ Avance actual:
   - `GET /tenant/maintenance/finance-sync-defaults`
   - `Resumen técnico` y `Costos y cobro` ahora precargan desde la misma fuente
   - el backend ya prioriza política tenant, moneda base/`CLP`, categorías de mantención y cuentas compatibles por moneda
+  - ese primer corte ya quedó validado por smoke browser published en `staging` y `production`
 - tablas ya versionadas:
   - `maintenance_schedules`
   - `maintenance_due_items`
