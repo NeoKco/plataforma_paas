@@ -476,6 +476,7 @@
   - deploy backend staging: 523 tests OK
   - deploy backend production: 523 tests OK
   - frontend build staging + production OK
+  - frontend production re-publicado para corregir API_BASE_URL (staging -> production)
 - bloqueos:
   - falta validar en empresa-demo el ingreso/egreso real en Finanzas
 - siguiente paso:

@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 from app.apps.tenant_modules.business_core.models import (
     BusinessClient,
     BusinessOrganization,
-    BusinessSite,
 )
 from app.apps.tenant_modules.finance.models import (
     FinanceAccount,
@@ -125,9 +124,18 @@ class MaintenanceCostingService:
             normalized = self._normalize_cost_payload(payload)
             total_estimated_cost = self._sum_costs(normalized)
         target_margin_percent = max(payload.target_margin_percent, 0)
-        suggested_price = self._calculate_suggested_price(
-            total_estimated_cost,
-            target_margin_percent,
+        suggested_price_override = (
+            max(payload.suggested_price, 0)
+            if payload.suggested_price is not None
+            else None
+        )
+        suggested_price = (
+            suggested_price_override
+            if suggested_price_override is not None
+            else self._calculate_suggested_price(
+                total_estimated_cost,
+                target_margin_percent,
+            )
         )
 
         estimate = self._get_estimate(tenant_db, work_order_id)
@@ -788,7 +796,6 @@ class MaintenanceCostingService:
 
     def _build_work_order_label(self, tenant_db: Session, work_order: MaintenanceWorkOrder) -> str:
         client_label = None
-        site_label = None
         if work_order.client_id:
             client = (
                 tenant_db.query(BusinessClient)
@@ -803,18 +810,7 @@ class MaintenanceCostingService:
                 )
                 if organization is not None and organization.name:
                     client_label = organization.name
-        if work_order.site_id:
-            site = (
-                tenant_db.query(BusinessSite)
-                .filter(BusinessSite.id == work_order.site_id)
-                .first()
-            )
-            if site is not None and site.name:
-                site_label = site.name
-
         parts = [f"#{work_order.id}", work_order.title]
         if client_label:
             parts.append(client_label)
-        if site_label:
-            parts.append(site_label)
         return " · ".join(parts)

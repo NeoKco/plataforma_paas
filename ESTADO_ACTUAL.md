@@ -21,6 +21,7 @@
 - defaults de `maintenance_finance_sync_mode` pasan a `auto_on_close` en core
 - backend y frontend desplegados en `staging` y `production`
 - deploy backend ejecutó suite completa y recreó `empresa-bootstrap` en staging/production (comportamiento actual del script)
+- frontend production re-publicado para corregir `VITE_API_BASE_URL` (ya no apunta a staging)
 
 ## Qué archivos se tocaron
 

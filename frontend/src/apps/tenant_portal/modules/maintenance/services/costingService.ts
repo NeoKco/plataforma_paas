@@ -81,6 +81,7 @@ export type TenantMaintenanceCostEstimateWriteRequest = {
   external_services_cost: number;
   overhead_cost: number;
   target_margin_percent: number;
+  suggested_price: number | null;
   notes: string | null;
   lines: TenantMaintenanceCostLineWriteItem[];
 };

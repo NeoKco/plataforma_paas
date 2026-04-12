@@ -21,6 +21,7 @@ class MaintenanceCostEstimateWriteRequest(BaseModel):
     external_services_cost: float = 0
     overhead_cost: float = 0
     target_margin_percent: float = 0
+    suggested_price: float | None = None
     notes: str | None = None
     lines: list[MaintenanceCostLineWriteItem] = Field(default_factory=list)
 

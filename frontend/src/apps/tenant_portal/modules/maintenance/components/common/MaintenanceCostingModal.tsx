@@ -48,6 +48,7 @@ type MaintenanceCostEstimateFormState = {
   external_services_cost: string;
   overhead_cost: string;
   target_margin_percent: string;
+  suggested_price: string;
   notes: string;
 };
 
@@ -182,7 +183,8 @@ function normalizeNumericInput(value: string): number {
 }
 
 function buildDefaultCostEstimateForm(
-  estimate?: TenantMaintenanceCostEstimate | null
+  estimate?: TenantMaintenanceCostEstimate | null,
+  suggestedPriceFallback?: string
 ): MaintenanceCostEstimateFormState {
   return {
     labor_cost: String(estimate?.labor_cost ?? 0),
@@ -191,6 +193,10 @@ function buildDefaultCostEstimateForm(
     external_services_cost: String(estimate?.external_services_cost ?? 0),
     overhead_cost: String(estimate?.overhead_cost ?? 0),
     target_margin_percent: String(estimate?.target_margin_percent ?? 0),
+    suggested_price:
+      estimate?.suggested_price != null
+        ? String(estimate.suggested_price)
+        : suggestedPriceFallback ?? "",
     notes: estimate?.notes ?? "",
   };
 }
@@ -333,6 +339,7 @@ function buildEstimateFormFromTemplate(
     external_services_cost: "0",
     overhead_cost: "0",
     target_margin_percent: String(template.estimate_target_margin_percent ?? 0),
+    suggested_price: String(getSuggestedPriceFromTemplate(template)),
     notes: template.estimate_notes ?? "",
   };
 }
