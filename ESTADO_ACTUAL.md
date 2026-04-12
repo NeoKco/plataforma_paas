@@ -3,55 +3,53 @@
 ## Última actualización
 
 - fecha: 2026-04-12
-- foco de iteración: hotfix deprovision + fix de login tenant para evitar `500` y habilitar cleanup E2E
-- estado general: fixes desplegados en `staging` y `production`, cleanup E2E ejecutado
+- foco de iteración: acceso rápido al portal tenant + guard de hash inválido en login
+- estado general: backend y frontend publicados en `staging` y `production`
 
 ## Resumen ejecutivo en 30 segundos
 
-- el deprovision falla en prod por intentar escribir `/opt/platform_paas/.env`
-- se ajustó `tenant_service.deprovision_tenant` para saltar el `.env` legacy si no es escribible
-- el cleanup de tenants E2E se mantiene con `cleanup_e2e_tenants.py` y requiere el hotfix desplegado
-- el login tenant deja de disparar `500` si falla la conexión antes de instanciar la sesión
+- el login tenant ya no revienta con hashes inválidos (se trata como credencial inválida)
+- `Tenants` ahora permite abrir el portal con contraseña temporal tras un reset
+- falta validar el flujo visual del botón de acceso rápido
 
 ## Qué ya quedó hecho
 
-- [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) omite limpiar el `.env` legacy si no es escribible, evitando `Permission denied` en deprovision
-- [auth_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/auth_routes.py) asegura cierre seguro si `tenant_db` no llegó a instanciarse
-- el script [cleanup_e2e_tenants.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_e2e_tenants.py) ya existe y permite limpieza segura via lifecycle
+- [password_service.py](/home/felipe/platform_paas/backend/app/common/security/password_service.py) evita 500 por hashes inválidos
+- [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) agrega acceso rápido con contraseña temporal
+- [TenantLoginPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/auth/TenantLoginPage.tsx) aplica prefill temporal desde sessionStorage
 
 ## Qué archivos se tocaron
 
-- [backend/app/apps/platform_control/services/tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py)
-- [backend/app/apps/tenant_modules/core/api/auth_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/auth_routes.py)
+- [backend/app/common/security/password_service.py](/home/felipe/platform_paas/backend/app/common/security/password_service.py)
+- [frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx)
+- [frontend/src/apps/tenant_portal/pages/auth/TenantLoginPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/auth/TenantLoginPage.tsx)
+- [docs/modules/platform-core/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/USER_GUIDE.md)
 - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
 
 ## Qué decisiones quedaron cerradas
 
-- el `.env` legacy no puede bloquear el deprovision; solo debe limpiarse si es escribible
-- el cleanup E2E debe usar lifecycle (archive -> deprovision -> delete) y no borrar directo
+- no se exponen contraseñas reales; se usa reset + prefill temporal en el navegador actual
 
 ## Qué falta exactamente
 
-- validar login tenant en UI para confirmar error controlado (sin `500`) con hashes inválidos
+- validar el botón `Abrir portal con contraseña temporal` desde `Tenants`
 
 ## Qué no debe tocarse
 
-- no tocar contratos de lifecycle ni reglas de billing
-- no reabrir el slice `maintenance -> finance` ya cerrado
+- no introducir contraseñas en URL
+- no reabrir slices ya cerrados
 
 ## Validaciones ya ejecutadas
 
 - deploy backend `staging` -> `523 tests OK`
 - deploy backend `production` -> `523 tests OK`
-- deploy backend `staging` (hash invalid fix) -> `523 tests OK`
-- deploy backend `production` (hash invalid fix) -> `523 tests OK`
-- cleanup `cleanup_e2e_tenants.py --apply --prefix debug-` -> `1 deleted`
-- cleanup `cleanup_e2e_tenants.py --apply --prefix e2e-` -> `2 deleted`
+- frontend publish `staging` -> `OK`
+- frontend publish `production` -> `OK`
 
 ## Bloqueos reales detectados
 
-- sin bloqueos técnicos activos (pendiente validación UI)
+- pendiente validación UI del acceso rápido
 
 ## Mi conclusión
 
-- hotfix ya aplicado; queda validar visualmente el login tenant
+- el backend y frontend ya están publicados; falta validar el flujo de acceso rápido

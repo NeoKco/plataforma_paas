@@ -36,6 +36,22 @@
 - siguiente paso:
   - probar login tenant con credenciales inválidas o tenant no provisionado
 
+## 2026-04-12 - Acceso rápido portal tenant con contraseña temporal
+
+- objetivo:
+  - permitir abrir el portal tenant desde `Tenants` sin copiar manualmente la contraseña
+- cambios principales:
+  - `TenantsPage` guarda un prefill temporal en `sessionStorage` tras reset
+  - `TenantLoginPage` aplica el prefill y lo limpia al abrir el portal
+  - `USER_GUIDE` documenta el flujo y aclara que no se exponen contraseñas reales
+- validaciones:
+  - frontend publish `staging` -> `OK`
+  - frontend publish `production` -> `OK`
+- bloqueos:
+  - falta validar UX en UI
+- siguiente paso:
+  - publicar frontend y validar UX
+
 ## 2026-04-12 - Segundo corte maintenance -> finance (glosa y fecha contable) abierto en repo
 
 - objetivo:

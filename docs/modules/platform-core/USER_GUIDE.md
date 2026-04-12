@@ -170,6 +170,12 @@ Secuencia corta para dejar un tenant nuevo operativo:
 6. volver a `Tenants` y confirmar `status=active` + `db_configured=true`
 7. recién ahí deben aparecer `Archivar tenant` y `Abrir portal tenant`
 
+### Acceso rápido al portal tenant
+
+- la consola no muestra ni recupera contraseñas existentes por seguridad
+- si necesitas entrar rápido, usa `Acceso portal tenant` para reiniciar una contraseña y luego `Abrir portal con contraseña temporal`
+- la contraseña temporal solo queda en el navegador actual por pocos minutos y se limpia al abrir el portal
+
 ### Límite de usuarios activos en portal tenant
 
 Si el tenant ya alcanzó el cupo de usuarios activos, `Tenant Portal > Users` bloqueará la creación o reactivación de más cuentas activas y mostrará un mensaje operativo explícito. Este enforcement visible también queda cubierto por smoke browser.

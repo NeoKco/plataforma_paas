@@ -202,6 +202,8 @@ export function TenantsPage() {
   >([]);
   const [tenantPortalResetEmail, setTenantPortalResetEmail] = useState("");
   const [tenantPortalResetPassword, setTenantPortalResetPassword] = useState("");
+  const [tenantPortalLastResetEmail, setTenantPortalLastResetEmail] = useState("");
+  const [tenantPortalLastResetPassword, setTenantPortalLastResetPassword] = useState("");
   const [moduleLimitDrafts, setModuleLimitDrafts] = useState<Record<string, string>>(
     {}
   );
@@ -1464,6 +1466,8 @@ export function TenantsPage() {
           new_password: tenantPortalResetPassword,
         }
       );
+      setTenantPortalLastResetEmail(tenantPortalResetEmail.trim());
+      setTenantPortalLastResetPassword(tenantPortalResetPassword);
       setTenantPortalResetPassword("");
       return {
         message:
@@ -1479,6 +1483,31 @@ export function TenantsPage() {
         ],
       };
     });
+  }
+
+  function handleOpenTenantPortalWithPassword() {
+    if (!selectedTenantSummary || !tenantPortalHref) {
+      return;
+    }
+    if (!tenantPortalLastResetEmail || !tenantPortalLastResetPassword) {
+      return;
+    }
+
+    try {
+      sessionStorage.setItem(
+        "platform_paas.tenant_portal_prefill",
+        JSON.stringify({
+          tenantSlug: selectedTenantSummary.slug,
+          email: tenantPortalLastResetEmail,
+          password: tenantPortalLastResetPassword,
+          issuedAt: Date.now(),
+        })
+      );
+    } catch {
+      // if storage fails, still allow navigation without prefill
+    }
+
+    window.location.assign(tenantPortalHref);
   }
 
   function handleArchiveTenant() {
@@ -2164,9 +2193,22 @@ export function TenantsPage() {
                       </>
                     )}
                     {tenantPortalHref && canOpenTenantPortal ? (
-                      <Link className="btn btn-outline-primary btn-sm" to={tenantPortalHref}>
-                        {language === "es" ? "Abrir portal tenant" : "Open tenant portal"}
-                      </Link>
+                      <div className="d-flex flex-wrap gap-2">
+                        <Link className="btn btn-outline-primary btn-sm" to={tenantPortalHref}>
+                          {language === "es" ? "Abrir portal tenant" : "Open tenant portal"}
+                        </Link>
+                        {tenantPortalLastResetEmail && tenantPortalLastResetPassword ? (
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            type="button"
+                            onClick={handleOpenTenantPortalWithPassword}
+                          >
+                            {language === "es"
+                              ? "Abrir portal con contraseña temporal"
+                              : "Open portal with temp password"}
+                          </button>
+                        ) : null}
+                      </div>
                     ) : tenantPortalHref ? (
                       <div className="tenant-help-text">
                         {language === "es"
@@ -3752,6 +3794,15 @@ export function TenantsPage() {
                           : "The list is loaded from the active tenant database. If users do not appear, review the tenant technical access or its user bootstrap."}
                       </p>
                     </div>
+                    {tenantPortalLastResetEmail && tenantPortalLastResetPassword ? (
+                      <div className="app-form-field app-form-field--full">
+                        <p className="tenant-help-text mb-0">
+                          {language === "es"
+                            ? "Contraseña temporal lista: puedes abrir el portal con el botón rápido. Se guarda solo en este navegador por algunos minutos."
+                            : "Temporary password ready: you can open the portal with the quick button. It is only stored in this browser for a few minutes."}
+                        </p>
+                      </div>
+                    ) : null}
                     <AppFormField fullWidth>
                       <FieldHelpLabel
                         label={language === "es" ? "Nueva contraseña portal" : "New portal password"}

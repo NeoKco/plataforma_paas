@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { LanguageSelect } from "../../../../components/common/LanguageSelect";
 import { AppForm, AppFormActions, AppFormField } from "../../../../design-system/AppForm";
@@ -20,6 +20,39 @@ export function TenantLoginPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const prefillAppliedRef = useRef(false);
+
+  useEffect(() => {
+    if (prefillAppliedRef.current) {
+      return;
+    }
+    prefillAppliedRef.current = true;
+
+    try {
+      const raw = sessionStorage.getItem("platform_paas.tenant_portal_prefill");
+      if (!raw) {
+        return;
+      }
+      sessionStorage.removeItem("platform_paas.tenant_portal_prefill");
+      const parsed = JSON.parse(raw) as {
+        tenantSlug?: string;
+        email?: string;
+        password?: string;
+        issuedAt?: number;
+      };
+      if (!parsed?.password || !parsed?.email || !parsed?.tenantSlug) {
+        return;
+      }
+      if (parsed.issuedAt && Date.now() - parsed.issuedAt > 5 * 60 * 1000) {
+        return;
+      }
+      setTenantSlug(parsed.tenantSlug);
+      setEmail(parsed.email);
+      setPassword(parsed.password);
+    } catch {
+      // ignore malformed storage
+    }
+  }, []);
 
   useEffect(() => {
     if (searchTenantSlug) {

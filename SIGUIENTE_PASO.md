@@ -2,21 +2,22 @@
 
 ## Prioridad vigente
 
-- validar login tenant en UI y confirmar que no hay `500` al fallar sesión por hash inválido
+- validar el acceso rápido al portal tenant en producción
 
 ## Decisión previa obligatoria
 
-- confirmar si se despliega primero en `staging` y luego `production`, o directo a `production`
+- decidir si se usa el flujo de reset existente o se requiere una acción nueva de “impersonación”
 
 ## Próximo paso correcto
 
-- probar login tenant con credenciales inválidas y con tenant no provisionado
-- si ya responde 401/503/404, cerrar el hotfix y volver al roadmap central
+- validar botón `Abrir portal con contraseña temporal` desde `Tenants`
+- confirmar que el login ya no muestra `Internal server error`
 
 ## Si el escenario principal falla
 
-- revisar logs de backend y reintentar con un tenant operativo real
+- revisar que el prefill se guarde en `sessionStorage` y se limpie al abrir el portal
+- revisar consola del navegador para errores de navegación
 
 ## Condición de cierre de la próxima iteración
 
-- login tenant sin `500` y errores controlados visibles en UI
+- acceso rápido al portal tenant validado en `staging` y `production`

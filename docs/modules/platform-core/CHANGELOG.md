@@ -12,6 +12,8 @@
   - el cierre de sesión tenant ahora es seguro incluso si `get_tenant_session(...)` falla
 - `verify_password` ahora trata hashes inválidos como credenciales inválidas:
   - evita `500` si el hash almacenado no es reconocible por `passlib`
+- `Tenants` permite abrir el portal con contraseña temporal después de un reset:
+  - la contraseña se guarda solo en el navegador actual y se limpia al abrir el portal
 - E2E ahora protege producción contra seeds accidentales:
   - `backend-control` bloquea seeds si el target es `production` salvo `E2E_ALLOW_PROD_SEED=1`
   - `seedPlatformTenantCatalogRecord` registra cleanup automático con `E2E_AUTO_CLEANUP=1`

@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T18:40:00-04:00",
+  "updated_at": "2026-04-12T19:20:00-04:00",
   "handoff_status": "active",
-  "current_focus": "hotfix deprovision + login tenant: evitar 500 y destrabar cleanup de tenants E2E",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa, baseline contractual por modulos ya publicado, gobernanza transversal ampliada con data governance y SRED; deprovision hotfix pendiente de publish",
+  "current_focus": "acceso rápido al portal tenant con contraseña temporal",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa, baseline contractual por modulos ya publicado; pendiente publish frontend para acceso rápido portal tenant",
   "active_modules": [
     "platform-core",
     "finance",
@@ -251,9 +251,9 @@
     "el segundo corte de llenado fino maintenance -> finance agrega glosa y fecha contable opcional sin romper el sync base"
   ],
   "blocking_issues": [
-    "validar login tenant en UI despues del hotfix"
+    "publicar frontend con acceso rápido al portal tenant"
   ],
-  "next_decision_required": "confirmar que login tenant ya no responde 500 y cerrar hotfix",
+  "next_decision_required": "publicar frontend en staging/production y validar UX",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -472,6 +472,8 @@
     "tenant_login_safe_close_production": "pass",
     "tenant_login_unknown_hash_guard_staging": "pass",
     "tenant_login_unknown_hash_guard_production": "pass",
+    "tenant_portal_quick_open_frontend_publish_staging": "pass",
+    "tenant_portal_quick_open_frontend_publish_production": "pass",
     "e2e_tenant_cleanup_production": "pass",
     "debug_tenant_cleanup_production": "pass",
     "e2e_seed_guard_prod": "pass",
