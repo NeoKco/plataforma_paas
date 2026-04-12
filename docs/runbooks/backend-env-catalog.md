@@ -137,8 +137,9 @@ Baseline actual si no se sobreescriben en `.env`:
 - `semestral`
 - `anual`
 
-En ese baseline todos los planes habilitan los mismos modulos y lo que cambia es:
+En ese baseline los planes ya pueden diferenciar módulos y lo que cambia es:
 
+- combinación contractual de módulos (`core`, `users`, `finance`, `maintenance`)
 - cuota `read/write`
 - limites de usuarios
 - limites de movimientos financieros

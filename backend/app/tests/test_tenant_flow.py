@@ -822,7 +822,7 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
         )
         middleware = self._middleware()
         middleware.tenant_plan_policy_service = TenantPlanPolicyService(
-            plan_enabled_modules="basic=core,users;pro=core,users,finance"
+            plan_enabled_modules="basic=core,users;pro=core,users,finance,maintenance"
         )
         middleware._load_tenant = lambda tenant_slug: build_tenant_record_stub(  # type: ignore[attr-defined]
             plan_code="pro",
@@ -830,7 +830,10 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
 
         middleware._apply_tenant_runtime_state(request)  # type: ignore[arg-type]
 
-        self.assertEqual(request.state.tenant_plan_enabled_modules, ("core", "finance", "users"))
+        self.assertEqual(
+            request.state.tenant_plan_enabled_modules,
+            ("core", "finance", "maintenance", "users"),
+        )
 
     def test_apply_tenant_runtime_state_exposes_plan_module_limits(self) -> None:
         request = SimpleNamespace(
@@ -997,6 +1000,37 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
                 tenant_slug="empresa-bootstrap",
                 tenant_plan_enabled_modules=("core", "users", "finance"),
                 tenant_effective_enabled_modules=("core", "users", "finance"),
+            ),
+        )
+        middleware = self._middleware()
+
+        middleware._apply_tenant_module_entitlements(request)  # type: ignore[arg-type]
+
+    def test_apply_tenant_module_entitlements_blocks_maintenance_when_plan_disables_it(self) -> None:
+        request = SimpleNamespace(
+            method="GET",
+            url=SimpleNamespace(path="/tenant/maintenance/work-orders"),
+            state=SimpleNamespace(
+                tenant_slug="empresa-bootstrap",
+                tenant_plan_enabled_modules=("core", "users", "finance"),
+                tenant_effective_enabled_modules=("core", "users", "finance"),
+            ),
+        )
+        middleware = self._middleware()
+
+        with self.assertRaises(HTTPException) as exc:
+            middleware._apply_tenant_module_entitlements(request)  # type: ignore[arg-type]
+
+        self.assertEqual(exc.exception.status_code, 403)
+
+    def test_apply_tenant_module_entitlements_allows_maintenance_when_plan_enables_it(self) -> None:
+        request = SimpleNamespace(
+            method="GET",
+            url=SimpleNamespace(path="/tenant/maintenance/work-orders"),
+            state=SimpleNamespace(
+                tenant_slug="empresa-bootstrap",
+                tenant_plan_enabled_modules=("core", "users", "maintenance"),
+                tenant_effective_enabled_modules=("core", "users", "maintenance"),
             ),
         )
         middleware = self._middleware()

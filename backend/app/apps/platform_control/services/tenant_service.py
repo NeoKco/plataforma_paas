@@ -60,7 +60,7 @@ class TenantService:
         "suspended",
         "canceled",
     }
-    VALID_MAINTENANCE_SCOPES = {"all", "core", "users", "finance"}
+    VALID_MAINTENANCE_SCOPES = {"all", "core", "users", "finance", "maintenance"}
     VALID_MAINTENANCE_ACCESS_MODES = {"write_block", "full_block"}
 
     def __init__(

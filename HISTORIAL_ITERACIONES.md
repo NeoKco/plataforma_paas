@@ -1,5 +1,25 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-11 - Contrato maintenance independiente y bootstrap financiero por vertical
+
+- objetivo:
+  - separar `maintenance` de `core` como módulo contractual real y dejar categorías financieras iniciales distintas por vertical de tenant
+- cambios principales:
+  - `maintenance` deja de heredar visibilidad y entitlement desde `core`; backend y `tenant_portal` lo leen ahora como módulo `maintenance`
+  - `settings.py` y ejemplos de env ya reflejan una matriz base de planes donde `maintenance` y `finance` pueden variar por plan
+  - el bootstrap tenant agrega [default_category_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/default_category_profiles.py) y siembra catálogo `empresa` o `condominio/hogar`
+  - el bootstrap reemplaza el catálogo neutral solo cuando la DB aún no tiene uso financiero
+  - se actualizan docs canónicas, E2E README y runbooks para reflejar el contrato nuevo y el seed vertical
+- validaciones:
+  - backend: `python -m unittest app.tests.test_platform_flow app.tests.test_tenant_flow app.tests.test_tenant_db_bootstrap_service` -> `OK`
+  - frontend: `npm run build` -> `OK`
+  - playwright: `tenant-portal-sidebar-modules.smoke.spec.ts --list` -> `OK`
+- bloqueos:
+  - sin bloqueo técnico
+  - queda pendiente decidir si este corte se publica ya a `staging/production`
+- siguiente paso:
+  - decidir rollout de este corte o abrir el siguiente slice de autollenado `maintenance -> finance`
+
 ## 2026-04-11 - Alineación estructural de E2E y árboles operativos
 
 - objetivo:

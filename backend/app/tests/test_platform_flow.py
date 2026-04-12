@@ -2715,14 +2715,21 @@ class PlatformServicesTestCase(unittest.TestCase):
 
     def test_tenant_plan_policy_service_parses_enabled_modules(self) -> None:
         service = TenantPlanPolicyService(
-            plan_enabled_modules="basic=core,users;pro=core,users,finance;enterprise=all"
+            plan_enabled_modules=(
+                "basic=core,users;"
+                "pro=core,users,finance,maintenance;"
+                "enterprise=all"
+            )
         )
 
         policy = service.get_policy("pro")
 
         self.assertIsNotNone(policy)
         self.assertEqual(policy.plan_code, "pro")
-        self.assertEqual(policy.enabled_modules, ("core", "finance", "users"))
+        self.assertEqual(
+            policy.enabled_modules,
+            ("core", "finance", "maintenance", "users"),
+        )
 
     def test_tenant_plan_policy_service_parses_module_limits(self) -> None:
         service = TenantPlanPolicyService(
@@ -2768,8 +2775,10 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertIn("active", catalog["tenant_statuses"])
         self.assertIn("past_due", catalog["tenant_billing_statuses"])
         self.assertIn("finance", catalog["maintenance_scopes"])
+        self.assertIn("maintenance", catalog["maintenance_scopes"])
         self.assertIn("full_block", catalog["maintenance_access_modes"])
         self.assertIn("all", catalog["plan_modules"])
+        self.assertIn("maintenance", catalog["plan_modules"])
         self.assertIn("plan_catalog", catalog)
         self.assertIn(
             "finance.entries.monthly.income",

@@ -369,3 +369,5 @@ Resumen curado del bloque central.
 
 - se consolidó una convención canónica por módulo/dominio en `docs/modules/`
 - `finance` y `platform-core` quedan como referencia para siguientes módulos
+- `tenant_portal` y middleware tenant dejan de tratar `maintenance` como implícito dentro de `core`; desde ahora es un entitlement contractual explícito (`maintenance`)
+- `Tenants` deja visible también en copy que `Mantenciones` ya no viaja implícito dentro de `Core negocio`

@@ -1761,8 +1761,8 @@ export function TenantsPage() {
                   label={language === "es" ? "Tipo de tenant" : "Tenant type"}
                   help={
                     language === "es"
-                      ? "Clasifica el tenant según su vertical principal. Puedes empezar por empresa o condominio."
-                      : "Classify the tenant by its main vertical. You can start with company or condominium."
+                      ? "Clasifica el tenant según su vertical principal. Puedes empezar por empresa o condominio. Este tipo también define el catálogo financiero base que se sembrará durante el bootstrap."
+                      : "Classify the tenant by its main vertical. You can start with company or condominium. This type also defines the base finance catalog seeded during bootstrap."
                   }
                 />
                 <select
@@ -1782,7 +1782,7 @@ export function TenantsPage() {
                   label={language === "es" ? "Plan inicial" : "Initial plan"}
                   help={
                     language === "es"
-                      ? "Aquí se habilitan los módulos del tenant. El plan define módulos, límites y política base."
+                      ? "Aquí se habilitan los módulos del tenant. Mantenciones ya no se arrastra dentro de Core negocio: el plan define módulos, límites y política base."
                       : "This is where tenant modules are enabled. The plan defines modules, limits and the base policy."
                   }
                 />
@@ -3160,8 +3160,8 @@ export function TenantsPage() {
                         label="Scopes"
                         help={
                           language === "es"
-                            ? "Elige si el mantenimiento aplica a todo el tenant o solo a áreas puntuales como core, users o finance."
-                            : "Choose whether maintenance applies to the whole tenant or only to specific areas such as core, users or finance."
+                            ? "Elige si el mantenimiento aplica a todo el tenant o solo a áreas puntuales como core, users, finance o mantenciones."
+                            : "Choose whether maintenance applies to the whole tenant or only to specific areas such as core, users, finance or maintenance."
                         }
                         placement="left"
                       />
@@ -3430,7 +3430,7 @@ export function TenantsPage() {
                         label={language === "es" ? "Código de plan" : "Plan code"}
                         help={
                           language === "es"
-                            ? "Aquí habilitas módulos a nivel tenant. El plan seleccionado define módulos, límites y políticas derivadas."
+                            ? "Aquí habilitas módulos a nivel tenant. Mantenciones ya no viaja implícito dentro de Core negocio: el plan seleccionado define módulos, límites y políticas derivadas."
                             : "This is where modules are enabled at tenant level. The selected plan defines modules, limits and derived policies."
                         }
                         placement="left"
@@ -4291,6 +4291,7 @@ function getTenantPlanModuleLabel(moduleKey: string): string {
     core: language === "es" ? "Core negocio" : "Business core",
     users: language === "es" ? "Usuarios" : "Users",
     finance: language === "es" ? "Finanzas" : "Finance",
+    maintenance: language === "es" ? "Mantenciones" : "Maintenance",
   };
 
   return labels[moduleKey] || moduleKey;

@@ -2,28 +2,31 @@
 
 ## Prioridad vigente
 
-- mover la prioridad al siguiente bloque central fuera de DLQ, ya con `Provisioning/DLQ broker-only` cerrado después de su última matriz visible
+- decidir si el corte `maintenance contractual + finance bootstrap por vertical` se publica ahora a `staging/production` antes de abrir el ajuste fino `maintenance -> finance`
 
 ## Decisión previa obligatoria
 
 - ¿qué decisión define el camino siguiente?
-  - decidir cuál será el siguiente bloque central a retomar ahora que `Provisioning/DLQ` ya no es prioridad activa
+  - si este corte se despliega ya para validarlo visualmente en entorno o si se sigue primero en repo con el siguiente slice funcional de autollenado `maintenance -> finance`
 
 ## Próximo paso correcto
 
-- volver al roadmap central y seleccionar el siguiente frente fuera de DLQ
-- definir si ese siguiente frente será endurecimiento transversal de `platform-core` fuera de DLQ o reanudación de un módulo funcional abierto
-- preparar ese siguiente frente con el mismo estándar:
-  - definición clara del alcance
-  - corte visible o técnico concreto
-  - validación `repo`
-  - si aplica, validación `staging/production`
+- si la decisión es publicar:
+  - desplegar backend/frontend en `staging`
+  - validar sidebar tenant con contrato `maintenance` separado
+  - validar bootstrap de tenant nuevo `empresa` y `condominio` revisando categorías por defecto
+- si la decisión es seguir primero en repo:
+  - abrir el slice de autollenado entre `maintenance` y `finance`
+  - usar el nuevo catálogo vertical como base para seleccionar categorías sugeridas o por defecto
 
 ## Si el escenario principal falla
 
-- si el roadmap central no deja claro el siguiente bloque, hacer primero una pasada corta de priorización antes de escribir código
-- si reaparece una necesidad operativa real de DLQ, reabrirlo como incidencia o corte explícito, no como continuación por inercia
+- si la publicación a `staging` detecta regresión de contrato, corregir primero middleware + sidebar antes de tocar `maintenance -> finance`
+- si el bootstrap vertical de categorías no queda suficientemente claro para operación, agregar un helper visible o runbook corto de verificación por tenant nuevo
+- si el usuario prefiere no publicar aún, no mezclar rollout con nuevos cambios funcionales; dejar explícito que el corte queda validado solo en repo
 
 ## Condición de cierre de la próxima iteración
 
-- la próxima iteración debe dejar seleccionado y arrancado el siguiente bloque central fuera de DLQ, con estado y handoff actualizados y sin reabrir DLQ por defecto
+- la próxima iteración debe dejar una de estas dos cosas cerradas:
+  - este corte ya publicado y validado en entorno
+  - o el siguiente slice `maintenance -> finance` arrancado sobre esta base, con handoff actualizado

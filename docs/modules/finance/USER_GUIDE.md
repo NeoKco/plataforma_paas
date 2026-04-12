@@ -73,6 +73,12 @@ Si subes una imagen `JPG` o `PNG`, el nombre final visible del adjunto puede que
 - `Desactivar`
   Cuando quieres sacarlo de operación sin perder histórico.
 
+Nota de arranque:
+
+- un tenant nuevo ya parte con categorías distintas según su vertical
+- `empresa` recibe un catálogo base orientado a operación, servicios y mantenciones
+- `condominio` parte con un catálogo hogar/condominio
+
 Esta regla aplica especialmente a cuentas, categorías, monedas y catálogos auxiliares.
 
 ### Mantener configuración financiera

@@ -186,7 +186,7 @@ Respuesta esperada:
   "message": "Catalogo de capacidades de backend recuperado correctamente",
   "tenant_statuses": ["active", "archived", "error", "pending", "suspended"],
   "tenant_billing_statuses": ["active", "canceled", "past_due", "suspended", "trialing"],
-  "maintenance_scopes": ["all", "core", "finance", "users"],
+  "maintenance_scopes": ["all", "core", "finance", "maintenance", "users"],
   "maintenance_access_modes": ["full_block", "write_block"],
   "plan_modules": ["all", "core", "finance", "users"],
   "supported_module_limit_keys": [
@@ -417,7 +417,7 @@ Respuesta esperada:
 
 Notas:
 
-- `maintenance_scopes` acepta `all`, `core`, `users` y `finance`
+- `maintenance_scopes` acepta `all`, `core`, `users`, `finance` y `maintenance`
 - `maintenance_access_mode` acepta `write_block` o `full_block`
 
 Requiere:

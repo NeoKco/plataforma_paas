@@ -316,7 +316,7 @@ Notas:
 - el smoke batch de `Billing` crea un tenant efímero, siembra dos eventos persistidos del mismo filtro y valida `Reconciliar eventos filtrados` sobre el workspace tenant
 - el smoke de `Histórico tenants` crea un tenant efímero, le siembra billing, lo archiva y elimina para validar filtros, exportaciones y lectura del snapshot histórico desde UI real
 - el smoke de login billing tenant usa el baseline `empresa-bootstrap`, fuerza primero `past_due` con gracia para validar acceso permitido y luego `invoice overdue` sin gracia para congelar el mensaje visible de bloqueo en el login
-- el smoke `tenant-portal-sidebar-modules` reutiliza ese baseline y valida que `effective_enabled_modules` también gobierna visualmente el sidebar principal: en gracia siguen visibles `Resumen`, `Usuarios`, `Core negocio` y `Mantenciones`, mientras `Finanzas` desaparece
+- el smoke `tenant-portal-sidebar-modules` reutiliza ese baseline y valida que `effective_enabled_modules` también gobierna visualmente el sidebar principal: en gracia siguen visibles `Resumen`, `Usuarios` y `Core negocio`, mientras `Finanzas` y `Mantenciones` desaparecen si la política efectiva no incluye `finance` ni `maintenance`
 - durante esta iteración también se corrigió un desalineamiento real del `dev` local: CORS seguía apuntando a `4173` y faltaba declarar `TENANT_BILLING_GRACE_*` en `.env`, lo que impedía reproducir el gating tenant esperado en browser
 - el smoke admin de `tenant users` valida bloqueo de creación de un admin extra y bloqueo de reactivación de un admin inactivo cuando `core.users.admin` queda agotado
 - el smoke mensual de `tenant users` siembra un usuario del mes por backend-control y valida que `core.users.monthly` bloquee nuevas altas en el portal

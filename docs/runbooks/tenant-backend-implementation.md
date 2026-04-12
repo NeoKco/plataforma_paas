@@ -177,6 +177,7 @@ Alcance actual:
 - se activa con `TENANT_API_RATE_LIMIT_BACKEND=redis`
 - si el tenant tiene `plan_code`, el middleware puede tomar la cuota `read/write` desde `TENANT_PLAN_RATE_LIMITS`
 - si el tenant tiene `plan_code`, el middleware tambien puede habilitar o bloquear modulos segun `TENANT_PLAN_ENABLED_MODULES`
+- `maintenance` ya no hereda acceso desde `core`; si la ruta cae bajo `/tenant/maintenance`, el plan o la gracia de billing deben incluir explícitamente `maintenance`
 - si el tenant tiene `plan_code`, el middleware tambien puede resolver limites de uso por modulo desde `TENANT_PLAN_MODULE_LIMITS`
 - si el tenant esta en `billing_in_grace`, el middleware puede degradar cuotas y modulos con `TENANT_BILLING_GRACE_*`
 - si existe `TENANT_BILLING_GRACE_MODULE_LIMITS`, tambien puede degradar el limite efectivo por modulo

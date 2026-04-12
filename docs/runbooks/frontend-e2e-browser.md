@@ -374,7 +374,7 @@ Resultado tenant revalidado al cierre de esta iteración:
 - `Provisioning` ya tiene además un smoke broker-only para validar filtros DLQ por `error contains` y confirmar opciones de requeue individual
 - `tenant_portal` ya cubre además enforcement visible de límites de usuarios activos con overrides preparados de forma determinista
 - `tenant_portal` ya cubre además login permitido cuando el tenant está `past_due` pero sigue en gracia, y bloqueo visible cuando la deuda vencida ya corta el acceso
-- `tenant_portal` ya cubre además la visibilidad del sidebar principal según `effective_enabled_modules`, ocultando `Finanzas` cuando `billing grace` reduce el tenant a `core,users`
+- `tenant_portal` ya cubre además la visibilidad del sidebar principal según `effective_enabled_modules`, ocultando `Finanzas` y `Mantenciones` cuando `billing grace` reduce el tenant a `core,users`
 - `tenant_portal` ya cubre además bloqueo por cuota `core.users.admin` al crear un admin extra y al intentar reactivar un admin inactivo
 - `tenant_portal` ya cubre además bloqueo por `core.users.monthly` al intentar crear usuarios después de agotar el cupo del mes
 - `tenant_portal` ya cubre además enforcement visible de límites de `finance.entries` bloqueando nuevas transacciones cuando el tenant queda al límite

@@ -68,9 +68,9 @@ class Settings(BaseSettings):
         "anual=360:120"
     )
     TENANT_PLAN_ENABLED_MODULES: str = (
-        "mensual=all;"
-        "trimestral=all;"
-        "semestral=all;"
+        "mensual=core,users;"
+        "trimestral=core,users,maintenance;"
+        "semestral=core,users,finance;"
         "anual=all"
     )
     TENANT_PLAN_MODULE_LIMITS: str = (

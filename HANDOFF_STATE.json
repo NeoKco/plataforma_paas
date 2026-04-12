@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-11T01:17:00-04:00",
+  "updated_at": "2026-04-11T20:15:00-04:00",
   "handoff_status": "active",
-  "current_focus": "Provisioning/DLQ broker-only cerrado para esta etapa despues del ultimo slice visible tenant + capa tecnica; la prioridad ya no es abrir mas slices DLQ sino volver al siguiente bloque central del roadmap",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, platform_admin tenants corregido, provisioning productivo realineado, portabilidad tenant base y corte dual tenant-side operativos, hotfix portable productivo aplicado con transferencia real empresa-demo -> ieris-ltda completada, Provisioning/DLQ endurecido y cerrado para esta etapa tras la matriz tenant + capa tecnica",
+  "current_focus": "corte contractual tenant donde maintenance deja de depender implicitamente de core y el bootstrap financiero ya siembra categorias por vertical empresa vs condominio/hogar; el siguiente paso es decidir rollout o abrir el ajuste fino maintenance -> finance",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa y nuevo corte en repo sobre contrato de modulos tenant + bootstrap financiero por vertical listo para decidir rollout",
   "active_modules": [
     "platform-core",
     "finance",
@@ -11,7 +11,9 @@
     "maintenance"
   ],
   "module_in_focus": [
-    "platform-core"
+    "platform-core",
+    "finance",
+    "maintenance"
   ],
   "decisions_closed": [
     "finance sigue como modulo piloto y referencia de slice tenant",
@@ -45,9 +47,18 @@
     "todo publish frontend a staging o production debe reconstruirse con API_BASE_URL explicita por entorno; no sirve copiar un dist generico entre carriles",
     "los seeds broker-only de Provisioning/DLQ deben respetar los limites reales de provisioning_jobs como error_code varchar(100) y no confiar en ids efimeros demasiado largos",
     "las lecturas tecnicas visibles DLQ/BD deben derivarse desde error_code y job_type reales del backend, no desde heuristicas UI sueltas",
-    "la matriz visible tenant + capa tecnica cierra el ultimo slice util de Provisioning/DLQ para esta etapa y cualquier profundizacion adicional requiere repriorizacion explicita"
+    "la matriz visible tenant + capa tecnica cierra el ultimo slice util de Provisioning/DLQ para esta etapa y cualquier profundizacion adicional requiere repriorizacion explicita",
+    "maintenance ya no debe tratarse como herencia implicita de core; su contrato tenant-side es el modulo maintenance",
+    "tenant_type ya define el seed financiero inicial del tenant nuevo durante bootstrap, distinguiendo empresa vs condominio/hogar"
   ],
   "completed_recently": [
+    "maintenance pasa a ser modulo contractual explicito en VALID_PLAN_MODULES y en el middleware tenant para rutas /tenant/maintenance",
+    "tenant_portal oculta o muestra Mantenciones segun effective_enabled_modules usando la clave maintenance y no core",
+    "Tenants deja copy visible de que Mantenciones no viaja implicito dentro de Core negocio",
+    "settings.py y ejemplos env ya reflejan una matriz base donde maintenance puede contratarse aparte de finance",
+    "tenant_db_bootstrap_service ahora perfila categorias financieras iniciales por tenant_type usando default_category_profiles.py",
+    "test_tenant_db_bootstrap_service agregado para cubrir bootstrap financiero empresa vs condominio/hogar",
+    "README y runbooks E2E actualizados para que tenant-portal-sidebar-modules ya no espere Mantenciones visible en gracia core,users",
     "Provisioning agrega la matriz broker-only tenant + capa tecnica dentro de Familias DLQ visibles",
     "smoke platform-admin-provisioning-dlq-tenant-technical-matrix agregado y validado en staging",
     "smoke platform-admin-provisioning-dlq-tenant-technical-matrix validado como skipped_non_broker en production",
@@ -188,7 +199,7 @@
     "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir cual sera el siguiente bloque central fuera de Provisioning/DLQ ahora que ese frente ya quedo suficientemente endurecido y cerrado para esta etapa",
+  "next_decision_required": "decidir si el corte contractual maintenance + bootstrap financiero por vertical se publica ahora a staging/production o si primero se abre el ajuste fino maintenance -> finance sobre repo",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -205,7 +216,8 @@
     "asumir cerrado tambien el subfrente Matriz tenant + capa tecnica",
     "asumir cerrado tambien el helper published broker-only de staging",
     "dejar Provisioning/DLQ fuera del foco activo",
-    "retomar el siguiente bloque central del roadmap fuera de DLQ"
+    "retomar el siguiente bloque central del roadmap fuera de DLQ",
+    "si el corte contractual actual se publica, validar sidebar tenant y bootstrap de categorias por vertical antes de abrir nuevos cambios funcionales"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -360,6 +372,10 @@
     "platform_admin_provisioning_dlq_tenant_technical_matrix_staging_frontend_publish": "pass",
     "platform_admin_provisioning_dlq_tenant_technical_matrix_staging_smoke": "pass",
     "platform_admin_provisioning_dlq_tenant_technical_matrix_production_frontend_publish": "pass",
-    "platform_admin_provisioning_dlq_tenant_technical_matrix_production_smoke": "skipped_non_broker"
+    "platform_admin_provisioning_dlq_tenant_technical_matrix_production_smoke": "skipped_non_broker",
+    "tenant_contract_maintenance_backend_unittest_repo": "pass",
+    "tenant_contract_maintenance_frontend_build_repo": "pass",
+    "tenant_contract_maintenance_playwright_list_repo": "pass",
+    "tenant_finance_vertical_bootstrap_unittest_repo": "pass"
   }
 }

@@ -9,13 +9,13 @@ export type TenantPortalModuleSection =
 
 const SECTION_MODULE_KEYS: Record<
   TenantPortalModuleSection,
-  Array<"all" | "core" | "users" | "finance">
+  Array<"all" | "core" | "users" | "finance" | "maintenance">
 > = {
   overview: ["all", "core", "users", "finance"],
   users: ["all", "users"],
   "business-core": ["all", "core"],
   finance: ["all", "finance"],
-  "maintenance": ["all", "core"],
+  "maintenance": ["all", "maintenance"],
 };
 
 export function isTenantPortalSectionVisible(

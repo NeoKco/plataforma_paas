@@ -28,6 +28,7 @@ Ya cubre:
 - modelo modular backend/frontend
 - compatibilidad legacy sobre `finance_transactions`
 - seeds y migraciones tenant del dominio
+- bootstrap tenant con catálogo financiero inicial por vertical (`empresa` vs `condominio/hogar`)
 - self-service de sync de schema
 - categorías default ampliadas
 - manejo de moneda base y formateo de montos

@@ -50,6 +50,7 @@ Nota operativa:
 - los módulos del tenant no se habilitan con toggles manuales en el alta; se habilitan por el `plan`
 - la misma pantalla ya debe mostrar qué módulos activa el plan seleccionado
 - en tenants existentes, el bloque correcto para revisar o cambiar eso es `Plan y módulos`
+- `Mantenciones` ya no se considera implícito dentro de `Core negocio`; si quieres que el tenant lo use, el `plan` debe traer explícitamente el módulo `maintenance`
 
 Referencia:
 

@@ -16,6 +16,7 @@ Estado actual:
 - cobertura E2E tenant ya incluye además operaciones batch y reversas básicas de préstamos
 - cobertura E2E tenant ya incluye además lectura contable derivada y exportaciones de préstamos
 - `finance` actúa como módulo base y piloto de convención para siguientes módulos tenant
+- tenants nuevos ya nacen con un catálogo financiero base distinto según vertical (`empresa` vs `condominio/hogar`)
 
 ## Mapa de documentos
 

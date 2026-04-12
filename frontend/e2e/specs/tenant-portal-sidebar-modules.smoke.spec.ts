@@ -56,7 +56,7 @@ test("tenant portal sidebar follows effective enabled modules from tenant info",
       page.getByRole("link", {
         name: /Mantenciones|Maintenance/i,
       })
-    ).toBeVisible();
+    ).toHaveCount(0);
     await expect(
       page.getByRole("link", {
         name: /Finanzas|Finance/i,
@@ -65,6 +65,7 @@ test("tenant portal sidebar follows effective enabled modules from tenant info",
 
     await expect(modulesCard).toContainText(/Core/i);
     await expect(modulesCard).toContainText(/Users/i);
+    await expect(modulesCard).not.toContainText(/Maintenance/i);
     await expect(modulesCard).not.toContainText(/Finance/i);
   } finally {
     seedTenantBillingSyncEvent({

@@ -63,7 +63,8 @@ Documentación base:
 - `/tenant/info` ya expone además `effective_enabled_modules` como fuente de verdad de navegación tenant-side:
   - `overview` sigue siempre visible
   - `users` requiere `users`
-  - `business-core` y `maintenance` dependen de `core`
+  - `business-core` requiere `core`
+  - `maintenance` requiere `maintenance`
   - `finance` requiere `finance`
   - el sidebar del `tenant_portal` no debe volver a hardcodear estas visibilidades fuera de esa fuente
 - backup PostgreSQL y portabilidad CSV son frentes distintos:

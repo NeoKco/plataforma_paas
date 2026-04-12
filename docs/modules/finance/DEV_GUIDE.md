@@ -94,6 +94,10 @@ Smokes vigentes:
   - si no existe, zona por defecto del tenant
   - solo al final, fallback de plataforma
 - La futura integración con `maintenance` debe apoyarse sobre `finance_transactions.source_type/source_id`; `finance` registra el hecho económico, pero `maintenance` sigue siendo dueño de la programación, ejecución y costeo operativo.
+- El bootstrap tenant ya no deja un único catálogo genérico de categorías:
+  - `tenant_type=empresa` siembra un set orientado a operación y servicio
+  - `tenant_type=condominio` y cualquier perfil no empresa siembran un set hogar/condominio
+  - si la DB está recién creada y no existe uso financiero, el bootstrap reemplaza el catálogo neutral de migración por el perfil vertical correcto
 - El primer corte de esa integración ya está operativo en `maintenance`:
   - `maintenance` guarda costo estimado y costo real propios
   - la acción manual `finance-sync` crea o actualiza transacciones de ingreso/egreso con `source_type/source_id`

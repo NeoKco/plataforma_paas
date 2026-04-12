@@ -14,6 +14,7 @@ Alcance de esta fase:
 - seeds idempotentes iniciales para moneda, categorias y settings
 - seed idempotente adicional para `CLP`
 - catalogo default ampliado de categorias para ingresos, egresos y transferencias
+- perfilado de categorías iniciales por `tenant_type` durante bootstrap (`empresa` vs `condominio/hogar`)
 - modelos SQLAlchemy de catalogos base
 - schemas backend por entidad
 - repositories CRUD base por catalogo

@@ -501,6 +501,8 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
 
         if path.startswith("/tenant/finance"):
             return ("finance", operation_type)
+        if path.startswith("/tenant/maintenance"):
+            return ("maintenance", operation_type)
         if path.startswith("/tenant/users"):
             return ("users", operation_type)
         return ("core", operation_type)
