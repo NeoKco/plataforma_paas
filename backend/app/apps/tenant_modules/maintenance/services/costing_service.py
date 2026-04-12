@@ -283,6 +283,8 @@ class MaintenanceCostingService:
         note = self._normalize_text(payload.notes)
         income_description = self._normalize_text(payload.income_description)
         expense_description = self._normalize_text(payload.expense_description)
+        default_income_description = f"Ingreso mantención {summary_label}"
+        default_expense_description = f"Egreso mantención {summary_label}"
 
         if payload.sync_income:
             if actual.actual_price_charged <= 0:
@@ -303,7 +305,9 @@ class MaintenanceCostingService:
                 amortization_months=None,
                 transaction_at=transaction_at,
                 alternative_date=None,
-                description=income_description or f"Ingreso mantención {summary_label}",
+                description=income_description
+                if income_description and income_description != default_income_description
+                else default_income_description,
                 notes=note or actual.notes,
                 is_favorite=False,
                 is_reconciled=False,
@@ -349,7 +353,9 @@ class MaintenanceCostingService:
                 amortization_months=None,
                 transaction_at=transaction_at,
                 alternative_date=None,
-                description=expense_description or f"Egreso mantención {summary_label}",
+                description=expense_description
+                if expense_description and expense_description != default_expense_description
+                else default_expense_description,
                 notes=note or actual.notes,
                 is_favorite=False,
                 is_reconciled=False,

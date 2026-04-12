@@ -479,6 +479,8 @@
 - ajuste adicional:
   - hint visual agregado para mostrar el margen objetivo calculado cuando el usuario edita el precio sugerido
   - frontend production ahora fija VITE_API_BASE_URL vía `frontend/.env.production` para evitar builds con URL de staging
+  - backend fuerza glosa default si el frontend envía una glosa incompleta
+  - build_frontend.sh ahora lee `.env.production` y bloquea staging salvo override
   - frontend production re-publicado para corregir API_BASE_URL (staging -> production)
 - bloqueos:
   - falta validar en empresa-demo el ingreso/egreso real en Finanzas

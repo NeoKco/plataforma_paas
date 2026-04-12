@@ -9,8 +9,8 @@
 ## Resumen ejecutivo en 30 segundos
 
 - costeo estimado permite editar `precio sugerido` y persiste en backend
-- la glosa de ingresos/egresos queda como `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio)
-- cambios publicados en staging y production; hint visual de margen agregado; frontend production reconfigurado para API_BASE_URL correcta
+- la glosa de ingresos/egresos queda como `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio), backend fuerza default si el frontend envía una glosa incompleta
+- cambios publicados en staging y production; hint visual de margen agregado; build frontend valida `.env.production` y bloquea API staging por defecto
 
 ## Qué ya quedó hecho
 
