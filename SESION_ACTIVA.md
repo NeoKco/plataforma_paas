@@ -7,46 +7,28 @@ Puntero corto para retomar rápido entre sesiones.
 ## Estado rápido vigente
 
 - fecha: 2026-04-12
-- foco activo: segundo corte de llenado fino `maintenance -> finance` cerrado y validado
-- prioridad inmediata: decidir siguiente slice (ergonomía contable o roadmap central)
-- módulo o frente activo: `maintenance` + `finance`
+- foco activo: hotfix deprovision para tolerar `.env` legacy no escribible
+- prioridad inmediata: publicar hotfix y limpiar tenants E2E bloqueados
+- módulo o frente activo: `platform-core`
 
 ## Último contexto útil
 
-- `maintenance -> finance` ya existía; este corte no recrea la integración, endurece defaults y ergonomía
-- el repo ya agrega `GET /tenant/maintenance/finance-sync-defaults`
-- `Resumen técnico` y `Costos y cobro` ya consumen esa misma fuente de verdad para moneda, cuentas y categorías sugeridas
-- el smoke [tenant-portal-maintenance-finance-defaults.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-maintenance-finance-defaults.smoke.spec.ts) ya pasó en `staging` y `production`
-- durante la validación se detectó un falso negativo de runtime en `staging`: `TENANT_PLAN_ENABLED_MODULES` seguía atrasado y ya quedó corregido
-- el repo ya soporta:
-  - `CLP` como moneda base efectiva por defecto
-  - categorías `Casa - ...` y `Empresa - ...`
-  - perfiles funcionales default
-  - tipos de tarea default
-  - backfill por cambio de plan para tenants activos
-- este subcorte ya está publicado en `staging` y `production`
-- el repo ya tiene además:
-  - `docs/architecture/data-governance.md`
-  - `docs/architecture/sred-development.md`
-- `staging` ya quedó validado con tenants nuevos reales:
-  - `bootstrap-empresa-20260412002354`
-  - `bootstrap-condominio-20260412002354`
-- este nuevo corte ya está publicado en `staging`
-- este nuevo corte ya está también publicado en `production`
+- el deprovision falla en prod por intentar escribir `/opt/platform_paas/.env`
+- `tenant_service.deprovision_tenant` ya fue ajustado para saltar el `.env` legacy si no es escribible
+- el cleanup E2E debe hacerse con `cleanup_e2e_tenants.py --apply --prefix e2e-` después del deploy
 
 ## Bloqueo actual
 
-- no hay bloqueo técnico
-- no hay deuda de rollout abierta para este corte
+- bloqueo actual: deprovision en prod falla hasta publicar el hotfix
 
 ## Siguiente acción inmediata
 
-- definir el siguiente subcorte o volver al roadmap central
+- publicar hotfix y limpiar tenants E2E bloqueados
 
 ## Archivos a leer justo después de este
 
 1. `ESTADO_ACTUAL.md`
 2. `SIGUIENTE_PASO.md`
 3. `HANDOFF_STATE.json`
-4. `docs/modules/maintenance/ROADMAP.md`
-5. `docs/modules/maintenance/CHANGELOG.md`
+4. `docs/modules/platform-core/CHANGELOG.md`
+5. `docs/runbooks/frontend-e2e-browser.md`

@@ -1,5 +1,19 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-12 - Hotfix deprovision: omitir cleanup de `.env` legacy no escribible
+
+- objetivo:
+  - evitar que el deprovision falle por `Permission denied` al intentar escribir `/opt/platform_paas/.env`
+- cambios principales:
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) salta el cleanup del `.env` legacy si no es escribible
+  - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md) actualizado con el ajuste
+- validaciones:
+  - pendientes (requiere deploy en `staging` y `production`)
+- bloqueos:
+  - deprovision en prod aún falla hasta publicar el hotfix
+- siguiente paso:
+  - desplegar hotfix y ejecutar cleanup `cleanup_e2e_tenants.py --apply --prefix e2e-`
+
 ## 2026-04-12 - Segundo corte maintenance -> finance (glosa y fecha contable) abierto en repo
 
 - objetivo:

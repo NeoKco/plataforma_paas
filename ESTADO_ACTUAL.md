@@ -3,79 +3,49 @@
 ## Última actualización
 
 - fecha: 2026-04-12
-- foco de iteración: cerrar el segundo corte de llenado fino `maintenance -> finance` (glosa, referencia OT y fecha contable opcional)
-- estado general: slice publicado y validado en `staging` y `production`
+- foco de iteración: hotfix deprovision para tolerar `.env` legacy no escribible y habilitar cleanup de tenants E2E
+- estado general: fix en repo, pendiente de deploy y limpieza en entornos publicados
 
 ## Resumen ejecutivo en 30 segundos
 
-- el puente base `maintenance -> finance` ya existía; el segundo corte se enfoca en ergonomía de glosa y fecha contable
-- el repo ya acepta `income_description`, `expense_description` y `transaction_at` en `/tenant/maintenance/work-orders/{id}/finance-sync`
-- `Costos y cobro` ya expone referencia OT, glosa ingreso/egreso y un toggle para editar fecha contable
+- el deprovision falla en prod por intentar escribir `/opt/platform_paas/.env`
+- se ajustó `tenant_service.deprovision_tenant` para saltar el `.env` legacy si no es escribible
+- el cleanup de tenants E2E se mantiene con `cleanup_e2e_tenants.py` y requiere el hotfix desplegado
 
 ## Qué ya quedó hecho
 
-- [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) acepta:
-  - `transaction_at` opcional para fecha contable
-  - `income_description` y `expense_description` para glosas editables
-- [costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/costing.py) incorpora los campos nuevos en el request de sync
-- [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) ahora muestra:
-  - referencia OT derivada
-  - glosa ingreso/egreso editable
-  - toggle para ajustar fecha contable manualmente
-- [tenant-portal-maintenance-finance-defaults.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-maintenance-finance-defaults.smoke.spec.ts) valida presencia de las glosas y referencia OT en el modal
-- [test_maintenance_costing_service.py](/home/felipe/platform_paas/backend/app/tests/test_maintenance_costing_service.py) agrega cobertura de descripción personalizada y fecha contable explícita
+- [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) omite limpiar el `.env` legacy si no es escribible, evitando `Permission denied` en deprovision
+- el script [cleanup_e2e_tenants.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_e2e_tenants.py) ya existe y permite limpieza segura via lifecycle
 
 ## Qué archivos se tocaron
 
-- [backend/app/apps/tenant_modules/maintenance/api/finance_sync.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/finance_sync.py)
-- [backend/app/apps/tenant_modules/maintenance/api/router.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/router.py)
-- [backend/app/apps/tenant_modules/maintenance/schemas/costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/costing.py)
-- [backend/app/apps/tenant_modules/maintenance/schemas/__init__.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/__init__.py)
-- [backend/app/apps/tenant_modules/maintenance/services/costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py)
-- [backend/app/tests/test_maintenance_costing_service.py](/home/felipe/platform_paas/backend/app/tests/test_maintenance_costing_service.py)
-- [frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts)
-- [frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx)
-- [frontend/e2e/specs/tenant-portal-maintenance-finance-defaults.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-maintenance-finance-defaults.smoke.spec.ts)
-- [docs/modules/maintenance/API_REFERENCE.md](/home/felipe/platform_paas/docs/modules/maintenance/API_REFERENCE.md)
-- [docs/modules/maintenance/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/maintenance/DEV_GUIDE.md)
-- [docs/modules/maintenance/ROADMAP.md](/home/felipe/platform_paas/docs/modules/maintenance/ROADMAP.md)
-- [docs/modules/maintenance/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/maintenance/CHANGELOG.md)
+- [backend/app/apps/platform_control/services/tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py)
+- [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
 
 ## Qué decisiones quedaron cerradas
 
-- el segundo corte prioriza ergonomía de glosa/fecha contable sin tocar el contrato contable base
-- la fecha contable sigue a `completed_at` por defecto; solo se ajusta si el operador activa el toggle manual
-- la glosa por defecto se deriva de OT y cliente, pero siempre queda editable antes del sync
+- el `.env` legacy no puede bloquear el deprovision; solo debe limpiarse si es escribible
+- el cleanup E2E debe usar lifecycle (archive -> deprovision -> delete) y no borrar directo
 
 ## Qué falta exactamente
 
-- el subcorte ya quedó publicado y validado con smoke browser en `staging` y `production`
+- desplegar este hotfix en `staging` y `production`
+- reintentar deprovision y borrar tenants E2E afectados
+- ejecutar `cleanup_e2e_tenants.py --apply` con prefijo `e2e-` si siguen colgados
 
 ## Qué no debe tocarse
 
-- no cambiar reglas de defaults efectivos ni política tenant en este subcorte
-- no romper el puente existente `sync_to_finance`
-- no mezclar este corte con cambios nuevos de bootstrap contractual o de DLQ
+- no tocar contratos de lifecycle ni reglas de billing
+- no reabrir el slice `maintenance -> finance` ya cerrado
 
 ## Validaciones ya ejecutadas
 
-- repo:
-  - `cd backend && PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_maintenance_costing_service` -> `11 tests OK`
-- staging:
-  - `deploy_backend_staging.sh` -> `523 tests OK`
-  - `build_frontend.sh` -> `OK`
-  - `tenant-portal-maintenance-finance-defaults.smoke.spec.ts` -> `1 passed`
-- production:
-  - `deploy_backend_production.sh` -> `523 tests OK`
-  - `build_frontend.sh` -> `OK`
-  - `tenant-portal-maintenance-finance-defaults.smoke.spec.ts` -> `1 passed`
+- aún no ejecutadas para este hotfix
 
 ## Bloqueos reales detectados
 
-- no hay bloqueo técnico abierto
-- el único hallazgo operativo de la iteración fue runtime: `staging` estaba con un `TENANT_PLAN_ENABLED_MODULES` atrasado; ya quedó corregido
+- deprovision en prod falla por `Permission denied` al escribir `/opt/platform_paas/.env` hasta publicar el fix
 
 ## Mi conclusión
 
-- el segundo corte de llenado fino queda cerrado y validado
-- el siguiente paso correcto es decidir el próximo subcorte de ergonomía o volver al roadmap central
+- el fix es pequeño y directo; desplegarlo debería destrabar el borrado de tenants E2E

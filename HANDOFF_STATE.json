@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T10:15:00-04:00",
+  "updated_at": "2026-04-12T17:30:00-04:00",
   "handoff_status": "active",
-  "current_focus": "segundo corte maintenance -> finance (glosa y fecha contable) cerrado en staging y production; pendiente definir siguiente slice",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa, baseline contractual por modulos ya publicado, gobernanza transversal ampliada con data governance y SRED, y primer corte maintenance -> finance ya cerrado en repo staging y production",
+  "current_focus": "hotfix deprovision: omitir limpieza del .env legacy no escribible y destrabar cleanup de tenants E2E",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa, baseline contractual por modulos ya publicado, gobernanza transversal ampliada con data governance y SRED; deprovision hotfix pendiente de publish",
   "active_modules": [
     "platform-core",
     "finance",
@@ -11,8 +11,7 @@
     "maintenance"
   ],
   "module_in_focus": [
-    "maintenance",
-    "finance"
+    "platform-core"
   ],
   "decisions_closed": [
     "el bootstrap contractual por modulos debe servir tanto para provisioning inicial como para backfill por cambio de plan",
@@ -76,6 +75,7 @@
     "subcorte glosa/fecha contable validado en staging con smoke tenant-portal-maintenance-finance-defaults",
     "subcorte glosa/fecha contable validado en production con smoke tenant-portal-maintenance-finance-defaults",
     "tenant_secret_service ahora ignora PermissionError al leer .env legacy para no bloquear deprovision",
+    "tenant_service deprovision omite limpiar .env legacy si no es escribible",
     "backend-control bloquea seeds E2E en producción salvo override explícito",
     "backend-control registra cleanup automático de tenants E2E cuando E2E_AUTO_CLEANUP=1",
     "frontend build validado para el corte defaults efectivos maintenance -> finance",
@@ -250,9 +250,9 @@
     "el segundo corte de llenado fino maintenance -> finance agrega glosa y fecha contable opcional sin romper el sync base"
   ],
   "blocking_issues": [
-    "no hay bloqueo tecnico abierto"
+    "deprovision falla en production por intentar escribir /opt/platform_paas/.env; requiere deploy del hotfix"
   ],
-  "next_decision_required": "definir el siguiente subcorte de ergonomia maintenance -> finance o retomar roadmap central",
+  "next_decision_required": "publicar hotfix de deprovision en staging/production y limpiar tenants E2E bloqueados",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -463,6 +463,7 @@
     "maintenance_finance_fillin_glosa_production_smoke": "pass",
     "tenant_deprovision_env_permission_hotfix_prod": "pass",
     "tenant_deprovision_env_permission_hotfix_staging": "pass",
+    "tenant_deprovision_legacy_env_write_skip_repo": "pending",
     "e2e_seed_guard_prod": "pass",
     "e2e_auto_cleanup": "pass"
   }

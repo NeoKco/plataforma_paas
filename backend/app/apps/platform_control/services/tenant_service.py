@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 from dataclasses import dataclass
 from email.utils import parseaddr
 import json
+import logging
+import os
 from pathlib import Path
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -43,6 +45,8 @@ from app.common.config.settings import settings
 from app.common.db.tenant_database import get_tenant_session_factory
 from app.common.security.password_service import hash_password
 from app.common.security.tenant_secret_service import TenantSecretService
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -509,18 +513,32 @@ class TenantService:
                 tenant_slug=tenant.slug,
                 env_path=runtime_env_path,
             )
-            if legacy_env_path != runtime_env_path:
-                self.tenant_secret_service.clear_tenant_db_password(
-                    tenant_slug=tenant.slug,
-                    env_path=legacy_env_path,
-                )
-                self.tenant_secret_service.clear_tenant_bootstrap_db_password(
-                    tenant_slug=tenant.slug,
-                    env_path=legacy_env_path,
-                )
         except Exception as exc:
             setattr(exc, "_provisioning_stage", "deprovision_tenant_secret")
             raise
+        if legacy_env_path != runtime_env_path:
+            try:
+                if legacy_env_path.exists() and os.access(legacy_env_path, os.W_OK):
+                    self.tenant_secret_service.clear_tenant_db_password(
+                        tenant_slug=tenant.slug,
+                        env_path=legacy_env_path,
+                    )
+                    self.tenant_secret_service.clear_tenant_bootstrap_db_password(
+                        tenant_slug=tenant.slug,
+                        env_path=legacy_env_path,
+                    )
+                else:
+                    logger.info(
+                        "Skipping legacy env secret cleanup for tenant %s: %s not writable",
+                        tenant.slug,
+                        legacy_env_path,
+                    )
+            except PermissionError:
+                logger.warning(
+                    "Skipping legacy env secret cleanup for tenant %s: permission denied for %s",
+                    tenant.slug,
+                    legacy_env_path,
+                )
 
         tenant.db_name = None
         tenant.db_user = None
