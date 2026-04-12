@@ -448,6 +448,17 @@ app/scripts/cleanup_e2e_tenants.py --apply
 
 Ese script usa el lifecycle seguro `archive -> deprovision -> delete`, por lo que no deja bases tenant ni jobs colgando en `platform_control`.
 
+Si la suite dejó basura en catálogos o movimientos `finance` (por ejemplo, categorías o transacciones `e2e-*`):
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/cleanup_tenant_e2e_finance_data.py --tenant-slug <slug> --apply
+```
+
+Este cleanup es útil cuando se ejecutaron smokes contra un tenant real y se necesita limpiar cuentas, transacciones o categorías efímeras.
+
 Validación local broker-only de DLQ:
 
 ```bash

@@ -41,6 +41,9 @@
   - `tenant-portal-maintenance-finance-defaults.smoke.spec.ts` -> `1 passed` en `production`
   - `python -m py_compile` sobre router/schema/service nuevos o modificados -> `OK`
   - `cd frontend && npm run build` -> `OK`
+- se endurece el guardado de `due-items` para reparar desalineos de secuencia en `maintenance_due_items`:
+  - si el insert detecta colision de PK, se recalibra la secuencia al `MAX(id)` y se reintenta
+  - evita `500` en la bandeja de pendientes cuando la DB tenant arrastra secuencias desfasadas
 
 ## 2026-04-06
 

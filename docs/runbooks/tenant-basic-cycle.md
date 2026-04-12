@@ -198,6 +198,57 @@ Motivo:
   - elimina el rol tecnico tenant si existe
   - limpia `TENANT_DB_PASSWORD__<SLUG>` y secretos bootstrap relacionados
   - limpia `db_name`, `db_user`, `db_host`, `db_port`
+
+## Operaciones complementarias
+
+### Re-sembrar defaults core/finance
+
+Si un tenant ya provisionado quedó sin perfiles funcionales, tipos de tarea o categorías por defecto, usa el script de backfill:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/seed_tenant_defaults.py --tenant-slug <slug> --modules core,finance
+```
+
+Esto vuelve a sembrar:
+
+- perfiles funcionales (`tecnico`, `lider`, `administrativo`, `vendedor`, `supervisor`, `otro`)
+- tipos de tarea (`mantencion`, `instalacion`, `tareas generales`, `ventas`, `administracion`)
+- categorías `finance` empresa + casa
+- moneda base `CLP`
+
+El seed es idempotente y respeta uso real de finanzas: no borra transacciones ni presupuestos existentes.
+
+### Backfill masivo de defaults faltantes
+
+Para revisar todos los tenants activos y sembrar solo los que no tengan defaults:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/seed_missing_tenant_defaults.py --apply
+```
+
+Notas:
+
+- por defecto no toca tenants `archived`
+- si existen categorías en un tenant sin uso financiero, el script no borra nada (usa `--force-finance` para forzar el seed)
+
+### Limpieza de residuos E2E en finanzas
+
+Si se ejecutaron smokes contra un tenant real y quedaron categorías o movimientos `e2e-*`, usa:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/cleanup_tenant_e2e_finance_data.py --tenant-slug <slug> --apply
+```
+
+El script elimina datos efímeros (transacciones, presupuestos, préstamos, categorías, cuentas y settings) que comiencen con `e2e-` o `debug-`.
   - limpia tracking tecnico como schema version y timestamp de rotacion
 - desprovisionar no elimina la fila del tenant en `platform_control`
 - desprovisionar tampoco equivale a restaurar ni a borrar

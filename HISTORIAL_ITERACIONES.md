@@ -1,5 +1,25 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-12 - Backfill defaults core/finance + cleanup E2E finance + fix Pendientes PK
+
+- objetivo:
+  - eliminar 500 en `Pendientes` por secuencias PK desfasadas
+  - re-sembrar perfiles, tipos de tarea y categorías default en `ieris-ltda`
+  - limpiar basura E2E en finanzas dentro de un tenant real
+- cambios principales:
+  - [due_item_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/repositories/due_item_repository.py) repara secuencia `maintenance_due_items` y reintenta insert
+  - [seed_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_tenant_defaults.py) agrega backfill core/finance por tenant
+  - [cleanup_tenant_e2e_finance_data.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_tenant_e2e_finance_data.py) limpia residuos E2E en finanzas
+  - docs: [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md) y [tenant-basic-cycle.md](/home/felipe/platform_paas/docs/runbooks/tenant-basic-cycle.md) actualizados
+- validaciones:
+  - backend reiniciado en production y staging
+  - seed defaults ejecutado en production para `ieris-ltda`
+  - cleanup E2E finance ejecutado en production para `ieris-ltda` (45 transacciones)
+- bloqueos:
+  - falta validar en UI que `Pendientes` carga sin 500
+- siguiente paso:
+  - abrir `/tenant-portal/maintenance/due-items` y confirmar que el error ya no aparece
+
 ## 2026-04-12 - Hotfix deprovision: omitir cleanup de `.env` legacy no escribible
 
 - objetivo:

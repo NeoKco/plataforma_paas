@@ -2,22 +2,22 @@
 
 ## Prioridad vigente
 
-- validar el acceso rápido al portal tenant en producción
+- validar que `Pendientes` ya carga sin error en `ieris-ltda`
 
 ## Decisión previa obligatoria
 
-- decidir si se usa el flujo de reset existente o se requiere una acción nueva de “impersonación”
+- definir si la limpieza E2E de finanzas debe quedar automatizada en el pipeline published o solo manual bajo demanda
 
 ## Próximo paso correcto
 
-- validar botón `Abrir portal con contraseña temporal` desde `Tenants`
-- confirmar que el login ya no muestra `Internal server error`
+- abrir `/tenant-portal/maintenance/due-items` y confirmar que no hay 500
+- si persiste, ejecutar un repair manual de secuencia y revisar logs
 
 ## Si el escenario principal falla
 
-- revisar que el prefill se guarde en `sessionStorage` y se limpie al abrir el portal
-- revisar consola del navegador para errores de navegación
+- correr manualmente `run_maintenance_due_generation.py --tenant-slug ieris-ltda`
+- inspeccionar logs con `journalctl -u platform-paas-backend.service` y buscar `maintenance_due_items_pkey`
 
 ## Condición de cierre de la próxima iteración
 
-- acceso rápido al portal tenant validado en `staging` y `production`
+- `Pendientes` operativo y sin errores en producción

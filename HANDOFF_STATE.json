@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T19:20:00-04:00",
+  "updated_at": "2026-04-12T20:35:00-04:00",
   "handoff_status": "active",
-  "current_focus": "acceso rápido al portal tenant con contraseña temporal",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa, baseline contractual por modulos ya publicado; pendiente publish frontend para acceso rápido portal tenant",
+  "current_focus": "backfill defaults core/finance para ieris-ltda + fix PK maintenance_due_items + limpieza E2E finance",
+  "project_phase": "produccion y staging operativos; defaults core/finance re-sembrados por script, limpieza E2E finance aplicada; pendiente validar Pendientes en UI tras hotfix de secuencia",
   "active_modules": [
     "platform-core",
     "finance",
@@ -57,6 +57,12 @@
     "el proyecto ya tiene gobernanza de datos explicita y el criterio oficial de cierre relevante puede expresarse como SRED: Spec, Rules, Evidence, Documentation"
   ],
   "completed_recently": [
+    "maintenance due-items ahora repara la secuencia PK y reintenta inserts para evitar 500 en Pendientes",
+    "script operativo seed_tenant_defaults.py agregado para backfill de defaults core/finance por tenant",
+    "script cleanup_tenant_e2e_finance_data.py agregado para limpiar residuos E2E en finanzas",
+    "seed defaults ejecutado en production para ieris-ltda (core/finance)",
+    "cleanup E2E finance ejecutado en production para ieris-ltda (45 transacciones removidas)",
+    "backend reiniciado en production y staging tras el hotfix de due-items",
     "primer corte maintenance -> finance defaults efectivos validado por smoke browser published en staging con 1 passed",
     "primer corte maintenance -> finance defaults efectivos validado por smoke browser published en production con 1 passed",
     "staging runtime alineado corrigiendo TENANT_PLAN_ENABLED_MODULES atrasado que ocultaba maintenance en el baseline published",
@@ -251,9 +257,9 @@
     "el segundo corte de llenado fino maintenance -> finance agrega glosa y fecha contable opcional sin romper el sync base"
   ],
   "blocking_issues": [
-    "publicar frontend con acceso rápido al portal tenant"
+    "validar en UI que Pendientes ya carga sin 500 tras el hotfix de secuencia"
   ],
-  "next_decision_required": "publicar frontend en staging/production y validar UX",
+  "next_decision_required": "definir si la limpieza E2E de finanzas debe automatizarse en los pipelines published",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -477,6 +483,10 @@
     "e2e_tenant_cleanup_production": "pass",
     "debug_tenant_cleanup_production": "pass",
     "e2e_seed_guard_prod": "pass",
-    "e2e_auto_cleanup": "pass"
+    "e2e_auto_cleanup": "pass",
+    "maintenance_due_items_sequence_hotfix_production": "applied",
+    "maintenance_due_items_sequence_hotfix_staging": "applied",
+    "seed_tenant_defaults_ieris_ltda": "applied",
+    "cleanup_e2e_finance_ieris_ltda": "applied"
   }
 }

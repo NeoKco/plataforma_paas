@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.maintenance.models import MaintenanceDueItem
@@ -64,8 +66,39 @@ class MaintenanceDueItemRepository:
         tenant_db.add(item)
         try:
             tenant_db.commit()
+        except IntegrityError as exc:
+            tenant_db.rollback()
+            if self._is_primary_key_collision(exc):
+                self._repair_due_item_sequence(tenant_db)
+                item.id = None
+                tenant_db.add(item)
+                tenant_db.commit()
+            else:
+                raise
         except Exception:
             tenant_db.rollback()
             raise
         tenant_db.refresh(item)
         return item
+
+    @staticmethod
+    def _is_primary_key_collision(exc: IntegrityError) -> bool:
+        original = exc.orig
+        constraint = getattr(getattr(original, "diag", None), "constraint_name", "")
+        if constraint:
+            return constraint == "maintenance_due_items_pkey"
+        return "maintenance_due_items_pkey" in str(original)
+
+    @staticmethod
+    def _repair_due_item_sequence(tenant_db: Session) -> None:
+        tenant_db.execute(
+            text(
+                """
+                SELECT setval(
+                    pg_get_serial_sequence('maintenance_due_items', 'id'),
+                    COALESCE((SELECT MAX(id) FROM maintenance_due_items), 1),
+                    true
+                )
+                """
+            )
+        )
