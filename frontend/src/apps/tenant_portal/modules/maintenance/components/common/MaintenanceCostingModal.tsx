@@ -6,6 +6,7 @@ import { getApiErrorDisplayMessage } from "../../../../../../services/api";
 import type { ApiError } from "../../../../../../types";
 import {
   formatDateTimeInTimeZone,
+  fromDateTimeLocalInputValue,
   toDateTimeLocalInputValue,
 } from "../../../../../../utils/dateTimeLocal";
 import {
@@ -69,6 +70,8 @@ type MaintenanceFinanceSyncFormState = {
   expense_category_id: string;
   currency_id: string;
   transaction_at: string;
+  income_description: string;
+  expense_description: string;
   notes: string;
 };
 
@@ -100,6 +103,55 @@ export type MaintenanceCostingModalWorkOrder = {
   completed_at: string | null;
   closure_notes?: string | null;
 };
+
+function buildFinanceReferenceLabel(
+  workOrder: MaintenanceCostingModalWorkOrder | null,
+  clientLabel?: string | null,
+  siteLabel?: string | null,
+  installationLabel?: string | null
+): string {
+  if (!workOrder) {
+    return "";
+  }
+  const pieces = [`#${workOrder.id}`, workOrder.title];
+  if (clientLabel) {
+    pieces.push(clientLabel);
+  }
+  if (installationLabel) {
+    pieces.push(installationLabel);
+  } else if (siteLabel) {
+    pieces.push(siteLabel);
+  }
+  return pieces.filter(Boolean).join(" · ");
+}
+
+function buildFinanceDescription(
+  kind: "income" | "expense",
+  workOrder: MaintenanceCostingModalWorkOrder | null,
+  clientLabel?: string | null,
+  siteLabel?: string | null,
+  installationLabel?: string | null,
+  language: "es" | "en" = "es"
+): string {
+  const reference = buildFinanceReferenceLabel(
+    workOrder,
+    clientLabel,
+    siteLabel,
+    installationLabel
+  );
+  const prefix =
+    kind === "income"
+      ? language === "es"
+        ? "Ingreso mantención"
+        : "Maintenance income"
+      : language === "es"
+        ? "Egreso mantención"
+        : "Maintenance expense";
+  if (!reference) {
+    return prefix;
+  }
+  return `${prefix} ${reference}`;
+}
 
 type MaintenanceCostingModalProps = {
   accessToken?: string | null;
@@ -477,6 +529,7 @@ export function MaintenanceCostingModal({
   );
   const [actualLines, setActualLines] = useState<MaintenanceCostLineFormState[]>([]);
   const [completionNote, setCompletionNote] = useState("");
+  const [useCustomTransactionAt, setUseCustomTransactionAt] = useState(false);
   const [financeSyncForm, setFinanceSyncForm] = useState<MaintenanceFinanceSyncFormState>({
     sync_income: true,
     sync_expense: true,
@@ -486,6 +539,8 @@ export function MaintenanceCostingModal({
     expense_category_id: "",
     currency_id: "",
     transaction_at: "",
+    income_description: "",
+    expense_description: "",
     notes: "",
   });
 
@@ -836,6 +891,29 @@ export function MaintenanceCostingModal({
         );
 
         setCompletionNote(currentWorkOrder.closure_notes ?? "");
+        setUseCustomTransactionAt(false);
+        const referenceLabel = buildFinanceReferenceLabel(
+          currentWorkOrder,
+          clientLabel,
+          siteLabel,
+          installationLabel
+        );
+        const defaultIncomeDescription = buildFinanceDescription(
+          "income",
+          currentWorkOrder,
+          clientLabel,
+          siteLabel,
+          installationLabel,
+          language
+        );
+        const defaultExpenseDescription = buildFinanceDescription(
+          "expense",
+          currentWorkOrder,
+          clientLabel,
+          siteLabel,
+          installationLabel,
+          language
+        );
         setFinanceSyncForm({
           sync_income: syncDefaults.maintenance_finance_auto_sync_income,
           sync_expense: syncDefaults.maintenance_finance_auto_sync_expense,
@@ -865,6 +943,8 @@ export function MaintenanceCostingModal({
             currentWorkOrder.completed_at ?? transactionAtSource,
             effectiveTimeZone
           ),
+          income_description: referenceLabel ? defaultIncomeDescription : defaultIncomeDescription,
+          expense_description: referenceLabel ? defaultExpenseDescription : defaultExpenseDescription,
           notes: detail.actual?.notes ?? detail.estimate?.notes ?? "",
         });
       } catch (rawError) {
@@ -1161,7 +1241,15 @@ export function MaintenanceCostingModal({
           ? Number(financeSyncForm.expense_category_id)
           : null,
         currency_id: Number(financeSyncForm.currency_id),
-        transaction_at: null,
+        transaction_at: useCustomTransactionAt && financeSyncForm.transaction_at
+          ? fromDateTimeLocalInputValue(financeSyncForm.transaction_at, effectiveTimeZone)
+          : null,
+        income_description: financeSyncForm.income_description
+          ? financeSyncForm.income_description.trim()
+          : null,
+        expense_description: financeSyncForm.expense_description
+          ? financeSyncForm.expense_description.trim()
+          : null,
         notes: normalizeNullable(financeSyncForm.notes),
       });
       setCostingDetail(response.data);
@@ -1682,14 +1770,48 @@ export function MaintenanceCostingModal({
                       </>
                     ) : (
                       <>
-                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label><select className="form-select" value={financeSyncForm.currency_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, currency_id: event.target.value }))}><option value="">{language === "es" ? "Selecciona una moneda" : "Select a currency"}</option>{activeCurrencies.map((currency) => <option key={currency.id} value={currency.id}>{currency.code} · {currency.name}</option>)}</select></div>
-                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Fecha contable" : "Transaction date"}</label><input className="form-control" type="datetime-local" value={financeTransactionDatePreview || financeSyncForm.transaction_at} readOnly disabled /></div>
+                        <div className="col-12"><label className="form-label">{language === "es" ? "Referencia OT" : "Work order reference"}</label><input className="form-control" value={buildFinanceReferenceLabel(currentWorkOrder, clientLabel, siteLabel, installationLabel)} readOnly /></div>
+                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Moneda" : "Currency"}</label><select className="form-select" value={financeSyncForm.currency_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, currency_id: event.target.value }))} disabled={isReadOnly}><option value="">{language === "es" ? "Selecciona una moneda" : "Select a currency"}</option>{activeCurrencies.map((currency) => <option key={currency.id} value={currency.id}>{currency.code} · {currency.name}</option>)}</select></div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label">{language === "es" ? "Fecha contable" : "Transaction date"}</label>
+                          <input
+                            className="form-control"
+                            type="datetime-local"
+                            value={financeSyncForm.transaction_at || financeTransactionDatePreview}
+                            onChange={(event) =>
+                              setFinanceSyncForm((current) => ({
+                                ...current,
+                                transaction_at: event.target.value,
+                              }))
+                            }
+                            readOnly={isReadOnly || !useCustomTransactionAt}
+                            disabled={isReadOnly || !useCustomTransactionAt}
+                          />
+                          {!isReadOnly ? (
+                            <div className="form-check mt-2">
+                              <input
+                                id="maintenance-sync-custom-date"
+                                className="form-check-input"
+                                type="checkbox"
+                                checked={useCustomTransactionAt}
+                                onChange={(event) => setUseCustomTransactionAt(event.target.checked)}
+                              />
+                              <label className="form-check-label" htmlFor="maintenance-sync-custom-date">
+                                {language === "es"
+                                  ? "Ajustar fecha contable manualmente"
+                                  : "Adjust transaction date manually"}
+                              </label>
+                            </div>
+                          ) : null}
+                        </div>
                         <div className="col-12 col-md-6"><div className="form-check mt-4"><input id="maintenance-sync-income-modal" className="form-check-input" type="checkbox" checked={financeSyncForm.sync_income} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, sync_income: event.target.checked }))} /><label className="form-check-label" htmlFor="maintenance-sync-income-modal">{language === "es" ? "Sincronizar ingreso" : "Sync income"}</label></div></div>
                         <div className="col-12 col-md-6"><div className="form-check mt-4"><input id="maintenance-sync-expense-modal" className="form-check-input" type="checkbox" checked={financeSyncForm.sync_expense} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, sync_expense: event.target.checked }))} /><label className="form-check-label" htmlFor="maintenance-sync-expense-modal">{language === "es" ? "Sincronizar egreso" : "Sync expense"}</label></div></div>
-                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Cuenta ingreso" : "Income account"}</label><select className="form-select" value={financeSyncForm.income_account_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, income_account_id: event.target.value }))} disabled={!financeSyncForm.sync_income}><option value="">{language === "es" ? "Selecciona una cuenta" : "Select an account"}</option>{activeFinanceAccounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}</select></div>
-                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Categoría ingreso" : "Income category"}</label><select className="form-select" value={financeSyncForm.income_category_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, income_category_id: event.target.value }))} disabled={!financeSyncForm.sync_income}><option value="">{language === "es" ? "Sin categoría específica" : "No specific category"}</option>{incomeCategories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></div>
-                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Cuenta egreso" : "Expense account"}</label><select className="form-select" value={financeSyncForm.expense_account_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, expense_account_id: event.target.value }))} disabled={!financeSyncForm.sync_expense}><option value="">{language === "es" ? "Selecciona una cuenta" : "Select an account"}</option>{activeFinanceAccounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}</select></div>
-                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Categoría egreso" : "Expense category"}</label><select className="form-select" value={financeSyncForm.expense_category_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, expense_category_id: event.target.value }))} disabled={!financeSyncForm.sync_expense}><option value="">{language === "es" ? "Sin categoría específica" : "No specific category"}</option>{expenseCategories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></div>
+                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Cuenta ingreso" : "Income account"}</label><select className="form-select" value={financeSyncForm.income_account_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, income_account_id: event.target.value }))} disabled={!financeSyncForm.sync_income || isReadOnly}><option value="">{language === "es" ? "Selecciona una cuenta" : "Select an account"}</option>{activeFinanceAccounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}</select></div>
+                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Categoría ingreso" : "Income category"}</label><select className="form-select" value={financeSyncForm.income_category_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, income_category_id: event.target.value }))} disabled={!financeSyncForm.sync_income || isReadOnly}><option value="">{language === "es" ? "Sin categoría específica" : "No specific category"}</option>{incomeCategories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></div>
+                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Glosa ingreso" : "Income description"}</label><input className="form-control" value={financeSyncForm.income_description} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, income_description: event.target.value }))} disabled={!financeSyncForm.sync_income || isReadOnly} /></div>
+                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Cuenta egreso" : "Expense account"}</label><select className="form-select" value={financeSyncForm.expense_account_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, expense_account_id: event.target.value }))} disabled={!financeSyncForm.sync_expense || isReadOnly}><option value="">{language === "es" ? "Selecciona una cuenta" : "Select an account"}</option>{activeFinanceAccounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}</select></div>
+                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Categoría egreso" : "Expense category"}</label><select className="form-select" value={financeSyncForm.expense_category_id} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, expense_category_id: event.target.value }))} disabled={!financeSyncForm.sync_expense || isReadOnly}><option value="">{language === "es" ? "Sin categoría específica" : "No specific category"}</option>{expenseCategories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></div>
+                        <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Glosa egreso" : "Expense description"}</label><input className="form-control" value={financeSyncForm.expense_description} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, expense_description: event.target.value }))} disabled={!financeSyncForm.sync_expense || isReadOnly} /></div>
                         <div className="col-12"><label className="form-label">{language === "es" ? "Notas para finanzas" : "Finance notes"}</label><textarea className="form-control" rows={2} value={financeSyncForm.notes} onChange={(event) => setFinanceSyncForm((current) => ({ ...current, notes: event.target.value }))} /></div>
                         <div className="col-12"><div className="maintenance-history-entry__meta">{language === "es" ? (currentWorkOrder.completed_at ? "La fecha contable se toma siempre desde la hora real de cierre de la OT." : "La fecha contable se fijará automáticamente al momento real de cerrar o sincronizar la OT.") : (currentWorkOrder.completed_at ? "The transaction date always uses the real work-order close timestamp." : "The transaction date will be fixed automatically at the real moment the work order is closed or synced.")}</div></div>
                         <div className="col-12"><div className="maintenance-history-entry__meta">{language === "es" ? "Ingreso vinculado" : "Linked income"}: {costingDetail?.actual?.income_transaction_id ?? "—"} · {language === "es" ? "Egreso vinculado" : "Linked expense"}: {costingDetail?.actual?.expense_transaction_id ?? "—"}</div></div>

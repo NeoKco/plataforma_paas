@@ -223,6 +223,9 @@ Avance actual:
   - `Resumen técnico` y `Costos y cobro` ahora precargan desde la misma fuente
   - el backend ya prioriza política tenant, moneda base/`CLP`, categorías de mantención y cuentas compatibles por moneda
   - ese primer corte ya quedó validado por smoke browser published en `staging` y `production`
+- segundo corte de llenado fino en progreso en repo:
+  - `finance-sync` acepta glosas editables y fecha contable opcional
+  - `Costos y cobro` muestra `Referencia OT`, glosa ingreso/egreso y toggle de fecha contable manual
 - tablas ya versionadas:
   - `maintenance_schedules`
   - `maintenance_due_items`
@@ -273,6 +276,7 @@ Pendiente fino inmediato de esta fase:
 - autollenado más preciso de categorías, cuentas y moneda al cerrar costeo
 - ergonomía de defaults para que el operador no duplique digitación entre `maintenance` y `finance`
 - aprovechamiento explícito del nuevo baseline financiero `CLP + Casa/Empresa`
+- cerrar el subcorte de glosa/fecha contable con rollout en `staging` y `production` y smoke actualizado
 - tablas y columnas ya versionadas para el seed preventivo del costeo:
   - `maintenance_schedule_cost_lines`
   - `maintenance_schedules.estimate_target_margin_percent`

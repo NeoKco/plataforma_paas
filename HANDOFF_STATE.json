@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T01:32:00-04:00",
+  "updated_at": "2026-04-12T10:15:00-04:00",
   "handoff_status": "active",
-  "current_focus": "abrir el segundo corte funcional maintenance -> finance ya con el primer corte de defaults efectivos cerrado en staging y production",
+  "current_focus": "publicar el segundo corte functional maintenance -> finance (glosa y fecha contable opcional) desde repo hacia staging y production",
   "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa, baseline contractual por modulos ya publicado, gobernanza transversal ampliada con data governance y SRED, y primer corte maintenance -> finance ya cerrado en repo staging y production",
   "active_modules": [
     "platform-core",
@@ -239,12 +239,13 @@
     "tenant-portal-sidebar-modules revalidado con 1 passed en staging y production despues del deploy backend sin cambios frontend",
     "data-governance.md agregado como canon transversal para ownership, contratos de datos, seeds/defaults, calidad minima, archivo y portabilidad",
     "sred-development.md agregado como metodo corto oficial de cierre por Spec, Rules, Evidence y Documentation",
-    "PROJECT_CONTEXT REGLAS_IMPLEMENTACION CHECKLIST_CIERRE_ITERACION PROMPT_MAESTRO_MODULO implementation-governance y module-build-standard ya enlazan gobernanza de datos y SRED"
+    "PROJECT_CONTEXT REGLAS_IMPLEMENTACION CHECKLIST_CIERRE_ITERACION PROMPT_MAESTRO_MODULO implementation-governance y module-build-standard ya enlazan gobernanza de datos y SRED",
+    "el segundo corte de llenado fino maintenance -> finance agrega glosa y fecha contable opcional sin romper el sync base"
   ],
   "blocking_issues": [
     "no hay bloqueo tecnico abierto"
   ],
-  "next_decision_required": "definir que subcorte del llenado fino maintenance -> finance conviene abrir primero: glosa y referencia sugerida, sync al cerrar OT, sync manual o combinacion de ambos",
+  "next_decision_required": "no hay decision funcional pendiente; toca desplegar el subcorte de glosa/fecha contable en staging y validar smoke",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

@@ -46,6 +46,8 @@ class MaintenanceFinanceSyncRequest(BaseModel):
     expense_category_id: int | None = None
     currency_id: int
     transaction_at: datetime | None = None
+    income_description: str | None = None
+    expense_description: str | None = None
     notes: str | None = None
 
 

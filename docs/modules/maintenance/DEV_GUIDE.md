@@ -148,6 +148,10 @@ Fuente frontend principal:
 - el reporte `instalaciones activas sin plan preventivo` debe cruzar instalaciones activas contra schedules activos y permitir abrir `Nueva programación` ya precargada
 - el primer corte de costeo/cobro ya vive en `work_orders` como acción modal `Costos`, no como pantalla separada ni como formulario incrustado
 - el mismo dominio de `Costos` ya puede abrirse también desde `Historial`, pero en modo solo lectura para congelar el cierre económico y no mutar una OT pasada desde la UX normal
+- el bloque `Sincronizar a finanzas` dentro de `Costos y cobro` ahora permite:
+  - editar glosa de ingreso y egreso antes de sincronizar
+  - ver la referencia OT derivada del contexto operativo
+  - ajustar la fecha contable solo si el operador activa el toggle de edición manual
 - el segundo corte de costeo ya agrega `maintenance_cost_lines`:
   - por ahora sirve para detallar costo técnico granular por etapa `estimate` y `actual`
   - si existen líneas, el resumen por rubro se deriva automáticamente desde ellas
@@ -284,6 +288,9 @@ Con modulos tenant:
 - `Resumen técnico` ya expone además la política tenant para auto-sync `maintenance -> finance`, persistiendo vía `/tenant/info/maintenance-finance-sync`
 - el frontend ya no debe resolver defaults financieros solo desde `/tenant/info`; la fuente de verdad de sugerencias efectivas es `GET /tenant/maintenance/finance-sync-defaults`
 - `Costos y cobro` y `Resumen técnico` deben compartir ese mismo contrato para precargar moneda, cuentas y categorías sin heurísticas separadas en frontend
+- el sync manual ahora puede incluir glosa explícita y fecha contable:
+  - `income_description` / `expense_description` permiten ajustar la glosa que llega a Finanzas
+  - `transaction_at` permite ajustar la fecha contable en el reintento o en sync manual previo al cierre
 - `Agenda técnica` y `Mantenciones abiertas` ya calculan conflictos visibles en frontend cuando dos OT abiertas comparten slot horario e instalación/grupo/técnico
 - `work_orders` ahora también bloquea en backend esos cruces de slot con respuesta `409`, para cubrir concurrencia operativa básica fuera del navegador actual
 - `Agenda técnica` ya permite además filtrar la lectura mensual por grupo responsable y técnico responsable

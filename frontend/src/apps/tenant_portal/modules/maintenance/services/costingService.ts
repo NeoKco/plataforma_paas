@@ -115,6 +115,8 @@ export type TenantMaintenanceFinanceSyncRequest = {
   expense_category_id: number | null;
   currency_id: number;
   transaction_at: string | null;
+  income_description: string | null;
+  expense_description: string | null;
   notes: string | null;
 };
 

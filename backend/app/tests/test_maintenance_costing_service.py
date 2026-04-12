@@ -555,6 +555,55 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
         self.assertEqual(estimate.notes, "Base preventiva anual")
         self.assertEqual(len(detail["estimate_lines"]), 2)
 
+    def test_sync_to_finance_uses_custom_description_and_date(self) -> None:
+        work_order = SimpleNamespace(id=31, title="Mantención anual", completed_at=None)
+        actual = MaintenanceCostActual(
+            work_order_id=31,
+            labor_cost=0,
+            travel_cost=0,
+            materials_cost=0,
+            external_services_cost=0,
+            overhead_cost=0,
+            total_actual_cost=12000,
+            actual_price_charged=18000,
+            actual_income=18000,
+            actual_profit=6000,
+            actual_margin_percent=33.33,
+        )
+        currency = SimpleNamespace(id=3)
+        tenant_db = _FakeTenantDb(
+            {
+                MaintenanceWorkOrder: work_order,
+                MaintenanceCostActual: actual,
+                FinanceCurrency: currency,
+            }
+        )
+        finance_service = Mock()
+        finance_service.create_transaction.return_value = SimpleNamespace(id=77)
+        service = MaintenanceCostingService(finance_service=finance_service)
+        custom_date = datetime(2026, 4, 12, 9, 0, tzinfo=timezone.utc)
+
+        payload = MaintenanceFinanceSyncRequest(
+            sync_income=True,
+            sync_expense=False,
+            income_account_id=10,
+            expense_account_id=None,
+            income_category_id=None,
+            expense_category_id=None,
+            currency_id=3,
+            transaction_at=custom_date,
+            income_description="Ingreso mantención custom",
+            notes="nota",
+        )
+
+        service.sync_to_finance(tenant_db, 31, payload, actor_user_id=5)
+
+        self.assertTrue(finance_service.create_transaction.called)
+        args, _kwargs = finance_service.create_transaction.call_args
+        created_payload = args[1]
+        self.assertEqual(created_payload.description, "Ingreso mantención custom")
+        self.assertEqual(created_payload.transaction_at, custom_date)
+
 
 if __name__ == "__main__":
     unittest.main()

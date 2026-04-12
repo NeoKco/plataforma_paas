@@ -2,24 +2,17 @@
 
 ## Prioridad vigente
 
-- abrir el segundo corte funcional `maintenance -> finance`, ahora sobre llenado fino operativo y no sobre defaults efectivos
+- promover a `staging` el subcorte de glosa/fecha contable en `Costos y cobro` y validarlo con smoke
 
 ## Decisión previa obligatoria
 
-- fijar qué parte del llenado fino debe atacarse primero:
-  - glosa y referencia sugerida
-  - sync al cerrar OT
-  - sync manual desde `Costos y cobro`
-  - reglas de campos bloqueados vs editables
+- no hay decisión nueva pendiente; el subcorte ya está implementado en repo
 
 ## Próximo paso correcto
 
-- definir el flujo funcional exacto del segundo corte `maintenance -> finance`:
-  - qué se propone automáticamente
-  - qué se deriva desde OT
-  - qué sigue editable por el operador
-  - en qué momento se crea o propone el movimiento financiero
-- después implementar el primer subcorte usable con evidencia browser o backend suficiente
+- publicar backend + frontend en `staging`
+- ejecutar el smoke `tenant-portal-maintenance-finance-defaults.smoke.spec.ts`
+- si queda verde, promover a `production`
 
 ## Si el escenario principal falla
 
@@ -29,4 +22,5 @@
 
 ## Condición de cierre de la próxima iteración
 
-- debe quedar cerrada la especificación operativa del segundo corte `maintenance -> finance`, o idealmente implementado y validado su primer subcorte funcional
+- subcorte de glosa/fecha contable publicado y validado en `staging`
+- promoción a `production` ejecutada si `staging` queda verde

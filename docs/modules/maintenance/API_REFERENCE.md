@@ -87,6 +87,16 @@ Notas operativas vigentes:
   - cuenta favorita o única compatible por moneda
 - este endpoint existe para que `Resumen técnico` y `Costos y cobro` consuman la misma fuente de verdad y no inventen defaults distintos en frontend
 
+Sincronización manual maintenance -> finance:
+
+- `POST /tenant/maintenance/work-orders/<id>/finance-sync`
+
+Campos relevantes del request:
+
+- `transaction_at` opcional para ajustar la fecha contable (si no se envía, se usa `completed_at` o `now()`)
+- `income_description` y `expense_description` opcionales para controlar la glosa que llega a Finanzas
+- `notes` mantiene la observación operativa asociada al cierre económico
+
 Ordenes de trabajo:
 
 - `GET /tenant/maintenance/work-orders`

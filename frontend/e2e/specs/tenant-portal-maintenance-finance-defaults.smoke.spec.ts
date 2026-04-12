@@ -55,4 +55,13 @@ test("tenant portal maintenance uses backend-resolved finance defaults in overvi
       /Sincronizar a finanzas|Sincronización manual opcional|Reintento o ajuste de sincronización|Sync to finance|Optional manual finance sync|Finance sync retry or adjustment/i
     ).first()
   ).toBeVisible();
+  await expect(
+    costingDialog.getByText(/Referencia OT|Work order reference/i)
+  ).toBeVisible();
+  await expect(
+    costingDialog.getByText(/Glosa ingreso|Income description/i)
+  ).toBeVisible();
+  await expect(
+    costingDialog.getByText(/Glosa egreso|Expense description/i)
+  ).toBeVisible();
 });

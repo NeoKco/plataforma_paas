@@ -264,10 +264,12 @@ class MaintenanceCostingService:
         if actual is None:
             raise ValueError("Primero debes registrar el costo real antes de sincronizar con finance")
 
-        transaction_at = work_order.completed_at or datetime.now(timezone.utc)
+        transaction_at = payload.transaction_at or work_order.completed_at or datetime.now(timezone.utc)
         currency_id = self._get_currency_or_raise(tenant_db, payload.currency_id).id
         summary_label = self._build_work_order_label(work_order)
         note = self._normalize_text(payload.notes)
+        income_description = self._normalize_text(payload.income_description)
+        expense_description = self._normalize_text(payload.expense_description)
 
         if payload.sync_income:
             if actual.actual_price_charged <= 0:
@@ -290,7 +292,7 @@ class MaintenanceCostingService:
                 amortization_months=None,
                 transaction_at=transaction_at,
                 alternative_date=None,
-                description=f"Ingreso mantención {summary_label}",
+                description=income_description or f"Ingreso mantención {summary_label}",
                 notes=note or actual.notes,
                 is_favorite=False,
                 is_reconciled=False,
@@ -336,7 +338,7 @@ class MaintenanceCostingService:
                 amortization_months=None,
                 transaction_at=transaction_at,
                 alternative_date=None,
-                description=f"Egreso mantención {summary_label}",
+                description=expense_description or f"Egreso mantención {summary_label}",
                 notes=note or actual.notes,
                 is_favorite=False,
                 is_reconciled=False,
@@ -433,6 +435,8 @@ class MaintenanceCostingService:
                         "expense_category_id": policy["maintenance_finance_expense_category_id"],
                         "currency_id": currency_id,
                         "transaction_at": None,
+                        "income_description": None,
+                        "expense_description": None,
                         "notes": "Auto sync maintenance-finance",
                     },
                 )(),
