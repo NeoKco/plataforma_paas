@@ -41,15 +41,31 @@ Tablas base ya creadas en `Lote 1`:
 
 ## Seeds idempotentes iniciales
 
-- moneda base `USD`
-- moneda secundaria `CLP`
-- catalogo default de categorias:
-  - ingresos: `Ingreso General`, `Sueldo`, `Ventas`, `Honorarios y servicios`, `Reembolso`, `Intereses y rendimientos`, `Otros ingresos`
-  - egresos: `Egreso General`, `Gastos menores`, `Transporte y ruta`, `Herramientas e insumos`, `Materiales de proyecto`, `Combustible`, `Publicidad impresa`, `Mantencion vehicular`, `Impuestos`, `Internet y telefonia`, `Alimentacion`, `TAG y peajes`, `Salud`, `Hipotecario`, `Ocio y salidas`, `Electricidad`, `Agua`, `Gas`, `Vestuario`, `Regalos`, `Credito de consumo`, `Credito camioneta`, `Deporte`, `Estacionamiento`, `Educacion`, `Seguros`, `Mascotas`, `Cuidado personal`
-  - transferencias: `Transferencia interna`, `Deposito entre cuentas`, `Ajuste de saldo`
+Lo que dejan las migraciones base:
+
+- moneda base inicial de migración: `USD`
+- moneda adicional sembrada por migración: `CLP`
+- catálogo default reparador del módulo
 - settings:
   - `base_currency_code`
   - `account_types_catalog`
+
+Lo que ajusta después el bootstrap tenant cuando corresponde `core` o `finance`:
+
+- moneda base efectiva por default: `CLP`
+- `finance_settings.base_currency_code = CLP`
+- catálogo financiero operativo compartido:
+  - ingresos: `Ingreso General`, `Ventas`, `Mantenciones y servicios`, `Honorarios y servicios`, `Sueldo`, `Reembolso`, `Otros ingresos`
+  - egresos operativos: `Egreso General`, `Costos de mantencion`, `Sueldos y honorarios`, `Arriendo y servicios`, `Transporte y ruta`, `Herramientas e insumos`, `Materiales de proyecto`, `Combustible`, `Publicidad y marketing`, `Mantencion vehicular`, `Impuestos`, `Seguros`
+  - transferencias: `Transferencia interna`, `Deposito entre cuentas`, `Ajuste de saldo`
+- familias clasificadas desde `ieris_app` para no mezclar lectura doméstica y empresarial:
+  - `Empresa - ...`
+  - `Casa - ...`
+
+Regla operativa:
+
+- si la DB tenant aún no tiene uso financiero, el bootstrap puede reemplazar el catálogo neutral por este baseline final
+- si ya existe uso financiero, el bootstrap solo agrega o reactiva faltantes y evita resetear la operación en curso
 
 ## Finalidad de cada tabla
 

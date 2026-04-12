@@ -2,6 +2,27 @@
 
 ## 2026-04-11
 
+- endurecimiento del bootstrap contractual por módulos en tenants nuevos y en cambios posteriores de plan:
+  - [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py) ahora separa `seed_defaults(...)` del bootstrap DB completo para reutilizar el mismo baseline tanto en provisioning inicial como en backfill por cambio de plan
+  - el baseline financiero ya no queda solo en perfil vertical excluyente; ahora siembra:
+    - `CLP` como moneda base efectiva por defecto
+    - `base_currency_code=CLP`
+    - categorías operativas compartidas
+    - familias clasificadas `Casa - ...` y `Empresa - ...` derivadas desde `ieris_app`
+  - el baseline de `business-core` ya puede sembrar:
+    - perfiles funcionales `tecnico`, `lider`, `administrativo`, `vendedor`, `otro`, `supervisor`
+    - tipos de tarea `mantencion`, `instalacion`, `tareas generales`, `ventas`, `administracion`
+    - compatibilidad base `task_type -> function_profiles`
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ahora backfillea esos defaults cuando un tenant activo gana `core` o `finance` por cambio de plan, sin exigir reprovisionar la DB
+  - [provisioning_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/provisioning_service.py) pasa explícitamente los módulos habilitados del plan al bootstrap tenant
+- validación de repo para este corte:
+  - `python -m unittest app.tests.test_tenant_db_bootstrap_service app.tests.test_tenant_service_module_seed_backfill` -> `5 tests OK`
+  - `python3 -m py_compile` sobre los archivos nuevos/modificados -> `OK`
+- estado de release al cierre:
+  - `repo`: actualizado y validado
+  - `staging`: todavía no publicado para este subcorte
+  - `production`: todavía no publicado para este subcorte
+
 - promoción operativa del corte `maintenance contractual + finance bootstrap por vertical` a `production`:
   - backend `production` desplegado con `/opt/platform_paas/.env`
   - frontend `production` reconstruido con `API_BASE_URL=https://orkestia.ddns.net`

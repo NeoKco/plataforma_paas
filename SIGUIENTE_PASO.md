@@ -2,29 +2,30 @@
 
 ## Prioridad vigente
 
-- abrir el slice de llenado fino `maintenance -> finance` sobre una base ya publicada y validada en `staging` y `production`
+- publicar y validar en `staging` el nuevo bootstrap contractual por módulos antes de abrir el autollenado fino `maintenance -> finance`
 
 ## Decisión previa obligatoria
 
 - ¿qué decisión define el camino siguiente?
-  - qué reglas exactas de autollenado entre `maintenance` y `finance` deben quedar como baseline primero: categorías, cuentas, price/cost default o ambos
+  - si la validación del baseline tenant nuevo se cerrará con smoke/browser o con verificación manual guiada en `staging`
 
 ## Próximo paso correcto
 
-- abrir el slice de autollenado entre `maintenance` y `finance`
-- usar el nuevo catálogo vertical como base para seleccionar categorías sugeridas o por defecto
-- mantener como verificación complementaria pendiente, pero no bloqueante del slice:
-  - alta visible de un tenant nuevo `empresa`
-  - alta visible de un tenant nuevo `condominio`
-  - revisión de categorías por defecto sembradas en cada caso
+- desplegar este subcorte en `staging`
+- crear o reprovisionar un tenant de prueba con `core`
+- verificar:
+  - moneda base `CLP`
+  - categorías `Casa - ...` y `Empresa - ...`
+  - perfiles funcionales default
+  - tipos de tarea default
+- si esa validación queda limpia, promover el mismo subcorte a `production`
+- después de eso, abrir el slice de autollenado `maintenance -> finance`
 
 ## Si el escenario principal falla
 
-- si el bootstrap vertical de categorías no queda suficientemente claro para operación, agregar un helper visible o runbook corto de verificación por tenant nuevo
-- si el slice `maintenance -> finance` descubre huecos de catálogo, corregir primero defaults/categorías base antes de automatizar costeo o cobro
+- si el bootstrap visible no queda correcto en `staging`, corregir primero seed/backfill antes de tocar `maintenance -> finance`
+- si el problema es solo de validación browser y no de backend, dejar runbook/manual de verificación y no mezclar el arreglo con el siguiente slice funcional
 
 ## Condición de cierre de la próxima iteración
 
-- la próxima iteración debe dejar una de estas dos cosas cerradas:
-  - reglas base de autollenado `maintenance -> finance` definidas e implementadas en un primer corte
-  - o, como mínimo, el diseño funcional/backend/frontend de ese slice dejado cerrado para implementación directa
+- el siguiente cierre debe dejar este subcorte publicado y validado al menos en `staging`, o dejar un bloqueo técnico explícito con evidencia suficiente para retomarlo sin releer el chat

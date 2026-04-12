@@ -249,6 +249,10 @@ Avance actual:
   - `maintenance_finance_sync_mode`
   - flags de auto-sync ingreso/egreso
   - cuentas/categorías/moneda por defecto
+- el puente `maintenance -> finance` ya existe en primer corte:
+  - sync manual por OT
+  - sync automático opcional `auto_on_close`
+  - enlace persistente a `income_transaction_id` y `expense_transaction_id`
 - frontend tenant ya permite desde `Mantenciones`:
   - guardar costo estimado
   - guardar costo real
@@ -258,6 +262,12 @@ Avance actual:
   - crear y reaplicar plantillas de costeo también desde el modal `Costos` de cada OT, no solo desde `Nueva programación`
 - se agrega migración tenant `0025_maintenance_schedule_estimate_defaults`
 - se agrega migración tenant `0026_maintenance_cost_templates`
+
+Pendiente fino inmediato de esta fase:
+
+- autollenado más preciso de categorías, cuentas y moneda al cerrar costeo
+- ergonomía de defaults para que el operador no duplique digitación entre `maintenance` y `finance`
+- aprovechamiento explícito del nuevo baseline financiero `CLP + Casa/Empresa`
 - tablas y columnas ya versionadas para el seed preventivo del costeo:
   - `maintenance_schedule_cost_lines`
   - `maintenance_schedules.estimate_target_margin_percent`

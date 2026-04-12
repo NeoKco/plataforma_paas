@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-11T23:55:00-04:00",
+  "updated_at": "2026-04-11T23:59:00-04:00",
   "handoff_status": "active",
-  "current_focus": "rollout contractual tenant cerrado para maintenance como modulo independiente y bootstrap financiero por vertical ya publicado en staging y production; el siguiente paso es abrir el slice de llenado fino maintenance -> finance",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa y corte contractual de modulos tenant + bootstrap financiero por vertical ya publicado en staging y production",
+  "current_focus": "repo endurecido para bootstrap contractual por modulos tenant: CLP base, categorias Casa/Empresa, perfiles funcionales y tipos de tarea default, con backfill por cambio de plan; el siguiente paso es publicar y validar este subcorte en staging antes del slice maintenance -> finance",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa y nuevo subcorte en repo para bootstrap contractual por modulos pendiente de publish en staging/production",
   "active_modules": [
     "platform-core",
     "finance",
@@ -13,9 +13,13 @@
   "module_in_focus": [
     "platform-core",
     "finance",
-    "maintenance"
+    "business-core"
   ],
   "decisions_closed": [
+    "el bootstrap contractual por modulos debe servir tanto para provisioning inicial como para backfill por cambio de plan",
+    "el baseline financiero de tenants nuevos ya no debe quedar con USD como moneda operativa final por defecto; CLP pasa a ser la base efectiva",
+    "la convivencia de categorias casa y empresa en finance se resuelve con nombres clasificados Casa - ... y Empresa - ... para respetar la unicidad name+category_type",
+    "el siguiente slice maintenance -> finance debe enfocarse en autollenado y ergonomia porque la integracion base ya existe",
     "finance sigue como modulo piloto y referencia de slice tenant",
     "business-core es el dominio transversal tenant",
     "maintenance depende de business-core y no debe duplicarlo",
@@ -53,6 +57,12 @@
     "deploy_backend_staging.sh debe apuntar por defecto a /opt/platform_paas_staging y no al root de produccion"
   ],
   "completed_recently": [
+    "tenant_db_bootstrap_service ahora separa seed_defaults reutilizable para provisioning inicial y backfill por cambio de plan",
+    "finance default_category_profiles ahora siembra baseline mixto con CLP, categorias compartidas y familias Casa - ... / Empresa - ... derivadas desde ieris_app",
+    "business_core default_catalog_profiles agregado con perfiles funcionales y tipos de tarea default",
+    "tenant_service set_plan ahora puede backfillear defaults de core/finance sobre tenants activos ya provisionados",
+    "provisioning_service ya pasa enabled_modules del plan al bootstrap tenant",
+    "backend unittest del subcorte bootstrap contractual por modulos validado con 5 tests",
     "backend staging desplegado con el corte contractual maintenance + bootstrap financiero por vertical",
     "frontend staging publicado con API_BASE_URL=http://192.168.7.42:8081 para este corte contractual",
     "smoke tenant-portal-sidebar-modules validado en staging con 1 passed",
@@ -206,8 +216,10 @@
     "helper staging published broker-only validado con --target family",
     "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
   ],
-  "blocking_issues": [],
-  "next_decision_required": "definir e implementar el primer corte de llenado fino entre maintenance y finance sobre la base ya publicada",
+  "blocking_issues": [
+    "el subcorte bootstrap contractual por modulos aun no esta validado visualmente en staging"
+  ],
+  "next_decision_required": "decidir si la validacion visible del bootstrap contractual por modulos en staging se cerrara con smoke/browser o con verificacion manual guiada antes de abrir maintenance -> finance",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -258,6 +270,8 @@
     "docs/deploy/staging-bootstrap-reset.md"
   ],
   "validation_status": {
+    "tenant_bootstrap_contractual_defaults_backend_unittest_repo": "pass",
+    "tenant_bootstrap_contractual_defaults_py_compile_repo": "pass",
     "backend_baseline": "pass",
     "frontend_build": "pass",
     "frontend_static_preflight_local": "pass",

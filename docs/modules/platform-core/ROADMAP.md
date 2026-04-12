@@ -42,6 +42,10 @@ Estado práctico de cierre:
 - alta de `Nuevo tenant` con admin inicial explícito y sin bootstrap fijo compartido
 - lectura visible en `Tenants` de que los módulos se habilitan por `plan`, tanto en el alta como en el bloque `Plan y módulos`
 - separación contractual real de `maintenance` respecto de `core`, tanto en middleware tenant como en visibilidad del `tenant_portal`
+- bootstrap tenant contractual por módulos:
+  - `core` ya puede sembrar baseline de `business-core`
+  - `core` o `finance` ya pueden sembrar baseline financiero final con `CLP`
+  - el cambio posterior de plan puede backfillear esos defaults sin reprovisionar la DB tenant
 - publicación en `staging` del corte contractual `maintenance` + bootstrap financiero por vertical
 - validación browser en `staging` del sidebar tenant con `maintenance` tratado como módulo propio
 - publicación en `production` del corte contractual `maintenance` + bootstrap financiero por vertical
@@ -150,6 +154,7 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - el wrapper [deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh) ya quedó corregido para apuntar por defecto a `/opt/platform_paas_staging`; no debe volver a asumir `/opt/platform_paas`
 - el corte contractual `maintenance` + bootstrap financiero por vertical ya quedó validado en repo y publicado en `staging` y `production`
 - la validación visible del bootstrap vertical creando tenants nuevos sigue pendiente; hoy esa parte está cerrada por unit tests backend, no por smoke browser
+- el baseline contractual de bootstrap por módulos ya quedó cerrado en repo, pero todavía no está promovido en este corte nuevo de `CLP + Casa/Empresa + task_types/function_profiles` hasta publicarse y validarse en `staging`
 - el staging ya puede alternar entre espejo instalado y bootstrap reset; hoy queda institucionalizado que el modo normal es espejo operativo y el siguiente paso ya no es de entorno sino de roadmap
 - la plataforma ya tiene backup y restore PostgreSQL por tenant, export portable mínimo en `CSV + manifest` e import controlado mínimo con `dry_run` y `apply`, ya validados en `staging` y `production`
 - el repo ya soporta además export/import dual (`portable_full` y `functional_data_only`) desde `platform_admin` y `tenant_portal`; ese corte ya quedó validado en `staging` y `production`

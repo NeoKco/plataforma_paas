@@ -26,6 +26,9 @@ from app.apps.provisioning.services.tenant_schema_service import TenantSchemaSer
 from app.apps.provisioning.services.provisioning_dispatch_service import (
     ProvisioningDispatchService,
 )
+from app.apps.provisioning.services.tenant_db_bootstrap_service import (
+    TenantDatabaseBootstrapService,
+)
 from app.apps.tenant_modules.core.services.tenant_connection_service import (
     TenantConnectionService,
 )
@@ -70,6 +73,7 @@ class TenantService:
         provisioning_dispatch_service: ProvisioningDispatchService | None = None,
         tenant_connection_service: TenantConnectionService | None = None,
         tenant_schema_service: TenantSchemaService | None = None,
+        tenant_database_bootstrap_service: TenantDatabaseBootstrapService | None = None,
         tenant_plan_policy_service: TenantPlanPolicyService | None = None,
         tenant_billing_grace_policy_service: TenantBillingGracePolicyService | None = None,
         tenant_secret_service: TenantSecretService | None = None,
@@ -88,6 +92,9 @@ class TenantService:
             tenant_connection_service or TenantConnectionService()
         )
         self.tenant_schema_service = tenant_schema_service or TenantSchemaService()
+        self.tenant_database_bootstrap_service = (
+            tenant_database_bootstrap_service or TenantDatabaseBootstrapService()
+        )
         self.tenant_plan_policy_service = (
             tenant_plan_policy_service or TenantPlanPolicyService()
         )
@@ -1021,7 +1028,15 @@ class TenantService:
         if not tenant:
             raise ValueError("Tenant not found")
 
-        tenant.plan_code = self._normalize_plan_code(plan_code)
+        normalized_plan_code = self._normalize_plan_code(plan_code)
+        enabled_modules = self.tenant_plan_policy_service.get_enabled_modules(
+            normalized_plan_code
+        )
+        self._backfill_module_seed_defaults_if_needed(
+            tenant,
+            enabled_modules=enabled_modules,
+        )
+        tenant.plan_code = normalized_plan_code
         return self.tenant_repository.save(db, tenant)
 
     def get_tenant_module_limits(self, tenant: Tenant) -> dict[str, int] | None:
@@ -1446,6 +1461,38 @@ class TenantService:
     def _apply_schema_tracking(self, tenant: Tenant, status: dict) -> None:
         tenant.tenant_schema_version = status.get("current_version")
         tenant.tenant_schema_synced_at = status.get("last_applied_at")
+
+    def _backfill_module_seed_defaults_if_needed(
+        self,
+        tenant: Tenant,
+        *,
+        enabled_modules: list[str] | None,
+    ) -> None:
+        normalized_modules = {
+            item.strip().lower() for item in (enabled_modules or []) if item and item.strip()
+        }
+        if not normalized_modules:
+            return
+        if not ({"all", "core", "finance"} & normalized_modules):
+            return
+        if tenant.status != "active" or not self._is_tenant_db_configured(tenant):
+            return
+
+        session_factory = self.tenant_connection_service.get_tenant_session(tenant)
+        tenant_db = session_factory()
+        bind = tenant_db.get_bind()
+        try:
+            self.tenant_database_bootstrap_service.seed_defaults(
+                tenant_db,
+                tenant_name=tenant.name,
+                tenant_slug=tenant.slug,
+                tenant_type=tenant.tenant_type,
+                enabled_modules=sorted(normalized_modules),
+            )
+            tenant_db.commit()
+        finally:
+            tenant_db.close()
+            bind.dispose()
 
     def _validate_tenant_db_connection(
         self,

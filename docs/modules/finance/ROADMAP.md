@@ -29,9 +29,15 @@ Ya cubre:
 - compatibilidad legacy sobre `finance_transactions`
 - seeds y migraciones tenant del dominio
 - bootstrap tenant con catálogo financiero inicial por vertical (`empresa` vs `condominio/hogar`)
+- bootstrap tenant reforzado para sembrar baseline financiero también cuando el tenant habilita `core` o `finance` por contrato
 - self-service de sync de schema
 - categorías default ampliadas
 - manejo de moneda base y formateo de montos
+- moneda base default `CLP` para tenants nuevos o tenants sin uso financiero todavía
+- catálogo default mixto:
+  - ingresos/egresos operativos compartidos
+  - familias clasificadas `Casa - ...`
+  - familias clasificadas `Empresa - ...`
 - ayudas contextuales en UI
 - importador idempotente con compresión de imágenes
 - E2E browser base revalidado con `empresa-bootstrap`
@@ -65,3 +71,13 @@ Desde este punto, cualquier trabajo adicional de dominio en `finance` debe trata
 - automatización adicional
 
 No como deuda del cierre base.
+
+## Nota operativa
+
+El puente `maintenance -> finance` ya existe en primer corte:
+
+- sync manual por OT
+- política tenant `manual` o `auto_on_close`
+- enlace a transacciones de ingreso/egreso desde el costeo real
+
+El siguiente trabajo sobre esa frontera ya no es “crear la integración”, sino endurecer autollenado, defaults y ergonomía de cierre.

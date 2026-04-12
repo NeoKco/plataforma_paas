@@ -33,6 +33,7 @@ Entregables:
 Estado:
 
 - `Completado en olas 1A y 1B`
+- `Bootstrap default reforzado`: perfiles funcionales y tipos de tarea base ya pueden sembrarse automáticamente cuando el tenant habilita `core`
 
 Alcance:
 
@@ -137,6 +138,25 @@ Completado recientemente:
 - merge profundo de `organizations` y consolidacion documental de `contacts`: ya resuelve asimilacion guiada de múltiples clientes en conflicto, integra campos visibles base, permite selección manual por campo, expone diff final previo y registra una auditoria persistente del merge; falta criterio documental profundo y fusión manual asistida de identidad completa para el resto de las entidades
 - integración con `projects`: pendiente
 - integración con `iot`: pendiente
+
+## Baseline sembrado por default
+
+Cuando un tenant nuevo nace con `core` habilitado, o cuando un tenant activo gana `core` por cambio de plan sin reprovisionar la DB, el bootstrap ya puede asegurar:
+
+- perfiles funcionales:
+  - `tecnico`
+  - `lider`
+  - `administrativo`
+  - `vendedor`
+  - `otro`
+  - `supervisor`
+- tipos de tarea:
+  - `mantencion`
+  - `instalacion`
+  - `tareas generales`
+  - `ventas`
+  - `administracion`
+- compatibilidad base `task_type -> function_profiles` para que `maintenance` no parta sin taxonomía operativa mínima
 ## Estado actual
 - `wave 1 backend` completo:
   - `organizations`: backend CRUD listo
