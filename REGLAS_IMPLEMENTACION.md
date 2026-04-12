@@ -23,6 +23,7 @@ Antes de tocar código, revisar al menos:
 - `CHECKLIST_CIERRE_ITERACION.md`
 - `ESTADO_ACTUAL.md`
 - `SIGUIENTE_PASO.md`
+- `docs/architecture/data-governance.md` si el cambio toca datos, defaults, seeds, integraciones o portabilidad
 - documentación canónica del módulo afectado
 - roadmap o changelog correspondiente
 
@@ -272,6 +273,41 @@ Una IA nueva debe poder entender desde el root, sin buscar demasiado:
 - qué debe hacer después
 
 Si eso no ocurre, hay que mejorar estos archivos antes de seguir abriendo trabajo nuevo.
+
+## Regla 19. Cambios de datos críticos deben respetar gobernanza de datos
+
+Si el cambio toca:
+
+- ownership de entidades
+- seeds o defaults
+- portabilidad/importación
+- integraciones entre módulos
+- archivo, delete o retención
+- calidad o unicidad de datos
+
+entonces debe revisarse:
+
+- `docs/architecture/data-governance.md`
+
+No corresponde cerrar ese cambio sin explicitar:
+
+- dominio dueño
+- contrato entre módulos
+- precedencia de datos
+- estrategia de validación
+
+## Regla 20. El cierre recomendado sigue `SRED`
+
+Para cambios relevantes, el orden esperado es:
+
+- `Spec`
+- `Rules and Review`
+- `Evidence`
+- `Documentation`
+
+Referencia canónica:
+
+- `docs/architecture/sred-development.md`
 
 ## Checklist corto antes de cerrar cualquier iteración
 

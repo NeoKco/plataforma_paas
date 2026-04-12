@@ -1,5 +1,22 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-12 - Gobernanza de datos y SRED formalizados
+
+- objetivo:
+  - dejar una capa transversal explícita para ownership de datos, contratos entre módulos y criterio uniforme de cierre antes de abrir el siguiente slice `maintenance -> finance`
+- cambios principales:
+  - se agrega [data-governance.md](/home/felipe/platform_paas/docs/architecture/data-governance.md) como documento canónico de ownership, calidad mínima, seeds/defaults, archivo y portabilidad
+  - se agrega [sred-development.md](/home/felipe/platform_paas/docs/architecture/sred-development.md) para formalizar el método `Spec`, `Rules`, `Evidence`, `Documentation`
+  - se enlaza ese marco desde contexto raíz, reglas, checklist, prompt maestro, estándar modular y gobernanza de implementación
+- validaciones:
+  - revisión estructural de enlaces y precedencias documentales: `OK`
+  - `HANDOFF_STATE.json` válido por `python3 -m json.tool`: `OK`
+- bloqueos:
+  - sin bloqueo técnico
+  - queda pendiente solo aplicar este marco al siguiente slice funcional
+- siguiente paso:
+  - abrir el autollenado fino `maintenance -> finance` usando `data-governance.md` y `sred-development.md` como marco obligatorio
+
 ## 2026-04-12 - Bootstrap contractual por módulos publicado y validado con tenants reales
 
 - objetivo:

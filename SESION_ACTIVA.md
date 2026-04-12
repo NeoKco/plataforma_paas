@@ -7,8 +7,8 @@ Puntero corto para retomar rápido entre sesiones.
 ## Estado rápido vigente
 
 - fecha: 2026-04-12
-- foco activo: siguiente slice funcional `maintenance -> finance` después del cierre del baseline contractual por módulos
-- prioridad inmediata: revisar el puente ya existente y definir el primer corte de autollenado
+- foco activo: siguiente slice funcional `maintenance -> finance` después de formalizar gobernanza de datos y `SRED`
+- prioridad inmediata: revisar el puente ya existente y definir el primer corte de autollenado bajo ese marco
 - módulo o frente activo: `platform-core` + `finance` + `business-core`
 
 ## Último contexto útil
@@ -21,6 +21,9 @@ Puntero corto para retomar rápido entre sesiones.
   - tipos de tarea default
   - backfill por cambio de plan para tenants activos
 - este subcorte ya está publicado en `staging` y `production`
+- el repo ya tiene además:
+  - `docs/architecture/data-governance.md`
+  - `docs/architecture/sred-development.md`
 - `staging` ya quedó validado con tenants nuevos reales:
   - `bootstrap-empresa-20260412002354`
   - `bootstrap-condominio-20260412002354`

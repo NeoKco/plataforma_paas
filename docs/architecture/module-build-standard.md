@@ -13,6 +13,8 @@ La idea no es solo crear codigo que funcione. El modulo debe quedar:
 Debe leerse junto con:
 
 - [Gobernanza de implementacion](./implementation-governance.md)
+- [Gobernanza de datos](./data-governance.md)
+- [SRED Driven Development](./sred-development.md)
 - [Convencion modular por slice](./module-slice-convention.md)
 - [Estandar de botones CRUD](./crud-button-standard.md)
 - [UX operativa de platform admin](./platform-admin-operational-ux.md)

@@ -1,5 +1,22 @@
 # Platform Core Changelog
 
+## 2026-04-12
+
+- se agrega [data-governance.md](/home/felipe/platform_paas/docs/architecture/data-governance.md) como documento canónico transversal para:
+  - ownership de datos por dominio
+  - contratos entre módulos
+  - reglas de seeds/defaults
+  - calidad mínima
+  - archivo/delete/portabilidad
+- se agrega [sred-development.md](/home/felipe/platform_paas/docs/architecture/sred-development.md) para formalizar el método de cierre `Spec -> Rules -> Evidence -> Documentation`
+- el marco nuevo queda enlazado desde:
+  - [PROJECT_CONTEXT.md](/home/felipe/platform_paas/PROJECT_CONTEXT.md)
+  - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
+  - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
+  - [PROMPT_MAESTRO_MODULO.md](/home/felipe/platform_paas/PROMPT_MAESTRO_MODULO.md)
+  - [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+  - [module-build-standard.md](/home/felipe/platform_paas/docs/architecture/module-build-standard.md)
+
 ## 2026-04-11
 
 - endurecimiento del bootstrap contractual por módulos en tenants nuevos y en cambios posteriores de plan:

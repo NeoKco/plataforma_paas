@@ -25,6 +25,8 @@ Esta seccion agrupa la documentacion de arquitectura del proyecto: estructura de
 - [Roadmap de desarrollo](./development-roadmap.md): hoja de ruta completa del proyecto, desde bootstrap hasta modulos, frontend e infraestructura.
 - [Convencion modular por slice](./module-slice-convention.md): regla oficial para abrir modulos nuevos tomando `finance` como modulo base del SaaS.
 - [Gobernanza de implementacion](./implementation-governance.md): reglas transversales de estandares, revisiones, estructura minima, documentacion viva y handoff para otra IA.
+- [Gobernanza de datos](./data-governance.md): ownership por dominio, contratos de datos, calidad mínima, seeds, portabilidad y reglas de archivo.
+- [SRED Driven Development](./sred-development.md): método corto oficial para cerrar cambios con `Spec`, `Rules`, `Evidence` y `Documentation`.
 - [Estandar de construccion de modulos](./module-build-standard.md): forma oficial de cerrar dominios y CRUDs con lectura primero, alta bajo demanda, validaciones, modales y documentacion viva.
 - [Estandar de botones CRUD](./crud-button-standard.md): naming, jerarquia visual y comportamiento oficial para `Nuevo`, `Registrar`, `Ver`, `Editar`, `Eliminar` y acciones operativas secundarias.
 - [Estandar documental por modulo](./module-slice-convention.md): misma convención, incluyendo la obligación de publicar `README`, `USER_GUIDE`, `DEV_GUIDE`, `ROADMAP` y `CHANGELOG` en `docs/modules/<modulo>/`.

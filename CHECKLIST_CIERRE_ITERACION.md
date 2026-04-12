@@ -7,6 +7,8 @@ No reemplaza:
 - `REGLAS_IMPLEMENTACION.md`
 - `PROMPT_MAESTRO_MODULO.md`
 - `docs/architecture/implementation-governance.md`
+- `docs/architecture/data-governance.md`
+- `docs/architecture/sred-development.md`
 
 Su función es operativa:
 
@@ -75,6 +77,21 @@ Usar como formato guía:
 - revisar `REGLAS_IMPLEMENTACION.md`
 - revisar `PROMPT_MAESTRO_MODULO.md`
 - revisar `docs/architecture/implementation-governance.md`
+
+### Si hubo cambio de datos, defaults o integración entre módulos
+
+- revisar `docs/architecture/data-governance.md`
+- confirmar ownership del dato y contrato entre módulos
+- confirmar si hace falta runbook adicional de seed, sync, import o recovery
+
+## Control SRED
+
+Antes de cerrar, confirmar:
+
+- `S`: la spec del cambio quedó clara
+- `R`: las reglas y la revisión aplicable quedaron cubiertas
+- `E`: la evidencia ejecutada es proporcional al riesgo
+- `D`: la documentación viva quedó al día
 
 ## Cierre esperado
 

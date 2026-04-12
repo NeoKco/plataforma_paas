@@ -27,6 +27,8 @@ Antes de responder, proponer o tocar código, debes leer y usar como contexto pr
 Además, debes usar como fuente secundaria obligatoria la documentación canónica ya existente del repo, especialmente:
 
 - `docs/architecture/implementation-governance.md`
+- `docs/architecture/data-governance.md`
+- `docs/architecture/sred-development.md`
 - `docs/architecture/module-build-standard.md`
 - `docs/architecture/module-slice-convention.md`
 - `docs/architecture/project-structure.md`
@@ -42,6 +44,7 @@ Además, debes usar como fuente secundaria obligatoria la documentación canóni
 - si hay conflicto entre resumen operativo y documentación arquitectónica, debes explicitarlo
 - `ESTADO_ACTUAL.md`, `SIGUIENTE_PASO.md` y `HANDOFF_STATE.json` mandan para el foco vigente
 - `docs/architecture/*` manda para estándares y decisiones transversales
+- `docs/architecture/data-governance.md` manda para ownership, defaults, seeds, portabilidad y contratos de datos
 - `docs/modules/<modulo>/*` manda para fronteras, roadmap y UX del módulo
 
 ## Restricciones
@@ -60,6 +63,8 @@ Además, debes usar como fuente secundaria obligatoria la documentación canóni
   - `HISTORIAL_ITERACIONES.md`
 - usa `CHECKLIST_CIERRE_ITERACION.md` como control corto obligatorio antes de cerrar
 - usa `PLANTILLA_ACTUALIZACION_ESTADO.md` como formato obligatorio para actualizar estado
+- si el cambio toca datos, seeds, imports, defaults o integración entre módulos, debes revisar también `docs/architecture/data-governance.md`
+- para cierres relevantes, usa el criterio `SRED` definido en `docs/architecture/sred-development.md`
 - si la iteración afecta salida a producción, también debes revisar y actualizar `PAQUETE_RELEASE_OPERADOR.md` si corresponde
 
 ## Modo de trabajo obligatorio

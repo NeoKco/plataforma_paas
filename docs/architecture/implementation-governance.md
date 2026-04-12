@@ -16,6 +16,8 @@ Debe leerse junto con:
 - [HISTORIAL_ITERACIONES.md](../../HISTORIAL_ITERACIONES.md)
 - [CHECKLIST_CIERRE_ITERACION.md](../../CHECKLIST_CIERRE_ITERACION.md)
 - [PLANTILLA_ACTUALIZACION_ESTADO.md](../../PLANTILLA_ACTUALIZACION_ESTADO.md)
+- [Gobernanza de datos](./data-governance.md)
+- [SRED Driven Development](./sred-development.md)
 - [Estandar de construccion de modulos](./module-build-standard.md)
 - [Convencion modular por slice](./module-slice-convention.md)
 - [Estructura raiz del proyecto](./project-structure.md)
@@ -33,6 +35,15 @@ Todo cambio visible o estructural debe cerrar cuatro planos a la vez:
 - handoff claro para continuidad
 
 Si uno de esos cuatro planos queda fuera, el cambio no se considera bien cerrado.
+
+Ese criterio ahora también puede leerse como `SRED`:
+
+- `Spec`
+- `Rules and Review`
+- `Evidence`
+- `Documentation`
+
+Ver [SRED Driven Development](./sred-development.md).
 
 ## Antes de Implementar
 

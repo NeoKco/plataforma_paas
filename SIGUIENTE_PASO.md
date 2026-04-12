@@ -13,6 +13,9 @@
 
 ## Próximo paso correcto
 
+- releer el puente ya existente `maintenance -> finance` usando como marco:
+  - `docs/architecture/data-governance.md`
+  - `docs/architecture/sred-development.md`
 - revisar el puente ya existente `maintenance -> finance` para delimitar qué ya está resuelto y qué falta realmente en autollenado
 - cerrar reglas funcionales de sugerencia:
   - categoría ingreso por defecto

@@ -202,6 +202,8 @@ y cuando aplique:
 ### Gobernanza
 
 - `docs/architecture/implementation-governance.md`
+- `docs/architecture/data-governance.md`
+- `docs/architecture/sred-development.md`
 - `docs/architecture/module-build-standard.md`
 - `docs/modules/index.md`
 

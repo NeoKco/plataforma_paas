@@ -57,6 +57,8 @@ La regla práctica es esta:
 - [Convencion modular por slice](./architecture/module-slice-convention.md)
 - [Estandar de construccion de modulos](./architecture/module-build-standard.md)
 - [Gobernanza de implementacion](./architecture/implementation-governance.md)
+- [Gobernanza de datos](./architecture/data-governance.md)
+- [SRED Driven Development](./architecture/sred-development.md)
 - [Estandar de botones CRUD](./architecture/crud-button-standard.md)
 - [Flujo actual del backend](./architecture/backend-current-flow.md)
 - [Cierre del backend base](./architecture/backend-closure-status.md)
