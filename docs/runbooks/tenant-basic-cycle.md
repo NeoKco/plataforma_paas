@@ -250,6 +250,23 @@ app/scripts/repair_finance_category_families.py --tenant-slug <slug> --apply
 
 Esto crea familias base (`Ingresos`, `Egresos`, `Transferencias`) y asigna parent a las categorías sin familia.
 
+### Reset de categorías finance a baseline default
+
+Si necesitas limpiar el catálogo y dejar solo las categorías default (remapeando referencias):
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/reset_finance_categories_to_defaults.py --tenant-slug <slug> --apply
+```
+
+El script:
+
+- garantiza que existan las familias base
+- remapea transacciones/presupuestos a categorías default
+- elimina categorías fuera del baseline
+
 ### Limpieza de residuos E2E en finanzas
 
 Si se ejecutaron smokes contra un tenant real y quedaron categorías o movimientos `e2e-*`, usa:

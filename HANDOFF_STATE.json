@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T21:10:00-04:00",
+  "updated_at": "2026-04-12T21:35:00-04:00",
   "handoff_status": "active",
-  "current_focus": "familias obligatorias en categorias finance + reparacion ieris-ltda",
-  "project_phase": "produccion y staging operativos; seed finance ahora asigna parent; reparacion aplicada en ieris-ltda; pendiente validar UI",
+  "current_focus": "reset categorias finance a baseline default en ieris-ltda",
+  "project_phase": "produccion y staging operativos; reset aplicado con remapeo de referencias; pendiente validar UI",
   "active_modules": [
     "platform-core",
     "finance",
@@ -57,6 +57,7 @@
     "el proyecto ya tiene gobernanza de datos explicita y el criterio oficial de cierre relevante puede expresarse como SRED: Spec, Rules, Evidence, Documentation"
   ],
   "completed_recently": [
+    "reset_finance_categories_to_defaults.py agregado y aplicado en production para ieris-ltda",
     "categorias finance default ahora incluyen familias (Ingresos, Egresos, Transferencias) y parent_name por seed",
     "tenant_db_bootstrap_service asigna parent a categorias existentes sin familia",
     "script repair_finance_category_families.py agregado y aplicado en production para ieris-ltda",
@@ -493,6 +494,7 @@
     "seed_tenant_defaults_ieris_ltda": "applied",
     "cleanup_e2e_finance_ieris_ltda": "applied",
     "seed_missing_defaults_production": "applied",
-    "finance_category_families_ieris_ltda": "applied"
+    "finance_category_families_ieris_ltda": "applied",
+    "finance_category_reset_ieris_ltda": "applied"
   }
 }

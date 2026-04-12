@@ -33,6 +33,19 @@
   - pendiente validar en UI que las familias aparecen correctamente
 - siguiente paso:
   - abrir `finance/categories` en `ieris-ltda` y confirmar familia visible para todas las categorías
+
+## 2026-04-12 - Reset catálogo finance a baseline default (ieris-ltda)
+
+- objetivo:
+  - limpiar categorías no default y dejar solo baseline por familias
+- cambios principales:
+  - [reset_finance_categories_to_defaults.py](/home/felipe/platform_paas/backend/app/scripts/reset_finance_categories_to_defaults.py) remapea transacciones/presupuestos y elimina categorías fuera de baseline
+- validaciones:
+  - `ieris-ltda`: `removed_categories=21`, `remapped_transactions=55`
+- bloqueos:
+  - pendiente confirmar en UI que el catálogo quedó limpio
+- siguiente paso:
+  - abrir `finance/categories` en `ieris-ltda` y validar
 - bloqueos:
   - falta validar en UI que `Pendientes` carga sin 500
 - siguiente paso:

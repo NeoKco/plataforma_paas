@@ -2,16 +2,16 @@
 
 ## Prioridad vigente
 
-- validar en UI que todas las categorías finance de `ieris-ltda` tengan familia
+- validar en UI que `ieris-ltda` quedó solo con categorías default
 
 ## Decisión previa obligatoria
 
-- definir si la reparación de familias debe correr masivamente en otros tenants existentes
+- decidir si se quiere hacer reset de categorías en otros tenants
 
 ## Próximo paso correcto
 
-- abrir `/tenant-portal/finance/categories` y confirmar que todo tiene familia visible
-- si falta, correr `repair_finance_category_families.py` para el tenant afectado
+- abrir `/tenant-portal/finance/categories` y confirmar que solo existen categorías default con familia
+- si hay residuos, ejecutar `reset_finance_categories_to_defaults.py` en el tenant afectado
 
 ## Si el escenario principal falla
 
@@ -19,4 +19,4 @@
 
 ## Condición de cierre de la próxima iteración
 
-- categorías finance con familia visible en `ieris-ltda`
+- catálogo finance limpio y validado en UI para `ieris-ltda`

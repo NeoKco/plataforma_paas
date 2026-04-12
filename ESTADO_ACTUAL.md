@@ -3,43 +3,42 @@
 ## Última actualización
 
 - fecha: 2026-04-12
-- foco de iteración: familias obligatorias en categorías finance + reparación en `ieris-ltda`
+- foco de iteración: reset de categorías finance a baseline default en `ieris-ltda`
 - estado general: backend actualizado en `production` y `staging`, familias seed actualizadas
 
 ## Resumen ejecutivo en 30 segundos
 
-- las categorías finance default ahora nacen con familia (`Ingresos`, `Egresos`, `Transferencias`)
-- `ieris-ltda` fue corregido para que todas sus categorías tengan familia
-- el bootstrap ahora asigna parent a categorías existentes sin familia durante el seed
+- se limpió `ieris-ltda` para dejar solo categorías default con familias
+- las referencias a categorías no default fueron remapeadas a defaults
 
 ## Qué ya quedó hecho
 
 - [due_item_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/repositories/due_item_repository.py) repara secuencia PK en `maintenance_due_items` y reintenta el insert
 - [default_category_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/default_category_profiles.py) agrega familias y parent_name por seed
 - [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py) asigna parent a categorías por familia
-- [repair_finance_category_families.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_category_families.py) repara categorías sin familia en tenants existentes
+- [reset_finance_categories_to_defaults.py](/home/felipe/platform_paas/backend/app/scripts/reset_finance_categories_to_defaults.py) limpia catálogos y remapea referencias a defaults
 - script ejecutado en `production` para `ieris-ltda`:
-  - reparación de familias (89 categorías actualizadas)
+  - categorías removidas: 21
+  - transacciones remapeadas: 55
 
 ## Qué archivos se tocaron
 
 - [backend/app/apps/tenant_modules/finance/default_category_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/default_category_profiles.py)
 - [backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py)
-- [backend/app/scripts/repair_finance_category_families.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_category_families.py)
+- [backend/app/scripts/reset_finance_categories_to_defaults.py](/home/felipe/platform_paas/backend/app/scripts/reset_finance_categories_to_defaults.py)
 - [docs/runbooks/tenant-basic-cycle.md](/home/felipe/platform_paas/docs/runbooks/tenant-basic-cycle.md)
 - [docs/modules/finance/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/finance/DEV_GUIDE.md)
 - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
 
 ## Qué decisiones quedaron cerradas
 
-- todas las categorías default deben tener familia (parent) por tipo
-- el seed asigna parent automáticamente y se puede reparar con script dedicado
+- el reset de categorías se hace con remapeo de referencias a defaults
 - la limpieza de residuos E2E en finanzas se maneja con un script operativo explícito
 - los 500 en `Pendientes` por secuencia PK se corrigen desde backend sin intervención manual
 
 ## Qué falta exactamente
 
-- revisar visualmente categorías `ieris-ltda` para confirmar familias en UI
+- revisar visualmente categorías `ieris-ltda` para confirmar solo defaults
 
 ## Qué no debe tocarse
 
@@ -48,13 +47,12 @@
 
 ## Validaciones ya ejecutadas
 
-- backend `production`: servicio reiniciado tras cambios
-- `ieris-ltda`: reparación de familias aplicada (89 categorías)
+- `ieris-ltda`: reset de categorías aplicado
 
 ## Bloqueos reales detectados
 
-- falta confirmación visual en UI de familias en `ieris-ltda`
+- falta confirmación visual en UI de categorías default en `ieris-ltda`
 
 ## Mi conclusión
 
-- las familias quedaron aplicadas; falta validar en UI que se reflejan correctamente.
+- el reset quedó aplicado; falta validar en UI que se vea solo el baseline default.
