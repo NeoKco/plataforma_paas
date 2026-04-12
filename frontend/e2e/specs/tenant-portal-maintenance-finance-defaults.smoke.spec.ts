@@ -42,7 +42,10 @@ test("tenant portal maintenance uses backend-resolved finance defaults in overvi
   const workOrderRows = page.locator("tbody tr");
   await expect(workOrderRows.first()).toBeVisible();
 
-  await page.getByRole("button", { name: /Costos|Costing/i }).first().click();
+  await workOrderRows
+    .first()
+    .getByRole("button", { name: /^(Costos|Costing)$/i })
+    .click();
   const costingDialog = page.getByRole("dialog", {
     name: /Costos y cobro de mantención|Maintenance costing and billing/i,
   });
@@ -55,13 +58,13 @@ test("tenant portal maintenance uses backend-resolved finance defaults in overvi
       /Sincronizar a finanzas|Sincronización manual opcional|Reintento o ajuste de sincronización|Sync to finance|Optional manual finance sync|Finance sync retry or adjustment/i
     ).first()
   ).toBeVisible();
-  await expect(
-    costingDialog.getByText(/Referencia OT|Work order reference/i)
-  ).toBeVisible();
-  await expect(
-    costingDialog.getByText(/Glosa ingreso|Income description/i)
-  ).toBeVisible();
-  await expect(
-    costingDialog.getByText(/Glosa egreso|Expense description/i)
-  ).toBeVisible();
+  const referenceLabel = costingDialog.getByText(/Referencia OT|Work order reference/i);
+  await referenceLabel.scrollIntoViewIfNeeded();
+  await expect(referenceLabel).toBeVisible();
+  const incomeLabel = costingDialog.getByText(/Glosa ingreso|Income description/i);
+  await incomeLabel.scrollIntoViewIfNeeded();
+  await expect(incomeLabel).toBeVisible();
+  const expenseLabel = costingDialog.getByText(/Glosa egreso|Expense description/i);
+  await expenseLabel.scrollIntoViewIfNeeded();
+  await expect(expenseLabel).toBeVisible();
 });

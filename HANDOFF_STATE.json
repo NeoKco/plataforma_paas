@@ -70,7 +70,9 @@
     "maintenance agrega GET /tenant/maintenance/finance-sync-defaults como fuente de verdad para moneda cuentas y categorias sugeridas",
     "MaintenanceOverviewPage ya consume defaults efectivos maintenance -> finance y refresca sugerencias tras guardar politica",
     "MaintenanceCostingModal ya consume defaults efectivos maintenance -> finance para precargar la sync manual o auto_on_close",
-    "backend unittest app.tests.test_maintenance_costing_service validado con 10 tests OK para este corte",
+    "backend unittest app.tests.test_maintenance_costing_service validado con 11 tests OK para este corte",
+    "repo agrega glosa y fecha contable opcional en sync manual maintenance -> finance",
+    "MaintenanceCostingModal ahora muestra referencia OT y glosas editables para sync manual",
     "frontend build validado para el corte defaults efectivos maintenance -> finance",
     "tenant_db_bootstrap_service ahora separa seed_defaults reutilizable para provisioning inicial y backfill por cambio de plan",
     "finance default_category_profiles ahora siembra baseline mixto con CLP, categorias compartidas y familias Casa - ... / Empresa - ... derivadas desde ieris_app",
@@ -450,6 +452,7 @@
     "tenant_bootstrap_contractual_defaults_staging_sidebar_smoke": "pass",
     "tenant_bootstrap_contractual_defaults_production_backend_deploy": "pass",
     "tenant_bootstrap_contractual_defaults_production_health_https": "pass",
-    "tenant_bootstrap_contractual_defaults_production_sidebar_smoke": "pass"
+    "tenant_bootstrap_contractual_defaults_production_sidebar_smoke": "pass",
+    "maintenance_finance_fillin_glosa_repo_unittest": "pass"
   }
 }

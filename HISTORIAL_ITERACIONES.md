@@ -1,5 +1,21 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-12 - Segundo corte maintenance -> finance (glosa y fecha contable) abierto en repo
+
+- objetivo:
+  - abrir el segundo subcorte de llenado fino entre `maintenance` y `finance` sin tocar el contrato base
+- cambios principales:
+  - `finance-sync` acepta glosas editables (`income_description`, `expense_description`) y `transaction_at` opcional
+  - `Costos y cobro` ahora muestra `Referencia OT` y permite ajustar fecha contable solo con toggle explícito
+  - se agregan verificaciones de descripción y fecha contable en [test_maintenance_costing_service.py](/home/felipe/platform_paas/backend/app/tests/test_maintenance_costing_service.py)
+  - documentación actualizada en `API_REFERENCE`, `DEV_GUIDE`, `CHANGELOG` y `ROADMAP`
+- validaciones:
+  - `cd backend && PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_maintenance_costing_service` -> `11 tests OK`
+- bloqueos:
+  - sin bloqueo técnico
+- siguiente paso:
+  - publicar backend + frontend en `staging` y ejecutar smoke antes de promover a `production`
+
 ## 2026-04-12 - Defaults efectivos maintenance -> finance cerrados en staging y production
 
 - objetivo:
