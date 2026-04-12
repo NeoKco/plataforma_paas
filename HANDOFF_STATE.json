@@ -2,8 +2,8 @@
   "project": "platform_paas",
   "updated_at": "2026-04-12T23:30:00-04:00",
   "handoff_status": "active",
-  "current_focus": "maintenance -> finance sync (accountless + glosa cliente) pendiente de validar y desplegar",
-  "project_phase": "cambio local listo; falta validacion y deploy a staging/production",
+  "current_focus": "maintenance -> finance sync (accountless + glosa cliente) publicado; falta validar en UI",
+  "project_phase": "cambio desplegado en staging/production; pendiente validacion funcional",
   "active_modules": [
     "platform-core",
     "finance",
@@ -325,7 +325,10 @@
     "docs/deploy/staging-bootstrap-reset.md"
   ],
   "validation_status": {
-    "maintenance_finance_accountless_sync_repo": "pending",
+    "maintenance_finance_accountless_sync_repo": "pass",
+    "maintenance_finance_accountless_sync_staging_backend_deploy": "pass",
+    "maintenance_finance_accountless_sync_production_backend_deploy": "pass",
+    "maintenance_finance_accountless_sync_frontend_build": "pass",
     "maintenance_finance_defaults_backend_unittest_repo": "pass",
     "maintenance_finance_defaults_py_compile_repo": "pass",
     "maintenance_finance_defaults_frontend_build_repo": "pass",

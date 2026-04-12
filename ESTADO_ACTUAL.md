@@ -4,13 +4,13 @@
 
 - fecha: 2026-04-12
 - foco de iteración: mantenimiento -> finanzas (sync ingreso/egreso + glosa con cliente)
-- estado general: cambios locales listos; falta validar y desplegar
+- estado general: cambios desplegados en `staging` y `production`; falta validar en UI
 
 ## Resumen ejecutivo en 30 segundos
 
 - maintenance ahora puede sincronizar ingresos/egresos sin cuenta explícita y la glosa incluye cliente/sitio
 - el modo por defecto pasa a `auto_on_close` cuando no hay política explícita
-- falta validar en empresa-demo y publicar
+- falta validar en empresa-demo con un cierre real
 
 ## Qué ya quedó hecho
 
@@ -19,6 +19,8 @@
 - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) no bloquea sync por falta de cuentas
 - [MaintenanceOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx) ajusta copy y default a auto
 - defaults de `maintenance_finance_sync_mode` pasan a `auto_on_close` en core
+- backend y frontend desplegados en `staging` y `production`
+- deploy backend ejecutó suite completa y recreó `empresa-bootstrap` en staging/production (comportamiento actual del script)
 
 ## Qué archivos se tocaron
 
@@ -45,7 +47,6 @@
 ## Qué falta exactamente
 
 - validar en empresa-demo que el ingreso aparece en Finanzas al cerrar OT
-- desplegar backend/frontend a staging/production
 
 ## Qué no debe tocarse
 
@@ -54,12 +55,14 @@
 
 ## Validaciones ya ejecutadas
 
-- no se han ejecutado validaciones para este cambio aún
+- `deploy_backend_staging.sh` ejecutó 523 tests OK
+- `deploy_backend_production.sh` ejecutó 523 tests OK
+- frontend build OK para staging y production
 
 ## Bloqueos reales detectados
 
-- ninguno; falta validar y desplegar
+- ninguno; falta validar en UI
 
 ## Mi conclusión
 
-- el ajuste está listo; queda validar y publicar.
+- el ajuste está publicado; falta validar el flujo real en empresa-demo.

@@ -473,8 +473,10 @@
   - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) deja de bloquear sync por falta de cuentas
   - defaults core pasan a `auto_on_close` en schemas/model
 - validaciones:
-  - no ejecutadas aún
+  - deploy backend staging: 523 tests OK
+  - deploy backend production: 523 tests OK
+  - frontend build staging + production OK
 - bloqueos:
-  - falta validar en empresa-demo y desplegar
+  - falta validar en empresa-demo el ingreso/egreso real en Finanzas
 - siguiente paso:
-  - probar cierre de OT con monto cobrado y confirmar transacción en Finanzas; luego desplegar
+  - probar cierre de OT con monto cobrado y confirmar transacción en Finanzas (glosa completa)

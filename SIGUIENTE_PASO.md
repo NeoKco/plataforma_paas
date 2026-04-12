@@ -2,16 +2,16 @@
 
 ## Prioridad vigente
 
-- validar mantenimiento -> finanzas (empresa-demo) y desplegar
+- validar mantenimiento -> finanzas (empresa-demo)
 
 ## Decisión previa obligatoria
 
-- confirmar si se despliega directo a production o primero a staging
+- ninguna; ya desplegado
 
 ## Próximo paso correcto
 
-- correr smoke rápido manual: cerrar una OT con monto cobrado > 0 en empresa-demo y revisar transacción en Finanzas
-- desplegar backend/frontend con este ajuste
+- cerrar una OT con monto cobrado > 0 en empresa-demo y revisar transacción en Finanzas
+- confirmar glosa contiene mantención + cliente + sitio
 
 ## Si el escenario principal falla
 
