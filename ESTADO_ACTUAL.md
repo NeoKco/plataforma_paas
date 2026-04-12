@@ -10,7 +10,7 @@
 
 - costeo estimado permite editar `precio sugerido` y persiste en backend
 - la glosa de ingresos/egresos queda como `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio)
-- cambios publicados en staging y production; hint visual agregado; falta validar en empresa-demo
+- cambios publicados en staging y production; hint visual de margen agregado; falta validar en empresa-demo
 
 ## Qué ya quedó hecho
 

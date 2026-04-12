@@ -389,6 +389,17 @@ function getSuggestedPriceFromTemplate(template: TenantMaintenanceCostTemplate):
   return Number(templateCost.toFixed(2));
 }
 
+function getMarginFromSuggestedPrice(total: number, suggested: number): number | null {
+  if (total <= 0 || suggested <= 0) {
+    return null;
+  }
+  const margin = (1 - total / suggested) * 100;
+  if (!Number.isFinite(margin)) {
+    return null;
+  }
+  return Number(margin.toFixed(2));
+}
+
 function buildActualFormFromTemplate(
   template: TenantMaintenanceCostTemplate
 ): MaintenanceCostActualFormState {
@@ -651,6 +662,14 @@ export function MaintenanceCostingModal({
     }
     return Number((estimatedTotalPreview / (1 - margin / 100)).toFixed(2));
   }, [estimateForm.target_margin_percent, estimatedTotalPreview]);
+  const suggestedPriceFromInput = useMemo(
+    () => normalizeNumericInput(estimateForm.suggested_price),
+    [estimateForm.suggested_price]
+  );
+  const estimatedMarginFromSuggested = useMemo(
+    () => getMarginFromSuggestedPrice(estimatedTotalPreview, suggestedPriceFromInput),
+    [estimatedTotalPreview, suggestedPriceFromInput]
+  );
   useEffect(() => {
     if (estimateSuggestedTouched) {
       return;
@@ -662,6 +681,18 @@ export function MaintenanceCostingModal({
         : { ...current, suggested_price: nextSuggested }
     );
   }, [estimateSuggestedTouched, estimatedSuggestedPricePreview]);
+  useEffect(() => {
+    if (!estimateSuggestedTouched) {
+      return;
+    }
+    const nextMargin =
+      estimatedMarginFromSuggested == null ? "" : String(estimatedMarginFromSuggested);
+    setEstimateForm((current) =>
+      current.target_margin_percent === nextMargin
+        ? current
+        : { ...current, target_margin_percent: nextMargin }
+    );
+  }, [estimateSuggestedTouched, estimatedMarginFromSuggested]);
   const actualTotalPreview = useMemo(
     () => (actualUsesLines ? actualLineTotals.total : sumCostForm(actualForm)),
     [actualForm, actualLineTotals.total, actualUsesLines]
@@ -1629,7 +1660,32 @@ export function MaintenanceCostingModal({
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Materiales" : "Materials"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.materials_cost.toFixed(2) : estimateForm.materials_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, materials_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Servicios externos" : "External services"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.external_services_cost.toFixed(2) : estimateForm.external_services_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, external_services_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Indirectos" : "Overhead"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.overhead_cost.toFixed(2) : estimateForm.overhead_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, overhead_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
-                    <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Margen objetivo (%)" : "Target margin (%)"}</label><input className="form-control" type="number" min="0" max="99.99" step="0.01" value={estimateForm.target_margin_percent} onChange={(event) => setEstimateForm((current) => ({ ...current, target_margin_percent: event.target.value }))} disabled={isReadOnly} /></div>
+                    <div className="col-12 col-md-4">
+                      <label className="form-label">{language === "es" ? "Margen objetivo (%)" : "Target margin (%)"}</label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        min="0"
+                        max="99.99"
+                        step="0.01"
+                        value={estimateForm.target_margin_percent}
+                        onChange={(event) => {
+                          setEstimateSuggestedTouched(false);
+                          setEstimateForm((current) => ({
+                            ...current,
+                            target_margin_percent: event.target.value,
+                          }));
+                        }}
+                        disabled={isReadOnly}
+                      />
+                      {estimateSuggestedTouched && estimatedMarginFromSuggested != null ? (
+                        <div className="form-text">
+                          {language === "es"
+                            ? `Margen calculado: ${estimatedMarginFromSuggested.toFixed(2)}%`
+                            : `Calculated margin: ${estimatedMarginFromSuggested.toFixed(2)}%`}
+                        </div>
+                      ) : null}
+                    </div>
                     <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Costo estimado total" : "Estimated total cost"}</label><input className="form-control" value={estimatedTotalPreview.toFixed(2)} readOnly /></div>
                     <div className="col-12 col-md-6">
                       <label className="form-label">{language === "es" ? "Precio sugerido" : "Suggested price"}</label>
@@ -1641,10 +1697,19 @@ export function MaintenanceCostingModal({
                         value={estimateForm.suggested_price}
                         onChange={(event) => {
                           setEstimateSuggestedTouched(true);
-                          setEstimateForm((current) => ({
-                            ...current,
-                            suggested_price: event.target.value,
-                          }));
+                          setEstimateForm((current) => {
+                            const nextSuggested = event.target.value;
+                            const nextMargin = getMarginFromSuggestedPrice(
+                              estimatedTotalPreview,
+                              normalizeNumericInput(nextSuggested)
+                            );
+                            return {
+                              ...current,
+                              suggested_price: nextSuggested,
+                              target_margin_percent:
+                                nextMargin == null ? current.target_margin_percent : String(nextMargin),
+                            };
+                          });
                         }}
                         disabled={isReadOnly}
                       />

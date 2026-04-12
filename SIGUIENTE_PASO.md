@@ -11,7 +11,7 @@
 ## Próximo paso correcto
 
 - en empresa-demo abrir una OT y editar `Precio sugerido` en costeo estimado; guardar y reabrir para confirmar persistencia
-- verificar que al editar `Precio sugerido` aparece el hint con el valor calculado
+- verificar que al editar `Precio sugerido` el margen objetivo se recalcula y aparece el hint en margen
 - cerrar la OT con monto cobrado > 0 y revisar transacción en Finanzas
 - confirmar glosa: `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio)
 

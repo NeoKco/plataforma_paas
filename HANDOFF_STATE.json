@@ -272,6 +272,7 @@
     "costeo estimado ahora permite editar precio sugerido y persistirlo",
     "glosa maintenance -> finance ahora usa mantención + trabajo + cliente (sin equipo/sitio)",
     "frontend staging y production reconstruido con el campo precio sugerido editable",
+    "hint visual agregado para mostrar el margen objetivo calculado cuando se edita el precio sugerido",
     "backend staging y production desplegado con 523 tests OK para el ajuste de glosa/sugerido"
   ],
   "blocking_issues": [
