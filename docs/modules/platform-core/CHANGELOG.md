@@ -436,6 +436,7 @@ Resumen curado del bloque central.
 - smoke browser agregado para validar préstamos `finance` con pago en lote y reversa en lote sobre cuotas seleccionadas
 - baseline de permisos tenant corregido para incluir acceso `maintenance` en roles operativos que ya navegan ese módulo dentro de `tenant_portal`
 - se agrega [cleanup_e2e_tenants.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_e2e_tenants.py) para barrer tenants efímeros `e2e-*` con lifecycle seguro y evitar acumulación en `platform_control`
+- se agrega [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) para backfillear defaults `core/finance` en tenants que los tengan incompletos
 - la alta de `Tenants` y de `Usuarios de plataforma` pasa a abrirse solo bajo demanda en modal, evitando formularios de creación desplegados por defecto en la lectura principal
 - la vista de `Usuarios de plataforma` deja de usar una grilla desbalanceada tras mover el alta a modal: el catálogo ahora toma el ancho útil completo y la ficha/acciones del usuario seleccionado quedan en un segundo nivel más armónico
 - `Tenant Portal > Usuarios` también pasa a alta bajo demanda: el catálogo queda primero, `Nuevo usuario` abre modal y el bloque de operador actual queda como contexto secundario

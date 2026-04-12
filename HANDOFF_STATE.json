@@ -57,6 +57,7 @@
     "el proyecto ya tiene gobernanza de datos explicita y el criterio oficial de cierre relevante puede expresarse como SRED: Spec, Rules, Evidence, Documentation"
   ],
   "completed_recently": [
+    "script seed_missing_tenant_defaults.py agregado y aplicado en production para tenants activos con defaults incompletos",
     "maintenance due-items ahora repara la secuencia PK y reintenta inserts para evitar 500 en Pendientes",
     "script operativo seed_tenant_defaults.py agregado para backfill de defaults core/finance por tenant",
     "script cleanup_tenant_e2e_finance_data.py agregado para limpiar residuos E2E en finanzas",
@@ -487,6 +488,7 @@
     "maintenance_due_items_sequence_hotfix_production": "applied",
     "maintenance_due_items_sequence_hotfix_staging": "applied",
     "seed_tenant_defaults_ieris_ltda": "applied",
-    "cleanup_e2e_finance_ieris_ltda": "applied"
+    "cleanup_e2e_finance_ieris_ltda": "applied",
+    "seed_missing_defaults_production": "applied"
   }
 }

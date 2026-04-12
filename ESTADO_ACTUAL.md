@@ -10,21 +10,25 @@
 
 - `Pendientes` fallaba por secuencia desfasada en `maintenance_due_items`; se corrige con reparación automática al insertar
 - se agregó script de backfill para perfiles funcionales, tipos de tarea, categorías finance y base CLP por tenant
-- se agregó script de cleanup de datos E2E en finanzas y ya se aplicó en `ieris-ltda` (45 transacciones removidas)
+- se aplicó backfill masivo de defaults en production (`condominio-demo`, `empresa-bootstrap`, `empresa-demo`, `ieris-ltda`)
 
 ## Qué ya quedó hecho
 
 - [due_item_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/repositories/due_item_repository.py) repara secuencia PK en `maintenance_due_items` y reintenta el insert
 - [seed_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_tenant_defaults.py) permite re-sembrar defaults core/finance por tenant
+- [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) backfillea defaults faltantes en tenants activos
 - [cleanup_tenant_e2e_finance_data.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_tenant_e2e_finance_data.py) limpia residuos E2E de finanzas por tenant
 - scripts ejecutados en `production` para `ieris-ltda`:
   - seed defaults core/finance
   - cleanup E2E finance (45 transacciones)
+- backfill masivo ejecutado en `production`:
+  - `condominio-demo`, `empresa-bootstrap`, `empresa-demo`, `ieris-ltda`
 
 ## Qué archivos se tocaron
 
 - [backend/app/apps/tenant_modules/maintenance/repositories/due_item_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/repositories/due_item_repository.py)
 - [backend/app/scripts/seed_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_tenant_defaults.py)
+- [backend/app/scripts/seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
 - [backend/app/scripts/cleanup_tenant_e2e_finance_data.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_tenant_e2e_finance_data.py)
 - [docs/runbooks/frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md)
 - [docs/runbooks/tenant-basic-cycle.md](/home/felipe/platform_paas/docs/runbooks/tenant-basic-cycle.md)
@@ -33,6 +37,7 @@
 ## Qué decisiones quedaron cerradas
 
 - el backfill de defaults por tenant se resuelve con un script idempotente (`seed_tenant_defaults.py`)
+- el backfill masivo usa `seed_missing_tenant_defaults.py` y evita borrar categorías existentes sin `--force-finance`
 - la limpieza de residuos E2E en finanzas se maneja con un script operativo explícito
 - los 500 en `Pendientes` por secuencia PK se corrigen desde backend sin intervención manual
 

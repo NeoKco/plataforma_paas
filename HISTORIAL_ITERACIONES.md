@@ -15,6 +15,8 @@
   - backend reiniciado en production y staging
   - seed defaults ejecutado en production para `ieris-ltda`
   - cleanup E2E finance ejecutado en production para `ieris-ltda` (45 transacciones)
+- validaciones adicionales:
+  - backfill masivo aplicado en production (`condominio-demo`, `empresa-bootstrap`, `empresa-demo`, `ieris-ltda`)
 - bloqueos:
   - falta validar en UI que `Pendientes` carga sin 500
 - siguiente paso:
