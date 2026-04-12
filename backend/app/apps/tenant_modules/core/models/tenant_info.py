@@ -15,7 +15,7 @@ class TenantInfo(TenantBase):
     maintenance_finance_sync_mode: Mapped[str] = mapped_column(
         String(30),
         nullable=False,
-        default="manual",
+        default="auto_on_close",
     )
     maintenance_finance_auto_sync_income: Mapped[bool] = mapped_column(
         Boolean,

@@ -1642,7 +1642,7 @@ class TenantRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.tenant.effective_timezone, "America/Lima")
         self.assertEqual(response.user.timezone, "America/Lima")
         self.assertEqual(response.user.effective_timezone, "America/Lima")
-        self.assertEqual(response.tenant.maintenance_finance_sync_mode, "manual")
+        self.assertEqual(response.tenant.maintenance_finance_sync_mode, "auto_on_close")
         self.assertTrue(response.tenant.maintenance_finance_auto_sync_income)
         self.assertTrue(response.tenant.maintenance_finance_auto_sync_expense)
         self.assertEqual(response.tenant.plan_code, "pro")

@@ -310,6 +310,7 @@ class FinanceService:
         payload: FinanceTransactionUpdateRequest,
         *,
         actor_user_id: int | None = None,
+        allow_accountless: bool = False,
     ) -> FinanceTransaction:
         transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
         self._raise_if_missing_or_voided(transaction)
@@ -318,6 +319,7 @@ class FinanceService:
             tenant_db,
             payload,
             current_transaction=transaction,
+            allow_accountless=allow_accountless,
         )
         for field, value in transaction_values.items():
             setattr(transaction, field, value)

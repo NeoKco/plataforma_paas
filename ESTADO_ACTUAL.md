@@ -3,47 +3,63 @@
 ## Última actualización
 
 - fecha: 2026-04-12
-- foco de iteración: fix deprovision/delete (Permission denied .env)
-- estado general: backend actualizado en `production` y `staging`, familias seed actualizadas
+- foco de iteración: mantenimiento -> finanzas (sync ingreso/egreso + glosa con cliente)
+- estado general: cambios locales listos; falta validar y desplegar
 
 ## Resumen ejecutivo en 30 segundos
 
-- se evita que el deprovision falle por `Permission denied` al limpiar secrets en `.env`
+- maintenance ahora puede sincronizar ingresos/egresos sin cuenta explícita y la glosa incluye cliente/sitio
+- el modo por defecto pasa a `auto_on_close` cuando no hay política explícita
+- falta validar en empresa-demo y publicar
 
 ## Qué ya quedó hecho
 
-- [due_item_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/repositories/due_item_repository.py) repara secuencia PK en `maintenance_due_items` y reintenta el insert
-- [default_category_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/default_category_profiles.py) agrega familias y parent_name por seed
-- [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py) asigna parent a categorías por familia
-- [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ignora `PermissionError` al limpiar secrets runtime durante deprovision
+- [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) permite sync accountless y glosa con cliente/sitio
+- [tenant_data_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/services/tenant_data_service.py) retorna `auto_on_close` cuando no hay defaults explícitos
+- [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) no bloquea sync por falta de cuentas
+- [MaintenanceOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx) ajusta copy y default a auto
+- defaults de `maintenance_finance_sync_mode` pasan a `auto_on_close` en core
 
 ## Qué archivos se tocaron
 
-- [backend/app/apps/platform_control/services/tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py)
+- [backend/app/apps/tenant_modules/maintenance/services/costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py)
+- [backend/app/apps/tenant_modules/finance/services/transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py)
+- [backend/app/apps/tenant_modules/core/services/tenant_data_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/services/tenant_data_service.py)
+- [backend/app/apps/tenant_modules/core/models/tenant_info.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/models/tenant_info.py)
+- [backend/app/apps/tenant_modules/core/schemas.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/schemas.py)
+- [backend/app/apps/tenant_modules/core/api/tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/tenant_routes.py)
+- [frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx)
+- [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx)
+- [backend/app/tests/fixtures.py](/home/felipe/platform_paas/backend/app/tests/fixtures.py)
+- [backend/app/tests/test_tenant_flow.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_flow.py)
+- [docs/modules/maintenance/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/maintenance/DEV_GUIDE.md)
+- [docs/modules/maintenance/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/maintenance/USER_GUIDE.md)
+- [docs/modules/maintenance/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/maintenance/CHANGELOG.md)
 
 ## Qué decisiones quedaron cerradas
 
-- el deprovision no debe fallar por permisos de `.env` runtime
-- la limpieza de residuos E2E en finanzas se maneja con un script operativo explícito
-- los 500 en `Pendientes` por secuencia PK se corrigen desde backend sin intervención manual
+- maintenance -> finance debe crear ingresos/egresos aun cuando no existan cuentas definidas
+- la glosa por defecto debe incluir mantención + cliente + sitio
+- el modo efectivo sin política explícita pasa a `auto_on_close`
 
 ## Qué falta exactamente
 
-- reintentar desprovision + delete del tenant con error
+- validar en empresa-demo que el ingreso aparece en Finanzas al cerrar OT
+- desplegar backend/frontend a staging/production
 
 ## Qué no debe tocarse
 
-- no borrar transacciones reales al limpiar E2E: sólo prefijos `e2e-`/`debug-`
-- no cambiar parent de categorías que ya tengan familia definida manualmente
+- no desactivar la regla E2E: jamás usar `ieris-ltda`
+- no cambiar seeds de categorías fuera del catálogo default
 
 ## Validaciones ya ejecutadas
 
-- backend production y staging reiniciados con el hotfix
+- no se han ejecutado validaciones para este cambio aún
 
 ## Bloqueos reales detectados
 
-- pendiente validar que delete funcione tras el hotfix
+- ninguno; falta validar y desplegar
 
 ## Mi conclusión
 
-- el hotfix quedó desplegado; falta validar eliminación real desde UI.
+- el ajuste está listo; queda validar y publicar.

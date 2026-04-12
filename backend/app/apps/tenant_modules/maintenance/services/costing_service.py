@@ -2,6 +2,11 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
+from app.apps.tenant_modules.business_core.models import (
+    BusinessClient,
+    BusinessOrganization,
+    BusinessSite,
+)
 from app.apps.tenant_modules.finance.models import (
     FinanceAccount,
     FinanceCategory,
@@ -266,7 +271,7 @@ class MaintenanceCostingService:
 
         transaction_at = payload.transaction_at or work_order.completed_at or datetime.now(timezone.utc)
         currency_id = self._get_currency_or_raise(tenant_db, payload.currency_id).id
-        summary_label = self._build_work_order_label(work_order)
+        summary_label = self._build_work_order_label(tenant_db, work_order)
         note = self._normalize_text(payload.notes)
         income_description = self._normalize_text(payload.income_description)
         expense_description = self._normalize_text(payload.expense_description)
@@ -274,8 +279,6 @@ class MaintenanceCostingService:
         if payload.sync_income:
             if actual.actual_price_charged <= 0:
                 raise ValueError("El ingreso requiere un monto cobrado mayor que cero")
-            if payload.income_account_id is None:
-                raise ValueError("Debes seleccionar una cuenta de ingreso para sincronizar con finance")
             income_payload = FinanceTransactionCreateRequest(
                 transaction_type="income",
                 account_id=payload.income_account_id,
@@ -304,6 +307,7 @@ class MaintenanceCostingService:
                     actual.income_transaction_id,
                     FinanceTransactionUpdateRequest(**income_payload.model_dump()),
                     actor_user_id=actor_user_id,
+                    allow_accountless=payload.income_account_id is None,
                 )
             else:
                 transaction = self.finance_service.create_transaction(
@@ -314,14 +318,13 @@ class MaintenanceCostingService:
                     source_id=work_order.id,
                     summary="Ingreso sincronizado desde maintenance",
                     audit_payload={"work_order_id": work_order.id},
+                    allow_accountless=payload.income_account_id is None,
                 )
                 actual.income_transaction_id = transaction.id
 
         if payload.sync_expense:
             if actual.total_actual_cost <= 0:
                 raise ValueError("El egreso requiere un costo real mayor que cero")
-            if payload.expense_account_id is None:
-                raise ValueError("Debes seleccionar una cuenta de egreso para sincronizar con finance")
             expense_payload = FinanceTransactionCreateRequest(
                 transaction_type="expense",
                 account_id=payload.expense_account_id,
@@ -350,6 +353,7 @@ class MaintenanceCostingService:
                     actual.expense_transaction_id,
                     FinanceTransactionUpdateRequest(**expense_payload.model_dump()),
                     actor_user_id=actor_user_id,
+                    allow_accountless=payload.expense_account_id is None,
                 )
             else:
                 transaction = self.finance_service.create_transaction(
@@ -360,6 +364,7 @@ class MaintenanceCostingService:
                     source_id=work_order.id,
                     summary="Egreso sincronizado desde maintenance",
                     audit_payload={"work_order_id": work_order.id},
+                    allow_accountless=payload.expense_account_id is None,
                 )
                 actual.expense_transaction_id = transaction.id
 
@@ -399,16 +404,8 @@ class MaintenanceCostingService:
         if policy["maintenance_finance_sync_mode"] != "auto_on_close":
             return None
 
-        sync_income = (
-            policy["maintenance_finance_auto_sync_income"]
-            and actual.actual_price_charged > 0
-            and policy["maintenance_finance_income_account_id"] is not None
-        )
-        sync_expense = (
-            policy["maintenance_finance_auto_sync_expense"]
-            and actual.total_actual_cost > 0
-            and policy["maintenance_finance_expense_account_id"] is not None
-        )
+        sync_income = policy["maintenance_finance_auto_sync_income"] and actual.actual_price_charged > 0
+        sync_expense = policy["maintenance_finance_auto_sync_expense"] and actual.total_actual_cost > 0
         if not sync_income and not sync_expense:
             return None
 
@@ -789,5 +786,35 @@ class MaintenanceCostingService:
             return candidates[0], "single_match"
         return None, None
 
-    def _build_work_order_label(self, work_order: MaintenanceWorkOrder) -> str:
-        return f"#{work_order.id} · {work_order.title}"
+    def _build_work_order_label(self, tenant_db: Session, work_order: MaintenanceWorkOrder) -> str:
+        client_label = None
+        site_label = None
+        if work_order.client_id:
+            client = (
+                tenant_db.query(BusinessClient)
+                .filter(BusinessClient.id == work_order.client_id)
+                .first()
+            )
+            if client is not None and client.organization_id:
+                organization = (
+                    tenant_db.query(BusinessOrganization)
+                    .filter(BusinessOrganization.id == client.organization_id)
+                    .first()
+                )
+                if organization is not None and organization.name:
+                    client_label = organization.name
+        if work_order.site_id:
+            site = (
+                tenant_db.query(BusinessSite)
+                .filter(BusinessSite.id == work_order.site_id)
+                .first()
+            )
+            if site is not None and site.name:
+                site_label = site.name
+
+        parts = [f"#{work_order.id}", work_order.title]
+        if client_label:
+            parts.append(client_label)
+        if site_label:
+            parts.append(site_label)
+        return " · ".join(parts)

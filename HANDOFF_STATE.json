@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T22:00:00-04:00",
+  "updated_at": "2026-04-12T23:30:00-04:00",
   "handoff_status": "active",
-  "current_focus": "fix deprovision/delete Permission denied en runtime env",
-  "project_phase": "hotfix desplegado en prod/staging; pendiente validar eliminación real por UI",
+  "current_focus": "maintenance -> finance sync (accountless + glosa cliente) pendiente de validar y desplegar",
+  "project_phase": "cambio local listo; falta validacion y deploy a staging/production",
   "active_modules": [
     "platform-core",
     "finance",
@@ -11,6 +11,8 @@
     "maintenance"
   ],
   "module_in_focus": [
+    "maintenance",
+    "finance",
     "platform-core"
   ],
   "decisions_closed": [
@@ -57,6 +59,11 @@
     "el proyecto ya tiene gobernanza de datos explicita y el criterio oficial de cierre relevante puede expresarse como SRED: Spec, Rules, Evidence, Documentation"
   ],
   "completed_recently": [
+    "maintenance sync ahora permite accountless; update_transaction acepta allow_accountless",
+    "glosa maintenance->finance ahora incluye cliente y sitio",
+    "tenant policy sin defaults explicitos resuelve auto_on_close por defecto",
+    "frontend cost modal no bloquea sync por falta de cuenta",
+    "defaults de maintenance_finance_sync_mode pasan a auto_on_close en core schemas/model",
     "deprovision ahora ignora PermissionError en limpieza de secrets runtime para permitir delete",
     "regla E2E: nunca usar ieris-ltda; solo empresa-bootstrap y empresa-demo",
     "reset_finance_categories_to_defaults.py agregado y aplicado en production para ieris-ltda",
@@ -264,9 +271,9 @@
     "el segundo corte de llenado fino maintenance -> finance agrega glosa y fecha contable opcional sin romper el sync base"
   ],
   "blocking_issues": [
-    "validar en UI que Pendientes ya carga sin 500 tras el hotfix de secuencia"
+    "validar en empresa-demo que el cierre de OT crea ingreso/egreso en Finanzas"
   ],
-  "next_decision_required": "definir si la limpieza E2E de finanzas debe automatizarse en los pipelines published",
+  "next_decision_required": "definir si este ajuste se despliega primero en staging o directo a production",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -318,6 +325,7 @@
     "docs/deploy/staging-bootstrap-reset.md"
   ],
   "validation_status": {
+    "maintenance_finance_accountless_sync_repo": "pending",
     "maintenance_finance_defaults_backend_unittest_repo": "pass",
     "maintenance_finance_defaults_py_compile_repo": "pass",
     "maintenance_finance_defaults_frontend_build_repo": "pass",

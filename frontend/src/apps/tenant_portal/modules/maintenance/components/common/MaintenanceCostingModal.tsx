@@ -625,11 +625,7 @@ export function MaintenanceCostingModal({
     }
     return Number(((actualProfitPreview / income) * 100).toFixed(2));
   }, [actualForm.actual_price_charged, actualProfitPreview]);
-  const financeSyncBlocked =
-    !costingDetail?.actual ||
-    !financeSyncForm.currency_id ||
-    (financeSyncForm.sync_income && !financeSyncForm.income_account_id) ||
-    (financeSyncForm.sync_expense && !financeSyncForm.expense_account_id);
+  const financeSyncBlocked = !costingDetail?.actual || !financeSyncForm.currency_id;
   const selectedEstimateTemplate = useMemo(
     () =>
       activeCostTemplates.find((template) => String(template.id) === estimateTemplateId) ?? null,
@@ -700,25 +696,11 @@ export function MaintenanceCostingModal({
           : "the default currency from Overview is not active in Finance"
       );
     }
-    if (requiresIncomeSync && !policyIncomeAccountId) {
-      issues.push(
-        language === "es"
-          ? "falta la cuenta de ingreso por defecto en Resumen"
-          : "the default income account in Overview is missing"
-      );
-    }
     if (policyIncomeAccountId && !activeFinanceAccountIds.has(policyIncomeAccountId)) {
       issues.push(
         language === "es"
           ? "la cuenta de ingreso por defecto no está activa en Finanzas"
           : "the default income account is not active in Finance"
-      );
-    }
-    if (requiresExpenseSync && !policyExpenseAccountId) {
-      issues.push(
-        language === "es"
-          ? "falta la cuenta de egreso por defecto en Resumen"
-          : "the default expense account in Overview is missing"
       );
     }
     if (policyExpenseAccountId && !activeFinanceAccountIds.has(policyExpenseAccountId)) {

@@ -2,21 +2,21 @@
 
 ## Prioridad vigente
 
-- reintentar eliminar el tenant con error después del hotfix
+- validar mantenimiento -> finanzas (empresa-demo) y desplegar
 
 ## Decisión previa obligatoria
 
-- decidir si se debe aplicar el hotfix también al worker provisioning (si corre separado)
+- confirmar si se despliega directo a production o primero a staging
 
 ## Próximo paso correcto
 
-- ejecutar `Desprovisionar tenant` y luego `Eliminar tenant`
-- confirmar que no aparece `Permission denied` en la consola
+- correr smoke rápido manual: cerrar una OT con monto cobrado > 0 en empresa-demo y revisar transacción en Finanzas
+- desplegar backend/frontend con este ajuste
 
 ## Si el escenario principal falla
 
-- revisar logs backend para errores de `finance_categories` o `parent_category_id`
+- revisar logs de `maintenance_costing`/`finance` y validar que el tenant esté en `auto_on_close`
 
 ## Condición de cierre de la próxima iteración
 
-- tenant eliminado correctamente desde UI
+- ingreso/egreso visible en Finanzas con glosa de mantención + cliente

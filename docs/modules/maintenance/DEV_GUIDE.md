@@ -172,7 +172,8 @@ Fuente frontend principal:
 - aun en `auto_on_close`, `maintenance` sigue siendo dueño del costeo y `finance` sigue siendo dueño del hecho económico
 - la política vive en `tenant_info` y viaja en `/tenant/info`, porque afecta el workflow operativo del módulo técnico y no solo parámetros internos de `finance`
 - `auto_on_close` es best-effort:
-  - no bloquea el cierre de la OT si faltan defaults financieros
+  - no bloquea el cierre de la OT si faltan defaults financieros (cuenta, categoría, moneda)
+  - si faltan cuentas por defecto, la transacción puede crearse sin cuenta y luego clasificarse en Finanzas
   - si la configuración está incompleta, el operador sigue pudiendo usar sync manual
 
 ## Checklist de cumplimiento del modulo

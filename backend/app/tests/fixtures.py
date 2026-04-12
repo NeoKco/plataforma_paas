@@ -133,7 +133,7 @@ def build_tenant_record_stub(
     bootstrap_admin_full_name: str | None = "Tenant Admin",
     bootstrap_admin_email: str | None = "admin@empresa-bootstrap.local",
     bootstrap_admin_password_hash: str | None = "hashed-bootstrap-password",
-    maintenance_finance_sync_mode: str = "manual",
+    maintenance_finance_sync_mode: str = "auto_on_close",
     maintenance_finance_auto_sync_income: bool = True,
     maintenance_finance_auto_sync_expense: bool = True,
     maintenance_finance_income_account_id: int | None = None,

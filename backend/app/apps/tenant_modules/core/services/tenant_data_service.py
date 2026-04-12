@@ -125,13 +125,26 @@ class TenantDataService:
         resolved = tenant_info or self.get_tenant_info(tenant_db)
         if resolved is None:
             raise ValueError("Informacion tenant no encontrada")
-        return {
-            "maintenance_finance_sync_mode": getattr(
-                resolved,
-                "maintenance_finance_sync_mode",
-                "manual",
+        configured_mode = getattr(
+            resolved,
+            "maintenance_finance_sync_mode",
+            "auto_on_close",
+        ) or "auto_on_close"
+        if configured_mode == "manual":
+            has_explicit_defaults = any(
+                [
+                    getattr(resolved, "maintenance_finance_income_account_id", None),
+                    getattr(resolved, "maintenance_finance_expense_account_id", None),
+                    getattr(resolved, "maintenance_finance_income_category_id", None),
+                    getattr(resolved, "maintenance_finance_expense_category_id", None),
+                    getattr(resolved, "maintenance_finance_currency_id", None),
+                ]
             )
-            or "manual",
+            if not has_explicit_defaults:
+                configured_mode = "auto_on_close"
+
+        return {
+            "maintenance_finance_sync_mode": configured_mode,
             "maintenance_finance_auto_sync_income": bool(
                 getattr(resolved, "maintenance_finance_auto_sync_income", True)
             ),

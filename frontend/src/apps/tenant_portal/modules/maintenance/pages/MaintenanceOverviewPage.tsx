@@ -144,7 +144,7 @@ export function MaintenanceOverviewPage() {
   const [financeConfigNotice, setFinanceConfigNotice] = useState<string | null>(null);
   const [isSavingFinanceConfig, setIsSavingFinanceConfig] = useState(false);
   const [financeConfigForm, setFinanceConfigForm] = useState({
-    maintenance_finance_sync_mode: "manual",
+    maintenance_finance_sync_mode: "auto_on_close",
     maintenance_finance_auto_sync_income: true,
     maintenance_finance_auto_sync_expense: true,
     maintenance_finance_income_account_id: "",
@@ -578,8 +578,8 @@ export function MaintenanceOverviewPage() {
         <div className="d-flex flex-wrap justify-content-between gap-2 align-items-start mb-3">
           <div className="maintenance-cell__meta">
             {language === "es"
-              ? "Modo recomendado: manual mientras se estabilizan cuentas/categorías. Activa automático solo cuando ya exista un mapeo fijo del tenant."
-              : "Recommended mode: manual while accounts/categories are still stabilizing. Enable automatic sync only once the tenant has a fixed mapping."}
+              ? "Sugerencia: usa auto-sync cuando moneda/categorías estén listas; deja manual si prefieres revisar cada cierre."
+              : "Suggestion: use auto-sync once currency/categories are ready; keep manual if you prefer reviewing each close."}
           </div>
           <AppBadge
             tone={

@@ -44,6 +44,8 @@
 - se endurece el guardado de `due-items` para reparar desalineos de secuencia en `maintenance_due_items`:
   - si el insert detecta colision de PK, se recalibra la secuencia al `MAX(id)` y se reintenta
   - evita `500` en la bandeja de pendientes cuando la DB tenant arrastra secuencias desfasadas
+- la sincronización a `Finanzas` ahora permite crear ingresos/egresos sin cuenta explícita (accountless), dejando la clasificación posterior en Finance cuando el tenant aún no tiene cuentas definidas
+- la glosa por defecto del ingreso/egreso ahora incluye mantención, cliente y dirección/sitio para facilitar trazabilidad en Finanzas
 
 ## 2026-04-06
 

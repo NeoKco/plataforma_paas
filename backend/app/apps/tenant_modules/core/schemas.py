@@ -92,7 +92,7 @@ class TenantInfoData(BaseModel):
     effective_module_limit_sources: dict[str, str] | None = None
     effective_api_read_requests_per_minute: int | None = None
     effective_api_write_requests_per_minute: int | None = None
-    maintenance_finance_sync_mode: str = "manual"
+    maintenance_finance_sync_mode: str = "auto_on_close"
     maintenance_finance_auto_sync_income: bool = True
     maintenance_finance_auto_sync_expense: bool = True
     maintenance_finance_income_account_id: int | None = None
@@ -228,7 +228,7 @@ class TenantTimezoneUpdateRequest(BaseModel):
 
 
 class TenantMaintenanceFinanceSyncUpdateRequest(BaseModel):
-    maintenance_finance_sync_mode: str = "manual"
+    maintenance_finance_sync_mode: str = "auto_on_close"
     maintenance_finance_auto_sync_income: bool = True
     maintenance_finance_auto_sync_expense: bool = True
     maintenance_finance_income_account_id: int | None = None
@@ -296,7 +296,7 @@ class TenantTimezoneMutationResponse(BaseModel):
 
 
 class TenantMaintenanceFinanceSyncData(BaseModel):
-    maintenance_finance_sync_mode: str = "manual"
+    maintenance_finance_sync_mode: str = "auto_on_close"
     maintenance_finance_auto_sync_income: bool = True
     maintenance_finance_auto_sync_expense: bool = True
     maintenance_finance_income_account_id: int | None = None

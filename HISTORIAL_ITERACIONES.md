@@ -462,3 +462,19 @@
   - sin bloqueo adicional; era un bug visual de layout
 - siguiente paso:
   - seguir con el roadmap central sobre `Provisioning/DLQ`
+# 2026-04-12 - Maintenance -> Finance accountless + glosa cliente
+
+- objetivo:
+  - asegurar que el ingreso/egreso de mantenciones se registre en Finanzas incluso sin cuentas definidas
+- cambios principales:
+  - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) permite sync accountless y glosa con cliente/sitio
+  - [transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py) admite `allow_accountless` en update
+  - [tenant_data_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/services/tenant_data_service.py) resuelve `auto_on_close` cuando no hay defaults explícitos
+  - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) deja de bloquear sync por falta de cuentas
+  - defaults core pasan a `auto_on_close` en schemas/model
+- validaciones:
+  - no ejecutadas aún
+- bloqueos:
+  - falta validar en empresa-demo y desplegar
+- siguiente paso:
+  - probar cierre de OT con monto cobrado y confirmar transacción en Finanzas; luego desplegar

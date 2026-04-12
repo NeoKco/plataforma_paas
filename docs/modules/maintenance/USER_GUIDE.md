@@ -76,6 +76,7 @@ El primer corte del modulo ya permite:
 - ver cuántas programaciones preventivas quedaron vinculadas a cada plantilla de costeo
 - hacer que una OT agendada desde `Pendientes` nazca ya con ese costeo estimado precargado
 - definir en `Resumen` si el tenant deja el puente con `Finanzas` en modo manual o lo automatiza al cerrar
+  - si aún no hay cuentas definidas, la sync puede crear el movimiento sin cuenta y luego puedes clasificarlo en `Finanzas`
 - sacar automaticamente de la bandeja activa una orden al completarla o anularla
 - mantener catalogo de tipos de equipo
 - mantener instalaciones tecnicas ligadas a sitios del dominio base

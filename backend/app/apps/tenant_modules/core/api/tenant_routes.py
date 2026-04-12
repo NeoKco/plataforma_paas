@@ -199,7 +199,7 @@ def tenant_info(
         )
         if tenant_record is not None
         else {
-            "maintenance_finance_sync_mode": "manual",
+            "maintenance_finance_sync_mode": "auto_on_close",
             "maintenance_finance_auto_sync_income": True,
             "maintenance_finance_auto_sync_expense": True,
             "maintenance_finance_income_account_id": None,
