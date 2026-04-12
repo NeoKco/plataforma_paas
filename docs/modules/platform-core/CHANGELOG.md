@@ -2,6 +2,16 @@
 
 ## 2026-04-11
 
+- promoción operativa del corte `maintenance contractual + finance bootstrap por vertical` a `production`:
+  - backend `production` desplegado con `/opt/platform_paas/.env`
+  - frontend `production` reconstruido con `API_BASE_URL=https://orkestia.ddns.net`
+  - smoke [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts) validado con `1 passed`
+  - `https://orkestia.ddns.net/health` confirmado en estado `healthy`
+- estado de este corte después del rollout:
+  - `staging`: publicado y validado
+  - `production`: publicado y validado para el contrato modular tenant
+  - validación visible del bootstrap vertical con tenants nuevos sigue pendiente como verificación complementaria
+
 - publicación operativa del corte `maintenance contractual + finance bootstrap por vertical` en `staging`:
   - backend `staging` desplegado con `/opt/platform_paas_staging/.env.staging`
   - frontend `staging` reconstruido con `API_BASE_URL=http://192.168.7.42:8081`

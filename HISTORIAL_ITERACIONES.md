@@ -1,5 +1,24 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-11 - Promoción a production del contrato maintenance y bootstrap financiero vertical
+
+- objetivo:
+  - terminar el rollout del corte contractual `maintenance` + bootstrap financiero por vertical publicándolo también en `production`
+- cambios principales:
+  - backend `production` desplegado en `/opt/platform_paas` con el mismo corte publicado antes en `staging`
+  - frontend `production` reconstruido con `API_BASE_URL=https://orkestia.ddns.net` y publicado en `/opt/platform_paas/frontend/dist`
+  - smoke [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts) validado en `production`
+- validaciones:
+  - backend production: `deploy_backend_production.sh` -> `523 tests ... OK`, `platform-paas-backend.service active`, post-deploy gate OK
+  - frontend production: `deploy/check_frontend_static_readiness.sh` -> `OK`
+  - `https://orkestia.ddns.net/health` -> `healthy`
+  - smoke production: `tenant-portal-sidebar-modules.smoke.spec.ts` -> `1 passed`
+- bloqueos:
+  - sin bloqueo técnico
+  - la validación visible del bootstrap vertical creando tenants nuevos sigue pendiente; no bloquea el siguiente slice funcional
+- siguiente paso:
+  - abrir el slice de llenado fino `maintenance -> finance`
+
 ## 2026-04-11 - Publicación en staging del contrato maintenance y bootstrap financiero vertical
 
 - objetivo:

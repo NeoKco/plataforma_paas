@@ -4,13 +4,14 @@
 
 - fecha: 2026-04-11
 - foco de iteración: separación contractual de `maintenance` respecto de `core` y bootstrap financiero por vertical de tenant
-- estado general: el corte ya quedó publicado y validado en `staging` para contrato modular tenant; el bootstrap financiero por vertical sigue validado por unit tests en repo y queda pendiente decidir promoción a `production` y/o validación visible creando tenants nuevos de prueba
+- estado general: el corte ya quedó publicado y validado en `staging` y `production` para contrato modular tenant; el bootstrap financiero por vertical sigue validado por unit tests en repo y queda pendiente la validación visible creando tenants nuevos de prueba si se quiere cerrar también esa parte en entorno
 
 ## Resumen ejecutivo en 30 segundos
 
 - `Mantenciones` ya no queda implícito dentro de `Core negocio`; backend y frontend tenant-side ahora lo tratan como módulo propio `maintenance`
 - el bootstrap tenant ahora reemplaza el catálogo financiero neutral por un perfil vertical (`empresa` o `condominio/hogar`) cuando la DB está recién creada y sin uso financiero
 - el backend y frontend de `staging` ya quedaron publicados con este corte; el smoke real del sidebar tenant por módulos ya pasó contra `http://192.168.7.42:8081`
+- el backend y frontend de `production` ya quedaron publicados con este corte; el smoke real del sidebar tenant por módulos ya pasó contra `https://orkestia.ddns.net`
 - durante el rollout apareció y quedó corregido un bug real del wrapper [deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh), que apuntaba por defecto al root de producción
 
 ## Qué ya quedó hecho
@@ -32,6 +33,9 @@
 - el backend de `staging` ya quedó desplegado usando explícitamente `/opt/platform_paas_staging/.env.staging`
 - el frontend de `staging` ya quedó reconstruido con `API_BASE_URL=http://192.168.7.42:8081`
 - el smoke [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts) ya pasó en `staging` fuera del sandbox, confirmando el contrato nuevo de `maintenance`
+- el backend de `production` ya quedó desplegado usando `/opt/platform_paas/.env`
+- el frontend de `production` ya quedó reconstruido con `API_BASE_URL=https://orkestia.ddns.net`
+- el smoke [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts) ya pasó también en `production`
 
 ## Qué archivos se tocaron
 
@@ -82,7 +86,6 @@
 
 ## Qué falta exactamente
 
-- decidir si este corte debe promoverse ahora a `production`
 - si se quiere cerrar también la parte visible del bootstrap vertical, correr todavía:
   - validación manual o automática de bootstrap de un tenant nuevo `empresa`
   - validación manual o automática de bootstrap de un tenant nuevo `condominio`
@@ -94,7 +97,7 @@
 
 - no volver a acoplar `maintenance` a `core` por copy, por UI o por middleware
 - no vender el seed financiero por vertical como migración automática de tenants viejos; hoy aplica al bootstrap de tenants nuevos o a DB sin uso financiero
-- no mezclar promoción a `production` con cambios adicionales de `maintenance -> finance` en la misma subida sin antes validar el baseline
+- no mezclar la validación visible del bootstrap vertical con cambios adicionales de `maintenance -> finance` en la misma subida sin antes fijar el baseline ya publicado
 - no modificar `.env` reales de producción por inercia; la matriz contractual de planes quedó en `settings.py` y en ejemplos, pero el rollout real debe decidirse conscientemente
 
 ## Validaciones ya ejecutadas
@@ -119,16 +122,27 @@
 - staging smoke real:
   - `cd frontend && E2E_BASE_URL=http://192.168.7.42:8081 E2E_USE_EXISTING_FRONTEND=1 npx playwright test e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts`
   - resultado: `1 passed`
+- production deploy backend:
+  - `cd /opt/platform_paas && bash deploy/deploy_backend_production.sh`
+  - resultado: `523 tests ... OK`, `platform-paas-backend.service active`, post-deploy gate OK
+- production publish frontend:
+  - `API_BASE_URL=https://orkestia.ddns.net RUN_NPM_INSTALL=false bash deploy/build_frontend.sh`
+  - `frontend/dist` copiado a `/opt/platform_paas/frontend/dist`
+  - `deploy/check_frontend_static_readiness.sh` en `/opt/platform_paas`
+  - resultado: `OK`
+- production smoke real:
+  - `cd frontend && E2E_BASE_URL=https://orkestia.ddns.net E2E_USE_EXISTING_FRONTEND=1 npx playwright test e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts`
+  - resultado: `1 passed`
 
 ## Bloqueos reales detectados
 
 - no hay bloqueo técnico real
-- queda pendiente la decisión operativa de promoción a `production`
 - la validación visible del bootstrap financiero vertical todavía no se hizo creando tenants nuevos en entorno; hoy esa parte está cerrada por unit tests, no por smoke browser
 - el siguiente frente funcional (`maintenance -> finance` autollenado y defaults más finos) conviene abrirlo sobre esta base nueva, no antes
 
 ## Mi conclusión
 
 - el hueco contractual real quedó resuelto en código y ya quedó visible en `staging`: `Mantenciones` ya puede venderse, bloquearse o degradarse aparte de `Core negocio`
+- el hueco contractual real quedó resuelto en código y ya quedó visible en `staging` y `production`: `Mantenciones` ya puede venderse, bloquearse o degradarse aparte de `Core negocio`
 - el bootstrap financiero también quedó mejor alineado al negocio real porque los tenants nuevos ya no parten con un único catálogo genérico indiferenciado
-- el siguiente paso correcto ya no es más DLQ; ahora toca decidir si este corte se promueve a `production` o si se abre de inmediato el ajuste fino entre `maintenance` y `finance` sobre una base ya validada en `staging`
+- el siguiente paso correcto ya no es más DLQ ni más rollout de este corte; ahora toca abrir el ajuste fino entre `maintenance` y `finance` sobre una base ya validada en `staging` y `production`

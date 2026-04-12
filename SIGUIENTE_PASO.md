@@ -2,31 +2,29 @@
 
 ## Prioridad vigente
 
-- decidir si el corte `maintenance contractual + finance bootstrap por vertical`, ya validado en `staging`, se promueve ahora a `production` o si primero se abre el ajuste fino `maintenance -> finance`
+- abrir el slice de llenado fino `maintenance -> finance` sobre una base ya publicada y validada en `staging` y `production`
 
 ## Decisión previa obligatoria
 
 - ¿qué decisión define el camino siguiente?
-  - si este corte se promueve ya a `production` o si se aprovecha primero la base ya validada en `staging` para abrir el siguiente slice funcional de autollenado `maintenance -> finance`
+  - qué reglas exactas de autollenado entre `maintenance` y `finance` deben quedar como baseline primero: categorías, cuentas, price/cost default o ambos
 
 ## Próximo paso correcto
 
-- si la decisión es promover:
-  - publicar backend/frontend en `production`
-  - validar sidebar tenant con contrato `maintenance` separado
-  - si se quiere cierre visible completo, crear un tenant nuevo `empresa` y uno `condominio` para revisar categorías por defecto
-- si la decisión es seguir primero sobre esta base:
-  - abrir el slice de autollenado entre `maintenance` y `finance`
-  - usar el nuevo catálogo vertical como base para seleccionar categorías sugeridas o por defecto
+- abrir el slice de autollenado entre `maintenance` y `finance`
+- usar el nuevo catálogo vertical como base para seleccionar categorías sugeridas o por defecto
+- mantener como verificación complementaria pendiente, pero no bloqueante del slice:
+  - alta visible de un tenant nuevo `empresa`
+  - alta visible de un tenant nuevo `condominio`
+  - revisión de categorías por defecto sembradas en cada caso
 
 ## Si el escenario principal falla
 
-- si la promoción a `production` detecta regresión de contrato, corregir primero middleware + sidebar antes de tocar `maintenance -> finance`
 - si el bootstrap vertical de categorías no queda suficientemente claro para operación, agregar un helper visible o runbook corto de verificación por tenant nuevo
-- si el usuario prefiere no promover aún, no mezclar ese rollout con nuevos cambios funcionales; dejar explícito que el corte queda validado en `staging` y en repo
+- si el slice `maintenance -> finance` descubre huecos de catálogo, corregir primero defaults/categorías base antes de automatizar costeo o cobro
 
 ## Condición de cierre de la próxima iteración
 
 - la próxima iteración debe dejar una de estas dos cosas cerradas:
-  - este corte ya promovido y validado en `production`
-  - o el siguiente slice `maintenance -> finance` arrancado sobre esta base ya validada en `staging`, con handoff actualizado
+  - reglas base de autollenado `maintenance -> finance` definidas e implementadas en un primer corte
+  - o, como mínimo, el diseño funcional/backend/frontend de ese slice dejado cerrado para implementación directa

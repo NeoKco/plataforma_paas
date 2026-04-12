@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-11T23:45:00-04:00",
+  "updated_at": "2026-04-11T23:55:00-04:00",
   "handoff_status": "active",
-  "current_focus": "corte contractual tenant donde maintenance deja de depender implicitamente de core y el bootstrap financiero ya siembra categorias por vertical empresa vs condominio/hogar; staging ya quedo publicado y validado y el siguiente paso es decidir promotion a production o abrir el ajuste fino maintenance -> finance",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa y nuevo corte contractual de modulos tenant + bootstrap financiero por vertical ya publicado en staging",
+  "current_focus": "rollout contractual tenant cerrado para maintenance como modulo independiente y bootstrap financiero por vertical ya publicado en staging y production; el siguiente paso es abrir el slice de llenado fino maintenance -> finance",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa y corte contractual de modulos tenant + bootstrap financiero por vertical ya publicado en staging y production",
   "active_modules": [
     "platform-core",
     "finance",
@@ -57,6 +57,9 @@
     "frontend staging publicado con API_BASE_URL=http://192.168.7.42:8081 para este corte contractual",
     "smoke tenant-portal-sidebar-modules validado en staging con 1 passed",
     "wrapper deploy_backend_staging.sh corregido en repo para usar /opt/platform_paas_staging por defecto",
+    "backend production desplegado con el corte contractual maintenance + bootstrap financiero por vertical",
+    "frontend production publicado con API_BASE_URL=https://orkestia.ddns.net para este corte contractual",
+    "smoke tenant-portal-sidebar-modules validado en production con 1 passed",
     "maintenance pasa a ser modulo contractual explicito en VALID_PLAN_MODULES y en el middleware tenant para rutas /tenant/maintenance",
     "tenant_portal oculta o muestra Mantenciones segun effective_enabled_modules usando la clave maintenance y no core",
     "Tenants deja copy visible de que Mantenciones no viaja implicito dentro de Core negocio",
@@ -204,7 +207,7 @@
     "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir si el corte contractual maintenance + bootstrap financiero por vertical, ya validado en staging, se promueve ahora a production o si primero se abre el ajuste fino maintenance -> finance",
+  "next_decision_required": "definir e implementar el primer corte de llenado fino entre maintenance y finance sobre la base ya publicada",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -222,7 +225,7 @@
     "asumir cerrado tambien el helper published broker-only de staging",
     "dejar Provisioning/DLQ fuera del foco activo",
     "retomar el siguiente bloque central del roadmap fuera de DLQ",
-    "si el corte contractual actual se promueve, validar sidebar tenant y bootstrap de categorias por vertical antes de abrir nuevos cambios funcionales"
+    "usar la base ya publicada para abrir el slice maintenance -> finance sin reabrir el rollout contractual"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -385,6 +388,10 @@
     "tenant_contract_maintenance_staging_backend_deploy": "pass",
     "tenant_contract_maintenance_staging_frontend_publish": "pass",
     "tenant_contract_maintenance_staging_sidebar_smoke": "pass",
-    "deploy_backend_staging_wrapper_repo_shellcheck": "pass"
+    "deploy_backend_staging_wrapper_repo_shellcheck": "pass",
+    "tenant_contract_maintenance_production_backend_deploy": "pass",
+    "tenant_contract_maintenance_production_frontend_publish": "pass",
+    "tenant_contract_maintenance_production_sidebar_smoke": "pass",
+    "tenant_contract_maintenance_production_health_https": "pass"
   }
 }
