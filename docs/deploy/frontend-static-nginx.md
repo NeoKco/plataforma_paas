@@ -48,6 +48,20 @@ API_BASE_URL=https://api.example.com \
 bash deploy/build_frontend.sh
 ```
 
+Si el host es `orkestia.ddns.net`, puedes dejar un default persistente en:
+
+```text
+frontend/.env.production
+```
+
+Ejemplo:
+
+```dotenv
+VITE_API_BASE_URL=https://orkestia.ddns.net
+```
+
+Eso evita builds accidentales con la URL de `staging` si olvidaste limpiar variables de entorno en la sesión.
+
 Ese script:
 
 - instala dependencias si hace falta
@@ -68,6 +82,8 @@ VITE_API_BASE_URL=https://api.example.com
 ```
 
 Si no se define, el frontend intentará deducir una URL tipo `http(s)://<host>:8100`, útil para desarrollo local pero no recomendable para producción pública.
+
+Si tienes `frontend/.env.production`, `vite build` lo usará automáticamente. Aun así, en producción siempre valida el dist con `EXPECTED_API_BASE_URL` antes de publicar.
 
 ## 3. Publicar `dist/` con `nginx`
 

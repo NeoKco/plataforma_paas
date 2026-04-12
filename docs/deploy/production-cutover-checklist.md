@@ -60,6 +60,8 @@ EXPECTED_API_BASE_URL=https://api.example.com \
 bash deploy/check_frontend_static_readiness.sh
 ```
 
+Nota: si operas single-host, define `frontend/.env.production` con `VITE_API_BASE_URL=https://orkestia.ddns.net` para evitar builds que apunten a staging.
+
 ## Ejecución del cutover
 
 ### Paso 1. Deploy backend
