@@ -11,6 +11,8 @@
   - documentación actualizada en `API_REFERENCE`, `DEV_GUIDE`, `CHANGELOG` y `ROADMAP`
 - validaciones:
   - `cd backend && PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_maintenance_costing_service` -> `11 tests OK`
+  - smoke `tenant-portal-maintenance-finance-defaults` -> `1 passed` en `staging`
+  - smoke `tenant-portal-maintenance-finance-defaults` -> `1 passed` en `production`
 - bloqueos:
   - sin bloqueo técnico
 - siguiente paso:

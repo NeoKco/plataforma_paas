@@ -7,8 +7,8 @@ Puntero corto para retomar rápido entre sesiones.
 ## Estado rápido vigente
 
 - fecha: 2026-04-12
-- foco activo: publicar el segundo corte de llenado fino `maintenance -> finance` (glosa y fecha contable)
-- prioridad inmediata: deploy a `staging` y smoke del modal `Costos y cobro`
+- foco activo: segundo corte de llenado fino `maintenance -> finance` cerrado y validado
+- prioridad inmediata: decidir siguiente slice (ergonomía contable o roadmap central)
 - módulo o frente activo: `maintenance` + `finance`
 
 ## Último contexto útil
@@ -41,8 +41,7 @@ Puntero corto para retomar rápido entre sesiones.
 
 ## Siguiente acción inmediata
 
-- desplegar backend + frontend en `staging` y validar el smoke
-- promover a `production` si `staging` queda verde
+- definir el siguiente subcorte o volver al roadmap central
 
 ## Archivos a leer justo después de este
 

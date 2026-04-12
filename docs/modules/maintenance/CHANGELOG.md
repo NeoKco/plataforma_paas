@@ -31,11 +31,14 @@
   - `Costos y cobro` expone glosas editables, referencia OT y fecha contable ajustable para el sync manual
   - la glosa usa una sugerencia derivada de la OT y el cliente, pero queda editable antes del sync
   - la fecha contable sigue por defecto el cierre real de la OT; si el operador activa el toggle, puede ajustar manualmente
+  - el subcorte queda validado en `staging` y `production` con smoke browser
 - se agregan pruebas en [test_maintenance_costing_service.py](/home/felipe/platform_paas/backend/app/tests/test_maintenance_costing_service.py) para cubrir:
   - resolución de defaults efectivos sin política explícita
   - prioridad de política tenant activa sobre los fallbacks
 - validaciones ejecutadas en repo:
   - `python -m unittest app.tests.test_maintenance_costing_service` -> `11 tests OK`
+  - `tenant-portal-maintenance-finance-defaults.smoke.spec.ts` -> `1 passed` en `staging`
+  - `tenant-portal-maintenance-finance-defaults.smoke.spec.ts` -> `1 passed` en `production`
   - `python -m py_compile` sobre router/schema/service nuevos o modificados -> `OK`
   - `cd frontend && npm run build` -> `OK`
 

@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-12
-- foco de iteración: abrir el segundo corte de llenado fino `maintenance -> finance` (glosa, referencia OT y fecha contable opcional)
-- estado general: slice abierto en repo, pendiente de promoción a `staging` y `production`
+- foco de iteración: cerrar el segundo corte de llenado fino `maintenance -> finance` (glosa, referencia OT y fecha contable opcional)
+- estado general: slice publicado y validado en `staging` y `production`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -49,8 +49,7 @@
 
 ## Qué falta exactamente
 
-- publicar este subcorte en `staging` y validar con smoke browser
-- promover a `production` si `staging` queda verde
+- el subcorte ya quedó publicado y validado con smoke browser en `staging` y `production`
 
 ## Qué no debe tocarse
 
@@ -62,6 +61,14 @@
 
 - repo:
   - `cd backend && PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_maintenance_costing_service` -> `11 tests OK`
+- staging:
+  - `deploy_backend_staging.sh` -> `523 tests OK`
+  - `build_frontend.sh` -> `OK`
+  - `tenant-portal-maintenance-finance-defaults.smoke.spec.ts` -> `1 passed`
+- production:
+  - `deploy_backend_production.sh` -> `523 tests OK`
+  - `build_frontend.sh` -> `OK`
+  - `tenant-portal-maintenance-finance-defaults.smoke.spec.ts` -> `1 passed`
 
 ## Bloqueos reales detectados
 
@@ -70,5 +77,5 @@
 
 ## Mi conclusión
 
-- el primer corte de defaults efectivos `maintenance -> finance` ya quedó cerrado de punta a punta: repo, `staging`, `production`, smoke browser y documentación
-- el siguiente paso correcto ya no es rollout; es abrir el segundo corte funcional de llenado fino entre `maintenance` y `finance`
+- el segundo corte de llenado fino queda cerrado y validado
+- el siguiente paso correcto es decidir el próximo subcorte de ergonomía o volver al roadmap central

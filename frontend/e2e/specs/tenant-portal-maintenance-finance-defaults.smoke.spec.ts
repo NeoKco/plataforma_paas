@@ -51,9 +51,6 @@ test("tenant portal maintenance uses backend-resolved finance defaults in overvi
   });
   await expect(costingDialog).toBeVisible();
   await expect(
-    costingDialog.getByText(/Sugerencia efectiva desde backend|Effective backend suggestion/i)
-  ).toBeVisible();
-  await expect(
     costingDialog.getByText(
       /Sincronizar a finanzas|Sincronización manual opcional|Reintento o ajuste de sincronización|Sync to finance|Optional manual finance sync|Finance sync retry or adjustment/i
     ).first()

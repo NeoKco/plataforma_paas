@@ -226,6 +226,7 @@ Avance actual:
 - segundo corte de llenado fino en progreso en repo:
   - `finance-sync` acepta glosas editables y fecha contable opcional
   - `Costos y cobro` muestra `Referencia OT`, glosa ingreso/egreso y toggle de fecha contable manual
+  - subcorte validado en `staging` y `production` con smoke browser
 - tablas ya versionadas:
   - `maintenance_schedules`
   - `maintenance_due_items`
@@ -276,7 +277,7 @@ Pendiente fino inmediato de esta fase:
 - autollenado más preciso de categorías, cuentas y moneda al cerrar costeo
 - ergonomía de defaults para que el operador no duplique digitación entre `maintenance` y `finance`
 - aprovechamiento explícito del nuevo baseline financiero `CLP + Casa/Empresa`
-- cerrar el subcorte de glosa/fecha contable con rollout en `staging` y `production` y smoke actualizado
+- definir si el siguiente subcorte debe profundizar el flujo de sync automático post-cierre o el detalle contable por líneas
 - tablas y columnas ya versionadas para el seed preventivo del costeo:
   - `maintenance_schedule_cost_lines`
   - `maintenance_schedules.estimate_target_margin_percent`

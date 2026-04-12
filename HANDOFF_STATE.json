@@ -2,7 +2,7 @@
   "project": "platform_paas",
   "updated_at": "2026-04-12T10:15:00-04:00",
   "handoff_status": "active",
-  "current_focus": "publicar el segundo corte functional maintenance -> finance (glosa y fecha contable opcional) desde repo hacia staging y production",
+  "current_focus": "segundo corte maintenance -> finance (glosa y fecha contable) cerrado en staging y production; pendiente definir siguiente slice",
   "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa, baseline contractual por modulos ya publicado, gobernanza transversal ampliada con data governance y SRED, y primer corte maintenance -> finance ya cerrado en repo staging y production",
   "active_modules": [
     "platform-core",
@@ -73,6 +73,8 @@
     "backend unittest app.tests.test_maintenance_costing_service validado con 11 tests OK para este corte",
     "repo agrega glosa y fecha contable opcional en sync manual maintenance -> finance",
     "MaintenanceCostingModal ahora muestra referencia OT y glosas editables para sync manual",
+    "subcorte glosa/fecha contable validado en staging con smoke tenant-portal-maintenance-finance-defaults",
+    "subcorte glosa/fecha contable validado en production con smoke tenant-portal-maintenance-finance-defaults",
     "frontend build validado para el corte defaults efectivos maintenance -> finance",
     "tenant_db_bootstrap_service ahora separa seed_defaults reutilizable para provisioning inicial y backfill por cambio de plan",
     "finance default_category_profiles ahora siembra baseline mixto con CLP, categorias compartidas y familias Casa - ... / Empresa - ... derivadas desde ieris_app",
@@ -247,7 +249,7 @@
   "blocking_issues": [
     "no hay bloqueo tecnico abierto"
   ],
-  "next_decision_required": "no hay decision funcional pendiente; toca desplegar el subcorte de glosa/fecha contable en staging y validar smoke",
+  "next_decision_required": "definir el siguiente subcorte de ergonomia maintenance -> finance o retomar roadmap central",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -453,6 +455,8 @@
     "tenant_bootstrap_contractual_defaults_production_backend_deploy": "pass",
     "tenant_bootstrap_contractual_defaults_production_health_https": "pass",
     "tenant_bootstrap_contractual_defaults_production_sidebar_smoke": "pass",
-    "maintenance_finance_fillin_glosa_repo_unittest": "pass"
+    "maintenance_finance_fillin_glosa_repo_unittest": "pass",
+    "maintenance_finance_fillin_glosa_staging_smoke": "pass",
+    "maintenance_finance_fillin_glosa_production_smoke": "pass"
   }
 }
