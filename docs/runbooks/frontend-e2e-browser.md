@@ -278,6 +278,7 @@ Baseline recomendado para desarrollo local:
 - `E2E_TENANT_SLUG=empresa-bootstrap`
 - `E2E_TENANT_EMAIL=admin@empresa-bootstrap.local`
 - `E2E_TENANT_PASSWORD=TenantAdmin123!`
+- regla fija: no usar `ieris-ltda` para E2E; solo `empresa-bootstrap` y `empresa-demo`
 
 Nota:
 

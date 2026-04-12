@@ -1,6 +1,6 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T21:35:00-04:00",
+  "updated_at": "2026-04-12T21:45:00-04:00",
   "handoff_status": "active",
   "current_focus": "reset categorias finance a baseline default en ieris-ltda",
   "project_phase": "produccion y staging operativos; reset aplicado con remapeo de referencias; pendiente validar UI",
@@ -57,6 +57,7 @@
     "el proyecto ya tiene gobernanza de datos explicita y el criterio oficial de cierre relevante puede expresarse como SRED: Spec, Rules, Evidence, Documentation"
   ],
   "completed_recently": [
+    "regla E2E: nunca usar ieris-ltda; solo empresa-bootstrap y empresa-demo",
     "reset_finance_categories_to_defaults.py agregado y aplicado en production para ieris-ltda",
     "categorias finance default ahora incluyen familias (Ingresos, Egresos, Transferencias) y parent_name por seed",
     "tenant_db_bootstrap_service asigna parent a categorias existentes sin familia",

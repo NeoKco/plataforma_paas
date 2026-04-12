@@ -7,6 +7,7 @@
 ## Decisión previa obligatoria
 
 - decidir si se quiere hacer reset de categorías en otros tenants
+- confirmar si la regla E2E (solo `empresa-bootstrap` y `empresa-demo`) requiere enforcement técnico
 
 ## Próximo paso correcto
 

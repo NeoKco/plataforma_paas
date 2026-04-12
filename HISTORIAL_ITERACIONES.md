@@ -46,6 +46,20 @@
   - pendiente confirmar en UI que el catálogo quedó limpio
 - siguiente paso:
   - abrir `finance/categories` en `ieris-ltda` y validar
+
+## 2026-04-12 - Regla E2E tenants permitidos
+
+- objetivo:
+  - proteger `ieris-ltda` de ejecuciones E2E
+- cambios principales:
+  - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md) fija que E2E solo use `empresa-bootstrap` y `empresa-demo`
+  - [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md) replica la regla
+- validaciones:
+  - no aplica
+- bloqueos:
+  - ninguno
+- siguiente paso:
+  - decidir si se agrega enforcement técnico en scripts E2E
 - bloqueos:
   - falta validar en UI que `Pendientes` carga sin 500
 - siguiente paso:

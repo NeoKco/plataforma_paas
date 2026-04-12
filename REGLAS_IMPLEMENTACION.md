@@ -66,6 +66,11 @@ Si una mejora cambia operación real, revisar si requiere:
 - ampliación de smoke existente
 - validación manual explícita documentada
 
+Regla operativa de tenants E2E:
+
+- nunca usar `ieris-ltda` para E2E
+- los tenants permitidos para E2E son `empresa-bootstrap` y `empresa-demo`
+
 ## Regla 7. No mezclar backlog residual con prioridades de release
 
 Si algo es residual, editorial o no bloqueante, dejarlo explícito como backlog.

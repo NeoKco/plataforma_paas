@@ -3,13 +3,13 @@
 ## Última actualización
 
 - fecha: 2026-04-12
-- foco de iteración: reset de categorías finance a baseline default en `ieris-ltda`
+- foco de iteración: reset de categorías finance en `ieris-ltda` + regla E2E tenants permitidos
 - estado general: backend actualizado en `production` y `staging`, familias seed actualizadas
 
 ## Resumen ejecutivo en 30 segundos
 
 - se limpió `ieris-ltda` para dejar solo categorías default con familias
-- las referencias a categorías no default fueron remapeadas a defaults
+- se dejó explícito que E2E solo usa `empresa-bootstrap` y `empresa-demo` (nunca `ieris-ltda`)
 
 ## Qué ya quedó hecho
 
@@ -20,6 +20,7 @@
 - script ejecutado en `production` para `ieris-ltda`:
   - categorías removidas: 21
   - transacciones remapeadas: 55
+- [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md) deja la regla de tenants E2E permitidos
 
 ## Qué archivos se tocaron
 
@@ -29,10 +30,12 @@
 - [docs/runbooks/tenant-basic-cycle.md](/home/felipe/platform_paas/docs/runbooks/tenant-basic-cycle.md)
 - [docs/modules/finance/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/finance/DEV_GUIDE.md)
 - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+- [docs/runbooks/frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md)
 
 ## Qué decisiones quedaron cerradas
 
 - el reset de categorías se hace con remapeo de referencias a defaults
+- `ieris-ltda` queda excluido de E2E; solo `empresa-bootstrap` y `empresa-demo`
 - la limpieza de residuos E2E en finanzas se maneja con un script operativo explícito
 - los 500 en `Pendientes` por secuencia PK se corrigen desde backend sin intervención manual
 
