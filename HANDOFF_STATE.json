@@ -237,9 +237,9 @@
     "PROJECT_CONTEXT REGLAS_IMPLEMENTACION CHECKLIST_CIERRE_ITERACION PROMPT_MAESTRO_MODULO implementation-governance y module-build-standard ya enlazan gobernanza de datos y SRED"
   ],
   "blocking_issues": [
-    "no hay bloqueo tecnico abierto; falta solo publicar y validar este corte en staging"
+    "no hay bloqueo tecnico abierto; falta solo validacion visual en staging antes de decidir promotion a production"
   ],
-  "next_decision_required": "confirmar en staging si el prellenado efectivo actual de maintenance -> finance ya cubre la operacion real o si hara falta un segundo corte sobre glosas y reglas contables mas finas",
+  "next_decision_required": "confirmar en staging si el prellenado efectivo actual de maintenance -> finance ya cubre la operacion real y puede promoverse a production o si hara falta un segundo corte sobre glosas y reglas contables mas finas",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -294,6 +294,8 @@
     "maintenance_finance_defaults_backend_unittest_repo": "pass",
     "maintenance_finance_defaults_py_compile_repo": "pass",
     "maintenance_finance_defaults_frontend_build_repo": "pass",
+    "maintenance_finance_defaults_staging_backend_deploy": "pass",
+    "maintenance_finance_defaults_staging_frontend_publish": "pass",
     "tenant_bootstrap_contractual_defaults_backend_unittest_repo": "pass",
     "tenant_bootstrap_contractual_defaults_py_compile_repo": "pass",
     "backend_baseline": "pass",

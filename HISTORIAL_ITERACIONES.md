@@ -14,11 +14,14 @@
   - `cd backend && PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_maintenance_costing_service` -> `10 tests OK`
   - `cd backend && ... python -m py_compile ...maintenance/api/finance_sync.py ...maintenance/services/costing_service.py ...maintenance/schemas/costing.py` -> `OK`
   - `cd frontend && npm run build` -> `OK`
+  - `cd /opt/platform_paas_staging && bash deploy/deploy_backend_staging.sh` -> `523 tests OK`, servicio activo y `healthcheck` OK
+  - `cd /opt/platform_paas_staging && API_BASE_URL=http://192.168.7.42:8081 RUN_NPM_INSTALL=false bash deploy/build_frontend.sh` -> `OK`
+  - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `OK`
 - bloqueos:
   - sin bloqueo técnico
-  - queda pendiente solo publish/validación visual en `staging`
+  - queda pendiente solo validación visual en `staging` antes de decidir promoción a `production`
 - siguiente paso:
-  - desplegar este corte en `staging`, validar `Resumen técnico` y `Costos y cobro`, y luego promover a `production`
+  - validar `Resumen técnico` y `Costos y cobro` en `staging`, y luego decidir promoción a `production`
 
 ## 2026-04-12 - Gobernanza de datos y SRED formalizados
 
