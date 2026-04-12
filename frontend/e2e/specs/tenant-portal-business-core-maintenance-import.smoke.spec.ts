@@ -118,6 +118,9 @@ test("tenant portal shows imported business core and maintenance data from ieris
     page.getByText(/Sincronización automática a finanzas|Automatic finance sync/i)
   ).toBeVisible();
   await expect(
+    page.getByText(/Sugerencia efectiva desde backend|Effective backend suggestion/i).first()
+  ).toBeVisible();
+  await expect(
     page
       .locator("div")
       .filter({ hasText: /Modo de sincronización|Sync mode/i })
@@ -216,8 +219,11 @@ test("tenant portal shows imported business core and maintenance data from ieris
     await expect(costingDialog.getByLabel(/Sincronizar ingreso|Sync income/i)).toBeVisible();
     await expect(
       costingDialog.getByText(
-        /Los selectores ya vienen precargados con la configuración por defecto de Resumen|Aunque la política siga manual, este formulario ya propone la misma cuenta, categoría, moneda y toggles definidos en Resumen|Selectors already start with the default Overview configuration|Even if the policy remains manual, this form already suggests the same account, category, currency, and toggles defined in Overview/i
+        /Los selectores ya vienen precargados con la sugerencia efectiva resuelta por backend|Aunque la política siga manual, este formulario ya propone la misma cuenta, categoría, moneda y toggles resueltos por backend|Selectors already start with the effective suggestion resolved by the backend|Even if the policy remains manual, this form already suggests the same account, category, currency, and toggles resolved by the backend/i
       )
+    ).toBeVisible();
+    await expect(
+      costingDialog.getByText(/Sugerencia efectiva desde backend|Effective backend suggestion/i)
     ).toBeVisible();
     await expect(
       costingDialog.getByText(

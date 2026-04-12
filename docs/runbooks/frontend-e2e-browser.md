@@ -62,6 +62,7 @@ Archivos principales:
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
 - [tenant-portal-business-core-maintenance-import.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-business-core-maintenance-import.smoke.spec.ts)
+- [tenant-portal-maintenance-finance-defaults.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-maintenance-finance-defaults.smoke.spec.ts)
 - [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh)
 
 ## Alcance inicial
@@ -114,6 +115,7 @@ Cobertura actual:
 - conciliación básica de una transacción creada en `finance`
 - visibilidad de datos ya importados desde `ieris_app` en `business-core` y `maintenance`
 - visibilidad de la política tenant de auto-sync `maintenance -> finance` desde `Resumen técnico`
+- visibilidad de los defaults efectivos `maintenance -> finance` desde `Resumen técnico` y `Costos y cobro`, resueltos por backend
 
 Esto no reemplaza:
 

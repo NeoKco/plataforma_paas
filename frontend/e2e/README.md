@@ -55,6 +55,7 @@ Cobertura validada:
 - smoke de conciliación en `finance`
 - visibilidad de datos importados de `ieris_app` en `business-core` y `maintenance`
 - configuración tenant de auto-sync `maintenance -> finance` visible desde `Resumen técnico`
+- defaults efectivos `maintenance -> finance` visibles desde `Resumen técnico` y `Costos y cobro`, resueltos por backend
 - las mejoras futuras no bloqueantes de `maintenance` quedan documentadas en [docs/modules/maintenance/improvements/README.md](/home/felipe/platform_paas/docs/modules/maintenance/improvements/README.md) y deben sumar smoke solo cuando introduzcan un flujo visible nuevo
 
 Specs actuales:
@@ -111,6 +112,7 @@ Specs actuales:
 - [tenant-portal-finance-attachments-void.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-attachments-void.smoke.spec.ts)
 - [tenant-portal-finance-reconciliation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-finance-reconciliation.smoke.spec.ts)
 - [tenant-portal-business-core-maintenance-import.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-business-core-maintenance-import.smoke.spec.ts)
+- [tenant-portal-maintenance-finance-defaults.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-maintenance-finance-defaults.smoke.spec.ts)
 
 Variables de entorno:
 
