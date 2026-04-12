@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- validar mantenimiento -> finanzas (empresa-demo)
+- validar mantenimiento -> finanzas (precio sugerido editable + glosa final)
 
 ## Decisión previa obligatoria
 
@@ -10,8 +10,9 @@
 
 ## Próximo paso correcto
 
-- cerrar una OT con monto cobrado > 0 en empresa-demo y revisar transacción en Finanzas
-- confirmar glosa contiene mantención + cliente + sitio
+- en empresa-demo abrir una OT y editar `Precio sugerido` en costeo estimado; guardar y reabrir para confirmar persistencia
+- cerrar la OT con monto cobrado > 0 y revisar transacción en Finanzas
+- confirmar glosa: `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio)
 
 ## Si el escenario principal falla
 
@@ -19,4 +20,5 @@
 
 ## Condición de cierre de la próxima iteración
 
-- ingreso/egreso visible en Finanzas con glosa de mantención + cliente
+- ingreso/egreso visible en Finanzas con glosa `mantención + trabajo + cliente`
+- precio sugerido editable y persistente en el estimado

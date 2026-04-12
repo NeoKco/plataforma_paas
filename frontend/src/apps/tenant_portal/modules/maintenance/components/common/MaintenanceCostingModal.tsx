@@ -118,11 +118,8 @@ function buildFinanceReferenceLabel(
   if (clientLabel) {
     pieces.push(clientLabel);
   }
-  if (installationLabel) {
-    pieces.push(installationLabel);
-  } else if (siteLabel) {
-    pieces.push(siteLabel);
-  }
+  void siteLabel;
+  void installationLabel;
   return pieces.filter(Boolean).join(" · ");
 }
 
@@ -303,6 +300,42 @@ function sumCostLines(lines: MaintenanceCostLineFormState[]) {
       total: 0,
     }
   );
+}
+
+function getSuggestedPriceForEstimateData(
+  estimate: TenantMaintenanceCostEstimate | null | undefined,
+  estimateLines: TenantMaintenanceCostLine[] | null | undefined
+): number {
+  if (!estimate) {
+    return 0;
+  }
+  const hasLines = (estimateLines ?? []).length > 0;
+  const total = hasLines
+    ? sumCostLines(
+        (estimateLines ?? []).map((line) => ({
+          id: line.id,
+          line_type: line.line_type,
+          description: line.description ?? "",
+          quantity: String(line.quantity ?? 1),
+          unit_cost: String(line.unit_cost ?? 0),
+          notes: line.notes ?? "",
+        }))
+      ).total
+    : sumCostForm({
+        labor_cost: String(estimate.labor_cost ?? 0),
+        travel_cost: String(estimate.travel_cost ?? 0),
+        materials_cost: String(estimate.materials_cost ?? 0),
+        external_services_cost: String(estimate.external_services_cost ?? 0),
+        overhead_cost: String(estimate.overhead_cost ?? 0),
+      });
+  const margin = Number(estimate.target_margin_percent ?? 0);
+  if (total <= 0) {
+    return 0;
+  }
+  if (margin <= 0 || margin >= 100) {
+    return Number(total.toFixed(2));
+  }
+  return Number((total / (1 - margin / 100)).toFixed(2));
 }
 
 function normalizeLineWritePayload(
@@ -530,6 +563,7 @@ export function MaintenanceCostingModal({
   const [estimateForm, setEstimateForm] = useState<MaintenanceCostEstimateFormState>(
     buildDefaultCostEstimateForm()
   );
+  const [estimateSuggestedTouched, setEstimateSuggestedTouched] = useState(false);
   const [estimateLines, setEstimateLines] = useState<MaintenanceCostLineFormState[]>([]);
   const [actualForm, setActualForm] = useState<MaintenanceCostActualFormState>(
     buildDefaultCostActualForm()
@@ -617,6 +651,17 @@ export function MaintenanceCostingModal({
     }
     return Number((estimatedTotalPreview / (1 - margin / 100)).toFixed(2));
   }, [estimateForm.target_margin_percent, estimatedTotalPreview]);
+  useEffect(() => {
+    if (estimateSuggestedTouched) {
+      return;
+    }
+    const nextSuggested = estimatedSuggestedPricePreview.toFixed(2);
+    setEstimateForm((current) =>
+      current.suggested_price === nextSuggested
+        ? current
+        : { ...current, suggested_price: nextSuggested }
+    );
+  }, [estimateSuggestedTouched, estimatedSuggestedPricePreview]);
   const actualTotalPreview = useMemo(
     () => (actualUsesLines ? actualLineTotals.total : sumCostForm(actualForm)),
     [actualForm, actualLineTotals.total, actualUsesLines]
@@ -835,9 +880,21 @@ export function MaintenanceCostingModal({
             ...buildEstimateFormFromTemplate(autoTemplate),
             notes: autoTemplate.estimate_notes ?? detail.estimate?.notes ?? "",
           });
+          setEstimateSuggestedTouched(false);
         } else {
           setEstimateForm(buildDefaultCostEstimateForm(detail.estimate));
           setEstimateLines(buildDefaultCostLines(detail.estimate_lines));
+          if (detail.estimate?.suggested_price != null) {
+            const computed = getSuggestedPriceForEstimateData(
+              detail.estimate,
+              detail.estimate_lines
+            );
+            setEstimateSuggestedTouched(
+              Number(detail.estimate.suggested_price) !== Number(computed)
+            );
+          } else {
+            setEstimateSuggestedTouched(false);
+          }
         }
 
         if (autoTemplate && !hasActualData) {
@@ -983,6 +1040,7 @@ export function MaintenanceCostingModal({
     setEstimateTemplateId(String(template.id));
     setEstimateLines(buildCostLineFormsFromTemplate(template));
     setEstimateForm(buildEstimateFormFromTemplate(template));
+    setEstimateSuggestedTouched(false);
     setCostBaseMessage(
       language === "es"
         ? `Plantilla ${template.name} aplicada al costeo estimado. Puedes ajustar líneas, margen y notas antes de guardar.`
@@ -1081,12 +1139,16 @@ export function MaintenanceCostingModal({
         external_services_cost: normalizeNumericInput(estimateForm.external_services_cost),
         overhead_cost: normalizeNumericInput(estimateForm.overhead_cost),
         target_margin_percent: normalizeNumericInput(estimateForm.target_margin_percent),
+        suggested_price: normalizeNullable(estimateForm.suggested_price)
+          ? normalizeNumericInput(estimateForm.suggested_price)
+          : null,
         notes: normalizeNullable(estimateForm.notes),
         lines: normalizeLineWritePayload(estimateLines),
       });
       setCostingDetail(response.data);
       setEstimateForm(buildDefaultCostEstimateForm(response.data.estimate));
       setEstimateLines(buildDefaultCostLines(response.data.estimate_lines));
+      setEstimateSuggestedTouched(false);
       onFeedback?.(response.message);
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -1569,7 +1631,31 @@ export function MaintenanceCostingModal({
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Indirectos" : "Overhead"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.overhead_cost.toFixed(2) : estimateForm.overhead_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, overhead_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
                     <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Margen objetivo (%)" : "Target margin (%)"}</label><input className="form-control" type="number" min="0" max="99.99" step="0.01" value={estimateForm.target_margin_percent} onChange={(event) => setEstimateForm((current) => ({ ...current, target_margin_percent: event.target.value }))} disabled={isReadOnly} /></div>
                     <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Costo estimado total" : "Estimated total cost"}</label><input className="form-control" value={estimatedTotalPreview.toFixed(2)} readOnly /></div>
-                    <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Precio sugerido" : "Suggested price"}</label><input className="form-control" value={estimatedSuggestedPricePreview.toFixed(2)} readOnly /></div>
+                    <div className="col-12 col-md-6">
+                      <label className="form-label">{language === "es" ? "Precio sugerido" : "Suggested price"}</label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={estimateForm.suggested_price}
+                        onChange={(event) => {
+                          setEstimateSuggestedTouched(true);
+                          setEstimateForm((current) => ({
+                            ...current,
+                            suggested_price: event.target.value,
+                          }));
+                        }}
+                        disabled={isReadOnly}
+                      />
+                      {estimateSuggestedTouched ? (
+                        <div className="form-text">
+                          {language === "es"
+                            ? `Calculado: ${estimatedSuggestedPricePreview.toFixed(2)}`
+                            : `Calculated: ${estimatedSuggestedPricePreview.toFixed(2)}`}
+                        </div>
+                      ) : null}
+                    </div>
                     <div className="col-12"><label className="form-label">{language === "es" ? "Notas de estimación" : "Estimate notes"}</label><textarea className="form-control" rows={3} value={estimateForm.notes} onChange={(event) => setEstimateForm((current) => ({ ...current, notes: event.target.value }))} readOnly={isReadOnly} /></div>
                     <div className="col-12">{renderLineEditor(estimateLines, addEstimateLine, updateEstimateLine, removeEstimateLine, isReadOnly)}</div>
                   </div>

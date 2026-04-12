@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T23:30:00-04:00",
+  "updated_at": "2026-04-12T18:20:00-04:00",
   "handoff_status": "active",
-  "current_focus": "maintenance -> finance sync (accountless + glosa cliente) publicado; falta validar en UI",
+  "current_focus": "maintenance -> finance (precio sugerido editable + glosa sin equipo/sitio) publicado; falta validar en UI",
   "project_phase": "cambio desplegado en staging/production; pendiente validacion funcional",
   "active_modules": [
     "platform-core",
@@ -268,12 +268,16 @@
     "data-governance.md agregado como canon transversal para ownership, contratos de datos, seeds/defaults, calidad minima, archivo y portabilidad",
     "sred-development.md agregado como metodo corto oficial de cierre por Spec, Rules, Evidence y Documentation",
     "PROJECT_CONTEXT REGLAS_IMPLEMENTACION CHECKLIST_CIERRE_ITERACION PROMPT_MAESTRO_MODULO implementation-governance y module-build-standard ya enlazan gobernanza de datos y SRED",
-    "el segundo corte de llenado fino maintenance -> finance agrega glosa y fecha contable opcional sin romper el sync base"
+    "el segundo corte de llenado fino maintenance -> finance agrega glosa y fecha contable opcional sin romper el sync base",
+    "costeo estimado ahora permite editar precio sugerido y persistirlo",
+    "glosa maintenance -> finance ahora usa mantención + trabajo + cliente (sin equipo/sitio)",
+    "frontend staging y production reconstruido con el campo precio sugerido editable",
+    "backend staging y production desplegado con 523 tests OK para el ajuste de glosa/sugerido"
   ],
   "blocking_issues": [
-    "validar en empresa-demo que el cierre de OT crea ingreso/egreso en Finanzas"
+    "validar en empresa-demo que el precio sugerido editable se guarda y que la glosa final en Finanzas respeta mantención + trabajo + cliente"
   ],
-  "next_decision_required": "definir si este ajuste se despliega primero en staging o directo a production",
+  "next_decision_required": "confirmar validación UI en empresa-demo",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

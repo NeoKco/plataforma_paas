@@ -481,3 +481,21 @@
   - falta validar en empresa-demo el ingreso/egreso real en Finanzas
 - siguiente paso:
   - probar cierre de OT con monto cobrado y confirmar transacción en Finanzas (glosa completa)
+
+# 2026-04-12 - Precio sugerido editable + glosa sin equipo/sitio
+
+- objetivo:
+  - permitir editar `precio sugerido` en costeo estimado y ajustar la glosa a `mantención + trabajo + cliente`
+- cambios principales:
+  - [costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/costing.py) acepta `suggested_price` en request
+  - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) respeta suggested_price y reduce la glosa a trabajo + cliente
+  - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) permite editar sugerido, lo auto-ajusta si no se tocó y limpia la glosa visible
+  - [costingService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts) envía suggested_price al backend
+- validaciones:
+  - deploy backend staging: 523 tests OK
+  - deploy backend production: 523 tests OK
+  - frontend build staging + production OK
+- bloqueos:
+  - falta validar en empresa-demo la edición y la glosa final en Finanzas
+- siguiente paso:
+  - editar precio sugerido en empresa-demo, guardar, reabrir y cerrar OT para confirmar la glosa en Finanzas
