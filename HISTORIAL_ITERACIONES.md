@@ -24,12 +24,16 @@
   - evitar `500` en `/tenant/auth/login` cuando la sesión tenant falla antes de instanciarse
 - cambios principales:
   - [auth_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/auth_routes.py) ahora protege el cierre de `tenant_db`
--- validaciones:
+  - [password_service.py](/home/felipe/platform_paas/backend/app/common/security/password_service.py) trata hashes inválidos como credenciales inválidas
+- validaciones:
   - deploy backend `staging` -> `523 tests OK`
   - deploy backend `production` -> `523 tests OK`
--- bloqueos:
+  - deploy backend `staging` (hash invalid fix) -> `523 tests OK`
+  - deploy backend `production` (hash invalid fix) -> `523 tests OK`
+  - cleanup `cleanup_e2e_tenants.py --apply --prefix debug-` -> `1 deleted`
+- bloqueos:
   - pendiente confirmar en UI (sin `500`)
--- siguiente paso:
+- siguiente paso:
   - probar login tenant con credenciales inválidas o tenant no provisionado
 
 ## 2026-04-12 - Segundo corte maintenance -> finance (glosa y fecha contable) abierto en repo

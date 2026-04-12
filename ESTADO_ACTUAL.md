@@ -45,6 +45,7 @@
 - deploy backend `production` -> `523 tests OK`
 - deploy backend `staging` (hash invalid fix) -> `523 tests OK`
 - deploy backend `production` (hash invalid fix) -> `523 tests OK`
+- cleanup `cleanup_e2e_tenants.py --apply --prefix debug-` -> `1 deleted`
 - cleanup `cleanup_e2e_tenants.py --apply --prefix e2e-` -> `2 deleted`
 
 ## Bloqueos reales detectados
