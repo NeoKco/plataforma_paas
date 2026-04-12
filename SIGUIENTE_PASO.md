@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- validar login tenant en UI y confirmar que no hay `500` al fallar sesión
+- validar login tenant en UI y confirmar que no hay `500` al fallar sesión por hash inválido
 
 ## Decisión previa obligatoria
 

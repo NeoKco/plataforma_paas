@@ -1,6 +1,6 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T18:20:00-04:00",
+  "updated_at": "2026-04-12T18:30:00-04:00",
   "handoff_status": "active",
   "current_focus": "hotfix deprovision + login tenant: evitar 500 y destrabar cleanup de tenants E2E",
   "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa, baseline contractual por modulos ya publicado, gobernanza transversal ampliada con data governance y SRED; deprovision hotfix pendiente de publish",
@@ -470,6 +470,8 @@
     "tenant_deprovision_legacy_env_write_skip_production": "pass",
     "tenant_login_safe_close_staging": "pass",
     "tenant_login_safe_close_production": "pass",
+    "tenant_login_unknown_hash_guard_staging": "pass",
+    "tenant_login_unknown_hash_guard_production": "pass",
     "e2e_tenant_cleanup_production": "pass",
     "e2e_seed_guard_prod": "pass",
     "e2e_auto_cleanup": "pass"
