@@ -118,6 +118,28 @@ export type TenantMaintenanceFinanceSyncRequest = {
   notes: string | null;
 };
 
+export type TenantMaintenanceFinanceSyncDefaults = {
+  maintenance_finance_sync_mode: string;
+  maintenance_finance_auto_sync_income: boolean;
+  maintenance_finance_auto_sync_expense: boolean;
+  maintenance_finance_income_account_id: number | null;
+  maintenance_finance_income_account_source: string | null;
+  maintenance_finance_expense_account_id: number | null;
+  maintenance_finance_expense_account_source: string | null;
+  maintenance_finance_income_category_id: number | null;
+  maintenance_finance_income_category_source: string | null;
+  maintenance_finance_expense_category_id: number | null;
+  maintenance_finance_expense_category_source: string | null;
+  maintenance_finance_currency_id: number | null;
+  maintenance_finance_currency_source: string | null;
+};
+
+export type TenantMaintenanceFinanceSyncDefaultsResponse = {
+  success: boolean;
+  message: string;
+  data: TenantMaintenanceFinanceSyncDefaults;
+};
+
 export function getTenantMaintenanceWorkOrderCosting(
   accessToken: string,
   workOrderId: number
@@ -170,5 +192,12 @@ export function syncTenantMaintenanceWorkOrderToFinance(
       token: accessToken,
       body: payload,
     }
+  );
+}
+
+export function getTenantMaintenanceFinanceSyncDefaults(accessToken: string) {
+  return apiRequest<TenantMaintenanceFinanceSyncDefaultsResponse>(
+    "/tenant/maintenance/finance-sync-defaults",
+    { token: accessToken }
   );
 }

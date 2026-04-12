@@ -49,6 +49,22 @@ class MaintenanceFinanceSyncRequest(BaseModel):
     notes: str | None = None
 
 
+class MaintenanceFinanceSyncDefaultsData(BaseModel):
+    maintenance_finance_sync_mode: str
+    maintenance_finance_auto_sync_income: bool
+    maintenance_finance_auto_sync_expense: bool
+    maintenance_finance_income_account_id: int | None = None
+    maintenance_finance_income_account_source: str | None = None
+    maintenance_finance_expense_account_id: int | None = None
+    maintenance_finance_expense_account_source: str | None = None
+    maintenance_finance_income_category_id: int | None = None
+    maintenance_finance_income_category_source: str | None = None
+    maintenance_finance_expense_category_id: int | None = None
+    maintenance_finance_expense_category_source: str | None = None
+    maintenance_finance_currency_id: int | None = None
+    maintenance_finance_currency_source: str | None = None
+
+
 class MaintenanceCostEstimateItemResponse(BaseModel):
     id: int
     work_order_id: int
@@ -123,3 +139,7 @@ class MaintenanceCostingDetailResponse(MaintenanceResponseBase):
 
 class MaintenanceCostingMutationResponse(MaintenanceResponseBase):
     data: MaintenanceCostingDetailData
+
+
+class MaintenanceFinanceSyncDefaultsResponse(MaintenanceResponseBase):
+    data: MaintenanceFinanceSyncDefaultsData

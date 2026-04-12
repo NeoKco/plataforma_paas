@@ -11,6 +11,9 @@ from app.apps.tenant_modules.maintenance.api.equipment_types import (
 from app.apps.tenant_modules.maintenance.api.field_reports import (
     router as field_reports_router,
 )
+from app.apps.tenant_modules.maintenance.api.finance_sync import (
+    router as finance_sync_router,
+)
 from app.apps.tenant_modules.maintenance.api.history import router as history_router
 from app.apps.tenant_modules.maintenance.api.installations import (
     router as installations_router,
@@ -32,5 +35,6 @@ router.include_router(equipment_types_router)
 router.include_router(installations_router)
 router.include_router(work_orders_router)
 router.include_router(field_reports_router)
+router.include_router(finance_sync_router)
 router.include_router(visits_router)
 router.include_router(history_router)

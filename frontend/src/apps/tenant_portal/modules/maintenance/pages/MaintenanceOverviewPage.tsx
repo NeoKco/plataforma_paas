@@ -14,7 +14,7 @@ import {
 } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import { formatDateTimeInTimeZone } from "../../../../../utils/dateTimeLocal";
-import type { ApiError } from "../../../../../types";
+import type { ApiError, TenantInfoData } from "../../../../../types";
 import { updateTenantMaintenanceFinanceSync } from "../../../../../services/tenant-api";
 import {
   getTenantFinanceAccounts,
@@ -44,6 +44,10 @@ import { getVisibleAddressLabel } from "../../business_core/utils/addressPresent
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
+import {
+  getTenantMaintenanceFinanceSyncDefaults,
+  type TenantMaintenanceFinanceSyncDefaults,
+} from "../services/costingService";
 import {
   getTenantMaintenanceWorkOrders,
   type TenantMaintenanceWorkOrder,
@@ -80,6 +84,50 @@ function getStatusTone(status: string): "success" | "warning" | "danger" | "info
   return "neutral";
 }
 
+function stringifyId(value: number | null | undefined): string {
+  return value != null ? String(value) : "";
+}
+
+function buildMaintenanceFinanceConfigForm(
+  tenantInfo: TenantInfoData | null,
+  defaults: TenantMaintenanceFinanceSyncDefaults | null
+) {
+  return {
+    maintenance_finance_sync_mode:
+      defaults?.maintenance_finance_sync_mode ||
+      tenantInfo?.maintenance_finance_sync_mode ||
+      "manual",
+    maintenance_finance_auto_sync_income:
+      defaults?.maintenance_finance_auto_sync_income ??
+      tenantInfo?.maintenance_finance_auto_sync_income ??
+      true,
+    maintenance_finance_auto_sync_expense:
+      defaults?.maintenance_finance_auto_sync_expense ??
+      tenantInfo?.maintenance_finance_auto_sync_expense ??
+      true,
+    maintenance_finance_income_account_id: stringifyId(
+      defaults?.maintenance_finance_income_account_id ??
+        tenantInfo?.maintenance_finance_income_account_id
+    ),
+    maintenance_finance_expense_account_id: stringifyId(
+      defaults?.maintenance_finance_expense_account_id ??
+        tenantInfo?.maintenance_finance_expense_account_id
+    ),
+    maintenance_finance_income_category_id: stringifyId(
+      defaults?.maintenance_finance_income_category_id ??
+        tenantInfo?.maintenance_finance_income_category_id
+    ),
+    maintenance_finance_expense_category_id: stringifyId(
+      defaults?.maintenance_finance_expense_category_id ??
+        tenantInfo?.maintenance_finance_expense_category_id
+    ),
+    maintenance_finance_currency_id: stringifyId(
+      defaults?.maintenance_finance_currency_id ??
+        tenantInfo?.maintenance_finance_currency_id
+    ),
+  };
+}
+
 export function MaintenanceOverviewPage() {
   const { session, tenantInfo, effectiveTimeZone, refreshTenantInfo } = useTenantAuth();
   const { language } = useLanguage();
@@ -91,6 +139,8 @@ export function MaintenanceOverviewPage() {
   const [financeAccounts, setFinanceAccounts] = useState<TenantFinanceAccount[]>([]);
   const [financeCategories, setFinanceCategories] = useState<TenantFinanceCategory[]>([]);
   const [financeCurrencies, setFinanceCurrencies] = useState<TenantFinanceCurrency[]>([]);
+  const [financeDefaults, setFinanceDefaults] =
+    useState<TenantMaintenanceFinanceSyncDefaults | null>(null);
   const [financeConfigNotice, setFinanceConfigNotice] = useState<string | null>(null);
   const [isSavingFinanceConfig, setIsSavingFinanceConfig] = useState(false);
   const [financeConfigForm, setFinanceConfigForm] = useState({
@@ -157,6 +207,40 @@ export function MaintenanceOverviewPage() {
     () => financeCurrencies.filter((currency) => currency.is_active),
     [financeCurrencies]
   );
+  const financeDefaultsHint = useMemo(() => {
+    if (!financeDefaults) {
+      return null;
+    }
+    const pieces = [
+      activeCurrencies.find((item) => item.id === financeDefaults.maintenance_finance_currency_id)
+        ?.code,
+      activeAccounts.find((item) => item.id === financeDefaults.maintenance_finance_income_account_id)
+        ?.name,
+      incomeCategories.find(
+        (item) => item.id === financeDefaults.maintenance_finance_income_category_id
+      )?.name,
+      activeAccounts.find((item) => item.id === financeDefaults.maintenance_finance_expense_account_id)
+        ?.name,
+      expenseCategories.find(
+        (item) => item.id === financeDefaults.maintenance_finance_expense_category_id
+      )?.name,
+    ].filter((value): value is string => Boolean(value));
+    if (!pieces.length) {
+      return language === "es"
+        ? "El backend no encontró defaults efectivos adicionales en Finanzas."
+        : "The backend did not find additional effective defaults in Finance.";
+    }
+    return language === "es"
+      ? `Sugerencia efectiva desde backend: ${pieces.join(" · ")}.`
+      : `Effective backend suggestion: ${pieces.join(" · ")}.`;
+  }, [
+    activeAccounts,
+    activeCurrencies,
+    expenseCategories,
+    financeDefaults,
+    incomeCategories,
+    language,
+  ]);
   const spotlightStats = useMemo(
     () => [
       {
@@ -205,6 +289,7 @@ export function MaintenanceOverviewPage() {
         getTenantFinanceAccounts(session.accessToken, false),
         getTenantFinanceCategories(session.accessToken, { includeInactive: false }),
         getTenantFinanceCurrencies(session.accessToken, false),
+        getTenantMaintenanceFinanceSyncDefaults(session.accessToken),
       ]);
       if (financeCatalogResults[0].status === "fulfilled") {
         setFinanceAccounts(financeCatalogResults[0].value.data);
@@ -214,6 +299,11 @@ export function MaintenanceOverviewPage() {
       }
       if (financeCatalogResults[2].status === "fulfilled") {
         setFinanceCurrencies(financeCatalogResults[2].value.data);
+      }
+      if (financeCatalogResults[3].status === "fulfilled") {
+        setFinanceDefaults(financeCatalogResults[3].value.data);
+      } else {
+        setFinanceDefaults(null);
       }
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -227,35 +317,9 @@ export function MaintenanceOverviewPage() {
   }, [session?.accessToken]);
 
   useEffect(() => {
-    setFinanceConfigForm({
-      maintenance_finance_sync_mode:
-        tenantInfo?.maintenance_finance_sync_mode || "manual",
-      maintenance_finance_auto_sync_income:
-        tenantInfo?.maintenance_finance_auto_sync_income ?? true,
-      maintenance_finance_auto_sync_expense:
-        tenantInfo?.maintenance_finance_auto_sync_expense ?? true,
-      maintenance_finance_income_account_id:
-        tenantInfo?.maintenance_finance_income_account_id != null
-          ? String(tenantInfo.maintenance_finance_income_account_id)
-          : "",
-      maintenance_finance_expense_account_id:
-        tenantInfo?.maintenance_finance_expense_account_id != null
-          ? String(tenantInfo.maintenance_finance_expense_account_id)
-          : "",
-      maintenance_finance_income_category_id:
-        tenantInfo?.maintenance_finance_income_category_id != null
-          ? String(tenantInfo.maintenance_finance_income_category_id)
-          : "",
-      maintenance_finance_expense_category_id:
-        tenantInfo?.maintenance_finance_expense_category_id != null
-          ? String(tenantInfo.maintenance_finance_expense_category_id)
-          : "",
-      maintenance_finance_currency_id:
-        tenantInfo?.maintenance_finance_currency_id != null
-          ? String(tenantInfo.maintenance_finance_currency_id)
-          : "",
-    });
+    setFinanceConfigForm(buildMaintenanceFinanceConfigForm(tenantInfo, financeDefaults));
   }, [
+    financeDefaults,
     tenantInfo?.maintenance_finance_auto_sync_expense,
     tenantInfo?.maintenance_finance_auto_sync_income,
     tenantInfo?.maintenance_finance_currency_id,
@@ -325,6 +389,7 @@ export function MaintenanceOverviewPage() {
       });
       setFinanceConfigNotice(response.message);
       await refreshTenantInfo();
+      await loadData();
     } catch (rawError) {
       setFinanceConfigNotice(getApiErrorDisplayMessage(rawError as ApiError));
     } finally {
@@ -533,6 +598,13 @@ export function MaintenanceOverviewPage() {
           </AppBadge>
         </div>
 
+        <div className="alert alert-secondary mb-3">
+          {financeDefaultsHint ??
+            (language === "es"
+              ? "El backend propone los defaults efectivos que luego se usan para prellenar las OT y la sincronización con Finanzas."
+              : "The backend proposes the effective defaults later used to prefill work orders and the sync with Finance.")}
+        </div>
+
         <div className="row g-3">
           <div className="col-12 col-lg-4">
             <label className="form-label">
@@ -713,34 +785,7 @@ export function MaintenanceOverviewPage() {
             className="btn btn-outline-secondary"
             type="button"
             onClick={() =>
-              setFinanceConfigForm({
-                maintenance_finance_sync_mode:
-                  tenantInfo?.maintenance_finance_sync_mode || "manual",
-                maintenance_finance_auto_sync_income:
-                  tenantInfo?.maintenance_finance_auto_sync_income ?? true,
-                maintenance_finance_auto_sync_expense:
-                  tenantInfo?.maintenance_finance_auto_sync_expense ?? true,
-                maintenance_finance_income_account_id:
-                  tenantInfo?.maintenance_finance_income_account_id != null
-                    ? String(tenantInfo.maintenance_finance_income_account_id)
-                    : "",
-                maintenance_finance_expense_account_id:
-                  tenantInfo?.maintenance_finance_expense_account_id != null
-                    ? String(tenantInfo.maintenance_finance_expense_account_id)
-                    : "",
-                maintenance_finance_income_category_id:
-                  tenantInfo?.maintenance_finance_income_category_id != null
-                    ? String(tenantInfo.maintenance_finance_income_category_id)
-                    : "",
-                maintenance_finance_expense_category_id:
-                  tenantInfo?.maintenance_finance_expense_category_id != null
-                    ? String(tenantInfo.maintenance_finance_expense_category_id)
-                    : "",
-                maintenance_finance_currency_id:
-                  tenantInfo?.maintenance_finance_currency_id != null
-                    ? String(tenantInfo.maintenance_finance_currency_id)
-                    : "",
-              })
+              setFinanceConfigForm(buildMaintenanceFinanceConfigForm(tenantInfo, financeDefaults))
             }
           >
             {language === "es" ? "Restaurar" : "Reset"}

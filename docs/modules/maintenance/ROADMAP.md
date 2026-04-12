@@ -218,6 +218,10 @@ Criterio de salida:
 Avance actual:
 
 - migracion tenant `0021_maintenance_schedules_and_due_items` creada
+- el puente `maintenance -> finance` ya existía y quedó endurecido con un primer contrato de defaults efectivos resueltos por backend:
+  - `GET /tenant/maintenance/finance-sync-defaults`
+  - `Resumen técnico` y `Costos y cobro` ahora precargan desde la misma fuente
+  - el backend ya prioriza política tenant, moneda base/`CLP`, categorías de mantención y cuentas compatibles por moneda
 - tablas ya versionadas:
   - `maintenance_schedules`
   - `maintenance_due_items`

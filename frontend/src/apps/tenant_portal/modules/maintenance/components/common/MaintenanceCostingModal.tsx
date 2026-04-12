@@ -21,6 +21,7 @@ import {
   type TenantFinanceCurrency,
 } from "../../../finance/services/currenciesService";
 import {
+  getTenantMaintenanceFinanceSyncDefaults,
   getTenantMaintenanceWorkOrderCosting,
   syncTenantMaintenanceWorkOrderToFinance,
   updateTenantMaintenanceWorkOrderCostActual,
@@ -30,6 +31,7 @@ import {
   type TenantMaintenanceCostLine,
   type TenantMaintenanceCostLineWriteItem,
   type TenantMaintenanceCostingDetail,
+  type TenantMaintenanceFinanceSyncDefaults,
 } from "../../services/costingService";
 import {
   getTenantMaintenanceCostTemplates,
@@ -361,6 +363,33 @@ function findActiveCurrencyId(
   return String(fallback?.id ?? "");
 }
 
+function buildFinanceSuggestionHint(
+  defaults: TenantMaintenanceFinanceSyncDefaults | null,
+  language: "es" | "en",
+  accounts: TenantFinanceAccount[],
+  categories: TenantFinanceCategory[],
+  currencies: TenantFinanceCurrency[]
+): string | null {
+  if (!defaults) {
+    return null;
+  }
+  const pieces = [
+    currencies.find((item) => item.id === defaults.maintenance_finance_currency_id)?.code,
+    accounts.find((item) => item.id === defaults.maintenance_finance_income_account_id)?.name,
+    categories.find((item) => item.id === defaults.maintenance_finance_income_category_id)?.name,
+    accounts.find((item) => item.id === defaults.maintenance_finance_expense_account_id)?.name,
+    categories.find((item) => item.id === defaults.maintenance_finance_expense_category_id)?.name,
+  ].filter((value): value is string => Boolean(value));
+  if (!pieces.length) {
+    return language === "es"
+      ? "El backend no encontró sugerencias financieras adicionales para esta OT."
+      : "The backend did not find extra finance suggestions for this work order.";
+  }
+  return language === "es"
+    ? `Sugerencia efectiva desde backend: ${pieces.join(" · ")}.`
+    : `Effective backend suggestion: ${pieces.join(" · ")}.`;
+}
+
 function hasMeaningfulActualData(
   actual: TenantMaintenanceCostActual | null,
   actualLines: TenantMaintenanceCostLine[]
@@ -432,6 +461,8 @@ export function MaintenanceCostingModal({
   const [financeAccounts, setFinanceAccounts] = useState<TenantFinanceAccount[]>([]);
   const [financeCategories, setFinanceCategories] = useState<TenantFinanceCategory[]>([]);
   const [financeCurrencies, setFinanceCurrencies] = useState<TenantFinanceCurrency[]>([]);
+  const [financeSyncDefaults, setFinanceSyncDefaults] =
+    useState<TenantMaintenanceFinanceSyncDefaults | null>(null);
   const [costTemplates, setCostTemplates] = useState<TenantMaintenanceCostTemplate[]>([]);
   const [costBaseMessage, setCostBaseMessage] = useState<string | null>(null);
   const [estimateTemplateId, setEstimateTemplateId] = useState("");
@@ -479,6 +510,17 @@ export function MaintenanceCostingModal({
         (category) => category.is_active && category.category_type === "expense"
       ),
     [financeCategories]
+  );
+  const financeSuggestionHint = useMemo(
+    () =>
+      buildFinanceSuggestionHint(
+        financeSyncDefaults,
+        language,
+        activeFinanceAccounts,
+        financeCategories,
+        activeCurrencies
+      ),
+    [activeCurrencies, activeFinanceAccounts, financeCategories, financeSyncDefaults, language]
   );
   const activeCostTemplates = useMemo(
     () => costTemplates.filter((template) => template.is_active),
@@ -547,10 +589,19 @@ export function MaintenanceCostingModal({
     [appliedActualTemplateId, costTemplates]
   );
   const appliedActualTemplateLabel = appliedActualTemplate?.name ?? selectedActualTemplate?.name ?? "";
-  const financeSyncMode = tenantInfo?.maintenance_finance_sync_mode ?? "manual";
+  const financeSyncMode =
+    financeSyncDefaults?.maintenance_finance_sync_mode ??
+    tenantInfo?.maintenance_finance_sync_mode ??
+    "manual";
   const autoSyncOnClose = financeSyncMode === "auto_on_close";
-  const autoSyncIncomeEnabled = tenantInfo?.maintenance_finance_auto_sync_income ?? true;
-  const autoSyncExpenseEnabled = tenantInfo?.maintenance_finance_auto_sync_expense ?? true;
+  const autoSyncIncomeEnabled =
+    financeSyncDefaults?.maintenance_finance_auto_sync_income ??
+    tenantInfo?.maintenance_finance_auto_sync_income ??
+    true;
+  const autoSyncExpenseEnabled =
+    financeSyncDefaults?.maintenance_finance_auto_sync_expense ??
+    tenantInfo?.maintenance_finance_auto_sync_expense ??
+    true;
   const activeFinanceAccountIds = useMemo(
     () => new Set(activeFinanceAccounts.map((account) => account.id)),
     [activeFinanceAccounts]
@@ -565,9 +616,18 @@ export function MaintenanceCostingModal({
     }
 
     const issues: string[] = [];
-    const policyCurrencyId = tenantInfo?.maintenance_finance_currency_id ?? null;
-    const policyIncomeAccountId = tenantInfo?.maintenance_finance_income_account_id ?? null;
-    const policyExpenseAccountId = tenantInfo?.maintenance_finance_expense_account_id ?? null;
+    const policyCurrencyId =
+      financeSyncDefaults?.maintenance_finance_currency_id ??
+      tenantInfo?.maintenance_finance_currency_id ??
+      null;
+    const policyIncomeAccountId =
+      financeSyncDefaults?.maintenance_finance_income_account_id ??
+      tenantInfo?.maintenance_finance_income_account_id ??
+      null;
+    const policyExpenseAccountId =
+      financeSyncDefaults?.maintenance_finance_expense_account_id ??
+      tenantInfo?.maintenance_finance_expense_account_id ??
+      null;
     const requiresIncomeSync = autoSyncIncomeEnabled && normalizeNumericInput(actualForm.actual_price_charged) > 0;
     const requiresExpenseSync = autoSyncExpenseEnabled && actualTotalPreview > 0;
 
@@ -623,6 +683,9 @@ export function MaintenanceCostingModal({
     autoSyncExpenseEnabled,
     autoSyncIncomeEnabled,
     autoSyncOnClose,
+    financeSyncDefaults?.maintenance_finance_currency_id,
+    financeSyncDefaults?.maintenance_finance_expense_account_id,
+    financeSyncDefaults?.maintenance_finance_income_account_id,
     language,
     tenantInfo?.maintenance_finance_currency_id,
     tenantInfo?.maintenance_finance_expense_account_id,
@@ -658,13 +721,21 @@ export function MaintenanceCostingModal({
       setIsLoading(true);
       setError(null);
       try {
-        const [costingResponse, accountsResponse, categoriesResponse, currenciesResponse, templatesResponse] =
+        const [
+          costingResponse,
+          accountsResponse,
+          categoriesResponse,
+          currenciesResponse,
+          templatesResponse,
+          defaultsResponse,
+        ] =
           await Promise.all([
             getTenantMaintenanceWorkOrderCosting(currentAccessToken, currentWorkOrder.id),
             getTenantFinanceAccounts(currentAccessToken, false),
             getTenantFinanceCategories(currentAccessToken, { includeInactive: false }),
             getTenantFinanceCurrencies(currentAccessToken, false),
             getTenantMaintenanceCostTemplates(currentAccessToken, { includeInactive: false }),
+            getTenantMaintenanceFinanceSyncDefaults(currentAccessToken),
           ]);
 
         if (cancelled) {
@@ -675,6 +746,7 @@ export function MaintenanceCostingModal({
         const accounts = accountsResponse.data;
         const categories = categoriesResponse.data;
         const currencies = currenciesResponse.data;
+        const syncDefaults = defaultsResponse.data;
         const templates = sortCostTemplates(templatesResponse.data);
         const generalTemplates = templates.filter(
           (template) => template.is_active && template.task_type_id == null
@@ -709,6 +781,7 @@ export function MaintenanceCostingModal({
         setFinanceAccounts(accounts);
         setFinanceCategories(categories);
         setFinanceCurrencies(currencies);
+        setFinanceSyncDefaults(syncDefaults);
         setCostingDetail(detail);
         setCostTemplates(templates);
 
@@ -764,29 +837,29 @@ export function MaintenanceCostingModal({
 
         setCompletionNote(currentWorkOrder.closure_notes ?? "");
         setFinanceSyncForm({
-          sync_income: tenantInfo?.maintenance_finance_auto_sync_income ?? true,
-          sync_expense: tenantInfo?.maintenance_finance_auto_sync_expense ?? true,
+          sync_income: syncDefaults.maintenance_finance_auto_sync_income,
+          sync_expense: syncDefaults.maintenance_finance_auto_sync_expense,
           income_account_id: findActiveAccountId(
             accounts,
-            tenantInfo?.maintenance_finance_income_account_id
+            syncDefaults.maintenance_finance_income_account_id
           ),
           expense_account_id: findActiveAccountId(
             accounts,
-            tenantInfo?.maintenance_finance_expense_account_id
+            syncDefaults.maintenance_finance_expense_account_id
           ),
           income_category_id: findActiveCategoryId(
             categories,
             "income",
-            tenantInfo?.maintenance_finance_income_category_id
+            syncDefaults.maintenance_finance_income_category_id
           ),
           expense_category_id: findActiveCategoryId(
             categories,
             "expense",
-            tenantInfo?.maintenance_finance_expense_category_id
+            syncDefaults.maintenance_finance_expense_category_id
           ),
           currency_id: findActiveCurrencyId(
             currencies,
-            tenantInfo?.maintenance_finance_currency_id ?? defaultCurrency?.id ?? null
+            syncDefaults.maintenance_finance_currency_id ?? defaultCurrency?.id ?? null
           ),
           transaction_at: toDateTimeLocalInputValue(
             currentWorkOrder.completed_at ?? transactionAtSource,
@@ -796,6 +869,7 @@ export function MaintenanceCostingModal({
         });
       } catch (rawError) {
         if (!cancelled) {
+          setFinanceSyncDefaults(null);
           setError(rawError as ApiError);
         }
       } finally {
@@ -1590,11 +1664,12 @@ export function MaintenanceCostingModal({
                     <div className={`alert ${autoSyncOnClose ? "alert-info" : "alert-secondary"} mt-3 mb-0`}>
                       {autoSyncOnClose
                         ? language === "es"
-                          ? "Los selectores ya vienen precargados con la configuración por defecto de Resumen. Si cierras la OT desde este modal, el auto-sync intentará usar esa misma configuración inmediatamente."
-                          : "Selectors already start with the default Overview configuration. If you close the work order from this modal, auto-sync will try to use that same configuration immediately."
+                          ? "Los selectores ya vienen precargados con la sugerencia efectiva resuelta por backend. Si cierras la OT desde este modal, el auto-sync intentará usar esa misma configuración inmediatamente."
+                          : "Selectors already start with the effective suggestion resolved by the backend. If you close the work order from this modal, auto-sync will try to use that same configuration immediately."
                         : language === "es"
-                          ? "Aunque la política siga manual, este formulario ya propone la misma cuenta, categoría, moneda y toggles definidos en Resumen para no volver a configurarlos en cada OT."
-                          : "Even if the policy remains manual, this form already suggests the same account, category, currency, and toggles defined in Overview so they do not need to be reconfigured on every work order."}
+                          ? "Aunque la política siga manual, este formulario ya propone la misma cuenta, categoría, moneda y toggles resueltos por backend para no volver a configurarlos en cada OT."
+                          : "Even if the policy remains manual, this form already suggests the same account, category, currency, and toggles resolved by the backend so they do not need to be reconfigured on every work order."}
+                      {financeSuggestionHint ? <div className="mt-2">{financeSuggestionHint}</div> : null}
                     </div>
                   ) : null}
                   <div className="row g-3 mt-1">

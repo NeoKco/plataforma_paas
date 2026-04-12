@@ -2,7 +2,11 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.finance.models import FinanceCurrency
+from app.apps.tenant_modules.finance.models import (
+    FinanceAccount,
+    FinanceCategory,
+    FinanceCurrency,
+)
 from app.apps.tenant_modules.core.services.tenant_data_service import TenantDataService
 from app.apps.tenant_modules.finance.schemas import (
     FinanceTransactionCreateRequest,
@@ -21,6 +25,10 @@ from app.apps.tenant_modules.maintenance.models import (
 
 
 class MaintenanceCostingService:
+    FINANCE_SYNC_CATEGORY_DEFAULTS = {
+        "income": ("Mantenciones y servicios", "Ventas", "Ingreso General"),
+        "expense": ("Costos de mantencion", "Egreso General"),
+    }
     LINE_TYPE_TO_BUCKET = {
         "labor": "labor_cost",
         "travel": "travel_cost",
@@ -44,6 +52,55 @@ class MaintenanceCostingService:
             "actual": actual,
             "estimate_lines": [line for line in lines if line.cost_stage == "estimate"],
             "actual_lines": [line for line in lines if line.cost_stage == "actual"],
+        }
+
+    def get_finance_sync_defaults(self, tenant_db: Session) -> dict:
+        policy = self.tenant_data_service.get_maintenance_finance_sync_policy(tenant_db)
+        currencies = self._list_active_currencies(tenant_db)
+        categories = self._list_active_categories(tenant_db)
+        accounts = self._list_active_accounts(tenant_db)
+
+        currency, currency_source = self._resolve_currency_default(
+            policy["maintenance_finance_currency_id"],
+            currencies,
+        )
+        effective_currency_id = getattr(currency, "id", None)
+
+        income_category, income_category_source = self._resolve_category_default(
+            policy["maintenance_finance_income_category_id"],
+            "income",
+            categories,
+        )
+        expense_category, expense_category_source = self._resolve_category_default(
+            policy["maintenance_finance_expense_category_id"],
+            "expense",
+            categories,
+        )
+        income_account, income_account_source = self._resolve_account_default(
+            policy["maintenance_finance_income_account_id"],
+            effective_currency_id,
+            accounts,
+        )
+        expense_account, expense_account_source = self._resolve_account_default(
+            policy["maintenance_finance_expense_account_id"],
+            effective_currency_id,
+            accounts,
+        )
+
+        return {
+            "maintenance_finance_sync_mode": policy["maintenance_finance_sync_mode"],
+            "maintenance_finance_auto_sync_income": policy["maintenance_finance_auto_sync_income"],
+            "maintenance_finance_auto_sync_expense": policy["maintenance_finance_auto_sync_expense"],
+            "maintenance_finance_income_account_id": getattr(income_account, "id", None),
+            "maintenance_finance_income_account_source": income_account_source,
+            "maintenance_finance_expense_account_id": getattr(expense_account, "id", None),
+            "maintenance_finance_expense_account_source": expense_account_source,
+            "maintenance_finance_income_category_id": getattr(income_category, "id", None),
+            "maintenance_finance_income_category_source": income_category_source,
+            "maintenance_finance_expense_category_id": getattr(expense_category, "id", None),
+            "maintenance_finance_expense_category_source": expense_category_source,
+            "maintenance_finance_currency_id": effective_currency_id,
+            "maintenance_finance_currency_source": currency_source,
         }
 
     def upsert_cost_estimate(
@@ -651,6 +708,82 @@ class MaintenanceCostingService:
         if currencies:
             return currencies[0]
         raise ValueError("No existe una moneda base configurada para finance")
+
+    def _list_active_currencies(self, tenant_db: Session) -> list[FinanceCurrency]:
+        currencies = tenant_db.query(FinanceCurrency).all()
+        return [item for item in currencies if getattr(item, "is_active", True)]
+
+    def _list_active_categories(self, tenant_db: Session) -> list[FinanceCategory]:
+        categories = tenant_db.query(FinanceCategory).all()
+        return [item for item in categories if getattr(item, "is_active", True)]
+
+    def _list_active_accounts(self, tenant_db: Session) -> list[FinanceAccount]:
+        accounts = tenant_db.query(FinanceAccount).all()
+        return [item for item in accounts if getattr(item, "is_active", True)]
+
+    def _resolve_currency_default(
+        self,
+        preferred_currency_id: int | None,
+        currencies: list[FinanceCurrency],
+    ) -> tuple[FinanceCurrency | None, str | None]:
+        if preferred_currency_id is not None:
+            for currency in currencies:
+                if currency.id == preferred_currency_id:
+                    return currency, "policy"
+        for currency in currencies:
+            if getattr(currency, "is_base", False):
+                return currency, "base"
+        for currency in currencies:
+            if getattr(currency, "code", "").upper() == "CLP":
+                return currency, "clp"
+        if currencies:
+            return currencies[0], "first_active"
+        return None, None
+
+    def _resolve_category_default(
+        self,
+        preferred_category_id: int | None,
+        category_type: str,
+        categories: list[FinanceCategory],
+    ) -> tuple[FinanceCategory | None, str | None]:
+        typed = [item for item in categories if item.category_type == category_type]
+        if preferred_category_id is not None:
+            for category in typed:
+                if category.id == preferred_category_id:
+                    return category, "policy"
+        for preferred_name in self.FINANCE_SYNC_CATEGORY_DEFAULTS.get(category_type, ()):
+            for category in typed:
+                if category.name == preferred_name:
+                    return category, "maintenance_default"
+        if typed:
+            ordered = sorted(
+                typed,
+                key=lambda item: (getattr(item, "sort_order", 100), getattr(item, "id", 0)),
+            )
+            return ordered[0], "first_active"
+        return None, None
+
+    def _resolve_account_default(
+        self,
+        preferred_account_id: int | None,
+        currency_id: int | None,
+        accounts: list[FinanceAccount],
+    ) -> tuple[FinanceAccount | None, str | None]:
+        candidates = accounts
+        if currency_id is not None:
+            matching_currency = [item for item in accounts if item.currency_id == currency_id]
+            if matching_currency:
+                candidates = matching_currency
+        if preferred_account_id is not None:
+            for account in candidates:
+                if account.id == preferred_account_id:
+                    return account, "policy"
+        favorite_candidates = [item for item in candidates if getattr(item, "is_favorite", False)]
+        if len(favorite_candidates) == 1:
+            return favorite_candidates[0], "favorite"
+        if len(candidates) == 1:
+            return candidates[0], "single_match"
+        return None, None
 
     def _build_work_order_label(self, work_order: MaintenanceWorkOrder) -> str:
         return f"#{work_order.id} · {work_order.title}"

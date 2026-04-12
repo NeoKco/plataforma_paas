@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T01:05:00-04:00",
+  "updated_at": "2026-04-12T12:05:00-04:00",
   "handoff_status": "active",
-  "current_focus": "abrir el slice fino maintenance -> finance sobre una base ya publicada y validada, usando ahora un marco transversal explícito de gobernanza de datos y SRED Driven Development",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa, baseline contractual por modulos ya publicado y gobernanza transversal ampliada con data governance y SRED",
+  "current_focus": "validar visualmente en staging el primer corte de defaults efectivos maintenance -> finance ya desplegado",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa, baseline contractual por modulos ya publicado, gobernanza transversal ampliada con data governance y SRED, y primer corte maintenance -> finance ya desplegado en staging",
   "active_modules": [
     "platform-core",
     "finance",
@@ -11,9 +11,8 @@
     "maintenance"
   ],
   "module_in_focus": [
-    "platform-core",
-    "finance",
-    "business-core"
+    "maintenance",
+    "finance"
   ],
   "decisions_closed": [
     "el bootstrap contractual por modulos debe servir tanto para provisioning inicial como para backfill por cambio de plan",
@@ -59,6 +58,15 @@
     "el proyecto ya tiene gobernanza de datos explicita y el criterio oficial de cierre relevante puede expresarse como SRED: Spec, Rules, Evidence, Documentation"
   ],
   "completed_recently": [
+    "maintenance finance defaults efectivos ya desplegados en staging con backend y frontend actualizados",
+    "deploy_backend_staging.sh validado nuevamente con 523 tests OK para el corte maintenance -> finance defaults",
+    "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte",
+    "maintenance costing_service ahora resuelve defaults efectivos maintenance -> finance desde backend",
+    "maintenance agrega GET /tenant/maintenance/finance-sync-defaults como fuente de verdad para moneda cuentas y categorias sugeridas",
+    "MaintenanceOverviewPage ya consume defaults efectivos maintenance -> finance y refresca sugerencias tras guardar politica",
+    "MaintenanceCostingModal ya consume defaults efectivos maintenance -> finance para precargar la sync manual o auto_on_close",
+    "backend unittest app.tests.test_maintenance_costing_service validado con 10 tests OK para este corte",
+    "frontend build validado para el corte defaults efectivos maintenance -> finance",
     "tenant_db_bootstrap_service ahora separa seed_defaults reutilizable para provisioning inicial y backfill por cambio de plan",
     "finance default_category_profiles ahora siembra baseline mixto con CLP, categorias compartidas y familias Casa - ... / Empresa - ... derivadas desde ieris_app",
     "business_core default_catalog_profiles agregado con perfiles funcionales y tipos de tarea default",
@@ -229,9 +237,9 @@
     "PROJECT_CONTEXT REGLAS_IMPLEMENTACION CHECKLIST_CIERRE_ITERACION PROMPT_MAESTRO_MODULO implementation-governance y module-build-standard ya enlazan gobernanza de datos y SRED"
   ],
   "blocking_issues": [
-    "no hay bloqueo tecnico abierto; falta solo definir alcance exacto del siguiente corte maintenance -> finance"
+    "no hay bloqueo tecnico abierto; falta solo publicar y validar este corte en staging"
   ],
-  "next_decision_required": "definir el primer corte de autollenado maintenance -> finance: en que evento sugerir transacciones, que campos autocompletar, que ownership conserva cada modulo y que campos dejar siempre editables",
+  "next_decision_required": "confirmar en staging si el prellenado efectivo actual de maintenance -> finance ya cubre la operacion real o si hara falta un segundo corte sobre glosas y reglas contables mas finas",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -283,6 +291,9 @@
     "docs/deploy/staging-bootstrap-reset.md"
   ],
   "validation_status": {
+    "maintenance_finance_defaults_backend_unittest_repo": "pass",
+    "maintenance_finance_defaults_py_compile_repo": "pass",
+    "maintenance_finance_defaults_frontend_build_repo": "pass",
     "tenant_bootstrap_contractual_defaults_backend_unittest_repo": "pass",
     "tenant_bootstrap_contractual_defaults_py_compile_repo": "pass",
     "backend_baseline": "pass",

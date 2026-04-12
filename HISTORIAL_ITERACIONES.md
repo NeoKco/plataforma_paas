@@ -1,5 +1,25 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-12 - Primer corte de defaults efectivos maintenance -> finance
+
+- objetivo:
+  - cerrar el primer corte de autollenado fino `maintenance -> finance` sin duplicar la integración base ya existente
+- cambios principales:
+  - se confirma que el puente operativo `maintenance -> finance` ya existía y que el gap real era de defaults/sugerencias
+  - se agrega [finance_sync.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/finance_sync.py) con `GET /tenant/maintenance/finance-sync-defaults`
+  - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) resuelve defaults efectivos de moneda, cuentas y categorías con prioridad de política tenant y fallbacks seguros
+  - [MaintenanceOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx) y [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) pasan a consumir esa misma fuente de verdad
+  - se actualiza documentación del módulo para fijar este contrato nuevo como fuente canónica de sugerencias
+- validaciones:
+  - `cd backend && PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_maintenance_costing_service` -> `10 tests OK`
+  - `cd backend && ... python -m py_compile ...maintenance/api/finance_sync.py ...maintenance/services/costing_service.py ...maintenance/schemas/costing.py` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+- bloqueos:
+  - sin bloqueo técnico
+  - queda pendiente solo publish/validación visual en `staging`
+- siguiente paso:
+  - desplegar este corte en `staging`, validar `Resumen técnico` y `Costos y cobro`, y luego promover a `production`
+
 ## 2026-04-12 - Gobernanza de datos y SRED formalizados
 
 - objetivo:

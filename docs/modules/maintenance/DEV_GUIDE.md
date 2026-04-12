@@ -281,7 +281,9 @@ Con modulos tenant:
 - `business-core`: cliente, sitio, activo, grupo y tipo de tarea
 - `finance`: no mezclar gasto tecnico dentro del modulo base
 - `finance`: el costeo técnico ya puede sincronizar manualmente ingreso/egreso usando `finance_transactions.source_type/source_id`
-- `Resumen técnico` ya expone además la política tenant para auto-sync `maintenance -> finance`, consumiendo `/tenant/info` y persistiendo vía `/tenant/info/maintenance-finance-sync`
+- `Resumen técnico` ya expone además la política tenant para auto-sync `maintenance -> finance`, persistiendo vía `/tenant/info/maintenance-finance-sync`
+- el frontend ya no debe resolver defaults financieros solo desde `/tenant/info`; la fuente de verdad de sugerencias efectivas es `GET /tenant/maintenance/finance-sync-defaults`
+- `Costos y cobro` y `Resumen técnico` deben compartir ese mismo contrato para precargar moneda, cuentas y categorías sin heurísticas separadas en frontend
 - `Agenda técnica` y `Mantenciones abiertas` ya calculan conflictos visibles en frontend cuando dos OT abiertas comparten slot horario e instalación/grupo/técnico
 - `work_orders` ahora también bloquea en backend esos cruces de slot con respuesta `409`, para cubrir concurrencia operativa básica fuera del navegador actual
 - `Agenda técnica` ya permite además filtrar la lectura mensual por grupo responsable y técnico responsable

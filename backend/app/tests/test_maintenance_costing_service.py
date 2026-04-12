@@ -7,7 +7,11 @@ from unittest.mock import Mock
 os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
 
-from app.apps.tenant_modules.finance.models import FinanceCurrency  # noqa: E402
+from app.apps.tenant_modules.finance.models import (  # noqa: E402
+    FinanceAccount,
+    FinanceCategory,
+    FinanceCurrency,
+)
 from app.apps.tenant_modules.maintenance.models import (  # noqa: E402
     MaintenanceCostActual,
     MaintenanceCostEstimate,
@@ -378,6 +382,123 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
         self.assertEqual(actual.income_transaction_id, 601)
         self.assertEqual(actual.expense_transaction_id, 602)
         self.assertEqual(finance_service.create_transaction.call_count, 2)
+
+    def test_get_finance_sync_defaults_prefers_effective_maintenance_defaults(self) -> None:
+        currencies = [
+            SimpleNamespace(id=1, code="USD", is_base=False, is_active=True),
+            SimpleNamespace(id=2, code="CLP", is_base=True, is_active=True),
+        ]
+        categories = [
+            SimpleNamespace(id=11, name="Ventas", category_type="income", is_active=True, sort_order=20),
+            SimpleNamespace(
+                id=12,
+                name="Mantenciones y servicios",
+                category_type="income",
+                is_active=True,
+                sort_order=10,
+            ),
+            SimpleNamespace(
+                id=21,
+                name="Costos de mantencion",
+                category_type="expense",
+                is_active=True,
+                sort_order=10,
+            ),
+        ]
+        accounts = [
+            SimpleNamespace(id=31, name="Caja CLP", currency_id=2, is_active=True, is_favorite=True),
+            SimpleNamespace(id=32, name="Caja USD", currency_id=1, is_active=True, is_favorite=False),
+        ]
+        tenant_db = _FakeTenantDb(
+            {
+                FinanceCurrency: currencies,
+                FinanceCategory: categories,
+                FinanceAccount: accounts,
+            }
+        )
+        service = MaintenanceCostingService(finance_service=Mock())
+        service.tenant_data_service = SimpleNamespace(
+            get_maintenance_finance_sync_policy=lambda _tenant_db: {
+                "maintenance_finance_sync_mode": "manual",
+                "maintenance_finance_auto_sync_income": True,
+                "maintenance_finance_auto_sync_expense": True,
+                "maintenance_finance_income_account_id": None,
+                "maintenance_finance_expense_account_id": None,
+                "maintenance_finance_income_category_id": None,
+                "maintenance_finance_expense_category_id": None,
+                "maintenance_finance_currency_id": None,
+            }
+        )
+
+        defaults = service.get_finance_sync_defaults(tenant_db)
+
+        self.assertEqual(defaults["maintenance_finance_currency_id"], 2)
+        self.assertEqual(defaults["maintenance_finance_currency_source"], "base")
+        self.assertEqual(defaults["maintenance_finance_income_category_id"], 12)
+        self.assertEqual(defaults["maintenance_finance_income_category_source"], "maintenance_default")
+        self.assertEqual(defaults["maintenance_finance_expense_category_id"], 21)
+        self.assertEqual(defaults["maintenance_finance_expense_category_source"], "maintenance_default")
+        self.assertEqual(defaults["maintenance_finance_income_account_id"], 31)
+        self.assertEqual(defaults["maintenance_finance_income_account_source"], "favorite")
+        self.assertEqual(defaults["maintenance_finance_expense_account_id"], 31)
+        self.assertEqual(defaults["maintenance_finance_expense_account_source"], "favorite")
+
+    def test_get_finance_sync_defaults_respects_active_policy_values(self) -> None:
+        currencies = [SimpleNamespace(id=2, code="CLP", is_base=True, is_active=True)]
+        categories = [
+            SimpleNamespace(
+                id=12,
+                name="Mantenciones y servicios",
+                category_type="income",
+                is_active=True,
+                sort_order=10,
+            ),
+            SimpleNamespace(
+                id=21,
+                name="Costos de mantencion",
+                category_type="expense",
+                is_active=True,
+                sort_order=10,
+            ),
+        ]
+        accounts = [
+            SimpleNamespace(id=31, name="Caja CLP", currency_id=2, is_active=True, is_favorite=False),
+            SimpleNamespace(id=32, name="Banco CLP", currency_id=2, is_active=True, is_favorite=False),
+        ]
+        tenant_db = _FakeTenantDb(
+            {
+                FinanceCurrency: currencies,
+                FinanceCategory: categories,
+                FinanceAccount: accounts,
+            }
+        )
+        service = MaintenanceCostingService(finance_service=Mock())
+        service.tenant_data_service = SimpleNamespace(
+            get_maintenance_finance_sync_policy=lambda _tenant_db: {
+                "maintenance_finance_sync_mode": "auto_on_close",
+                "maintenance_finance_auto_sync_income": True,
+                "maintenance_finance_auto_sync_expense": False,
+                "maintenance_finance_income_account_id": 32,
+                "maintenance_finance_expense_account_id": 31,
+                "maintenance_finance_income_category_id": 12,
+                "maintenance_finance_expense_category_id": 21,
+                "maintenance_finance_currency_id": 2,
+            }
+        )
+
+        defaults = service.get_finance_sync_defaults(tenant_db)
+
+        self.assertEqual(defaults["maintenance_finance_sync_mode"], "auto_on_close")
+        self.assertEqual(defaults["maintenance_finance_currency_id"], 2)
+        self.assertEqual(defaults["maintenance_finance_currency_source"], "policy")
+        self.assertEqual(defaults["maintenance_finance_income_account_id"], 32)
+        self.assertEqual(defaults["maintenance_finance_income_account_source"], "policy")
+        self.assertEqual(defaults["maintenance_finance_expense_account_id"], 31)
+        self.assertEqual(defaults["maintenance_finance_expense_account_source"], "policy")
+        self.assertEqual(defaults["maintenance_finance_income_category_id"], 12)
+        self.assertEqual(defaults["maintenance_finance_income_category_source"], "policy")
+        self.assertEqual(defaults["maintenance_finance_expense_category_id"], 21)
+        self.assertEqual(defaults["maintenance_finance_expense_category_source"], "policy")
 
     def test_seed_estimate_from_schedule_copies_default_lines(self) -> None:
         work_order = SimpleNamespace(id=51, title="Mantención programada")

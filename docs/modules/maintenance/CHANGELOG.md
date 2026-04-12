@@ -1,5 +1,24 @@
 # Maintenance Changelog
 
+## 2026-04-12
+
+- se cierra el primer corte de autollenado fino `maintenance -> finance` sin reescribir la integración base:
+  - se confirma que el puente operativo ya existía en backend
+  - el nuevo trabajo se centra en defaults efectivos y ergonomía
+- backend agrega `GET /tenant/maintenance/finance-sync-defaults`:
+  - devuelve `sync_mode`, toggles y defaults efectivos de moneda/cuentas/categorías
+  - prioriza política tenant explícita cuando existe
+  - si faltan datos, resuelve fallback seguro desde backend usando moneda base o `CLP`, categorías de mantención y cuentas activas compatibles por moneda
+- `Resumen técnico` ahora consume ese contrato para precargar la política editable desde defaults efectivos y no sólo desde `/tenant/info`
+- el modal `Costos y cobro` ahora consume el mismo contrato para precargar sincronización manual o `auto_on_close` con la misma fuente de verdad
+- se agregan pruebas en [test_maintenance_costing_service.py](/home/felipe/platform_paas/backend/app/tests/test_maintenance_costing_service.py) para cubrir:
+  - resolución de defaults efectivos sin política explícita
+  - prioridad de política tenant activa sobre los fallbacks
+- validaciones ejecutadas en repo:
+  - `python -m unittest app.tests.test_maintenance_costing_service` -> `10 tests OK`
+  - `python -m py_compile` sobre router/schema/service nuevos o modificados -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-06
 
 - se alinea la capa transversal del frontend del módulo con el helper compartido `pickLocalizedText()` para navegación, formularios catálogo y lecturas operativas compartidas

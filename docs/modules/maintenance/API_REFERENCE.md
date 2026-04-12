@@ -74,6 +74,19 @@ Notas operativas vigentes:
 - la respuesta de `cost-templates` ya incluye `usage_count`
 - las programaciones preventivas ahora pueden persistir `cost_template_id` para dejar trazado qué plantilla fue aplicada
 
+Defaults efectivos maintenance -> finance:
+
+- `GET /tenant/maintenance/finance-sync-defaults`
+
+Notas operativas vigentes:
+
+- devuelve el default efectivo de moneda, cuenta y categoría para ingreso/egreso
+- prioriza política tenant activa y, si falta contexto, cae a heurísticas seguras del backend:
+  - moneda base / `CLP`
+  - categorías de mantención
+  - cuenta favorita o única compatible por moneda
+- este endpoint existe para que `Resumen técnico` y `Costos y cobro` consuman la misma fuente de verdad y no inventen defaults distintos en frontend
+
 Ordenes de trabajo:
 
 - `GET /tenant/maintenance/work-orders`

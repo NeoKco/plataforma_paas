@@ -2,33 +2,28 @@
 
 ## Prioridad vigente
 
-- abrir el slice de autollenado fino `maintenance -> finance` sobre una base contractual y de bootstrap ya publicada en `staging` y `production`
+- validar visualmente en `staging` el primer corte de defaults efectivos `maintenance -> finance` y decidir promoción a `production`
 
 ## Decisión previa obligatoria
 
 - ¿qué decisión define el camino siguiente?
-  - definir el alcance exacto del primer corte de autollenado:
-    - si el sync sugerido ocurrirá al cerrar la OT o al confirmar costeo/cobro
-    - qué campos se autocompletan y cuáles quedan siempre editables
+- confirmar en `staging` si el prellenado efectivo actual ya cubre la operación real o si hará falta un segundo corte funcional sobre glosas/reglas contables más finas
 
 ## Próximo paso correcto
 
-- releer el puente ya existente `maintenance -> finance` usando como marco:
-  - `docs/architecture/data-governance.md`
-  - `docs/architecture/sred-development.md`
-- revisar el puente ya existente `maintenance -> finance` para delimitar qué ya está resuelto y qué falta realmente en autollenado
-- cerrar reglas funcionales de sugerencia:
-  - categoría ingreso por defecto
-  - categoría egreso por defecto
-  - cuenta y glosa sugeridas
-  - momento del sync
-- implementar el primer corte usable sin duplicar lógica ya existente
+- validar visualmente en tenant real de `staging`:
+  - `Resumen técnico`
+  - modal `Costos y cobro`
+  - sync manual
+  - cierre con `auto_on_close`
+- si `staging` queda correcto, promover el mismo corte a `production`
 
 ## Si el escenario principal falla
 
-- si durante la revisión aparece que el puente actual `maintenance -> finance` está incompleto o inconsistente, cerrar primero ese gap real antes de agregar autollenado
-- si el problema es sólo de defaults financieros por tenant, arreglar bootstrap/catalogación sin mezclarlo con UX de mantenimiento
+- si falla el endpoint nuevo, corregir primero el contrato backend y no tocar la UX
+- si falla solo el prellenado visual, ajustar frontend manteniendo fijo `GET /tenant/maintenance/finance-sync-defaults`
+- si aparece inconsistencia de moneda/cuenta en `finance`, revisar de inmediato compatibilidad con `transaction_service.py` antes de promover
 
 ## Condición de cierre de la próxima iteración
 
-- la próxima iteración debe dejar definido e implementado el primer corte de autollenado `maintenance -> finance`, o un bloqueo funcional explícito con evidencia suficiente para retomarlo sin releer el chat
+- el corte `maintenance -> finance defaults efectivos` debe quedar validado visualmente en `staging`, o debe quedar documentado un bloqueo operativo concreto con evidencia suficiente
