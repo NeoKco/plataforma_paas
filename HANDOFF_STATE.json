@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T21:45:00-04:00",
+  "updated_at": "2026-04-12T22:00:00-04:00",
   "handoff_status": "active",
-  "current_focus": "reset categorias finance a baseline default en ieris-ltda",
-  "project_phase": "produccion y staging operativos; reset aplicado con remapeo de referencias; pendiente validar UI",
+  "current_focus": "fix deprovision/delete Permission denied en runtime env",
+  "project_phase": "hotfix desplegado en prod/staging; pendiente validar eliminación real por UI",
   "active_modules": [
     "platform-core",
     "finance",
@@ -57,6 +57,7 @@
     "el proyecto ya tiene gobernanza de datos explicita y el criterio oficial de cierre relevante puede expresarse como SRED: Spec, Rules, Evidence, Documentation"
   ],
   "completed_recently": [
+    "deprovision ahora ignora PermissionError en limpieza de secrets runtime para permitir delete",
     "regla E2E: nunca usar ieris-ltda; solo empresa-bootstrap y empresa-demo",
     "reset_finance_categories_to_defaults.py agregado y aplicado en production para ieris-ltda",
     "categorias finance default ahora incluyen familias (Ingresos, Egresos, Transferencias) y parent_name por seed",
@@ -496,6 +497,8 @@
     "cleanup_e2e_finance_ieris_ltda": "applied",
     "seed_missing_defaults_production": "applied",
     "finance_category_families_ieris_ltda": "applied",
-    "finance_category_reset_ieris_ltda": "applied"
+    "finance_category_reset_ieris_ltda": "applied",
+    "tenant_deprovision_permission_runtime_hotfix_production": "applied",
+    "tenant_deprovision_permission_runtime_hotfix_staging": "applied"
   }
 }

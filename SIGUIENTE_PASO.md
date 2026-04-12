@@ -2,17 +2,16 @@
 
 ## Prioridad vigente
 
-- validar en UI que `ieris-ltda` quedó solo con categorías default
+- reintentar eliminar el tenant con error después del hotfix
 
 ## Decisión previa obligatoria
 
-- decidir si se quiere hacer reset de categorías en otros tenants
-- confirmar si la regla E2E (solo `empresa-bootstrap` y `empresa-demo`) requiere enforcement técnico
+- decidir si se debe aplicar el hotfix también al worker provisioning (si corre separado)
 
 ## Próximo paso correcto
 
-- abrir `/tenant-portal/finance/categories` y confirmar que solo existen categorías default con familia
-- si hay residuos, ejecutar `reset_finance_categories_to_defaults.py` en el tenant afectado
+- ejecutar `Desprovisionar tenant` y luego `Eliminar tenant`
+- confirmar que no aparece `Permission denied` en la consola
 
 ## Si el escenario principal falla
 
@@ -20,4 +19,4 @@
 
 ## Condición de cierre de la próxima iteración
 
-- catálogo finance limpio y validado en UI para `ieris-ltda`
+- tenant eliminado correctamente desde UI

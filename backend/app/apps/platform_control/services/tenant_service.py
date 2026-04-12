@@ -513,6 +513,12 @@ class TenantService:
                 tenant_slug=tenant.slug,
                 env_path=runtime_env_path,
             )
+        except PermissionError:
+            logger.warning(
+                "Skipping runtime env secret cleanup for tenant %s: permission denied for %s",
+                tenant.slug,
+                runtime_env_path,
+            )
         except Exception as exc:
             setattr(exc, "_provisioning_stage", "deprovision_tenant_secret")
             raise

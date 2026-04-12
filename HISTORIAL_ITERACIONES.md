@@ -60,6 +60,19 @@
   - ninguno
 - siguiente paso:
   - decidir si se agrega enforcement técnico en scripts E2E
+
+## 2026-04-12 - Hotfix deprovision Permission denied runtime env
+
+- objetivo:
+  - permitir eliminar tenants aunque el runtime `.env` no sea escribible
+- cambios principales:
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ahora ignora `PermissionError` al limpiar secrets runtime en deprovision
+- validaciones:
+  - backend reiniciado en production y staging
+- bloqueos:
+  - falta validar eliminación desde UI
+- siguiente paso:
+  - reintentar desprovision + delete del tenant con error
 - bloqueos:
   - falta validar en UI que `Pendientes` carga sin 500
 - siguiente paso:
