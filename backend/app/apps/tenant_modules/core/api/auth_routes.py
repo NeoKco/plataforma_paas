@@ -51,6 +51,7 @@ def tenant_login(
 ) -> TenantLoginResponse:
     connection_service = TenantConnectionService()
     tenant = connection_service.get_tenant_by_slug(control_db, payload.tenant_slug)
+    tenant_db = None
 
     if not tenant:
         auth_audit_service.log_event(
@@ -149,7 +150,8 @@ def tenant_login(
             role=user.role,
         )
     finally:
-        tenant_db.close()
+        if tenant_db is not None:
+            tenant_db.close()
 
 
 @router.post("/refresh", response_model=TenantLoginResponse)

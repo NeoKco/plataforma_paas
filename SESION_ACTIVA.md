@@ -7,23 +7,23 @@ Puntero corto para retomar rápido entre sesiones.
 ## Estado rápido vigente
 
 - fecha: 2026-04-12
-- foco activo: hotfix deprovision para tolerar `.env` legacy no escribible
-- prioridad inmediata: publicar hotfix y limpiar tenants E2E bloqueados
+- foco activo: hotfix deprovision + login tenant ya desplegados
+- prioridad inmediata: validar login tenant en UI (sin `500`)
 - módulo o frente activo: `platform-core`
 
 ## Último contexto útil
 
-- el deprovision falla en prod por intentar escribir `/opt/platform_paas/.env`
-- `tenant_service.deprovision_tenant` ya fue ajustado para saltar el `.env` legacy si no es escribible
-- el cleanup E2E debe hacerse con `cleanup_e2e_tenants.py --apply --prefix e2e-` después del deploy
+- el deprovision y el login tenant ya están desplegados en `staging` y `production`
+- cleanup E2E en production ejecutado con `cleanup_e2e_tenants.py --apply --prefix e2e-` (2 tenants)
+- falta confirmar en UI que el login tenant ya no responde `500`
 
 ## Bloqueo actual
 
-- bloqueo actual: deprovision en prod falla hasta publicar el hotfix
+- bloqueo actual: confirmar login tenant en UI
 
 ## Siguiente acción inmediata
 
-- publicar hotfix y limpiar tenants E2E bloqueados
+- probar login tenant y cerrar hotfix
 
 ## Archivos a leer justo después de este
 

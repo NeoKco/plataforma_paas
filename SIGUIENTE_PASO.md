@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- publicar el hotfix de deprovision y limpiar tenants E2E bloqueados
+- validar login tenant en UI y confirmar que no hay `500` al fallar sesión
 
 ## Decisión previa obligatoria
 
@@ -10,14 +10,13 @@
 
 ## Próximo paso correcto
 
-- desplegar backend con el hotfix en el entorno elegido
-- reintentar deprovision desde UI y/o ejecutar `cleanup_e2e_tenants.py --apply --prefix e2e-`
+- probar login tenant con credenciales inválidas y con tenant no provisionado
+- si ya responde 401/503/404, cerrar el hotfix y volver al roadmap central
 
 ## Si el escenario principal falla
 
-- aplicar cleanup manual con el script en `dry-run` y revisar errores por tenant
-- revisar permisos de `/opt/platform_paas/.env` y confirmar que el runtime usa `TENANT_SECRETS_FILE`
+- revisar logs de backend y reintentar con un tenant operativo real
 
 ## Condición de cierre de la próxima iteración
 
-- tenants E2E eliminados sin errores y deprovision estable en producción
+- login tenant sin `500` y errores controlados visibles en UI

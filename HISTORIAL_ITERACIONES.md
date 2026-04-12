@@ -7,12 +7,28 @@
 - cambios principales:
   - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) salta el cleanup del `.env` legacy si no es escribible
   - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md) actualizado con el ajuste
-- validaciones:
-  - pendientes (requiere deploy en `staging` y `production`)
-- bloqueos:
-  - deprovision en prod aún falla hasta publicar el hotfix
-- siguiente paso:
-  - desplegar hotfix y ejecutar cleanup `cleanup_e2e_tenants.py --apply --prefix e2e-`
+-- validaciones:
+  - deploy backend `staging` -> `523 tests OK`
+  - deploy backend `production` -> `523 tests OK`
+  - cleanup `cleanup_e2e_tenants.py --apply --prefix e2e-` -> `2 deleted`
+-- bloqueos:
+  - ninguno
+-- siguiente paso:
+  - validar login tenant en UI para cerrar el hotfix
+
+## 2026-04-12 - Hotfix login tenant: evitar 500 por sesión no instanciada
+
+- objetivo:
+  - evitar `500` en `/tenant/auth/login` cuando la sesión tenant falla antes de instanciarse
+- cambios principales:
+  - [auth_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/auth_routes.py) ahora protege el cierre de `tenant_db`
+-- validaciones:
+  - deploy backend `staging` -> `523 tests OK`
+  - deploy backend `production` -> `523 tests OK`
+-- bloqueos:
+  - pendiente confirmar en UI (sin `500`)
+-- siguiente paso:
+  - probar login tenant con credenciales inválidas o tenant no provisionado
 
 ## 2026-04-12 - Segundo corte maintenance -> finance (glosa y fecha contable) abierto en repo
 
