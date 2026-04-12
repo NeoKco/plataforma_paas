@@ -10,6 +10,8 @@
   - conserva el cleanup completo sobre `TENANT_SECRETS_FILE` como fuente primaria
 - `tenant/auth/login` ya no genera `500` si el tenant DB falla antes de instanciar la sesión:
   - el cierre de sesión tenant ahora es seguro incluso si `get_tenant_session(...)` falla
+- `verify_password` ahora trata hashes inválidos como credenciales inválidas:
+  - evita `500` si el hash almacenado no es reconocible por `passlib`
 - E2E ahora protege producción contra seeds accidentales:
   - `backend-control` bloquea seeds si el target es `production` salvo `E2E_ALLOW_PROD_SEED=1`
   - `seedPlatformTenantCatalogRecord` registra cleanup automático con `E2E_AUTO_CLEANUP=1`
