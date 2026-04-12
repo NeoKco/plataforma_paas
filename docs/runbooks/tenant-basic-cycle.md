@@ -237,6 +237,19 @@ Notas:
 - por defecto no toca tenants `archived`
 - si existen categorías en un tenant sin uso financiero, el script no borra nada (usa `--force-finance` para forzar el seed)
 
+### Reparar familias en categorías finance
+
+Si un tenant tiene categorías sin familia (parent):
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/repair_finance_category_families.py --tenant-slug <slug> --apply
+```
+
+Esto crea familias base (`Ingresos`, `Egresos`, `Transferencias`) y asigna parent a las categorías sin familia.
+
 ### Limpieza de residuos E2E en finanzas
 
 Si se ejecutaron smokes contra un tenant real y quedaron categorías o movimientos `e2e-*`, usa:

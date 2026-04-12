@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T20:35:00-04:00",
+  "updated_at": "2026-04-12T21:10:00-04:00",
   "handoff_status": "active",
-  "current_focus": "backfill defaults core/finance para ieris-ltda + fix PK maintenance_due_items + limpieza E2E finance",
-  "project_phase": "produccion y staging operativos; defaults core/finance re-sembrados por script, limpieza E2E finance aplicada; pendiente validar Pendientes en UI tras hotfix de secuencia",
+  "current_focus": "familias obligatorias en categorias finance + reparacion ieris-ltda",
+  "project_phase": "produccion y staging operativos; seed finance ahora asigna parent; reparacion aplicada en ieris-ltda; pendiente validar UI",
   "active_modules": [
     "platform-core",
     "finance",
@@ -57,6 +57,9 @@
     "el proyecto ya tiene gobernanza de datos explicita y el criterio oficial de cierre relevante puede expresarse como SRED: Spec, Rules, Evidence, Documentation"
   ],
   "completed_recently": [
+    "categorias finance default ahora incluyen familias (Ingresos, Egresos, Transferencias) y parent_name por seed",
+    "tenant_db_bootstrap_service asigna parent a categorias existentes sin familia",
+    "script repair_finance_category_families.py agregado y aplicado en production para ieris-ltda",
     "script seed_missing_tenant_defaults.py agregado y aplicado en production para tenants activos con defaults incompletos",
     "maintenance due-items ahora repara la secuencia PK y reintenta inserts para evitar 500 en Pendientes",
     "script operativo seed_tenant_defaults.py agregado para backfill de defaults core/finance por tenant",
@@ -489,6 +492,7 @@
     "maintenance_due_items_sequence_hotfix_staging": "applied",
     "seed_tenant_defaults_ieris_ltda": "applied",
     "cleanup_e2e_finance_ieris_ltda": "applied",
-    "seed_missing_defaults_production": "applied"
+    "seed_missing_defaults_production": "applied",
+    "finance_category_families_ieris_ltda": "applied"
   }
 }

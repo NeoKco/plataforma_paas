@@ -16,6 +16,7 @@ from app.apps.tenant_modules.core.models.tenant_info import TenantInfo
 from app.apps.tenant_modules.core.models.user import User
 from app.apps.tenant_modules.finance.default_category_profiles import (
     get_default_finance_category_seeds,
+    get_finance_family_name_by_type,
 )
 from app.apps.tenant_modules.finance.models.account import FinanceAccount
 from app.apps.tenant_modules.finance.models.budget import FinanceBudget
@@ -221,18 +222,47 @@ class TenantDatabaseBootstrapService:
             (category.name.strip().lower(), category.category_type.strip().lower()): category
             for category in existing_categories
         }
+        family_by_type: dict[str, FinanceCategory] = {
+            category.category_type.strip().lower(): category
+            for category in existing_categories
+            if category.parent_category_id is None
+            and category.name.strip().lower()
+            == get_finance_family_name_by_type(category.category_type).lower()
+        }
 
         for seed in target_seeds:
             key = (seed["name"].strip().lower(), seed["category_type"].strip().lower())
             existing = existing_by_key.get(key)
             if existing is None:
-                db.add(FinanceCategory(**seed, is_active=True))
+                item = FinanceCategory(**{k: v for k, v in seed.items() if k != "parent_name"}, is_active=True)
+                db.add(item)
+                db.flush()
+                existing_by_key[key] = item
+                if item.parent_category_id is None and seed.get("parent_name") is None:
+                    family_by_type[item.category_type.strip().lower()] = item
                 continue
 
             existing.icon = existing.icon or seed.get("icon")
             existing.note = existing.note or seed.get("note")
             existing.sort_order = seed.get("sort_order", existing.sort_order)
             existing.is_active = True
+
+            if seed.get("parent_name"):
+                parent_key = (seed["parent_name"].strip().lower(), seed["category_type"].strip().lower())
+                parent = existing_by_key.get(parent_key)
+                if parent is not None and existing.parent_category_id != parent.id:
+                    existing.parent_category_id = parent.id
+
+        for category in existing_categories:
+            if category.parent_category_id is not None:
+                continue
+            family_name = get_finance_family_name_by_type(category.category_type)
+            if category.name.strip().lower() == family_name.lower():
+                family_by_type[category.category_type.strip().lower()] = category
+                continue
+            parent = family_by_type.get(category.category_type.strip().lower())
+            if parent is not None:
+                category.parent_category_id = parent.id
 
     def _seed_business_core_defaults(self, db: Session) -> None:
         profile_by_code: dict[str, BusinessFunctionProfile] = {}

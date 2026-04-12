@@ -17,6 +17,22 @@
   - cleanup E2E finance ejecutado en production para `ieris-ltda` (45 transacciones)
 - validaciones adicionales:
   - backfill masivo aplicado en production (`condominio-demo`, `empresa-bootstrap`, `empresa-demo`, `ieris-ltda`)
+
+## 2026-04-12 - Familias obligatorias en categorías finance
+
+- objetivo:
+  - asegurar que todas las categorías default tengan familia (parent) por tipo
+  - corregir el catálogo de `ieris-ltda` para que ninguna categoría quede sin familia
+- cambios principales:
+  - [default_category_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/default_category_profiles.py) agrega familias `Ingresos`, `Egresos`, `Transferencias` y parent_name en seeds
+  - [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py) asigna parent a categorías existentes sin familia
+  - [repair_finance_category_families.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_category_families.py) repara tenants existentes
+- validaciones:
+  - `ieris-ltda`: reparación aplicada (`updated_categories=89`)
+- bloqueos:
+  - pendiente validar en UI que las familias aparecen correctamente
+- siguiente paso:
+  - abrir `finance/categories` en `ieris-ltda` y confirmar familia visible para todas las categorías
 - bloqueos:
   - falta validar en UI que `Pendientes` carga sin 500
 - siguiente paso:

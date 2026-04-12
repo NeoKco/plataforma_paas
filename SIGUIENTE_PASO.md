@@ -2,22 +2,21 @@
 
 ## Prioridad vigente
 
-- validar que `Pendientes` ya carga sin error en `ieris-ltda`
+- validar en UI que todas las categorías finance de `ieris-ltda` tengan familia
 
 ## Decisión previa obligatoria
 
-- definir si la limpieza E2E de finanzas debe quedar automatizada en el pipeline published o solo manual bajo demanda
+- definir si la reparación de familias debe correr masivamente en otros tenants existentes
 
 ## Próximo paso correcto
 
-- abrir `/tenant-portal/maintenance/due-items` y confirmar que no hay 500
-- si persiste, ejecutar un repair manual de secuencia y revisar logs
+- abrir `/tenant-portal/finance/categories` y confirmar que todo tiene familia visible
+- si falta, correr `repair_finance_category_families.py` para el tenant afectado
 
 ## Si el escenario principal falla
 
-- correr manualmente `run_maintenance_due_generation.py --tenant-slug ieris-ltda`
-- inspeccionar logs con `journalctl -u platform-paas-backend.service` y buscar `maintenance_due_items_pkey`
+- revisar logs backend para errores de `finance_categories` o `parent_category_id`
 
 ## Condición de cierre de la próxima iteración
 
-- `Pendientes` operativo y sin errores en producción
+- categorías finance con familia visible en `ieris-ltda`

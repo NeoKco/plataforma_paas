@@ -1,6 +1,30 @@
 from copy import deepcopy
 
 
+FAMILY_CATEGORY_SEEDS = [
+    {
+        "name": "Ingresos",
+        "category_type": "income",
+        "icon": "categories",
+        "note": "Familia principal para ingresos.",
+        "sort_order": 1,
+    },
+    {
+        "name": "Egresos",
+        "category_type": "expense",
+        "icon": "categories",
+        "note": "Familia principal para egresos.",
+        "sort_order": 2,
+    },
+    {
+        "name": "Transferencias",
+        "category_type": "transfer",
+        "icon": "categories",
+        "note": "Familia principal para transferencias internas.",
+        "sort_order": 3,
+    },
+]
+
 TRANSFER_FINANCE_CATEGORY_SEEDS = [
     {
         "name": "Transferencia interna",
@@ -8,6 +32,7 @@ TRANSFER_FINANCE_CATEGORY_SEEDS = [
         "icon": "balance",
         "note": "Traspaso entre cuentas propias.",
         "sort_order": 10,
+        "parent_name": "Transferencias",
     },
     {
         "name": "Deposito entre cuentas",
@@ -15,6 +40,7 @@ TRANSFER_FINANCE_CATEGORY_SEEDS = [
         "icon": "cash",
         "note": "Movimiento interno hacia otra cuenta propia.",
         "sort_order": 20,
+        "parent_name": "Transferencias",
     },
     {
         "name": "Ajuste de saldo",
@@ -22,6 +48,7 @@ TRANSFER_FINANCE_CATEGORY_SEEDS = [
         "icon": "categories",
         "note": "Regularizacion o ajuste interno.",
         "sort_order": 30,
+        "parent_name": "Transferencias",
     },
 ]
 
@@ -32,6 +59,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "income",
         "note": "Ingreso general reutilizable para cualquier tenant.",
         "sort_order": 10,
+        "parent_name": "Ingresos",
     },
     {
         "name": "Ventas",
@@ -39,6 +67,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "income",
         "note": "Cobros por ventas y cierres comerciales.",
         "sort_order": 20,
+        "parent_name": "Ingresos",
     },
     {
         "name": "Mantenciones y servicios",
@@ -46,6 +75,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "cash",
         "note": "Cobros por mantenciones, visitas tecnicas o servicios recurrentes.",
         "sort_order": 30,
+        "parent_name": "Ingresos",
     },
     {
         "name": "Honorarios y servicios",
@@ -53,6 +83,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "cash",
         "note": "Pagos recibidos por servicios profesionales u operativos.",
         "sort_order": 40,
+        "parent_name": "Ingresos",
     },
     {
         "name": "Sueldo",
@@ -60,6 +91,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "salary",
         "note": "Ingreso fijo o remuneracion recurrente.",
         "sort_order": 50,
+        "parent_name": "Ingresos",
     },
     {
         "name": "Reembolso",
@@ -67,6 +99,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "cash",
         "note": "Devoluciones o reintegros.",
         "sort_order": 60,
+        "parent_name": "Ingresos",
     },
     {
         "name": "Otros ingresos",
@@ -74,6 +107,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "categories",
         "note": "Ingreso no clasificado.",
         "sort_order": 70,
+        "parent_name": "Ingresos",
     },
     {
         "name": "Egreso General",
@@ -81,6 +115,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "expense",
         "note": "Gasto operativo general.",
         "sort_order": 80,
+        "parent_name": "Egresos",
     },
     {
         "name": "Costos de mantencion",
@@ -88,6 +123,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "build",
         "note": "Costos directos de mantenciones, visitas o servicio tecnico.",
         "sort_order": 90,
+        "parent_name": "Egresos",
     },
     {
         "name": "Sueldos y honorarios",
@@ -95,6 +131,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "salary",
         "note": "Pagos a personal interno o externo.",
         "sort_order": 100,
+        "parent_name": "Egresos",
     },
     {
         "name": "Arriendo y servicios",
@@ -102,6 +139,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "bills",
         "note": "Arriendos, cuentas base e infraestructura operativa.",
         "sort_order": 110,
+        "parent_name": "Egresos",
     },
     {
         "name": "Transporte y ruta",
@@ -109,6 +147,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "travel",
         "note": "Movilidad, peajes y traslados.",
         "sort_order": 120,
+        "parent_name": "Egresos",
     },
     {
         "name": "Herramientas e insumos",
@@ -116,6 +155,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "shopping",
         "note": "Compra o reposicion de insumos y herramientas.",
         "sort_order": 130,
+        "parent_name": "Egresos",
     },
     {
         "name": "Materiales de proyecto",
@@ -123,6 +163,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "home",
         "note": "Materiales asociados a obras, instalaciones o faenas.",
         "sort_order": 140,
+        "parent_name": "Egresos",
     },
     {
         "name": "Combustible",
@@ -130,6 +171,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "car",
         "note": "Carga de combustible.",
         "sort_order": 150,
+        "parent_name": "Egresos",
     },
     {
         "name": "Publicidad y marketing",
@@ -137,6 +179,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "campaign",
         "note": "Promocion, campañas y acciones comerciales.",
         "sort_order": 160,
+        "parent_name": "Egresos",
     },
     {
         "name": "Mantencion vehicular",
@@ -144,6 +187,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "car",
         "note": "Reparacion, mantencion o repuestos vehiculares.",
         "sort_order": 170,
+        "parent_name": "Egresos",
     },
     {
         "name": "Impuestos",
@@ -151,6 +195,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "bills",
         "note": "Tributos y pagos fiscales.",
         "sort_order": 180,
+        "parent_name": "Egresos",
     },
     {
         "name": "Seguros",
@@ -158,6 +203,7 @@ SHARED_FINANCE_CATEGORY_SEEDS = [
         "icon": "insurance",
         "note": "Polizas y seguros generales.",
         "sort_order": 190,
+        "parent_name": "Egresos",
     },
 ]
 
@@ -218,6 +264,12 @@ FAMILY_PREFIX_BY_PROFILE = {
     "home": "Casa",
 }
 
+FAMILY_NAME_BY_TYPE = {
+    "income": "Ingresos",
+    "expense": "Egresos",
+    "transfer": "Transferencias",
+}
+
 
 def resolve_finance_category_profile(tenant_type: str | None) -> str:
     normalized = (tenant_type or "").strip().lower()
@@ -232,7 +284,8 @@ def get_default_finance_category_seeds(tenant_type: str | None) -> list[dict]:
     if primary_profile == "home":
         ordered_profiles = ["home", "company"]
 
-    seeds = [deepcopy(item) for item in SHARED_FINANCE_CATEGORY_SEEDS]
+    seeds = [deepcopy(item) for item in FAMILY_CATEGORY_SEEDS]
+    seeds.extend(deepcopy(item) for item in SHARED_FINANCE_CATEGORY_SEEDS)
     sort_offset = max(item["sort_order"] for item in seeds) + 10
 
     for profile in ordered_profiles:
@@ -250,9 +303,14 @@ def get_default_finance_category_seeds(tenant_type: str | None) -> list[dict]:
                     "icon": icon,
                     "note": f"{note} Semilla clasificada desde ieris_app para perfil {prefix.lower()}.",
                     "sort_order": sort_offset + index,
+                    "parent_name": "Egresos",
                 }
             )
         sort_offset += len(family_items) + 10
 
     seeds.extend(deepcopy(item) for item in TRANSFER_FINANCE_CATEGORY_SEEDS)
     return seeds
+
+
+def get_finance_family_name_by_type(category_type: str) -> str:
+    return FAMILY_NAME_BY_TYPE.get(category_type.strip().lower(), "Egresos")

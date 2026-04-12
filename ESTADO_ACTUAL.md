@@ -3,64 +3,58 @@
 ## Última actualización
 
 - fecha: 2026-04-12
-- foco de iteración: backfill de defaults tenant + limpieza E2E finance + fix PK en `maintenance_due_items`
-- estado general: backend actualizado en `production` y `staging`, scripts operativos nuevos disponibles
+- foco de iteración: familias obligatorias en categorías finance + reparación en `ieris-ltda`
+- estado general: backend actualizado en `production` y `staging`, familias seed actualizadas
 
 ## Resumen ejecutivo en 30 segundos
 
-- `Pendientes` fallaba por secuencia desfasada en `maintenance_due_items`; se corrige con reparación automática al insertar
-- se agregó script de backfill para perfiles funcionales, tipos de tarea, categorías finance y base CLP por tenant
-- se aplicó backfill masivo de defaults en production (`condominio-demo`, `empresa-bootstrap`, `empresa-demo`, `ieris-ltda`)
+- las categorías finance default ahora nacen con familia (`Ingresos`, `Egresos`, `Transferencias`)
+- `ieris-ltda` fue corregido para que todas sus categorías tengan familia
+- el bootstrap ahora asigna parent a categorías existentes sin familia durante el seed
 
 ## Qué ya quedó hecho
 
 - [due_item_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/repositories/due_item_repository.py) repara secuencia PK en `maintenance_due_items` y reintenta el insert
-- [seed_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_tenant_defaults.py) permite re-sembrar defaults core/finance por tenant
-- [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) backfillea defaults faltantes en tenants activos
-- [cleanup_tenant_e2e_finance_data.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_tenant_e2e_finance_data.py) limpia residuos E2E de finanzas por tenant
-- scripts ejecutados en `production` para `ieris-ltda`:
-  - seed defaults core/finance
-  - cleanup E2E finance (45 transacciones)
-- backfill masivo ejecutado en `production`:
-  - `condominio-demo`, `empresa-bootstrap`, `empresa-demo`, `ieris-ltda`
+- [default_category_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/default_category_profiles.py) agrega familias y parent_name por seed
+- [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py) asigna parent a categorías por familia
+- [repair_finance_category_families.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_category_families.py) repara categorías sin familia en tenants existentes
+- script ejecutado en `production` para `ieris-ltda`:
+  - reparación de familias (89 categorías actualizadas)
 
 ## Qué archivos se tocaron
 
-- [backend/app/apps/tenant_modules/maintenance/repositories/due_item_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/repositories/due_item_repository.py)
-- [backend/app/scripts/seed_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_tenant_defaults.py)
-- [backend/app/scripts/seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
-- [backend/app/scripts/cleanup_tenant_e2e_finance_data.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_tenant_e2e_finance_data.py)
-- [docs/runbooks/frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md)
+- [backend/app/apps/tenant_modules/finance/default_category_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/default_category_profiles.py)
+- [backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py)
+- [backend/app/scripts/repair_finance_category_families.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_category_families.py)
 - [docs/runbooks/tenant-basic-cycle.md](/home/felipe/platform_paas/docs/runbooks/tenant-basic-cycle.md)
-- [docs/modules/maintenance/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/maintenance/CHANGELOG.md)
+- [docs/modules/finance/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/finance/DEV_GUIDE.md)
+- [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
 
 ## Qué decisiones quedaron cerradas
 
-- el backfill de defaults por tenant se resuelve con un script idempotente (`seed_tenant_defaults.py`)
-- el backfill masivo usa `seed_missing_tenant_defaults.py` y evita borrar categorías existentes sin `--force-finance`
+- todas las categorías default deben tener familia (parent) por tipo
+- el seed asigna parent automáticamente y se puede reparar con script dedicado
 - la limpieza de residuos E2E en finanzas se maneja con un script operativo explícito
 - los 500 en `Pendientes` por secuencia PK se corrigen desde backend sin intervención manual
 
 ## Qué falta exactamente
 
-- validar en UI que `Pendientes` ya carga sin 500 en `ieris-ltda`
-- confirmar si se necesita automatizar limpieza E2E finance en pipelines E2E publicados
+- revisar visualmente categorías `ieris-ltda` para confirmar familias en UI
 
 ## Qué no debe tocarse
 
 - no borrar transacciones reales al limpiar E2E: sólo prefijos `e2e-`/`debug-`
-- no modificar catálogo core/finance más allá del seed idempotente
+- no cambiar parent de categorías que ya tengan familia definida manualmente
 
 ## Validaciones ya ejecutadas
 
-- backend `production`: servicio reiniciado tras hotfix
-- seed defaults aplicado a `ieris-ltda`
-- cleanup E2E finance aplicado a `ieris-ltda`
+- backend `production`: servicio reiniciado tras cambios
+- `ieris-ltda`: reparación de familias aplicada (89 categorías)
 
 ## Bloqueos reales detectados
 
-- falta confirmación visual de `Pendientes` tras el fix de secuencia
+- falta confirmación visual en UI de familias en `ieris-ltda`
 
 ## Mi conclusión
 
-- los defaults y limpieza quedaron operativos; falta confirmar el fix de `Pendientes` en UI.
+- las familias quedaron aplicadas; falta validar en UI que se reflejan correctamente.

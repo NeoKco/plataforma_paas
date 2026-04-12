@@ -98,6 +98,7 @@ Smokes vigentes:
   - `tenant_type=empresa` siembra un set orientado a operación y servicio
   - `tenant_type=condominio` y cualquier perfil no empresa siembran un set hogar/condominio
   - si la DB está recién creada y no existe uso financiero, el bootstrap reemplaza el catálogo neutral de migración por el perfil vertical correcto
+- Las categorías default ahora nacen con familia (parent) por tipo: `Ingresos`, `Egresos`, `Transferencias`.
 - El primer corte de esa integración ya está operativo en `maintenance`:
   - `maintenance` guarda costo estimado y costo real propios
   - la acción manual `finance-sync` crea o actualiza transacciones de ingreso/egreso con `source_type/source_id`
