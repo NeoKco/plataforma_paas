@@ -10,13 +10,14 @@
 
 - costeo estimado permite editar `precio sugerido` y persiste en backend
 - la glosa de ingresos/egresos queda como `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio)
-- cambios publicados en staging y production; falta validar en empresa-demo
+- cambios publicados en staging y production; hint visual agregado; falta validar en empresa-demo
 
 ## Qué ya quedó hecho
 
 - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) mantiene sync accountless y glosa sin sitio
 - [tenant_data_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/services/tenant_data_service.py) retorna `auto_on_close` cuando no hay defaults explícitos
 - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) habilita edición de precio sugerido y ajusta glosa
+- [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) muestra hint con precio calculado cuando el usuario edita
 - [MaintenanceOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx) ajusta copy y default a auto
 - defaults de `maintenance_finance_sync_mode` pasan a `auto_on_close` en core
 - backend y frontend desplegados en `staging` y `production` con este corte
