@@ -477,7 +477,7 @@
   - deploy backend production: 523 tests OK
   - frontend build staging + production OK
 - ajuste adicional:
-  - hint visual agregado para mostrar el precio sugerido calculado cuando el usuario edita el campo
+  - hint visual agregado para mostrar el margen objetivo calculado cuando el usuario edita el precio sugerido
   - frontend production re-publicado para corregir API_BASE_URL (staging -> production)
 - bloqueos:
   - falta validar en empresa-demo el ingreso/egreso real en Finanzas
