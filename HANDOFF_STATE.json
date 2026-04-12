@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-11T23:59:00-04:00",
+  "updated_at": "2026-04-12T00:40:00-04:00",
   "handoff_status": "active",
-  "current_focus": "repo endurecido para bootstrap contractual por modulos tenant: CLP base, categorias Casa/Empresa, perfiles funcionales y tipos de tarea default, con backfill por cambio de plan; el siguiente paso es publicar y validar este subcorte en staging antes del slice maintenance -> finance",
-  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa y nuevo subcorte en repo para bootstrap contractual por modulos pendiente de publish en staging/production",
+  "current_focus": "abrir el slice fino maintenance -> finance sobre una base ya publicada y validada: bootstrap contractual por modulos con CLP base, categorias Casa/Empresa, perfiles funcionales y tipos de tarea default, reutilizable tanto en provisioning inicial como en cambio de plan",
+  "project_phase": "produccion validada con HTTPS, staging/test separado, portabilidad tenant operativa, Provisioning/DLQ cerrado para esta etapa y baseline contractual por modulos ya publicado y validado en staging y production",
   "active_modules": [
     "platform-core",
     "finance",
@@ -54,7 +54,8 @@
     "la matriz visible tenant + capa tecnica cierra el ultimo slice util de Provisioning/DLQ para esta etapa y cualquier profundizacion adicional requiere repriorizacion explicita",
     "maintenance ya no debe tratarse como herencia implicita de core; su contrato tenant-side es el modulo maintenance",
     "tenant_type ya define el seed financiero inicial del tenant nuevo durante bootstrap, distinguiendo empresa vs condominio/hogar",
-    "deploy_backend_staging.sh debe apuntar por defecto a /opt/platform_paas_staging y no al root de produccion"
+    "deploy_backend_staging.sh debe apuntar por defecto a /opt/platform_paas_staging y no al root de produccion",
+    "el baseline contractual por modulos ya quedo publicado y validado con tenants reales en staging; el siguiente frente maintenance -> finance debe centrarse en autollenado y ergonomia, no en recrear seeds o contratos ya cerrados"
   ],
   "completed_recently": [
     "tenant_db_bootstrap_service ahora separa seed_defaults reutilizable para provisioning inicial y backfill por cambio de plan",
@@ -214,12 +215,19 @@
     "smoke platform-admin-provisioning-dlq-family-focus skipped en production por dispatch backend no-broker",
     "helper scripts/dev/run_staging_published_broker_dlq_smoke.sh agregado para encapsular el setup published broker-only de staging",
     "helper staging published broker-only validado con --target family",
-    "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO"
+    "estado vivo root reescrito siguiendo PLANTILLA_ACTUALIZACION_ESTADO",
+    "baseline contractual por modulos publicado en staging con backend desplegado y 523 tests OK",
+    "baseline contractual por modulos validado en staging con tenants reales bootstrap-empresa-20260412002354 y bootstrap-condominio-20260412002354",
+    "validado en staging que CLP queda como base efectiva y que conviven las familias Casa - ... y Empresa - ... ordenadas segun tenant_type",
+    "validado en staging que se siembran los perfiles tecnico/lider/administrativo/vendedor/otro/supervisor y los tipos mantencion/instalacion/tareas generales/ventas/administracion",
+    "baseline contractual por modulos publicado en production con backend desplegado y 523 tests OK",
+    "healthcheck https://orkestia.ddns.net/health revalidado despues del deploy del baseline contractual por modulos",
+    "tenant-portal-sidebar-modules revalidado con 1 passed en staging y production despues del deploy backend sin cambios frontend"
   ],
   "blocking_issues": [
-    "el subcorte bootstrap contractual por modulos aun no esta validado visualmente en staging"
+    "no hay bloqueo tecnico abierto; falta solo definir alcance exacto del siguiente corte maintenance -> finance"
   ],
-  "next_decision_required": "decidir si la validacion visible del bootstrap contractual por modulos en staging se cerrara con smoke/browser o con verificacion manual guiada antes de abrir maintenance -> finance",
+  "next_decision_required": "definir el primer corte de autollenado maintenance -> finance: en que evento sugerir transacciones, que campos autocompletar y que campos dejar siempre editables",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -237,7 +245,8 @@
     "asumir cerrado tambien el helper published broker-only de staging",
     "dejar Provisioning/DLQ fuera del foco activo",
     "retomar el siguiente bloque central del roadmap fuera de DLQ",
-    "usar la base ya publicada para abrir el slice maintenance -> finance sin reabrir el rollout contractual"
+    "usar la base ya publicada para abrir el slice maintenance -> finance sin reabrir el rollout contractual",
+    "no reabrir Provisioning/DLQ ni bootstrap contractual salvo bug real"
   ],
   "next_step_if_prod_host_missing": [
     "no aplica: el host productivo real ya existe y fue usado"
@@ -406,6 +415,12 @@
     "tenant_contract_maintenance_production_backend_deploy": "pass",
     "tenant_contract_maintenance_production_frontend_publish": "pass",
     "tenant_contract_maintenance_production_sidebar_smoke": "pass",
-    "tenant_contract_maintenance_production_health_https": "pass"
+    "tenant_contract_maintenance_production_health_https": "pass",
+    "tenant_bootstrap_contractual_defaults_staging_backend_deploy": "pass",
+    "tenant_bootstrap_contractual_defaults_staging_real_tenant_validation": "pass",
+    "tenant_bootstrap_contractual_defaults_staging_sidebar_smoke": "pass",
+    "tenant_bootstrap_contractual_defaults_production_backend_deploy": "pass",
+    "tenant_bootstrap_contractual_defaults_production_health_https": "pass",
+    "tenant_bootstrap_contractual_defaults_production_sidebar_smoke": "pass"
   }
 }

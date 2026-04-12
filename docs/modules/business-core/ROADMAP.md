@@ -34,6 +34,7 @@ Estado:
 
 - `Completado en olas 1A y 1B`
 - `Bootstrap default reforzado`: perfiles funcionales y tipos de tarea base ya pueden sembrarse automáticamente cuando el tenant habilita `core`
+- `Bootstrap contractual publicado`: ese baseline ya quedó desplegado y validado operativamente en `staging`
 
 Alcance:
 

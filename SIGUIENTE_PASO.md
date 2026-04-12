@@ -2,30 +2,30 @@
 
 ## Prioridad vigente
 
-- publicar y validar en `staging` el nuevo bootstrap contractual por módulos antes de abrir el autollenado fino `maintenance -> finance`
+- abrir el slice de autollenado fino `maintenance -> finance` sobre una base contractual y de bootstrap ya publicada en `staging` y `production`
 
 ## Decisión previa obligatoria
 
 - ¿qué decisión define el camino siguiente?
-  - si la validación del baseline tenant nuevo se cerrará con smoke/browser o con verificación manual guiada en `staging`
+  - definir el alcance exacto del primer corte de autollenado:
+    - si el sync sugerido ocurrirá al cerrar la OT o al confirmar costeo/cobro
+    - qué campos se autocompletan y cuáles quedan siempre editables
 
 ## Próximo paso correcto
 
-- desplegar este subcorte en `staging`
-- crear o reprovisionar un tenant de prueba con `core`
-- verificar:
-  - moneda base `CLP`
-  - categorías `Casa - ...` y `Empresa - ...`
-  - perfiles funcionales default
-  - tipos de tarea default
-- si esa validación queda limpia, promover el mismo subcorte a `production`
-- después de eso, abrir el slice de autollenado `maintenance -> finance`
+- revisar el puente ya existente `maintenance -> finance` para delimitar qué ya está resuelto y qué falta realmente en autollenado
+- cerrar reglas funcionales de sugerencia:
+  - categoría ingreso por defecto
+  - categoría egreso por defecto
+  - cuenta y glosa sugeridas
+  - momento del sync
+- implementar el primer corte usable sin duplicar lógica ya existente
 
 ## Si el escenario principal falla
 
-- si el bootstrap visible no queda correcto en `staging`, corregir primero seed/backfill antes de tocar `maintenance -> finance`
-- si el problema es solo de validación browser y no de backend, dejar runbook/manual de verificación y no mezclar el arreglo con el siguiente slice funcional
+- si durante la revisión aparece que el puente actual `maintenance -> finance` está incompleto o inconsistente, cerrar primero ese gap real antes de agregar autollenado
+- si el problema es sólo de defaults financieros por tenant, arreglar bootstrap/catalogación sin mezclarlo con UX de mantenimiento
 
 ## Condición de cierre de la próxima iteración
 
-- el siguiente cierre debe dejar este subcorte publicado y validado al menos en `staging`, o dejar un bloqueo técnico explícito con evidencia suficiente para retomarlo sin releer el chat
+- la próxima iteración debe dejar definido e implementado el primer corte de autollenado `maintenance -> finance`, o un bloqueo funcional explícito con evidencia suficiente para retomarlo sin releer el chat

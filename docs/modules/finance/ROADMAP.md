@@ -30,6 +30,10 @@ Ya cubre:
 - seeds y migraciones tenant del dominio
 - bootstrap tenant con catálogo financiero inicial por vertical (`empresa` vs `condominio/hogar`)
 - bootstrap tenant reforzado para sembrar baseline financiero también cuando el tenant habilita `core` o `finance` por contrato
+- validación operativa en `staging` con tenants nuevos reales del baseline contractual:
+  - `CLP` como base efectiva
+  - coexistencia de `Casa - ...` y `Empresa - ...`
+  - orden dominante según `tenant_type`
 - self-service de sync de schema
 - categorías default ampliadas
 - manejo de moneda base y formateo de montos

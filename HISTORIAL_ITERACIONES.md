@@ -1,5 +1,26 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-12 - Bootstrap contractual por módulos publicado y validado con tenants reales
+
+- objetivo:
+  - cerrar el rollout real del baseline contractual por módulos y validar que el bootstrap nuevo siembra correctamente catálogos y defaults de negocio/finanzas
+- cambios principales:
+  - backend desplegado en `staging` y `production` con el corte que separa `seed_defaults(...)` y permite backfill por cambio de plan
+  - validación real en `staging` con tenants nuevos `bootstrap-empresa-20260412002354` y `bootstrap-condominio-20260412002354`
+  - confirmación de `CLP` como moneda base efectiva, coexistencia de `Casa - ...` y `Empresa - ...`, perfiles funcionales default y tipos de tarea default
+  - sincronización del estado vivo y documentación canónica para mover el foco al siguiente slice `maintenance -> finance`
+- validaciones:
+  - `deploy_backend_staging.sh` -> `523 tests ... OK`
+  - `deploy_backend_production.sh` -> `523 tests ... OK`
+  - `tenant-portal-sidebar-modules.smoke.spec.ts` -> `1 passed` en `staging`
+  - `tenant-portal-sidebar-modules.smoke.spec.ts` -> `1 passed` en `production`
+  - healthcheck `https://orkestia.ddns.net/health` -> `healthy`
+- bloqueos:
+  - sin bloqueo técnico
+  - sólo queda por definir el alcance funcional del autollenado `maintenance -> finance`
+- siguiente paso:
+  - abrir el slice fino `maintenance -> finance` revisando primero qué parte del puente ya existe y qué parte falta realmente
+
 ## 2026-04-11 - Bootstrap contractual por módulos reforzado en repo
 
 - objetivo:

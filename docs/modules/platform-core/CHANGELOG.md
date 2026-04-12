@@ -20,8 +20,14 @@
   - `python3 -m py_compile` sobre los archivos nuevos/modificados -> `OK`
 - estado de release al cierre:
   - `repo`: actualizado y validado
-  - `staging`: todavía no publicado para este subcorte
-  - `production`: todavía no publicado para este subcorte
+  - `staging`: publicado y validado con tenants nuevos reales `bootstrap-empresa-20260412002354` y `bootstrap-condominio-20260412002354`
+  - `production`: publicado y con regresión base `tenant-portal-sidebar-modules` nuevamente validada
+- validación real adicional del bootstrap en `staging`:
+  - `CLP` queda como moneda base efectiva
+  - se siembran ambas familias `Casa - ...` y `Empresa - ...`
+  - el orden dominante cambia según `tenant_type`
+  - quedan sembrados los perfiles funcionales `tecnico`, `lider`, `administrativo`, `vendedor`, `otro`, `supervisor`
+  - quedan sembrados los tipos `mantencion`, `instalacion`, `tareas generales`, `ventas`, `administracion`
 
 - promoción operativa del corte `maintenance contractual + finance bootstrap por vertical` a `production`:
   - backend `production` desplegado con `/opt/platform_paas/.env`

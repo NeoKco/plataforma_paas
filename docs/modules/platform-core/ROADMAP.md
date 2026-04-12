@@ -153,8 +153,8 @@ Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
 - `maintenance` ya no hereda visibilidad desde `core`; cualquier contrato o degradación por billing debe habilitarlo explícitamente como módulo propio
 - el wrapper [deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh) ya quedó corregido para apuntar por defecto a `/opt/platform_paas_staging`; no debe volver a asumir `/opt/platform_paas`
 - el corte contractual `maintenance` + bootstrap financiero por vertical ya quedó validado en repo y publicado en `staging` y `production`
-- la validación visible del bootstrap vertical creando tenants nuevos sigue pendiente; hoy esa parte está cerrada por unit tests backend, no por smoke browser
-- el baseline contractual de bootstrap por módulos ya quedó cerrado en repo, pero todavía no está promovido en este corte nuevo de `CLP + Casa/Empresa + task_types/function_profiles` hasta publicarse y validarse en `staging`
+- la validación real del bootstrap contractual por módulos ya quedó cerrada en `staging` con tenants nuevos reales; hoy no existe todavía un smoke browser específico que inspeccione esos catálogos, pero el rollout ya quedó validado operativamente
+- el baseline contractual de bootstrap por módulos (`CLP + Casa/Empresa + task_types/function_profiles`) ya quedó publicado en `staging` y `production`
 - el staging ya puede alternar entre espejo instalado y bootstrap reset; hoy queda institucionalizado que el modo normal es espejo operativo y el siguiente paso ya no es de entorno sino de roadmap
 - la plataforma ya tiene backup y restore PostgreSQL por tenant, export portable mínimo en `CSV + manifest` e import controlado mínimo con `dry_run` y `apply`, ya validados en `staging` y `production`
 - el repo ya soporta además export/import dual (`portable_full` y `functional_data_only`) desde `platform_admin` y `tenant_portal`; ese corte ya quedó validado en `staging` y `production`

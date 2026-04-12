@@ -6,9 +6,9 @@ Puntero corto para retomar rápido entre sesiones.
 
 ## Estado rápido vigente
 
-- fecha: 2026-04-11
-- foco activo: bootstrap contractual por módulos para tenants nuevos y cambio de plan
-- prioridad inmediata: publicar y validar este baseline en `staging`
+- fecha: 2026-04-12
+- foco activo: siguiente slice funcional `maintenance -> finance` después del cierre del baseline contractual por módulos
+- prioridad inmediata: revisar el puente ya existente y definir el primer corte de autollenado
 - módulo o frente activo: `platform-core` + `finance` + `business-core`
 
 ## Último contexto útil
@@ -20,19 +20,21 @@ Puntero corto para retomar rápido entre sesiones.
   - perfiles funcionales default
   - tipos de tarea default
   - backfill por cambio de plan para tenants activos
-- este subcorte todavía no está publicado en `staging/production`
-- el siguiente slice funcional seguirá siendo `maintenance -> finance`, pero solo después del publish de este baseline
+- este subcorte ya está publicado en `staging` y `production`
+- `staging` ya quedó validado con tenants nuevos reales:
+  - `bootstrap-empresa-20260412002354`
+  - `bootstrap-condominio-20260412002354`
+- el siguiente slice funcional ya sí es `maintenance -> finance`
 
 ## Bloqueo actual
 
 - no hay bloqueo técnico
-- falta validación visible del bootstrap tenant nuevo en `staging`
+- falta únicamente definir alcance fino del próximo corte funcional
 
 ## Siguiente acción inmediata
 
-- desplegar a `staging`
-- verificar tenant nuevo con `core`
-- promover a `production` si queda limpio
+- revisar código y contratos actuales del puente `maintenance -> finance`
+- definir autollenado mínimo útil y luego implementarlo
 
 ## Archivos a leer justo después de este
 

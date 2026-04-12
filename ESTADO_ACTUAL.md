@@ -2,104 +2,94 @@
 
 ## Última actualización
 
-- fecha: 2026-04-11
-- foco de iteración: endurecimiento del bootstrap contractual por módulos para tenants nuevos y cambios de plan
-- estado general: el repo ya soporta `CLP` como base, categorías `Casa/Empresa`, perfiles funcionales y tipos de tarea default; este subcorte quedó validado por unit tests pero todavía no está publicado en `staging` ni `production`
+- fecha: 2026-04-12
+- foco de iteración: cierre y publicación del bootstrap contractual por módulos para tenants nuevos y cambio de plan, con validación real sobre `staging`
+- estado general: publicado en `staging` y `production`, validado en repo, validado en `staging` con tenants nuevos reales, sin bloqueo técnico abierto
 
 ## Resumen ejecutivo en 30 segundos
 
-- el puente `maintenance -> finance` ya existe en primer corte; no se está creando desde cero, el siguiente trabajo será autollenado fino
-- el bootstrap tenant ahora puede sembrar baseline real cuando el plan habilita `core` o `finance`, tanto en provisioning inicial como en cambio posterior de plan
-- `finance` deja de nacer solo con el baseline neutral heredado de migración: el seed final ahora promueve `CLP` y agrega familias `Casa - ...` y `Empresa - ...`
-- `business-core` ya puede nacer con perfiles funcionales y tipos de tarea base sin depender de carga manual posterior
-- la documentación y el handoff ya quedaron alineados a este nuevo baseline, pero el subcorte aún espera publish visible
+- el baseline contractual por módulos ya quedó operativo en repo, `staging` y `production`
+- `core` ya puede sembrar perfiles funcionales y tipos de tarea; `core` o `finance` ya pueden sembrar baseline financiero con `CLP` y categorías `Casa - ...` / `Empresa - ...`
+- `maintenance -> finance` ya existía; el siguiente trabajo correcto ya no es crear el puente, sino endurecer autollenado y ergonomía
 
 ## Qué ya quedó hecho
 
-- se confirmó en código que `maintenance -> finance` ya existe mediante:
-  - sync manual por OT
-  - política `manual` o `auto_on_close`
-  - vínculo persistente a transacciones financieras
-- [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py) ahora expone `seed_defaults(...)` reutilizable
-- el bootstrap financiero ahora asegura:
-  - `CLP` como base efectiva por defecto
-  - `finance_settings.base_currency_code = CLP`
-  - categorías operativas compartidas
-  - categorías clasificadas `Casa - ...`
-  - categorías clasificadas `Empresa - ...`
-- el bootstrap de `business-core` ahora asegura:
-  - perfiles `tecnico`, `lider`, `administrativo`, `vendedor`, `otro`, `supervisor`
-  - tipos de tarea `mantencion`, `instalacion`, `tareas generales`, `ventas`, `administracion`
-  - compatibilidad base entre tipos de tarea y perfiles
-- [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ahora puede backfillear esos defaults cuando un tenant activo gana `core` o `finance` por cambio de plan
-- [provisioning_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/provisioning_service.py) ya pasa los módulos habilitados del plan al bootstrap tenant
-- tests nuevos para bootstrap y backfill por plan ya quedaron verdes
+- [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py) separa `seed_defaults(...)` para reutilizar el baseline tanto en provisioning inicial como en backfill por cambio de plan
+- [default_category_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/default_category_profiles.py) ahora siembra `CLP` como base efectiva, categorías compartidas y familias clasificadas `Casa - ...` / `Empresa - ...`
+- [default_catalog_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/business_core/default_catalog_profiles.py) agrega perfiles `tecnico`, `lider`, `administrativo`, `vendedor`, `otro`, `supervisor` y tipos `mantencion`, `instalacion`, `tareas generales`, `ventas`, `administracion`
+- [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya backfillea esos defaults cuando un tenant activo gana `core` o `finance` por cambio de plan
+- el backend quedó desplegado en `/opt/platform_paas_staging` y `/opt/platform_paas`, con `523 tests ... OK` en ambos carriles
+- en `staging` se validó con tenants nuevos reales:
+  - `bootstrap-empresa-20260412002354`
+  - `bootstrap-condominio-20260412002354`
+- esa validación confirmó:
+  - `CLP` como moneda base efectiva
+  - presencia de ambas familias `Empresa - ...` y `Casa - ...`
+  - orden dominante por tipo de tenant
+  - perfiles funcionales y tipos de tarea sembrados correctamente
+- la regresión browser [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts) volvió a quedar `1 passed` en `staging` y `production`
 
 ## Qué archivos se tocaron
 
-- backend bootstrap y lifecycle:
-  - [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py)
-  - [provisioning_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/provisioning_service.py)
-  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py)
-- nuevos catálogos default:
-  - [default_category_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/default_category_profiles.py)
-  - [default_catalog_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/business_core/default_catalog_profiles.py)
-- tests:
-  - [test_tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_db_bootstrap_service.py)
-  - [test_tenant_service_module_seed_backfill.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_service_module_seed_backfill.py)
-- documentación:
-  - [docs/modules/platform-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md)
-  - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
-  - [docs/modules/business-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/business-core/ROADMAP.md)
-  - [docs/modules/finance/ROADMAP.md](/home/felipe/platform_paas/docs/modules/finance/ROADMAP.md)
-  - [finance_db.md](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/docs/finance_db.md)
-  - [docs/modules/maintenance/ROADMAP.md](/home/felipe/platform_paas/docs/modules/maintenance/ROADMAP.md)
+- [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py)
+- [provisioning_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/provisioning_service.py)
+- [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py)
+- [default_category_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/default_category_profiles.py)
+- [default_catalog_profiles.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/business_core/default_catalog_profiles.py)
+- [test_tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_db_bootstrap_service.py)
+- [test_tenant_service_module_seed_backfill.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_service_module_seed_backfill.py)
+- [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+- [docs/modules/platform-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md)
+- [docs/modules/business-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/business-core/ROADMAP.md)
+- [docs/modules/finance/ROADMAP.md](/home/felipe/platform_paas/docs/modules/finance/ROADMAP.md)
+- [docs/modules/maintenance/ROADMAP.md](/home/felipe/platform_paas/docs/modules/maintenance/ROADMAP.md)
+- [backend/app/apps/tenant_modules/finance/docs/finance_db.md](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/docs/finance_db.md)
 
 ## Qué decisiones quedaron cerradas
 
-- el baseline `core` no puede depender de carga manual posterior para perfiles funcionales ni tipos de tarea
-- el baseline `finance` de un tenant nuevo no debe quedar con `USD` como moneda operativa final por defecto
-- por la restricción única `(name, category_type)` en `finance_categories`, la convivencia `casa + empresa` se resuelve con nombres clasificados `Casa - ...` y `Empresa - ...`, no duplicando nombres desnudos
-- el mismo bootstrap debe servir tanto para provisioning inicial como para backfill por cambio de plan; no conviene mantener dos rutas distintas de seed
-- el siguiente slice `maintenance -> finance` debe enfocarse en autollenado y ergonomía, no en “crear la integración”
+- el baseline contractual debe sembrarse tanto en provisioning inicial como en backfill posterior por cambio de plan
+- `CLP` pasa a ser la moneda base efectiva por defecto para tenants nuevos o sin uso financiero todavía
+- las familias domésticas y empresariales convivirán en el mismo catálogo usando prefijos `Casa - ...` y `Empresa - ...` para respetar la unicidad `name + category_type`
+- `maintenance -> finance` ya no debe tratarse como integración faltante; el siguiente corte será de autollenado, defaults y ergonomía
+- `core` debe dejar listo el baseline operativo de `business-core` para que `maintenance` no parta sin taxonomía mínima
 
 ## Qué falta exactamente
 
-- publicar este subcorte en `staging`
-- validar de forma visible un tenant nuevo con `core` habilitado:
-  - moneda base `CLP`
-  - categorías `Casa/Empresa`
-  - perfiles funcionales
-  - tipos de tarea
-- si `staging` queda correcto, promover a `production`
-- recién después abrir el slice de autollenado fino `maintenance -> finance`
+- definir el slice fino `maintenance -> finance`:
+  - en qué evento se sugieren ingreso y egreso
+  - qué categoría y cuenta se proponen por defecto
+  - qué campos quedan editables antes del sync
+- decidir si hace falta un smoke/browser específico para alta visible de tenant nuevo con inspección de catálogos bootstrap; hoy esa validación quedó cerrada con pruebas reales y verificación directa de DB en `staging`
+- mantener sincronizados repo, `/opt/platform_paas` y `/opt/platform_paas_staging` cuando se abra el siguiente corte funcional
 
 ## Qué no debe tocarse
 
-- no volver a un seed exclusivo `empresa` versus `hogar` si el requerimiento ahora es convivir con ambas familias en el mismo tenant
-- no cambiar la migración tenant histórica para forzar `CLP` retroactivamente sobre tenants con uso financiero real
-- no mezclar este publish de bootstrap contractual con el siguiente slice de autollenado `maintenance -> finance`
-- no introducir toggles manuales ad hoc de módulos fuera del contrato por plan
+- no volver a acoplar `maintenance` dentro de `core` como herencia implícita
+- no quitar los prefijos `Casa - ...` / `Empresa - ...` mientras siga vigente la unicidad de `finance_categories`
+- no cambiar el bootstrap contractual por módulos sin actualizar a la vez provisioning, backfill de plan, roadmap y handoff
+- no reabrir `Provisioning/DLQ` salvo necesidad operativa explícita
 
 ## Validaciones ya ejecutadas
 
-- backend unit:
-  - `cd backend && PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_tenant_db_bootstrap_service app.tests.test_tenant_service_module_seed_backfill`
-  - resultado: `Ran 5 tests ... OK`
-- compilación Python:
-  - `python3 -m py_compile backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/tenant_modules/finance/default_category_profiles.py backend/app/apps/tenant_modules/business_core/default_catalog_profiles.py`
-  - resultado: `OK`
-- revisión funcional de código:
-  - `maintenance -> finance` ya existe y quedó documentado como baseline vigente
+- repo:
+  - `python -m unittest app.tests.test_tenant_db_bootstrap_service app.tests.test_tenant_service_module_seed_backfill` -> `5 tests OK`
+  - `python3 -m py_compile` sobre archivos nuevos/modificados -> `OK`
+- staging:
+  - `deploy_backend_staging.sh` -> `523 tests ... OK`
+  - `platform-paas-backend-staging.service` activo
+  - validación real con tenants `bootstrap-empresa-20260412002354` y `bootstrap-condominio-20260412002354`
+  - smoke [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts) -> `1 passed`
+- production:
+  - `deploy_backend_production.sh` -> `523 tests ... OK`
+  - `curl -k https://orkestia.ddns.net/health` -> `healthy`
+  - smoke [tenant-portal-sidebar-modules.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/tenant-portal-sidebar-modules.smoke.spec.ts) -> `1 passed`
 
 ## Bloqueos reales detectados
 
-- no hay bloqueo técnico
-- el subcorte todavía no está validado visualmente en `staging`
-- falta decidir si el primer publish irá acompañado por smoke nuevo de bootstrap tenant o por validación manual controlada
+- no hay bloqueo técnico abierto
+- la única decisión pendiente ya es funcional: acotar el alcance del autollenado fino `maintenance -> finance`
 
 ## Mi conclusión
 
-- el hueco real ya no estaba en la integración `maintenance -> finance`, sino en el baseline contractual del tenant
-- ese hueco ya quedó resuelto en repo de forma más robusta: bootstrap inicial + backfill por cambio de plan
-- el siguiente paso correcto ya no es más diseño; toca publicar y validar este baseline antes de pasar al autollenado fino entre `maintenance` y `finance`
+- este subcorte ya quedó cerrado y publicado correctamente
+- el siguiente paso correcto es abrir el slice funcional de autollenado entre `maintenance` y `finance`
