@@ -148,6 +148,11 @@ type TenantCatalogRecord = {
   planCode: string | null;
 };
 
+const PROD_HOST_MARKERS = ["orkestia.ddns.net"];
+const autoCleanupEnabled = process.env.E2E_AUTO_CLEANUP === "1";
+const allowProdSeed = process.env.E2E_ALLOW_PROD_SEED === "1";
+const cleanupTenants: string[] = [];
+
 function getRepoRoot() {
   const currentFilePath = fileURLToPath(import.meta.url);
   const currentDirPath = path.dirname(currentFilePath);
@@ -164,6 +169,31 @@ function getBackendPythonExecutable() {
     process.env.E2E_BACKEND_PYTHON?.trim() ||
     path.join(backendRoot, "platform_paas_venv", "bin", "python")
   );
+}
+
+function isProductionTarget(): boolean {
+  const baseUrl = process.env.E2E_BASE_URL?.trim() || "";
+  if (PROD_HOST_MARKERS.some((marker) => baseUrl.includes(marker))) {
+    return true;
+  }
+  const backendRoot = getBackendRoot();
+  if (backendRoot === "/opt/platform_paas") {
+    return true;
+  }
+  const envFile = process.env.E2E_BACKEND_ENV_FILE?.trim() || "";
+  if (envFile === "/opt/platform_paas/.env") {
+    return true;
+  }
+  return false;
+}
+
+function assertSeedsAllowed(actionLabel: string) {
+  if (!allowProdSeed && isProductionTarget()) {
+    throw new Error(
+      `[E2E] ${actionLabel} blocked: production target detected. ` +
+        "Set E2E_ALLOW_PROD_SEED=1 only if you intentionally want to create tenants/data in production."
+    );
+  }
 }
 
 function loadBackendEnvOverrides() {
@@ -214,6 +244,78 @@ function runBackendPython(script: string, args: string[]) {
     encoding: "utf-8",
   }).trim();
 }
+
+function registerCleanupTenant(tenantSlug: string) {
+  if (!autoCleanupEnabled) {
+    return;
+  }
+  if (!cleanupTenants.includes(tenantSlug)) {
+    cleanupTenants.push(tenantSlug);
+  }
+}
+
+export function cleanupTenantCatalogRecord(tenantSlug: string) {
+  const script = `
+import sys
+from app.common.db.control_database import ControlSessionLocal
+from app.apps.platform_control.services.tenant_service import TenantService
+from app.apps.platform_control.repositories.tenant_repository import TenantRepository
+
+tenant_slug = sys.argv[1]
+db = ControlSessionLocal()
+service = TenantService()
+repository = TenantRepository()
+try:
+    tenant = repository.get_by_slug(db, tenant_slug)
+    if tenant is None:
+        print("missing")
+        raise SystemExit(0)
+
+    if tenant.status != "archived":
+        service.set_status(db=db, tenant_id=tenant.id, status="archived", status_reason="E2E cleanup")
+    try:
+        service.deprovision_tenant(db=db, tenant_id=tenant.id)
+    except Exception:
+        pass
+    try:
+        service.delete_tenant(db=db, tenant_id=tenant.id, deleted_by_email="e2e-cleanup@platform.local")
+        print("deleted")
+    except Exception:
+        print("retained")
+finally:
+    db.close()
+`;
+  try {
+    runBackendPython(script, [tenantSlug]);
+  } catch {
+    // Avoid crashing the E2E run on cleanup.
+  }
+}
+
+function runRegisteredCleanup() {
+  if (!autoCleanupEnabled) {
+    return;
+  }
+  if (!cleanupTenants.length) {
+    return;
+  }
+  if (!allowProdSeed && isProductionTarget()) {
+    return;
+  }
+  for (const slug of cleanupTenants.splice(0, cleanupTenants.length)) {
+    cleanupTenantCatalogRecord(slug);
+  }
+}
+
+process.on("exit", runRegisteredCleanup);
+process.on("SIGINT", () => {
+  runRegisteredCleanup();
+  process.exit(130);
+});
+process.on("SIGTERM", () => {
+  runRegisteredCleanup();
+  process.exit(143);
+});
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -446,6 +548,7 @@ export function seedPlatformTenantCatalogRecord({
   adminPassword,
   planCode = null,
 }: SeedTenantCatalogInput): SeededTenantCatalogRecord {
+  assertSeedsAllowed("seedPlatformTenantCatalogRecord");
   const script = `
 import json
 import sys
@@ -495,7 +598,9 @@ finally:
     planCode || "",
   ]);
 
-  return JSON.parse(output) as SeededTenantCatalogRecord;
+  const record = JSON.parse(output) as SeededTenantCatalogRecord;
+  registerCleanupTenant(record.tenantSlug);
+  return record;
 }
 
 export function getProvisioningDispatchInfo(): ProvisioningDispatchInfo {

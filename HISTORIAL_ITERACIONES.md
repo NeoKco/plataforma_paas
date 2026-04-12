@@ -18,6 +18,27 @@
 - siguiente paso:
   - publicar backend + frontend en `staging` y ejecutar smoke antes de promover a `production`
 
+## 2026-04-12 - Hotfix deprovision: tolerar `.env` legacy no legible
+
+- objetivo:
+  - evitar que el deprovision falle por `PermissionError` al leer `/opt/platform_paas/.env`
+- cambios principales:
+  - `tenant_secret_service` ignora `PermissionError` al leer `.env` legacy y continúa con `TENANT_SECRETS_FILE`
+- validaciones:
+  - backend redeploy en `production` y `staging` con `523 tests OK`
+- siguiente paso:
+  - reintentar deprovision desde UI y borrar tenant bloqueado
+
+## 2026-04-12 - E2E cleanup y guard de seeds en producción
+
+- objetivo:
+  - evitar que los smokes dejen tenants basura en producción
+- cambios principales:
+  - `backend-control` bloquea seeds en producción salvo `E2E_ALLOW_PROD_SEED=1`
+  - `seedPlatformTenantCatalogRecord` registra cleanup automático si `E2E_AUTO_CLEANUP=1`
+  - `cleanupTenantCatalogRecord` intenta archivar, deprovisionar y eliminar tenant E2E
+  - runbook y README E2E actualizados con las variables nuevas
+
 ## 2026-04-12 - Defaults efectivos maintenance -> finance cerrados en staging y production
 
 - objetivo:

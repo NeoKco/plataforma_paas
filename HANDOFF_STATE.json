@@ -75,6 +75,9 @@
     "MaintenanceCostingModal ahora muestra referencia OT y glosas editables para sync manual",
     "subcorte glosa/fecha contable validado en staging con smoke tenant-portal-maintenance-finance-defaults",
     "subcorte glosa/fecha contable validado en production con smoke tenant-portal-maintenance-finance-defaults",
+    "tenant_secret_service ahora ignora PermissionError al leer .env legacy para no bloquear deprovision",
+    "backend-control bloquea seeds E2E en producción salvo override explícito",
+    "backend-control registra cleanup automático de tenants E2E cuando E2E_AUTO_CLEANUP=1",
     "frontend build validado para el corte defaults efectivos maintenance -> finance",
     "tenant_db_bootstrap_service ahora separa seed_defaults reutilizable para provisioning inicial y backfill por cambio de plan",
     "finance default_category_profiles ahora siembra baseline mixto con CLP, categorias compartidas y familias Casa - ... / Empresa - ... derivadas desde ieris_app",
@@ -457,6 +460,10 @@
     "tenant_bootstrap_contractual_defaults_production_sidebar_smoke": "pass",
     "maintenance_finance_fillin_glosa_repo_unittest": "pass",
     "maintenance_finance_fillin_glosa_staging_smoke": "pass",
-    "maintenance_finance_fillin_glosa_production_smoke": "pass"
+    "maintenance_finance_fillin_glosa_production_smoke": "pass",
+    "tenant_deprovision_env_permission_hotfix_prod": "pass",
+    "tenant_deprovision_env_permission_hotfix_staging": "pass",
+    "e2e_seed_guard_prod": "pass",
+    "e2e_auto_cleanup": "pass"
   }
 }

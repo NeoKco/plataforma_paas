@@ -2,6 +2,13 @@
 
 ## 2026-04-12
 
+- se endurece `tenant_secret_service` para ignorar `PermissionError` al leer el `.env` legacy:
+  - evita que el deprovision falle si el archivo existe pero no es legible por el proceso
+  - mantiene preferencia por `TENANT_SECRETS_FILE` y solo cae al legacy si es accesible
+- E2E ahora protege producción contra seeds accidentales:
+  - `backend-control` bloquea seeds si el target es `production` salvo `E2E_ALLOW_PROD_SEED=1`
+  - `seedPlatformTenantCatalogRecord` registra cleanup automático con `E2E_AUTO_CLEANUP=1`
+
 - se agrega [data-governance.md](/home/felipe/platform_paas/docs/architecture/data-governance.md) como documento canónico transversal para:
   - ownership de datos por dominio
   - contratos entre módulos

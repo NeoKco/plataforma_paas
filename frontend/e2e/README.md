@@ -128,6 +128,9 @@ Variables de entorno:
 - si ese `.env.staging` está protegido para el usuario de servicio, el comando publicado puede requerir `sudo`, `HOME=/home/felipe` y luego devolver la propiedad de `frontend/e2e/test-results` y `frontend/e2e/playwright-report` a `felipe`
 - en este entorno de agente, algunos smokes tenant-side publicados pueden fallar al arrancar Chromium dentro del sandbox con `SIGTRAP` o errores de `sandbox_host_linux`; si ocurre, reejecutar el mismo spec fuera del sandbox antes de diagnosticar un fallo funcional
 - si quieres validar el instalador inicial, primero resetea `staging` a modo bootstrap con [reset_staging_bootstrap.sh](/home/felipe/platform_paas/deploy/reset_staging_bootstrap.sh) y luego corre el smoke opt-in del instalador
+- para evitar ensuciar `production`, los seeds E2E están bloqueados por defecto:
+  - activa `E2E_ALLOW_PROD_SEED=1` solo si necesitas crear tenants/datos en producción
+  - usa `E2E_AUTO_CLEANUP=1` para eliminar automáticamente los tenants E2E creados por seeds al terminar la suite
 
 ## Regla oficial de continuidad
 

@@ -189,6 +189,8 @@ Variables principales:
 - `E2E_BACKEND_ROOT`
 - `E2E_BACKEND_PYTHON`
 - `E2E_BACKEND_ENV_FILE`
+- `E2E_AUTO_CLEANUP`
+- `E2E_ALLOW_PROD_SEED`
 
 Nota operativa para cortes broker-only de `Provisioning`:
 
@@ -207,6 +209,12 @@ Nota operativa para cortes broker-only de `Provisioning`:
 cd /home/felipe/platform_paas
 scripts/dev/run_staging_published_broker_dlq_smoke.sh --target family
 ```
+
+Notas de limpieza y producción:
+
+- los seeds E2E están bloqueados por defecto cuando el target es producción (`E2E_BASE_URL` contiene `orkestia.ddns.net` o `E2E_BACKEND_ROOT=/opt/platform_paas`)
+- para permitir seeds en producción debes fijar `E2E_ALLOW_PROD_SEED=1` de forma explícita
+- para limpiar automáticamente tenants E2E creados por seeds, fija `E2E_AUTO_CLEANUP=1`
 
 - para validar el requeue directo desde el resumen por familia:
 

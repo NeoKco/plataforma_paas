@@ -117,7 +117,12 @@ class TenantSecretService:
         if not env_path.exists():
             return None
 
-        for line in env_path.read_text(encoding="utf-8").splitlines():
+        try:
+            lines = env_path.read_text(encoding="utf-8").splitlines()
+        except PermissionError:
+            return None
+
+        for line in lines:
             if not line or line.lstrip().startswith("#"):
                 continue
             if line.startswith(f"{env_var}="):
