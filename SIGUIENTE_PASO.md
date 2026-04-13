@@ -14,6 +14,7 @@
 - verificar que al editar `Precio sugerido` el margen objetivo se recalcula y aparece el hint en margen
 - cerrar la OT con monto cobrado > 0 y revisar transacción en Finanzas
 - confirmar glosa: `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio)
+- si existen transacciones antiguas, confirmar que el script las corrigió en empresa-demo
 
 ## Si el escenario principal falla
 

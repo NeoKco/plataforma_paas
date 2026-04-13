@@ -481,6 +481,8 @@
   - frontend production ahora fija VITE_API_BASE_URL vía `frontend/.env.production` para evitar builds con URL de staging
   - backend fuerza glosa default si el frontend envía una glosa incompleta
   - build_frontend.sh ahora lee `.env.production` y bloquea staging salvo override
+  - script `repair_maintenance_finance_glosas.py` aplicado en empresa-demo (3 transacciones actualizadas)
+  - backend re-publicado en staging/production tras ajustar `client_id` opcional en `_build_work_order_label`
   - frontend production re-publicado para corregir API_BASE_URL (staging -> production)
 - bloqueos:
   - falta validar en empresa-demo el ingreso/egreso real en Finanzas

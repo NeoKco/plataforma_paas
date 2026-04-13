@@ -10,6 +10,7 @@
 
 - costeo estimado permite editar `precio sugerido` y persiste en backend
 - la glosa de ingresos/egresos queda como `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio); backend fuerza default si el frontend envía una glosa incompleta
+- script aplicado en `empresa-demo` para normalizar glosas antiguas ya existentes
 - cambios publicados en staging y production; glosa forzada en backend; build frontend valida `.env.production` y bloquea API staging por defecto
 
 ## Qué ya quedó hecho

@@ -275,7 +275,9 @@
     "hint visual agregado para mostrar el margen objetivo calculado cuando se edita el precio sugerido",
     "frontend production ahora usa .env.production con VITE_API_BASE_URL=https://orkestia.ddns.net para evitar apuntar a staging",
     "backend fuerza glosa default si el frontend entrega una glosa incompleta (asegura cliente)",
-    "deploy/build_frontend.sh ahora toma VITE_API_BASE_URL desde frontend/.env.production y bloquea staging salvo override"
+    "deploy/build_frontend.sh ahora toma VITE_API_BASE_URL desde frontend/.env.production y bloquea staging salvo override",
+    "script repair_maintenance_finance_glosas aplicado en empresa-demo (3 transacciones corregidas)",
+    "backend redeploy staging/production aplicado con guardas de glosa y getattr client_id"
     "backend staging y production desplegado con 523 tests OK para el ajuste de glosa/sugerido"
   ],
   "blocking_issues": [
