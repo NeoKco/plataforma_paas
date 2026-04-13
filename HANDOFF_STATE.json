@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T23:05:00-04:00",
+  "updated_at": "2026-04-13T00:48:00-04:00",
   "handoff_status": "active",
-  "current_focus": "maintenance -> finance (precio sugerido editable sin sobreescribir margen + hint margen + glosa con cliente + control de egreso por línea) publicado; falta validar en UI",
-  "project_phase": "cambio desplegado en staging/production; pendiente validacion funcional de precio sugerido + glosa + control de egreso por línea",
+  "current_focus": "maintenance -> finance reparado en production: politica auto_on_close endurecida, drift de schema tenant corregido y empresa-demo resincronizado; falta validacion UI de una OT nueva",
+  "project_phase": "hotfix productivo cerrado a nivel backend/frontend/datos; pendiente validacion funcional de una OT nueva post-fix",
   "active_modules": [
     "platform-core",
     "finance",
@@ -58,9 +58,17 @@
     "el baseline contractual por modulos ya quedo publicado y validado con tenants reales en staging; el siguiente frente maintenance -> finance debe centrarse en autollenado y ergonomia, no en recrear seeds o contratos ya cerrados",
     "el proyecto ya tiene gobernanza de datos explicita y el criterio oficial de cierre relevante puede expresarse como SRED: Spec, Rules, Evidence, Documentation",
     "si hay costos reales > 0 y se sincroniza el ingreso, el egreso debe generarse siempre",
-    "las líneas de costo deben poder excluirse del egreso"
+    "las líneas de costo deben poder excluirse del egreso",
+    "auto_on_close no puede persistirse con ingreso y egreso automáticos ambos apagados",
+    "si un tenant legacy quedó con esa combinación inválida, la lectura efectiva la autocorrige y debe repararse con script"
   ],
   "completed_recently": [
+    "tenant_data_service ahora rechaza auto_on_close con ambos toggles apagados y autocorrige estados legacy inválidos",
+    "MaintenanceOverviewPage bloquea en UI guardar auto_on_close con ingreso/egreso ambos apagados",
+    "migración tenant v0037 corregida para que sync_active_tenant_schemas no falle por TextClause",
+    "script repair_maintenance_finance_sync.py agregado para normalizar política y resincronizar OT cerradas sin transacciones",
+    "empresa-demo sincronizado a tenant schema 0037",
+    "empresa-demo resincronizado: OT 322-> tx 203/204 y OT 323-> tx 205/206",
     "maintenance cost lines agregan include_in_expense y la UI permite excluir del egreso",
     "maintenance costing_service fuerza egreso cuando sync_income y total_actual_cost > 0",
     "script repair_maintenance_finance_expenses aplicado en empresa-demo (6 egresos creados)",
@@ -290,11 +298,10 @@
     "frontend staging/production rebuild publicado tras ajuste de margen/glosa"
   ],
   "blocking_issues": [
-    "validar en empresa-demo que el precio sugerido editable se guarda sin sobreescribir margen objetivo y que la glosa final respeta mantención + trabajo + cliente",
-    "validar en empresa-demo que se crea egreso cuando total_actual_cost > 0",
-    "validar en empresa-demo que desmarcar una línea la excluye del egreso"
+    "validar en empresa-demo el flujo nominal con una OT nueva post-fix",
+    "falta observabilidad explícita de finance_sync_error en maintenance_cost_actuals"
   ],
-  "next_decision_required": "confirmar validación UI en empresa-demo",
+  "next_decision_required": "confirmar validación UI en empresa-demo con una OT nueva",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
