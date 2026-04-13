@@ -1,5 +1,18 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-12 - Sincronización de costos obliga egreso cuando hay ingreso
+
+- objetivo:
+  - evitar utilidades infladas si se registra cobro pero no se registra egreso por costos reales
+- cambios principales:
+  - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) fuerza egreso cuando `sync_income` y `total_actual_cost > 0`
+  - [test_maintenance_costing_service.py](/home/felipe/platform_paas/backend/app/tests/test_maintenance_costing_service.py) ajusta caso con costo 0 para evitar egreso forzado
+- validaciones:
+  - deploy backend `staging` -> `523 tests OK`
+  - deploy backend `production` -> `523 tests OK`
+- bloqueos:
+  - pendiente validación UI en `empresa-demo` para ver ingreso + egreso en Finanzas
+
 ## 2026-04-12 - Backfill defaults core/finance + cleanup E2E finance + fix Pendientes PK
 
 - objetivo:
