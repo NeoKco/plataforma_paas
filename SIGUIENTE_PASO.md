@@ -11,7 +11,7 @@
 ## Próximo paso correcto
 
 - en empresa-demo abrir una OT y editar `Precio sugerido` en costeo estimado; guardar y reabrir para confirmar persistencia
-- verificar que al editar `Precio sugerido` el margen objetivo se recalcula y aparece el hint en margen
+- verificar que al editar `Precio sugerido` el margen objetivo no se sobreescribe y aparece el hint calculado
 - cerrar la OT con monto cobrado > 0 y revisar transacción en Finanzas
 - confirmar glosa: `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio)
 - confirmar que se generó egreso por costos reales cuando total_actual_cost > 0
@@ -25,5 +25,5 @@
 ## Condición de cierre de la próxima iteración
 
 - ingreso/egreso visible en Finanzas con glosa `mantención + trabajo + cliente`
-- precio sugerido editable y persistente en el estimado
+- precio sugerido editable y persistente en el estimado (sin sobreescribir margen objetivo)
 - control por línea de lo que impacta el egreso funcionando

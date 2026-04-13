@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T22:35:00-04:00",
+  "updated_at": "2026-04-12T23:05:00-04:00",
   "handoff_status": "active",
-  "current_focus": "maintenance -> finance (precio sugerido editable + glosa sin equipo/sitio + egreso forzado + control por línea) publicado; falta validar en UI",
-  "project_phase": "cambio desplegado en staging/production; pendiente validacion funcional de ingreso+egreso y control por línea",
+  "current_focus": "maintenance -> finance (precio sugerido editable sin sobreescribir margen + hint margen + glosa con cliente + control de egreso por línea) publicado; falta validar en UI",
+  "project_phase": "cambio desplegado en staging/production; pendiente validacion funcional de precio sugerido + glosa + control de egreso por línea",
   "active_modules": [
     "platform-core",
     "finance",
@@ -282,11 +282,13 @@
     "backend fuerza glosa default si el frontend entrega una glosa incompleta (asegura cliente)",
     "deploy/build_frontend.sh ahora toma VITE_API_BASE_URL desde frontend/.env.production y bloquea staging salvo override",
     "script repair_maintenance_finance_glosas aplicado en empresa-demo (3 transacciones corregidas)",
-    "backend redeploy staging/production aplicado con guardas de glosa y getattr client_id"
-    "backend staging y production desplegado con 523 tests OK para el ajuste de glosa/sugerido"
+    "backend redeploy staging/production aplicado con guardas de glosa y getattr client_id",
+    "backend staging y production desplegado con 523 tests OK para el ajuste de glosa/sugerido",
+    "glosa maintenance -> finance ahora fuerza fallback de cliente en backend cuando falta org",
+    "precio sugerido editable ya no sobreescribe margen objetivo; hint de margen calculado usa el sugerido"
   ],
   "blocking_issues": [
-    "validar en empresa-demo que el precio sugerido editable se guarda y que la glosa final en Finanzas respeta mantención + trabajo + cliente",
+    "validar en empresa-demo que el precio sugerido editable se guarda sin sobreescribir margen objetivo y que la glosa final respeta mantención + trabajo + cliente",
     "validar en empresa-demo que se crea egreso cuando total_actual_cost > 0",
     "validar en empresa-demo que desmarcar una línea la excluye del egreso"
   ],

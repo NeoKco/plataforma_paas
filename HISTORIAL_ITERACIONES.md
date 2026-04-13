@@ -531,3 +531,18 @@
   - falta validar en empresa-demo la edición y la glosa final en Finanzas
 - siguiente paso:
   - editar precio sugerido en empresa-demo, guardar, reabrir y cerrar OT para confirmar la glosa en Finanzas
+
+# 2026-04-12 - Margen objetivo sin overwrite + glosa con cliente fallback
+
+- objetivo:
+  - evitar que el precio sugerido sobreescriba el margen objetivo y asegurar que la glosa incluya cliente
+- cambios principales:
+  - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) agrega fallback de cliente en la glosa por defecto
+  - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) deja el margen objetivo estable y muestra hint calculado según precio sugerido
+  - [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/maintenance/CHANGELOG.md) registra el ajuste de margen/glosa
+- validaciones:
+  - pendientes (no se ejecutaron tests en esta iteración)
+- bloqueos:
+  - validar en empresa-demo precio sugerido editable sin overwrite y glosa `mantención + trabajo + cliente`
+- siguiente paso:
+  - cerrar una OT con cobro > 0 y verificar glosa + egreso en Finanzas
