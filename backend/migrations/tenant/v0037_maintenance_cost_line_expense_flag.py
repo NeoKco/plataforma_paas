@@ -1,17 +1,7 @@
-from sqlalchemy import Boolean, Column, MetaData, Table, inspect, text
+from sqlalchemy import inspect, text
 
 MIGRATION_ID = "0037_maintenance_cost_line_expense_flag"
 DESCRIPTION = "Add include_in_expense flag to maintenance cost lines"
-
-metadata = MetaData()
-
-maintenance_cost_lines = Table(
-    "maintenance_cost_lines",
-    metadata,
-    Column("id", text("INTEGER")),
-    Column("include_in_expense", Boolean, nullable=False, server_default=text("true")),
-)
-
 
 def upgrade(connection) -> None:
     inspector = inspect(connection)
