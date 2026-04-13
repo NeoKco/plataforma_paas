@@ -12,6 +12,10 @@ from app.apps.tenant_modules.finance.models import (  # noqa: E402
     FinanceCategory,
     FinanceCurrency,
 )
+from app.apps.tenant_modules.business_core.models import (  # noqa: E402
+    BusinessClient,
+    BusinessOrganization,
+)
 from app.apps.tenant_modules.maintenance.models import (  # noqa: E402
     MaintenanceCostActual,
     MaintenanceCostEstimate,
@@ -260,6 +264,7 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
         work_order = SimpleNamespace(
             id=31,
             title="Mantención semestral",
+            client_id=7,
             completed_at=None,
             scheduled_for=datetime(2026, 4, 4, 15, 0, tzinfo=timezone.utc),
             requested_at=datetime(2026, 4, 1, 12, 0, tzinfo=timezone.utc),
@@ -290,6 +295,8 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
                 MaintenanceCostActual: actual,
                 MaintenanceCostEstimate: None,
                 FinanceCurrency: currency,
+                BusinessClient: SimpleNamespace(id=7, organization_id=12),
+                BusinessOrganization: SimpleNamespace(id=12, name="Cliente Uno"),
             }
         )
         service = MaintenanceCostingService(finance_service=finance_service)
@@ -319,6 +326,10 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
         self.assertEqual(income_call.kwargs["source_id"], 31)
         self.assertEqual(expense_call.kwargs["source_type"], "maintenance_work_order_expense")
         self.assertEqual(expense_call.kwargs["source_id"], 31)
+        self.assertEqual(
+            income_call.args[1].description,
+            "Ingreso mantención #31 · Mantención semestral · Cliente Uno",
+        )
 
     def test_maybe_auto_sync_by_tenant_policy_syncs_completed_work_order(self) -> None:
         work_order = SimpleNamespace(

@@ -802,7 +802,7 @@ class MaintenanceCostingService:
 
     def _build_work_order_label(self, tenant_db: Session, work_order: MaintenanceWorkOrder) -> str:
         client_label = None
-        if work_order.client_id:
+        if getattr(work_order, "client_id", None):
             client = (
                 tenant_db.query(BusinessClient)
                 .filter(BusinessClient.id == work_order.client_id)
