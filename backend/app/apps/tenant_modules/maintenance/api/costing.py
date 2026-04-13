@@ -85,6 +85,7 @@ def _build_line(item) -> MaintenanceCostLineItemResponse:
         quantity=item.quantity,
         unit_cost=item.unit_cost,
         total_cost=item.total_cost,
+        include_in_expense=getattr(item, "include_in_expense", True),
         finance_transaction_id=item.finance_transaction_id,
         notes=item.notes,
         created_by_user_id=item.created_by_user_id,

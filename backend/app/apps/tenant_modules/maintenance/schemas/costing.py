@@ -12,6 +12,7 @@ class MaintenanceCostLineWriteItem(BaseModel):
     quantity: float = 1
     unit_cost: float = 0
     notes: str | None = None
+    include_in_expense: bool = True
 
 
 class MaintenanceCostEstimateWriteRequest(BaseModel):
@@ -95,6 +96,7 @@ class MaintenanceCostLineItemResponse(BaseModel):
     quantity: float
     unit_cost: float
     total_cost: float
+    include_in_expense: bool
     finance_transaction_id: int | None = None
     notes: str | None = None
     created_by_user_id: int | None = None

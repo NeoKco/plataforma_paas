@@ -27,6 +27,7 @@ export type TenantMaintenanceCostLine = {
   quantity: number;
   unit_cost: number;
   total_cost: number;
+  include_in_expense: boolean;
   finance_transaction_id: number | null;
   notes: string | null;
   created_by_user_id: number | null;
@@ -105,6 +106,7 @@ export type TenantMaintenanceCostLineWriteItem = {
   quantity: number;
   unit_cost: number;
   notes: string | null;
+  include_in_expense: boolean;
 };
 
 export type TenantMaintenanceFinanceSyncRequest = {

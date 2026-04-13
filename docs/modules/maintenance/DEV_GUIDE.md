@@ -155,6 +155,7 @@ Fuente frontend principal:
 - el segundo corte de costeo ya agrega `maintenance_cost_lines`:
   - por ahora sirve para detallar costo técnico granular por etapa `estimate` y `actual`
   - si existen líneas, el resumen por rubro se deriva automáticamente desde ellas
+  - cada línea puede marcarse como `include_in_expense` para definir si impacta el egreso sincronizado
 - `Nueva programación` ya puede llevar líneas de `Costeo estimado por defecto`:
   - se guardan sobre `maintenance_schedule_cost_lines`
   - aceptan múltiples materiales y servicios, además de mano de obra, traslado e indirectos

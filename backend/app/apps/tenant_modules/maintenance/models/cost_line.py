@@ -1,4 +1,4 @@
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.common.db.tenant_base import TenantBase
@@ -20,6 +20,7 @@ class MaintenanceCostLine(TenantBase):
     quantity: Mapped[float] = mapped_column(Float, nullable=False, default=1)
     unit_cost: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     total_cost: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    include_in_expense: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     finance_transaction_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("finance_transactions.id", ondelete="SET NULL"),

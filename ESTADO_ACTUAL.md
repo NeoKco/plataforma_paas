@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-12
-- foco de iteración: mantenimiento -> finanzas (precio sugerido editable + glosa sin equipo/sitio + egreso forzado)
+- foco de iteración: mantenimiento -> finanzas (precio sugerido editable + glosa sin equipo/sitio + egreso forzado + líneas con control de egreso)
 - estado general: cambios desplegados en `staging` y `production`; falta validar en UI
 
 ## Resumen ejecutivo en 30 segundos
@@ -27,6 +27,7 @@
 - frontend staging/production re-publicado con API_BASE_URL correcta
 - sync a finanzas ahora fuerza egreso si hay costos reales y se sincroniza el ingreso
 - script `repair_maintenance_finance_expenses.py` aplicado en `empresa-demo` para backfill de egresos
+- líneas de costeo ahora permiten marcar qué items cuentan como egreso (`include_in_expense`)
 
 ## Qué archivos se tocaron
 
@@ -53,6 +54,7 @@
 - el modo efectivo sin política explícita pasa a `auto_on_close`
 - el precio sugerido del estimado es editable y persistente
 - si hay costos reales > 0, el egreso debe sincronizarse siempre que se sincronice el ingreso
+- las líneas de costeo controlan qué ítems impactan el egreso
 
 ## Qué falta exactamente
 
@@ -60,6 +62,7 @@
   - precio sugerido editable en costeo estimado
   - glosa en Finanzas con formato `Ingreso mantención #XXX · trabajo · cliente`
   - confirmar que se crea egreso con costos cuando hay monto cobrado y costos reales > 0
+  - confirmar que desmarcar una línea la excluye del egreso y del total real
 
 ## Qué no debe tocarse
 
@@ -79,4 +82,4 @@
 ## Mi conclusión
 
 - el ajuste está publicado; falta validar en empresa-demo la edición de precio sugerido y la glosa final.
-- el ajuste de egreso forzado ya está publicado; falta validar en empresa-demo que el egreso aparezca junto al ingreso.
+- el ajuste de egreso forzado ya está publicado; falta validar en empresa-demo el control por línea y el egreso junto al ingreso.

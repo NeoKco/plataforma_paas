@@ -151,9 +151,10 @@ Lectura funcional de cada vista:
   - cada fila ya permite abrir `Checklist`
   - cada fila ya permite abrir `Reprogramar` para cambiar slot o responsables sin perder trazabilidad
   - el costeo se maneja en modal, igual que la captura principal del módulo
-  - `Costos` ya permite resumen manual o detalle por líneas
-  - `Costeo estimado` ahora puede cargar cualquier plantilla activa del módulo y luego editar margen, notas o líneas antes de guardar
-  - `Costo real y cobro` ahora copia los valores de la plantilla al resumen real, sin dejarlo amarrado a la plantilla; después puedes ajustar traslado, materiales, cobro o agregar líneas manuales si quieres más detalle
+- `Costos` ya permite resumen manual o detalle por líneas
+- `Costeo estimado` ahora puede cargar cualquier plantilla activa del módulo y luego editar margen, notas o líneas antes de guardar
+- `Costo real y cobro` ahora copia los valores de la plantilla al resumen real, sin dejarlo amarrado a la plantilla; después puedes ajustar traslado, materiales, cobro o agregar líneas manuales si quieres más detalle
+  - en las líneas puedes marcar qué ítems cuentan como egreso; sólo los marcados se descuentan del cobro y se sincronizan a Finanzas
 - `Instalaciones`: parque instalado por cliente y direccion
 - `Instalaciones`:
   - cada fila ya permite abrir `Expediente`

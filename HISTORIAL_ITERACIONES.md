@@ -1,5 +1,16 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-12 - Control por línea de egreso en costeo
+
+- objetivo:
+  - permitir seleccionar qué líneas de costo impactan el egreso sincronizado
+- cambios principales:
+  - `maintenance_cost_lines` agrega `include_in_expense` (migración `0037`)
+  - `Costos y cobro` expone checkbox por línea para incluir/excluir del egreso
+  - los totales y el egreso sincronizado usan sólo líneas marcadas
+- validaciones:
+  - pendiente validación UI en `empresa-demo`
+
 ## 2026-04-12 - Sincronización de costos obliga egreso cuando hay ingreso
 
 - objetivo:

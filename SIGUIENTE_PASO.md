@@ -15,6 +15,7 @@
 - cerrar la OT con monto cobrado > 0 y revisar transacción en Finanzas
 - confirmar glosa: `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio)
 - confirmar que se generó egreso por costos reales cuando total_actual_cost > 0
+- desmarcar una línea en `Costo real` y validar que no se descuente en el egreso
 - si existen transacciones antiguas, confirmar que el script las corrigió en empresa-demo
 
 ## Si el escenario principal falla
@@ -25,3 +26,4 @@
 
 - ingreso/egreso visible en Finanzas con glosa `mantención + trabajo + cliente`
 - precio sugerido editable y persistente en el estimado
+- control por línea de lo que impacta el egreso funcionando

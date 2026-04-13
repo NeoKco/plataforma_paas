@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-12T22:25:00-04:00",
+  "updated_at": "2026-04-12T22:35:00-04:00",
   "handoff_status": "active",
-  "current_focus": "maintenance -> finance (precio sugerido editable + glosa sin equipo/sitio + egreso forzado) publicado; falta validar en UI",
-  "project_phase": "cambio desplegado en staging/production; pendiente validacion funcional de ingreso+egreso",
+  "current_focus": "maintenance -> finance (precio sugerido editable + glosa sin equipo/sitio + egreso forzado + control por línea) publicado; falta validar en UI",
+  "project_phase": "cambio desplegado en staging/production; pendiente validacion funcional de ingreso+egreso y control por línea",
   "active_modules": [
     "platform-core",
     "finance",
@@ -57,9 +57,11 @@
     "deploy_backend_staging.sh debe apuntar por defecto a /opt/platform_paas_staging y no al root de produccion",
     "el baseline contractual por modulos ya quedo publicado y validado con tenants reales en staging; el siguiente frente maintenance -> finance debe centrarse en autollenado y ergonomia, no en recrear seeds o contratos ya cerrados",
     "el proyecto ya tiene gobernanza de datos explicita y el criterio oficial de cierre relevante puede expresarse como SRED: Spec, Rules, Evidence, Documentation",
-    "si hay costos reales > 0 y se sincroniza el ingreso, el egreso debe generarse siempre"
+    "si hay costos reales > 0 y se sincroniza el ingreso, el egreso debe generarse siempre",
+    "las líneas de costo deben poder excluirse del egreso"
   ],
   "completed_recently": [
+    "maintenance cost lines agregan include_in_expense y la UI permite excluir del egreso",
     "maintenance costing_service fuerza egreso cuando sync_income y total_actual_cost > 0",
     "script repair_maintenance_finance_expenses aplicado en empresa-demo (6 egresos creados)",
     "maintenance sync ahora permite accountless; update_transaction acepta allow_accountless",
@@ -285,7 +287,8 @@
   ],
   "blocking_issues": [
     "validar en empresa-demo que el precio sugerido editable se guarda y que la glosa final en Finanzas respeta mantención + trabajo + cliente",
-    "validar en empresa-demo que se crea egreso cuando total_actual_cost > 0"
+    "validar en empresa-demo que se crea egreso cuando total_actual_cost > 0",
+    "validar en empresa-demo que desmarcar una línea la excluye del egreso"
   ],
   "next_decision_required": "confirmar validación UI en empresa-demo",
   "next_step_if_prod_host_exists": [

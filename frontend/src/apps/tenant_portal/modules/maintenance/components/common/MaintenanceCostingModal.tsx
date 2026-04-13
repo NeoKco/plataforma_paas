@@ -83,6 +83,7 @@ type MaintenanceCostLineFormState = {
   quantity: string;
   unit_cost: string;
   notes: string;
+  include_in_expense: boolean;
 };
 
 type MaintenanceEditableCostLineKey =
@@ -222,6 +223,7 @@ function buildDefaultCostLines(
     quantity: String(line.quantity ?? 1),
     unit_cost: String(line.unit_cost ?? 0),
     notes: line.notes ?? "",
+    include_in_expense: line.include_in_expense ?? true,
   }));
 }
 
@@ -233,6 +235,7 @@ function buildBlankCostLine(): MaintenanceCostLineFormState {
     quantity: "1",
     unit_cost: "0",
     notes: "",
+    include_in_expense: true,
   };
 }
 
@@ -268,6 +271,9 @@ function sumCostForm(values: {
 function sumCostLines(lines: MaintenanceCostLineFormState[]) {
   return lines.reduce(
     (current, line) => {
+      if (!line.include_in_expense) {
+        return current;
+      }
       const totalCost = normalizeNumericInput(line.quantity) * normalizeNumericInput(line.unit_cost);
       switch (line.line_type) {
         case "labor":
@@ -319,6 +325,7 @@ function getSuggestedPriceForEstimateData(
           quantity: String(line.quantity ?? 1),
           unit_cost: String(line.unit_cost ?? 0),
           notes: line.notes ?? "",
+          include_in_expense: line.include_in_expense ?? true,
         }))
       ).total
     : sumCostForm({
@@ -348,6 +355,7 @@ function normalizeLineWritePayload(
     quantity: normalizeNumericInput(line.quantity),
     unit_cost: normalizeNumericInput(line.unit_cost),
     notes: normalizeNullable(line.notes),
+    include_in_expense: line.include_in_expense,
   }));
 }
 
@@ -359,6 +367,7 @@ function buildCostLineFormsFromTemplate(template: TenantMaintenanceCostTemplate)
     quantity: String(line.quantity ?? 1),
     unit_cost: String(line.unit_cost ?? 0),
     notes: line.notes ?? "",
+    include_in_expense: true,
   }));
 }
 
@@ -1142,6 +1151,28 @@ export function MaintenanceCostingModal({
     );
   }
 
+  function toggleEstimateLineExpense(index: number, value: boolean) {
+    if (isReadOnly) {
+      return;
+    }
+    setEstimateLines((current) =>
+      current.map((line, currentIndex) =>
+        currentIndex === index ? { ...line, include_in_expense: value } : line
+      )
+    );
+  }
+
+  function toggleActualLineExpense(index: number, value: boolean) {
+    if (isReadOnly) {
+      return;
+    }
+    setActualLines((current) =>
+      current.map((line, currentIndex) =>
+        currentIndex === index ? { ...line, include_in_expense: value } : line
+      )
+    );
+  }
+
   function removeEstimateLine(index: number) {
     if (isReadOnly) {
       return;
@@ -1425,6 +1456,7 @@ export function MaintenanceCostingModal({
     lines: MaintenanceCostLineFormState[],
     onAdd: () => void,
     onUpdate: (index: number, key: MaintenanceEditableCostLineKey, value: string) => void,
+    onToggleExpense: (index: number, value: boolean) => void,
     onRemove: (index: number) => void,
     readOnly = false
   ) {
@@ -1439,6 +1471,11 @@ export function MaintenanceCostingModal({
               {language === "es"
                 ? "Si agregas líneas, el resumen de costos se deriva automáticamente desde aquí."
                 : "If you add lines, the cost summary is automatically derived from them."}
+            </div>
+            <div className="maintenance-history-entry__meta">
+              {language === "es"
+                ? "Solo las líneas marcadas como egreso se suman al costo y a Finanzas."
+                : "Only lines marked as expense are included in totals and Finance sync."}
             </div>
           </div>
           {!readOnly ? (
@@ -1522,8 +1559,25 @@ export function MaintenanceCostingModal({
                       <label className="form-label">{language === "es" ? "Total" : "Total"}</label>
                       <input className="form-control" value={lineTotal.toFixed(2)} readOnly />
                     </div>
+                    <div className="col-4 col-md-2">
+                      <label className="form-label">
+                        {language === "es" ? "Egreso" : "Expense"}
+                      </label>
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          checked={line.include_in_expense}
+                          disabled={readOnly}
+                          onChange={(event) => onToggleExpense(index, event.target.checked)}
+                        />
+                        <label className="form-check-label">
+                          {language === "es" ? "Considerar" : "Include"}
+                        </label>
+                      </div>
+                    </div>
                     {!readOnly ? (
-                      <div className="col-4 col-md-2 maintenance-cost-lines__remove">
+                      <div className="col-12 col-md-2 maintenance-cost-lines__remove">
                         <button className="btn btn-outline-danger" type="button" onClick={() => onRemove(index)}>
                           {language === "es" ? "Quitar" : "Remove"}
                         </button>
@@ -1722,7 +1776,16 @@ export function MaintenanceCostingModal({
                       ) : null}
                     </div>
                     <div className="col-12"><label className="form-label">{language === "es" ? "Notas de estimación" : "Estimate notes"}</label><textarea className="form-control" rows={3} value={estimateForm.notes} onChange={(event) => setEstimateForm((current) => ({ ...current, notes: event.target.value }))} readOnly={isReadOnly} /></div>
-                    <div className="col-12">{renderLineEditor(estimateLines, addEstimateLine, updateEstimateLine, removeEstimateLine, isReadOnly)}</div>
+                    <div className="col-12">
+                      {renderLineEditor(
+                        estimateLines,
+                        addEstimateLine,
+                        updateEstimateLine,
+                        toggleEstimateLineExpense,
+                        removeEstimateLine,
+                        isReadOnly
+                      )}
+                    </div>
                   </div>
                   {!isReadOnly ? (
                     <div className="maintenance-form__actions">
@@ -1852,7 +1915,16 @@ export function MaintenanceCostingModal({
                         </div>
                       </div>
                     ) : null}
-                    <div className="col-12">{renderLineEditor(actualLines, addActualLine, updateActualLine, removeActualLine, isReadOnly)}</div>
+                    <div className="col-12">
+                      {renderLineEditor(
+                        actualLines,
+                        addActualLine,
+                        updateActualLine,
+                        toggleActualLineExpense,
+                        removeActualLine,
+                        isReadOnly
+                      )}
+                    </div>
                   </div>
                   {!isReadOnly ? (
                     <div className="maintenance-form__actions">

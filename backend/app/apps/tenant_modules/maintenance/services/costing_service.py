@@ -606,6 +606,7 @@ class MaintenanceCostingService:
                 raise ValueError("Cada linea de costo debe usar un tipo valido")
             quantity = self._normalize_number(item.quantity)
             unit_cost = self._normalize_number(item.unit_cost)
+            include_in_expense = True if item.include_in_expense is None else bool(item.include_in_expense)
             normalized_lines.append(
                 {
                     "id": item.id,
@@ -614,6 +615,7 @@ class MaintenanceCostingService:
                     "quantity": quantity,
                     "unit_cost": unit_cost,
                     "total_cost": round(quantity * unit_cost, 2),
+                    "include_in_expense": include_in_expense,
                     "notes": self._normalize_text(item.notes),
                 }
             )
@@ -628,12 +630,17 @@ class MaintenanceCostingService:
             "overhead_cost": 0.0,
         }
         for item in lines:
+            if not item.get("include_in_expense", True):
+                continue
             bucket_name = self.LINE_TYPE_TO_BUCKET[item["line_type"]]
             buckets[bucket_name] += item["total_cost"]
         return {key: round(value, 2) for key, value in buckets.items()}
 
     def _sum_line_totals(self, lines: list[dict]) -> float:
-        return round(sum(item["total_cost"] for item in lines), 2)
+        return round(
+            sum(item["total_cost"] for item in lines if item.get("include_in_expense", True)),
+            2,
+        )
 
     def _sync_cost_lines(
         self,
@@ -668,6 +675,7 @@ class MaintenanceCostingService:
             line.quantity = item["quantity"]
             line.unit_cost = item["unit_cost"]
             line.total_cost = item["total_cost"]
+            line.include_in_expense = item["include_in_expense"]
             line.notes = item["notes"]
             line.updated_by_user_id = actor_user_id
             synced_lines.append(line)

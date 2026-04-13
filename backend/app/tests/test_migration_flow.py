@@ -194,6 +194,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0034_maintenance_actual_template_trace",
                 "0035_maintenance_visit_type",
                 "0036_maintenance_visit_result",
+                "0037_maintenance_cost_line_expense_flag",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -233,6 +234,10 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("maintenance_cost_estimates", tables)
         self.assertIn("maintenance_cost_actuals", tables)
         self.assertIn("maintenance_cost_lines", tables)
+        maintenance_cost_line_columns = {
+            column["name"] for column in inspect(engine).get_columns("maintenance_cost_lines")
+        }
+        self.assertIn("include_in_expense", maintenance_cost_line_columns)
         self.assertIn("maintenance_schedule_cost_lines", tables)
         self.assertIn("maintenance_cost_templates", tables)
         maintenance_cost_actual_columns = {
@@ -477,6 +482,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0034_maintenance_actual_template_trace",
                 "0035_maintenance_visit_type",
                 "0036_maintenance_visit_result",
+                "0037_maintenance_cost_line_expense_flag",
             ],
         )
 
