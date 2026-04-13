@@ -71,9 +71,9 @@
 
 ## Validaciones ya ejecutadas
 
-- `deploy_backend_staging.sh` ejecutó 523 tests OK
-- `deploy_backend_production.sh` ejecutó 523 tests OK
-- frontend build OK para staging y production
+- `deploy_backend_staging.sh` ejecutó 523 tests OK (2026-04-13)
+- `deploy_backend_production.sh` ejecutó 523 tests OK (2026-04-13)
+- frontend build OK para staging y production (2026-04-13)
 
 ## Bloqueos reales detectados
 

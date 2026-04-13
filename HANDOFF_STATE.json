@@ -285,7 +285,9 @@
     "backend redeploy staging/production aplicado con guardas de glosa y getattr client_id",
     "backend staging y production desplegado con 523 tests OK para el ajuste de glosa/sugerido",
     "glosa maintenance -> finance ahora fuerza fallback de cliente en backend cuando falta org",
-    "precio sugerido editable ya no sobreescribe margen objetivo; hint de margen calculado usa el sugerido"
+    "precio sugerido editable ya no sobreescribe margen objetivo; hint de margen calculado usa el sugerido",
+    "backend staging/production redeploy con 523 tests OK tras ajuste de margen/glosa",
+    "frontend staging/production rebuild publicado tras ajuste de margen/glosa"
   ],
   "blocking_issues": [
     "validar en empresa-demo que el precio sugerido editable se guarda sin sobreescribir margen objetivo y que la glosa final respeta mantención + trabajo + cliente",

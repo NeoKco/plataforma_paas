@@ -1062,7 +1062,6 @@ export function MaintenanceCostingModal({
     if (isReadOnly) {
       return;
     }
-    setEstimateTemplateId(String(template.id));
     setEstimateLines(buildCostLineFormsFromTemplate(template));
     setEstimateForm(buildEstimateFormFromTemplate(template));
     setEstimateSuggestedTouched(false);
