@@ -575,7 +575,7 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
             materials_cost=0,
             external_services_cost=0,
             overhead_cost=0,
-            total_actual_cost=12000,
+            total_actual_cost=0,
             actual_price_charged=18000,
             actual_income=18000,
             actual_profit=6000,

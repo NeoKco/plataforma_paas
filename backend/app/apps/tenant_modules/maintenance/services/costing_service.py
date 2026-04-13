@@ -286,7 +286,10 @@ class MaintenanceCostingService:
         default_income_description = f"Ingreso mantención {summary_label}"
         default_expense_description = f"Egreso mantención {summary_label}"
 
-        if payload.sync_income:
+        sync_income = payload.sync_income
+        sync_expense = payload.sync_expense or (sync_income and actual.total_actual_cost > 0)
+
+        if sync_income:
             if actual.actual_price_charged <= 0:
                 raise ValueError("El ingreso requiere un monto cobrado mayor que cero")
             income_payload = FinanceTransactionCreateRequest(
@@ -334,7 +337,7 @@ class MaintenanceCostingService:
                 )
                 actual.income_transaction_id = transaction.id
 
-        if payload.sync_expense:
+        if sync_expense:
             if actual.total_actual_cost <= 0:
                 raise ValueError("El egreso requiere un costo real mayor que cero")
             expense_payload = FinanceTransactionCreateRequest(
