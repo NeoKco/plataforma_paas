@@ -2700,6 +2700,47 @@ class TenantRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.data.maintenance_finance_income_account_id, 11)
         self.assertEqual(response.data.maintenance_finance_currency_id, 1)
 
+    def test_tenant_data_service_auto_on_close_rejects_both_syncs_disabled(self) -> None:
+        tenant_record = build_tenant_record_stub()
+        repository = SimpleNamespace(get_first=lambda tenant_db: tenant_record)
+        service = TenantDataService(tenant_info_repository=repository)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "requiere activar ingreso, egreso o ambos",
+        ):
+            service.update_maintenance_finance_sync_policy(
+                tenant_db=object(),
+                sync_mode="auto_on_close",
+                auto_sync_income=False,
+                auto_sync_expense=False,
+                income_account_id=None,
+                expense_account_id=None,
+                income_category_id=None,
+                expense_category_id=None,
+                currency_id=None,
+            )
+
+    def test_tenant_data_service_auto_on_close_self_heals_when_both_syncs_are_disabled(self) -> None:
+        tenant_record = build_tenant_record_stub(
+            maintenance_finance_sync_mode="auto_on_close",
+            maintenance_finance_auto_sync_income=False,
+            maintenance_finance_auto_sync_expense=False,
+            maintenance_finance_income_account_id=11,
+            maintenance_finance_expense_account_id=None,
+            maintenance_finance_income_category_id=21,
+            maintenance_finance_expense_category_id=22,
+            maintenance_finance_currency_id=1,
+        )
+        repository = SimpleNamespace(get_first=lambda tenant_db: tenant_record)
+        service = TenantDataService(tenant_info_repository=repository)
+
+        policy = service.get_maintenance_finance_sync_policy(object())
+
+        self.assertEqual(policy["maintenance_finance_sync_mode"], "auto_on_close")
+        self.assertTrue(policy["maintenance_finance_auto_sync_income"])
+        self.assertTrue(policy["maintenance_finance_auto_sync_expense"])
+
     def test_tenant_data_service_resets_user_password_by_email(self) -> None:
         user = build_tenant_user_stub(
             user_id=7,

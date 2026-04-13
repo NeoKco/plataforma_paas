@@ -91,6 +91,10 @@ class TenantDataService:
         normalized_mode = (sync_mode or "").strip().lower()
         if normalized_mode not in self.MAINTENANCE_FINANCE_SYNC_MODES:
             raise ValueError("El modo de sincronizacion maintenance-finance no es valido")
+        if normalized_mode == "auto_on_close" and not auto_sync_income and not auto_sync_expense:
+            raise ValueError(
+                "La sincronizacion automatica al cerrar requiere activar ingreso, egreso o ambos"
+            )
 
         if auto_sync_income and income_account_id is not None:
             self._get_finance_account_or_raise(tenant_db, income_account_id)
@@ -130,6 +134,12 @@ class TenantDataService:
             "maintenance_finance_sync_mode",
             "auto_on_close",
         ) or "auto_on_close"
+        auto_sync_income = bool(
+            getattr(resolved, "maintenance_finance_auto_sync_income", True)
+        )
+        auto_sync_expense = bool(
+            getattr(resolved, "maintenance_finance_auto_sync_expense", True)
+        )
         if configured_mode == "manual":
             has_explicit_defaults = any(
                 [
@@ -142,15 +152,14 @@ class TenantDataService:
             )
             if not has_explicit_defaults:
                 configured_mode = "auto_on_close"
+        if configured_mode == "auto_on_close" and not auto_sync_income and not auto_sync_expense:
+            auto_sync_income = True
+            auto_sync_expense = True
 
         return {
             "maintenance_finance_sync_mode": configured_mode,
-            "maintenance_finance_auto_sync_income": bool(
-                getattr(resolved, "maintenance_finance_auto_sync_income", True)
-            ),
-            "maintenance_finance_auto_sync_expense": bool(
-                getattr(resolved, "maintenance_finance_auto_sync_expense", True)
-            ),
+            "maintenance_finance_auto_sync_income": auto_sync_income,
+            "maintenance_finance_auto_sync_expense": auto_sync_expense,
             "maintenance_finance_income_account_id": getattr(
                 resolved,
                 "maintenance_finance_income_account_id",

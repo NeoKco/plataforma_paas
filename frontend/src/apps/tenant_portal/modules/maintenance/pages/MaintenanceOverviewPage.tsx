@@ -360,6 +360,18 @@ export function MaintenanceOverviewPage() {
     if (!session?.accessToken || session.role !== "admin") {
       return;
     }
+    if (
+      financeConfigForm.maintenance_finance_sync_mode === "auto_on_close" &&
+      !financeConfigForm.maintenance_finance_auto_sync_income &&
+      !financeConfigForm.maintenance_finance_auto_sync_expense
+    ) {
+      setFinanceConfigNotice(
+        language === "es"
+          ? "Auto al cerrar requiere activar ingreso, egreso o ambos."
+          : "Auto on close requires enabling income, expense, or both."
+      );
+      return;
+    }
     setIsSavingFinanceConfig(true);
     setFinanceConfigNotice(null);
     try {

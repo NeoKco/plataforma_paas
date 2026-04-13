@@ -831,8 +831,8 @@ class MaintenanceCostingService:
                     client_label = f"Cliente #{client.id}"
             elif client is not None:
                 client_label = f"Cliente #{client.id}"
-        elif work_order.client_id:
-            client_label = f"Cliente #{work_order.client_id}"
+        elif getattr(work_order, "client_id", None):
+            client_label = f"Cliente #{getattr(work_order, 'client_id')}"
         parts = [f"#{work_order.id}", work_order.title]
         if client_label:
             parts.append(client_label)

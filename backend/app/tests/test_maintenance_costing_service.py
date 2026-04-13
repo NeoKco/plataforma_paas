@@ -511,6 +511,7 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
         self.assertEqual(defaults["maintenance_finance_expense_category_id"], 21)
         self.assertEqual(defaults["maintenance_finance_expense_category_source"], "policy")
 
+
     def test_seed_estimate_from_schedule_copies_default_lines(self) -> None:
         work_order = SimpleNamespace(id=51, title="Mantención programada")
         schedule = SimpleNamespace(
