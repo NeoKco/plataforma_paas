@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-13T00:48:00-04:00",
+  "updated_at": "2026-04-13T01:20:00-04:00",
   "handoff_status": "active",
-  "current_focus": "maintenance -> finance reparado en production: politica auto_on_close endurecida, drift de schema tenant corregido y empresa-demo resincronizado; falta validacion UI de una OT nueva",
-  "project_phase": "hotfix productivo cerrado a nivel backend/frontend/datos; pendiente validacion funcional de una OT nueva post-fix",
+  "current_focus": "maintenance -> finance validado en production sobre empresa-demo: cierres recientes (#321/#322/#323) ya generan ingreso+egreso; el gap restante es UX para distinguir vista historica vs cierre operativo",
+  "project_phase": "hotfix productivo cerrado a nivel backend/frontend/datos; validacion real confirmada y queda endurecimiento UX operativo",
   "active_modules": [
     "platform-core",
     "finance",

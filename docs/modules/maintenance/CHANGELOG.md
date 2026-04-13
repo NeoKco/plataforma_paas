@@ -1,5 +1,18 @@
 # Maintenance Changelog
 
+## 2026-04-13
+
+- validación productiva real del flujo `maintenance -> finance` en `empresa-demo`:
+  - se confirma que las OT cerradas recientes ya generan `income` y `expense` en Finanzas
+  - se verifica correspondencia real entre:
+    - `maintenance_work_orders.completed`
+    - `maintenance_cost_actuals.income_transaction_id/expense_transaction_id`
+    - `finance_transactions.source_type = maintenance_work_order_income/expense`
+- se documenta explícitamente el comportamiento operativo:
+  - `Ver costos` en `Historial` es una lectura consolidada del cierre económico
+  - no dispara sincronización por sí mismo
+  - la sincronización ocurre al cerrar la OT, al guardar costo real sobre una OT ya cerrada, o al ejecutar sincronización manual
+
 ## 2026-04-12
 
 - se asegura que al sincronizar ingreso con costos reales > 0 se genere también el egreso correspondiente:

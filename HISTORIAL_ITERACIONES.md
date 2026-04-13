@@ -1,5 +1,24 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-13 - Validación productiva real del puente maintenance -> finance
+
+- objetivo:
+  - confirmar con datos reales si el cierre de mantenciones estaba o no generando ingresos/egresos en Finanzas
+- cambios principales:
+  - se valida `empresa-demo` directo en `production` con cruce OT cerradas + `maintenance_cost_actuals` + `finance_transactions`
+  - se confirma que la política efectiva del tenant está en `auto_on_close`
+  - se confirma que no quedan OT completadas pendientes de sync usando [repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
+  - se deja explícito que `Ver costos` desde `Historial` es una lectura consolidada y no el punto de disparo de sincronización
+- validaciones:
+  - OT `#321` -> ingreso `#196`, egreso `#202`
+  - OT `#322` -> ingreso `#203`, egreso `#204`
+  - OT `#323` -> ingreso `#205`, egreso `#206`
+  - `repair_maintenance_finance_sync.py --tenant-slug empresa-demo --dry-run` -> `OT pendientes de sync: []`
+- bloqueos:
+  - ninguno técnico; el gap detectado es UX
+- siguiente paso:
+  - endurecer el copy/feedback visual para separar mejor lectura histórica vs cierre operativo
+
 ## 2026-04-12 - Control por línea de egreso en costeo
 
 - objetivo:

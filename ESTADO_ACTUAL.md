@@ -2,17 +2,20 @@
 
 ## Última actualización
 
-- fecha: 2026-04-12
-- foco de iteración: mantenimiento -> finanzas (precio sugerido editable + margen objetivo con hint + glosa con cliente + egreso por líneas seleccionadas)
-- estado general: cambios desplegados en `staging` y `production`; falta validar en UI
+- fecha: 2026-04-13
+- foco de iteración: mantenimiento -> finanzas (validación real de cierre OT -> ingresos/egresos en Finanzas)
+- estado general: flujo validado en `production` sobre `empresa-demo`; falta endurecer UX para distinguir mejor vista histórica vs cierre operativo
 
 ## Resumen ejecutivo en 30 segundos
 
-- costeo estimado permite editar `precio sugerido` sin sobreescribir el `margen objetivo`; se muestra hint de margen calculado según el precio sugerido
-- la glosa de ingresos/egresos queda como `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio); backend agrega fallback de cliente cuando falta
-- al sincronizar ingresos, si hay costos reales > 0 se genera egreso automáticamente (evita utilidades infladas) usando solo líneas marcadas como egreso
-- script aplicado en `empresa-demo` para normalizar glosas antiguas ya existentes
-- cambios publicados en staging y production; glosa forzada en backend; build frontend valida `.env.production` y bloquea API staging por defecto
+- `empresa-demo` ya sincroniza correctamente cierre de mantenciones hacia Finanzas en `production`
+- se verificó en DB que las OT `#321`, `#322` y `#323` tienen `income_transaction_id`, `expense_transaction_id` y `finance_synced_at`
+- la glosa final queda como `Ingreso/Egreso mantención #XXX · trabajo · cliente`
+- la vista `Ver costos` desde `Historial` es lectura consolidada; no es el punto de disparo del sync
+- el sync real ocurre al:
+  - guardar costo real sobre una OT ya `completed`
+  - cerrar la OT desde el flujo operativo
+  - ejecutar sincronización manual a Finanzas
 
 ## Qué ya quedó hecho
 
@@ -27,6 +30,11 @@
 - sync a finanzas ahora fuerza egreso si hay costos reales y se sincroniza el ingreso
 - script `repair_maintenance_finance_expenses.py` aplicado en `empresa-demo` para backfill de egresos
 - líneas de costeo ahora permiten marcar qué items cuentan como egreso (`include_in_expense`)
+- script `repair_maintenance_finance_sync.py` validado en `empresa-demo`; no quedan OT completadas pendientes de sync
+- validación productiva real:
+  - OT `#321` -> ingreso `#196`, egreso `#202`
+  - OT `#322` -> ingreso `#203`, egreso `#204`
+  - OT `#323` -> ingreso `#205`, egreso `#206`
 
 ## Qué archivos se tocaron
 
@@ -58,10 +66,11 @@
 
 ## Qué falta exactamente
 
-- validar en empresa-demo:
+- mejorar señal visual/UX para dejar explícito que:
+  - `Ver costos` en historial es lectura
+  - `Editar cierre` o el cierre desde bandeja activa es la acción operativa
+- mantener validación funcional:
   - precio sugerido editable sin sobreescribir margen objetivo y hint de margen calculado visible
-  - glosa en Finanzas con formato `Ingreso mantención #XXX · trabajo · cliente`
-  - confirmar que se crea egreso con costos cuando hay monto cobrado y costos reales > 0
   - confirmar que desmarcar una línea la excluye del egreso y del total real
 
 ## Qué no debe tocarse
@@ -77,9 +86,10 @@
 
 ## Bloqueos reales detectados
 
-- ninguno; falta validar en UI
+- ninguno técnico en `empresa-demo`; el gap actual es de UX/comprensión operativa
 
 ## Mi conclusión
 
-- el ajuste está publicado; falta validar en empresa-demo la edición de precio sugerido y la glosa final.
-- el ajuste de egreso forzado ya está publicado; falta validar en empresa-demo el control por línea y el egreso junto al ingreso.
+- el puente `maintenance -> finance` sí está funcionando en producción para `empresa-demo`
+- el problema reportado quedó explicado por la diferencia entre la vista histórica y el flujo real de cierre/sync
+- el siguiente trabajo correcto es endurecer UX y seguir con el slice pendiente de ergonomía operativa

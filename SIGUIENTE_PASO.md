@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- validar mantenimiento -> finanzas (precio sugerido editable + glosa final)
+- endurecer UX de mantenimiento -> finanzas para distinguir lectura histórica vs cierre operativo
 
 ## Decisión previa obligatoria
 
@@ -10,20 +10,20 @@
 
 ## Próximo paso correcto
 
-- en empresa-demo abrir una OT y editar `Precio sugerido` en costeo estimado; guardar y reabrir para confirmar persistencia
-- verificar que al editar `Precio sugerido` el margen objetivo no se sobreescribe y aparece el hint calculado
-- cerrar la OT con monto cobrado > 0 y revisar transacción en Finanzas
-- confirmar glosa: `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio)
-- confirmar que se generó egreso por costos reales cuando total_actual_cost > 0
-- desmarcar una línea en `Costo real` y validar que no se descuente en el egreso
-- si existen transacciones antiguas, confirmar que el script las corrigió en empresa-demo
+- reforzar en UI que `Ver costos` desde `Historial` es solo lectura y no un botón de sincronización
+- agregar señal operativa visible en `Editar cierre` y/o modal de costos para indicar cuándo el cierre ya quedó sincronizado a Finanzas
+- mantener validación funcional:
+  - editar `Precio sugerido` y confirmar persistencia
+  - verificar hint de margen calculado
+  - desmarcar una línea en `Costo real` y validar que no se descuente en el egreso
 
 ## Si el escenario principal falla
 
-- revisar logs de `maintenance_costing`/`finance` y validar que el tenant esté en `auto_on_close`
+- correr `repair_maintenance_finance_sync.py --tenant-slug <slug> --dry-run`
+- revisar política efectiva `auto_on_close` y transacciones `maintenance_work_order_income/expense`
 
 ## Condición de cierre de la próxima iteración
 
-- ingreso/egreso visible en Finanzas con glosa `mantención + trabajo + cliente`
+- UX deja claro dónde se dispara el sync y dónde solo se consulta histórico
 - precio sugerido editable y persistente en el estimado (sin sobreescribir margen objetivo)
 - control por línea de lo que impacta el egreso funcionando
