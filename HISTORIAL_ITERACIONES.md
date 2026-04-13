@@ -10,6 +10,7 @@
 - validaciones:
   - deploy backend `staging` -> `523 tests OK`
   - deploy backend `production` -> `523 tests OK`
+  - script `repair_maintenance_finance_expenses.py` aplicado en `empresa-demo` (6 egresos creados)
 - bloqueos:
   - pendiente validación UI en `empresa-demo` para ver ingreso + egreso en Finanzas
 

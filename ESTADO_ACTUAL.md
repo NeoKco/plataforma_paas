@@ -26,6 +26,7 @@
 - deploy backend ejecutó suite completa y recreó `empresa-bootstrap` en staging/production (comportamiento actual del script)
 - frontend staging/production re-publicado con API_BASE_URL correcta
 - sync a finanzas ahora fuerza egreso si hay costos reales y se sincroniza el ingreso
+- script `repair_maintenance_finance_expenses.py` aplicado en `empresa-demo` para backfill de egresos
 
 ## Qué archivos se tocaron
 

@@ -61,6 +61,7 @@
   ],
   "completed_recently": [
     "maintenance costing_service fuerza egreso cuando sync_income y total_actual_cost > 0",
+    "script repair_maintenance_finance_expenses aplicado en empresa-demo (6 egresos creados)",
     "maintenance sync ahora permite accountless; update_transaction acepta allow_accountless",
     "glosa maintenance->finance ahora incluye cliente y sitio",
     "tenant policy sin defaults explicitos resuelve auto_on_close por defecto",

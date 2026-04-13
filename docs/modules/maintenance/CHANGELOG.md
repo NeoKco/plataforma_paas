@@ -2,6 +2,9 @@
 
 ## 2026-04-12
 
+- se asegura que al sincronizar ingreso con costos reales > 0 se genere también el egreso correspondiente:
+  - evita utilidades infladas cuando faltaba el costo en Finanzas
+  - se agrega script de backfill [repair_maintenance_finance_expenses.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_expenses.py)
 - se cierra el primer corte de autollenado fino `maintenance -> finance` sin reescribir la integración base:
   - se confirma que el puente operativo ya existía en backend
   - el nuevo trabajo se centra en defaults efectivos y ergonomía
