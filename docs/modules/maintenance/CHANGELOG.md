@@ -411,3 +411,9 @@
   - tipos de equipo
   - integracion con agenda
 - se deja `expediente tecnico` como extension posterior, no como parte del primer corte
+
+## 2026-04-12
+
+- el `Precio sugerido` del costeo estimado queda editable sin sobreescribir el `Margen objetivo`
+- el `Margen objetivo` muestra un hint con el margen calculado segun el precio sugerido ingresado
+- la glosa por defecto en finanzas para ingresos/egresos de mantenciones agrega cliente cuando existe

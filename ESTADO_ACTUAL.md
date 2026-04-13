@@ -3,14 +3,14 @@
 ## Última actualización
 
 - fecha: 2026-04-12
-- foco de iteración: mantenimiento -> finanzas (precio sugerido editable + glosa sin equipo/sitio + egreso forzado + líneas con control de egreso)
+- foco de iteración: mantenimiento -> finanzas (precio sugerido editable + margen objetivo con hint + glosa con cliente + egreso por líneas seleccionadas)
 - estado general: cambios desplegados en `staging` y `production`; falta validar en UI
 
 ## Resumen ejecutivo en 30 segundos
 
-- costeo estimado permite editar `precio sugerido` y persiste en backend
-- la glosa de ingresos/egresos queda como `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio); backend fuerza default si el frontend envía una glosa incompleta
-- al sincronizar ingresos, si hay costos reales > 0 se genera egreso automáticamente (evita utilidades infladas)
+- costeo estimado permite editar `precio sugerido` sin sobreescribir el `margen objetivo`; se muestra hint de margen calculado según el precio sugerido
+- la glosa de ingresos/egresos queda como `Ingreso mantención #XXX · trabajo · cliente` (sin equipo/sitio); backend agrega fallback de cliente cuando falta
+- al sincronizar ingresos, si hay costos reales > 0 se genera egreso automáticamente (evita utilidades infladas) usando solo líneas marcadas como egreso
 - script aplicado en `empresa-demo` para normalizar glosas antiguas ya existentes
 - cambios publicados en staging y production; glosa forzada en backend; build frontend valida `.env.production` y bloquea API staging por defecto
 
@@ -18,8 +18,7 @@
 
 - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) mantiene sync accountless y glosa sin sitio
 - [tenant_data_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/services/tenant_data_service.py) retorna `auto_on_close` cuando no hay defaults explícitos
-- [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) habilita edición de precio sugerido y ajusta glosa
-- [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) muestra hint con precio calculado cuando el usuario edita
+- [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) habilita edición de precio sugerido sin sobreescribir margen objetivo y muestra hint de margen calculado
 - [MaintenanceOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx) ajusta copy y default a auto
 - defaults de `maintenance_finance_sync_mode` pasan a `auto_on_close` en core
 - backend y frontend desplegados en `staging` y `production` con este corte
@@ -52,14 +51,15 @@
 - maintenance -> finance debe crear ingresos/egresos aun cuando no existan cuentas definidas
 - la glosa por defecto debe incluir mantención + trabajo + cliente (sin equipo/sitio)
 - el modo efectivo sin política explícita pasa a `auto_on_close`
-- el precio sugerido del estimado es editable y persistente
+- el precio sugerido del estimado es editable y no sobreescribe el margen objetivo
+- el margen objetivo muestra hint calculado cuando el usuario edita el precio sugerido
 - si hay costos reales > 0, el egreso debe sincronizarse siempre que se sincronice el ingreso
 - las líneas de costeo controlan qué ítems impactan el egreso
 
 ## Qué falta exactamente
 
 - validar en empresa-demo:
-  - precio sugerido editable en costeo estimado
+  - precio sugerido editable sin sobreescribir margen objetivo y hint de margen calculado visible
   - glosa en Finanzas con formato `Ingreso mantención #XXX · trabajo · cliente`
   - confirmar que se crea egreso con costos cuando hay monto cobrado y costos reales > 0
   - confirmar que desmarcar una línea la excluye del egreso y del total real

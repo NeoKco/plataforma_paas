@@ -577,7 +577,6 @@ export function MaintenanceCostingModal({
     useState<TenantMaintenanceFinanceSyncDefaults | null>(null);
   const [costTemplates, setCostTemplates] = useState<TenantMaintenanceCostTemplate[]>([]);
   const [costBaseMessage, setCostBaseMessage] = useState<string | null>(null);
-  const [estimateTemplateId, setEstimateTemplateId] = useState("");
   const [actualTemplateId, setActualTemplateId] = useState("");
   const [appliedActualTemplateId, setAppliedActualTemplateId] = useState<string | null>(null);
   const [estimateForm, setEstimateForm] = useState<MaintenanceCostEstimateFormState>(
@@ -591,6 +590,7 @@ export function MaintenanceCostingModal({
   const [actualLines, setActualLines] = useState<MaintenanceCostLineFormState[]>([]);
   const [completionNote, setCompletionNote] = useState("");
   const [useCustomTransactionAt, setUseCustomTransactionAt] = useState(false);
+  const [showEstimateSection, setShowEstimateSection] = useState(false);
   const [financeSyncForm, setFinanceSyncForm] = useState<MaintenanceFinanceSyncFormState>({
     sync_income: true,
     sync_expense: true,
@@ -718,11 +718,6 @@ export function MaintenanceCostingModal({
     return Number(((actualProfitPreview / income) * 100).toFixed(2));
   }, [actualForm.actual_price_charged, actualProfitPreview]);
   const financeSyncBlocked = !costingDetail?.actual || !financeSyncForm.currency_id;
-  const selectedEstimateTemplate = useMemo(
-    () =>
-      activeCostTemplates.find((template) => String(template.id) === estimateTemplateId) ?? null,
-    [activeCostTemplates, estimateTemplateId]
-  );
   const selectedActualTemplate = useMemo(
     () => activeCostTemplates.find((template) => String(template.id) === actualTemplateId) ?? null,
     [activeCostTemplates, actualTemplateId]
@@ -914,27 +909,18 @@ export function MaintenanceCostingModal({
         setCostingDetail(detail);
         setCostTemplates(templates);
 
-        if (autoTemplate && !hasEstimateData) {
-          setEstimateLines(buildCostLineFormsFromTemplate(autoTemplate));
-          setEstimateForm({
-            ...buildEstimateFormFromTemplate(autoTemplate),
-            notes: autoTemplate.estimate_notes ?? detail.estimate?.notes ?? "",
-          });
-          setEstimateSuggestedTouched(false);
+        setEstimateForm(buildDefaultCostEstimateForm(detail.estimate));
+        setEstimateLines(buildDefaultCostLines(detail.estimate_lines));
+        if (detail.estimate?.suggested_price != null) {
+          const computed = getSuggestedPriceForEstimateData(
+            detail.estimate,
+            detail.estimate_lines
+          );
+          setEstimateSuggestedTouched(
+            Number(detail.estimate.suggested_price) !== Number(computed)
+          );
         } else {
-          setEstimateForm(buildDefaultCostEstimateForm(detail.estimate));
-          setEstimateLines(buildDefaultCostLines(detail.estimate_lines));
-          if (detail.estimate?.suggested_price != null) {
-            const computed = getSuggestedPriceForEstimateData(
-              detail.estimate,
-              detail.estimate_lines
-            );
-            setEstimateSuggestedTouched(
-              Number(detail.estimate.suggested_price) !== Number(computed)
-            );
-          } else {
-            setEstimateSuggestedTouched(false);
-          }
+          setEstimateSuggestedTouched(false);
         }
 
         if (autoTemplate && !hasActualData) {
@@ -957,18 +943,17 @@ export function MaintenanceCostingModal({
         const preferredTemplateId = String(
           autoTemplate?.id ?? selectableTemplates[0]?.id ?? templates[0]?.id ?? ""
         );
-        setEstimateTemplateId(preferredTemplateId);
         setActualTemplateId(preferredTemplateId);
 
         setCostBaseMessage(
           matchingTemplates.length > 1
             ? language === "es"
-              ? `Hay varias plantillas activas para ${taskTypeLabel || "esta mantención"}. Selecciona la que quieras aplicar en estimado o costo real.`
-              : `There are multiple active templates for ${taskTypeLabel || "this maintenance"}. Choose the one you want to apply to estimate or actual cost.`
-            : autoTemplate && (!hasEstimateData || !hasActualData)
+              ? `Hay varias plantillas activas para ${taskTypeLabel || "esta mantención"}. Selecciona la que quieras aplicar al costo real.`
+              : `There are multiple active templates for ${taskTypeLabel || "this maintenance"}. Choose the one you want to apply to actual cost.`
+            : autoTemplate && !hasActualData
               ? language === "es"
-                ? `Se cargó automáticamente la plantilla ${autoTemplate.name} desde Plantillas de mantención.`
-                : `Template ${autoTemplate.name} was loaded automatically from Maintenance templates.`
+                ? `Se cargó automáticamente la plantilla ${autoTemplate.name} en el costo real.`
+                : `Template ${autoTemplate.name} was loaded automatically into actual cost.`
               : templates.length > 0
                 ? language === "es"
                   ? "Puedes reutilizar cualquier plantilla activa creada previamente desde Plantillas de mantención."
@@ -1458,7 +1443,8 @@ export function MaintenanceCostingModal({
     onUpdate: (index: number, key: MaintenanceEditableCostLineKey, value: string) => void,
     onToggleExpense: (index: number, value: boolean) => void,
     onRemove: (index: number) => void,
-    readOnly = false
+    readOnly = false,
+    showExpenseToggle = true
   ) {
     return (
       <div className="maintenance-cost-lines">
@@ -1559,23 +1545,25 @@ export function MaintenanceCostingModal({
                       <label className="form-label">{language === "es" ? "Total" : "Total"}</label>
                       <input className="form-control" value={lineTotal.toFixed(2)} readOnly />
                     </div>
-                    <div className="col-4 col-md-2">
-                      <label className="form-label">
-                        {language === "es" ? "Egreso" : "Expense"}
-                      </label>
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          checked={line.include_in_expense}
-                          disabled={readOnly}
-                          onChange={(event) => onToggleExpense(index, event.target.checked)}
-                        />
-                        <label className="form-check-label">
-                          {language === "es" ? "Considerar" : "Include"}
+                    {showExpenseToggle ? (
+                      <div className="col-4 col-md-2">
+                        <label className="form-label">
+                          {language === "es" ? "Egreso" : "Expense"}
                         </label>
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            checked={line.include_in_expense}
+                            disabled={readOnly}
+                            onChange={(event) => onToggleExpense(index, event.target.checked)}
+                          />
+                          <label className="form-check-label">
+                            {language === "es" ? "Considerar" : "Include"}
+                          </label>
+                        </div>
                       </div>
-                    </div>
+                    ) : null}
                     {!readOnly ? (
                       <div className="col-12 col-md-2 maintenance-cost-lines__remove">
                         <button className="btn btn-outline-danger" type="button" onClick={() => onRemove(index)}>
@@ -1621,8 +1609,8 @@ export function MaintenanceCostingModal({
                 ? "Consulta el cierre económico ya registrado para esta mantención sin modificar el histórico."
                 : "Review the registered financial close for this maintenance without changing history."
               : language === "es"
-                ? "Calcula costo estimado, registra costo real y sincroniza manualmente los movimientos a Finanzas."
-                : "Calculate estimated cost, register actual cost, and manually sync transactions into Finance."
+                ? "Aplica una plantilla al costo real, ajusta el cobro y sincroniza los movimientos a Finanzas. El estimado queda como referencia opcional."
+                : "Apply a template to actual cost, adjust billing, and sync transactions into Finance. The estimate remains optional reference."
           }
         >
           {error ? (
@@ -1656,146 +1644,124 @@ export function MaintenanceCostingModal({
                 <div className="alert alert-info mb-0">{costBaseMessage}</div>
               ) : null}
 
-              <form
-                className="maintenance-form"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  if (!isReadOnly) {
-                    void handleEstimateSubmit();
-                  }
-                }}
-              >
-                <div className="maintenance-history-entry">
-                  <div className="maintenance-history-entry__title">
-                    {language === "es" ? "Costeo estimado" : "Estimated costing"}
-                  </div>
-                  <div className="maintenance-history-entry__meta">
-                    {language === "es"
-                      ? "Puedes elegir cualquier plantilla activa creada previamente y luego ajustar margen, notas o líneas antes de guardar el estimado."
-                      : "You can choose any previously created active template and then adjust margin, notes, or lines before saving the estimate."}
-                  </div>
-                  <div className="row g-3 mt-1">
-                    {!isReadOnly ? (
-                      <>
-                        <div className="col-12 col-md-8">
-                          <label className="form-label">{language === "es" ? "Plantilla base" : "Base template"}</label>
-                          <select
-                            className="form-select"
-                            value={estimateTemplateId}
-                            onChange={(event) => setEstimateTemplateId(event.target.value)}
-                          >
-                            <option value="">{language === "es" ? "Selecciona una plantilla" : "Select a template"}</option>
-                            {preferredCostTemplates.map((template) => (
-                              <option key={template.id} value={String(template.id)}>
-                                {buildTemplateLabel(template)}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="col-12 col-md-4 d-flex align-items-end">
-                          <button
-                            className="btn btn-outline-secondary w-100"
-                            type="button"
-                            onClick={() => selectedEstimateTemplate && applyEstimateTemplate(selectedEstimateTemplate)}
-                            disabled={!selectedEstimateTemplate}
-                          >
-                            {language === "es" ? "Aplicar plantilla al estimado" : "Apply template to estimate"}
-                          </button>
-                        </div>
-                        {selectedEstimateTemplate ? (
-                          <div className="col-12">
-                            {renderTemplatePreview(selectedEstimateTemplate)}
+              {!isReadOnly ? (
+                <div>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    onClick={() => setShowEstimateSection((current) => !current)}
+                  >
+                    {showEstimateSection
+                      ? language === "es"
+                        ? "Ocultar costeo estimado"
+                        : "Hide estimated costing"
+                      : language === "es"
+                        ? "Mostrar costeo estimado (opcional)"
+                        : "Show estimated costing (optional)"}
+                  </button>
+                </div>
+              ) : null}
+
+              {showEstimateSection ? (
+                <form
+                  className="maintenance-form"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    if (!isReadOnly) {
+                      void handleEstimateSubmit();
+                    }
+                  }}
+                >
+                  <div className="maintenance-history-entry">
+                    <div className="maintenance-history-entry__title">
+                      {language === "es" ? "Costeo estimado" : "Estimated costing"}
+                    </div>
+                    <div className="maintenance-history-entry__meta">
+                      {language === "es"
+                        ? "Referencia interna para planificación. No necesitas completarlo si el flujo operativo se maneja en costo real."
+                        : "Internal planning reference. You can skip it if your operational flow is handled in actual cost."}
+                    </div>
+                    <div className="row g-3 mt-1">
+                      <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Mano de obra" : "Labor"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.labor_cost.toFixed(2) : estimateForm.labor_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, labor_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
+                      <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Traslado" : "Travel"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.travel_cost.toFixed(2) : estimateForm.travel_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, travel_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
+                      <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Materiales" : "Materials"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.materials_cost.toFixed(2) : estimateForm.materials_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, materials_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
+                      <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Servicios externos" : "External services"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.external_services_cost.toFixed(2) : estimateForm.external_services_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, external_services_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
+                      <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Indirectos" : "Overhead"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.overhead_cost.toFixed(2) : estimateForm.overhead_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, overhead_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
+                      <div className="col-12 col-md-4">
+                        <label className="form-label">{language === "es" ? "Margen objetivo (%)" : "Target margin (%)"}</label>
+                        <input
+                          className="form-control"
+                          type="number"
+                          min="0"
+                          max="99.99"
+                          step="0.01"
+                          value={estimateForm.target_margin_percent}
+                          onChange={(event) => {
+                            setEstimateSuggestedTouched(false);
+                            setEstimateForm((current) => ({
+                              ...current,
+                              target_margin_percent: event.target.value,
+                            }));
+                          }}
+                          disabled={isReadOnly}
+                        />
+                        {estimateSuggestedTouched && estimatedMarginFromSuggested != null ? (
+                          <div className="form-text">
+                            {language === "es"
+                              ? `Margen calculado segun precio sugerido: ${estimatedMarginFromSuggested.toFixed(2)}%`
+                              : `Calculated margin from suggested price: ${estimatedMarginFromSuggested.toFixed(2)}%`}
                           </div>
                         ) : null}
-                      </>
-                    ) : null}
-                    <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Mano de obra" : "Labor"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.labor_cost.toFixed(2) : estimateForm.labor_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, labor_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
-                    <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Traslado" : "Travel"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.travel_cost.toFixed(2) : estimateForm.travel_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, travel_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
-                    <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Materiales" : "Materials"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.materials_cost.toFixed(2) : estimateForm.materials_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, materials_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
-                    <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Servicios externos" : "External services"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.external_services_cost.toFixed(2) : estimateForm.external_services_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, external_services_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
-                    <div className="col-12 col-md-4"><label className="form-label">{language === "es" ? "Indirectos" : "Overhead"}</label><input className="form-control" type="number" min="0" step="0.01" value={estimateUsesLines ? estimateLineTotals.overhead_cost.toFixed(2) : estimateForm.overhead_cost} onChange={(event) => setEstimateForm((current) => ({ ...current, overhead_cost: event.target.value }))} disabled={estimateUsesLines || isReadOnly} /></div>
-                    <div className="col-12 col-md-4">
-                      <label className="form-label">{language === "es" ? "Margen objetivo (%)" : "Target margin (%)"}</label>
-                      <input
-                        className="form-control"
-                        type="number"
-                        min="0"
-                        max="99.99"
-                        step="0.01"
-                        value={estimateForm.target_margin_percent}
-                        onChange={(event) => {
-                          setEstimateSuggestedTouched(false);
-                          setEstimateForm((current) => ({
-                            ...current,
-                            target_margin_percent: event.target.value,
-                          }));
-                        }}
-                        disabled={isReadOnly}
-                      />
-                      {estimateSuggestedTouched && estimatedMarginFromSuggested != null ? (
-                        <div className="form-text">
-                          {language === "es"
-                            ? `Margen calculado: ${estimatedMarginFromSuggested.toFixed(2)}%`
-                            : `Calculated margin: ${estimatedMarginFromSuggested.toFixed(2)}%`}
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Costo estimado total" : "Estimated total cost"}</label><input className="form-control" value={estimatedTotalPreview.toFixed(2)} readOnly /></div>
-                    <div className="col-12 col-md-6">
-                      <label className="form-label">{language === "es" ? "Precio sugerido" : "Suggested price"}</label>
-                      <input
-                        className="form-control"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={estimateForm.suggested_price}
-                        onChange={(event) => {
-                          setEstimateSuggestedTouched(true);
-                          setEstimateForm((current) => {
-                            const nextSuggested = event.target.value;
-                            const nextMargin = getMarginFromSuggestedPrice(
-                              estimatedTotalPreview,
-                              normalizeNumericInput(nextSuggested)
-                            );
-                            return {
+                      </div>
+                      <div className="col-12 col-md-6"><label className="form-label">{language === "es" ? "Costo estimado total" : "Estimated total cost"}</label><input className="form-control" value={estimatedTotalPreview.toFixed(2)} readOnly /></div>
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">{language === "es" ? "Precio sugerido" : "Suggested price"}</label>
+                        <input
+                          className="form-control"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={estimateForm.suggested_price}
+                          onChange={(event) => {
+                            setEstimateSuggestedTouched(true);
+                            setEstimateForm((current) => ({
                               ...current,
-                              suggested_price: nextSuggested,
-                              target_margin_percent:
-                                nextMargin == null ? current.target_margin_percent : String(nextMargin),
-                            };
-                          });
-                        }}
-                        disabled={isReadOnly}
-                      />
-                      {estimateSuggestedTouched ? (
-                        <div className="form-text">
-                          {language === "es"
-                            ? `Calculado: ${estimatedSuggestedPricePreview.toFixed(2)}`
-                            : `Calculated: ${estimatedSuggestedPricePreview.toFixed(2)}`}
-                        </div>
-                      ) : null}
+                              suggested_price: event.target.value,
+                            }));
+                          }}
+                          disabled={isReadOnly}
+                        />
+                        {estimateSuggestedTouched ? (
+                          <div className="form-text">
+                            {language === "es"
+                              ? `Calculado: ${estimatedSuggestedPricePreview.toFixed(2)}`
+                              : `Calculated: ${estimatedSuggestedPricePreview.toFixed(2)}`}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="col-12"><label className="form-label">{language === "es" ? "Notas de estimación" : "Estimate notes"}</label><textarea className="form-control" rows={3} value={estimateForm.notes} onChange={(event) => setEstimateForm((current) => ({ ...current, notes: event.target.value }))} readOnly={isReadOnly} /></div>
+                      <div className="col-12">
+                        {renderLineEditor(
+                          estimateLines,
+                          addEstimateLine,
+                          updateEstimateLine,
+                          toggleEstimateLineExpense,
+                          removeEstimateLine,
+                          isReadOnly,
+                          false
+                        )}
+                      </div>
                     </div>
-                    <div className="col-12"><label className="form-label">{language === "es" ? "Notas de estimación" : "Estimate notes"}</label><textarea className="form-control" rows={3} value={estimateForm.notes} onChange={(event) => setEstimateForm((current) => ({ ...current, notes: event.target.value }))} readOnly={isReadOnly} /></div>
-                    <div className="col-12">
-                      {renderLineEditor(
-                        estimateLines,
-                        addEstimateLine,
-                        updateEstimateLine,
-                        toggleEstimateLineExpense,
-                        removeEstimateLine,
-                        isReadOnly
-                      )}
-                    </div>
+                    {!isReadOnly ? (
+                      <div className="maintenance-form__actions">
+                        <button className="btn btn-outline-primary" type="submit" disabled={isEstimateSubmitting}>
+                          {isEstimateSubmitting ? (language === "es" ? "Guardando..." : "Saving...") : language === "es" ? "Guardar estimado" : "Save estimate"}
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
-                  {!isReadOnly ? (
-                    <div className="maintenance-form__actions">
-                      <button className="btn btn-outline-primary" type="submit" disabled={isEstimateSubmitting}>
-                        {isEstimateSubmitting ? (language === "es" ? "Guardando..." : "Saving...") : language === "es" ? "Guardar estimado" : "Save estimate"}
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              </form>
+                </form>
+              ) : null}
 
               <form
                 className="maintenance-form"
