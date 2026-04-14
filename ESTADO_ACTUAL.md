@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-14
-- foco de iteración: cerrar el subcorte UX `maintenance -> finance` con deep-link directo desde Historial hacia la transacción exacta en Finanzas y blindaje frontend para históricos legacy sin `finance_summary`
-- estado general: `production` y `staging` quedaron alineados otra vez para el slice `maintenance -> finance`, con convergencia activa `4/4` en ambos ambientes; además el frontend ya permite saltar desde Mantenciones a la transacción financiera exacta y Finanzas acepta focalización por query param
+- foco de iteración: cerrar la salvaguarda operativa para evitar borrado destructivo de tenants sin evidencia previa de recuperación, dejando `staging` y `production` realmente convergidos otra vez
+- estado general: `production` y `staging` quedaron alineados otra vez para el slice `maintenance -> finance` y para `platform-core` de lifecycle tenant; ambos ambientes terminan con auditoría activa `4/4`, y ahora borrar un tenant exige export portable completado del mismo tenant
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -17,6 +17,15 @@
   - seed de defaults faltantes
   - reparación `maintenance -> finance`
   - auditoría activa por tenant
+- `ieris-ltda` no perdió datos por un bug fantasma del runtime:
+  - fue deprovisionado y eliminado explícitamente
+  - luego fue recreado limpio
+  - después se cargó un paquete `functional_data_only` desde `empresa-demo`
+  - y posteriormente se aplicaron limpiezas/reset operativos sobre finanzas y catálogos
+- desde este corte, el borrado definitivo de un tenant ya no puede ejecutarse sin evidencia mínima de recuperación:
+  - export portable completado del mismo tenant
+  - confirmación explícita del slug
+  - archivo histórico de retiro con esa evidencia embebida
 - desde este corte queda explícito que un cambio declarado correcto no se cierra si solo funciona en un tenant o en un ambiente:
   - debe promocionarse al runtime afectado
   - debe converger tenants activos afectados
@@ -73,6 +82,15 @@
   - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
   - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
   - [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+- la regla de borrado seguro de tenant quedó endurecida en backend y UI:
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) incorpora `TenantDeleteRequest`
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) rechaza delete si no existe export portable completado del mismo tenant
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) exige el nuevo contrato
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) bloquea `Eliminar tenant` si no hay evidencia de export
+- el archivo de retiro tenant ahora guarda evidencia mínima de recuperación:
+  - job de export
+  - scope exportado
+  - cantidad y tipo de artefactos
 - el gate post-deploy quedó no-bloqueante por defecto para convergencia (`BACKEND_POST_DEPLOY_CONVERGENCE_STRICT=false`), de modo que un tenant roto no tumbe un servicio sano
 - `production` quedó verificado con auditoría crítica en tenants activos:
   - `condominio-demo`: OK
@@ -84,10 +102,22 @@
   - `empresa-bootstrap`: OK
   - `empresa-demo`: OK
   - `ieris-ltda`: OK
+- `production` volvió a quedar verificado con auditoría crítica en tenants activos después de rotar otra vez las credenciales DB tenant de `condominio-demo`:
+  - `condominio-demo`: OK
+  - `empresa-bootstrap`: OK
+  - `empresa-demo`: OK
+  - `ieris-ltda`: OK
 - `production` quedó re-convergido después de reparar `condominio-demo`:
   - `seed_missing_tenant_defaults.py --apply` -> `processed=4, changed=4, failed=0`
   - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4, failures=0`
   - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
+- durante esta iteración el release productivo detectó de nuevo drift runtime en `condominio-demo`:
+  - `deploy_backend_production.sh` quedó sano, pero la convergencia avisó `password authentication failed`
+  - se reparó rotando la credencial DB tenant desde el servicio canónico
+  - luego se reejecutó:
+    - `seed_missing_tenant_defaults.py --apply` -> `processed=4, changed=3, failed=0`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4, failures=0`
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
 - `condominio-demo` en `staging` fue reparado rotando credenciales DB tenant desde [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py), lo que dejó alineados:
   - password PostgreSQL del rol tenant
   - secreto runtime en `TENANT_SECRETS_FILE`
@@ -203,10 +233,16 @@
 
 - el comportamiento distinto entre `empresa-demo` e `ieris-ltda` no se debía a que la mejora fuese “solo para un tenant”
 - se debía a drift entre runtime y estado técnico tenant-local
+- el episodio de `ieris-ltda` confirma además otra regla:
+  - `functional_data_only` no es restauración completa `1:1`
+  - no debe usarse como sustituto de snapshot/export previo cuando se trata de un tenant que importa preservar
 - la corrección estructural ya quedó definida:
   - deploy por ambiente
   - convergencia post-deploy
   - auditoría activa por tenant
+- la protección estructural nueva ya quedó cerrada:
+  - delete definitivo de tenant exige export portable completado del mismo tenant
+  - si alguien intenta saltarse la UI, el backend también lo bloquea
 - el slice nuevo de autollenado desde transacciones vinculadas también quedó promovido bajo esa misma regla
 - además, desde ahora la regla queda escrita: cuando un cambio se declara correcto para la PaaS, debe quedar promovido, convergido, probado y documentado en todos los ambientes/tenants afectados
 - con eso se evita repetir el patrón de “funciona en un tenant, no en otro” sin visibilidad operativa

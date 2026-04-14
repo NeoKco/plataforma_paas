@@ -1,5 +1,40 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-14 - Salvaguarda de borrado seguro tenant + cierre real de convergencia productiva
+
+- objetivo:
+  - evitar repetir un caso como `ieris-ltda`, donde un tenant borrado/recreado puede interpretarse después como pérdida "misteriosa" de datos
+  - endurecer la consola y el backend para que no se pueda eliminar un tenant sin evidencia mínima de recuperación
+  - cerrar `production` otra vez en `4/4` tenants activos auditados sin dejar drift runtime
+- cambios principales:
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) agrega [TenantDeleteRequest](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) con `confirm_tenant_slug` y `portable_export_job_id`
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ahora bloquea el borrado definitivo si:
+    - el slug confirmado no coincide
+    - no existe un job export completado del mismo tenant
+    - el export no tiene artefactos
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) exige el payload explícito también en API
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) deshabilita `Eliminar tenant` hasta que exista export portable completado y muestra esa evidencia al operador
+  - el archivo de retiro tenant ahora guarda evidencia del export usado para autorizar el delete
+  - `production` requirió una reparación runtime adicional de `condominio-demo`:
+    - se rotó otra vez la credencial DB tenant con [TenantService.rotate_tenant_db_credentials](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py)
+    - se reejecutó convergencia completa
+- validaciones:
+  - repo: `python3 -m py_compile backend/app/apps/platform_control/schemas.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/api/tenant_routes.py backend/app/tests/test_platform_flow.py` -> `OK`
+  - repo: `cd frontend && npm run build` -> `OK`
+  - `staging`: `bash deploy/deploy_backend_staging.sh` -> `525 tests OK`
+  - `production`: `bash deploy/deploy_backend_production.sh` -> `525 tests OK`
+  - `production`: rotación runtime `condominio-demo` -> `OK`
+  - `production`: `seed_missing_tenant_defaults.py --apply` -> `processed=4, changed=3, failed=0`
+  - `production`: `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4, failures=0`
+  - `production`: `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
+- resultado:
+  - ya no se puede borrar un tenant productivo/operativo sin export portable previo del mismo tenant
+  - el backend también bloquea el salto de UI, así que la regla no queda solo como ayuda visual
+  - `production` y `staging` terminan nuevamente convergidos `4/4`
+  - el caso `ieris-ltda` queda documentado correctamente: no fue drift fantasma; hubo delete + recreate + import parcial `functional_data_only`
+- siguiente paso:
+  - volver al siguiente slice fino de `maintenance -> finance` sobre esta base ya endurecida
+
 ## 2026-04-14 - Deep-link Mantenciones -> Finanzas y blindaje de Historial
 
 - objetivo:

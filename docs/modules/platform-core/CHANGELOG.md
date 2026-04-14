@@ -2,6 +2,25 @@
 
 ## 2026-04-14
 
+- se endurece el lifecycle destructivo de tenants para evitar borrados sin evidencia mínima de recuperación:
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) agrega `TenantDeleteRequest`
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) exige:
+    - confirmación explícita de slug
+    - export portable completado del mismo tenant
+    - artefactos de export presentes
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) aplica el contrato también a nivel API
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) bloquea `Eliminar tenant` si no existe export portable completado
+  - el retiro tenant ahora guarda evidencia de export en el archivo histórico de retiro
+- se documenta explícitamente la lección operativa de `ieris-ltda`:
+  - el tenant fue deprovisionado y eliminado
+  - luego fue recreado limpio
+  - más tarde recibió carga `functional_data_only` desde `empresa-demo`
+  - por tanto, ese flujo no equivalía a restauración completa `1:1`
+- `production` vuelve a cerrarse en `4/4` tenants activos auditados después de reparar otra vez `condominio-demo` con rotación de credencial DB tenant y rerun de convergencia:
+  - `seed_missing_tenant_defaults.py --apply` -> `processed=4`, `changed=3`, `failed=0`
+  - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4`, `failed=0`
+  - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+
 - se cierra la promoción completa del siguiente slice tenant-side sin dejar drift entre ambientes:
   - `maintenance -> finance` ahora puede reutilizar snapshots financieros ya vinculados al reabrir el cierre económico
   - `production` recupera `condominio-demo` rotando credenciales DB tenant y vuelve a converger `4/4` tenants activos
