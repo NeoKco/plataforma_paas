@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-14T01:36:00-04:00",
+  "updated_at": "2026-04-14T02:05:00-04:00",
   "handoff_status": "active",
-  "current_focus": "slice maintenance -> finance endurecido para que el cierre use finance_sync explicito en PATCH /status, con runtimes y tenants convergidos en staging y production",
-  "project_phase": "staging y production convergidos y auditados para tenants activos; el cierre de mantenciones ya aplica cuenta/categoria/moneda/glosas elegidas desde el mismo cambio de estado y las filas historicas sin dimensiones fueron reparadas",
+  "current_focus": "slice maintenance -> finance endurecido y publicado con deep-link directo desde Historial a la transaccion exacta en Finanzas, manteniendo staging y production convergidos",
+  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; el cierre de mantenciones aplica finance_sync explicito y el frontend ya permite abrir ingreso/egreso exactos en Finanzas aun sobre historicos legacy parciales",
   "active_modules": [
     "platform-core",
     "finance",
@@ -68,6 +68,9 @@
     "un cambio correcto para la PaaS no se considera cerrado si solo funciona en repo, en un tenant o en un ambiente; debe quedar promovido, convergido, auditado, probado y documentado en todos los ambientes/tenants afectados"
   ],
   "completed_recently": [
+    "frontend maintenance: Historial tecnico ya expone botones para abrir ingreso o egreso exactos en Finanzas cuando la OT esta sincronizada",
+    "frontend finance: FinanceTransactionsPage ahora acepta transactionId y filtros por query string, y abre automaticamente el detalle de la transaccion focalizada",
+    "frontend maintenance: MaintenanceHistoryPage queda blindada frente a finance_summary ausente en historicos legacy para evitar crashes en tenants con payload viejo",
     "backend maintenance: MaintenanceStatusUpdateRequest ahora acepta finance_sync explicito y el cierre completed prioriza ese payload por sobre auto-sync por politica",
     "frontend maintenance: Cerrar con costos ahora usa el mismo PATCH /status como accion canonica para persistir cuenta/categoria/moneda/glosas de Finanzas",
     "runtime maintenance realineado en /opt/platform_paas y /opt/platform_paas_staging para eliminar drift repo/runtime del slice maintenance -> finance",

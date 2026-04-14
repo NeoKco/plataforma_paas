@@ -1,5 +1,26 @@
 # Maintenance Changelog
 
+## 2026-04-14
+
+- `Historial técnico` ahora permite saltar directo a la transacción exacta en `Finanzas` cuando la OT ya quedó sincronizada:
+  - botón `Abrir ingreso en Finanzas`
+  - botón `Abrir egreso en Finanzas`
+- `FinanceTransactionsPage` ahora acepta contexto por query string:
+  - `transactionId`
+  - `transactionType`
+  - `search`
+  - `accountId`
+  - `categoryId`
+  - `tagId`
+  - `favorite`
+  - `reconciliation`
+- si llega `transactionId`, Finanzas abre automáticamente el modal de detalle de esa transacción
+- `MaintenanceHistoryPage` queda blindada frente a históricos legacy sin `finance_summary`, evitando crashes por payload parcial
+- validación:
+  - repo: `cd frontend && npm run build` -> `OK`
+  - `staging`: frontend publicado
+  - `production`: frontend publicado
+
 ## 2026-04-13
 
 - hotfix de `Cerrar con costos`:

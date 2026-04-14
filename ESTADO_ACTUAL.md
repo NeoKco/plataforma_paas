@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-14
-- foco de iteración: endurecer el cierre `maintenance -> finance` para que el `PATCH /status` aplique la configuración financiera elegida en el modal y corregir el drift repo/runtime del slice completo
-- estado general: `production` y `staging` quedaron alineados otra vez para el slice `maintenance -> finance`, con convergencia activa `4/4` en ambos ambientes; además quedó explícito como regla que un cambio correcto debe promoverse, convergerse, auditarse y documentarse en todos los ambientes/tenants afectados
+- foco de iteración: cerrar el subcorte UX `maintenance -> finance` con deep-link directo desde Historial hacia la transacción exacta en Finanzas y blindaje frontend para históricos legacy sin `finance_summary`
+- estado general: `production` y `staging` quedaron alineados otra vez para el slice `maintenance -> finance`, con convergencia activa `4/4` en ambos ambientes; además el frontend ya permite saltar desde Mantenciones a la transacción financiera exacta y Finanzas acepta focalización por query param
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -30,6 +30,13 @@
   - el modal de costeo reutiliza cuenta/categoría/moneda/fecha/glosa/notas desde las transacciones financieras ya vinculadas
   - al reabrir una OT ya sincronizada no vuelve a defaults ciegos del tenant, sino al snapshot real de Finanzas
   - `Cerrar con costos` ahora envía la configuración financiera elegida dentro del mismo `PATCH /status`, evitando que el cierre dependa de defaults ciegos o de un segundo request separado
+- el frontend tenant ahora agrega navegación directa:
+  - `Historial técnico` expone botones `Abrir ingreso en Finanzas` y `Abrir egreso en Finanzas` cuando existen transacciones vinculadas
+  - `Finance Transactions` acepta `transactionId`, `transactionType`, `search`, `accountId`, `categoryId`, `tagId`, `favorite` y `reconciliation` vía query params
+  - si llega `transactionId`, la transacción se abre automáticamente en el modal de detalle
+- `MaintenanceHistoryPage` quedó blindada para OTs antiguas o tenants con payload histórico parcial:
+  - usa `finance_summary` con fallback seguro
+  - evita crash aunque una fila histórica no traiga ese bloque
 - frontend runtime verificado en ambos ambientes con bundles nuevos:
   - `MaintenanceHistoryPage-CdHJKpQP.js`
   - `MaintenanceInstallationsPage-CjIp0KB9.js`
@@ -122,6 +129,7 @@
 - [backend/app/scripts/audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
 - [deploy/verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh)
 - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx)
+- [frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx)
 - [frontend/src/apps/tenant_portal/modules/maintenance/services/historyService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/historyService.ts)
 - [frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts)
 - [frontend/src/apps/tenant_portal/modules/maintenance/services/workOrdersService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/workOrdersService.ts)
@@ -147,8 +155,8 @@
   - promoción a `production`
 - seguir afinando el slice `maintenance -> finance` ya sobre una base convergida, especialmente:
   - hints/UX de selección de egreso
-  - navegación directa desde Mantenciones a la transacción exacta en Finanzas
   - estrategia explícita para corregir transacciones históricas que quedaron creadas antes del fix con `account/category = null`
+  - evaluar si conviene un endpoint atómico `close-with-costs` para evitar drift futuro entre guardar costo real, cerrar OT y sincronizar Finanzas
 - seguir endureciendo la visibilidad de drift runtime vs repo para que futuras incidencias no dependan de investigación manual
 - mantener republicación controlada del frontend cuando cambien bundles o contratos del payload para evitar errores de caché o shape inconsistente
 
@@ -164,8 +172,11 @@
 - backend focalizado:
   - `test_maintenance_work_order_service` + `test_maintenance_costing_service`: `35 OK`
 - frontend build local: `OK`
+- frontend build local tras deep-link `maintenance -> finance`: `OK`
 - republish frontend `staging` con fix de `Cerrar con costos`: `OK`
 - republish frontend `production` con fix de `Cerrar con costos`: `OK`
+- republish frontend `staging` con deep-link Historial -> Finanzas: `OK`
+- republish frontend `production` con deep-link Historial -> Finanzas: `OK`
 - promoción manual del slice backend `maintenance` a `/opt/platform_paas` y `/opt/platform_paas_staging`: `OK`
 - publish frontend `staging`: `OK`
 - publish frontend `production`: `OK`

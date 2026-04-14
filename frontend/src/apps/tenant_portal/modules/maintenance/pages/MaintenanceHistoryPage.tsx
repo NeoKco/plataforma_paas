@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../../components/data-display/DataTableCard";
@@ -214,6 +215,26 @@ function getFinanceSummary(item?: TenantMaintenanceHistoryWorkOrder | null) {
   };
 }
 
+function buildFinanceTransactionLink(
+  item: TenantMaintenanceHistoryWorkOrder,
+  kind: "income" | "expense"
+): string | null {
+  const financeSummary = getFinanceSummary(item);
+  const transactionId =
+    kind === "income"
+      ? financeSummary.income_transaction_id
+      : financeSummary.expense_transaction_id;
+  if (transactionId == null) {
+    return null;
+  }
+  const params = new URLSearchParams({
+    transactionId: String(transactionId),
+    transactionType: kind,
+    search: `${kind === "income" ? "Ingreso" : "Egreso"} mantención #${item.id}`,
+  });
+  return `/tenant-portal/finance?${params.toString()}`;
+}
+
 function inferReopenStatus(item: TenantMaintenanceHistoryWorkOrder): "scheduled" | "in_progress" {
   const candidate = item.status_logs.find(
     (log) =>
@@ -226,6 +247,7 @@ function inferReopenStatus(item: TenantMaintenanceHistoryWorkOrder): "scheduled"
 export function MaintenanceHistoryPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const navigate = useNavigate();
   const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const canReopenFromHistory = session?.role === "admin" || session?.role === "manager";
   const canAdjustCompletedAt = session?.role === "admin" || session?.role === "manager";
@@ -429,6 +451,17 @@ export function MaintenanceHistoryPage() {
 
   function closeDetailModal() {
     setDetailWorkOrder(null);
+  }
+
+  function openFinanceTransaction(
+    item: TenantMaintenanceHistoryWorkOrder,
+    kind: "income" | "expense"
+  ) {
+    const target = buildFinanceTransactionLink(item, kind);
+    if (!target) {
+      return;
+    }
+    navigate(target);
   }
 
   async function handleHistorySubmit() {
@@ -776,6 +809,29 @@ export function MaintenanceHistoryPage() {
                         language,
                         effectiveTimeZone
                       )}
+                    </div>
+                  ) : null}
+                  {getFinanceSummary(item).income_transaction_id != null ||
+                  getFinanceSummary(item).expense_transaction_id != null ? (
+                    <div className="d-flex flex-wrap gap-2 mt-3">
+                      {getFinanceSummary(item).income_transaction_id != null ? (
+                        <button
+                          className="btn btn-sm btn-outline-success"
+                          type="button"
+                          onClick={() => openFinanceTransaction(item, "income")}
+                        >
+                          {t("Abrir ingreso en Finanzas", "Open income in Finance")}
+                        </button>
+                      ) : null}
+                      {getFinanceSummary(item).expense_transaction_id != null ? (
+                        <button
+                          className="btn btn-sm btn-outline-warning"
+                          type="button"
+                          onClick={() => openFinanceTransaction(item, "expense")}
+                        >
+                          {t("Abrir egreso en Finanzas", "Open expense in Finance")}
+                        </button>
+                      ) : null}
                     </div>
                   ) : null}
                   {stripLegacyVisibleText(item.description) ? (

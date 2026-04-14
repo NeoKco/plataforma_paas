@@ -1,5 +1,24 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-14 - Deep-link Mantenciones -> Finanzas y blindaje de Historial
+
+- objetivo:
+  - permitir abrir la transacción financiera exacta desde `Historial técnico`
+  - evitar crash frontend cuando una OT antigua no trae `finance_summary`
+- cambios principales:
+  - [MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx) agrega botones directos para abrir ingreso/egreso en `Finanzas`
+  - [FinanceTransactionsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx) acepta query params de focalización y abre automáticamente el detalle si recibe `transactionId`
+  - el historial usa fallback seguro para `finance_summary` ausente y no rompe la vista en tenants con payload viejo
+- validaciones:
+  - repo: `cd frontend && npm run build` -> `OK`
+  - `staging`: frontend publicado
+  - `production`: frontend publicado
+- resultado:
+  - el operador puede saltar desde Mantenciones a la transacción exacta sin buscarla manualmente
+  - el slice queda más resistente frente a históricos legacy
+- siguiente paso:
+  - endurecer hints y controles de egreso seleccionable y evaluar endpoint atómico `close-with-costs`
+
 ## 2026-04-14 - Slice maintenance -> finance promovido completo con snapshots financieros vinculados
 
 - objetivo:

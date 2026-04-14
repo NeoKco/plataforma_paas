@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
@@ -111,6 +112,7 @@ function buildDefaultFormState(timeZone?: string | null): TransactionFormState {
 export function FinanceTransactionsPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const [searchParams] = useSearchParams();
   const [transactions, setTransactions] = useState<TenantFinanceTransaction[]>([]);
   const [summaryResponse, setSummaryResponse] =
     useState<TenantFinanceSummaryResponse | null>(null);
@@ -151,6 +153,7 @@ export function FinanceTransactionsPage() {
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
+  const [deepLinkedTransactionId, setDeepLinkedTransactionId] = useState<number | null>(null);
   const { filters, setFilters } = useTransactionFilters<{
     transactionType: string;
     accountId: string;
@@ -187,6 +190,7 @@ export function FinanceTransactionsPage() {
     [currencies]
   );
   const previewCleanupRef = useRef<string[]>([]);
+  const deepLinkedTransactionHandledRef = useRef<number | null>(null);
   const selectedAttachmentPreviewDependency = useMemo(() => {
     if (!selectedTransactionDetail) {
       return "";
@@ -207,6 +211,25 @@ export function FinanceTransactionsPage() {
       return category.category_type === formState.transactionType;
     });
   }, [categories, formState.transactionType]);
+
+  useEffect(() => {
+    const transactionIdRaw = searchParams.get("transactionId");
+    const transactionId =
+      transactionIdRaw && Number.isInteger(Number(transactionIdRaw))
+        ? Number(transactionIdRaw)
+        : null;
+    setDeepLinkedTransactionId(transactionId);
+    setFilters((current) => ({
+      ...current,
+      transactionType: searchParams.get("transactionType") ?? current.transactionType,
+      accountId: searchParams.get("accountId") ?? current.accountId,
+      categoryId: searchParams.get("categoryId") ?? current.categoryId,
+      tagId: searchParams.get("tagId") ?? current.tagId,
+      favorite: searchParams.get("favorite") ?? current.favorite,
+      reconciliation: searchParams.get("reconciliation") ?? current.reconciliation,
+      search: searchParams.get("search") ?? current.search,
+    }));
+  }, [searchParams, setFilters]);
 
   useEffect(() => {
     void loadFinanceWorkspace();
@@ -418,6 +441,24 @@ export function FinanceTransactionsPage() {
     setIsTransactionDetailOpen(true);
     await fetchTransactionDetail(transactionId);
   }
+
+  useEffect(() => {
+    if (!session?.accessToken || deepLinkedTransactionId == null) {
+      return;
+    }
+    if (deepLinkedTransactionHandledRef.current === deepLinkedTransactionId) {
+      return;
+    }
+    deepLinkedTransactionHandledRef.current = deepLinkedTransactionId;
+    setActionFeedback({
+      type: "success",
+      message:
+        language === "es"
+          ? `Abriste la transacción #${deepLinkedTransactionId} desde Mantenciones.`
+          : `You opened transaction #${deepLinkedTransactionId} from Maintenance.`,
+    });
+    void loadTransactionDetail(deepLinkedTransactionId);
+  }, [deepLinkedTransactionId, language, session?.accessToken]);
 
   async function fetchTransactionDetail(transactionId: number) {
     if (!session?.accessToken) {

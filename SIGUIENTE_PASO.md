@@ -20,9 +20,9 @@
   - auditoría `production`
   - documentación viva cerrada
 - siguiente subcorte funcional recomendado:
-  - navegación directa o filtro contextual desde Mantenciones hacia la transacción exacta en Finanzas
   - endurecer hints/controles de egreso seleccionable para que el operador vea con claridad qué líneas sí salen a egreso y cuáles no
   - revisar si conviene un endpoint atómico `close-with-costs` para evitar cualquier drift futuro entre `cost-actual`, `status` y `finance_sync`
+  - dejar visible en la ficha/historial si la transacción financiera vinculada quedó conciliada, anulada o sin cuenta/categoría
 - mantener como comando obligatorio de cierre multi-tenant:
   - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
   - [repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
