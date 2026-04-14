@@ -29,6 +29,27 @@
 - siguiente paso:
   - abrir el siguiente subcorte fino de UX/operación sobre la base ya convergida
 
+## 2026-04-14 - Hotfix cierre con costos usa cuentas y categorías elegidas en el modal
+
+- objetivo:
+  - corregir que `Cerrar con costos` cerraba la OT pero dejaba el sync financiero dependiendo solo de la política/defaults del tenant
+  - evitar ingresos/egresos creados con `account/category = null` cuando el operador sí había elegido esos campos en el modal
+- cambios principales:
+  - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) ahora:
+    - captura el payload financiero seleccionado antes del cierre
+    - guarda costo real
+    - cambia estado a `completed`
+    - reaplica `syncTenantMaintenanceWorkOrderToFinance(...)` con las cuentas/categorías/glosas/fecha elegidas en el modal
+- validaciones:
+  - repo: `cd frontend && npm run build` -> `OK`
+  - `staging`: frontend publicado con el hotfix
+  - `production`: frontend publicado con el hotfix
+- resultado:
+  - los cierres nuevos ya deben impactar la cuenta correcta y persistir la categoría correcta en Finanzas
+  - el saldo por cuenta vuelve a variar porque la transacción deja de quedar `accountless`
+- nota operativa:
+  - las transacciones antiguas que ya nacieron con `account/category = null` no se corrigen solas con este hotfix; requieren re-sync manual o un backfill explícito
+
 ## 2026-04-14 - Regla de promoción completa + cierre limpio de convergencia en staging
 
 - objetivo:

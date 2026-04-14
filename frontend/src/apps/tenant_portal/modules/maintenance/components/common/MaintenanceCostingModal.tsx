@@ -1337,6 +1337,37 @@ export function MaintenanceCostingModal({
     setIsCompleting(true);
     setError(null);
     try {
+      const selectedFinanceSyncPayload = financeSyncForm.currency_id
+        ? {
+            sync_income: financeSyncForm.sync_income,
+            sync_expense: financeSyncForm.sync_expense,
+            income_account_id: financeSyncForm.income_account_id
+              ? Number(financeSyncForm.income_account_id)
+              : null,
+            expense_account_id: financeSyncForm.expense_account_id
+              ? Number(financeSyncForm.expense_account_id)
+              : null,
+            income_category_id: financeSyncForm.income_category_id
+              ? Number(financeSyncForm.income_category_id)
+              : null,
+            expense_category_id: financeSyncForm.expense_category_id
+              ? Number(financeSyncForm.expense_category_id)
+              : null,
+            currency_id: Number(financeSyncForm.currency_id),
+            transaction_at:
+              useCustomTransactionAt && financeSyncForm.transaction_at
+                ? fromDateTimeLocalInputValue(financeSyncForm.transaction_at, effectiveTimeZone)
+                : null,
+            income_description: financeSyncForm.income_description
+              ? financeSyncForm.income_description.trim()
+              : null,
+            expense_description: financeSyncForm.expense_description
+              ? financeSyncForm.expense_description.trim()
+              : null,
+            notes: normalizeNullable(financeSyncForm.notes),
+          }
+        : null;
+
       const costingResponse = await updateTenantMaintenanceWorkOrderCostActual(accessToken, currentWorkOrder.id, {
         labor_cost: normalizeNumericInput(actualForm.labor_cost),
         travel_cost: normalizeNumericInput(actualForm.travel_cost),
@@ -1386,10 +1417,44 @@ export function MaintenanceCostingModal({
         normalizeNullable(completionNote)
       );
 
+      if (
+        selectedFinanceSyncPayload &&
+        (selectedFinanceSyncPayload.sync_income || selectedFinanceSyncPayload.sync_expense)
+      ) {
+        const financeResponse = await syncTenantMaintenanceWorkOrderToFinance(
+          accessToken,
+          currentWorkOrder.id,
+          selectedFinanceSyncPayload
+        );
+        setCostingDetail(financeResponse.data);
+        if (financeSyncDefaults) {
+          setFinanceSyncForm(
+            buildFinanceSyncFormFromDetail({
+              detail: financeResponse.data,
+              syncDefaults: financeSyncDefaults,
+              accounts: financeAccounts,
+              categories: financeCategories,
+              currencies: financeCurrencies,
+              defaultCurrencyId:
+                financeSyncDefaults.maintenance_finance_currency_id ??
+                financeCurrencies.find((currency) => currency.is_base)?.id ??
+                financeCurrencies[0]?.id ??
+                null,
+              workOrder: currentWorkOrder,
+              clientLabel,
+              siteLabel,
+              installationLabel,
+              language,
+              effectiveTimeZone,
+            })
+          );
+        }
+      }
+
       onFeedback?.(
         language === "es"
-          ? "Costo real guardado y mantención cerrada correctamente"
-          : "Actual cost saved and maintenance closed successfully"
+          ? "Costo real guardado, mantención cerrada y sincronización financiera aplicada correctamente"
+          : "Actual cost saved, maintenance closed, and finance sync applied successfully"
       );
       await onCompleted?.(statusResponse.data.id);
       onClose();

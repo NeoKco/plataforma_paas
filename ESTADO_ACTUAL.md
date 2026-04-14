@@ -29,6 +29,7 @@
 - el slice nuevo de `maintenance -> finance` ya quedó promovido en ambos ambientes:
   - el modal de costeo reutiliza cuenta/categoría/moneda/fecha/glosa/notas desde las transacciones financieras ya vinculadas
   - al reabrir una OT ya sincronizada no vuelve a defaults ciegos del tenant, sino al snapshot real de Finanzas
+  - `Cerrar con costos` ahora reaplica el payload financiero elegido en el modal después del cambio de estado a `completed`, evitando que el auto-sync cierre con `account/category = null`
 - frontend runtime verificado en ambos ambientes con bundles nuevos:
   - `MaintenanceHistoryPage-CdHJKpQP.js`
   - `MaintenanceInstallationsPage-CjIp0KB9.js`
@@ -56,6 +57,7 @@
 - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) ahora incluye snapshots de `income/expense` vinculados al devolver el detalle de costeo real
 - [costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/costing.py) serializa snapshots financieros vinculados para consumo del frontend
 - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) ya reutiliza cuenta/categoría/moneda/fecha/glosa/notas desde la transacción financiera vinculada cuando existe
+  - además, al cerrar la OT desde el mismo modal, vuelve a ejecutar el sync con las cuentas/categorías seleccionadas por el operador para que el balance por cuenta sí se actualice en Finanzas
 - la regla de promoción completa quedó escrita en:
   - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
   - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
@@ -134,6 +136,7 @@
 - seguir afinando el slice `maintenance -> finance` ya sobre una base convergida, especialmente:
   - hints/UX de selección de egreso
   - navegación directa desde Mantenciones a la transacción exacta en Finanzas
+  - estrategia explícita para corregir transacciones históricas que quedaron creadas antes del fix con `account/category = null`
 - seguir endureciendo la visibilidad de drift runtime vs repo para que futuras incidencias no dependan de investigación manual
 - mantener republicación controlada del frontend cuando cambien bundles o contratos del payload para evitar errores de caché o shape inconsistente
 
@@ -149,6 +152,8 @@
 - backend targeted tests locales: `35 OK`
 - backend targeted tests locales del slice nuevo: `12 OK`
 - frontend build local: `OK`
+- republish frontend `staging` con fix de `Cerrar con costos`: `OK`
+- republish frontend `production` con fix de `Cerrar con costos`: `OK`
 - deploy backend `staging`: `OK`
 - deploy backend `production`: `OK`
 - publish frontend `staging`: `OK`

@@ -2,6 +2,24 @@
 
 ## 2026-04-13
 
+- hotfix de `Cerrar con costos`:
+  - el cierre desde el modal ya no depende solo del auto-sync de política tenant
+  - después de cerrar la OT, el frontend reaplica el sync financiero usando exactamente:
+    - cuenta ingreso
+    - categoría ingreso
+    - cuenta egreso
+    - categoría egreso
+    - moneda
+    - glosas
+    - fecha contable elegidas en el modal
+- esto corrige el caso donde el ingreso/egreso se creaba pero quedaba con `account/category = null`, por lo que:
+  - no se veía la categoría en Finanzas
+  - el balance por cuenta no variaba
+- validación del hotfix:
+  - repo: `cd frontend && npm run build` -> `OK`
+  - `staging`: frontend publicado
+  - `production`: frontend publicado
+
 - el modal `Costos y cobro` ahora reutiliza la transacción financiera ya vinculada cuando existe:
   - cuenta
   - categoría
