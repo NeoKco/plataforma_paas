@@ -1,29 +1,43 @@
-# Verificacion Post-Deploy Backend
+# Verificación Post-Deploy Backend
 
-Esta guia deja una secuencia minima para validar un deploy antes de darlo por bueno o decidir rollback.
+Esta guía define la verificación correcta después de desplegar backend en un ambiente real. El punto clave es este:
+
+- `repo` no es `runtime`
+- `servicio sano` no equivale a `tenants convergidos`
 
 ## Objetivo
 
-- confirmar que el servicio subio
-- confirmar que el healthcheck responde
-- dejar un criterio simple para seguir o revertir
+- confirmar que el servicio subió
+- confirmar que el `healthcheck` responde
+- ejecutar convergencia post-deploy sobre tenants activos
+- auditar drift crítico por tenant antes de dar el deploy por cerrado
 
-## Archivo Base
+## Archivos base
 
-- `deploy/verify_backend_deploy.sh`
-- `deploy/run_backend_post_deploy_gate.sh`
-- `deploy/collect_backend_operational_evidence.sh`
-- `deploy/run_remote_backend_smoke.py`
-- `scripts/dev/run_remote_backend_smoke.sh`
+- [deploy/verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh)
+- [deploy/run_backend_post_deploy_gate.sh](/home/felipe/platform_paas/deploy/run_backend_post_deploy_gate.sh)
+- [deploy/collect_backend_operational_evidence.sh](/home/felipe/platform_paas/deploy/collect_backend_operational_evidence.sh)
+- [backend/app/scripts/sync_active_tenant_schemas.py](/home/felipe/platform_paas/backend/app/scripts/sync_active_tenant_schemas.py)
+- [backend/app/scripts/seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
+- [backend/app/scripts/repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
+- [backend/app/scripts/audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
 
-## Que Valida
+## Qué valida hoy
 
-- que `systemd` tenga el servicio en estado `active`
-- que el endpoint de health responda `200`
-- que el servicio siga estable durante varios intentos cortos
-- que, por defecto, se encole el auto-sync masivo de schema tenant para tenants activos con DB ya configurada
+Primero valida capa servicio:
 
-## Uso Basico
+- `systemd` en estado `active`
+- endpoint `/health` respondiendo `200`
+- estabilidad durante varios intentos cortos
+
+Luego valida capa tenant:
+
+- `tenant schema sync` para tenants activos con DB configurada
+- seed de defaults faltantes (`core`/`finance`) cuando corresponde
+- reparación `maintenance -> finance` para OT cerradas sin movimientos
+- auditoría crítica por tenant activo
+
+## Uso básico
 
 ```bash
 SERVICE_NAME=platform-paas-backend \
@@ -31,7 +45,7 @@ HEALTHCHECK_URL=http://127.0.0.1/health \
 bash deploy/verify_backend_deploy.sh
 ```
 
-Variables opcionales:
+Variables útiles:
 
 - `MAX_ATTEMPTS`
 - `SLEEP_SECONDS`
@@ -39,159 +53,97 @@ Variables opcionales:
 - `VENV_PYTHON`
 - `BACKEND_AUTO_SYNC_POST_DEPLOY`
 - `BACKEND_AUTO_SYNC_LIMIT`
+- `BACKEND_POST_DEPLOY_SEED_DEFAULTS`
+- `BACKEND_POST_DEPLOY_REPAIR_MAINTENANCE_FINANCE`
+- `BACKEND_POST_DEPLOY_AUDIT_ACTIVE_TENANTS`
+- `BACKEND_POST_DEPLOY_CONVERGENCE_STRICT`
 
-Ejemplo:
+Ejemplo para `staging`:
 
 ```bash
 SERVICE_NAME=platform-paas-backend-staging \
+PROJECT_ROOT=/opt/platform_paas_staging \
 HEALTHCHECK_URL=http://127.0.0.1/health \
 MAX_ATTEMPTS=15 \
 SLEEP_SECONDS=2 \
 bash deploy/verify_backend_deploy.sh
 ```
 
-Ejemplo deshabilitando el paso post-deploy de auto-sync:
+## Comportamiento actual del gate
+
+Después del `healthcheck`, el script corre en este orden:
+
+1. `sync_active_tenant_schemas.py`
+2. `seed_missing_tenant_defaults.py --apply`
+3. `repair_maintenance_finance_sync.py --all-active`
+4. `audit_active_tenant_convergence.py --all-active`
+
+Esto corrige dos problemas reales del proyecto:
+
+- que un cambio exista en código pero no haya sido convergido por tenant
+- que un tenant quede roto aunque el servicio general esté sano
+
+## Modo estricto vs no estricto
+
+Por defecto:
+
+- `BACKEND_POST_DEPLOY_CONVERGENCE_STRICT=false`
+
+Eso significa:
+
+- si una convergencia falla para un tenant, el deploy deja warning
+- el servicio puede seguir sano y publicado
+- la evidencia operativa debe revisarse y el tenant debe repararse después
+
+Modo estricto:
 
 ```bash
-SERVICE_NAME=platform-paas-backend \
-BACKEND_AUTO_SYNC_POST_DEPLOY=false \
-bash deploy/verify_backend_deploy.sh
+BACKEND_POST_DEPLOY_CONVERGENCE_STRICT=true bash deploy/verify_backend_deploy.sh
 ```
 
-Ejemplo limitando la corrida masiva:
+Con eso:
 
-```bash
-SERVICE_NAME=platform-paas-backend \
-BACKEND_AUTO_SYNC_LIMIT=25 \
-bash deploy/verify_backend_deploy.sh
-```
+- cualquier falla de convergencia o auditoría hace fallar el gate
 
-## Integracion Actual
+## Qué no debe asumirse
 
-El wrapper ya queda llamado al final de:
+- que editar `/home/felipe/platform_paas` actualiza automáticamente:
+  - `/opt/platform_paas`
+  - `/opt/platform_paas_staging`
+- que un `523 tests OK` garantiza consistencia tenant-local
+- que si `empresa-demo` funciona, entonces `ieris-ltda` también debe funcionar sin revisar drift técnico
 
-- `deploy/deploy_backend.sh`
+## Evidencia operativa
 
-Eso significa que un deploy no termina exitosamente si:
-
-- el servicio no queda activo
-- el endpoint `/health` no responde bien en los intentos configurados
-- falla el encolado masivo de `sync_tenant_schema` cuando `BACKEND_AUTO_SYNC_POST_DEPLOY=true`
-
-Ademas, por defecto, al terminar la verificacion se recolecta evidencia operativa con:
+El gate deja evidencia con:
 
 - `systemctl status`
 - `journalctl` reciente
-- respuesta completa del `healthcheck`
-- revision git actual del checkout remoto
+- respuesta del `healthcheck`
+- resultado de los pasos de convergencia
 
-La recoleccion de evidencia usa:
+Ubicación típica:
 
-- `deploy/collect_backend_operational_evidence.sh`
+- `production`: `/opt/platform_paas/operational_evidence/`
+- `staging`: `/opt/platform_paas_staging/operational_evidence/`
 
-Cuando se quiere una validacion mas funcional sobre staging o produccion accesible desde fuera del host, existe ademas un smoke remoto:
-
-- `deploy/run_remote_backend_smoke.py`
-
-Ese smoke valida:
-
-- `GET /health`
-- `GET /`
-- login platform real con `POST /platform/auth/login`
-- acceso autenticado a `GET /platform/ping-db`
-- opcionalmente login tenant real con `POST /tenant/auth/login`
-- opcionalmente lectura autenticada de `GET /tenant/me` y `GET /tenant/info`
-
-Tambien acepta subsets con `--target all|base|platform|tenant` para revalidar solo el bloque afectado.
-
-Ademas acepta reintentos con:
-
-- `--attempts`
-- `--retry-delay`
-
-Y puede escribir un resumen estructurado en JSON con:
-
-- `--report-path`
-
-Uso manual de ejemplo:
-
-```bash
-SMOKE_BASE_URL=https://staging.example.com \
-SMOKE_PLATFORM_EMAIL=admin@platform.local \
-SMOKE_PLATFORM_PASSWORD='***' \
-SMOKE_TENANT_SLUG=empresa-bootstrap \
-SMOKE_TENANT_EMAIL=admin@empresa-bootstrap.local \
-SMOKE_TENANT_PASSWORD='***' \
-python deploy/run_remote_backend_smoke.py
-```
-
-Ejemplos utiles:
-
-```bash
-python deploy/run_remote_backend_smoke.py --base-url https://staging.example.com --target base
-python deploy/run_remote_backend_smoke.py --base-url https://staging.example.com --target platform --attempts 5 --retry-delay 10
-python deploy/run_remote_backend_smoke.py --base-url https://staging.example.com --target tenant
-```
-
-Helper local equivalente:
-
-```bash
-SMOKE_BASE_URL=https://staging.example.com \
-scripts/dev/run_remote_backend_smoke.sh --target platform
-```
-
-Cuando el smoke corre desde [\.github/workflows/backend-deploy.yml](../../.github/workflows/backend-deploy.yml), el job deja ademas un resumen en `GitHub Actions` con:
-
-- entorno desplegado
-- ref desplegada
-- target remoto ejecutado
-- estado final del smoke
-- conteo de checks aprobados y fallidos
-- lista breve de checks HTTP ejecutados
-- path de evidencia remota detectada
-- cola final del log del smoke
-
-Se puede omitir con:
-
-```bash
-COLLECT_OPERATIONAL_EVIDENCE=false bash deploy/run_backend_post_deploy_gate.sh
-```
-
-El paso de auto-sync usa:
-
-- `backend/app/scripts/enqueue_active_tenant_schema_sync.py`
-- `POST /platform/tenants/schema-sync/bulk`
-
-Alcance operativo:
-
-- tenants `active`
-- con configuracion de DB completa
-- sin depender de que un operador entre luego a `Provisioning` para dispararlo a mano
-
-## Cuando Hacer Rollback
+## Cuándo hacer rollback
 
 Rollback recomendado si:
 
-- el deploy termino con error en verificacion
-- `systemctl status` muestra fallas persistentes
-- el healthcheck no responde despues de los reintentos
-- el wrapper no logra encolar el auto-sync post-deploy y ese paso estaba habilitado
+- el servicio no queda `active`
+- `/health` no responde tras reintentos
+- el problema es código o migración y no solo drift tenant-local
 
-Antes de hacer rollback, revisar al menos:
+No hacer rollback automático solo porque un tenant falló en convergencia si:
 
-```bash
-systemctl status platform-paas-backend --no-pager
-sudo journalctl -u platform-paas-backend -n 100 --no-pager
-curl -I http://127.0.0.1/health
-```
+- el servicio general quedó sano
+- el gate corre en modo no estricto
+- la falla es puntual de credenciales o runtime tenant
 
-Si la evidencia operativa esta habilitada, revisar tambien el ultimo archivo en:
+En ese caso, primero revisar evidencia y reparar el tenant.
 
-- `/opt/platform_paas/operational_evidence/`
+## Guías relacionadas
 
-## Relacion con Rollback
-
-Guia relacionada:
-
-- `docs/deploy/operational-acceptance-checklist.md`
-- `docs/deploy/backend-release-and-rollback.md`
+- [backend-release-and-rollback.md](/home/felipe/platform_paas/docs/deploy/backend-release-and-rollback.md)
+- [environment-strategy.md](/home/felipe/platform_paas/docs/deploy/environment-strategy.md)

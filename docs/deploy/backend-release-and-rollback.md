@@ -1,27 +1,50 @@
 # Backend Release y Rollback
 
-Esta guia deja una base minima para ejecutar despliegues manuales asistidos y rollback de backend sin depender de pasos improvisados.
+Esta guía deja el camino correcto para desplegar backend y entender qué se promueve realmente a cada ambiente.
 
 ## Objetivo
 
-- tener un camino claro para desplegar una ref concreta
-- dejar un rollback reproducible ante una regresion
-- preparar una base para evolucionar despues a CD mas robusto
+- desplegar una ref concreta a `staging` o `production`
+- dejar explícito que el runtime real no es el repo local
+- incorporar convergencia tenant y auditoría post-deploy como parte del release
+- definir cuándo conviene rollback y cuándo conviene reparar drift tenant-local
 
-## Archivos Base
+## Regla base
 
-- `deploy/rollback_backend.sh`
-- `deploy/check_backend_release_readiness.sh`
-- `deploy/verify_backend_deploy.sh`
-- `deploy/run_backend_post_deploy_gate.sh`
-- `deploy/collect_backend_operational_evidence.sh`
-- `deploy/run_remote_backend_smoke.py`
-- `scripts/dev/run_remote_backend_smoke.sh`
-- `.github/workflows/backend-deploy.yml`
+El repo fuente es:
 
-## Deploy Manual desde Servidor
+- `/home/felipe/platform_paas`
 
-Preflight recomendado antes del deploy:
+Los runtimes reales son:
+
+- `staging`: `/opt/platform_paas_staging`
+- `production`: `/opt/platform_paas`
+
+Por eso:
+
+- cambiar código en el repo no lo deja activo en ningún ambiente
+- el cambio solo existe en un ambiente cuando se despliega a su árbol runtime
+
+## Archivos base
+
+- [deploy/deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh)
+- [deploy/deploy_backend_production.sh](/home/felipe/platform_paas/deploy/deploy_backend_production.sh)
+- [deploy/check_backend_release_readiness.sh](/home/felipe/platform_paas/deploy/check_backend_release_readiness.sh)
+- [deploy/verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh)
+- [deploy/rollback_backend.sh](/home/felipe/platform_paas/deploy/rollback_backend.sh)
+
+## Flujo correcto de release
+
+1. validar localmente en el repo
+2. desplegar a `staging`
+3. ejecutar convergencia post-deploy
+4. revisar auditoría activa por tenant
+5. promover a `production`
+6. repetir convergencia y auditoría en `production`
+
+## Deploy manual desde servidor
+
+Preflight recomendado:
 
 ```bash
 PROJECT_ROOT=/opt/platform_paas \
@@ -32,29 +55,93 @@ REQUIRE_FRONTEND_DIST=true \
 bash deploy/check_backend_release_readiness.sh
 ```
 
-Ya existe el flujo base por wrapper:
+Wrappers normales:
 
 ```bash
 bash deploy/deploy_backend_staging.sh
 bash deploy/deploy_backend_production.sh
 ```
 
-Ese flujo:
+## Qué hace hoy un deploy backend
 
-- parte mejor parado si el preflight ya confirmó `.env`, unidad `systemd`, checkout y artefactos base
-- valida variables de entorno
+El wrapper:
+
+- valida `.env` y runtime base
 - corre migraciones de control
-- ejecuta pruebas backend base
+- ejecuta pruebas backend
 - reinicia el servicio objetivo
-- verifica `systemd` y `/health` antes de dar el deploy por bueno
-- encola ademas auto-sync masivo de schema tenant para tenants activos con DB configurada
-- deja evidencia operativa local despues del gate post-deploy, tanto en exito como en fallo, salvo que `COLLECT_OPERATIONAL_EVIDENCE=false`
+- valida `systemd` y `/health`
+- corre convergencia post-deploy sobre tenants activos:
+  - schema sync
+  - seed de defaults
+  - repair `maintenance -> finance`
+  - audit activo por tenant
 
-## Rollback Manual en Servidor
+## Interpretación correcta del resultado
+
+Hay dos capas de resultado:
+
+### 1. Servicio
+
+- backend `active`
+- `healthcheck` OK
+
+### 2. Tenants
+
+- convergencia tenant-local
+- auditoría crítica por tenant
+
+Esto evita el error clásico de pensar:
+
+- "el deploy salió bien, entonces todos los tenants quedaron bien"
+
+Eso no es cierto si un tenant tiene:
+
+- credenciales DB rotas
+- password ausente
+- secuencia PK desfasada
+- defaults legacy faltantes
+
+## Modo estricto
+
+Por defecto el deploy usa convergencia no estricta:
+
+- `BACKEND_POST_DEPLOY_CONVERGENCE_STRICT=false`
+
+Con eso:
+
+- el servicio puede quedar sano aunque un tenant siga con warnings
+
+Si quieres que cualquier drift crítico tumbe el release:
+
+```bash
+BACKEND_POST_DEPLOY_CONVERGENCE_STRICT=true bash deploy/deploy_backend_production.sh
+```
+
+## Cuándo conviene rollback
+
+Rollback si:
+
+- el servicio no levanta
+- `healthcheck` falla
+- la release introdujo un bug de código o migración general
+
+No conviene rollback inmediato si:
+
+- el problema es de un tenant puntual
+- el servicio general está sano
+- la auditoría muestra drift tenant-local reparable
+
+En ese caso conviene:
+
+- reparar el tenant
+- volver a correr convergencia y auditoría
+
+## Rollback manual
 
 Script:
 
-- `deploy/rollback_backend.sh`
+- [deploy/rollback_backend.sh](/home/felipe/platform_paas/deploy/rollback_backend.sh)
 
 Uso:
 
@@ -66,85 +153,24 @@ EXPECTED_APP_ENV=production \
 bash deploy/rollback_backend.sh v1.2.3
 ```
 
-Que hace:
+## Recomendación operativa
 
-- entra al repositorio del servidor
-- hace `git fetch --all --tags --prune`
-- hace `git checkout <ref>`
-- vuelve a ejecutar el deploy backend sobre esa ref
+- probar siempre primero en `staging`
+- no promover a `production` solo porque el servicio subió
+- revisar la auditoría de tenants activos
+- dejar evidencia operativa archivada
+- tratar como incidencia distinta:
+  - falla de servicio
+  - drift tenant-local
 
-Precaucion:
+## Limitaciones actuales
 
-- el rollback asume que el directorio del servidor es un checkout git funcional
-- el rollback no revierte migraciones de DB; solo revierte codigo y reaplica el deploy
+- `staging` todavía puede quedar desalineado si algunos tenants tienen credenciales DB rotas
+- el gate no corrige automáticamente secretos runtime faltantes por tenant
+- el rollback sigue siendo de código; no revierte migraciones de datos
 
-## Workflow Manual de Deploy
+## Siguiente evolución natural
 
-Archivo:
-
-- `.github/workflows/backend-deploy.yml`
-
-Tipo:
-
-- `workflow_dispatch`
-
-Inputs:
-
-- `environment`: `staging` o `production`
-- `git_ref`: branch, tag o commit a desplegar
-- `collect_evidence`: activa o desactiva la evidencia operativa post-deploy
-- `run_remote_smoke`: activa o desactiva el smoke funcional remoto tras el deploy
-- `remote_smoke_target`: subset remoto `all|base|platform|tenant`
-
-Secrets esperados en GitHub:
-
-- `DEPLOY_HOST`
-- `DEPLOY_USER`
-- `DEPLOY_SSH_KEY`
-- `DEPLOY_PROJECT_ROOT`
-
-Secrets recomendados por entorno para smoke remoto:
-
-- `BACKEND_PUBLIC_BASE_URL`
-- `SMOKE_PLATFORM_EMAIL`
-- `SMOKE_PLATFORM_PASSWORD`
-- `SMOKE_TENANT_SLUG`
-- `SMOKE_TENANT_EMAIL`
-- `SMOKE_TENANT_PASSWORD`
-
-Que hace la plantilla:
-
-- abre SSH al servidor
-- hace `git fetch`
-- hace `git checkout` de la ref pedida
-- ejecuta el wrapper de deploy correcto segun entorno
-- puede correr un smoke funcional remoto contra la URL publica del entorno si `run_remote_smoke=true`
-- ese smoke remoto tambien puede limitarse a `base`, `platform` o `tenant` cuando solo conviene revalidar una parte
-- el workflow guarda tambien el log del smoke y un reporte JSON resumido dentro del artefacto remoto
-- el job publica ademas un resumen legible en `GitHub Actions` con estado del smoke, target ejecutado, evidencia remota detectada y cola final del log
-- ese resumen ya incluye tambien el detalle corto de checks HTTP ejecutados y su conteo `passed/failed`
-- intenta descargar la evidencia operativa mas reciente como artefacto del job para facilitar revision remota
-
-## Recomendacion Operativa
-
-- usar tags para production cuando sea posible
-- probar primero la ref en `staging`
-- correr primero `check_backend_release_readiness.sh` sobre el host objetivo
-- no considerar exitoso un deploy si falla la verificacion post-deploy
-- no considerar exitoso un deploy si falla el auto-sync post-deploy cuando ese paso esta habilitado
-- si una release falla por codigo, usar rollback a la tag previa
-- si la falla es de datos o migraciones, evaluar restore antes de solo hacer rollback de codigo
-
-## Limites de Esta Base
-
-- no existe aun aprobacion manual entre jobs
-- no existe rollback automatico
-- no existe estrategia de migraciones reversibles
-- no existe promotion pipeline entre `staging` y `production`
-
-## Siguiente Evolucion Natural
-
-- separar job de `build/test` y job de `deploy`
-- exigir aprobacion manual para production
-- desplegar solo tags firmadas o releases
-- agregar checks posteriores al deploy y rollback asistido
+- endurecer `staging` hasta tener auditoría verde en todos los tenants activos del ambiente
+- agregar promoción más explícita entre `staging` y `production`
+- usar el modo estricto cuando el carril de `staging` esté completamente saneado

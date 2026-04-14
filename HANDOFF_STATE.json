@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-13T12:10:00-04:00",
+  "updated_at": "2026-04-13T23:55:00-04:00",
   "handoff_status": "active",
-  "current_focus": "hotfix productivo del frontend SPA para evitar chunk-load errors en rutas lazy de Mantenciones y seguir con maintenance -> finance",
-  "project_phase": "production establecida con mitigacion de cache/chunks en frontend; siguiente validacion en browser real sobre rutas lazy y luego retomar ajuste funcional maintenance -> finance",
+  "current_focus": "convergencia real por ambiente y tenant para que cambios backend/frontend se reflejen igual en staging y production sin drift entre tenants",
+  "project_phase": "production convergida y auditada por tenant; staging todavia requiere saneamiento de credenciales/runtime tenant para quedar alineado al mismo nivel",
   "active_modules": [
     "platform-core",
     "finance",
@@ -16,6 +16,10 @@
     "platform-core"
   ],
   "decisions_closed": [
+    "editar el repo no equivale a tener el cambio activo en /opt/platform_paas_staging ni en /opt/platform_paas; siempre requiere deploy o sincronizacion runtime",
+    "todo cambio backend multi-tenant debe cerrarse con convergencia post-deploy y auditoria activa por tenant, no solo con tests y healthcheck",
+    "la consistencia real se mide por ambiente y por tenant; un tenant puede fallar aunque otro del mismo ambiente ya este sano",
+    "la autocorreccion de secuencia finance_transactions debe existir tanto en repository.save/persist como en FinanceService.stage_system_transaction",
     "el bootstrap contractual por modulos debe servir tanto para provisioning inicial como para backfill por cambio de plan",
     "el baseline financiero de tenants nuevos ya no debe quedar con USD como moneda operativa final por defecto; CLP pasa a ser la base efectiva",
     "la convivencia de categorias casa y empresa en finance se resuelve con nombres clasificados Casa - ... y Empresa - ... para respetar la unicidad name+category_type",
@@ -63,6 +67,16 @@
     "si un tenant legacy quedó con esa combinación inválida, la lectura efectiva la autocorrige y debe repararse con script"
   ],
   "completed_recently": [
+    "FinanceTransactionRepository ahora repara automaticamente finance_transactions_pkey cuando detecta colision por secuencia desfasada",
+    "FinanceService.stage_system_transaction replica la autocorreccion de secuencia en la ruta real usada por maintenance -> finance",
+    "script audit_active_tenant_convergence.py agregado para auditar politica efectiva, OT completadas sin sync y payload history por tenant",
+    "verify_backend_deploy.sh ahora ejecuta audit_active_tenant_convergence.py despues de schema sync, seed defaults y repair maintenance -> finance",
+    "seed_missing_tenant_defaults.py ya no aborta toda la corrida ante un tenant roto y procesa tenants activos por defecto",
+    "repair_maintenance_finance_sync.py opera sobre tenants activos por defecto en barridos masivos",
+    "production audit directo validado con processed=4 warnings=0 failed=0",
+    "production ieris-ltda verificado con transacciones reales maintenance -> finance creadas correctamente (por ejemplo OT 2 -> tx 202/203)",
+    "frontend staging republicado con los bundles actuales MaintenanceHistoryPage-CdHJKpQP.js y MaintenanceInstallationsPage-CjIp0KB9.js",
+    "frontend production republicado con los bundles actuales MaintenanceHistoryPage-CdHJKpQP.js y MaintenanceInstallationsPage-CjIp0KB9.js",
     "tenant_data_service ahora rechaza auto_on_close con ambos toggles apagados y autocorrige estados legacy inválidos",
     "MaintenanceOverviewPage bloquea en UI guardar auto_on_close con ingreso/egreso ambos apagados",
     "migración tenant v0037 corregida para que sync_active_tenant_schemas no falle por TextClause",

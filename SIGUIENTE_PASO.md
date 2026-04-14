@@ -2,32 +2,42 @@
 
 ## Prioridad vigente
 
-- validar visualmente en producción que las subrutas lazy de Mantenciones ya no rompen por chunks cacheados
+- dejar cerrada la convergencia multi-tenant por ambiente, especialmente en `staging`
 
 ## Decisión previa obligatoria
 
-- ninguna; ya desplegado
+- ninguna; la arquitectura de convergencia ya quedó definida en repo
 
 ## Próximo paso correcto
 
-- validar en browser:
-  - `Instalaciones`
-  - `Tipos de equipo`
-  - `Costos de mantención`
-  - `Agenda`
-  - `Reportes`
-- confirmar que, si existía caché vieja, el frontend ya se recarga solo una vez y entra a la ruta correcta
-- después de eso retomar la validación UX de `maintenance -> finance`
+- reparar runtime tenant en `staging` para:
+  - `condominio-demo`
+  - `ieris-ltda`
+- volver a correr:
+  - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
+  - [repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
+- mantener `production` como referencia convergida y auditada
 
 ## Si el escenario principal falla
 
-- correr `repair_maintenance_finance_sync.py --tenant-slug <slug> --dry-run`
-- revisar política efectiva `auto_on_close` y transacciones `maintenance_work_order_income/expense`
+- verificar primero si el cambio quedó solo en repo y no en runtime:
+  - `/home/felipe/platform_paas`
+  - `/opt/platform_paas_staging`
+  - `/opt/platform_paas`
+- verificar luego si el problema es tenant-local:
+  - credenciales DB tenant
+  - password DB tenant ausente
+  - secuencia financiera desfasada
+  - defaults/política faltantes
 
 ## Condición de cierre de la próxima iteración
 
-- publish frontend realizado
-- validación visual en browser confirmada
-- UX deja claro dónde se dispara el sync y dónde solo se consulta histórico
-- precio sugerido editable y persistente en el estimado (sin sobreescribir margen objetivo)
-- control por línea de lo que impacta el egreso funcionando
+- `staging` con auditoría activa sin fallos críticos en tenants activos
+- `production` y `staging` alineados por:
+  - código desplegado
+  - convergencia post-deploy
+  - auditoría activa por tenant
+- documentación de release deja explícito que:
+  - repo != runtime
+  - deploy != convergencia completa

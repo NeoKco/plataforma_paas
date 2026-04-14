@@ -3,100 +3,132 @@
 ## Última actualización
 
 - fecha: 2026-04-13
-- foco de iteración: mantenimiento -> finanzas (claridad UX entre histórico y cierre operativo)
-- estado general: flujo validado en `production` sobre `empresa-demo`; UX aclarada, compilada y publicada en `production`
+- foco de iteración: convergencia real por ambiente y tenant para evitar drift entre `development`, `staging` y `production`
+- estado general: código endurecido en repo, backend convergido y auditado en `production`; falta saneamiento puntual de credenciales/runtime en algunos tenants de `staging`
 
 ## Resumen ejecutivo en 30 segundos
 
-- `empresa-demo` ya sincroniza correctamente cierre de mantenciones hacia Finanzas en `production`
-- se verificó en DB que las OT `#321`, `#322` y `#323` tienen `income_transaction_id`, `expense_transaction_id` y `finance_synced_at`
-- la glosa final queda como `Ingreso/Egreso mantención #XXX · trabajo · cliente`
-- la vista `Ver costos` desde `Historial` es lectura consolidada; no es el punto de disparo del sync
-- la UX ahora renombra esa acción a `Ver costos (hist.)` y muestra estado visible de sincronización en el modal readonly
-- el sync real ocurre al:
-  - guardar costo real sobre una OT ya `completed`
-  - cerrar la OT desde el flujo operativo
-  - ejecutar sincronización manual a Finanzas
+- un cambio en `/home/felipe/platform_paas` no existe por sí solo en `staging` ni en `production`
+- los runtimes reales viven en:
+  - `staging`: `/opt/platform_paas_staging`
+  - `production`: `/opt/platform_paas`
+- además del deploy de código, cada ambiente necesita convergencia post-deploy sobre tenants activos:
+  - sync de schema tenant
+  - seed de defaults faltantes
+  - reparación `maintenance -> finance`
+  - auditoría activa por tenant
+- `empresa-demo` funcionó antes que `ieris-ltda` porque ya había sido reparado/backfilleado; `ieris-ltda` seguía con drift técnico en su BD tenant
+- la causa técnica concreta detectada en `ieris-ltda` fue colisión de secuencia `finance_transactions_pkey`, lo que impedía insertar movimientos sincronizados desde Mantenciones
+- `production` ya quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica
+- frontend runtime verificado en ambos ambientes con bundles nuevos:
+  - `MaintenanceHistoryPage-CdHJKpQP.js`
+  - `MaintenanceInstallationsPage-CjIp0KB9.js`
+  - `MaintenanceReportsPage-B4R_FsLR.js`
 
 ## Qué ya quedó hecho
 
-- `2026-04-13`: mitigación productiva para errores de chunks lazy del frontend:
-  - [main.tsx](/home/felipe/platform_paas/frontend/src/main.tsx) detecta `chunk load errors` y fuerza un reload controlado una sola vez
-  - plantillas nginx del frontend marcan `index.html` y rutas SPA como `no-store`
-  - publicación productiva rehecha copiando `dist` nuevo sin borrar de golpe `/assets` previos
-- [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) mantiene sync accountless y glosa sin sitio
-- [tenant_data_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/services/tenant_data_service.py) retorna `auto_on_close` cuando no hay defaults explícitos
-- [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) habilita edición de precio sugerido sin sobreescribir margen objetivo y muestra hint de margen calculado
-- [MaintenanceOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx) ajusta copy y default a auto
-- defaults de `maintenance_finance_sync_mode` pasan a `auto_on_close` en core
-- backend y frontend desplegados en `staging` y `production` con este corte
-- deploy backend ejecutó suite completa y recreó `empresa-bootstrap` en staging/production (comportamiento actual del script)
-- frontend staging/production re-publicado con API_BASE_URL correcta
-- sync a finanzas ahora fuerza egreso si hay costos reales y se sincroniza el ingreso
-- script `repair_maintenance_finance_expenses.py` aplicado en `empresa-demo` para backfill de egresos
-- líneas de costeo ahora permiten marcar qué items cuentan como egreso (`include_in_expense`)
-- script `repair_maintenance_finance_sync.py` validado en `empresa-demo`; no quedan OT completadas pendientes de sync
-- `MaintenanceHistoryPage`, `MaintenanceWorkOrderDetailModal` y `MaintenanceCostingModal` aclaran visualmente la diferencia entre consulta histórica y ajuste/sync operativo
-- validación productiva real:
-  - OT `#321` -> ingreso `#196`, egreso `#202`
-  - OT `#322` -> ingreso `#203`, egreso `#204`
-  - OT `#323` -> ingreso `#205`, egreso `#206`
+- [transaction_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/repositories/transaction_repository.py) repara automáticamente la secuencia `finance_transactions` cuando detecta colisión PK
+- [transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py) aplica la misma autocorrección en `stage_system_transaction`, que es la ruta real usada por `maintenance -> finance`
+- [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) ahora:
+  - procesa solo tenants `active` por defecto
+  - no aborta toda la corrida si un tenant falla
+  - devuelve resumen `processed/changed/failed`
+- [repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py) ahora opera solo sobre tenants `active` por defecto en barridos masivos
+- [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) nuevo:
+  - audita política efectiva `maintenance -> finance`
+  - detecta OT completadas con costo/cobro sin sync financiero
+  - valida forma del payload de historial (`finance_summary`)
+  - deja visibles los tenants con drift crítico después del deploy
+- [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ahora ejecuta, por defecto:
+  - sync de schema tenant
+  - seed de defaults faltantes
+  - reparación `maintenance -> finance`
+  - auditoría activa por tenant
+- el gate post-deploy quedó no-bloqueante por defecto para convergencia (`BACKEND_POST_DEPLOY_CONVERGENCE_STRICT=false`), de modo que un tenant roto no tumbe un servicio sano
+- `production` quedó verificado con auditoría crítica en tenants activos:
+  - `condominio-demo`: OK
+  - `empresa-bootstrap`: OK
+  - `empresa-demo`: OK
+  - `ieris-ltda`: OK
+- validación directa en `production` para `ieris-ltda`:
+  - política efectiva: `auto_on_close`
+  - existen ingresos/egresos sincronizados desde mantenciones cerradas
+  - ejemplo real: OT `#2` -> ingreso `#202`, egreso `#203`
 
-## Qué archivos se tocaron
+## Qué explica la diferencia entre `empresa-demo` e `ieris-ltda`
 
-- [backend/app/apps/tenant_modules/maintenance/schemas/costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/costing.py)
-- [backend/app/apps/tenant_modules/maintenance/services/costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py)
+- no era un problema de “la mejora se aplicó solo a un tenant”
+- era una mezcla de dos capas distintas:
+  - código desplegado por ambiente
+  - estado técnico local de cada tenant
+- `empresa-demo` ya venía con:
+  - política válida
+  - datos convergidos
+  - secuencias sanas
+- `ieris-ltda` todavía arrastraba drift en su BD tenant, por eso la misma funcionalidad no se comportaba igual
+
+## Qué archivos se tocaron en este corte
+
+- [backend/app/apps/tenant_modules/finance/repositories/transaction_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/repositories/transaction_repository.py)
 - [backend/app/apps/tenant_modules/finance/services/transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py)
-- [backend/app/apps/tenant_modules/core/services/tenant_data_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/services/tenant_data_service.py)
-- [backend/app/apps/tenant_modules/core/models/tenant_info.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/models/tenant_info.py)
-- [backend/app/apps/tenant_modules/core/schemas.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/schemas.py)
-- [backend/app/apps/tenant_modules/core/api/tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/tenant_routes.py)
-- [frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx)
-- [frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts)
-- [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx)
-- [backend/app/tests/fixtures.py](/home/felipe/platform_paas/backend/app/tests/fixtures.py)
-- [backend/app/tests/test_tenant_flow.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_flow.py)
-- [docs/modules/maintenance/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/maintenance/DEV_GUIDE.md)
-- [docs/modules/maintenance/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/maintenance/USER_GUIDE.md)
-- [docs/modules/maintenance/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/maintenance/CHANGELOG.md)
+- [backend/app/scripts/seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
+- [backend/app/scripts/repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
+- [backend/app/scripts/audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
+- [deploy/verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh)
+- [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx)
+- [frontend/src/apps/tenant_portal/modules/maintenance/services/historyService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/historyService.ts)
+- [docs/deploy/backend-post-deploy-verification.md](/home/felipe/platform_paas/docs/deploy/backend-post-deploy-verification.md)
+- [docs/deploy/backend-release-and-rollback.md](/home/felipe/platform_paas/docs/deploy/backend-release-and-rollback.md)
 
 ## Qué decisiones quedaron cerradas
 
-- maintenance -> finance debe crear ingresos/egresos aun cuando no existan cuentas definidas
-- la glosa por defecto debe incluir mantención + trabajo + cliente (sin equipo/sitio)
-- el modo efectivo sin política explícita pasa a `auto_on_close`
-- el precio sugerido del estimado es editable y no sobreescribe el margen objetivo
-- el margen objetivo muestra hint calculado cuando el usuario edita el precio sugerido
-- si hay costos reales > 0, el egreso debe sincronizarse siempre que se sincronice el ingreso
-- las líneas de costeo controlan qué ítems impactan el egreso
+- editar el repo no equivale a tener el cambio activo en `staging` o `production`
+- todo cambio backend que afecte tenants debe pasar por deploy y convergencia post-deploy
+- el criterio correcto de consistencia es por ambiente y por tenant, no por “el código compila”
+- la reparación tenant-local debe existir en runtime para secuencias financieras y no depender de intervención manual
+- la auditoría activa por tenant pasa a ser la capa visible para detectar drift real después de cada release
 
 ## Qué falta exactamente
 
-- mejorar señal visual/UX para dejar explícito que:
-  - `Ver costos (hist.)` en historial es lectura
-  - `Editar cierre` o el cierre desde bandeja activa es la acción operativa
-- mantener validación funcional:
-  - precio sugerido editable sin sobreescribir margen objetivo y hint de margen calculado visible
-  - confirmar que desmarcar una línea la excluye del egreso y del total real
-- opcional: publicar también en `staging` si se quiere mantener ambos carriles alineados
+- en `staging` todavía hay drift técnico en algunos tenants:
+  - `condominio-demo`: credenciales DB tenant inválidas
+  - `ieris-ltda`: password DB tenant no configurada en el runtime de `staging`
+- republicar frontend cuando el bundle publicado quede atrasado respecto del repo, para evitar errores como `finance_summary undefined`
+- mantener la disciplina operativa:
+  - test local
+  - deploy `staging`
+  - convergencia
+  - auditoría
+  - promoción a `production`
 
 ## Qué no debe tocarse
 
-- no desactivar la regla E2E: jamás usar `ieris-ltda`
-- no cambiar seeds de categorías fuera del catálogo default
+- no usar `ieris-ltda` para E2E ni seeds de prueba
+- no asumir que un tenant “hereda” reparaciones solo por compartir el mismo código
+- no saltarse la auditoría post-deploy en cambios multi-tenant
 
 ## Validaciones ya ejecutadas
 
-- `deploy_backend_staging.sh` ejecutó 523 tests OK (2026-04-13)
-- `deploy_backend_production.sh` ejecutó 523 tests OK (2026-04-13)
-- frontend build OK para staging y production (2026-04-13)
+- backend targeted tests locales: `35 OK`
+- frontend build local: `OK`
+- deploy backend `staging`: `OK` con warnings de runtime tenant en algunos slugs
+- deploy backend `production`: `OK`
+- publish frontend `staging`: `OK`
+- publish frontend `production`: `OK`
+- auditoría activa directa en `production`: `processed=4, warnings=0, failed=0`
 
 ## Bloqueos reales detectados
 
-- ninguno de esquema tenant en `empresa-demo`; el último incidente real fue de frontend estático/caché sobre rutas lazy
+- `staging` todavía no representa a todos los tenants reales porque:
+  - `condominio-demo` falla autenticación DB
+  - `ieris-ltda` no tiene password tenant configurada en ese runtime
 
 ## Mi conclusión
 
-- el puente `maintenance -> finance` sí está funcionando en producción para `empresa-demo`
-- el problema reportado quedó explicado por la diferencia entre la vista histórica y el flujo real de cierre/sync
-- el siguiente trabajo correcto es endurecer UX y seguir con el slice pendiente de ergonomía operativa
+- el comportamiento distinto entre `empresa-demo` e `ieris-ltda` no se debía a que la mejora fuese “solo para un tenant”
+- se debía a drift entre runtime y estado técnico tenant-local
+- la corrección estructural ya quedó definida:
+  - deploy por ambiente
+  - convergencia post-deploy
+  - auditoría activa por tenant
+- con eso se evita repetir el patrón de “funciona en un tenant, no en otro” sin visibilidad operativa

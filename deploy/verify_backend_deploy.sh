@@ -11,10 +11,12 @@ BACKEND_AUTO_SYNC_POST_DEPLOY="${BACKEND_AUTO_SYNC_POST_DEPLOY:-true}"
 BACKEND_AUTO_SYNC_LIMIT="${BACKEND_AUTO_SYNC_LIMIT:-100}"
 BACKEND_POST_DEPLOY_SEED_DEFAULTS="${BACKEND_POST_DEPLOY_SEED_DEFAULTS:-true}"
 BACKEND_POST_DEPLOY_REPAIR_MAINTENANCE_FINANCE="${BACKEND_POST_DEPLOY_REPAIR_MAINTENANCE_FINANCE:-true}"
+BACKEND_POST_DEPLOY_AUDIT_ACTIVE_TENANTS="${BACKEND_POST_DEPLOY_AUDIT_ACTIVE_TENANTS:-true}"
 BACKEND_POST_DEPLOY_CONVERGENCE_STRICT="${BACKEND_POST_DEPLOY_CONVERGENCE_STRICT:-false}"
 SYNC_SCRIPT="$PROJECT_ROOT/backend/app/scripts/sync_active_tenant_schemas.py"
 SEED_DEFAULTS_SCRIPT="$PROJECT_ROOT/backend/app/scripts/seed_missing_tenant_defaults.py"
 REPAIR_MAINTENANCE_FINANCE_SCRIPT="$PROJECT_ROOT/backend/app/scripts/repair_maintenance_finance_sync.py"
+AUDIT_ACTIVE_TENANTS_SCRIPT="$PROJECT_ROOT/backend/app/scripts/audit_active_tenant_convergence.py"
 
 CONVERGENCE_FAILED=0
 
@@ -88,6 +90,19 @@ while [ "$attempt" -le "$MAX_ATTEMPTS" ]; do
                 "$VENV_PYTHON" "$REPAIR_MAINTENANCE_FINANCE_SCRIPT" --all-active --limit "$BACKEND_AUTO_SYNC_LIMIT"
         else
             echo "Post-deploy maintenance-finance convergence skipped."
+        fi
+
+        if [ "$BACKEND_POST_DEPLOY_AUDIT_ACTIVE_TENANTS" = "true" ]; then
+            if [ ! -f "$AUDIT_ACTIVE_TENANTS_SCRIPT" ]; then
+                echo "Tenant convergence audit script not found: $AUDIT_ACTIVE_TENANTS_SCRIPT" >&2
+                exit 1
+            fi
+            echo "Running post-deploy active-tenant audit"
+            run_convergence_step \
+                "active_tenant_audit" \
+                "$VENV_PYTHON" "$AUDIT_ACTIVE_TENANTS_SCRIPT" --all-active --limit "$BACKEND_AUTO_SYNC_LIMIT"
+        else
+            echo "Post-deploy active-tenant audit skipped."
         fi
 
         if [ "$CONVERGENCE_FAILED" -ne 0 ]; then

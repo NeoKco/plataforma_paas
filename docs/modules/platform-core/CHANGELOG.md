@@ -1,5 +1,28 @@
 # Platform Core Changelog
 
+## 2026-04-13
+
+- se endurece la convergencia multi-tenant post-deploy para evitar drift entre `repo`, `staging` y `production`:
+  - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ahora ejecuta, por defecto:
+    - sync de schema tenant
+    - seed de defaults faltantes
+    - reparación `maintenance -> finance`
+    - auditoría activa por tenant
+  - el gate queda no estricto por defecto (`BACKEND_POST_DEPLOY_CONVERGENCE_STRICT=false`) para no bloquear un servicio sano por un tenant puntual con drift
+- se agrega [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py):
+  - audita política efectiva `maintenance -> finance`
+  - detecta OT completadas sin sync financiero
+  - valida que `finance_summary` venga con shape consistente en historial
+- se endurece la reparación tenant-local de Finanzas:
+  - [transaction_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/repositories/transaction_repository.py) repara `finance_transactions_pkey` ante secuencia desfasada
+  - [transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py) replica la misma autocorrección en `stage_system_transaction`, que es la ruta usada por Mantenciones
+- se endurecen los barridos masivos de convergencia:
+  - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) procesa tenants activos por defecto y continúa aunque falle uno puntual
+  - [repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py) opera sobre tenants activos por defecto
+- validación operativa cerrada:
+  - `production` auditado con `processed=4`, `warnings=0`, `failed=0`
+  - `ieris-ltda` validado ya con sync real `maintenance -> finance` funcionando en producción
+
 ## 2026-04-12
 
 - se endurece `tenant_secret_service` para ignorar `PermissionError` al leer el `.env` legacy:

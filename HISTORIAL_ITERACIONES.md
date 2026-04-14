@@ -1,5 +1,37 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-13 - Convergencia multi-tenant real entre repo, staging y production
+
+- objetivo:
+  - evitar el patrón "funciona en `empresa-demo` pero no en `ieris-ltda`" cuando el código ya fue corregido en repo
+- cambios principales:
+  - [transaction_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/repositories/transaction_repository.py) repara automáticamente la secuencia `finance_transactions` al detectar colisión PK
+  - [transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py) replica esa autocorrección en `stage_system_transaction`, que es la ruta usada por `maintenance -> finance`
+  - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) ya no aborta todo el barrido y trabaja sobre tenants activos por defecto
+  - [repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py) opera sobre tenants activos por defecto en barridos masivos
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) se agrega para auditar drift crítico por tenant después del deploy
+  - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ahora corre:
+    - sync de schema tenant
+    - seed de defaults
+    - repair `maintenance -> finance`
+    - audit activo por tenant
+- validaciones:
+  - backend targeted tests: `35 OK`
+  - frontend build local: `OK`
+  - deploy backend `staging`: `OK` con warning real sobre `condominio-demo` por credenciales DB tenant
+  - deploy backend `production`: `OK`
+  - publish frontend `staging`: `OK`
+  - publish frontend `production`: `OK`
+  - `production` audit directo: `processed=4, warnings=0, failed=0`
+  - verificación directa en `production` para `ieris-ltda`:
+    - OT `#2` -> ingreso `#202`, egreso `#203`
+    - política efectiva `auto_on_close`
+- causa confirmada:
+  - no bastaba con "tener el cambio en repo"
+  - el gap real era `repo != runtime` y `tenant saludable != tenant con drift técnico`
+- siguiente paso:
+  - reparar `staging` para tenants con credenciales/runtime dañados y rerun de la auditoría activa
+
 ## 2026-04-13 - Hotfix productivo de chunks lazy en Mantenciones
 
 - objetivo:
