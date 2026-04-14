@@ -69,6 +69,16 @@ class MaintenanceFinanceSyncDefaultsData(BaseModel):
     maintenance_finance_currency_source: str | None = None
 
 
+class MaintenanceFinanceTransactionSnapshotResponse(BaseModel):
+    transaction_id: int
+    account_id: int | None = None
+    category_id: int | None = None
+    currency_id: int
+    transaction_at: datetime
+    description: str
+    notes: str | None = None
+
+
 class MaintenanceCostEstimateItemResponse(BaseModel):
     id: int
     work_order_id: int
@@ -124,6 +134,8 @@ class MaintenanceCostActualItemResponse(BaseModel):
     income_transaction_id: int | None = None
     expense_transaction_id: int | None = None
     finance_synced_at: datetime | None = None
+    income_transaction_snapshot: MaintenanceFinanceTransactionSnapshotResponse | None = None
+    expense_transaction_snapshot: MaintenanceFinanceTransactionSnapshotResponse | None = None
     created_by_user_id: int | None = None
     updated_by_user_id: int | None = None
     created_at: datetime

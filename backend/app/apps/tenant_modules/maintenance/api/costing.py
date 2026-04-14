@@ -11,6 +11,7 @@ from app.apps.tenant_modules.maintenance.schemas import (
     MaintenanceCostActualWriteRequest,
     MaintenanceCostEstimateItemResponse,
     MaintenanceCostEstimateWriteRequest,
+    MaintenanceFinanceTransactionSnapshotResponse,
     MaintenanceCostLineItemResponse,
     MaintenanceCostingDetailData,
     MaintenanceCostingDetailResponse,
@@ -46,7 +47,26 @@ def _build_estimate(item) -> MaintenanceCostEstimateItemResponse | None:
     )
 
 
-def _build_actual(item) -> MaintenanceCostActualItemResponse | None:
+def _build_finance_transaction_snapshot(item) -> MaintenanceFinanceTransactionSnapshotResponse | None:
+    if item is None:
+        return None
+    return MaintenanceFinanceTransactionSnapshotResponse(
+        transaction_id=item.id,
+        account_id=item.account_id,
+        category_id=item.category_id,
+        currency_id=item.currency_id,
+        transaction_at=item.transaction_at,
+        description=item.description,
+        notes=item.notes,
+    )
+
+
+def _build_actual(
+    item,
+    *,
+    income_transaction_snapshot=None,
+    expense_transaction_snapshot=None,
+) -> MaintenanceCostActualItemResponse | None:
     if item is None:
         return None
     return MaintenanceCostActualItemResponse(
@@ -68,6 +88,8 @@ def _build_actual(item) -> MaintenanceCostActualItemResponse | None:
         income_transaction_id=item.income_transaction_id,
         expense_transaction_id=item.expense_transaction_id,
         finance_synced_at=item.finance_synced_at,
+        income_transaction_snapshot=_build_finance_transaction_snapshot(income_transaction_snapshot),
+        expense_transaction_snapshot=_build_finance_transaction_snapshot(expense_transaction_snapshot),
         created_by_user_id=item.created_by_user_id,
         updated_by_user_id=item.updated_by_user_id,
         created_at=item.created_at,
@@ -100,7 +122,11 @@ def _build_data(detail: dict) -> MaintenanceCostingDetailData:
         work_order_id=detail["work_order"].id,
         estimate=_build_estimate(detail.get("estimate")),
         estimate_lines=[_build_line(item) for item in detail.get("estimate_lines", [])],
-        actual=_build_actual(detail.get("actual")),
+        actual=_build_actual(
+            detail.get("actual"),
+            income_transaction_snapshot=detail.get("income_transaction_snapshot"),
+            expense_transaction_snapshot=detail.get("expense_transaction_snapshot"),
+        ),
         actual_lines=[_build_line(item) for item in detail.get("actual_lines", [])],
     )
 

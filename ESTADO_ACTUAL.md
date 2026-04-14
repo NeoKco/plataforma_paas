@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-14
-- foco de iteración: convergencia real por ambiente y tenant para evitar drift entre `development`, `staging` y `production`
-- estado general: código endurecido en repo y convergencia crítica cerrada en `staging` y `production` para tenants activos; la regla de promoción completa ya quedó fijada como estándar obligatorio del PaaS
+- foco de iteración: promoción completa del slice `maintenance -> finance` para autollenado desde transacciones vinculadas y convergencia real por ambiente/tenant
+- estado general: código endurecido en repo, slice nuevo desplegado en `staging` y `production`, y convergencia crítica cerrada en ambos ambientes para tenants activos; la regla de promoción completa ya quedó fijada como estándar obligatorio del PaaS
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -26,6 +26,9 @@
 - la causa técnica concreta detectada en `ieris-ltda` fue colisión de secuencia `finance_transactions_pkey`, lo que impedía insertar movimientos sincronizados desde Mantenciones
 - `production` ya quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica
 - `staging` también quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica tras rotar la credencial DB tenant de `condominio-demo`
+- el slice nuevo de `maintenance -> finance` ya quedó promovido en ambos ambientes:
+  - el modal de costeo reutiliza cuenta/categoría/moneda/fecha/glosa/notas desde las transacciones financieras ya vinculadas
+  - al reabrir una OT ya sincronizada no vuelve a defaults ciegos del tenant, sino al snapshot real de Finanzas
 - frontend runtime verificado en ambos ambientes con bundles nuevos:
   - `MaintenanceHistoryPage-CdHJKpQP.js`
   - `MaintenanceInstallationsPage-CjIp0KB9.js`
@@ -50,6 +53,9 @@
   - seed de defaults faltantes
   - reparación `maintenance -> finance`
   - auditoría activa por tenant
+- [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) ahora incluye snapshots de `income/expense` vinculados al devolver el detalle de costeo real
+- [costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/costing.py) serializa snapshots financieros vinculados para consumo del frontend
+- [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) ya reutiliza cuenta/categoría/moneda/fecha/glosa/notas desde la transacción financiera vinculada cuando existe
 - la regla de promoción completa quedó escrita en:
   - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
   - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
@@ -65,10 +71,15 @@
   - `bootstrap-empresa-20260412002354`: OK
   - `condominio-demo`: OK
   - `empresa-bootstrap`: OK
+- `production` quedó re-convergido después de reparar `condominio-demo`:
+  - `seed_missing_tenant_defaults.py --apply` -> `processed=4, changed=4, failed=0`
+  - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4, failures=0`
+  - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
 - `condominio-demo` en `staging` fue reparado rotando credenciales DB tenant desde [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py), lo que dejó alineados:
   - password PostgreSQL del rol tenant
   - secreto runtime en `TENANT_SECRETS_FILE`
   - metadata de rotación en control
+- `condominio-demo` en `production` también fue reparado rotando credenciales DB tenant desde el mismo servicio antes del rerun final de convergencia
 - validación directa en `production` para `ieris-ltda`:
   - política efectiva: `auto_on_close`
   - existen ingresos/egresos sincronizados desde mantenciones cerradas
@@ -90,12 +101,17 @@
 
 - [backend/app/apps/tenant_modules/finance/repositories/transaction_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/repositories/transaction_repository.py)
 - [backend/app/apps/tenant_modules/finance/services/transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py)
+- [backend/app/apps/tenant_modules/maintenance/services/costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py)
+- [backend/app/apps/tenant_modules/maintenance/api/costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/costing.py)
+- [backend/app/apps/tenant_modules/maintenance/schemas/costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/costing.py)
 - [backend/app/scripts/seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
 - [backend/app/scripts/repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
 - [backend/app/scripts/audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
 - [deploy/verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh)
 - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx)
 - [frontend/src/apps/tenant_portal/modules/maintenance/services/historyService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/historyService.ts)
+- [frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts)
+- [frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx)
 - [docs/deploy/backend-post-deploy-verification.md](/home/felipe/platform_paas/docs/deploy/backend-post-deploy-verification.md)
 - [docs/deploy/backend-release-and-rollback.md](/home/felipe/platform_paas/docs/deploy/backend-release-and-rollback.md)
 
@@ -115,6 +131,9 @@
   - convergencia
   - auditoría
   - promoción a `production`
+- seguir afinando el slice `maintenance -> finance` ya sobre una base convergida, especialmente:
+  - hints/UX de selección de egreso
+  - navegación directa desde Mantenciones a la transacción exacta en Finanzas
 - seguir endureciendo la visibilidad de drift runtime vs repo para que futuras incidencias no dependan de investigación manual
 - mantener republicación controlada del frontend cuando cambien bundles o contratos del payload para evitar errores de caché o shape inconsistente
 
@@ -128,6 +147,7 @@
 ## Validaciones ya ejecutadas
 
 - backend targeted tests locales: `35 OK`
+- backend targeted tests locales del slice nuevo: `12 OK`
 - frontend build local: `OK`
 - deploy backend `staging`: `OK`
 - deploy backend `production`: `OK`
@@ -135,6 +155,10 @@
 - publish frontend `production`: `OK`
 - rerun convergencia `staging`:
   - `seed_missing_tenant_defaults.py --apply` -> `processed=4, changed=2, failed=0`
+  - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4, failures=0`
+  - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
+- rerun convergencia `production`:
+  - `seed_missing_tenant_defaults.py --apply` -> `processed=4, changed=4, failed=0`
   - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4, failures=0`
   - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
 - auditoría activa directa en `production`: `processed=4, warnings=0, failed=0`
@@ -155,5 +179,6 @@
   - deploy por ambiente
   - convergencia post-deploy
   - auditoría activa por tenant
+- el slice nuevo de autollenado desde transacciones vinculadas también quedó promovido bajo esa misma regla
 - además, desde ahora la regla queda escrita: cuando un cambio se declara correcto para la PaaS, debe quedar promovido, convergido, probado y documentado en todos los ambientes/tenants afectados
 - con eso se evita repetir el patrón de “funciona en un tenant, no en otro” sin visibilidad operativa

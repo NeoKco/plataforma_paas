@@ -2,6 +2,13 @@
 
 ## 2026-04-14
 
+- se cierra la promoción completa del siguiente slice tenant-side sin dejar drift entre ambientes:
+  - `maintenance -> finance` ahora puede reutilizar snapshots financieros ya vinculados al reabrir el cierre económico
+  - `production` recupera `condominio-demo` rotando credenciales DB tenant y vuelve a converger `4/4` tenants activos
+  - validación final de convergencia:
+    - `seed_missing_tenant_defaults.py --apply` -> `processed=4`, `changed=4`, `failed=0`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4`, `failed=0`
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
 - se formaliza la regla de promoción completa del PaaS:
   - un cambio declarado correcto debe cerrarse en todos los ambientes y tenants activos afectados
   - no basta con que funcione en repo, en un tenant o en un solo ambiente

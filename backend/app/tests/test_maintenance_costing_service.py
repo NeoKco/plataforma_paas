@@ -95,6 +95,64 @@ class _FakeTenantDb:
 
 
 class MaintenanceCostingServiceTestCase(unittest.TestCase):
+    def test_get_costing_detail_includes_linked_finance_transaction_snapshots(self) -> None:
+        work_order = SimpleNamespace(id=41, title="Mantención SST")
+        actual = MaintenanceCostActual(
+            work_order_id=41,
+            labor_cost=15000,
+            travel_cost=5000,
+            materials_cost=10000,
+            external_services_cost=0,
+            overhead_cost=0,
+            total_actual_cost=30000,
+            actual_price_charged=65000,
+            actual_income=65000,
+            actual_profit=35000,
+            actual_margin_percent=53.85,
+        )
+        actual.income_transaction_id = 101
+        actual.expense_transaction_id = 202
+        income_transaction = SimpleNamespace(
+            id=101,
+            account_id=11,
+            category_id=21,
+            currency_id=31,
+            transaction_at=datetime(2026, 4, 14, 10, 30, tzinfo=timezone.utc),
+            description="Ingreso mantención #41 · SST · Cliente",
+            notes="Cobro final",
+        )
+        expense_transaction = SimpleNamespace(
+            id=202,
+            account_id=12,
+            category_id=22,
+            currency_id=31,
+            transaction_at=datetime(2026, 4, 14, 10, 30, tzinfo=timezone.utc),
+            description="Egreso mantención #41 · SST · Cliente",
+            notes="Costo operativo",
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                MaintenanceWorkOrder: work_order,
+                MaintenanceCostActual: actual,
+                MaintenanceCostLine: [],
+            }
+        )
+        service = MaintenanceCostingService(finance_service=Mock())
+        service._get_finance_transaction = Mock(
+            side_effect=[income_transaction, expense_transaction]
+        )
+
+        detail = service.get_costing_detail(tenant_db, 41)
+
+        self.assertEqual(detail["income_transaction_snapshot"].id, 101)
+        self.assertEqual(detail["expense_transaction_snapshot"].id, 202)
+        self.assertEqual(detail["income_transaction_snapshot"].account_id, 11)
+        self.assertEqual(detail["expense_transaction_snapshot"].category_id, 22)
+        self.assertEqual(
+            detail["income_transaction_snapshot"].description,
+            "Ingreso mantención #41 · SST · Cliente",
+        )
+
     def test_upsert_cost_estimate_derives_total_and_suggested_price(self) -> None:
         work_order = SimpleNamespace(id=17, title="Mantención SST")
         tenant_db = _FakeTenantDb({MaintenanceWorkOrder: work_order})

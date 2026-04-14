@@ -512,6 +512,102 @@ function buildFinanceSuggestionHint(
     : `Effective backend suggestion: ${pieces.join(" · ")}.`;
 }
 
+function buildFinanceSyncFormFromDetail(params: {
+  detail: TenantMaintenanceCostingDetail;
+  syncDefaults: TenantMaintenanceFinanceSyncDefaults;
+  accounts: TenantFinanceAccount[];
+  categories: TenantFinanceCategory[];
+  currencies: TenantFinanceCurrency[];
+  defaultCurrencyId: number | null;
+  workOrder: MaintenanceCostingModalWorkOrder;
+  clientLabel: string;
+  siteLabel: string;
+  installationLabel: string;
+  language: "es" | "en";
+  effectiveTimeZone?: string | null;
+}): MaintenanceFinanceSyncFormState {
+  const {
+    detail,
+    syncDefaults,
+    accounts,
+    categories,
+    currencies,
+    defaultCurrencyId,
+    workOrder,
+    clientLabel,
+    siteLabel,
+    installationLabel,
+    language,
+    effectiveTimeZone,
+  } = params;
+  const incomeSnapshot = detail.actual?.income_transaction_snapshot ?? null;
+  const expenseSnapshot = detail.actual?.expense_transaction_snapshot ?? null;
+  const transactionAtSource =
+    incomeSnapshot?.transaction_at ??
+    expenseSnapshot?.transaction_at ??
+    detail.actual?.finance_synced_at ??
+    workOrder.completed_at ??
+    workOrder.scheduled_for ??
+    workOrder.requested_at;
+
+  return {
+    sync_income: syncDefaults.maintenance_finance_auto_sync_income,
+    sync_expense: syncDefaults.maintenance_finance_auto_sync_expense,
+    income_account_id: findActiveAccountId(
+      accounts,
+      incomeSnapshot?.account_id ?? syncDefaults.maintenance_finance_income_account_id
+    ),
+    expense_account_id: findActiveAccountId(
+      accounts,
+      expenseSnapshot?.account_id ?? syncDefaults.maintenance_finance_expense_account_id
+    ),
+    income_category_id: findActiveCategoryId(
+      categories,
+      "income",
+      incomeSnapshot?.category_id ?? syncDefaults.maintenance_finance_income_category_id
+    ),
+    expense_category_id: findActiveCategoryId(
+      categories,
+      "expense",
+      expenseSnapshot?.category_id ?? syncDefaults.maintenance_finance_expense_category_id
+    ),
+    currency_id: findActiveCurrencyId(
+      currencies,
+      incomeSnapshot?.currency_id ??
+        expenseSnapshot?.currency_id ??
+        syncDefaults.maintenance_finance_currency_id ??
+        defaultCurrencyId
+    ),
+    transaction_at: toDateTimeLocalInputValue(transactionAtSource, effectiveTimeZone),
+    income_description:
+      incomeSnapshot?.description ??
+      buildFinanceDescription(
+        "income",
+        workOrder,
+        clientLabel,
+        siteLabel,
+        installationLabel,
+        language
+      ),
+    expense_description:
+      expenseSnapshot?.description ??
+      buildFinanceDescription(
+        "expense",
+        workOrder,
+        clientLabel,
+        siteLabel,
+        installationLabel,
+        language
+      ),
+    notes:
+      detail.actual?.notes ??
+      incomeSnapshot?.notes ??
+      expenseSnapshot?.notes ??
+      detail.estimate?.notes ??
+      "",
+  };
+}
+
 function hasMeaningfulActualData(
   actual: TenantMaintenanceCostActual | null,
   actualLines: TenantMaintenanceCostLine[]
@@ -904,11 +1000,6 @@ export function MaintenanceCostingModal({
         ];
         const autoTemplate = matchingTemplates.length === 1 ? matchingTemplates[0] : null;
         const defaultCurrency = currencies.find((currency) => currency.is_base) || currencies[0];
-        const transactionAtSource =
-          detail.actual?.finance_synced_at ??
-          currentWorkOrder.completed_at ??
-          currentWorkOrder.scheduled_for ??
-          currentWorkOrder.requested_at;
         const hasEstimateData = hasMeaningfulEstimateData(detail.estimate, detail.estimate_lines);
         const hasActualData = hasMeaningfulActualData(detail.actual, detail.actual_lines);
 
@@ -973,61 +1064,22 @@ export function MaintenanceCostingModal({
 
         setCompletionNote(currentWorkOrder.closure_notes ?? "");
         setUseCustomTransactionAt(false);
-        const referenceLabel = buildFinanceReferenceLabel(
-          currentWorkOrder,
-          clientLabel,
-          siteLabel,
-          installationLabel
-        );
-        const defaultIncomeDescription = buildFinanceDescription(
-          "income",
-          currentWorkOrder,
-          clientLabel,
-          siteLabel,
-          installationLabel,
-          language
-        );
-        const defaultExpenseDescription = buildFinanceDescription(
-          "expense",
-          currentWorkOrder,
-          clientLabel,
-          siteLabel,
-          installationLabel,
-          language
-        );
-        setFinanceSyncForm({
-          sync_income: syncDefaults.maintenance_finance_auto_sync_income,
-          sync_expense: syncDefaults.maintenance_finance_auto_sync_expense,
-          income_account_id: findActiveAccountId(
+        setFinanceSyncForm(
+          buildFinanceSyncFormFromDetail({
+            detail,
+            syncDefaults,
             accounts,
-            syncDefaults.maintenance_finance_income_account_id
-          ),
-          expense_account_id: findActiveAccountId(
-            accounts,
-            syncDefaults.maintenance_finance_expense_account_id
-          ),
-          income_category_id: findActiveCategoryId(
             categories,
-            "income",
-            syncDefaults.maintenance_finance_income_category_id
-          ),
-          expense_category_id: findActiveCategoryId(
-            categories,
-            "expense",
-            syncDefaults.maintenance_finance_expense_category_id
-          ),
-          currency_id: findActiveCurrencyId(
             currencies,
-            syncDefaults.maintenance_finance_currency_id ?? defaultCurrency?.id ?? null
-          ),
-          transaction_at: toDateTimeLocalInputValue(
-            currentWorkOrder.completed_at ?? transactionAtSource,
-            effectiveTimeZone
-          ),
-          income_description: referenceLabel ? defaultIncomeDescription : defaultIncomeDescription,
-          expense_description: referenceLabel ? defaultExpenseDescription : defaultExpenseDescription,
-          notes: detail.actual?.notes ?? detail.estimate?.notes ?? "",
-        });
+            defaultCurrencyId: defaultCurrency?.id ?? null,
+            workOrder: currentWorkOrder,
+            clientLabel,
+            siteLabel,
+            installationLabel,
+            language,
+            effectiveTimeZone,
+          })
+        );
       } catch (rawError) {
         if (!cancelled) {
           setFinanceSyncDefaults(null);
@@ -1240,6 +1292,28 @@ export function MaintenanceCostingModal({
           ? String(response.data.actual.applied_cost_template_id)
           : null
       );
+      if (financeSyncDefaults) {
+        setFinanceSyncForm(
+          buildFinanceSyncFormFromDetail({
+            detail: response.data,
+            syncDefaults: financeSyncDefaults,
+            accounts: financeAccounts,
+            categories: financeCategories,
+            currencies: financeCurrencies,
+            defaultCurrencyId:
+              financeSyncDefaults.maintenance_finance_currency_id ??
+              financeCurrencies.find((currency) => currency.is_base)?.id ??
+              financeCurrencies[0]?.id ??
+              null,
+            workOrder: currentWorkOrder,
+            clientLabel,
+            siteLabel,
+            installationLabel,
+            language,
+            effectiveTimeZone,
+          })
+        );
+      }
       onFeedback?.(response.message);
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -1282,6 +1356,28 @@ export function MaintenanceCostingModal({
           ? String(costingResponse.data.actual.applied_cost_template_id)
           : null
       );
+      if (financeSyncDefaults) {
+        setFinanceSyncForm(
+          buildFinanceSyncFormFromDetail({
+            detail: costingResponse.data,
+            syncDefaults: financeSyncDefaults,
+            accounts: financeAccounts,
+            categories: financeCategories,
+            currencies: financeCurrencies,
+            defaultCurrencyId:
+              financeSyncDefaults.maintenance_finance_currency_id ??
+              financeCurrencies.find((currency) => currency.is_base)?.id ??
+              financeCurrencies[0]?.id ??
+              null,
+            workOrder: currentWorkOrder,
+            clientLabel,
+            siteLabel,
+            installationLabel,
+            language,
+            effectiveTimeZone,
+          })
+        );
+      }
 
       const statusResponse = await updateTenantMaintenanceWorkOrderStatus(
         accessToken,
@@ -1361,10 +1457,33 @@ export function MaintenanceCostingModal({
         notes: normalizeNullable(financeSyncForm.notes),
       });
       setCostingDetail(response.data);
-      setFinanceSyncForm((current) => ({
-        ...current,
-        notes: response.data.actual?.notes ?? current.notes,
-      }));
+      if (financeSyncDefaults) {
+        setFinanceSyncForm(
+          buildFinanceSyncFormFromDetail({
+            detail: response.data,
+            syncDefaults: financeSyncDefaults,
+            accounts: financeAccounts,
+            categories: financeCategories,
+            currencies: financeCurrencies,
+            defaultCurrencyId:
+              financeSyncDefaults.maintenance_finance_currency_id ??
+              financeCurrencies.find((currency) => currency.is_base)?.id ??
+              financeCurrencies[0]?.id ??
+              null,
+            workOrder: currentWorkOrder,
+            clientLabel,
+            siteLabel,
+            installationLabel,
+            language,
+            effectiveTimeZone,
+          })
+        );
+      } else {
+        setFinanceSyncForm((current) => ({
+          ...current,
+          notes: response.data.actual?.notes ?? current.notes,
+        }));
+      }
       onFeedback?.(response.message);
     } catch (rawError) {
       setError(rawError as ApiError);

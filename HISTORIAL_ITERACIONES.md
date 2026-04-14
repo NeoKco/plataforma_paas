@@ -1,5 +1,34 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-14 - Slice maintenance -> finance promovido completo con snapshots financieros vinculados
+
+- objetivo:
+  - evitar que el modal de costeo vuelva a defaults ciegos cuando la OT ya está sincronizada con Finanzas
+  - cerrar el slice bajo la nueva regla de promoción completa por ambiente y tenant
+- cambios principales:
+  - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) ahora devuelve snapshots de `income/expense` vinculados
+  - [costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/costing.py) serializa esos snapshots al contrato tenant
+  - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) ya reconstruye el formulario de sync usando cuenta/categoría/moneda/fecha/glosa/notas desde la transacción financiera real cuando existe
+  - [costingService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts) agrega el contrato tipado de snapshots vinculados
+  - [test_maintenance_costing_service.py](/home/felipe/platform_paas/backend/app/tests/test_maintenance_costing_service.py) cubre el detalle con snapshots financieros ligados
+  - se repara `condominio-demo` en `production` rotando credenciales DB tenant para poder cerrar la convergencia real del ambiente
+- validaciones:
+  - repo: `python -m unittest app.tests.test_maintenance_costing_service` -> `12 tests OK`
+  - repo: `cd frontend && npm run build` -> `OK`
+  - `staging`: `bash deploy/deploy_backend_staging.sh` -> `525 tests OK`
+  - `production`: `bash deploy/deploy_backend_production.sh` -> `525 tests OK`
+  - `staging`: frontend publicado
+  - `production`: frontend publicado
+  - `production`: `seed_missing_tenant_defaults.py --apply` -> `processed=4, changed=4, failed=0`
+  - `production`: `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4, failures=0`
+  - `production`: `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
+- resultado:
+  - el slice ya quedó promovido y convergido en `staging` y `production`
+  - `maintenance -> finance` ahora recuerda los datos reales ya sincronizados al reabrir el cierre económico
+  - ambos ambientes quedan otra vez en `4/4` tenants activos auditados sin fallos críticos
+- siguiente paso:
+  - abrir el siguiente subcorte fino de UX/operación sobre la base ya convergida
+
 ## 2026-04-14 - Regla de promoción completa + cierre limpio de convergencia en staging
 
 - objetivo:

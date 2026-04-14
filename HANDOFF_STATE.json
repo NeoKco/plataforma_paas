@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-14T00:15:00-04:00",
+  "updated_at": "2026-04-14T00:33:00-04:00",
   "handoff_status": "active",
-  "current_focus": "promocion completa por ambiente y tenant como regla operativa: todo cambio correcto debe quedar desplegado, convergido, auditado, probado y documentado en staging y production",
-  "project_phase": "staging y production convergidos y auditados para tenants activos; el siguiente slice debe cerrarse usando la nueva regla de promocion completa",
+  "current_focus": "slice maintenance -> finance promovido con snapshots financieros vinculados y convergencia real cerrada en staging y production; el siguiente corte debe montarse sobre la misma regla de promocion completa",
+  "project_phase": "staging y production convergidos y auditados para tenants activos, con el ultimo slice maintenance -> finance ya desplegado y recordando datos reales de Finanzas al reabrir OT sincronizadas",
   "active_modules": [
     "platform-core",
     "finance",
@@ -68,6 +68,14 @@
     "un cambio correcto para la PaaS no se considera cerrado si solo funciona en repo, en un tenant o en un ambiente; debe quedar promovido, convergido, auditado, probado y documentado en todos los ambientes/tenants afectados"
   ],
   "completed_recently": [
+    "slice maintenance -> finance promovido en staging y production para reutilizar snapshots financieros vinculados al reabrir costos y cobro",
+    "MaintenanceCostingService ahora devuelve income_transaction_snapshot y expense_transaction_snapshot en el detalle de costeo",
+    "MaintenanceCostingModal ya reconstruye la sync financiera desde cuenta/categoria/moneda/fecha/glosa/notas de la transaccion vinculada",
+    "backend unittest app.tests.test_maintenance_costing_service revalidado con 12 tests OK para este slice",
+    "production condominio-demo reparado rotando credenciales DB tenant desde TenantService.rotate_tenant_db_credentials",
+    "production seed_missing_tenant_defaults --apply reejecutado con processed=4 changed=4 failed=0",
+    "production repair_maintenance_finance_sync --all-active reejecutado con processed=4 failures=0",
+    "production audit_active_tenant_convergence reejecutado con processed=4 warnings=0 failed=0",
     "regla de promocion completa por ambiente y tenant documentada en REGLAS_IMPLEMENTACION, CHECKLIST_CIERRE_ITERACION y docs/architecture/implementation-governance.md",
     "condominio-demo staging reparado rotando credenciales DB tenant desde TenantService.rotate_tenant_db_credentials",
     "staging seed_missing_tenant_defaults --apply reejecutado con processed=4 changed=2 failed=0",

@@ -55,10 +55,22 @@ export type TenantMaintenanceCostActual = {
   income_transaction_id: number | null;
   expense_transaction_id: number | null;
   finance_synced_at: string | null;
+  income_transaction_snapshot: TenantMaintenanceFinanceTransactionSnapshot | null;
+  expense_transaction_snapshot: TenantMaintenanceFinanceTransactionSnapshot | null;
   created_by_user_id: number | null;
   updated_by_user_id: number | null;
   created_at: string;
   updated_at: string;
+};
+
+export type TenantMaintenanceFinanceTransactionSnapshot = {
+  transaction_id: number;
+  account_id: number | null;
+  category_id: number | null;
+  currency_id: number;
+  transaction_at: string;
+  description: string;
+  notes: string | null;
 };
 
 export type TenantMaintenanceCostingDetail = {

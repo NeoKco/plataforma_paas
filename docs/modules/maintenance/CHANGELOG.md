@@ -2,6 +2,23 @@
 
 ## 2026-04-13
 
+- el modal `Costos y cobro` ahora reutiliza la transacción financiera ya vinculada cuando existe:
+  - cuenta
+  - categoría
+  - moneda
+  - fecha contable
+  - glosa
+  - notas
+- esto evita que al reabrir una OT ya sincronizada el operador vea defaults ciegos del tenant en vez del estado financiero real ya guardado
+- el contrato backend del costeo ahora incluye snapshots `income_transaction_snapshot` y `expense_transaction_snapshot`
+- validación del corte:
+  - repo: `python -m unittest app.tests.test_maintenance_costing_service` -> `12 tests OK`
+  - repo: `cd frontend && npm run build` -> `OK`
+  - `staging`: backend desplegado con `525 tests OK`
+  - `production`: backend desplegado con `525 tests OK`
+  - `staging` y `production`: frontend publicado con el slice nuevo
+  - `production`: convergencia multi-tenant final nuevamente en `processed=4, warnings=0, failed=0`
+
 - la UX de `Historial` deja explícita la diferencia entre consulta y operación:
   - `Ver costos` pasa a mostrarse como `Ver costos (hist.)`
   - se agrega alerta en `Historial` indicando que esa vista es solo lectura

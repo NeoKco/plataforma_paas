@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y abrir el siguiente frente funcional sobre una base ya alineada
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y abrir el siguiente subcorte fino de `maintenance -> finance` sobre una base ya alineada
 
 ## Decisión previa obligatoria
 
@@ -19,6 +19,9 @@
   - convergencia `production`
   - auditoría `production`
   - documentación viva cerrada
+- siguiente subcorte funcional recomendado:
+  - navegación directa o filtro contextual desde Mantenciones hacia la transacción exacta en Finanzas
+  - endurecer hints/controles de egreso seleccionable para que el operador vea con claridad qué líneas sí salen a egreso y cuáles no
 - mantener como comando obligatorio de cierre multi-tenant:
   - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
   - [repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
@@ -40,6 +43,7 @@
 
 - `staging` y `production` mantienen auditoría activa sin fallos críticos en tenants activos después del nuevo cambio
 - el nuevo slice queda probado al menos en ambos ambientes reales afectados
+- el nuevo subcorte de `maintenance -> finance` se verifica al menos en `empresa-demo` y `ieris-ltda` sobre runtime real
 - documentación de release deja explícito que:
   - repo != runtime
   - deploy != convergencia completa

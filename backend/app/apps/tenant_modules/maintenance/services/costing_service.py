@@ -10,6 +10,7 @@ from app.apps.tenant_modules.finance.models import (
     FinanceAccount,
     FinanceCategory,
     FinanceCurrency,
+    FinanceTransaction,
 )
 from app.apps.tenant_modules.core.services.tenant_data_service import TenantDataService
 from app.apps.tenant_modules.finance.schemas import (
@@ -50,12 +51,25 @@ class MaintenanceCostingService:
         estimate = self._get_estimate(tenant_db, work_order_id)
         actual = self._get_actual(tenant_db, work_order_id)
         lines = self._get_cost_lines(tenant_db, work_order_id)
+        income_transaction = None
+        expense_transaction = None
+        if actual is not None:
+            income_transaction = self._get_finance_transaction(
+                tenant_db,
+                actual.income_transaction_id,
+            )
+            expense_transaction = self._get_finance_transaction(
+                tenant_db,
+                actual.expense_transaction_id,
+            )
         return {
             "work_order": work_order,
             "estimate": estimate,
             "actual": actual,
             "estimate_lines": [line for line in lines if line.cost_stage == "estimate"],
             "actual_lines": [line for line in lines if line.cost_stage == "actual"],
+            "income_transaction_snapshot": income_transaction,
+            "expense_transaction_snapshot": expense_transaction,
         }
 
     def get_finance_sync_defaults(self, tenant_db: Session) -> dict:
@@ -262,6 +276,19 @@ class MaintenanceCostingService:
         if item is None:
             raise ValueError("La plantilla de costeo seleccionada no existe")
         return item
+
+    def _get_finance_transaction(
+        self,
+        tenant_db: Session,
+        transaction_id: int | None,
+    ) -> FinanceTransaction | None:
+        if transaction_id is None:
+            return None
+        return (
+            tenant_db.query(FinanceTransaction)
+            .filter(FinanceTransaction.id == transaction_id)
+            .first()
+        )
 
     def sync_to_finance(
         self,
