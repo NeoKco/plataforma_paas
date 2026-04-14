@@ -254,11 +254,19 @@ class MaintenanceWorkOrderService:
             tenant_db.commit()
             tenant_db.refresh(item)
         if next_status == "completed":
-            self.costing_service.maybe_auto_sync_by_tenant_policy(
-                tenant_db,
-                item.id,
-                actor_user_id=changed_by_user_id,
-            )
+            if payload.finance_sync is not None:
+                self.costing_service.sync_to_finance(
+                    tenant_db,
+                    item.id,
+                    payload.finance_sync,
+                    actor_user_id=changed_by_user_id,
+                )
+            else:
+                self.costing_service.maybe_auto_sync_by_tenant_policy(
+                    tenant_db,
+                    item.id,
+                    actor_user_id=changed_by_user_id,
+                )
             tenant_db.refresh(item)
         return item
 

@@ -1414,47 +1414,14 @@ export function MaintenanceCostingModal({
         accessToken,
         currentWorkOrder.id,
         "completed",
-        normalizeNullable(completionNote)
+        normalizeNullable(completionNote),
+        selectedFinanceSyncPayload
       );
-
-      if (
-        selectedFinanceSyncPayload &&
-        (selectedFinanceSyncPayload.sync_income || selectedFinanceSyncPayload.sync_expense)
-      ) {
-        const financeResponse = await syncTenantMaintenanceWorkOrderToFinance(
-          accessToken,
-          currentWorkOrder.id,
-          selectedFinanceSyncPayload
-        );
-        setCostingDetail(financeResponse.data);
-        if (financeSyncDefaults) {
-          setFinanceSyncForm(
-            buildFinanceSyncFormFromDetail({
-              detail: financeResponse.data,
-              syncDefaults: financeSyncDefaults,
-              accounts: financeAccounts,
-              categories: financeCategories,
-              currencies: financeCurrencies,
-              defaultCurrencyId:
-                financeSyncDefaults.maintenance_finance_currency_id ??
-                financeCurrencies.find((currency) => currency.is_base)?.id ??
-                financeCurrencies[0]?.id ??
-                null,
-              workOrder: currentWorkOrder,
-              clientLabel,
-              siteLabel,
-              installationLabel,
-              language,
-              effectiveTimeZone,
-            })
-          );
-        }
-      }
 
       onFeedback?.(
         language === "es"
-          ? "Costo real guardado, mantención cerrada y sincronización financiera aplicada correctamente"
-          : "Actual cost saved, maintenance closed, and finance sync applied successfully"
+          ? "Costo real guardado, mantención cerrada y sincronización financiera aplicada desde el cierre"
+          : "Actual cost saved, maintenance closed, and finance sync applied from the close action"
       );
       await onCompleted?.(statusResponse.data.id);
       onClose();

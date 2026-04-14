@@ -203,14 +203,14 @@ function getFinanceStatusTone(
   return "neutral";
 }
 
-function getFinanceSummary(item: TenantMaintenanceHistoryWorkOrder) {
+function getFinanceSummary(item?: TenantMaintenanceHistoryWorkOrder | null) {
   return {
     has_actual_cost: false,
     is_synced_to_finance: false,
     income_transaction_id: null,
     expense_transaction_id: null,
     finance_synced_at: null,
-    ...(item.finance_summary ?? {}),
+    ...(item?.finance_summary ?? {}),
   };
 }
 

@@ -58,6 +58,20 @@ export type TenantMaintenanceWorkOrderWriteRequest = {
   maintenance_status?: string;
 };
 
+export type TenantMaintenanceStatusFinanceSyncRequest = {
+  sync_income: boolean;
+  sync_expense: boolean;
+  income_account_id: number | null;
+  expense_account_id: number | null;
+  income_category_id: number | null;
+  expense_category_id: number | null;
+  currency_id: number;
+  transaction_at: string | null;
+  income_description: string | null;
+  expense_description: string | null;
+  notes: string | null;
+};
+
 export function getTenantMaintenanceWorkOrders(
   accessToken: string,
   options: {
@@ -120,7 +134,8 @@ export function updateTenantMaintenanceWorkOrderStatus(
   accessToken: string,
   workOrderId: number,
   maintenanceStatus: string,
-  note: string | null = null
+  note: string | null = null,
+  financeSync: TenantMaintenanceStatusFinanceSyncRequest | null = null
 ) {
   return apiRequest<TenantMaintenanceWorkOrderMutationResponse>(
     `/tenant/maintenance/work-orders/${workOrderId}/status`,
@@ -130,6 +145,7 @@ export function updateTenantMaintenanceWorkOrderStatus(
       body: {
         maintenance_status: maintenanceStatus,
         note,
+        finance_sync: financeSync,
       },
     }
   );

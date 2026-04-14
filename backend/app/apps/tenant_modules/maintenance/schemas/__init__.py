@@ -1,5 +1,6 @@
 from app.apps.tenant_modules.maintenance.schemas.common import (
     MaintenanceResponseBase,
+    MaintenanceStatusFinanceSyncRequest,
     MaintenanceStatusUpdateRequest,
 )
 from app.apps.tenant_modules.maintenance.schemas.cost_template import (
@@ -96,6 +97,7 @@ from app.apps.tenant_modules.maintenance.schemas.visit import (
 
 __all__ = [
     "MaintenanceResponseBase",
+    "MaintenanceStatusFinanceSyncRequest",
     "MaintenanceStatusUpdateRequest",
     "MaintenanceCostTemplateCreateRequest",
     "MaintenanceCostTemplateUpdateRequest",

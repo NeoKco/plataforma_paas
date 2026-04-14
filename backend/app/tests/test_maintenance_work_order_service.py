@@ -798,6 +798,62 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
             actor_user_id=7,
         )
 
+    def test_update_work_order_status_completed_uses_explicit_finance_sync_payload(self) -> None:
+        existing_item = SimpleNamespace(
+            id=24,
+            maintenance_status="scheduled",
+            completed_at=None,
+            cancelled_at=None,
+            due_item_id=None,
+            schedule_id=None,
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        status_log_repository = Mock()
+        visit_repository = Mock()
+        costing_service = Mock()
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+            status_log_repository=status_log_repository,
+            visit_repository=visit_repository,
+            costing_service=costing_service,
+        )
+        tenant_db = Mock()
+        tenant_db.add.return_value = None
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.return_value = None
+
+        updated = service.update_work_order_status(
+            tenant_db,
+            24,
+            MaintenanceStatusUpdateRequest(
+                maintenance_status="completed",
+                note="Cierre operativo",
+                finance_sync={
+                    "sync_income": True,
+                    "sync_expense": True,
+                    "income_account_id": 1,
+                    "expense_account_id": 1,
+                    "income_category_id": 39,
+                    "expense_category_id": 40,
+                    "currency_id": 2,
+                    "transaction_at": None,
+                    "income_description": "Ingreso mantención #24 · SST · Cliente",
+                    "expense_description": "Egreso mantención #24 · SST · Cliente",
+                    "notes": "sync explicito",
+                },
+            ),
+            changed_by_user_id=7,
+        )
+
+        self.assertEqual(updated.maintenance_status, "completed")
+        costing_service.sync_to_finance.assert_called_once()
+        sync_args = costing_service.sync_to_finance.call_args
+        self.assertEqual(sync_args.args[0], tenant_db)
+        self.assertEqual(sync_args.args[1], 24)
+        self.assertEqual(sync_args.kwargs["actor_user_id"], 7)
+        costing_service.maybe_auto_sync_by_tenant_policy.assert_not_called()
+
     def test_create_work_order_rejects_conflicting_active_slot(self) -> None:
         work_order_repository = Mock()
         work_order_repository.get_by_external_reference.return_value = None
