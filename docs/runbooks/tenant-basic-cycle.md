@@ -237,6 +237,54 @@ Notas:
 - por defecto no toca tenants `archived`
 - si existen categorías en un tenant sin uso financiero, el script no borra nada (usa `--force-finance` para forzar el seed)
 
+### Copia selectiva de empresas, clientes, grupos y tipos de equipo entre tenants
+
+Si necesitas trasladar solo catálogos operativos base entre dos tenants activos sin importar paquetes completos, usa:
+
+```bash
+cd /home/felipe/platform_paas/backend
+set -a
+source /opt/platform_paas/.env
+set +a
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/copy_selected_business_core_maintenance_data.py \
+  --source-tenant <source_slug> \
+  --target-tenant <target_slug>
+```
+
+Eso corre primero en `dry_run` y resume:
+
+- `business_organizations`
+- `business_clients`
+- `business_work_groups`
+- `maintenance_equipment_types`
+
+Para aplicar la copia real:
+
+```bash
+cd /home/felipe/platform_paas/backend
+set -a
+source /opt/platform_paas/.env
+set +a
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/copy_selected_business_core_maintenance_data.py \
+  --source-tenant <source_slug> \
+  --target-tenant <target_slug> \
+  --apply
+```
+
+Reglas operativas:
+
+- el script no borra datos sobrantes del tenant destino
+- hace `upsert` por clave natural:
+  - organizaciones: nombre, con fallback por `tax_id`
+  - clientes: organización ya resuelta en el tenant destino
+  - grupos: `code` o `name`
+  - tipos de equipo: `code` o `name`
+- si corres sin `--apply`, revierte al final y solo entrega evidencia
+
 ### Reparar familias en categorías finance
 
 Si un tenant tiene categorías sin familia (parent):

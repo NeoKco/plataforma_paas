@@ -2,6 +2,20 @@
 
 ## 2026-04-14
 
+- se agrega [copy_selected_business_core_maintenance_data.py](/home/felipe/platform_paas/backend/app/scripts/copy_selected_business_core_maintenance_data.py) como utilidad operativa para copiar selectivamente entre tenants:
+  - `business_organizations`
+  - `business_clients`
+  - `business_work_groups`
+  - `maintenance_equipment_types`
+  - trabaja en `dry_run` por defecto y hace `upsert` por clave natural
+- operación real ejecutada:
+  - `empresa-demo -> ieris-ltda`
+  - resultado aplicado:
+    - `204` organizaciones
+    - `191` clientes
+    - `4` grupos
+    - `4` tipos de equipo
+
 - se endurece el lifecycle destructivo de tenants para evitar borrados sin evidencia mínima de recuperación:
   - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) agrega `TenantDeleteRequest`
   - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) exige:

@@ -35,6 +35,38 @@
 - siguiente paso:
   - volver al siguiente slice fino de `maintenance -> finance` sobre esta base ya endurecida
 
+## 2026-04-14 - Copia selectiva empresa-demo -> ieris-ltda de datos base operativos
+
+- objetivo:
+  - copiar desde `empresa-demo` hacia `ieris-ltda` solo:
+    - empresas
+    - clientes
+    - grupos
+    - tipos de equipo
+  - evitar un paquete portable más grande de lo necesario
+- cambios principales:
+  - se agrega [copy_selected_business_core_maintenance_data.py](/home/felipe/platform_paas/backend/app/scripts/copy_selected_business_core_maintenance_data.py)
+  - el script trabaja en `dry_run` por defecto y luego en `apply`
+  - usa `upsert` por clave natural para no depender de ids entre tenants
+- validaciones:
+  - `python3 -m py_compile backend/app/scripts/copy_selected_business_core_maintenance_data.py` -> `OK`
+  - `dry_run` real `empresa-demo -> ieris-ltda`:
+    - `business_organizations`: `created=204`
+    - `business_clients`: `created=191`
+    - `business_work_groups`: `created=4`
+    - `maintenance_equipment_types`: `created=4`
+  - `apply` real ejecutado con el mismo origen/destino
+  - verificación posterior en runtime real:
+    - `ieris-ltda organizations=204`
+    - `ieris-ltda clients=191`
+    - `ieris-ltda work_groups=4`
+    - `ieris-ltda equipment_types=4`
+- resultado:
+  - `ieris-ltda` ya quedó alineado con `empresa-demo` en esos cuatro catálogos base
+  - la operación quedó reusable en un script explícito y no como comando ad hoc perdido en chat
+- siguiente paso:
+  - continuar con el siguiente ajuste funcional del roadmap sobre la base ya copiada
+
 ## 2026-04-14 - Deep-link Mantenciones -> Finanzas y blindaje de Historial
 
 - objetivo:

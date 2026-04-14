@@ -87,6 +87,12 @@
   - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) rechaza delete si no existe export portable completado del mismo tenant
   - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) exige el nuevo contrato
   - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) bloquea `Eliminar tenant` si no hay evidencia de export
+- se agrega [copy_selected_business_core_maintenance_data.py](/home/felipe/platform_paas/backend/app/scripts/copy_selected_business_core_maintenance_data.py) para copiar selectivamente entre tenants:
+  - `business_organizations`
+  - `business_clients`
+  - `business_work_groups`
+  - `maintenance_equipment_types`
+  - con `dry_run` por defecto y `upsert` por clave natural
 - el archivo de retiro tenant ahora guarda evidencia mínima de recuperación:
   - job de export
   - scope exportado
@@ -128,6 +134,12 @@
   - defaults efectivos: ingreso `account_id=1`, egreso `account_id=1`, categorías `39/40`
   - existen ingresos/egresos sincronizados desde mantenciones cerradas
   - ejemplo real: OT `#7` -> ingreso `#204`, egreso `#205`, ambos con `account_id=1`
+- copia operativa real `empresa-demo -> ieris-ltda` ejecutada para datos base solicitados:
+  - empresas: `204`
+  - clientes: `191`
+  - grupos: `4`
+  - tipos de equipo: `4`
+  - verificación posterior en `ieris-ltda`: mismos conteos visibles en runtime real
 
 ## Qué explica la diferencia entre `empresa-demo` e `ieris-ltda`
 
