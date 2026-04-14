@@ -14,8 +14,6 @@ from app.apps.tenant_modules.core.services.tenant_connection_service import (  #
     TenantConnectionService,
 )
 from app.apps.tenant_modules.finance.models.transaction import FinanceTransaction  # noqa: E402
-from app.apps.tenant_modules.finance.schemas import FinanceTransactionUpdateRequest  # noqa: E402
-from app.apps.tenant_modules.finance.services.transaction_service import FinanceService  # noqa: E402
 from app.apps.tenant_modules.maintenance.services.costing_service import (  # noqa: E402
     MaintenanceCostingService,
 )
@@ -23,8 +21,7 @@ from app.common.db.control_database import ControlSessionLocal  # noqa: E402
 
 
 tenant_connection_service = TenantConnectionService()
-finance_service = FinanceService()
-costing_service = MaintenanceCostingService(finance_service=finance_service)
+costing_service = MaintenanceCostingService()
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -110,35 +107,11 @@ def _repair_single_tenant(tenant, *, apply: bool) -> dict:
                 unchanged += 1
                 continue
 
-            payload = FinanceTransactionUpdateRequest(
-                transaction_type=transaction.transaction_type,
-                account_id=resolved_account_id,
-                target_account_id=transaction.target_account_id,
-                category_id=resolved_category_id,
-                beneficiary_id=transaction.beneficiary_id,
-                person_id=transaction.person_id,
-                project_id=transaction.project_id,
-                currency_id=transaction.currency_id,
-                loan_id=transaction.loan_id,
-                amount=transaction.amount,
-                discount_amount=transaction.discount_amount,
-                exchange_rate=transaction.exchange_rate,
-                amortization_months=transaction.amortization_months,
-                transaction_at=transaction.transaction_at,
-                alternative_date=transaction.alternative_date,
-                description=transaction.description,
-                notes=transaction.notes,
-                is_favorite=transaction.is_favorite,
-                is_reconciled=transaction.is_reconciled,
-                tag_ids=list(getattr(transaction, "tag_ids", []) or []),
-            )
-            finance_service.update_transaction(
-                tenant_db,
-                transaction.id,
-                payload,
-                actor_user_id=None,
-                allow_accountless=resolved_account_id is None,
-            )
+            if transaction.account_id is None and resolved_account_id is not None:
+                transaction.account_id = resolved_account_id
+            if transaction.category_id is None and resolved_category_id is not None:
+                transaction.category_id = resolved_category_id
+            tenant_db.add(transaction)
             updated += 1
             updated_ids.append(transaction.id)
 
