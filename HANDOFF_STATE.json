@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-14T00:45:00-04:00",
+  "updated_at": "2026-04-14T01:36:00-04:00",
   "handoff_status": "active",
-  "current_focus": "slice maintenance -> finance corregido para que Cerrar con costos reaplique cuentas y categorias elegidas en el modal, ya promovido en staging y production",
-  "project_phase": "staging y production convergidos y auditados para tenants activos, con el cierre de mantenciones reutilizando snapshots financieros y aplicando el payload financiero elegido al momento del cierre",
+  "current_focus": "slice maintenance -> finance endurecido para que el cierre use finance_sync explicito en PATCH /status, con runtimes y tenants convergidos en staging y production",
+  "project_phase": "staging y production convergidos y auditados para tenants activos; el cierre de mantenciones ya aplica cuenta/categoria/moneda/glosas elegidas desde el mismo cambio de estado y las filas historicas sin dimensiones fueron reparadas",
   "active_modules": [
     "platform-core",
     "finance",
@@ -68,6 +68,12 @@
     "un cambio correcto para la PaaS no se considera cerrado si solo funciona en repo, en un tenant o en un ambiente; debe quedar promovido, convergido, auditado, probado y documentado en todos los ambientes/tenants afectados"
   ],
   "completed_recently": [
+    "backend maintenance: MaintenanceStatusUpdateRequest ahora acepta finance_sync explicito y el cierre completed prioriza ese payload por sobre auto-sync por politica",
+    "frontend maintenance: Cerrar con costos ahora usa el mismo PATCH /status como accion canonica para persistir cuenta/categoria/moneda/glosas de Finanzas",
+    "runtime maintenance realineado en /opt/platform_paas y /opt/platform_paas_staging para eliminar drift repo/runtime del slice maintenance -> finance",
+    "repair_maintenance_finance_dimensions.py reejecutado con apply en production y staging sin filas pendientes por completar",
+    "staging reparado otra vez en credenciales tenant DB para condominio-demo e ieris-ltda y audit_active_tenant_convergence vuelve a 4/4 ok",
+    "validacion directa en production confirma que ieris-ltda resuelve defaults efectivos income/expense account_id=1 y categorias 39/40; OT #7 queda persistida como ingreso #204 y egreso #205 con dimensiones completas",
     "hotfix frontend: Cerrar con costos ahora reaplica sync financiero con cuenta/categoria/moneda/glosas/fecha elegidas en el modal despues de cerrar la OT",
     "frontend build revalidado OK para el hotfix de cierre con costos",
     "frontend staging republicado con el hotfix de cierre con costos",

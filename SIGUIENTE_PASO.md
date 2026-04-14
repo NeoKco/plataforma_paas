@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y abrir el siguiente subcorte fino de `maintenance -> finance` sobre una base ya alineada
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y abrir el siguiente subcorte fino de `maintenance -> finance` sobre una base ya alineada y sin drift entre repo/runtime
 
 ## Decisión previa obligatoria
 
@@ -22,7 +22,7 @@
 - siguiente subcorte funcional recomendado:
   - navegación directa o filtro contextual desde Mantenciones hacia la transacción exacta en Finanzas
   - endurecer hints/controles de egreso seleccionable para que el operador vea con claridad qué líneas sí salen a egreso y cuáles no
-  - definir si las transacciones históricas creadas antes del fix con cuenta/categoría vacía se normalizan con script o quedan para corrección manual por `Editar cierre`
+  - revisar si conviene un endpoint atómico `close-with-costs` para evitar cualquier drift futuro entre `cost-actual`, `status` y `finance_sync`
 - mantener como comando obligatorio de cierre multi-tenant:
   - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
   - [repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)

@@ -633,6 +633,41 @@
 - siguiente paso:
   - abrir el próximo slice broker-only real dentro de `Provisioning/DLQ`
 
+# 2026-04-14 - Cierre maintenance -> finance con payload explícito y convergencia runtime
+
+- objetivo:
+  - evitar que `Cerrar con costos` pierda `cuenta/categoría ingreso-egreso` por depender de defaults o de un segundo request separado
+  - realinear el slice `maintenance` entre repo y runtimes `/opt/...`
+  - reparar filas históricas de mantenciones ya creadas sin dimensiones financieras completas
+- cambios principales:
+  - [common.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/common.py) extiende `MaintenanceStatusUpdateRequest` con `finance_sync`
+  - [work_order_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/work_order_service.py) ahora prioriza `payload.finance_sync` al completar la OT y solo usa `maybe_auto_sync_by_tenant_policy()` cuando no hay payload explícito
+  - [workOrdersService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/workOrdersService.ts) envía `finance_sync` en `PATCH /status`
+  - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) deja de depender del sync manual posterior al cierre y usa el cierre mismo como acción canónica
+  - [MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx) queda blindado frente a `finance_summary` faltante
+  - se detecta y corrige drift repo/runtime dentro del slice `maintenance` copiando y reiniciando el backend real en `/opt/platform_paas` y `/opt/platform_paas_staging`
+  - se republíca frontend en `staging` y `production`
+  - [repair_maintenance_finance_dimensions.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_dimensions.py) se ejecuta con `--apply` en ambos ambientes
+  - se reparan credenciales DB tenant en `staging`:
+    - `condominio-demo` rotado
+    - `ieris-ltda` con secreto runtime faltante creado y validado
+- validaciones:
+  - backend focalizado `test_maintenance_work_order_service` + `test_maintenance_costing_service`: `35 OK`
+  - frontend `npm run build`: `OK`
+  - `production`:
+    - `repair_maintenance_finance_dimensions.py --all-active --limit 100 --apply` -> `processed=4, updated=0, failed=0`
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
+    - verificación directa `ieris-ltda`: defaults efectivos `income_account_id=1`, `expense_account_id=1`, categorías `39/40`; OT `#7` ya persistida como ingreso `#204` y egreso `#205` con cuenta/categoría
+  - `staging`:
+    - `repair_maintenance_finance_dimensions.py --all-active --limit 100 --apply` -> `processed=4, updated=0, failed=0`
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
+- bloqueos:
+  - no queda bloqueo crítico abierto; el riesgo vigente sigue siendo drift repo/runtime si no se promueve y audita explícitamente
+- siguiente paso:
+  - abrir el siguiente subcorte fino de `maintenance -> finance` ya sobre una base convergida:
+    - navegación directa desde Mantenciones a la transacción exacta en Finanzas
+    - endurecer UX de líneas que sí/no salen a egreso
+
 ## 2026-04-10 - Hotfix visual catálogo Tenants
 
 - objetivo:

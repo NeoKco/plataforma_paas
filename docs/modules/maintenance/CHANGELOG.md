@@ -392,6 +392,14 @@
 - se agregan endpoints CRUD para `visits`
 - el frontend tenant deja de ser placeholder en:
   - `Tipos de equipo`
+# 2026-04-14
+
+- `Cerrar con costos` ya no depende de un segundo request de sync: el cierre puede enviar `finance_sync` explícito dentro del mismo `PATCH /status`
+- `MaintenanceWorkOrderService` prioriza ese payload explícito al completar la OT y solo usa auto-sync por política cuando el cierre no trae configuración financiera
+- `MaintenanceHistoryPage` queda blindado frente a `finance_summary` faltante
+- se re-alinea el slice `maintenance` en `staging` y `production` para evitar drift repo/runtime
+- se reejecuta `repair_maintenance_finance_dimensions.py` en ambos ambientes para completar cuentas/categorías faltantes en transacciones históricas de mantenciones
+
   - `Instalaciones`
   - `Órdenes de trabajo`
   - `Historial técnico`
