@@ -305,7 +305,34 @@ class MaintenanceCostingService:
             raise ValueError("Primero debes registrar el costo real antes de sincronizar con finance")
 
         transaction_at = payload.transaction_at or work_order.completed_at or datetime.now(timezone.utc)
-        currency_id = self._get_currency_or_raise(tenant_db, payload.currency_id).id
+        try:
+            sync_defaults = self.get_finance_sync_defaults(tenant_db)
+        except ValueError:
+            sync_defaults = {
+                "maintenance_finance_currency_id": None,
+                "maintenance_finance_income_account_id": None,
+                "maintenance_finance_expense_account_id": None,
+                "maintenance_finance_income_category_id": None,
+                "maintenance_finance_expense_category_id": None,
+            }
+        resolved_currency_id = payload.currency_id or sync_defaults.get(
+            "maintenance_finance_currency_id"
+        )
+        if resolved_currency_id is None:
+            raise ValueError("No existe una moneda disponible para sincronizar con finance")
+        currency_id = self._get_currency_or_raise(tenant_db, resolved_currency_id).id
+        resolved_income_account_id = payload.income_account_id
+        if resolved_income_account_id is None:
+            resolved_income_account_id = sync_defaults.get("maintenance_finance_income_account_id")
+        resolved_expense_account_id = payload.expense_account_id
+        if resolved_expense_account_id is None:
+            resolved_expense_account_id = sync_defaults.get("maintenance_finance_expense_account_id")
+        resolved_income_category_id = payload.income_category_id
+        if resolved_income_category_id is None:
+            resolved_income_category_id = sync_defaults.get("maintenance_finance_income_category_id")
+        resolved_expense_category_id = payload.expense_category_id
+        if resolved_expense_category_id is None:
+            resolved_expense_category_id = sync_defaults.get("maintenance_finance_expense_category_id")
         summary_label = self._build_work_order_label(tenant_db, work_order)
         note = self._normalize_text(payload.notes)
         income_description = self._normalize_text(payload.income_description)
@@ -321,9 +348,9 @@ class MaintenanceCostingService:
                 raise ValueError("El ingreso requiere un monto cobrado mayor que cero")
             income_payload = FinanceTransactionCreateRequest(
                 transaction_type="income",
-                account_id=payload.income_account_id,
+                account_id=resolved_income_account_id,
                 target_account_id=None,
-                category_id=payload.income_category_id,
+                category_id=resolved_income_category_id,
                 beneficiary_id=None,
                 person_id=None,
                 project_id=None,
@@ -349,7 +376,7 @@ class MaintenanceCostingService:
                     actual.income_transaction_id,
                     FinanceTransactionUpdateRequest(**income_payload.model_dump()),
                     actor_user_id=actor_user_id,
-                    allow_accountless=payload.income_account_id is None,
+                    allow_accountless=resolved_income_account_id is None,
                 )
             else:
                 transaction = self.finance_service.create_transaction(
@@ -360,7 +387,7 @@ class MaintenanceCostingService:
                     source_id=work_order.id,
                     summary="Ingreso sincronizado desde maintenance",
                     audit_payload={"work_order_id": work_order.id},
-                    allow_accountless=payload.income_account_id is None,
+                    allow_accountless=resolved_income_account_id is None,
                 )
                 actual.income_transaction_id = transaction.id
 
@@ -369,9 +396,9 @@ class MaintenanceCostingService:
                 raise ValueError("El egreso requiere un costo real mayor que cero")
             expense_payload = FinanceTransactionCreateRequest(
                 transaction_type="expense",
-                account_id=payload.expense_account_id,
+                account_id=resolved_expense_account_id,
                 target_account_id=None,
-                category_id=payload.expense_category_id,
+                category_id=resolved_expense_category_id,
                 beneficiary_id=None,
                 person_id=None,
                 project_id=None,
@@ -397,7 +424,7 @@ class MaintenanceCostingService:
                     actual.expense_transaction_id,
                     FinanceTransactionUpdateRequest(**expense_payload.model_dump()),
                     actor_user_id=actor_user_id,
-                    allow_accountless=payload.expense_account_id is None,
+                    allow_accountless=resolved_expense_account_id is None,
                 )
             else:
                 transaction = self.finance_service.create_transaction(
@@ -408,7 +435,7 @@ class MaintenanceCostingService:
                     source_id=work_order.id,
                     summary="Egreso sincronizado desde maintenance",
                     audit_payload={"work_order_id": work_order.id},
-                    allow_accountless=payload.expense_account_id is None,
+                    allow_accountless=resolved_expense_account_id is None,
                 )
                 actual.expense_transaction_id = transaction.id
 
@@ -441,19 +468,23 @@ class MaintenanceCostingService:
             return None
 
         try:
-            policy = self.tenant_data_service.get_maintenance_finance_sync_policy(tenant_db)
+            sync_defaults = self.get_finance_sync_defaults(tenant_db)
         except ValueError:
             return None
 
-        if policy["maintenance_finance_sync_mode"] != "auto_on_close":
+        if sync_defaults["maintenance_finance_sync_mode"] != "auto_on_close":
             return None
 
-        sync_income = policy["maintenance_finance_auto_sync_income"] and actual.actual_price_charged > 0
-        sync_expense = policy["maintenance_finance_auto_sync_expense"] and actual.total_actual_cost > 0
+        sync_income = (
+            sync_defaults["maintenance_finance_auto_sync_income"] and actual.actual_price_charged > 0
+        )
+        sync_expense = (
+            sync_defaults["maintenance_finance_auto_sync_expense"] and actual.total_actual_cost > 0
+        )
         if not sync_income and not sync_expense:
             return None
 
-        currency_id = policy["maintenance_finance_currency_id"]
+        currency_id = sync_defaults["maintenance_finance_currency_id"]
         if currency_id is None:
             try:
                 currency_id = self._get_base_currency_or_raise(tenant_db).id
@@ -470,10 +501,10 @@ class MaintenanceCostingService:
                     {
                         "sync_income": sync_income,
                         "sync_expense": sync_expense,
-                        "income_account_id": policy["maintenance_finance_income_account_id"],
-                        "expense_account_id": policy["maintenance_finance_expense_account_id"],
-                        "income_category_id": policy["maintenance_finance_income_category_id"],
-                        "expense_category_id": policy["maintenance_finance_expense_category_id"],
+                        "income_account_id": sync_defaults["maintenance_finance_income_account_id"],
+                        "expense_account_id": sync_defaults["maintenance_finance_expense_account_id"],
+                        "income_category_id": sync_defaults["maintenance_finance_income_category_id"],
+                        "expense_category_id": sync_defaults["maintenance_finance_expense_category_id"],
                         "currency_id": currency_id,
                         "transaction_at": None,
                         "income_description": None,
@@ -836,6 +867,12 @@ class MaintenanceCostingService:
             return favorite_candidates[0], "favorite"
         if len(candidates) == 1:
             return candidates[0], "single_match"
+        if candidates:
+            ordered = sorted(
+                candidates,
+                key=lambda item: (getattr(item, "sort_order", 100), getattr(item, "id", 0)),
+            )
+            return ordered[0], "first_active"
         return None, None
 
     def _build_work_order_label(self, tenant_db: Session, work_order: MaintenanceWorkOrder) -> str:

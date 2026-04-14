@@ -58,8 +58,9 @@ def _open_tenant_session(tenant):
 
 
 def _repair_single_tenant(tenant, *, apply: bool) -> dict:
-    tenant_db = _open_tenant_session(tenant)
+    tenant_db = None
     try:
+        tenant_db = _open_tenant_session(tenant)
         defaults = costing_service.get_finance_sync_defaults(tenant_db)
         income_account_id = defaults.get("maintenance_finance_income_account_id")
         expense_account_id = defaults.get("maintenance_finance_expense_account_id")
@@ -130,7 +131,8 @@ def _repair_single_tenant(tenant, *, apply: bool) -> dict:
             "error": None,
         }
     except Exception as exc:  # pragma: no cover - operational fallback
-        tenant_db.rollback()
+        if tenant_db is not None:
+            tenant_db.rollback()
         return {
             "tenant_slug": tenant.slug,
             "scanned": 0,
@@ -141,7 +143,8 @@ def _repair_single_tenant(tenant, *, apply: bool) -> dict:
             "error": str(exc),
         }
     finally:
-        tenant_db.close()
+        if tenant_db is not None:
+            tenant_db.close()
 
 
 def main() -> int:
