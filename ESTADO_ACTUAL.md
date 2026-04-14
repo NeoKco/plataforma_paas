@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-14
-- foco de iteración: promoción completa del slice `maintenance -> finance` para autollenado desde transacciones vinculadas y convergencia real por ambiente/tenant
-- estado general: código endurecido en repo, slice nuevo desplegado en `staging` y `production`, y convergencia crítica cerrada en ambos ambientes para tenants activos; la regla de promoción completa ya quedó fijada como estándar obligatorio del PaaS
+- foco de iteración: endurecer el cierre `maintenance -> finance` para que el `PATCH /status` aplique la configuración financiera elegida en el modal y corregir el drift repo/runtime del slice completo
+- estado general: `production` y `staging` quedaron alineados otra vez para el slice `maintenance -> finance`, con convergencia activa `4/4` en ambos ambientes; además quedó explícito como regla que un cambio correcto debe promoverse, convergerse, auditarse y documentarse en todos los ambientes/tenants afectados
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -25,11 +25,11 @@
 - `empresa-demo` funcionó antes que `ieris-ltda` porque ya había sido reparado/backfilleado; `ieris-ltda` seguía con drift técnico en su BD tenant
 - la causa técnica concreta detectada en `ieris-ltda` fue colisión de secuencia `finance_transactions_pkey`, lo que impedía insertar movimientos sincronizados desde Mantenciones
 - `production` ya quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica
-- `staging` también quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica tras rotar la credencial DB tenant de `condominio-demo`
+- `staging` volvió a quedar verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica tras reparar credenciales DB tenant de `condominio-demo` e `ieris-ltda`
 - el slice nuevo de `maintenance -> finance` ya quedó promovido en ambos ambientes:
   - el modal de costeo reutiliza cuenta/categoría/moneda/fecha/glosa/notas desde las transacciones financieras ya vinculadas
   - al reabrir una OT ya sincronizada no vuelve a defaults ciegos del tenant, sino al snapshot real de Finanzas
-  - `Cerrar con costos` ahora reaplica el payload financiero elegido en el modal después del cambio de estado a `completed`, evitando que el auto-sync cierre con `account/category = null`
+  - `Cerrar con costos` ahora envía la configuración financiera elegida dentro del mismo `PATCH /status`, evitando que el cierre dependa de defaults ciegos o de un segundo request separado
 - frontend runtime verificado en ambos ambientes con bundles nuevos:
   - `MaintenanceHistoryPage-CdHJKpQP.js`
   - `MaintenanceInstallationsPage-CjIp0KB9.js`
@@ -57,7 +57,11 @@
 - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) ahora incluye snapshots de `income/expense` vinculados al devolver el detalle de costeo real
 - [costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/costing.py) serializa snapshots financieros vinculados para consumo del frontend
 - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) ya reutiliza cuenta/categoría/moneda/fecha/glosa/notas desde la transacción financiera vinculada cuando existe
-  - además, al cerrar la OT desde el mismo modal, vuelve a ejecutar el sync con las cuentas/categorías seleccionadas por el operador para que el balance por cuenta sí se actualice en Finanzas
+  - además, al cerrar la OT desde el mismo modal, ahora envía la configuración financiera elegida dentro del mismo `PATCH /status`, para que el balance por cuenta y la categoría nazcan correctamente en Finanzas
+- [work_order_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/work_order_service.py) ahora prioriza `payload.finance_sync` al completar una OT y solo cae al auto-sync por política si el cierre no trae configuración financiera explícita
+- [common.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/common.py) extiende `MaintenanceStatusUpdateRequest` con `finance_sync`
+- [workOrdersService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/workOrdersService.ts) soporta `finance_sync` en `PATCH /status`
+- [repair_maintenance_finance_dimensions.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_dimensions.py) fue reejecutado en ambos ambientes para completar cuentas/categorías faltantes en transacciones históricas de mantenciones
 - la regla de promoción completa quedó escrita en:
   - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
   - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
@@ -69,10 +73,10 @@
   - `empresa-demo`: OK
   - `ieris-ltda`: OK
 - `staging` quedó verificado con auditoría crítica en tenants activos:
-  - `bootstrap-condominio-20260412002354`: OK
-  - `bootstrap-empresa-20260412002354`: OK
   - `condominio-demo`: OK
   - `empresa-bootstrap`: OK
+  - `empresa-demo`: OK
+  - `ieris-ltda`: OK
 - `production` quedó re-convergido después de reparar `condominio-demo`:
   - `seed_missing_tenant_defaults.py --apply` -> `processed=4, changed=4, failed=0`
   - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4, failures=0`
@@ -81,11 +85,12 @@
   - password PostgreSQL del rol tenant
   - secreto runtime en `TENANT_SECRETS_FILE`
   - metadata de rotación en control
+- `ieris-ltda` en `staging` fue reparado creando y validando el secreto DB runtime que faltaba, quedando otra vez auditable junto al resto de tenants activos
 - `condominio-demo` en `production` también fue reparado rotando credenciales DB tenant desde el mismo servicio antes del rerun final de convergencia
 - validación directa en `production` para `ieris-ltda`:
-  - política efectiva: `auto_on_close`
+  - defaults efectivos: ingreso `account_id=1`, egreso `account_id=1`, categorías `39/40`
   - existen ingresos/egresos sincronizados desde mantenciones cerradas
-  - ejemplo real: OT `#2` -> ingreso `#202`, egreso `#203`
+  - ejemplo real: OT `#7` -> ingreso `#204`, egreso `#205`, ambos con `account_id=1`
 
 ## Qué explica la diferencia entre `empresa-demo` e `ieris-ltda`
 
@@ -104,8 +109,14 @@
 - [backend/app/apps/tenant_modules/finance/repositories/transaction_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/repositories/transaction_repository.py)
 - [backend/app/apps/tenant_modules/finance/services/transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py)
 - [backend/app/apps/tenant_modules/maintenance/services/costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py)
+- [backend/app/apps/tenant_modules/maintenance/services/work_order_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/work_order_service.py)
 - [backend/app/apps/tenant_modules/maintenance/api/costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/costing.py)
+- [backend/app/apps/tenant_modules/maintenance/api/history.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/history.py)
+- [backend/app/apps/tenant_modules/maintenance/services/history_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/history_service.py)
+- [backend/app/apps/tenant_modules/maintenance/schemas/common.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/common.py)
 - [backend/app/apps/tenant_modules/maintenance/schemas/costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/costing.py)
+- [backend/app/apps/tenant_modules/maintenance/schemas/history.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/history.py)
+- [backend/app/scripts/repair_maintenance_finance_dimensions.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_dimensions.py)
 - [backend/app/scripts/seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
 - [backend/app/scripts/repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
 - [backend/app/scripts/audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
@@ -113,6 +124,7 @@
 - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx)
 - [frontend/src/apps/tenant_portal/modules/maintenance/services/historyService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/historyService.ts)
 - [frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts)
+- [frontend/src/apps/tenant_portal/modules/maintenance/services/workOrdersService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/workOrdersService.ts)
 - [frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx)
 - [docs/deploy/backend-post-deploy-verification.md](/home/felipe/platform_paas/docs/deploy/backend-post-deploy-verification.md)
 - [docs/deploy/backend-release-and-rollback.md](/home/felipe/platform_paas/docs/deploy/backend-release-and-rollback.md)
@@ -149,21 +161,21 @@
 
 ## Validaciones ya ejecutadas
 
-- backend targeted tests locales: `35 OK`
-- backend targeted tests locales del slice nuevo: `12 OK`
+- backend focalizado:
+  - `test_maintenance_work_order_service` + `test_maintenance_costing_service`: `35 OK`
 - frontend build local: `OK`
 - republish frontend `staging` con fix de `Cerrar con costos`: `OK`
 - republish frontend `production` con fix de `Cerrar con costos`: `OK`
-- deploy backend `staging`: `OK`
-- deploy backend `production`: `OK`
+- promoción manual del slice backend `maintenance` a `/opt/platform_paas` y `/opt/platform_paas_staging`: `OK`
 - publish frontend `staging`: `OK`
 - publish frontend `production`: `OK`
+- `repair_maintenance_finance_dimensions.py --all-active --limit 100 --apply`
+  - `production`: `processed=4, updated=0, failed=0`
+  - `staging`: `processed=4, updated=0, failed=0`
 - rerun convergencia `staging`:
-  - `seed_missing_tenant_defaults.py --apply` -> `processed=4, changed=2, failed=0`
   - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4, failures=0`
   - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
 - rerun convergencia `production`:
-  - `seed_missing_tenant_defaults.py --apply` -> `processed=4, changed=4, failed=0`
   - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4, failures=0`
   - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
 - auditoría activa directa en `production`: `processed=4, warnings=0, failed=0`
