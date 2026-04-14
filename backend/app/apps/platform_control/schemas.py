@@ -746,6 +746,11 @@ class TenantRestoreRequest(BaseModel):
     restore_reason: str | None = None
 
 
+class TenantDeleteRequest(BaseModel):
+    confirm_tenant_slug: str
+    portable_export_job_id: int
+
+
 class TenantStatusResponse(BaseModel):
     success: bool
     message: str

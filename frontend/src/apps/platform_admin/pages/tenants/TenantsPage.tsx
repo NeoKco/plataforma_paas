@@ -391,6 +391,17 @@ export function TenantsPage() {
     return true;
   }, [selectedProvisioningJob, selectedTenantSummary]);
 
+  const latestCompletedExportJob = useMemo(
+    () =>
+      dataExportJobs.find(
+        (job) =>
+          job.direction === "export" &&
+          job.status === "completed" &&
+          (job.artifacts?.length || 0) > 0
+      ) || null,
+    [dataExportJobs]
+  );
+
   async function loadCapabilities() {
     if (!session?.accessToken) {
       return;
@@ -1584,6 +1595,25 @@ export function TenantsPage() {
       return;
     }
 
+    if (!latestCompletedExportJob) {
+      setActionFeedback({
+        scope: "delete-tenant",
+        type: "error",
+        message:
+          language === "es"
+            ? "Antes de eliminar el tenant debes generar un export portable completado del mismo tenant."
+            : "Before deleting the tenant you must generate a completed portable export for the same tenant.",
+        details: [
+          language === "es"
+            ? "Usa el bloque `Portabilidad tenant`, espera el job `completed` y luego reintenta el borrado."
+            : "Use the `Tenant portability` block, wait for a `completed` job, and retry the deletion.",
+        ],
+      });
+      return;
+    }
+
+    const exportJob = latestCompletedExportJob;
+
     requestConfirmation({
       scope: "delete-tenant",
       title:
@@ -1597,15 +1627,20 @@ export function TenantsPage() {
       details: [
         `Tenant: ${selectedTenantSummary.name}`,
         `Slug: ${selectedTenantSummary.slug}`,
+        `${
+          language === "es" ? "Export portable requerido" : "Required portable export"
+        }: #${exportJob.id} · ${exportJob.export_scope}`,
         language === "es"
-          ? "Úsalo solo para altas descartadas, pruebas o tenants archivados que no deben conservarse."
-          : "Use it only for discarded signups, tests, or archived tenants that should not be preserved.",
+          ? "El backend rechazará el borrado si ese export portable ya no existe o no pertenece al tenant."
+          : "The backend will reject deletion if that portable export no longer exists or does not belong to the tenant.",
       ],
       confirmLabel: language === "es" ? "Eliminar tenant" : "Delete tenant",
       tone: "danger",
       action: async () => {
-        const deletedTenantId = selectedTenantId;
-        await deletePlatformTenant(session.accessToken, selectedTenantId);
+        await deletePlatformTenant(session.accessToken, selectedTenantId, {
+          confirm_tenant_slug: selectedTenantSummary.slug,
+          portable_export_job_id: exportJob.id,
+        });
         return {
           message:
             language === "es"
@@ -2185,7 +2220,7 @@ export function TenantsPage() {
                             className="btn btn-outline-danger btn-sm"
                             type="button"
                             onClick={handleDeleteTenant}
-                            disabled={isActionSubmitting}
+                            disabled={isActionSubmitting || !latestCompletedExportJob}
                           >
                             {language === "es" ? "Eliminar tenant" : "Delete tenant"}
                           </button>
@@ -3030,6 +3065,17 @@ export function TenantsPage() {
                           {language === "es"
                             ? "Si este tenant archivado todavía conserva base o credenciales técnicas, primero usa `Desprovisionar tenant`. Cuando ya no tenga configuración DB y no deba conservarse, podrás usar `Eliminar tenant` para removerlo definitivamente."
                             : "If this archived tenant still keeps a database or technical credentials, first use `Deprovision tenant`. Once it no longer has DB configuration and should not be preserved, you can use `Delete tenant` to remove it permanently."}
+                        </div>
+                      </div>
+                      <div className="app-form-field app-form-field--full">
+                        <div className="tenant-inline-note">
+                          {latestCompletedExportJob
+                            ? language === "es"
+                              ? `Último export portable válido para borrado: job #${latestCompletedExportJob.id} (${latestCompletedExportJob.export_scope}).`
+                              : `Latest portable export eligible for deletion: job #${latestCompletedExportJob.id} (${latestCompletedExportJob.export_scope}).`
+                            : language === "es"
+                              ? "Aún no existe un export portable completado para este tenant. Sin ese respaldo, `Eliminar tenant` queda bloqueado."
+                              : "There is no completed portable export for this tenant yet. Without that backup, `Delete tenant` stays blocked."}
                         </div>
                       </div>
                       <AppFormActions>

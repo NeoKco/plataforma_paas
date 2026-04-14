@@ -437,6 +437,11 @@ export type PlatformTenantStatusResponse = {
 
 export type PlatformTenantRestoreResponse = PlatformTenantStatusResponse;
 
+export type PlatformTenantDeleteRequest = {
+  confirm_tenant_slug: string;
+  portable_export_job_id: number;
+};
+
 export type PlatformTenantDeleteResponse = {
   success: boolean;
   message: string;

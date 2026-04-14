@@ -44,6 +44,7 @@ from app.apps.platform_control.schemas import (
     ProvisioningJobResponse,
     TenantRateLimitResponse,
     TenantRateLimitUpdateRequest,
+    TenantDeleteRequest,
     TenantDeleteResponse,
     TenantDataExportJobCreateRequest,
     TenantDataExportJobListResponse,
@@ -1897,6 +1898,7 @@ def restore_tenant(
 )
 def delete_tenant(
     tenant_id: int,
+    payload: TenantDeleteRequest,
     db: Session = Depends(get_control_db),
     _token: dict = Depends(require_role("superadmin")),
 ) -> TenantDeleteResponse:
@@ -1904,6 +1906,8 @@ def delete_tenant(
         tenant = tenant_service.delete_tenant(
             db,
             tenant_id,
+            confirm_tenant_slug=payload.confirm_tenant_slug,
+            portable_export_job_id=payload.portable_export_job_id,
             deleted_by_user_id=(
                 int(_token["sub"]) if _token.get("sub") is not None else None
             ),

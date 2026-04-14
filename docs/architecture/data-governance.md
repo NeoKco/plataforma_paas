@@ -218,6 +218,9 @@ Principio operativo:
 ### Casos típicos
 
 - catálogos compartidos: desactivar antes que borrar
+- tenant productivo u operativo: archivar y desprovisionar antes de cualquier delete
+- delete tenant: requiere export portable previo del mismo tenant como evidencia mínima de recuperación
+- un import `functional_data_only` no equivale a restauración completa 1:1 del tenant original
 - transacciones financieras: no borrar físicamente
 - OTs con historial: reabrir o anular según flujo, no borrar por conveniencia
 - tenant portability: no reemplaza backup PostgreSQL

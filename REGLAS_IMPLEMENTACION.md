@@ -331,6 +331,12 @@ No corresponde cerrar ese cambio sin explicitar:
 - precedencia de datos
 - estrategia de validación
 
+Regla operativa explícita para tenants:
+
+- no se debe borrar un tenant archivado sin export portable previo del mismo tenant
+- si se destruye infraestructura o registro tenant, debe existir evidencia recuperable antes del borrado
+- la consola y la API deben exigir esa evidencia; no basta una advertencia visual
+
 ## Regla 20. El cierre recomendado sigue `SRED`
 
 Para cambios relevantes, el orden esperado es:

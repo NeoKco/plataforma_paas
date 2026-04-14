@@ -128,6 +128,7 @@ from app.apps.platform_control.schemas import (  # noqa: E402
     TenantBillingSyncEventRequest,
     TenantBillingUpdateRequest,
     TenantCreateRequest,
+    TenantDeleteRequest,
     TenantDataExportJobCreateRequest,
     TenantDataImportJobListResponse,
     TenantDataImportJobResponse,
@@ -850,7 +851,12 @@ class PlatformServicesTestCase(unittest.TestCase):
         )
 
         with self.assertRaises(ValueError):
-            service.delete_tenant(db=object(), tenant_id=1)
+            service.delete_tenant(
+                db=object(),
+                tenant_id=1,
+                confirm_tenant_slug=tenant.slug,
+                portable_export_job_id=1,
+            )
 
     def test_tenant_service_rejects_delete_for_archived_tenant_with_db_config(self) -> None:
         tenant = build_tenant_record_stub(status="archived")
@@ -863,7 +869,32 @@ class PlatformServicesTestCase(unittest.TestCase):
         )
 
         with self.assertRaises(ValueError):
-            service.delete_tenant(db=object(), tenant_id=1)
+            service.delete_tenant(
+                db=object(),
+                tenant_id=1,
+                confirm_tenant_slug=tenant.slug,
+                portable_export_job_id=1,
+            )
+
+    def test_tenant_service_rejects_delete_without_portable_export_evidence(self) -> None:
+        tenant = build_tenant_record_stub(status="archived")
+        tenant.id = 1
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant),
+            tenant_data_transfer_job_repository=SimpleNamespace(
+                get_by_id=lambda db, job_id: None
+            ),
+        )
+
+        with self.assertRaises(ValueError) as raised:
+            service.delete_tenant(
+                db=object(),
+                tenant_id=1,
+                confirm_tenant_slug=tenant.slug,
+                portable_export_job_id=999,
+            )
+
+        self.assertEqual(str(raised.exception), "Portable export job not found")
 
     def test_tenant_service_archives_billing_history_before_delete(self) -> None:
         tenant = build_tenant_record_stub(status="archived")
@@ -906,13 +937,28 @@ class PlatformServicesTestCase(unittest.TestCase):
             def delete(self, db, target):
                 deleted_targets.append(target.id)
 
+        export_job = SimpleNamespace(
+            id=77,
+            tenant_id=1,
+            direction="export",
+            status="completed",
+            export_scope="portable_full",
+            completed_at=None,
+            artifacts=[SimpleNamespace(artifact_type="tenant_portable_csv_zip")],
+        )
+
         service = TenantService(
-            tenant_repository=FakeTenantRepository()
+            tenant_repository=FakeTenantRepository(),
+            tenant_data_transfer_job_repository=SimpleNamespace(
+                get_by_id=lambda db, job_id: export_job
+            ),
         )
 
         result = service.delete_tenant(
             db=FakeDb(),
             tenant_id=1,
+            confirm_tenant_slug=tenant.slug,
+            portable_export_job_id=77,
             deleted_by_user_id=99,
             deleted_by_email="admin@platform.local",
         )
@@ -930,6 +976,7 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertIn('"recent_billing_events"', added_archives[0].summary_json)
         self.assertIn('"recent_policy_events"', added_archives[0].summary_json)
         self.assertIn('"recent_provisioning_jobs"', added_archives[0].summary_json)
+        self.assertIn('"portable_export_evidence"', added_archives[0].summary_json)
 
     def test_tenant_service_rejects_deprovision_request_for_non_archived_tenant(self) -> None:
         tenant = build_tenant_record_stub(status="active")
@@ -1109,9 +1156,29 @@ class PlatformServicesTestCase(unittest.TestCase):
             def delete(self, db, target):
                 deleted_targets.append(target.id)
 
-        service = TenantService(tenant_repository=FakeTenantRepository())
+        export_job = SimpleNamespace(
+            id=88,
+            tenant_id=1,
+            direction="export",
+            status="completed",
+            export_scope="portable_full",
+            completed_at=None,
+            artifacts=[SimpleNamespace(artifact_type="tenant_portable_csv_zip")],
+        )
 
-        result = service.delete_tenant(db=FakeDb(), tenant_id=1)
+        service = TenantService(
+            tenant_repository=FakeTenantRepository(),
+            tenant_data_transfer_job_repository=SimpleNamespace(
+                get_by_id=lambda db, job_id: export_job
+            ),
+        )
+
+        result = service.delete_tenant(
+            db=FakeDb(),
+            tenant_id=1,
+            confirm_tenant_slug=tenant.slug,
+            portable_export_job_id=88,
+        )
 
         self.assertIs(result, tenant)
         self.assertEqual(deleted_targets, [tenant.id])
@@ -1162,9 +1229,29 @@ class PlatformServicesTestCase(unittest.TestCase):
             def delete(self, db, target):
                 deleted_targets.append(target.id)
 
-        service = TenantService(tenant_repository=FakeTenantRepository())
+        export_job = SimpleNamespace(
+            id=89,
+            tenant_id=1,
+            direction="export",
+            status="completed",
+            export_scope="functional_data_only",
+            completed_at=None,
+            artifacts=[SimpleNamespace(artifact_type="tenant_portable_csv_zip")],
+        )
 
-        result = service.delete_tenant(db=FakeDb(), tenant_id=1)
+        service = TenantService(
+            tenant_repository=FakeTenantRepository(),
+            tenant_data_transfer_job_repository=SimpleNamespace(
+                get_by_id=lambda db, job_id: export_job
+            ),
+        )
+
+        result = service.delete_tenant(
+            db=FakeDb(),
+            tenant_id=1,
+            confirm_tenant_slug=tenant.slug,
+            portable_export_job_id=89,
+        )
 
         self.assertIs(result, tenant)
         self.assertEqual(deleted_targets, [1])
@@ -5877,6 +5964,10 @@ class PlatformRoutesTestCase(unittest.TestCase):
         ):
             response = delete_tenant(
                 tenant_id=1,
+                payload=TenantDeleteRequest(
+                    confirm_tenant_slug="empresa-temporal",
+                    portable_export_job_id=12,
+                ),
                 db=object(),
                 _token=self._token_payload(),
             )
@@ -6452,6 +6543,10 @@ class PlatformRoutesTestCase(unittest.TestCase):
         ) as audit_mock:
             response = delete_tenant(
                 tenant_id=1,
+                payload=TenantDeleteRequest(
+                    confirm_tenant_slug="empresa-temporal",
+                    portable_export_job_id=12,
+                ),
                 db=object(),
                 _token=self._token_payload(),
             )
@@ -6469,6 +6564,10 @@ class PlatformRoutesTestCase(unittest.TestCase):
             with self.assertRaises(HTTPException) as exc:
                 delete_tenant(
                     tenant_id=4,
+                    payload=TenantDeleteRequest(
+                        confirm_tenant_slug="empresa-demo",
+                        portable_export_job_id=12,
+                    ),
                     db=object(),
                     _token=self._token_payload(),
                 )
@@ -6487,6 +6586,10 @@ class PlatformRoutesTestCase(unittest.TestCase):
             with self.assertRaises(HTTPException) as exc:
                 delete_tenant(
                     tenant_id=404,
+                    payload=TenantDeleteRequest(
+                        confirm_tenant_slug="tenant-missing",
+                        portable_export_job_id=12,
+                    ),
                     db=object(),
                     _token=self._token_payload(),
                 )

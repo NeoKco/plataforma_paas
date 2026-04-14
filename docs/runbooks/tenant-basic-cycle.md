@@ -290,8 +290,10 @@ El script elimina datos efímeros (transacciones, presupuestos, préstamos, cate
 - ya existe un borrado seguro y muy acotado
 - solo aplica a tenants `archived`
 - exige que no exista configuracion DB tenant materializada
+- exige además un export portable completado del mismo tenant antes del borrado
 - antes del borrado guarda un archivo historico minimo en `platform_control.tenant_retirement_archives`
 - ese archivo conserva snapshot de identidad, estado final, estado billing, cantidades de eventos y actor del borrado
+- el archivo histórico ahora deja también evidencia del export usado (`job_id`, scope y artifacts)
 - ademas conserva un snapshot funcional resumido con:
   - policy efectiva al retiro
   - limites efectivos
@@ -349,13 +351,15 @@ Cuando un tenant ya no debe seguir existiendo pero aun conserva infraestructura 
 3. esperar o ejecutar el job `deprovision_tenant_database`
 4. verificar que `db_configured=false`
 5. usar `Eliminar tenant` si el caso realmente requiere borrado definitivo
-6. el borrado guarda un snapshot minimo en `tenant_retirement_archives` antes de remover el tenant vivo del catalogo
+6. verificar que exista un export portable `completed` del mismo tenant
+7. usar `Eliminar tenant`
+8. el borrado guarda un snapshot minimo en `tenant_retirement_archives` antes de remover el tenant vivo del catalogo
 
 Lectura operativa:
 
 - `Archivar` = retiro reversible de negocio
 - `Desprovisionar` = retiro tecnico de infraestructura
-- `Eliminar` = borrado definitivo del registro cuando ya no queda infraestructura tenant materializada
+- `Eliminar` = borrado definitivo del registro cuando ya no queda infraestructura tenant materializada y ya existe respaldo portable verificable
 
 ## 7b. Archivo historico en UI
 

@@ -23,6 +23,9 @@ from app.apps.platform_control.models.tenant_retirement_archive import (
 from app.apps.platform_control.models.tenant_policy_change_event import (
     TenantPolicyChangeEvent,
 )
+from app.apps.platform_control.repositories.tenant_data_transfer_job_repository import (
+    TenantDataTransferJobRepository,
+)
 from app.apps.platform_control.repositories.tenant_repository import TenantRepository
 from app.apps.provisioning.services.tenant_schema_service import TenantSchemaService
 from app.apps.provisioning.services.provisioning_dispatch_service import (
@@ -81,6 +84,7 @@ class TenantService:
         tenant_plan_policy_service: TenantPlanPolicyService | None = None,
         tenant_billing_grace_policy_service: TenantBillingGracePolicyService | None = None,
         tenant_secret_service: TenantSecretService | None = None,
+        tenant_data_transfer_job_repository: TenantDataTransferJobRepository | None = None,
     ):
         self.tenant_repository = tenant_repository or TenantRepository()
         self.provisioning_job_service = (
@@ -106,6 +110,9 @@ class TenantService:
             tenant_billing_grace_policy_service or TenantBillingGracePolicyService()
         )
         self.tenant_secret_service = tenant_secret_service or TenantSecretService()
+        self.tenant_data_transfer_job_repository = (
+            tenant_data_transfer_job_repository or TenantDataTransferJobRepository()
+        )
 
     def create_tenant(
         self,
@@ -691,6 +698,8 @@ class TenantService:
         db: Session,
         tenant_id: int,
         *,
+        confirm_tenant_slug: str,
+        portable_export_job_id: int,
         deleted_by_user_id: int | None = None,
         deleted_by_email: str | None = None,
     ) -> Tenant:
@@ -710,6 +719,24 @@ class TenantService:
             raise ValueError(
                 "Only archived tenants without provisioned database configuration can be deleted"
             )
+
+        normalized_confirm_slug = (confirm_tenant_slug or "").strip().lower()
+        if not normalized_confirm_slug or normalized_confirm_slug != tenant.slug:
+            raise ValueError("Tenant slug confirmation does not match")
+
+        export_job = self.tenant_data_transfer_job_repository.get_by_id(
+            db, portable_export_job_id
+        )
+        if not export_job:
+            raise ValueError("Portable export job not found")
+        if export_job.tenant_id != tenant.id:
+            raise ValueError("Portable export job does not belong to this tenant")
+        if export_job.direction != "export":
+            raise ValueError("Portable export job is not an export")
+        if export_job.status != "completed":
+            raise ValueError("Portable export job is not completed")
+        if not getattr(export_job, "artifacts", None):
+            raise ValueError("Portable export job has no generated artifact")
 
         billing_events = (
             db.query(TenantBillingSyncEvent)
@@ -734,6 +761,7 @@ class TenantService:
                 billing_events_count=billing_events,
                 policy_events_count=policy_events,
                 provisioning_jobs_count=provisioning_jobs,
+                portable_export_job=export_job,
                 deleted_by_user_id=deleted_by_user_id,
                 deleted_by_email=deleted_by_email,
             )
@@ -759,6 +787,7 @@ class TenantService:
         billing_events_count: int,
         policy_events_count: int,
         provisioning_jobs_count: int,
+        portable_export_job,
         deleted_by_user_id: int | None = None,
         deleted_by_email: str | None = None,
     ) -> TenantRetirementArchive:
@@ -840,6 +869,21 @@ class TenantService:
                 "provisioning_jobs_count": provisioning_jobs_count,
                 "deleted_by_user_id": deleted_by_user_id,
                 "deleted_by_email": deleted_by_email,
+                "portable_export_evidence": {
+                    "job_id": portable_export_job.id,
+                    "export_scope": getattr(portable_export_job, "export_scope", None),
+                    "status": getattr(portable_export_job, "status", None),
+                    "completed_at": getattr(portable_export_job, "completed_at", None),
+                    "artifact_count": len(
+                        getattr(portable_export_job, "artifacts", []) or []
+                    ),
+                    "artifact_types": [
+                        getattr(artifact, "artifact_type", None)
+                        for artifact in (
+                            getattr(portable_export_job, "artifacts", []) or []
+                        )
+                    ],
+                },
                 "recent_billing_events": recent_billing_events,
                 "recent_policy_events": recent_policy_events,
                 "recent_provisioning_jobs": recent_provisioning_jobs,

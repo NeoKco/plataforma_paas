@@ -89,6 +89,7 @@ Usar como formato guía:
 - revisar `docs/architecture/data-governance.md`
 - confirmar ownership del dato y contrato entre módulos
 - confirmar si hace falta runbook adicional de seed, sync, import o recovery
+- si hubo `archive/deprovision/delete` de tenant o datos críticos, confirmar respaldo/export previo y evidencia de recuperación
 
 ## Control SRED
 

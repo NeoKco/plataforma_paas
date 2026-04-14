@@ -28,6 +28,7 @@ import type {
   PlatformTenantDataImportJob,
   PlatformTenantDataImportJobListResponse,
   PlatformTenantDeleteResponse,
+  PlatformTenantDeleteRequest,
   PlatformTenantIdentityResponse,
   PlatformTenantListResponse,
   PlatformTenantMaintenanceResponse,
@@ -537,10 +538,15 @@ export function restorePlatformTenant(
   );
 }
 
-export function deletePlatformTenant(accessToken: string, tenantId: number) {
+export function deletePlatformTenant(
+  accessToken: string,
+  tenantId: number,
+  payload: PlatformTenantDeleteRequest
+) {
   return apiRequest<PlatformTenantDeleteResponse>(`/platform/tenants/${tenantId}`, {
     method: "DELETE",
     token: accessToken,
+    body: payload,
   });
 }
 
