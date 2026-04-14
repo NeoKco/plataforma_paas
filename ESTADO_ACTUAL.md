@@ -20,6 +20,10 @@
 
 ## Qué ya quedó hecho
 
+- `2026-04-13`: mitigación productiva para errores de chunks lazy del frontend:
+  - [main.tsx](/home/felipe/platform_paas/frontend/src/main.tsx) detecta `chunk load errors` y fuerza un reload controlado una sola vez
+  - plantillas nginx del frontend marcan `index.html` y rutas SPA como `no-store`
+  - publicación productiva rehecha copiando `dist` nuevo sin borrar de golpe `/assets` previos
 - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) mantiene sync accountless y glosa sin sitio
 - [tenant_data_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/services/tenant_data_service.py) retorna `auto_on_close` cuando no hay defaults explícitos
 - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) habilita edición de precio sugerido sin sobreescribir margen objetivo y muestra hint de margen calculado
@@ -89,7 +93,7 @@
 
 ## Bloqueos reales detectados
 
-- ninguno técnico en `empresa-demo`; el gap actual es de UX/comprensión operativa
+- ninguno de esquema tenant en `empresa-demo`; el último incidente real fue de frontend estático/caché sobre rutas lazy
 
 ## Mi conclusión
 

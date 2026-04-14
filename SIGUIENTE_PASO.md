@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- validar visualmente en producción la aclaración UX de mantenimiento -> finanzas en histórico
+- validar visualmente en producción que las subrutas lazy de Mantenciones ya no rompen por chunks cacheados
 
 ## Decisión previa obligatoria
 
@@ -11,14 +11,13 @@
 ## Próximo paso correcto
 
 - validar en browser:
-  - una OT ya sincronizada debe mostrar alerta verde con ids de ingreso/egreso
-  - una OT sin sync visible debe mostrar alerta amarilla indicando que la vista es solo histórica
-- opcional:
-  - publicar el mismo frontend en `staging` para mantener carriles alineados
-- mantener validación funcional:
-  - editar `Precio sugerido` y confirmar persistencia
-  - verificar hint de margen calculado
-  - desmarcar una línea en `Costo real` y validar que no se descuente en el egreso
+  - `Instalaciones`
+  - `Tipos de equipo`
+  - `Costos de mantención`
+  - `Agenda`
+  - `Reportes`
+- confirmar que, si existía caché vieja, el frontend ya se recarga solo una vez y entra a la ruta correcta
+- después de eso retomar la validación UX de `maintenance -> finance`
 
 ## Si el escenario principal falla
 

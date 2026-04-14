@@ -129,6 +129,22 @@ Después de publicar el build:
 - confirmar login `tenant_portal`
 - confirmar que el frontend apunta a la API correcta
 
+## 4.1 Caché SPA y chunks lazy
+
+Si después de un deploy aparecen errores como:
+
+- `Unexpected Application Error`
+- `error loading dynamically imported module`
+
+el problema normalmente no es backend ni esquema tenant. El problema es que el navegador conserva un `index.html` o entry chunk viejo que apunta a archivos hash ya rotados.
+
+Reglas operativas:
+
+- `index.html` y rutas SPA deben salir con `Cache-Control: no-store, no-cache, must-revalidate`
+- no conviene purgar de golpe `dist/assets/*` durante la publicación; primero publica el build nuevo y deja coexistir por un tiempo corto los assets hash previos
+
+Esto es especialmente importante para rutas lazy como `maintenance/installations`, `maintenance/equipment-types`, `maintenance/calendar`, `maintenance/reports`.
+
 ## 5. Relación con backend
 
 Esta guía publica solo la SPA.

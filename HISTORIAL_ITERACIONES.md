@@ -1,5 +1,22 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-13 - Hotfix productivo de chunks lazy en Mantenciones
+
+- objetivo:
+  - evitar pantalla blanca/`Unexpected Application Error` al abrir subrutas lazy de Mantenciones después de publicar frontend nuevo
+- cambios principales:
+  - [main.tsx](/home/felipe/platform_paas/frontend/src/main.tsx) agrega recuperación automática ante `error loading dynamically imported module` o `ChunkLoadError`
+  - plantillas nginx del frontend ahora envían `Cache-Control: no-store, no-cache, must-revalidate` para `index.html` y rutas SPA
+  - republish de `production` hecho copiando `dist` nuevo sin purgar de golpe `/opt/platform_paas/frontend/dist/assets`
+- validaciones:
+  - `cd frontend && npm run build` -> `OK`
+  - `nginx -t` y `systemctl reload nginx` -> `OK`
+- causa confirmada:
+  - no era sincronización de esquema tenant
+  - era desalineación entre `index/chunk` cacheado y assets hash ya rotados en `production`
+- siguiente paso:
+  - validar en navegador real que `Instalaciones`, `Tipos de equipo`, `Costos de mantención`, `Agenda` y `Reportes` vuelven a abrir con normalidad
+
 ## 2026-04-13 - Claridad UX para histórico vs sync de Finanzas
 
 - objetivo:

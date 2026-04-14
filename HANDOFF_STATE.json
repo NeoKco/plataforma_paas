@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-13T01:42:00-04:00",
+  "updated_at": "2026-04-13T12:10:00-04:00",
   "handoff_status": "active",
-  "current_focus": "maintenance -> finance validado en production sobre empresa-demo; frontend productivo ya aclara UX entre historial readonly y sync operativo",
-  "project_phase": "hotfix productivo cerrado a nivel backend/frontend/datos; validacion real confirmada y endurecimiento UX publicado en production",
+  "current_focus": "hotfix productivo del frontend SPA para evitar chunk-load errors en rutas lazy de Mantenciones y seguir con maintenance -> finance",
+  "project_phase": "production establecida con mitigacion de cache/chunks en frontend; siguiente validacion en browser real sobre rutas lazy y luego retomar ajuste funcional maintenance -> finance",
   "active_modules": [
     "platform-core",
     "finance",
