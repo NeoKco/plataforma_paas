@@ -55,7 +55,13 @@ def _build_visit_item(item) -> MaintenanceVisitItemResponse:
 
 def _build_history_item(entry: dict) -> MaintenanceHistoryWorkOrderItemResponse:
     item = entry["work_order"]
-    finance_summary = entry["finance_summary"]
+    finance_summary = entry.get("finance_summary") or {
+        "has_actual_cost": False,
+        "is_synced_to_finance": False,
+        "income_transaction_id": None,
+        "expense_transaction_id": None,
+        "finance_synced_at": None,
+    }
     return MaintenanceHistoryWorkOrderItemResponse(
         id=item.id,
         client_id=item.client_id,

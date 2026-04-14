@@ -60,7 +60,7 @@ export type TenantMaintenanceHistoryWorkOrder = {
   created_by_user_id: number | null;
   created_at: string;
   updated_at: string;
-  finance_summary: TenantMaintenanceHistoryFinanceSummary;
+  finance_summary?: TenantMaintenanceHistoryFinanceSummary;
   status_logs: TenantMaintenanceStatusLog[];
   visits: TenantMaintenanceVisit[];
 };
@@ -100,7 +100,22 @@ export function getTenantMaintenanceHistory(
   return apiRequest<TenantMaintenanceHistoryResponse>(
     `/tenant/maintenance/history${params.toString() ? `?${params.toString()}` : ""}`,
     { token: accessToken }
-  );
+  ).then((response) => ({
+    ...response,
+    data: (response.data ?? []).map((item) => ({
+      ...item,
+      finance_summary: {
+        has_actual_cost: false,
+        is_synced_to_finance: false,
+        income_transaction_id: null,
+        expense_transaction_id: null,
+        finance_synced_at: null,
+        ...(item.finance_summary ?? {}),
+      },
+      status_logs: item.status_logs ?? [],
+      visits: item.visits ?? [],
+    })),
+  }));
 }
 
 export function getTenantMaintenanceStatusLogs(accessToken: string, workOrderId: number) {

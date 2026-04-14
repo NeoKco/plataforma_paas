@@ -180,10 +180,11 @@ function getFinanceStatusLabel(
   item: TenantMaintenanceHistoryWorkOrder,
   language: "es" | "en"
 ): string {
-  if (item.finance_summary.is_synced_to_finance) {
+  const financeSummary = getFinanceSummary(item);
+  if (financeSummary.is_synced_to_finance) {
     return pickLocalizedText(language, { es: "Finance OK", en: "Finance OK" });
   }
-  if (item.finance_summary.has_actual_cost) {
+  if (financeSummary.has_actual_cost) {
     return pickLocalizedText(language, { es: "Finance pendiente", en: "Finance pending" });
   }
   return pickLocalizedText(language, { es: "Sin cierre económico", en: "No financial close" });
@@ -192,13 +193,25 @@ function getFinanceStatusLabel(
 function getFinanceStatusTone(
   item: TenantMaintenanceHistoryWorkOrder
 ): "success" | "warning" | "neutral" {
-  if (item.finance_summary.is_synced_to_finance) {
+  const financeSummary = getFinanceSummary(item);
+  if (financeSummary.is_synced_to_finance) {
     return "success";
   }
-  if (item.finance_summary.has_actual_cost) {
+  if (financeSummary.has_actual_cost) {
     return "warning";
   }
   return "neutral";
+}
+
+function getFinanceSummary(item: TenantMaintenanceHistoryWorkOrder) {
+  return {
+    has_actual_cost: false,
+    is_synced_to_finance: false,
+    income_transaction_id: null,
+    expense_transaction_id: null,
+    finance_synced_at: null,
+    ...(item.finance_summary ?? {}),
+  };
 }
 
 function inferReopenStatus(item: TenantMaintenanceHistoryWorkOrder): "scheduled" | "in_progress" {
@@ -755,11 +768,11 @@ export function MaintenanceHistoryPage() {
                   <div className="maintenance-cell__meta">
                     {t("Estado finanzas", "Finance status")}: {getFinanceStatusLabel(item, language)}
                   </div>
-                  {item.finance_summary.is_synced_to_finance ? (
+                  {getFinanceSummary(item).is_synced_to_finance ? (
                     <div className="maintenance-cell__meta">
                       {t("Sync finanzas", "Finance sync")}:{" "}
                       {formatDateTime(
-                        item.finance_summary.finance_synced_at,
+                        getFinanceSummary(item).finance_synced_at,
                         language,
                         effectiveTimeZone
                       )}

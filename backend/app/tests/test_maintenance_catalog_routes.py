@@ -465,6 +465,8 @@ class MaintenanceCatalogRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.total, 1)
         self.assertEqual(response.data[0].status_logs[0].to_status, "completed")
         self.assertEqual(response.data[0].visits[0].assigned_group_label, "Técnicos norte")
+        self.assertFalse(response.data[0].finance_summary.has_actual_cost)
+        self.assertFalse(response.data[0].finance_summary.is_synced_to_finance)
 
     def test_get_maintenance_schedule_suggestion_returns_history_seed(self) -> None:
         reference_completed_at = datetime(2026, 4, 3, 18, 0, tzinfo=timezone.utc)

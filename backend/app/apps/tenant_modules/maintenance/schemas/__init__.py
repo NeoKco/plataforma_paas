@@ -53,6 +53,7 @@ from app.apps.tenant_modules.maintenance.schemas.field_report import (
     MaintenanceWorkOrderEvidenceMutationResponse,
 )
 from app.apps.tenant_modules.maintenance.schemas.history import (
+    MaintenanceHistoryFinanceSummaryResponse,
     MaintenanceHistoryResponse,
     MaintenanceHistoryWorkOrderItemResponse,
     MaintenanceStatusLogItemResponse,
@@ -160,6 +161,7 @@ __all__ = [
     "MaintenanceVisitMutationResponse",
     "MaintenanceStatusLogItemResponse",
     "MaintenanceVisitItemResponse",
+    "MaintenanceHistoryFinanceSummaryResponse",
     "MaintenanceHistoryWorkOrderItemResponse",
     "MaintenanceHistoryResponse",
     "MaintenanceStatusLogsResponse",
