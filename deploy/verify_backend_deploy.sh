@@ -11,9 +11,25 @@ BACKEND_AUTO_SYNC_POST_DEPLOY="${BACKEND_AUTO_SYNC_POST_DEPLOY:-true}"
 BACKEND_AUTO_SYNC_LIMIT="${BACKEND_AUTO_SYNC_LIMIT:-100}"
 BACKEND_POST_DEPLOY_SEED_DEFAULTS="${BACKEND_POST_DEPLOY_SEED_DEFAULTS:-true}"
 BACKEND_POST_DEPLOY_REPAIR_MAINTENANCE_FINANCE="${BACKEND_POST_DEPLOY_REPAIR_MAINTENANCE_FINANCE:-true}"
+BACKEND_POST_DEPLOY_CONVERGENCE_STRICT="${BACKEND_POST_DEPLOY_CONVERGENCE_STRICT:-false}"
 SYNC_SCRIPT="$PROJECT_ROOT/backend/app/scripts/sync_active_tenant_schemas.py"
 SEED_DEFAULTS_SCRIPT="$PROJECT_ROOT/backend/app/scripts/seed_missing_tenant_defaults.py"
 REPAIR_MAINTENANCE_FINANCE_SCRIPT="$PROJECT_ROOT/backend/app/scripts/repair_maintenance_finance_sync.py"
+
+CONVERGENCE_FAILED=0
+
+run_convergence_step() {
+    local step_name="$1"
+    shift
+    if "$@"; then
+        echo "Convergence step OK: $step_name"
+        return 0
+    fi
+
+    echo "WARNING: Convergence step failed: $step_name" >&2
+    CONVERGENCE_FAILED=1
+    return 0
+}
 
 echo "Verifying service: $SERVICE_NAME"
 echo "Healthcheck URL: $HEALTHCHECK_URL"
@@ -41,7 +57,9 @@ while [ "$attempt" -le "$MAX_ATTEMPTS" ]; do
                 exit 1
             fi
 
-            "$VENV_PYTHON" "$SYNC_SCRIPT" --limit "$BACKEND_AUTO_SYNC_LIMIT"
+            run_convergence_step \
+                "tenant_schema_sync" \
+                "$VENV_PYTHON" "$SYNC_SCRIPT" --limit "$BACKEND_AUTO_SYNC_LIMIT"
         else
             echo "Post-deploy tenant schema sync skipped."
         fi
@@ -52,7 +70,9 @@ while [ "$attempt" -le "$MAX_ATTEMPTS" ]; do
                 exit 1
             fi
             echo "Running post-deploy seed convergence for missing tenant defaults"
-            "$VENV_PYTHON" "$SEED_DEFAULTS_SCRIPT" --apply
+            run_convergence_step \
+                "tenant_defaults_seed" \
+                "$VENV_PYTHON" "$SEED_DEFAULTS_SCRIPT" --apply
         else
             echo "Post-deploy tenant defaults convergence skipped."
         fi
@@ -63,9 +83,19 @@ while [ "$attempt" -le "$MAX_ATTEMPTS" ]; do
                 exit 1
             fi
             echo "Running post-deploy maintenance-finance convergence for active tenants"
-            "$VENV_PYTHON" "$REPAIR_MAINTENANCE_FINANCE_SCRIPT" --all-active --limit "$BACKEND_AUTO_SYNC_LIMIT"
+            run_convergence_step \
+                "maintenance_finance_repair" \
+                "$VENV_PYTHON" "$REPAIR_MAINTENANCE_FINANCE_SCRIPT" --all-active --limit "$BACKEND_AUTO_SYNC_LIMIT"
         else
             echo "Post-deploy maintenance-finance convergence skipped."
+        fi
+
+        if [ "$CONVERGENCE_FAILED" -ne 0 ]; then
+            if [ "$BACKEND_POST_DEPLOY_CONVERGENCE_STRICT" = "true" ]; then
+                echo "Post-deploy convergence finished with failures (strict mode)." >&2
+                exit 1
+            fi
+            echo "Post-deploy convergence finished with warnings; service remains healthy."
         fi
 
         exit 0

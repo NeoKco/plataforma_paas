@@ -119,7 +119,7 @@ def _needs_finance_seed(db, *, force: bool) -> tuple[bool, str]:
     return (missing_sentinel or not clp_ok or not base_ok or not categories), "no_usage"
 
 
-def main() -> None:
+def main() -> int:
     args = parse_args()
     control_db = ControlSessionLocal()
     try:
@@ -130,48 +130,70 @@ def main() -> None:
             query = query.filter(Tenant.status != "archived")
         tenants = query.order_by(Tenant.slug.asc()).all()
 
+        processed = 0
+        changed = 0
+        failed = 0
+
         for tenant in tenants:
-            session_factory = tenant_connection_service.get_tenant_session(tenant)
-            if session_factory is None:
-                print(f"{tenant.slug}: skip (no tenant db)")
-                continue
-
-            tenant_db = session_factory()
+            processed += 1
             try:
-                modules: list[str] = []
-                if _needs_core_seed(tenant_db):
-                    modules.append("core")
-
-                finance_needed, finance_reason = _needs_finance_seed(
-                    tenant_db, force=args.force_finance
-                )
-                if finance_needed:
-                    modules.append("finance")
-
-                if not modules:
-                    print(f"{tenant.slug}: ok (no missing defaults)")
+                session_factory = tenant_connection_service.get_tenant_session(tenant)
+                if session_factory is None:
+                    print(f"{tenant.slug}: skip (no tenant db)")
                     continue
 
-                if not args.apply:
-                    print(f"{tenant.slug}: would seed -> {','.join(modules)}")
-                    continue
+                tenant_db = session_factory()
+                try:
+                    modules: list[str] = []
+                    if _needs_core_seed(tenant_db):
+                        modules.append("core")
 
-                tenant_bootstrap_service.seed_defaults(
-                    tenant_db,
-                    tenant_name=tenant.name,
-                    tenant_slug=tenant.slug,
-                    tenant_type=tenant.tenant_type,
-                    enabled_modules=modules,
-                )
-                tenant_db.commit()
-                print(
-                    f"{tenant.slug}: seeded {','.join(modules)} (finance_reason={finance_reason})"
-                )
-            finally:
-                tenant_db.close()
+                    finance_needed, finance_reason = _needs_finance_seed(
+                        tenant_db, force=args.force_finance
+                    )
+                    if finance_needed:
+                        modules.append("finance")
+
+                    if not modules:
+                        print(f"{tenant.slug}: ok (no missing defaults)")
+                        continue
+
+                    if not args.apply:
+                        print(f"{tenant.slug}: would seed -> {','.join(modules)}")
+                        changed += 1
+                        continue
+
+                    tenant_bootstrap_service.seed_defaults(
+                        tenant_db,
+                        tenant_name=tenant.name,
+                        tenant_slug=tenant.slug,
+                        tenant_type=tenant.tenant_type,
+                        enabled_modules=modules,
+                    )
+                    tenant_db.commit()
+                    changed += 1
+                    print(
+                        f"{tenant.slug}: seeded {','.join(modules)} (finance_reason={finance_reason})"
+                    )
+                finally:
+                    tenant_db.close()
+            except Exception as exc:  # pragma: no cover - operational fallback
+                failed += 1
+                print(f"{tenant.slug}: failed ({exc})")
+
+        print(
+            "Tenant defaults seed summary: processed={processed}, changed={changed}, "
+            "failed={failed}, apply={apply}".format(
+                processed=processed,
+                changed=changed,
+                failed=failed,
+                apply=args.apply,
+            )
+        )
+        return 0 if failed == 0 else 1
     finally:
         control_db.close()
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

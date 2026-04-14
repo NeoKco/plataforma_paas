@@ -1,6 +1,8 @@
 from datetime import datetime
 
 from sqlalchemy import or_
+from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 
 from sqlalchemy.orm import Session
 
@@ -22,7 +24,20 @@ class FinanceTransactionRepository:
 
     def save(self, tenant_db: Session, transaction: FinanceTransaction) -> FinanceTransaction:
         tenant_db.add(transaction)
-        tenant_db.commit()
+        try:
+            tenant_db.commit()
+        except IntegrityError as exc:
+            tenant_db.rollback()
+            if self._is_primary_key_collision(exc):
+                self._repair_transaction_sequence(tenant_db)
+                transaction.id = None
+                tenant_db.add(transaction)
+                tenant_db.commit()
+            else:
+                raise
+        except Exception:
+            tenant_db.rollback()
+            raise
         tenant_db.refresh(transaction)
         return transaction
 
@@ -156,6 +171,41 @@ class FinanceTransactionRepository:
 
     def persist(self, tenant_db: Session, transaction: FinanceTransaction) -> FinanceTransaction:
         tenant_db.add(transaction)
-        tenant_db.commit()
+        try:
+            tenant_db.commit()
+        except IntegrityError as exc:
+            tenant_db.rollback()
+            if self._is_primary_key_collision(exc):
+                self._repair_transaction_sequence(tenant_db)
+                transaction.id = None
+                tenant_db.add(transaction)
+                tenant_db.commit()
+            else:
+                raise
+        except Exception:
+            tenant_db.rollback()
+            raise
         tenant_db.refresh(transaction)
         return transaction
+
+    @staticmethod
+    def _is_primary_key_collision(exc: IntegrityError) -> bool:
+        original = exc.orig
+        constraint = getattr(getattr(original, "diag", None), "constraint_name", "")
+        if constraint:
+            return constraint == "finance_transactions_pkey"
+        return "finance_transactions_pkey" in str(original)
+
+    @staticmethod
+    def _repair_transaction_sequence(tenant_db: Session) -> None:
+        tenant_db.execute(
+            text(
+                """
+                SELECT setval(
+                    pg_get_serial_sequence('finance_transactions', 'id'),
+                    COALESCE((SELECT MAX(id) FROM finance_transactions), 1),
+                    true
+                )
+                """
+            )
+        )
