@@ -2,6 +2,13 @@
 
 ## 2026-04-13
 
+- la UX de `Historial` deja explícita la diferencia entre consulta y operación:
+  - `Ver costos` pasa a mostrarse como `Ver costos (hist.)`
+  - se agrega alerta en `Historial` indicando que esa vista es solo lectura
+  - el modal readonly muestra estado visible de sincronización con Finanzas:
+    - verde si ya hay ingreso/egreso vinculados
+    - amarillo si hay costo real pero no se ve vínculo financiero
+    - mensaje explícito de que la vista readonly no dispara sincronización
 - validación productiva real del flujo `maintenance -> finance` en `empresa-demo`:
   - se confirma que las OT cerradas recientes ya generan `income` y `expense` en Finanzas
   - se verifica correspondencia real entre:

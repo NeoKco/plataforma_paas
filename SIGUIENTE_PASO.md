@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- endurecer UX de mantenimiento -> finanzas para distinguir lectura histórica vs cierre operativo
+- validar visualmente en producción la aclaración UX de mantenimiento -> finanzas en histórico
 
 ## Decisión previa obligatoria
 
@@ -10,8 +10,11 @@
 
 ## Próximo paso correcto
 
-- reforzar en UI que `Ver costos` desde `Historial` es solo lectura y no un botón de sincronización
-- agregar señal operativa visible en `Editar cierre` y/o modal de costos para indicar cuándo el cierre ya quedó sincronizado a Finanzas
+- validar en browser:
+  - una OT ya sincronizada debe mostrar alerta verde con ids de ingreso/egreso
+  - una OT sin sync visible debe mostrar alerta amarilla indicando que la vista es solo histórica
+- opcional:
+  - publicar el mismo frontend en `staging` para mantener carriles alineados
 - mantener validación funcional:
   - editar `Precio sugerido` y confirmar persistencia
   - verificar hint de margen calculado
@@ -24,6 +27,8 @@
 
 ## Condición de cierre de la próxima iteración
 
+- publish frontend realizado
+- validación visual en browser confirmada
 - UX deja claro dónde se dispara el sync y dónde solo se consulta histórico
 - precio sugerido editable y persistente en el estimado (sin sobreescribir margen objetivo)
 - control por línea de lo que impacta el egreso funcionando

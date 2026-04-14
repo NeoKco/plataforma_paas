@@ -1,5 +1,25 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-13 - Claridad UX para histórico vs sync de Finanzas
+
+- objetivo:
+  - evitar que `Ver costos` desde `Historial` se interprete como la acción que dispara la sincronización con Finanzas
+- cambios principales:
+  - [MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx) cambia el copy a `Ver costos (hist.)` y agrega alerta operativa en la vista histórica
+  - [MaintenanceWorkOrderDetailModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceWorkOrderDetailModal.tsx) replica el label `Ver costos (hist.)`
+  - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) muestra:
+    - modal readonly identificado como `solo lectura`
+    - alerta verde cuando la mantención ya quedó reflejada en Finanzas
+    - alerta amarilla cuando hay costo real guardado pero no se ve vínculo financiero
+    - texto explícito de que la sección readonly no dispara sincronización
+- validaciones:
+  - `cd frontend && npm run build` -> `OK`
+  - frontend production rebuild + publish -> `OK`
+- bloqueos:
+  - pendiente validación visual final en browser
+- siguiente paso:
+  - validar una OT sincronizada y otra no sincronizada desde Historial
+
 ## 2026-04-13 - Validación productiva real del puente maintenance -> finance
 
 - objetivo:

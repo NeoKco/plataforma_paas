@@ -176,6 +176,31 @@ function getStatusTone(status: string): "success" | "danger" | "warning" | "info
   return "neutral";
 }
 
+function getFinanceStatusLabel(
+  item: TenantMaintenanceHistoryWorkOrder,
+  language: "es" | "en"
+): string {
+  if (item.finance_summary.is_synced_to_finance) {
+    return pickLocalizedText(language, { es: "Finance OK", en: "Finance OK" });
+  }
+  if (item.finance_summary.has_actual_cost) {
+    return pickLocalizedText(language, { es: "Finance pendiente", en: "Finance pending" });
+  }
+  return pickLocalizedText(language, { es: "Sin cierre económico", en: "No financial close" });
+}
+
+function getFinanceStatusTone(
+  item: TenantMaintenanceHistoryWorkOrder
+): "success" | "warning" | "neutral" {
+  if (item.finance_summary.is_synced_to_finance) {
+    return "success";
+  }
+  if (item.finance_summary.has_actual_cost) {
+    return "warning";
+  }
+  return "neutral";
+}
+
 function inferReopenStatus(item: TenantMaintenanceHistoryWorkOrder): "scheduled" | "in_progress" {
   const candidate = item.status_logs.find(
     (log) =>
@@ -652,6 +677,9 @@ export function MaintenanceHistoryPage() {
                   <AppBadge tone={getStatusTone(item.maintenance_status)}>
                     {getStatusLabel(item.maintenance_status, language)}
                   </AppBadge>
+                  <AppBadge tone={getFinanceStatusTone(item)}>
+                    {getFinanceStatusLabel(item, language)}
+                  </AppBadge>
                   <button
                     className="btn btn-sm btn-outline-primary"
                     type="button"
@@ -664,7 +692,7 @@ export function MaintenanceHistoryPage() {
                     type="button"
                     onClick={() => openCostingModal(item)}
                   >
-                    {t("Ver costos", "View costing")}
+                    {t("Ver costos (hist.)", "View costing (history)")}
                   </button>
                   <button
                     className="btn btn-sm btn-outline-primary"
@@ -724,6 +752,19 @@ export function MaintenanceHistoryPage() {
                       effectiveTimeZone
                     )}
                   </div>
+                  <div className="maintenance-cell__meta">
+                    {t("Estado finanzas", "Finance status")}: {getFinanceStatusLabel(item, language)}
+                  </div>
+                  {item.finance_summary.is_synced_to_finance ? (
+                    <div className="maintenance-cell__meta">
+                      {t("Sync finanzas", "Finance sync")}:{" "}
+                      {formatDateTime(
+                        item.finance_summary.finance_synced_at,
+                        language,
+                        effectiveTimeZone
+                      )}
+                    </div>
+                  ) : null}
                   {stripLegacyVisibleText(item.description) ? (
                     <p className="mb-0 mt-3">{stripLegacyVisibleText(item.description)}</p>
                   ) : null}
@@ -852,6 +893,12 @@ export function MaintenanceHistoryPage() {
             )}
           </div>
         ) : null}
+        <div className="alert alert-info mb-3">
+          {t(
+            "En Historial, Ver costos es solo consulta del cierre económico ya guardado. Si necesitas corregir datos o reintentar el puente con Finanzas, usa Editar cierre o el flujo operativo de la OT.",
+            "In History, View costing is read-only and only shows the registered financial close. If you need to correct data or retry the Finance bridge, use Edit closure or the work-order operational flow."
+          )}
+        </div>
         <div className="row g-3 align-items-end">
           <div className="col-12 col-md-5">
             <label className="form-label">

@@ -6,6 +6,7 @@ from app.apps.tenant_modules.maintenance.dependencies import (
     require_maintenance_read,
 )
 from app.apps.tenant_modules.maintenance.schemas import (
+    MaintenanceHistoryFinanceSummaryResponse,
     MaintenanceHistoryResponse,
     MaintenanceHistoryWorkOrderItemResponse,
     MaintenanceStatusLogItemResponse,
@@ -54,6 +55,7 @@ def _build_visit_item(item) -> MaintenanceVisitItemResponse:
 
 def _build_history_item(entry: dict) -> MaintenanceHistoryWorkOrderItemResponse:
     item = entry["work_order"]
+    finance_summary = entry["finance_summary"]
     return MaintenanceHistoryWorkOrderItemResponse(
         id=item.id,
         client_id=item.client_id,
@@ -78,6 +80,13 @@ def _build_history_item(entry: dict) -> MaintenanceHistoryWorkOrderItemResponse:
         created_by_user_id=getattr(item, "created_by_user_id", None),
         created_at=item.created_at,
         updated_at=item.updated_at,
+        finance_summary=MaintenanceHistoryFinanceSummaryResponse(
+            has_actual_cost=finance_summary["has_actual_cost"],
+            is_synced_to_finance=finance_summary["is_synced_to_finance"],
+            income_transaction_id=finance_summary["income_transaction_id"],
+            expense_transaction_id=finance_summary["expense_transaction_id"],
+            finance_synced_at=finance_summary["finance_synced_at"],
+        ),
         status_logs=[_build_status_log_item(log) for log in entry["status_logs"]],
         visits=[_build_visit_item(visit) for visit in entry["visits"]],
     )

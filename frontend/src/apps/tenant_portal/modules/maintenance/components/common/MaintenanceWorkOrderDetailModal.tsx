@@ -561,7 +561,7 @@ export function MaintenanceWorkOrderDetailModal({
             </button>
             {onOpenCosting ? (
               <button className="btn btn-outline-primary" type="button" onClick={onOpenCosting}>
-                {t("Ver costos", "View costing")}
+                {t("Ver costos (hist.)", "View costing (history)")}
               </button>
             ) : null}
             {onOpenChecklist ? (

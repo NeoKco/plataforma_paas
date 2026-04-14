@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-13
-- foco de iteración: mantenimiento -> finanzas (validación real de cierre OT -> ingresos/egresos en Finanzas)
-- estado general: flujo validado en `production` sobre `empresa-demo`; falta endurecer UX para distinguir mejor vista histórica vs cierre operativo
+- foco de iteración: mantenimiento -> finanzas (claridad UX entre histórico y cierre operativo)
+- estado general: flujo validado en `production` sobre `empresa-demo`; UX aclarada, compilada y publicada en `production`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -12,6 +12,7 @@
 - se verificó en DB que las OT `#321`, `#322` y `#323` tienen `income_transaction_id`, `expense_transaction_id` y `finance_synced_at`
 - la glosa final queda como `Ingreso/Egreso mantención #XXX · trabajo · cliente`
 - la vista `Ver costos` desde `Historial` es lectura consolidada; no es el punto de disparo del sync
+- la UX ahora renombra esa acción a `Ver costos (hist.)` y muestra estado visible de sincronización en el modal readonly
 - el sync real ocurre al:
   - guardar costo real sobre una OT ya `completed`
   - cerrar la OT desde el flujo operativo
@@ -31,6 +32,7 @@
 - script `repair_maintenance_finance_expenses.py` aplicado en `empresa-demo` para backfill de egresos
 - líneas de costeo ahora permiten marcar qué items cuentan como egreso (`include_in_expense`)
 - script `repair_maintenance_finance_sync.py` validado en `empresa-demo`; no quedan OT completadas pendientes de sync
+- `MaintenanceHistoryPage`, `MaintenanceWorkOrderDetailModal` y `MaintenanceCostingModal` aclaran visualmente la diferencia entre consulta histórica y ajuste/sync operativo
 - validación productiva real:
   - OT `#321` -> ingreso `#196`, egreso `#202`
   - OT `#322` -> ingreso `#203`, egreso `#204`
@@ -67,11 +69,12 @@
 ## Qué falta exactamente
 
 - mejorar señal visual/UX para dejar explícito que:
-  - `Ver costos` en historial es lectura
+  - `Ver costos (hist.)` en historial es lectura
   - `Editar cierre` o el cierre desde bandeja activa es la acción operativa
 - mantener validación funcional:
   - precio sugerido editable sin sobreescribir margen objetivo y hint de margen calculado visible
   - confirmar que desmarcar una línea la excluye del egreso y del total real
+- opcional: publicar también en `staging` si se quiere mantener ambos carriles alineados
 
 ## Qué no debe tocarse
 

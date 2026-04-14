@@ -28,6 +28,14 @@ export type TenantMaintenanceVisit = {
   updated_at: string;
 };
 
+export type TenantMaintenanceHistoryFinanceSummary = {
+  has_actual_cost: boolean;
+  is_synced_to_finance: boolean;
+  income_transaction_id: number | null;
+  expense_transaction_id: number | null;
+  finance_synced_at: string | null;
+};
+
 export type TenantMaintenanceHistoryWorkOrder = {
   id: number;
   client_id: number;
@@ -52,6 +60,7 @@ export type TenantMaintenanceHistoryWorkOrder = {
   created_by_user_id: number | null;
   created_at: string;
   updated_at: string;
+  finance_summary: TenantMaintenanceHistoryFinanceSummary;
   status_logs: TenantMaintenanceStatusLog[];
   visits: TenantMaintenanceVisit[];
 };

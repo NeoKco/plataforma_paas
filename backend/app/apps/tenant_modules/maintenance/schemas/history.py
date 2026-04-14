@@ -33,6 +33,14 @@ class MaintenanceVisitItemResponse(BaseModel):
     updated_at: datetime
 
 
+class MaintenanceHistoryFinanceSummaryResponse(BaseModel):
+    has_actual_cost: bool = False
+    is_synced_to_finance: bool = False
+    income_transaction_id: int | None = None
+    expense_transaction_id: int | None = None
+    finance_synced_at: datetime | None = None
+
+
 class MaintenanceHistoryWorkOrderItemResponse(BaseModel):
     id: int
     client_id: int
@@ -57,6 +65,7 @@ class MaintenanceHistoryWorkOrderItemResponse(BaseModel):
     created_by_user_id: int | None = None
     created_at: datetime
     updated_at: datetime
+    finance_summary: MaintenanceHistoryFinanceSummaryResponse
     status_logs: list[MaintenanceStatusLogItemResponse]
     visits: list[MaintenanceVisitItemResponse]
 
