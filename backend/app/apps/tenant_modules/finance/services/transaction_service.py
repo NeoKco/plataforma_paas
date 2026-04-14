@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from datetime import datetime, timezone
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.finance.models import (
@@ -276,7 +277,16 @@ class FinanceService:
             updated_by_user_id=actor_user_id,
         )
         tenant_db.add(transaction)
-        tenant_db.flush()
+        try:
+            tenant_db.flush()
+        except IntegrityError as exc:
+            tenant_db.rollback()
+            if not self.transaction_repository._is_primary_key_collision(exc):
+                raise
+            self.transaction_repository._repair_transaction_sequence(tenant_db)
+            transaction.id = None
+            tenant_db.add(transaction)
+            tenant_db.flush()
         normalized_tag_ids = self._normalize_tag_ids(tenant_db, payload.tag_ids)
         self.transaction_tag_repository.replace_for_transaction(
             tenant_db,
