@@ -2,22 +2,27 @@
 
 ## Prioridad vigente
 
-- dejar cerrada la convergencia multi-tenant por ambiente, especialmente en `staging`
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y abrir el siguiente frente funcional sobre una base ya alineada
 
 ## Decisión previa obligatoria
 
-- ninguna; la arquitectura de convergencia ya quedó definida en repo
+- ninguna; la arquitectura de convergencia ya quedó definida y validada en `staging` y `production`
 
 ## Próximo paso correcto
 
-- reparar runtime tenant en `staging` para:
-  - `condominio-demo`
-  - `ieris-ltda`
-- volver a correr:
+- usar la nueva regla de promoción completa en el siguiente slice real del roadmap:
+  - cambio en repo
+  - deploy `staging`
+  - convergencia `staging`
+  - auditoría `staging`
+  - promoción `production`
+  - convergencia `production`
+  - auditoría `production`
+  - documentación viva cerrada
+- mantener como comando obligatorio de cierre multi-tenant:
   - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
   - [repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
   - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
-- mantener `production` como referencia convergida y auditada
 
 ## Si el escenario principal falla
 
@@ -33,11 +38,9 @@
 
 ## Condición de cierre de la próxima iteración
 
-- `staging` con auditoría activa sin fallos críticos en tenants activos
-- `production` y `staging` alineados por:
-  - código desplegado
-  - convergencia post-deploy
-  - auditoría activa por tenant
+- `staging` y `production` mantienen auditoría activa sin fallos críticos en tenants activos después del nuevo cambio
+- el nuevo slice queda probado al menos en ambos ambientes reales afectados
 - documentación de release deja explícito que:
   - repo != runtime
   - deploy != convergencia completa
+  - cambio correcto para la PaaS = promoción + convergencia + pruebas + documentación en todos los ambientes/tenants afectados

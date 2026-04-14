@@ -1,5 +1,19 @@
 # Platform Core Changelog
 
+## 2026-04-14
+
+- se formaliza la regla de promoción completa del PaaS:
+  - un cambio declarado correcto debe cerrarse en todos los ambientes y tenants activos afectados
+  - no basta con que funcione en repo, en un tenant o en un solo ambiente
+  - la regla queda escrita en:
+    - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
+    - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
+    - [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+- se cierra el saneamiento pendiente de `staging`:
+  - `condominio-demo` recupera credenciales DB tenant válidas mediante rotación desde servicio
+  - se reejecuta convergencia activa (`seed defaults`, `repair maintenance -> finance`, `audit`)
+  - resultado final en `staging`: `processed=4`, `warnings=0`, `failed=0`
+
 ## 2026-04-13
 
 - se endurece la convergencia multi-tenant post-deploy para evitar drift entre `repo`, `staging` y `production`:

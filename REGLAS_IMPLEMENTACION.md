@@ -258,6 +258,36 @@ Usar la estructura explícita de `PLANTILLA_ACTUALIZACION_ESTADO.md`.
 
 ## Regla 17. No cerrar una iteración sin declarar bloqueos reales
 
+## Regla 18. Cambio correcto = promoción completa por ambiente y tenant
+
+Si una modificación se declara correcta y válida para la PaaS, no basta con dejarla funcionando en `development` o en un solo tenant.
+
+Debe cerrarse explícitamente en estos planos:
+
+- `repo` actualizado
+- `staging/test` actualizado si existe ese carril
+- `production` actualizado cuando la mejora ya fue promovida
+- tenants impactados convergidos, no solo un tenant usado como referencia
+
+Esto implica:
+
+- desplegar el cambio en todos los ambientes activos afectados
+- correr convergencia post-deploy cuando el cambio toca lógica multi-tenant, defaults, seeds, finanzas, mantenciones o contratos
+- ejecutar pruebas proporcionales en cada ambiente relevante
+- documentar el resultado real por ambiente y declarar cualquier drift tenant-local restante
+
+No se debe cerrar un cambio con frases del tipo:
+
+- "funciona en `empresa-demo`"
+- "ya quedó en repo"
+- "pasó localmente"
+
+si todavía no quedó claro:
+
+- qué ambientes tienen el cambio realmente publicado
+- qué tenants quedaron convergidos
+- qué evidencia lo demuestra
+
 Si algo no pudo completarse, no dejarlo ambiguo.
 
 Hay que dejar explícito:

@@ -2,9 +2,9 @@
 
 ## Última actualización
 
-- fecha: 2026-04-13
+- fecha: 2026-04-14
 - foco de iteración: convergencia real por ambiente y tenant para evitar drift entre `development`, `staging` y `production`
-- estado general: código endurecido en repo, backend convergido y auditado en `production`; falta saneamiento puntual de credenciales/runtime en algunos tenants de `staging`
+- estado general: código endurecido en repo y convergencia crítica cerrada en `staging` y `production` para tenants activos; la regla de promoción completa ya quedó fijada como estándar obligatorio del PaaS
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -17,9 +17,15 @@
   - seed de defaults faltantes
   - reparación `maintenance -> finance`
   - auditoría activa por tenant
+- desde este corte queda explícito que un cambio declarado correcto no se cierra si solo funciona en un tenant o en un ambiente:
+  - debe promocionarse al runtime afectado
+  - debe converger tenants activos afectados
+  - debe validarse con pruebas proporcionales
+  - debe documentarse en la memoria viva del repo
 - `empresa-demo` funcionó antes que `ieris-ltda` porque ya había sido reparado/backfilleado; `ieris-ltda` seguía con drift técnico en su BD tenant
 - la causa técnica concreta detectada en `ieris-ltda` fue colisión de secuencia `finance_transactions_pkey`, lo que impedía insertar movimientos sincronizados desde Mantenciones
 - `production` ya quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica
+- `staging` también quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica tras rotar la credencial DB tenant de `condominio-demo`
 - frontend runtime verificado en ambos ambientes con bundles nuevos:
   - `MaintenanceHistoryPage-CdHJKpQP.js`
   - `MaintenanceInstallationsPage-CjIp0KB9.js`
@@ -44,12 +50,25 @@
   - seed de defaults faltantes
   - reparación `maintenance -> finance`
   - auditoría activa por tenant
+- la regla de promoción completa quedó escrita en:
+  - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
+  - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
+  - [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
 - el gate post-deploy quedó no-bloqueante por defecto para convergencia (`BACKEND_POST_DEPLOY_CONVERGENCE_STRICT=false`), de modo que un tenant roto no tumbe un servicio sano
 - `production` quedó verificado con auditoría crítica en tenants activos:
   - `condominio-demo`: OK
   - `empresa-bootstrap`: OK
   - `empresa-demo`: OK
   - `ieris-ltda`: OK
+- `staging` quedó verificado con auditoría crítica en tenants activos:
+  - `bootstrap-condominio-20260412002354`: OK
+  - `bootstrap-empresa-20260412002354`: OK
+  - `condominio-demo`: OK
+  - `empresa-bootstrap`: OK
+- `condominio-demo` en `staging` fue reparado rotando credenciales DB tenant desde [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py), lo que dejó alineados:
+  - password PostgreSQL del rol tenant
+  - secreto runtime en `TENANT_SECRETS_FILE`
+  - metadata de rotación en control
 - validación directa en `production` para `ieris-ltda`:
   - política efectiva: `auto_on_close`
   - existen ingresos/egresos sincronizados desde mantenciones cerradas
@@ -90,38 +109,43 @@
 
 ## Qué falta exactamente
 
-- en `staging` todavía hay drift técnico en algunos tenants:
-  - `condominio-demo`: credenciales DB tenant inválidas
-  - `ieris-ltda`: password DB tenant no configurada en el runtime de `staging`
-- republicar frontend cuando el bundle publicado quede atrasado respecto del repo, para evitar errores como `finance_summary undefined`
-- mantener la disciplina operativa:
+- mantener la disciplina operativa como estándar permanente:
   - test local
   - deploy `staging`
   - convergencia
   - auditoría
   - promoción a `production`
+- seguir endureciendo la visibilidad de drift runtime vs repo para que futuras incidencias no dependan de investigación manual
+- mantener republicación controlada del frontend cuando cambien bundles o contratos del payload para evitar errores de caché o shape inconsistente
 
 ## Qué no debe tocarse
 
 - no usar `ieris-ltda` para E2E ni seeds de prueba
 - no asumir que un tenant “hereda” reparaciones solo por compartir el mismo código
 - no saltarse la auditoría post-deploy en cambios multi-tenant
+- no declarar un cambio “cerrado para el PaaS” si solo fue verificado en un tenant o en un solo ambiente
 
 ## Validaciones ya ejecutadas
 
 - backend targeted tests locales: `35 OK`
 - frontend build local: `OK`
-- deploy backend `staging`: `OK` con warnings de runtime tenant en algunos slugs
+- deploy backend `staging`: `OK`
 - deploy backend `production`: `OK`
 - publish frontend `staging`: `OK`
 - publish frontend `production`: `OK`
+- rerun convergencia `staging`:
+  - `seed_missing_tenant_defaults.py --apply` -> `processed=4, changed=2, failed=0`
+  - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4, failures=0`
+  - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
 - auditoría activa directa en `production`: `processed=4, warnings=0, failed=0`
+- auditoría activa directa en `staging`: `processed=4, warnings=0, failed=0`
 
 ## Bloqueos reales detectados
 
-- `staging` todavía no representa a todos los tenants reales porque:
-  - `condominio-demo` falla autenticación DB
-  - `ieris-ltda` no tiene password tenant configurada en ese runtime
+- no hay bloqueo crítico abierto en la convergencia activa de `staging` ni `production`
+- sigue vigente el riesgo estructural conocido:
+  - cambios correctos en repo no se replican solos al runtime
+  - tenants distintos pueden divergir si no se corre convergencia post-deploy
 
 ## Mi conclusión
 
@@ -131,4 +155,5 @@
   - deploy por ambiente
   - convergencia post-deploy
   - auditoría activa por tenant
+- además, desde ahora la regla queda escrita: cuando un cambio se declara correcto para la PaaS, debe quedar promovido, convergido, probado y documentado en todos los ambientes/tenants afectados
 - con eso se evita repetir el patrón de “funciona en un tenant, no en otro” sin visibilidad operativa

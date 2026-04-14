@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-13T23:55:00-04:00",
+  "updated_at": "2026-04-14T00:15:00-04:00",
   "handoff_status": "active",
-  "current_focus": "convergencia real por ambiente y tenant para que cambios backend/frontend se reflejen igual en staging y production sin drift entre tenants",
-  "project_phase": "production convergida y auditada por tenant; staging todavia requiere saneamiento de credenciales/runtime tenant para quedar alineado al mismo nivel",
+  "current_focus": "promocion completa por ambiente y tenant como regla operativa: todo cambio correcto debe quedar desplegado, convergido, auditado, probado y documentado en staging y production",
+  "project_phase": "staging y production convergidos y auditados para tenants activos; el siguiente slice debe cerrarse usando la nueva regla de promocion completa",
   "active_modules": [
     "platform-core",
     "finance",
@@ -64,9 +64,15 @@
     "si hay costos reales > 0 y se sincroniza el ingreso, el egreso debe generarse siempre",
     "las líneas de costo deben poder excluirse del egreso",
     "auto_on_close no puede persistirse con ingreso y egreso automáticos ambos apagados",
-    "si un tenant legacy quedó con esa combinación inválida, la lectura efectiva la autocorrige y debe repararse con script"
+    "si un tenant legacy quedó con esa combinación inválida, la lectura efectiva la autocorrige y debe repararse con script",
+    "un cambio correcto para la PaaS no se considera cerrado si solo funciona en repo, en un tenant o en un ambiente; debe quedar promovido, convergido, auditado, probado y documentado en todos los ambientes/tenants afectados"
   ],
   "completed_recently": [
+    "regla de promocion completa por ambiente y tenant documentada en REGLAS_IMPLEMENTACION, CHECKLIST_CIERRE_ITERACION y docs/architecture/implementation-governance.md",
+    "condominio-demo staging reparado rotando credenciales DB tenant desde TenantService.rotate_tenant_db_credentials",
+    "staging seed_missing_tenant_defaults --apply reejecutado con processed=4 changed=2 failed=0",
+    "staging repair_maintenance_finance_sync --all-active reejecutado con processed=4 failures=0",
+    "staging audit_active_tenant_convergence reejecutado con processed=4 warnings=0 failed=0",
     "FinanceTransactionRepository ahora repara automaticamente finance_transactions_pkey cuando detecta colision por secuencia desfasada",
     "FinanceService.stage_system_transaction replica la autocorreccion de secuencia en la ruta real usada por maintenance -> finance",
     "script audit_active_tenant_convergence.py agregado para auditar politica efectiva, OT completadas sin sync y payload history por tenant",

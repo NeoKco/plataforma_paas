@@ -1,5 +1,28 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-14 - Regla de promoción completa + cierre limpio de convergencia en staging
+
+- objetivo:
+  - dejar explícito que un cambio declarado correcto para la PaaS debe cerrarse en todos los ambientes y tenants afectados, no solo en repo o en un tenant puntual
+  - cerrar el último drift crítico conocido en `staging`
+- cambios principales:
+  - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md) agrega la regla `Cambio correcto = promoción completa por ambiente y tenant`
+  - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md) exige confirmar promoción por ambiente, convergencia por tenant y documentación explícita del cierre
+  - [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md) fija la promoción completa como parte del estándar de implementación
+  - `condominio-demo` en `staging` se repara rotando credenciales DB tenant desde [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py), dejando consistente:
+    - rol PostgreSQL tenant
+    - secreto runtime en `TENANT_SECRETS_FILE`
+    - metadata de rotación en control
+- validaciones:
+  - `seed_missing_tenant_defaults.py --apply` en `staging` -> `processed=4, changed=2, failed=0`
+  - `repair_maintenance_finance_sync.py --all-active --limit 100` en `staging` -> `processed=4, failures=0`
+  - `audit_active_tenant_convergence.py --all-active --limit 100` en `staging` -> `processed=4, warnings=0, failed=0`
+- resultado:
+  - `staging` y `production` quedan convergidos y auditados sin fallos críticos en tenants activos
+  - se cierra la ambigüedad operativa de “funciona en repo / en un tenant / en un ambiente” como criterio insuficiente
+- siguiente paso:
+  - aplicar esta misma regla como gate del próximo slice funcional real del roadmap
+
 ## 2026-04-13 - Convergencia multi-tenant real entre repo, staging y production
 
 - objetivo:

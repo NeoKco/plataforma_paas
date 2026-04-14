@@ -26,6 +26,8 @@ No cerrar una iteración hasta responder `sí` a todo esto:
 - ¿el estado vivo del repo refleja lo que realmente pasó?
 - ¿el siguiente paso correcto quedó explícito?
 - ¿otra IA podría retomar sin depender del chat?
+- ¿el cambio quedó promovido en todos los ambientes afectados o quedó explícito qué ambiente falta?
+- ¿los tenants afectados quedaron convergidos o quedó explícito cuál sigue con drift y por qué?
 
 ## Actualización mínima del root
 
@@ -70,6 +72,10 @@ Usar como formato guía:
 - revisar `docs/deploy/*`
 - revisar `PAQUETE_RELEASE_OPERADOR.md`
 - validar `health` y smoke corto post-deploy
+- validar también si el cambio quedó realmente reflejado en:
+  - `staging/test`
+  - `production`
+  - tenants impactados del ambiente
 
 ### Si hubo cambio transversal
 
@@ -104,6 +110,15 @@ Todo cierre debe dejar explícito:
 - cuál es ahora el siguiente paso correcto
 
 ## Regla final
+
+No considerar "cerrado" un cambio global de la PaaS si solo quedó comprobado en un tenant o en un ambiente.
+
+El cierre correcto debe dejar explícito:
+
+- dónde quedó desplegado
+- qué ambientes faltan
+- qué tenants se verificaron
+- qué drift real sigue abierto
 
 Si mañana otra IA abre el repo, debe poder saber:
 

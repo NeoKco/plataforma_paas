@@ -45,6 +45,30 @@ Ese criterio ahora también puede leerse como `SRED`:
 
 Ver [SRED Driven Development](./sred-development.md).
 
+## Regla de Promoción Completa
+
+Si una mejora se declara correcta para la PaaS, debe tratarse como cambio global y no como experimento local o de tenant aislado.
+
+Eso obliga a cerrar cuatro niveles operativos:
+
+- código del repo
+- runtime de `staging/test` si existe
+- runtime de `production` cuando corresponda promoción
+- convergencia real de los tenants afectados dentro de cada ambiente
+
+Corolarios prácticos:
+
+- un cambio "correcto" en `development` no se considera cerrado por sí solo
+- un cambio "correcto" en `empresa-demo` no prueba automáticamente a `ieris-ltda`
+- un deploy con `healthcheck` sano no prueba automáticamente convergencia multi-tenant
+
+Por eso el estándar de cierre exige:
+
+- deploy por ambiente
+- convergencia post-deploy
+- auditoría activa por tenant
+- documentación explícita del estado resultante
+
 ## Antes de Implementar
 
 Antes de escribir codigo, debe quedar claro:
