@@ -158,8 +158,10 @@ def main() -> int:
                 for item in tenants
                 if item.db_name and item.db_user and item.db_host and item.db_port
             ]
-            if not args.include_archived:
-                tenants = [item for item in tenants if item.status != "archived"]
+            if args.include_archived:
+                pass
+            else:
+                tenants = [item for item in tenants if item.status == "active"]
             tenants = tenants[: max(min(args.limit, 500), 1)]
 
         processed = 0

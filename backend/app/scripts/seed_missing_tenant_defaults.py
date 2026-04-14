@@ -126,8 +126,10 @@ def main() -> int:
         query = control_db.query(Tenant)
         if args.tenant_slug:
             query = query.filter(Tenant.slug == args.tenant_slug)
-        if not args.include_archived:
-            query = query.filter(Tenant.status != "archived")
+        elif args.include_archived:
+            pass
+        else:
+            query = query.filter(Tenant.status == "active")
         tenants = query.order_by(Tenant.slug.asc()).all()
 
         processed = 0
