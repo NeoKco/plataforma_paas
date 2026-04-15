@@ -90,8 +90,11 @@
 - se agrega [copy_selected_business_core_maintenance_data.py](/home/felipe/platform_paas/backend/app/scripts/copy_selected_business_core_maintenance_data.py) para copiar selectivamente entre tenants:
   - `business_organizations`
   - `business_clients`
+  - `business_contacts`
+  - `business_sites`
   - `business_work_groups`
   - `maintenance_equipment_types`
+  - `maintenance_installations`
   - con `dry_run` por defecto y `upsert` por clave natural
 - el archivo de retiro tenant ahora guarda evidencia mínima de recuperación:
   - job de export
@@ -137,8 +140,11 @@
 - copia operativa real `empresa-demo -> ieris-ltda` ejecutada para datos base solicitados:
   - empresas: `204`
   - clientes: `191`
+  - contactos: `217`
+  - sitios: `194`
   - grupos: `4`
   - tipos de equipo: `4`
+  - instalaciones: `192`
   - verificación posterior en `ieris-ltda`: mismos conteos visibles en runtime real
 
 ## Qué explica la diferencia entre `empresa-demo` e `ieris-ltda`

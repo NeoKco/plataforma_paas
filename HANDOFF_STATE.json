@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-14T10:30:00-04:00",
+  "updated_at": "2026-04-14T10:55:00-04:00",
   "handoff_status": "active",
-  "current_focus": "lifecycle tenant ya endurecido y copia selectiva empresa-demo -> ieris-ltda completada para empresas, clientes, grupos y tipos de equipo",
-  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable y ieris-ltda ya recupero los cuatro catalogos base solicitados desde empresa-demo",
+  "current_focus": "lifecycle tenant ya endurecido y copia selectiva empresa-demo -> ieris-ltda ampliada y completada para empresas, clientes, contactos, sitios, grupos, tipos de equipo e instalaciones",
+  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable y ieris-ltda ya recupero tambien contactos, sitios e instalaciones operativas desde empresa-demo",
   "active_modules": [
     "platform-core",
     "finance",
@@ -70,9 +70,9 @@
     "functional_data_only no equivale a restauracion tenant 1:1 y no reemplaza snapshot/export previo cuando se busca preservar datos originales"
   ],
   "completed_recently": [
-    "script operativo copy_selected_business_core_maintenance_data.py agregado para copiar organizaciones, clientes, work_groups y equipment_types entre tenants con dry_run por defecto",
-    "copia real empresa-demo -> ieris-ltda aplicada: 204 organizaciones, 191 clientes, 4 grupos y 4 tipos de equipo",
-    "verificacion runtime real confirma que ieris-ltda ya ve organizations=204 clients=191 work_groups=4 equipment_types=4",
+    "script operativo copy_selected_business_core_maintenance_data.py ampliado para copiar tambien contacts, sites e installations resolviendo relaciones organization->client->site->installation",
+    "copia real empresa-demo -> ieris-ltda ampliada y aplicada: 204 organizaciones, 191 clientes, 217 contactos, 194 sitios, 4 grupos, 4 tipos de equipo y 192 instalaciones",
+    "verificacion runtime real confirma que ieris-ltda ya ve organizations=204 clients=191 contacts=217 sites=194 work_groups=4 equipment_types=4 installations=192",
     "platform-core lifecycle: delete tenant ahora exige confirm_tenant_slug y portable_export_job_id del mismo tenant en backend y UI",
     "tenant retirement archive ahora conserva evidencia del export portable que autorizo el borrado definitivo",
     "production condominio-demo reparado otra vez via rotate_tenant_db_credentials y production vuelve a 4/4 tenants activos auditados",

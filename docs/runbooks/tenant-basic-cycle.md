@@ -237,7 +237,7 @@ Notas:
 - por defecto no toca tenants `archived`
 - si existen categorías en un tenant sin uso financiero, el script no borra nada (usa `--force-finance` para forzar el seed)
 
-### Copia selectiva de empresas, clientes, grupos y tipos de equipo entre tenants
+### Copia selectiva de empresas, clientes, contactos, sitios, grupos, tipos de equipo e instalaciones entre tenants
 
 Si necesitas trasladar solo catálogos operativos base entre dos tenants activos sin importar paquetes completos, usa:
 
@@ -257,8 +257,11 @@ Eso corre primero en `dry_run` y resume:
 
 - `business_organizations`
 - `business_clients`
+- `business_contacts`
+- `business_sites`
 - `business_work_groups`
 - `maintenance_equipment_types`
+- `maintenance_installations`
 
 Para aplicar la copia real:
 
@@ -281,8 +284,11 @@ Reglas operativas:
 - hace `upsert` por clave natural:
   - organizaciones: nombre, con fallback por `tax_id`
   - clientes: organización ya resuelta en el tenant destino
+  - contactos: organización + `full_name/email`
+  - sitios: `site_code` o `client + name + address_line`
   - grupos: `code` o `name`
   - tipos de equipo: `code` o `name`
+  - instalaciones: `site + serial_number` o `site + name/model/manufacturer`
 - si corres sin `--apply`, revierte al final y solo entrega evidencia
 
 ### Reparar familias en categorías finance

@@ -35,34 +35,47 @@
 - siguiente paso:
   - volver al siguiente slice fino de `maintenance -> finance` sobre esta base ya endurecida
 
-## 2026-04-14 - Copia selectiva empresa-demo -> ieris-ltda de datos base operativos
+## 2026-04-14 - Copia selectiva empresa-demo -> ieris-ltda de datos base operativos ampliada
 
 - objetivo:
   - copiar desde `empresa-demo` hacia `ieris-ltda` solo:
     - empresas
     - clientes
+    - contactos
+    - sitios
     - grupos
     - tipos de equipo
+    - instalaciones
   - evitar un paquete portable más grande de lo necesario
 - cambios principales:
   - se agrega [copy_selected_business_core_maintenance_data.py](/home/felipe/platform_paas/backend/app/scripts/copy_selected_business_core_maintenance_data.py)
   - el script trabaja en `dry_run` por defecto y luego en `apply`
   - usa `upsert` por clave natural para no depender de ids entre tenants
+  - el script ahora también resuelve relaciones:
+    - `organization -> client -> site -> installation`
+    - `organization -> contact`
+    - `equipment_type -> installation`
 - validaciones:
   - `python3 -m py_compile backend/app/scripts/copy_selected_business_core_maintenance_data.py` -> `OK`
   - `dry_run` real `empresa-demo -> ieris-ltda`:
-    - `business_organizations`: `created=204`
-    - `business_clients`: `created=191`
-    - `business_work_groups`: `created=4`
-    - `maintenance_equipment_types`: `created=4`
+    - `business_organizations`: `unchanged=204`
+    - `business_clients`: `unchanged=191`
+    - `business_contacts`: `created=217`
+    - `business_sites`: `created=194`
+    - `business_work_groups`: `unchanged=4`
+    - `maintenance_equipment_types`: `unchanged=4`
+    - `maintenance_installations`: `created=192`
   - `apply` real ejecutado con el mismo origen/destino
   - verificación posterior en runtime real:
     - `ieris-ltda organizations=204`
     - `ieris-ltda clients=191`
+    - `ieris-ltda contacts=217`
+    - `ieris-ltda sites=194`
     - `ieris-ltda work_groups=4`
     - `ieris-ltda equipment_types=4`
+    - `ieris-ltda installations=192`
 - resultado:
-  - `ieris-ltda` ya quedó alineado con `empresa-demo` en esos cuatro catálogos base
+  - `ieris-ltda` ya quedó alineado con `empresa-demo` en esos catálogos base y sus relaciones operativas mínimas
   - la operación quedó reusable en un script explícito y no como comando ad hoc perdido en chat
 - siguiente paso:
   - continuar con el siguiente ajuste funcional del roadmap sobre la base ya copiada
