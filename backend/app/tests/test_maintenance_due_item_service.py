@@ -160,6 +160,8 @@ class MaintenanceDueItemServiceTestCase(unittest.TestCase):
         self.assertEqual(saved_due_item.assigned_work_group_id, 5)
         self.assertEqual(saved_due_item.assigned_tenant_user_id, 3)
         work_order_service.create_work_order.assert_called_once()
+        created_request = work_order_service.create_work_order.call_args.args[1]
+        self.assertEqual(created_request.task_type_id, 7)
         costing_service.seed_estimate_from_schedule.assert_called_once_with(
             tenant_db,
             91,

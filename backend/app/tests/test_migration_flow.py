@@ -37,6 +37,7 @@ from migrations.tenant import v0028_maintenance_field_reports
 from migrations.tenant import v0034_maintenance_actual_template_trace
 from migrations.tenant import v0035_maintenance_visit_type
 from migrations.tenant import v0036_maintenance_visit_result
+from migrations.tenant import v0038_maintenance_work_order_task_type
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -195,6 +196,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0035_maintenance_visit_type",
                 "0036_maintenance_visit_result",
                 "0037_maintenance_cost_line_expense_flag",
+                "0038_maintenance_work_order_task_type",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -376,6 +378,7 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("equipment_type_id", maintenance_installation_columns)
         self.assertIn("installation_id", maintenance_work_order_columns)
         self.assertIn("assigned_work_group_id", maintenance_work_order_columns)
+        self.assertIn("task_type_id", maintenance_work_order_columns)
         self.assertIn("schedule_id", maintenance_work_order_columns)
         self.assertIn("due_item_id", maintenance_work_order_columns)
         self.assertIn("billing_mode", maintenance_work_order_columns)
@@ -483,6 +486,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0035_maintenance_visit_type",
                 "0036_maintenance_visit_result",
                 "0037_maintenance_cost_line_expense_flag",
+                "0038_maintenance_work_order_task_type",
             ],
         )
 

@@ -573,8 +573,12 @@ export function MaintenanceHistoryPage() {
     return locality ? `${base} · ${locality}` : base;
   }
 
-  function getTaskTypeLabel(item: Pick<TenantMaintenanceHistoryWorkOrder, "schedule_id">): string {
-    const taskTypeId = item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id : null;
+  function getTaskTypeLabel(
+    item: Pick<TenantMaintenanceHistoryWorkOrder, "task_type_id" | "schedule_id">
+  ): string {
+    const taskTypeId =
+      item.task_type_id ??
+      (item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id ?? null : null);
     if (!taskTypeId) {
       return t("Sin tipo", "No task type");
     }

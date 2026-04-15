@@ -88,6 +88,7 @@ function buildDefaultForm(): TenantMaintenanceWorkOrderWriteRequest {
     client_id: 0,
     site_id: 0,
     installation_id: null,
+    task_type_id: null,
     assigned_work_group_id: null,
     external_reference: null,
     title: "",
@@ -311,10 +312,12 @@ export function MaintenanceWorkOrdersPage() {
   );
   const assignmentTaskTypeId = useMemo(
     () =>
-      editingWorkOrder?.schedule_id
+      form.task_type_id ??
+      editingWorkOrder?.task_type_id ??
+      (editingWorkOrder?.schedule_id
         ? scheduleById.get(editingWorkOrder.schedule_id)?.task_type_id ?? null
-        : null,
-    [editingWorkOrder, scheduleById]
+        : null),
+    [editingWorkOrder, form.task_type_id, scheduleById]
   );
   const assignmentTaskTypeLabel = useMemo(() => {
     if (!assignmentTaskTypeId) {
@@ -591,6 +594,7 @@ export function MaintenanceWorkOrdersPage() {
       client_id: clientId,
       site_id: siteId,
       installation_id: requestedInstallationId || candidateInstallations[0]?.id || null,
+      task_type_id: null,
       assigned_work_group_id: null,
       scheduled_for: scheduledFor,
     });
@@ -622,8 +626,12 @@ export function MaintenanceWorkOrdersPage() {
     return locality ? `${visibleAddress} · ${locality}` : visibleAddress;
   }
 
-  function getTaskTypeLabel(item: Pick<TenantMaintenanceWorkOrder, "schedule_id">): string {
-    const taskTypeId = item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id : null;
+  function getTaskTypeLabel(
+    item: Pick<TenantMaintenanceWorkOrder, "task_type_id" | "schedule_id">
+  ): string {
+    const taskTypeId =
+      item.task_type_id ??
+      (item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id ?? null : null);
     if (!taskTypeId) {
       return t("Sin tipo", "No task type");
     }
@@ -670,6 +678,9 @@ export function MaintenanceWorkOrdersPage() {
       client_id: item.client_id,
       site_id: item.site_id,
       installation_id: item.installation_id,
+      task_type_id:
+        item.task_type_id ??
+        (item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id ?? null : null),
       assigned_work_group_id: item.assigned_work_group_id,
       external_reference: item.external_reference,
       title: item.title,
@@ -740,6 +751,7 @@ export function MaintenanceWorkOrdersPage() {
       client_id: Number(form.client_id),
       site_id: Number(form.site_id),
       installation_id: form.installation_id ? Number(form.installation_id) : null,
+      task_type_id: form.task_type_id ? Number(form.task_type_id) : null,
       assigned_work_group_id: form.assigned_work_group_id ? Number(form.assigned_work_group_id) : null,
       external_reference: editingId ? normalizeNullable(form.external_reference) : null,
       title: form.title.trim(),
@@ -1148,6 +1160,31 @@ export function MaintenanceWorkOrdersPage() {
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">
+                      {language === "es" ? "Tipo de tarea" : "Task type"}
+                    </label>
+                    <select
+                      className="form-select"
+                      value={form.task_type_id ?? ""}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          task_type_id: event.target.value ? Number(event.target.value) : null,
+                          assigned_tenant_user_id: null,
+                        }))
+                      }
+                    >
+                      <option value="">
+                        {language === "es" ? "Sin tipo específico" : "No specific task type"}
+                      </option>
+                      {taskTypes.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
                       {language === "es" ? "Grupo/líder" : "Group/leader"}
                     </label>
                     <select
@@ -1413,7 +1450,12 @@ export function MaintenanceWorkOrdersPage() {
         onClose={closeCostingModal}
         onCompleted={() => void loadData()}
         onFeedback={setFeedback}
-        taskTypeId={costingWorkOrder?.schedule_id ? scheduleById.get(costingWorkOrder.schedule_id)?.task_type_id ?? null : null}
+        taskTypeId={
+          costingWorkOrder?.task_type_id ??
+          (costingWorkOrder?.schedule_id
+            ? scheduleById.get(costingWorkOrder.schedule_id)?.task_type_id ?? null
+            : null)
+        }
         taskTypeLabel={costingWorkOrder ? getTaskTypeLabel(costingWorkOrder) : null}
         workOrder={costingWorkOrder}
       />
@@ -1494,12 +1536,22 @@ export function MaintenanceWorkOrdersPage() {
         onClose={closeVisitsModal}
         onFeedback={setFeedback}
         allowedFunctionProfileNames={
-          visitsWorkOrder?.schedule_id
-            ? getTaskTypeAllowedProfileNames(taskTypeById.get(scheduleById.get(visitsWorkOrder.schedule_id)?.task_type_id ?? -1) ?? null)
+          visitsWorkOrder
+            ? getTaskTypeAllowedProfileNames(
+                taskTypeById.get(
+                  visitsWorkOrder.task_type_id ??
+                    (visitsWorkOrder.schedule_id
+                      ? scheduleById.get(visitsWorkOrder.schedule_id)?.task_type_id ?? -1
+                      : -1)
+                ) ?? null
+              )
             : []
         }
         requiresFunctionalProfile={Boolean(
-          visitsWorkOrder?.schedule_id && scheduleById.get(visitsWorkOrder.schedule_id)?.task_type_id
+          visitsWorkOrder?.task_type_id ||
+            (visitsWorkOrder?.schedule_id
+              ? scheduleById.get(visitsWorkOrder.schedule_id)?.task_type_id
+              : null)
         )}
         taskTypeLabel={visitsWorkOrder ? getTaskTypeLabel(visitsWorkOrder) : null}
         technicians={activeTenantUsers.map((item) => ({ id: item.id, full_name: item.full_name }))}

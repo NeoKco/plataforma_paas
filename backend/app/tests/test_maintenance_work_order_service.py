@@ -53,6 +53,9 @@ class _FakeTenantDb:
     def add(self, _item):
         return None
 
+    def flush(self):
+        return None
+
     def commit(self):
         return None
 
@@ -466,6 +469,67 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
 
         self.assertEqual(created.assigned_work_group_id, 4)
         self.assertEqual(created.assigned_tenant_user_id, 3)
+
+    def test_create_work_order_persists_direct_task_type_selection(self) -> None:
+        work_order_repository = Mock()
+        work_order_repository.save.side_effect = lambda _tenant_db, item: item
+        status_log_repository = Mock()
+        status_log_repository.create.return_value = None
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+            status_log_repository=status_log_repository,
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessClient.id: SimpleNamespace(id=11),
+                BusinessSite: SimpleNamespace(id=31, client_id=11),
+                MaintenanceInstallation: SimpleNamespace(id=9, site_id=31),
+                BusinessTaskType: SimpleNamespace(id=7, name="mantencion"),
+            }
+        )
+
+        created = service.create_work_order(
+            tenant_db,
+            MaintenanceWorkOrderCreateRequest(
+                client_id=11,
+                site_id=31,
+                installation_id=9,
+                task_type_id=7,
+                title="Mantencion mensual",
+            ),
+            created_by_user_id=1,
+        )
+
+        self.assertEqual(created.task_type_id, 7)
+
+    def test_create_work_order_rejects_unknown_task_type(self) -> None:
+        work_order_repository = Mock()
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessClient.id: SimpleNamespace(id=11),
+                BusinessSite: SimpleNamespace(id=31, client_id=11),
+                MaintenanceInstallation: SimpleNamespace(id=9, site_id=31),
+                BusinessTaskType: None,
+            }
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "tipo de tarea seleccionado no existe",
+        ):
+            service.create_work_order(
+                tenant_db,
+                MaintenanceWorkOrderCreateRequest(
+                    client_id=11,
+                    site_id=31,
+                    installation_id=9,
+                    task_type_id=999,
+                    title="Mantencion mensual",
+                ),
+            )
 
     def test_create_work_order_rejects_technician_outside_group_membership(self) -> None:
         work_order_repository = Mock()
