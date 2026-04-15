@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-14T12:05:00-04:00",
+  "updated_at": "2026-04-14T12:30:00-04:00",
   "handoff_status": "active",
-  "current_focus": "ieris-ltda ya tiene el historico legacy importado y limpio de duplicados funcionales respecto de sus OT propias",
-  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable y ieris-ltda ya tiene empresas, clientes, contactos, sitios, instalaciones y el historico legacy cargado sin los 3 duplicados funcionales detectados",
+  "current_focus": "maintenance ahora puede crear en lote planes anuales para instalaciones activas sin cobertura preventiva usando la regla anual pedida",
+  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable, ieris-ltda ya tiene el historico legacy saneado y Pendientes ahora puede sembrar planes anuales masivos para instalaciones sin plan",
   "active_modules": [
     "platform-core",
     "finance",
@@ -70,6 +70,11 @@
     "functional_data_only no equivale a restauracion tenant 1:1 y no reemplaza snapshot/export previo cuando se busca preservar datos originales"
   ],
   "completed_recently": [
+    "MaintenanceDueItemsPage agrega accion masiva Crear planes anuales para instalaciones activas sin plan preventivo",
+    "la alta masiva reutiliza POST /tenant/maintenance/schedules y fuerza frecuencia annual; si existe cierre este año, usa el mismo dia/mes del proximo año y si no, fija la proxima mantencion a un año desde hoy",
+    "frontend build validado OK para el alta masiva de planes anuales",
+    "frontend staging republicado con la accion Crear planes anuales en Pendientes",
+    "frontend production republicado con la accion Crear planes anuales en Pendientes",
     "script remove_duplicate_legacy_historical_work_orders.py agregado para limpiar duplicados funcionales entre historico legacy y OT ya existentes del tenant",
     "dry_run real sobre production/ieris-ltda confirma 3 duplicados por cliente+direccion+fecha de cierre: LEGACY-HIST-MAINT-104, LEGACY-HIST-MAINT-105 y LEGACY-HIST-MAINT-111",
     "apply real sobre production/ieris-ltda elimina esos 3 duplicados legacy y deja verificacion final closed_total=114 legacy_total=110 history_total=114",

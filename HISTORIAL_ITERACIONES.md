@@ -1,5 +1,29 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-14 - Alta masiva anual desde instalaciones activas sin plan preventivo
+
+- objetivo:
+  - evitar crear una a una las programaciones para instalaciones activas sin cobertura preventiva
+  - dejar una acción masiva coherente con la regla solicitada: próxima mantención el próximo año
+- cambios principales:
+  - [MaintenanceDueItemsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx) agrega el botón `Crear planes anuales` dentro del bloque `Instalaciones activas sin plan preventivo`
+  - la acción masiva reutiliza el mismo `POST /tenant/maintenance/schedules`
+  - para cada instalación activa sin plan:
+    - si existe una mantención cerrada este año, usa esa referencia para fijar el mismo día/mes del próximo año
+    - si no existe cierre útil este año, fija la próxima mantención a un año desde hoy
+    - deja la frecuencia forzada en `1 year`
+    - intenta usar `mantencion` como `task_type` por defecto si existe en el tenant
+- validaciones:
+  - `cd frontend && npm run build` -> `OK`
+  - frontend publicado en:
+    - `/opt/platform_paas_staging/frontend/dist`
+    - `/opt/platform_paas/frontend/dist`
+- resultado:
+  - el operador ya puede sembrar de una vez los planes preventivos base para instalaciones activas descubiertas
+  - la alta individual manual sigue existiendo y no fue removida
+- siguiente paso:
+  - si hace falta, agregar un resumen previo tipo `N instalaciones -> N planes` o confirmación modal antes del alta masiva
+
 ## 2026-04-14 - Cleanup de duplicados históricos legacy en ieris-ltda
 
 - objetivo:

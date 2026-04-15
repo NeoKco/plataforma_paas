@@ -173,6 +173,14 @@
     - `closed_total=114`
     - `legacy_total=110`
     - `history_total=114`
+- `Pendientes` ahora permite alta masiva desde `Instalaciones activas sin plan preventivo`:
+  - botón `Crear planes anuales`
+  - crea una programación por instalación activa sin cobertura preventiva
+  - regla aplicada:
+    - si existe cierre este año, usa el mismo día/mes para el próximo año
+    - si no existe cierre este año, fija la próxima mantención a un año desde hoy
+  - la frecuencia queda forzada a `1 year` para este flujo masivo
+  - el `task_type` por defecto intenta usar `mantencion` si existe en el tenant
 
 ## Qué explica la diferencia entre `empresa-demo` e `ieris-ltda`
 
@@ -206,6 +214,7 @@
 - [backend/app/scripts/audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
 - [deploy/verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh)
 - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx)
+- [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx)
 - [frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx)
 - [frontend/src/apps/tenant_portal/modules/maintenance/services/historyService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/historyService.ts)
 - [frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts)

@@ -136,6 +136,22 @@ function sortCostTemplates(items: TenantMaintenanceCostTemplate[]): TenantMainte
   });
 }
 
+function normalizeSearchLabel(value: string | null | undefined): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function buildAutomaticAnnualNextDueAt(timeZone?: string | null): string {
+  const nextYear = new Date();
+  nextYear.setFullYear(nextYear.getFullYear() + 1);
+  nextYear.setHours(9, 0, 0, 0);
+  const localValue = toDateTimeLocalInputValue(nextYear, timeZone);
+  return fromDateTimeLocalInputValue(localValue, timeZone);
+}
+
 type DueScheduleForm = {
   scheduled_for: string;
   site_id: number | null;
@@ -268,6 +284,7 @@ export function MaintenanceDueItemsPage() {
   const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isBulkPlanCreating, setIsBulkPlanCreating] = useState(false);
   const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
   const [isTemplateSaving, setIsTemplateSaving] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -323,6 +340,13 @@ export function MaintenanceDueItemsPage() {
     () => tenantUsers.filter((user) => user.is_active),
     [tenantUsers]
   );
+  const defaultMaintenanceTaskTypeId = useMemo(() => {
+    const preferred = taskTypes.find((item) => {
+      const normalized = normalizeSearchLabel(item.name);
+      return normalized.includes("mantencion") || normalized.includes("maintenance");
+    });
+    return preferred?.id ?? null;
+  }, [taskTypes]);
   const dueScheduleRequiresFunctionalProfile = Boolean(selectedDueItem?.task_type_id);
   const dueScheduleTaskTypeLabel = useMemo(() => {
     if (!selectedDueItem?.task_type_id) {
@@ -1175,6 +1199,112 @@ export function MaintenanceDueItemsPage() {
     }
   }
 
+  async function buildAutomaticSchedulePayload(
+    installation: TenantMaintenanceInstallation,
+    site: TenantBusinessSite,
+    client: TenantBusinessClient,
+  ): Promise<TenantMaintenanceScheduleWriteRequest> {
+    let useHistoricalSeed = false;
+    let suggestedNextDueAt: string | null = null;
+    let suggestedLastExecutedAt: string | null = null;
+
+    if (session?.accessToken) {
+      try {
+        const suggestionResponse = await getTenantMaintenanceScheduleSuggestion(session.accessToken, {
+          clientId: client.id,
+          siteId: site.id,
+          installationId: installation.id,
+        });
+        if (
+          suggestionResponse.data.source === "history_completed_this_year" &&
+          suggestionResponse.data.suggested_next_due_at
+        ) {
+          useHistoricalSeed = true;
+          suggestedNextDueAt = suggestionResponse.data.suggested_next_due_at;
+          suggestedLastExecutedAt = suggestionResponse.data.last_executed_at;
+        }
+      } catch {
+        // Si la sugerencia falla, el alta masiva cae al plan anual base sin bloquear la operación.
+      }
+    }
+
+    return {
+      ...buildDefaultScheduleForm(),
+      client_id: client.id,
+      site_id: site.id,
+      installation_id: installation.id,
+      task_type_id: defaultMaintenanceTaskTypeId,
+      name:
+        language === "es"
+          ? `Plan preventivo ${installation.name}`
+          : `Preventive plan ${installation.name}`,
+      frequency_value: 1,
+      frequency_unit: "years",
+      next_due_at: useHistoricalSeed && suggestedNextDueAt
+        ? suggestedNextDueAt
+        : buildAutomaticAnnualNextDueAt(effectiveTimeZone),
+      last_executed_at: useHistoricalSeed ? suggestedLastExecutedAt : null,
+      notes:
+        language === "es"
+          ? "Alta automática desde instalaciones activas sin plan preventivo."
+          : "Automatic creation from active installations without preventive plan.",
+    };
+  }
+
+  async function handleCreateAnnualPlansForUncoveredInstallations() {
+    if (!session?.accessToken || uncoveredInstallations.length === 0) {
+      return;
+    }
+    setIsBulkPlanCreating(true);
+    setFeedback(null);
+    setError(null);
+
+    let createdCount = 0;
+    let skippedCount = 0;
+    const failedItems: string[] = [];
+
+    for (const item of uncoveredInstallations) {
+      try {
+        const payload = await buildAutomaticSchedulePayload(item.installation, item.site, item.client);
+        await createTenantMaintenanceSchedule(session.accessToken, payload);
+        createdCount += 1;
+      } catch (rawError) {
+        const apiError = rawError as ApiError;
+        const detail = getApiErrorDisplayMessage(apiError);
+        if (detail.toLowerCase().includes("ya existe una programacion activa equivalente")) {
+          skippedCount += 1;
+          continue;
+        }
+        failedItems.push(
+          `${stripLegacyVisibleText(item.installation.name) || `#${item.installation.id}`}: ${detail}`,
+        );
+      }
+    }
+
+    try {
+      await loadData();
+    } finally {
+      setIsBulkPlanCreating(false);
+    }
+
+    if (failedItems.length > 0) {
+      const message =
+        language === "es"
+          ? `Se crearon ${createdCount} planes y ${skippedCount} se omitieron. Fallaron ${failedItems.length}: ${failedItems.join(" | ")}`
+          : `Created ${createdCount} plans and skipped ${skippedCount}. ${failedItems.length} failed: ${failedItems.join(" | ")}`;
+      const error = new Error(message) as ApiError;
+      error.payload = { detail: message };
+      setError(error);
+      return;
+    }
+
+    setFeedback(
+      language === "es"
+        ? `Se crearon ${createdCount} planes anuales${skippedCount > 0 ? ` y ${skippedCount} se omitieron por cobertura existente` : ""}.`
+        : `Created ${createdCount} annual plans${skippedCount > 0 ? ` and skipped ${skippedCount} already-covered items` : ""}.`,
+    );
+  }
+
   async function handleScheduleDueItem(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!session?.accessToken || !selectedDueItem) {
@@ -1495,6 +1625,24 @@ export function MaintenanceDueItemsPage() {
           language === "es"
             ? "Reporte operativo para detectar clientes que ya tienen instalación activa pero todavía no entran al ciclo preventivo."
             : "Operational report to detect clients with active installations that are not yet covered by the preventive cycle."
+        }
+        actions={
+          uncoveredInstallations.length > 0 ? (
+            <button
+              className="btn btn-sm btn-outline-primary"
+              type="button"
+              onClick={() => void handleCreateAnnualPlansForUncoveredInstallations()}
+              disabled={isBulkPlanCreating}
+            >
+              {isBulkPlanCreating
+                ? language === "es"
+                  ? "Creando planes..."
+                  : "Creating plans..."
+                : language === "es"
+                  ? "Crear planes anuales"
+                  : "Create annual plans"}
+            </button>
+          ) : null
         }
       >
         {uncoveredInstallations.length === 0 ? (

@@ -2,6 +2,16 @@
 
 ## 2026-04-14
 
+- `Pendientes` ahora agrega acción masiva `Crear planes anuales` dentro del bloque `Instalaciones activas sin plan preventivo`
+- la acción crea una programación por instalación activa sin cobertura preventiva reutilizando el contrato actual de `schedules`
+- regla aplicada:
+  - si existe mantención cerrada este año, usa el mismo día/mes para el próximo año
+  - si no existe cierre útil este año, fija `next_due_at` a un año desde hoy
+  - la frecuencia queda en `1 year`
+  - si el tenant tiene `task_type` `mantencion`, se usa como default
+- validación:
+  - `cd frontend && npm run build` -> `OK`
+  - frontend publicado en `staging` y `production`
 - se agrega [remove_duplicate_legacy_historical_work_orders.py](/home/felipe/platform_paas/backend/app/scripts/remove_duplicate_legacy_historical_work_orders.py) para limpiar duplicados funcionales entre histórico legacy importado y OT ya existentes del tenant
 - operación real ejecutada en `production` sobre `ieris-ltda`:
   - criterio: `cliente + dirección + fecha de cierre`
