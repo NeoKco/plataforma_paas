@@ -1035,3 +1035,9 @@
   - publish frontend `production`: `OK`
   - `production/ieris-ltda` backfill correctivo aplicado sobre OT abiertas `#1` y `#345`
   - verificación final: `open_rows_without_task_type = 0`
+- corrección adicional del mismo corte:
+  - `Fecha y hora programada` en editar OT quedaba visualmente vacía aunque la orden sí tenía `scheduled_for`
+  - causa real: el input `datetime-local` no aceptaba el formato backend sin normalización previa
+  - se normaliza el valor a `YYYY-MM-DDTHH:MM` en:
+    - [MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx)
+    - [MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx)

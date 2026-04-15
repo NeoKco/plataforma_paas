@@ -123,6 +123,10 @@ function toMinuteKey(value: string | null): string | null {
   return value.replace(" ", "T").slice(0, 16);
 }
 
+function toDateTimeLocalInputValue(value: string | null): string {
+  return toMinuteKey(value) ?? "";
+}
+
 function getConflictReasons(
   left: Pick<
     TenantMaintenanceWorkOrder,
@@ -702,7 +706,7 @@ export function MaintenanceWorkOrdersPage() {
       title: item.title,
       description: stripLegacyVisibleText(item.description),
       priority: item.priority,
-      scheduled_for: item.scheduled_for,
+      scheduled_for: toDateTimeLocalInputValue(item.scheduled_for),
       cancellation_reason: null,
       closure_notes: stripLegacyVisibleText(item.closure_notes),
       reschedule_note: null,
@@ -1319,7 +1323,7 @@ export function MaintenanceWorkOrdersPage() {
                     <input
                       className="form-control"
                       type="datetime-local"
-                      value={form.scheduled_for ?? ""}
+                      value={toDateTimeLocalInputValue(form.scheduled_for)}
                       onChange={(event) =>
                         setForm((current) => ({
                           ...current,

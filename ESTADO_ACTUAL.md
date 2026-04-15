@@ -330,6 +330,10 @@
 - `ieris-ltda` quedó saneado en `production` para OT abiertas:
   - [backfill_open_maintenance_task_type.py](/home/felipe/platform_paas/backend/app/scripts/backfill_open_maintenance_task_type.py) aplicado
   - verificación final: `open_rows_without_task_type = 0`
+- corrección adicional cerrada sobre `Fecha y hora programada` en editar OT:
+  - el input `datetime-local` no aceptaba directamente el formato backend de `scheduled_for`
+  - la OT sí tenía fecha/hora guardada, pero el campo se renderizaba vacío por incompatibilidad de formato
+  - `MaintenanceWorkOrdersPage` y `MaintenanceCalendarPage` ahora normalizan `scheduled_for` a formato `YYYY-MM-DDTHH:MM` tanto al cargar la edición como al renderizar el input
 
 ## Bloqueos reales detectados
 
