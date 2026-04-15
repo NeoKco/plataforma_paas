@@ -6,6 +6,7 @@ Script principal:
 
 - [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py)
 - [import_ieris_historical_maintenance_only.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_historical_maintenance_only.py)
+- [remove_duplicate_legacy_historical_work_orders.py](/home/felipe/platform_paas/backend/app/scripts/remove_duplicate_legacy_historical_work_orders.py)
 - [cleanup_business_core_legacy_site_notes.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_business_core_legacy_site_notes.py)
 
 Comportamiento:
@@ -101,6 +102,46 @@ Validación real ya ejecutada en `production` sobre `ieris-ltda`:
   - `historical_work_orders=113`
   - `historical_status_logs=113`
   - `historical_visits=113`
+
+Si el tenant destino ya tenía OT cerradas previas y necesitas limpiar duplicados funcionales del histórico legacy recién importado:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/remove_duplicate_legacy_historical_work_orders.py \
+  --tenant-slug ieris-ltda
+```
+
+Aplicación real:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/remove_duplicate_legacy_historical_work_orders.py \
+  --tenant-slug ieris-ltda \
+  --apply
+```
+
+Notas del cleanup de duplicados:
+
+- sólo considera work orders legacy `LEGACY-HIST-MAINT-*`
+- conserva la OT no legacy ya existente
+- elimina únicamente la duplicada legacy
+- usa como criterio operativo:
+  - cliente
+  - dirección
+  - fecha de cierre
+
+Validación real ya ejecutada en `production` sobre `ieris-ltda`:
+
+- `duplicates_detected=3`
+- `duplicates_deleted=3`
+- verificación posterior:
+  - `closed_total=114`
+  - `legacy_total=110`
+  - `history_total=114`
 
 Si un tenant ya fue importado con notas legacy visibles en direcciones:
 

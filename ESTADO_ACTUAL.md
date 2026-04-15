@@ -162,6 +162,17 @@
     - `sites=198`
     - `function_profiles=7`
     - `installations=203`
+- cleanup real de duplicados funcionales legacy en `ieris-ltda`:
+  - criterio operativo: `cliente + dirección + fecha de cierre`
+  - `dry_run` confirmó `3` duplicados entre las OT ya existentes del tenant y el histórico recién importado
+  - `apply` eliminó `3` work orders legacy duplicados:
+    - `LEGACY-HIST-MAINT-104` conservando la OT `#5`
+    - `LEGACY-HIST-MAINT-105` conservando la OT `#4`
+    - `LEGACY-HIST-MAINT-111` conservando la OT `#2`
+  - verificación posterior:
+    - `closed_total=114`
+    - `legacy_total=110`
+    - `history_total=114`
 
 ## Qué explica la diferencia entre `empresa-demo` e `ieris-ltda`
 
@@ -188,6 +199,8 @@
 - [backend/app/apps/tenant_modules/maintenance/schemas/costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/costing.py)
 - [backend/app/apps/tenant_modules/maintenance/schemas/history.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/history.py)
 - [backend/app/scripts/repair_maintenance_finance_dimensions.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_dimensions.py)
+- [backend/app/scripts/import_ieris_historical_maintenance_only.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_historical_maintenance_only.py)
+- [backend/app/scripts/remove_duplicate_legacy_historical_work_orders.py](/home/felipe/platform_paas/backend/app/scripts/remove_duplicate_legacy_historical_work_orders.py)
 - [backend/app/scripts/seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
 - [backend/app/scripts/repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
 - [backend/app/scripts/audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)

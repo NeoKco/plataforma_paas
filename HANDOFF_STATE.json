@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-14T11:15:00-04:00",
+  "updated_at": "2026-04-14T12:05:00-04:00",
   "handoff_status": "active",
-  "current_focus": "ieris-ltda ya recupero tambien el historico de mantenciones realizadas desde ieris_app sin arrastrar mantenciones activas/base",
-  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable y ieris-ltda ya tiene empresas, clientes, contactos, sitios, instalaciones y el historico legacy cargado",
+  "current_focus": "ieris-ltda ya tiene el historico legacy importado y limpio de duplicados funcionales respecto de sus OT propias",
+  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable y ieris-ltda ya tiene empresas, clientes, contactos, sitios, instalaciones y el historico legacy cargado sin los 3 duplicados funcionales detectados",
   "active_modules": [
     "platform-core",
     "finance",
@@ -70,6 +70,9 @@
     "functional_data_only no equivale a restauracion tenant 1:1 y no reemplaza snapshot/export previo cuando se busca preservar datos originales"
   ],
   "completed_recently": [
+    "script remove_duplicate_legacy_historical_work_orders.py agregado para limpiar duplicados funcionales entre historico legacy y OT ya existentes del tenant",
+    "dry_run real sobre production/ieris-ltda confirma 3 duplicados por cliente+direccion+fecha de cierre: LEGACY-HIST-MAINT-104, LEGACY-HIST-MAINT-105 y LEGACY-HIST-MAINT-111",
+    "apply real sobre production/ieris-ltda elimina esos 3 duplicados legacy y deja verificacion final closed_total=114 legacy_total=110 history_total=114",
     "wrapper import_ieris_historical_maintenance_only.py agregado para importar solo historico_mantenciones sobre tenants ya poblados",
     "dry_run historico ieris_app -> ieris-ltda verificado: 113 work_orders, 113 status_logs y 113 visits historicas a crear",
     "apply historico ieris_app -> ieris-ltda ejecutado en production con 113 work_orders historicos, 113 status_logs y 113 visits creadas",

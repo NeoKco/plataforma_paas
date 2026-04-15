@@ -1,5 +1,45 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-14 - Cleanup de duplicados históricos legacy en ieris-ltda
+
+- objetivo:
+  - eliminar duplicados funcionales entre el histórico recién importado desde `ieris_app` y OT ya existentes en `ieris-ltda`
+  - usar el criterio operativo correcto definido para este tenant:
+    - `cliente`
+    - `dirección`
+    - `fecha de cierre`
+- cambios principales:
+  - se agrega [remove_duplicate_legacy_historical_work_orders.py](/home/felipe/platform_paas/backend/app/scripts/remove_duplicate_legacy_historical_work_orders.py)
+  - el script:
+    - trabaja en `dry_run` por defecto
+    - detecta solo work orders legacy `LEGACY-HIST-MAINT-*`
+    - conserva siempre la OT no legacy existente
+    - elimina solo la duplicada legacy
+  - usa como clave:
+    - nombre de cliente normalizado
+    - etiqueta de dirección normalizada
+    - fecha de cierre (`completed_at/cancelled_at`)
+- validaciones:
+  - `python3 -m py_compile backend/app/scripts/remove_duplicate_legacy_historical_work_orders.py` -> `OK`
+  - `dry_run` real sobre `production` / `ieris-ltda`:
+    - `duplicates_detected=3`
+    - casos confirmados:
+      - `LEGACY-HIST-MAINT-104` vs OT `#5`
+      - `LEGACY-HIST-MAINT-105` vs OT `#4`
+      - `LEGACY-HIST-MAINT-111` vs OT `#2`
+  - `apply` real sobre `production` / `ieris-ltda`:
+    - `duplicates_deleted=3`
+  - verificación posterior en runtime:
+    - `closed_total=114`
+    - `legacy_total=110`
+    - `history_total=114`
+- resultado:
+  - `ieris-ltda` conserva las OT propias ya existentes
+  - el histórico importado desde `ieris_app` ya no duplica esos tres cierres
+  - el cleanup queda reusable como script explícito y no como operación manual en BD
+- siguiente paso:
+  - continuar con normalización funcional sobre `ieris-ltda` solo si aparece drift visible en UI o reportes
+
 ## 2026-04-14 - Import histórico de mantenciones desde ieris_app hacia ieris-ltda
 
 - objetivo:

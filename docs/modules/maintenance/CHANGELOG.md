@@ -2,6 +2,19 @@
 
 ## 2026-04-14
 
+- se agrega [remove_duplicate_legacy_historical_work_orders.py](/home/felipe/platform_paas/backend/app/scripts/remove_duplicate_legacy_historical_work_orders.py) para limpiar duplicados funcionales entre histórico legacy importado y OT ya existentes del tenant
+- operación real ejecutada en `production` sobre `ieris-ltda`:
+  - criterio: `cliente + dirección + fecha de cierre`
+  - `dry_run`: `duplicates_detected=3`
+  - `apply`: `duplicates_deleted=3`
+  - work orders legacy removidas:
+    - `LEGACY-HIST-MAINT-104`
+    - `LEGACY-HIST-MAINT-105`
+    - `LEGACY-HIST-MAINT-111`
+  - verificación posterior:
+    - `closed_total=114`
+    - `legacy_total=110`
+    - `history_total=114`
 - se agrega [import_ieris_historical_maintenance_only.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_historical_maintenance_only.py) como wrapper operativo para importar solo `historico_mantenciones` desde `ieris_app` hacia un tenant ya poblado
 - el wrapper:
   - fuerza `mantenciones=[]` para no traer órdenes activas/base
