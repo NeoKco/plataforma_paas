@@ -502,6 +502,63 @@ class MaintenanceWorkOrderServiceTestCase(unittest.TestCase):
 
         self.assertEqual(created.task_type_id, 7)
 
+    def test_update_work_order_persists_direct_task_type_selection(self) -> None:
+        existing_item = SimpleNamespace(
+            id=12,
+            client_id=11,
+            site_id=31,
+            installation_id=9,
+            task_type_id=7,
+            schedule_id=None,
+            external_reference=None,
+            title="Mantencion mensual",
+            description=None,
+            priority="normal",
+            scheduled_for="2026-04-05T10:00:00+00:00",
+            cancellation_reason=None,
+            closure_notes=None,
+            assigned_work_group_id=None,
+            assigned_tenant_user_id=None,
+            maintenance_status="scheduled",
+        )
+        work_order_repository = Mock()
+        work_order_repository.get_by_id.return_value = existing_item
+        work_order_repository.get_by_external_reference.return_value = None
+        work_order_repository.list_active_conflicts.return_value = []
+        work_order_repository.save.side_effect = lambda _tenant_db, item: item
+
+        service = MaintenanceWorkOrderService(
+            work_order_repository=work_order_repository,
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                BusinessClient.id: SimpleNamespace(id=11),
+                BusinessSite: SimpleNamespace(id=31, client_id=11),
+                MaintenanceInstallation: SimpleNamespace(id=9, site_id=31),
+                BusinessTaskType: SimpleNamespace(id=8, name="instalacion"),
+            }
+        )
+
+        updated = service.update_work_order(
+            tenant_db,
+            12,
+            MaintenanceWorkOrderUpdateRequest(
+                client_id=11,
+                site_id=31,
+                installation_id=9,
+                task_type_id=8,
+                assigned_work_group_id=None,
+                assigned_tenant_user_id=None,
+                external_reference=None,
+                title="Mantencion mensual",
+                description=None,
+                priority="normal",
+                scheduled_for="2026-04-05T10:00:00+00:00",
+            ),
+        )
+
+        self.assertEqual(updated.task_type_id, 8)
+
     def test_create_work_order_rejects_unknown_task_type(self) -> None:
         work_order_repository = Mock()
         service = MaintenanceWorkOrderService(

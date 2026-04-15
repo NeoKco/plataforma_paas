@@ -600,3 +600,5 @@
 - se agrega [backfill_open_maintenance_task_type.py](/home/felipe/platform_paas/backend/app/scripts/backfill_open_maintenance_task_type.py) para sanear OT abiertas legacy que quedaron con `task_type_id = null`
 - `Fecha y hora programada` en editar OT ya no queda vacía si la orden tiene `scheduled_for`; el frontend normaliza el valor al formato requerido por `datetime-local`
 - la grilla de `Mantenciones abiertas` y `Agenda` ahora hace `upsert` inmediato con `response.data` del `PUT/POST`, evitando que `Tipo de tarea` siga mostrando `Sin tipo` justo después de guardar una OT ya persistida
+- el default `mantencion` deja de aplicarse como fallback de lectura en OT existentes; ahora solo se usa al crear una nueva orden
+- `Mantenciones abiertas` y `Agenda` vuelven a leer y mostrar el `task_type_id` persistido real, permitiendo editarlo a otro tipo sin que el módulo lo maquille de vuelta a `mantencion`

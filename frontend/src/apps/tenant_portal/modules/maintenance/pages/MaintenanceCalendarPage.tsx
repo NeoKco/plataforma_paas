@@ -120,32 +120,6 @@ function toDateTimeLocalInputValue(value: string | null): string {
   return toMinuteKey(value) ?? "";
 }
 
-function resolveWorkOrderTaskTypeId(
-  item: Pick<TenantMaintenanceWorkOrder, "task_type_id" | "schedule_id">,
-  scheduleById: Map<number, TenantMaintenanceSchedule>,
-  defaultTaskTypeId: number | null
-): number | null {
-  return (
-    item.task_type_id ??
-    (item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id ?? null : null) ??
-    defaultTaskTypeId
-  );
-}
-
-function normalizeWorkOrderRow(
-  item: TenantMaintenanceWorkOrder,
-  scheduleById: Map<number, TenantMaintenanceSchedule>,
-  defaultTaskTypeId: number | null
-): TenantMaintenanceWorkOrder {
-  const resolvedTaskTypeId = resolveWorkOrderTaskTypeId(item, scheduleById, defaultTaskTypeId);
-  return resolvedTaskTypeId === item.task_type_id
-    ? item
-    : {
-        ...item,
-        task_type_id: resolvedTaskTypeId,
-      };
-}
-
 function upsertWorkOrderRow(
   rows: TenantMaintenanceWorkOrder[],
   item: TenantMaintenanceWorkOrder
@@ -581,19 +555,7 @@ export function MaintenanceCalendarPage() {
           getTenantBusinessWorkGroupMembers(session.accessToken as string, group.id)
         )
       );
-      const schedulesById = new Map(schedulesResponse.data.map((item) => [item.id, item]));
-      const defaultTaskTypeId = (() => {
-        const preferred = taskTypesResponse.data.find((item) => {
-          const normalized = normalizeSearchLabel(item.name);
-          return normalized.includes("mantencion") || normalized.includes("maintenance");
-        });
-        return preferred?.id ?? null;
-      })();
-      setWorkOrders(
-        workOrdersResponse.data.map((item) =>
-          normalizeWorkOrderRow(item, schedulesById, defaultTaskTypeId)
-        )
-      );
+      setWorkOrders(workOrdersResponse.data);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
@@ -719,10 +681,7 @@ export function MaintenanceCalendarPage() {
       client_id: item.client_id,
       site_id: item.site_id,
       installation_id: item.installation_id,
-      task_type_id:
-        item.task_type_id ??
-        (item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id ?? null : null) ??
-        defaultMaintenanceTaskTypeId,
+      task_type_id: item.task_type_id,
       assigned_work_group_id: item.assigned_work_group_id,
       external_reference: item.external_reference,
       title: item.title,
@@ -786,12 +745,7 @@ export function MaintenanceCalendarPage() {
       const response = editingId
         ? await updateTenantMaintenanceWorkOrder(session.accessToken, editingId, payload)
         : await createTenantMaintenanceWorkOrder(session.accessToken, payload);
-      setWorkOrders((current) =>
-        upsertWorkOrderRow(
-          current,
-          normalizeWorkOrderRow(response.data, scheduleById, defaultMaintenanceTaskTypeId)
-        )
-      );
+      setWorkOrders((current) => upsertWorkOrderRow(current, response.data));
       let feedbackMessage = response.message;
       if (
         editingId &&

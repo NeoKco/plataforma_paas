@@ -338,6 +338,11 @@
   - la OT ya quedaba persistida con `task_type_id` en backend/runtime
   - el hueco visible era de frontend: la grilla seguía dependiendo del `loadData()` posterior para repintar la fila
   - `MaintenanceWorkOrdersPage` y `MaintenanceCalendarPage` ahora hacen `upsert` de la fila usando `response.data` del propio `PUT/POST` antes del reload completo
+- corrección adicional cerrada sobre edición real de `Tipo de tarea` en OT abiertas:
+  - el default `mantencion` era correcto para alta nueva, pero se estaba usando también como fallback de lectura en filas y edición
+  - eso contaminaba la visualización de órdenes existentes y podía ocultar cambios manuales a otro tipo
+  - el fallback de módulo se restringe a `crear nueva OT`
+  - `Mantenciones abiertas` y `Agenda` ya leen, editan y repintan el `task_type_id` persistido real de cada OT
 
 ## Bloqueos reales detectados
 

@@ -1048,3 +1048,9 @@
     - [MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx)
     - [MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx)
   - resultado esperado: tras guardar, la fila debe reflejar de inmediato `mantencion` sin depender de un segundo refresco manual
+- corrección adicional del mismo corte:
+  - el default `mantencion` quedó demasiado agresivo y pasó a usarse también para leer/normalizar órdenes existentes
+  - eso podía enmascarar un cambio manual a otro `task_type_id`, porque la fila y la edición se rehidrataban con el fallback del módulo
+  - se restringe el default `mantencion` exclusivamente al alta nueva
+  - la lectura/edición de OT existentes vuelve a usar solo el `task_type_id` persistido real
+  - se agrega cobertura backend en [test_maintenance_work_order_service.py](/home/felipe/platform_paas/backend/app/tests/test_maintenance_work_order_service.py) para asegurar que `update_work_order(...)` persiste un cambio directo de tipo de tarea
