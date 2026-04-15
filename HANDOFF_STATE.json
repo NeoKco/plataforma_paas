@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-14T13:55:00-04:00",
+  "updated_at": "2026-04-15T10:55:00-04:00",
   "handoff_status": "active",
-  "current_focus": "maintenance ya puede crear en lote planes preventivos solo desde historial útil del año en curso y la limpieza correctiva ya quedó aplicada sobre ieris-ltda",
-  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable, ieris-ltda ya tiene histórico saneado y la siembra preventiva masiva quedó endurecida para no crear planes sin mantención cerrada en 2026",
+  "current_focus": "maintenance ya permite editar tipo de tarea, grupo y responsable desde la UI y ieris-ltda quedó saneado con backfill completo sobre su historial técnico cerrado",
+  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable, la siembra preventiva masiva quedó endurecida y ahora ieris-ltda también quedó convergido en histórico cerrado con task_type/group/user homogéneos",
   "active_modules": [
     "platform-core",
     "finance",
@@ -70,6 +70,15 @@
     "functional_data_only no equivale a restauracion tenant 1:1 y no reemplaza snapshot/export previo cuando se busca preservar datos originales"
   ],
   "completed_recently": [
+    "maintenance historial tecnico ya soporta editar tipo de tarea, grupo responsable y responsable sobre cierres existentes",
+    "maintenance work orders y agenda ya exponen tipo de tarea, grupo y responsable en crear/editar OT dentro del frontend tenant",
+    "production ieris-ltda sincronizado a tenant schema 0038_maintenance_work_order_task_type",
+    "backfill_historical_maintenance_assignments.py aplicado en production sobre ieris-ltda con user_id=1 group_id=5 task_type_id=1",
+    "verificacion final real en production confirma que las 114 mantenciones cerradas de ieris-ltda quedaron con grupo 5, usuario 1 y task_type 1",
+    "backfill_historical_maintenance_assignments.py ahora soporta barrido multi-tenant seguro con --all-active --skip-missing --limit",
+    "dry_run real en production sobre tenants activos confirma processed=4 skipped=3 failed=0; solo ieris-ltda es compatible con Felipe Hormazabal + Instalación/Mantención SST y ya estaba convergido",
+    "frontend staging republicado para exponer los selectores de tipo/grupo/responsable en historial y crear/editar OT",
+    "frontend production republicado para exponer los selectores de tipo/grupo/responsable en historial y crear/editar OT",
     "script create_annual_schedules_for_uncovered_installations.py agregado para crear planes anuales masivos por tenant",
     "primer dry_run real en production para ieris-ltda detecta 198 instalaciones activas sin cobertura preventiva",
     "primer apply real en production para ieris-ltda crea 198 planes anuales con task_type mantencion cuando existe y sin fallos",

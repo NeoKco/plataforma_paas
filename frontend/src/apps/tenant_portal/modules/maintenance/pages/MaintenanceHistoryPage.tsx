@@ -42,6 +42,10 @@ import {
   getTenantBusinessTaskTypes,
   type TenantBusinessTaskType,
 } from "../../business_core/services/taskTypesService";
+import {
+  getTaskTypeAllowedProfileNames,
+  isTaskTypeMembershipCompatible,
+} from "../services/assignmentCapability";
 import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { MaintenanceHelpBubble } from "../components/common/MaintenanceHelpBubble";
 import { MaintenanceCostingModal } from "../components/common/MaintenanceCostingModal";
@@ -244,6 +248,24 @@ function inferReopenStatus(item: TenantMaintenanceHistoryWorkOrder): "scheduled"
   return candidate?.from_status === "in_progress" ? "in_progress" : "scheduled";
 }
 
+function isMembershipActive(member: {
+  is_active: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+}) {
+  if (!member.is_active) {
+    return false;
+  }
+  const now = new Date();
+  if (member.starts_at && new Date(member.starts_at) > now) {
+    return false;
+  }
+  if (member.ends_at && new Date(member.ends_at) < now) {
+    return false;
+  }
+  return true;
+}
+
 export function MaintenanceHistoryPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
@@ -282,6 +304,9 @@ export function MaintenanceHistoryPage() {
     cancellation_reason: "",
     completed_at_override: "",
     closure_adjustment_note: "",
+    task_type_id: null as number | null,
+    assigned_work_group_id: null as number | null,
+    assigned_tenant_user_id: null as number | null,
   });
 
   const clientById = useMemo(
@@ -307,6 +332,15 @@ export function MaintenanceHistoryPage() {
     () => new Map(tenantUsers.map((user) => [user.id, user])),
     [tenantUsers]
   );
+  const activeTaskTypes = useMemo(() => taskTypes.filter((item) => item.is_active), [taskTypes]);
+  const activeWorkGroups = useMemo(
+    () => workGroups.filter((group) => group.is_active),
+    [workGroups]
+  );
+  const activeTenantUsers = useMemo(
+    () => tenantUsers.filter((user) => user.is_active),
+    [tenantUsers]
+  );
   const workGroupMemberByKey = useMemo(
     () =>
       new Map(
@@ -317,6 +351,40 @@ export function MaintenanceHistoryPage() {
       ),
     [workGroupMembers]
   );
+  const historyAssignmentTaskType = useMemo(
+    () => (historyForm.task_type_id ? taskTypeById.get(historyForm.task_type_id) ?? null : null),
+    [historyForm.task_type_id, taskTypeById]
+  );
+  const historyAllowedProfileNames = useMemo(
+    () => getTaskTypeAllowedProfileNames(historyAssignmentTaskType),
+    [historyAssignmentTaskType]
+  );
+  const historySelectableTenantUsers = useMemo(() => {
+    if (!historyForm.assigned_work_group_id) {
+      return activeTenantUsers;
+    }
+    const memberships = workGroupMembers.filter(
+      (member) =>
+        member.group_id === historyForm.assigned_work_group_id && isMembershipActive(member)
+    );
+    const allowedIds = new Set(
+      memberships
+        .filter(
+          (member) =>
+            !historyForm.task_type_id ||
+            isTaskTypeMembershipCompatible(historyAssignmentTaskType, member.function_profile_name)
+        )
+        .map((member) => member.tenant_user_id)
+    );
+    return activeTenantUsers.filter((user) => allowedIds.has(user.id));
+  }, [
+    activeTenantUsers,
+    historyAssignmentTaskType,
+    historyAllowedProfileNames,
+    historyForm.assigned_work_group_id,
+    historyForm.task_type_id,
+    workGroupMembers,
+  ]);
   const filteredRows = useMemo(
     () =>
       rows.filter((item) => {
@@ -411,6 +479,11 @@ export function MaintenanceHistoryPage() {
         ? toDateTimeLocalInputValue(item.completed_at, effectiveTimeZone)
         : "",
       closure_adjustment_note: "",
+      task_type_id:
+        item.task_type_id ??
+        (item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id ?? null : null),
+      assigned_work_group_id: item.assigned_work_group_id ?? null,
+      assigned_tenant_user_id: item.assigned_tenant_user_id ?? null,
     });
     if (!session?.accessToken) {
       return;
@@ -474,7 +547,8 @@ export function MaintenanceHistoryPage() {
       client_id: editingRow.client_id,
       site_id: editingRow.site_id,
       installation_id: editingRow.installation_id,
-      assigned_work_group_id: editingRow.assigned_work_group_id,
+      task_type_id: historyForm.task_type_id,
+      assigned_work_group_id: historyForm.assigned_work_group_id,
       external_reference: editingRow.external_reference,
       title: editingRow.title,
       description: historyForm.description.trim() || null,
@@ -490,7 +564,7 @@ export function MaintenanceHistoryPage() {
         editingRow.maintenance_status === "completed" && canAdjustCompletedAt
           ? historyForm.closure_adjustment_note.trim() || null
           : undefined,
-      assigned_tenant_user_id: editingRow.assigned_tenant_user_id,
+      assigned_tenant_user_id: historyForm.assigned_tenant_user_id,
       maintenance_status: editingRow.maintenance_status,
     };
     try {
@@ -1097,6 +1171,82 @@ export function MaintenanceHistoryPage() {
                   <div className="col-12">
                     <label className="form-label">{t("Trabajo realizado", "Completed work")}</label>
                     <input className="form-control" value={editingRow.title} disabled />
+                  </div>
+                  <div className="col-12 col-md-4">
+                    <label className="form-label">{t("Tipo de tarea", "Task type")}</label>
+                    <select
+                      className="form-select"
+                      value={historyForm.task_type_id ?? ""}
+                      onChange={(event) =>
+                        setHistoryForm((current) => ({
+                          ...current,
+                          task_type_id: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    >
+                      <option value="">{t("Sin tipo", "No task type")}</option>
+                      {activeTaskTypes.map((item) => (
+                        <option key={item.id} value={String(item.id)}>
+                          {stripLegacyVisibleText(item.name) || `#${item.id}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-4">
+                    <label className="form-label">{t("Grupo responsable", "Work group")}</label>
+                    <select
+                      className="form-select"
+                      value={historyForm.assigned_work_group_id ?? ""}
+                      onChange={(event) =>
+                        setHistoryForm((current) => ({
+                          ...current,
+                          assigned_work_group_id: event.target.value ? Number(event.target.value) : null,
+                          assigned_tenant_user_id: null,
+                        }))
+                      }
+                    >
+                      <option value="">{t("Sin grupo", "No group")}</option>
+                      {activeWorkGroups.map((group) => (
+                        <option key={group.id} value={String(group.id)}>
+                          {stripLegacyVisibleText(group.name) || `#${group.id}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-4">
+                    <label className="form-label">{t("Responsable", "Responsible")}</label>
+                    <select
+                      className="form-select"
+                      value={historyForm.assigned_tenant_user_id ?? ""}
+                      onChange={(event) =>
+                        setHistoryForm((current) => ({
+                          ...current,
+                          assigned_tenant_user_id: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    >
+                      <option value="">{t("Sin responsable", "No responsible")}</option>
+                      {historySelectableTenantUsers.map((user) => (
+                        <option key={user.id} value={String(user.id)}>
+                          {stripLegacyVisibleText(user.full_name) ||
+                            stripLegacyVisibleText(user.email) ||
+                            `#${user.id}`}
+                        </option>
+                      ))}
+                    </select>
+                    {historyForm.task_type_id && historyForm.assigned_work_group_id ? (
+                      <div className="maintenance-history-entry__meta mt-2">
+                        {historyAllowedProfileNames.length > 0
+                          ? t(
+                              `Perfiles compatibles: ${historyAllowedProfileNames.join(", ")}.`,
+                              `Compatible profiles: ${historyAllowedProfileNames.join(", ")}.`
+                            )
+                          : t(
+                              "Este tipo de tarea no restringe perfiles compatibles.",
+                              "This task type does not restrict compatible profiles."
+                            )}
+                      </div>
+                    ) : null}
                   </div>
                   <div className="col-12">
                     <label className="form-label">{t("Descripción", "Description")}</label>

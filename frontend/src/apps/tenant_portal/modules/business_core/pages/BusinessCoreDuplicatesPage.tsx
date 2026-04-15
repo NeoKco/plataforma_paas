@@ -749,6 +749,7 @@ function buildWorkOrderWritePayload(
       overrides.installation_id !== undefined
         ? overrides.installation_id
         : workOrder.installation_id,
+    task_type_id: overrides.task_type_id ?? workOrder.task_type_id,
     assigned_work_group_id:
       overrides.assigned_work_group_id ?? workOrder.assigned_work_group_id,
     external_reference: overrides.external_reference ?? workOrder.external_reference,

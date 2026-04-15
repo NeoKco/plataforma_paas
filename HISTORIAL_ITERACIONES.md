@@ -1,5 +1,56 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-15 - Saneamiento del historial técnico en ieris-ltda con tipo, grupo y responsable
+
+- objetivo:
+  - dejar de mostrar campos vacíos en `Historial técnico` cuando el tenant ya tiene un responsable operativo y un grupo definidos
+  - permitir que esos campos puedan editarse desde la UI y no solo por script
+  - completar el histórico cerrado de `ieris-ltda` con:
+    - usuario `Felipe Hormazabal`
+    - grupo `Instalación/Mantención SST`
+    - tipo de tarea `mantencion`
+- cambios principales:
+  - `crear/editar mantención` ya expone en frontend:
+    - `Tipo de tarea`
+    - `Grupo/líder`
+    - `Líder responsable`
+  - `Historial técnico -> Editar cierre` ahora expone:
+    - `Tipo de tarea`
+    - `Grupo responsable`
+    - `Responsable`
+  - se aplica la migración tenant [v0038_maintenance_work_order_task_type.py](/home/felipe/platform_paas/backend/migrations/tenant/v0038_maintenance_work_order_task_type.py) sobre `ieris-ltda`
+  - se ejecuta [backfill_historical_maintenance_assignments.py](/home/felipe/platform_paas/backend/app/scripts/backfill_historical_maintenance_assignments.py) sobre `production / ieris-ltda`
+- validaciones:
+  - `cd backend && PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_migration_flow app.tests.test_maintenance_work_order_service app.tests.test_maintenance_due_item_service` -> `42 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+  - `production / ieris-ltda`:
+    - `sync_active_tenant_schemas.py --slug ieris-ltda --limit 1` -> `synced -> 0038_maintenance_work_order_task_type`
+    - `backfill_historical_maintenance_assignments.py ... --apply` -> `completed_rows=114`, `updated_group_user_rows=114`, `updated_task_type_rows=114`
+    - verificación final:
+      - `completed=114`
+      - `group_5=114`
+      - `user_1=114`
+      - `task_1=114`
+  - frontend republicado en:
+    - `staging`
+    - `production`
+- resultado:
+  - `ieris-ltda` ya no queda con históricos cerrados mostrando `Sin grupo`, `Sin responsable` y `Sin tipo` cuando la operación ya definió un estándar concreto
+  - el operador puede mantener estos campos desde la UI en nuevas OT y al corregir cierres históricos
+- extensión posterior del mismo corte:
+  - [backfill_historical_maintenance_assignments.py](/home/felipe/platform_paas/backend/app/scripts/backfill_historical_maintenance_assignments.py) ahora soporta barrido seguro multi-tenant con:
+    - `--all-active`
+    - `--skip-missing`
+    - `--limit`
+  - `dry_run` real en `production` sobre tenants activos:
+    - `processed=4`
+    - `skipped=3`
+    - `failed=0`
+    - solo `ieris-ltda` era compatible con ese usuario/grupo y ya estaba convergido
+    - `empresa-demo`, `condominio-demo` y `empresa-bootstrap` quedaron omitidos porque no contienen al usuario `Felipe Hormazabal`
+- siguiente paso:
+  - revisar si hace falta un backfill equivalente sobre otros tenants activos o dejarlo solo como herramienta operativa por tenant
+
 ## 2026-04-14 - Corrección de alta masiva anual desde instalaciones activas sin plan preventivo
 
 - objetivo:

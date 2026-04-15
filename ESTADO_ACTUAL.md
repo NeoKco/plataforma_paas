@@ -2,9 +2,9 @@
 
 ## Última actualización
 
-- fecha: 2026-04-14
-- foco de iteración: corregir la siembra masiva de planes preventivos para que solo use instalaciones con mantención cerrada en 2026 y dejar saneado `ieris-ltda`
-- estado general: `production` y `staging` siguen alineados para `maintenance -> finance` y `platform-core`; además, `maintenance` ahora permite crear en lote planes preventivos solo desde historial útil del año en curso, tanto desde la UI tenant como desde script operativo reusable
+- fecha: 2026-04-15
+- foco de iteración: completar el saneamiento del historial de mantenciones en `ieris-ltda`, dejando `tipo de tarea`, `grupo` y `responsable` editables y backfilleados sobre las mantenciones cerradas
+- estado general: `production` y `staging` siguen alineados para `maintenance -> finance` y `platform-core`; además, `maintenance` ya permite editar `tipo de tarea`, `grupo` y `responsable` en creación/edición de OT y en `Historial técnico`, y `ieris-ltda` quedó saneado con esas tres dimensiones pobladas en todas sus mantenciones cerradas
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -192,6 +192,37 @@
   - resultado efectivo en `ieris-ltda`:
     - solo permanecen las programaciones auto-creadas que sí tenían mantención cerrada en 2026
     - las instalaciones sin historial útil del año quedan intencionalmente sin plan preventivo
+- `maintenance_work_orders` y `Historial técnico` ya soportan `task_type_id`:
+  - la migración tenant [v0038_maintenance_work_order_task_type.py](/home/felipe/platform_paas/backend/migrations/tenant/v0038_maintenance_work_order_task_type.py) quedó aplicada en `ieris-ltda`
+  - `crear/editar mantención` en `Mantenciones abiertas` y `Agenda` ya expone selector de `Tipo de tarea`
+  - `Historial técnico -> Editar cierre` ahora expone selectores de:
+    - `Tipo de tarea`
+    - `Grupo responsable`
+    - `Responsable`
+- backfill real ejecutado en `production` sobre `ieris-ltda`:
+  - [backfill_historical_maintenance_assignments.py](/home/felipe/platform_paas/backend/app/scripts/backfill_historical_maintenance_assignments.py)
+  - criterios aplicados:
+    - usuario: `Felipe Hormazabal` (`user_id=1`)
+    - grupo: `Instalación/Mantención SST` (`group_id=5`)
+    - tipo de tarea: `mantencion` (`task_type_id=1`)
+  - resultado final verificado:
+    - `completed=114`
+    - `group_5=114`
+    - `user_1=114`
+    - `task_1=114`
+- el script de backfill histórico ahora soporta barrido multi-tenant seguro:
+  - `--all-active`
+  - `--skip-missing`
+  - `--limit`
+- `dry_run` real en `production` sobre tenants activos:
+  - `processed=4`
+  - `skipped=3`
+  - `failed=0`
+  - resultado:
+    - `empresa-demo`: omitido, no existe `Felipe Hormazabal`
+    - `condominio-demo`: omitido, no existe `Felipe Hormazabal`
+    - `empresa-bootstrap`: omitido, no existe `Felipe Hormazabal`
+    - `ieris-ltda`: ya estaba convergido, `updated_group_user_rows=0`, `updated_task_type_rows=0`
 
 ## Qué explica la diferencia entre `empresa-demo` e `ieris-ltda`
 

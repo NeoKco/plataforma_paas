@@ -1,5 +1,38 @@
 # Maintenance Changelog
 
+## 2026-04-15
+
+- `Historial técnico -> Editar cierre` ahora permite ajustar también:
+  - `Tipo de tarea`
+  - `Grupo responsable`
+  - `Responsable`
+- `Mantenciones abiertas` y `Agenda` consolidan esos mismos selectores en `crear/editar OT`, por lo que el dato ya no depende de scripts para nuevas mantenciones
+- operación real ejecutada en `production` sobre `ieris-ltda`:
+  - `sync_active_tenant_schemas.py --slug ieris-ltda --limit 1` -> `synced -> 0038_maintenance_work_order_task_type`
+  - [backfill_historical_maintenance_assignments.py](/home/felipe/platform_paas/backend/app/scripts/backfill_historical_maintenance_assignments.py) aplicado con:
+    - usuario `Felipe Hormazabal`
+    - grupo `Instalación/Mantención SST`
+    - tipo `mantencion`
+  - verificación final:
+    - `completed=114`
+    - `group_5=114`
+    - `user_1=114`
+    - `task_1=114`
+- el mismo script ahora soporta barrido seguro multi-tenant:
+  - `--all-active`
+  - `--skip-missing`
+  - `--limit`
+- `dry_run` real en `production` sobre tenants activos:
+  - `processed=4`
+  - `skipped=3`
+  - `failed=0`
+  - `empresa-demo`, `condominio-demo` y `empresa-bootstrap` se omitieron porque no contienen al usuario `Felipe Hormazabal`
+  - `ieris-ltda` ya estaba convergido y no necesitó cambios adicionales
+- validación:
+  - `cd backend && PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_migration_flow app.tests.test_maintenance_work_order_service app.tests.test_maintenance_due_item_service` -> `42 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+  - frontend publicado en `staging` y `production`
+
 ## 2026-04-14
 
 - `Pendientes` ahora agrega acción masiva `Crear planes desde historial anual` dentro del bloque `Instalaciones activas sin plan preventivo`

@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente subcorte fino de `maintenance -> finance`; la siembra masiva anual para instalaciones sin plan ya quedó corregida y validada en `ieris-ltda` bajo la regla “solo con historial útil del año”
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente ajuste fino de `maintenance`; el histórico de `ieris-ltda` ya quedó saneado con `tipo de tarea`, `grupo` y `responsable`, así que el siguiente frente ya no es relleno masivo sino calidad de uso y cierre operativo
 
 ## Decisión previa obligatoria
 
@@ -23,6 +23,7 @@
   - endurecer hints/controles de egreso seleccionable para que el operador vea con claridad qué líneas sí salen a egreso y cuáles no
   - revisar si conviene un endpoint atómico `close-with-costs` para evitar cualquier drift futuro entre `cost-actual`, `status` y `finance_sync`
   - dejar visible en la ficha/historial si la transacción financiera vinculada quedó conciliada, anulada o sin cuenta/categoría
+  - revisar si conviene mostrar badges de completitud operativa en `Historial técnico` cuando una mantención antigua aún no tiene `visitas`, `logs` o datos de cierre homogéneos
 - mantener como regla ya cerrada del lifecycle tenant:
   - no borrar tenant archivado/unprovisioned sin export portable completado del mismo tenant
   - no tratar `functional_data_only` como restauración `1:1`
