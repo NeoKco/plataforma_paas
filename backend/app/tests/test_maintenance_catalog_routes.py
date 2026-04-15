@@ -38,6 +38,7 @@ from app.apps.tenant_modules.maintenance.api.work_orders import (
     create_maintenance_work_order,
     delete_maintenance_work_order,
     list_maintenance_work_orders,
+    update_maintenance_work_order,
     update_maintenance_work_order_status,
 )
 from app.apps.tenant_modules.maintenance.services.work_order_service import (  # noqa: E402
@@ -49,6 +50,7 @@ from app.apps.tenant_modules.maintenance.schemas import (
     MaintenanceStatusUpdateRequest,
     MaintenanceVisitCreateRequest,
     MaintenanceWorkOrderCreateRequest,
+    MaintenanceWorkOrderUpdateRequest,
 )
 from app.tests.fixtures import build_tenant_context
 
@@ -407,6 +409,53 @@ class MaintenanceCatalogRoutesTestCase(unittest.TestCase):
                 tenant_db=object(),
         )
         self.assertEqual(response.data.maintenance_status, "completed")
+
+    def test_update_maintenance_work_order_returns_mutated_task_type(self) -> None:
+        item = SimpleNamespace(
+            id=12,
+            client_id=11,
+            site_id=31,
+            installation_id=9,
+            task_type_id=4,
+            external_reference="WO-001",
+            title="Mantención mensual",
+            description=None,
+            priority="normal",
+            scheduled_for=datetime(2026, 4, 17, 14, 30, tzinfo=timezone.utc),
+            cancellation_reason=None,
+            closure_notes=None,
+            assigned_work_group_id=2,
+            assigned_tenant_user_id=3,
+            maintenance_status="scheduled",
+            requested_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            completed_at=None,
+            cancelled_at=None,
+            created_by_user_id=2,
+            created_at=datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2026, 4, 15, 12, 0, tzinfo=timezone.utc),
+        )
+        with patch(
+            "app.apps.tenant_modules.maintenance.api.work_orders.work_order_service.update_work_order",
+            return_value=item,
+        ):
+            response = update_maintenance_work_order(
+                work_order_id=12,
+                payload=MaintenanceWorkOrderUpdateRequest(
+                    client_id=11,
+                    site_id=31,
+                    installation_id=9,
+                    task_type_id=4,
+                    assigned_work_group_id=2,
+                    title="Mantención mensual",
+                    priority="normal",
+                    scheduled_for=datetime(2026, 4, 17, 14, 30, tzinfo=timezone.utc),
+                    assigned_tenant_user_id=3,
+                ),
+                current_user=self._current_user(),
+                tenant_db=object(),
+            )
+
+        self.assertEqual(response.data.task_type_id, 4)
 
     def test_list_maintenance_history_returns_closed_entries(self) -> None:
         work_order = SimpleNamespace(

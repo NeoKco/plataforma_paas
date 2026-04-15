@@ -18,6 +18,12 @@ from app.apps.platform_control.models.tenant import Tenant  # noqa: F401,E402
 from app.apps.platform_control.models.tenant_billing_sync_event import (  # noqa: F401,E402
     TenantBillingSyncEvent,
 )
+from app.apps.platform_control.models.tenant_data_transfer_artifact import (  # noqa: F401,E402
+    TenantDataTransferArtifact,
+)
+from app.apps.platform_control.models.tenant_data_transfer_job import (  # noqa: F401,E402
+    TenantDataTransferJob,
+)
 from app.apps.platform_control.models.tenant_policy_change_event import (  # noqa: F401,E402
     TenantPolicyChangeEvent,
 )
@@ -324,9 +330,35 @@ class TenantLifecycleIntegrationTestCase(unittest.TestCase):
         self.assertIsNone(tenant.db_name)
         self.assertIsNone(tenant.db_user)
 
+        export_job = TenantDataTransferJob(
+            tenant_id=tenant.id,
+            direction="export",
+            data_format="portable_csv_zip",
+            export_scope="functional_data_only",
+            status="completed",
+            requested_by_email="admin@platform.local",
+            completed_at=datetime.now(timezone.utc),
+        )
+        self.control_db.add(export_job)
+        self.control_db.flush()
+        self.control_db.add(
+            TenantDataTransferArtifact(
+                job_id=export_job.id,
+                artifact_type="tenant_portable_csv_zip",
+                file_name=f"{tenant.slug}-portable.zip",
+                stored_path=f"/tmp/{tenant.slug}-portable.zip",
+                content_type="application/zip",
+                sha256_hex="0" * 64,
+                size_bytes=1024,
+            )
+        )
+        self.control_db.commit()
+
         self.tenant_service.delete_tenant(
             self.control_db,
             tenant.id,
+            confirm_tenant_slug=tenant.slug,
+            portable_export_job_id=export_job.id,
             deleted_by_email="admin@platform.local",
         )
 

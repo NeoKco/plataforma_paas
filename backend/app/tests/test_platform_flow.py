@@ -1189,6 +1189,7 @@ class PlatformServicesTestCase(unittest.TestCase):
                 ("ProvisioningJob", False),
                 ("TenantBillingSyncEvent", False),
                 ("TenantPolicyChangeEvent", False),
+                ("TenantDataTransferJob", False),
             ],
         )
 

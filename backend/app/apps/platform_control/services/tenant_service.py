@@ -23,6 +23,9 @@ from app.apps.platform_control.models.tenant_retirement_archive import (
 from app.apps.platform_control.models.tenant_policy_change_event import (
     TenantPolicyChangeEvent,
 )
+from app.apps.platform_control.models.tenant_data_transfer_job import (
+    TenantDataTransferJob,
+)
 from app.apps.platform_control.repositories.tenant_data_transfer_job_repository import (
     TenantDataTransferJobRepository,
 )
@@ -775,6 +778,9 @@ class TenantService:
         ).delete(synchronize_session=False)
         db.query(TenantPolicyChangeEvent).filter(
             TenantPolicyChangeEvent.tenant_id == tenant_id
+        ).delete(synchronize_session=False)
+        db.query(TenantDataTransferJob).filter(
+            TenantDataTransferJob.tenant_id == tenant_id
         ).delete(synchronize_session=False)
         self.tenant_repository.delete(db, tenant)
         return tenant
