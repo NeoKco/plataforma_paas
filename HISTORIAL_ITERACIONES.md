@@ -1013,3 +1013,25 @@
   - la regla “si no existe historial útil, fija próxima mantención a un año desde hoy” se declaró inválida
   - las programaciones creadas sin mantención cerrada en 2026 fueron removidas con cleanup explícito
   - la regla vigente ya no debe leerse desde esta entrada histórica, sino desde la corrección posterior
+
+# 2026-04-15 - Default task_type en OT abiertas
+
+- objetivo:
+  - corregir la creación/edición de `Mantenciones abiertas` y `Agenda` para que el tipo de tarea no nazca vacío dentro del módulo
+- diagnóstico:
+  - backend ya soportaba y persistía `task_type_id`, `assigned_work_group_id` y `assigned_tenant_user_id`
+  - el problema principal estaba en frontend:
+    - `MaintenanceWorkOrdersPage` creaba nuevas OT con `task_type_id = null`
+    - `MaintenanceCalendarPage` creaba nuevas OT con `task_type_id = null`
+  - por eso en edición parecía que el dato “no se traía”, cuando en realidad se había guardado vacío
+- cambios principales:
+  - [MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx) ahora resuelve `mantencion` como task type default si existe en el catálogo tenant
+  - [MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx) aplica el mismo default
+  - al editar OT abiertas sin tipo guardado, ambos formularios precargan `mantencion` como fallback operativo
+  - [backfill_open_maintenance_task_type.py](/home/felipe/platform_paas/backend/app/scripts/backfill_open_maintenance_task_type.py) agregado para sanear OT abiertas existentes con `task_type_id = null`
+- validaciones:
+  - `npm run build`: `OK`
+  - publish frontend `staging`: `OK`
+  - publish frontend `production`: `OK`
+  - `production/ieris-ltda` backfill correctivo aplicado sobre OT abiertas `#1` y `#345`
+  - verificación final: `open_rows_without_task_type = 0`

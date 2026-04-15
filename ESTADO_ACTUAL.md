@@ -320,6 +320,16 @@
   - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4, warnings=0, failed=0`
 - auditoría activa directa en `production`: `processed=4, warnings=0, failed=0`
 - auditoría activa directa en `staging`: `processed=4, warnings=0, failed=0`
+- `Mantenciones abiertas` y `Agenda` ya no nacen con `task_type_id = null`:
+  - ambos formularios resuelven por defecto el tipo de tarea `mantencion` cuando existe en el catálogo tenant
+  - al editar una OT abierta sin tipo guardado, el formulario ahora precarga `mantencion` como fallback operativo del módulo
+- diagnóstico cerrado sobre el incidente reportado en crear/editar OT:
+  - backend ya estaba soportando y persistiendo `task_type_id`, `assigned_work_group_id` y `assigned_tenant_user_id`
+  - el hueco real era de frontend: las OT abiertas se creaban con `task_type_id = null`
+  - por eso en edición parecía “no traer” el tipo; el registro realmente nacía sin ese dato
+- `ieris-ltda` quedó saneado en `production` para OT abiertas:
+  - [backfill_open_maintenance_task_type.py](/home/felipe/platform_paas/backend/app/scripts/backfill_open_maintenance_task_type.py) aplicado
+  - verificación final: `open_rows_without_task_type = 0`
 
 ## Bloqueos reales detectados
 

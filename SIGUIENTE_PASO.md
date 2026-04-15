@@ -54,3 +54,6 @@
   - deploy != convergencia completa
   - cambio correcto para la PaaS = promoción + convergencia + pruebas + documentación en todos los ambientes/tenants afectados
   - delete tenant definitivo = export portable previo + confirmación explícita + archivo de retiro con evidencia
+- mantener en maintenance esta regla operativa ya cerrada:
+  - crear/editar OT desde `Mantenciones abiertas` o `Agenda` debe resolver por defecto `tipo de tarea = mantencion` cuando exista en el catálogo tenant
+  - si una OT abierta vieja aún quedó sin tipo, usar [backfill_open_maintenance_task_type.py](/home/felipe/platform_paas/backend/app/scripts/backfill_open_maintenance_task_type.py) antes de diagnosticar UI

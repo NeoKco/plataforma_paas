@@ -592,3 +592,9 @@
   - esa regla se anuló
   - la regla vigente ahora solo permite crear el plan cuando sí existe cierre histórico del año en curso
 - [create_annual_schedules_for_uncovered_installations.py](/home/felipe/platform_paas/backend/app/scripts/create_annual_schedules_for_uncovered_installations.py) ya quedó endurecido con esa regla
+
+## 2026-04-15
+
+- `Mantenciones abiertas` y `Agenda` ahora resuelven por defecto el tipo de tarea `mantencion` cuando ese tipo existe en el catálogo tenant
+- al editar OT abiertas sin `task_type_id` guardado, el formulario precarga `mantencion` como fallback del módulo
+- se agrega [backfill_open_maintenance_task_type.py](/home/felipe/platform_paas/backend/app/scripts/backfill_open_maintenance_task_type.py) para sanear OT abiertas legacy que quedaron con `task_type_id = null`

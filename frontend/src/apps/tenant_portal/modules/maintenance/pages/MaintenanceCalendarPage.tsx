@@ -101,6 +101,14 @@ function normalizeNullable(value: string | null): string | null {
   return trimmed ? trimmed : null;
 }
 
+function normalizeSearchLabel(value: string | null | undefined): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .trim()
+    .toLowerCase();
+}
+
 function toMinuteKey(value: string | null): string | null {
   if (!value) {
     return null;
@@ -275,6 +283,13 @@ export function MaintenanceCalendarPage() {
     () => new Map(taskTypes.map((taskType) => [taskType.id, taskType])),
     [taskTypes]
   );
+  const defaultMaintenanceTaskTypeId = useMemo(() => {
+    const preferred = taskTypes.find((item) => {
+      const normalized = normalizeSearchLabel(item.name);
+      return normalized.includes("mantencion") || normalized.includes("maintenance");
+    });
+    return preferred?.id ?? null;
+  }, [taskTypes]);
   const workGroupMemberByKey = useMemo(
     () =>
       new Map(
@@ -627,7 +642,7 @@ export function MaintenanceCalendarPage() {
       client_id: clientId,
       site_id: siteId,
       installation_id: candidateInstallations[0]?.id || null,
-      task_type_id: null,
+      task_type_id: defaultMaintenanceTaskTypeId,
       assigned_work_group_id: null,
       scheduled_for: toLocalDateTimeValue(date),
     });
@@ -653,7 +668,8 @@ export function MaintenanceCalendarPage() {
       installation_id: item.installation_id,
       task_type_id:
         item.task_type_id ??
-        (item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id ?? null : null),
+        (item.schedule_id ? scheduleById.get(item.schedule_id)?.task_type_id ?? null : null) ??
+        defaultMaintenanceTaskTypeId,
       assigned_work_group_id: item.assigned_work_group_id,
       external_reference: item.external_reference,
       title: item.title,

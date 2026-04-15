@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-15T10:55:00-04:00",
+  "updated_at": "2026-04-15T15:35:00-04:00",
   "handoff_status": "active",
-  "current_focus": "maintenance ya permite editar tipo de tarea, grupo y responsable desde la UI y ieris-ltda quedó saneado con backfill completo sobre su historial técnico cerrado",
-  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable, la siembra preventiva masiva quedó endurecida y ahora ieris-ltda también quedó convergido en histórico cerrado con task_type/group/user homogéneos",
+  "current_focus": "maintenance ya corrige el default de task_type en Mantenciones abiertas/Agenda y ieris-ltda quedó saneado tanto en histórico cerrado como en OT abiertas",
+  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable, la siembra preventiva masiva quedó endurecida y ahora ieris-ltda también quedó convergido en histórico cerrado y en órdenes abiertas con task_type/group/user homogéneos",
   "active_modules": [
     "platform-core",
     "finance",
@@ -70,6 +70,9 @@
     "functional_data_only no equivale a restauracion tenant 1:1 y no reemplaza snapshot/export previo cuando se busca preservar datos originales"
   ],
   "completed_recently": [
+    "maintenance work orders y agenda ya resuelven mantencion como task_type default del módulo cuando existe en el catálogo tenant",
+    "backfill_open_maintenance_task_type.py agregado para reparar OT abiertas con task_type_id nulo",
+    "production ieris-ltda saneado en OT abiertas con task_type_id=1 aplicado sobre las órdenes 1 y 345; verificación final open_rows_without_task_type=0",
     "maintenance historial tecnico ya soporta editar tipo de tarea, grupo responsable y responsable sobre cierres existentes",
     "maintenance work orders y agenda ya exponen tipo de tarea, grupo y responsable en crear/editar OT dentro del frontend tenant",
     "production ieris-ltda sincronizado a tenant schema 0038_maintenance_work_order_task_type",
