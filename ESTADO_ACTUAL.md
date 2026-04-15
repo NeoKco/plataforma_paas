@@ -214,10 +214,20 @@
   - `--all-active`
   - `--skip-missing`
   - `--limit`
-- `dry_run` real en `production` sobre tenants activos:
-  - `processed=4`
-  - `skipped=3`
-  - `failed=0`
+  - `dry_run` real en `production` sobre tenants activos:
+    - `processed=4`
+    - `skipped=3`
+    - `failed=0`
+- diagnóstico adicional real sobre `ieris-ltda / production` para `Mantenciones abiertas`:
+  - el backend runtime lista correctamente las OT abiertas con `task_type_id=1` (`mantencion`) para las dos filas visibles
+  - la discrepancia observada en UI quedó acotada a runtime frontend/caché de bundles, no a persistencia de BD ni a serialización backend
+  - se ejecuta republicación limpia de frontend en ambos ambientes:
+    - `production`: `rm -rf /opt/platform_paas/frontend/dist/* && cp -a /home/felipe/platform_paas/frontend/dist/. /opt/platform_paas/frontend/dist/`
+    - `staging`: `rm -rf /opt/platform_paas_staging/frontend/dist/* && cp -a /home/felipe/platform_paas/frontend/dist/. /opt/platform_paas_staging/frontend/dist/`
+  - verificación posterior de assets publicados:
+    - `MaintenanceWorkOrdersPage-XdslC_kL.js`
+    - `index-DMkjHqWF.js`
+    - `index-Ci9PWeRu.css`
   - resultado:
     - `empresa-demo`: omitido, no existe `Felipe Hormazabal`
     - `condominio-demo`: omitido, no existe `Felipe Hormazabal`

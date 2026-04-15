@@ -50,6 +50,25 @@
     - `empresa-demo`, `condominio-demo` y `empresa-bootstrap` quedaron omitidos porque no contienen al usuario `Felipe Hormazabal`
 - siguiente paso:
   - revisar si hace falta un backfill equivalente sobre otros tenants activos o dejarlo solo como herramienta operativa por tenant
+- extensión posterior del mismo corte:
+  - se investiga el bug visible en `Mantenciones abiertas` donde `Tipo de tarea` parecía no persistir en `ieris-ltda`
+  - validación dura sobre `production`:
+    - `maintenance_work_orders` abiertas reales: `#345` y `#1`
+    - ambas con `task_type_id=1`
+    - inspección del mismo servicio backend que usa la API confirma:
+      - `row 345 ... task_type_id=1`
+      - `row 1 ... task_type_id=1`
+  - conclusión:
+    - persistencia tenant correcta
+    - serialización backend correcta
+    - drift acotado a frontend/runtime/caché
+  - corrección operativa aplicada:
+    - republicación limpia de `frontend/dist` en `production`
+    - republicación limpia de `frontend/dist` en `staging`
+    - verificación posterior de que ambos ambientes sólo sirven:
+      - `MaintenanceWorkOrdersPage-XdslC_kL.js`
+      - `index-DMkjHqWF.js`
+      - `index-Ci9PWeRu.css`
 
 ## 2026-04-14 - Corrección de alta masiva anual desde instalaciones activas sin plan preventivo
 

@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-15T15:55:00-04:00",
+  "updated_at": "2026-04-15T17:05:00-04:00",
   "handoff_status": "active",
-  "current_focus": "maintenance ya corrige el default de task_type y el binding de scheduled_for en Mantenciones abiertas/Agenda; ieris-ltda quedó saneado tanto en histórico cerrado como en OT abiertas",
-  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable, la siembra preventiva masiva quedó endurecida y ahora ieris-ltda también quedó convergido en histórico cerrado, órdenes abiertas y edición de programación con task_type/group/user/fecha consistentes",
+  "current_focus": "maintenance work orders en ieris-ltda: backend/runtime ya confirma task_type_id correcto en OT abiertas; el foco actual es eliminar drift visual por frontend/caché en Mantenciones abiertas",
+  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable y el slice actual está acotado a cerrar el runtime frontend de Mantenciones abiertas para que refleje el task_type ya persistido en producción",
   "active_modules": [
     "platform-core",
     "finance",
@@ -71,6 +71,10 @@
   ],
   "completed_recently": [
     "maintenance work orders y agenda ya normalizan scheduled_for al formato datetime-local al editar OT, evitando que Fecha y hora programada se vea vacía con datos existentes",
+    "diagnóstico runtime real en production confirma que las OTs abiertas visibles de ieris-ltda (#345 y #1) ya salen del servicio backend con task_type_id=1 y assigned group/user correctos",
+    "frontend production republicado de forma limpia eliminando bundles viejos antes de copiar el dist nuevo",
+    "frontend staging republicado de forma limpia eliminando bundles viejos antes de copiar el dist nuevo",
+    "verificación posterior de assets publicados confirma que staging y production sólo sirven MaintenanceWorkOrdersPage-XdslC_kL.js junto a index-DMkjHqWF.js/index-Ci9PWeRu.css para este corte",
     "maintenance work orders y agenda ya resuelven mantencion como task_type default del módulo cuando existe en el catálogo tenant",
     "backfill_open_maintenance_task_type.py agregado para reparar OT abiertas con task_type_id nulo",
     "production ieris-ltda saneado en OT abiertas con task_type_id=1 aplicado sobre las órdenes 1 y 345; verificación final open_rows_without_task_type=0",

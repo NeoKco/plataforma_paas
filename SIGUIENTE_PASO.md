@@ -57,3 +57,7 @@
 - mantener en maintenance esta regla operativa ya cerrada:
   - crear/editar OT desde `Mantenciones abiertas` o `Agenda` debe resolver por defecto `tipo de tarea = mantencion` cuando exista en el catálogo tenant
   - si una OT abierta vieja aún quedó sin tipo, usar [backfill_open_maintenance_task_type.py](/home/felipe/platform_paas/backend/app/scripts/backfill_open_maintenance_task_type.py) antes de diagnosticar UI
+- antes de reabrir un bug de `Mantenciones abiertas` sobre `tipo de tarea`, verificar primero:
+  - runtime backend productivo
+  - runtime frontend productivo con publicación limpia
+  - hard refresh del navegador o limpieza de caché del sitio

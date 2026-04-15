@@ -28,6 +28,14 @@
   - `failed=0`
   - `empresa-demo`, `condominio-demo` y `empresa-bootstrap` se omitieron porque no contienen al usuario `Felipe Hormazabal`
   - `ieris-ltda` ya estaba convergido y no necesitó cambios adicionales
+- investigación adicional sobre `Mantenciones abiertas -> Tipo de tarea` en `ieris-ltda`:
+  - la persistencia backend quedó confirmada como correcta en `production`
+  - las OT abiertas visibles (`#345` y `#1`) ya tenían `task_type_id=1`
+  - el problema visible quedó acotado a runtime frontend/caché
+- acción correctiva aplicada:
+  - republicación limpia de frontend en `production`
+  - republicación limpia de frontend en `staging`
+  - se eliminan bundles viejos antes de copiar el `dist` nuevo para evitar que el navegador siga cargando chunks obsoletos del módulo
 - validación:
   - `cd backend && PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_migration_flow app.tests.test_maintenance_work_order_service app.tests.test_maintenance_due_item_service` -> `42 tests OK`
   - `cd frontend && npm run build` -> `OK`
