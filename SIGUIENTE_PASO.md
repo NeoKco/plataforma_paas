@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente subcorte fino de `maintenance -> finance`; la siembra masiva anual para instalaciones sin plan ya quedó operativa y validada en `ieris-ltda`
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente subcorte fino de `maintenance -> finance`; la siembra masiva anual para instalaciones sin plan ya quedó corregida y validada en `ieris-ltda` bajo la regla “solo con historial útil del año”
 
 ## Decisión previa obligatoria
 

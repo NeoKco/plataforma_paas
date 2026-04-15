@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-14
-- foco de iteración: dejar operativa la siembra masiva de planes preventivos anuales para instalaciones activas sin cobertura, aplicándola ya sobre `ieris-ltda`
-- estado general: `production` y `staging` siguen alineados para `maintenance -> finance` y `platform-core`; además, `maintenance` ahora permite crear en lote planes anuales para instalaciones activas sin plan, tanto desde la UI tenant como desde script operativo reusable
+- foco de iteración: corregir la siembra masiva de planes preventivos para que solo use instalaciones con mantención cerrada en 2026 y dejar saneado `ieris-ltda`
+- estado general: `production` y `staging` siguen alineados para `maintenance -> finance` y `platform-core`; además, `maintenance` ahora permite crear en lote planes preventivos solo desde historial útil del año en curso, tanto desde la UI tenant como desde script operativo reusable
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -174,18 +174,24 @@
     - `legacy_total=110`
     - `history_total=114`
 - `Pendientes` ahora permite alta masiva desde `Instalaciones activas sin plan preventivo`:
-  - botón `Crear planes anuales`
-  - crea una programación por instalación activa sin cobertura preventiva
+  - botón `Crear planes desde historial anual`
+  - crea una programación solo para instalaciones activas sin cobertura preventiva que sí tengan una mantención cerrada en 2026
   - regla aplicada:
-    - si existe cierre este año, usa el mismo día/mes para el próximo año
-    - si no existe cierre este año, fija la próxima mantención a un año desde hoy
+    - si existe cierre histórico este año, usa el mismo día/mes para el próximo año
+    - si no existe cierre útil este año, no crea plan y deja la instalación descubierta
   - la frecuencia queda forzada a `1 year` para este flujo masivo
   - el `task_type` por defecto intenta usar `mantencion` si existe en el tenant
 - el mismo flujo ya quedó disponible como operación backend reusable:
   - [create_annual_schedules_for_uncovered_installations.py](/home/felipe/platform_paas/backend/app/scripts/create_annual_schedules_for_uncovered_installations.py)
   - `dry_run` en `ieris-ltda`: `uncovered_detected=198`
-  - `apply` en `ieris-ltda`: `created=198`, `failed=0`
-  - verificación posterior en `ieris-ltda`: `uncovered_detected=0`
+  - primer `apply` histórico en `ieris-ltda`: `created=198`, `failed=0`
+  - corrección posterior de regla:
+    - se agrega [remove_auto_schedules_without_2026_history.py](/home/felipe/platform_paas/backend/app/scripts/remove_auto_schedules_without_2026_history.py)
+    - cleanup real en `ieris-ltda`: `schedules_detected=126`, `due_items_detected=0`, `apply=OK`
+    - validación posterior con la regla corregida: `uncovered_detected=126`, `created=0`, `skipped=126`, `failed=0`
+  - resultado efectivo en `ieris-ltda`:
+    - solo permanecen las programaciones auto-creadas que sí tenían mantención cerrada en 2026
+    - las instalaciones sin historial útil del año quedan intencionalmente sin plan preventivo
 
 ## Qué explica la diferencia entre `empresa-demo` e `ieris-ltda`
 

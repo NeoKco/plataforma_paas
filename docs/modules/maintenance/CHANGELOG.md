@@ -2,16 +2,24 @@
 
 ## 2026-04-14
 
-- `Pendientes` ahora agrega acción masiva `Crear planes anuales` dentro del bloque `Instalaciones activas sin plan preventivo`
-- la acción crea una programación por instalación activa sin cobertura preventiva reutilizando el contrato actual de `schedules`
-- regla aplicada:
+- `Pendientes` ahora agrega acción masiva `Crear planes desde historial anual` dentro del bloque `Instalaciones activas sin plan preventivo`
+- la acción crea una programación solo para instalaciones activas sin cobertura preventiva que sí tengan mantención cerrada este año reutilizando el contrato actual de `schedules`
+- regla vigente:
   - si existe mantención cerrada este año, usa el mismo día/mes para el próximo año
-  - si no existe cierre útil este año, fija `next_due_at` a un año desde hoy
+  - si no existe cierre útil este año, no crea plan preventivo
   - la frecuencia queda en `1 year`
   - si el tenant tiene `task_type` `mantencion`, se usa como default
 - validación:
   - `cd frontend && npm run build` -> `OK`
   - frontend publicado en `staging` y `production`
+- se agrega [remove_auto_schedules_without_2026_history.py](/home/felipe/platform_paas/backend/app/scripts/remove_auto_schedules_without_2026_history.py) para deshacer programaciones automáticas creadas con la regla incorrecta
+- operación real ejecutada en `production` sobre `ieris-ltda`:
+  - cleanup `dry_run`: `schedules_detected=126`
+  - cleanup `apply`: `schedules_detected=126`
+  - validación posterior con regla corregida:
+    - `uncovered_detected=126`
+    - `created=0`
+    - `skipped=126`
 - se agrega [remove_duplicate_legacy_historical_work_orders.py](/home/felipe/platform_paas/backend/app/scripts/remove_duplicate_legacy_historical_work_orders.py) para limpiar duplicados funcionales entre histórico legacy importado y OT ya existentes del tenant
 - operación real ejecutada en `production` sobre `ieris-ltda`:
   - criterio: `cliente + dirección + fecha de cierre`
@@ -545,12 +553,9 @@
 
 ## 2026-04-14
 
-- `Pendientes` incorpora el alta masiva `Crear planes anuales` para `Instalaciones activas sin plan preventivo`
-- la regla de semilla anual queda fija:
-  - si existe cierre histórico este año, usa el mismo día/mes para el próximo año
-  - si no existe historial útil, fija la próxima mantención a un año desde hoy
-- se agrega [create_annual_schedules_for_uncovered_installations.py](/home/felipe/platform_paas/backend/app/scripts/create_annual_schedules_for_uncovered_installations.py) para ejecutar la misma lógica por script sobre cualquier tenant
-- aplicación real en `production` sobre `ieris-ltda`:
-  - `dry_run`: `uncovered_detected=198`
-  - `apply`: `created=198`, `failed=0`
-  - verificación posterior: `uncovered_detected=0`
+- `Pendientes` incorpora el alta masiva para `Instalaciones activas sin plan preventivo`
+- el registro histórico original quedó corregido:
+  - inicialmente se había permitido fallback a “un año desde hoy” cuando no existía historial útil
+  - esa regla se anuló
+  - la regla vigente ahora solo permite crear el plan cuando sí existe cierre histórico del año en curso
+- [create_annual_schedules_for_uncovered_installations.py](/home/felipe/platform_paas/backend/app/scripts/create_annual_schedules_for_uncovered_installations.py) ya quedó endurecido con esa regla

@@ -144,14 +144,6 @@ function normalizeSearchLabel(value: string | null | undefined): string {
     .toLowerCase();
 }
 
-function buildAutomaticAnnualNextDueAt(timeZone?: string | null): string {
-  const nextYear = new Date();
-  nextYear.setFullYear(nextYear.getFullYear() + 1);
-  nextYear.setHours(9, 0, 0, 0);
-  const localValue = toDateTimeLocalInputValue(nextYear, timeZone);
-  return fromDateTimeLocalInputValue(localValue, timeZone);
-}
-
 type DueScheduleForm = {
   scheduled_for: string;
   site_id: number | null;

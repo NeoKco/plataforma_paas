@@ -1,28 +1,31 @@
 # HISTORIAL_ITERACIONES
 
-## 2026-04-14 - Alta masiva anual desde instalaciones activas sin plan preventivo
+## 2026-04-14 - Corrección de alta masiva anual desde instalaciones activas sin plan preventivo
 
 - objetivo:
   - evitar crear una a una las programaciones para instalaciones activas sin cobertura preventiva
-  - dejar una acción masiva coherente con la regla solicitada: próxima mantención el próximo año
+  - dejar una acción masiva coherente con la regla corregida: solo crear plan si la instalación ya tiene una mantención cerrada en 2026
 - cambios principales:
-  - [MaintenanceDueItemsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx) agrega el botón `Crear planes anuales` dentro del bloque `Instalaciones activas sin plan preventivo`
-  - la acción masiva reutiliza el mismo `POST /tenant/maintenance/schedules`
-  - para cada instalación activa sin plan:
-    - si existe una mantención cerrada este año, usa esa referencia para fijar el mismo día/mes del próximo año
-    - si no existe cierre útil este año, fija la próxima mantención a un año desde hoy
-    - deja la frecuencia forzada en `1 year`
-    - intenta usar `mantencion` como `task_type` por defecto si existe en el tenant
+  - [MaintenanceDueItemsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx) cambia la acción masiva a `Crear planes desde historial anual`
+  - el frontend ya no usa fallback a “un año desde hoy”; si la sugerencia backend no viene desde `history_completed_this_year`, no crea la programación
+  - [create_annual_schedules_for_uncovered_installations.py](/home/felipe/platform_paas/backend/app/scripts/create_annual_schedules_for_uncovered_installations.py) replica la misma regla en backend:
+    - solo crea si `suggest_schedule_seed(...).source == history_completed_this_year`
+    - si no hay historial útil del año, deja la instalación como `skipped`
+  - se agrega [remove_auto_schedules_without_2026_history.py](/home/felipe/platform_paas/backend/app/scripts/remove_auto_schedules_without_2026_history.py) para deshacer la siembra incorrecta ya aplicada en `ieris-ltda`
 - validaciones:
+  - `python3 -m py_compile backend/app/scripts/create_annual_schedules_for_uncovered_installations.py backend/app/scripts/remove_auto_schedules_without_2026_history.py` -> `OK`
   - `cd frontend && npm run build` -> `OK`
-  - frontend publicado en:
-    - `/opt/platform_paas_staging/frontend/dist`
-    - `/opt/platform_paas/frontend/dist`
+  - cleanup real sobre `production / ieris-ltda`:
+    - `dry_run`: `schedules_detected=126`, `due_items_detected=0`
+    - `apply`: `schedules_detected=126`, `due_items_detected=0`
+  - verificación posterior con la regla corregida:
+    - `dry_run` real en `production / ieris-ltda`: `uncovered_detected=126`, `created=0`, `skipped=126`, `failed=0`
 - resultado:
-  - el operador ya puede sembrar de una vez los planes preventivos base para instalaciones activas descubiertas
-  - la alta individual manual sigue existiendo y no fue removida
+  - la capacidad masiva queda permanente para todos los tenants, pero solo para instalaciones con mantención cerrada en 2026
+  - se deshizo el comportamiento incorrecto que creaba planes sin historial útil del año
+  - en `ieris-ltda` se eliminaron `126` programaciones automáticas inválidas creadas por la regla anterior
 - siguiente paso:
-  - si hace falta, agregar un resumen previo tipo `N instalaciones -> N planes` o confirmación modal antes del alta masiva
+  - si hace falta, agregar un resumen previo tipo `N elegibles -> N planes` o confirmación modal antes del alta masiva
 
 ## 2026-04-14 - Cleanup de duplicados históricos legacy en ieris-ltda
 
@@ -952,22 +955,10 @@
 
 # 2026-04-14 - Planes preventivos anuales masivos por instalación
 
-- objetivo:
-  - dejar permanente la capacidad de crear planes preventivos anuales para instalaciones activas sin cobertura y aplicarla de inmediato sobre `ieris-ltda`
-- cambios principales:
-  - [MaintenanceDueItemsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx) ya expone el botón `Crear planes anuales` en `Instalaciones activas sin plan preventivo`
-  - [create_annual_schedules_for_uncovered_installations.py](/home/felipe/platform_paas/backend/app/scripts/create_annual_schedules_for_uncovered_installations.py) nuevo:
-    - detecta instalaciones activas sin cobertura preventiva
-    - usa cierre histórico del año en curso si existe
-    - si no existe historial útil, fija próxima mantención a un año desde hoy
-    - fuerza frecuencia `1 year`
-    - genera la programación y luego sincroniza due items
-- validaciones:
-  - `python3 -m py_compile backend/app/scripts/create_annual_schedules_for_uncovered_installations.py` OK
+- registro histórico de la primera aplicación operativa:
   - `dry_run` real en `production` para `ieris-ltda`: `uncovered_detected=198`
   - `apply` real en `production` para `ieris-ltda`: `created=198`, `failed=0`
-  - verificación posterior real: `uncovered_detected=0`
-- bloqueos:
-  - sin bloqueo técnico; lo siguiente ya vuelve al slice fino `maintenance -> finance`
-- siguiente paso:
-  - continuar con el siguiente subcorte de `maintenance -> finance` sobre esta base ya sembrada
+- este corte quedó posteriormente corregido por la iteración superior `Corrección de alta masiva anual...`:
+  - la regla “si no existe historial útil, fija próxima mantención a un año desde hoy” se declaró inválida
+  - las programaciones creadas sin mantención cerrada en 2026 fueron removidas con cleanup explícito
+  - la regla vigente ya no debe leerse desde esta entrada histórica, sino desde la corrección posterior
