@@ -146,6 +146,22 @@
   - tipos de equipo: `4`
   - instalaciones: `192`
   - verificación posterior en `ieris-ltda`: mismos conteos visibles en runtime real
+- import histórico real desde `ieris_app` aplicado sobre `ieris-ltda`:
+  - fuente `historico_mantenciones`: `113`
+  - creados en destino:
+    - `113` work orders históricos
+    - `113` status logs históricos
+    - `113` visits históricas
+  - validación directa del servicio que consume la UI:
+    - `history_total=117`
+    - `legacy_visible_in_history=113`
+  - el wrapper histórico completó además relaciones faltantes mínimas para soportar ese histórico:
+    - `organizations=205`
+    - `clients=192`
+    - `contacts=219`
+    - `sites=198`
+    - `function_profiles=7`
+    - `installations=203`
 
 ## Qué explica la diferencia entre `empresa-demo` e `ieris-ltda`
 

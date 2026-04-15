@@ -2,6 +2,24 @@
 
 ## 2026-04-14
 
+- se agrega [import_ieris_historical_maintenance_only.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_historical_maintenance_only.py) como wrapper operativo para importar solo `historico_mantenciones` desde `ieris_app` hacia un tenant ya poblado
+- el wrapper:
+  - fuerza `mantenciones=[]` para no traer órdenes activas/base
+  - mantiene el upsert mínimo de organizaciones, clientes, contactos, sitios, perfiles e instalaciones que el histórico necesita para no quedar huérfano
+  - usa verificación `best_effort` porque la validación estricta del importador completo no aplica sobre tenants ya poblados
+- operación real ejecutada en `production` sobre `ieris-ltda`:
+  - fuente `historico_mantenciones`: `113`
+  - creados:
+    - `113` work orders históricos
+    - `113` status logs históricos
+    - `113` visits históricas
+  - conteo final en `ieris-ltda` después del apply:
+    - `organizations=205`
+    - `clients=192`
+    - `contacts=219`
+    - `sites=198`
+    - `function_profiles=7`
+    - `installations=203`
 - `Historial técnico` ahora permite saltar directo a la transacción exacta en `Finanzas` cuando la OT ya quedó sincronizada:
   - botón `Abrir ingreso en Finanzas`
   - botón `Abrir egreso en Finanzas`

@@ -5,6 +5,7 @@ Esta carpeta documenta la migracion legacy desde `ieris_app` hacia `business-cor
 Script principal:
 
 - [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py)
+- [import_ieris_historical_maintenance_only.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_historical_maintenance_only.py)
 - [cleanup_business_core_legacy_site_notes.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_business_core_legacy_site_notes.py)
 
 Comportamiento:
@@ -59,6 +60,47 @@ app/scripts/import_ieris_business_core_maintenance.py \
   --tenant-slug empresa-bootstrap \
   --apply
 ```
+
+Si solo necesitas traer `historico_mantenciones` desde `ieris_app` a un tenant ya poblado, usa el wrapper histórico:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/import_ieris_historical_maintenance_only.py \
+  --tenant-slug ieris-ltda
+```
+
+Aplicación real:
+
+```bash
+cd /home/felipe/platform_paas/backend
+PYTHONPATH=/home/felipe/platform_paas/backend \
+/home/felipe/platform_paas/platform_paas_venv/bin/python \
+app/scripts/import_ieris_historical_maintenance_only.py \
+  --tenant-slug ieris-ltda \
+  --apply
+```
+
+Notas operativas del wrapper histórico:
+
+- fuerza `mantenciones=[]` para no importar órdenes activas/base
+- sí permite completar catálogos y relaciones mínimas que el histórico necesita:
+  - organizaciones
+  - clientes
+  - contactos
+  - sitios
+  - perfiles funcionales
+  - instalaciones
+- usa verificación `best_effort` porque en tenants ya poblados no aplica `source == processed`
+
+Validación real ya ejecutada en `production` sobre `ieris-ltda`:
+
+- `historico_mantenciones` fuente: `113`
+- creados en tenant destino:
+  - `historical_work_orders=113`
+  - `historical_status_logs=113`
+  - `historical_visits=113`
 
 Si un tenant ya fue importado con notas legacy visibles en direcciones:
 

@@ -1,5 +1,49 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-14 - Import histórico de mantenciones desde ieris_app hacia ieris-ltda
+
+- objetivo:
+  - traer solo `historico_mantenciones` desde la BD legacy de `ieris_app` a `ieris-ltda`
+  - evitar arrastrar también `mantenciones` activas/base al tenant destino
+- cambios principales:
+  - se agrega [import_ieris_historical_maintenance_only.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_historical_maintenance_only.py)
+  - el wrapper reutiliza el importador combinado existente, pero fuerza `mantenciones=[]`
+  - mantiene el upsert mínimo de catálogos/relaciones necesarias para que el histórico no quede huérfano
+  - evita la verificación estricta `source == processed` y la reemplaza por una validación `best_effort`, porque `ieris-ltda` ya estaba poblado previamente
+- validaciones:
+  - `python3 -m py_compile backend/app/scripts/import_ieris_historical_maintenance_only.py` -> `OK`
+  - `dry_run` real sobre `ieris-ltda`:
+    - `historico_mantenciones`: `113`
+    - `maintenance.work_orders.created=113`
+    - `maintenance.status_logs.created=113`
+    - `maintenance.visits.created=113`
+    - además detectó faltantes mínimos:
+      - `organizations.created=1`
+      - `clients.created=1`
+      - `contacts.created=1`
+      - `sites.created=4`
+      - `function_profiles.created=1`
+      - `installations.created=11`
+  - `apply` real ejecutado sobre `production`
+  - verificación runtime posterior en `ieris-ltda`:
+    - `historical_work_orders=113`
+    - `historical_status_logs=113`
+    - `historical_visits=113`
+    - `history_total=117`
+    - `legacy_visible_in_history=113`
+    - `organizations=205`
+    - `clients=192`
+    - `contacts=219`
+    - `sites=198`
+    - `function_profiles=7`
+    - `installations=203`
+- resultado:
+  - `ieris-ltda` ya recupera el histórico de mantenciones realizadas desde `ieris_app`
+  - el corte no arrastró `mantenciones` activas/base
+  - el repositorio queda con un wrapper reutilizable para repetir la misma operación sin mezclar histórico con órdenes abiertas
+- siguiente paso:
+  - validar en UI de `ieris-ltda` que `Historial técnico` muestre esas mantenciones importadas y que la navegación asociada siga estable
+
 ## 2026-04-14 - Salvaguarda de borrado seguro tenant + cierre real de convergencia productiva
 
 - objetivo:
