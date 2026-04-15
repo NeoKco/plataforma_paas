@@ -9,6 +9,7 @@ class MaintenanceWorkOrderBase(BaseModel):
     client_id: int
     site_id: int
     installation_id: int | None = None
+    task_type_id: int | None = None
     external_reference: str | None = None
     title: str
     description: str | None = None

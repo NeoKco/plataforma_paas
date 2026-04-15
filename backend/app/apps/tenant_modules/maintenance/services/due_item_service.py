@@ -164,6 +164,7 @@ class MaintenanceDueItemService:
                 client_id=item.client_id,
                 site_id=site_id or 0,
                 installation_id=installation_id,
+                task_type_id=getattr(schedule, "task_type_id", None),
                 assigned_work_group_id=payload.assigned_work_group_id or item.assigned_work_group_id,
                 assigned_tenant_user_id=payload.assigned_tenant_user_id or item.assigned_tenant_user_id,
                 external_reference=None,

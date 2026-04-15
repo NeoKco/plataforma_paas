@@ -7,6 +7,7 @@ from sqlalchemy import text
 from app.apps.tenant_modules.business_core.models import (
     BusinessClient,
     BusinessSite,
+    BusinessTaskType,
     BusinessWorkGroup,
     BusinessWorkGroupMember,
 )
@@ -379,6 +380,7 @@ class MaintenanceWorkOrderService:
             "client_id": payload.client_id,
             "site_id": payload.site_id,
             "installation_id": payload.installation_id,
+            "task_type_id": payload.task_type_id,
             "external_reference": payload.external_reference.strip() if payload.external_reference and payload.external_reference.strip() else None,
             "title": payload.title.strip(),
             "description": payload.description.strip() if payload.description and payload.description.strip() else None,
@@ -437,6 +439,15 @@ class MaintenanceWorkOrderService:
                 raise ValueError("La instalacion seleccionada no existe")
             if installation.site_id != payload["site_id"]:
                 raise ValueError("La instalacion seleccionada no pertenece al sitio indicado")
+
+        if payload["task_type_id"] is not None:
+            task_type = (
+                tenant_db.query(BusinessTaskType)
+                .filter(BusinessTaskType.id == payload["task_type_id"])
+                .first()
+            )
+            if task_type is None:
+                raise ValueError("El tipo de tarea seleccionado no existe")
 
         if payload["assigned_work_group_id"] is not None:
             work_group_exists = (
@@ -548,18 +559,6 @@ class MaintenanceWorkOrderService:
         if assigned_work_group_id is None or assigned_tenant_user_id is None:
             return
 
-        schedule_id = getattr(current_item, "schedule_id", None)
-        if schedule_id is None:
-            return
-
-        schedule = (
-            tenant_db.query(MaintenanceSchedule)
-            .filter(MaintenanceSchedule.id == schedule_id)
-            .first()
-        )
-        if schedule is None:
-            return
-
         effective_membership = membership or (
             tenant_db.query(BusinessWorkGroupMember)
             .filter(BusinessWorkGroupMember.group_id == assigned_work_group_id)
@@ -568,9 +567,22 @@ class MaintenanceWorkOrderService:
         )
         if effective_membership is None:
             return
+
+        task_type_id = payload.get("task_type_id")
+        if task_type_id is None and current_item is not None:
+            task_type_id = getattr(current_item, "task_type_id", None)
+        if task_type_id is None and current_item is not None:
+            schedule_id = getattr(current_item, "schedule_id", None)
+            if schedule_id is not None:
+                schedule = (
+                    tenant_db.query(MaintenanceSchedule)
+                    .filter(MaintenanceSchedule.id == schedule_id)
+                    .first()
+                )
+                task_type_id = getattr(schedule, "task_type_id", None) if schedule is not None else None
         validate_membership_task_type_capability(
             tenant_db,
-            task_type_id=getattr(schedule, "task_type_id", None),
+            task_type_id=task_type_id,
             membership=effective_membership,
         )
 

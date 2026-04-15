@@ -30,6 +30,7 @@ def _build_item(item) -> MaintenanceWorkOrderItemResponse:
         client_id=item.client_id,
         site_id=item.site_id,
         installation_id=item.installation_id,
+        task_type_id=getattr(item, "task_type_id", None),
         schedule_id=getattr(item, "schedule_id", None),
         due_item_id=getattr(item, "due_item_id", None),
         billing_mode=getattr(item, "billing_mode", None),

@@ -26,6 +26,12 @@ class MaintenanceWorkOrder(TenantBase):
         nullable=True,
         index=True,
     )
+    task_type_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("business_task_types.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     assigned_work_group_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("business_work_groups.id", ondelete="SET NULL"),

@@ -46,6 +46,7 @@ class MaintenanceHistoryWorkOrderItemResponse(BaseModel):
     client_id: int
     site_id: int
     installation_id: int | None = None
+    task_type_id: int | None = None
     schedule_id: int | None = None
     due_item_id: int | None = None
     billing_mode: str | None = None
