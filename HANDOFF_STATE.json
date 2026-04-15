@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-14T12:30:00-04:00",
+  "updated_at": "2026-04-14T13:05:00-04:00",
   "handoff_status": "active",
-  "current_focus": "maintenance ahora puede crear en lote planes anuales para instalaciones activas sin cobertura preventiva usando la regla anual pedida",
-  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable, ieris-ltda ya tiene el historico legacy saneado y Pendientes ahora puede sembrar planes anuales masivos para instalaciones sin plan",
+  "current_focus": "maintenance ya puede crear en lote planes preventivos anuales para instalaciones activas sin cobertura y el flujo fue aplicado realmente sobre ieris-ltda",
+  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable, ieris-ltda ya tiene histórico saneado y ahora también quedó sembrado con planes preventivos anuales para todas sus instalaciones activas sin cobertura",
   "active_modules": [
     "platform-core",
     "finance",
@@ -70,6 +70,10 @@
     "functional_data_only no equivale a restauracion tenant 1:1 y no reemplaza snapshot/export previo cuando se busca preservar datos originales"
   ],
   "completed_recently": [
+    "script create_annual_schedules_for_uncovered_installations.py agregado para crear planes anuales masivos por tenant",
+    "dry_run real en production para ieris-ltda detecta 198 instalaciones activas sin cobertura preventiva",
+    "apply real en production para ieris-ltda crea 198 planes anuales con task_type mantencion cuando existe y sin fallos",
+    "verificacion posterior real en production confirma uncovered_detected=0 para ieris-ltda",
     "MaintenanceDueItemsPage agrega accion masiva Crear planes anuales para instalaciones activas sin plan preventivo",
     "la alta masiva reutiliza POST /tenant/maintenance/schedules y fuerza frecuencia annual; si existe cierre este año, usa el mismo dia/mes del proximo año y si no, fija la proxima mantencion a un año desde hoy",
     "frontend build validado OK para el alta masiva de planes anuales",

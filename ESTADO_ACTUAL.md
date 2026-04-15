@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-14
-- foco de iteración: cerrar la salvaguarda operativa para evitar borrado destructivo de tenants sin evidencia previa de recuperación, dejando `staging` y `production` realmente convergidos otra vez
-- estado general: `production` y `staging` quedaron alineados otra vez para el slice `maintenance -> finance` y para `platform-core` de lifecycle tenant; ambos ambientes terminan con auditoría activa `4/4`, y ahora borrar un tenant exige export portable completado del mismo tenant
+- foco de iteración: dejar operativa la siembra masiva de planes preventivos anuales para instalaciones activas sin cobertura, aplicándola ya sobre `ieris-ltda`
+- estado general: `production` y `staging` siguen alineados para `maintenance -> finance` y `platform-core`; además, `maintenance` ahora permite crear en lote planes anuales para instalaciones activas sin plan, tanto desde la UI tenant como desde script operativo reusable
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -181,6 +181,11 @@
     - si no existe cierre este año, fija la próxima mantención a un año desde hoy
   - la frecuencia queda forzada a `1 year` para este flujo masivo
   - el `task_type` por defecto intenta usar `mantencion` si existe en el tenant
+- el mismo flujo ya quedó disponible como operación backend reusable:
+  - [create_annual_schedules_for_uncovered_installations.py](/home/felipe/platform_paas/backend/app/scripts/create_annual_schedules_for_uncovered_installations.py)
+  - `dry_run` en `ieris-ltda`: `uncovered_detected=198`
+  - `apply` en `ieris-ltda`: `created=198`, `failed=0`
+  - verificación posterior en `ieris-ltda`: `uncovered_detected=0`
 
 ## Qué explica la diferencia entre `empresa-demo` e `ieris-ltda`
 
@@ -209,6 +214,7 @@
 - [backend/app/scripts/repair_maintenance_finance_dimensions.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_dimensions.py)
 - [backend/app/scripts/import_ieris_historical_maintenance_only.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_historical_maintenance_only.py)
 - [backend/app/scripts/remove_duplicate_legacy_historical_work_orders.py](/home/felipe/platform_paas/backend/app/scripts/remove_duplicate_legacy_historical_work_orders.py)
+- [backend/app/scripts/create_annual_schedules_for_uncovered_installations.py](/home/felipe/platform_paas/backend/app/scripts/create_annual_schedules_for_uncovered_installations.py)
 - [backend/app/scripts/seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
 - [backend/app/scripts/repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
 - [backend/app/scripts/audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)

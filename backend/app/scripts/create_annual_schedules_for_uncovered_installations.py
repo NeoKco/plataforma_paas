@@ -159,7 +159,7 @@ def _build_payload(
     item: UncoveredInstallation,
     *,
     task_type_id: int | None,
-) -> MaintenanceScheduleCreateRequest:
+) -> MaintenanceScheduleCreateRequest | None:
     suggestion = schedule_service.suggest_schedule_seed(
         tenant_db,
         client_id=item.client.id,
@@ -170,6 +170,8 @@ def _build_payload(
         suggestion.get("source") == "history_completed_this_year"
         and suggestion.get("suggested_next_due_at") is not None
     )
+    if not use_historical_seed:
+        return None
     return MaintenanceScheduleCreateRequest(
         client_id=item.client.id,
         site_id=item.site.id,
@@ -183,8 +185,8 @@ def _build_payload(
         lead_days=30,
         start_mode="from_manual_due_date",
         base_date=None,
-        last_executed_at=suggestion.get("last_executed_at") if use_historical_seed else None,
-        next_due_at=suggestion.get("suggested_next_due_at") if use_historical_seed else _build_annual_next_due_at(),
+        last_executed_at=suggestion.get("last_executed_at"),
+        next_due_at=suggestion.get("suggested_next_due_at"),
         default_priority="normal",
         estimated_duration_minutes=60,
         billing_mode="per_work_order",
@@ -242,6 +244,18 @@ def main() -> int:
                     item,
                     task_type_id=task_type_id,
                 )
+                if payload is None:
+                    skipped.append(
+                        {
+                            "installation_id": item.installation.id,
+                            "installation_name": item.installation.name,
+                            "site_id": item.site.id,
+                            "site_name": item.site.name,
+                            "client_id": item.client.id,
+                            "reason": "missing_completed_history_current_year",
+                        }
+                    )
+                    continue
                 summary = _build_item_summary(item, payload)
                 if not args.apply:
                     created.append(summary)

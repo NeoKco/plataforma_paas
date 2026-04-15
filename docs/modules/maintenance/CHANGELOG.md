@@ -542,3 +542,15 @@
 - el `Precio sugerido` del costeo estimado queda editable sin sobreescribir el `Margen objetivo`
 - el `Margen objetivo` muestra un hint con el margen calculado segun el precio sugerido ingresado
 - la glosa por defecto en finanzas para ingresos/egresos de mantenciones agrega cliente cuando existe
+
+## 2026-04-14
+
+- `Pendientes` incorpora el alta masiva `Crear planes anuales` para `Instalaciones activas sin plan preventivo`
+- la regla de semilla anual queda fija:
+  - si existe cierre histórico este año, usa el mismo día/mes para el próximo año
+  - si no existe historial útil, fija la próxima mantención a un año desde hoy
+- se agrega [create_annual_schedules_for_uncovered_installations.py](/home/felipe/platform_paas/backend/app/scripts/create_annual_schedules_for_uncovered_installations.py) para ejecutar la misma lógica por script sobre cualquier tenant
+- aplicación real en `production` sobre `ieris-ltda`:
+  - `dry_run`: `uncovered_detected=198`
+  - `apply`: `created=198`, `failed=0`
+  - verificación posterior: `uncovered_detected=0`

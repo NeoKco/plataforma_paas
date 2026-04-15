@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y abrir el siguiente subcorte fino de `maintenance -> finance` sobre una base ya alineada y sin drift entre repo/runtime; la salvaguarda de borrado tenant ya quedó cerrada
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente subcorte fino de `maintenance -> finance`; la siembra masiva anual para instalaciones sin plan ya quedó operativa y validada en `ieris-ltda`
 
 ## Decisión previa obligatoria
 

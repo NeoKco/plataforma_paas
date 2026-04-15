@@ -949,3 +949,25 @@
   - validar en empresa-demo precio sugerido editable sin overwrite y glosa `mantención + trabajo + cliente`
 - siguiente paso:
   - cerrar una OT con cobro > 0 y verificar glosa + egreso en Finanzas
+
+# 2026-04-14 - Planes preventivos anuales masivos por instalación
+
+- objetivo:
+  - dejar permanente la capacidad de crear planes preventivos anuales para instalaciones activas sin cobertura y aplicarla de inmediato sobre `ieris-ltda`
+- cambios principales:
+  - [MaintenanceDueItemsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx) ya expone el botón `Crear planes anuales` en `Instalaciones activas sin plan preventivo`
+  - [create_annual_schedules_for_uncovered_installations.py](/home/felipe/platform_paas/backend/app/scripts/create_annual_schedules_for_uncovered_installations.py) nuevo:
+    - detecta instalaciones activas sin cobertura preventiva
+    - usa cierre histórico del año en curso si existe
+    - si no existe historial útil, fija próxima mantención a un año desde hoy
+    - fuerza frecuencia `1 year`
+    - genera la programación y luego sincroniza due items
+- validaciones:
+  - `python3 -m py_compile backend/app/scripts/create_annual_schedules_for_uncovered_installations.py` OK
+  - `dry_run` real en `production` para `ieris-ltda`: `uncovered_detected=198`
+  - `apply` real en `production` para `ieris-ltda`: `created=198`, `failed=0`
+  - verificación posterior real: `uncovered_detected=0`
+- bloqueos:
+  - sin bloqueo técnico; lo siguiente ya vuelve al slice fino `maintenance -> finance`
+- siguiente paso:
+  - continuar con el siguiente subcorte de `maintenance -> finance` sobre esta base ya sembrada

@@ -1203,8 +1203,7 @@ export function MaintenanceDueItemsPage() {
     installation: TenantMaintenanceInstallation,
     site: TenantBusinessSite,
     client: TenantBusinessClient,
-  ): Promise<TenantMaintenanceScheduleWriteRequest> {
-    let useHistoricalSeed = false;
+  ): Promise<TenantMaintenanceScheduleWriteRequest | null> {
     let suggestedNextDueAt: string | null = null;
     let suggestedLastExecutedAt: string | null = null;
 
@@ -1215,17 +1214,17 @@ export function MaintenanceDueItemsPage() {
           siteId: site.id,
           installationId: installation.id,
         });
-        if (
-          suggestionResponse.data.source === "history_completed_this_year" &&
-          suggestionResponse.data.suggested_next_due_at
-        ) {
-          useHistoricalSeed = true;
+        if (suggestionResponse.data.source === "history_completed_this_year" && suggestionResponse.data.suggested_next_due_at) {
           suggestedNextDueAt = suggestionResponse.data.suggested_next_due_at;
           suggestedLastExecutedAt = suggestionResponse.data.last_executed_at;
+        } else {
+          return null;
         }
       } catch {
-        // Si la sugerencia falla, el alta masiva cae al plan anual base sin bloquear la operación.
+        return null;
       }
+    } else {
+      return null;
     }
 
     return {
@@ -1240,10 +1239,8 @@ export function MaintenanceDueItemsPage() {
           : `Preventive plan ${installation.name}`,
       frequency_value: 1,
       frequency_unit: "years",
-      next_due_at: useHistoricalSeed && suggestedNextDueAt
-        ? suggestedNextDueAt
-        : buildAutomaticAnnualNextDueAt(effectiveTimeZone),
-      last_executed_at: useHistoricalSeed ? suggestedLastExecutedAt : null,
+      next_due_at: suggestedNextDueAt,
+      last_executed_at: suggestedLastExecutedAt,
       notes:
         language === "es"
           ? "Alta automática desde instalaciones activas sin plan preventivo."
@@ -1266,6 +1263,10 @@ export function MaintenanceDueItemsPage() {
     for (const item of uncoveredInstallations) {
       try {
         const payload = await buildAutomaticSchedulePayload(item.installation, item.site, item.client);
+        if (!payload) {
+          skippedCount += 1;
+          continue;
+        }
         await createTenantMaintenanceSchedule(session.accessToken, payload);
         createdCount += 1;
       } catch (rawError) {
@@ -1300,8 +1301,8 @@ export function MaintenanceDueItemsPage() {
 
     setFeedback(
       language === "es"
-        ? `Se crearon ${createdCount} planes anuales${skippedCount > 0 ? ` y ${skippedCount} se omitieron por cobertura existente` : ""}.`
-        : `Created ${createdCount} annual plans${skippedCount > 0 ? ` and skipped ${skippedCount} already-covered items` : ""}.`,
+        ? `Se crearon ${createdCount} planes anuales${skippedCount > 0 ? ` y ${skippedCount} se omitieron por no tener mantención cerrada en ${new Date().getFullYear()}` : ""}.`
+        : `Created ${createdCount} annual plans${skippedCount > 0 ? ` and skipped ${skippedCount} items without a completed maintenance in ${new Date().getFullYear()}` : ""}.`,
     );
   }
 
@@ -1623,8 +1624,8 @@ export function MaintenanceDueItemsPage() {
         }
         subtitle={
           language === "es"
-            ? "Reporte operativo para detectar clientes que ya tienen instalación activa pero todavía no entran al ciclo preventivo."
-            : "Operational report to detect clients with active installations that are not yet covered by the preventive cycle."
+            ? "Reporte operativo para detectar clientes con instalación activa sin cobertura preventiva. La alta masiva solo toma instalaciones con mantención cerrada este año."
+            : "Operational report to detect clients with active installations without preventive coverage. Bulk creation only uses installations with a completed maintenance this year."
         }
         actions={
           uncoveredInstallations.length > 0 ? (
@@ -1639,8 +1640,8 @@ export function MaintenanceDueItemsPage() {
                   ? "Creando planes..."
                   : "Creating plans..."
                 : language === "es"
-                  ? "Crear planes anuales"
-                  : "Create annual plans"}
+                  ? "Crear planes desde historial anual"
+                  : "Create plans from current-year history"}
             </button>
           ) : null
         }
