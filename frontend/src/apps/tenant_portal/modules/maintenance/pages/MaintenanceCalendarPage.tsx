@@ -120,6 +120,17 @@ function toDateTimeLocalInputValue(value: string | null): string {
   return toMinuteKey(value) ?? "";
 }
 
+function upsertWorkOrderRow(
+  rows: TenantMaintenanceWorkOrder[],
+  item: TenantMaintenanceWorkOrder
+): TenantMaintenanceWorkOrder[] {
+  const existingIndex = rows.findIndex((row) => row.id === item.id);
+  if (existingIndex === -1) {
+    return [...rows, item];
+  }
+  return rows.map((row) => (row.id === item.id ? item : row));
+}
+
 function getConflictReasons(
   left: Pick<
     TenantMaintenanceWorkOrder,
@@ -737,6 +748,7 @@ export function MaintenanceCalendarPage() {
       const response = editingId
         ? await updateTenantMaintenanceWorkOrder(session.accessToken, editingId, payload)
         : await createTenantMaintenanceWorkOrder(session.accessToken, payload);
+      setWorkOrders((current) => upsertWorkOrderRow(current, response.data));
       let feedbackMessage = response.message;
       if (
         editingId &&

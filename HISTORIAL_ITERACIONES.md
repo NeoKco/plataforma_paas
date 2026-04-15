@@ -1041,3 +1041,10 @@
   - se normaliza el valor a `YYYY-MM-DDTHH:MM` en:
     - [MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx)
     - [MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx)
+- corrección adicional del mismo corte:
+  - la base en `production/ieris-ltda` ya persistía `task_type_id=1` para las OT abiertas corregidas, pero la fila seguía mostrando `Sin tipo` justo después del save
+  - causa real: la grilla esperaba al `loadData()` posterior para repintar y no hacía `upsert` inmediato con la respuesta del `PUT/POST`
+  - se agrega `upsertWorkOrderRow(...)` en:
+    - [MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx)
+    - [MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx)
+  - resultado esperado: tras guardar, la fila debe reflejar de inmediato `mantencion` sin depender de un segundo refresco manual

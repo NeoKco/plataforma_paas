@@ -334,6 +334,10 @@
   - el input `datetime-local` no aceptaba directamente el formato backend de `scheduled_for`
   - la OT sí tenía fecha/hora guardada, pero el campo se renderizaba vacío por incompatibilidad de formato
   - `MaintenanceWorkOrdersPage` y `MaintenanceCalendarPage` ahora normalizan `scheduled_for` a formato `YYYY-MM-DDTHH:MM` tanto al cargar la edición como al renderizar el input
+- corrección adicional cerrada sobre refresco visual de `Tipo de tarea` tras guardar:
+  - la OT ya quedaba persistida con `task_type_id` en backend/runtime
+  - el hueco visible era de frontend: la grilla seguía dependiendo del `loadData()` posterior para repintar la fila
+  - `MaintenanceWorkOrdersPage` y `MaintenanceCalendarPage` ahora hacen `upsert` de la fila usando `response.data` del propio `PUT/POST` antes del reload completo
 
 ## Bloqueos reales detectados
 
