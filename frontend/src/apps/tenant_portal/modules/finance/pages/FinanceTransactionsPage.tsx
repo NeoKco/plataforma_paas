@@ -189,6 +189,45 @@ export function FinanceTransactionsPage() {
     () => new Map(currencies.map((currency) => [currency.id, currency])),
     [currencies]
   );
+  const accountBalanceCurrencyIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          accountBalances
+            .filter((item) => !item.is_balance_hidden)
+            .map((item) => item.currency_id)
+        )
+      ),
+    [accountBalances]
+  );
+  const hasMixedVisibleAccountCurrencies = accountBalanceCurrencyIds.length > 1;
+  const totalAccountBalance = useMemo(() => {
+    if (!accountBalances.length) {
+      return 0;
+    }
+    if (hasMixedVisibleAccountCurrencies) {
+      const baseCurrencyId = baseCurrency?.id ?? null;
+      return accountBalances.reduce((total, item) => {
+        if (item.is_balance_hidden || item.currency_id !== baseCurrencyId) {
+          return total;
+        }
+        return total + item.balance;
+      }, 0);
+    }
+    return accountBalances.reduce((total, item) => {
+      if (item.is_balance_hidden) {
+        return total;
+      }
+      return total + item.balance;
+    }, 0);
+  }, [accountBalances, baseCurrency?.id, hasMixedVisibleAccountCurrencies]);
+  const totalAccountBalanceHint = hasMixedVisibleAccountCurrencies
+    ? language === "es"
+      ? `Suma visible solo en moneda base (${baseCurrency?.code || "base"}). Revisa Balances por cuenta para otras monedas.`
+      : `Visible total only in base currency (${baseCurrency?.code || "base"}). Review Account balances for other currencies.`
+    : language === "es"
+      ? "Suma de saldos iniciales y movimientos por cuenta."
+      : "Sum of opening balances and account movements.";
   const previewCleanupRef = useRef<string[]>([]);
   const deepLinkedTransactionHandledRef = useRef<number | null>(null);
   const selectedAttachmentPreviewDependency = useMemo(() => {
@@ -1407,10 +1446,12 @@ export function FinanceTransactionsPage() {
         />
         <MetricCard
           icon="balance"
-          label={language === "es" ? "Balance" : "Balance"}
+          label={
+            language === "es" ? "Saldo total en cuentas" : "Total account balance"
+          }
           tone="info"
-          value={formatMoney(summary?.balance || 0, baseCurrency?.code, language)}
-          hint={language === "es" ? "Resultado actual" : "Current result"}
+          value={formatMoney(totalAccountBalance || 0, baseCurrency?.code, language)}
+          hint={totalAccountBalanceHint}
         />
       </div>
 

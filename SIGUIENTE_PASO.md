@@ -3,6 +3,7 @@
 ## Prioridad vigente
 
 - sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente ajuste fino de `maintenance`; el histórico de `ieris-ltda` ya quedó saneado con `tipo de tarea`, `grupo` y `responsable`, así que el siguiente frente ya no es relleno masivo sino calidad de uso y cierre operativo
+- en `finance`, la semántica de cabecera ya quedó corregida: la tarjeta superior debe leerse como caja disponible (`Saldo total en cuentas`) y no como neto operativo (`Ingresos - Egresos`)
 
 ## Decisión previa obligatoria
 
@@ -20,6 +21,8 @@
   - auditoría `production`
   - documentación viva cerrada
 - siguiente subcorte funcional recomendado:
+  - si se quiere profundizar `finance`, dejar una tarjeta separada de `Resultado neto` o `Flujo neto` para no perder la lectura `ingresos - egresos`
+  - revisar si conviene mover el cálculo de `Saldo total en cuentas` al backend para no depender solo de composición frontend
   - endurecer hints/controles de egreso seleccionable para que el operador vea con claridad qué líneas sí salen a egreso y cuáles no
   - revisar si conviene un endpoint atómico `close-with-costs` para evitar cualquier drift futuro entre `cost-actual`, `status` y `finance_sync`
   - dejar visible en la ficha/historial si la transacción financiera vinculada quedó conciliada, anulada o sin cuenta/categoría

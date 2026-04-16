@@ -2,9 +2,9 @@
 
 ## Última actualización
 
-- fecha: 2026-04-15
-- foco de iteración: completar el saneamiento del historial de mantenciones en `ieris-ltda`, dejando `tipo de tarea`, `grupo` y `responsable` editables y backfilleados sobre las mantenciones cerradas
-- estado general: `production` y `staging` siguen alineados para `maintenance -> finance` y `platform-core`; además, `maintenance` ya permite editar `tipo de tarea`, `grupo` y `responsable` en creación/edición de OT y en `Historial técnico`, y `ieris-ltda` quedó saneado con esas tres dimensiones pobladas en todas sus mantenciones cerradas
+- fecha: 2026-04-16
+- foco de iteración: corregir la semántica visible de la tarjeta superior de `Finanzas` para que muestre `Saldo total en cuentas` y no el neto `ingresos - egresos`
+- estado general: `production` y `staging` siguen alineados para `maintenance -> finance`, `finance` y `platform-core`; además, `maintenance` ya permite editar `tipo de tarea`, `grupo` y `responsable`, y `finance` ahora separa mejor lectura de flujo (`Ingresos`, `Egresos`) frente a caja disponible (`Saldo total en cuentas`)
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -46,6 +46,11 @@
 - `MaintenanceHistoryPage` quedó blindada para OTs antiguas o tenants con payload histórico parcial:
   - usa `finance_summary` con fallback seguro
   - evita crash aunque una fila histórica no traiga ese bloque
+- la tarjeta superior `Balance` de `Finanzas` dejó de mostrar `total_income - total_expense` como si fuera caja disponible
+  - ahora el frontend muestra `Saldo total en cuentas`
+  - usa la suma de `Balances por cuenta`
+  - excluye cuentas con balance oculto
+  - si hay múltiples monedas visibles, suma solo las cuentas en moneda base y deja hint explícito
 - frontend runtime verificado en ambos ambientes con bundles nuevos:
   - `MaintenanceHistoryPage-CdHJKpQP.js`
   - `MaintenanceInstallationsPage-CjIp0KB9.js`
@@ -74,6 +79,10 @@
 - [costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/costing.py) serializa snapshots financieros vinculados para consumo del frontend
 - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) ya reutiliza cuenta/categoría/moneda/fecha/glosa/notas desde la transacción financiera vinculada cuando existe
   - además, al cerrar la OT desde el mismo modal, ahora envía la configuración financiera elegida dentro del mismo `PATCH /status`, para que el balance por cuenta y la categoría nazcan correctamente en Finanzas
+- [FinanceTransactionsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx) ya no usa la tarjeta `Balance` como `ingresos - egresos`
+  - renombra la lectura a `Saldo total en cuentas`
+  - toma la suma de `accountBalances`
+  - si detecta monedas visibles mixtas, limita el total a la moneda base y lo declara en el hint
 - [work_order_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/work_order_service.py) ahora prioriza `payload.finance_sync` al completar una OT y solo cae al auto-sync por política si el cierre no trae configuración financiera explícita
 - [common.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/common.py) extiende `MaintenanceStatusUpdateRequest` con `finance_sync`
 - [workOrdersService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/workOrdersService.ts) soporta `finance_sync` en `PATCH /status`
