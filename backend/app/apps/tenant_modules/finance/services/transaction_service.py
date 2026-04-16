@@ -498,7 +498,7 @@ class FinanceService:
         if attachment is None or attachment.transaction_id != transaction_id:
             raise ValueError("El adjunto de la transaccion no existe")
 
-        absolute_path = self._attachments_root() / attachment.storage_key
+        absolute_path = self._resolve_attachment_path(attachment.storage_key)
         self.transaction_attachment_repository.delete(tenant_db, attachment)
         if absolute_path.exists():
             absolute_path.unlink()
@@ -532,7 +532,7 @@ class FinanceService:
         if attachment is None or attachment.transaction_id != transaction_id:
             raise ValueError("El adjunto de la transaccion no existe")
 
-        absolute_path = self._attachments_root() / attachment.storage_key
+        absolute_path = self._resolve_attachment_path(attachment.storage_key)
         if not absolute_path.exists():
             raise ValueError("El archivo adjunto no está disponible en almacenamiento")
         return attachment, absolute_path
@@ -816,6 +816,25 @@ class FinanceService:
         root = Path(settings.FINANCE_ATTACHMENTS_DIR)
         root.mkdir(parents=True, exist_ok=True)
         return root
+
+    def _legacy_attachments_root(self) -> Path:
+        return (
+            Path(settings.BASE_DIR)
+            / "backend"
+            / "app"
+            / "apps"
+            / "tenant_modules"
+            / "finance"
+            / "storage"
+            / "attachments"
+        )
+
+    def _resolve_attachment_path(self, storage_key: str) -> Path:
+        current_path = self._attachments_root() / storage_key
+        if current_path.exists():
+            return current_path
+        legacy_path = self._legacy_attachments_root() / storage_key
+        return legacy_path if legacy_path.exists() else current_path
 
     def _normalize_attachment_file_name(self, file_name: str) -> str:
         normalized = Path(file_name or "attachment").name.strip()

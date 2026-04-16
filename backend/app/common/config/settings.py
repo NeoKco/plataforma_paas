@@ -139,24 +139,10 @@ class Settings(BaseSettings):
         "/tmp/platform_paas_provisioning_metrics.prom"
     )
     FINANCE_ATTACHMENTS_DIR: str = str(
-        BASE_DIR
-        / "backend"
-        / "app"
-        / "apps"
-        / "tenant_modules"
-        / "finance"
-        / "storage"
-        / "attachments"
+        BASE_DIR / "storage" / "finance_attachments"
     )
     MAINTENANCE_EVIDENCE_DIR: str = str(
-        BASE_DIR
-        / "backend"
-        / "app"
-        / "apps"
-        / "tenant_modules"
-        / "maintenance"
-        / "storage"
-        / "evidence"
+        BASE_DIR / "storage" / "maintenance_evidence"
     )
     TENANT_DATA_EXPORT_ARTIFACTS_DIR: str = str(
         BASE_DIR / "storage" / "tenant_data_exports"

@@ -3,12 +3,16 @@ import os
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
 
 from app.apps.tenant_modules.finance.models.account import FinanceAccount  # noqa: E402
 from app.apps.tenant_modules.finance.models.currency import FinanceCurrency  # noqa: E402
+from app.apps.tenant_modules.finance.models.transaction_attachment import (  # noqa: E402
+    FinanceTransactionAttachment,
+)
 from app.apps.tenant_modules.finance.models.tag import FinanceTag  # noqa: E402
 from app.common.config.settings import settings  # noqa: E402
 from app.apps.tenant_modules.finance.schemas import (  # noqa: E402
@@ -899,6 +903,83 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
                 self.assertFalse(attachment_path.exists())
         finally:
             settings.FINANCE_ATTACHMENTS_DIR = original_dir
+
+    def test_can_resolve_and_delete_legacy_transaction_attachment(self) -> None:
+        usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
+        caja = self._seed_account(
+            name="Caja",
+            code="CAJA",
+            currency_id=usd.id,
+            opening_balance=0.0,
+        )
+        created = self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=caja.id,
+                currency_id=usd.id,
+                amount=60.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Compra con adjunto legacy",
+            ),
+            created_by_user_id=1,
+        )
+
+        original_dir = settings.FINANCE_ATTACHMENTS_DIR
+        original_base_dir = settings.BASE_DIR
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = tempfile.TemporaryDirectory()
+            try:
+                settings.FINANCE_ATTACHMENTS_DIR = temp_dir
+                settings.BASE_DIR = temp_path.name
+                legacy_root = (
+                    Path(settings.BASE_DIR)
+                    / "backend"
+                    / "app"
+                    / "apps"
+                    / "tenant_modules"
+                    / "finance"
+                    / "storage"
+                    / "attachments"
+                )
+                storage_key = f"transaction_{created.id}/legacy.pdf"
+                legacy_file_path = legacy_root / storage_key
+                legacy_file_path.parent.mkdir(parents=True, exist_ok=True)
+                legacy_file_path.write_bytes(b"legacy-pdf")
+
+                attachment = self.service.transaction_attachment_repository.save(
+                    self.db,
+                    FinanceTransactionAttachment(
+                        transaction_id=created.id,
+                        file_name="legacy.pdf",
+                        storage_key=storage_key,
+                        content_type="application/pdf",
+                        file_size=10,
+                        notes="migrated",
+                        uploaded_by_user_id=8,
+                    ),
+                )
+
+                _loaded_attachment, resolved_path = self.service.get_transaction_attachment(
+                    self.db,
+                    created.id,
+                    attachment.id,
+                )
+                self.assertEqual(resolved_path, legacy_file_path)
+                self.assertTrue(resolved_path.exists())
+
+                deleted = self.service.delete_transaction_attachment(
+                    self.db,
+                    created.id,
+                    attachment.id,
+                    actor_user_id=9,
+                )
+                self.assertEqual(deleted.id, attachment.id)
+                self.assertFalse(legacy_file_path.exists())
+            finally:
+                temp_path.cleanup()
+                settings.FINANCE_ATTACHMENTS_DIR = original_dir
+                settings.BASE_DIR = original_base_dir
 
     def test_can_void_transaction_and_exclude_it_from_active_reads(self) -> None:
         usd = self._seed_currency(code="USD", is_base=True, sort_order=10)
