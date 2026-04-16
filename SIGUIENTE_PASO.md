@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente ajuste fino de `maintenance`; el histórico de `ieris-ltda` ya quedó saneado con `tipo de tarea`, `grupo` y `responsable`, así que el siguiente frente ya no es relleno masivo sino calidad de uso y cierre operativo
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente ajuste fino de `finance`; el slice de `Mantenciones abiertas -> Tipo de tarea` en `ieris-ltda` ya quedó cerrado de punta a punta y no requiere más trabajo salvo nueva regresión reproducible
 - en `finance`, la semántica de cabecera ya quedó corregida: la tarjeta superior debe leerse como caja disponible (`Saldo total en cuentas`) y no como neto operativo (`Ingresos - Egresos`)
 
 ## Decisión previa obligatoria
@@ -64,3 +64,4 @@
   - runtime backend productivo
   - runtime frontend productivo con publicación limpia
   - hard refresh del navegador o limpieza de caché del sitio
+  - si el slice ya estaba cerrado, comunicar el trabajo como `revalidación` y no como reapertura automática

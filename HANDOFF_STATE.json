@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-15T17:05:00-04:00",
+  "updated_at": "2026-04-16T10:45:00-04:00",
   "handoff_status": "active",
-  "current_focus": "maintenance work orders en ieris-ltda: backend/runtime ya confirma task_type_id correcto en OT abiertas; el foco actual es eliminar drift visual por frontend/caché en Mantenciones abiertas",
-  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable y el slice actual está acotado a cerrar el runtime frontend de Mantenciones abiertas para que refleje el task_type ya persistido en producción",
+  "current_focus": "slice maintenance work orders en ieris-ltda ya cerrado; el foco vuelve al siguiente ajuste funcional de finance manteniendo la regla de revalidacion sobre slices cerrados",
+  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable y el ultimo incidente visible de Mantenciones abiertas se resolvio como problema de runtime/caché frontend, no de persistencia backend",
   "active_modules": [
     "platform-core",
     "finance",

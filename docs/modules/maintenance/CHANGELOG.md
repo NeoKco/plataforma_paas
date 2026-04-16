@@ -33,9 +33,15 @@
   - las OT abiertas visibles (`#345` y `#1`) ya tenían `task_type_id=1`
   - el problema visible quedó acotado a runtime frontend/caché
 - acción correctiva aplicada:
+  - [api.ts](/home/felipe/platform_paas/frontend/src/services/api.ts) ahora usa `cache: "no-store"` para requests JSON y descargas
   - republicación limpia de frontend en `production`
   - republicación limpia de frontend en `staging`
   - se eliminan bundles viejos antes de copiar el `dist` nuevo para evitar que el navegador siga cargando chunks obsoletos del módulo
+- cierre confirmado en runtime:
+  - el usuario valida que `Mantenciones abiertas` ya:
+    - cambia correctamente `Tipo de tarea`
+    - deja `mantencion` como default correcto al crear
+  - el incidente se cierra como problema de caché/runtime y no como bug de persistencia backend
 - validación:
   - `cd backend && PYTHONPATH=/home/felipe/platform_paas/backend /home/felipe/platform_paas/platform_paas_venv/bin/python -m unittest app.tests.test_migration_flow app.tests.test_maintenance_work_order_service app.tests.test_maintenance_due_item_service` -> `42 tests OK`
   - `cd frontend && npm run build` -> `OK`

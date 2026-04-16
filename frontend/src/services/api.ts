@@ -58,6 +58,7 @@ export async function apiRequest<T>(
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       method: options.method ?? "GET",
+      cache: "no-store",
       headers: {
         ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(options.token
@@ -129,6 +130,7 @@ export async function apiDownload(
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       method: options.method ?? "GET",
+      cache: "no-store",
       headers: {
         ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(options.token

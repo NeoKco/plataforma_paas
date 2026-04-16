@@ -258,6 +258,42 @@ Usar la estructura explícita de `PLANTILLA_ACTUALIZACION_ESTADO.md`.
 
 ## Regla 17. No cerrar una iteración sin declarar bloqueos reales
 
+## Regla 18. Slice cerrado + reporte nuevo = revalidación, no reapertura automática
+
+Si un tema ya estaba cerrado y reaparece un reporte:
+
+- primero tratarlo como `revalidación de cierre previo`
+- no comunicarlo como si se estuviera rehaciendo o reabriendo el slice desde cero
+
+Mensajes recomendados:
+
+- `Comprobando que lo último realizado corresponde y quedó bien en runtime`
+- `Revalidando el cierre anterior para distinguir si es regresión real, caché o despliegue`
+
+Evitar durante diagnóstico frases como:
+
+- `voy a revisar el flujo`
+- `voy a bajar al detalle`
+- `voy a investigar`
+
+salvo que ya exista evidencia clara de regresión real.
+
+## Regla 19. No editar memoria viva durante exploración diagnóstica
+
+Si un slice cerrado entra en revalidación:
+
+- no actualizar `ESTADO_ACTUAL.md`
+- no actualizar `SIGUIENTE_PASO.md`
+- no actualizar `HANDOFF_STATE.json`
+- no actualizar `HISTORIAL_ITERACIONES.md`
+
+hasta que ocurra una de estas dos cosas:
+
+- se confirma que no había regresión y solo hubo caché/runtime/despliegue
+- se confirma regresión real, se corrige y se valida
+
+La memoria viva debe reflejar estado resuelto, no hipótesis intermedias.
+
 ## Regla 18. Cambio correcto = promoción completa por ambiente y tenant
 
 Si una modificación se declara correcta y válida para la PaaS, no basta con dejarla funcionando en `development` o en un solo tenant.

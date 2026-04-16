@@ -63,12 +63,19 @@
     - serialización backend correcta
     - drift acotado a frontend/runtime/caché
   - corrección operativa aplicada:
+    - se endurece [api.ts](/home/felipe/platform_paas/frontend/src/services/api.ts) con `cache: "no-store"` para requests JSON y descargas
     - republicación limpia de `frontend/dist` en `production`
     - republicación limpia de `frontend/dist` en `staging`
-    - verificación posterior de que ambos ambientes sólo sirven:
-      - `MaintenanceWorkOrdersPage-XdslC_kL.js`
-      - `index-DMkjHqWF.js`
+    - verificación posterior de que ambos ambientes sólo sirven bundles nuevos del slice:
+      - `MaintenanceWorkOrdersPage-Bq-bFLV_.js`
+      - `workOrdersService-4F4QAAFP.js`
+      - `index-DzUPjfrU.js`
       - `index-Ci9PWeRu.css`
+  - cierre confirmado:
+    - el usuario valida en runtime real que:
+      - `Tipo de tarea` ya cambia correctamente
+      - `mantencion` viene por defecto en `Mantenciones abiertas`
+      - ese comportamiento es correcto y se da por cerrado
 
 ## 2026-04-14 - Corrección de alta masiva anual desde instalaciones activas sin plan preventivo
 

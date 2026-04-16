@@ -28,6 +28,7 @@ No cerrar una iteración hasta responder `sí` a todo esto:
 - ¿otra IA podría retomar sin depender del chat?
 - ¿el cambio quedó promovido en todos los ambientes afectados o quedó explícito qué ambiente falta?
 - ¿los tenants afectados quedaron convergidos o quedó explícito cuál sigue con drift y por qué?
+- si el trabajo nació como reporte sobre un slice ya cerrado, ¿primero se trató como revalidación y no como reapertura automática?
 
 ## Actualización mínima del root
 
@@ -129,3 +130,11 @@ Si mañana otra IA abre el repo, debe poder saber:
 - y qué hacer después
 
 Si eso no ocurre, la iteración todavía no está bien cerrada.
+
+## Regla adicional para regresiones aparentes
+
+Si un usuario reporta un problema sobre algo ya cerrado:
+
+- primero validar runtime, caché, bundles y despliegue efectivo
+- no reabrir documentalmente el slice durante exploración
+- sólo actualizar memoria viva cuando el estado real ya esté confirmado

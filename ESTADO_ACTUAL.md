@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-16
-- foco de iteración: corregir la semántica visible de la tarjeta superior de `Finanzas` para que muestre `Saldo total en cuentas` y no el neto `ingresos - egresos`
-- estado general: `production` y `staging` siguen alineados para `maintenance -> finance`, `finance` y `platform-core`; además, `maintenance` ya permite editar `tipo de tarea`, `grupo` y `responsable`, y `finance` ahora separa mejor lectura de flujo (`Ingresos`, `Egresos`) frente a caja disponible (`Saldo total en cuentas`)
+- foco de iteración: cerrar correctamente el slice de `Mantenciones abiertas -> tipo de tarea` en `ieris-ltda`, confirmar que el runtime productivo ya refleja el valor persistido y dejar la regla de revalidación escrita en la gobernanza
+- estado general: `production` y `staging` siguen alineados para `maintenance -> finance`, `finance` y `platform-core`; además, `maintenance` ya permite editar `tipo de tarea`, `grupo` y `responsable`, y el problema visible de `Tipo de tarea` en `Mantenciones abiertas` quedó cerrado en runtime tras publicar frontend limpio y endurecer `fetch` con `cache: no-store`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -55,6 +55,15 @@
   - `MaintenanceHistoryPage-CdHJKpQP.js`
   - `MaintenanceInstallationsPage-CjIp0KB9.js`
   - `MaintenanceReportsPage-B4R_FsLR.js`
+- el problema visible de `Mantenciones abiertas -> Tipo de tarea` en `ieris-ltda` quedó resuelto:
+  - backend y DB ya persistían bien `task_type_id`
+  - el fallo era runtime frontend/caché
+  - [api.ts](/home/felipe/platform_paas/frontend/src/services/api.ts) ahora usa `cache: "no-store"` en requests JSON y descargas
+  - se hizo publicación limpia del `dist` en `staging` y `production`
+  - el usuario confirmó en runtime real que:
+    - `Tipo de tarea` se cambia correctamente
+    - en `Mantenciones abiertas` viene por defecto `mantencion`
+    - ese comportamiento ahora es el esperado y correcto
 
 ## Qué ya quedó hecho
 
@@ -219,6 +228,16 @@
     - `group_5=114`
     - `user_1=114`
     - `task_1=114`
+- el slice `Mantenciones abiertas -> Tipo de tarea` quedó revalidado y cerrado de punta a punta:
+  - inspección runtime en `production / ieris-ltda` confirmó que las OT abiertas visibles ya tenían `task_type_id=1`
+  - se detectó que la regresión aparente era frontend stale, no backend
+  - [api.ts](/home/felipe/platform_paas/frontend/src/services/api.ts) quedó con `cache: "no-store"`
+  - frontend republicado limpiamente en:
+    - `staging`
+    - `production`
+  - confirmación final del usuario:
+    - el tipo se cambia correctamente
+    - `mantencion` queda como valor por defecto correcto en `Mantenciones abiertas`
 - el script de backfill histórico ahora soporta barrido multi-tenant seguro:
   - `--all-active`
   - `--skip-missing`

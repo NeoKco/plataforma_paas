@@ -69,6 +69,31 @@ Por eso el estándar de cierre exige:
 - auditoría activa por tenant
 - documentación explícita del estado resultante
 
+## Regla de Revalidación sobre slices cerrados
+
+Cuando un usuario reporta un problema sobre un cambio ya declarado correcto:
+
+- el primer paso no es reabrir el slice, sino revalidar que el cierre siga correcto en runtime
+- la comunicación debe decirlo explícitamente
+
+Mensajes correctos:
+
+- `Comprobando que lo último realizado corresponde y quedó bien en runtime`
+- `Revalidando el cierre anterior para distinguir si el problema es regresión real, caché o despliegue`
+
+Mensajes a evitar en fase diagnóstica:
+
+- `voy a revisar el flujo`
+- `voy a investigar`
+- `voy a bajar al detalle`
+
+si todavía no existe evidencia de que el cierre previo falló realmente.
+
+Corolario documental:
+
+- los archivos de memoria viva no deben editarse en fase de exploración diagnóstica
+- sólo se actualizan cuando el estado real ya quedó confirmado, corregido o descartado
+
 ## Antes de Implementar
 
 Antes de escribir codigo, debe quedar claro:
