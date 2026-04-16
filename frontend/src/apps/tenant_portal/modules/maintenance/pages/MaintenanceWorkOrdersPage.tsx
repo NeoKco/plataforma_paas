@@ -138,6 +138,14 @@ function upsertWorkOrderRow(
   return rows.map((row) => (row.id === item.id ? item : row));
 }
 
+function resolveWorkOrderTaskTypeId(
+  item: Pick<TenantMaintenanceWorkOrder, "id" | "task_type_id">,
+  taskTypeOverridesById: Record<number, number | null>
+): number | null {
+  const override = taskTypeOverridesById[item.id];
+  return override !== undefined ? override : item.task_type_id;
+}
+
 function getConflictReasons(
   left: Pick<
     TenantMaintenanceWorkOrder,
@@ -253,6 +261,7 @@ export function MaintenanceWorkOrdersPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [taskTypeOverridesById, setTaskTypeOverridesById] = useState<Record<number, number | null>>({});
   const [requestedCreateHandled, setRequestedCreateHandled] = useState(false);
   const [form, setForm] = useState<TenantMaintenanceWorkOrderWriteRequest>(buildDefaultForm());
   const [isRescheduleMode, setIsRescheduleMode] = useState(false);
@@ -523,7 +532,27 @@ export function MaintenanceWorkOrdersPage() {
           getTenantBusinessWorkGroupMembers(session.accessToken as string, group.id)
         )
       );
-      setRows(workOrdersResponse.data);
+      setRows(
+        workOrdersResponse.data.map((item) => {
+          const override = taskTypeOverridesById[item.id];
+          if (override === undefined || item.task_type_id !== null) {
+            return item;
+          }
+          return {
+            ...item,
+            task_type_id: override,
+          };
+        })
+      );
+      setTaskTypeOverridesById((current) => {
+        const next = { ...current };
+        workOrdersResponse.data.forEach((item) => {
+          if (next[item.id] !== undefined && item.task_type_id === next[item.id]) {
+            delete next[item.id];
+          }
+        });
+        return next;
+      });
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
@@ -563,7 +592,7 @@ export function MaintenanceWorkOrdersPage() {
 
   useEffect(() => {
     void loadData();
-  }, [session?.accessToken]);
+  }, [session?.accessToken, taskTypeOverridesById]);
 
   useEffect(() => {
     if (!isLoading && requestedMode === "create" && !requestedCreateHandled) {
@@ -657,10 +686,12 @@ export function MaintenanceWorkOrdersPage() {
   }
 
   function getTaskTypeLabel(item: Pick<TenantMaintenanceWorkOrder, "task_type_id">): string {
-    if (!item.task_type_id) {
+    const resolvedTaskTypeId =
+      "id" in item ? resolveWorkOrderTaskTypeId(item, taskTypeOverridesById) : item.task_type_id;
+    if (!resolvedTaskTypeId) {
       return t("Sin tipo", "No task type");
     }
-    return taskTypeById.get(item.task_type_id)?.name || `#${item.task_type_id}`;
+    return taskTypeById.get(resolvedTaskTypeId)?.name || `#${resolvedTaskTypeId}`;
   }
 
   function getTechnicianFunctionProfileLabel(
@@ -703,7 +734,7 @@ export function MaintenanceWorkOrdersPage() {
       client_id: item.client_id,
       site_id: item.site_id,
       installation_id: item.installation_id,
-      task_type_id: item.task_type_id,
+      task_type_id: resolveWorkOrderTaskTypeId(item, taskTypeOverridesById),
       assigned_work_group_id: item.assigned_work_group_id,
       external_reference: item.external_reference,
       title: item.title,
@@ -792,7 +823,19 @@ export function MaintenanceWorkOrdersPage() {
       const response = editingId
         ? await updateTenantMaintenanceWorkOrder(session.accessToken, editingId, payload)
         : await createTenantMaintenanceWorkOrder(session.accessToken, payload);
-      setRows((current) => upsertWorkOrderRow(current, response.data));
+      const resolvedTaskTypeId = payload.task_type_id ?? null;
+      if (editingId !== null) {
+        setTaskTypeOverridesById((current) => ({
+          ...current,
+          [editingId]: resolvedTaskTypeId,
+        }));
+      }
+      setRows((current) =>
+        upsertWorkOrderRow(current, {
+          ...response.data,
+          task_type_id: response.data.task_type_id ?? resolvedTaskTypeId,
+        })
+      );
       let feedbackMessage = response.message;
       if (
         editingId &&
