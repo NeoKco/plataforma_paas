@@ -318,6 +318,32 @@ function sumCostLines(lines: MaintenanceCostLineFormState[]) {
   );
 }
 
+function getCostLineRawTotal(line: MaintenanceCostLineFormState): number {
+  return normalizeNumericInput(line.quantity) * normalizeNumericInput(line.unit_cost);
+}
+
+function getCostLineSelectionSummary(lines: MaintenanceCostLineFormState[]) {
+  return lines.reduce(
+    (current, line) => {
+      const lineTotal = getCostLineRawTotal(line);
+      if (line.include_in_expense) {
+        current.included_count += 1;
+        current.included_total += lineTotal;
+      } else {
+        current.excluded_count += 1;
+        current.excluded_total += lineTotal;
+      }
+      return current;
+    },
+    {
+      included_count: 0,
+      included_total: 0,
+      excluded_count: 0,
+      excluded_total: 0,
+    }
+  );
+}
+
 function getSuggestedPriceForEstimateData(
   estimate: TenantMaintenanceCostEstimate | null | undefined,
   estimateLines: TenantMaintenanceCostLine[] | null | undefined
@@ -761,6 +787,14 @@ export function MaintenanceCostingModal({
   }, [activeCostTemplates, taskTypeId]);
   const estimateLineTotals = useMemo(() => sumCostLines(estimateLines), [estimateLines]);
   const actualLineTotals = useMemo(() => sumCostLines(actualLines), [actualLines]);
+  const estimateLineSelectionSummary = useMemo(
+    () => getCostLineSelectionSummary(estimateLines),
+    [estimateLines]
+  );
+  const actualLineSelectionSummary = useMemo(
+    () => getCostLineSelectionSummary(actualLines),
+    [actualLines]
+  );
   const estimateUsesLines = estimateLines.length > 0;
   const actualUsesLines = actualLines.length > 0;
   const estimatedTotalPreview = useMemo(
@@ -1220,6 +1254,20 @@ export function MaintenanceCostingModal({
     );
   }
 
+  function setAllEstimateLinesExpense(value: boolean) {
+    if (isReadOnly) {
+      return;
+    }
+    setEstimateLines((current) => current.map((line) => ({ ...line, include_in_expense: value })));
+  }
+
+  function setAllActualLinesExpense(value: boolean) {
+    if (isReadOnly) {
+      return;
+    }
+    setActualLines((current) => current.map((line) => ({ ...line, include_in_expense: value })));
+  }
+
   function removeEstimateLine(index: number) {
     if (isReadOnly) {
       return;
@@ -1600,10 +1648,12 @@ export function MaintenanceCostingModal({
 
   function renderLineEditor(
     lines: MaintenanceCostLineFormState[],
+    summary: ReturnType<typeof getCostLineSelectionSummary>,
     onAdd: () => void,
     onUpdate: (index: number, key: MaintenanceEditableCostLineKey, value: string) => void,
     onToggleExpense: (index: number, value: boolean) => void,
     onRemove: (index: number) => void,
+    onSetAllExpense?: (value: boolean) => void,
     readOnly = false,
     showExpenseToggle = true
   ) {
@@ -1624,11 +1674,38 @@ export function MaintenanceCostingModal({
                 ? "Solo las líneas marcadas como egreso se suman al costo y a Finanzas."
                 : "Only lines marked as expense are included in totals and Finance sync."}
             </div>
+            {lines.length > 0 ? (
+              <div className="maintenance-history-entry__meta mt-1">
+                {language === "es"
+                  ? `Incluidas: ${summary.included_count} · ${summary.included_total.toFixed(2)} · Excluidas: ${summary.excluded_count} · ${summary.excluded_total.toFixed(2)}`
+                  : `Included: ${summary.included_count} · ${summary.included_total.toFixed(2)} · Excluded: ${summary.excluded_count} · ${summary.excluded_total.toFixed(2)}`}
+              </div>
+            ) : null}
           </div>
           {!readOnly ? (
-            <button className="btn btn-sm btn-outline-primary" type="button" onClick={onAdd}>
-              {language === "es" ? "Agregar línea" : "Add line"}
-            </button>
+            <div className="d-flex flex-wrap gap-2 justify-content-end">
+              {showExpenseToggle && lines.length > 0 && onSetAllExpense ? (
+                <>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    onClick={() => onSetAllExpense(true)}
+                  >
+                    {language === "es" ? "Marcar todas" : "Include all"}
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    onClick={() => onSetAllExpense(false)}
+                  >
+                    {language === "es" ? "Excluir todas" : "Exclude all"}
+                  </button>
+                </>
+              ) : null}
+              <button className="btn btn-sm btn-outline-primary" type="button" onClick={onAdd}>
+                {language === "es" ? "Agregar línea" : "Add line"}
+              </button>
+            </div>
           ) : null}
         </div>
         {lines.length === 0 ? (
@@ -1640,8 +1717,7 @@ export function MaintenanceCostingModal({
         ) : (
           <div className="maintenance-cost-lines__items">
             {lines.map((line, index) => {
-              const lineTotal =
-                normalizeNumericInput(line.quantity) * normalizeNumericInput(line.unit_cost);
+              const lineTotal = getCostLineRawTotal(line);
               return (
                 <div className="maintenance-cost-lines__item" key={line.id ?? `new-${index}`}>
                   <div className="row g-3">
@@ -1722,6 +1798,15 @@ export function MaintenanceCostingModal({
                           <label className="form-check-label">
                             {language === "es" ? "Considerar" : "Include"}
                           </label>
+                        </div>
+                        <div className="form-text">
+                          {line.include_in_expense
+                            ? language === "es"
+                              ? "Impacta el egreso y la sync con Finanzas."
+                              : "Included in expense and Finance sync."
+                            : language === "es"
+                              ? "No se enviará como egreso."
+                              : "Will not be synced as expense."}
                         </div>
                       </div>
                     ) : null}
@@ -1949,10 +2034,12 @@ export function MaintenanceCostingModal({
                       <div className="col-12">
                         {renderLineEditor(
                           estimateLines,
+                          estimateLineSelectionSummary,
                           addEstimateLine,
                           updateEstimateLine,
                           toggleEstimateLineExpense,
                           removeEstimateLine,
+                          setAllEstimateLinesExpense,
                           isReadOnly,
                           false
                         )}
@@ -2090,10 +2177,12 @@ export function MaintenanceCostingModal({
                     <div className="col-12">
                       {renderLineEditor(
                         actualLines,
+                        actualLineSelectionSummary,
                         addActualLine,
                         updateActualLine,
                         toggleActualLineExpense,
                         removeActualLine,
+                        setAllActualLinesExpense,
                         isReadOnly
                       )}
                     </div>
