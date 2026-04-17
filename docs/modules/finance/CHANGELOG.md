@@ -2,6 +2,25 @@
 
 Resumen curado de hitos del módulo `finance`.
 
+## 2026-04
+
+### Incidente cerrado: adjuntos por transacción en runtime productivo
+
+- se corrigió un incidente real en `ieris-ltda` donde subir adjuntos a transacciones devolvía `500 Internal Server Error`
+- la causa no fue tenant-local ni frontend:
+  - `production` seguía ejecutando un `settings.py` viejo en `/opt/platform_paas/backend`
+  - ese runtime apuntaba a la ruta legacy bajo `apps/tenant_modules/finance/storage/attachments`
+  - el repo ya estaba corregido hacia storage compartido
+- se promovió el backend real desde repo a runtime y se redeployó en `staging` y `production`
+- el storage efectivo de adjuntos queda declarado como:
+  - [backend/storage/finance_attachments](/home/felipe/platform_paas/backend/storage/finance_attachments)
+- validación real posterior:
+  - upload HTTP sobre `POST /tenant/finance/transactions/{transaction_id}/attachments` -> `200 OK`
+  - conteo de adjuntos en detalle de transacción -> actualizado correctamente
+- lección operativa:
+  - `repo != runtime`
+  - un fix backend no se da por cerrado hasta promoverlo y redeployarlo en el ambiente afectado
+
 ## 2026-03
 
 ### Estructura y catálogos
@@ -21,7 +40,7 @@ Resumen curado de hitos del módulo `finance`.
 
 - se incorporaron adjuntos reales por transacción
 - el frontend comprime imágenes antes de subir
-- el storage final del módulo quedó en [attachments](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/storage/attachments)
+- el storage final del módulo queda en [backend/storage/finance_attachments](/home/felipe/platform_paas/backend/storage/finance_attachments)
 
 ### Importación legacy
 

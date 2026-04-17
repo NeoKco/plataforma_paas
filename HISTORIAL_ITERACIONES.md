@@ -1,5 +1,40 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-16 - Cierre del incidente finance attachments en ieris-ltda por drift repo/runtime
+
+- objetivo:
+  - corregir el error `Internal server error` al subir adjuntos en `Finanzas -> Transacciones` dentro de `ieris-ltda`
+  - validar si el fallo era tenant-local, de permisos o de runtime backend desalineado
+- cambios principales:
+  - se confirmó con repro HTTP real que `POST /tenant/finance/transactions/{id}/attachments` fallaba en `production` con `500`
+  - se confirmó en el journal productivo que la excepción real era `PermissionError`
+  - la causa fue drift runtime:
+    - el repo ya tenía [settings.py](/home/felipe/platform_paas/backend/app/common/config/settings.py) apuntando a `BASE_DIR / "storage" / "finance_attachments"`
+    - `production` seguía ejecutando un `settings.py` viejo en `/opt/platform_paas/backend/app/common/config/settings.py` que usaba la ruta legacy bajo `apps/tenant_modules/finance/storage/attachments`
+  - se promovió el backend real desde repo hacia:
+    - `/opt/platform_paas/backend`
+    - `/opt/platform_paas_staging/backend`
+  - luego se redeployó backend en ambos ambientes
+- validaciones:
+  - `bash deploy/deploy_backend_production.sh` -> `527 tests OK`
+  - `bash deploy/deploy_backend_staging.sh` -> `527 tests OK`
+  - verificación runtime en `production`:
+    - `FINANCE_ATTACHMENTS_DIR=/opt/platform_paas/storage/finance_attachments`
+    - `MAINTENANCE_EVIDENCE_DIR=/opt/platform_paas/storage/maintenance_evidence`
+  - repro HTTP real posterior en `production`:
+    - `POST /tenant/finance/transactions/19/attachments` -> `200 OK`
+    - `GET /tenant/finance/transactions/19` -> `attachment_count=1`
+  - limpieza posterior:
+    - `DELETE /tenant/finance/transactions/19/attachments/2` -> `Adjunto de transaccion eliminado correctamente`
+- resultado:
+  - `ieris-ltda` volvió a permitir upload de archivos en transacciones financieras
+  - el incidente no era de datos tenant ni de frontend; era backend runtime desactualizado
+  - queda reforzada la regla operativa:
+    - corregir en repo no basta
+    - hay que promover a runtime y redeployar antes de dar un fix backend por cerrado
+- siguiente paso:
+  - mantener la promoción repo -> runtime como parte explícita de los incidentes backend hasta automatizar completamente ese tramo del deploy
+
 ## 2026-04-15 - Saneamiento del historial técnico en ieris-ltda con tipo, grupo y responsable
 
 - objetivo:

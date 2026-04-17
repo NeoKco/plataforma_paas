@@ -174,7 +174,7 @@ Estado del cierre ampliado:
 - `Transacciones` ya incorpora además anulacion blanda para corregir errores sin perder historia operativa
 - ya existe tooling real para preparar e importar CSV legacy de egresos con compresion offline de imagenes y carga idempotente sobre `finance_transactions`
 - ese flujo deja perfil editable, CSV normalizado, staging de imagenes comprimidas y reporte de importacion para pruebas de volumen sobre tenants reales
-- el almacenamiento real de adjuntos del módulo queda ahora dentro de `backend/app/apps/tenant_modules/finance/storage/attachments/`
+- el almacenamiento real de adjuntos del módulo queda ahora dentro de `backend/storage/finance_attachments/`
 - `Presupuestos` ya soporta plantillas operativas con escala porcentual y redondeo por múltiplo, además de clonación y ajuste guiado
 - `Préstamos` ya devuelve lectura contable derivada más densa con contrapartida, tipo de préstamo, cuota asociada y efecto firmado en exportaciones/tabla
 - `Reportes` y `Planificación` ya cierran con charts comparativos adicionales para lectura ejecutiva del período, horizonte y presión mensual

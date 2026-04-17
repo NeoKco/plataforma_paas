@@ -31,8 +31,8 @@ Capas principales:
   Dinero, fechas, exportaciones, adjuntos, imports y filtros.
 - `docs/`
   Documentación técnica detallada.
-- `storage/attachments/`
-  Storage real de adjuntos del módulo.
+- [backend/storage/finance_attachments](/home/felipe/platform_paas/backend/storage/finance_attachments)
+  Storage real compartido de adjuntos financieros.
 
 ### Frontend
 
@@ -85,7 +85,7 @@ Smokes vigentes:
 - `/tenant/finance/entries` sigue solo como compatibilidad legacy.
 - Transacciones no se borran físicamente; se anulan.
 - Catálogos se eliminan solo con `delete seguro`; si hay referencias, se bloquea.
-- Adjuntos del módulo viven dentro del propio backend del módulo, no en carpetas externas de staging.
+- Adjuntos del módulo viven en storage compartido del backend, no dentro de rutas legacy bajo `apps/tenant_modules/finance/storage`.
 - Las imágenes adjuntas se comprimen en frontend antes del upload y se normalizan a `image/webp`.
 - La moneda base afecta formateo y lectura agregada, pero no recalcula histórico automáticamente.
 - Las marcas de tiempo del backend se guardan en UTC o con zona válida; los formularios `datetime-local` del frontend deben convertir a valor local con helper dedicado y no con `toISOString().slice(...)` directo, porque eso adelanta la hora visible y termina guardando desfases operativos de varias horas.

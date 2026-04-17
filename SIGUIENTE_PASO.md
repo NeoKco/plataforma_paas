@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente ajuste fino de `finance`; el slice de `Mantenciones abiertas -> Tipo de tarea` en `ieris-ltda` ya quedó cerrado de punta a punta y no requiere más trabajo salvo nueva regresión reproducible
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente ajuste fino de `finance`; el slice de `Mantenciones abiertas -> Tipo de tarea` en `ieris-ltda` y el incidente `finance -> adjuntos por transacción` ya quedaron cerrados de punta a punta y no requieren más trabajo salvo nueva regresión reproducible
 - en `finance`, la semántica de cabecera ya quedó corregida: la tarjeta superior debe leerse como caja disponible (`Saldo total en cuentas`) y no como neto operativo (`Ingresos - Egresos`)
 
 ## Decisión previa obligatoria
@@ -41,6 +41,10 @@
   - `/home/felipe/platform_paas`
   - `/opt/platform_paas_staging`
   - `/opt/platform_paas`
+- si el bug es de upload/download de adjuntos, verificar además:
+  - valor efectivo de `FINANCE_ATTACHMENTS_DIR`
+  - permisos reales del directorio compartido bajo `/opt/platform_paas/backend/storage` o `/opt/platform_paas_staging/backend/storage`
+  - que el backend desplegado no siga usando rutas legacy dentro de `apps/tenant_modules/.../storage`
 - verificar luego si el problema es tenant-local:
   - credenciales DB tenant
   - password DB tenant ausente

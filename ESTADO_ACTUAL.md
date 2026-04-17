@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-16
-- foco de iteración: cerrar correctamente el slice de `Mantenciones abiertas -> tipo de tarea` en `ieris-ltda`, confirmar que el runtime productivo ya refleja el valor persistido y dejar la regla de revalidación escrita en la gobernanza
-- estado general: `production` y `staging` siguen alineados para `maintenance -> finance`, `finance` y `platform-core`; además, `maintenance` ya permite editar `tipo de tarea`, `grupo` y `responsable`, y el problema visible de `Tipo de tarea` en `Mantenciones abiertas` quedó cerrado en runtime tras publicar frontend limpio y endurecer `fetch` con `cache: no-store`
+- foco de iteración: cerrar correctamente el incidente de `finance -> adjuntos por transacción` en `ieris-ltda`, confirmar que el runtime productivo ya usa el storage compartido correcto y dejar la memoria viva alineada con la causa real repo/runtime
+- estado general: `production` y `staging` siguen alineados para `maintenance -> finance`, `finance` y `platform-core`; además, `maintenance` ya permite editar `tipo de tarea`, `grupo` y `responsable`, y `finance` volvió a permitir carga de adjuntos por transacción tras corregir un drift runtime en backend
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -129,6 +129,16 @@
   - `empresa-bootstrap`: OK
   - `empresa-demo`: OK
   - `ieris-ltda`: OK
+- el incidente de `finance attachments` en `ieris-ltda` quedó cerrado:
+  - el repo local ya tenía `FINANCE_ATTACHMENTS_DIR = BASE_DIR / "storage" / "finance_attachments"`
+  - `production` seguía ejecutando un `settings.py` viejo en `/opt/platform_paas/backend`, apuntando a la ruta legacy del módulo
+  - se promovió el backend real desde repo a runtime
+  - se redeployó `staging` y `production`
+  - se validó en `production` con subida HTTP real sobre `POST /tenant/finance/transactions/{id}/attachments`
+  - el adjunto de prueba se eliminó después de confirmar `attachment_count=1`
+- lección operativa cerrada:
+  - `repo != runtime`
+  - un fix backend no queda realmente activo hasta promover código a `/opt/platform_paas_staging` o `/opt/platform_paas` y redeployar
 - `production` volvió a quedar verificado con auditoría crítica en tenants activos después de rotar otra vez las credenciales DB tenant de `condominio-demo`:
   - `condominio-demo`: OK
   - `empresa-bootstrap`: OK
