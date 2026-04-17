@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-17
-- foco de iteración: cerrar correctamente el subcorte `finance -> resumen de cabecera`, mover `Saldo total en cuentas` al backend, separar `Resultado neto` y dejar la memoria viva alineada al estado final ya promovido
-- estado general: `production` y `staging` siguen alineados para `maintenance -> finance`, `finance` y `platform-core`; además, `maintenance` ya permite editar `tipo de tarea`, `grupo` y `responsable`, `finance` volvió a permitir carga de adjuntos por transacción tras corregir un drift runtime en backend y la cabecera financiera ya separa `Resultado neto` de `Saldo total en cuentas`
+- foco de iteración: cerrar correctamente el subcorte `maintenance -> finance` ya promovido, dejar explícita la salud del vínculo financiero en `Historial técnico`, confirmar en runtime el cierre de `Mantenciones abiertas -> Tipo de tarea` y alinear la memoria viva al siguiente slice real del roadmap
+- estado general: `production` y `staging` siguen alineados para `maintenance -> finance`, `finance` y `platform-core`; además, `maintenance` ya permite editar `tipo de tarea`, `grupo` y `responsable`, `finance` volvió a permitir carga de adjuntos por transacción tras corregir un drift runtime en backend, la cabecera financiera ya separa `Resultado neto` de `Saldo total en cuentas` y `Historial técnico` ya distingue si el vínculo con Finanzas quedó sincronizado, conciliado, anulado o incompleto
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -46,6 +46,13 @@
 - `MaintenanceHistoryPage` quedó blindada para OTs antiguas o tenants con payload histórico parcial:
   - usa `finance_summary` con fallback seguro
   - evita crash aunque una fila histórica no traiga ese bloque
+- el subcorte fino `maintenance -> finance` ya avanzó un paso más:
+  - el costeo distingue con más claridad qué líneas salen o no a egreso
+  - `Historial técnico` ya muestra la salud del vínculo financiero por OT:
+    - sincronizada
+    - conciliada
+    - anulada
+    - incompleta por falta de cuenta/categoría
 - la cabecera de `Finanzas` ya distingue dos lecturas correctas:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de saldos visibles por cuenta
@@ -53,10 +60,11 @@
   - ahora lo calcula backend en `FinanceTransactionService.get_summary()`
   - excluye cuentas con balance oculto
   - si hay múltiples monedas visibles, suma solo las cuentas en moneda base y deja hint explícito
-- frontend runtime verificado en ambos ambientes con bundles nuevos:
-  - `FinanceTransactionsPage-CCySqCy2.js`
-  - `MaintenanceWorkOrdersPage-B8uqEDuN.js`
-  - `index-C2X3sCDT.js`
+- frontend runtime verificado en ambos ambientes con bundles nuevos del slice ya validado:
+  - `MaintenanceHistoryPage-DapWCc8C.js`
+  - `MaintenanceWorkOrdersPage-2pmupwlO.js`
+  - `historyService-ClRr6cB3.js`
+  - `index-C_BzNZKp.js`
 - el problema visible de `Mantenciones abiertas -> Tipo de tarea` en `ieris-ltda` quedó resuelto:
   - backend y DB ya persistían bien `task_type_id`
   - el fallo era runtime frontend/caché
@@ -102,6 +110,14 @@
   - `Saldo total en cuentas` desde `summary.total_account_balance`
   - manteniendo el hint visual de monedas mixtas a partir de `accountBalances`
 - [TenantFinancePageLegacy.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/finance/TenantFinancePageLegacy.tsx) deja de mostrar una tarjeta `Balance` ambigua y pasa a `Resultado neto`
+- [history.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/history.py) extiende `finance_summary` para exponer si el ingreso/egreso vinculado quedó:
+  - conciliado
+  - anulado
+  - con cuenta presente
+  - con categoría presente
+- [history_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/history_service.py) ahora cruza las OT cerradas con `finance_transactions` para enriquecer el resumen financiero del historial
+- [MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx) muestra esa salud financiera directamente en la tarjeta de historial y dentro de la ficha, sin depender solo del modal financiero
+- [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) ya deja más explícito qué líneas salen a egreso y cuáles quedan fuera del costo financiero
 - validación de promoción del slice:
   - `deploy_backend_staging.sh` -> `527 tests OK`
   - `deploy_backend_production.sh` -> `527 tests OK`

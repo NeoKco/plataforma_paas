@@ -34,6 +34,14 @@ export type TenantMaintenanceHistoryFinanceSummary = {
   income_transaction_id: number | null;
   expense_transaction_id: number | null;
   finance_synced_at: string | null;
+  income_is_reconciled: boolean;
+  expense_is_reconciled: boolean;
+  income_is_voided: boolean;
+  expense_is_voided: boolean;
+  income_has_account: boolean;
+  expense_has_account: boolean;
+  income_has_category: boolean;
+  expense_has_category: boolean;
 };
 
 export type TenantMaintenanceHistoryWorkOrder = {
@@ -111,6 +119,14 @@ export function getTenantMaintenanceHistory(
         income_transaction_id: null,
         expense_transaction_id: null,
         finance_synced_at: null,
+        income_is_reconciled: false,
+        expense_is_reconciled: false,
+        income_is_voided: false,
+        expense_is_voided: false,
+        income_has_account: false,
+        expense_has_account: false,
+        income_has_category: false,
+        expense_has_category: false,
         ...(item.finance_summary ?? {}),
       },
       status_logs: item.status_logs ?? [],

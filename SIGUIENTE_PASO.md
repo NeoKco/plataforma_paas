@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente ajuste fino de `finance`; el slice de `Mantenciones abiertas -> Tipo de tarea` en `ieris-ltda`, el incidente `finance -> adjuntos por transacción` y la corrección de cabecera `Resultado neto` + `Saldo total en cuentas` ya quedaron cerrados de punta a punta y no requieren más trabajo salvo nueva regresión reproducible
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente ajuste fino real de `maintenance -> finance`; el slice de `Mantenciones abiertas -> Tipo de tarea` en `ieris-ltda`, el incidente `finance -> adjuntos por transacción`, la corrección de cabecera `Resultado neto` + `Saldo total en cuentas` y la salud visible del vínculo financiero en `Historial técnico` ya quedaron cerrados de punta a punta y no requieren más trabajo salvo nueva regresión reproducible
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -23,9 +23,10 @@
   - auditoría `production`
   - documentación viva cerrada
 - siguiente subcorte funcional recomendado:
-  - endurecer hints/controles de egreso seleccionable para que el operador vea con claridad qué líneas sí salen a egreso y cuáles no
-  - revisar si conviene un endpoint atómico `close-with-costs` para evitar cualquier drift futuro entre `cost-actual`, `status` y `finance_sync`
-  - dejar visible en la ficha/historial si la transacción financiera vinculada quedó conciliada, anulada o sin cuenta/categoría
+  - evaluar si conviene un endpoint atómico `close-with-costs` para evitar cualquier drift futuro entre `cost-actual`, `status` y `finance_sync`
+  - endurecer todavía más la UX del cierre financiero de mantenciones:
+    - que el operador vea de forma inequívoca qué líneas entran al egreso
+    - que se refleje mejor el impacto por cuenta/categoría antes de cerrar
   - revisar si conviene mostrar badges de completitud operativa en `Historial técnico` cuando una mantención antigua aún no tiene `visitas`, `logs` o datos de cierre homogéneos
 - mantener como regla ya cerrada del lifecycle tenant:
   - no borrar tenant archivado/unprovisioned sin export portable completado del mismo tenant

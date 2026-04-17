@@ -186,6 +186,35 @@ function getFinanceStatusLabel(
   language: "es" | "en"
 ): string {
   const financeSummary = getFinanceSummary(item);
+  if (
+    financeSummary.income_is_voided ||
+    financeSummary.expense_is_voided
+  ) {
+    return pickLocalizedText(language, {
+      es: "Finance anulada",
+      en: "Finance voided",
+    });
+  }
+  if (
+    (financeSummary.income_transaction_id != null &&
+      (!financeSummary.income_has_account || !financeSummary.income_has_category)) ||
+    (financeSummary.expense_transaction_id != null &&
+      (!financeSummary.expense_has_account || !financeSummary.expense_has_category))
+  ) {
+    return pickLocalizedText(language, {
+      es: "Finance incompleta",
+      en: "Finance incomplete",
+    });
+  }
+  if (
+    (financeSummary.income_transaction_id != null && financeSummary.income_is_reconciled) ||
+    (financeSummary.expense_transaction_id != null && financeSummary.expense_is_reconciled)
+  ) {
+    return pickLocalizedText(language, {
+      es: "Finance conciliada",
+      en: "Finance reconciled",
+    });
+  }
   if (financeSummary.is_synced_to_finance) {
     return pickLocalizedText(language, { es: "Finance OK", en: "Finance OK" });
   }
@@ -197,8 +226,19 @@ function getFinanceStatusLabel(
 
 function getFinanceStatusTone(
   item: TenantMaintenanceHistoryWorkOrder
-): "success" | "warning" | "neutral" {
+): "success" | "warning" | "danger" | "neutral" {
   const financeSummary = getFinanceSummary(item);
+  if (financeSummary.income_is_voided || financeSummary.expense_is_voided) {
+    return "danger";
+  }
+  if (
+    (financeSummary.income_transaction_id != null &&
+      (!financeSummary.income_has_account || !financeSummary.income_has_category)) ||
+    (financeSummary.expense_transaction_id != null &&
+      (!financeSummary.expense_has_account || !financeSummary.expense_has_category))
+  ) {
+    return "warning";
+  }
   if (financeSummary.is_synced_to_finance) {
     return "success";
   }
@@ -215,8 +255,98 @@ function getFinanceSummary(item?: TenantMaintenanceHistoryWorkOrder | null) {
     income_transaction_id: null,
     expense_transaction_id: null,
     finance_synced_at: null,
+    income_is_reconciled: false,
+    expense_is_reconciled: false,
+    income_is_voided: false,
+    expense_is_voided: false,
+    income_has_account: false,
+    expense_has_account: false,
+    income_has_category: false,
+    expense_has_category: false,
     ...(item?.finance_summary ?? {}),
   };
+}
+
+function getFinanceTransactionHealthLabel(
+  transactionType: "income" | "expense",
+  item: TenantMaintenanceHistoryWorkOrder,
+  language: "es" | "en"
+): string | null {
+  const financeSummary = getFinanceSummary(item);
+  const isLinked =
+    transactionType === "income"
+      ? financeSummary.income_transaction_id != null
+      : financeSummary.expense_transaction_id != null;
+  if (!isLinked) {
+    return null;
+  }
+  const isVoided =
+    transactionType === "income"
+      ? financeSummary.income_is_voided
+      : financeSummary.expense_is_voided;
+  if (isVoided) {
+    return pickLocalizedText(language, { es: "Anulada", en: "Voided" });
+  }
+  const hasAccount =
+    transactionType === "income"
+      ? financeSummary.income_has_account
+      : financeSummary.expense_has_account;
+  const hasCategory =
+    transactionType === "income"
+      ? financeSummary.income_has_category
+      : financeSummary.expense_has_category;
+  if (!hasAccount || !hasCategory) {
+    return pickLocalizedText(language, {
+      es: `Incompleta${!hasAccount && !hasCategory ? " (sin cuenta/categoría)" : !hasAccount ? " (sin cuenta)" : " (sin categoría)"}`,
+      en: `Incomplete${!hasAccount && !hasCategory ? " (missing account/category)" : !hasAccount ? " (missing account)" : " (missing category)"}`,
+    });
+  }
+  const isReconciled =
+    transactionType === "income"
+      ? financeSummary.income_is_reconciled
+      : financeSummary.expense_is_reconciled;
+  if (isReconciled) {
+    return pickLocalizedText(language, { es: "Conciliada", en: "Reconciled" });
+  }
+  return pickLocalizedText(language, { es: "Sincronizada", en: "Synced" });
+}
+
+function getFinanceDimensionGapLabel(
+  transactionType: "income" | "expense",
+  item: TenantMaintenanceHistoryWorkOrder,
+  language: "es" | "en"
+): string | null {
+  const financeSummary = getFinanceSummary(item);
+  const isLinked =
+    transactionType === "income"
+      ? financeSummary.income_transaction_id != null
+      : financeSummary.expense_transaction_id != null;
+  if (!isLinked) {
+    return null;
+  }
+  const hasAccount =
+    transactionType === "income"
+      ? financeSummary.income_has_account
+      : financeSummary.expense_has_account;
+  const hasCategory =
+    transactionType === "income"
+      ? financeSummary.income_has_category
+      : financeSummary.expense_has_category;
+  if (hasAccount && hasCategory) {
+    return null;
+  }
+  return pickLocalizedText(language, {
+    es: !hasAccount && !hasCategory
+      ? "sin cuenta y categoría"
+      : !hasAccount
+        ? "sin cuenta"
+        : "sin categoría",
+    en: !hasAccount && !hasCategory
+      ? "missing account and category"
+      : !hasAccount
+        ? "missing account"
+        : "missing category",
+  });
 }
 
 function buildFinanceTransactionLink(
@@ -887,6 +1017,24 @@ export function MaintenanceHistoryPage() {
                         language,
                         effectiveTimeZone
                       )}
+                    </div>
+                  ) : null}
+                  {getFinanceSummary(item).income_transaction_id != null ? (
+                    <div className="maintenance-cell__meta">
+                      {t("Ingreso", "Income")}:{" "}
+                      {getFinanceTransactionHealthLabel("income", item, language)}
+                      {getFinanceDimensionGapLabel("income", item, language)
+                        ? ` · ${getFinanceDimensionGapLabel("income", item, language)}`
+                        : ""}
+                    </div>
+                  ) : null}
+                  {getFinanceSummary(item).expense_transaction_id != null ? (
+                    <div className="maintenance-cell__meta">
+                      {t("Egreso", "Expense")}:{" "}
+                      {getFinanceTransactionHealthLabel("expense", item, language)}
+                      {getFinanceDimensionGapLabel("expense", item, language)
+                        ? ` · ${getFinanceDimensionGapLabel("expense", item, language)}`
+                        : ""}
                     </div>
                   ) : null}
                   {getFinanceSummary(item).income_transaction_id != null ||

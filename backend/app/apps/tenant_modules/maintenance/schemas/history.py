@@ -39,6 +39,14 @@ class MaintenanceHistoryFinanceSummaryResponse(BaseModel):
     income_transaction_id: int | None = None
     expense_transaction_id: int | None = None
     finance_synced_at: datetime | None = None
+    income_is_reconciled: bool = False
+    expense_is_reconciled: bool = False
+    income_is_voided: bool = False
+    expense_is_voided: bool = False
+    income_has_account: bool = False
+    expense_has_account: bool = False
+    income_has_category: bool = False
+    expense_has_category: bool = False
 
 
 class MaintenanceHistoryWorkOrderItemResponse(BaseModel):

@@ -1,5 +1,20 @@
 # Maintenance Changelog
 
+## 2026-04-17
+
+- `Historial técnico` ya deja visible la salud real del vínculo financiero por mantención:
+  - conciliada
+  - anulada
+  - incompleta por falta de cuenta/categoría
+  - pendiente
+- backend extiende `finance_summary` del historial con estado financiero detallado usando las `finance_transactions` reales ya vinculadas a cada OT cerrada
+- `MaintenanceHistoryPage` muestra ese estado directamente en la tarjeta y en la ficha de la mantención, sin obligar a entrar primero a Finanzas
+- `Costos y cobro` refuerza la lectura de qué líneas salen a egreso y cuáles quedan fuera del costo financiero sincronizable
+- validación:
+  - `python3 -m py_compile backend/app/apps/tenant_modules/maintenance/services/history_service.py backend/app/apps/tenant_modules/maintenance/api/history.py backend/app/apps/tenant_modules/maintenance/schemas/history.py` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+  - frontend republicado en `staging` y `production`
+
 ## 2026-04-15
 
 - `Historial técnico -> Editar cierre` ahora permite ajustar también:

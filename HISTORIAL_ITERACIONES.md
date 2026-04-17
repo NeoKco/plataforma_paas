@@ -1,5 +1,43 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-17 - Cierre del subcorte maintenance -> finance: salud visible del vínculo financiero y UX más clara de egreso
+
+- objetivo:
+  - cerrar el siguiente ajuste fino real entre `maintenance` y `finance` sin abrir un módulo nuevo
+  - dejar visible desde `Historial técnico` si el ingreso/egreso vinculado quedó conciliado, anulado o incompleto
+  - reforzar en la UX del costeo qué líneas sí salen a egreso y cuáles no
+- cambios principales:
+  - [history.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/history.py) extiende `MaintenanceHistoryFinanceSummaryResponse` con estado financiero detallado:
+    - `income_is_reconciled`
+    - `expense_is_reconciled`
+    - `income_is_voided`
+    - `expense_is_voided`
+    - `income_has_account`
+    - `expense_has_account`
+    - `income_has_category`
+    - `expense_has_category`
+  - [history_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/history_service.py) cruza OT cerradas con `finance_transactions` reales para enriquecer `finance_summary`
+  - [MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx) ahora muestra en historial:
+    - `Finance conciliada`
+    - `Finance anulada`
+    - `Finance incompleta`
+    - `Finance pendiente`
+    - además del detalle por ingreso/egreso cuando existe el vínculo
+  - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) refuerza la lectura de líneas que sí/no salen a egreso
+- validaciones:
+  - `python3 -m py_compile backend/app/apps/tenant_modules/maintenance/services/history_service.py backend/app/apps/tenant_modules/maintenance/api/history.py backend/app/apps/tenant_modules/maintenance/schemas/history.py` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+  - frontend publicado en:
+    - `/opt/platform_paas_staging/frontend/dist`
+    - `/opt/platform_paas/frontend/dist`
+- resultado:
+  - `Historial técnico` ya no solo dice si hubo sync financiero; también deja visible la salud operativa del vínculo con Finanzas
+  - el operador puede distinguir si una mantención quedó conciliada, anulada o incompleta sin salir del flujo de mantenimiento
+  - el subcorte queda promovido a `staging` y `production`
+- siguiente paso:
+  - evaluar si conviene un endpoint atómico `close-with-costs`
+  - seguir endureciendo la UX del cierre financiero por línea y el preview de impacto antes del cierre
+
 ## 2026-04-17 - Cierre del subcorte finance summary: Resultado neto + Saldo total en cuentas desde backend
 
 - objetivo:
